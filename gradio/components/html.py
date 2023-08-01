@@ -7,6 +7,7 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
+from gradio.blocks import default
 from gradio.components.base import IOComponent, _Keywords
 from gradio.events import Changeable
 
@@ -26,12 +27,12 @@ class HTML(Changeable, IOComponent, StringSerializable):
 
     def __init__(
         self,
-        value: str | Callable = "",
+        value: str | Callable | None = None,
         *,
         label: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
-        visible: bool = True,
+        visible: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         **kwargs,
@@ -46,6 +47,9 @@ class HTML(Changeable, IOComponent, StringSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        self.value = default(value, "")
+        visible = default(visible, True)
+
         IOComponent.__init__(
             self,
             label=label,
@@ -58,24 +62,3 @@ class HTML(Changeable, IOComponent, StringSerializable):
             **kwargs,
         )
 
-    def get_config(self):
-        return {
-            "value": self.value,
-            **IOComponent.get_config(self),
-        }
-
-    @staticmethod
-    def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        label: str | None = None,
-        show_label: bool | None = None,
-        visible: bool | None = None,
-    ):
-        updated_config = {
-            "label": label,
-            "show_label": show_label,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
-        return updated_config

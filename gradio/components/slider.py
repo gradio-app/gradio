@@ -10,6 +10,7 @@ import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import NumberSerializable
 
+from gradio.blocks import default
 from gradio.components.base import FormComponent, IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Inputable, Releaseable
@@ -40,8 +41,8 @@ class Slider(
 
     def __init__(
         self,
-        minimum: float = 0,
-        maximum: float = 100,
+        minimum: float | None = None,
+        maximum: float | None = None,
         value: float | Callable | None = None,
         *,
         step: float | None = None,
@@ -49,14 +50,14 @@ class Slider(
         info: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
-        container: bool = True,
+        container: bool | None = None,
         scale: int | None = None,
-        min_width: int = 160,
+        min_width: int | None = None,
         interactive: bool | None = None,
-        visible: bool = True,
+        visible: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        randomize: bool = False,
+        randomize: bool | None = None,
         **kwargs,
     ):
         """
@@ -78,6 +79,13 @@ class Slider(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             randomize: If True, the value of the slider when the app loads is taken uniformly at random from the range given by the minimum and maximum.
         """
+        self.minimum = default(minimum, 0)
+        self.maximum = default(maximum, 100)
+        container = default(container, True)
+        min_width = default(min_width, 160)
+        visible = default(visible, True)
+        self.randomize = default(randomize, False)
+
         self.minimum = minimum
         self.maximum = maximum
         if step is None:
@@ -121,15 +129,6 @@ class Slider(
             "serialized": self.minimum,
         }
 
-    def get_config(self):
-        return {
-            "minimum": self.minimum,
-            "maximum": self.maximum,
-            "step": self.step,
-            "value": self.value,
-            **IOComponent.get_config(self),
-        }
-
     def get_random_value(self):
         n_steps = int((self.maximum - self.minimum) / self.step)
         step = random.randint(0, n_steps)
@@ -139,37 +138,6 @@ class Slider(
         if n_decimals:
             value = round(value, n_decimals)
         return value
-
-    @staticmethod
-    def update(
-        value: float | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        minimum: float | None = None,
-        maximum: float | None = None,
-        step: float | None = None,
-        label: str | None = None,
-        info: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-    ):
-        return {
-            "minimum": minimum,
-            "maximum": maximum,
-            "step": step,
-            "label": label,
-            "info": info,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "interactive": interactive,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
 
     def postprocess(self, y: float | None) -> float | None:
         """

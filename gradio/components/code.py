@@ -7,6 +7,7 @@ from typing import Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
+from gradio.blocks import default
 from gradio.components.base import IOComponent, _Keywords
 from gradio.events import Changeable, Inputable
 
@@ -54,14 +55,14 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
         ]
         | None = None,
         *,
-        lines: int = 5,
+        lines: int | None = None,
         label: str | None = None,
         interactive: bool | None = None,
         show_label: bool | None = None,
-        container: bool = True,
+        container: bool | None = None,
         scale: int | None = None,
-        min_width: int = 160,
-        visible: bool = True,
+        min_width: int | None = None,
+        visible: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         **kwargs,
@@ -80,6 +81,11 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        self.lines = default(lines, 5)
+        container = default(container, True)
+        min_width = default(min_width, 160)
+        visible = default(visible, True)
+
         assert language in Code.languages, f"Language {language} not supported."
         self.language = language
         self.lines = lines
@@ -98,14 +104,6 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
             **kwargs,
         )
 
-    def get_config(self):
-        return {
-            "value": self.value,
-            "language": self.language,
-            "lines": self.lines,
-            **IOComponent.get_config(self),
-        }
-
     def postprocess(self, y):
         if y is None:
             return None
@@ -115,43 +113,3 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
         else:
             return y.strip()
 
-    @staticmethod
-    def update(
-        value: str
-        | tuple[str]
-        | None
-        | Literal[_Keywords.NO_VALUE] = _Keywords.NO_VALUE,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-        language: Literal[
-            "python",
-            "markdown",
-            "json",
-            "html",
-            "css",
-            "javascript",
-            "typescript",
-            "yaml",
-            "dockerfile",
-            "shell",
-            "r",
-        ]
-        | None = None,
-        interactive: bool | None = None,
-    ):
-        return {
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "language": language,
-            "interactive": interactive,
-            "__type__": "update",
-        }

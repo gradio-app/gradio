@@ -11,6 +11,7 @@ from gradio_client.serializing import GallerySerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import utils
+from gradio.blocks import default
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
@@ -40,21 +41,21 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         label: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
-        container: bool = True,
+        container: bool | None = None,
         scale: int | None = None,
-        min_width: int = 160,
-        visible: bool = True,
+        min_width: int | None = None,
+        visible: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        columns: int | tuple | None = 2,
+        columns: int | tuple | None = None,
         rows: int | tuple | None = None,
         height: str | None = None,
         preview: bool | None = None,
         object_fit: Literal["contain", "cover", "fill", "none", "scale-down"]
         | None = None,
-        allow_preview: bool = True,
+        allow_preview: bool | None = None,
         show_share_button: bool | None = None,
-        show_download_button: bool | None = True,
+        show_download_button: bool | None = None,
         **kwargs,
     ):
         """
@@ -79,6 +80,13 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             show_download_button: If True, will show a download button in the corner of the selected image. If False, the icon does not appear. Default is True.
 
         """
+        container = default(container, True)
+        min_width = default(min_width, 160)
+        visible = default(visible, True)
+        self.columns = default(columns, 2)
+        self.allow_preview = default(allow_preview, True)
+        self.show_download_button = default(show_download_button, True)
+
         self.grid_cols = columns
         self.grid_rows = rows
         self.height = height
@@ -115,59 +123,6 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             value=value,
             **kwargs,
         )
-
-    @staticmethod
-    def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-        columns: int | tuple | None = None,
-        rows: int | tuple | None = None,
-        height: str | None = None,
-        preview: bool | None = None,
-        object_fit: Literal["contain", "cover", "fill", "none", "scale-down"]
-        | None = None,
-        allow_preview: bool | None = None,
-        show_share_button: bool | None = None,
-        show_download_button: bool | None = None,
-    ):
-        updated_config = {
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "grid_cols": columns,
-            "grid_rows": rows,
-            "height": height,
-            "preview": preview,
-            "object_fit": object_fit,
-            "allow_preview": allow_preview,
-            "show_share_button": show_share_button,
-            "show_download_button": show_download_button,
-            "__type__": "update",
-        }
-        return updated_config
-
-    def get_config(self):
-        return {
-            "value": self.value,
-            "grid_cols": self.grid_cols,
-            "grid_rows": self.grid_rows,
-            "height": self.height,
-            "preview": self.preview,
-            "object_fit": self.object_fit,
-            "allow_preview": self.allow_preview,
-            "show_share_button": self.show_share_button,
-            "show_download_button": self.show_download_button,
-            **IOComponent.get_config(self),
-        }
 
     def postprocess(
         self,

@@ -6,7 +6,7 @@ import json
 from typing import Literal
 
 from gradio_client.documentation import document, set_documentation_group
-
+from gradio.blocks import default
 from gradio.components import Button, Component
 
 set_documentation_group("component")
@@ -26,11 +26,11 @@ class ClearButton(Button):
         self,
         components: None | list[Component] | Component = None,
         *,
-        value: str = "Clear",
-        variant: Literal["primary", "secondary", "stop"] = "secondary",
+        value: str | None = None,
+        variant: Literal["primary", "secondary", "stop"] | None = None,
         size: Literal["sm", "lg"] | None = None,
-        visible: bool = True,
-        interactive: bool = True,
+        visible: bool | None = None,
+        interactive: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         scale: int | None = None,
@@ -49,6 +49,11 @@ class ClearButton(Button):
             min_width=min_width,
             **kwargs,
         )
+        self.value = default(value, "Clear")
+        self.variant = default(variant, "secondary")
+        visible = default(visible, True)
+        self.interactive = default(interactive, True)
+
         self.add(components)
 
     def add(self, components: None | Component | list[Component]) -> ClearButton:

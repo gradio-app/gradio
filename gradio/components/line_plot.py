@@ -8,6 +8,7 @@ import altair as alt
 import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
 
+from gradio.blocks import default
 from gradio.components.base import _Keywords
 from gradio.components.plot import AltairPlot, Plot
 
@@ -69,14 +70,14 @@ class LinePlot(Plot):
         x_lim: list[int] | None = None,
         y_lim: list[int] | None = None,
         caption: str | None = None,
-        interactive: bool | None = True,
+        interactive: bool | None = None,
         label: str | None = None,
         show_label: bool | None = None,
-        container: bool = True,
+        container: bool | None = None,
         scale: int | None = None,
-        min_width: int = 160,
+        min_width: int | None = None,
         every: float | None = None,
-        visible: bool = True,
+        visible: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
     ):
@@ -109,6 +110,11 @@ class LinePlot(Plot):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        self.interactive = default(interactive, True)
+        container = default(container, True)
+        min_width = default(min_width, 160)
+        visible = default(visible, True)
+
         self.x = x
         self.y = y
         self.color = color
@@ -141,142 +147,8 @@ class LinePlot(Plot):
             every=every,
         )
 
-    def get_config(self):
-        config = super().get_config()
-        config["caption"] = self.caption
-        return config
-
     def get_block_name(self) -> str:
         return "plot"
-
-    @staticmethod
-    def update(
-        value: pd.DataFrame | dict | Literal[_Keywords.NO_VALUE] = _Keywords.NO_VALUE,
-        x: str | None = None,
-        y: str | None = None,
-        color: str | None = None,
-        stroke_dash: str | None = None,
-        overlay_point: bool | None = None,
-        title: str | None = None,
-        tooltip: list[str] | str | None = None,
-        x_title: str | None = None,
-        y_title: str | None = None,
-        color_legend_title: str | None = None,
-        stroke_dash_legend_title: str | None = None,
-        color_legend_position: Literal[
-            "left",
-            "right",
-            "top",
-            "bottom",
-            "top-left",
-            "top-right",
-            "bottom-left",
-            "bottom-right",
-            "none",
-        ]
-        | None = None,
-        stroke_dash_legend_position: Literal[
-            "left",
-            "right",
-            "top",
-            "bottom",
-            "top-left",
-            "top-right",
-            "bottom-left",
-            "bottom-right",
-            "none",
-        ]
-        | None = None,
-        height: int | None = None,
-        width: int | None = None,
-        x_lim: list[int] | None = None,
-        y_lim: list[int] | None = None,
-        interactive: bool | None = None,
-        caption: str | None = None,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-    ):
-        """Update an existing plot component.
-
-        If updating any of the plot properties (color, size, etc) the value, x, and y parameters must be specified.
-
-        Parameters:
-            value: The pandas dataframe containing the data to display in a scatter plot.
-            x: Column corresponding to the x axis.
-            y: Column corresponding to the y axis.
-            color: The column to determine the point color. If the column contains numeric data, gradio will interpolate the column data so that small values correspond to light colors and large values correspond to dark values.
-            stroke_dash: The column to determine the symbol used to draw the line, e.g. dashed lines, dashed lines with points.
-            overlay_point: Whether to draw a point on the line for each (x, y) coordinate pair.
-            title: The title to display on top of the chart.
-            tooltip: The column (or list of columns) to display on the tooltip when a user hovers a point on the plot.
-            x_title: The title given to the x axis. By default, uses the value of the x parameter.
-            y_title: The title given to the y axis. By default, uses the value of the y parameter.
-            color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
-            stroke_dash_legend_title: The title given to the stroke legend. By default, uses the value of stroke parameter.
-            color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation
-            stroke_dash_legend_position: The position of the stoke_dash legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation
-            height: The height of the plot in pixels.
-            width: The width of the plot in pixels.
-            x_lim: A tuple or list containing the limits for the x-axis, specified as [x_min, x_max].
-            y_lim: A tuple of list containing the limits for the y-axis, specified as [y_min, y_max].
-            caption: The (optional) caption to display below the plot.
-            interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
-            label: The (optional) label to display in the top left corner of the plot.
-            show_label: Whether the label should be displayed.
-            visible: Whether the plot should be visible.
-        """
-        properties = [
-            x,
-            y,
-            color,
-            stroke_dash,
-            overlay_point,
-            title,
-            tooltip,
-            x_title,
-            y_title,
-            color_legend_title,
-            stroke_dash_legend_title,
-            color_legend_position,
-            stroke_dash_legend_position,
-            height,
-            width,
-            x_lim,
-            y_lim,
-            interactive,
-        ]
-        if any(properties):
-            if not isinstance(value, pd.DataFrame):
-                raise ValueError(
-                    "In order to update plot properties the value parameter "
-                    "must be provided, and it must be a Dataframe. Please pass a value "
-                    "parameter to gr.LinePlot.update."
-                )
-            if x is None or y is None:
-                raise ValueError(
-                    "In order to update plot properties, the x and y axis data "
-                    "must be specified. Please pass valid values for x an y to "
-                    "gr.LinePlot.update."
-                )
-            chart = LinePlot.create_plot(value, *properties)
-            value = {"type": "altair", "plot": chart.to_json(), "chart": "line"}
-
-        updated_config = {
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "caption": caption,
-            "__type__": "update",
-        }
-        return updated_config
 
     @staticmethod
     def create_plot(

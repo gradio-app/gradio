@@ -13,6 +13,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import VideoSerializable
 
 from gradio import processing_utils, utils, wasm_utils
+from gradio.blocks import default
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Clearable, Playable, Recordable, Uploadable
@@ -55,22 +56,22 @@ class Video(
         | None = None,
         *,
         format: str | None = None,
-        source: Literal["upload", "webcam"] = "upload",
+        source: Literal["upload", "webcam"] | None = None,
         height: int | None = None,
         width: int | None = None,
         label: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
-        container: bool = True,
+        container: bool | None = None,
         scale: int | None = None,
-        min_width: int = 160,
+        min_width: int | None = None,
         interactive: bool | None = None,
-        visible: bool = True,
+        visible: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        mirror_webcam: bool = True,
+        mirror_webcam: bool | None = None,
         include_audio: bool | None = None,
-        autoplay: bool = False,
+        autoplay: bool | None = None,
         show_share_button: bool | None = None,
         **kwargs,
     ):
@@ -96,6 +97,13 @@ class Video(
             autoplay: Whether to automatically play the video when the component is used as an output. Note: browsers will not autoplay video files if the user has not interacted with the page yet.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
+        source = default(source, "upload")
+        container = default(container, True)
+        min_width = default(min_width, 160)
+        visible = default(visible, True)
+        self.mirror_webcam = default(mirror_webcam, True)
+        self.autoplay = default(autoplay, False)
+
         self.format = format
         self.autoplay = autoplay
         valid_sources = ["upload", "webcam"]
@@ -130,55 +138,6 @@ class Video(
             value=value,
             **kwargs,
         )
-
-    def get_config(self):
-        return {
-            "source": self.source,
-            "value": self.value,
-            "height": self.height,
-            "width": self.width,
-            "mirror_webcam": self.mirror_webcam,
-            "include_audio": self.include_audio,
-            "autoplay": self.autoplay,
-            "show_share_button": self.show_share_button,
-            **IOComponent.get_config(self),
-        }
-
-    @staticmethod
-    def update(
-        value: str
-        | tuple[str, str | None]
-        | Literal[_Keywords.NO_VALUE]
-        | None = _Keywords.NO_VALUE,
-        source: Literal["upload", "webcam"] | None = None,
-        height: int | None = None,
-        width: int | None = None,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-        autoplay: bool | None = None,
-        show_share_button: bool | None = None,
-    ):
-        return {
-            "source": source,
-            "height": height,
-            "width": width,
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "interactive": interactive,
-            "visible": visible,
-            "value": value,
-            "autoplay": autoplay,
-            "show_share_button": show_share_button,
-            "__type__": "update",
-        }
 
     def preprocess(
         self, x: tuple[FileData, FileData | None] | FileData | None

@@ -9,6 +9,7 @@ from gradio_client import media_data
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
+from gradio.blocks import default
 from gradio.components.base import IOComponent, _Keywords
 from gradio.events import (
     Changeable,
@@ -41,10 +42,10 @@ class Model3D(
         label: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
-        container: bool = True,
+        container: bool | None = None,
         scale: int | None = None,
-        min_width: int = 160,
-        visible: bool = True,
+        min_width: int | None = None,
+        visible: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         **kwargs,
@@ -63,6 +64,10 @@ class Model3D(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        container = default(container, True)
+        min_width = default(min_width, 160)
+        visible = default(visible, True)
+
         self.clear_color = clear_color or [0, 0, 0, 0]
         IOComponent.__init__(
             self,
@@ -79,40 +84,11 @@ class Model3D(
             **kwargs,
         )
 
-    def get_config(self):
-        return {
-            "clearColor": self.clear_color,
-            "value": self.value,
-            **IOComponent.get_config(self),
-        }
-
     def example_inputs(self) -> dict[str, Any]:
         return {
             "raw": {"is_file": False, "data": media_data.BASE64_MODEL3D},
             "serialized": "https://github.com/gradio-app/gradio/raw/main/test/test_files/Box.gltf",
         }
-
-    @staticmethod
-    def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-    ):
-        updated_config = {
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
-        return updated_config
 
     def preprocess(self, x: dict[str, str] | None) -> str | None:
         """

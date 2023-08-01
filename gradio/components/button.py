@@ -7,6 +7,7 @@ from typing import Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
+from gradio.blocks import default
 from gradio.components.base import Component, IOComponent, _Keywords
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Clickable
@@ -26,12 +27,12 @@ class Button(Clickable, IOComponent, StringSerializable):
 
     def __init__(
         self,
-        value: str | Callable = "Run",
+        value: str | Callable | None = None,
         *,
-        variant: Literal["primary", "secondary", "stop"] = "secondary",
+        variant: Literal["primary", "secondary", "stop"] | None = None,
         size: Literal["sm", "lg"] | None = None,
-        visible: bool = True,
-        interactive: bool = True,
+        visible: bool | None = None,
+        interactive: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         scale: int | None = None,
@@ -50,6 +51,11 @@ class Button(Clickable, IOComponent, StringSerializable):
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
         """
+        self.value = default(value, "Run")
+        self.variant = default(variant, "secondary")
+        visible = default(visible, True)
+        interactive = default(interactive, True)
+
         IOComponent.__init__(
             self,
             visible=visible,
@@ -66,38 +72,6 @@ class Button(Clickable, IOComponent, StringSerializable):
             variant = "secondary"
         self.variant = variant
         self.size = size
-
-    def get_config(self):
-        return {
-            "value": self.value,
-            "variant": self.variant,
-            "size": self.size,
-            "interactive": self.interactive,
-            "scale": self.scale,
-            "min_width": self.min_width,
-            **Component.get_config(self),
-        }
-
-    @staticmethod
-    def update(
-        value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        variant: Literal["primary", "secondary", "stop"] | None = None,
-        size: Literal["sm", "lg"] | None = None,
-        visible: bool | None = None,
-        interactive: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-    ):
-        return {
-            "variant": variant,
-            "size": size,
-            "visible": visible,
-            "value": value,
-            "interactive": interactive,
-            "scale": scale,
-            "min_width": min_width,
-            "__type__": "update",
-        }
 
     def style(
         self,

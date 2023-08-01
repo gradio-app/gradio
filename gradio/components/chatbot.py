@@ -11,6 +11,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
 from gradio import utils
+from gradio.blocks import default
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
@@ -43,15 +44,15 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         label: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
-        container: bool = True,
+        container: bool | None = None,
         scale: int | None = None,
-        min_width: int = 160,
-        visible: bool = True,
+        min_width: int | None = None,
+        visible: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         height: int | None = None,
         latex_delimiters: list[dict[str, str | bool]] | None = None,
-        rtl: bool = False,
+        rtl: bool | None = None,
         show_share_button: bool | None = None,
         **kwargs,
     ):
@@ -73,6 +74,11 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             rtl: If True, sets the direction of the rendered text to right-to-left. Default is False, which renders text left-to-right.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
+        container = default(container, True)
+        min_width = default(min_width, 160)
+        visible = default(visible, True)
+        self.rtl = default(rtl, False)
+
         if color_map is not None:
             warn_deprecation("The 'color_map' parameter has been deprecated.")
         self.select: EventListenerMethod
@@ -106,47 +112,6 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             value=value,
             **kwargs,
         )
-
-    def get_config(self):
-        return {
-            "value": self.value,
-            "latex_delimiters": self.latex_delimiters,
-            "selectable": self.selectable,
-            "height": self.height,
-            "show_share_button": self.show_share_button,
-            "rtl": self.rtl,
-            **IOComponent.get_config(self),
-        }
-
-    @staticmethod
-    def update(
-        value: list[list[str | tuple[str] | tuple[str, str] | None]]
-        | Literal[_Keywords.NO_VALUE]
-        | None = _Keywords.NO_VALUE,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-        height: int | None = None,
-        rtl: bool | None = None,
-        show_share_button: bool | None = None,
-    ):
-        updated_config = {
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "height": height,
-            "show_share_button": show_share_button,
-            "rtl": rtl,
-            "__type__": "update",
-        }
-        return updated_config
 
     def _preprocess_chat_messages(
         self, chat_message: str | dict | None

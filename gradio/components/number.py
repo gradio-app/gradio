@@ -9,6 +9,7 @@ import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import NumberSerializable
 
+from gradio.blocks import default
 from gradio.components.base import FormComponent, IOComponent, _Keywords
 from gradio.events import (
     Blurrable,
@@ -50,11 +51,11 @@ class Number(
         info: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
-        container: bool = True,
+        container: bool | None = None,
         scale: int | None = None,
-        min_width: int = 160,
+        min_width: int | None = None,
         interactive: bool | None = None,
-        visible: bool = True,
+        visible: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         precision: int | None = None,
@@ -80,6 +81,10 @@ class Number(
             minimum: Minimum value. Only applied when component is used as an input. If a user provides a smaller value, a gr.Error exception is raised by the backend.
             maximum: Maximum value. Only applied when component is used as an input. If a user provides a larger value, a gr.Error exception is raised by the backend.
         """
+        container = default(container, True)
+        min_width = default(min_width, 160)
+        visible = default(visible, True)
+
         self.precision = precision
         self.minimum = minimum
         self.maximum = maximum
@@ -121,44 +126,6 @@ class Number(
             return int(round(num, precision))
         else:
             return round(num, precision)
-
-    def get_config(self):
-        return {
-            "value": self.value,
-            "minimum": self.minimum,
-            "maximum": self.maximum,
-            "container": self.container,
-            **IOComponent.get_config(self),
-        }
-
-    @staticmethod
-    def update(
-        value: float | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        minimum: float | None = None,
-        maximum: float | None = None,
-        label: str | None = None,
-        info: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-    ):
-        return {
-            "label": label,
-            "info": info,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "minimum": minimum,
-            "maximum": maximum,
-            "interactive": interactive,
-            "__type__": "update",
-        }
 
     def preprocess(self, x: float | None) -> float | None:
         """

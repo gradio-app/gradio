@@ -10,6 +10,7 @@ from gradio_client.serializing import JSONSerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import utils
+from gradio.blocks import default
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
@@ -40,17 +41,17 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
         ]
         | None = None,
         *,
-        show_legend: bool = True,
+        show_legend: bool | None = None,
         height: int | None = None,
         width: int | None = None,
         color_map: dict[str, str] | None = None,
         label: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
-        container: bool = True,
+        container: bool | None = None,
         scale: int | None = None,
-        min_width: int = 160,
-        visible: bool = True,
+        min_width: int | None = None,
+        visible: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         **kwargs,
@@ -72,6 +73,11 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        self.show_legend = default(show_legend, True)
+        container = default(container, True)
+        min_width = default(min_width, 160)
+        visible = default(visible, True)
+
         self.show_legend = show_legend
         self.height = height
         self.width = width
@@ -96,51 +102,6 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
             value=value,
             **kwargs,
         )
-
-    def get_config(self):
-        return {
-            "show_legend": self.show_legend,
-            "value": self.value,
-            "height": self.height,
-            "width": self.width,
-            "color_map": self.color_map,
-            "selectable": self.selectable,
-            **IOComponent.get_config(self),
-        }
-
-    @staticmethod
-    def update(
-        value: tuple[
-            np.ndarray | _Image.Image | str,
-            list[tuple[np.ndarray | tuple[int, int, int, int], str]],
-        ]
-        | Literal[_Keywords.NO_VALUE] = _Keywords.NO_VALUE,
-        show_legend: bool | None = None,
-        height: int | None = None,
-        width: int | None = None,
-        color_map: dict[str, str] | None = None,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-    ):
-        updated_config = {
-            "show_legend": show_legend,
-            "height": height,
-            "width": width,
-            "color_map": color_map,
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
-        return updated_config
 
     def postprocess(
         self,

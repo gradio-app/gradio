@@ -7,6 +7,7 @@ from typing import Any, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
+from gradio.blocks import default
 from gradio.components.base import (
     Component,
     IOComponent,
@@ -34,14 +35,14 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
         components: list[IOComponent] | list[str],
         samples: list[list[Any]] | None = None,
         headers: list[str] | None = None,
-        type: Literal["values", "index"] = "values",
-        samples_per_page: int = 10,
-        visible: bool = True,
+        type: Literal["values", "index"] | None = None,
+        samples_per_page: int | None = None,
+        visible: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        container: bool = True,
+        container: bool | None = None,
         scale: int | None = None,
-        min_width: int = 160,
+        min_width: int | None = None,
         **kwargs,
     ):
         """
@@ -58,6 +59,12 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
         """
+        self.type = default(type, "values")
+        self.samples_per_page = default(samples_per_page, 10)
+        visible = default(visible, True)
+        container = default(container, True)
+        min_width = default(min_width, 160)
+
         Component.__init__(
             self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
         )
@@ -87,39 +94,6 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
         else:
             self.headers = [c.label or "" for c in self.components]
         self.samples_per_page = samples_per_page
-
-    def get_config(self):
-        return {
-            "components": [component.get_block_name() for component in self.components],
-            "headers": self.headers,
-            "samples": self.samples,
-            "type": self.type,
-            "label": self.label,
-            "samples_per_page": self.samples_per_page,
-            "container": self.container,
-            "scale": self.scale,
-            "min_width": self.min_width,
-            **Component.get_config(self),
-        }
-
-    @staticmethod
-    def update(
-        samples: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        visible: bool | None = None,
-        label: str | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-    ):
-        return {
-            "samples": samples,
-            "visible": visible,
-            "label": label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "__type__": "update",
-        }
 
     def preprocess(self, x: Any) -> Any:
         """

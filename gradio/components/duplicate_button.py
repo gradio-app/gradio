@@ -25,16 +25,16 @@ class DuplicateButton(Button):
     def __init__(
         self,
         *,
-        value: str = "Duplicate Space",
-        variant: Literal["primary", "secondary", "stop"] = "secondary",
-        size: Literal["sm", "lg"] | None = "sm",
-        visible: bool = True,
-        interactive: bool = True,
+        value: str | None = None,
+        variant: Literal["primary", "secondary", "stop"] | None = None,
+        size: Literal["sm", "lg"] | None = None,
+        visible: bool | None = None,
+        interactive: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        scale: int | None = 0,
+        scale: int | None = None,
         min_width: int | None = None,
-        _activate: bool = True,
+        _activate: bool | None = None,
         **kwargs,
     ):
         super().__init__(

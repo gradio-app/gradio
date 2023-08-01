@@ -14,7 +14,7 @@ import webbrowser
 from abc import abstractmethod
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast
+from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast, TypeVar
 
 import anyio
 import requests
@@ -305,12 +305,15 @@ class Block:
         return dependency, len(Context.root_block.dependencies) - 1
 
     def get_config(self):
-        return {
-            "visible": self.visible,
-            "elem_id": self.elem_id,
-            "elem_classes": self.elem_classes,
+        config = {
             "root_url": self.root_url,
         }
+        if hasattr(self.__class__, "__init__"):
+            signature = inspect.signature(self.__class__.__init__)
+            for k in signature.parameters.keys():
+                if hasattr(self, k):
+                    config[k] = getattr(self, k)
+        return config
 
     @staticmethod
     @abstractmethod
@@ -2176,3 +2179,11 @@ Received outputs:
         if self.dependencies[fn_index]["queue"] is None:
             return self.enable_queue
         return self.dependencies[fn_index]["queue"]
+
+T = TypeVar('T')
+
+def default(set_value: T | None, default_value: T) -> T:
+    if set_value is None:
+        return default_value
+    else:
+        return set_value

@@ -11,6 +11,7 @@ from gradio_client.serializing import (
     JSONSerializable,
 )
 
+from gradio.blocks import default
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
@@ -43,10 +44,10 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
         label: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
-        container: bool = True,
+        container: bool | None = None,
         scale: int | None = None,
-        min_width: int = 160,
-        visible: bool = True,
+        min_width: int | None = None,
+        visible: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         color: str | None = None,
@@ -67,6 +68,10 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             color: The background color of the label (either a valid css color name or hexadecimal string).
         """
+        container = default(container, True)
+        min_width = default(min_width, 160)
+        visible = default(visible, True)
+
         self.num_top_classes = num_top_classes
         self.color = color
         self.select: EventListenerMethod
@@ -89,15 +94,6 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
             value=value,
             **kwargs,
         )
-
-    def get_config(self):
-        return {
-            "num_top_classes": self.num_top_classes,
-            "value": self.value,
-            "color": self.color,
-            "selectable": self.selectable,
-            **IOComponent.get_config(self),
-        }
 
     def postprocess(self, y: dict[str, float] | str | float | None) -> dict | None:
         """
@@ -130,43 +126,6 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
             "float label, or a dictionary whose keys are labels and values are confidences. "
             f"Instead, got a {type(y)}"
         )
-
-    @staticmethod
-    def update(
-        value: dict[str, float]
-        | str
-        | float
-        | Literal[_Keywords.NO_VALUE]
-        | None = _Keywords.NO_VALUE,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-        color: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-    ):
-        # If color is not specified (NO_VALUE) map it to None so that
-        # it gets filtered out in postprocess. This will mean the color
-        # will not be updated in the front-end
-        if color is _Keywords.NO_VALUE:
-            color = None
-        # If the color was specified by the developer as None
-        # Map is so that the color is updated to be transparent,
-        # e.g. no background default state.
-        elif color is None:
-            color = "transparent"
-        return {
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "color": color,
-            "__type__": "update",
-        }
 
     def style(
         self,

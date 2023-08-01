@@ -11,6 +11,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio import utils
+from gradio.blocks import default
 from gradio.components.base import Component, IOComponent, _Keywords
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Clickable, Uploadable
@@ -30,19 +31,19 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
 
     def __init__(
         self,
-        label: str = "Upload a File",
+        label: str | None = None,
         value: str | list[str] | Callable | None = None,
         *,
-        variant: Literal["primary", "secondary", "stop"] = "secondary",
-        visible: bool = True,
+        variant: Literal["primary", "secondary", "stop"] | None = None,
+        visible: bool | None = None,
         size: Literal["sm", "lg"] | None = None,
         scale: int | None = None,
         min_width: int | None = None,
-        interactive: bool = True,
+        interactive: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        type: Literal["file", "bytes"] = "file",
-        file_count: Literal["single", "multiple", "directory"] = "single",
+        type: Literal["file", "bytes"] | None = None,
+        file_count: Literal["single", "multiple", "directory"] | None = None,
         file_types: list[str] | None = None,
         **kwargs,
     ):
@@ -62,6 +63,13 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
             file_types: List of type of files to be uploaded. "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
         """
+        label = default(label, "Upload a File")
+        self.variant = default(variant, "secondary")
+        visible = default(visible, True)
+        self.interactive = default(interactive, True)
+        self.type = default(type, "file")
+        self.file_count = default(file_count, "single")
+
         self.type = type
         self.file_count = file_count
         if file_count == "directory" and file_types is not None:
@@ -88,44 +96,6 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             interactive=interactive,
             **kwargs,
         )
-
-    def get_config(self):
-        return {
-            "label": self.label,
-            "value": self.value,
-            "size": self.size,
-            "file_count": self.file_count,
-            "file_types": self.file_types,
-            "scale": self.scale,
-            "min_width": self.min_width,
-            "variant": self.variant,
-            "interactive": self.interactive,
-            **Component.get_config(self),
-        }
-
-    @staticmethod
-    def update(
-        value: str
-        | list[str]
-        | Literal[_Keywords.NO_VALUE]
-        | None = _Keywords.NO_VALUE,
-        size: Literal["sm", "lg"] | None = None,
-        variant: Literal["primary", "secondary", "stop"] | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-    ):
-        return {
-            "variant": variant,
-            "interactive": interactive,
-            "size": size,
-            "visible": visible,
-            "value": value,
-            "scale": scale,
-            "min_width": min_width,
-            "__type__": "update",
-        }
 
     def preprocess(
         self, x: list[dict[str, Any]] | None

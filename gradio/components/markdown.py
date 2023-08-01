@@ -9,6 +9,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
 from gradio import utils
+from gradio.blocks import default
 from gradio.components.base import Component, IOComponent, _Keywords
 from gradio.events import (
     Changeable,
@@ -30,12 +31,12 @@ class Markdown(IOComponent, Changeable, StringSerializable):
 
     def __init__(
         self,
-        value: str | Callable = "",
+        value: str | Callable | None = None,
         *,
-        visible: bool = True,
+        visible: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        rtl: bool = False,
+        rtl: bool | None = None,
         **kwargs,
     ):
         """
@@ -46,6 +47,10 @@ class Markdown(IOComponent, Changeable, StringSerializable):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             rtl: If True, sets the direction of the rendered text to right-to-left. Default is False, which renders text left-to-right.
         """
+        self.value = default(value, "")
+        visible = default(visible, True)
+        self.rtl = default(rtl, False)
+
         self.md = utils.get_markdown_parser()
         self.rtl = rtl
         IOComponent.__init__(
@@ -68,27 +73,6 @@ class Markdown(IOComponent, Changeable, StringSerializable):
             return None
         unindented_y = inspect.cleandoc(y)
         return self.md.render(unindented_y)
-
-    def get_config(self):
-        return {
-            "value": self.value,
-            "rtl": self.rtl,
-            **Component.get_config(self),
-        }
-
-    @staticmethod
-    def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        visible: bool | None = None,
-        rtl: bool | None = None,
-    ):
-        updated_config = {
-            "visible": visible,
-            "value": value,
-            "rtl": rtl,
-            "__type__": "update",
-        }
-        return updated_config
 
     def as_example(self, input_data: str | None) -> str:
         postprocessed = self.postprocess(input_data)

@@ -8,6 +8,7 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import SimpleSerializable
 
+from gradio.blocks import default
 from gradio.components.base import FormComponent, IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
@@ -44,19 +45,19 @@ class Dropdown(
         choices: list[str] | None = None,
         *,
         value: str | list[str] | Callable | None = None,
-        type: Literal["value", "index"] = "value",
+        type: Literal["value", "index"] | None = None,
         multiselect: bool | None = None,
-        allow_custom_value: bool = False,
+        allow_custom_value: bool | None = None,
         max_choices: int | None = None,
         label: str | None = None,
         info: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
-        container: bool = True,
+        container: bool | None = None,
         scale: int | None = None,
-        min_width: int = 160,
+        min_width: int | None = None,
         interactive: bool | None = None,
-        visible: bool = True,
+        visible: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         **kwargs,
@@ -81,6 +82,12 @@ class Dropdown(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        type = default(type, "value")
+        self.allow_custom_value = default(allow_custom_value, False)
+        container = default(container, True)
+        min_width = default(min_width, 160)
+        visible = default(visible, True)
+
         self.choices = [str(choice) for choice in choices] if choices else []
         valid_types = ["value", "index"]
         if type not in valid_types:
@@ -96,8 +103,7 @@ class Dropdown(
                 "The `max_choices` parameter is ignored when `multiselect` is False."
             )
         self.max_choices = max_choices
-        self.allow_custom_value = allow_custom_value
-        if multiselect and allow_custom_value:
+        if multiselect and self.allow_custom_value:
             raise ValueError(
                 "Custom values are not supported when `multiselect` is True."
             )
@@ -147,46 +153,6 @@ class Dropdown(
                 "raw": self.choices[0] if self.choices else None,
                 "serialized": self.choices[0] if self.choices else None,
             }
-
-    def get_config(self):
-        return {
-            "choices": self.choices,
-            "value": self.value,
-            "multiselect": self.multiselect,
-            "max_choices": self.max_choices,
-            "allow_custom_value": self.allow_custom_value,
-            "container": self.container,
-            **IOComponent.get_config(self),
-        }
-
-    @staticmethod
-    def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        choices: str | list[str] | None = None,
-        label: str | None = None,
-        info: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        placeholder: str | None = None,
-        visible: bool | None = None,
-    ):
-        return {
-            "choices": choices,
-            "label": label,
-            "info": info,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "interactive": interactive,
-            "placeholder": placeholder,
-            "__type__": "update",
-        }
 
     def preprocess(
         self, x: str | list[str]

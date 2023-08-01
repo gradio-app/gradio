@@ -9,6 +9,7 @@ from gradio_client.serializing import (
     JSONSerializable,
 )
 
+from gradio.blocks import default
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
@@ -37,16 +38,16 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
         *,
         color_map: dict[str, str]
         | None = None,  # Parameter moved to HighlightedText.style()
-        show_legend: bool = False,
-        combine_adjacent: bool = False,
-        adjacent_separator: str = "",
+        show_legend: bool | None = None,
+        combine_adjacent: bool | None = None,
+        adjacent_separator: str | None = None,
         label: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
-        container: bool = True,
+        container: bool | None = None,
         scale: int | None = None,
-        min_width: int = 160,
-        visible: bool = True,
+        min_width: int | None = None,
+        visible: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         **kwargs,
@@ -67,6 +68,13 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        self.show_legend = default(show_legend, False)
+        self.combine_adjacent = default(combine_adjacent, False)
+        self.adjacent_separator = default(adjacent_separator, "")
+        container = default(container, True)
+        min_width = default(min_width, 160)
+        visible = default(visible, True)
+
         self.color_map = color_map
         self.show_legend = show_legend
         self.combine_adjacent = combine_adjacent
@@ -91,44 +99,6 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
             value=value,
             **kwargs,
         )
-
-    def get_config(self):
-        return {
-            "color_map": self.color_map,
-            "show_legend": self.show_legend,
-            "value": self.value,
-            "selectable": self.selectable,
-            **IOComponent.get_config(self),
-        }
-
-    @staticmethod
-    def update(
-        value: list[tuple[str, str | float | None]]
-        | dict
-        | Literal[_Keywords.NO_VALUE]
-        | None = _Keywords.NO_VALUE,
-        color_map: dict[str, str] | None = None,
-        show_legend: bool | None = None,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-    ):
-        updated_config = {
-            "color_map": color_map,
-            "show_legend": show_legend,
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
-        return updated_config
 
     def postprocess(
         self, y: list[tuple[str, str | float | None]] | dict | None

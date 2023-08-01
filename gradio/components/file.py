@@ -12,6 +12,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio import utils
+from gradio.blocks import default
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_deprecation
 from gradio.events import (
@@ -46,17 +47,17 @@ class File(
         self,
         value: str | list[str] | Callable | None = None,
         *,
-        file_count: Literal["single", "multiple", "directory"] = "single",
+        file_count: Literal["single", "multiple", "directory"] | None = None,
         file_types: list[str] | None = None,
-        type: Literal["file", "binary"] = "file",
+        type: Literal["file", "binary"] | None = None,
         label: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
-        container: bool = True,
+        container: bool | None = None,
         scale: int | None = None,
-        min_width: int = 160,
+        min_width: int | None = None,
         interactive: bool | None = None,
-        visible: bool = True,
+        visible: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         **kwargs,
@@ -78,6 +79,12 @@ class File(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        self.file_count = default(file_count, "single")
+        self.type = default(type, "file")
+        container = default(container, True)
+        min_width = default(min_width, 160)
+        visible = default(visible, True)
+
         self.file_count = file_count
         self.file_types = file_types
         if file_types is not None and not isinstance(file_types, list):
@@ -123,38 +130,6 @@ class File(
             value=value,
             **kwargs,
         )
-
-    def get_config(self):
-        return {
-            "file_count": self.file_count,
-            "file_types": self.file_types,
-            "value": self.value,
-            "selectable": self.selectable,
-            **IOComponent.get_config(self),
-        }
-
-    @staticmethod
-    def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-    ):
-        return {
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "interactive": interactive,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
 
     def preprocess(
         self, x: list[dict[str, Any]] | None

@@ -8,6 +8,7 @@ import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
+from gradio.blocks import default
 from gradio.components.base import (
     FormComponent,
     IOComponent,
@@ -51,27 +52,27 @@ class Textbox(
 
     def __init__(
         self,
-        value: str | Callable | None = "",
+        value: str | Callable | None = None,
         *,
-        lines: int = 1,
-        max_lines: int = 20,
+        lines: int | None = None,
+        max_lines: int | None = None,
         placeholder: str | None = None,
         label: str | None = None,
         info: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
-        container: bool = True,
+        container: bool | None = None,
         scale: int | None = None,
-        min_width: int = 160,
+        min_width: int | None = None,
         interactive: bool | None = None,
-        visible: bool = True,
+        visible: bool | None = None,
         elem_id: str | None = None,
-        autofocus: bool = False,
+        autofocus: bool | None = None,
         elem_classes: list[str] | str | None = None,
-        type: Literal["text", "password", "email"] = "text",
+        type: Literal["text", "password", "email"] | None = None,
         text_align: Literal["left", "right"] | None = None,
-        rtl: bool = False,
-        show_copy_button: bool = False,
+        rtl: bool | None = None,
+        show_copy_button: bool | None = None,
         **kwargs,
     ):
         """
@@ -97,17 +98,27 @@ class Textbox(
             rtl: If True and `type` is "text", sets the direction of the text to right-to-left (cursor appears on the left of the text). Default is False, which renders cursor on the right.
             show_copy_button: If True, includes a copy button to copy the text in the textbox. Only applies if show_label is True.
         """
-        if type not in ["text", "password", "email"]:
+        self.value = default(value, "")
+        lines = default(lines, 1)
+        max_lines = default(max_lines, 20)
+        container = default(container, True)
+        min_width = default(min_width, 160)
+        visible = default(visible, True)
+        self.autofocus = default(autofocus, False)
+        self.type = default(type, "text")
+        self.rtl = default(rtl, False)
+        self.show_copy_button = default(show_copy_button, False)
+
+        if self.type not in ["text", "password", "email"]:
             raise ValueError('`type` must be one of "text", "password", or "email".')
 
         self.lines = lines
-        if type == "text":
+        if self.type == "text":
             self.max_lines = max(lines, max_lines)
         else:
             self.max_lines = 1
         self.placeholder = placeholder
-        self.show_copy_button = show_copy_button
-        self.autofocus = autofocus
+        self.text_align = text_align
         self.select: EventListenerMethod
         """
         Event listener for when the user selects text in the Textbox.
@@ -131,65 +142,6 @@ class Textbox(
             **kwargs,
         )
         TokenInterpretable.__init__(self)
-        self.type = type
-        self.rtl = rtl
-        self.text_align = text_align
-
-    def get_config(self):
-        return {
-            "lines": self.lines,
-            "max_lines": self.max_lines,
-            "placeholder": self.placeholder,
-            "value": self.value,
-            "type": self.type,
-            "autofocus": self.autofocus,
-            "show_copy_button": self.show_copy_button,
-            "container": self.container,
-            "text_align": self.text_align,
-            "rtl": self.rtl,
-            **IOComponent.get_config(self),
-        }
-
-    @staticmethod
-    def update(
-        value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        lines: int | None = None,
-        max_lines: int | None = None,
-        placeholder: str | None = None,
-        label: str | None = None,
-        info: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-        interactive: bool | None = None,
-        type: Literal["text", "password", "email"] | None = None,
-        text_align: Literal["left", "right"] | None = None,
-        rtl: bool | None = None,
-        show_copy_button: bool | None = None,
-        autofocus: bool | None = None,
-    ):
-        return {
-            "lines": lines,
-            "max_lines": max_lines,
-            "placeholder": placeholder,
-            "label": label,
-            "info": info,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "type": type,
-            "interactive": interactive,
-            "show_copy_button": show_copy_button,
-            "autofocus": autofocus,
-            "text_align": text_align,
-            "rtl": rtl,
-            "__type__": "update",
-        }
 
     def preprocess(self, x: str | None) -> str | None:
         """

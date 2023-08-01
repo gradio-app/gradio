@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.blocks import BlockContext
+from gradio.blocks import BlockContext, default
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Selectable
 
@@ -31,10 +31,10 @@ class Row(BlockContext):
     def __init__(
         self,
         *,
-        variant: Literal["default", "panel", "compact"] = "default",
-        visible: bool = True,
+        variant: Literal["default", "panel", "compact"] | None = None,
+        visible: bool | None = None,
         elem_id: str | None = None,
-        equal_height: bool = True,
+        equal_height: bool | None = None,
         **kwargs,
     ):
         """
@@ -44,28 +44,13 @@ class Row(BlockContext):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             equal_height: If True, makes every child element have equal height
         """
-        self.variant = variant
-        self.equal_height = equal_height
+        self.variant = default(variant, "default")
+        self.visible = default(visible, True)
+        self.equal_height = default(equal_height, True)
+
         if variant == "compact":
             self.allow_expected_parents = False
-        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
-
-    def get_config(self):
-        return {
-            "type": "row",
-            "variant": self.variant,
-            "equal_height": self.equal_height,
-            **super().get_config(),
-        }
-
-    @staticmethod
-    def update(
-        visible: bool | None = None,
-    ):
-        return {
-            "visible": visible,
-            "__type__": "update",
-        }
+        super().__init__(visible=self.visible, elem_id=elem_id, **kwargs)
 
     def style(
         self,
@@ -104,10 +89,10 @@ class Column(BlockContext):
     def __init__(
         self,
         *,
-        scale: int = 1,
-        min_width: int = 320,
-        variant: Literal["default", "panel", "compact"] = "default",
-        visible: bool = True,
+        scale: int | None = None,
+        min_width: int | None = None,
+        variant: Literal["default", "panel", "compact"] | None = None,
+        visible: bool | None = None,
         elem_id: str | None = None,
         **kwargs,
     ):
@@ -119,32 +104,14 @@ class Column(BlockContext):
             visible: If False, column will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.scale = scale
-        self.min_width = min_width
-        self.variant = variant
-        if variant == "compact":
+        self.scale = default(scale, 1)
+        self.min_width = default(min_width, 320)
+        self.variant = default(variant, "default")
+        visible = default(visible, True)
+
+        if self.variant == "compact":
             self.allow_expected_parents = False
         super().__init__(visible=visible, elem_id=elem_id, **kwargs)
-
-    def get_config(self):
-        return {
-            "type": "column",
-            "variant": self.variant,
-            "scale": self.scale,
-            "min_width": self.min_width,
-            **super().get_config(),
-        }
-
-    @staticmethod
-    def update(
-        variant: str | None = None,
-        visible: bool | None = None,
-    ):
-        return {
-            "variant": variant,
-            "visible": visible,
-            "__type__": "update",
-        }
 
 
 class Tabs(BlockContext, Changeable, Selectable):
@@ -156,7 +123,7 @@ class Tabs(BlockContext, Changeable, Selectable):
         self,
         *,
         selected: int | str | None = None,
-        visible: bool = True,
+        visible: bool | None = None,
         elem_id: str | None = None,
         **kwargs,
     ):
@@ -166,23 +133,12 @@ class Tabs(BlockContext, Changeable, Selectable):
             visible: If False, Tabs will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        self.visible = default(visible, True)
+        
         BlockContext.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         Changeable.__init__(self)
         Selectable.__init__(self)
         self.selected = selected
-
-    def get_config(self):
-        return {"selected": self.selected, **super(BlockContext, self).get_config()}
-
-    @staticmethod
-    def update(
-        selected: int | str | None = None,
-    ):
-        return {
-            "selected": selected,
-            "__type__": "update",
-        }
-
 
 @document()
 class Tab(BlockContext, Selectable):
@@ -218,13 +174,6 @@ class Tab(BlockContext, Selectable):
         self.label = label
         self.id = id
 
-    def get_config(self):
-        return {
-            "label": self.label,
-            "id": self.id,
-            **super(BlockContext, self).get_config(),
-        }
-
     def get_expected_parent(self) -> type[Tabs]:
         return Tabs
 
@@ -249,7 +198,7 @@ class Group(BlockContext):
     def __init__(
         self,
         *,
-        visible: bool = True,
+        visible: bool | None = None,
         elem_id: str | None = None,
         **kwargs,
     ):
@@ -258,19 +207,8 @@ class Group(BlockContext):
             visible: If False, group will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        self.visible = default(visible, True)
         super().__init__(visible=visible, elem_id=elem_id, **kwargs)
-
-    def get_config(self):
-        return {"type": "group", **super().get_config()}
-
-    @staticmethod
-    def update(
-        visible: bool | None = None,
-    ):
-        return {
-            "visible": visible,
-            "__type__": "update",
-        }
 
 
 @document()
@@ -299,18 +237,6 @@ class Box(BlockContext):
         warnings.warn("gr.Box is deprecated. Use gr.Group instead.", DeprecationWarning)
         super().__init__(visible=visible, elem_id=elem_id, **kwargs)
 
-    def get_config(self):
-        return {"type": "box", **super().get_config()}
-
-    @staticmethod
-    def update(
-        visible: bool | None = None,
-    ):
-        return {
-            "visible": visible,
-            "__type__": "update",
-        }
-
     def style(self, **kwargs):
         warn_style_method_deprecation()
         return self
@@ -334,14 +260,6 @@ class Form(BlockContext):
             self.min_width += getattr(child, "min_width", 0) or 0
         super().add_child(child)
 
-    def get_config(self):
-        return {
-            "type": "form",
-            "scale": self.scale,
-            "min_width": self.min_width,
-            **super().get_config(),
-        }
-
 
 @document()
 class Accordion(BlockContext):
@@ -354,10 +272,10 @@ class Accordion(BlockContext):
 
     def __init__(
         self,
-        label,
+        label: str | None = None,
         *,
-        open: bool = True,
-        visible: bool = True,
+        open: bool | None = None,
+        visible: bool | None = None,
         elem_id: str | None = None,
         **kwargs,
     ):
@@ -367,27 +285,8 @@ class Accordion(BlockContext):
             open: if True, accordion is open by default.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.label = label
-        self.open = open
+        self.label = default(label, "Click to expand")
+        self.open = default(open, True)
+        self.visible = default(visible, True)
+
         super().__init__(visible=visible, elem_id=elem_id, **kwargs)
-
-    def get_config(self):
-        return {
-            "type": "accordion",
-            "open": self.open,
-            "label": self.label,
-            **super().get_config(),
-        }
-
-    @staticmethod
-    def update(
-        open: bool | None = None,
-        label: str | None = None,
-        visible: bool | None = None,
-    ):
-        return {
-            "visible": visible,
-            "label": label,
-            "open": open,
-            "__type__": "update",
-        }

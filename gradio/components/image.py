@@ -15,6 +15,7 @@ from gradio_client.serializing import ImgSerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
+from gradio.blocks import default
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
@@ -63,26 +64,26 @@ class Image(
         image_mode: Literal[
             "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
         ] = "RGB",
-        invert_colors: bool = False,
-        source: Literal["upload", "webcam", "canvas"] = "upload",
+        invert_colors: bool | None = None,
+        source: Literal["upload", "webcam", "canvas"] | None = None,
         tool: Literal["editor", "select", "sketch", "color-sketch"] | None = None,
-        type: Literal["numpy", "pil", "filepath"] = "numpy",
+        type: Literal["numpy", "pil", "filepath"] | None = None,
         label: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
-        show_download_button: bool = True,
-        container: bool = True,
+        show_download_button: bool | None = None,
+        container: bool | None = None,
         scale: int | None = None,
-        min_width: int = 160,
+        min_width: int | None = None,
         interactive: bool | None = None,
-        visible: bool = True,
-        streaming: bool = False,
+        visible: bool | None = None,
+        streaming: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        mirror_webcam: bool = True,
+        mirror_webcam: bool | None = None,
         brush_radius: float | None = None,
-        brush_color: str = "#000000",
-        mask_opacity: float = 0.7,
+        brush_color: str | None = None,
+        mask_opacity: float | None = None,
         show_share_button: bool | None = None,
         **kwargs,
     ):
@@ -115,6 +116,18 @@ class Image(
             mask_opacity: Opacity of mask drawn on image, as a value between 0 and 1.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
+        self.invert_colors = default(invert_colors, False)
+        source = default(source, "upload")
+        type = default(type, "numpy")
+        self.show_download_button = default(show_download_button, True)
+        container = default(container, True)
+        min_width = default(min_width, 160)
+        visible = default(visible, True)
+        self.streaming = default(streaming, False)
+        self.mirror_webcam = default(mirror_webcam, True)
+        self.brush_color = default(brush_color, "#000000")
+        self.mask_opacity = default(mask_opacity, 0)
+
         self.brush_radius = brush_radius
         self.brush_color = brush_color
         self.mask_opacity = mask_opacity
@@ -171,63 +184,6 @@ class Image(
             **kwargs,
         )
         TokenInterpretable.__init__(self)
-
-    def get_config(self):
-        return {
-            "image_mode": self.image_mode,
-            "shape": self.shape,
-            "height": self.height,
-            "width": self.width,
-            "source": self.source,
-            "tool": self.tool,
-            "value": self.value,
-            "streaming": self.streaming,
-            "mirror_webcam": self.mirror_webcam,
-            "brush_radius": self.brush_radius,
-            "brush_color": self.brush_color,
-            "mask_opacity": self.mask_opacity,
-            "selectable": self.selectable,
-            "show_share_button": self.show_share_button,
-            "show_download_button": self.show_download_button,
-            **IOComponent.get_config(self),
-        }
-
-    @staticmethod
-    def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        height: int | None = None,
-        width: int | None = None,
-        label: str | None = None,
-        show_label: bool | None = None,
-        show_download_button: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-        brush_radius: float | None = None,
-        brush_color: str | None = None,
-        mask_opacity: float | None = None,
-        show_share_button: bool | None = None,
-    ):
-        return {
-            "height": height,
-            "width": width,
-            "label": label,
-            "show_label": show_label,
-            "show_download_button": show_download_button,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "interactive": interactive,
-            "visible": visible,
-            "value": value,
-            "brush_radius": brush_radius,
-            "brush_color": brush_color,
-            "mask_opacity": mask_opacity,
-            "show_share_button": show_share_button,
-            "__type__": "update",
-        }
 
     def _format_image(
         self, im: _Image.Image | None

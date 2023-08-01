@@ -12,6 +12,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
 from gradio import processing_utils
+from gradio.blocks import default
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Clearable
@@ -37,10 +38,10 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         label: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
-        container: bool = True,
+        container: bool | None = None,
         scale: int | None = None,
-        min_width: int = 160,
-        visible: bool = True,
+        min_width: int | None = None,
+        visible: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         **kwargs,
@@ -58,6 +59,10 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        container = default(container, True)
+        min_width = default(min_width, 160)
+        visible = default(visible, True)
+
         IOComponent.__init__(
             self,
             label=label,
@@ -72,41 +77,6 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
             value=value,
             **kwargs,
         )
-
-    def get_config(self):
-        try:
-            import bokeh  # type: ignore
-
-            bokeh_version = bokeh.__version__
-        except ImportError:
-            bokeh_version = None
-        return {
-            "value": self.value,
-            "bokeh_version": bokeh_version,
-            **IOComponent.get_config(self),
-        }
-
-    @staticmethod
-    def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-    ):
-        updated_config = {
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
-        return updated_config
 
     def postprocess(self, y) -> dict[str, str] | None:
         """

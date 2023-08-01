@@ -7,6 +7,7 @@ from typing import Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import BooleanSerializable
 
+from gradio.blocks import default
 from gradio.components.base import FormComponent, IOComponent, _Keywords
 from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
 from gradio.interpretation import NeighborInterpretable
@@ -35,17 +36,17 @@ class Checkbox(
 
     def __init__(
         self,
-        value: bool | Callable = False,
+        value: bool | Callable | None = None,
         *,
         label: str | None = None,
         info: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
-        container: bool = True,
+        container: bool | None = None,
         scale: int | None = None,
-        min_width: int = 160,
+        min_width: int | None = None,
         interactive: bool | None = None,
-        visible: bool = True,
+        visible: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         **kwargs,
@@ -65,6 +66,11 @@ class Checkbox(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        self.value = default(value, False)
+        container = default(container, True)
+        min_width = default(min_width, 160)
+        visible = default(visible, True)
+
         self.select: EventListenerMethod
         """
         Event listener for when the user selects or deselects Checkbox.
@@ -88,37 +94,6 @@ class Checkbox(
             **kwargs,
         )
         NeighborInterpretable.__init__(self)
-
-    def get_config(self):
-        return {
-            "value": self.value,
-            **IOComponent.get_config(self),
-        }
-
-    @staticmethod
-    def update(
-        value: bool | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        label: str | None = None,
-        info: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-    ):
-        return {
-            "label": label,
-            "info": info,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "interactive": interactive,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
 
     def get_interpretation_neighbors(self, x):
         return [not x], {}

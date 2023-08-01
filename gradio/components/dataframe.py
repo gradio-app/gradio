@@ -10,6 +10,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
 from gradio import utils
+from gradio.blocks import default
 from gradio.components.base import IOComponent, _Keywords
 from gradio.events import (
     Changeable,
@@ -46,23 +47,23 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         value: list[list[Any]] | Callable | None = None,
         *,
         headers: list[str] | None = None,
-        row_count: int | tuple[int, str] = (1, "dynamic"),
+        row_count: int | tuple[int, str] | None = None,
         col_count: int | tuple[int, str] | None = None,
-        datatype: str | list[str] = "str",
-        type: Literal["pandas", "numpy", "array"] = "pandas",
-        max_rows: int | None = 20,
+        datatype: str | list[str] | None = None,
+        type: Literal["pandas", "numpy", "array"] | None = None,
+        max_rows: int | None = None,
         max_cols: int | None = None,
-        overflow_row_behaviour: Literal["paginate", "show_ends"] = "paginate",
+        overflow_row_behaviour: Literal["paginate", "show_ends"] | None = None,
         label: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
         scale: int | None = None,
-        min_width: int = 160,
+        min_width: int | None = None,
         interactive: bool | None = None,
-        visible: bool = True,
+        visible: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        wrap: bool = False,
+        wrap: bool | None = None,
         **kwargs,
     ):
         """
@@ -88,6 +89,15 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             wrap: if True text in table cells will wrap when appropriate, if False the table will scroll horizontally. Defaults to False.
         """
+        self.row_count = default(row_count, )
+        self.datatype = default(datatype, "str")
+        self.type = default(type, "pandas")
+        self.max_rows = default(max_rows, 20)
+        self.overflow_row_behaviour = default(overflow_row_behaviour, "paginate")
+        min_width = default(min_width, 160)
+        visible = default(visible, True)
+        self.wrap = default(wrap, False)
+
 
         self.wrap = wrap
         self.row_count = self.__process_counts(row_count)
@@ -147,45 +157,6 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             value=value,
             **kwargs,
         )
-
-    def get_config(self):
-        return {
-            "headers": self.headers,
-            "datatype": self.datatype,
-            "row_count": self.row_count,
-            "col_count": self.col_count,
-            "value": self.value,
-            "max_rows": self.max_rows,
-            "max_cols": self.max_cols,
-            "overflow_row_behaviour": self.overflow_row_behaviour,
-            "wrap": self.wrap,
-            **IOComponent.get_config(self),
-        }
-
-    @staticmethod
-    def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        max_rows: int | None = None,
-        max_cols: str | None = None,
-        label: str | None = None,
-        show_label: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-    ):
-        return {
-            "max_rows": max_rows,
-            "max_cols": max_cols,
-            "label": label,
-            "show_label": show_label,
-            "scale": scale,
-            "min_width": min_width,
-            "interactive": interactive,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
 
     def preprocess(self, x: DataframeData):
         """
