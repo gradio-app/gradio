@@ -1,6 +1,6 @@
 ---
-"@gradio/form": minor
-"gradio": minor
+"@gradio/form": patch
+"gradio": patch
 ---
 
-feat:`gr.Dropdown` now has correct behavior in static mode as well as when an option is selected
+fix:`gr.Dropdown` now has correct behavior in static mode as well as when an option is selected
