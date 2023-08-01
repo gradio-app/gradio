@@ -21,7 +21,7 @@ In the example above, you'll notice that you are able to edit Textbox `name`, bu
 output = gr.Textbox(label="Output", interactive=True)
 ```
 
-_Note_: You might ask what happens if a Gradio component is neither an input nor an output. If a component is constructed with a default value, then it is presumed to be displaying content and is rendered non-interactive. Otherwise, it is rendered interactive. 
+_Note_: What happens if a Gradio component is neither an input nor an output? If a component is constructed with a default value, then it is presumed to be displaying content and is rendered non-interactive. Otherwise, it is rendered interactive. Again, this behavior can be overridden by specifying a value for the `interactive` property.
 
 ## Types of Event Listeners
 
