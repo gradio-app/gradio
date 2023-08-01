@@ -4,6 +4,12 @@ module use the Optional/Union notation so that they work correctly with pydantic
 from __future__ import annotations
 
 import asyncio
+import sys
+
+if sys.version_info >= (3, 9):
+    from importlib.resources import files
+else:
+    from importlib_resources import files
 import inspect
 import json
 import mimetypes
@@ -23,7 +29,6 @@ import fastapi
 import httpx
 import markupsafe
 import orjson
-import pkg_resources
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile, WebSocket, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
@@ -53,12 +58,10 @@ from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
 
 mimetypes.init()
 
-STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
-STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/static")
-BUILD_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/assets")
-VERSION_FILE = pkg_resources.resource_filename("gradio", "version.txt")
-with open(VERSION_FILE) as version_file:
-    VERSION = version_file.read()
+STATIC_TEMPLATE_LIB = files("gradio").joinpath("templates").as_posix()  # type: ignore
+STATIC_PATH_LIB = files("gradio").joinpath("templates", "frontend", "static").as_posix()  # type: ignore
+BUILD_PATH_LIB = files("gradio").joinpath("templates", "frontend", "assets").as_posix()  # type: ignore
+VERSION = files("gradio").joinpath("version.txt").read_text()
 
 
 class ORJSONResponse(JSONResponse):
