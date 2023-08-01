@@ -181,6 +181,7 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
         "targets": targets_telemetry,
         "blocks": blocks_telemetry,
         "events": [str(x["trigger"]) for x in blocks.dependencies],
+        "is_wasm": wasm_utils.IS_WASM,
     }
 
     data.update(additional_data)
