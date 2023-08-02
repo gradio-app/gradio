@@ -32,42 +32,6 @@
 			serializer: string;
 		}) => blob_components.includes(param.component)
 	);
-	let submit_line: string;
-	let return_line: string;
-	$: if (dependency.types.generator) {
-		if (current_language == "python"){
-			submit_line = `# This api route streams outputs
-result = client.submit(`;
-			return_line = `)
-result.finish(timeout=None)
-
-# Get the final output. outputs() returns a list of all streamed results.
-print(result.outputs()[-1])
-		`;
-		} else {
-			submit_line = `let result = [];
-
-// This api route streams outputs
-const job = app.submit(`
-			return_line = `);
-
-job.on("data", (d) => {result.push(d)});
-await job.finish();
-
-// Get the final output
-console.log(result[result.length - 1].data);`
-		}
-	} else {
-		submit_line = `result = client.predict(`;
-		if (current_language == "python") {
-			return_line = `)
-print(result)`;
-		}
-		else {
-			return_line = `)
-console.log(result.data)`
-		}
-	}
 </script>
 
 <div class="container">
@@ -86,7 +50,7 @@ console.log(result.data)`
 					<pre>from gradio_client import Client
 
 client = Client(<span class="token string">"{root}"</span>)
-{submit_line}<!--
+result = client.predict(<!--
 -->{#each endpoint_parameters as { label, type, python_type, component, example_input, serializer }, i}<!--
         -->
 				<span
@@ -113,7 +77,8 @@ client = Client(<span class="token string">"{root}"</span>)
 						{:else}
 							fn_index={dependency_index}
 						{/if}
-{return_line}</pre>
+)
+print(result)</pre>
 				</div>
 			{:else if current_language === "javascript"}
 				<div class="copy">
@@ -128,7 +93,7 @@ const example{component} = await response_{i}.blob();
 						{/each}<!--
 -->
 const app = await client(<span class="token string">"{root}"</span>);
-{submit_line}{#if named}"/{dependency.api_name}"{:else}{dependency_index}{/if}, [<!--
+const result = await app.predict({#if named}"/{dependency.api_name}"{:else}{dependency_index}{/if}, [<!--
 -->{#each endpoint_parameters as { label, type, python_type, component, example_input, serializer }, i}<!--
 		-->{#if blob_components.includes(component)}<!--
 	-->
@@ -162,8 +127,9 @@ const app = await client(<span class="token string">"{root}"</span>);
 								><!--
 -->{/if}
 						{/each}
-	]
-{return_line}
+	]);
+
+console.log(result.data);
 </pre>
 				</div>
 			{/if}

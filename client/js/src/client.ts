@@ -342,24 +342,39 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 			): Promise<unknown> {
 				let data_returned = false;
 				let status_complete = false;
+				let dependency;
+				if (typeof endpoint === "number") {
+					dependency = config.dependencies[endpoint];
+				} else {
+					const trimmed_endpoint = endpoint.replace(/^\//, "");
+					dependency = config.dependencies[api_map[trimmed_endpoint]];
+				}
+
+				if (dependency.types.continuous) {
+					throw new Error(
+						"Cannot call predict on this function as it may run forever."
+					);
+				}
+
 				return new Promise((res, rej) => {
 					const app = submit(endpoint, data, event_data);
+					let result;
 
 					app
 						.on("data", (d) => {
-							data_returned = true;
 							if (status_complete) {
 								app.destroy();
+								data_returned = true;
+								res(d);
 							}
-							res(d);
+							result = d;
 						})
 						.on("status", (status) => {
 							if (status.stage === "error") rej(status);
-							if (status.stage === "complete" && data_returned) {
-								app.destroy();
-							}
 							if (status.stage === "complete") {
 								status_complete = true;
+								app.destroy();
+								res(result);
 							}
 						});
 				});
