@@ -25,6 +25,7 @@ from matplotlib import animation
 
 from gradio import components, oauth, processing_utils, routes, utils
 from gradio.context import Context
+from gradio.exceptions import Error
 from gradio.flagging import CSVLogger
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
@@ -691,7 +692,11 @@ def special_args(
             if inputs is not None:
                 inputs.insert(i, request)
         elif (
-            type_hint == Optional[oauth.OAuthProfile] or type_hint == oauth.OAuthProfile
+            type_hint == Optional[oauth.OAuthProfile]
+            or type_hint == oauth.OAuthProfile
+            # Note: "OAuthProfile | None" is equals to Optional[OAuthProfile] in Python
+            #       => it is automatically handled as well by the above condition
+            #       (adding explicit "OAuthProfile | None" would break in Python3.9)
         ):
             if inputs is not None:
                 # Retrieve session from gr.Request, if it exists (i.e. if user is logged in)
@@ -706,8 +711,8 @@ def special_args(
                     session["oauth_profile"] if "oauth_profile" in session else None
                 )
                 if type_hint == oauth.OAuthProfile and oauth_profile is None:
-                    raise ValueError(
-                        "Function requires an OAuth profile, but user is not authenticated."
+                    raise Error(
+                        "This action requires a logged in user. Please sign in and retry."
                     )
                 inputs.insert(i, oauth_profile)
         elif (

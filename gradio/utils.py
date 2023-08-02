@@ -779,6 +779,9 @@ def get_type_hints(fn):
         for name, param in sig.parameters.items():
             if param.annotation is inspect.Parameter.empty:
                 continue
+            if param.annotation == "gr.OAuthProfile | None":
+                # Special case: we want to inject the OAuthProfile value even on Python 3.9
+                type_hints[name] = Optional[OAuthProfile]
             if "|" in str(param.annotation):
                 continue
             # To convert the string annotation to a class, we use the
