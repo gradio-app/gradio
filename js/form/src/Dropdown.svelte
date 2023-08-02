@@ -72,8 +72,11 @@
 	}
 
 	function remove(option: string): void {
-		value = value as string[];
-		value = value.filter((v: string) => v !== option);
+		if (!disabled)
+		{
+			value = value as string[];
+			value = value.filter((v: string) => v !== option);
+		}
 		dispatch("select", {
 			index: choices.indexOf(option),
 			value: option,
@@ -87,7 +90,7 @@
 		e.preventDefault();
 	}
 
-	function handle_blur(e: FocusEvent) {
+	function handle_blur(e: FocusEvent): void {
 		if (multiselect) {
 			inputValue = "";
 		} else if (!allow_custom_value) {
@@ -104,14 +107,10 @@
 		dispatch("blur");
 	}
 
-	function handle_focus(e: FocusEvent){
+	function handle_focus(e: FocusEvent): void{
 		dispatch("focus");
-		showOptions = !showOptions;
-		if (showOptions) {
-			filtered = choices;
-		} else {
-			filterInput.blur();
-		}
+		showOptions = true;
+		filtered = choices;
 	}
 
 	function handleOptionMousedown(e: any): void {
@@ -137,6 +136,7 @@
 					value: option,
 					selected: true
 				});
+				filterInput.blur();
 			}
 		}
 	}
@@ -154,6 +154,7 @@
 				}
 				inputValue = activeOption;
 				showOptions = false;
+				filterInput.blur();
 			} else if (multiselect && Array.isArray(value)) {
 				value.includes(activeOption) ? remove(activeOption) : add(activeOption);
 				inputValue = "";
@@ -209,13 +210,15 @@
 					<!-- svelte-ignore a11y-click-events-have-key-events -->
 					<div on:click|preventDefault={() => remove(s)} class="token">
 						<span>{s}</span>
+						{#if !disabled}
 						<div
 							class:hidden={disabled}
 							class="token-remove"
 							title="Remove {s}"
 						>
-							<Remove />
-						</div>
+						<Remove />
+					</div>
+					{/if}
 					</div>
 				{/each}
 			{/if}
