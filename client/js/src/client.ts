@@ -352,7 +352,7 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 
 				if (dependency.types.continuous) {
 					throw new Error(
-						"Cannot call predict on this function as it may run forever."
+						"Cannot call predict on this function as it may run forever. Use submit instead"
 					);
 				}
 

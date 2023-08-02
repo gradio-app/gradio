@@ -286,7 +286,7 @@ class Client:
         inferred_fn_index = self._infer_fn_index(api_name, fn_index)
         if self.endpoints[inferred_fn_index].is_continuous:
             raise ValueError(
-                "Cannot call predict on this function as it may run forever."
+                "Cannot call predict on this function as it may run forever. Use submit instead."
             )
         return self.submit(*args, api_name=api_name, fn_index=fn_index).result()
 
