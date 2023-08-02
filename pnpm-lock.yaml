@@ -560,40 +560,6 @@ importers:
         specifier: workspace:^
         version: link:../utils
 
-  js/chart:
-    dependencies:
-      '@gradio/icons':
-        specifier: workspace:^
-        version: link:../icons
-      '@gradio/theme':
-        specifier: workspace:^
-        version: link:../theme
-      '@gradio/tooltip':
-        specifier: workspace:^
-        version: link:../tooltip
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../utils
-      d3-dsv:
-        specifier: ^3.0.1
-        version: 3.0.1
-      d3-scale:
-        specifier: ^4.0.2
-        version: 4.0.2
-      d3-shape:
-        specifier: ^3.1.0
-        version: 3.1.0
-    devDependencies:
-      '@types/d3-dsv':
-        specifier: ^3.0.0
-        version: 3.0.0
-      '@types/d3-scale':
-        specifier: ^4.0.2
-        version: 4.0.3
-      '@types/d3-shape':
-        specifier: ^3.0.2
-        version: 3.1.1
-
   js/chatbot:
     dependencies:
       '@gradio/atoms':
@@ -850,15 +816,6 @@ importers:
 
   js/group: {}
 
-  js/highlighted-text:
-    dependencies:
-      '@gradio/theme':
-        specifier: workspace:^
-        version: link:../theme
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../utils
-
   js/highlightedtext:
     dependencies:
       '@gradio/atoms':
@@ -1069,27 +1026,6 @@ importers:
         specifier: workspace:^
         version: link:../utils
 
-  js/table:
-    dependencies:
-      '@gradio/button':
-        specifier: workspace:^
-        version: link:../button
-      '@gradio/upload':
-        specifier: workspace:^
-        version: link:../upload
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../utils
-      '@types/d3-dsv':
-        specifier: ^3.0.0
-        version: 3.0.0
-      d3-dsv:
-        specifier: ^3.0.1
-        version: 3.0.1
-      dequal:
-        specifier: ^2.0.2
-        version: 2.0.2
-
   js/tabs:
     dependencies:
       '@gradio/utils':
@@ -1168,18 +1104,6 @@ importers:
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
-
-  js/upload-button:
-    dependencies:
-      '@gradio/button':
-        specifier: workspace:^
-        version: link:../button
-      '@gradio/upload':
-        specifier: workspace:^
-        version: link:../upload
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../utils
 
   js/uploadbutton:
     dependencies:
@@ -6174,7 +6098,7 @@ packages:
     peerDependencies:
       '@sveltejs/kit': ^1.0.0
     dependencies:
-      '@sveltejs/kit': 1.16.3(svelte@3.57.0)(vite@4.3.5)
+      '@sveltejs/kit': 1.16.3(svelte@3.59.2)(vite@4.3.9)
       import-meta-resolve: 3.0.0
     dev: true
 
