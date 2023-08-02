@@ -55,7 +55,6 @@ class LoginButton(Button):
         # ('self' value will be either "Sign in with Hugging Face" or "Signed in as ...")
         self.click(fn=None, inputs=[self], outputs=None, _js=_js_open_if_not_logged_in)
 
-        # Attach load_event to check user login status when rendering
         self.attach_load_event(self._check_login_status, None)
 
     def _check_login_status(self, request: Request) -> dict[str, Any]:

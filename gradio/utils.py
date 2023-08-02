@@ -804,8 +804,6 @@ def is_special_typed_parameter(name, parameter_types):
     if not hint:
         return False
     is_request = hint == Request
-    Optional[OAuthProfile]
-    # import pdb;pdb.set_trace()
     is_oauth_arg = hint in (OAuthProfile, Optional[OAuthProfile])
     is_event_data = inspect.isclass(hint) and issubclass(hint, EventData)
     return is_request or is_event_data or is_oauth_arg
