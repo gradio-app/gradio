@@ -28,24 +28,6 @@
 "@gradio/model3d": patch
 "@gradio/number": patch
 "@gradio/plot": patch
-"@gradio/radio": patch
-"@gradio/row": patch
-"@gradio/slider": patch
-"@gradio/spaces-test": patch
-"@gradio/state": patch
-"@gradio/statustracker": patch
-"@gradio/tabitem": patch
-"@gradio/tabs": patch
-"@gradio/textbox": patch
-"@gradio/timeseries": patch
-"@gradio/tooltip": patch
-"@gradio/upload": patch
-"@gradio/uploadbutton": patch
-"@gradio/utils": patch
-"@gradio/video": patch
-"@gradio/wasm": patch
-"gradio": patch
-"website": patch
 ---
 
 feat:Refactor component directories
