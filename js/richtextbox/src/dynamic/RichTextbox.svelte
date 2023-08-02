@@ -257,7 +257,7 @@
 					bind:this={hidden_upload}
 					on:change={loadFilesFromUpload}
 					on:click={clearInputValue}
-					multiple={file_count === "multiple" || undefined}
+					multiple={true}
 					webkitdirectory={file_count === "directory" || undefined}
 					mozdirectory={file_count === "directory" || undefined}
 					data-testid="{label}-upload-button"
