@@ -33,6 +33,7 @@
 		blur: undefined;
 		select: SelectData;
 		input: undefined;
+		focus: undefined;
 	}>();
 
 	function handle_change() {
@@ -45,10 +46,6 @@
 		value_is_output = false;
 	});
 	$: value, handle_change();
-
-	function handle_blur() {
-		dispatch("blur");
-	}
 
 	async function handle_copy() {
 		if ("clipboard" in navigator) {
@@ -153,8 +150,9 @@
 				{disabled}
 				{autofocus}
 				on:keypress={handle_keypress}
-				on:blur={handle_blur}
+				on:blur
 				on:select={handle_select}
+				on:focus
 				style={text_align ? "text-align: " + text_align : ""}
 				/>
 		{:else if type === "password"}
@@ -168,8 +166,9 @@
 				{disabled}
 				{autofocus}
 				on:keypress={handle_keypress}
-				on:blur={handle_blur}
+				on:blur
 				on:select={handle_select}
+				on:focus
 				autocomplete=""
 			/>
 		{:else if type === "email"}
@@ -183,8 +182,9 @@
 				{disabled}
 				{autofocus}
 				on:keypress={handle_keypress}
-				on:blur={handle_blur}
+				on:blur
 				on:select={handle_select}
+				on:focus
 				autocomplete="email"
 			/>
 		{/if}
@@ -208,8 +208,9 @@
 			{disabled}
 			{autofocus}
 			on:keypress={handle_keypress}
-			on:blur={handle_blur}
+			on:blur
 			on:select={handle_select}
+			on:focus
 			style={text_align ? "text-align: " + text_align : ""}
 			/>
 	{/if}
