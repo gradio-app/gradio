@@ -330,7 +330,10 @@ class Block:
         del generic_update["__type__"]
         specific_update = cls.update(**generic_update)
         return specific_update
-
+    
+    def __deepcopy__(self, memo):
+        args = copy.deepcopy(self.get_config(with_globals=False), memo)
+        return self.__class__(**args)
 
 class BlockContext(Block):
     def __init__(
@@ -1134,7 +1137,7 @@ class Blocks(BlockContext):
             "is_generating": is_generating,
             "iterator": iterator,
         }
-
+    
     def serialize_data(self, fn_index: int, inputs: list[Any]) -> list[Any]:
         dependency = self.dependencies[fn_index]
         processed_input = []
@@ -1216,7 +1219,7 @@ Received inputs:
     [{received}]"""
             )
 
-    def preprocess_data(self, fn_index: int, inputs: list[Any], state: dict[int, Any]):
+    def preprocess_data(self, fn_index: int, inputs: list[Any], state: dict[int, Block]):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
@@ -1226,7 +1229,7 @@ Received inputs:
             processed_input = []
             for i, input_id in enumerate(dependency["inputs"]):
                 try:
-                    block = self.blocks[input_id]
+                    block = state[input_id]
                 except KeyError as e:
                     raise InvalidBlockError(
                         f"Input component with id {input_id} used in {dependency['trigger']}() event not found in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
@@ -1234,10 +1237,7 @@ Received inputs:
                 assert isinstance(
                     block, components.Component
                 ), f"{block.__class__} Component with id {input_id} not a valid input component."
-                if getattr(block, "stateful", False):
-                    processed_input.append(state.get(input_id))
-                else:
-                    processed_input.append(block.preprocess(inputs[i]))
+                processed_input.append(block.preprocess(inputs[i]))
         else:
             processed_input = inputs
         return processed_input
@@ -1279,7 +1279,7 @@ Received outputs:
             )
 
     def postprocess_data(
-        self, fn_index: int, predictions: list | dict, state: dict[int, Any]
+        self, fn_index: int, predictions: list | dict, state: dict[int, Block]
     ):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
@@ -1310,7 +1310,7 @@ Received outputs:
                 ) from err
 
             try:
-                block = self.blocks[output_id]
+                block = state[output_id]
             except KeyError as e:
                 raise InvalidBlockError(
                     f"Output component with id {output_id} used in {dependency['trigger']}() event not found in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
@@ -1346,7 +1346,7 @@ Received outputs:
         self,
         fn_index: int,
         inputs: list[Any],
-        state: dict[int, Any],
+        state: dict[int, Block],
         request: routes.Request | list[routes.Request] | None = None,
         iterators: dict[int, Any] | None = None,
         event_id: str | None = None,
@@ -1358,7 +1358,7 @@ Received outputs:
         Parameters:
             fn_index: Index of function to run.
             inputs: input data received from the frontend
-            state: data stored from stateful components for session (key is input block id)
+            state: components for session (key is input block id)
             request: the gr.Request object containing information about the network request (e.g. IP address, headers, query parameters, username)
             iterators: the in-progress iterators for each generator function (key is function index)
             event_id: id of event that triggered this API call

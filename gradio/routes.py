@@ -406,9 +406,8 @@ class App(FastAPI):
             if hasattr(body, "session_hash"):
                 if body.session_hash not in app.state_holder:
                     app.state_holder[body.session_hash] = {
-                        _id: deepcopy(getattr(block, "value", None))
+                        _id: deepcopy(block)
                         for _id, block in app.get_blocks().blocks.items()
-                        if getattr(block, "stateful", False)
                     }
                 session_state = app.state_holder[body.session_hash]
                 # The should_reset set keeps track of the fn_indices
