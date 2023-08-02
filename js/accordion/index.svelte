@@ -2,7 +2,7 @@
 	import Accordion from "./static";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/StatusTracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker/types";
 
 	import Column from "@gradio/column";
 
