@@ -1,7 +1,7 @@
 import { test, describe, assert, afterEach } from "vitest";
 import { cleanup, render } from "@gradio/tootils";
-import Chatbot from "./Index.svelte";
-import type { LoadingStatus } from "../../app/src/components/StatusTracker/types";
+import Chatbot from "./index.svelte";
+import type { LoadingStatus } from "@gradio/statustracker/types";
 import type { FileData } from "@gradio/upload";
 
 const loading_status: LoadingStatus = {
