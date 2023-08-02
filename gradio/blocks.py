@@ -721,9 +721,7 @@ class Blocks(BlockContext):
             else analytics.analytics_enabled()
         )
         if self.analytics_enabled:
-            if wasm_utils.IS_WASM:
-                analytics.version_check()
-            else:
+            if not wasm_utils.IS_WASM:
                 t = threading.Thread(target=analytics.version_check)
                 t.start()
         else:
