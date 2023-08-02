@@ -55,7 +55,7 @@
 		change: undefined;
 	}>();
 
-	function handle_change({ detail }: CustomEvent<FileData | null>) {
+	function handle_change({ detail }: CustomEvent<FileData | null>): void {
 		if (detail != null) {
 			value = [detail, null] as [FileData, FileData | null];
 		} else {

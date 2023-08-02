@@ -29,7 +29,7 @@
 		"@gradio/audio": "workspace:^0.0.1",
 		"@gradio/box": "workspace:^0.0.1",
 		"@gradio/button": "workspace:^0.0.1",
-		"@gradio/chatbot": "workspace:^0.0.1",
+		"@gradio/chatbot": "workspace:^",
 		"@gradio/checkbox": "workspace:^0.0.1",
 		"@gradio/checkboxgroup": "workspace:^0.0.1",
 		"@gradio/client": "workspace:^0.1.4",

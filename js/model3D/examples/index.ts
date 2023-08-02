@@ -1,1 +1,0 @@
-export { default as model3d } from "./model3d.svelte";

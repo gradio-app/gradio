@@ -216,7 +216,9 @@
 					editable
 				/>
 
+				<!-- TODO: fix-->
 				<!-- svelte-ignore a11y-click-events-have-key-events -->
+				<!-- svelte-ignore a11y-no-noninteractive-element-interactions-->
 				<img
 					src={value}
 					alt=""
@@ -268,7 +270,9 @@
 					{/if}
 				{/if}
 			{:else}
+				<!-- TODO: fix-->
 				<!-- svelte-ignore a11y-click-events-have-key-events -->
+				<!-- svelte-ignore a11y-no-noninteractive-element-interactions-->
 				<img
 					src={value.image || value}
 					alt="hello"
@@ -327,7 +331,10 @@
 			editable
 		/>
 
+		<!-- TODO: fix -->
 		<!-- svelte-ignore a11y-click-events-have-key-events -->
+		<!-- svelte-ignore a11y-no-noninteractive-element-interactions-->
+
 		<img
 			src={value}
 			alt=""
@@ -376,7 +383,10 @@
 			{/if}
 		{/if}
 	{:else}
+		<!-- TODO: fix -->
 		<!-- svelte-ignore a11y-click-events-have-key-events -->
+		<!-- svelte-ignore a11y-no-noninteractive-element-interactions-->
+
 		<img
 			src={value.image || value}
 			alt=""

@@ -1,1 +1,0 @@
-export { default as tabitem } from "./tabitem.svelte";

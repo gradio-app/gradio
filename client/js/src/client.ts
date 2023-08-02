@@ -69,7 +69,7 @@ export async function duplicate(
 		hardware?: (typeof hardware_types)[number];
 		timeout?: number;
 	}
-) {
+): Promise<client_return> {
 	const { hf_token, private: _private, hardware, timeout } = options;
 
 	if (hardware && !hardware_types.includes(hardware)) {
@@ -115,38 +115,57 @@ export async function duplicate(
 
 		if (response.status === 409) {
 			return client(`${user}/${space_name}`, options);
-		} else {
-			const duplicated_space = await response.json();
-
-			let original_hardware;
-
-			if (!hardware) {
-				original_hardware = await get_space_hardware(app_reference, hf_token);
-			}
-
-			const requested_hardware = hardware || original_hardware || "cpu-basic";
-			await set_space_hardware(
-				`${user}/${space_name}`,
-				requested_hardware,
-				hf_token
-			);
-
-			await set_space_timeout(
-				`${user}/${space_name}`,
-				timeout || 300,
-				hf_token
-			);
-			return client(duplicated_space.url, options);
 		}
+		const duplicated_space = await response.json();
+
+		let original_hardware;
+
+		if (!hardware) {
+			original_hardware = await get_space_hardware(app_reference, hf_token);
+		}
+
+		const requested_hardware = hardware || original_hardware || "cpu-basic";
+		await set_space_hardware(
+			`${user}/${space_name}`,
+			requested_hardware,
+			hf_token
+		);
+
+		await set_space_timeout(`${user}/${space_name}`, timeout || 300, hf_token);
+		return client(duplicated_space.url, options);
 	} catch (e: any) {
 		throw new Error(e);
 	}
 }
 
-/**
- * We need to inject a customized fetch implementation for the Wasm version.
- */
-export function api_factory(fetch_implementation: typeof fetch) {
+interface Client {
+	post_data: (
+		url: string,
+		body: unknown,
+		token?: `hf_${string}`
+	) => Promise<[PostResponse, number]>;
+	upload_files: (
+		root: string,
+		files: File[],
+		token?: `hf_${string}`
+	) => Promise<UploadResponse>;
+	client: (
+		app_reference: string,
+		options: {
+			hf_token?: `hf_${string}`;
+			status_callback?: SpaceStatusCallback;
+			normalise_files?: boolean;
+		}
+	) => Promise<client_return>;
+	handle_blob: (
+		endpoint: string,
+		data: unknown[],
+		api_info: ApiInfo<JsApiData>,
+		token?: `hf_${string}`
+	) => Promise<unknown[]>;
+}
+
+export function api_factory(fetch_implementation: typeof fetch): Client {
 	return { post_data, upload_files, client, handle_blob };
 
 	async function post_data(
@@ -176,7 +195,7 @@ export function api_factory(fetch_implementation: typeof fetch) {
 
 	async function upload_files(
 		root: string,
-		files: Array<File>,
+		files: (Blob | File)[],
 		token?: `hf_${string}`
 	): Promise<UploadResponse> {
 		const headers: {
@@ -242,7 +261,7 @@ export function api_factory(fetch_implementation: typeof fetch) {
 				jwt = await get_jwt(space_id, hf_token);
 			}
 
-			async function config_success(_config: Config) {
+			async function config_success(_config: Config): Promise<client_return> {
 				config = _config;
 				api_map = map_names_to_ids(_config?.dependencies || []);
 				try {
@@ -257,7 +276,7 @@ export function api_factory(fetch_implementation: typeof fetch) {
 				};
 			}
 			let api: ApiInfo<JsApiData>;
-			async function handle_space_sucess(status: SpaceStatus) {
+			async function handle_space_sucess(status: SpaceStatus): Promise<void> {
 				if (status_callback) status_callback(status);
 				if (status.status === "running")
 					try {
@@ -310,17 +329,11 @@ export function api_factory(fetch_implementation: typeof fetch) {
 				}
 			}
 
-			/**
-			 * Run a prediction.
-			 * @param endpoint - The prediction endpoint to use.
-			 * @param status_callback - A function that is called with the current status of the prediction immediately and every time it updates.
-			 * @return Returns the data for the prediction or an error message.
-			 */
 			function predict(
 				endpoint: string,
 				data: unknown[],
 				event_data?: unknown
-			) {
+			): Promise<unknown> {
 				let data_returned = false;
 				let status_complete = false;
 				return new Promise((res, rej) => {
@@ -574,7 +587,7 @@ export function api_factory(fetch_implementation: typeof fetch) {
 					}
 				});
 
-				function fire_event<K extends EventType>(event: Event<K>) {
+				function fire_event<K extends EventType>(event: Event<K>): void {
 					const narrowed_listener_map: ListenerMap<K> = listener_map;
 					const listeners = narrowed_listener_map[event.type] || [];
 					listeners?.forEach((l) => l(event));
@@ -583,7 +596,7 @@ export function api_factory(fetch_implementation: typeof fetch) {
 				function on<K extends EventType>(
 					eventType: K,
 					listener: EventListener<K>
-				) {
+				): SubmitReturn {
 					const narrowed_listener_map: ListenerMap<K> = listener_map;
 					const listeners = narrowed_listener_map[eventType] || [];
 					narrowed_listener_map[eventType] = listeners;
@@ -595,7 +608,7 @@ export function api_factory(fetch_implementation: typeof fetch) {
 				function off<K extends EventType>(
 					eventType: K,
 					listener: EventListener<K>
-				) {
+				): SubmitReturn {
 					const narrowed_listener_map: ListenerMap<K> = listener_map;
 					let listeners = narrowed_listener_map[eventType] || [];
 					listeners = listeners?.filter((l) => l !== listener);
@@ -604,7 +617,7 @@ export function api_factory(fetch_implementation: typeof fetch) {
 					return { on, off, cancel, destroy };
 				}
 
-				async function cancel() {
+				async function cancel(): Promise<void> {
 					const _status: Status = {
 						stage: "complete",
 						queue: false,
@@ -642,7 +655,7 @@ export function api_factory(fetch_implementation: typeof fetch) {
 					}
 				}
 
-				function destroy() {
+				function destroy(): void {
 					for (const event_type in listener_map) {
 						listener_map[event_type as "data" | "status"].forEach((fn) => {
 							off(event_type as "data" | "status", fn);
@@ -715,7 +728,7 @@ export function api_factory(fetch_implementation: typeof fetch) {
 	async function handle_blob(
 		endpoint: string,
 		data: unknown[],
-		api_info,
+		api_info: ApiInfo<JsApiData>,
 		token?: `hf_${string}`
 	): Promise<unknown[]> {
 		const blob_refs = await walk_and_store_blobs(
@@ -732,9 +745,8 @@ export function api_factory(fetch_implementation: typeof fetch) {
 					const file_url = (await upload_files(endpoint, [blob], token))
 						.files[0];
 					return { path, file_url, type };
-				} else {
-					return { path, base64: data, type };
 				}
+				return { path, base64: data, type };
 			})
 		).then((r) => {
 			r.forEach(({ path, file_url, base64, type }) => {
@@ -778,17 +790,16 @@ function transform_output(
 			});
 		} else if (typeof d === "object" && d.is_file) {
 			return normalise_file(d, root_url, remote_url);
-		} else {
-			return d;
 		}
+		return d;
 	});
 }
 
 function normalise_file(
-	file: Array<FileData>,
+	file: FileData[],
 	root: string,
 	root_url: string | null
-): Array<FileData>;
+): FileData[];
 function normalise_file(
 	file: FileData | string,
 	root: string,
@@ -799,11 +810,7 @@ function normalise_file(
 	root: string,
 	root_url: string | null
 ): null;
-function normalise_file(
-	file,
-	root,
-	root_url
-): Array<FileData> | FileData | null {
+function normalise_file(file, root, root_url): FileData[] | FileData | null {
 	if (file == null) return null;
 	if (typeof file === "string") {
 		return {
@@ -811,7 +818,7 @@ function normalise_file(
 			data: file
 		};
 	} else if (Array.isArray(file)) {
-		const normalized_file: Array<FileData | null> = [];
+		const normalized_file: (FileData | null)[] = [];
 
 		for (const x of file) {
 			if (x === null) {
@@ -821,7 +828,7 @@ function normalise_file(
 			}
 		}
 
-		return normalized_file as Array<FileData>;
+		return normalized_file as FileData[];
 	} else if (file.is_file) {
 		if (!root_url) {
 			file.data = root + "/file=" + file.name;
@@ -867,7 +874,7 @@ function get_type(
 	component: string,
 	serializer: string,
 	signature_type: "return" | "parameter"
-) {
+): string {
 	switch (type.type) {
 		case "string":
 			return "string";
@@ -891,11 +898,10 @@ function get_type(
 			return signature_type === "parameter"
 				? "(Blob | File | Buffer)[]"
 				: `{ name: string; data: string; size?: number; is_file?: boolean; orig_name?: string}[]`;
-		} else {
-			return signature_type === "parameter"
-				? "Blob | File | Buffer"
-				: `{ name: string; data: string; size?: number; is_file?: boolean; orig_name?: string}`;
 		}
+		return signature_type === "parameter"
+			? "Blob | File | Buffer"
+			: `{ name: string; data: string; size?: number; is_file?: boolean; orig_name?: string}`;
 	} else if (serializer === "GallerySerializable") {
 		return signature_type === "parameter"
 			? "[(Blob | File | Buffer), (string | null)][]"
@@ -906,16 +912,15 @@ function get_type(
 function get_description(
 	type: { type: any; description: string },
 	serializer: string
-) {
+): string {
 	if (serializer === "GallerySerializable") {
 		return "array of [file, label] tuples";
 	} else if (serializer === "ListStringSerializable") {
 		return "array of strings";
 	} else if (serializer === "FileSerializable") {
 		return "array of files or single file";
-	} else {
-		return type.description;
 	}
+	return type.description;
 }
 
 function transform_api_info(
@@ -983,7 +988,7 @@ async function get_jwt(
 	}
 }
 
-function update_object(object, newValue, stack) {
+function update_object(object, newValue, stack): void {
 	while (stack.length > 1) {
 		object = object[stack.shift()];
 	}
@@ -997,7 +1002,14 @@ export async function walk_and_store_blobs(
 	path = [],
 	root = false,
 	api_info = undefined
-) {
+): Promise<
+	{
+		path: string[];
+		data: string | false;
+		type: string;
+		blob: Blob | false;
+	}[]
+> {
 	if (Array.isArray(param)) {
 		let blob_refs = [];
 
@@ -1044,10 +1056,9 @@ export async function walk_and_store_blobs(
 				data = Buffer.from(buffer).toString("base64");
 			}
 
-			return [{ path, data, type }];
-		} else {
-			return [{ path: path, blob: param, type }];
+			return [{ path, data, type, blob: false }];
 		}
+		return [{ path: path, blob: param, type, data: false }];
 	} else if (typeof param === "object") {
 		let blob_refs = [];
 		for (let key in param) {
@@ -1066,12 +1077,11 @@ export async function walk_and_store_blobs(
 			}
 		}
 		return blob_refs;
-	} else {
-		return [];
 	}
+	return [];
 }
 
-function image_to_data_uri(blob: Blob) {
+function image_to_data_uri(blob: Blob): Promise<string | ArrayBuffer> {
 	return new Promise((resolve, _) => {
 		const reader = new FileReader();
 		reader.onloadend = () => resolve(reader.result);
@@ -1079,7 +1089,7 @@ function image_to_data_uri(blob: Blob) {
 	});
 }
 
-function skip_queue(id: number, config: Config) {
+function skip_queue(id: number, config: Config): boolean {
 	return (
 		!(config?.dependencies?.[id]?.queue === null
 			? config.enable_queue
@@ -1115,9 +1125,8 @@ async function resolve_config(
 			config.path = config.path ?? "";
 			config.root = endpoint;
 			return config;
-		} else {
-			throw new Error("Could not get config.");
 		}
+		throw new Error("Could not get config.");
 	}
 
 	throw new Error("No config or app endpoint found");
@@ -1127,7 +1136,7 @@ async function check_space_status(
 	id: string,
 	type: "subdomain" | "space_name",
 	status_callback: SpaceStatusCallback
-) {
+): Promise<void> {
 	let endpoint =
 		type === "subdomain"
 			? `https://huggingface.co/api/spaces/by-subdomain/${id}`
@@ -1292,20 +1301,19 @@ function handle_message(
 						success: data.success
 					}
 				};
-			} else {
-				return {
-					type: "complete",
-					status: {
-						queue,
-						message: !data.success ? data.output.error : undefined,
-						stage: data.success ? "complete" : "error",
-						code: data.code,
-						progress_data: data.progress_data,
-						eta: data.output.average_duration
-					},
-					data: data.success ? data.output : null
-				};
 			}
+			return {
+				type: "complete",
+				status: {
+					queue,
+					message: !data.success ? data.output.error : undefined,
+					stage: data.success ? "complete" : "error",
+					code: data.code,
+					progress_data: data.progress_data,
+					eta: data.output.average_duration
+				},
+				data: data.success ? data.output : null
+			};
 
 		case "process_starts":
 			return {

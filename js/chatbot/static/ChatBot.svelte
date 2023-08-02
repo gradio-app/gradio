@@ -9,12 +9,17 @@
 	import Markdown from "./MarkdownCode.svelte";
 
 	const code_highlight_css = {
-		light: (): Promise<typeof import("prismjs/themes/prism.css")> => import("prismjs/themes/prism.css"),
-		dark: (): Promise<typeof import("prismjs/themes/prism.css") > => import("prismjs/themes/prism-dark.css")
+		light: (): Promise<typeof import("prismjs/themes/prism.css")> =>
+			import("prismjs/themes/prism.css"),
+		dark: (): Promise<typeof import("prismjs/themes/prism.css")> =>
+			import("prismjs/themes/prism-dark.css"),
 	};
 
-	export let value: [string | FileData | null, string | FileData | null][] | null;
-	let old_value: [string | FileData | null, string | FileData | null][] | null = null;
+	export let value:
+		| [string | FileData | null, string | FileData | null][]
+		| null;
+	let old_value: [string | FileData | null, string | FileData | null][] | null =
+		null;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -76,7 +81,7 @@
 	): void {
 		dispatch("select", {
 			index: [i, j],
-			value: message
+			value: message,
 		});
 	}
 </script>
@@ -96,6 +101,8 @@
 		{#if value !== null}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
+					<!-- TODO: fix-->
+					<!-- svelte-ignore a11y-no-static-element-interactions-->
 					<!-- svelte-ignore a11y-click-events-have-key-events -->
 					<div
 						data-testid={j == 0 ? "user" : "bot"}
@@ -105,7 +112,7 @@
 						class:selectable
 						on:click={() => handle_select(i, j, message)}
 						dir={rtl ? "rtl" : "ltr"}
-						>
+					>
 						{#if typeof message === "string"}
 							<Markdown {message} {latex_delimiters} on:load={scroll} />
 							{#if feedback && j == 1}
@@ -407,5 +414,4 @@
 		top: 6px;
 		right: 6px;
 	}
-
 </style>

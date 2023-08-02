@@ -109,10 +109,6 @@
 		background: var(--color-grey-400);
 	}
 
-	.details {
-		font-family: var(--font-mono);
-	}
-
 	input[type="text"] {
 		--ring-color: transparent;
 		margin: var(--size-1) 0;

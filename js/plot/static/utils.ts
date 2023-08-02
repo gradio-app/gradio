@@ -32,6 +32,9 @@ export function create_config(darkmode: boolean): VegaConfig {
 	};
 }
 
-export function bar_plot_header_encoding(darkmode: boolean): Object {
+export function bar_plot_header_encoding(darkmode: boolean): {
+	labelFont: string;
+	labelColor: string;
+} {
 	return { labelFont: "sans-serif", labelColor: darkmode ? dark : light };
 }

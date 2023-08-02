@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { create as createType } from ".."
+	import type { create as createType } from "..";
 	// @ts-ignore
-	const create: typeof createType = globalThis.createGradioApp
+	const create: typeof createType = globalThis.createGradioApp;
 	type CreateOptions = Parameters<typeof create>[0];
 
-	import { onMount, onDestroy } from "svelte"
+	import { onMount, onDestroy } from "svelte";
 
 	interface EditorFile {
 		name: string;
@@ -45,20 +45,23 @@ demo.launch()`,
 			content: `
 def hi(name):
     return "Hi " + name + "!"`,
-		}
-	]
+		},
+	];
 	let entrypoint = editorFiles[0].name;
 
-	$: files = editorFiles.reduce<NonNullable<CreateOptions["files"]>>((acc, file) => {
-		acc[file.name] = {
-			data: file.content,
-		};
-		return acc;
-	}, {})
+	$: files = editorFiles.reduce<NonNullable<CreateOptions["files"]>>(
+		(acc, file) => {
+			acc[file.name] = {
+				data: file.content,
+			};
+			return acc;
+		},
+		{}
+	);
 
 	let requirements_txt = "";
 
-	function parse_requirements(text: string) {
+	function parse_requirements(text: string): string[] {
 		return text
 			.split("\n")
 			.map((line) => line.trim())
@@ -82,41 +85,41 @@ def hi(name):
 			themeMode: null,
 			autoScroll: false,
 			controlPageTitle: false,
-			appMode: true
+			appMode: true,
 		});
-	})
+	});
 	onDestroy(() => {
 		controller.unmount();
-	})
+	});
 
-	function execute () {
+	function execute(): void {
 		console.debug("exec_button.onclick");
 		editorFiles.forEach((file) => {
 			controller.write(file.name, file.content, {});
 		});
 		controller.run_file(entrypoint);
-		console.debug("Rerun finished")
+		console.debug("Rerun finished");
 	}
 
-	function install() {
+	function install(): void {
 		console.debug("install_button.onclick");
-		const requirements = parse_requirements(requirements_txt)
-		console.debug("requirements", requirements)
+		const requirements = parse_requirements(requirements_txt);
+		console.debug("requirements", requirements);
 		controller.install(requirements);
-		console.debug("Install finished")
+		console.debug("Install finished");
 	}
 
 	let new_file_name = "";
-	function add_file() {
+	function add_file(): void {
 		controller.write(new_file_name, "", {});
 		editorFiles = editorFiles.concat({
 			name: new_file_name,
 			content: "",
 		});
-		new_file_name = ""
+		new_file_name = "";
 	}
 
-	function delete_file(delete_file_name: string) {
+	function delete_file(delete_file_name: string): void {
 		controller.unlink(delete_file_name);
 		editorFiles = editorFiles.filter((file) => file.name !== delete_file_name);
 	}
@@ -132,13 +135,18 @@ def hi(name):
 					<h3 class="cell-title">{file.name}</h3>
 					<div>
 						<label>
-							<input type="radio" name="entrypoint" bind:group={entrypoint} value={file.name} />
+							<input
+								type="radio"
+								name="entrypoint"
+								bind:group={entrypoint}
+								value={file.name}
+							/>
 							Set as an entrypoint file
 						</label>
 						<button on:click={() => delete_file(file.name)}>Delete</button>
 					</div>
 				</div>
-				<textarea class="code-edit" bind:value={file.content}></textarea>
+				<textarea class="code-edit" bind:value={file.content} />
 			</div>
 		{/each}
 		<button on:click={execute}>Execute</button>
@@ -152,7 +160,7 @@ def hi(name):
 
 	<div class="panel">
 		<h2>Install requirements</h2>
-		<textarea class="code-edit" bind:value={requirements_txt}></textarea>
+		<textarea class="code-edit" bind:value={requirements_txt} />
 		<button on:click={install}>Install</button>
 	</div>
 </div>

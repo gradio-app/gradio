@@ -31,11 +31,11 @@
 		accept_file_types = file_types.join(", ");
 	}
 
-	const openFileUpload = () => {
+	function openFileUpload(): void {
 		hidden_upload.click();
-	};
+	}
 
-	const loadFiles = (files: FileList) => {
+	function loadFiles(files: FileList): void {
 		let _files: File[] = Array.from(files);
 		if (!files.length) {
 			return;
@@ -62,20 +62,20 @@
 				);
 			}
 		});
-	};
+	}
 
-	const loadFilesFromUpload = (e: Event) => {
+	function loadFilesFromUpload(e: Event): void {
 		const target = e.target as HTMLInputElement;
 		if (!target.files) {
 			return;
 		}
 		loadFiles(target.files);
-	};
+	}
 
-	const clearInputValue = (e: Event) => {
+	function clearInputValue(e: Event): void {
 		const target = e.target as HTMLInputElement;
 		if (target.value) target.value = "";
-	};
+	}
 </script>
 
 <input

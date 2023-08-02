@@ -25,7 +25,6 @@
 	$: value, handle_change();
 </script>
 
-<!-- svelte-ignore a11y-label-has-associated-control -->
 <label class:disabled>
 	<input
 		bind:checked={value}

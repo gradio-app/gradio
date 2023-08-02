@@ -28,19 +28,19 @@ interface Row {
 
 interface RowPoint {
 	name: string;
-	values: Array<{ x: number; y: number }>;
+	values: { x: number; y: number }[];
 }
 
 interface TransformedValues {
 	x: Row;
-	y: Array<RowPoint>;
+	y: RowPoint[];
 }
 
 export function transform_values(
-	values: Array<Record<string, string>>,
+	values: Record<string, string>[],
 	x?: string,
 	y?: string[]
-) {
+): TransformedValues {
 	const transformed_values = Object.entries(
 		values[0]
 	).reduce<TransformedValues>(

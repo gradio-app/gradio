@@ -45,7 +45,6 @@
 	}
 </script>
 
-<!-- svelte-ignore a11y-label-has-associated-control -->
 <label class="block" class:container>
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 	<input

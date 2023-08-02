@@ -21,6 +21,8 @@
 	});
 </script>
 
+<!-- TODO: fix-->
+<!-- svelte-ignore a11y-no-noninteractive-element-interactions-->
 <div
 	class="toast-body {type}"
 	role="alert"

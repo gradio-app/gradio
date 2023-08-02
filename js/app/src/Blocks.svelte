@@ -79,7 +79,7 @@
 
 	let params = new URLSearchParams(window.location.search);
 	let api_docs_visible = params.get("view") === "api";
-	const set_api_docs_visible = (visible: boolean) => {
+	function set_api_docs_visible(visible: boolean): void {
 		api_docs_visible = visible;
 		let params = new URLSearchParams(window.location.search);
 		if (visible) {
@@ -88,9 +88,13 @@
 			params.delete("view");
 		}
 		history.replaceState(null, "", "?" + params.toString());
-	};
+	}
 
-	function is_dep(id: number, type: "inputs" | "outputs", deps: Dependency[]) {
+	function is_dep(
+		id: number,
+		type: "inputs" | "outputs",
+		deps: Dependency[]
+	): boolean {
 		for (const dep of deps) {
 			for (const dep_item of dep[type]) {
 				if (dep_item === id) return true;
@@ -112,7 +116,7 @@
 		}
 	}
 
-	function has_no_default_value(value: any) {
+	function has_no_default_value(value: any): boolean {
 		return (
 			(Array.isArray(value) && value.length === 0) ||
 			value === "" ||
@@ -159,7 +163,7 @@
 		Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
 	>();
 
-	async function walk_layout(node: LayoutNode) {
+	async function walk_layout(node: LayoutNode): Promise<void> {
 		let instance = instance_map[node.id];
 		const _component = (await _component_map.get(instance.type))!.component;
 		instance.component = _component.Component;
@@ -193,7 +197,7 @@
 			});
 	});
 
-	function handle_update(data: any, fn_index: number) {
+	function handle_update(data: any, fn_index: number): void {
 		const outputs = dependencies[fn_index].outputs;
 		data?.forEach((value: any, i: number) => {
 			const output = instance_map[outputs[i]];
@@ -219,7 +223,11 @@
 
 	let submit_map: Map<number, ReturnType<typeof app.submit>> = new Map();
 
-	function set_prop<T extends ComponentMeta>(obj: T, prop: string, val: any) {
+	function set_prop<T extends ComponentMeta>(
+		obj: T,
+		prop: string,
+		val: any
+	): void {
 		if (!obj?.props) {
 			obj.props = {};
 		}
@@ -229,19 +237,22 @@
 	let handled_dependencies: number[][] = [];
 
 	let messages: (ToastMessage & { fn_index: number })[] = [];
-	const new_message = (
+	function new_message(
 		message: string,
 		fn_index: number,
 		type: ToastMessage["type"]
-	) => ({
-		message,
-		fn_index,
-		type,
-		id: ++_error_id,
-	});
+	): ToastMessage & { fn_index: number } {
+		return {
+			message,
+			fn_index,
+			type,
+			id: ++_error_id,
+		};
+	}
+
 	let _error_id = -1;
 
-	let user_left_page: boolean = false;
+	let user_left_page = false;
 	document.addEventListener("visibilitychange", function () {
 		if (document.visibilityState === "hidden") {
 			user_left_page = true;
@@ -265,10 +276,10 @@
 	let showed_duplicate_message = false;
 	let showed_mobile_warning = false;
 
-	const trigger_api_call = async (
+	async function trigger_api_call(
 		dep_index: number,
 		event_data: unknown = null
-	) => {
+	): Promise<void> {
 		let dep = dependencies[dep_index];
 		const current_status = loading_status.get_status_for_fn(dep_index);
 		messages = messages.filter(({ fn_index }) => fn_index !== dep_index);
@@ -299,7 +310,7 @@
 						dep.outputs.map((id) => instance_map[id].props.value)
 					)
 				)
-				.then((v: []) => {
+				.then((v: unknown[]) => {
 					if (dep.backend_fn) {
 						payload.data = v;
 						make_prediction();
@@ -313,13 +324,14 @@
 			}
 		}
 
-		function make_prediction() {
+		function make_prediction(): void {
 			const submission = app
 				.submit(payload.fn_index, payload.data as unknown[], payload.event_data)
 				.on("data", ({ data, fn_index }) => {
 					handle_update(data, fn_index);
 				})
 				.on("status", ({ fn_index, ...status }) => {
+					//@ts-ignore
 					loading_status.update({
 						...status,
 						status: status.stage,
@@ -400,9 +412,9 @@
 
 			submit_map.set(dep_index, submission);
 		}
-	};
+	}
 
-	const trigger_share = (title: string | undefined, description: string) => {
+	function trigger_share(title: string | undefined, description: string): void {
 		if (space_id === null) {
 			return;
 		}
@@ -414,19 +426,19 @@
 		}
 		discussion_url.searchParams.set("description", description);
 		window.open(discussion_url.toString(), "_blank");
-	};
+	}
 
-	function handle_error_close(e: Event & { detail: number }) {
+	function handle_error_close(e: Event & { detail: number }): void {
 		const _id = e.detail;
 		messages = messages.filter((m) => m.id !== _id);
 	}
 
-	const is_external_url = (link: string | null) =>
-		link && new URL(link, location.href).origin !== location.origin;
+	const is_external_url = (link: string | null): boolean =>
+		!!(link && new URL(link, location.href).origin !== location.origin);
 
 	let attached_error_listeners: number[] = [];
 	let shareable_components: number[] = [];
-	async function handle_mount() {
+	async function handle_mount(): Promise<void> {
 		await tick();
 
 		var a = target.getElementsByTagName("a");
@@ -502,7 +514,7 @@
 		});
 	}
 
-	function handle_destroy(id: number) {
+	function handle_destroy(id: number): void {
 		handled_dependencies = handled_dependencies.map((dep) => {
 			return dep.filter((_id) => _id !== id);
 		});
@@ -514,7 +526,7 @@
 		loading_status.register(i, v.inputs, v.outputs);
 	});
 
-	function set_status(statuses: LoadingStatusCollection) {
+	function set_status(statuses: LoadingStatusCollection): void {
 		for (const id in statuses) {
 			let loading_status = statuses[id];
 			let dependency = dependencies[loading_status.fn_index];
@@ -599,6 +611,9 @@
 
 {#if api_docs_visible && ready}
 	<div class="api-docs">
+		<!-- TODO: fix -->
+		<!-- svelte-ignore a11y-click-events-have-key-events-->
+		<!-- svelte-ignore a11y-no-static-element-interactions-->
 		<div
 			class="backdrop"
 			on:click={() => {

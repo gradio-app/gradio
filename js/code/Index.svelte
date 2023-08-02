@@ -4,7 +4,7 @@
 
 	import type { LoadingStatus } from "@gradio/statustracker/types";
 
-	import Code, { Wigdet } from "./interactive";
+	import Code, { Widget } from "./interactive";
 	import { StatusTracker } from "@gradio/statustracker";
 	import { Block, BlockLabel, Empty } from "@gradio/atoms";
 	import { Code as CodeIcon } from "@gradio/icons";

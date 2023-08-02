@@ -140,7 +140,7 @@
 	}
 </script>
 
-<!-- svelte-ignore a11y-label-has-associated-control -->
+<!-- svelte-ignore a11y-autofocus -->
 <label class:container>
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 

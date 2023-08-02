@@ -28,7 +28,6 @@
 	$: value, handle_change();
 </script>
 
-<!-- svelte-ignore a11y-label-has-associated-control -->
 <label class="block">
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 	<input type="color" on:blur bind:value {disabled} />

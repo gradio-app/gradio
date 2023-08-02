@@ -12,7 +12,7 @@
 
 	export let formatter: (arg0: any) => Promise<string>;
 	export let value: any;
-	let pending: boolean = false;
+	let pending = false;
 </script>
 
 <IconButton
@@ -24,7 +24,7 @@
 			pending = true;
 			const formatted = await formatter(value);
 			dispatch("share", {
-				description: formatted
+				description: formatted,
 			});
 		} catch (e) {
 			console.error(e);

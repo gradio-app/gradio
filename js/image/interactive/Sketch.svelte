@@ -1,5 +1,6 @@
 <script>
 	// @ts-nocheck
+	/* eslint-disable */
 
 	import { onMount, onDestroy, createEventDispatcher, tick } from "svelte";
 	import { fade } from "svelte/transition";
@@ -66,31 +67,31 @@
 	function mid_point(p1, p2) {
 		return {
 			x: p1.x + (p2.x - p1.x) / 2,
-			y: p1.y + (p2.y - p1.y) / 2
+			y: p1.y + (p2.y - p1.y) / 2,
 		};
 	}
 
 	const canvas_types = [
 		{
 			name: "interface",
-			zIndex: 15
+			zIndex: 15,
 		},
 		{
 			name: "drawing",
-			zIndex: 11
+			zIndex: 11,
 		},
 		{
 			name: "temp",
-			zIndex: 12
+			zIndex: 12,
 		},
 		{
 			name: "mask",
-			zIndex: -1
+			zIndex: -1,
 		},
 		{
 			name: "temp_fake",
-			zIndex: -2
-		}
+			zIndex: -2,
+		},
 	];
 
 	let canvas = {};
@@ -185,8 +186,8 @@
 			enabled: true,
 			initialPoint: {
 				x: width / 2,
-				y: height / 2
-			}
+				y: height / 2,
+			},
 		});
 
 		canvas_observer = new ResizeObserver((entries, observer, ...rest) => {
@@ -270,7 +271,7 @@
 		return JSON.stringify({
 			lines: lines,
 			width: canvas_width,
-			height: canvas_height
+			height: canvas_height,
 		});
 	};
 
@@ -280,14 +281,14 @@
 			draw_points({
 				points: _points,
 				brush_color,
-				brush_radius
+				brush_radius,
 			});
 
 			if (mode === "mask") {
 				draw_fake_points({
 					points: _points,
 					brush_color,
-					brush_radius
+					brush_radius,
 				});
 			}
 		});
@@ -351,7 +352,7 @@
 
 		const container_dimensions = {
 			height: container_height,
-			width: container_height * (dimensions.width / dimensions.height)
+			width: container_height * (dimensions.width / dimensions.height),
 		};
 
 		await Promise.all([
@@ -359,7 +360,7 @@
 			set_canvas_size(canvas.drawing, dimensions, container_dimensions),
 			set_canvas_size(canvas.temp, dimensions, container_dimensions),
 			set_canvas_size(canvas.temp_fake, dimensions, container_dimensions),
-			set_canvas_size(canvas.mask, dimensions, container_dimensions, false)
+			set_canvas_size(canvas.mask, dimensions, container_dimensions, false),
 		]);
 
 		if (!brush_radius) {
@@ -418,7 +419,7 @@
 
 		return {
 			x: ((clientX - rect.left) / rect.width) * width,
-			y: ((clientY - rect.top) / rect.height) * height
+			y: ((clientY - rect.top) / rect.height) * height,
 		};
 	};
 
@@ -434,14 +435,14 @@
 			draw_points({
 				points: points,
 				brush_color,
-				brush_radius
+				brush_radius,
 			});
 
 			if (mode === "mask") {
 				draw_fake_points({
 					points: points,
 					brush_color,
-					brush_radius
+					brush_radius,
 				});
 			}
 		}
@@ -507,7 +508,7 @@
 		lines.push({
 			points: points.slice(),
 			brush_color: brush_color,
-			brush_radius
+			brush_radius,
 		});
 
 		if (mode !== "mask") {

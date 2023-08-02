@@ -31,13 +31,13 @@
 		stop_recording: undefined;
 	}>();
 
-	function handle_load({ detail }: CustomEvent<FileData | null>) {
+	function handle_load({ detail }: CustomEvent<FileData | null>): void {
 		dispatch("change", detail);
 		dispatch("upload", detail!);
 		value = detail;
 	}
 
-	function handle_clear({ detail }: CustomEvent<FileData | null>) {
+	function handle_clear({ detail }: CustomEvent<FileData | null>): void {
 		value = null;
 		dispatch("change", detail);
 		dispatch("clear");

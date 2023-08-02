@@ -194,6 +194,7 @@
 		input?.focus();
 	}
 
+	// eslint-disable-next-line complexity
 	async function handle_keydown(
 		event: KeyboardEvent,
 		i: number,
@@ -558,6 +559,9 @@
 										header
 									/>
 
+									<!-- TODO: fix -->
+									<!-- svelte-ignore a11y-click-events-have-key-events -->
+									<!-- svelte-ignore a11y-no-static-element-interactions-->
 									<div
 										class:sorted={sort_by === i}
 										class:des={sort_by === i && sort_direction === "des"}

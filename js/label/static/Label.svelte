@@ -22,6 +22,10 @@
 	>
 		{value.label}
 	</div>
+
+	<!-- TODO: fix -->
+	<!-- svelte-ignore a11y-click-events-have-key-events-->
+	<!-- svelte-ignore a11y-no-static-element-interactions-->
 	{#if typeof value === "object" && value.confidences}
 		{#each value.confidences as confidence_set, i}
 			<div

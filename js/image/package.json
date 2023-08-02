@@ -23,6 +23,6 @@
 		"./package.json": "./package.json",
 		"./interactive": "./interactive/index.ts",
 		"./static": "./static/index.ts",
-		"./examples": "./examples/index.ts"
+		"./example": "./example/index.ts"
 	}
 }

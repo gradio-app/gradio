@@ -1,1 +1,0 @@
-export { default as label } from "./label.svelte";

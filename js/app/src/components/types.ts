@@ -31,7 +31,7 @@ export interface Dependency {
 	js: string | null;
 	scroll_to_output: boolean;
 	show_progress: "full" | "minimal" | "hidden";
-	frontend_fn?: Function;
+	frontend_fn?: (...args: unknown[]) => Promise<unknown[]>;
 	status?: string;
 	queue: boolean | null;
 	api_name: string | null;

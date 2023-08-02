@@ -1,23 +1,10 @@
 <script lang="ts">
-	import type { ComponentMeta, Dependency } from "../components/types";
 	import { Loader } from "@gradio/statustracker";
 	import { Block } from "@gradio/atoms";
 
-	export let dependency: Dependency;
-	export let dependency_index: number;
-	export let instance_map: {
-		[id: number]: ComponentMeta;
-	};
-
-	export let dependency_outputs: any[][];
-
 	export let is_running: boolean;
-
-	export let root: string;
 	export let endpoint_returns: any;
 	export let js_returns: any;
-
-	export let named: boolean;
 	export let current_language: "python" | "javascript";
 </script>
 

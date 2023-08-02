@@ -124,21 +124,6 @@
 
 			recorder = new MediaRecorder(stream, { mimeType: "audio/wav" });
 
-			async function handle_chunk(event: IBlobEvent): Promise<void> {
-				let buffer = await event.data.arrayBuffer();
-				let payload = new Uint8Array(buffer);
-				if (!header) {
-					header = new Uint8Array(buffer.slice(0, NUM_HEADER_BYTES));
-					payload = new Uint8Array(buffer.slice(NUM_HEADER_BYTES));
-				}
-				if (pending) {
-					pending_stream.push(payload);
-				} else {
-					let blobParts = [header].concat(pending_stream, [payload]);
-					dispatch_blob(blobParts, "stream");
-					pending_stream = [];
-				}
-			}
 			recorder.addEventListener("dataavailable", handle_chunk);
 		} else {
 			recorder = new MediaRecorder(stream);
@@ -156,6 +141,22 @@
 		}
 
 		inited = true;
+	}
+
+	async function handle_chunk(event: IBlobEvent): Promise<void> {
+		let buffer = await event.data.arrayBuffer();
+		let payload = new Uint8Array(buffer);
+		if (!header) {
+			header = new Uint8Array(buffer.slice(0, NUM_HEADER_BYTES));
+			payload = new Uint8Array(buffer.slice(NUM_HEADER_BYTES));
+		}
+		if (pending) {
+			pending_stream.push(payload);
+		} else {
+			let blobParts = [header].concat(pending_stream, [payload]);
+			dispatch_blob(blobParts, "stream");
+			pending_stream = [];
+		}
 	}
 
 	$: if (submit_pending_stream_on_pending_end && pending === false) {

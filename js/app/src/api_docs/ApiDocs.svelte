@@ -1,4 +1,5 @@
 <script lang="ts">
+	/* eslint-disable */
 	import { onMount, createEventDispatcher } from "svelte";
 	import type { ComponentMeta, Dependency } from "../components/types";
 	import { post_data } from "@gradio/client";
@@ -19,7 +20,7 @@
 	export let instance_map: {
 		[id: number]: ComponentMeta;
 	};
-	export let dependencies: Array<Dependency>;
+	export let dependencies: Dependency[];
 	export let root: string;
 	export let app: Awaited<ReturnType<typeof client>>;
 
@@ -34,7 +35,7 @@
 
 	const langs = [
 		["python", python],
-		["javascript", javascript]
+		["javascript", javascript],
 	] as const;
 
 	let is_running = false;
@@ -59,12 +60,15 @@
 		new Array(dependency.inputs.length).fill(false)
 	);
 
-	async function get_info() {
+	async function get_info(): Promise<{
+		named_endpoints: any;
+		unnamed_endpoints: any;
+	}> {
 		let response = await fetch(root + "info");
 		let data = await response.json();
 		return data;
 	}
-	async function get_js_info() {
+	async function get_js_info(): Promise<Record<string, any>> {
 		let js_api_info = await app.view_api();
 		return js_api_info;
 	}
@@ -76,13 +80,11 @@
 
 	let js_info: Record<string, any>;
 
-	get_info()
-		.then((data) => (info = data))
-		.catch((err) => console.log(err));
+	get_info().then((data) => (info = data));
 
 	get_js_info().then((js_api_info) => (js_info = js_api_info));
 
-	const run = async (index: number) => {
+	async function run(index: number): Promise<void> {
 		is_running = true;
 		let dependency = dependencies[index];
 		let attempted_component_index = 0;
@@ -90,6 +92,7 @@
 			var inputs = dependency_inputs[index].map((input_val, i) => {
 				attempted_component_index = i;
 				let component = instance_map[dependency.inputs[i]];
+				// @ts-ignore
 				input_val = represent_value(
 					input_val,
 					component.documentation?.type?.input_payload ||
@@ -106,7 +109,7 @@
 		let [response, status_code] = await post_data(
 			`${root}run/${dependency.api_name}`,
 			{
-				data: inputs
+				data: inputs,
 			}
 		);
 		is_running = false;
@@ -128,7 +131,7 @@
 				dependency_failures[index].length
 			).fill(true);
 		}
-	};
+	}
 
 	onMount(() => {
 		document.body.style.overflow = "hidden";
@@ -194,13 +197,10 @@
 								js_parameters={js_info.named_endpoints[
 									"/" + dependency.api_name
 								].parameters}
-								{instance_map}
 								{dependency}
 								{dependency_index}
 								{current_language}
 								{root}
-								{dependency_inputs}
-								{dependencies}
 								{dependency_failures}
 							/>
 
@@ -211,18 +211,12 @@
 						/> -->
 
 							<ResponseObject
-								named={true}
 								endpoint_returns={info.named_endpoints[
 									"/" + dependency.api_name
 								].returns}
 								js_returns={js_info.named_endpoints["/" + dependency.api_name]
 									.returns}
-								{instance_map}
-								{dependency}
-								{dependency_index}
 								{is_running}
-								{dependency_outputs}
-								{root}
 								{current_language}
 							/>
 						</div>
@@ -242,34 +236,19 @@
 									.parameters}
 								js_parameters={js_info.unnamed_endpoints[dependency_index]
 									.parameters}
-								{instance_map}
 								{dependency}
 								{dependency_index}
 								{current_language}
 								{root}
-								{dependency_inputs}
-								{dependencies}
 								{dependency_failures}
 							/>
 
-							<!-- <TryButton 
-						named={false}
-						{dependency_index}
-						{run}
-					/> -->
-
 							<ResponseObject
-								named={false}
 								endpoint_returns={info.unnamed_endpoints[dependency_index]
 									.returns}
 								js_returns={js_info.unnamed_endpoints[dependency_index].returns}
-								{instance_map}
-								{dependency}
-								{dependency_index}
 								{is_running}
-								{dependency_outputs}
 								{current_language}
-								{root}
 							/>
 						</div>
 					{/if}

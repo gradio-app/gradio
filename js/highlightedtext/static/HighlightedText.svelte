@@ -5,17 +5,17 @@
 	import type { SelectData } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
 
-	export let value: Array<[string, string | number]> = [];
-	export let show_legend: boolean = false;
+	export let value: [string, string | number][] = [];
+	export let show_legend = false;
 	export let color_map: Record<string, string> = {};
-	export let selectable: boolean = false;
+	export let selectable = false;
 
 	let ctx: CanvasRenderingContext2D;
 
 	let _color_map: Record<string, { primary: string; secondary: string }> = {};
 	let active = "";
 
-	function name_to_rgba(name: string, a: number) {
+	function name_to_rgba(name: string, a: number): string {
 		if (!ctx) {
 			var canvas = document.createElement("canvas");
 			ctx = canvas.getContext("2d")!;
@@ -52,29 +52,30 @@
 				}
 			}
 		}
-		function correct_color_map() {
-			for (const col in color_map) {
-				const _c = color_map[col].trim();
-				if (_c in colors) {
-					_color_map[col] = colors[_c as keyof typeof colors];
-				} else {
-					_color_map[col] = {
-						primary: browser ? name_to_rgba(color_map[col], 1) : color_map[col],
-						secondary: browser
-							? name_to_rgba(color_map[col], 0.5)
-							: color_map[col]
-					};
-				}
-			}
-		}
 
 		correct_color_map();
 	}
 
-	function handle_mouseover(label: string) {
+	function correct_color_map(): void {
+		for (const col in color_map) {
+			const _c = color_map[col].trim();
+			if (_c in colors) {
+				_color_map[col] = colors[_c as keyof typeof colors];
+			} else {
+				_color_map[col] = {
+					primary: browser ? name_to_rgba(color_map[col], 1) : color_map[col],
+					secondary: browser
+						? name_to_rgba(color_map[col], 0.5)
+						: color_map[col],
+				};
+			}
+		}
+	}
+
+	function handle_mouseover(label: string): void {
 		active = label;
 	}
-	function handle_mouseout() {
+	function handle_mouseout(): void {
 		active = "";
 	}
 </script>
@@ -99,6 +100,8 @@
 				data-testid="highlighted-text:category-legend"
 			>
 				{#each Object.entries(_color_map) as [category, color], i}
+					<!-- TODO: fix -->
+					<!-- svelte-ignore a11y-no-static-element-interactions -->
 					<div
 						on:mouseover={() => handle_mouseover(category)}
 						on:focus={() => handle_mouseover(category)}
@@ -114,6 +117,9 @@
 		{/if}
 		<div class="textfield">
 			{#each value as [text, category], i}
+				<!-- TODO: fix -->
+				<!-- svelte-ignore a11y-no-static-element-interactions -->
+				<!-- svelte-ignore a11y-click-events-have-key-events-->
 				<span
 					class="textspan"
 					style:background-color={category === null ||
@@ -126,7 +132,7 @@
 					on:click={() => {
 						dispatch("select", {
 							index: i,
-							value: [text, category]
+							value: [text, category],
 						});
 					}}
 				>

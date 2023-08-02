@@ -380,7 +380,7 @@ importers:
         specifier: workspace:^0.0.1
         version: link:../button
       '@gradio/chatbot':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^
         version: link:../chatbot
       '@gradio/checkbox':
         specifier: workspace:^0.0.1

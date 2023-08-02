@@ -12,7 +12,7 @@
 
 	import { Chart as ChartIcon } from "@gradio/icons";
 
-	function format_value(val: StaticData) {
+	function format_value(val: StaticData): any {
 		return val.data.map((r) =>
 			r.reduce((acc, next, i) => ({ ...acc, [val.headers[i]]: next }), {})
 		);

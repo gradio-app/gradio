@@ -123,6 +123,8 @@
 			<span class="time">{format(time)} / {format(duration)}</span>
 
 			<!-- TODO: implement accessible video timeline for 4.0 -->
+			<!-- svelte-ignore a11y-click-events-have-key-events -->
+			<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 			<progress
 				value={time / duration || 0}
 				on:mousemove={handleMove}
