@@ -1,4 +1,4 @@
-"""gr.MultimodalTextbox() component."""
+"""gr.RichTextbox() component."""
 
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ set_documentation_group("component")
 
 
 @document()
-class MultimodalTextbox(
+class RichTextbox(
     FormComponent,
     Changeable,
     Inputable,

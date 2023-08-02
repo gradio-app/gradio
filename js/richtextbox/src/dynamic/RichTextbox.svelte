@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
-	import { Copy, Check, Plus, RemoveFile } from "@gradio/icons";
+	import { Copy, Check, Plus, File, Clear } from "@gradio/icons";
 	import { fade } from "svelte/transition";
 	import type { SelectData } from "@gradio/utils";
 	import type { FileData } from "@gradio/upload";
@@ -221,18 +221,6 @@
 				<button class="copy-button" on:click={handle_copy}><Copy /></button>
 			{/if}
 		{/if}
-		<input
-			class="hide"
-			accept={accept_file_types}
-			type="file"
-			bind:this={hidden_upload}
-			on:change={loadFilesFromUpload}
-			on:click={clearInputValue}
-			multiple={file_count === "multiple" || undefined}
-			webkitdirectory={file_count === "directory" || undefined}
-			mozdirectory={file_count === "directory" || undefined}
-			data-testid="{label}-upload-button"
-		/>
 		<div class="wrap">
 			<textarea
 				data-testid="textbox"
@@ -250,14 +238,30 @@
 				style={text_align ? "text-align: " + text_align : ""}
 			/>
 			{#if value.files.length > 0}
-				<button
-					class="upload-button"
-					on:click={clearFiles}
-					in:fade={{ duration: 300 }}
-				>
-					<RemoveFile /></button
-				>
+
+				<div class="file-icon-container">
+					<div class="file-icon"><File /></div>
+					<span class="file-count">{value.files.length > 7 ? "7+" : value.files.length}</span>
+					<button
+						class="clear-button"
+						on:click={clearFiles}>
+							<Clear />
+					</button>
+				</div>
 			{:else}
+
+				<input
+					class="hide"
+					accept={accept_file_types}
+					type="file"
+					bind:this={hidden_upload}
+					on:change={loadFilesFromUpload}
+					on:click={clearInputValue}
+					multiple={file_count === "multiple" || undefined}
+					webkitdirectory={file_count === "directory" || undefined}
+					mozdirectory={file_count === "directory" || undefined}
+					data-testid="{label}-upload-button"
+				/>
 				<button class="upload-button" on:click={openFileUpload}><Plus /></button
 				>
 			{/if}
@@ -276,22 +280,11 @@
 	label:not(.container) > textarea {
 		height: 100%;
 	}
-	.container > input,
-	.container > textarea {
-		border: var(--input-border-width) solid var(--input-border-color);
-		border-radius: var(--input-radius);
-	}
 	input:disabled,
 	textarea:disabled {
 		-webkit-text-fill-color: var(--body-text-color);
 		-webkit-opacity: 1;
 		opacity: 1;
-	}
-
-	input:focus,
-	textarea:focus {
-		box-shadow: var(--input-shadow-focus);
-		border-color: var(--input-border-color-focus);
 	}
 
 	input::placeholder,
@@ -318,18 +311,29 @@
 		font: var(--font-sans);
 		font-size: var(--button-small-text-size);
 	}
+
 	.hide {
 		display: none;
 	}
+
 	.wrap {
 		display: flex;
 		align-items: center;
 		height: auto;
+		border: var(--input-border-width) solid var(--input-border-color);
+		border-radius: var(--input-radius);
+	}
+
+	.wrap:focus-within {
+		box-shadow: var(--input-shadow-focus);
+		border-color: var(--input-border-color-focus);
 	}
 
 	textarea {
 		display: flex;
 		position: relative;
+		resize: none;
+		margin: 5px;
 		outline: none !important;
 		box-shadow: var(--input-shadow);
 		background: var(--input-background-fill);
@@ -345,10 +349,45 @@
 	.upload-button {
 		display: flex;
 		position: absolute;
-		right: var(--block-label-margin);
+		right: var(--size-2);
 		width: 5%;
 		height: var(--size-6);
 		overflow: hidden;
 		color: var(--block-label-color);
 	}
+
+	.file-icon-container {
+		height: var(--size-8);
+	}
+
+	.clear-button {
+		position: relative;
+		right:11px; 
+		bottom:39px; 
+		width:40%; 
+		height:40%;
+		border: 1px solid;
+		border-radius: 50%;
+		background-color: var(--background-fill-primary);
+		z-index: var(--layer-4);
+	}
+
+	.file-icon {
+		position: relative;
+		left:0; 
+		top:0; 
+		width:100%; 
+		height:100%;
+		font-size: var(--text-md);
+	}
+
+	.file-count {
+		position: relative;
+		left:10px; 
+		bottom:22px; 
+		z-index: var(--layer-4);
+		font-size: var(--text-md);
+	}
+
+	
 </style>

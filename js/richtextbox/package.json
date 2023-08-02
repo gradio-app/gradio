@@ -1,5 +1,5 @@
 {
-	"name": "@gradio/multimodaltextbox",
+	"name": "@gradio/richtextbox",
 	"version": "0.0.1",
 	"description": "Gradio UI packages",
 	"type": "module",

@@ -42,7 +42,7 @@
 		"@gradio/label": "workspace:^0.0.2",
 		"@gradio/markdown": "workspace:^0.0.1",
 		"@gradio/model3D": "workspace:^0.0.2",
-		"@gradio/multimodaltextbox": "workspace:^0.0.1",
+		"@gradio/richtextbox": "workspace:^0.0.1",
 		"@gradio/plot": "workspace:^0.0.2",
 		"@gradio/table": "workspace:^0.0.2",
 		"@gradio/tabs": "workspace:^0.0.2",
