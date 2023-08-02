@@ -28,7 +28,7 @@ from gradio_client import media_data
 from PIL import Image
 
 import gradio as gr
-from gradio.blocks import get_api_info
+from gradio.blocks import get_api_info, DEFAULT, FINISHED_ITERATING
 from gradio.events import SelectData
 from gradio.exceptions import DuplicateBlockError
 from gradio.networking import Server, get_first_available_port
@@ -849,7 +849,7 @@ class TestCallFunction:
         output = await demo.call_function(0, [3], iterator=output["iterator"])
         assert output["prediction"] == 2
         output = await demo.call_function(0, [3], iterator=output["iterator"])
-        assert output["prediction"] == gr.components._Keywords.FINISHED_ITERATING
+        assert output["prediction"] == FINISHED_ITERATING
         assert output["iterator"] is None
         output = await demo.call_function(0, [3], iterator=output["iterator"])
         assert output["prediction"] == 0
@@ -886,7 +886,7 @@ class TestCallFunction:
         output = await demo.call_function(1, [3], iterator=output["iterator"])
         assert output["prediction"] == (2, 3)
         output = await demo.call_function(1, [3], iterator=output["iterator"])
-        assert output["prediction"] == (gr.components._Keywords.FINISHED_ITERATING,) * 2
+        assert output["prediction"] == (FINISHED_ITERATING,) * 2
         assert output["iterator"] is None
         output = await demo.call_function(1, [3], iterator=output["iterator"])
         assert output["prediction"] == (0, 3)
@@ -1073,7 +1073,7 @@ class TestSpecificUpdate:
             "scale": None,
             "min_width": None,
             "visible": None,
-            "value": gr.components._Keywords.NO_VALUE,
+            "value": DEFAULT,
             "type": None,
             "interactive": False,
             "show_copy_button": None,
@@ -1097,7 +1097,7 @@ class TestSpecificUpdate:
             "autofocus": None,
             "min_width": None,
             "visible": None,
-            "value": gr.components._Keywords.NO_VALUE,
+            "value": DEFAULT,
             "type": None,
             "interactive": True,
             "show_copy_button": None,

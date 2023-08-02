@@ -13,8 +13,8 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio import processing_utils, utils
-from gradio.blocks import default
-from gradio.components.base import IOComponent, _Keywords
+from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.components.base import IOComponent
 from gradio.events import (
     Changeable,
     Clearable,
@@ -51,7 +51,7 @@ class Audio(
 
     def __init__(
         self,
-        value: str | Path | tuple[int, np.ndarray] | Callable | None = None,
+        value: str | Path | tuple[int, np.ndarray] | Callable | None | DefaultType = DEFAULT,
         *,
         source: Literal["upload", "microphone"] | None = None,
         type: Literal["numpy", "filepath"] | None = None,
@@ -93,8 +93,9 @@ class Audio(
             show_download_button: If True, will show a download button in the corner of the component for saving audio. If False, icon does not appear.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
+        value = default(value, None)
         source = default(source, "upload")
-        self.type = default(type, "numpy")
+        type = default(type, "numpy")
         container = default(container, True)
         min_width = default(min_width, 160)
         visible = default(visible, True)
@@ -114,13 +115,10 @@ class Audio(
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
             )
         self.type = type
-        self.streaming = streaming
         if streaming and source != "microphone":
             raise ValueError(
                 "Audio streaming only available if source is 'microphone'."
             )
-        self.format = format
-        self.autoplay = autoplay
         self.show_download_button = show_download_button
         self.show_share_button = (
             (utils.get_space() is not None)

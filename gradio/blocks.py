@@ -14,7 +14,7 @@ import webbrowser
 from abc import abstractmethod
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast, TypeVar
+from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast, TypeVar, Type
 
 import anyio
 import requests
@@ -304,10 +304,11 @@ class Block:
         Context.root_block.dependencies.append(dependency)
         return dependency, len(Context.root_block.dependencies) - 1
 
-    def get_config(self):
-        config = {
-            "root_url": self.root_url,
-        }
+    def get_config(self, with_globals=True):
+        config = {}  
+        if with_globals:
+            config["root_url"] = self.root_url
+            config["name"] = self.get_block_name()
         if hasattr(self.__class__, "__init__"):
             signature = inspect.signature(self.__class__.__init__)
             for k in signature.parameters.keys():
@@ -316,9 +317,12 @@ class Block:
         return config
 
     @staticmethod
-    @abstractmethod
     def update(**kwargs) -> dict:
-        return {}
+        warnings.warn(
+            "The update method is deprecated. Simply return a new block, e.g. `return gr.Dropdown(visible=False)` instead of `return gr.Dropdown.update(visible=False)` ."
+        )
+        kwargs["__type__"] = "generic_update"
+        return kwargs
 
     @classmethod
     def get_specific_update(cls, generic_update: dict[str, Any]) -> dict:
@@ -452,7 +456,7 @@ def postprocess_update_dict(block: Block, update_dict: dict, postprocess: bool =
     """
     if update_dict.get("__type__", "") == "generic_update":
         update_dict = block.get_specific_update(update_dict)
-    if update_dict.get("value") is components._Keywords.NO_VALUE:
+    if update_dict.get("value") == DEFAULT:
         update_dict.pop("value")
     interactive = update_dict.pop("interactive", None)
     if interactive is not None:
@@ -1116,9 +1120,9 @@ class Blocks(BlockContext):
             except StopAsyncIteration:
                 n_outputs = len(self.dependencies[fn_index].get("outputs"))
                 prediction = (
-                    components._Keywords.FINISHED_ITERATING
+                    FINISHED_ITERATING
                     if n_outputs == 1
-                    else (components._Keywords.FINISHED_ITERATING,) * n_outputs
+                    else (FINISHED_ITERATING,) * n_outputs
                 )
                 iterator = None
 
@@ -1296,7 +1300,7 @@ Received outputs:
         output = []
         for i, output_id in enumerate(dependency["outputs"]):
             try:
-                if predictions[i] is components._Keywords.FINISHED_ITERATING:
+                if predictions[i] is FINISHED_ITERATING:
                     output.append(None)
                     continue
             except (IndexError, KeyError) as err:
@@ -1318,6 +1322,9 @@ Received outputs:
                 output.append(None)
             else:
                 prediction_value = predictions[i]
+                if isinstance(prediction_value, Block):
+                    prediction_value = prediction_value.get_config(with_globals=False)
+                    prediction_value["__type__"] = "update"
                 if utils.is_update(prediction_value):
                     assert isinstance(prediction_value, dict)
                     prediction_value = postprocess_update_dict(
@@ -1325,6 +1332,7 @@ Received outputs:
                         update_dict=prediction_value,
                         postprocess=block_fn.postprocess,
                     )
+                    print(prediction_value)
                 elif block_fn.postprocess:
                     assert isinstance(
                         block, components.Component
@@ -2180,10 +2188,26 @@ Received outputs:
             return self.enable_queue
         return self.dependencies[fn_index]["queue"]
 
-T = TypeVar('T')
+class DEFAULT:
+    pass
 
-def default(set_value: T | None, default_value: T) -> T:
-    if set_value is None:
-        return default_value
-    else:
+DefaultType = Type[DEFAULT]
+
+class FINISHED_ITERATING:
+    pass
+
+T = TypeVar("T")
+
+print(id(DEFAULT))
+
+def default(set_value: T | None | DefaultType, default_value: T) -> T:
+    from gradio import context
+
+    within_event_listener = hasattr(context.thread_data, "blocks")
+    if within_event_listener:
         return set_value
+    else:
+        if set_value == DEFAULT or set_value == None:
+            return default_value
+        else:
+            return set_value

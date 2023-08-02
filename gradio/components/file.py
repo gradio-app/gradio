@@ -12,8 +12,8 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio import utils
-from gradio.blocks import default
-from gradio.components.base import IOComponent, _Keywords
+from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.components.base import IOComponent
 from gradio.deprecation import warn_deprecation
 from gradio.events import (
     Changeable,
@@ -45,7 +45,7 @@ class File(
 
     def __init__(
         self,
-        value: str | list[str] | Callable | None = None,
+        value: str | list[str] | Callable | None | DefaultType = DEFAULT,
         *,
         file_count: Literal["single", "multiple", "directory"] | None = None,
         file_types: list[str] | None = None,
@@ -79,8 +79,9 @@ class File(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        value = default(value, None)
         self.file_count = default(file_count, "single")
-        self.type = default(type, "file")
+        type = default(type, "file")
         container = default(container, True)
         min_width = default(min_width, 160)
         visible = default(visible, True)

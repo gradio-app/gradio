@@ -10,7 +10,6 @@ import secrets
 import shutil
 import tempfile
 import urllib.request
-from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
 
@@ -19,6 +18,7 @@ import numpy as np
 import requests
 from fastapi import UploadFile
 from gradio_client import utils as client_utils
+from gradio.blocks import DEFAULT
 from gradio_client.documentation import set_documentation_group
 from gradio_client.serializing import (
     Serializable,
@@ -45,11 +45,6 @@ set_documentation_group("component")
 _Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
 
-class _Keywords(Enum):
-    NO_VALUE = "NO_VALUE"  # Used as a sentinel to determine if nothing is provided as a argument for `value` in `Component.update()`
-    FINISHED_ITERATING = "FINISHED_ITERATING"  # Used to skip processing of a component's value (needed for generators + state)
-
-
 class Component(Block, Serializable):
     """
     A base class for defining the methods that all gradio components should have.
@@ -64,15 +59,6 @@ class Component(Block, Serializable):
 
     def __repr__(self):
         return f"{self.get_block_name()}"
-
-    def get_config(self):
-        """
-        :return: a dictionary with context variables for the javascript file associated with the context
-        """
-        return {
-            "name": self.get_block_name(),
-            **super().get_config(),
-        }
 
     def preprocess(self, x: Any) -> Any:
         """
@@ -175,12 +161,16 @@ class IOComponent(Component):
         # load_event is set in the Blocks.attach_load_events method
         self.load_event: None | dict[str, Any] = None
         self.load_event_to_attach = None
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = (
-            initial_value
-            if self._skip_init_processing
-            else self.postprocess(initial_value)
-        )
+        load_fn = None
+        if value == DEFAULT:
+            self.value = value
+        else:
+            load_fn, value = self.get_load_fn_and_initial_value(value)
+            self.value = (
+                value
+                if self._skip_init_processing
+                else self.postprocess(value)
+            )
         if callable(load_fn):
             self.attach_load_event(load_fn, every)
 
@@ -336,20 +326,6 @@ class IOComponent(Component):
         path = path / Path(file_name).name
         path.write_bytes(data)
         return path
-
-    def get_config(self):
-        config = {
-            "label": self.label,
-            "show_label": self.show_label,
-            "container": self.container,
-            "scale": self.scale,
-            "min_width": self.min_width,
-            "interactive": self.interactive,
-            **super().get_config(),
-        }
-        if self.info:
-            config["info"] = self.info
-        return config
 
     @staticmethod
     def get_load_fn_and_initial_value(value):

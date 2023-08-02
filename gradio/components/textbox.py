@@ -8,11 +8,10 @@ import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.blocks import default
+from gradio.blocks import default, DEFAULT, DefaultType
 from gradio.components.base import (
     FormComponent,
     IOComponent,
-    _Keywords,
 )
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
@@ -52,7 +51,7 @@ class Textbox(
 
     def __init__(
         self,
-        value: str | Callable | None = None,
+        value: str | Callable | None | DefaultType = DEFAULT,
         *,
         lines: int | None = None,
         max_lines: int | None = None,
@@ -98,7 +97,7 @@ class Textbox(
             rtl: If True and `type` is "text", sets the direction of the text to right-to-left (cursor appears on the left of the text). Default is False, which renders cursor on the right.
             show_copy_button: If True, includes a copy button to copy the text in the textbox. Only applies if show_label is True.
         """
-        self.value = default(value, "")
+        value = default(value, "")
         lines = default(lines, 1)
         max_lines = default(max_lines, 20)
         container = default(container, True)
@@ -109,7 +108,7 @@ class Textbox(
         self.rtl = default(rtl, False)
         self.show_copy_button = default(show_copy_button, False)
 
-        if self.type not in ["text", "password", "email"]:
+        if self.type not in ["text", "password", "email", None]:
             raise ValueError('`type` must be one of "text", "password", or "email".')
 
         self.lines = lines

@@ -15,8 +15,8 @@ from gradio_client.serializing import ImgSerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
-from gradio.blocks import default
-from gradio.components.base import IOComponent, _Keywords
+from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.components.base import IOComponent
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
     Changeable,
@@ -56,7 +56,7 @@ class Image(
 
     def __init__(
         self,
-        value: str | _Image.Image | np.ndarray | None = None,
+        value: str | _Image.Image | np.ndarray | None | DefaultType = DEFAULT,
         *,
         shape: tuple[int, int] | None = None,
         height: int | None = None,
@@ -116,6 +116,7 @@ class Image(
             mask_opacity: Opacity of mask drawn on image, as a value between 0 and 1.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
+        value = default(value, None)
         self.invert_colors = default(invert_colors, False)
         source = default(source, "upload")
         type = default(type, "numpy")

@@ -11,8 +11,8 @@ from gradio_client.serializing import GallerySerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import utils
-from gradio.blocks import default
-from gradio.components.base import IOComponent, _Keywords
+from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.components.base import IOComponent
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
     EventListenerMethod,
@@ -36,7 +36,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         self,
         value: list[np.ndarray | _Image.Image | str | Path | tuple]
         | Callable
-        | None = None,
+        | None | DefaultType = DEFAULT,
         *,
         label: str | None = None,
         every: float | None = None,
@@ -80,6 +80,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             show_download_button: If True, will show a download button in the corner of the selected image. If False, the icon does not appear. Default is True.
 
         """
+        value = default(value, None)
         container = default(container, True)
         min_width = default(min_width, 160)
         visible = default(visible, True)

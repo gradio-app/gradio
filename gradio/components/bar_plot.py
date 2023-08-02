@@ -8,8 +8,7 @@ import altair as alt
 import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.blocks import default
-from gradio.components.base import _Keywords
+from gradio.blocks import default, DEFAULT, DefaultType
 from gradio.components.plot import AltairPlot, Plot
 
 set_documentation_group("component")
@@ -28,7 +27,7 @@ class BarPlot(Plot):
 
     def __init__(
         self,
-        value: pd.DataFrame | Callable | None = None,
+        value: pd.DataFrame | Callable | None | DefaultType = DEFAULT,
         x: str | None = None,
         y: str | None = None,
         *,

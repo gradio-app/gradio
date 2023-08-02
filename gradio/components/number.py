@@ -9,8 +9,8 @@ import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import NumberSerializable
 
-from gradio.blocks import default
-from gradio.components.base import FormComponent, IOComponent, _Keywords
+from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.components.base import FormComponent, IOComponent
 from gradio.events import (
     Blurrable,
     Changeable,
@@ -45,7 +45,7 @@ class Number(
 
     def __init__(
         self,
-        value: float | Callable | None = None,
+        value: float | Callable | None | DefaultType = DEFAULT,
         *,
         label: str | None = None,
         info: str | None = None,
@@ -81,6 +81,7 @@ class Number(
             minimum: Minimum value. Only applied when component is used as an input. If a user provides a smaller value, a gr.Error exception is raised by the backend.
             maximum: Maximum value. Only applied when component is used as an input. If a user provides a larger value, a gr.Error exception is raised by the backend.
         """
+        value = default(value, None)
         container = default(container, True)
         min_width = default(min_width, 160)
         visible = default(visible, True)

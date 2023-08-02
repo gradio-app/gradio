@@ -13,8 +13,8 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import VideoSerializable
 
 from gradio import processing_utils, utils, wasm_utils
-from gradio.blocks import default
-from gradio.components.base import IOComponent, _Keywords
+from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.components.base import IOComponent
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Clearable, Playable, Recordable, Uploadable
 
@@ -53,7 +53,8 @@ class Video(
         | Path
         | tuple[str | Path, str | Path | None]
         | Callable
-        | None = None,
+        | None
+        | DefaultType = DEFAULT,
         *,
         format: str | None = None,
         source: Literal["upload", "webcam"] | None = None,
@@ -97,6 +98,7 @@ class Video(
             autoplay: Whether to automatically play the video when the component is used as an output. Note: browsers will not autoplay video files if the user has not interacted with the page yet.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
+        value = default(value, None)
         source = default(source, "upload")
         container = default(container, True)
         min_width = default(min_width, 160)

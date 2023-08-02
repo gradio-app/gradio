@@ -11,8 +11,8 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
 from gradio import utils
-from gradio.blocks import default
-from gradio.components.base import IOComponent, _Keywords
+from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.components.base import IOComponent
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
     Changeable,
@@ -38,7 +38,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         self,
         value: list[list[str | tuple[str] | tuple[str | Path, str] | None]]
         | Callable
-        | None = None,
+        | None | DefaultType = DEFAULT,
         color_map: dict[str, str] | None = None,
         *,
         label: str | None = None,
@@ -74,6 +74,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             rtl: If True, sets the direction of the rendered text to right-to-left. Default is False, which renders text left-to-right.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
+        value = default(value, None)
         container = default(container, True)
         min_width = default(min_width, 160)
         visible = default(visible, True)

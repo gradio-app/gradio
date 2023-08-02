@@ -11,8 +11,8 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio import utils
-from gradio.blocks import default
-from gradio.components.base import Component, IOComponent, _Keywords
+from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.components.base import Component, IOComponent
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Clickable, Uploadable
 
@@ -32,7 +32,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
     def __init__(
         self,
         label: str | None = None,
-        value: str | list[str] | Callable | None = None,
+        value: str | list[str] | Callable | None | DefaultType = DEFAULT,
         *,
         variant: Literal["primary", "secondary", "stop"] | None = None,
         visible: bool | None = None,

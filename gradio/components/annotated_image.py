@@ -10,8 +10,8 @@ from gradio_client.serializing import JSONSerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import utils
-from gradio.blocks import default
-from gradio.components.base import IOComponent, _Keywords
+from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.components.base import IOComponent
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
     EventListenerMethod,
@@ -39,7 +39,7 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
             np.ndarray | _Image.Image | str,
             list[tuple[np.ndarray | tuple[int, int, int, int], str]],
         ]
-        | None = None,
+        | None | DefaultType = DEFAULT,
         *,
         show_legend: bool | None = None,
         height: int | None = None,
@@ -73,6 +73,7 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        value = default(value, None)
         self.show_legend = default(show_legend, True)
         container = default(container, True)
         min_width = default(min_width, 160)

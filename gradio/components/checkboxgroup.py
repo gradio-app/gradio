@@ -7,8 +7,8 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import ListStringSerializable
 
-from gradio.blocks import default
-from gradio.components.base import FormComponent, IOComponent, _Keywords
+from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.components.base import FormComponent, IOComponent
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
 from gradio.interpretation import NeighborInterpretable
@@ -38,7 +38,7 @@ class CheckboxGroup(
         self,
         choices: list[str] | None = None,
         *,
-        value: list[str] | str | Callable | None = None,
+        value: list[str] | str | Callable | None | DefaultType = DEFAULT,
         type: Literal["value", "index"] | None = None,
         label: str | None = None,
         info: str | None = None,
@@ -70,6 +70,7 @@ class CheckboxGroup(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        value = default(value, None)
         type = default(type, "value")
         container = default(container, True)
         min_width = default(min_width, 160)

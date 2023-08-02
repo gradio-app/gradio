@@ -7,11 +7,10 @@ from typing import Any, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.blocks import default
+from gradio.blocks import default, DEFAULT, DefaultType
 from gradio.components.base import (
     Component,
     IOComponent,
-    _Keywords,
     get_component_instance,
 )
 from gradio.events import Clickable, Selectable
@@ -33,7 +32,7 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
         *,
         label: str | None = None,
         components: list[IOComponent] | list[str],
-        samples: list[list[Any]] | None = None,
+        samples: list[list[Any]] | None | DefaultType = DEFAULT,
         headers: list[str] | None = None,
         type: Literal["values", "index"] | None = None,
         samples_per_page: int | None = None,
@@ -59,6 +58,7 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
         """
+        samples = default(samples, None)
         self.type = default(type, "values")
         self.samples_per_page = default(samples_per_page, 10)
         visible = default(visible, True)
@@ -71,28 +71,29 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
         self.container = container
         self.scale = scale
         self.min_width = min_width
-        self.components = [get_component_instance(c, render=False) for c in components]
+        self._components = [get_component_instance(c, render=False) for c in components]
 
         # Narrow type to IOComponent
         assert all(
-            isinstance(c, IOComponent) for c in self.components
+            isinstance(c, IOComponent) for c in self._components
         ), "All components in a `Dataset` must be subclasses of `IOComponent`"
-        self.components = [c for c in self.components if isinstance(c, IOComponent)]
-        for component in self.components:
+        self._components = [c for c in self._components if isinstance(c, IOComponent)]
+        self.components = [c.get_block_name() for c in self._components]
+        for component in self._components:
             component.root_url = self.root_url
 
         self.samples = [[]] if samples is None else samples
         for example in self.samples:
-            for i, (component, ex) in enumerate(zip(self.components, example)):
+            for i, (component, ex) in enumerate(zip(self._components, example)):
                 example[i] = component.as_example(ex)
         self.type = type
         self.label = label
         if headers is not None:
             self.headers = headers
-        elif all(c.label is None for c in self.components):
+        elif all(c.label is None for c in self._components):
             self.headers = []
         else:
-            self.headers = [c.label or "" for c in self.components]
+            self.headers = [c.label or "" for c in self._components]
         self.samples_per_page = samples_per_page
 
     def preprocess(self, x: Any) -> Any:

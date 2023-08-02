@@ -9,8 +9,8 @@ from gradio_client.serializing import (
     JSONSerializable,
 )
 
-from gradio.blocks import default
-from gradio.components.base import IOComponent, _Keywords
+from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.components.base import IOComponent
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
     Changeable,
@@ -34,7 +34,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
 
     def __init__(
         self,
-        value: list[tuple[str, str | float | None]] | dict | Callable | None = None,
+        value: list[tuple[str, str | float | None]] | dict | Callable | None | DefaultType = DEFAULT,
         *,
         color_map: dict[str, str]
         | None = None,  # Parameter moved to HighlightedText.style()
@@ -68,6 +68,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        value = default(value, None)
         self.show_legend = default(show_legend, False)
         self.combine_adjacent = default(combine_adjacent, False)
         self.adjacent_separator = default(adjacent_separator, "")

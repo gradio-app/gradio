@@ -10,8 +10,8 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
 from gradio import utils
-from gradio.blocks import default
-from gradio.components.base import IOComponent, _Keywords
+from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.components.base import IOComponent
 from gradio.events import (
     Changeable,
     EventListenerMethod,
@@ -44,7 +44,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
 
     def __init__(
         self,
-        value: list[list[Any]] | Callable | None = None,
+        value: list[list[Any]] | Callable | None | DefaultType = DEFAULT,
         *,
         headers: list[str] | None = None,
         row_count: int | tuple[int, str] | None = None,
@@ -89,21 +89,22 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             wrap: if True text in table cells will wrap when appropriate, if False the table will scroll horizontally. Defaults to False.
         """
-        self.row_count = default(row_count, )
-        self.datatype = default(datatype, "str")
-        self.type = default(type, "pandas")
+        value = default(value, None)
+        row_count = default(row_count, (1, "dynamic"))        
+        datatype = default(datatype, "str")
+        type = default(type, "pandas")
         self.max_rows = default(max_rows, 20)
         self.overflow_row_behaviour = default(overflow_row_behaviour, "paginate")
         min_width = default(min_width, 160)
         visible = default(visible, True)
         self.wrap = default(wrap, False)
 
-
         self.wrap = wrap
         self.row_count = self.__process_counts(row_count)
         self.col_count = self.__process_counts(
             col_count, len(headers) if headers else 3
         )
+        self.max_cols = max_cols
 
         self.__validate_headers(headers, self.col_count[0])
 
@@ -134,9 +135,6 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
         ]
 
-        self.max_rows = max_rows
-        self.max_cols = max_cols
-        self.overflow_row_behaviour = overflow_row_behaviour
         self.select: EventListenerMethod
         """
         Event listener for when the user selects cell within Dataframe.

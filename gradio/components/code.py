@@ -7,8 +7,8 @@ from typing import Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.blocks import default
-from gradio.components.base import IOComponent, _Keywords
+from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.components.base import IOComponent
 from gradio.events import Changeable, Inputable
 
 set_documentation_group("component")
@@ -39,7 +39,7 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
 
     def __init__(
         self,
-        value: str | tuple[str] | None = None,
+        value: str | tuple[str] | None | DefaultType = DEFAULT,
         language: Literal[
             "python",
             "markdown",
@@ -81,6 +81,7 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        value = default(value, None)
         self.lines = default(lines, 5)
         container = default(container, True)
         min_width = default(min_width, 160)

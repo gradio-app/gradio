@@ -9,8 +9,8 @@ from gradio_client import media_data
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
-from gradio.blocks import default
-from gradio.components.base import IOComponent, _Keywords
+from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.components.base import IOComponent
 from gradio.events import (
     Changeable,
     Clearable,
@@ -36,7 +36,7 @@ class Model3D(
 
     def __init__(
         self,
-        value: str | Callable | None = None,
+        value: str | Callable | None | DefaultType = DEFAULT,
         *,
         clear_color: list[float] | None = None,
         label: str | None = None,
@@ -64,6 +64,7 @@ class Model3D(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        value = default(value, None)
         container = default(container, True)
         min_width = default(min_width, 160)
         visible = default(visible, True)

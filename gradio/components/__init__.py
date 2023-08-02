@@ -8,7 +8,6 @@ from gradio.components.base import (
     FormComponent,
     IOComponent,
     Row,
-    _Keywords,
     component,
     get_component_instance,
 )
@@ -66,7 +65,6 @@ __all__ = [
     "Component",
     "component",
     "get_component_instance",
-    "_Keywords",
     "Checkbox",
     "CheckboxGroup",
     "Code",

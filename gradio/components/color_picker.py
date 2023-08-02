@@ -7,8 +7,8 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.blocks import default
-from gradio.components.base import IOComponent, _Keywords
+from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.components.base import IOComponent
 from gradio.events import (
     Blurrable,
     Changeable,
@@ -33,7 +33,7 @@ class ColorPicker(
 
     def __init__(
         self,
-        value: str | Callable | None = None,
+        value: str | Callable | None | DefaultType = DEFAULT,
         *,
         label: str | None = None,
         info: str | None = None,
@@ -63,6 +63,7 @@ class ColorPicker(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        value = default(value, None)
         container = default(container, True)
         min_width = default(min_width, 160)
         visible = default(visible, True)

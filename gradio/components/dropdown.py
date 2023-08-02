@@ -8,8 +8,8 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import SimpleSerializable
 
-from gradio.blocks import default
-from gradio.components.base import FormComponent, IOComponent, _Keywords
+from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.components.base import FormComponent, IOComponent
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
     Blurrable,
@@ -44,7 +44,7 @@ class Dropdown(
         self,
         choices: list[str] | None = None,
         *,
-        value: str | list[str] | Callable | None = None,
+        value: str | list[str] | Callable | None | DefaultType = DEFAULT,
         type: Literal["value", "index"] | None = None,
         multiselect: bool | None = None,
         allow_custom_value: bool | None = None,
@@ -82,6 +82,7 @@ class Dropdown(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        value = default(value, None)
         type = default(type, "value")
         self.allow_custom_value = default(allow_custom_value, False)
         container = default(container, True)

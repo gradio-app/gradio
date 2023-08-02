@@ -2,7 +2,6 @@
 
 from gradio_client.serializing import SimpleSerializable
 
-from gradio.blocks import default
 from gradio.components.base import IOComponent
 from gradio.events import Changeable
 

@@ -10,8 +10,8 @@ import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import NumberSerializable
 
-from gradio.blocks import default
-from gradio.components.base import FormComponent, IOComponent, _Keywords
+from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.components.base import FormComponent, IOComponent
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Inputable, Releaseable
 from gradio.interpretation import NeighborInterpretable
@@ -43,7 +43,7 @@ class Slider(
         self,
         minimum: float | None = None,
         maximum: float | None = None,
-        value: float | Callable | None = None,
+        value: float | Callable | None | DefaultType = DEFAULT,
         *,
         step: float | None = None,
         label: str | None = None,
@@ -79,6 +79,7 @@ class Slider(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             randomize: If True, the value of the slider when the app loads is taken uniformly at random from the range given by the minimum and maximum.
         """
+        value = default(value, None)
         self.minimum = default(minimum, 0)
         self.maximum = default(maximum, 100)
         container = default(container, True)

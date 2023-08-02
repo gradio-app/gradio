@@ -7,8 +7,8 @@ from typing import Any, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import SimpleSerializable
 
-from gradio.blocks import default
-from gradio.components.base import Component, _Keywords
+from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.components.base import Component
 
 set_documentation_group("component")
 

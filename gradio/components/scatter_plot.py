@@ -9,8 +9,7 @@ import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
 from pandas.api.types import is_numeric_dtype
 
-from gradio.blocks import default
-from gradio.components.base import _Keywords
+from gradio.blocks import default, DEFAULT, DefaultType
 from gradio.components.plot import AltairPlot, Plot
 
 set_documentation_group("component")
@@ -30,7 +29,7 @@ class ScatterPlot(Plot):
 
     def __init__(
         self,
-        value: pd.DataFrame | Callable | None = None,
+        value: pd.DataFrame | Callable | None | DefaultType = DEFAULT,
         x: str | None = None,
         y: str | None = None,
         *,
@@ -127,6 +126,7 @@ class ScatterPlot(Plot):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        value = default(value, None)
         self.interactive = default(interactive, True)
         container = default(container, True)
         min_width = default(min_width, 160)

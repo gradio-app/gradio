@@ -26,6 +26,7 @@ from scipy.io import wavfile
 
 import gradio as gr
 from gradio import processing_utils, utils
+from gradio.blocks import DEFAULT
 from gradio.deprecation import (
     GradioDeprecationWarning,
     GradioUnusedKwargWarning,
@@ -2493,7 +2494,7 @@ class TestScatterPlot:
     def test_update_visibility(self):
         output = gr.ScatterPlot.update(visible=False)
         assert not output["visible"]
-        assert output["value"] is gr.components._Keywords.NO_VALUE
+        assert output["value"] is DEFAULT
 
     def test_update_errors(self):
         with pytest.raises(
@@ -2659,7 +2660,7 @@ class TestLinePlot:
     def test_update_visibility(self):
         output = gr.LinePlot.update(visible=False)
         assert not output["visible"]
-        assert output["value"] is gr.components._Keywords.NO_VALUE
+        assert output["value"] is DEFAULT
 
     def test_update_errors(self):
         with pytest.raises(

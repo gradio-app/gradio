@@ -7,8 +7,8 @@ from typing import Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import BooleanSerializable
 
-from gradio.blocks import default
-from gradio.components.base import FormComponent, IOComponent, _Keywords
+from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.components.base import FormComponent, IOComponent
 from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
 from gradio.interpretation import NeighborInterpretable
 
@@ -36,7 +36,7 @@ class Checkbox(
 
     def __init__(
         self,
-        value: bool | Callable | None = None,
+        value: bool | Callable | None | DefaultType = DEFAULT,
         *,
         label: str | None = None,
         info: str | None = None,
@@ -66,7 +66,7 @@ class Checkbox(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.value = default(value, False)
+        value = default(value, False)
         container = default(container, True)
         min_width = default(min_width, 160)
         visible = default(visible, True)
