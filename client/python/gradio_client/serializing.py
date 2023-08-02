@@ -350,6 +350,81 @@ class FileSerializable(Serializable):
                 x, save_dir=save_dir, root_url=root_url, hf_token=hf_token
             )
 
+class RichtextboxSerializable(Serializable):
+    """Expects a dict with the text from the rich textbox and a dict with base64 representation of object as input/output which is serialized to a filepath."""
+
+    def serialized_info(self):
+        return {
+            "type": "dict",
+            "description": "Dict of text from rich textbox and List of filepath(s) or URL(s) to files",
+        }
+
+    def api_info(self) -> dict[str, dict | bool]:
+        return {
+            "info": serializer_types["RichtextboxSerializable"],
+            "serialized_info": True,
+        }
+
+    def example_inputs(self) -> dict[str, Any]:
+        return {
+            "text": "This is a sample text",
+            "files": [
+                "raw": [{"is_file": False, "data": media_data.BASE64_FILE}],
+                "serialized": [
+                    "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+                ],
+            ]
+        }
+
+    def serialize(
+        self,
+        x: str | FileData | None | list[str | FileData | None],
+        load_dir: str | Path = "",
+    ) -> FileData | None | list[FileData | None]:
+        """
+        Convert from human-friendly version of a file (string filepath) to a
+        serialized representation (base64)
+        Parameters:
+            x: String path to file to serialize
+            load_dir: Path to directory containing x
+        """
+        if x is None:
+            return None
+        else:
+            serialized_files = [self._serialize_single(f, load_dir=load_dir) for f in x["files"]]
+            return {"text": x["text"], "files": serialized_files}
+
+    # def deserialize(
+    #     self,
+    #     x: str | FileData | None | list[str | FileData | None],
+    #     save_dir: Path | str | None = None,
+    #     root_url: str | None = None,
+    #     hf_token: str | None = None,
+    # ) -> str | None | list[str | None]:
+    #     """
+    #     Convert from serialized representation of a file (base64) to a human-friendly
+    #     version (string filepath). Optionally, save the file to the directory specified by `save_dir`
+    #     Parameters:
+    #         x: Base64 representation of file to deserialize into a string filepath
+    #         save_dir: Path to directory to save the deserialized file to
+    #         root_url: If this component is loaded from an external Space, this is the URL of the Space.
+    #         hf_token: If this component is loaded from an external private Space, this is the access token for the Space
+    #     """
+    #     if x is None:
+    #         return None
+    #     if isinstance(save_dir, Path):
+    #         save_dir = str(save_dir)
+    #     if isinstance(x, list):
+    #         return [
+    #             self._deserialize_single(
+    #                 f, save_dir=save_dir, root_url=root_url, hf_token=hf_token
+    #             )
+    #             for f in x
+    #         ]
+    #     else:
+    #         return self._deserialize_single(
+    #             x, save_dir=save_dir, root_url=root_url, hf_token=hf_token
+    #         )
 
 class VideoSerializable(FileSerializable):
     def serialized_info(self):
