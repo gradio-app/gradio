@@ -18,6 +18,17 @@ from gradio import wasm_utils
 from gradio.context import Context
 from gradio.utils import GRADIO_VERSION
 
+# For testability, we import the pyfetch function into this module scope and define a fallback coroutine object to be patched in tests.
+try:
+    from pyodide.http import pyfetch as pyodide_pyfetch  # type: ignore
+except ImportError:
+
+    async def pyodide_pyfetch(*args, **kwargs):
+        raise NotImplementedError(
+            "pyodide.http.pyfetch is not available in this environment."
+        )
+
+
 ANALYTICS_URL = "https://api.gradio.app/"
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
 
@@ -56,9 +67,7 @@ def _do_normal_analytics_request(url: str, data: dict[str, Any]) -> None:
 
 
 async def _do_wasm_analytics_request(url: str, data: dict[str, Any]) -> None:
-    import pyodide.http  # type: ignore
-
-    data["ip_address"] = get_local_ip_address()
+    data["ip_address"] = "No internet connection"
 
     # We use urllib.parse.urlencode to encode the data as a form.
     # Ref: https://docs.python.org/3/library/urllib.request.html#urllib-examples
@@ -69,7 +78,7 @@ async def _do_wasm_analytics_request(url: str, data: dict[str, Any]) -> None:
 
     try:
         await asyncio.wait_for(
-            pyodide.http.pyfetch(url, method="POST", headers=headers, body=body),
+            pyodide_pyfetch(url, method="POST", headers=headers, body=body),
             timeout=5,
         )
     except asyncio.TimeoutError:
