@@ -134,11 +134,15 @@ class TestClientPredictions:
             assert outputs == [str(i) for i in range(3)]
 
     @pytest.mark.flaky
-    def test_intermediate_outputs_finish(self, count_generator_demo):
-        with connect(count_generator_demo) as client:
-            job = client.submit(3, fn_index=0)
-            job.finish()
-            assert job.outputs() == [str(i) for i in range(3)]
+    def test_intermediate_outputs_with_exception(self, count_generator_demo_exception):
+        with connect(count_generator_demo_exception) as client:
+            with pytest.raises(Exception):
+                client.predict(7, api_name="/count")
+
+            with pytest.raises(
+                ValueError, match="Cannot call predict on this function"
+            ):
+                client.predict(5, api_name="/count_forever")
 
     def test_break_in_loop_if_error(self, calculator_demo):
         with connect(calculator_demo) as client:
@@ -236,8 +240,9 @@ class TestClientPredictions:
                         job.cancel()
                         break
                     time.sleep(0.5)
-            # Result for iterative jobs is always the first result
-            assert job.result() == 0
+            # Result for iterative jobs will raise there is an exception
+            with pytest.raises(CancelledError):
+                job.result()
             # The whole prediction takes 10 seconds to run
             # and does not iterate. So this tests that we can cancel
             # halfway through a prediction

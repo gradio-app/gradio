@@ -12,7 +12,7 @@ import time
 import urllib.parse
 import uuid
 import warnings
-from concurrent.futures import Future, TimeoutError, wait
+from concurrent.futures import Future
 from datetime import datetime
 from pathlib import Path
 from threading import Lock
@@ -283,6 +283,11 @@ class Client:
             client.predict(5, "add", 4, api_name="/predict")
             >> 9.0
         """
+        inferred_fn_index = self._infer_fn_index(api_name, fn_index)
+        if self.endpoints[inferred_fn_index].is_continuous:
+            raise ValueError(
+                "Cannot call predict on this function as it may run forever."
+            )
         return self.submit(*args, api_name=api_name, fn_index=fn_index).result()
 
     def submit(
@@ -761,6 +766,7 @@ class Endpoint:
         self.input_component_types = []
         self.output_component_types = []
         self.root_url = client.src + "/" if not client.src.endswith("/") else client.src
+        self.is_continuous = dependency.get("types", {}).get("continuous", False)
         try:
             # Only a real API endpoint if backend_fn is True (so not just a frontend function), serializers are valid,
             # and api_name is not False (meaning that the developer has explicitly disabled the API endpoint)
@@ -1096,14 +1102,6 @@ class Job(Future):
                 if self.communicator.job.latest_status.code == Status.FINISHED:
                     raise StopIteration()
 
-    def finish(self, timeout: float | None = None) -> None:
-        """
-        Wait for the job to complete.
-        Parameters:
-            timeout: The number of seconds to wait for the result if the future isn't done. If None, then there is no limit on the wait time.
-        """
-        wait([self], timeout=timeout, return_when="ALL_COMPLETED")
-
     def result(self, timeout: float | None = None) -> Any:
         """
         Return the result of the call that the future represents. Raises CancelledError: If the future was cancelled, TimeoutError: If the future didn't finish executing before the given timeout, and Exception: If the call raised then that exception will be raised.
@@ -1111,7 +1109,7 @@ class Job(Future):
         Parameters:
             timeout: The number of seconds to wait for the result if the future isn't done. If None, then there is no limit on the wait time.
         Returns:
-            The result of the call that the future represents.
+            The result of the call that the future represents. For generator functions, it will return the final iteration.
         Example:
             from gradio_client import Client
             calculator = Client(src="gradio/calculator")
@@ -1119,25 +1117,7 @@ class Job(Future):
             job.result(timeout=5)
             >> 9
         """
-        if self.communicator:
-            timeout = timeout or float("inf")
-            if self.future._exception:  # type: ignore
-                raise self.future._exception  # type: ignore
-            with self.communicator.lock:
-                if self.communicator.job.outputs:
-                    return self.communicator.job.outputs[0]
-            start = datetime.now()
-            while True:
-                if (datetime.now() - start).seconds > timeout:
-                    raise TimeoutError()
-                if self.future._exception:  # type: ignore
-                    raise self.future._exception  # type: ignore
-                with self.communicator.lock:
-                    if self.communicator.job.outputs:
-                        return self.communicator.job.outputs[0]
-                time.sleep(0.01)
-        else:
-            return super().result(timeout=timeout)
+        return super().result(timeout=timeout)
 
     def outputs(self) -> list[tuple | Any]:
         """
