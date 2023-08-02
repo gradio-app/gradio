@@ -1332,7 +1332,8 @@ Received outputs:
                         update_dict=prediction_value,
                         postprocess=block_fn.postprocess,
                     )
-                    print(prediction_value)
+                    for k, v in prediction_value.items():
+                        setattr(state[output_id], k, v)
                 elif block_fn.postprocess:
                     assert isinstance(
                         block, components.Component
