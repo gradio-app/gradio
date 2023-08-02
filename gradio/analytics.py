@@ -56,7 +56,7 @@ def _do_normal_analytics_request(url: str, data: dict[str, Any]) -> None:
 
 
 async def _do_wasm_analytics_request(url: str, data: dict[str, Any]) -> None:
-    import pyodide.http
+    import pyodide.http  # type: ignore
 
     data["ip_address"] = get_local_ip_address()
 
