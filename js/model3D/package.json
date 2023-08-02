@@ -8,10 +8,10 @@
 	"license": "ISC",
 	"private": true,
 	"dependencies": {
-		"@gradio/atoms": "workspace:^0.0.1",
-		"@gradio/icons": "workspace:^0.0.1",
+		"@gradio/atoms": "workspace:^",
+		"@gradio/icons": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
-		"@gradio/upload": "workspace:^0.0.1",
+		"@gradio/upload": "workspace:^",
 		"babylonjs": "^4.2.1",
 		"babylonjs-loaders": "^4.2.1"
 	},

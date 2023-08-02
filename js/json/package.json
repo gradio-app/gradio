@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/json",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "index.svelte",
@@ -9,7 +9,7 @@
 	"private": true,
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
-		"@gradio/icons": "workspace:^0.0.1",
+		"@gradio/icons": "workspace:^",
 		"@gradio/statustracker": "workspace:^"
 	},
 	"main_changeset": true,

@@ -9,7 +9,7 @@ import {
 } from "vitest";
 import { spy } from "tinyspy";
 import { cleanup, render } from "@gradio/tootils";
-import { setupi18n } from "../../i18n";
+import { setupi18n } from "../app/src/i18n";
 
 import Image from "./index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker/types";

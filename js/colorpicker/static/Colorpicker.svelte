@@ -14,6 +14,7 @@
 		input: undefined;
 		submit: undefined;
 		blur: undefined;
+		focus: undefined;
 	}>();
 
 	function handle_change(): void {
@@ -22,6 +23,7 @@
 			dispatch("input");
 		}
 	}
+
 	afterUpdate(() => {
 		value_is_output = false;
 	});
@@ -30,7 +32,7 @@
 
 <label class="block">
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
-	<input type="color" on:blur bind:value {disabled} />
+	<input type="color" bind:value on:focus on:blur {disabled} />
 </label>
 
 <style>

@@ -39,11 +39,12 @@
 	$: {
 		if (showOptions && refElement) {
 			if (listElement && typeof value === "string") {
-				let el = document.querySelector(
-					`li[data-value="${value}"]`
-				) as HTMLLIElement;
-				if (el) {
-					listElement.scrollTo(0, el.offsetTop);
+				let elements = listElement.querySelectorAll("li");
+				for (const element of Array.from(elements)) {
+					if (element.getAttribute("data-value") === value) {
+						listElement.scrollTo(0, (element as HTMLLIElement).offsetTop);
+						break;
+					}
 				}
 			}
 			calculate_window_distance();

@@ -15,6 +15,26 @@
 	let _color_map: Record<string, { primary: string; secondary: string }> = {};
 	let active = "";
 
+	function splitTextByNewline(text: string): string[] {
+		return text.split("\n");
+	}
+
+	function correct_color_map(): void {
+		for (const col in color_map) {
+			const _c = color_map[col].trim();
+			if (_c in colors) {
+				_color_map[col] = colors[_c as keyof typeof colors];
+			} else {
+				_color_map[col] = {
+					primary: browser ? name_to_rgba(color_map[col], 1) : color_map[col],
+					secondary: browser
+						? name_to_rgba(color_map[col], 0.5)
+						: color_map[col],
+				};
+			}
+		}
+	}
+
 	function name_to_rgba(name: string, a: number): string {
 		if (!ctx) {
 			var canvas = document.createElement("canvas");
@@ -54,22 +74,6 @@
 		}
 
 		correct_color_map();
-	}
-
-	function correct_color_map(): void {
-		for (const col in color_map) {
-			const _c = color_map[col].trim();
-			if (_c in colors) {
-				_color_map[col] = colors[_c as keyof typeof colors];
-			} else {
-				_color_map[col] = {
-					primary: browser ? name_to_rgba(color_map[col], 1) : color_map[col],
-					secondary: browser
-						? name_to_rgba(color_map[col], 0.5)
-						: color_map[col],
-				};
-			}
-		}
 	}
 
 	function handle_mouseover(label: string): void {
@@ -117,40 +121,49 @@
 		{/if}
 		<div class="textfield">
 			{#each value as [text, category], i}
-				<!-- TODO: fix -->
-				<!-- svelte-ignore a11y-no-static-element-interactions -->
-				<!-- svelte-ignore a11y-click-events-have-key-events-->
-				<span
-					class="textspan"
-					style:background-color={category === null ||
-					(active && active !== category)
-						? ""
-						: _color_map[category].secondary}
-					class:no-cat={category === null || (active && active !== category)}
-					class:hl={category !== null}
-					class:selectable
-					on:click={() => {
-						dispatch("select", {
-							index: i,
-							value: [text, category],
-						});
-					}}
-				>
-					<span class:no-label={!_color_map[category]} class="text">{text}</span
-					>
-					{#if !show_legend && category !== null}
-						&nbsp;
+				{#each splitTextByNewline(text) as line, j}
+					{#if line.trim() !== ""}
+						<!-- TODO: fix -->
+						<!-- svelte-ignore a11y-no-static-element-interactions -->
+						<!-- svelte-ignore a11y-click-events-have-key-events-->
 						<span
-							class="label"
+							class="textspan"
 							style:background-color={category === null ||
 							(active && active !== category)
 								? ""
-								: _color_map[category].primary}
+								: _color_map[category].secondary}
+							class:no-cat={category === null ||
+								(active && active !== category)}
+							class:hl={category !== null}
+							class:selectable
+							on:click={() => {
+								dispatch("select", {
+									index: i,
+									value: [text, category],
+								});
+							}}
 						>
-							{category}
+							<span class:no-label={!_color_map[category]} class="text"
+								>{line}</span
+							>
+							{#if !show_legend && category !== null}
+								&nbsp;
+								<span
+									class="label"
+									style:background-color={category === null ||
+									(active && active !== category)
+										? ""
+										: _color_map[category].primary}
+								>
+									{category}
+								</span>
+							{/if}
 						</span>
 					{/if}
-				</span>
+					{#if j < splitTextByNewline(text).length - 1}
+						<br />
+					{/if}
+				{/each}
 			{/each}
 		</div>
 	{:else}
@@ -256,6 +269,7 @@
 
 	.text {
 		color: black;
+		white-space: pre-wrap;
 	}
 
 	.score-text .text {

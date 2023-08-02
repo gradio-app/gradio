@@ -10,9 +10,9 @@ import {
 } from "vitest";
 import { spy, spyOn } from "tinyspy";
 import { cleanup, render } from "@gradio/tootils";
-import { setupi18n } from "../../i18n";
+import { setupi18n } from "../app/src/i18n";
 
-import Video from "./Video.svelte";
+import Video from "./index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker/types";
 
 const loading_status = {

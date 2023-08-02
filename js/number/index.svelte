@@ -19,6 +19,7 @@
 	export let loading_status: LoadingStatus;
 	export let mode: "static" | "dynamic";
 	export let value_is_output = false;
+	export let step: number | null = null;
 </script>
 
 <Block
@@ -40,11 +41,13 @@
 		{show_label}
 		{minimum}
 		{maximum}
+		{step}
 		{container}
 		disabled={mode === "static"}
 		on:change
 		on:input
 		on:submit
 		on:blur
+		on:focus
 	/>
 </Block>

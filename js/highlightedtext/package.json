@@ -12,8 +12,8 @@
 		"@gradio/atoms": "workspace:^",
 		"@gradio/icons": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
-		"@gradio/theme": "workspace:^0.0.1",
-		"@gradio/utils": "workspace:^0.0.1"
+		"@gradio/theme": "workspace:^",
+		"@gradio/utils": "workspace:^"
 	},
 	"exports": {
 		".": "./index.svelte",

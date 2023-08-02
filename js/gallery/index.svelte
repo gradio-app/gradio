@@ -26,6 +26,7 @@
 	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
 		"cover";
 	export let show_share_button = false;
+	export let show_download_button = false;
 </script>
 
 <Block
@@ -57,5 +58,6 @@
 		{object_fit}
 		{allow_preview}
 		{show_share_button}
+		{show_download_button}
 	/>
 </Block>

@@ -11,12 +11,14 @@
 	export let info: string | undefined = undefined;
 	export let show_label = true;
 	export let container = true;
+	export let step: number | null = 1;
 
 	const dispatch = createEventDispatcher<{
 		change: number;
 		submit: undefined;
 		blur: undefined;
 		input: undefined;
+		focus: undefined;
 	}>();
 
 	function handle_change(): void {
@@ -39,10 +41,6 @@
 			dispatch("submit");
 		}
 	}
-
-	function handle_blur(e: FocusEvent): void {
-		dispatch("blur");
-	}
 </script>
 
 <label class="block" class:container>
@@ -52,8 +50,10 @@
 		bind:value
 		min={minimum}
 		max={maximum}
+		{step}
 		on:keypress={handle_keypress}
-		on:blur={handle_blur}
+		on:blur
+		on:focus
 		{disabled}
 	/>
 </label>
