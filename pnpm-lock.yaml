@@ -1,4 +1,4 @@
-lockfileVersion: '6.0'
+lockfileVersion: '6.1'
 
 settings:
   autoInstallPeers: true
@@ -390,12 +390,12 @@ importers:
       '@gradio/model3D':
         specifier: workspace:^0.0.2
         version: link:../model3D
-      '@gradio/multimodaltextbox':
-        specifier: workspace:^0.0.1
-        version: link:../multimodaltextbox
       '@gradio/plot':
         specifier: workspace:^0.0.2
         version: link:../plot
+      '@gradio/richtextbox':
+        specifier: workspace:^0.0.1
+        version: link:../richtextbox
       '@gradio/table':
         specifier: workspace:^0.0.2
         version: link:../table
@@ -748,27 +748,6 @@ importers:
         specifier: ^4.2.1
         version: 4.2.2
 
-  js/multimodaltextbox:
-    dependencies:
-      '@gradio/atoms':
-        specifier: workspace:^0.0.2
-        version: link:../atoms
-      '@gradio/client':
-        specifier: workspace:^0.1.4
-        version: link:../../client/js
-      '@gradio/icons':
-        specifier: workspace:^0.0.1
-        version: link:../icons
-      '@gradio/theme':
-        specifier: workspace:^0.0.2
-        version: link:../theme
-      '@gradio/upload':
-        specifier: workspace:^0.0.2
-        version: link:../upload
-      '@gradio/utils':
-        specifier: workspace:^0.0.2
-        version: link:../utils
-
   js/plot:
     dependencies:
       '@gradio/atoms':
@@ -798,6 +777,27 @@ importers:
       vega-lite:
         specifier: ^5.12.0
         version: 5.12.0(vega@5.22.1)
+
+  js/richtextbox:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^0.0.2
+        version: link:../atoms
+      '@gradio/client':
+        specifier: workspace:^0.1.4
+        version: link:../../client/js
+      '@gradio/icons':
+        specifier: workspace:^0.0.1
+        version: link:../icons
+      '@gradio/theme':
+        specifier: workspace:^0.0.2
+        version: link:../theme
+      '@gradio/upload':
+        specifier: workspace:^0.0.2
+        version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^0.0.2
+        version: link:../utils
 
   js/table:
     dependencies:
@@ -5831,7 +5831,7 @@ packages:
     peerDependencies:
       '@sveltejs/kit': ^1.0.0
     dependencies:
-      '@sveltejs/kit': 1.16.3(svelte@3.57.0)(vite@4.3.5)
+      '@sveltejs/kit': 1.16.3(svelte@3.59.2)(vite@4.3.9)
       import-meta-resolve: 3.0.0
     dev: true
 

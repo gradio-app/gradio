@@ -515,7 +515,7 @@ SERIALIZER_MAPPING["UploadButton"] = FileSerializable
 
 COMPONENT_MAPPING: dict[str, type] = {
     "textbox": StringSerializable,
-    "multimodaltextbox": StringSerializable,
+    "richtextbox": StringSerializable,
     "number": NumberSerializable,
     "slider": NumberSerializable,
     "checkbox": BooleanSerializable,

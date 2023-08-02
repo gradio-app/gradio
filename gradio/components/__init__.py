@@ -43,7 +43,7 @@ from gradio.components.slider import Slider
 from gradio.components.state import State, Variable
 from gradio.components.status_tracker import StatusTracker
 from gradio.components.textbox import Textbox
-from gradio.components.multimodaltextbox import MultimodalTextbox
+from gradio.components.richtextbox import RichTextbox
 from gradio.components.timeseries import Timeseries
 from gradio.components.upload_button import UploadButton
 from gradio.components.video import Video
@@ -90,7 +90,7 @@ __all__ = [
     "LinePlot",
     "Markdown",
     "Textbox",
-    "MultimodalTextbox",
+    "RichTextbox",
     "Dropdown",
     "Model3D",
     "File",

@@ -23,7 +23,7 @@ with gr.Blocks() as demo:
     chatbot = gr.Chatbot([], elem_id="chatbot").style(height=750)
 
     with gr.Row():
-        txt = gr.MultimodalTextbox(show_label=False, placeholder="Enter text and press enter, or upload an image")
+        txt = gr.RichTextbox(show_label=False, placeholder="Enter text and press enter, or upload an image")
     txt_msg = txt.submit(add_text, [chatbot, txt], [chatbot, txt], queue=False).then(
         bot, chatbot, chatbot
     )

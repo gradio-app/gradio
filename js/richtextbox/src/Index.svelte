@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher, getContext, tick } from "svelte";
-	import MultimodalTextbox from "./dynamic";
+	import RichTextbox from "./dynamic";
 	import { upload_files as default_upload_files } from "@gradio/client";
 	import type { FileData } from "@gradio/upload";
 	import { blobToBase64 } from "@gradio/upload";
@@ -99,7 +99,7 @@
 		<StatusTracker {...loading_status} />
 	{/if}
 
-	<MultimodalTextbox
+	<RichTextbox
 		{value}
 		{label}
 		{info}
