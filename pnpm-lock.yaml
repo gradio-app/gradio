@@ -1,4 +1,4 @@
-lockfileVersion: '6.0'
+lockfileVersion: '6.1'
 
 settings:
   autoInstallPeers: true
@@ -117,11 +117,11 @@ importers:
         specifier: ^3.0.0
         version: 3.0.0
       prettier-plugin-css-order:
-        specifier: ^1.3.1
-        version: 1.3.1(postcss@8.4.6)(prettier@3.0.0)
+        specifier: ^2.0.0
+        version: 2.0.0(postcss@8.4.6)(prettier@3.0.0)
       prettier-plugin-svelte:
-        specifier: ^2.10.1
-        version: 2.10.1(prettier@3.0.0)(svelte@4.0.0)
+        specifier: ^3.0.0
+        version: 3.0.0(prettier@3.0.0)(svelte@4.0.0)
       sirv:
         specifier: ^2.0.2
         version: 2.0.2
@@ -153,8 +153,8 @@ importers:
         specifier: ^4.3.9
         version: 4.3.9(@types/node@20.3.1)(less@4.1.3)
       vitest:
-        specifier: ^0.33.0
-        version: 0.33.0(jsdom@22.1.0)(less@4.1.3)
+        specifier: ^0.34.0
+        version: 0.34.0(jsdom@22.1.0)(less@4.1.3)
     devDependencies:
       '@storybook/addon-a11y':
         specifier: ^7.0.24
@@ -240,10 +240,10 @@ importers:
         specifier: workspace:^0.1.4
         version: link:../../client/js
       '@gradio/form':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../form
       '@gradio/theme':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../theme
     devDependencies:
       '@sveltejs/adapter-auto':
@@ -256,8 +256,8 @@ importers:
         specifier: ^3.0.0
         version: 3.0.0
       prettier-plugin-svelte:
-        specifier: ^2.8.1
-        version: 2.10.0(prettier@3.0.0)(svelte@3.57.0)
+        specifier: ^3.0.0
+        version: 3.0.0(prettier@3.0.0)(svelte@3.57.0)
       svelte:
         specifier: ^3.54.0
         version: 3.57.0
@@ -337,37 +337,37 @@ importers:
         specifier: workspace:^0.0.1
         version: link:../accordion
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../atoms
       '@gradio/audio':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.1.0
         version: link:../audio
       '@gradio/button':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../button
       '@gradio/chart':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../chart
       '@gradio/chatbot':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../chatbot
       '@gradio/client':
         specifier: workspace:^0.1.4
         version: link:../../client/js
       '@gradio/code':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../code
       '@gradio/file':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../file
       '@gradio/form':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../form
       '@gradio/gallery':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.1.0
         version: link:../gallery
       '@gradio/highlighted-text':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../highlighted-text
       '@gradio/html':
         specifier: workspace:^0.0.1
@@ -376,43 +376,43 @@ importers:
         specifier: workspace:^0.0.1
         version: link:../icons
       '@gradio/image':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.1.0
         version: link:../image
       '@gradio/json':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../json
       '@gradio/label':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../label
       '@gradio/markdown':
         specifier: workspace:^0.0.1
         version: link:../markdown
       '@gradio/model3D':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../model3D
       '@gradio/plot':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../plot
       '@gradio/table':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../table
       '@gradio/tabs':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../tabs
       '@gradio/theme':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../theme
       '@gradio/upload':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../upload
       '@gradio/upload-button':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../upload-button
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
       '@gradio/video':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../video
       '@gradio/wasm':
         specifier: workspace:^0.0.1
@@ -439,29 +439,29 @@ importers:
         specifier: workspace:^0.0.1
         version: link:../icons
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
 
   js/audio:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../atoms
       '@gradio/button':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../button
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
       '@gradio/upload':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../upload
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
       extendable-media-recorder:
-        specifier: ^7.0.2
-        version: 7.0.2
+        specifier: ^8.0.0
+        version: 8.0.0
       extendable-media-recorder-wav-encoder:
         specifier: ^7.0.76
         version: 7.0.76
@@ -472,7 +472,7 @@ importers:
   js/button:
     dependencies:
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
 
   js/chart:
@@ -481,13 +481,13 @@ importers:
         specifier: workspace:^0.0.1
         version: link:../icons
       '@gradio/theme':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../theme
       '@gradio/tooltip':
         specifier: workspace:^0.0.1
         version: link:../tooltip
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
       d3-dsv:
         specifier: ^3.0.1
@@ -512,19 +512,19 @@ importers:
   js/chatbot:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
       '@gradio/theme':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../theme
       '@gradio/upload':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../upload
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
       '@types/dompurify':
         specifier: ^3.0.2
@@ -599,13 +599,13 @@ importers:
         specifier: ^6.4.1
         version: 6.4.1
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
       '@gradio/upload':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../upload
       '@lezer/common':
         specifier: ^1.0.2
@@ -629,55 +629,55 @@ importers:
   js/file:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
       '@gradio/upload':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../upload
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
 
   js/form:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
 
   js/gallery:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
       '@gradio/image':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.1.0
         version: link:../image
       '@gradio/upload':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../upload
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
 
   js/highlighted-text:
     dependencies:
       '@gradio/theme':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../theme
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
 
   js/html: {}
@@ -687,16 +687,16 @@ importers:
   js/image:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
       '@gradio/upload':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../upload
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
       cropperjs:
         specifier: ^1.5.12
@@ -711,7 +711,7 @@ importers:
   js/json:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
@@ -720,7 +720,7 @@ importers:
   js/label:
     dependencies:
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
 
   js/lite: {}
@@ -730,13 +730,13 @@ importers:
   js/model3D:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
       '@gradio/upload':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../upload
       babylonjs:
         specifier: ^4.2.1
@@ -748,16 +748,16 @@ importers:
   js/plot:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
       '@gradio/theme':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../theme
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
       '@rollup/plugin-json':
         specifier: ^6.0.0
@@ -778,13 +778,13 @@ importers:
   js/table:
     dependencies:
       '@gradio/button':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../button
       '@gradio/upload':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../upload
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
       '@types/d3-dsv':
         specifier: ^3.0.0
@@ -799,7 +799,7 @@ importers:
   js/tabs:
     dependencies:
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
 
   js/theme: {}
@@ -811,7 +811,7 @@ importers:
   js/upload:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
@@ -820,37 +820,37 @@ importers:
   js/upload-button:
     dependencies:
       '@gradio/button':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../button
       '@gradio/upload':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../upload
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
 
   js/utils:
     dependencies:
       '@gradio/theme':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../theme
 
   js/video:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
       '@gradio/image':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.1.0
         version: link:../image
       '@gradio/upload':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../upload
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
 
   js/wasm:
@@ -3147,6 +3147,13 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       regenerator-runtime: 0.13.11
+
+  /@babel/runtime@7.22.6:
+    resolution: {integrity: sha512-wDb5pWm4WDdF6LFUde3Jl8WzPA+3ZbxYqkC6xAXuD3irdEHN1k0NfTRrJD8ZD378SJ61miMLCqIOXYhd8x+AJQ==}
+    engines: {node: '>=6.9.0'}
+    dependencies:
+      regenerator-runtime: 0.13.11
+    dev: false
 
   /@babel/template@7.22.5:
     resolution: {integrity: sha512-X7yV7eiwAxdj9k94NEylvbVHLiVG1nvzCV2EAowhxLTwODV1jl9UzZ48leOC0sH7OnuHrIkllaBgneUykIcZaw==}
@@ -6552,38 +6559,38 @@ packages:
       eslint-visitor-keys: 3.4.1
     dev: false
 
-  /@vitest/expect@0.33.0:
-    resolution: {integrity: sha512-sVNf+Gla3mhTCxNJx+wJLDPp/WcstOe0Ksqz4Vec51MmgMth/ia0MGFEkIZmVGeTL5HtjYR4Wl/ZxBxBXZJTzQ==}
+  /@vitest/expect@0.34.0:
+    resolution: {integrity: sha512-d1ZU0XomWFAFyYIc6uNuY0N8NJIWESyO/6ZmwLvlHZw0GevH4AEEpq178KjXIvSCrbHN0GnzYzitd0yjfy7+Ow==}
     dependencies:
-      '@vitest/spy': 0.33.0
-      '@vitest/utils': 0.33.0
+      '@vitest/spy': 0.34.0
+      '@vitest/utils': 0.34.0
       chai: 4.3.7
     dev: false
 
-  /@vitest/runner@0.33.0:
-    resolution: {integrity: sha512-UPfACnmCB6HKRHTlcgCoBh6ppl6fDn+J/xR8dTufWiKt/74Y9bHci5CKB8tESSV82zKYtkBJo9whU3mNvfaisg==}
+  /@vitest/runner@0.34.0:
+    resolution: {integrity: sha512-xaqM+oArJothtYXzy/dwu/iHe93Khq5QkvnYbzTxiLA0enD2peft1cask3yE6cJpwMkr7C2D1uMJwnTt4mquDw==}
     dependencies:
-      '@vitest/utils': 0.33.0
+      '@vitest/utils': 0.34.0
       p-limit: 4.0.0
       pathe: 1.1.1
     dev: false
 
-  /@vitest/snapshot@0.33.0:
-    resolution: {integrity: sha512-tJjrl//qAHbyHajpFvr8Wsk8DIOODEebTu7pgBrP07iOepR5jYkLFiqLq2Ltxv+r0uptUb4izv1J8XBOwKkVYA==}
+  /@vitest/snapshot@0.34.0:
+    resolution: {integrity: sha512-eGN5XBZHYOghxCOQbf8dcn6/3g7IW77GOOOC/mNFYwRXsPeoQgcgWnhj+6wgJ04pVv25wpxWL9jUkzaQ7LoFtg==}
     dependencies:
       magic-string: 0.30.1
       pathe: 1.1.1
       pretty-format: 29.5.0
     dev: false
 
-  /@vitest/spy@0.33.0:
-    resolution: {integrity: sha512-Kv+yZ4hnH1WdiAkPUQTpRxW8kGtH8VRTnus7ZTGovFYM1ZezJpvGtb9nPIjPnptHbsyIAxYZsEpVPYgtpjGnrg==}
+  /@vitest/spy@0.34.0:
+    resolution: {integrity: sha512-0SZaWrQvL9ZiF/uJvyWSvsKjfuMvD1M6dE5BbE4Dmt8Vh3k4htwCV8g3ce8YOYmJSxkbh6TNOpippD6NVsxW6w==}
     dependencies:
       tinyspy: 2.1.1
     dev: false
 
-  /@vitest/utils@0.33.0:
-    resolution: {integrity: sha512-pF1w22ic965sv+EN6uoePkAOTkAPWM03Ri/jXNyMIKBb/XHLDPfhLvf/Fa9g0YECevAIz56oVYXhodLvLQ/awA==}
+  /@vitest/utils@0.34.0:
+    resolution: {integrity: sha512-IktrDLhBKf3dEUUxH+lcHiPnaw952+GdGvoxg99liMscgP6IePf6LuMY7B9dEIHkFunB1R8VMR/wmI/4UGg1aw==}
     dependencies:
       diff-sequences: 29.4.3
       loupe: 2.3.6
@@ -6745,12 +6752,12 @@ packages:
       acorn: 8.10.0
     dev: true
 
-  /acorn-jsx@5.3.2(acorn@8.8.2):
+  /acorn-jsx@5.3.2(acorn@8.10.0):
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
     peerDependencies:
       acorn: ^6.0.0 || ^7.0.0 || ^8.0.0
     dependencies:
-      acorn: 8.8.2
+      acorn: 8.10.0
 
   /acorn-node@1.8.2:
     resolution: {integrity: sha512-8mt+fslDufLYntIoPAaIMUe/lrbrehIiwmR3t2k9LljIzoigEPF27eLk2hy8zSGzmR/ogr7zbRKINMo1u0yh5A==}
@@ -6975,12 +6982,12 @@ packages:
   /asynckit@0.4.0:
     resolution: {integrity: sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==}
 
-  /automation-events@4.0.21:
-    resolution: {integrity: sha512-VJdSzclxoBVAqE4UAwmqPLHAM3EI2iYhZ2MADdQnjFlW/GE17B47aQ6y9JE9up2bf8f7I5RfqGhJM464jPMzww==}
-    engines: {node: '>=12.20.1'}
+  /automation-events@6.0.7:
+    resolution: {integrity: sha512-praCfxsKCU3v69+vKnUhyXfvHaVmK/ng8Slzl95U2FAOeLCz+qA3VXGpB6jlHuwrGNvTl9sx5E9942feZ4ISXw==}
+    engines: {node: '>=16.1.0'}
     dependencies:
-      '@babel/runtime': 7.21.0
-      tslib: 2.5.3
+      '@babel/runtime': 7.22.6
+      tslib: 2.6.1
     dev: false
 
   /autoprefixer@10.4.4(postcss@8.4.6):
@@ -7243,6 +7250,15 @@ packages:
       fast-unique-numbers: 6.0.21
       tslib: 2.5.3
       worker-factory: 6.0.69
+    dev: false
+
+  /broker-factory@3.0.83:
+    resolution: {integrity: sha512-m8+nbcoxL4JGwrYmbHL00RlH9vazn2BnD7+hbUPC55U8KruQtsUKAHVt9BxooWNMOArX5vuKNVrbf0E5tjI5+A==}
+    dependencies:
+      '@babel/runtime': 7.22.6
+      fast-unique-numbers: 8.0.6
+      tslib: 2.6.1
+      worker-factory: 7.0.8
     dev: false
 
   /browser-assert@1.2.1:
@@ -7637,6 +7653,16 @@ packages:
   /commondir@1.0.1:
     resolution: {integrity: sha512-W9pAhw0ja1Edb5GVdIF1mjZw/ASI0AlShXM83UUGe2DVr5TdAPEA1OA8m/g8zWp9x6On7gqufY+FatDbC3MDQg==}
     dev: true
+
+  /compilerr@11.0.7:
+    resolution: {integrity: sha512-Y8Q3w3UAkvMpV3HzoHQhG6n1XYTr4VUA8K/7Tv/BPquhVflZ4isQBP8EG13uqGdIVP5Ud4dJWm0WZJCh2nYqPA==}
+    engines: {node: '>=16.1.0'}
+    dependencies:
+      '@babel/runtime': 7.22.6
+      dashify: 2.0.0
+      indefinite-article: 0.0.2
+      tslib: 2.6.1
+    dev: false
 
   /compilerr@9.0.21:
     resolution: {integrity: sha512-H6ZnGHPBiwVdWt8GbAPuQK4mmtRTJ5yucysgFFhGxmPoLCAmaMSxtvHNzhAAGNqBRZOTsGjkwT8clNw6CJcGgQ==}
@@ -8049,6 +8075,7 @@ packages:
 
   /debug@3.2.7:
     resolution: {integrity: sha512-CFjzYYAi4ThfiQvizrFQevTTXHtnCqWfe7x1AhgEscTz6ZbLbfoLRLPugTQyBth6f8ZERVUSyWHFD/7Wu4t1XQ==}
+    requiresBuild: true
     peerDependencies:
       supports-color: '*'
     peerDependenciesMeta:
@@ -8797,8 +8824,8 @@ packages:
     resolution: {integrity: sha512-oP3utRkynpZWF/F2x/HZJ+AGtnIclaR7z1pYPxy7NYM2fSO6LgK/Rkny8anRSPK/VwEA1eqm2squui0T7ZMOBg==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     dependencies:
-      acorn: 8.8.2
-      acorn-jsx: 5.3.2(acorn@8.8.2)
+      acorn: 8.10.0
+      acorn-jsx: 5.3.2(acorn@8.10.0)
       eslint-visitor-keys: 3.4.1
     dev: true
 
@@ -8806,8 +8833,8 @@ packages:
     resolution: {integrity: sha512-7OASN1Wma5fum5SrNhFMAMJxOUAbhyfQ8dQ//PJaJbNw0URTPWqIghHWt1MmAANKhHZIYOHruW4Kw4ruUWOdGw==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     dependencies:
-      acorn: 8.8.2
-      acorn-jsx: 5.3.2(acorn@8.8.2)
+      acorn: 8.10.0
+      acorn-jsx: 5.3.2(acorn@8.10.0)
       eslint-visitor-keys: 3.4.1
 
   /esprima@4.0.1:
@@ -8952,12 +8979,29 @@ packages:
       tslib: 2.5.3
     dev: false
 
+  /extendable-media-recorder-wav-encoder-broker@7.0.87:
+    resolution: {integrity: sha512-wY5nw4bbHo3gcqf/pfPnxpKcbIwSUirJpWDYdk78I4IX1+GdMSUiyyvleozQ8lBFr00DO4z+LiH7H719Zs3ibQ==}
+    dependencies:
+      '@babel/runtime': 7.22.6
+      broker-factory: 3.0.83
+      extendable-media-recorder-wav-encoder-worker: 8.0.85
+      tslib: 2.6.1
+    dev: false
+
   /extendable-media-recorder-wav-encoder-worker@8.0.69:
     resolution: {integrity: sha512-8RJgKYTTHkzDoCWrnPMMqX+TyJpwzP9lwqxQWDpa9J5J1DP0SybgoYWP8Dtty/R5xT344lU+NKo7g1661i7Ujg==}
     dependencies:
       '@babel/runtime': 7.21.0
       tslib: 2.5.3
       worker-factory: 6.0.69
+    dev: false
+
+  /extendable-media-recorder-wav-encoder-worker@8.0.85:
+    resolution: {integrity: sha512-5KjWFCxNWhokw9l8tvmnt8bZqPPu3DzyRCa5M6DOlIN5ZBkYygcuIc2Xl4zt13TwtewfStYcobavSeSXVfafbg==}
+    dependencies:
+      '@babel/runtime': 7.22.6
+      tslib: 2.6.1
+      worker-factory: 7.0.8
     dev: false
 
   /extendable-media-recorder-wav-encoder@7.0.76:
@@ -8969,16 +9013,16 @@ packages:
       tslib: 2.4.0
     dev: false
 
-  /extendable-media-recorder@7.0.2:
-    resolution: {integrity: sha512-rZAvRaAJgMyQUMWMrgSB1U1o9nNXaguVAwNVOnt396tRlfZtBbHxraygqjPQXNs6kb1H4XcG/RLTn+hfZJx2Xg==}
+  /extendable-media-recorder@8.0.0:
+    resolution: {integrity: sha512-J5S3At1uJJtcBxpxmR4eIaGZbXlZzl0HyYRprDBAHdt9Z75Y9ziJj7WXlEcSM84Oiz3qI7Gsi4oh8PZ+QnDhTA==}
     dependencies:
-      '@babel/runtime': 7.21.0
-      media-encoder-host: 8.0.78
-      multi-buffer-data-view: 3.0.21
-      recorder-audio-worklet: 5.1.29
-      standardized-audio-context: 25.3.32
-      subscribable-things: 2.1.7
-      tslib: 2.4.0
+      '@babel/runtime': 7.22.6
+      media-encoder-host: 8.0.98
+      multi-buffer-data-view: 5.0.7
+      recorder-audio-worklet: 6.0.12
+      standardized-audio-context: 25.3.54
+      subscribable-things: 2.1.22
+      tslib: 2.6.1
     dev: false
 
   /external-editor@3.1.0:
@@ -9031,6 +9075,14 @@ packages:
     dependencies:
       '@babel/runtime': 7.21.0
       tslib: 2.5.3
+    dev: false
+
+  /fast-unique-numbers@8.0.6:
+    resolution: {integrity: sha512-qYstEvALsy12Xjtct+WkrdzdCGacIG85GQhPs1lsN7J3Fm3MfEkr6WgqYr9SIslg+UevsUhf9Y5Y7LZS2rE+sQ==}
+    engines: {node: '>=16.1.0'}
+    dependencies:
+      '@babel/runtime': 7.22.6
+      tslib: 2.6.1
     dev: false
 
   /fastq@1.13.0:
@@ -9356,7 +9408,7 @@ packages:
       https-proxy-agent: 5.0.1
       mri: 1.2.0
       node-fetch-native: 1.2.0
-      pathe: 1.1.0
+      pathe: 1.1.1
       tar: 6.1.15
     transitivePeerDependencies:
       - supports-color
@@ -10385,7 +10437,7 @@ packages:
     dependencies:
       copy-anything: 2.0.6
       parse-node-version: 1.0.1
-      tslib: 2.5.3
+      tslib: 2.6.1
     optionalDependencies:
       errno: 0.1.8
       graceful-fs: 4.2.9
@@ -10659,32 +10711,32 @@ packages:
       vfile-message: 2.0.4
     dev: false
 
-  /media-encoder-host-broker@7.0.70:
-    resolution: {integrity: sha512-ixixE9auojgUHEIQHYvJ75vPxetkHreIfxK20SQ4ZoZSO/vRj4+up72rETMbj2e0UO7xnDJqADsx+sfkoV2eVA==}
+  /media-encoder-host-broker@7.0.88:
+    resolution: {integrity: sha512-VFMRypYVGWm5JDg9wOl2tWPbeoL2VVelH+L300AupJINY9puV+XCiOs1XiNqW02dnnx+MBuYPfw+EOx0+ptpyA==}
     dependencies:
-      '@babel/runtime': 7.21.0
-      broker-factory: 3.0.68
-      fast-unique-numbers: 6.0.21
-      media-encoder-host-worker: 9.0.70
-      tslib: 2.5.3
+      '@babel/runtime': 7.22.6
+      broker-factory: 3.0.83
+      fast-unique-numbers: 8.0.6
+      media-encoder-host-worker: 9.1.10
+      tslib: 2.6.1
     dev: false
 
-  /media-encoder-host-worker@9.0.70:
-    resolution: {integrity: sha512-ttZAvG0osaOTl6C1OMIzZzFQ/ZIBiRDHyrfcM0d+ZF65tAjLtA53vWoINcgwRBEwc4P62y9a12pbujB1ZdCU6Q==}
+  /media-encoder-host-worker@9.1.10:
+    resolution: {integrity: sha512-+lldirPMSDRNdV25ItFl7LvCv6cwKEfOUnBq3LcC5XI6aLUlQ2w2tEUFQEUYp4lBRPcotEDJ8j9qUcvOXqvRoA==}
     dependencies:
-      '@babel/runtime': 7.21.0
-      extendable-media-recorder-wav-encoder-broker: 7.0.70
-      tslib: 2.5.3
-      worker-factory: 6.0.69
+      '@babel/runtime': 7.22.6
+      extendable-media-recorder-wav-encoder-broker: 7.0.87
+      tslib: 2.6.1
+      worker-factory: 7.0.8
     dev: false
 
-  /media-encoder-host@8.0.78:
-    resolution: {integrity: sha512-kobfdkFcfp8w2SkPY8ISHzG6L7o8tgtIvXtK5/j1hfZGZxqf0sxxXEzU9WFm9jNKnlgko6RSZhPzD24w60I4zQ==}
+  /media-encoder-host@8.0.98:
+    resolution: {integrity: sha512-55vB2tdte6FJU/Il/tGoGujDrlL9fQFKHUTcRn0tbdyd3L+HoJHiJgp9NvT92TcGs6krMg869aLdoXFzG+x9gQ==}
     dependencies:
-      '@babel/runtime': 7.21.0
-      media-encoder-host-broker: 7.0.70
-      media-encoder-host-worker: 9.0.70
-      tslib: 2.5.3
+      '@babel/runtime': 7.22.6
+      media-encoder-host-broker: 7.0.88
+      media-encoder-host-worker: 9.1.10
+      tslib: 2.6.1
     dev: false
 
   /media-typer@0.3.0:
@@ -10934,12 +10986,12 @@ packages:
       - supports-color
     dev: false
 
-  /multi-buffer-data-view@3.0.21:
-    resolution: {integrity: sha512-K/v5mjWMbJEgiZzn6Pr7+jKoKuChY6GdQEeiKNWhIi0QILXzJmUvuho85z6AYYh38Ua2kGY/5E3qs2ceoZ8chA==}
-    engines: {node: '>=12.20.1'}
+  /multi-buffer-data-view@5.0.7:
+    resolution: {integrity: sha512-n9lk8+OBZLIbmBFuwNJX52EyNg+07iod9WJalgZWSbnCPbmX6uFcoZZxhbG7+pOdNpropvyfMCUUag+QTIT03g==}
+    engines: {node: '>=16.1.0'}
     dependencies:
-      '@babel/runtime': 7.21.0
-      tslib: 2.5.3
+      '@babel/runtime': 7.22.6
+      tslib: 2.6.1
     dev: false
 
   /mute-stream@0.0.8:
@@ -11359,13 +11411,8 @@ packages:
     resolution: {integrity: sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==}
     engines: {node: '>=8'}
 
-  /pathe@1.1.0:
-    resolution: {integrity: sha512-ODbEPR0KKHqECXW1GoxdDb+AZvULmXjVPy4rt+pGo2+TnjJTIPJQSVS6N63n8T2Ip+syHhbn52OewKicV0373w==}
-    dev: true
-
   /pathe@1.1.1:
     resolution: {integrity: sha512-d+RQGp0MAYTIaDBIMmOfMwz3E+LOZnxx1HZd5R18mmCZY0QBlK0LDZfPc8FW8Ed2DlvsuE6PRjroDY+wg4+j/Q==}
-    dev: false
 
   /pathval@1.1.1:
     resolution: {integrity: sha512-Dp6zGqpTdETdR63lehJYPeIOqpiNBNtc7BpWSLrOje7UaIsE5aY92r/AunQA7rsXvet3lrJ3JnZX29UPTKXyKQ==}
@@ -11774,35 +11821,34 @@ packages:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
 
-  /prettier-plugin-css-order@1.3.1(postcss@8.4.6)(prettier@3.0.0):
-    resolution: {integrity: sha512-c8rtt5MLDDoMvutJHXT5t/bKO/bbHHnRI/UKzGGqKyskoHXpDn58SiNNW7ot2eCBFh5iLSy+0nUYArfvFWs57A==}
-    engines: {node: '>=14'}
+  /prettier-plugin-css-order@2.0.0(postcss@8.4.6)(prettier@3.0.0):
+    resolution: {integrity: sha512-BCstZZ78G6FH/Ms1hl5ZLnSMso3ModM+SEZY8QrJzgyxjuCjSrS2bveeLq9wJMn20h9tAb6+C2FZPh5qdZ2qsw==}
+    engines: {node: '>=16'}
     peerDependencies:
-      prettier: 2.x
+      prettier: 3.x
     dependencies:
       css-declaration-sorter: 7.0.0(postcss@8.4.6)
       postcss-less: 6.0.0(postcss@8.4.6)
       postcss-scss: 4.0.6(postcss@8.4.6)
       prettier: 3.0.0
-      sync-threads: 1.0.1
     transitivePeerDependencies:
       - postcss
     dev: false
 
-  /prettier-plugin-svelte@2.10.0(prettier@3.0.0)(svelte@3.57.0):
-    resolution: {integrity: sha512-GXMY6t86thctyCvQq+jqElO+MKdB09BkL3hexyGP3Oi8XLKRFaJP1ud/xlWCZ9ZIa2BxHka32zhHfcuU+XsRQg==}
+  /prettier-plugin-svelte@3.0.0(prettier@3.0.0)(svelte@3.57.0):
+    resolution: {integrity: sha512-l3RQcPty2UBCoRh3yb9c5XCAmxkrc4BptAnbd5acO1gmSJtChOWkiEjnOvh7hvmtT4V80S8gXCOKAq8RNeIzSw==}
     peerDependencies:
-      prettier: ^1.16.4 || ^2.0.0
-      svelte: ^3.2.0
+      prettier: ^3.0.0
+      svelte: ^3.2.0 || ^4.0.0-next.0
     dependencies:
       prettier: 3.0.0
       svelte: 3.57.0
     dev: true
 
-  /prettier-plugin-svelte@2.10.1(prettier@3.0.0)(svelte@4.0.0):
-    resolution: {integrity: sha512-Wlq7Z5v2ueCubWo0TZzKc9XHcm7TDxqcuzRuGd0gcENfzfT4JZ9yDlCbEgxWgiPmLHkBjfOtpAWkcT28MCDpUQ==}
+  /prettier-plugin-svelte@3.0.0(prettier@3.0.0)(svelte@4.0.0):
+    resolution: {integrity: sha512-l3RQcPty2UBCoRh3yb9c5XCAmxkrc4BptAnbd5acO1gmSJtChOWkiEjnOvh7hvmtT4V80S8gXCOKAq8RNeIzSw==}
     peerDependencies:
-      prettier: ^1.16.4 || ^2.0.0
+      prettier: ^3.0.0
       svelte: ^3.2.0 || ^4.0.0-next.0
     dependencies:
       prettier: 3.0.0
@@ -11893,6 +11939,7 @@ packages:
 
   /prr@1.0.1:
     resolution: {integrity: sha512-yPw4Sng1gWghHQWj0B3ZggWUm4qVbPwPFcRG8KyxiU7J2OHFSoEHKS+EZ3fv5l1t9CyCiop6l/ZYeWbrgoQejw==}
+    requiresBuild: true
     optional: true
 
   /pseudomap@1.0.2:
@@ -12168,24 +12215,24 @@ packages:
       resolve: 1.22.1
     dev: true
 
-  /recorder-audio-worklet-processor@4.2.15:
-    resolution: {integrity: sha512-5QTJKukH8JcQR1f2FqZsQ1QD2aoc6/+tM0WPv8sqEI4THzbiMfH4VuWF3BfdL2F9mRjLo81nFC9OShCj87wMhg==}
+  /recorder-audio-worklet-processor@5.0.7:
+    resolution: {integrity: sha512-FCauoYiZ/cBbLHUq+u87enKviR9g6UWyw1ypFjc6DMgIa9yAEURW/8J53aMAGH6Haz1+rGWPLFytjXp1JTasYg==}
     dependencies:
-      '@babel/runtime': 7.21.0
-      tslib: 2.5.3
+      '@babel/runtime': 7.22.6
+      tslib: 2.6.1
     dev: false
 
-  /recorder-audio-worklet@5.1.29:
-    resolution: {integrity: sha512-HCuB5c50UdRSm8DubnRYIzfNo+eNPfdCAWlSO9jag3lt9vnAJpg6u4DBBb/psXOk7PsHaRsHkZTdg96RSybawA==}
+  /recorder-audio-worklet@6.0.12:
+    resolution: {integrity: sha512-s57XvsBjjiK57uAL2o2bqVjHNzK4Cxfn8nhMifTjPV0W0XZCWxPfwfuzAfsguZdXytkeH0oCmrsMaZGDz3AF5w==}
     dependencies:
-      '@babel/runtime': 7.21.0
-      broker-factory: 3.0.68
-      fast-unique-numbers: 6.0.21
-      recorder-audio-worklet-processor: 4.2.15
-      standardized-audio-context: 25.3.32
-      subscribable-things: 2.1.7
-      tslib: 2.5.3
-      worker-factory: 6.0.69
+      '@babel/runtime': 7.22.6
+      broker-factory: 3.0.83
+      fast-unique-numbers: 8.0.6
+      recorder-audio-worklet-processor: 5.0.7
+      standardized-audio-context: 25.3.54
+      subscribable-things: 2.1.22
+      tslib: 2.6.1
+      worker-factory: 7.0.8
     dev: false
 
   /redent@3.0.0:
@@ -12450,6 +12497,7 @@ packages:
 
   /sax@1.2.4:
     resolution: {integrity: sha512-NqVDv9TpANUjFm0N8uM5GxL36UgKi9/atZw+x7YFnQ8ckwFGKrl4xX4yWtrey3UJm5nP1kUbnYgLopqWNSRhWw==}
+    requiresBuild: true
     optional: true
 
   /saxes@6.0.0:
@@ -12742,12 +12790,12 @@ packages:
     resolution: {integrity: sha512-1XMJE5fQo1jGH6Y/7ebnwPOBEkIEnT4QF32d5R1+VXdXveM0IBMJt8zfaxX1P3QhVwrYe+576+jkANtSS2mBbw==}
     dev: false
 
-  /standardized-audio-context@25.3.32:
-    resolution: {integrity: sha512-TtnRZGzHaTowIrEPo7w7WK74TrrY885NpplFpD79h85YuUAUBrUGifHlh8GK11oyZHfwDtCV29yFPfIHWotrXg==}
+  /standardized-audio-context@25.3.54:
+    resolution: {integrity: sha512-1b5YTivCBc52MFlg3yUFdbfQZBb4wyFUjbvzBn6JD1FJM1nd3RTg3ddyGWRT8XVOC0KUwY2h4R9YrqLpQ04JPQ==}
     dependencies:
-      '@babel/runtime': 7.21.0
-      automation-events: 4.0.21
-      tslib: 2.5.3
+      '@babel/runtime': 7.22.6
+      automation-events: 6.0.7
+      tslib: 2.6.1
     dev: false
 
   /statuses@2.0.1:
@@ -12906,12 +12954,12 @@ packages:
     resolution: {integrity: sha512-OPhtyEjyyN9x3nhPsu76f52yUGXiZcgvsrFVtvTkyGRQJ0XK+GPc6ov1z+lRpbeabka+MYEQxOYRnt5nF30aMw==}
     dev: false
 
-  /subscribable-things@2.1.7:
-    resolution: {integrity: sha512-z8CMs8i0KSz69Lk83db40io5OEEq4TeuB/g6Z8tpSzmG20oNAL+C2Uys7XAOvcU4Iqrvvc/gcdFLRn6bi1Gb/w==}
+  /subscribable-things@2.1.22:
+    resolution: {integrity: sha512-EKZIRtDZjXiIML+/99Bin/EL4X0oUqWAF6N+4LwfAUbkKKcd5wRY2y/lp143soDg9W0qM0Czios11JfHEpRcQQ==}
     dependencies:
-      '@babel/runtime': 7.21.0
+      '@babel/runtime': 7.22.6
       rxjs-interop: 2.0.0
-      tslib: 2.5.3
+      tslib: 2.6.1
     dev: false
 
   /supports-color@5.5.0:
@@ -13287,10 +13335,6 @@ packages:
     resolution: {integrity: sha512-9QNk5KwDF+Bvz+PyObkmSYjI5ksVUYtjW7AU22r2NKcfLJcXp96hkDWU3+XndOsUb+AQ9QhfzfCT2O+CNWT5Tw==}
     dev: false
 
-  /sync-threads@1.0.1:
-    resolution: {integrity: sha512-hIdwt/c/e1ONnr2RJmfBxEAj/J6KQQWKdToF3Qw8ZNRsTNNteGkOe63rQy9I7J5UNlr8Yl0wkzIr9wgLY94x0Q==}
-    dev: false
-
   /synchronous-promise@2.0.17:
     resolution: {integrity: sha512-AsS729u2RHUfEra9xJrE39peJcc2stq2+poBXX8bcM08Y6g9j/i/PUzwNQqkaJde7Ntg1TO7bSREbR5sdosQ+g==}
     dev: true
@@ -13512,8 +13556,8 @@ packages:
     engines: {node: '>=4'}
     dev: false
 
-  /tinypool@0.6.0:
-    resolution: {integrity: sha512-FdswUUo5SxRizcBc6b1GSuLpLjisa8N8qMyYoP3rl+bym+QauhtJP5bvZY1ytt8krKGmMLYIRl36HBZfeAoqhQ==}
+  /tinypool@0.7.0:
+    resolution: {integrity: sha512-zSYNUlYSMhJ6Zdou4cJwo/p7w5nmAH17GRfU/ui3ctvjXFErXXkruT4MWW6poDeXgCaIBlGLrfU6TbTXxyGMww==}
     engines: {node: '>=14.0.0'}
     dev: false
 
@@ -13611,6 +13655,9 @@ packages:
 
   /tslib@2.5.3:
     resolution: {integrity: sha512-mSxlJJwl3BMEQCUNnxXBU9jP4JBktcEGhURcPR6VQVlnP0FdDEsIaz0C35dXNGLyRfrATNofF0F5p2KPxQgB+w==}
+
+  /tslib@2.6.1:
+    resolution: {integrity: sha512-t0hLfiEKfMUoqhG+U1oid7Pva4bbDPHYfJNiB7BiIjRkj1pyC++4N3huJfqY6aRH6VTB0rvtzQwjM4K6qpfOig==}
 
   /tty-table@4.2.1:
     resolution: {integrity: sha512-xz0uKo+KakCQ+Dxj1D/tKn2FSyreSYWzdkL/BYhgN6oMW808g8QRMuh1atAV9fjTPbWBjfbkKQpI/5rEcnAc7g==}
@@ -13832,7 +13879,7 @@ packages:
   /unplugin@0.10.2:
     resolution: {integrity: sha512-6rk7GUa4ICYjae5PrAllvcDeuT8pA9+j5J5EkxbMFaV+SalHhxZ7X2dohMzu6C3XzsMT+6jwR/+pwPNR3uK9MA==}
     dependencies:
-      acorn: 8.8.2
+      acorn: 8.10.0
       chokidar: 3.5.3
       webpack-sources: 3.2.3
       webpack-virtual-modules: 0.4.6
@@ -14321,8 +14368,8 @@ packages:
       unist-util-stringify-position: 2.0.3
     dev: false
 
-  /vite-node@0.33.0(@types/node@20.3.2)(less@4.1.3):
-    resolution: {integrity: sha512-19FpHYbwWWxDr73ruNahC+vtEdza52kA90Qb3La98yZ0xULqV8A5JLNPUff0f5zID4984tW7l3DH2przTJUZSw==}
+  /vite-node@0.34.0(@types/node@20.3.2)(less@4.1.3):
+    resolution: {integrity: sha512-rGZMvpb052rjUwJA/a17xMfOibzNF7byMdRSTcN2Lw8uxX08s5EfjWW5mBkm3MSFTPctMSVtT2yC+8ShrZbT5g==}
     engines: {node: '>=v14.18.0'}
     hasBin: true
     dependencies:
@@ -14463,8 +14510,8 @@ packages:
     dependencies:
       vite: 4.3.9(@types/node@20.3.1)(less@4.1.3)
 
-  /vitest@0.33.0(jsdom@22.1.0)(less@4.1.3):
-    resolution: {integrity: sha512-1CxaugJ50xskkQ0e969R/hW47za4YXDUfWJDxip1hwbnhUjYolpfUn2AMOulqG/Dtd9WYAtkHmM/m3yKVrEejQ==}
+  /vitest@0.34.0(jsdom@22.1.0)(less@4.1.3):
+    resolution: {integrity: sha512-8Pnc1fVt1P6uBncdUZ++hgiJGgxIRKuz4bmS/PQziaEcUj0D1g9cGiR1MbLrcsvFTC6fgrqDhYoTAdBG356WMA==}
     engines: {node: '>=v14.18.0'}
     hasBin: true
     peerDependencies:
@@ -14497,11 +14544,11 @@ packages:
       '@types/chai': 4.3.5
       '@types/chai-subset': 1.3.3
       '@types/node': 20.3.2
-      '@vitest/expect': 0.33.0
-      '@vitest/runner': 0.33.0
-      '@vitest/snapshot': 0.33.0
-      '@vitest/spy': 0.33.0
-      '@vitest/utils': 0.33.0
+      '@vitest/expect': 0.34.0
+      '@vitest/runner': 0.34.0
+      '@vitest/snapshot': 0.34.0
+      '@vitest/spy': 0.34.0
+      '@vitest/utils': 0.34.0
       acorn: 8.10.0
       acorn-walk: 8.2.0
       cac: 6.7.14
@@ -14515,9 +14562,9 @@ packages:
       std-env: 3.3.3
       strip-literal: 1.0.1
       tinybench: 2.5.0
-      tinypool: 0.6.0
+      tinypool: 0.7.0
       vite: 4.3.9(@types/node@20.3.2)(less@4.1.3)
-      vite-node: 0.33.0(@types/node@20.3.2)(less@4.1.3)
+      vite-node: 0.34.0(@types/node@20.3.2)(less@4.1.3)
       why-is-node-running: 2.2.2
     transitivePeerDependencies:
       - less
@@ -14726,6 +14773,15 @@ packages:
       compilerr: 9.0.21
       fast-unique-numbers: 6.0.21
       tslib: 2.5.3
+    dev: false
+
+  /worker-factory@7.0.8:
+    resolution: {integrity: sha512-+vgtji3ps3R4YeIXtaBZdbP9qltaiy3KHbFF5A3DhNkvtxfxXyxhjVT10r3XfDvdKAxuWwAlhQHHwSuklykqww==}
+    dependencies:
+      '@babel/runtime': 7.22.6
+      compilerr: 11.0.7
+      fast-unique-numbers: 8.0.6
+      tslib: 2.6.1
     dev: false
 
   /wrap-ansi@6.2.0:
