@@ -6,9 +6,13 @@ import time
 def stream_audio(lag):
     audio_file = 'sample-15s.mp3'  # Your audio file path
     audio = AudioSegment.from_mp3(audio_file)
-
     chunk_length = 1000
-    chunks = make_chunks(audio, chunk_length)
+    chunks = []
+    while len(audio) > chunk_length:
+        chunks.append(audio[:chunk_length])
+        audio = audio[chunk_length:]
+    if len(audio):  # Ensure we don't end up with an empty chunk
+        chunks.append(audio)
 
     def iter_chunks():  
         for chunk in chunks:
@@ -18,16 +22,6 @@ def stream_audio(lag):
             yield data
 
     return iter_chunks()
-
-def make_chunks(audio, chunk_length):
-    chunks = []
-    while len(audio) > chunk_length:
-        chunks.append(audio[:chunk_length])
-        audio = audio[chunk_length:]
-    if len(audio):  # Ensure we don't end up with an empty chunk
-        chunks.append(audio)
-    return chunks
-
 
 demo = gr.Interface(
     stream_audio,
