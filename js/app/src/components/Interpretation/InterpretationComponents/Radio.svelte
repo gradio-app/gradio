@@ -3,9 +3,9 @@
 	import { BlockTitle } from "@gradio/atoms";
 
 	export let original: string;
-	export let interpretation: Array<number>;
-	export let choices: Array<string>;
-	export let label: string = "";
+	export let interpretation: number[];
+	export let choices: string[];
+	export let label = "";
 </script>
 
 <div class="input-radio">

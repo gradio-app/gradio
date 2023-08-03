@@ -132,7 +132,8 @@
 	<a
 		class:current-nav-link={current_nav_link == "chatinterface"}
 		class="thin-link px-4 block"
-		href="/docs/chatinterface/">ChatInterface<sup class="text-orange-500">NEW</sup></a
+		href="/docs/chatinterface/"
+		>ChatInterface<sup class="text-orange-500">NEW</sup></a
 	>
 	<a
 		class:current-nav-link={current_nav_link == "themes"}

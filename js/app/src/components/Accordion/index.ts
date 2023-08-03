@@ -1,2 +1,2 @@
-export { default as Component } from "./Accordion.svelte";
+export { default as Component } from "@gradio/accordion";
 export const modes = ["static"];

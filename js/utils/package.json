@@ -8,7 +8,7 @@
 	"license": "ISC",
 	"private": true,
 	"dependencies": {
-		"@gradio/theme": "workspace:^0.0.2"
+		"@gradio/theme": "workspace:^"
 	},
 	"main_changeset": true
 }

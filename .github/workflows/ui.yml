@@ -31,7 +31,6 @@ jobs:
         run: pnpm --filter @gradio/wasm build
       - name: lint
         run: pnpm lint
-        continue-on-error: true
       - name: typecheck
         run: pnpm ts:check
       - name: unit tests

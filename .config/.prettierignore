@@ -15,7 +15,6 @@
 **/.github/**
 **/guides/**
 **/.mypy_cache/**
-**/*.md
 !test-strategy.md
 **/js/_space-test/**
 ../js/app/src/lite/theme.css

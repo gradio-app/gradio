@@ -36,7 +36,9 @@
 			<span>
 				Hosted on
 				<a class="hf" href="https://huggingface.co/spaces"
-					><span class="space-logo"><img src={space_logo} /></span> Spaces</a
+					><span class="space-logo">
+						<img src={space_logo} alt="Hugging Face space logo" />
+					</span> Spaces</a
 				>
 			</span>
 		</div>

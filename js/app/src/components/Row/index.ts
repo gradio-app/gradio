@@ -1,2 +1,2 @@
-export { default as Component } from "./Row.svelte";
+export { default as Component } from "@gradio/row";
 export const modes = ["static"];

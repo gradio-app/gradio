@@ -10,30 +10,30 @@ import {
 import { render, cleanup } from "@gradio/tootils";
 import { setupi18n } from "../src/i18n";
 
-import AnnotatedImage from "../src/components/AnnotatedImage/AnnotatedImage.svelte";
-import Audio from "../src/components/Audio/Audio.svelte";
+import AnnotatedImage from "@gradio/annotatedimage";
+import Audio from "@gradio/audio";
 import Chatbot from "@gradio/chatbot";
-import Checkbox from "../src/components/Checkbox/Checkbox.svelte";
-import CheckboxGroup from "../src/components/CheckboxGroup/CheckboxGroup.svelte";
-import ColorPicker from "../src/components/ColorPicker/ColorPicker.svelte";
-import DataFrame from "../src/components/DataFrame/DataFrame.svelte";
-import Dropdown from "../src/components/Dropdown/Dropdown.svelte";
-import File from "../src/components/File/File.svelte";
-import Gallery from "../src/components/Gallery/Gallery.svelte";
-import HTML from "../src/components/HTML/HTML.svelte";
-import HighlightedText from "../src/components/HighlightedText/HighlightedText.svelte";
-import Json from "../src/components/Json/Json.svelte";
-import Label from "../src/components/Label/Label.svelte";
-import Markdown from "../src/components/Markdown/Markdown.svelte";
-import Model3D from "../src/components/Model3D/Model3D.svelte";
-import Number from "../src/components/Number/Number.svelte";
-import Radio from "../src/components/Radio/Radio.svelte";
-import Slider from "../src/components/Slider/Slider.svelte";
-import Textbox from "../src/components/Textbox/Textbox.svelte";
-import TimeSeries from "../src/components/TimeSeries/TimeSeries.svelte";
-import UploadButton from "../src/components/UploadButton/UploadButton.svelte";
-import Video from "../src/components/Video/Video.svelte";
-import { LoadingStatus } from "../src/components/StatusTracker/types";
+import Checkbox from "@gradio/checkbox";
+import CheckboxGroup from "@gradio/checkboxgroup";
+import ColorPicker from "@gradio/colorpicker";
+import DataFrame from "@gradio/dataframe";
+import Dropdown from "@gradio/dropdown";
+import File from "@gradio/file";
+import Gallery from "@gradio/gallery";
+import HTML from "@gradio/html";
+import HighlightedText from "@gradio/highlightedtext";
+import Json from "@gradio/json";
+import Label from "@gradio/label";
+import Markdown from "@gradio/markdown";
+import Model3D from "@gradio/model3d";
+import Number from "@gradio/number";
+import Radio from "@gradio/radio";
+import Slider from "@gradio/slider";
+import Textbox from "@gradio/textbox";
+import TimeSeries from "@gradio/timeseries";
+import UploadButton from "@gradio/uploadbutton";
+import Video from "@gradio/video";
+import { LoadingStatus } from "@gradio/statustracker/types";
 
 const loading_status: LoadingStatus = {
 	eta: 0,

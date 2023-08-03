@@ -2,8 +2,8 @@
 	import { getSaliencyColor } from "../utils";
 	import { BlockTitle } from "@gradio/atoms";
 
-	export let interpretation: Array<[number, number]>;
-	export let label: string = "";
+	export let interpretation: [number, number][];
+	export let label = "";
 </script>
 
 <div class="input-number">

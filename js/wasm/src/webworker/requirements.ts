@@ -1,4 +1,4 @@
-export function verifyRequirements(requirements: string[]) {
+export function verifyRequirements(requirements: string[]): void {
 	requirements.forEach((req) => {
 		let url: URL;
 		try {
