@@ -1,1 +1,1 @@
-export { default } from "./StaticJson.svelte";
+export { default } from "./StaticJSON.svelte";
