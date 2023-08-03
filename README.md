@@ -2,22 +2,23 @@
 
 <div align="center">
 
-  [<img src="readme_files/gradio.svg" alt="gradio" width=300>](https://gradio.app)<br>
-  <em>Build & share delightful machine learning apps easily</em>
+[<img src="readme_files/gradio.svg" alt="gradio" width=300>](https://gradio.app)<br>
+<em>Build & share delightful machine learning apps easily</em>
 
-  [![gradio-backend](https://github.com/gradio-app/gradio/actions/workflows/backend.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/backend.yml)
-  [![gradio-ui](https://github.com/gradio-app/gradio/actions/workflows/ui.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/ui.yml)  
-  [![PyPI](https://img.shields.io/pypi/v/gradio)](https://pypi.org/project/gradio/)
-  [![PyPI downloads](https://img.shields.io/pypi/dm/gradio)](https://pypi.org/project/gradio/)
-  ![Python version](https://img.shields.io/badge/python-3.8+-important)
-  [![Twitter follow](https://img.shields.io/twitter/follow/gradio?style=social&label=follow)](https://twitter.com/gradio)
+[![gradio-backend](https://github.com/gradio-app/gradio/actions/workflows/backend.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/backend.yml)
+[![gradio-ui](https://github.com/gradio-app/gradio/actions/workflows/ui.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/ui.yml)  
+ [![PyPI](https://img.shields.io/pypi/v/gradio)](https://pypi.org/project/gradio/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/gradio)](https://pypi.org/project/gradio/)
+![Python version](https://img.shields.io/badge/python-3.8+-important)
+[![Twitter follow](https://img.shields.io/twitter/follow/gradio?style=social&label=follow)](https://twitter.com/gradio)
 
-  [Website](https://gradio.app)
-  | [Documentation](https://gradio.app/docs/)
-  | [Guides](https://gradio.app/guides/)
-  | [Getting Started](https://gradio.app/getting_started/)
-  | [Examples](demo/)
-  | [中文](readme_files/zh-cn#readme)
+[Website](https://gradio.app)
+| [Documentation](https://gradio.app/docs/)
+| [Guides](https://gradio.app/guides/)
+| [Getting Started](https://gradio.app/getting_started/)
+| [Examples](demo/)
+| [中文](readme_files/zh-cn#readme)
+
 </div>
 
 # Gradio: Build Machine Learning Web Apps — in Python
@@ -43,7 +44,7 @@ Gradio is useful for:
 
 ### What Does Gradio Do?
 
-One of the *best ways to share* your machine learning model, API, or data science workflow with others is to create an **interactive app** that allows your users or colleagues to try out the demo in their browsers.
+One of the _best ways to share_ your machine learning model, API, or data science workflow with others is to create an **interactive app** that allows your users or colleagues to try out the demo in their browsers.
 
 Gradio allows you to **build demos and share them, all in Python.** And usually in just a few lines of code! So let's get started.
 
@@ -66,10 +67,9 @@ def greet(name):
     return "Hello " + name + "!"
 
 demo = gr.Interface(fn=greet, inputs="text", outputs="text")
-    
+
 demo.launch()
 ```
-
 
 We shorten the imported name to `gr` for better readability of code using Gradio. This is a widely adopted convention that you should follow so that anyone working with your code can easily understand it.
 
@@ -154,8 +154,8 @@ import gradio as gr
 
 def sepia(input_img):
     sepia_filter = np.array([
-        [0.393, 0.769, 0.189], 
-        [0.349, 0.686, 0.168], 
+        [0.393, 0.769, 0.189],
+        [0.349, 0.686, 0.168],
         [0.272, 0.534, 0.131]
     ])
     sepia_img = input_img.dot(sepia_filter.T)
@@ -184,8 +184,8 @@ You can read more about the many components and how to use them in the [Gradio d
 
 Gradio includes a high-level class, `gr.ChatInterface`, which is similar to `gr.Interface`, but is specifically designed for chatbot UIs. The `gr.ChatInterface` class also wraps a function but this function must have a specific signature. The function should take two arguments: `message` and then `history` (the arguments can be named anything, but must be in this order)
 
-* `message`: a `str` representing the user's input
-* `history`: a `list` of `list` representing the conversations up until that point. Each inner list consists of two `str` representing a pair: `[user input, bot response]`. 
+- `message`: a `str` representing the user's input
+- `history`: a `list` of `list` representing the conversations up until that point. Each inner list consists of two `str` representing a pair: `[user input, bot response]`.
 
 Your function should return a single string response, which is the bot's response to the particular user input `message`.
 
@@ -232,7 +232,7 @@ with gr.Blocks() as demo:
     output = gr.Textbox(label="Output Box")
     greet_btn = gr.Button("Greet")
     greet_btn.click(fn=greet, inputs=name, outputs=output, api_name="greet")
-   
+
 
 demo.launch()
 ```
@@ -289,7 +289,6 @@ A lot more going on here! We'll cover how to create complex `Blocks` apps like t
 
 Congrats, you're now familiar with the basics of Gradio! 🥳 Go to our [next guide](https://gradio.app/key_features) to learn more about the key features of Gradio.
 
-
 ## Open Source Stack
 
 Gradio is built with many wonderful open-source libraries, please support them as well!
@@ -311,7 +310,7 @@ Gradio is licensed under the Apache License 2.0 found in the [LICENSE](LICENSE) 
 
 ## Citation
 
-Also check out the paper *[Gradio: Hassle-Free Sharing and Testing of ML Models in the Wild](https://arxiv.org/abs/1906.02569), ICML HILL 2019*, and please cite it if you use Gradio in your work.
+Also check out the paper _[Gradio: Hassle-Free Sharing and Testing of ML Models in the Wild](https://arxiv.org/abs/1906.02569), ICML HILL 2019_, and please cite it if you use Gradio in your work.
 
 ```
 @article{abid2019gradio,

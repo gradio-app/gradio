@@ -43,7 +43,7 @@
 
 	setContext("BLOCK_KEY", parent);
 
-	function handle_prop_change(e: { detail: Record<string, any> }) {
+	function handle_prop_change(e: { detail: Record<string, any> }): void {
 		for (const k in e.detail) {
 			instance_map[id].props[k] = e.detail[k];
 		}

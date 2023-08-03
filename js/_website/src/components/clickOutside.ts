@@ -1,5 +1,5 @@
 /** Dispatch event on click outside of node */
-declare namespace svelte.JSX {
+namespace svelte.JSX {
 	interface HTMLProps<T> {
 		onclick_outside?: (e: CustomEvent) => void;
 	}

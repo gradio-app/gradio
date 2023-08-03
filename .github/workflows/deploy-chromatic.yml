@@ -53,6 +53,7 @@ jobs:
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           token: ${{ secrets.GITHUB_TOKEN }}
+          exitOnceUploaded: true
       - name: post deployment link to PR
         if: ${{ needs.get-current-pr.outputs.pr_found }} == 'true' 
         uses: thollander/actions-comment-pull-request@v2

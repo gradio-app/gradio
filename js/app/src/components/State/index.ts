@@ -1,12 +1,2 @@
-export { default as Component } from "./State.svelte";
+export { default as Component } from "@gradio/state";
 export const modes = ["static"];
-
-export const document = (config: Record<string, any>) => ({
-	type: {
-		payload: "Any"
-	},
-	description: {
-		payload: "stored state value"
-	},
-	example_data: ""
-});

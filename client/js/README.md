@@ -65,8 +65,8 @@ Applications hosted on Hugging Face spaces can be in a number of different state
 import { client, type SpaceStatus } from "@gradio/client";
 
 const app = await client("user/space-name", {
-  // The space_status parameter does not need to be manually annotated, this is just for illustration.
-  space_status: (space_status: SpaceStatus) => console.log(space_status),
+	// The space_status parameter does not need to be manually annotated, this is just for illustration.
+	space_status: (space_status: SpaceStatus) => console.log(space_status)
 });
 ```
 
@@ -157,22 +157,22 @@ The status payload look like this:
 
 ```ts
 interface Status {
-  queue: boolean;
-  code?: string;
-  success?: boolean;
-  stage: "pending" | "error" | "complete" | "generating";
-  size?: number;
-  position?: number;
-  eta?: number;
-  message?: string;
-  progress_data?: Array<{
-    progress: number | null;
-    index: number | null;
-    length: number | null;
-    unit: string | null;
-    desc: string | null;
-  }>;
-  time?: Date;
+	queue: boolean;
+	code?: string;
+	success?: boolean;
+	stage: "pending" | "error" | "complete" | "generating";
+	size?: number;
+	position?: number;
+	eta?: number;
+	message?: string;
+	progress_data?: Array<{
+		progress: number | null;
+		index: number | null;
+		length: number | null;
+		unit: string | null;
+		desc: string | null;
+	}>;
+	time?: Date;
 }
 ```
 
@@ -183,9 +183,9 @@ import { client } from "@gradio/client";
 
 const app = await client("user/space-name");
 const submission = app
-  .submit("/predict", payload)
-  .on("data", (data) => console.log(data))
-  .on("status", (status: Status) => console.log(status));
+	.submit("/predict", payload)
+	.on("data", (data) => console.log(data))
+	.on("status", (status: Status) => console.log(status));
 ```
 
 ##### `off`
@@ -229,8 +229,8 @@ import { client } from "@gradio/client";
 
 const app = await client("user/space-name");
 const submission = app
-  .submit("/predict", payload)
-  .on("data", (data) => console.log(data));
+	.submit("/predict", payload)
+	.on("data", (data) => console.log(data));
 
 // later
 
@@ -271,7 +271,7 @@ The duplicate function will attempt to duplicate the space that is referenced an
 import { duplicate } from "@gradio/client";
 
 const app = await duplicate("user/space-name", {
-  hf_token: "hf_...",
+	hf_token: "hf_..."
 });
 ```
 
@@ -295,8 +295,8 @@ This is an optional property specific to `duplicate`'s options object and will d
 import { duplicate } from "@gradio/client";
 
 const app = await duplicate("user/space-name", {
-  hf_token: "hf_...",
-  private: true,
+	hf_token: "hf_...",
+	private: true
 });
 ```
 
@@ -308,9 +308,9 @@ This is an optional property specific to `duplicate`'s options object and will s
 import { duplicate } from "@gradio/client";
 
 const app = await duplicate("user/space-name", {
-  hf_token: "hf_...",
-  private: true,
-  timeout: 5,
+	hf_token: "hf_...",
+	private: true,
+	timeout: 5
 });
 ```
 
@@ -332,8 +332,8 @@ Possible hardware options are:
 import { duplicate } from "@gradio/client";
 
 const app = await duplicate("user/space-name", {
-  hf_token: "hf_...",
-  private: true,
-  hardware: "a10g-small",
+	hf_token: "hf_...",
+	private: true,
+	hardware: "a10g-small"
 });
 ```

@@ -12,7 +12,7 @@
 
 	export let formatter: (arg0: any) => Promise<string>;
 	export let value: any;
-	let pending: boolean = false;
+	let pending = false;
 </script>
 
 <IconButton

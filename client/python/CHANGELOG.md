@@ -6,11 +6,12 @@
 
 #### Create Discord Bots from Gradio Apps 🤖 ([#4960](https://github.com/gradio-app/gradio/pull/4960) [`46e4ef67`](https://github.com/gradio-app/gradio/commit/46e4ef67d287dd68a91473b73172b29cbad064bc))
 
-We're excited to announce that Gradio can now automatically create a discord bot from any `gr.ChatInterface` app. 
+We're excited to announce that Gradio can now automatically create a discord bot from any `gr.ChatInterface` app.
 
 It's as easy as importing `gradio_client`, connecting to the app, and calling `deploy_discord`!
 
-*🦙 Turning Llama 2 70b into a discord bot 🦙*
+_🦙 Turning Llama 2 70b into a discord bot 🦙_
+
 ```python
 import gradio_client as grc
 grc.Client("ysharma/Explore_llamav2_with_TGI").deploy_discord(to_id="llama2-70b-discord-bot")
@@ -24,22 +25,21 @@ To help get you started, we have created an organization on Hugging Face called 
 
 Currently we have template spaces for:
 
-* [Llama-2-70b-chat-hf](https://huggingface.co/spaces/gradio-discord-bots/Llama-2-70b-chat-hf) powered by a FREE Hugging Face Inference Endpoint!
-* [Llama-2-13b-chat-hf](https://huggingface.co/spaces/gradio-discord-bots/Llama-2-13b-chat-hf) powered by Hugging Face Inference Endpoints.
-* [Llama-2-13b-chat-hf](https://huggingface.co/spaces/gradio-discord-bots/llama-2-13b-chat-transformers) powered by Hugging Face transformers.
-* [falcon-7b-instruct](https://huggingface.co/spaces/gradio-discord-bots/falcon-7b-instruct) powered by Hugging Face Inference Endpoints.
-* [gpt-3.5-turbo](https://huggingface.co/spaces/gradio-discord-bots/gpt-35-turbo), powered by openai. Requires an OpenAI key.
+- [Llama-2-70b-chat-hf](https://huggingface.co/spaces/gradio-discord-bots/Llama-2-70b-chat-hf) powered by a FREE Hugging Face Inference Endpoint!
+- [Llama-2-13b-chat-hf](https://huggingface.co/spaces/gradio-discord-bots/Llama-2-13b-chat-hf) powered by Hugging Face Inference Endpoints.
+- [Llama-2-13b-chat-hf](https://huggingface.co/spaces/gradio-discord-bots/llama-2-13b-chat-transformers) powered by Hugging Face transformers.
+- [falcon-7b-instruct](https://huggingface.co/spaces/gradio-discord-bots/falcon-7b-instruct) powered by Hugging Face Inference Endpoints.
+- [gpt-3.5-turbo](https://huggingface.co/spaces/gradio-discord-bots/gpt-35-turbo), powered by openai. Requires an OpenAI key.
 
 But once again, you can deploy ANY `gr.ChatInterface` app exposed on the internet! So don't hesitate to try it on your own Chatbots.
 
 ❗️ Additional Note ❗️: Technically, any gradio app that exposes an api route that takes in a single string and outputs a single string can be deployed to discord. But `gr.ChatInterface` apps naturally lend themselves to discord's chat functionality so we suggest you start with those.
 
- Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
 
 ### New Features:
 
 - Endpoints that return layout components are now properly handled in the `submit` and `view_api` methods. Output layout components are not returned by the API but all other components are (excluding `gr.State`). By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4871](https://github.com/gradio-app/gradio/pull/4871)
-
 
 ### Bug Fixes:
 
@@ -69,7 +69,7 @@ No changes to highlight.
 
 ### Full Changelog:
 
-* Pinned dependencies to major versions to reduce the likelihood of a broken `gradio_client` due to changes in downstream dependencies by [@abidlabs](https://github.com/abidlabs) in [PR 4885](https://github.com/gradio-app/gradio/pull/4885)
+- Pinned dependencies to major versions to reduce the likelihood of a broken `gradio_client` due to changes in downstream dependencies by [@abidlabs](https://github.com/abidlabs) in [PR 4885](https://github.com/gradio-app/gradio/pull/4885)
 
 # 0.2.8
 
@@ -149,6 +149,7 @@ No changes to highlight.
 # 0.2.4
 
 ### Bug Fixes:
+
 - Fixes missing serialization classes for several components: `Barplot`, `Lineplot`, `Scatterplot`, `AnnotatedImage`, `Interpretation` by [@abidlabs](https://github.com/abidlabs) in [PR 4167](https://github.com/gradio-app/gradio/pull/4167)
 
 ### Documentation Changes:
@@ -178,6 +179,7 @@ No changes to highlight.
 No changes to highlight.
 
 ### Bug Fixes:
+
 - Fix example inputs for `gr.File(file_count='multiple')` output components by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4153](https://github.com/gradio-app/gradio/pull/4153)
 
 ### Documentation Changes:
@@ -210,16 +212,13 @@ No changes to highlight.
 
 - Only send request to `/info` route if demo version is above `3.28.3` by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4109](https://github.com/gradio-app/gradio/pull/4109)
 
-
 ### Other Changes:
 
 - Fix bug in test from gradio 3.29.0 refactor by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4138](https://github.com/gradio-app/gradio/pull/4138)
 
-
 ### Breaking Changes:
 
 No changes to highlight.
-
 
 # 0.2.1
 
@@ -238,7 +237,6 @@ No changes to highlight.
 ### Testing and Infrastructure Changes:
 
 Separates flaky tests from non-flaky tests by [@abidlabs](https://github.com/freddyaboulton) in [PR 4107](https://github.com/gradio-app/gradio/pull/4107)
-
 
 ### Breaking Changes:
 
@@ -314,7 +312,7 @@ No changes to highlight.
 
 # 0.1.2
 
-First public release of the Gradio Client library! The `gradio_client` Python library that makes it very easy to use any Gradio app as an API. 
+First public release of the Gradio Client library! The `gradio_client` Python library that makes it very easy to use any Gradio app as an API.
 
 As an example, consider this [Hugging Face Space that transcribes audio files](https://huggingface.co/spaces/abidlabs/whisper) that are recorded from the microphone.
 
@@ -327,8 +325,8 @@ Here's the entire code to do it:
 ```python
 from gradio_client import Client
 
-client = Client("abidlabs/whisper") 
-client.predict("audio_sample.wav")  
+client = Client("abidlabs/whisper")
+client.predict("audio_sample.wav")
 
 >> "This is a test of the whisper speech recognition model."
 ```

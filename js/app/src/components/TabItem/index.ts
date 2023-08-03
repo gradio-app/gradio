@@ -1,2 +1,2 @@
-export { default as Component } from "./Tabs.svelte";
+export { default as Component } from "@gradio/tabitem";
 export const modes = ["static"];

@@ -28,7 +28,7 @@
 		const anchor = document.getElementById(anchorId);
 		window.scrollTo({
 			top: anchor?.offsetTop,
-			behavior: "smooth",
+			behavior: "smooth"
 		});
 	}
 
