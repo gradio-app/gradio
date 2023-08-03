@@ -1,18 +1,26 @@
 {
-	"name": "@gradio/model3D",
-	"version": "0.0.2",
+	"name": "@gradio/model3d",
+	"version": "0.0.1",
 	"description": "Gradio UI packages",
 	"type": "module",
-	"main": "src/index.ts",
+	"main": "./index.svelte",
 	"author": "",
 	"license": "ISC",
 	"private": true,
 	"dependencies": {
-		"@gradio/atoms": "workspace:^0.0.2",
-		"@gradio/icons": "workspace:^0.0.1",
-		"@gradio/upload": "workspace:^0.0.2",
+		"@gradio/atoms": "workspace:^",
+		"@gradio/icons": "workspace:^",
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/upload": "workspace:^",
 		"babylonjs": "^4.2.1",
 		"babylonjs-loaders": "^4.2.1"
 	},
-	"main_changeset": true
+	"main_changeset": true,
+	"exports": {
+		".": "./index.svelte",
+		"./package.json": "./package.json",
+		"./interactive": "./interactive/index.ts",
+		"./static": "./static/index.ts",
+		"./example": "./example/index.ts"
+	}
 }

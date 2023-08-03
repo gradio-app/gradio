@@ -3,25 +3,33 @@
 	"version": "0.0.2",
 	"description": "Gradio UI packages",
 	"type": "module",
-	"main": "src/Index.svelte",
+	"main": "./index.svelte",
 	"author": "",
 	"license": "ISC",
 	"private": true,
 	"dependencies": {
-		"@gradio/atoms": "workspace:^0.0.2",
-		"@gradio/icons": "workspace:^0.0.1",
-		"@gradio/theme": "workspace:^0.0.2",
-		"@gradio/upload": "workspace:^0.0.2",
-		"@gradio/utils": "workspace:^0.0.2",
+		"@gradio/atoms": "workspace:^",
+		"@gradio/icons": "workspace:^",
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/theme": "workspace:^",
+		"@gradio/upload": "workspace:^",
+		"@gradio/utils": "workspace:^",
+		"@types/dompurify": "^3.0.2",
 		"@types/katex": "^0.16.0",
 		"@types/marked": "^5.0.0",
 		"@types/prismjs": "1.26.0",
+		"dompurify": "^3.0.3",
 		"katex": "^0.16.7",
 		"marked": "^5.0.1",
 		"marked-highlight": "^2.0.1",
-		"prismjs": "1.29.0",
-		"dompurify": "^3.0.3",
-		"@types/dompurify": "^3.0.2"
+		"prismjs": "1.29.0"
 	},
-	"main_changeset": true
+	"main_changeset": true,
+	"exports": {
+		".": "./index.svelte",
+		"./package.json": "./package.json",
+		"./interactive": "./interactive/index.ts",
+		"./static": "./static/index.ts",
+		"./example": "./example/index.ts"
+	}
 }

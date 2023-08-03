@@ -12,8 +12,8 @@ from gradio_client.serializing import NumberSerializable
 from gradio.blocks import default, DEFAULT, DefaultType
 from gradio.components.base import FormComponent, IOComponent
 from gradio.events import (
-    Blurrable,
     Changeable,
+    Focusable,
     Inputable,
     Submittable,
 )
@@ -29,7 +29,7 @@ class Number(
     Changeable,
     Inputable,
     Submittable,
-    Blurrable,
+    Focusable,
     IOComponent,
     NumberSerializable,
     NeighborInterpretable,
@@ -61,6 +61,7 @@ class Number(
         precision: int | None = None,
         minimum: float | None = None,
         maximum: float | None = None,
+        step: float = 1,
         **kwargs,
     ):
         """
@@ -80,6 +81,7 @@ class Number(
             precision: Precision to round input/output to. If set to 0, will round to nearest integer and convert type to int. If None, no rounding happens.
             minimum: Minimum value. Only applied when component is used as an input. If a user provides a smaller value, a gr.Error exception is raised by the backend.
             maximum: Maximum value. Only applied when component is used as an input. If a user provides a larger value, a gr.Error exception is raised by the backend.
+            step: The interval between allowed numbers in the component. Can be used along with optional parameters `minimum` and `maximum` to create a range of legal values starting from `minimum` and incrementing according to this parameter.
         """
         value = default(value, None)
         container = default(container, True)
@@ -89,6 +91,7 @@ class Number(
         self.precision = precision
         self.minimum = minimum
         self.maximum = maximum
+        self.step = step
 
         IOComponent.__init__(
             self,

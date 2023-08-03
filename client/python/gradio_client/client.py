@@ -47,7 +47,7 @@ DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
 )
 
 
-@document("predict", "submit", "view_api", "duplicate")
+@document("predict", "submit", "view_api", "duplicate", "deploy_discord")
 class Client:
     """
     The main Client class for the Python client. This class is used to connect to a remote Gradio app and call its API endpoints.

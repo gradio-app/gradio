@@ -4,8 +4,8 @@
 
 	export let current_language: "python" | "javascript";
 
-	let py_install: string = "pip install gradio_client";
-	let js_install: string = "npm i -D @gradio/client";
+	let py_install = "pip install gradio_client";
+	let js_install = "npm i -D @gradio/client";
 </script>
 
 <Block>

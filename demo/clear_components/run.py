@@ -7,13 +7,12 @@ import pandas as pd
 
 import numpy as np
 import matplotlib.pyplot as plt
-import random
-import os
+
 
 
 def random_plot():
     start_year = 2020
-    x = np.arange(start_year, start_year + random.randint(0, 10))
+    x = np.arange(start_year, start_year + 5)
     year_count = x.shape[0]
     plt_format = "-"
     fig = plt.figure()
@@ -115,7 +114,7 @@ components = [
         )
     ),
     gr.Dataframe(
-        value=lambda: pd.DataFrame({"random_number_rows": range(random.randint(0, 10))})
+        value=lambda: pd.DataFrame({"random_number_rows": range(5)}, columns=["one", "two", "three"])
     ),
     gr.Timeseries(value=lambda: os.path.join(file_dir, "time.csv")),
     gr.ColorPicker(value=lambda: random.choice(["#000000", "#ff0000", "#0000FF"])),

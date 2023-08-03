@@ -6,13 +6,8 @@
 	import EndpointDetail from "./EndpointDetail.svelte";
 
 	export let dependency: Dependency;
-	export let dependencies: Dependency[];
 	export let dependency_index: number;
-	export let instance_map: {
-		[id: number]: ComponentMeta;
-	};
 	export let root: string;
-	export let dependency_inputs: string[][];
 	export let dependency_failures: boolean[][];
 	export let endpoint_parameters: any;
 	export let js_parameters: any;
@@ -69,7 +64,8 @@ result = client.predict(<!--
 				-->{/if}<!--
 			--><span class="desc"
 								><!--
-			-->	# {python_type.type} {#if python_type.description}({python_type.description}) {/if}<!--
+			-->	# {python_type.type} {#if python_type.description}({python_type.description})
+								{/if}<!--
 			-->in '{label}' <!--
 			-->{component} component<!--
 			--></span
