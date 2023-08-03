@@ -1766,7 +1766,10 @@ Received outputs:
         self.width = width
         self.favicon_path = favicon_path
         self.ssl_verify = ssl_verify
-        self.root_path = root_path or os.environ.get("GRADIO_ROOT_PATH", "")
+        if root_path is None:
+            self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
+        else:
+            self.root_path = root_path
 
         if enable_queue is not None:
             self.enable_queue = enable_queue
