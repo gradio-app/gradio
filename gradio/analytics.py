@@ -67,7 +67,7 @@ def _do_normal_analytics_request(url: str, data: dict[str, Any]) -> None:
 
 
 async def _do_wasm_analytics_request(url: str, data: dict[str, Any]) -> None:
-    data["ip_address"] = "No internet connection"
+    data["ip_address"] = await get_local_ip_address_wasm()
 
     # We use urllib.parse.urlencode to encode the data as a form.
     # Ref: https://docs.python.org/3/library/urllib.request.html#urllib-examples
@@ -124,6 +124,30 @@ def get_local_ip_address() -> str:
                 "https://checkip.amazonaws.com/", timeout=3
             ).text.strip()
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
+            ip_address = "No internet connection"
+        Context.ip_address = ip_address
+    else:
+        ip_address = Context.ip_address
+    return ip_address
+
+
+async def get_local_ip_address_wasm() -> str:
+    """The Wasm-compatible version of get_local_ip_address()."""
+    if not analytics_enabled():
+        return "Analytics disabled"
+
+    if Context.ip_address is None:
+        try:
+            response = await asyncio.wait_for(
+                pyodide_pyfetch(
+                    # The API used by the normal version (`get_local_ip_address()`), `https://checkip.amazonaws.com/``, blocks CORS requests, so here we use a different API.
+                    "https://api.ipify.org"
+                ),
+                timeout=5,
+            )
+            response_text: str = await response.string()  # type: ignore
+            ip_address = response_text.strip()
+        except (asyncio.TimeoutError, OSError):
             ip_address = "No internet connection"
         Context.ip_address = ip_address
     else:
