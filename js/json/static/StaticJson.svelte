@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import JSON from "./Json.svelte";
+	import JSON from "./JSON.svelte";
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import { JSON as JSONIcon } from "@gradio/icons";
 

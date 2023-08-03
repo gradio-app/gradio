@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import HTML from "./Html.svelte";
+	import HTML from "./HTML.svelte";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker/types";
 	import { Block } from "@gradio/atoms";
