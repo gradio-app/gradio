@@ -1,1 +1,1 @@
-export { default } from "./StaticHTML.svelte";
+export { default } from "./StaticHtml.svelte";
