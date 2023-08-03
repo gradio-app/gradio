@@ -22,6 +22,7 @@
 		input: undefined;
 		select: SelectData;
 		blur: undefined;
+		focus: undefined;
 	}>();
 
 	let inputValue: string | undefined,
@@ -71,8 +72,11 @@
 	}
 
 	function remove(option: string): void {
-		value = value as string[];
-		value = value.filter((v: string) => v !== option);
+		if (!disabled)
+		{
+			value = value as string[];
+			value = value.filter((v: string) => v !== option);
+		}
 		dispatch("select", {
 			index: choices.indexOf(option),
 			value: option,
@@ -84,6 +88,29 @@
 		value = [];
 		inputValue = "";
 		e.preventDefault();
+	}
+
+	function handle_blur(e: FocusEvent): void {
+		if (multiselect) {
+			inputValue = "";
+		} else if (!allow_custom_value) {
+			if (value !== inputValue) {
+				if (typeof value === "string" && inputValue == "") {
+					inputValue = value;
+				} else {
+					value = undefined;
+					inputValue = "";
+				}
+			}
+		}
+		showOptions = false;
+		dispatch("blur");
+	}
+
+	function handle_focus(e: FocusEvent): void{
+		dispatch("focus");
+		showOptions = true;
+		filtered = choices;
 	}
 
 	function handleOptionMousedown(e: any): void {
@@ -109,16 +136,8 @@
 					value: option,
 					selected: true
 				});
+				filterInput.blur();
 			}
-		}
-	}
-
-	function handleFocus(): void {
-		showOptions = !showOptions;
-		if (showOptions) {
-			filtered = choices;
-		} else {							
-			filterInput.blur();
 		}
 	}
 
@@ -135,6 +154,7 @@
 				}
 				inputValue = activeOption;
 				showOptions = false;
+				filterInput.blur();
 			} else if (multiselect && Array.isArray(value)) {
 				value.includes(activeOption) ? remove(activeOption) : add(activeOption);
 				inputValue = "";
@@ -190,13 +210,15 @@
 					<!-- svelte-ignore a11y-click-events-have-key-events -->
 					<div on:click|preventDefault={() => remove(s)} class="token">
 						<span>{s}</span>
+						{#if !disabled}
 						<div
 							class:hidden={disabled}
 							class="token-remove"
 							title="Remove {s}"
 						>
-							<Remove />
-						</div>
+						<Remove />
+					</div>
+					{/if}
 					</div>
 				{/each}
 			{/if}
@@ -208,28 +230,14 @@
 					autocomplete="off"
 					bind:value={inputValue}
 					bind:this={filterInput}
-					on:focus={handleFocus}
 					on:keydown={handleKeydown}
 					on:keyup={() => {
 						if (allow_custom_value) {
 							value = inputValue;
 						}
 					}}
-					on:blur={() => {
-						if (multiselect) {
-							inputValue = "";
-						} else if (!allow_custom_value) {
-							if (value !== inputValue) {
-								if (typeof value === "string" && inputValue == "") {
-									inputValue = value;
-								} else {
-									value = undefined;
-									inputValue = "";
-								}
-							}
-						}
-						showOptions = false;
-					}}
+					on:blur={handle_blur}
+					on:focus={handle_focus}
 				/>
 				<!-- svelte-ignore a11y-click-events-have-key-events -->
 				<div

@@ -11,8 +11,8 @@ from gradio_client.serializing import NumberSerializable
 
 from gradio.components.base import FormComponent, IOComponent, _Keywords
 from gradio.events import (
-    Blurrable,
     Changeable,
+    Focusable,
     Inputable,
     Submittable,
 )
@@ -28,7 +28,7 @@ class Number(
     Changeable,
     Inputable,
     Submittable,
-    Blurrable,
+    Focusable,
     IOComponent,
     NumberSerializable,
     NeighborInterpretable,
