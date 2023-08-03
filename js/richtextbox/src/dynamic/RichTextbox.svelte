@@ -241,7 +241,8 @@
 
 				<div class="file-icon-container">
 					<div class="file-icon"><File /></div>
-					<span class="file-count">{value.files.length > 7 ? "7+" : value.files.length}</span>
+					<span class="file-count" style:visibility={file_count === "multiple" ? "visible" : "hidden"}
+					>{value.files.length > 7 ? "7+" : value.files.length}</span>
 					<button
 						class="clear-button"
 						on:click={clearFiles}>
@@ -257,7 +258,7 @@
 					bind:this={hidden_upload}
 					on:change={loadFilesFromUpload}
 					on:click={clearInputValue}
-					multiple={true}
+					multiple={file_count === "multiple" || undefined}
 					webkitdirectory={file_count === "directory" || undefined}
 					mozdirectory={file_count === "directory" || undefined}
 					data-testid="{label}-upload-button"
@@ -364,8 +365,8 @@
 		position: relative;
 		right:11px; 
 		bottom:39px; 
-		width:40%; 
-		height:40%;
+		width:35%; 
+		height:35%;
 		border: 1px solid;
 		border-radius: 50%;
 		background-color: var(--background-fill-primary);

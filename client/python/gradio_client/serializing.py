@@ -380,9 +380,9 @@ class RichtextboxSerializable(Serializable):
 
     def serialize(
         self,
-        x: str | FileData | None | list[str | FileData | None],
+        x: dict[str, str | list[dict[str, Any]]],
         load_dir: str | Path = "",
-    ) -> FileData | None | list[FileData | None]:
+    ) -> dict[str, str | list[dict[str, Any]]]:
         """
         Convert from human-friendly version of a file (string filepath) to a
         serialized representation (base64)
@@ -431,11 +431,11 @@ class RichtextboxSerializable(Serializable):
 
     def deserialize(
         self,
-        x: str | FileData | None | list[str | FileData | None],
+        x: dict[str, str | list[dict[str, Any]]],
         save_dir: Path | str | None = None,
         root_url: str | None = None,
         hf_token: str | None = None,
-    ) -> str | None | list[str | None]:
+    ) -> dict[str, str | list[dict[str, Any]]]:
         """
         Convert files from serialized representation of a file (base64) to a human-friendly
         version (string filepath). Optionally, save the file to the directory specified by `save_dir`
@@ -448,12 +448,7 @@ class RichtextboxSerializable(Serializable):
         if x is None:
             return None
         else:
-            deserialized_files [
-                self._deserialize_single(
-                    f, save_dir=save_dir, root_url=root_url, hf_token=hf_token
-                )
-                for f in x["files"]
-            ]
+            deserialized_files = [self._deserialize_single(f, save_dir=save_dir, root_url=root_url, hf_token=hf_token) for f in x["files"]]
             return {"text": x["text"], "files": deserialized_files}
 
 
