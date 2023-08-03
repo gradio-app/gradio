@@ -3,9 +3,21 @@
 	"version": "0.0.1",
 	"description": "Gradio UI packages",
 	"type": "module",
-	"main": "src/index.ts",
+	"main": "./static/index.ts",
 	"author": "",
 	"license": "ISC",
 	"private": true,
-	"main_changeset": true
+	"main_changeset": true,
+	"dependencies": {
+		"@gradio/atoms": "workspace:^",
+		"@gradio/column": "workspace:^",
+		"@gradio/statustracker": "workspace:^"
+	},
+	"exports": {
+		".": "./static/index.ts",
+		"./package.json": "./package.json",
+		"./interactive": "./interactive/index.ts",
+		"./static": "./static/index.ts",
+		"./example": "./example/index.ts"
+	}
 }

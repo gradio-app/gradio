@@ -5,6 +5,14 @@ import { is_self_origin } from "./url";
  * A fetch() function that proxies HTTP requests to the worker,
  * which also falls back to the original fetch() for external resource requests.
  */
+
+/**
+ *
+ * @param { WorkerProxy } workerProxy The worker proxy
+ * @param { RequestInfo | URL} input The request info
+ * @param {RequestInit} init The request init
+ * @returns {Promise<Response>} The response
+ */
 export async function wasm_proxied_fetch(
 	workerProxy: WorkerProxy,
 	input: RequestInfo | URL,

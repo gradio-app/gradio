@@ -5,8 +5,8 @@
 
 	let click_nav = false;
 	let show_help_menu = false;
-    let show_nav = false;
-    $: show_nav = click_nav || $store?.lg;
+	let show_nav = false;
+	$: show_nav = click_nav || $store?.lg;
 </script>
 
 <div

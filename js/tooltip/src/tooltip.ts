@@ -1,3 +1,4 @@
+import type { ActionReturn } from "svelte/action";
 import Tooltip from "./Tooltip.svelte";
 
 interface ActionArgs {
@@ -8,9 +9,9 @@ interface ActionArgs {
 export function tooltip(
 	element: HTMLElement | SVGElement,
 	{ color, text }: ActionArgs
-) {
+): ActionReturn {
 	let tooltipComponent: Tooltip;
-	function mouse_over(event: MouseEvent) {
+	function mouse_over(event: MouseEvent): MouseEvent {
 		tooltipComponent = new Tooltip({
 			props: {
 				text,
@@ -23,13 +24,13 @@ export function tooltip(
 
 		return event;
 	}
-	function mouseMove(event: MouseEvent) {
+	function mouseMove(event: MouseEvent): void {
 		tooltipComponent.$set({
 			x: event.pageX,
 			y: event.pageY
 		});
 	}
-	function mouseLeave() {
+	function mouseLeave(): void {
 		tooltipComponent.$destroy();
 	}
 
