@@ -5,7 +5,7 @@
 	import { BlockLabel } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
 
-	import FilePreview from "../static/FilePreview.svelte";
+	import { FilePreview } from "../shared";
 
 	export let value: null | FileData | FileData[];
 
@@ -16,7 +16,7 @@
 	export let selectable = false;
 
 	async function handle_upload({
-		detail,
+		detail
 	}: CustomEvent<FileData | FileData[]>): Promise<void> {
 		value = detail;
 		await tick();

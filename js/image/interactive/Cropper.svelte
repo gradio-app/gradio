@@ -23,7 +23,7 @@
 			cropend(): void {
 				const image_data = cropper.getCroppedCanvas().toDataURL();
 				dispatch("crop", image_data);
-			},
+			}
 		});
 
 		dispatch("crop", image);

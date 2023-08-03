@@ -1,1 +1,1 @@
-export { default } from "./Chart.svelte";
+export { default } from "./StaticTimeseries.svelte";

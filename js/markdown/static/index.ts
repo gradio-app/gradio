@@ -1,1 +1,1 @@
-export { default } from "./Markdown.svelte";
+export { default } from "./StaticMarkdown.svelte";

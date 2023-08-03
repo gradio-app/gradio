@@ -40,7 +40,7 @@
 		latex_delimiters.length > 0 &&
 		render_math_in_element(el, {
 			delimiters: latex_delimiters,
-			throwOnError: false,
+			throwOnError: false
 		});
 </script>
 

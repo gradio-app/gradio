@@ -13,27 +13,27 @@
 	name="Number with min 0 and max 100"
 	args={{
 		minimum: 0,
-		maximum: 100,
+		maximum: 100
 	}}
 />
 
 <Story
 	name="Number with step of 10"
 	args={{
-		step: 10,
+		step: 10
 	}}
 />
 
 <Story
 	name="Number in disabled state"
 	args={{
-		mode: "static",
+		mode: "static"
 	}}
 />
 
 <Story
 	name="Number with hidden label"
 	args={{
-		show_label: false,
+		show_label: false
 	}}
 />

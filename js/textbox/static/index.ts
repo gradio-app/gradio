@@ -1,1 +1,1 @@
-export { default } from "./Textbox.svelte";
+export { default } from "./StaticTextbox.svelte";

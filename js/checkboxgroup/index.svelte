@@ -1,7 +1,7 @@
 <script lang="ts">
-	import CheckboxGroup from "./static";
-	import { Block } from "@gradio/atoms";
-	import { StatusTracker } from "@gradio/statustracker";
+	import StaticCheckboxgroup from "./static";
+	import InteractiveCheckboxgroup from "./interactive";
+
 	import type { LoadingStatus } from "@gradio/statustracker/types";
 
 	export let elem_id = "";
@@ -21,27 +21,42 @@
 	export let loading_status: LoadingStatus;
 </script>
 
-<Block
-	{visible}
-	{elem_id}
-	{elem_classes}
-	type="fieldset"
-	{container}
-	{scale}
-	{min_width}
->
-	<StatusTracker {...loading_status} />
-
-	<CheckboxGroup
+{#if mode === "static"}
+	<StaticCheckboxgroup
+		{elem_id}
+		{elem_classes}
+		{visible}
 		bind:value
 		bind:value_is_output
 		{choices}
+		{container}
+		{scale}
+		{min_width}
 		{label}
 		{info}
 		{show_label}
+		{loading_status}
 		on:select
 		on:change
 		on:input
-		disabled={mode === "static"}
 	/>
-</Block>
+{:else}
+	<InteractiveCheckboxgroup
+		{elem_id}
+		{elem_classes}
+		{visible}
+		bind:value
+		bind:value_is_output
+		{choices}
+		{container}
+		{scale}
+		{min_width}
+		{label}
+		{info}
+		{show_label}
+		{loading_status}
+		on:select
+		on:change
+		on:input
+	/>
+{/if}

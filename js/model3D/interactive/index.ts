@@ -1,1 +1,1 @@
-export { default } from "./Model3DUpload.svelte";
+export { default } from "./InteractiveModel3d.svelte";

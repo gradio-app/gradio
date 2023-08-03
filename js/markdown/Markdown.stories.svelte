@@ -1,6 +1,6 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import Markdown from "./index.svelte";
+	import Markdown from "./static";
 </script>
 
 <Meta
@@ -11,8 +11,8 @@
 			options: [true, false],
 			description: "Whether to render right-to-left",
 			control: { type: "boolean" },
-			defaultValue: false,
-		},
+			defaultValue: false
+		}
 	}}
 />
 

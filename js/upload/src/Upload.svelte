@@ -39,7 +39,7 @@
 		if (include_file_metadata) {
 			var file_metadata: { name: string; size: number }[] = _files.map((f) => ({
 				name: f.name,
-				size: f.size,
+				size: f.size
 			}));
 		}
 		var load_file_data = [];
@@ -53,13 +53,13 @@
 			if (parse_to_data_url) {
 				load_file_data = file_data.map((data, i) => ({
 					data,
-					...file_metadata[i],
+					...file_metadata[i]
 				}));
 			} else {
 				load_file_data = file_data.map((data, i) => ({
 					data: "",
 					blob: data,
-					...file_metadata[i],
+					...file_metadata[i]
 				}));
 			}
 		} else {

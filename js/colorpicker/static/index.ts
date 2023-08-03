@@ -1,1 +1,1 @@
-export { default } from "./Colorpicker.svelte";
+export { default } from "./StaticColorpicker.svelte";

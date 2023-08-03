@@ -42,8 +42,8 @@
 				normalise_file(value[0], root, root_url) as FileData,
 				value[1].map(([file, _label]) => [
 					normalise_file(file, root, root_url) as FileData,
-					_label,
-				]),
+					_label
+				])
 			];
 		} else {
 			_value = null;

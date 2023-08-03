@@ -1,2 +1,2 @@
 // @ts-ignore
-export { default } from "./Plot.svelte";
+export { default } from "./StaticPlot.svelte";

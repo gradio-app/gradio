@@ -1,1 +1,1 @@
-export { default } from "./UploadButton.svelte";
+export { default } from "./StaticUploadButton.svelte";

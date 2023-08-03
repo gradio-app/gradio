@@ -1,1 +1,1 @@
-export { default } from "./Checkbox.svelte";
+export { default } from "./StaticCheckbox.svelte";

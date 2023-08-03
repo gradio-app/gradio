@@ -1,1 +1,2 @@
-export { default, TABS } from "./Tabs.svelte";
+export { default } from "./StaticTabs.svelte";
+export { TABS } from "./Tabs.svelte";

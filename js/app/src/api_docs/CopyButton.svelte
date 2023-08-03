@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Button from "@gradio/button/static";
+	import { BaseButton } from "@gradio/button/static";
 	export let code: string;
 	let copy_text = "copy";
 
@@ -12,6 +12,6 @@
 	}
 </script>
 
-<Button size="sm" on:click={copy}>
+<BaseButton size="sm" on:click={copy}>
 	{copy_text}
-</Button>
+</BaseButton>

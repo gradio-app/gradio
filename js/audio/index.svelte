@@ -1,32 +1,17 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
-	import { _ } from "svelte-i18n";
-	import { UploadText } from "@gradio/atoms";
-
 	import type { FileData } from "@gradio/upload";
 	import type { LoadingStatus } from "@gradio/statustracker/types";
 
 	import Audio from "./interactive";
 	import StaticAudio from "./static";
-	import { StatusTracker } from "@gradio/statustracker";
-	import { Block } from "@gradio/atoms";
-
-	import { normalise_file } from "@gradio/upload";
-
-	const dispatch = createEventDispatcher<{
-		change: typeof value;
-		stream: typeof value;
-		error: string;
-	}>();
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let mode: "static" | "dynamic";
 	export let value: null | FileData | string = null;
-	let old_value: null | FileData | string = null;
 	export let name: string;
 	export let source: "microphone" | "upload";
 	export let label: string;
@@ -42,78 +27,71 @@
 	export let autoplay = false;
 	export let show_download_button = true;
 	export let show_share_button = false;
-
-	let _value: null | FileData;
-	$: _value = normalise_file(value, root, root_url);
-
-	$: {
-		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
-			old_value = value;
-			dispatch("change");
-		}
-	}
-
-	let dragging: boolean;
 </script>
 
-<Block
-	variant={mode === "dynamic" && value === null && source === "upload"
-		? "dashed"
-		: "solid"}
-	border_mode={dragging ? "focus" : "base"}
-	padding={false}
-	{elem_id}
-	{elem_classes}
-	{visible}
-	{container}
-	{scale}
-	{min_width}
->
-	<StatusTracker {...loading_status} />
-
-	{#if mode === "dynamic"}
-		<Audio
-			{label}
-			{show_label}
-			value={_value}
-			on:change={({ detail }) => (value = detail)}
-			on:stream={({ detail }) => {
-				value = detail;
-				dispatch("stream", value);
-			}}
-			on:drag={({ detail }) => (dragging = detail)}
-			{name}
-			{source}
-			{pending}
-			{streaming}
-			{autoplay}
-			on:edit
-			on:play
-			on:pause
-			on:stop
-			on:end
-			on:start_recording
-			on:stop_recording
-			on:upload
-			on:error={({ detail }) => {
-				loading_status = loading_status || {};
-				loading_status.status = "error";
-				dispatch("error", detail);
-			}}
-		>
-			<UploadText type="audio" />
-		</Audio>
-	{:else}
-		<StaticAudio
-			{autoplay}
-			{show_label}
-			{show_download_button}
-			{show_share_button}
-			value={_value}
-			name={_value?.name || "audio_file"}
-			{label}
-			on:share
-			on:error
-		/>
-	{/if}
-</Block>
+{#if mode === "dynamic"}
+	<Audio
+		{elem_id}
+		{elem_classes}
+		{visible}
+		{mode}
+		bind:value
+		{name}
+		{source}
+		{label}
+		{root}
+		{show_label}
+		{pending}
+		{streaming}
+		{root_url}
+		{container}
+		{scale}
+		{min_width}
+		{loading_status}
+		{autoplay}
+		on:change
+		on:stream
+		on:drag
+		on:edit
+		on:play
+		on:pause
+		on:stop
+		on:end
+		on:start_recording
+		on:stop_recording
+		on:upload
+		on:error
+	/>
+{:else}
+	<StaticAudio
+		{elem_id}
+		{elem_classes}
+		{visible}
+		{mode}
+		bind:value
+		{source}
+		{label}
+		{root}
+		{show_label}
+		{root_url}
+		{container}
+		{scale}
+		{min_width}
+		{loading_status}
+		{autoplay}
+		{show_download_button}
+		{show_share_button}
+		on:change
+		on:stream
+		on:drag
+		on:edit
+		on:play
+		on:pause
+		on:stop
+		on:end
+		on:start_recording
+		on:stop_recording
+		on:upload
+		on:error
+	/>
+{/if}

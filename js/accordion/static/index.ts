@@ -1,1 +1,1 @@
-export { default } from "./Accordion.svelte";
+export { default } from "./StaticAccordion.svelte";

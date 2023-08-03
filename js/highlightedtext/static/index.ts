@@ -1,1 +1,1 @@
-export { default } from "./HighlightedText.svelte";
+export { default } from "./StaticHighlightedtext.svelte";

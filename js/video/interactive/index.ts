@@ -1,1 +1,1 @@
-export { default } from "./Video.svelte";
+export { default } from "./InteractiveVideo.svelte";

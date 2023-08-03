@@ -1,1 +1,1 @@
-export { default } from "./Model3D.svelte";
+export { default } from "./StaticModel3d.svelte";

@@ -41,7 +41,7 @@
 			);
 		},
 		selected_tab,
-		selected_tab_index,
+		selected_tab_index
 	});
 
 	function change_tab(id: object | string | number): void {

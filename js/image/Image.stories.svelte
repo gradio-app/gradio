@@ -11,14 +11,14 @@
 			control: "text",
 			description: "The image URL or file to display",
 			name: "value",
-			value: "https://i.ibb.co/6BgKdSj/groot.jpg",
+			value: "https://i.ibb.co/6BgKdSj/groot.jpg"
 		},
 		show_download_button: {
 			options: [true, false],
 			description: "If false, the download button will not be visible",
 			control: { type: "boolean" },
-			defaultValue: true,
-		},
+			defaultValue: true
+		}
 	}}
 />
 
@@ -36,7 +36,7 @@
 	args={{
 		value: "https://i.ibb.co/6BgKdSj/groot.jpg",
 		show_label: true,
-		show_download_button: true,
+		show_download_button: true
 	}}
 />
 
@@ -45,6 +45,6 @@
 	args={{
 		value: "https://i.ibb.co/6BgKdSj/groot.jpg",
 		show_label: false,
-		show_download_button: false,
+		show_download_button: false
 	}}
 />

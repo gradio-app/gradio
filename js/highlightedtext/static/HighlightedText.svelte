@@ -29,7 +29,7 @@
 					primary: browser ? name_to_rgba(color_map[col], 1) : color_map[col],
 					secondary: browser
 						? name_to_rgba(color_map[col], 0.5)
-						: color_map[col],
+						: color_map[col]
 				};
 			}
 		}
@@ -139,7 +139,7 @@
 							on:click={() => {
 								dispatch("select", {
 									index: i,
-									value: [text, category],
+									value: [text, category]
 								});
 							}}
 						>

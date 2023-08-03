@@ -35,7 +35,7 @@
 
 	const langs = [
 		["python", python],
-		["javascript", javascript],
+		["javascript", javascript]
 	] as const;
 
 	let is_running = false;
@@ -109,7 +109,7 @@
 		let [response, status_code] = await post_data(
 			`${root}run/${dependency.api_name}`,
 			{
-				data: inputs,
+				data: inputs
 			}
 		);
 		is_running = false;

@@ -4,15 +4,8 @@
 
 	import type { LoadingStatus } from "@gradio/statustracker/types";
 
-	import Code, { Widget } from "./interactive";
-	import { StatusTracker } from "@gradio/statustracker";
-	import { Block, BlockLabel, Empty } from "@gradio/atoms";
-	import { Code as CodeIcon } from "@gradio/icons";
-
-	const dispatch = createEventDispatcher<{
-		change: typeof value;
-		input: undefined;
-	}>();
+	import StaticCode from "./static";
+	import InteractiveCode from "./interactive";
 
 	export let value = "";
 	export let value_is_output = false;
@@ -26,46 +19,38 @@
 	export let label = "Code";
 	export let show_label = true;
 	export let loading_status: LoadingStatus;
-
-	let dark_mode = target.classList.contains("dark");
-
-	function handle_change(): void {
-		dispatch("change", value);
-		if (!value_is_output) {
-			dispatch("input");
-		}
-	}
-	afterUpdate(() => {
-		value_is_output = false;
-	});
-	$: value, handle_change();
 </script>
 
-{#if mode === "static"}
-	<Block variant={"solid"} padding={false} {elem_id} {elem_classes} {visible}>
-		<StatusTracker {...loading_status} />
-
-		<BlockLabel Icon={CodeIcon} {show_label} {label} float={false} />
-
-		{#if !value}
-			<Empty unpadded_box={true} size="large">
-				<CodeIcon />
-			</Empty>
-		{:else}
-			<Widget {language} {value} />
-
-			<Code bind:value {language} {lines} {dark_mode} readonly />
-		{/if}
-	</Block>
+{#if mode == "static"}
+	<StaticCode
+		bind:value
+		bind:value_is_output
+		{language}
+		{lines}
+		{target}
+		{elem_id}
+		{elem_classes}
+		{visible}
+		{label}
+		{show_label}
+		{loading_status}
+		on:change
+		on:input
+	/>
 {:else}
-	<Block variant={"solid"} padding={false} {elem_id} {elem_classes} {visible}>
-		<StatusTracker {...loading_status} />
-
-		<BlockLabel Icon={CodeIcon} {show_label} {label} float={false} />
-
-		<Code bind:value {language} {lines} {dark_mode} />
-	</Block>
+	<InteractiveCode
+		bind:value
+		bind:value_is_output
+		{language}
+		{lines}
+		{target}
+		{elem_id}
+		{elem_classes}
+		{visible}
+		{label}
+		{show_label}
+		{loading_status}
+		on:change
+		on:input
+	/>
 {/if}
-
-<style>
-</style>

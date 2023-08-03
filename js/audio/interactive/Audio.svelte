@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
 	import type { FileData } from "@gradio/upload";
-	import Button from "@gradio/button/static";
+	import { BaseButton } from "@gradio/button/static";
 
 	export interface AudioData extends FileData {
 		crop_min?: number;
@@ -15,7 +15,7 @@
 	import { Music } from "@gradio/icons";
 	// @ts-ignore
 	import Range from "svelte-range-slider-pips";
-	import { loaded } from "../utils";
+	import { loaded } from "../shared/utils";
 
 	import type { IBlobEvent, IMediaRecorder } from "extendable-media-recorder";
 
@@ -43,16 +43,15 @@
 	const STREAM_TIMESLICE = 500;
 	const NUM_HEADER_BYTES = 44;
 	let audio_chunks: Blob[] = [];
-	let module_promises:
-		| [
-				Promise<typeof import("extendable-media-recorder")>,
-				Promise<typeof import("extendable-media-recorder-wav-encoder")>
-		  ];
+	let module_promises: [
+		Promise<typeof import("extendable-media-recorder")>,
+		Promise<typeof import("extendable-media-recorder-wav-encoder")>
+	];
 
 	function get_modules(): void {
 		module_promises = [
 			import("extendable-media-recorder"),
-			import("extendable-media-recorder-wav-encoder"),
+			import("extendable-media-recorder-wav-encoder")
 		];
 	}
 
@@ -92,7 +91,7 @@
 		let _audio_blob = new Blob(blobs, { type: "audio/wav" });
 		value = {
 			data: await blob_to_data_url(_audio_blob),
-			name: "audio.wav",
+			name: "audio.wav"
 		};
 		dispatch(event, value);
 	};
@@ -204,7 +203,7 @@
 	}
 
 	function handle_change({
-		detail: { values },
+		detail: { values }
 	}: {
 		detail: { values: [number, number] };
 	}): void {
@@ -214,14 +213,14 @@
 			data: value.data,
 			name,
 			crop_min: values[0],
-			crop_max: values[1],
+			crop_max: values[1]
 		});
 
 		dispatch("edit");
 	}
 
 	function handle_load({
-		detail,
+		detail
 	}: {
 		detail: {
 			data: string;
@@ -254,20 +253,20 @@
 	{#if source === "microphone"}
 		<div class="mic-wrap">
 			{#if recording}
-				<Button size="sm" on:click={stop}>
+				<BaseButton size="sm" on:click={stop}>
 					<span class="record-icon">
 						<span class="pinger" />
 						<span class="dot" />
 					</span>
 					Stop recording
-				</Button>
+				</BaseButton>
 			{:else}
-				<Button size="sm" on:click={record}>
+				<BaseButton size="sm" on:click={record}>
 					<span class="record-icon">
 						<span class="dot" />
 					</span>
 					Record from microphone
-				</Button>
+				</BaseButton>
 			{/if}
 		</div>
 	{:else if source === "upload"}

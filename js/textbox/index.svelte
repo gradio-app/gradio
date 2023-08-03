@@ -1,9 +1,9 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
-	import TextBox from "./static";
-	import { Block } from "@gradio/atoms";
-	import { StatusTracker } from "@gradio/statustracker";
+	import Static from "./static";
+	import Interactive from "./interactive";
+
 	import type { LoadingStatus } from "@gradio/statustracker";
 
 	export let label = "Textbox";
@@ -29,40 +29,62 @@
 	export let autofocus = false;
 </script>
 
-<Block
-	{visible}
-	{elem_id}
-	{elem_classes}
-	{scale}
-	{min_width}
-	allow_overflow={false}
-	padding={container}
->
-	{#if loading_status}
-		<StatusTracker {...loading_status} />
-	{/if}
-
-	<TextBox
-		bind:value
-		bind:value_is_output
+{#if mode === "static"}
+	<Static
 		{label}
 		{info}
-		{show_label}
+		{elem_id}
+		{elem_classes}
+		{visible}
+		bind:value
 		{lines}
+		{placeholder}
+		{show_label}
+		{max_lines}
 		{type}
+		{container}
+		{scale}
+		{min_width}
+		{show_copy_button}
+		{loading_status}
+		bind:value_is_output
 		{rtl}
 		{text_align}
-		max_lines={!max_lines && mode === "static" ? lines + 1 : max_lines}
-		{placeholder}
-		{show_copy_button}
 		{autofocus}
-		{container}
 		on:change
 		on:input
 		on:submit
 		on:blur
 		on:select
 		on:focus
-		disabled={mode === "static"}
-	/>
-</Block>
+	></Static>
+{:else}
+	<Interactive
+		{label}
+		{info}
+		{elem_id}
+		{elem_classes}
+		{visible}
+		bind:value
+		{lines}
+		{placeholder}
+		{show_label}
+		{max_lines}
+		{type}
+		{container}
+		{scale}
+		{min_width}
+		{show_copy_button}
+		{loading_status}
+		bind:value_is_output
+		{rtl}
+		{text_align}
+		{autofocus}
+		on:change
+		on:input
+		on:submit
+		on:blur
+		on:select
+		on:focus
+	></Interactive>
+{/if}

@@ -1,1 +1,1 @@
-export { default } from "./TabItem.svelte";
+export { default } from "./StaticTabItem.svelte";

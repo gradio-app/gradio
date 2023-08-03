@@ -23,7 +23,7 @@
 	});
 
 	async function handle_upload({
-		detail,
+		detail
 	}: CustomEvent<FileData>): Promise<void> {
 		value = detail;
 		await tick();

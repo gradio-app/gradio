@@ -1,94 +1,94 @@
+<svelte:options accessors={true} />
+
 <script lang="ts">
-	import { createEventDispatcher, afterUpdate, tick } from "svelte";
-	import { BlockLabel, Empty, IconButton, ShareButton } from "@gradio/atoms";
+	import { createEventDispatcher } from "svelte";
 	import type { FileData } from "@gradio/upload";
-	import { Video, Download } from "@gradio/icons";
-	import { uploadToHuggingFace } from "@gradio/utils";
+	import { normalise_file } from "@gradio/upload";
+	import { Block } from "@gradio/atoms";
+	import StaticVideo from "./VideoPreview.svelte";
 
-	import { Player } from "../shared";
+	import { StatusTracker } from "@gradio/statustracker";
+	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import { _ } from "svelte-i18n";
 
-	export let value: FileData | null = null;
-	export let subtitle: FileData | null = null;
-	export let label: string | undefined = undefined;
-	export let show_label = true;
-	export let autoplay: boolean;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
+	export let value: [FileData, FileData | null] | null = null;
+	let old_value: [FileData, FileData | null] | null = null;
+
+	export let label: string;
+	export let source: "upload" | "webcam";
+	export let root: string;
+	export let root_url: null | string;
+	export let show_label: boolean;
+	export let loading_status: LoadingStatus;
+	export let height: number | undefined;
+	export let width: number | undefined;
+
+	export let container = false;
+	export let scale: number | null = null;
+	export let min_width: number | undefined = undefined;
+	export let mode: "static" | "dynamic";
+	export let autoplay = false;
 	export let show_share_button = true;
 
-	let old_value: FileData | null = null;
-	let old_subtitle: FileData | null = null;
+	let _video: FileData | null = null;
+	let _subtitle: FileData | null = null;
+
+	$: {
+		if (value != null) {
+			_video = normalise_file(value[0], root, root_url);
+			_subtitle = normalise_file(value[1], root, root_url);
+		} else {
+			_video = null;
+			_subtitle = null;
+		}
+	}
+
+	let dragging = false;
 
 	const dispatch = createEventDispatcher<{
-		change: FileData;
-		play: undefined;
-		pause: undefined;
-		end: undefined;
-		stop: undefined;
+		change: undefined;
 	}>();
 
-	$: value && dispatch("change", value);
-
-	afterUpdate(async () => {
-		// needed to bust subtitle caching issues on Chrome
-		if (
-			value !== old_value &&
-			subtitle !== old_subtitle &&
-			old_subtitle !== null
-		) {
+	$: {
+		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
 			old_value = value;
-			value = null;
-			await tick();
-			value = old_value;
+			dispatch("change");
 		}
-		old_value = value;
-		old_subtitle = subtitle;
-	});
+	}
 </script>
 
-<BlockLabel {show_label} Icon={Video} label={label || "Video"} />
-{#if value === null}
-	<Empty unpadded_box={true} size="large"><Video /></Empty>
-{:else}
-	{#key value.data}
-		<Player
-			src={value.data}
-			subtitle={subtitle?.data}
-			{autoplay}
-			on:play
-			on:pause
-			on:ended
-			mirror={false}
-			{label}
-		/>
-	{/key}
-	<div class="icon-buttons" data-testid="download-div">
-		<a
-			href={value.data}
-			target={window.__is_colab__ ? "_blank" : null}
-			download={value.orig_name || value.name}
-		>
-			<IconButton Icon={Download} label="Download" />
-		</a>
-		{#if show_share_button}
-			<ShareButton
-				on:error
-				on:share
-				{value}
-				formatter={async (value) => {
-					if (!value) return "";
-					let url = await uploadToHuggingFace(value.data, "url");
-					return url;
-				}}
-			/>
-		{/if}
-	</div>
-{/if}
+<Block
+	{visible}
+	variant={mode === "dynamic" && value === null && source === "upload"
+		? "dashed"
+		: "solid"}
+	border_mode={dragging ? "focus" : "base"}
+	padding={false}
+	{elem_id}
+	{elem_classes}
+	{height}
+	{width}
+	{container}
+	{scale}
+	{min_width}
+	allow_overflow={false}
+>
+	<StatusTracker {...loading_status} />
 
-<style>
-	.icon-buttons {
-		display: flex;
-		position: absolute;
-		top: 6px;
-		right: 6px;
-		gap: var(--size-1);
-	}
-</style>
+	<StaticVideo
+		value={_video}
+		subtitle={_subtitle}
+		{label}
+		{show_label}
+		{autoplay}
+		{show_share_button}
+		on:play
+		on:pause
+		on:stop
+		on:share
+		on:error
+	/>
+</Block>

@@ -1,4 +1,3 @@
-
 <script lang="ts">
 	//@ts-nocheck
 	import Plotly from "plotly.js-dist-min";
@@ -7,7 +6,7 @@
 	import { get_next_color } from "@gradio/utils";
 	import { Vega } from "svelte-vega";
 	import { afterUpdate, beforeUpdate, onDestroy } from "svelte";
-	import { create_config, bar_plot_header_encoding} from "./utils";
+	import { create_config, bar_plot_header_encoding } from "./utils";
 	import { Empty } from "@gradio/atoms";
 	import type { ThemeMode } from "js/app/src/components/types";
 
@@ -17,8 +16,8 @@
 	export let colors: string[] = [];
 	export let theme_mode: ThemeMode;
 	export let caption: string;
-	export let bokeh_version: string  | null;
-	const divId = `bokehDiv-${Math.random().toString(5).substring(2)}`
+	export let bokeh_version: string | null;
+	const divId = `bokehDiv-${Math.random().toString(5).substring(2)}`;
 
 	function get_color(index: number): string {
 		let current_color = colors[index % colors.length];
@@ -29,9 +28,8 @@
 		} else if (!current_color) {
 			return color_palette[get_next_color(index) as keyof typeof color_palette]
 				.primary;
-		} 
-			return current_color;
-		
+		}
+		return current_color;
 	}
 
 	$: darkmode = theme_mode == "dark";
@@ -42,10 +40,14 @@
 	// Need to keep track of this because
 	// otherwise embed_bokeh may try to embed before
 	// bokeh is loaded
-	$: bokeh_loaded = window.Bokeh === undefined
+	$: bokeh_loaded = window.Bokeh === undefined;
 
-	function embed_bokeh(_plot: Record<string, any>, _type: string, _bokeh_loaded: boolean): void{
-		if (document){
+	function embed_bokeh(
+		_plot: Record<string, any>,
+		_type: string,
+		_bokeh_loaded: boolean
+	): void {
+		if (document) {
 			if (document.getElementById(divId)) {
 				document.getElementById(divId).innerHTML = "";
 			}
@@ -94,8 +96,8 @@
 			case "bar":
 				if (spec.encoding.color) {
 					spec.encoding.color.scale.range = spec.encoding.color.scale.range.map(
-							(e, i) => get_color(i)
-						);
+						(e, i) => get_color(i)
+					);
 				}
 				spec.config.header = bar_plot_header_encoding(darkmode);
 				break;
@@ -137,7 +139,7 @@
 		return script;
 	}
 
-	function load_plotly_css():void {
+	function load_plotly_css(): void {
 		if (!plotlyGlobalStyle) {
 			plotlyGlobalStyle = document.getElementById("plotly.js-style-global");
 			const plotlyStyleClone = plotlyGlobalStyle.cloneNode();
@@ -148,19 +150,17 @@
 		}
 	}
 
-	const main_script = bokeh_version ? load_bokeh() : null
+	const main_script = bokeh_version ? load_bokeh() : null;
 
 	let plugin_scripts = [];
 
 	const resolves = [];
 
-	const initializeBokeh = (index) : void => {
+	const initializeBokeh = (index): void => {
 		if (type == "bokeh") {
 			resolves[index]();
 		}
 	};
-
-	
 
 	function handleBokehLoaded(): void {
 		initializeBokeh(0);
@@ -189,7 +189,7 @@
 {#if value && type == "plotly"}
 	<div data-testid={"plotly"} bind:this={plotDiv} />
 {:else if type == "bokeh"}
-	<div data-testid={"bokeh"} id={divId} class="gradio-bokeh"/>
+	<div data-testid={"bokeh"} id={divId} class="gradio-bokeh" />
 {:else if type == "altair"}
 	<div data-testid={"altair"} class="altair layout">
 		<Vega {spec} />
@@ -205,11 +205,10 @@
 		<img src={plot} />
 	</div>
 {:else}
-	<Empty  unpadded_box={true} size="large"><PlotIcon /></Empty>
+	<Empty unpadded_box={true} size="large"><PlotIcon /></Empty>
 {/if}
 
 <style>
-
 	.gradio-bokeh {
 		display: flex;
 		justify-content: center;

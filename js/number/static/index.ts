@@ -1,1 +1,1 @@
-export { default } from "./Number.svelte";
+export { default } from "./StaticNumber.svelte";

@@ -1,4 +1,7 @@
 <script lang="ts">
+	import Static from "./static";
+	import Interactive from "./interactive";
+
 	import Number from "./static";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
@@ -22,32 +25,50 @@
 	export let step: number | null = null;
 </script>
 
-<Block
-	{visible}
-	{elem_id}
-	{elem_classes}
-	padding={container}
-	allow_overflow={false}
-	{scale}
-	{min_width}
->
-	<StatusTracker {...loading_status} />
-
-	<Number
+{#if mode === "static"}
+	<Static
 		bind:value
 		bind:value_is_output
 		{label}
 		{info}
+		{elem_id}
+		{elem_classes}
+		{visible}
+		{container}
+		{scale}
+		{min_width}
 		{show_label}
 		{minimum}
 		{maximum}
+		{loading_status}
 		{step}
-		{container}
-		disabled={mode === "static"}
 		on:change
 		on:input
 		on:submit
 		on:blur
 		on:focus
-	/>
-</Block>
+	></Static>
+{:else}
+	<Interactive
+		bind:value
+		bind:value_is_output
+		{label}
+		{info}
+		{elem_id}
+		{elem_classes}
+		{visible}
+		{container}
+		{scale}
+		{min_width}
+		{show_label}
+		{minimum}
+		{maximum}
+		{step}
+		{loading_status}
+		on:change
+		on:input
+		on:submit
+		on:blur
+		on:focus
+	></Interactive>
+{/if}

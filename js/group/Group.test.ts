@@ -1,7 +1,7 @@
 import { test, describe, assert, afterEach, vi } from "vitest";
 import { cleanup, render } from "@gradio/tootils";
 
-import Group from "./index.svelte";
+import Group from "./static";
 
 describe("Group", () => {
 	afterEach(() => {

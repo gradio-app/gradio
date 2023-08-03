@@ -1,1 +1,1 @@
-export { default } from "./ChatBot.svelte";
+export { default } from "./StaticChatbot.svelte";

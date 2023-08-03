@@ -10,20 +10,20 @@
 		label: {
 			control: "text",
 			description: "The textbox label",
-			name: "label",
+			name: "label"
 		},
 		show_label: {
 			options: [true, false],
 			description: "Whether to show the label",
 			control: { type: "boolean" },
-			defaultValue: true,
+			defaultValue: true
 		},
 		rtl: {
 			options: [true, false],
 			description: "Whether to render right-to-left",
 			control: { type: "boolean" },
-			defaultValue: false,
-		},
+			defaultValue: false
+		}
 	}}
 />
 
@@ -33,9 +33,9 @@
 		value={[
 			[
 				"Can you write a function in Python?",
-				"```py\ndef test():\n\tprint(x)\n```",
+				"```py\ndef test():\n\tprint(x)\n```"
 			],
-			["Can you do math?", "$$1+1=2$$"],
+			["Can you do math?", "$$1+1=2$$"]
 		]}
 	/>
 </Template>
@@ -54,6 +54,6 @@
 	name="Chatbot with text rendered right-to-left"
 	args={{
 		rtl: true,
-		latex_delimiters: [{ left: "$$", right: "$$", display: true }],
+		latex_delimiters: [{ left: "$$", right: "$$", display: true }]
 	}}
 />

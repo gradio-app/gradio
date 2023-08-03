@@ -1,1 +1,1 @@
-export { default } from "./Label.svelte";
+export { default } from "./StaticLabel.svelte";

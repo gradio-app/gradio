@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { ComponentMeta, Dependency } from "../components/types";
-	import Button from "@gradio/button/static";
+	import { BaseButton } from "@gradio/button/static";
 	import { Block } from "@gradio/atoms";
 
 	export let dependency: Dependency;
@@ -60,9 +60,9 @@
 </Block>
 
 <span class="space" />
-<Button variant="primary" on:click={run.bind(null, dependency_index)}>
+<BaseButton variant="primary" on:click={run.bind(null, dependency_index)}>
 	Try It Out
-</Button>
+</BaseButton>
 
 <style>
 	.payload-details {

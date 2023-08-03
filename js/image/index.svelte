@@ -1,6 +1,9 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
+	import Static from "./static";
+	import Interactive from "./interactive";
+
 	import { createEventDispatcher } from "svelte";
 	import StaticImage from "./static";
 	import Image from "./interactive";
@@ -49,6 +52,7 @@
 	$: value = !value ? null : value;
 </script>
 
+<!-- 
 <Block
 	{visible}
 	variant={mode === "dynamic" && value === null && source === "upload"
@@ -110,4 +114,63 @@
 			<UploadText type="image" />
 		</Image>
 	{/if}
-</Block>
+</Block> -->
+
+{#if mode === "static"}
+	<Static
+		bind:value
+		{elem_id}
+		{elem_classes}
+		{visible}
+		{label}
+		{show_label}
+		{show_download_button}
+		{height}
+		{width}
+		{selectable}
+		{container}
+		{scale}
+		{min_width}
+		{loading_status}
+		{show_share_button}
+		on:edit
+		on:clear
+		on:stream
+		on:upload
+		on:select
+		on:share
+		on:error
+	></Static>
+{:else}
+	<Interactive
+		bind:value
+		{elem_id}
+		{elem_classes}
+		{visible}
+		{source}
+		{tool}
+		{label}
+		{show_label}
+		{streaming}
+		{pending}
+		{height}
+		{width}
+		{mirror_webcam}
+		{shape}
+		{brush_radius}
+		{brush_color}
+		{mask_opacity}
+		{selectable}
+		{container}
+		{scale}
+		{min_width}
+		{loading_status}
+		on:edit
+		on:clear
+		on:stream
+		on:upload
+		on:select
+		on:share
+		on:error
+	></Interactive>
+{/if}

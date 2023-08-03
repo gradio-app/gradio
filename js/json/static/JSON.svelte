@@ -3,7 +3,7 @@
 	import { fade } from "svelte/transition";
 	import { JSON as JSONIcon } from "@gradio/icons";
 	import { Empty } from "@gradio/atoms";
-	import JSONNode from "./JSONNode.svelte";
+	import JSONNode from "./JsonNode.svelte";
 	import { Copy, Check } from "@gradio/icons";
 
 	export let value: any = {};

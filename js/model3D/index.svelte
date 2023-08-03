@@ -1,14 +1,9 @@
 <script lang="ts">
-	import type { FileData } from "@gradio/upload";
-	import { normalise_file } from "@gradio/upload";
-	import Model3D from "./static";
-	import Model3DUpload from "./interactive";
-	import { BlockLabel, Block, Empty, UploadText } from "@gradio/atoms";
-	import { File } from "@gradio/icons";
+	import Static from "./static";
+	import Interactive from "./interactive";
 
-	import { StatusTracker } from "@gradio/statustracker";
+	import type { FileData } from "@gradio/upload";
 	import type { LoadingStatus } from "@gradio/statustracker/types";
-	import { _ } from "svelte-i18n";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -24,47 +19,42 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-
-	let _value: null | FileData;
-	$: _value = normalise_file(value, root, root_url);
-
-	let dragging = false;
 </script>
 
-<Block
-	{visible}
-	variant={value === null ? "dashed" : "solid"}
-	border_mode={dragging ? "focus" : "base"}
-	padding={false}
-	{elem_id}
-	{elem_classes}
-	{container}
-	{scale}
-	{min_width}
->
-	<StatusTracker {...loading_status} />
-
-	{#if mode === "dynamic"}
-		<Model3DUpload
-			{label}
-			{show_label}
-			{clearColor}
-			value={_value}
-			on:change={({ detail }) => (value = detail)}
-			on:drag={({ detail }) => (dragging = detail)}
-			on:change
-			on:clear
-		>
-			<UploadText type="file" />
-		</Model3DUpload>
-	{:else if value}
-		<Model3D value={_value} {clearColor} {label} {show_label} />
-	{:else}
-		<!-- Not ideal but some bugs to work out before we can 
-				 make this consistent with other components -->
-
-		<BlockLabel {show_label} Icon={File} label={label || "3D Model"} />
-
-		<Empty unpadded_box={true} size="large"><File /></Empty>
-	{/if}
-</Block>
+{#if mode === "static"}
+	<Static
+		{elem_id}
+		{elem_classes}
+		{visible}
+		bind:value
+		{root}
+		{root_url}
+		{clearColor}
+		{loading_status}
+		{label}
+		{show_label}
+		{container}
+		{scale}
+		{min_width}
+		on:change
+		on:clear
+	></Static>
+{:else}
+	<Interactive
+		{elem_id}
+		{elem_classes}
+		{visible}
+		bind:value
+		{root}
+		{root_url}
+		{clearColor}
+		{loading_status}
+		{label}
+		{show_label}
+		{container}
+		{scale}
+		{min_width}
+		on:change
+		on:clear
+	></Interactive>
+{/if}

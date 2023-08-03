@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Form from "@gradio/form";
 	import Textbox from "@gradio/textbox";
-	import Button from "@gradio/button/static";
+	import { BaseButton } from "@gradio/button/static";
 	import { Component as Column } from "./components/Column";
 	export let root: string;
 	export let auth_message: string | null;
@@ -19,7 +19,7 @@
 
 		let response = await fetch(root + "/login", {
 			method: "POST",
-			body: formData,
+			body: formData
 		});
 		if (response.status === 400) {
 			incorrect_credentials = true;
@@ -68,7 +68,7 @@
 			/>
 		</Form>
 
-		<Button size="lg" variant="primary" on:click={submit}>Login</Button>
+		<BaseButton size="lg" variant="primary" on:click={submit}>Login</BaseButton>
 	</Column>
 </div>
 

@@ -73,7 +73,7 @@
 	$: component_meta = selected_samples.map((sample_row) =>
 		sample_row.map((sample_cell, j) => ({
 			value: sample_cell,
-			component: component_map[components[j]] as ComponentType<SvelteComponent>,
+			component: component_map[components[j]] as ComponentType<SvelteComponent>
 		}))
 	);
 </script>

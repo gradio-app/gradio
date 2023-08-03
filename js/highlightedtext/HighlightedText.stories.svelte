@@ -1,6 +1,6 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import HighlightedText from "./index.svelte";
+	import HighlightedText from "./static";
 </script>
 
 <Meta title="Components/HighlightedText" component={HighlightedText} />
@@ -10,7 +10,7 @@
 		value={[
 			["zebras", "+"],
 			["dogs", "-"],
-			["elephants", "+"],
+			["elephants", "+"]
 		]}
 		{...args}
 	/>
@@ -22,7 +22,7 @@
 <Story
 	name="Highlighted Text with new lines"
 	args={{
-		value: [["zebras", "+"], ["\n"], ["dogs", "-"], ["\n"], ["elephants", "+"]],
+		value: [["zebras", "+"], ["\n"], ["dogs", "-"], ["\n"], ["elephants", "+"]]
 	}}
 />
 <Story

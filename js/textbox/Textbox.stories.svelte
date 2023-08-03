@@ -10,45 +10,45 @@
 		label: {
 			control: "text",
 			description: "The textbox label",
-			name: "label",
+			name: "label"
 		},
 		show_label: {
 			options: [true, false],
 			description: "Whether to show the label",
 			control: { type: "boolean" },
-			defaultValue: true,
+			defaultValue: true
 		},
 		type: {
 			options: ["text", "email", "password"],
 			description: "The type of textbox",
 			control: { type: "select" },
-			defaultValue: "text",
+			defaultValue: "text"
 		},
 		text_align: {
 			options: ["left", "right"],
 			description: "Whether to align the text left or right",
 			control: { type: "select" },
-			defaultValue: "left",
+			defaultValue: "left"
 		},
 		lines: {
 			options: [1, 5, 10, 20],
 			description: "The number of lines to display in the textbox",
 			control: { type: "select" },
-			defaultValue: 1,
+			defaultValue: 1
 		},
 		max_lines: {
 			options: [1, 5, 10, 20],
 			description:
 				"The maximum number of lines to allow users to type in the textbox",
 			control: { type: "select" },
-			defaultValue: 1,
+			defaultValue: 1
 		},
 		rtl: {
 			options: [true, false],
 			description: "Whether to render right-to-left",
 			control: { type: "boolean" },
-			defaultValue: false,
-		},
+			defaultValue: false
+		}
 	}}
 />
 

@@ -1,7 +1,6 @@
 <script lang="ts">
-	import Dropdown from "./dropdown";
-	import { Block } from "@gradio/atoms";
-	import { StatusTracker } from "@gradio/statustracker";
+	import StaticDropdown from "./static";
+	import InteractiveDropdown from "./interactive";
 	import type { LoadingStatus } from "@gradio/statustracker/types";
 
 	export let label = "Dropdown";
@@ -30,18 +29,14 @@
 	}
 </script>
 
-<Block
-	{visible}
-	{elem_id}
-	{elem_classes}
-	padding={container}
-	allow_overflow={false}
-	{scale}
-	{min_width}
->
-	<StatusTracker {...loading_status} />
-
-	<Dropdown
+{#if mode === "static"}
+	<StaticDropdown
+		{visible}
+		{elem_id}
+		{elem_classes}
+		{container}
+		{scale}
+		{min_width}
 		bind:value
 		bind:value_is_output
 		{choices}
@@ -51,12 +46,35 @@
 		{info}
 		{show_label}
 		{allow_custom_value}
-		{container}
+		{loading_status}
 		on:change
 		on:input
 		on:select
 		on:blur
 		on:focus
-		disabled={mode === "static"}
 	/>
-</Block>
+{:else}
+	<InteractiveDropdown
+		{visible}
+		{elem_id}
+		{elem_classes}
+		{container}
+		{scale}
+		{min_width}
+		bind:value
+		bind:value_is_output
+		{choices}
+		{multiselect}
+		{max_choices}
+		{label}
+		{info}
+		{show_label}
+		{allow_custom_value}
+		{loading_status}
+		on:change
+		on:input
+		on:select
+		on:blur
+		on:focus
+	/>
+{/if}

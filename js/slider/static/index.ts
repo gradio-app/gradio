@@ -1,1 +1,1 @@
-export { default } from "./Range.svelte";
+export { default } from "./StaticSlider.svelte";

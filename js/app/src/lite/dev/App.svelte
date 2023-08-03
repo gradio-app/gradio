@@ -38,21 +38,21 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
     upload_button = gr.UploadButton("Click to Upload a File", file_types=["image", "video"], file_count="multiple")
     upload_button.upload(upload_file, upload_button, file_output)
 
-demo.launch()`,
+demo.launch()`
 		},
 		{
 			name: "greeting.py",
 			content: `
 def hi(name):
-    return "Hi " + name + "!"`,
-		},
+    return "Hi " + name + "!"`
+		}
 	];
 	let entrypoint = editorFiles[0].name;
 
 	$: files = editorFiles.reduce<NonNullable<CreateOptions["files"]>>(
 		(acc, file) => {
 			acc[file.name] = {
-				data: file.content,
+				data: file.content
 			};
 			return acc;
 		},
@@ -85,7 +85,7 @@ def hi(name):
 			themeMode: null,
 			autoScroll: false,
 			controlPageTitle: false,
-			appMode: true,
+			appMode: true
 		});
 	});
 	onDestroy(() => {
@@ -114,7 +114,7 @@ def hi(name):
 		controller.write(new_file_name, "", {});
 		editorFiles = editorFiles.concat({
 			name: new_file_name,
-			content: "",
+			content: ""
 		});
 		new_file_name = "";
 	}

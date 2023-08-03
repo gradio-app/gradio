@@ -1,1 +1,1 @@
-export { default } from "./Gallery.svelte";
+export { default } from "./StaticGallery.svelte";

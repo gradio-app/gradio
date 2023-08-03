@@ -1,9 +1,9 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
-	import Colorpicker from "./static";
-	import { Block } from "@gradio/atoms";
-	import { StatusTracker } from "@gradio/statustracker";
+	import StaticColorpicker from "./static";
+	import InteractiveColorpicker from "./interactive";
+
 	import type { LoadingStatus } from "@gradio/statustracker/types";
 
 	export let label = "ColorPicker";
@@ -21,20 +21,44 @@
 	export let mode: "static" | "dynamic";
 </script>
 
-<Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
-	<StatusTracker {...loading_status} />
-
-	<Colorpicker
-		bind:value
-		bind:value_is_output
+{#if mode === "static"}
+	<StaticColorpicker
 		{label}
 		{info}
+		{elem_id}
+		{elem_classes}
+		{visible}
+		bind:value
+		bind:value_is_output
 		{show_label}
+		{container}
+		{scale}
+		{min_width}
+		{loading_status}
 		on:change
 		on:input
 		on:submit
 		on:blur
 		on:focus
-		disabled={mode === "static"}
 	/>
-</Block>
+{:else}
+	<InteractiveColorpicker
+		{label}
+		{info}
+		{elem_id}
+		{elem_classes}
+		{visible}
+		bind:value
+		bind:value_is_output
+		{show_label}
+		{container}
+		{scale}
+		{min_width}
+		{loading_status}
+		on:change
+		on:input
+		on:submit
+		on:blur
+		on:focus
+	/>
+{/if}

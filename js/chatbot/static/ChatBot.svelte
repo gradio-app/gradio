@@ -12,7 +12,7 @@
 		light: (): Promise<typeof import("prismjs/themes/prism.css")> =>
 			import("prismjs/themes/prism.css"),
 		dark: (): Promise<typeof import("prismjs/themes/prism.css")> =>
-			import("prismjs/themes/prism-dark.css"),
+			import("prismjs/themes/prism-dark.css")
 	};
 
 	export let value:
@@ -81,7 +81,7 @@
 	): void {
 		dispatch("select", {
 			index: [i, j],
-			value: message,
+			value: message
 		});
 	}
 </script>

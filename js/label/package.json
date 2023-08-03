@@ -3,7 +3,7 @@
 	"version": "0.0.2",
 	"description": "Gradio UI packages",
 	"type": "module",
-	"main": "index.svelte",
+	"main": "./static/index.ts",
 	"author": "",
 	"license": "ISC",
 	"private": true,
@@ -15,7 +15,7 @@
 	},
 	"main_changeset": true,
 	"exports": {
-		".": "./index.svelte",
+		".": "./static/index.ts",
 		"./package.json": "./package.json",
 		"./interactive": "./interactive/index.ts",
 		"./static": "./static/index.ts",

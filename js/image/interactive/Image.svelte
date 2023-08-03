@@ -4,7 +4,7 @@
 	import { BlockLabel } from "@gradio/atoms";
 	import { Image, Sketch as SketchIcon } from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
-	import { get_coordinates_of_clicked_image } from "../static/utils";
+	import { get_coordinates_of_clicked_image } from "../shared/utils";
 
 	import Cropper from "./Cropper.svelte";
 	import Sketch from "./Sketch.svelte";
@@ -69,12 +69,12 @@
 			if (source === "webcam" && initial) {
 				value = {
 					image: detail,
-					mask: null,
+					mask: null
 				};
 			} else {
 				value = {
 					image: typeof value === "string" ? value : value?.image || null,
-					mask: detail,
+					mask: detail
 				};
 			}
 		} else if (

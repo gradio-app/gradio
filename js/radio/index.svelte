@@ -1,4 +1,7 @@
 <script lang="ts">
+	import Static from "./static";
+	import Interactive from "./interactive";
+
 	import Radio from "./static";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
@@ -20,28 +23,42 @@
 	export let loading_status: LoadingStatus;
 </script>
 
-<Block
-	{visible}
-	type="fieldset"
-	{elem_id}
-	{elem_classes}
-	{container}
-	{scale}
-	{min_width}
->
-	<StatusTracker {...loading_status} />
-
-	<Radio
+{#if mode === "static"}
+	<Static
 		bind:value
 		bind:value_is_output
 		{label}
 		{info}
 		{elem_id}
-		{show_label}
+		{elem_classes}
+		{visible}
 		{choices}
-		disabled={mode === "static"}
+		{show_label}
+		{container}
+		{scale}
+		{min_width}
+		{loading_status}
 		on:change
 		on:input
 		on:select
-	/>
-</Block>
+	></Static>
+{:else}
+	<Interactive
+		bind:value
+		bind:value_is_output
+		{label}
+		{info}
+		{elem_id}
+		{elem_classes}
+		{visible}
+		{choices}
+		{show_label}
+		{container}
+		{scale}
+		{min_width}
+		{loading_status}
+		on:change
+		on:input
+		on:select
+	></Interactive>
+{/if}
