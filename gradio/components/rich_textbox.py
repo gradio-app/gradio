@@ -45,6 +45,11 @@ class RichTextbox(
 ):
     """
     Used to create a textbox that allows a user to input text and/or upload files.
+    Preprocessing: passes a dict with the "text" from the rich textbox and a list of "files" uploaded as {List[file-object]} {List{bytes}} depending on `type`
+    Postprocessing: expects a {str} returned from function and sets textarea value to it.
+    Examples-format: a {dict[str, str | list[str]]} representing the textbox input.
+
+    Demos: chatbot_multimodal
     """
 
     def __init__(
@@ -96,7 +101,7 @@ class RichTextbox(
             text_align: How to align the text in the textbox, can be: "left", "right", or None (default). If None, the alignment is left if `rtl` is False, or right if `rtl` is True. Can only be changed if `type` is "text".
             rtl: If True and `type` is "text", sets the direction of the text to right-to-left (cursor appears on the left of the text). Default is False, which renders cursor on the right.
             show_copy_button: If True, includes a copy button to copy the text in the textbox. Only applies if show_label is True.
-            file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
+            file_count: if "single", allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
             file_types: List of type of files to be uploaded. "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
         """
         self.lines = lines
