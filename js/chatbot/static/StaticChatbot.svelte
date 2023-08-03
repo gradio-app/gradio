@@ -1,5 +1,5 @@
 <script lang="ts">
-	import ChatBot from "./Chatbot.svelte";
+	import ChatBot from "./ChatBot.svelte";
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import type { ThemeMode } from "js/app/src/components/types";
