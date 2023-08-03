@@ -205,7 +205,6 @@ export function api_factory(fetch_implementation: typeof fetch) {
 			const output: UploadResponse["files"] = await response.json();
             uploadResponses.push(...output);
 		}
-		console.log("uploadResponses", uploadResponses)
 		return { files: uploadResponses };
 	}
 
