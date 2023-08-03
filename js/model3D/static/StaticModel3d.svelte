@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
-	import Model3D from "./Model3d.svelte";
+	import Model3D from "./Model3D.svelte";
 	import { BlockLabel, Block, Empty } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
 
