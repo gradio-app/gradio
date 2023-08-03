@@ -1,4 +1,4 @@
-lockfileVersion: '6.0'
+lockfileVersion: '6.1'
 
 settings:
   autoInstallPeers: true
@@ -991,24 +991,27 @@ importers:
   js/richtextbox:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.2
+        specifier: workspace:^
         version: link:../atoms
       '@gradio/client':
-        specifier: workspace:^0.1.4
+        specifier: workspace:^
         version: link:../../client/js
       '@gradio/icons':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^
         version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
       '@gradio/theme':
-        specifier: workspace:^0.0.2
+        specifier: workspace:^
         version: link:../theme
       '@gradio/upload':
-        specifier: workspace:^0.0.2
+        specifier: workspace:^
         version: link:../upload
       '@gradio/utils':
-        specifier: workspace:^0.0.2
+        specifier: workspace:^
         version: link:../utils
-  
+
   js/row:
     devDependencies:
       '@gradio/image':
