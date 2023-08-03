@@ -3,9 +3,9 @@
 </script>
 
 {#if link && link.length > 0}
-	<div {...$$restProps}>
+	<a href={link} target="_blank" rel="noreferrer">
 		<slot />
-	</div>
+	</a>
 {:else}
 	<slot />
 {/if}

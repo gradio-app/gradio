@@ -32,7 +32,6 @@
 			<img
 				src={`https://huggingface.co/front/assets/huggingface_logo-noborder.svg`}
 				alt={`${value}-icon`}
-				class="button-icon"
 			/>
 		{/if}
 		<slot />
