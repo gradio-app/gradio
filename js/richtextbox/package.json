@@ -8,12 +8,13 @@
 	"license": "ISC",
 	"private": true,
 	"dependencies": {
-		"@gradio/atoms": "workspace:^0.0.2",
-		"@gradio/icons": "workspace:^0.0.1",
-		"@gradio/theme": "workspace:^0.0.2",
-		"@gradio/upload": "workspace:^0.0.2",
-		"@gradio/utils": "workspace:^0.0.2",
-		"@gradio/client": "workspace:^0.1.4"
+		"@gradio/atoms": "workspace:^",
+		"@gradio/icons": "workspace:^",
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/theme": "workspace:^",
+		"@gradio/upload": "workspace:^",
+		"@gradio/utils": "workspace:^",
+		"@gradio/client": "workspace:^"
 	},
 	"main_changeset": true
 }

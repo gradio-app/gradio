@@ -5,8 +5,8 @@
 	import type { FileData } from "@gradio/upload";
 	import { blobToBase64 } from "@gradio/upload";
 	import { Block } from "@gradio/atoms";
-	import StatusTracker from "../../app/src/components/StatusTracker/StatusTracker.svelte";
-	import type { LoadingStatus } from "../../app/src/components/StatusTracker/types";
+	import { StatusTracker } from "@gradio/statustracker";
+	import type { LoadingStatus } from "@gradio/statustracker/types";
 
 	export let label: string = "Textbox";
 	export let info: string | undefined = undefined;
