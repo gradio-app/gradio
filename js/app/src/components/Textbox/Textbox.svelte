@@ -54,6 +54,7 @@
 		on:submit
 		on:blur
 		on:select
+		on:focus
 		disabled={mode === "static"}
 	/>
 </Block>
