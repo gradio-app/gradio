@@ -18,7 +18,6 @@ from gradio.components.base import (
     _Keywords,
 )
 from gradio.events import (
-    Blurrable,
     Changeable,
     EventListenerMethod,
     Inputable,
@@ -38,7 +37,6 @@ class RichTextbox(
     Inputable,
     Selectable,
     Submittable,
-    Blurrable,
     IOComponent,
     StringSerializable,
     Clickable,
