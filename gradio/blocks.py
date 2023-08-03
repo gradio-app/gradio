@@ -1690,7 +1690,7 @@ Received outputs:
         file_directories: list[str] | None = None,
         allowed_paths: list[str] | None = None,
         blocked_paths: list[str] | None = None,
-        root_path: str = None,
+        root_path: str | None = None,
         _frontend: bool = True,
         app_kwargs: dict[str, Any] | None = None,
     ) -> tuple[FastAPI, str, str]:
