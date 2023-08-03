@@ -36,6 +36,7 @@ from fastapi.responses import (
     HTMLResponse,
     JSONResponse,
     PlainTextResponse,
+    StreamingResponse
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
@@ -385,6 +386,16 @@ class App(FastAPI):
                     )
                     return response
             return FileResponse(abs_path, headers={"Accept-Ranges": "bytes"})
+
+        @app.head("/stream/{id}", dependencies=[Depends(login_check)])
+        @app.get("/stream/{id}", dependencies=[Depends(login_check)])
+        async def stream(id: str, request: fastapi.Request):
+            blocks = app.get_blocks()
+            if id not in blocks.pending_streams:
+                raise HTTPException(404, f"Stream not found: {id}.")
+            stream = blocks.pending_streams[id]
+            return StreamingResponse(stream)
+
 
         @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
         async def file_deprecated(path: str, request: fastapi.Request):

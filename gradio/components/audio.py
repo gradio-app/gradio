@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import Any, Callable, Literal, Generator, TYPE_CHECKING
 
 import numpy as np
 from gradio_client import media_data
@@ -24,6 +24,9 @@ from gradio.events import (
 )
 from gradio.interpretation import TokenInterpretable
 
+if TYPE_CHECKING:
+    from gradio.blocks import Blocks
+
 set_documentation_group("component")
 
 
@@ -42,7 +45,7 @@ class Audio(
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
     Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a 16-bit int array whose values range from -32768 to 32767), or as a {str} filepath, depending on `type`.
-    Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a float or int numpy array) or as a {str} or {pathlib.Path} filepath or URL to an audio file, which gets displayed
+    Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a float or int numpy array) or as a {str} or {pathlib.Path} filepath or URL to an audio file, which gets displayed, or a generator that yields audio bytes (for streaming).
     Examples-format: a {str} filepath to a local file that contains audio.
     Demos: main_note, generate_tone, reverse_audio
     Guides: real-time-speech-recognition
@@ -318,7 +321,9 @@ class Audio(
         return masked_inputs
 
     def postprocess(
-        self, y: tuple[int, np.ndarray] | str | Path | None
+        self, 
+        y: tuple[int, np.ndarray] | str | Path | Generator | None,
+
     ) -> str | dict | None:
         """
         Parameters:
@@ -330,7 +335,9 @@ class Audio(
             return None
         if isinstance(y, str) and client_utils.is_http_url_like(y):
             return {"name": y, "data": None, "is_file": True}
-        if isinstance(y, tuple):
+        elif isinstance(y, Generator):
+            return {"__type__": "stream", "stream": y }
+        elif isinstance(y, tuple):
             sample_rate, data = y
             file_path = self.audio_to_temp_file(
                 data, sample_rate, dir=self.DEFAULT_TEMP_DIR, format=self.format

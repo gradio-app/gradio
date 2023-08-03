@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast
 
 import anyio
 import requests
+import uuid
 from anyio import CapacityLimiter
 from gradio_client import serializing
 from gradio_client import utils as client_utils
@@ -706,6 +707,7 @@ class Blocks(BlockContext):
         self.share = False
         self.enable_queue = None
         self.max_threads = 40
+        self.pending_streams = {}
         self.show_error = True
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
@@ -1327,6 +1329,12 @@ Received outputs:
                         block, components.Component
                     ), f"{block.__class__} Component with id {output_id} not a valid output component."
                     prediction_value = block.postprocess(prediction_value)
+                    if isinstance(prediction_value, dict) and "__type__" in prediction_value:
+                        prediction_type = prediction_value["__type__"]
+                        if prediction_type == "stream":
+                            name = uuid.uuid4().hex
+                            self.pending_streams[name] = prediction_value["stream"]
+                            prediction_value = {"name": name, "is_stream": True}
                 output.append(prediction_value)
 
         return output
