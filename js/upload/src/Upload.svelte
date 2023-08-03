@@ -17,17 +17,17 @@
 
 	const dispatch = createEventDispatcher();
 
-	const updateDragging = () => {
+	function updateDragging(): void {
 		dragging = !dragging;
-	};
+	}
 
-	const openFileUpload = () => {
+	function openFileUpload(): void {
 		if (disable_click) return;
 		hidden_upload.value = "";
 		hidden_upload.click();
-	};
+	}
 
-	const loadFiles = async (files: FileList) => {
+	async function loadFiles(files: FileList): Promise<void> {
 		let _files: File[] = Array.from(files);
 		if (!files.length || !window.FileReader) {
 			return;
@@ -69,22 +69,25 @@
 			"load",
 			file_count === "single" ? load_file_data[0] : load_file_data
 		);
-	};
+	}
 
-	const loadFilesFromUpload = async (e: Event) => {
+	async function loadFilesFromUpload(e: Event): Promise<void> {
 		const target = e.target as HTMLInputElement;
 
 		if (!target.files) return;
 		await loadFiles(target.files);
-	};
+	}
 
-	const loadFilesFromDrop = async (e: DragEvent) => {
+	async function loadFilesFromDrop(e: DragEvent): Promise<void> {
 		dragging = false;
 		if (!e.dataTransfer?.files) return;
 		await loadFiles(e.dataTransfer.files);
-	};
+	}
 </script>
 
+<!-- TODO: fix -->
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
 	class:center
 	class:boundedheight

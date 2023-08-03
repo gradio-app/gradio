@@ -1,9 +1,9 @@
 <script lang="ts">
 	export let label: string | null = null;
 	export let Icon: any;
-	export let show_label: boolean = true;
-	export let disable: boolean = false;
-	export let float: boolean = true;
+	export let show_label = true;
+	export let disable = false;
+	export let float = true;
 </script>
 
 <div

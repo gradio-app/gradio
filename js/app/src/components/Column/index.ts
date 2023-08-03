@@ -1,2 +1,2 @@
-export { default as Component } from "./Column.svelte";
+export { default as Component } from "@gradio/column";
 export const modes = ["static"];

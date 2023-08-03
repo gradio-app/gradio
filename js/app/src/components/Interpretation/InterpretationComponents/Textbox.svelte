@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { getSaliencyColor } from "../utils";
 	import { BlockTitle } from "@gradio/atoms";
-	export let label: string = "";
-	export let interpretation: Array<[string, number]>;
+	export let label = "";
+	export let interpretation: [string, number][];
 </script>
 
 <div class="input-text">

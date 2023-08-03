@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { Button } from "@gradio/button";
+	import { BaseButton } from "@gradio/button/static";
 	export let code: string;
 	let copy_text = "copy";
 
-	function copy() {
+	function copy(): void {
 		navigator.clipboard.writeText(code);
 		copy_text = "copied!";
 		setTimeout(() => {
@@ -12,6 +12,6 @@
 	}
 </script>
 
-<Button size="sm" on:click={copy}>
+<BaseButton size="sm" on:click={copy}>
 	{copy_text}
-</Button>
+</BaseButton>

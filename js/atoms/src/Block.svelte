@@ -1,19 +1,19 @@
 <script lang="ts">
 	export let height: number | undefined = undefined;
 	export let width: number | undefined = undefined;
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
 	export let variant: "solid" | "dashed" | "none" = "solid";
 	export let border_mode: "base" | "focus" = "base";
-	export let padding: boolean = true;
+	export let padding = true;
 	export let type: "normal" | "fieldset" = "normal";
 	export let test_id: string | undefined = undefined;
-	export let explicit_call: boolean = false;
-	export let container: boolean = true;
+	export let explicit_call = false;
+	export let container = true;
 	export let visible = true;
 	export let allow_overflow = true;
 	export let scale: number | null = null;
-	export let min_width: number = 0;
+	export let min_width = 0;
 
 	let tag = type === "fieldset" ? "fieldset" : "div";
 </script>
