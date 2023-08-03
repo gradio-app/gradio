@@ -30,6 +30,8 @@ class Button(Clickable, IOComponent, StringSerializable):
         *,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         size: Literal["sm", "lg"] | None = None,
+        icon: str | None = None,
+        link: str | None = None,
         visible: bool = True,
         interactive: bool = True,
         elem_id: str | None = None,
@@ -43,6 +45,8 @@ class Button(Clickable, IOComponent, StringSerializable):
             value: Default text for the button to display. If callable, the function will be called whenever the app loads to set the initial value of the component.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             size: Size of the button. Can be "sm" or "lg".
+            icon: URL or path to the icon file, or a PIL.Image object representing the icon.
+            link: URL to open when the button is clicked.
             visible: If False, component will be hidden.
             interactive: If False, the Button will be in a disabled state.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -66,12 +70,16 @@ class Button(Clickable, IOComponent, StringSerializable):
             variant = "secondary"
         self.variant = variant
         self.size = size
+        self.icon = icon
+        self.link = link
 
     def get_config(self):
         return {
             "value": self.value,
             "variant": self.variant,
             "size": self.size,
+            "icon": self.icon,
+            "link": self.link,
             "interactive": self.interactive,
             "scale": self.scale,
             "min_width": self.min_width,
@@ -83,6 +91,8 @@ class Button(Clickable, IOComponent, StringSerializable):
         value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         variant: Literal["primary", "secondary", "stop"] | None = None,
         size: Literal["sm", "lg"] | None = None,
+        icon: str | None = None,
+        link: str | None = None,
         visible: bool | None = None,
         interactive: bool | None = None,
         scale: int | None = None,
@@ -93,6 +103,8 @@ class Button(Clickable, IOComponent, StringSerializable):
             "size": size,
             "visible": visible,
             "value": value,
+            "icon": icon,
+            "link": link,
             "interactive": interactive,
             "scale": scale,
             "min_width": min_width,

@@ -1,28 +1,43 @@
 <script lang="ts">
+	import { type FileData } from "@gradio/upload";
+	import LinkWrapper from "./LinkWrapper.svelte";
+
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let size: "sm" | "lg" = "lg";
+	export let value: string;
+	export let link: string | null = null;
+	export let _icon: FileData | null = null;
 	export let disabled = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 </script>
 
-<button
-	on:click
-	class:hidden={!visible}
-	class="{size} {variant} {elem_classes.join(' ')}"
-	style:flex-grow={scale}
-	style:width={scale === 0 ? "fit-content" : null}
-	style:min-width={typeof min_width === "number"
-		? `calc(min(${min_width}px, 100%))`
-		: null}
-	id={elem_id}
-	{disabled}
->
-	<slot />
-</button>
+<LinkWrapper {link}>
+	<button
+		on:click
+		class:hidden={!visible}
+		class="{size} {variant} {elem_classes.join(' ')}"
+		style:flex-grow={scale}
+		style:width={scale === 0 ? "fit-content" : null}
+		style:min-width={typeof min_width === "number"
+			? `calc(min(${min_width}px, 100%))`
+			: null}
+		id={elem_id}
+		{disabled}
+	>
+		{#if _icon}
+			<img
+				src={`https://huggingface.co/front/assets/huggingface_logo-noborder.svg`}
+				alt={`${value}-icon`}
+				class="button-icon"
+			/>
+		{/if}
+		<slot />
+	</button>
+</LinkWrapper>
 
 <style>
 	button {
@@ -104,5 +119,11 @@
 		padding: var(--button-large-padding);
 		font-weight: var(--button-large-text-weight);
 		font-size: var(--button-large-text-size);
+	}
+
+	.button-icon {
+		width: var(--text-xl);
+		height: var(--text-xl);
+		margin-right: var(--spacing-xl);
 	}
 </style>

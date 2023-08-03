@@ -8,6 +8,7 @@
 	"license": "ISC",
 	"private": true,
 	"dependencies": {
+		"@gradio/upload": "workspace:^0.0.2",
 		"@gradio/utils": "workspace:^0.0.2"
 	},
 	"main_changeset": true
