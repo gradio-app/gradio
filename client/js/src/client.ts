@@ -204,22 +204,27 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 		if (token) {
 			headers.Authorization = `Bearer ${token}`;
 		}
-
-		const formData = new FormData();
-		files.forEach((file) => {
-			formData.append("files", file);
-		});
-		try {
-			var response = await fetch_implementation(`${root}/upload`, {
-				method: "POST",
-				body: formData,
-				headers
+		const chunkSize = 1000;
+		const uploadResponses = [];
+		for (let i = 0; i < files.length; i += chunkSize) {
+			const chunk = files.slice(i, i + chunkSize);		
+			const formData = new FormData();
+			chunk.forEach((file) => {
+				formData.append("files", file);
 			});
-		} catch (e) {
-			return { error: BROKEN_CONNECTION_MSG };
+			try {
+				var response = await fetch_implementation(`${root}/upload`, {
+					method: "POST",
+					body: formData,
+					headers
+				});
+			} catch (e) {
+				return { error: BROKEN_CONNECTION_MSG };
+			}
+			const output: UploadResponse["files"] = await response.json();
+            uploadResponses.push(...output);
 		}
-		const output: UploadResponse["files"] = await response.json();
-		return { files: output };
+		return { files: uploadResponses };
 	}
 
 	async function client(

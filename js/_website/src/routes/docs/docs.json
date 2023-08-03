@@ -183,13 +183,13 @@
 						"name": "font",
 						"annotation": "fonts.Font | str | Iterable[fonts.Font | str]",
 						"doc": "The primary font to use for the theme. Pass a string for a system font, or a gradio.themes.font.GoogleFont object to load a font from Google Fonts. Pass a list of fonts for fallbacks.",
-						"default": "(<gradio.themes.utils.fonts.GoogleFont object at 0x7f9a191682e0>, 'ui-sans-serif', 'system-ui', 'sans-serif')"
+						"default": "(<gradio.themes.utils.fonts.GoogleFont object at 0x7f8531e15b20>, 'ui-sans-serif', 'system-ui', 'sans-serif')"
 					},
 					{
 						"name": "font_mono",
 						"annotation": "fonts.Font | str | Iterable[fonts.Font | str]",
 						"doc": "The monospace font to use for the theme, applies to code. Pass a string for a system font, or a gradio.themes.font.GoogleFont object to load a font from Google Fonts. Pass a list of fonts for fallbacks.",
-						"default": "(<gradio.themes.utils.fonts.GoogleFont object at 0x7f9a191682b0>, 'ui-monospace', 'Consolas', 'monospace')"
+						"default": "(<gradio.themes.utils.fonts.GoogleFont object at 0x7f8531e156d0>, 'ui-monospace', 'Consolas', 'monospace')"
 					}
 				],
 				"returns": { "annotation": null },
@@ -867,8 +867,8 @@
 						"guide_index": 1,
 						"absolute_index": 8,
 						"pretty_name": "Blocks And Event Listeners",
-						"content": "# Blocks and Event Listeners\n\nWe took a quick look at Blocks in the [Quickstart](https://gradio.app/guides/quickstart/#blocks-more-flexibility-and-control). Let's dive deeper. This guide will cover the how Blocks are structured, event listeners and their types, running events continuously, updating configurations, and using dictionaries vs lists. \n\n## Blocks Structure\n\nTake a look at the demo below.\n\n```python\nimport gradio as gr\n\ndef greet(name):\n    return \"Hello \" + name + \"!\"\n\nwith gr.Blocks() as demo:\n    name = gr.Textbox(label=\"Name\")\n    output = gr.Textbox(label=\"Output Box\")\n    greet_btn = gr.Button(\"Greet\")\n    greet_btn.click(fn=greet, inputs=name, outputs=output, api_name=\"greet\")\n   \n\ndemo.launch()\n```\n<gradio-app space='gradio/hello_blocks'></gradio-app>\n\n- First, note the `with gr.Blocks() as demo:` clause. The Blocks app code will be contained within this clause.\n- Next come the Components. These are the same Components used in `Interface`. However, instead of being passed to some constructor, Components are automatically added to the Blocks as they are created within the `with` clause.\n- Finally, the `click()` event listener. Event listeners define the data flow within the app. In the example above, the listener ties the two Textboxes together. The Textbox `name` acts as the input and Textbox `output` acts as the output to the `greet` method. This dataflow is triggered when the Button `greet_btn` is clicked. Like an Interface, an event listener can take multiple inputs or outputs.\n\n## Event Listeners and Interactivity\n\nIn the example above, you'll notice that you are able to edit Textbox `name`, but not Textbox `output`. This is because any Component that acts as an input to an event listener is made interactive. However, since Textbox `output` acts only as an output, it is not interactive. You can directly configure the interactivity of a Component with the `interactive=` keyword argument. \n\n```python\noutput = gr.Textbox(label=\"Output\", interactive=True)\n```\n\n## Types of Event Listeners\n\nTake a look at the demo below:\n\n```python\nimport gradio as gr\n\ndef welcome(name):\n    return f\"Welcome to Gradio, {name}!\"\n\nwith gr.Blocks() as demo:\n    gr.Markdown(\n    \"\"\"\n    # Hello World!\n    Start typing below to see the output.\n    \"\"\")\n    inp = gr.Textbox(placeholder=\"What is your name?\")\n    out = gr.Textbox()\n    inp.change(welcome, inp, out)\n\ndemo.launch()\n```\n<gradio-app space='gradio/blocks_hello'></gradio-app>\n\nInstead of being triggered by a click, the `welcome` function is triggered by typing in the Textbox `inp`. This is due to the `change()` event listener. Different Components support different event listeners. For example, the `Video` Component supports a `play()` event listener, triggered when a user presses play. See the [Docs](http://gradio.app/docs#components) for the event listeners for each Component.\n\n## Multiple Data Flows\n\nA Blocks app is not limited to a single data flow the way Interfaces are. Take a look at the demo below:\n\n```python\nimport gradio as gr\n\ndef increase(num):\n    return num + 1\n\nwith gr.Blocks() as demo:\n    a = gr.Number(label=\"a\")\n    b = gr.Number(label=\"b\")\n    btoa = gr.Button(\"a > b\")\n    atob = gr.Button(\"b > a\")\n    atob.click(increase, a, b)\n    btoa.click(increase, b, a)\n\ndemo.launch()\n```\n<gradio-app space='gradio/reversible_flow'></gradio-app>\n\nNote that `num1` can act as input to `num2`, and also vice-versa! As your apps get more complex, you will have many data flows connecting various Components. \n\nHere's an example of a \"multi-step\" demo, where the output of one model (a speech-to-text model) gets fed into the next model (a sentiment classifier).\n\n```python\nfrom transformers import pipeline\n\nimport gradio as gr\n\nasr = pipeline(\"automatic-speech-recognition\", \"facebook/wav2vec2-base-960h\")\nclassifier = pipeline(\"text-classification\")\n\n\ndef speech_to_text(speech):\n    text = asr(speech)[\"text\"]\n    return text\n\n\ndef text_to_sentiment(text):\n    return classifier(text)[0][\"label\"]\n\n\ndemo = gr.Blocks()\n\nwith demo:\n    audio_file = gr.Audio(type=\"filepath\")\n    text = gr.Textbox()\n    label = gr.Label()\n\n    b1 = gr.Button(\"Recognize Speech\")\n    b2 = gr.Button(\"Classify Sentiment\")\n\n    b1.click(speech_to_text, inputs=audio_file, outputs=text)\n    b2.click(text_to_sentiment, inputs=text, outputs=label)\n\ndemo.launch()\n\n```\n<gradio-app space='gradio/blocks_speech_text_sentiment'></gradio-app>\n\n## Function Input List vs Dict\n\nThe event listeners you've seen so far have a single input component. If you'd like to have multiple input components pass data to the function, you have two options on how the function can accept input component values:\n\n1. as a list of arguments, or\n2. as a single dictionary of values, keyed by the component\n\nLet's see an example of each:\n```python\nimport gradio as gr\n\nwith gr.Blocks() as demo:\n    a = gr.Number(label=\"a\")\n    b = gr.Number(label=\"b\")\n    with gr.Row():\n        add_btn = gr.Button(\"Add\")\n        sub_btn = gr.Button(\"Subtract\")\n    c = gr.Number(label=\"sum\")\n\n    def add(num1, num2):\n        return num1 + num2\n    add_btn.click(add, inputs=[a, b], outputs=c)\n\n    def sub(data):\n        return data[a] - data[b]\n    sub_btn.click(sub, inputs={a, b}, outputs=c)\n\n\ndemo.launch()\n```\n\nBoth `add()` and `sub()` take `a` and `b` as inputs. However, the syntax is different between these listeners. \n\n1. To the `add_btn` listener, we pass the inputs as a list. The function `add()` takes each of these inputs as arguments. The value of `a` maps to the argument `num1`, and the value of `b` maps to the argument `num2`.\n2. To the `sub_btn` listener, we pass the inputs as a set (note the curly brackets!). The function `sub()` takes a single dictionary argument `data`, where the keys are the input components, and the values are the values of those components.\n\nIt is a matter of preference which syntax you prefer! For functions with many input components, option 2 may be easier to manage.\n\n<gradio-app space='gradio/calculator_list_and_dict'></gradio-app>\n\n## Function Return List vs Dict\n\nSimilarly, you may return values for multiple output components either as:\n\n1. a list of values, or\n2. a dictionary keyed by the component\n\nLet's first see an example of (1), where we set the values of two output components by returning two values:\n\n```python\nwith gr.Blocks() as demo:\n    food_box = gr.Number(value=10, label=\"Food Count\")\n    status_box = gr.Textbox()\n    def eat(food):\n        if food > 0:\n            return food - 1, \"full\"\n        else:\n            return 0, \"hungry\"\n    gr.Button(\"EAT\").click(\n        fn=eat, \n        inputs=food_box,\n        outputs=[food_box, status_box]\n    )\n```\n\nAbove, each return statement returns two values corresponding to `food_box` and `status_box`, respectively.\n\nInstead of returning a list of values corresponding to each output component in order, you can also return a dictionary, with the key corresponding to the output component and the value as the new value. This also allows you to skip updating some output components. \n\n```python\nwith gr.Blocks() as demo:\n    food_box = gr.Number(value=10, label=\"Food Count\")\n    status_box = gr.Textbox()\n    def eat(food):\n        if food > 0:\n            return {food_box: food - 1, status_box: \"full\"}\n        else:\n            return {status_box: \"hungry\"}\n    gr.Button(\"EAT\").click(\n        fn=eat, \n        inputs=food_box,\n        outputs=[food_box, status_box]\n    )\n```\n\nNotice how when there is no food, we only update the `status_box` element. We skipped updating the `food_box` component.\n\nDictionary returns are helpful when an event listener affects many components on return, or conditionally affects outputs and not others.\n\nKeep in mind that with dictionary returns, we still need to specify the possible outputs in the event listener.\n\n## Updating Component Configurations\n\nThe return value of an event listener function is usually the updated value of the corresponding output Component. Sometimes we want to update the configuration of the Component as well, such as the visibility. In this case, we return a `gr.update()` object instead of just the update Component value.\n\n```python\nimport gradio as gr\n\ndef change_textbox(choice):\n    if choice == \"short\":\n        return gr.update(lines=2, visible=True, value=\"Short story: \")\n    elif choice == \"long\":\n        return gr.update(lines=8, visible=True, value=\"Long story...\")\n    else:\n        return gr.update(visible=False)\n\nwith gr.Blocks() as demo:\n    radio = gr.Radio(\n        [\"short\", \"long\", \"none\"], label=\"Essay Length to Write?\"\n    )\n    text = gr.Textbox(lines=2, interactive=True)\n    radio.change(fn=change_textbox, inputs=radio, outputs=text)\n\ndemo.launch()\n```\n<gradio-app space='gradio/blocks_essay_update'></gradio-app>\n\nSee how we can configure the Textbox itself through the `gr.update()` method. The `value=` argument can still be used to update the value along with Component configuration.\n\n## Running Events Consecutively\n\nYou can also run events consecutively by using the `then` method of an event listener. This will run an event after the previous event has finished running. This is useful for running events that update components in multiple steps. \n\nFor example, in the chatbot example below, we first update the chatbot with the user message immediately, and then update the chatbot with the computer response after a simulated delay.\n\n```python\nimport gradio as gr\nimport random\nimport time\n\nwith gr.Blocks() as demo:\n    chatbot = gr.Chatbot()\n    msg = gr.Textbox()\n    clear = gr.Button(\"Clear\")\n\n    def user(user_message, history):\n        return \"\", history + [[user_message, None]]\n\n    def bot(history):\n        bot_message = random.choice([\"How are you?\", \"I love you\", \"I'm very hungry\"])\n        time.sleep(2)\n        history[-1][1] = bot_message\n        return history\n\n    msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(\n        bot, chatbot, chatbot\n    )\n    clear.click(lambda: None, None, chatbot, queue=False)\n    \ndemo.queue()\ndemo.launch()\n\n```\n<gradio-app space='gradio/chatbot_consecutive'></gradio-app>\n\nThe `.then()` method of an event listener executes the subsequent event regardless of whether the previous event raised any errors. If you'd like to  only run subsequent events if the previous event executed successfully, use the `.success()` method, which takes the same arguments as `.then()`.\n\n## Running Events Continuously\n\nYou can run events on a fixed schedule using the `every` parameter of the event listener. This will run the event\n`every` number of seconds while the client connection is open. If the connection is closed, the event will stop running after the following iteration.\nNote that this does not take into account the runtime of the event itself. So a function\nwith a 1 second runtime running with `every=5`, would actually run every 6 seconds.\n\nHere is an example of a sine curve that updates every second!\n\n```python\nimport math\nimport gradio as gr\nimport plotly.express as px\nimport numpy as np\n\n\nplot_end = 2 * math.pi\n\n\ndef get_plot(period=1):\n    global plot_end\n    x = np.arange(plot_end - 2 * math.pi, plot_end, 0.02)\n    y = np.sin(2*math.pi*period * x)\n    fig = px.line(x=x, y=y)\n    plot_end += 2 * math.pi\n    if plot_end > 1000:\n        plot_end = 2 * math.pi\n    return fig\n\n\nwith gr.Blocks() as demo:\n    with gr.Row():\n        with gr.Column():\n            gr.Markdown(\"Change the value of the slider to automatically update the plot\")\n            period = gr.Slider(label=\"Period of plot\", value=1, minimum=0, maximum=10, step=1)\n            plot = gr.Plot(label=\"Plot (updates every half second)\")\n\n    dep = demo.load(get_plot, None, plot, every=1)\n    period.change(get_plot, period, plot, every=1, cancels=[dep])\n\n\nif __name__ == \"__main__\":\n    demo.queue().launch()\n\n```\n<gradio-app space='gradio/sine_curve'></gradio-app>\n\n## Gathering Event Data\n\nYou can gather specific data about an event by adding the associated event data class as a type hint to an argument in the event listener function. \n\nFor example, event data for `.select()` can be type hinted by a `gradio.SelectData` argument. This event is triggered when a user selects some part of the triggering component, and the event data includes information about what the user specifically selected. If a user selected a specific word in a `Textbox`, a specific image in a `Gallery`, or a specific cell in a `DataFrame`, the event data argument would contain information about the specific selection.\n\nIn the 2 player tic-tac-toe demo below, a user can select a cell in the `DataFrame` to make a move. The event data argument contains information about the specific cell that was selected. We can first check to see if the cell is empty, and then update the cell with the user's move. \n\n```python\nimport gradio as gr\n\nwith gr.Blocks() as demo:\n    turn = gr.Textbox(\"X\", interactive=False, label=\"Turn\")\n    board = gr.Dataframe(value=[[\"\", \"\", \"\"]] * 3, interactive=False, type=\"array\")\n\n    def place(board, turn, evt: gr.SelectData):\n        if evt.value:\n            return board, turn\n        board[evt.index[0]][evt.index[1]] = turn\n        turn = \"O\" if turn == \"X\" else \"X\"\n        return board, turn\n\n    board.select(place, [board, turn], [board, turn])\n\ndemo.launch()\n```\n<gradio-app space='gradio/tictactoe'></gradio-app>",
-						"html": "<h1 id=\"blocks-and-event-listeners\">Blocks and Event Listeners</h1>\n\n<p>We took a quick look at Blocks in the <a rel=\"noopener\" target=\"_blank\" href=\"https://gradio.app/guides/quickstart/#blocks-more-flexibility-and-control\">Quickstart</a>. Let's dive deeper. This guide will cover the how Blocks are structured, event listeners and their types, running events continuously, updating configurations, and using dictionaries vs lists. </p>\n\n<h2 id=\"blocks-structure\">Blocks Structure</h2>\n\n<p>Take a look at the demo below.</p>\n\n<div class='codeblock'><pre><code class='lang-python'>import gradio as gr\n\ndef greet(name):\n    return \"Hello \" + name + \"!\"\n\nwith gr.Blocks() as demo:\n    name = gr.Textbox(label=\"Name\")\n    output = gr.Textbox(label=\"Output Box\")\n    greet_btn = gr.Button(\"Greet\")\n    greet_btn.click(fn=greet, inputs=name, outputs=output, api_name=\"greet\")\n\n\ndemo.launch()\n</code></pre></div>\n\n<p><gradio-app space='gradio/hello_blocks'></gradio-app></p>\n\n<ul>\n<li>First, note the <code>with gr.Blocks() as demo:</code> clause. The Blocks app code will be contained within this clause.</li>\n<li>Next come the Components. These are the same Components used in <code>Interface</code>. However, instead of being passed to some constructor, Components are automatically added to the Blocks as they are created within the <code>with</code> clause.</li>\n<li>Finally, the <code>click()</code> event listener. Event listeners define the data flow within the app. In the example above, the listener ties the two Textboxes together. The Textbox <code>name</code> acts as the input and Textbox <code>output</code> acts as the output to the <code>greet</code> method. This dataflow is triggered when the Button <code>greet_btn</code> is clicked. Like an Interface, an event listener can take multiple inputs or outputs.</li>\n</ul>\n\n<h2 id=\"event-listeners-and-interactivity\">Event Listeners and Interactivity</h2>\n\n<p>In the example above, you'll notice that you are able to edit Textbox <code>name</code>, but not Textbox <code>output</code>. This is because any Component that acts as an input to an event listener is made interactive. However, since Textbox <code>output</code> acts only as an output, it is not interactive. You can directly configure the interactivity of a Component with the <code>interactive=</code> keyword argument. </p>\n\n<div class='codeblock'><pre><code class='lang-python'>output = gr.Textbox(label=\"Output\", interactive=True)\n</code></pre></div>\n\n<h2 id=\"types-of-event-listeners\">Types of Event Listeners</h2>\n\n<p>Take a look at the demo below:</p>\n\n<div class='codeblock'><pre><code class='lang-python'>import gradio as gr\n\ndef welcome(name):\n    return f\"Welcome to Gradio, {name}!\"\n\nwith gr.Blocks() as demo:\n    gr.Markdown(\n    \"\"\"\n    # Hello World!\n    Start typing below to see the output.\n    \"\"\")\n    inp = gr.Textbox(placeholder=\"What is your name?\")\n    out = gr.Textbox()\n    inp.change(welcome, inp, out)\n\ndemo.launch()\n</code></pre></div>\n\n<p><gradio-app space='gradio/blocks_hello'></gradio-app></p>\n\n<p>Instead of being triggered by a click, the <code>welcome</code> function is triggered by typing in the Textbox <code>inp</code>. This is due to the <code>change()</code> event listener. Different Components support different event listeners. For example, the <code>Video</code> Component supports a <code>play()</code> event listener, triggered when a user presses play. See the <a rel=\"noopener\" target=\"_blank\" href=\"http://gradio.app/docs#components\">Docs</a> for the event listeners for each Component.</p>\n\n<h2 id=\"multiple-data-flows\">Multiple Data Flows</h2>\n\n<p>A Blocks app is not limited to a single data flow the way Interfaces are. Take a look at the demo below:</p>\n\n<div class='codeblock'><pre><code class='lang-python'>import gradio as gr\n\ndef increase(num):\n    return num + 1\n\nwith gr.Blocks() as demo:\n    a = gr.Number(label=\"a\")\n    b = gr.Number(label=\"b\")\n    btoa = gr.Button(\"a > b\")\n    atob = gr.Button(\"b > a\")\n    atob.click(increase, a, b)\n    btoa.click(increase, b, a)\n\ndemo.launch()\n</code></pre></div>\n\n<p><gradio-app space='gradio/reversible_flow'></gradio-app></p>\n\n<p>Note that <code>num1</code> can act as input to <code>num2</code>, and also vice-versa! As your apps get more complex, you will have many data flows connecting various Components. </p>\n\n<p>Here's an example of a \"multi-step\" demo, where the output of one model (a speech-to-text model) gets fed into the next model (a sentiment classifier).</p>\n\n<div class='codeblock'><pre><code class='lang-python'>from transformers import pipeline\n\nimport gradio as gr\n\nasr = pipeline(\"automatic-speech-recognition\", \"facebook/wav2vec2-base-960h\")\nclassifier = pipeline(\"text-classification\")\n\n\ndef speech_to_text(speech):\n    text = asr(speech)[\"text\"]\n    return text\n\n\ndef text_to_sentiment(text):\n    return classifier(text)[0][\"label\"]\n\n\ndemo = gr.Blocks()\n\nwith demo:\n    audio_file = gr.Audio(type=\"filepath\")\n    text = gr.Textbox()\n    label = gr.Label()\n\n    b1 = gr.Button(\"Recognize Speech\")\n    b2 = gr.Button(\"Classify Sentiment\")\n\n    b1.click(speech_to_text, inputs=audio_file, outputs=text)\n    b2.click(text_to_sentiment, inputs=text, outputs=label)\n\ndemo.launch()\n\n</code></pre></div>\n\n<p><gradio-app space='gradio/blocks<em>speech</em>text_sentiment'></gradio-app></p>\n\n<h2 id=\"function-input-list-vs-dict\">Function Input List vs Dict</h2>\n\n<p>The event listeners you've seen so far have a single input component. If you'd like to have multiple input components pass data to the function, you have two options on how the function can accept input component values:</p>\n\n<ol>\n<li>as a list of arguments, or</li>\n<li>as a single dictionary of values, keyed by the component</li>\n</ol>\n\n<p>Let's see an example of each:</p>\n\n<div class='codeblock'><pre><code class='lang-python'>import gradio as gr\n\nwith gr.Blocks() as demo:\n    a = gr.Number(label=\"a\")\n    b = gr.Number(label=\"b\")\n    with gr.Row():\n        add_btn = gr.Button(\"Add\")\n        sub_btn = gr.Button(\"Subtract\")\n    c = gr.Number(label=\"sum\")\n\n    def add(num1, num2):\n        return num1 + num2\n    add_btn.click(add, inputs=[a, b], outputs=c)\n\n    def sub(data):\n        return data[a] - data[b]\n    sub_btn.click(sub, inputs={a, b}, outputs=c)\n\n\ndemo.launch()\n</code></pre></div>\n\n<p>Both <code>add()</code> and <code>sub()</code> take <code>a</code> and <code>b</code> as inputs. However, the syntax is different between these listeners. </p>\n\n<ol>\n<li>To the <code>add_btn</code> listener, we pass the inputs as a list. The function <code>add()</code> takes each of these inputs as arguments. The value of <code>a</code> maps to the argument <code>num1</code>, and the value of <code>b</code> maps to the argument <code>num2</code>.</li>\n<li>To the <code>sub_btn</code> listener, we pass the inputs as a set (note the curly brackets!). The function <code>sub()</code> takes a single dictionary argument <code>data</code>, where the keys are the input components, and the values are the values of those components.</li>\n</ol>\n\n<p>It is a matter of preference which syntax you prefer! For functions with many input components, option 2 may be easier to manage.</p>\n\n<p><gradio-app space='gradio/calculator<em>list</em>and_dict'></gradio-app></p>\n\n<h2 id=\"function-return-list-vs-dict\">Function Return List vs Dict</h2>\n\n<p>Similarly, you may return values for multiple output components either as:</p>\n\n<ol>\n<li>a list of values, or</li>\n<li>a dictionary keyed by the component</li>\n</ol>\n\n<p>Let's first see an example of (1), where we set the values of two output components by returning two values:</p>\n\n<div class='codeblock'><pre><code class='lang-python'>with gr.Blocks() as demo:\n    food_box = gr.Number(value=10, label=\"Food Count\")\n    status_box = gr.Textbox()\n    def eat(food):\n        if food > 0:\n            return food - 1, \"full\"\n        else:\n            return 0, \"hungry\"\n    gr.Button(\"EAT\").click(\n        fn=eat, \n        inputs=food_box,\n        outputs=[food_box, status_box]\n    )\n</code></pre></div>\n\n<p>Above, each return statement returns two values corresponding to <code>food_box</code> and <code>status_box</code>, respectively.</p>\n\n<p>Instead of returning a list of values corresponding to each output component in order, you can also return a dictionary, with the key corresponding to the output component and the value as the new value. This also allows you to skip updating some output components. </p>\n\n<div class='codeblock'><pre><code class='lang-python'>with gr.Blocks() as demo:\n    food_box = gr.Number(value=10, label=\"Food Count\")\n    status_box = gr.Textbox()\n    def eat(food):\n        if food > 0:\n            return {food_box: food - 1, status_box: \"full\"}\n        else:\n            return {status_box: \"hungry\"}\n    gr.Button(\"EAT\").click(\n        fn=eat, \n        inputs=food_box,\n        outputs=[food_box, status_box]\n    )\n</code></pre></div>\n\n<p>Notice how when there is no food, we only update the <code>status_box</code> element. We skipped updating the <code>food_box</code> component.</p>\n\n<p>Dictionary returns are helpful when an event listener affects many components on return, or conditionally affects outputs and not others.</p>\n\n<p>Keep in mind that with dictionary returns, we still need to specify the possible outputs in the event listener.</p>\n\n<h2 id=\"updating-component-configurations\">Updating Component Configurations</h2>\n\n<p>The return value of an event listener function is usually the updated value of the corresponding output Component. Sometimes we want to update the configuration of the Component as well, such as the visibility. In this case, we return a <code>gr.update()</code> object instead of just the update Component value.</p>\n\n<div class='codeblock'><pre><code class='lang-python'>import gradio as gr\n\ndef change_textbox(choice):\n    if choice == \"short\":\n        return gr.update(lines=2, visible=True, value=\"Short story: \")\n    elif choice == \"long\":\n        return gr.update(lines=8, visible=True, value=\"Long story...\")\n    else:\n        return gr.update(visible=False)\n\nwith gr.Blocks() as demo:\n    radio = gr.Radio(\n        [\"short\", \"long\", \"none\"], label=\"Essay Length to Write?\"\n    )\n    text = gr.Textbox(lines=2, interactive=True)\n    radio.change(fn=change_textbox, inputs=radio, outputs=text)\n\ndemo.launch()\n</code></pre></div>\n\n<p><gradio-app space='gradio/blocks<em>essay</em>update'></gradio-app></p>\n\n<p>See how we can configure the Textbox itself through the <code>gr.update()</code> method. The <code>value=</code> argument can still be used to update the value along with Component configuration.</p>\n\n<h2 id=\"running-events-consecutively\">Running Events Consecutively</h2>\n\n<p>You can also run events consecutively by using the <code>then</code> method of an event listener. This will run an event after the previous event has finished running. This is useful for running events that update components in multiple steps. </p>\n\n<p>For example, in the chatbot example below, we first update the chatbot with the user message immediately, and then update the chatbot with the computer response after a simulated delay.</p>\n\n<div class='codeblock'><pre><code class='lang-python'>import gradio as gr\nimport random\nimport time\n\nwith gr.Blocks() as demo:\n    chatbot = gr.Chatbot()\n    msg = gr.Textbox()\n    clear = gr.Button(\"Clear\")\n\n    def user(user_message, history):\n        return \"\", history + [[user_message, None]]\n\n    def bot(history):\n        bot_message = random.choice([\"How are you?\", \"I love you\", \"I'm very hungry\"])\n        time.sleep(2)\n        history[-1][1] = bot_message\n        return history\n\n    msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(\n        bot, chatbot, chatbot\n    )\n    clear.click(lambda: None, None, chatbot, queue=False)\n\ndemo.queue()\ndemo.launch()\n\n</code></pre></div>\n\n<p><gradio-app space='gradio/chatbot_consecutive'></gradio-app></p>\n\n<p>The <code>.then()</code> method of an event listener executes the subsequent event regardless of whether the previous event raised any errors. If you'd like to  only run subsequent events if the previous event executed successfully, use the <code>.success()</code> method, which takes the same arguments as <code>.then()</code>.</p>\n\n<h2 id=\"running-events-continuously\">Running Events Continuously</h2>\n\n<p>You can run events on a fixed schedule using the <code>every</code> parameter of the event listener. This will run the event\n<code>every</code> number of seconds while the client connection is open. If the connection is closed, the event will stop running after the following iteration.\nNote that this does not take into account the runtime of the event itself. So a function\nwith a 1 second runtime running with <code>every=5</code>, would actually run every 6 seconds.</p>\n\n<p>Here is an example of a sine curve that updates every second!</p>\n\n<div class='codeblock'><pre><code class='lang-python'>import math\nimport gradio as gr\nimport plotly.express as px\nimport numpy as np\n\n\nplot_end = 2 * math.pi\n\n\ndef get_plot(period=1):\n    global plot_end\n    x = np.arange(plot_end - 2 * math.pi, plot_end, 0.02)\n    y = np.sin(2*math.pi*period * x)\n    fig = px.line(x=x, y=y)\n    plot_end += 2 * math.pi\n    if plot_end > 1000:\n        plot_end = 2 * math.pi\n    return fig\n\n\nwith gr.Blocks() as demo:\n    with gr.Row():\n        with gr.Column():\n            gr.Markdown(\"Change the value of the slider to automatically update the plot\")\n            period = gr.Slider(label=\"Period of plot\", value=1, minimum=0, maximum=10, step=1)\n            plot = gr.Plot(label=\"Plot (updates every half second)\")\n\n    dep = demo.load(get_plot, None, plot, every=1)\n    period.change(get_plot, period, plot, every=1, cancels=[dep])\n\n\nif __name__ == \"__main__\":\n    demo.queue().launch()\n\n</code></pre></div>\n\n<p><gradio-app space='gradio/sine_curve'></gradio-app></p>\n\n<h2 id=\"gathering-event-data\">Gathering Event Data</h2>\n\n<p>You can gather specific data about an event by adding the associated event data class as a type hint to an argument in the event listener function. </p>\n\n<p>For example, event data for <code>.select()</code> can be type hinted by a <code>gradio.SelectData</code> argument. This event is triggered when a user selects some part of the triggering component, and the event data includes information about what the user specifically selected. If a user selected a specific word in a <code>Textbox</code>, a specific image in a <code>Gallery</code>, or a specific cell in a <code>DataFrame</code>, the event data argument would contain information about the specific selection.</p>\n\n<p>In the 2 player tic-tac-toe demo below, a user can select a cell in the <code>DataFrame</code> to make a move. The event data argument contains information about the specific cell that was selected. We can first check to see if the cell is empty, and then update the cell with the user's move. </p>\n\n<div class='codeblock'><pre><code class='lang-python'>import gradio as gr\n\nwith gr.Blocks() as demo:\n    turn = gr.Textbox(\"X\", interactive=False, label=\"Turn\")\n    board = gr.Dataframe(value=[[\"\", \"\", \"\"]] * 3, interactive=False, type=\"array\")\n\n    def place(board, turn, evt: gr.SelectData):\n        if evt.value:\n            return board, turn\n        board[evt.index[0]][evt.index[1]] = turn\n        turn = \"O\" if turn == \"X\" else \"X\"\n        return board, turn\n\n    board.select(place, [board, turn], [board, turn])\n\ndemo.launch()\n</code></pre></div>\n\n<p><gradio-app space='gradio/tictactoe'></gradio-app></p>\n",
+						"content": "# Blocks and Event Listeners\n\nWe took a quick look at Blocks in the [Quickstart](https://gradio.app/guides/quickstart/#blocks-more-flexibility-and-control). Let's dive deeper. This guide will cover the how Blocks are structured, event listeners and their types, running events continuously, updating configurations, and using dictionaries vs lists. \n\n## Blocks Structure\n\nTake a look at the demo below.\n\n```python\nimport gradio as gr\n\ndef greet(name):\n    return \"Hello \" + name + \"!\"\n\nwith gr.Blocks() as demo:\n    name = gr.Textbox(label=\"Name\")\n    output = gr.Textbox(label=\"Output Box\")\n    greet_btn = gr.Button(\"Greet\")\n    greet_btn.click(fn=greet, inputs=name, outputs=output, api_name=\"greet\")\n   \n\ndemo.launch()\n```\n<gradio-app space='gradio/hello_blocks'></gradio-app>\n\n- First, note the `with gr.Blocks() as demo:` clause. The Blocks app code will be contained within this clause.\n- Next come the Components. These are the same Components used in `Interface`. However, instead of being passed to some constructor, Components are automatically added to the Blocks as they are created within the `with` clause.\n- Finally, the `click()` event listener. Event listeners define the data flow within the app. In the example above, the listener ties the two Textboxes together. The Textbox `name` acts as the input and Textbox `output` acts as the output to the `greet` method. This dataflow is triggered when the Button `greet_btn` is clicked. Like an Interface, an event listener can take multiple inputs or outputs.\n\n## Event Listeners and Interactivity\n\nIn the example above, you'll notice that you are able to edit Textbox `name`, but not Textbox `output`. This is because any Component that acts as an input to an event listener is made interactive. However, since Textbox `output` acts only as an output, Gradio determines that it should not be made interactive. You can override the default behavior and directly configure the interactivity of a Component with the boolean `interactive` keyword argument. \n\n```python\noutput = gr.Textbox(label=\"Output\", interactive=True)\n```\n\n_Note_: What happens if a Gradio component is neither an input nor an output? If a component is constructed with a default value, then it is presumed to be displaying content and is rendered non-interactive. Otherwise, it is rendered interactive. Again, this behavior can be overridden by specifying a value for the `interactive` argument.\n\n## Types of Event Listeners\n\nTake a look at the demo below:\n\n```python\nimport gradio as gr\n\ndef welcome(name):\n    return f\"Welcome to Gradio, {name}!\"\n\nwith gr.Blocks() as demo:\n    gr.Markdown(\n    \"\"\"\n    # Hello World!\n    Start typing below to see the output.\n    \"\"\")\n    inp = gr.Textbox(placeholder=\"What is your name?\")\n    out = gr.Textbox()\n    inp.change(welcome, inp, out)\n\ndemo.launch()\n```\n<gradio-app space='gradio/blocks_hello'></gradio-app>\n\nInstead of being triggered by a click, the `welcome` function is triggered by typing in the Textbox `inp`. This is due to the `change()` event listener. Different Components support different event listeners. For example, the `Video` Component supports a `play()` event listener, triggered when a user presses play. See the [Docs](http://gradio.app/docs#components) for the event listeners for each Component.\n\n## Multiple Data Flows\n\nA Blocks app is not limited to a single data flow the way Interfaces are. Take a look at the demo below:\n\n```python\nimport gradio as gr\n\ndef increase(num):\n    return num + 1\n\nwith gr.Blocks() as demo:\n    a = gr.Number(label=\"a\")\n    b = gr.Number(label=\"b\")\n    btoa = gr.Button(\"a > b\")\n    atob = gr.Button(\"b > a\")\n    atob.click(increase, a, b)\n    btoa.click(increase, b, a)\n\ndemo.launch()\n```\n<gradio-app space='gradio/reversible_flow'></gradio-app>\n\nNote that `num1` can act as input to `num2`, and also vice-versa! As your apps get more complex, you will have many data flows connecting various Components. \n\nHere's an example of a \"multi-step\" demo, where the output of one model (a speech-to-text model) gets fed into the next model (a sentiment classifier).\n\n```python\nfrom transformers import pipeline\n\nimport gradio as gr\n\nasr = pipeline(\"automatic-speech-recognition\", \"facebook/wav2vec2-base-960h\")\nclassifier = pipeline(\"text-classification\")\n\n\ndef speech_to_text(speech):\n    text = asr(speech)[\"text\"]\n    return text\n\n\ndef text_to_sentiment(text):\n    return classifier(text)[0][\"label\"]\n\n\ndemo = gr.Blocks()\n\nwith demo:\n    audio_file = gr.Audio(type=\"filepath\")\n    text = gr.Textbox()\n    label = gr.Label()\n\n    b1 = gr.Button(\"Recognize Speech\")\n    b2 = gr.Button(\"Classify Sentiment\")\n\n    b1.click(speech_to_text, inputs=audio_file, outputs=text)\n    b2.click(text_to_sentiment, inputs=text, outputs=label)\n\ndemo.launch()\n\n```\n<gradio-app space='gradio/blocks_speech_text_sentiment'></gradio-app>\n\n## Function Input List vs Dict\n\nThe event listeners you've seen so far have a single input component. If you'd like to have multiple input components pass data to the function, you have two options on how the function can accept input component values:\n\n1. as a list of arguments, or\n2. as a single dictionary of values, keyed by the component\n\nLet's see an example of each:\n```python\nimport gradio as gr\n\nwith gr.Blocks() as demo:\n    a = gr.Number(label=\"a\")\n    b = gr.Number(label=\"b\")\n    with gr.Row():\n        add_btn = gr.Button(\"Add\")\n        sub_btn = gr.Button(\"Subtract\")\n    c = gr.Number(label=\"sum\")\n\n    def add(num1, num2):\n        return num1 + num2\n    add_btn.click(add, inputs=[a, b], outputs=c)\n\n    def sub(data):\n        return data[a] - data[b]\n    sub_btn.click(sub, inputs={a, b}, outputs=c)\n\n\ndemo.launch()\n```\n\nBoth `add()` and `sub()` take `a` and `b` as inputs. However, the syntax is different between these listeners. \n\n1. To the `add_btn` listener, we pass the inputs as a list. The function `add()` takes each of these inputs as arguments. The value of `a` maps to the argument `num1`, and the value of `b` maps to the argument `num2`.\n2. To the `sub_btn` listener, we pass the inputs as a set (note the curly brackets!). The function `sub()` takes a single dictionary argument `data`, where the keys are the input components, and the values are the values of those components.\n\nIt is a matter of preference which syntax you prefer! For functions with many input components, option 2 may be easier to manage.\n\n<gradio-app space='gradio/calculator_list_and_dict'></gradio-app>\n\n## Function Return List vs Dict\n\nSimilarly, you may return values for multiple output components either as:\n\n1. a list of values, or\n2. a dictionary keyed by the component\n\nLet's first see an example of (1), where we set the values of two output components by returning two values:\n\n```python\nwith gr.Blocks() as demo:\n    food_box = gr.Number(value=10, label=\"Food Count\")\n    status_box = gr.Textbox()\n    def eat(food):\n        if food > 0:\n            return food - 1, \"full\"\n        else:\n            return 0, \"hungry\"\n    gr.Button(\"EAT\").click(\n        fn=eat, \n        inputs=food_box,\n        outputs=[food_box, status_box]\n    )\n```\n\nAbove, each return statement returns two values corresponding to `food_box` and `status_box`, respectively.\n\nInstead of returning a list of values corresponding to each output component in order, you can also return a dictionary, with the key corresponding to the output component and the value as the new value. This also allows you to skip updating some output components. \n\n```python\nwith gr.Blocks() as demo:\n    food_box = gr.Number(value=10, label=\"Food Count\")\n    status_box = gr.Textbox()\n    def eat(food):\n        if food > 0:\n            return {food_box: food - 1, status_box: \"full\"}\n        else:\n            return {status_box: \"hungry\"}\n    gr.Button(\"EAT\").click(\n        fn=eat, \n        inputs=food_box,\n        outputs=[food_box, status_box]\n    )\n```\n\nNotice how when there is no food, we only update the `status_box` element. We skipped updating the `food_box` component.\n\nDictionary returns are helpful when an event listener affects many components on return, or conditionally affects outputs and not others.\n\nKeep in mind that with dictionary returns, we still need to specify the possible outputs in the event listener.\n\n## Updating Component Configurations\n\nThe return value of an event listener function is usually the updated value of the corresponding output Component. Sometimes we want to update the configuration of the Component as well, such as the visibility. In this case, we return a `gr.update()` object instead of just the update Component value.\n\n```python\nimport gradio as gr\n\ndef change_textbox(choice):\n    if choice == \"short\":\n        return gr.update(lines=2, visible=True, value=\"Short story: \")\n    elif choice == \"long\":\n        return gr.update(lines=8, visible=True, value=\"Long story...\")\n    else:\n        return gr.update(visible=False)\n\nwith gr.Blocks() as demo:\n    radio = gr.Radio(\n        [\"short\", \"long\", \"none\"], label=\"Essay Length to Write?\"\n    )\n    text = gr.Textbox(lines=2, interactive=True)\n    radio.change(fn=change_textbox, inputs=radio, outputs=text)\n\ndemo.launch()\n```\n<gradio-app space='gradio/blocks_essay_update'></gradio-app>\n\nSee how we can configure the Textbox itself through the `gr.update()` method. The `value=` argument can still be used to update the value along with Component configuration.\n\n## Running Events Consecutively\n\nYou can also run events consecutively by using the `then` method of an event listener. This will run an event after the previous event has finished running. This is useful for running events that update components in multiple steps. \n\nFor example, in the chatbot example below, we first update the chatbot with the user message immediately, and then update the chatbot with the computer response after a simulated delay.\n\n```python\nimport gradio as gr\nimport random\nimport time\n\nwith gr.Blocks() as demo:\n    chatbot = gr.Chatbot()\n    msg = gr.Textbox()\n    clear = gr.Button(\"Clear\")\n\n    def user(user_message, history):\n        return \"\", history + [[user_message, None]]\n\n    def bot(history):\n        bot_message = random.choice([\"How are you?\", \"I love you\", \"I'm very hungry\"])\n        time.sleep(2)\n        history[-1][1] = bot_message\n        return history\n\n    msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(\n        bot, chatbot, chatbot\n    )\n    clear.click(lambda: None, None, chatbot, queue=False)\n    \ndemo.queue()\ndemo.launch()\n\n```\n<gradio-app space='gradio/chatbot_consecutive'></gradio-app>\n\nThe `.then()` method of an event listener executes the subsequent event regardless of whether the previous event raised any errors. If you'd like to  only run subsequent events if the previous event executed successfully, use the `.success()` method, which takes the same arguments as `.then()`.\n\n## Running Events Continuously\n\nYou can run events on a fixed schedule using the `every` parameter of the event listener. This will run the event\n`every` number of seconds while the client connection is open. If the connection is closed, the event will stop running after the following iteration.\nNote that this does not take into account the runtime of the event itself. So a function\nwith a 1 second runtime running with `every=5`, would actually run every 6 seconds.\n\nHere is an example of a sine curve that updates every second!\n\n```python\nimport math\nimport gradio as gr\nimport plotly.express as px\nimport numpy as np\n\n\nplot_end = 2 * math.pi\n\n\ndef get_plot(period=1):\n    global plot_end\n    x = np.arange(plot_end - 2 * math.pi, plot_end, 0.02)\n    y = np.sin(2*math.pi*period * x)\n    fig = px.line(x=x, y=y)\n    plot_end += 2 * math.pi\n    if plot_end > 1000:\n        plot_end = 2 * math.pi\n    return fig\n\n\nwith gr.Blocks() as demo:\n    with gr.Row():\n        with gr.Column():\n            gr.Markdown(\"Change the value of the slider to automatically update the plot\")\n            period = gr.Slider(label=\"Period of plot\", value=1, minimum=0, maximum=10, step=1)\n            plot = gr.Plot(label=\"Plot (updates every half second)\")\n\n    dep = demo.load(get_plot, None, plot, every=1)\n    period.change(get_plot, period, plot, every=1, cancels=[dep])\n\n\nif __name__ == \"__main__\":\n    demo.queue().launch()\n\n```\n<gradio-app space='gradio/sine_curve'></gradio-app>\n\n## Gathering Event Data\n\nYou can gather specific data about an event by adding the associated event data class as a type hint to an argument in the event listener function. \n\nFor example, event data for `.select()` can be type hinted by a `gradio.SelectData` argument. This event is triggered when a user selects some part of the triggering component, and the event data includes information about what the user specifically selected. If a user selected a specific word in a `Textbox`, a specific image in a `Gallery`, or a specific cell in a `DataFrame`, the event data argument would contain information about the specific selection.\n\nIn the 2 player tic-tac-toe demo below, a user can select a cell in the `DataFrame` to make a move. The event data argument contains information about the specific cell that was selected. We can first check to see if the cell is empty, and then update the cell with the user's move. \n\n```python\nimport gradio as gr\n\nwith gr.Blocks() as demo:\n    turn = gr.Textbox(\"X\", interactive=False, label=\"Turn\")\n    board = gr.Dataframe(value=[[\"\", \"\", \"\"]] * 3, interactive=False, type=\"array\")\n\n    def place(board, turn, evt: gr.SelectData):\n        if evt.value:\n            return board, turn\n        board[evt.index[0]][evt.index[1]] = turn\n        turn = \"O\" if turn == \"X\" else \"X\"\n        return board, turn\n\n    board.select(place, [board, turn], [board, turn])\n\ndemo.launch()\n```\n<gradio-app space='gradio/tictactoe'></gradio-app>",
+						"html": "<h1 id=\"blocks-and-event-listeners\">Blocks and Event Listeners</h1>\n\n<p>We took a quick look at Blocks in the <a rel=\"noopener\" target=\"_blank\" href=\"https://gradio.app/guides/quickstart/#blocks-more-flexibility-and-control\">Quickstart</a>. Let's dive deeper. This guide will cover the how Blocks are structured, event listeners and their types, running events continuously, updating configurations, and using dictionaries vs lists. </p>\n\n<h2 id=\"blocks-structure\">Blocks Structure</h2>\n\n<p>Take a look at the demo below.</p>\n\n<div class='codeblock'><pre><code class='lang-python'>import gradio as gr\n\ndef greet(name):\n    return \"Hello \" + name + \"!\"\n\nwith gr.Blocks() as demo:\n    name = gr.Textbox(label=\"Name\")\n    output = gr.Textbox(label=\"Output Box\")\n    greet_btn = gr.Button(\"Greet\")\n    greet_btn.click(fn=greet, inputs=name, outputs=output, api_name=\"greet\")\n\n\ndemo.launch()\n</code></pre></div>\n\n<p><gradio-app space='gradio/hello_blocks'></gradio-app></p>\n\n<ul>\n<li>First, note the <code>with gr.Blocks() as demo:</code> clause. The Blocks app code will be contained within this clause.</li>\n<li>Next come the Components. These are the same Components used in <code>Interface</code>. However, instead of being passed to some constructor, Components are automatically added to the Blocks as they are created within the <code>with</code> clause.</li>\n<li>Finally, the <code>click()</code> event listener. Event listeners define the data flow within the app. In the example above, the listener ties the two Textboxes together. The Textbox <code>name</code> acts as the input and Textbox <code>output</code> acts as the output to the <code>greet</code> method. This dataflow is triggered when the Button <code>greet_btn</code> is clicked. Like an Interface, an event listener can take multiple inputs or outputs.</li>\n</ul>\n\n<h2 id=\"event-listeners-and-interactivity\">Event Listeners and Interactivity</h2>\n\n<p>In the example above, you'll notice that you are able to edit Textbox <code>name</code>, but not Textbox <code>output</code>. This is because any Component that acts as an input to an event listener is made interactive. However, since Textbox <code>output</code> acts only as an output, Gradio determines that it should not be made interactive. You can override the default behavior and directly configure the interactivity of a Component with the boolean <code>interactive</code> keyword argument. </p>\n\n<div class='codeblock'><pre><code class='lang-python'>output = gr.Textbox(label=\"Output\", interactive=True)\n</code></pre></div>\n\n<p><em>Note</em>: What happens if a Gradio component is neither an input nor an output? If a component is constructed with a default value, then it is presumed to be displaying content and is rendered non-interactive. Otherwise, it is rendered interactive. Again, this behavior can be overridden by specifying a value for the <code>interactive</code> argument.</p>\n\n<h2 id=\"types-of-event-listeners\">Types of Event Listeners</h2>\n\n<p>Take a look at the demo below:</p>\n\n<div class='codeblock'><pre><code class='lang-python'>import gradio as gr\n\ndef welcome(name):\n    return f\"Welcome to Gradio, {name}!\"\n\nwith gr.Blocks() as demo:\n    gr.Markdown(\n    \"\"\"\n    # Hello World!\n    Start typing below to see the output.\n    \"\"\")\n    inp = gr.Textbox(placeholder=\"What is your name?\")\n    out = gr.Textbox()\n    inp.change(welcome, inp, out)\n\ndemo.launch()\n</code></pre></div>\n\n<p><gradio-app space='gradio/blocks_hello'></gradio-app></p>\n\n<p>Instead of being triggered by a click, the <code>welcome</code> function is triggered by typing in the Textbox <code>inp</code>. This is due to the <code>change()</code> event listener. Different Components support different event listeners. For example, the <code>Video</code> Component supports a <code>play()</code> event listener, triggered when a user presses play. See the <a rel=\"noopener\" target=\"_blank\" href=\"http://gradio.app/docs#components\">Docs</a> for the event listeners for each Component.</p>\n\n<h2 id=\"multiple-data-flows\">Multiple Data Flows</h2>\n\n<p>A Blocks app is not limited to a single data flow the way Interfaces are. Take a look at the demo below:</p>\n\n<div class='codeblock'><pre><code class='lang-python'>import gradio as gr\n\ndef increase(num):\n    return num + 1\n\nwith gr.Blocks() as demo:\n    a = gr.Number(label=\"a\")\n    b = gr.Number(label=\"b\")\n    btoa = gr.Button(\"a > b\")\n    atob = gr.Button(\"b > a\")\n    atob.click(increase, a, b)\n    btoa.click(increase, b, a)\n\ndemo.launch()\n</code></pre></div>\n\n<p><gradio-app space='gradio/reversible_flow'></gradio-app></p>\n\n<p>Note that <code>num1</code> can act as input to <code>num2</code>, and also vice-versa! As your apps get more complex, you will have many data flows connecting various Components. </p>\n\n<p>Here's an example of a \"multi-step\" demo, where the output of one model (a speech-to-text model) gets fed into the next model (a sentiment classifier).</p>\n\n<div class='codeblock'><pre><code class='lang-python'>from transformers import pipeline\n\nimport gradio as gr\n\nasr = pipeline(\"automatic-speech-recognition\", \"facebook/wav2vec2-base-960h\")\nclassifier = pipeline(\"text-classification\")\n\n\ndef speech_to_text(speech):\n    text = asr(speech)[\"text\"]\n    return text\n\n\ndef text_to_sentiment(text):\n    return classifier(text)[0][\"label\"]\n\n\ndemo = gr.Blocks()\n\nwith demo:\n    audio_file = gr.Audio(type=\"filepath\")\n    text = gr.Textbox()\n    label = gr.Label()\n\n    b1 = gr.Button(\"Recognize Speech\")\n    b2 = gr.Button(\"Classify Sentiment\")\n\n    b1.click(speech_to_text, inputs=audio_file, outputs=text)\n    b2.click(text_to_sentiment, inputs=text, outputs=label)\n\ndemo.launch()\n\n</code></pre></div>\n\n<p><gradio-app space='gradio/blocks<em>speech</em>text_sentiment'></gradio-app></p>\n\n<h2 id=\"function-input-list-vs-dict\">Function Input List vs Dict</h2>\n\n<p>The event listeners you've seen so far have a single input component. If you'd like to have multiple input components pass data to the function, you have two options on how the function can accept input component values:</p>\n\n<ol>\n<li>as a list of arguments, or</li>\n<li>as a single dictionary of values, keyed by the component</li>\n</ol>\n\n<p>Let's see an example of each:</p>\n\n<div class='codeblock'><pre><code class='lang-python'>import gradio as gr\n\nwith gr.Blocks() as demo:\n    a = gr.Number(label=\"a\")\n    b = gr.Number(label=\"b\")\n    with gr.Row():\n        add_btn = gr.Button(\"Add\")\n        sub_btn = gr.Button(\"Subtract\")\n    c = gr.Number(label=\"sum\")\n\n    def add(num1, num2):\n        return num1 + num2\n    add_btn.click(add, inputs=[a, b], outputs=c)\n\n    def sub(data):\n        return data[a] - data[b]\n    sub_btn.click(sub, inputs={a, b}, outputs=c)\n\n\ndemo.launch()\n</code></pre></div>\n\n<p>Both <code>add()</code> and <code>sub()</code> take <code>a</code> and <code>b</code> as inputs. However, the syntax is different between these listeners. </p>\n\n<ol>\n<li>To the <code>add_btn</code> listener, we pass the inputs as a list. The function <code>add()</code> takes each of these inputs as arguments. The value of <code>a</code> maps to the argument <code>num1</code>, and the value of <code>b</code> maps to the argument <code>num2</code>.</li>\n<li>To the <code>sub_btn</code> listener, we pass the inputs as a set (note the curly brackets!). The function <code>sub()</code> takes a single dictionary argument <code>data</code>, where the keys are the input components, and the values are the values of those components.</li>\n</ol>\n\n<p>It is a matter of preference which syntax you prefer! For functions with many input components, option 2 may be easier to manage.</p>\n\n<p><gradio-app space='gradio/calculator<em>list</em>and_dict'></gradio-app></p>\n\n<h2 id=\"function-return-list-vs-dict\">Function Return List vs Dict</h2>\n\n<p>Similarly, you may return values for multiple output components either as:</p>\n\n<ol>\n<li>a list of values, or</li>\n<li>a dictionary keyed by the component</li>\n</ol>\n\n<p>Let's first see an example of (1), where we set the values of two output components by returning two values:</p>\n\n<div class='codeblock'><pre><code class='lang-python'>with gr.Blocks() as demo:\n    food_box = gr.Number(value=10, label=\"Food Count\")\n    status_box = gr.Textbox()\n    def eat(food):\n        if food > 0:\n            return food - 1, \"full\"\n        else:\n            return 0, \"hungry\"\n    gr.Button(\"EAT\").click(\n        fn=eat, \n        inputs=food_box,\n        outputs=[food_box, status_box]\n    )\n</code></pre></div>\n\n<p>Above, each return statement returns two values corresponding to <code>food_box</code> and <code>status_box</code>, respectively.</p>\n\n<p>Instead of returning a list of values corresponding to each output component in order, you can also return a dictionary, with the key corresponding to the output component and the value as the new value. This also allows you to skip updating some output components. </p>\n\n<div class='codeblock'><pre><code class='lang-python'>with gr.Blocks() as demo:\n    food_box = gr.Number(value=10, label=\"Food Count\")\n    status_box = gr.Textbox()\n    def eat(food):\n        if food > 0:\n            return {food_box: food - 1, status_box: \"full\"}\n        else:\n            return {status_box: \"hungry\"}\n    gr.Button(\"EAT\").click(\n        fn=eat, \n        inputs=food_box,\n        outputs=[food_box, status_box]\n    )\n</code></pre></div>\n\n<p>Notice how when there is no food, we only update the <code>status_box</code> element. We skipped updating the <code>food_box</code> component.</p>\n\n<p>Dictionary returns are helpful when an event listener affects many components on return, or conditionally affects outputs and not others.</p>\n\n<p>Keep in mind that with dictionary returns, we still need to specify the possible outputs in the event listener.</p>\n\n<h2 id=\"updating-component-configurations\">Updating Component Configurations</h2>\n\n<p>The return value of an event listener function is usually the updated value of the corresponding output Component. Sometimes we want to update the configuration of the Component as well, such as the visibility. In this case, we return a <code>gr.update()</code> object instead of just the update Component value.</p>\n\n<div class='codeblock'><pre><code class='lang-python'>import gradio as gr\n\ndef change_textbox(choice):\n    if choice == \"short\":\n        return gr.update(lines=2, visible=True, value=\"Short story: \")\n    elif choice == \"long\":\n        return gr.update(lines=8, visible=True, value=\"Long story...\")\n    else:\n        return gr.update(visible=False)\n\nwith gr.Blocks() as demo:\n    radio = gr.Radio(\n        [\"short\", \"long\", \"none\"], label=\"Essay Length to Write?\"\n    )\n    text = gr.Textbox(lines=2, interactive=True)\n    radio.change(fn=change_textbox, inputs=radio, outputs=text)\n\ndemo.launch()\n</code></pre></div>\n\n<p><gradio-app space='gradio/blocks<em>essay</em>update'></gradio-app></p>\n\n<p>See how we can configure the Textbox itself through the <code>gr.update()</code> method. The <code>value=</code> argument can still be used to update the value along with Component configuration.</p>\n\n<h2 id=\"running-events-consecutively\">Running Events Consecutively</h2>\n\n<p>You can also run events consecutively by using the <code>then</code> method of an event listener. This will run an event after the previous event has finished running. This is useful for running events that update components in multiple steps. </p>\n\n<p>For example, in the chatbot example below, we first update the chatbot with the user message immediately, and then update the chatbot with the computer response after a simulated delay.</p>\n\n<div class='codeblock'><pre><code class='lang-python'>import gradio as gr\nimport random\nimport time\n\nwith gr.Blocks() as demo:\n    chatbot = gr.Chatbot()\n    msg = gr.Textbox()\n    clear = gr.Button(\"Clear\")\n\n    def user(user_message, history):\n        return \"\", history + [[user_message, None]]\n\n    def bot(history):\n        bot_message = random.choice([\"How are you?\", \"I love you\", \"I'm very hungry\"])\n        time.sleep(2)\n        history[-1][1] = bot_message\n        return history\n\n    msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(\n        bot, chatbot, chatbot\n    )\n    clear.click(lambda: None, None, chatbot, queue=False)\n\ndemo.queue()\ndemo.launch()\n\n</code></pre></div>\n\n<p><gradio-app space='gradio/chatbot_consecutive'></gradio-app></p>\n\n<p>The <code>.then()</code> method of an event listener executes the subsequent event regardless of whether the previous event raised any errors. If you'd like to  only run subsequent events if the previous event executed successfully, use the <code>.success()</code> method, which takes the same arguments as <code>.then()</code>.</p>\n\n<h2 id=\"running-events-continuously\">Running Events Continuously</h2>\n\n<p>You can run events on a fixed schedule using the <code>every</code> parameter of the event listener. This will run the event\n<code>every</code> number of seconds while the client connection is open. If the connection is closed, the event will stop running after the following iteration.\nNote that this does not take into account the runtime of the event itself. So a function\nwith a 1 second runtime running with <code>every=5</code>, would actually run every 6 seconds.</p>\n\n<p>Here is an example of a sine curve that updates every second!</p>\n\n<div class='codeblock'><pre><code class='lang-python'>import math\nimport gradio as gr\nimport plotly.express as px\nimport numpy as np\n\n\nplot_end = 2 * math.pi\n\n\ndef get_plot(period=1):\n    global plot_end\n    x = np.arange(plot_end - 2 * math.pi, plot_end, 0.02)\n    y = np.sin(2*math.pi*period * x)\n    fig = px.line(x=x, y=y)\n    plot_end += 2 * math.pi\n    if plot_end > 1000:\n        plot_end = 2 * math.pi\n    return fig\n\n\nwith gr.Blocks() as demo:\n    with gr.Row():\n        with gr.Column():\n            gr.Markdown(\"Change the value of the slider to automatically update the plot\")\n            period = gr.Slider(label=\"Period of plot\", value=1, minimum=0, maximum=10, step=1)\n            plot = gr.Plot(label=\"Plot (updates every half second)\")\n\n    dep = demo.load(get_plot, None, plot, every=1)\n    period.change(get_plot, period, plot, every=1, cancels=[dep])\n\n\nif __name__ == \"__main__\":\n    demo.queue().launch()\n\n</code></pre></div>\n\n<p><gradio-app space='gradio/sine_curve'></gradio-app></p>\n\n<h2 id=\"gathering-event-data\">Gathering Event Data</h2>\n\n<p>You can gather specific data about an event by adding the associated event data class as a type hint to an argument in the event listener function. </p>\n\n<p>For example, event data for <code>.select()</code> can be type hinted by a <code>gradio.SelectData</code> argument. This event is triggered when a user selects some part of the triggering component, and the event data includes information about what the user specifically selected. If a user selected a specific word in a <code>Textbox</code>, a specific image in a <code>Gallery</code>, or a specific cell in a <code>DataFrame</code>, the event data argument would contain information about the specific selection.</p>\n\n<p>In the 2 player tic-tac-toe demo below, a user can select a cell in the <code>DataFrame</code> to make a move. The event data argument contains information about the specific cell that was selected. We can first check to see if the cell is empty, and then update the cell with the user's move. </p>\n\n<div class='codeblock'><pre><code class='lang-python'>import gradio as gr\n\nwith gr.Blocks() as demo:\n    turn = gr.Textbox(\"X\", interactive=False, label=\"Turn\")\n    board = gr.Dataframe(value=[[\"\", \"\", \"\"]] * 3, interactive=False, type=\"array\")\n\n    def place(board, turn, evt: gr.SelectData):\n        if evt.value:\n            return board, turn\n        board[evt.index[0]][evt.index[1]] = turn\n        turn = \"O\" if turn == \"X\" else \"X\"\n        return board, turn\n\n    board.select(place, [board, turn], [board, turn])\n\ndemo.launch()\n</code></pre></div>\n\n<p><gradio-app space='gradio/tictactoe'></gradio-app></p>\n",
 						"tags": [],
 						"spaces": [],
 						"url": "/guides/blocks-and-event-listeners/",
@@ -2345,9 +2345,9 @@
 				],
 				"parent": "gradio"
 			},
-			"blurrable": {
+			"focusable": {
 				"class": null,
-				"name": "Blurrable",
+				"name": "Focusable",
 				"description": "",
 				"tags": {},
 				"parameters": [
@@ -2360,6 +2360,101 @@
 				"returns": { "annotation": null },
 				"example": "",
 				"fns": [
+					{
+						"fn": null,
+						"name": "focus",
+						"description": "This listener is triggered when the component is focused (e.g. when the user clicks inside a textbox). This method can be used when this component is in a Gradio Blocks.",
+						"tags": {},
+						"parameters": [
+							{
+								"name": "fn",
+								"annotation": "Callable | None",
+								"doc": "the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component."
+							},
+							{
+								"name": "inputs",
+								"annotation": "Component | Sequence[Component] | set[Component] | None",
+								"doc": "List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.",
+								"default": "None"
+							},
+							{
+								"name": "outputs",
+								"annotation": "Component | Sequence[Component] | None",
+								"doc": "List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.",
+								"default": "None"
+							},
+							{
+								"name": "api_name",
+								"annotation": "str | None | Literal[False]",
+								"doc": "Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.",
+								"default": "None"
+							},
+							{
+								"name": "status_tracker",
+								"annotation": "None",
+								"doc": null,
+								"default": "None"
+							},
+							{
+								"name": "scroll_to_output",
+								"annotation": "bool",
+								"doc": "If True, will scroll to output component on completion",
+								"default": "False"
+							},
+							{
+								"name": "show_progress",
+								"annotation": "Literal['full', 'minimal', 'hidden']",
+								"doc": "If True, will show progress animation while pending",
+								"default": "\"full\""
+							},
+							{
+								"name": "queue",
+								"annotation": "bool | None",
+								"doc": "If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.",
+								"default": "None"
+							},
+							{
+								"name": "batch",
+								"annotation": "bool",
+								"doc": "If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.",
+								"default": "False"
+							},
+							{
+								"name": "max_batch_size",
+								"annotation": "int",
+								"doc": "Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)",
+								"default": "4"
+							},
+							{
+								"name": "preprocess",
+								"annotation": "bool",
+								"doc": "If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).",
+								"default": "True"
+							},
+							{
+								"name": "postprocess",
+								"annotation": "bool",
+								"doc": "If False, will not run postprocessing of component data before returning 'fn' output to the browser.",
+								"default": "True"
+							},
+							{
+								"name": "cancels",
+								"annotation": "dict[str, Any] | list[dict[str, Any]] | None",
+								"doc": "A list of other events to cancel when This listener is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method. Functions that have not yet run (or generators that are iterating) will be cancelled, but functions that are currently running will be allowed to finish.",
+								"default": "None"
+							},
+							{
+								"name": "every",
+								"annotation": "float | None",
+								"doc": "Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.",
+								"default": "None"
+							}
+						],
+						"returns": {},
+						"example": null,
+						"override_signature": null,
+						"parent": "gradio.Focusable"
+					},
 					{
 						"fn": null,
 						"name": "blur",
@@ -2453,7 +2548,7 @@
 						"returns": {},
 						"example": null,
 						"override_signature": null,
-						"parent": "gradio.Blurrable"
+						"parent": "gradio.Focusable"
 					}
 				],
 				"parent": "gradio"
@@ -8025,6 +8120,101 @@
 					},
 					{
 						"fn": null,
+						"name": "focus",
+						"description": "This listener is triggered when the component is focused (e.g. when the user clicks inside a textbox). This method can be used when this component is in a Gradio Blocks.",
+						"tags": {},
+						"parameters": [
+							{
+								"name": "fn",
+								"annotation": "Callable | None",
+								"doc": "the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component."
+							},
+							{
+								"name": "inputs",
+								"annotation": "Component | Sequence[Component] | set[Component] | None",
+								"doc": "List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.",
+								"default": "None"
+							},
+							{
+								"name": "outputs",
+								"annotation": "Component | Sequence[Component] | None",
+								"doc": "List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.",
+								"default": "None"
+							},
+							{
+								"name": "api_name",
+								"annotation": "str | None | Literal[False]",
+								"doc": "Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.",
+								"default": "None"
+							},
+							{
+								"name": "status_tracker",
+								"annotation": "None",
+								"doc": null,
+								"default": "None"
+							},
+							{
+								"name": "scroll_to_output",
+								"annotation": "bool",
+								"doc": "If True, will scroll to output component on completion",
+								"default": "False"
+							},
+							{
+								"name": "show_progress",
+								"annotation": "Literal['full', 'minimal', 'hidden']",
+								"doc": "If True, will show progress animation while pending",
+								"default": "\"full\""
+							},
+							{
+								"name": "queue",
+								"annotation": "bool | None",
+								"doc": "If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.",
+								"default": "None"
+							},
+							{
+								"name": "batch",
+								"annotation": "bool",
+								"doc": "If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.",
+								"default": "False"
+							},
+							{
+								"name": "max_batch_size",
+								"annotation": "int",
+								"doc": "Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)",
+								"default": "4"
+							},
+							{
+								"name": "preprocess",
+								"annotation": "bool",
+								"doc": "If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).",
+								"default": "True"
+							},
+							{
+								"name": "postprocess",
+								"annotation": "bool",
+								"doc": "If False, will not run postprocessing of component data before returning 'fn' output to the browser.",
+								"default": "True"
+							},
+							{
+								"name": "cancels",
+								"annotation": "dict[str, Any] | list[dict[str, Any]] | None",
+								"doc": "A list of other events to cancel when This listener is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method. Functions that have not yet run (or generators that are iterating) will be cancelled, but functions that are currently running will be allowed to finish.",
+								"default": "None"
+							},
+							{
+								"name": "every",
+								"annotation": "float | None",
+								"doc": "Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.",
+								"default": "None"
+							}
+						],
+						"returns": {},
+						"example": null,
+						"override_signature": null,
+						"parent": "gradio.ColorPicker"
+					},
+					{
+						"fn": null,
 						"name": "blur",
 						"description": "This listener is triggered when the component's is unfocused/blurred (e.g. when the user clicks outside of a textbox). This method can be used when this component is in a Gradio Blocks.",
 						"tags": {},
@@ -8915,6 +9105,12 @@
 						"default": "None"
 					},
 					{
+						"name": "allow_custom_value",
+						"annotation": "bool",
+						"doc": "If True, allows user to enter a custom value that is not in the list of choices. Only applies if `multiselect` is False.",
+						"default": "False"
+					},
+					{
 						"name": "max_choices",
 						"annotation": "int | None",
 						"doc": "maximum number of choices that can be selected. If None, no limit is enforced.",
@@ -8985,12 +9181,6 @@
 						"annotation": "list[str] | str | None",
 						"doc": "An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.",
 						"default": "None"
-					},
-					{
-						"name": "allow_custom_value",
-						"annotation": "bool",
-						"doc": "If True, allows user to enter a custom value that is not in the list of choices.",
-						"default": "False"
 					}
 				],
 				"returns": { "annotation": null },
@@ -9095,6 +9285,101 @@
 						"fn": null,
 						"name": "input",
 						"description": "This listener is triggered when the user changes the value of the component. This method can be used when this component is in a Gradio Blocks.",
+						"tags": {},
+						"parameters": [
+							{
+								"name": "fn",
+								"annotation": "Callable | None",
+								"doc": "the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component."
+							},
+							{
+								"name": "inputs",
+								"annotation": "Component | Sequence[Component] | set[Component] | None",
+								"doc": "List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.",
+								"default": "None"
+							},
+							{
+								"name": "outputs",
+								"annotation": "Component | Sequence[Component] | None",
+								"doc": "List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.",
+								"default": "None"
+							},
+							{
+								"name": "api_name",
+								"annotation": "str | None | Literal[False]",
+								"doc": "Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.",
+								"default": "None"
+							},
+							{
+								"name": "status_tracker",
+								"annotation": "None",
+								"doc": null,
+								"default": "None"
+							},
+							{
+								"name": "scroll_to_output",
+								"annotation": "bool",
+								"doc": "If True, will scroll to output component on completion",
+								"default": "False"
+							},
+							{
+								"name": "show_progress",
+								"annotation": "Literal['full', 'minimal', 'hidden']",
+								"doc": "If True, will show progress animation while pending",
+								"default": "\"full\""
+							},
+							{
+								"name": "queue",
+								"annotation": "bool | None",
+								"doc": "If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.",
+								"default": "None"
+							},
+							{
+								"name": "batch",
+								"annotation": "bool",
+								"doc": "If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.",
+								"default": "False"
+							},
+							{
+								"name": "max_batch_size",
+								"annotation": "int",
+								"doc": "Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)",
+								"default": "4"
+							},
+							{
+								"name": "preprocess",
+								"annotation": "bool",
+								"doc": "If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).",
+								"default": "True"
+							},
+							{
+								"name": "postprocess",
+								"annotation": "bool",
+								"doc": "If False, will not run postprocessing of component data before returning 'fn' output to the browser.",
+								"default": "True"
+							},
+							{
+								"name": "cancels",
+								"annotation": "dict[str, Any] | list[dict[str, Any]] | None",
+								"doc": "A list of other events to cancel when This listener is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method. Functions that have not yet run (or generators that are iterating) will be cancelled, but functions that are currently running will be allowed to finish.",
+								"default": "None"
+							},
+							{
+								"name": "every",
+								"annotation": "float | None",
+								"doc": "Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.",
+								"default": "None"
+							}
+						],
+						"returns": {},
+						"example": null,
+						"override_signature": null,
+						"parent": "gradio.Dropdown"
+					},
+					{
+						"fn": null,
+						"name": "focus",
+						"description": "This listener is triggered when the component is focused (e.g. when the user clicks inside a textbox). This method can be used when this component is in a Gradio Blocks.",
 						"tags": {},
 						"parameters": [
 							{
@@ -10194,6 +10479,12 @@
 						"annotation": "bool | None",
 						"doc": "If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.",
 						"default": "None"
+					},
+					{
+						"name": "show_download_button",
+						"annotation": "bool | None",
+						"doc": "If True, will show a download button in the corner of the selected image. If False, the icon does not appear. Default is True.",
+						"default": "True"
 					}
 				],
 				"returns": { "annotation": null },
@@ -10501,7 +10792,7 @@
 				"description": "Displays text that contains spans that are highlighted by category or numerical value. <br>",
 				"tags": {
 					"preprocessing": "this component does *not* accept input.",
-					"postprocessing": "expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels, or a {Dict} with two keys: (1) \"text\" whose value is the complete text, and \"entities\", which is a list of dictionaries, each of which have the keys: \"entity\" (consisting of the entity label), \"start\" (the character index where the label starts), and \"end\" (the character index where the label ends). Entities should not overlap.",
+					"postprocessing": "expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels, or a {Dict} with two keys: (1) \"text\" whose value is the complete text, and (2) \"entities\", which is a list of dictionaries, each of which have the keys: \"entity\" (consisting of the entity label, can alternatively be called \"entity_group\"), \"start\" (the character index where the label starts), and \"end\" (the character index where the label ends). Entities should not overlap.",
 					"demos": "diff_texts, text_analysis",
 					"guides": "named-entity-recognition"
 				},
@@ -10824,7 +11115,7 @@
 					}
 				],
 				"preprocessing": "this component does *not* accept input.",
-				"postprocessing": "expects a <span class='text-orange-500' style='font-family: monospace; font-size: large;' >List[Tuple[str, float | str]]]</span> consisting of spans of text and their associated labels, or a <span class='text-orange-500' style='font-family: monospace; font-size: large;' >Dict</span> with two keys: (1) \"text\" whose value is the complete text, and \"entities\", which is a list of dictionaries, each of which have the keys: \"entity\" (consisting of the entity label), \"start\" (the character index where the label starts), and \"end\" (the character index where the label ends). Entities should not overlap.",
+				"postprocessing": "expects a <span class='text-orange-500' style='font-family: monospace; font-size: large;' >List[Tuple[str, float | str]]]</span> consisting of spans of text and their associated labels, or a <span class='text-orange-500' style='font-family: monospace; font-size: large;' >Dict</span> with two keys: (1) \"text\" whose value is the complete text, and (2) \"entities\", which is a list of dictionaries, each of which have the keys: \"entity\" (consisting of the entity label, can alternatively be called \"entity_group\"), \"start\" (the character index where the label starts), and \"end\" (the character index where the label ends). Entities should not overlap.",
 				"parent": "gradio",
 				"prev_obj": "HTML",
 				"next_obj": "Image"
@@ -13500,6 +13791,12 @@
 						"annotation": "float | None",
 						"doc": "Maximum value. Only applied when component is used as an input. If a user provides a larger value, a gr.Error exception is raised by the backend.",
 						"default": "None"
+					},
+					{
+						"name": "step",
+						"annotation": "float",
+						"doc": "The interval between allowed numbers in the component. Can be used along with optional parameters `minimum` and `maximum` to create a range of legal values starting from `minimum` and incrementing according to this parameter.",
+						"default": "1"
 					}
 				],
 				"returns": { "annotation": null },
@@ -13699,6 +13996,101 @@
 						"fn": null,
 						"name": "submit",
 						"description": "This listener is triggered when the user presses the Enter key while the component (e.g. a textbox) is focused. This method can be used when this component is in a Gradio Blocks.",
+						"tags": {},
+						"parameters": [
+							{
+								"name": "fn",
+								"annotation": "Callable | None",
+								"doc": "the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component."
+							},
+							{
+								"name": "inputs",
+								"annotation": "Component | Sequence[Component] | set[Component] | None",
+								"doc": "List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.",
+								"default": "None"
+							},
+							{
+								"name": "outputs",
+								"annotation": "Component | Sequence[Component] | None",
+								"doc": "List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.",
+								"default": "None"
+							},
+							{
+								"name": "api_name",
+								"annotation": "str | None | Literal[False]",
+								"doc": "Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.",
+								"default": "None"
+							},
+							{
+								"name": "status_tracker",
+								"annotation": "None",
+								"doc": null,
+								"default": "None"
+							},
+							{
+								"name": "scroll_to_output",
+								"annotation": "bool",
+								"doc": "If True, will scroll to output component on completion",
+								"default": "False"
+							},
+							{
+								"name": "show_progress",
+								"annotation": "Literal['full', 'minimal', 'hidden']",
+								"doc": "If True, will show progress animation while pending",
+								"default": "\"full\""
+							},
+							{
+								"name": "queue",
+								"annotation": "bool | None",
+								"doc": "If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.",
+								"default": "None"
+							},
+							{
+								"name": "batch",
+								"annotation": "bool",
+								"doc": "If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.",
+								"default": "False"
+							},
+							{
+								"name": "max_batch_size",
+								"annotation": "int",
+								"doc": "Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)",
+								"default": "4"
+							},
+							{
+								"name": "preprocess",
+								"annotation": "bool",
+								"doc": "If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).",
+								"default": "True"
+							},
+							{
+								"name": "postprocess",
+								"annotation": "bool",
+								"doc": "If False, will not run postprocessing of component data before returning 'fn' output to the browser.",
+								"default": "True"
+							},
+							{
+								"name": "cancels",
+								"annotation": "dict[str, Any] | list[dict[str, Any]] | None",
+								"doc": "A list of other events to cancel when This listener is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method. Functions that have not yet run (or generators that are iterating) will be cancelled, but functions that are currently running will be allowed to finish.",
+								"default": "None"
+							},
+							{
+								"name": "every",
+								"annotation": "float | None",
+								"doc": "Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.",
+								"default": "None"
+							}
+						],
+						"returns": {},
+						"example": null,
+						"override_signature": null,
+						"parent": "gradio.Number"
+					},
+					{
+						"fn": null,
+						"name": "focus",
+						"description": "This listener is triggered when the component is focused (e.g. when the user clicks inside a textbox). This method can be used when this component is in a Gradio Blocks.",
 						"tags": {},
 						"parameters": [
 							{
@@ -15912,6 +16304,101 @@
 						"fn": null,
 						"name": "submit",
 						"description": "This listener is triggered when the user presses the Enter key while the component (e.g. a textbox) is focused. This method can be used when this component is in a Gradio Blocks.",
+						"tags": {},
+						"parameters": [
+							{
+								"name": "fn",
+								"annotation": "Callable | None",
+								"doc": "the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component."
+							},
+							{
+								"name": "inputs",
+								"annotation": "Component | Sequence[Component] | set[Component] | None",
+								"doc": "List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.",
+								"default": "None"
+							},
+							{
+								"name": "outputs",
+								"annotation": "Component | Sequence[Component] | None",
+								"doc": "List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.",
+								"default": "None"
+							},
+							{
+								"name": "api_name",
+								"annotation": "str | None | Literal[False]",
+								"doc": "Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.",
+								"default": "None"
+							},
+							{
+								"name": "status_tracker",
+								"annotation": "None",
+								"doc": null,
+								"default": "None"
+							},
+							{
+								"name": "scroll_to_output",
+								"annotation": "bool",
+								"doc": "If True, will scroll to output component on completion",
+								"default": "False"
+							},
+							{
+								"name": "show_progress",
+								"annotation": "Literal['full', 'minimal', 'hidden']",
+								"doc": "If True, will show progress animation while pending",
+								"default": "\"full\""
+							},
+							{
+								"name": "queue",
+								"annotation": "bool | None",
+								"doc": "If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.",
+								"default": "None"
+							},
+							{
+								"name": "batch",
+								"annotation": "bool",
+								"doc": "If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.",
+								"default": "False"
+							},
+							{
+								"name": "max_batch_size",
+								"annotation": "int",
+								"doc": "Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)",
+								"default": "4"
+							},
+							{
+								"name": "preprocess",
+								"annotation": "bool",
+								"doc": "If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).",
+								"default": "True"
+							},
+							{
+								"name": "postprocess",
+								"annotation": "bool",
+								"doc": "If False, will not run postprocessing of component data before returning 'fn' output to the browser.",
+								"default": "True"
+							},
+							{
+								"name": "cancels",
+								"annotation": "dict[str, Any] | list[dict[str, Any]] | None",
+								"doc": "A list of other events to cancel when This listener is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method. Functions that have not yet run (or generators that are iterating) will be cancelled, but functions that are currently running will be allowed to finish.",
+								"default": "None"
+							},
+							{
+								"name": "every",
+								"annotation": "float | None",
+								"doc": "Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.",
+								"default": "None"
+							}
+						],
+						"returns": {},
+						"example": null,
+						"override_signature": null,
+						"parent": "gradio.Textbox"
+					},
+					{
+						"fn": null,
+						"name": "focus",
+						"description": "This listener is triggered when the component is focused (e.g. when the user clicks inside a textbox). This method can be used when this component is in a Gradio Blocks.",
 						"tags": {},
 						"parameters": [
 							{
@@ -18430,6 +18917,7 @@
 			"stream",
 			"start_recording",
 			"stop_recording",
+			"focus",
 			"blur",
 			"upload",
 			"release",
@@ -18665,6 +19153,53 @@
 						"example": "import os\nfrom gradio_client import Client\nHF_TOKEN = os.environ.get(\"HF_TOKEN\")\nclient = Client.duplicate(\"abidlabs/whisper\", hf_token=HF_TOKEN)\nclient.predict(\"audio_sample.wav\")\n>> \"This is a test of the whisper speech recognition model.\"",
 						"override_signature": null,
 						"parent": "gradio.Client"
+					},
+					{
+						"fn": null,
+						"name": "deploy_discord",
+						"description": "Deploy the upstream app as a discord bot. Currently only supports gr.ChatInterface.",
+						"tags": {},
+						"parameters": [
+							{
+								"name": "self",
+								"annotation": "<class 'inspect._empty'>",
+								"doc": null
+							},
+							{
+								"name": "discord_bot_token",
+								"annotation": "str | None",
+								"doc": "This is the \"password\" needed to be able to launch the bot. Users can get a token by creating a bot app on the discord website. If run the method without specifying a token, the space will explain how to get one. See here: https://huggingface.co/spaces/freddyaboulton/test-discord-bot-v1.",
+								"default": "None"
+							},
+							{
+								"name": "api_names",
+								"annotation": "list[str | tuple[str, str]] | None",
+								"doc": "The api_names of the app to turn into bot commands. This parameter currently has no effect as ChatInterface only has one api_name ('/chat').",
+								"default": "None"
+							},
+							{
+								"name": "to_id",
+								"annotation": "str | None",
+								"doc": "The name of the space hosting the discord bot. If None, the name will be gradio-discord-bot-{random-substring}",
+								"default": "None"
+							},
+							{
+								"name": "hf_token",
+								"annotation": "str | None",
+								"doc": "HF api token with write priviledges in order to upload the files to HF space. Can be ommitted if logged in via the HuggingFace CLI, unless the upstream space is private. Obtain from: https://huggingface.co/settings/token",
+								"default": "None"
+							},
+							{
+								"name": "private",
+								"annotation": "bool",
+								"doc": "Whether the space hosting the discord bot is private. The visibility of the discord bot itself is set via the discord website. See https://huggingface.co/spaces/freddyaboulton/test-discord-bot-v1",
+								"default": "False"
+							}
+						],
+						"returns": {},
+						"example": null,
+						"override_signature": null,
+						"parent": "gradio.Client"
 					}
 				],
 				"parent": "gradio",
@@ -18796,10 +19331,10 @@
 			"CheckboxGroup": ["change", "input", "select"],
 			"ClearButton": ["click"],
 			"Code": ["change", "input"],
-			"ColorPicker": ["change", "input", "submit", "blur"],
+			"ColorPicker": ["change", "input", "submit", "focus", "blur"],
 			"Dataframe": ["change", "input", "select"],
 			"Dataset": ["click", "select"],
-			"Dropdown": ["change", "input", "blur", "select"],
+			"Dropdown": ["change", "input", "focus", "blur", "select"],
 			"DuplicateButton": ["click"],
 			"File": ["change", "clear", "upload", "select"],
 			"Gallery": ["select"],
@@ -18812,13 +19347,13 @@
 			"LinePlot": ["change", "clear"],
 			"Markdown": ["change"],
 			"Model3D": ["change", "edit", "clear", "upload"],
-			"Number": ["change", "input", "submit", "blur"],
+			"Number": ["change", "input", "submit", "focus", "blur"],
 			"Plot": ["change", "clear"],
 			"Radio": ["change", "input", "select"],
 			"ScatterPlot": ["change", "clear"],
 			"Slider": ["change", "input", "release"],
 			"State": [],
-			"Textbox": ["change", "input", "submit", "blur", "select"],
+			"Textbox": ["change", "input", "submit", "focus", "blur", "select"],
 			"Timeseries": ["change"],
 			"UploadButton": ["click", "upload"],
 			"Video": [
@@ -18863,7 +19398,7 @@
 		"playable",
 		"streamable",
 		"recordable",
-		"blurrable",
+		"focusable",
 		"uploadable",
 		"releaseable",
 		"selectable",
