@@ -338,11 +338,6 @@ class Block:
             for k in signature.parameters:
                 if hasattr(self, k):
                     v = getattr(self, k)
-                    try:
-                        json.dumps(v)
-                    except TypeError:
-                        print(f"Skipped {self.__class__.__name__}.{k}={v} in config because it is not JSON serializable.")
-                        continue
                     config[k] = v
 
         return config
@@ -2237,10 +2232,10 @@ Received outputs:
         return self.dependencies[fn_index]["queue"]
 
 
-class NoOverride:
-    def __bool__(self):
+class _NoOverride:
+    def __bool__(cls):
         return False
-
+NoOverride = _NoOverride()
 
 class FinishedIterating:
     pass
