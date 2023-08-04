@@ -11,10 +11,17 @@ import threading
 import time
 import warnings
 import webbrowser
-from abc import abstractmethod
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast, TypeVar, Type
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    AsyncIterator,
+    Callable,
+    Literal,
+    TypeVar,
+    cast,
+)
 
 import anyio
 import requests
@@ -86,19 +93,23 @@ BUILT_IN_THEMES: dict[str, Theme] = {
     ]
 }
 
+
 class Default:
     def __init__(self, value):
         self.value = value        
     
 def is_update():
     from gradio import context
+
     return hasattr(context.thread_data, "blocks")
+
 
 def get(default: Any):
     if is_update():
         return NoOverride if isinstance(default, Default) else default
     else:
         return default.value if isinstance(default, Default) else default
+
 
 class Block:
     def __init__(
@@ -318,16 +329,16 @@ class Block:
         return dependency, len(Context.root_block.dependencies) - 1
 
     def get_config(self, with_globals=True):
-        config = {}  
+        config = {}
         if with_globals:
             config["root_url"] = self.root_url
             config["name"] = self.get_block_name()
         if hasattr(self.__class__, "__init__"):
             signature = inspect.signature(self.__class__.__init__)
-            for k in signature.parameters.keys():
+            for k in signature.parameters:
                 if hasattr(self, k):
                     config[k] = getattr(self, k)
-                    
+
                     v = getattr(self, k)
                     if isinstance(v, Default):
                         print(self, k)
@@ -344,6 +355,7 @@ class Block:
     def __deepcopy__(self, memo):
         args = copy.deepcopy(self.get_config(with_globals=False), memo)
         return self.__class__(**args)
+
 
 class BlockContext(Block):
     def __init__(
@@ -744,8 +756,9 @@ class Blocks(BlockContext):
             else analytics.analytics_enabled()
         )
         if self.analytics_enabled:
-            t = threading.Thread(target=analytics.version_check)
-            t.start()
+            if not wasm_utils.IS_WASM:
+                t = threading.Thread(target=analytics.version_check)
+                t.start()
         else:
             os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
         super().__init__(render=False, **kwargs)
@@ -784,7 +797,7 @@ class Blocks(BlockContext):
         self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         self.root_urls = set()
 
-        if not wasm_utils.IS_WASM and self.analytics_enabled:
+        if self.analytics_enabled:
             is_custom_theme = not any(
                 self.theme.to_dict() == built_in_theme.to_dict()
                 for built_in_theme in BUILT_IN_THEMES.values()
@@ -1136,9 +1149,9 @@ class Blocks(BlockContext):
             except StopAsyncIteration:
                 n_outputs = len(self.dependencies[fn_index].get("outputs"))
                 prediction = (
-                    FINISHED_ITERATING
+                    FinishedIterating
                     if n_outputs == 1
-                    else (FINISHED_ITERATING,) * n_outputs
+                    else (FinishedIterating,) * n_outputs
                 )
                 iterator = None
 
@@ -1150,7 +1163,7 @@ class Blocks(BlockContext):
             "is_generating": is_generating,
             "iterator": iterator,
         }
-    
+
     def serialize_data(self, fn_index: int, inputs: list[Any]) -> list[Any]:
         dependency = self.dependencies[fn_index]
         processed_input = []
@@ -1232,7 +1245,9 @@ Received inputs:
     [{received}]"""
             )
 
-    def preprocess_data(self, fn_index: int, inputs: list[Any], state: dict[int, Block]):
+    def preprocess_data(
+        self, fn_index: int, inputs: list[Any], state: dict[int, Block]
+    ):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
@@ -1313,7 +1328,7 @@ Received outputs:
         output = []
         for i, output_id in enumerate(dependency["outputs"]):
             try:
-                if predictions[i] is FINISHED_ITERATING:
+                if predictions[i] is FinishedIterating:
                     output.append(None)
                     continue
             except (IndexError, KeyError) as err:
@@ -1891,7 +1906,7 @@ Received outputs:
                 if self.local_url.startswith("https") or self.is_colab
                 else "http"
             )
-            if not self.is_colab:
+            if not wasm_utils.IS_WASM and not self.is_colab:
                 print(
                     strings.en["RUNNING_LOCALLY_SEPARATED"].format(
                         self.protocol, self.server_name, self.server_port
@@ -1901,13 +1916,13 @@ Received outputs:
             if self.enable_queue:
                 self._queue.set_url(self.local_url)
 
-            # Cannot run async functions in background other than app's scope.
-            # Workaround by triggering the app endpoint
             if not wasm_utils.IS_WASM:
+                # Cannot run async functions in background other than app's scope.
+                # Workaround by triggering the app endpoint
                 requests.get(f"{self.local_url}startup-events", verify=ssl_verify)
-
-        if wasm_utils.IS_WASM:
-            return TupleNoPrint((self.server_app, self.local_url, self.share_url))
+            else:
+                pass
+                # TODO: Call the startup endpoint in the Wasm env too.
 
         utils.launch_counter()
         self.is_sagemaker = utils.sagemaker_check()
@@ -1937,7 +1952,12 @@ Received outputs:
 
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.
-        if _frontend and (not networking.url_ok(self.local_url)) and (not self.share):
+        if (
+            _frontend
+            and not wasm_utils.IS_WASM
+            and not networking.url_ok(self.local_url)
+            and not self.share
+        ):
             raise ValueError(
                 "When localhost is not accessible, a shareable link must be created. Please set share=True or check your proxy settings to allow access to localhost."
             )
@@ -1958,6 +1978,8 @@ Received outputs:
         if self.share:
             if self.space_id:
                 raise RuntimeError("Share is not supported when you are in Spaces")
+            if wasm_utils.IS_WASM:
+                raise RuntimeError("Share is not supported in the Wasm environment")
             try:
                 if self.share_url is None:
                     self.share_url = networking.setup_tunnel(
@@ -1983,11 +2005,11 @@ Received outputs:
                         )
                     )
         else:
-            if not (quiet):
+            if not quiet and not wasm_utils.IS_WASM:
                 print(strings.en["PUBLIC_SHARE_TRUE"])
             self.share_url = None
 
-        if inbrowser:
+        if inbrowser and not wasm_utils.IS_WASM:
             link = self.share_url if self.share and self.share_url else self.local_url
             webbrowser.open(link)
 
@@ -2068,12 +2090,18 @@ Received outputs:
         utils.show_tip(self)
 
         # Block main thread if debug==True
-        if debug or int(os.getenv("GRADIO_DEBUG", 0)) == 1:
+        if debug or int(os.getenv("GRADIO_DEBUG", 0)) == 1 and not wasm_utils.IS_WASM:
             self.block_thread()
         # Block main thread if running in a script to stop script from exiting
         is_in_interactive_mode = bool(getattr(sys, "ps1", sys.flags.interactive))
 
-        if not prevent_thread_lock and not is_in_interactive_mode:
+        if (
+            not prevent_thread_lock
+            and not is_in_interactive_mode
+            # In the Wasm env, we don't have to block the main thread because the server won't be shut down after the execution finishes.
+            # Moreover, we MUST NOT do it because there is only one thread in the Wasm env and blocking it will stop the subsequent code from running.
+            and not wasm_utils.IS_WASM
+        ):
             self.block_thread()
 
         return TupleNoPrint((self.server_app, self.local_url, self.share_url))
@@ -2205,13 +2233,14 @@ Received outputs:
             return self.enable_queue
         return self.dependencies[fn_index]["queue"]
 
+
 class NoOverride:
     def __bool__(self):
         return False
 
 
-class FINISHED_ITERATING:
+class FinishedIterating:
     pass
 
-T = TypeVar("T")
 
+T = TypeVar("T")

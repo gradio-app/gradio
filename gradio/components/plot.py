@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from types import ModuleType
-from typing import Any, Callable, Literal
+from typing import Callable
 
 import altair as alt
 import pandas as pd
@@ -41,7 +41,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         container: bool | None | Default = Default(True),
         scale: int | None | Default = Default(None),
         min_width: int | None | Default = Default(160),
-        visible: bool |  Default = Default(True),
+        visible: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
         elem_classes: list[str] | str | None | Default = Default(None),
         **kwargs,

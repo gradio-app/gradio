@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from typing import Callable, Literal
+from typing import Callable
 
 import numpy as np
 from gradio_client.documentation import document, set_documentation_group
@@ -55,7 +55,7 @@ class Number(
         scale: int | None | Default = Default(None),
         min_width: int | None | Default = Default(160),
         interactive: bool | None | Default = Default(None),
-        visible: bool |  Default = Default(True),
+        visible: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
         elem_classes: list[str] | str | None | Default = Default(None),
         precision: int | None | Default = Default(None),

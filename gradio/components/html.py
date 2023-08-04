@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Literal
+from typing import Callable
 
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
@@ -32,7 +32,7 @@ class HTML(Changeable, IOComponent, StringSerializable):
         label: str | None | Default = Default(None),
         every: float | None | Default = Default(None),
         show_label: bool | None | Default = Default(None),
-        visible: bool |  Default = Default(True),
+        visible: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
         elem_classes: list[str] | str | None | Default = Default(None),
         **kwargs,
@@ -58,4 +58,3 @@ class HTML(Changeable, IOComponent, StringSerializable):
             value=value,
             **kwargs,
         )
-

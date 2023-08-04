@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Literal
-
 import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
@@ -39,7 +37,8 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
             np.ndarray | _Image.Image | str,
             list[tuple[np.ndarray | tuple[int, int, int, int], str]],
         ]
-        | None | Default = Default(None),
+        | None
+        | Default = Default(None),
         *,
         show_legend: bool | None | Default = Default(True),
         height: int | None | Default = Default(None),
@@ -51,7 +50,7 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
         container: bool | None | Default = Default(True),
         scale: int | None | Default = Default(None),
         min_width: int | None | Default = Default(160),
-        visible: bool |  Default = Default(True),
+        visible: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
         elem_classes: list[str] | str | None | Default = Default(None),
         **kwargs,

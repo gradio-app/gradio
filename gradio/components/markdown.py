@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import inspect
-from typing import Any, Callable, Literal
+from typing import Callable
 
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
@@ -33,7 +33,7 @@ class Markdown(IOComponent, Changeable, StringSerializable):
         self,
         value: str | Callable | None | Default = Default(""),
         *,
-        visible: bool |  Default = Default(True),
+        visible: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
         elem_classes: list[str] | str | None | Default = Default(None),
         rtl: bool | None | Default = Default(False),

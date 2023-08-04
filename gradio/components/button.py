@@ -29,7 +29,8 @@ class Button(Clickable, IOComponent, StringSerializable):
         self,
         value: str | Callable | None | Default = Default("Run"),
         *,
-        variant: Literal["primary", "secondary", "stop"] | Default = Default("secondary"),
+        variant: Literal["primary", "secondary", "stop"]
+        | Default = Default("secondary"),
         size: Literal["sm", "lg"] | Default = Default(None),
         visible: bool | Default = Default(True),
         interactive: bool | None | Default = Default(True),

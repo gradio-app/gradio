@@ -18,7 +18,6 @@ import numpy as np
 import requests
 from fastapi import UploadFile
 from gradio_client import utils as client_utils
-from gradio.blocks import NoOverride, Default, get, is_update
 from gradio_client.documentation import set_documentation_group
 from gradio_client.serializing import (
     Serializable,
@@ -26,7 +25,7 @@ from gradio_client.serializing import (
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
-from gradio.blocks import Block, BlockContext
+from gradio.blocks import Block, BlockContext, Default, get, is_update
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
     EventListener,
@@ -153,7 +152,11 @@ class IOComponent(Component):
         )
 
         Component.__init__(
-            self, elem_id=self.elem_id, elem_classes=self.elem_classes, visible=self.visible, **kwargs
+            self,
+            elem_id=self.elem_id,
+            elem_classes=self.elem_classes,
+            visible=self.visible,
+            **kwargs,
         )
 
         if not self.container:
@@ -173,9 +176,7 @@ class IOComponent(Component):
         load_fn = None
         load_fn, self.value = self.get_load_fn_and_initial_value(self.value)
         self.value = (
-            self.value
-            if self._skip_init_processing
-            else self.postprocess(self.value)
+            self.value if self._skip_init_processing else self.postprocess(self.value)
         )
         if callable(load_fn):
             self.attach_load_event(load_fn, self.every)

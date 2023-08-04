@@ -6,8 +6,8 @@ from typing import Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.components import Button
 from gradio.blocks import Default, get
+from gradio.components import Button
 from gradio.utils import get_space
 
 set_documentation_group("component")
@@ -27,7 +27,8 @@ class DuplicateButton(Button):
         self,
         *,
         value: str | None | Default = Default(None),
-        variant: Literal["primary", "secondary", "stop"] | Default = Default("secondary"),
+        variant: Literal["primary", "secondary", "stop"]
+        | Default = Default("secondary"),
         size: Literal["sm", "lg"] | Default = Default(None),
         visible: bool | Default = Default(True),
         interactive: bool | None | Default = Default(True),

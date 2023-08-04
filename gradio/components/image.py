@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import warnings
 from pathlib import Path
-from typing import Any, Literal
+from typing import Literal
 
 import numpy as np
 import PIL
@@ -65,8 +65,12 @@ class Image(
             "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
         ] = "RGB",
         invert_colors: bool | None | Default = Default(False),
-        source: Literal["upload", "webcam", "canvas"] | None | Default = Default("upload"),
-        tool: Literal["editor", "select", "sketch", "color-sketch"] | None | Default = Default(None),
+        source: Literal["upload", "webcam", "canvas"]
+        | None
+        | Default = Default("upload"),
+        tool: Literal["editor", "select", "sketch", "color-sketch"]
+        | None
+        | Default = Default(None),
         type: Literal["numpy", "pil", "filepath"] | None | Default = Default("numpy"),
         label: str | None | Default = Default(None),
         every: float | None | Default = Default(None),
@@ -76,7 +80,7 @@ class Image(
         scale: int | None | Default = Default(None),
         min_width: int | None | Default = Default(160),
         interactive: bool | None | Default = Default(None),
-        visible: bool |  Default = Default(True),
+        visible: bool | Default = Default(True),
         streaming: bool | None | Default = Default(False),
         elem_id: str | None | Default = Default(None),
         elem_classes: list[str] | str | None | Default = Default(None),
@@ -144,7 +148,7 @@ class Image(
         self.tool = get(tool)
         if self.tool is None:
             self.tool = "sketch" if self.source == "canvas" else "editor"
-        
+
         self.streaming = get(streaming)
         if self.streaming and self.source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")

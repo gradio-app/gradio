@@ -62,7 +62,7 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
         container: bool | None | Default = Default(True),
         scale: int | None | Default = Default(None),
         min_width: int | None | Default = Default(160),
-        visible: bool |  Default = Default(True),
+        visible: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
         elem_classes: list[str] | str | None | Default = Default(None),
         **kwargs,
@@ -109,4 +109,3 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
                 return file_data.read()
         else:
             return y.strip()
-
