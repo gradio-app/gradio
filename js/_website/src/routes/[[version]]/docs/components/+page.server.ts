@@ -1,15 +1,8 @@
-import docs_json from "../docs.json";
+export async function load({ parent }) {
+	const { docs, components, helpers, py_client, routes } = await parent();
 
-let components = docs_json.docs.components;
-let helpers = docs_json.docs.helpers;
-let routes = docs_json.docs.routes;
-let py_client = docs_json.docs["py-client"];
-
-let events = docs_json.docs.events;
-let events_matrix = docs_json.docs.events_matrix;
-
-export async function load({ params }: { params: any }) {
-	console.log(params);
+	let events = docs.events;
+	let events_matrix = docs.events_matrix;
 	return {
 		components,
 		helpers,

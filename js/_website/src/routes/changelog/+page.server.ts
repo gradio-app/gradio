@@ -1,8 +1,8 @@
-import changelog_json from "./changelog.json";
+// import changelog_json from "$lib/json/changelog.json";
 import { compile } from "mdsvex";
 import anchor from "$lib/assets/img/anchor.svg";
+import version from "$lib/json/version.json";
 
-let content = changelog_json.content;
 import { make_slug_processor } from "$lib/utils";
 import { toString as to_string } from "hast-util-to-string";
 
@@ -40,7 +40,27 @@ function highlight(code: string, lang: string | undefined) {
 	return highlighted;
 }
 
-export async function load() {
+const DOCS_BUCKET = "https://gradio-docs-json.s3.us-west-2.amazonaws.com";
+const VERSION = version.version;
+
+async function load_release_guide_categories(
+	version: string
+): Promise<typeof import("$lib/json/changelog.json")> {
+	let docs_json = await fetch(`${DOCS_BUCKET}/${version}/changelog.json`);
+	return await docs_json.json();
+}
+
+async function load_main_guide_categories() {
+	return await import(`$lib/json/changelog.json`);
+}
+
+export async function load({ params }) {
+	let content = (
+		params?.version === "main"
+			? await load_main_guide_categories()
+			: await load_release_guide_categories(params?.version || VERSION)
+	).content;
+
 	const changelog_slug: object[] = [];
 
 	const get_slug = make_slug_processor();

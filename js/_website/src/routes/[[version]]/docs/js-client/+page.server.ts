@@ -1,4 +1,3 @@
-import docs_json from "../docs.json";
 import { compile } from "mdsvex";
 import anchor from "$lib/assets/img/anchor.svg";
 import { make_slug_processor } from "$lib/utils";
@@ -10,12 +9,6 @@ import "prismjs/components/prism-json";
 import "prismjs/components/prism-typescript";
 import "prismjs/components/prism-csv";
 import "prismjs/components/prism-markup";
-
-let components = docs_json.docs.components;
-let helpers = docs_json.docs.helpers;
-let routes = docs_json.docs.routes;
-let py_client = docs_json.docs["py-client"];
-let js_client = docs_json.js_client;
 
 function plugin() {
 	return function transform(tree: any) {
@@ -53,7 +46,9 @@ function highlight(code: string, lang: string | undefined) {
 	return highlighted;
 }
 
-export async function load({ params }: any) {
+export async function load({ parent }) {
+	const { components, helpers, py_client, routes, js_client } = await parent();
+
 	const guide_slug = [];
 
 	const get_slug = make_slug_processor();

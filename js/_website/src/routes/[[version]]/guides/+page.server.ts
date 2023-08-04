@@ -1,4 +1,4 @@
-import guides_by_category_json from "./json/guides_by_category.json";
+import guides_by_category_json from "$lib/json/guides/guides_by_category.json";
 
 let guides_by_category = guides_by_category_json.guides_by_category;
 
@@ -23,6 +23,7 @@ for (const category in guides_by_category) {
         total_guides += 1;
     }
 }
+
 
 export async function load() {
 

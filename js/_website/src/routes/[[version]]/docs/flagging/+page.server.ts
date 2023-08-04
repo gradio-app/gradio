@@ -1,15 +1,8 @@
-import docs_json from "../docs.json";
 import Prism from "prismjs";
 import "prismjs/components/prism-python";
 import { make_slug_processor } from "$lib/utils";
 
 let language = "python";
-
-let docs: { [key: string]: any } = docs_json.docs;
-let components = docs_json.docs.components;
-let helpers = docs_json.docs.helpers;
-let routes = docs_json.docs.routes;
-let py_client = docs_json.docs["py-client"];
 
 const COLOR_SETS = [
 	["from-green-100", "to-green-50"],
@@ -20,7 +13,9 @@ const COLOR_SETS = [
 	["from-purple-100", "to-purple-50"]
 ];
 
-export async function load() {
+export async function load({ parent }) {
+	const { docs, components, helpers, py_client, routes } = await parent();
+
 	let objs = [
 		docs.building.simplecsvlogger,
 		docs.building.csvlogger,

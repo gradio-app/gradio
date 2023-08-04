@@ -1,4 +1,4 @@
-import guide_names_json from "../json/guide_names.json";
+import guide_names_json from "$lib/json/guides/guide_names.json";
 
 import { compile } from "mdsvex";
 import anchor from "$lib/assets/img/anchor.svg";
@@ -15,16 +15,6 @@ import "prismjs/components/prism-csv";
 import "prismjs/components/prism-markup";
 
 
-
-function plugin() {
-	return function transform(tree: any) {
-		tree.children.forEach((n: any) => {
-			if (n.type === "heading") {
-				// console.log(n);
-			}
-		});
-	};
-}
 
 
 const langs = {
@@ -53,8 +43,32 @@ function highlight(code: string, lang: string | undefined) {
 	return highlighted;
 }
 
-export async function load({ params }: any) {
-	let guide_json = await import(`../../guides/json/${params.guide}.json`);
+
+import version from '$lib/json/version.json';
+export const prerender = true;
+
+
+const DOCS_BUCKET = "https://gradio-docs-json.s3.us-west-2.amazonaws.com";
+const VERSION = version.version;
+
+async function load_release_docs(version: string, guide: string): Promise<typeof import("$lib/json/docs.json")> {
+	let docs_json = await fetch(`${DOCS_BUCKET}/${version}/guides/${guide}.json`);
+	console.log(docs_json)
+	return await docs_json.json();
+}
+
+async function load_main_guide(guide:string) {
+	console.log(guide)
+	return await import(`../../../../lib/json/guides/${guide}.json`)
+}
+
+
+export async function load({ params }) {
+	let guide_json =
+	params?.version === "main"
+		? await load_main_guide(params.guide)
+		: await load_release_docs(params.version || VERSION, params.guide);
+
 	let guide = guide_json.guide;
 	const guide_slug: object[] = [];
 

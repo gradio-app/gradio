@@ -1,4 +1,3 @@
-import main_docs_json from "../docs.json";
 import Prism from "prismjs";
 import "prismjs/components/prism-python";
 import { make_slug_processor } from "$lib/utils";
@@ -14,27 +13,9 @@ const COLOR_SETS = [
 	["from-purple-100", "to-purple-50"]
 ];
 
-const DOCS_BUCKET = "https://huggingface-docs.s3.amazonaws.com";
-const VERSION = "";
-
-async function load_docs(version: string): Promise<typeof main_docs_json> {
-	let docs_json = await fetch(`${DOCS_BUCKET}/${version}/docs.json`);
-	return await docs_json.json();
-}
-
-export async function load({ params }) {
+export async function load({ params, parent }) {
 	console.log(params);
-
-	let docs_json =
-		params?.version === "main"
-			? main_docs_json
-			: await load_docs(params.version || VERSION);
-
-	let docs: { [key: string]: any } = docs_json.docs;
-	let components = docs_json.docs.components;
-	let helpers = docs_json.docs.helpers;
-	let routes = docs_json.docs.routes;
-	let py_client = docs_json.docs["py-client"];
+	const { docs, components, helpers, py_client, routes } = await parent();
 
 	let name = params.doc;
 	let obj;
