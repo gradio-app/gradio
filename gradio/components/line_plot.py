@@ -109,31 +109,24 @@ class LinePlot(Plot):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.interactive = get(interactive)
-        container = get(container)
-        scale = get(scale)
-        min_width = get(min_width)
-        visible = get(visible)
-
-        self.x = x
-        self.y = y
-        self.color = color
-        self.stroke_dash = stroke_dash
-        self.tooltip = tooltip
-        self.title = title
-        self.x_title = x_title
-        self.y_title = y_title
-        self.color_legend_title = color_legend_title
-        self.stroke_dash_legend_title = stroke_dash_legend_title
-        self.color_legend_position = color_legend_position
-        self.stroke_dash_legend_position = stroke_dash_legend_position
-        self.overlay_point = overlay_point
-        self.x_lim = x_lim
-        self.y_lim = y_lim
-        self.caption = caption
-        self.interactive_chart = interactive
-        self.width = width
-        self.height = height
+        self.x = get(x)
+        self.y = get(y)
+        self.color = get(color)
+        self.stroke_dash = get(stroke_dash)
+        self.tooltip = get(tooltip)
+        self.title = get(title)
+        self.x_title = get(x_title)
+        self.y_title = get(y_title)
+        self.color_legend_title = get(color_legend_title)
+        self.stroke_dash_legend_title = get(stroke_dash_legend_title)
+        self.color_legend_position = get(color_legend_position)
+        self.stroke_dash_legend_position = get(stroke_dash_legend_position)
+        self.overlay_point = get(overlay_point)
+        self.x_lim = get(x_lim)
+        self.y_lim = get(y_lim)
+        self.caption = get(caption)
+        self.width = get(width)
+        self.height = get(height)
         super().__init__(
             value=value,
             label=label,
@@ -145,6 +138,7 @@ class LinePlot(Plot):
             elem_id=elem_id,
             elem_classes=elem_classes,
             every=every,
+            interactive=interactive,
         )
 
     def get_block_name(self) -> str:
@@ -294,7 +288,7 @@ class LinePlot(Plot):
             x_lim=self.x_lim,
             y_lim=self.y_lim,
             stroke_dash=self.stroke_dash,
-            interactive=self.interactive_chart,
+            interactive=self.interactive,
             height=self.height,
             width=self.width,
         )

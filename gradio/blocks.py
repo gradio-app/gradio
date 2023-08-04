@@ -88,7 +88,7 @@ BUILT_IN_THEMES: dict[str, Theme] = {
 
 class Default:
     def __init__(self, value):
-        self.value = value
+        self.value = value        
     
 def is_update():
     from gradio import context
@@ -338,15 +338,8 @@ class Block:
         warnings.warn(
             "The update method is deprecated. Simply return a new block, e.g. `return gr.Dropdown(visible=False)` instead of `return gr.Dropdown.update(visible=False)` ."
         )
-        kwargs["__type__"] = "generic_update"
+        kwargs["__type__"] = "update"
         return kwargs
-
-    @classmethod
-    def get_specific_update(cls, generic_update: dict[str, Any]) -> dict:
-        generic_update = generic_update.copy()
-        del generic_update["__type__"]
-        specific_update = cls.update(**generic_update)
-        return specific_update
     
     def __deepcopy__(self, memo):
         args = copy.deepcopy(self.get_config(with_globals=False), memo)
@@ -478,8 +471,6 @@ def postprocess_update_dict(block: Block, update_dict: dict, postprocess: bool =
         update_dict: The original update dictionary
         postprocess: Whether to postprocess the "value" key of the update dictionary.
     """
-    if update_dict.get("__type__", "") == "generic_update":
-        update_dict = block.get_specific_update(update_dict)
     no_overrides = [k for k in update_dict if update_dict[k] == NoOverride]
     for key in no_overrides:
         del update_dict[key]
@@ -2215,7 +2206,8 @@ Received outputs:
         return self.dependencies[fn_index]["queue"]
 
 class NoOverride:
-    pass
+    def __bool__(self):
+        return False
 
 
 class FINISHED_ITERATING:

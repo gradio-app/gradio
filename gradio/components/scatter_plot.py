@@ -126,34 +126,27 @@ class ScatterPlot(Plot):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        value = get(value)
-        self.interactive = get(interactive)
-        container = get(container)
-        scale = get(scale)
-        min_width = get(min_width)
-        visible = get(visible)
-
-        self.x = x
-        self.y = y
-        self.color = color
-        self.size = size
-        self.shape = shape
-        self.tooltip = tooltip
-        self.title = title
-        self.x_title = x_title
-        self.y_title = y_title
-        self.color_legend_title = color_legend_title
-        self.color_legend_position = color_legend_position
-        self.size_legend_title = size_legend_title
-        self.size_legend_position = size_legend_position
-        self.shape_legend_title = shape_legend_title
-        self.shape_legend_position = shape_legend_position
-        self.caption = caption
-        self.interactive_chart = interactive
-        self.width = width
-        self.height = height
-        self.x_lim = x_lim
-        self.y_lim = y_lim
+        self.x = get(x)
+        self.y = get(y)
+        self.color = get(color)
+        self.size = get(size)
+        self.shape = get(shape)
+        self.tooltip = get(tooltip)
+        self.title = get(title)
+        self.x_title = get(x_title)
+        self.y_title = get(y_title)
+        self.color_legend_title = get(color_legend_title)
+        self.color_legend_position = get(color_legend_position)
+        self.size_legend_title = get(size_legend_title)
+        self.size_legend_position = get(size_legend_position)
+        self.shape_legend_title = get(shape_legend_title)
+        self.shape_legend_position = get(shape_legend_position)
+        self.caption = get(caption)
+        self.interactive_chart = get(interactive)
+        self.width = get(width)
+        self.height = get(height)
+        self.x_lim = get(x_lim)
+        self.y_lim = get(y_lim)
         super().__init__(
             value=value,
             label=label,

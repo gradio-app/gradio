@@ -15,7 +15,7 @@ from gradio_client.serializing import ImgSerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
-from gradio.blocks import Default, get
+from gradio.blocks import Default, get, NoOverride
 from gradio.components.base import IOComponent
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
@@ -119,14 +119,14 @@ class Image(
         self.invert_colors = get(invert_colors)
         self.source = get(source)
         valid_sources = ["upload", "webcam", "canvas"]
-        if self.source not in valid_sources:
+        if self.source not in valid_sources + [NoOverride]:
             raise ValueError(
                 f"Invalid value for parameter `source`: {self.source}. Please choose from one of: {valid_sources}"
             )
 
         self.type = get(type)
         valid_types = ["numpy", "pil", "filepath"]
-        if self.type not in valid_types:
+        if self.type not in valid_types + [NoOverride]:
             raise ValueError(
                 f"Invalid value for parameter `type`: {self.type}. Please choose from one of: {valid_types}"
             )
@@ -135,6 +135,7 @@ class Image(
         self.streaming = get(streaming)
         self.mirror_webcam = get(mirror_webcam)
         self.brush_color = get(brush_color)
+        self.brush_radius = get(brush_radius)
         self.mask_opacity = get(mask_opacity)
         self.shape = get(shape)
         self.height = get(height)

@@ -721,7 +721,7 @@ def update(**kwargs) -> dict:
     warnings.warn(
         "The update method is deprecated. Simply return a new block, e.g. `return gr.Dropdown(visible=False)` instead of `return gr.update(visible=False)` ."
     )
-    kwargs["__type__"] = "generic_update"
+    kwargs["__type__"] = "update"
     return kwargs
 
 

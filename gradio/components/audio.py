@@ -13,7 +13,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio import processing_utils, utils
-from gradio.blocks import Default, get
+from gradio.blocks import Default, get, NoOverride, is_update
 from gradio.components.base import IOComponent
 from gradio.events import (
     Changeable,
@@ -94,7 +94,7 @@ class Audio(
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
         self.source = get(source)
-        valid_sources = ["upload", "microphone"]
+        valid_sources = ["upload", "microphone", NoOverride]
         if self.source not in valid_sources:
             raise ValueError(
                 f"Invalid value for parameter `source`: {self.source}. Please choose from one of: {valid_sources}"
@@ -102,7 +102,7 @@ class Audio(
 
         self.type = get(type)
         valid_types = ["numpy", "filepath"]
-        if self.type not in valid_types:
+        if self.type not in valid_types + [NoOverride]:
             raise ValueError(
                 f"Invalid value for parameter `type`: {self.type}. Please choose from one of: {valid_types}"
             )
@@ -117,11 +117,12 @@ class Audio(
         self.autoplay = get(autoplay)
         self.show_download_button = get(show_download_button)
         self.show_share_button = get(show_share_button)
-        self.show_share_button = (
-            (utils.get_space() is not None)
-            if self.show_share_button is None
-            else self.show_share_button
-        )
+        if not is_update():
+            self.show_share_button = (
+                (utils.get_space() is not None)
+                if self.show_share_button is None
+                else self.show_share_button
+            )
         IOComponent.__init__(
             self,
             label=label,

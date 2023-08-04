@@ -69,14 +69,15 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         self.type = get(type)
         self.file_count = get(file_count)
         self.file_types = get(file_types)
-        if file_count == "directory" and self.file_types is not None:
+        if self.file_count == "directory" and self.file_types:
             warnings.warn(
                 "The `file_types` parameter is ignored when `file_count` is 'directory'."
             )
-        if self.file_types is not None and not isinstance(self.file_types, list):
+        if self.file_types and not isinstance(self.file_types, list):
             raise ValueError(
                 f"Parameter file_types must be a list. Received {type(self.file_types)}"
             )
+        
         self.size = get(size)
         IOComponent.__init__(
             self,

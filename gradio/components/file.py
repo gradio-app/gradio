@@ -12,7 +12,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio import utils
-from gradio.blocks import Default, get
+from gradio.blocks import Default, get, NoOverride
 from gradio.components.base import IOComponent
 from gradio.deprecation import warn_deprecation
 from gradio.events import (
@@ -86,23 +86,23 @@ class File(
             "binary",
             "bytes",
         ]  # "bytes" is included for backwards compatibility
-        if self.type not in valid_types:
+        if self.type not in valid_types + [NoOverride]:
             raise ValueError(
                 f"Invalid value for parameter `type`: {self.type}. Please choose from one of: {valid_types}"
             )
-        if type == "bytes":
+        if self.type == "bytes":
             warn_deprecation(
                 "The `bytes` type is deprecated and may not work as expected. Please use `binary` instead."
             )
 
         self.file_types = get(file_types)
-        if self.file_types is not None and not isinstance(self.file_types, list):
+        if self.file_types and not isinstance(self.file_types, list):
             raise ValueError(
-                f"Parameter file_types must be a list. Received {self.file_types.__class__.__name__}"
+                f"Parameter file_types must be a list. Received {type(self.file_types)}"
             )
         
         self.file_count = get(file_count)        
-        if self.file_count == "directory" and self.file_types is not None:
+        if self.file_count == "directory" and isinstance(self.file_types, list):
             warnings.warn(
                 "The `file_types` parameter is ignored when `file_count` is 'directory'."
             )

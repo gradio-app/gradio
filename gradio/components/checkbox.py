@@ -66,11 +66,6 @@ class Checkbox(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        value = get(value)
-        container = get(container)
-        scale = get(scale)
-        min_width = get(min_width)
-        visible = get(visible)
 
         self.select: EventListenerMethod
         """

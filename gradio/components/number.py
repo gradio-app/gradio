@@ -83,8 +83,6 @@ class Number(
             maximum: Maximum value. Only applied when component is used as an input. If a user provides a larger value, a gr.Error exception is raised by the backend.
             step: The interval between allowed numbers in the component. Can be used along with optional parameters `minimum` and `maximum` to create a range of legal values starting from `minimum` and incrementing according to this parameter.
         """
-
-
         self.precision = get(precision)
         self.minimum = get(minimum)
         self.maximum = get(maximum)

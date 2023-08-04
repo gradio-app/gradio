@@ -24,7 +24,7 @@ class ClearButton(Button):
 
     def __init__(
         self,
-        components: None | list[Component] | Component | Default = Default(None),
+        components: None | list[Component] | Component = None,
         *,
         value: str | None | Default = Default("Clear"),
         variant: Literal["primary", "secondary", "stop"] | Default = Default("secondary"),
@@ -37,7 +37,6 @@ class ClearButton(Button):
         min_width: int | Default = Default(160),
         **kwargs,
     ):
-        components = get(components)
         super().__init__(
             value,
             variant=variant,
@@ -50,7 +49,6 @@ class ClearButton(Button):
             min_width=min_width,
             **kwargs,
         )
-
         self.add(components)
 
     def add(self, components: None | Component | list[Component]) -> ClearButton:

@@ -8,7 +8,7 @@ import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.blocks import Default, get, is_update
+from gradio.blocks import Default, get, NoOverride, is_update
 from gradio.components.base import (
     FormComponent,
     IOComponent,
@@ -101,17 +101,21 @@ class Textbox(
         self.max_lines = get(max_lines)
         self.autofocus = get(autofocus)
         self.type = get(type)
+        valid_types = ["text", "password", "email"]
+        if self.type not in valid_types + [NoOverride]:
+            raise ValueError(
+                f"Invalid value for parameter `type`: {self.type}. Please choose from one of: {valid_types}"
+            )
+
         self.rtl = get(rtl)
         self.show_copy_button = get(show_copy_button)
         self.placeholder = get(placeholder)
 
-        if not is_update() and self.type not in ["text", "password", "email", None]:
-            raise ValueError('`type` must be one of "text", "password", or "email".')
-
-        if self.type == "text":
-            self.max_lines = max(self.lines, self.max_lines)
-        else:
-            self.max_lines = 1
+        if not is_update():
+            if self.type == "text":
+                self.max_lines = max(self.lines, self.max_lines)
+            else:
+                self.max_lines = 1
         self.select: EventListenerMethod
         """
         Event listener for when the user selects text in the Textbox.

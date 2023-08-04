@@ -8,7 +8,7 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import SimpleSerializable
 
-from gradio.blocks import Default, get
+from gradio.blocks import Default, get, NoOverride
 from gradio.components.base import FormComponent, IOComponent
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
@@ -46,7 +46,7 @@ class Dropdown(
         *,
         value: str | list[str] | Callable | None | Default = Default(None),
         type: Literal["value", "index"] | None | Default = Default("value"),
-        multiselect: bool | None | Default = Default(None),
+        multiselect: bool | Default = Default(False),
         allow_custom_value: bool | None | Default = Default(False),
         max_choices: int | None | Default = Default(None),
         label: str | None | Default = Default(None),
@@ -84,21 +84,22 @@ class Dropdown(
         """
         self.type = get(type)
         valid_types = ["value", "index"]
-        if self.type not in valid_types:
+        if self.type not in valid_types + [NoOverride]:
             raise ValueError(
                 f"Invalid value for parameter `type`: {self.type}. Please choose from one of: {valid_types}"
             )
 
         self.allow_custom_value = get(allow_custom_value)
         self.choices = get(choices)
-        self.choices = [str(choice) for choice in self.choices] if self.choices else []
+        if self.choices != NoOverride:
+            self.choices = [str(choice) for choice in self.choices] if self.choices else []
 
         value = get(value)
         self.multiselect = get(multiselect)
-        if self.multiselect and isinstance(value, str):
+        if self.multiselect == True and isinstance(value, str):
             value = [value]
         self.max_choices = get(max_choices)
-        if not self.multiselect and self.max_choices is not None:
+        if self.multiselect == True and self.max_choices is not None:
             warnings.warn(
                 "The `max_choices` parameter is ignored when `multiselect` is False."
             )

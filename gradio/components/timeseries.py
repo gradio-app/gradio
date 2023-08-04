@@ -66,6 +66,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
         self.y = get(y)
         if isinstance(self.y, str):
             self.y = [self.y]
+
         self.colors = get(colors)
         IOComponent.__init__(
             self,

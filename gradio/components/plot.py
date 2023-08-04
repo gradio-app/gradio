@@ -59,11 +59,6 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        value = get(value)
-        container = get(container)
-        min_width = get(min_width)
-        visible = get(visible)
-
         IOComponent.__init__(
             self,
             label=label,

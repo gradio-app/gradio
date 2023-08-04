@@ -10,7 +10,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
 from gradio import utils
-from gradio.blocks import Default, get
+from gradio.blocks import Default, get, NoOverride
 from gradio.components.base import IOComponent
 from gradio.events import (
     Changeable,
@@ -92,11 +92,12 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             wrap: if True text in table cells will wrap when appropriate, if False the table will scroll horizontally. Defaults to False.
         """
         self.row_count = get(row_count)
-        self.row_count = self.__process_counts(self.row_count)
+        if self.row_count != NoOverride:
+            self.row_count = self.__process_counts(self.row_count)
         self.datatype = get(datatype)
         self.type = get(type)
         valid_types = ["pandas", "numpy", "array"]
-        if self.type not in valid_types:
+        if self.type not in valid_types + [NoOverride]:
             raise ValueError(
                 f"Invalid value for parameter `type`: {self.type}. Please choose from one of: {valid_types}"
             )
@@ -104,27 +105,28 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         self.max_rows = get(max_rows)
         self.overflow_row_behaviour = get(overflow_row_behaviour)
         self.wrap = get(wrap)
-
         self.col_count = get(col_count)
         self.headers = get(headers)
-        self.col_count = self.__process_counts(
-            self.col_count, len(self.headers) if self.headers else 3
-        )
+        if self.col_count != NoOverride and self.headers != NoOverride:
+            self.col_count = self.__process_counts(
+                self.col_count, len(self.headers) if self.headers else 3
+            )
+            self.__validate_headers(self.headers, self.col_count[0])
 
-        self.__validate_headers(self.headers, self.col_count[0])
-        self.headers = (
-            self.headers
-            if self.headers is not None
-            else list(range(1, self.col_count[0] + 1))
-        )
+            self.headers = (
+                self.headers
+                if self.headers is not None
+                else list(range(1, self.col_count[0] + 1))
+            )
 
         self.max_cols = get(max_cols)
         self.datatype = get(datatype)
-        self.datatype = (
-            self.datatype
-            if isinstance(self.datatype, list)
-            else [self.datatype] * self.col_count[0]
-        )
+        if self.datatype != NoOverride:
+            self.datatype = (
+                self.datatype
+                if isinstance(self.datatype, list)
+                else [self.datatype] * self.col_count[0]
+            )
         values = {
             "str": "",
             "number": 0,

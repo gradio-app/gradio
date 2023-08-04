@@ -7,7 +7,7 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import ListStringSerializable
 
-from gradio.blocks import Default, get
+from gradio.blocks import Default, get, NoOverride
 from gradio.components.base import FormComponent, IOComponent
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
@@ -70,20 +70,15 @@ class CheckboxGroup(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        value = get(value)
-        type = get(type)
-        container = get(container)
-        scale = get(scale)
-        min_width = get(min_width)
-        visible = get(visible)
-
-        self.choices = choices or []
+        self.type = get(type)
         valid_types = ["value", "index"]
-        if type not in valid_types:
+        if self.type not in valid_types + [NoOverride]:
             raise ValueError(
-                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+                f"Invalid value for parameter `type`: {self.type}. Please choose from one of: {valid_types}"
             )
-        self.type = type
+        self.choices = get(choices)
+        if self.choices is None:
+            self.choices = []
         self.select: EventListenerMethod
         """
         Event listener for when the user selects or deselects within CheckboxGroup.

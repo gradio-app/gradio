@@ -11,7 +11,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
 from gradio import utils
-from gradio.blocks import Default, get
+from gradio.blocks import Default, get, is_update, NoOverride
 from gradio.components.base import IOComponent
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
@@ -81,14 +81,15 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         if self.latex_delimiters is None:
             self.latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
         self.show_share_button = get(show_share_button)
-        self.show_share_button = (
-            (utils.get_space() is not None)
-            if self.show_share_button is None
-            else self.show_share_button
-        )
+        if not is_update():
+            self.show_share_button = (
+                (utils.get_space() is not None)
+                if self.show_share_button is None
+                else self.show_share_button
+            )
 
         color_map = get(color_map)
-        if color_map is not None:
+        if color_map:
             warn_deprecation("The 'color_map' parameter has been deprecated.")
         self.select: EventListenerMethod
         """

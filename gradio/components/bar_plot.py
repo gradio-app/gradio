@@ -96,29 +96,24 @@ class BarPlot(Plot):
         """
         self.vertical = get(vertical)
         self.interactive = get(interactive)
-        container = get(container)
-        scale = get(scale)
-        min_width = get(min_width)
-        visible = get(visible)
-
-        self.x = x
-        self.y = y
-        self.color = color
-        self.vertical = vertical
-        self.group = group
-        self.group_title = group_title
-        self.tooltip = tooltip
-        self.title = title
-        self.x_title = x_title
-        self.y_title = y_title
-        self.color_legend_title = color_legend_title
-        self.group_title = group_title
-        self.color_legend_position = color_legend_position
-        self.y_lim = y_lim
-        self.caption = caption
-        self.interactive_chart = interactive
-        self.width = width
-        self.height = height
+        self.x = get(x)
+        self.y = get(y)
+        self.color = get(color)
+        self.vertical = get(vertical)
+        self.group = get(group)
+        self.group_title = get(group_title)
+        self.tooltip = get(tooltip)
+        self.title = get(title)
+        self.x_title = get(x_title)
+        self.y_title = get(y_title)
+        self.color_legend_title = get(color_legend_title)
+        self.group_title = get(group_title)
+        self.color_legend_position = get(color_legend_position)
+        self.y_lim = get(y_lim)
+        self.caption = get(caption)
+        self.interactive_chart = get(interactive)
+        self.width = get(width)
+        self.height = get(height)
         super().__init__(
             value=value,
             label=label,

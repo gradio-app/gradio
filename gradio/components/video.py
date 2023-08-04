@@ -13,7 +13,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import VideoSerializable
 
 from gradio import processing_utils, utils, wasm_utils
-from gradio.blocks import Default, get
+from gradio.blocks import Default, get, NoOverride, is_update
 from gradio.components.base import IOComponent
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Clearable, Playable, Recordable, Uploadable
@@ -104,7 +104,7 @@ class Video(
         self.autoplay = get(autoplay)
         self.source = get(source)
         valid_sources = ["upload", "webcam"]
-        if self.source not in valid_sources:
+        if self.source not in valid_sources + [NoOverride]:
             raise ValueError(
                 f"Invalid value for parameter `source`: {self.source}. Please choose from one of: {valid_sources}"
             )
@@ -112,9 +112,11 @@ class Video(
         self.width = get(width)
         self.mirror_webcam = get(mirror_webcam)
         self.include_audio = get(include_audio)
-        self.include_audio = (
-            self.include_audio if self.include_audio is not None else source == "upload"
-        )
+        if not is_update():
+            self.include_audio = (
+                self.include_audio if self.include_audio is not None else source == "upload"
+            )
+            
         self.show_share_button = get(show_share_button)
         self.show_share_button = (
             (utils.get_space() is not None)

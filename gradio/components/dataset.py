@@ -7,9 +7,8 @@ from typing import Any, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.blocks import Default, get
+from gradio.blocks import Default, get, is_update
 from gradio.components.base import (
-    Component,
     IOComponent,
     get_component_instance,
 )
@@ -63,7 +62,6 @@ class Dataset(Clickable, Selectable, IOComponent, StringSerializable):
         self.label = get(label)
         self.samples_per_page = get(samples_per_page)
         self.headers = get(headers)
-        self.samples_per_page = get(samples_per_page)
 
         IOComponent.__init__(
             self,
@@ -76,6 +74,8 @@ class Dataset(Clickable, Selectable, IOComponent, StringSerializable):
             elem_classes=elem_classes,
             **kwargs,
         )
+        if is_update():
+            return
         self._components = [get_component_instance(c, render=False) for c in components]
 
         # Narrow type to IOComponent
