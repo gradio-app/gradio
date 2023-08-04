@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { type FileData } from "@gradio/upload";
 	import LinkWrapper from "./LinkWrapper.svelte";
 
 	export let elem_id = "";
@@ -9,7 +8,7 @@
 	export let size: "sm" | "lg" = "lg";
 	export let value: string;
 	export let link: string | null = null;
-	export let _icon: FileData | null = null;
+	export let icon: string | null = null;
 	export let disabled = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
@@ -28,11 +27,8 @@
 		id={elem_id}
 		{disabled}
 	>
-		{#if _icon}
-			<img
-				src={`https://huggingface.co/front/assets/huggingface_logo-noborder.svg`}
-				alt={`${value}-icon`}
-			/>
+		{#if icon}
+			<img class="button-icon" src={`/file=${icon}`} alt={`${value}-icon`} />
 		{/if}
 		<slot />
 	</button>

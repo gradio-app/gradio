@@ -11,21 +11,9 @@
 	export let mode: "static" | "dynamic" = "dynamic";
 	export let size: "sm" | "lg" = "lg";
 	export let scale: number | null = null;
-	export let icon: FileData | null = null;
+	export let icon: string | null = null;
 	export let link: string | null = null;
-	export let root: string;
-	export let root_url: null | string;
 	export let min_width: number | undefined = undefined;
-
-	let _icon: FileData | null = null;
-
-	$: {
-		if (icon) {
-			_icon = normalise_file(icon, root, root_url) as FileData;
-		} else {
-			_icon = null;
-		}
-	}
 </script>
 
 <Button
@@ -36,7 +24,7 @@
 	{size}
 	{scale}
 	{link}
-	{_icon}
+	{icon}
 	{min_width}
 	{visible}
 	disabled={mode === "static"}
