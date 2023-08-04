@@ -7,7 +7,7 @@ from typing import Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.blocks import Default, get
+from gradio.blocks import Default
 from gradio.components import Button, Component
 
 set_documentation_group("component")

@@ -12,7 +12,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
 from gradio import processing_utils
-from gradio.blocks import Default, get
+from gradio.blocks import Default
 from gradio.components.base import IOComponent
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Clearable

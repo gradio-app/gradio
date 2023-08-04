@@ -7,7 +7,7 @@ from typing import Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.blocks import Default, get, NoOverride
+from gradio.blocks import Default, NoOverride, get
 from gradio.components.base import IOComponent
 from gradio.events import Changeable, Inputable
 
@@ -84,7 +84,9 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
         self.lines = get(lines)
         self.language = get(language)
         if self.language != NoOverride:
-            assert self.language in Code.languages, f"Language {self.language} not supported."
+            assert (
+                self.language in Code.languages
+            ), f"Language {self.language} not supported."
 
         IOComponent.__init__(
             self,

@@ -8,7 +8,7 @@ import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.blocks import Default, get, NoOverride, is_update
+from gradio.blocks import Default, NoOverride, get, is_update
 from gradio.components.base import (
     FormComponent,
     IOComponent,

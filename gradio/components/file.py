@@ -12,7 +12,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio import utils
-from gradio.blocks import Default, get, NoOverride
+from gradio.blocks import Default, NoOverride, get
 from gradio.components.base import IOComponent
 from gradio.deprecation import warn_deprecation
 from gradio.events import (
@@ -102,8 +102,8 @@ class File(
             raise ValueError(
                 f"Parameter file_types must be a list. Received {type(self.file_types)}"
             )
-        
-        self.file_count = get(file_count)        
+
+        self.file_count = get(file_count)
         if self.file_count == "directory" and isinstance(self.file_types, list):
             warnings.warn(
                 "The `file_types` parameter is ignored when `file_count` is 'directory'."

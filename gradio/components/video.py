@@ -13,7 +13,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import VideoSerializable
 
 from gradio import processing_utils, utils, wasm_utils
-from gradio.blocks import Default, get, NoOverride, is_update
+from gradio.blocks import Default, NoOverride, get, is_update
 from gradio.components.base import IOComponent
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Clearable, Playable, Recordable, Uploadable
@@ -114,9 +114,11 @@ class Video(
         self.include_audio = get(include_audio)
         if not is_update():
             self.include_audio = (
-                self.include_audio if self.include_audio is not None else source == "upload"
+                self.include_audio
+                if self.include_audio is not None
+                else source == "upload"
             )
-            
+
         self.show_share_button = get(show_share_button)
         self.show_share_button = (
             (utils.get_space() is not None)

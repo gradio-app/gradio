@@ -11,7 +11,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
 from gradio import utils
-from gradio.blocks import Default, get, is_update, NoOverride
+from gradio.blocks import Default, get, is_update
 from gradio.components.base import IOComponent
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (

@@ -8,7 +8,7 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import SimpleSerializable
 
-from gradio.blocks import Default, get, NoOverride
+from gradio.blocks import Default, NoOverride, get
 from gradio.components.base import FormComponent, IOComponent
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
@@ -92,14 +92,16 @@ class Dropdown(
         self.allow_custom_value = get(allow_custom_value)
         self.choices = get(choices)
         if self.choices != NoOverride:
-            self.choices = [str(choice) for choice in self.choices] if self.choices else []
+            self.choices = (
+                [str(choice) for choice in self.choices] if self.choices else []
+            )
 
         value = get(value)
         self.multiselect = get(multiselect)
-        if self.multiselect == True and isinstance(value, str):
+        if self.multiselect is True and isinstance(value, str):
             value = [value]
         self.max_choices = get(max_choices)
-        if self.multiselect == True and self.max_choices is not None:
+        if self.multiselect is True and self.max_choices is not None:
             warnings.warn(
                 "The `max_choices` parameter is ignored when `multiselect` is False."
             )

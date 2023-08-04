@@ -7,7 +7,7 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.blocks import Default, get, NoOverride
+from gradio.blocks import Default, NoOverride, get
 from gradio.components.base import FormComponent, IOComponent
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
@@ -81,7 +81,7 @@ class Radio(
         self.choices = get(choices)
         if self.choices is None:
             self.choices = []
-            
+
         self.select: EventListenerMethod
         """
         Event listener for when the user selects Radio option.

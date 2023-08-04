@@ -67,7 +67,7 @@ class Model3D(
         self.clear_color = get(clear_color)
         if self.clear_color is None:
             self.clear_color = [0, 0, 0, 0]
-            
+
         IOComponent.__init__(
             self,
             label=label,

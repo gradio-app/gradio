@@ -7,7 +7,7 @@ from typing import Callable
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.blocks import Default, get
+from gradio.blocks import Default
 from gradio.components.base import IOComponent
 from gradio.events import Changeable
 

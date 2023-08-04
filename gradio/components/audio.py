@@ -13,7 +13,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio import processing_utils, utils
-from gradio.blocks import Default, get, NoOverride, is_update
+from gradio.blocks import Default, NoOverride, get, is_update
 from gradio.components.base import IOComponent
 from gradio.events import (
     Changeable,

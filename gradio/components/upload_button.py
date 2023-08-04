@@ -77,7 +77,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             raise ValueError(
                 f"Parameter file_types must be a list. Received {type(self.file_types)}"
             )
-        
+
         self.size = get(size)
         IOComponent.__init__(
             self,
