@@ -733,7 +733,10 @@ class Interface(Blocks):
             ),  # type: ignore
             _js=f"""() => {json.dumps(
                 (
-                    [Column.update(visible=True)]
+                    [{
+                        "type": "update",
+                        **Column(visible=True, render=False).get_config(with_globals=False)
+                    }]
                     if self.interface_type
                         in [
                             InterfaceTypes.STANDARD,

@@ -96,8 +96,9 @@ BUILT_IN_THEMES: dict[str, Theme] = {
 
 class Default:
     def __init__(self, value):
-        self.value = value        
-    
+        self.value = value
+
+
 def is_update():
     from gradio import context
 
@@ -349,7 +350,7 @@ class Block:
         )
         kwargs["__type__"] = "update"
         return kwargs
-    
+
     def __deepcopy__(self, memo):
         args = copy.deepcopy(self.get_config(with_globals=False), memo)
         return self.__class__(**args, _skip_init_processing=True)
@@ -1349,6 +1350,9 @@ Received outputs:
             else:
                 prediction_value = predictions[i]
                 if isinstance(prediction_value, Block):
+                    assert (
+                        prediction_value.__class__ == block.__class__
+                    ), f"Cannot provide a {prediction_value.__class__.__name__} to update a {block.__class__.__name__} ."
                     prediction_value = prediction_value.get_config(with_globals=False)
                     prediction_value["__type__"] = "update"
                 if utils.is_update(prediction_value):
@@ -2235,7 +2239,10 @@ Received outputs:
 class _NoOverride:
     def __bool__(cls):
         return False
+
+
 NoOverride = _NoOverride()
+
 
 class FinishedIterating:
     pass
