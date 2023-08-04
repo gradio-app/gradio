@@ -6,7 +6,7 @@ No changes to highlight
 
 ## Bug Fixes:
 
-No changes to highlight.
+- Strip leading and trailing spaces from username during login by [@sweep-ai[bot]](https://github.com/sweep-ai[bot]) in [PR 5093](https://github.com/gradio-app/gradio/pull/5093)
 
 ## Breaking Changes:
 
