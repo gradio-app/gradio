@@ -218,6 +218,7 @@ class App(FastAPI):
         @app.post("/login/")
         def login(form_data: OAuth2PasswordRequestForm = Depends()):
             username, password = form_data.username, form_data.password
+            username = username.strip()  # Add this line to strip leading and trailing spaces
             if app.auth is None:
                 return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
             if (
