@@ -1,6 +1,6 @@
 <script lang="ts">
+    import RichTextBox from "../shared";
 	import { createEventDispatcher, getContext, tick } from "svelte";
-	import RichTextbox from "./dynamic";
 	import { upload_files as default_upload_files } from "@gradio/client";
 	import type { FileData } from "@gradio/upload";
 	import { blobToBase64 } from "@gradio/upload";
@@ -99,27 +99,26 @@
 		<StatusTracker {...loading_status} />
 	{/if}
 
-	<RichTextbox
-		{value}
-		{label}
-		{info}
-		{show_label}
-		{lines}
-		{rtl}
-		{text_align}
-		max_lines={!max_lines && mode === "static" ? lines + 1 : max_lines}
-		{placeholder}
-		{show_copy_button}
-		{autofocus}
-		{container}
-		{file_count}
-		{file_types}
-		on:change
-		on:input
-		on:submit
-		on:blur
-		on:select
-		disabled={mode === "static"}
-		on:load={handle_upload}
-	/>
+    <RichTextBox
+        {value}
+        {label}
+        {info}
+        {show_label}
+        {lines}
+        {rtl}
+        {text_align}
+        max_lines={!max_lines ? lines + 1 : max_lines}
+        {placeholder}
+        {show_copy_button}
+        {autofocus}
+        {container}
+        {file_count}
+        {file_types}
+        on:change
+        on:input
+        on:submit
+        on:blur
+        on:select
+        on:load={handle_upload}
+    ></RichTextBox>
 </Block>
