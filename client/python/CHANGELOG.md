@@ -6,7 +6,7 @@ No changes to highlight
 
 ## Bug Fixes:
 
-No changes to highlight.
+- Strip username before login and add unit test by [@sweep-ai](https://github.com/sweep-ai) in [PR 5097](https://github.com/gradio-app/gradio/pull/5097)
 
 ## Breaking Changes:
 
