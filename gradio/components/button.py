@@ -33,6 +33,8 @@ class Button(Clickable, IOComponent, StringSerializable):
         | Default = Default("secondary"),
         size: Literal["sm", "lg"] | Default = Default(None),
         visible: bool | Default = Default(True),
+        icon: str | None | Default = Default(None),
+        link: str | None | Default = Default(None),
         interactive: bool | None | Default = Default(True),
         elem_id: str | None | Default = Default(None),
         elem_classes: list[str] | str | None | Default = Default(None),
@@ -45,6 +47,8 @@ class Button(Clickable, IOComponent, StringSerializable):
             value: Default text for the button to display. If callable, the function will be called whenever the app loads to set the initial value of the component.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             size: Size of the button. Can be "sm" or "lg".
+            icon: URL or path to the icon file to display within the button. If None, no icon will be displayed.
+            link: URL to open when the button is clicked. If None, no link will be used.
             visible: If False, component will be hidden.
             interactive: If False, the Button will be in a disabled state.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -57,6 +61,10 @@ class Button(Clickable, IOComponent, StringSerializable):
             warn_deprecation("'plain' variant deprecated, using 'secondary' instead.")
             self.variant = "secondary"
         self.size = get(size)
+        self.icon = get(icon)
+        if self.icon:
+            self.icon = "/file=" + self.icon
+        self.link = get(link)
 
         IOComponent.__init__(
             self,
