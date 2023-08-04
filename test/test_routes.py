@@ -473,6 +473,22 @@ class TestAuthenticatedRoutes:
         )
         assert response.status_code == 400
 
+    def test_login_strip_username(self):
+        io = Interface(lambda x: x, "text", "text")
+        app, _, _ = io.launch(
+            auth=("test", "correct_password"),
+            prevent_thread_lock=True,
+            enable_queue=False,
+        )
+        client = TestClient(app)
+
+        response = client.post(
+            "/login",
+            data={"username": "  test  ", "password": "correct_password"},
+        )
+        assert response.status_code == 200
+        assert app.tokens[response.json()["access-token"]] == "test"
+
 
 class TestQueueRoutes:
     @pytest.mark.asyncio
