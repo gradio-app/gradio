@@ -45,7 +45,7 @@ class Button(Clickable, IOComponent, StringSerializable):
             value: Default text for the button to display. If callable, the function will be called whenever the app loads to set the initial value of the component.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             size: Size of the button. Can be "sm" or "lg".
-            icon: URL or path to the icon file, or a PIL.Image object representing the icon.
+            icon: URL or path to the icon file to display within the button.
             link: URL to open when the button is clicked.
             visible: If False, component will be hidden.
             interactive: If False, the Button will be in a disabled state.
