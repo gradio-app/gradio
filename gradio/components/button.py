@@ -45,8 +45,8 @@ class Button(Clickable, IOComponent, StringSerializable):
             value: Default text for the button to display. If callable, the function will be called whenever the app loads to set the initial value of the component.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             size: Size of the button. Can be "sm" or "lg".
-            icon: URL or path to the icon file to display within the button.
-            link: URL to open when the button is clicked.
+            icon: URL or path to the icon file to display within the button. If None, no icon will be displayed.
+            link: URL to open when the button is clicked. If None, no link will be used.
             visible: If False, component will be hidden.
             interactive: If False, the Button will be in a disabled state.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
