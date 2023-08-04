@@ -6,7 +6,7 @@
 	export let visible = true;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let size: "sm" | "lg" = "lg";
-	export let value: string;
+	export let value: string | null = null;
 	export let link: string | null = null;
 	export let icon: string | null = null;
 	export let disabled = false;
