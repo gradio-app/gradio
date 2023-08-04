@@ -721,8 +721,9 @@ class Blocks(BlockContext):
             else analytics.analytics_enabled()
         )
         if self.analytics_enabled:
-            t = threading.Thread(target=analytics.version_check)
-            t.start()
+            if not wasm_utils.IS_WASM:
+                t = threading.Thread(target=analytics.version_check)
+                t.start()
         else:
             os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
         super().__init__(render=False, **kwargs)
@@ -761,7 +762,7 @@ class Blocks(BlockContext):
         self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         self.root_urls = set()
 
-        if not wasm_utils.IS_WASM and self.analytics_enabled:
+        if self.analytics_enabled:
             is_custom_theme = not any(
                 self.theme.to_dict() == built_in_theme.to_dict()
                 for built_in_theme in BUILT_IN_THEMES.values()
@@ -1866,7 +1867,7 @@ Received outputs:
                 if self.local_url.startswith("https") or self.is_colab
                 else "http"
             )
-            if not self.is_colab:
+            if not wasm_utils.IS_WASM and not self.is_colab:
                 print(
                     strings.en["RUNNING_LOCALLY_SEPARATED"].format(
                         self.protocol, self.server_name, self.server_port
@@ -1876,13 +1877,13 @@ Received outputs:
             if self.enable_queue:
                 self._queue.set_url(self.local_url)
 
-            # Cannot run async functions in background other than app's scope.
-            # Workaround by triggering the app endpoint
             if not wasm_utils.IS_WASM:
+                # Cannot run async functions in background other than app's scope.
+                # Workaround by triggering the app endpoint
                 requests.get(f"{self.local_url}startup-events", verify=ssl_verify)
-
-        if wasm_utils.IS_WASM:
-            return TupleNoPrint((self.server_app, self.local_url, self.share_url))
+            else:
+                pass
+                # TODO: Call the startup endpoint in the Wasm env too.
 
         utils.launch_counter()
         self.is_sagemaker = utils.sagemaker_check()
@@ -1912,7 +1913,12 @@ Received outputs:
 
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.
-        if _frontend and (not networking.url_ok(self.local_url)) and (not self.share):
+        if (
+            _frontend
+            and not wasm_utils.IS_WASM
+            and not networking.url_ok(self.local_url)
+            and not self.share
+        ):
             raise ValueError(
                 "When localhost is not accessible, a shareable link must be created. Please set share=True or check your proxy settings to allow access to localhost."
             )
@@ -1933,6 +1939,8 @@ Received outputs:
         if self.share:
             if self.space_id:
                 raise RuntimeError("Share is not supported when you are in Spaces")
+            if wasm_utils.IS_WASM:
+                raise RuntimeError("Share is not supported in the Wasm environment")
             try:
                 if self.share_url is None:
                     self.share_url = networking.setup_tunnel(
@@ -1958,11 +1966,11 @@ Received outputs:
                         )
                     )
         else:
-            if not (quiet):
+            if not quiet and not wasm_utils.IS_WASM:
                 print(strings.en["PUBLIC_SHARE_TRUE"])
             self.share_url = None
 
-        if inbrowser:
+        if inbrowser and not wasm_utils.IS_WASM:
             link = self.share_url if self.share and self.share_url else self.local_url
             webbrowser.open(link)
 
@@ -2043,12 +2051,18 @@ Received outputs:
         utils.show_tip(self)
 
         # Block main thread if debug==True
-        if debug or int(os.getenv("GRADIO_DEBUG", 0)) == 1:
+        if debug or int(os.getenv("GRADIO_DEBUG", 0)) == 1 and not wasm_utils.IS_WASM:
             self.block_thread()
         # Block main thread if running in a script to stop script from exiting
         is_in_interactive_mode = bool(getattr(sys, "ps1", sys.flags.interactive))
 
-        if not prevent_thread_lock and not is_in_interactive_mode:
+        if (
+            not prevent_thread_lock
+            and not is_in_interactive_mode
+            # In the Wasm env, we don't have to block the main thread because the server won't be shut down after the execution finishes.
+            # Moreover, we MUST NOT do it because there is only one thread in the Wasm env and blocking it will stop the subsequent code from running.
+            and not wasm_utils.IS_WASM
+        ):
             self.block_thread()
 
         return TupleNoPrint((self.server_app, self.local_url, self.share_url))

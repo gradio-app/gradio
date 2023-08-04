@@ -4,28 +4,58 @@
 	export let visible = true;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let size: "sm" | "lg" = "lg";
+	export let value: string | null = null;
+	export let link: string | null = null;
+	export let icon: string | null = null;
 	export let disabled = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 </script>
 
-<button
-	on:click
-	class:hidden={!visible}
-	class="{size} {variant} {elem_classes.join(' ')}"
-	style:flex-grow={scale}
-	style:width={scale === 0 ? "fit-content" : null}
-	style:min-width={typeof min_width === "number"
-		? `calc(min(${min_width}px, 100%))`
-		: null}
-	id={elem_id}
-	{disabled}
->
-	<slot />
-</button>
+{#if link && link.length > 0}
+	<a
+		href={link}
+		rel="noopener noreferrer"
+		class:hidden={!visible}
+		class:disabled
+		aria-disabled={disabled}
+		class="{size} {variant} {elem_classes.join(' ')}"
+		style:flex-grow={scale}
+		style:pointer-events={disabled ? "none" : null}
+		style:width={scale === 0 ? "fit-content" : null}
+		style:min-width={typeof min_width === "number"
+			? `calc(min(${min_width}px, 100%))`
+			: null}
+		id={elem_id}
+	>
+		{#if icon}
+			<img class="button-icon" src={icon} alt={`${value}-icon`} />
+		{/if}
+		<slot />
+	</a>
+{:else}
+	<button
+		on:click
+		class:hidden={!visible}
+		class="{size} {variant} {elem_classes.join(' ')}"
+		style:flex-grow={scale}
+		style:width={scale === 0 ? "fit-content" : null}
+		style:min-width={typeof min_width === "number"
+			? `calc(min(${min_width}px, 100%))`
+			: null}
+		id={elem_id}
+		{disabled}
+	>
+		{#if icon}
+			<img class="button-icon" src={icon} alt={`${value}-icon`} />
+		{/if}
+		<slot />
+	</button>
+{/if}
 
 <style>
-	button {
+	button,
+	a {
 		display: inline-flex;
 		justify-content: center;
 		align-items: center;
@@ -36,14 +66,19 @@
 	}
 
 	button:hover,
-	button[disabled] {
+	button[disabled],
+	a:hover,
+	a.disabled {
 		box-shadow: var(--button-shadow-hover);
 	}
-	button:active {
+
+	button:active,
+	a:active {
 		box-shadow: var(--button-shadow-active);
 	}
 
-	button[disabled] {
+	button[disabled],
+	a.disabled {
 		opacity: 0.5;
 		filter: grayscale(30%);
 		cursor: not-allowed;
@@ -104,5 +139,11 @@
 		padding: var(--button-large-padding);
 		font-weight: var(--button-large-text-weight);
 		font-size: var(--button-large-text-size);
+	}
+
+	.button-icon {
+		width: var(--text-xl);
+		height: var(--text-xl);
+		margin-right: var(--spacing-xl);
 	}
 </style>
