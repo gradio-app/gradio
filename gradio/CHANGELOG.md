@@ -6,7 +6,7 @@
 
 ### Bug Fixes
 
-- Description of bug fixes ([#5095](https://github.com/gradio-app/gradio/pull/5095))
+- Strip username before login and add unit test by [@sweep-ai[bot]](https://github.com/sweep-ai[bot]) in [PR 5095](https://github.com/gradio-app/gradio/pull/5095)
 
 ### Breaking Changes
 
