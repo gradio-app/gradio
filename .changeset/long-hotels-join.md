@@ -9,4 +9,4 @@
 "gradio_client": minor
 ---
 
-feat:Multimodal Textbox
+feat:RichTextbox component
