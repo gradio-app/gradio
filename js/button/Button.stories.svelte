@@ -1,7 +1,9 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import Button from "./static/";
-	import logo from "../../images/logo.svg";
+	import { setupi18n } from "../app/src/i18n";
+
+	setupi18n();
 </script>
 
 <Meta
@@ -53,7 +55,7 @@
 />
 
 <Template let:args>
-	<Button {...args}>{args.label || "Gradio Button"}</Button>
+	<Button value="Gradio Button" {...args} />
 </Template>
 
 <Story name="Primary" args={{ variant: "primary", size: "lg", scale: 1 }} />
@@ -75,6 +77,6 @@
 	name="Button with local icon file"
 	source
 	args={{
-		icon: logo,
+		icon: "./HF_logo.svg",
 	}}
 />

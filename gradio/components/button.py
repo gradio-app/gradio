@@ -70,7 +70,10 @@ class Button(Clickable, IOComponent, StringSerializable):
             variant = "secondary"
         self.variant = variant
         self.size = size
-        self.icon = icon
+        
+        if icon is not None:
+            icon = "/file=" + icon
+
         self.link = link
 
     def get_config(self):

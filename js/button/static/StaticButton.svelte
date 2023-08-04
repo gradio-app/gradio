@@ -23,7 +23,7 @@
 	{size}
 	{scale}
 	{link}
-	icon={icon && `/file=${icon}`}
+	{icon}
 	{min_width}
 	{visible}
 	disabled={mode === "static"}
