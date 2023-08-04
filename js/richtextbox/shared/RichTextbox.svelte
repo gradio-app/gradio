@@ -192,8 +192,17 @@
 <label class:container>
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
-	{#if lines === 1 && max_lines === 1}
-		<form class="input-form">
+	{#if show_label && show_copy_button}
+		{#if copied}
+			<button class="copy-button" in:fade={{ duration: 300 }}
+				><Check /></button
+			>
+		{:else}
+			<button class="copy-button" on:click={handle_copy}><Copy /></button>
+		{/if}
+	{/if}
+	<div class="wrap">
+		{#if lines === 1 && max_lines === 1}
 			<input
 				data-testid="textbox"
 				type="text"
@@ -209,18 +218,7 @@
 				on:select={handle_select}
 				style={text_align ? "text-align: " + text_align : ""}
 			/>
-		</form>
-	{:else}
-		{#if show_label && show_copy_button}
-			{#if copied}
-				<button class="copy-button" in:fade={{ duration: 300 }}
-					><Check /></button
-				>
-			{:else}
-				<button class="copy-button" on:click={handle_copy}><Copy /></button>
-			{/if}
-		{/if}
-		<div class="wrap">
+		{:else}
 			<textarea
 				data-testid="textbox"
 				class="scroll-hide"
@@ -236,40 +234,40 @@
 				on:select={handle_select}
 				style={text_align ? "text-align: " + text_align : ""}
 			/>
-			{#if value.files.length > 0}
+		{/if}
+		{#if value.files.length > 0}
 
-				<div class="file-icon-container">
-					<div class="file-icon"><File /></div>
-					<span class="file-count" style:visibility={file_count === "multiple" ? "visible" : "hidden"}
-					>{value.files.length > 7 ? "7+" : value.files.length}</span>
-					<button
-						class="clear-button"
-						on:click={clearFiles}
-						{disabled}
-						>
-							<Clear />
-					</button>
-				</div>
-			{:else}
-
-				<input
-					class="hide"
-					accept={accept_file_types}
-					type="file"
-					bind:this={hidden_upload}
-					on:change={loadFilesFromUpload}
-					on:click={clearInputValue}
+			<div class="file-icon-container">
+				<div class="file-icon"><File /></div>
+				<span class="file-count" style:visibility={file_count === "multiple" ? "visible" : "hidden"}
+				>{value.files.length > 7 ? "7+" : value.files.length}</span>
+				<button
+					class="clear-button"
+					on:click={clearFiles}
 					{disabled}
-					multiple={file_count === "multiple" || undefined}
-					webkitdirectory={file_count === "directory" || undefined}
-					mozdirectory={file_count === "directory" || undefined}
-					data-testid="{label}-upload-button"
-				/>
-				<button class="upload-button" on:click={openFileUpload}><Plus /></button
-				>
-			{/if}
-		</div>
-	{/if}
+					>
+						<Clear />
+				</button>
+			</div>
+		{:else}
+
+			<input
+				class="hide"
+				accept={accept_file_types}
+				type="file"
+				bind:this={hidden_upload}
+				on:change={loadFilesFromUpload}
+				on:click={clearInputValue}
+				{disabled}
+				multiple={file_count === "multiple" || undefined}
+				webkitdirectory={file_count === "directory" || undefined}
+				mozdirectory={file_count === "directory" || undefined}
+				data-testid="{label}-upload-button"
+			/>
+			<button class="upload-button" on:click={openFileUpload}><Plus /></button
+			>
+		{/if}
+	</div>
 </label>
 
 <style>
@@ -332,6 +330,7 @@
 		border-color: var(--input-border-color-focus);
 	}
 
+	input[type="text"],
 	textarea {
 		display: flex;
 		position: relative;
