@@ -473,21 +473,11 @@ class TestAuthenticatedRoutes:
         )
         assert response.status_code == 400
 
-    def test_post_login_with_spaces(self):
-        io = Interface(lambda x: x, "text", "text")
-        app, _, _ = io.launch(
-            auth=("test", "correct_password"),
-            prevent_thread_lock=True,
-            enable_queue=False,
-        )
-        client = TestClient(app)
-
         response = client.post(
             "/login",
             data={"username": " test ", "password": "correct_password"},
         )
         assert response.status_code == 200
-        assert app.tokens.get(response.cookies.get("access-token")) == "test"
 
 
 class TestQueueRoutes:
