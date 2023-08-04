@@ -3,7 +3,7 @@
 </script>
 
 {#if link && link.length > 0}
-	<a href={link} target="_blank" rel="noreferrer">
+	<a href={link} rel="noopener noreferrer">
 		<slot />
 	</a>
 {:else}

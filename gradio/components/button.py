@@ -71,10 +71,7 @@ class Button(Clickable, IOComponent, StringSerializable):
         self.variant = variant
         self.size = size
 
-        if icon is not None:
-            self.icon = "/file=" + icon
-        else:
-            self.icon = icon
+        self.icon = icon if icon is None else "/file=" + icon
 
         self.link = link
 
