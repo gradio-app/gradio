@@ -6,7 +6,7 @@ No changes to highlight
 
 ## Bug Fixes:
 
-No changes to highlight.
+- Stripped leading and trailing spaces from the username input on the login page to improve user experience and added a unit test to verify the functionality of the username stripping by [sweep-ai[bot]](https://github.com/apps/sweep-ai) in [PR 5098](https://github.com/gradio-app/gradio/pull/5098).
 
 ## Breaking Changes:
 
