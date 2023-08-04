@@ -70,7 +70,7 @@ class Button(Clickable, IOComponent, StringSerializable):
             variant = "secondary"
         self.variant = variant
         self.size = size
-        
+
         if icon is not None:
             icon = "/file=" + icon
 
