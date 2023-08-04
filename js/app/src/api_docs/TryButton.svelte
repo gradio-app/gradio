@@ -1,15 +1,14 @@
 <script lang="ts">
-	import { Button } from "@gradio/button";
+	import { BaseButton } from "@gradio/button/static";
 
 	export let dependency_index: number;
-	export let named: boolean;
 	export let run: (id: number) => Promise<void>;
 </script>
 
 <span class="space" />
-<Button variant="primary" on:click={run.bind(null, dependency_index)}>
+<BaseButton variant="primary" on:click={run.bind(null, dependency_index)}>
 	Try It Out
-</Button>
+</BaseButton>
 
 <style>
 	.space {

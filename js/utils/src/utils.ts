@@ -16,10 +16,10 @@ export class ShareError extends Error {
 	}
 }
 
-export const uploadToHuggingFace = async (
+export async function uploadToHuggingFace(
 	data: string,
 	type: "base64" | "url"
-) => {
+): Promise<string> {
 	if (window.__gradio_space__ == null) {
 		throw new ShareError("Must be on Spaces to share.");
 	}
@@ -63,9 +63,9 @@ export const uploadToHuggingFace = async (
 	// Return response if needed
 	const result = await uploadResponse.text();
 	return result;
-};
+}
 
-function dataURLtoBlob(dataurl: string) {
+function dataURLtoBlob(dataurl: string): Blob {
 	var arr = dataurl.split(","),
 		mime = (arr[0].match(/:(.*?);/) as RegExpMatchArray)[1],
 		bstr = atob(arr[1]),
