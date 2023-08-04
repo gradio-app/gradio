@@ -21,7 +21,7 @@ export interface Config {
 }
 
 export interface Payload {
-	data: Array<unknown>;
+	data: unknown[];
 	fn_index?: number;
 	event_data?: unknown;
 	time?: Date;
@@ -33,7 +33,7 @@ export interface PostResponse {
 }
 export interface UploadResponse {
 	error?: string;
-	files?: Array<string>;
+	files?: string[];
 }
 
 export interface Status {
@@ -46,13 +46,13 @@ export interface Status {
 	position?: number;
 	eta?: number;
 	message?: string;
-	progress_data?: Array<{
+	progress_data?: {
 		progress: number | null;
 		index: number | null;
 		length: number | null;
 		unit: string | null;
 		desc: string | null;
-	}>;
+	}[];
 	time?: Date;
 }
 

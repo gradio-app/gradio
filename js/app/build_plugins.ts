@@ -89,7 +89,7 @@ export function generate_cdn_entry({
 	};
 }
 
-function make_entry(script: string) {
+function make_entry(script: string): string {
 	const make_script = `
 function make_script(src) {
     const script = document.createElement('script');
@@ -146,9 +146,8 @@ export function handle_ce_css(): Plugin {
 				(acc, next) => {
 					if (/.*\/index(.*?)\.css/.test(next.attributes.href)) {
 						return { ...acc, style: next };
-					} else {
-						return { ...acc, fonts: [...acc.fonts, next.attributes.href] };
 					}
+					return { ...acc, fonts: [...acc.fonts, next.attributes.href] };
 				},
 				{ fonts: [], style: undefined } as {
 					fonts: string[];

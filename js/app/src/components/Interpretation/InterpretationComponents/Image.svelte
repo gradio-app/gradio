@@ -4,19 +4,19 @@
 	import { BlockTitle } from "@gradio/atoms";
 
 	export let original: string;
-	export let interpretation: Array<Array<number>>;
+	export let interpretation: number[][];
 	export let shape: undefined | [number, number];
-	export let label: string = "";
+	export let label = "";
 
 	let saliency_layer: HTMLCanvasElement;
 	let image: HTMLImageElement;
 
-	const paintSaliency = (
-		data: Array<Array<number>>,
+	function paintSaliency(
+		data: number[][],
 		ctx: CanvasRenderingContext2D,
 		width: number,
 		height: number
-	) => {
+	): void {
 		var cell_width = width / data[0].length;
 		var cell_height = height / data.length;
 		var r = 0;
@@ -29,7 +29,7 @@
 			});
 			r++;
 		});
-	};
+	}
 
 	afterUpdate(() => {
 		let size = getObjectFitSize(
@@ -64,7 +64,6 @@
 <div class="input-image">
 	<BlockTitle>{label}</BlockTitle>
 	<div class="image-preview">
-		<!-- svelte-ignore a11y-missing-attribute -->
 		<div class="interpretation">
 			<canvas bind:this={saliency_layer} />
 		</div>

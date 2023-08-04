@@ -1,2 +1,2 @@
-export { default as Component } from "./Form.svelte";
+export { default as Component } from "@gradio/form";
 export const modes = ["static"];

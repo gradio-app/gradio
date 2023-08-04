@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { default as Info } from "./Info.svelte";
-	export let show_label: boolean = true;
+	export let show_label = true;
 	export let info: string | undefined = undefined;
 </script>
 
