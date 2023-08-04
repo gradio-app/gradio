@@ -98,8 +98,8 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         self.show_share_button = get(show_share_button)
         self.show_share_button = (
             (utils.get_space() is not None)
-            if show_share_button is None
-            else show_share_button
+            if self.show_share_button is None
+            else self.show_share_button
         )
 
         self.select: EventListenerMethod

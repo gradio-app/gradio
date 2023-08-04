@@ -337,11 +337,14 @@ class Block:
             signature = inspect.signature(self.__class__.__init__)
             for k in signature.parameters:
                 if hasattr(self, k):
-                    config[k] = getattr(self, k)
-
                     v = getattr(self, k)
-                    if isinstance(v, Default):
-                        print(self, k)
+                    try:
+                        json.dumps(v)
+                    except TypeError:
+                        print(f"Skipped {self.__class__.__name__}.{k}={v} in config because it is not JSON serializable.")
+                        continue
+                    config[k] = v
+
         return config
 
     @staticmethod
@@ -354,7 +357,7 @@ class Block:
     
     def __deepcopy__(self, memo):
         args = copy.deepcopy(self.get_config(with_globals=False), memo)
-        return self.__class__(**args)
+        return self.__class__(**args, _skip_init_processing=True)
 
 
 class BlockContext(Block):
