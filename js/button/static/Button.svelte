@@ -1,6 +1,4 @@
 <script lang="ts">
-	import LinkWrapper from "./LinkWrapper.svelte";
-
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -14,7 +12,28 @@
 	export let min_width: number | undefined = undefined;
 </script>
 
-<LinkWrapper {link}>
+{#if link && link.length > 0}
+	<a
+		href={link}
+		rel="noopener noreferrer"
+		class:hidden={!visible}
+		class:disabled
+		aria-disabled={disabled}
+		class="{size} {variant} {elem_classes.join(' ')}"
+		style:flex-grow={scale}
+		style:pointer-events={disabled ? "none" : null}
+		style:width={scale === 0 ? "fit-content" : null}
+		style:min-width={typeof min_width === "number"
+			? `calc(min(${min_width}px, 100%))`
+			: null}
+		id={elem_id}
+	>
+		{#if icon}
+			<img class="button-icon" src={icon} alt={`${value}-icon`} />
+		{/if}
+		<slot />
+	</a>
+{:else}
 	<button
 		on:click
 		class:hidden={!visible}
@@ -32,10 +51,11 @@
 		{/if}
 		<slot />
 	</button>
-</LinkWrapper>
+{/if}
 
 <style>
-	button {
+	button,
+	a {
 		display: inline-flex;
 		justify-content: center;
 		align-items: center;
@@ -43,18 +63,22 @@
 		box-shadow: var(--button-shadow);
 		padding: var(--size-0-5) var(--size-2);
 		text-align: center;
-		width: var(--size-full);
 	}
 
 	button:hover,
-	button[disabled] {
+	button[disabled],
+	a:hover,
+	a.disabled {
 		box-shadow: var(--button-shadow-hover);
 	}
-	button:active {
+
+	button:active,
+	a:active {
 		box-shadow: var(--button-shadow-active);
 	}
 
-	button[disabled] {
+	button[disabled],
+	a.disabled {
 		opacity: 0.5;
 		filter: grayscale(30%);
 		cursor: not-allowed;

@@ -60,22 +60,33 @@
 
 <Story name="Primary" args={{ variant: "primary", size: "lg", scale: 1 }} />
 <Story name="Secondary" args={{ variant: "secondary", size: "lg" }} />
-<Story name="Stop" source args={{ variant: "stop", size: "lg" }} />
+<Story name="Stop" args={{ variant: "stop", size: "lg" }} />
 <Story
 	name="Button with link"
-	source
 	args={{ link: "https://huggingface.co/welcome" }}
 />
 <Story
 	name="Button with external image icon"
-	source
 	args={{
 		icon: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
 	}}
 />
 <Story
 	name="Button with local icon file"
-	source
+	args={{
+		icon: "./HF_logo.svg",
+	}}
+/>
+
+<Story
+	name="Button with visible equal to false"
+	args={{
+		visible: false,
+	}}
+/>
+
+<Story
+	name="Button with local icon file"
 	args={{
 		icon: "./HF_logo.svg",
 	}}
