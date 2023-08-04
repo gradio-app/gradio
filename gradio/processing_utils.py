@@ -257,7 +257,7 @@ def _convert(image, dtype, force_copy=False, uniform=False):
     dtype_range = {
         bool: (False, True),
         np.bool_: (False, True),
-        np.bool8: (False, True),
+        np.bool8: (False, True),  # type: ignore
         float: (-1, 1),
         np.float_: (-1, 1),
         np.float16: (-1, 1),

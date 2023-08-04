@@ -487,6 +487,8 @@ class Base(ThemeClass):
         background_fill_secondary_dark=None,
         border_color_accent=None,
         border_color_accent_dark=None,
+        border_color_accent_subdued=None,
+        border_color_accent_subdued_dark=None,
         border_color_primary=None,
         border_color_primary_dark=None,
         color_accent=None,
@@ -727,6 +729,8 @@ class Base(ThemeClass):
             background_fill_secondary_dark: The background primarily used for items placed on top of another item in dark mode.
             border_color_accent: The border color used for accented items.
             border_color_accent_dark: The border color used for accented items in dark mode.
+            border_color_accent_subdued: The subdued border color for accented items.
+            border_color_accent_subdued_dark: The subdued border color for accented items in dark mode.
             border_color_primary: The border color primarily used for items placed directly on the page.
             border_color_primary_dark: The border color primarily used for items placed directly on the page in dark mode.
             color_accent: The color used for accented items.
@@ -1201,6 +1205,13 @@ class Base(ThemeClass):
         )
         self.section_header_text_weight = section_header_text_weight or getattr(
             self, "section_header_text_weight", "400"
+        )
+        self.border_color_accent_subdued = border_color_accent_subdued or getattr(
+            self, "border_color_accent_subdued", "*border_color_accent"
+        )
+        self.border_color_accent_subdued_dark = (
+            border_color_accent_subdued_dark
+            or getattr(self, "border_color_accent_subdued_dark", "*border_color_accent")
         )
         # Component Atoms
         self.chatbot_code_background_color = chatbot_code_background_color or getattr(

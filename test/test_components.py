@@ -103,6 +103,9 @@ class TestTextbox:
             "visible": True,
             "interactive": None,
             "root_url": None,
+            "rtl": False,
+            "text_align": None,
+            "autofocus": False,
         }
 
     @pytest.mark.asyncio
@@ -213,6 +216,7 @@ class TestNumber:
             "value": None,
             "name": "number",
             "show_label": True,
+            "step": 1,
             "label": None,
             "minimum": None,
             "maximum": None,
@@ -262,6 +266,7 @@ class TestNumber:
             "value": 42,
             "name": "number",
             "show_label": True,
+            "step": 1,
             "label": None,
             "minimum": None,
             "maximum": None,
@@ -657,12 +662,15 @@ class TestImage:
         )
         assert image_input.get_config() == {
             "brush_radius": None,
+            "brush_color": "#000000",
+            "mask_opacity": 0.7,
             "image_mode": "RGB",
             "shape": None,
             "source": "upload",
             "tool": "editor",
             "name": "image",
             "show_share_button": False,
+            "show_download_button": True,
             "streaming": False,
             "show_label": True,
             "label": "Upload Your Image",
@@ -834,6 +842,7 @@ class TestAudio:
             "autoplay": False,
             "source": "upload",
             "name": "audio",
+            "show_download_button": True,
             "show_share_button": False,
             "streaming": False,
             "show_label": True,
@@ -872,6 +881,7 @@ class TestAudio:
         assert audio_output.get_config() == {
             "autoplay": False,
             "name": "audio",
+            "show_download_button": True,
             "show_share_button": False,
             "streaming": False,
             "show_label": True,
@@ -1432,8 +1442,7 @@ class TestVideo:
         iface = gr.Interface(lambda x: gr.make_waveform(x), "audio", "video")
         assert iface(x_audio).endswith(".mp4")
 
-    def test_video_postprocess_converts_to_playable_format(self, monkeypatch, tmp_path):
-        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
+    def test_video_postprocess_converts_to_playable_format(self):
         test_file_dir = Path(Path(__file__).parent, "test_files")
         # This file has a playable container but not playable codec
         with tempfile.NamedTemporaryFile(
@@ -1496,9 +1505,22 @@ class TestVideo:
         ).preprocess(x_video)
         output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
         assert list(output_params.values())[0] == ["-an"]
-        assert "flip" not in list(output_params.keys())[0]
+        assert "flip" not in Path(list(output_params.keys())[0]).name
         assert ".avi" in list(output_params.keys())[0]
         assert ".avi" in output_file
+
+    @pytest.mark.flaky
+    def test_preprocess_url(self):
+        output = gr.Video().preprocess(
+            {
+                "name": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
+                "is_file": True,
+                "data": None,
+                "size": None,
+                "orig_name": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
+            }
+        )
+        assert Path(output).name == "a.mp4" and not client_utils.probe_url(output)
 
 
 class TestTimeseries:
@@ -1708,6 +1730,14 @@ class TestHighlightedText:
         text = "Wolfgang lives in Berlin"
         entities = [
             {"entity": "PER", "start": 0, "end": 8},
+            {"entity": "LOC", "start": 18, "end": 24},
+        ]
+        result_ = component.postprocess({"text": text, "entities": entities})
+        assert result == result_
+
+        text = "Wolfgang lives in Berlin"
+        entities = [
+            {"entity_group": "PER", "start": 0, "end": 8},
             {"entity": "LOC", "start": 18, "end": 24},
         ]
         result_ = component.postprocess({"text": text, "entities": entities})
@@ -1964,6 +1994,7 @@ class TestChatbot:
             "root_url": None,
             "selectable": False,
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
+            "rtl": False,
         }
 
 

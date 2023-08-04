@@ -9,8 +9,8 @@ from gradio_client.serializing import StringSerializable
 
 from gradio.components.base import IOComponent, _Keywords
 from gradio.events import (
-    Blurrable,
     Changeable,
+    Focusable,
     Inputable,
     Submittable,
 )
@@ -20,7 +20,7 @@ set_documentation_group("component")
 
 @document()
 class ColorPicker(
-    Changeable, Inputable, Submittable, Blurrable, IOComponent, StringSerializable
+    Changeable, Inputable, Submittable, Focusable, IOComponent, StringSerializable
 ):
     """
     Creates a color picker for user to select a color as string input.
@@ -37,7 +37,7 @@ class ColorPicker(
         label: str | None = None,
         info: str | None = None,
         every: float | None = None,
-        show_label: bool = True,
+        show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,

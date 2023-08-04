@@ -16,8 +16,6 @@ from gradio.interface import Interface, TabbedInterface, close_all, os
 from gradio.layouts import TabItem, Tabs
 from gradio.utils import assert_configs_are_equivalent_besides_ids
 
-os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
-
 
 @contextmanager
 def captured_output():
@@ -75,6 +73,13 @@ class TestInterface:
         Interface(test, [t, i], "text")
         assert t.label == "parameter_name1"
         assert i.label == "parameter_name2"
+
+        def special_args_test(req: gradio.Request, parameter_name):
+            return parameter_name
+
+        t = Textbox()
+        Interface(special_args_test, t, "text")
+        assert t.label == "parameter_name"
 
     def test_examples_valid_path(self):
         path = os.path.join(

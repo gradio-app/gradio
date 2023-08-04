@@ -39,7 +39,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         *,
         label: str | None = None,
         every: float | None = None,
-        show_label: bool = True,
+        show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
@@ -54,6 +54,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         | None = None,
         allow_preview: bool = True,
         show_share_button: bool | None = None,
+        show_download_button: bool | None = True,
         **kwargs,
     ):
         """
@@ -75,6 +76,8 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             object_fit: CSS object-fit property for the thumbnail images in the gallery. Can be "contain", "cover", "fill", "none", or "scale-down".
             allow_preview: If True, images in the gallery will be enlarged when they are clicked. Default is True.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
+            show_download_button: If True, will show a download button in the corner of the selected image. If False, the icon does not appear. Default is True.
+
         """
         self.grid_cols = columns
         self.grid_rows = rows
@@ -82,6 +85,11 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         self.preview = preview
         self.object_fit = object_fit
         self.allow_preview = allow_preview
+        self.show_download_button = (
+            (utils.get_space() is not None)
+            if show_download_button is None
+            else show_download_button
+        )
         self.select: EventListenerMethod
         """
         Event listener for when the user selects image within Gallery.
@@ -125,6 +133,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         | None = None,
         allow_preview: bool | None = None,
         show_share_button: bool | None = None,
+        show_download_button: bool | None = None,
     ):
         updated_config = {
             "label": label,
@@ -141,6 +150,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             "object_fit": object_fit,
             "allow_preview": allow_preview,
             "show_share_button": show_share_button,
+            "show_download_button": show_download_button,
             "__type__": "update",
         }
         return updated_config
@@ -155,6 +165,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             "object_fit": self.object_fit,
             "allow_preview": self.allow_preview,
             "show_share_button": self.show_share_button,
+            "show_download_button": self.show_download_button,
             **IOComponent.get_config(self),
         }
 

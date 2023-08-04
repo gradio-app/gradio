@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { ComponentMeta, Dependency } from "../components/types";
-	import { Button } from "@gradio/button";
+	import { BaseButton } from "@gradio/button/static";
 	import { Block } from "@gradio/atoms";
 
 	export let dependency: Dependency;
@@ -12,7 +12,7 @@
 	export let run: (id: number) => Promise<void>;
 	export let dependency_inputs: string[][];
 
-	function format_label(label: unknown) {
+	function format_label(label: unknown): string {
 		return label ? "'" + label + "'" : "the";
 	}
 </script>
@@ -60,9 +60,9 @@
 </Block>
 
 <span class="space" />
-<Button variant="primary" on:click={run.bind(null, dependency_index)}>
+<BaseButton variant="primary" on:click={run.bind(null, dependency_index)}>
 	Try It Out
-</Button>
+</BaseButton>
 
 <style>
 	.payload-details {
@@ -107,10 +107,6 @@
 
 	:global(.dark) .toggle-dot {
 		background: var(--color-grey-400);
-	}
-
-	.details {
-		font-family: var(--font-mono);
 	}
 
 	input[type="text"] {

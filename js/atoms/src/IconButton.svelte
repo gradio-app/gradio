@@ -1,8 +1,8 @@
 <script lang="ts">
 	export let Icon: any;
 	export let label = "";
-	export let show_label: boolean = false;
-	export let pending: boolean = false;
+	export let show_label = false;
+	export let pending = false;
 </script>
 
 <button on:click aria-label={label} title={label} class:pending>

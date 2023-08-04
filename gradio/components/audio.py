@@ -56,7 +56,7 @@ class Audio(
         type: Literal["numpy", "filepath"] = "numpy",
         label: str | None = None,
         every: float | None = None,
-        show_label: bool = True,
+        show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
@@ -67,6 +67,7 @@ class Audio(
         elem_classes: list[str] | str | None = None,
         format: Literal["wav", "mp3"] = "wav",
         autoplay: bool = False,
+        show_download_button=True,
         show_share_button: bool | None = None,
         **kwargs,
     ):
@@ -88,6 +89,7 @@ class Audio(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             format: The file format to save audio files. Either 'wav' or 'mp3'. wav files are lossless but will tend to be larger files. mp3 files tend to be smaller. Default is wav. Applies both when this component is used as an input (when `type` is "format") and when this component is used as an output.
             autoplay: Whether to automatically play the audio when the component is used as an output. Note: browsers will not autoplay audio files if the user has not interacted with the page yet.
+            show_download_button: If True, will show a download button in the corner of the component for saving audio. If False, icon does not appear.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
         valid_sources = ["upload", "microphone"]
@@ -109,6 +111,7 @@ class Audio(
             )
         self.format = format
         self.autoplay = autoplay
+        self.show_download_button = show_download_button
         self.show_share_button = (
             (utils.get_space() is not None)
             if show_share_button is None
@@ -137,6 +140,7 @@ class Audio(
             "value": self.value,
             "streaming": self.streaming,
             "autoplay": self.autoplay,
+            "show_download_button": self.show_download_button,
             "show_share_button": self.show_share_button,
             **IOComponent.get_config(self),
         }
@@ -159,6 +163,7 @@ class Audio(
         interactive: bool | None = None,
         visible: bool | None = None,
         autoplay: bool | None = None,
+        show_download_button: bool | None = None,
         show_share_button: bool | None = None,
     ):
         return {
@@ -172,6 +177,7 @@ class Audio(
             "visible": visible,
             "value": value,
             "autoplay": autoplay,
+            "show_download_button": show_download_button,
             "show_share_button": show_share_button,
             "__type__": "update",
         }
@@ -194,7 +200,7 @@ class Audio(
         )
         crop_min, crop_max = x.get("crop_min", 0), x.get("crop_max", 100)
         if is_file:
-            if utils.validate_url(file_name):
+            if client_utils.is_http_url_like(file_name):
                 temp_file_path = self.download_temp_copy_if_needed(file_name)
             else:
                 temp_file_path = self.make_temp_copy_if_needed(file_name)
@@ -322,7 +328,7 @@ class Audio(
         """
         if y is None:
             return None
-        if isinstance(y, str) and utils.validate_url(y):
+        if isinstance(y, str) and client_utils.is_http_url_like(y):
             return {"name": y, "data": None, "is_file": True}
         if isinstance(y, tuple):
             sample_rate, data = y

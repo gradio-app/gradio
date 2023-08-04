@@ -37,10 +37,10 @@
 
 	let current_hover = -1;
 
-	function handle_mouseenter(i: number) {
+	function handle_mouseenter(i: number): void {
 		current_hover = i;
 	}
-	function handle_mouseleave() {
+	function handle_mouseleave(): void {
 		current_hover = -1;
 	}
 

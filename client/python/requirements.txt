@@ -1,7 +1,7 @@
-requests
-websockets
-packaging
 fsspec
-huggingface_hub>=0.13.0
-typing_extensions
 httpx
+huggingface_hub>=0.13.0
+packaging
+requests~=2.0
+typing_extensions~=4.0
+websockets>=10.0,<12.0

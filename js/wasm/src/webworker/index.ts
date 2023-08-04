@@ -33,7 +33,7 @@ async function loadPyodideAndPackages(
 ): Promise<void> {
 	console.debug("Loading Pyodide.");
 	pyodide = await loadPyodide({
-		stdout: console.log,
+		stdout: console.debug,
 		stderr: console.error
 	});
 	console.debug("Pyodide is loaded.");

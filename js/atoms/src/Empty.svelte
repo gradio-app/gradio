@@ -5,8 +5,8 @@
 	let el: HTMLDivElement;
 	$: parent_height = compare_el_to_parent(el);
 
-	function compare_el_to_parent(el: HTMLDivElement) {
-		if (!el) return;
+	function compare_el_to_parent(el: HTMLDivElement): boolean {
+		if (!el) return false;
 
 		const { height: el_height } = el.getBoundingClientRect();
 		const { height: parent_height } =

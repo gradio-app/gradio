@@ -5,6 +5,7 @@ import concurrent.futures
 import json
 import os
 import re
+import secrets
 import tempfile
 import threading
 import time
@@ -20,7 +21,7 @@ from typing import Any, Callable, Literal
 import huggingface_hub
 import requests
 import websockets
-from huggingface_hub import SpaceHardware, SpaceStage
+from huggingface_hub import CommitOperationAdd, SpaceHardware, SpaceStage
 from huggingface_hub.utils import (
     RepositoryNotFoundError,
     build_hf_headers,
@@ -46,7 +47,7 @@ DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
 )
 
 
-@document("predict", "submit", "view_api", "duplicate")
+@document("predict", "submit", "view_api", "duplicate", "deploy_discord")
 class Client:
     """
     The main Client class for the Python client. This class is used to connect to a remote Gradio app and call its API endpoints.
@@ -427,7 +428,7 @@ class Client:
 
         # Versions of Gradio older than 3.29.0 returned format of the API info
         # from the /info endpoint
-        if version.parse(self.config.get("version", "2.0")) > version.Version("3.29.0"):
+        if version.parse(self.config.get("version", "2.0")) > version.Version("3.36.1"):
             r = requests.get(api_info_url, headers=self.headers)
             if r.ok:
                 info = r.json()
@@ -550,7 +551,7 @@ class Client:
         if api_name is not None:
             for i, d in enumerate(self.config["dependencies"]):
                 config_api_name = d.get("api_name")
-                if config_api_name is None:
+                if config_api_name is None or config_api_name is False:
                     continue
                 if "/" + config_api_name == api_name:
                     inferred_fn_index = i
@@ -602,6 +603,147 @@ class Client:
                     "Gradio 2.x is not supported by this client. Please upgrade your Gradio app to Gradio 3.x or higher."
                 )
             return config
+
+    def deploy_discord(
+        self,
+        discord_bot_token: str | None = None,
+        api_names: list[str | tuple[str, str]] | None = None,
+        to_id: str | None = None,
+        hf_token: str | None = None,
+        private: bool = False,
+    ):
+        """
+        Deploy the upstream app as a discord bot. Currently only supports gr.ChatInterface.
+        Parameters:
+            discord_bot_token: This is the "password" needed to be able to launch the bot. Users can get a token by creating a bot app on the discord website. If run the method without specifying a token, the space will explain how to get one. See here: https://huggingface.co/spaces/freddyaboulton/test-discord-bot-v1.
+            api_names: The api_names of the app to turn into bot commands. This parameter currently has no effect as ChatInterface only has one api_name ('/chat').
+            to_id: The name of the space hosting the discord bot. If None, the name will be gradio-discord-bot-{random-substring}
+            hf_token: HF api token with write priviledges in order to upload the files to HF space. Can be ommitted if logged in via the HuggingFace CLI, unless the upstream space is private. Obtain from: https://huggingface.co/settings/token
+            private: Whether the space hosting the discord bot is private. The visibility of the discord bot itself is set via the discord website. See https://huggingface.co/spaces/freddyaboulton/test-discord-bot-v1
+        """
+
+        if self.config["mode"] == "chat_interface" and not api_names:
+            api_names = [("chat", "chat")]
+
+        valid_list = isinstance(api_names, list) and (
+            isinstance(n, str)
+            or (
+                isinstance(n, tuple) and isinstance(n[0], str) and isinstance(n[1], str)
+            )
+            for n in api_names
+        )
+        if api_names is None or not valid_list:
+            raise ValueError(
+                f"Each entry in api_names must be either a string or a tuple of strings. Received {api_names}"
+            )
+        assert (
+            len(api_names) == 1
+        ), "Currently only one api_name can be deployed to discord."
+
+        for i, name in enumerate(api_names):
+            if isinstance(name, str):
+                api_names[i] = (name, name)
+
+        fn = next(
+            (ep for ep in self.endpoints if ep.api_name == f"/{api_names[0][0]}"), None
+        )
+        if not fn:
+            raise ValueError(
+                f"api_name {api_names[0][0]} not present in {self.space_id or self.src}"
+            )
+        inputs = [
+            inp for inp in fn.input_component_types if fn not in utils.SKIP_COMPONENTS
+        ]
+        outputs = [
+            inp for inp in fn.input_component_types if fn not in utils.SKIP_COMPONENTS
+        ]
+        if not inputs == ["textbox"] and outputs == ["textbox"]:
+            raise ValueError(
+                "Currently only api_names with a single textbox as input and output are supported. "
+                f"Received {inputs} and {outputs}"
+            )
+
+        is_private = False
+        if self.space_id:
+            is_private = huggingface_hub.space_info(self.space_id).private
+            if is_private:
+                assert hf_token, (
+                    f"Since {self.space_id} is private, you must explicitly pass in hf_token "
+                    "so that it can be added as a secret in the discord bot space."
+                )
+
+        if to_id:
+            if "/" in to_id:
+                to_id = to_id.split("/")[1]
+            space_id = huggingface_hub.get_full_repo_name(to_id, token=hf_token)
+        else:
+            if self.space_id:
+                space_id = f'{self.space_id.split("/")[1]}-gradio-discord-bot'
+            else:
+                space_id = f"gradio-discord-bot-{secrets.token_hex(4)}"
+            space_id = huggingface_hub.get_full_repo_name(space_id, token=hf_token)
+
+        api = huggingface_hub.HfApi()
+
+        try:
+            huggingface_hub.space_info(space_id)
+            first_upload = False
+        except huggingface_hub.utils.RepositoryNotFoundError:
+            first_upload = True
+
+        huggingface_hub.create_repo(
+            space_id,
+            repo_type="space",
+            space_sdk="gradio",
+            token=hf_token,
+            exist_ok=True,
+            private=private,
+        )
+        if first_upload:
+            huggingface_hub.metadata_update(
+                repo_id=space_id,
+                repo_type="space",
+                metadata={"tags": ["gradio-discord-bot"]},
+            )
+
+        with open(str(Path(__file__).parent / "templates" / "discord_chat.py")) as f:
+            app = f.read()
+        app = app.replace("<<app-src>>", self.src)
+        app = app.replace("<<api-name>>", api_names[0][0])
+        app = app.replace("<<command-name>>", api_names[0][1])
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as app_file:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as requirements:
+                app_file.write(app)
+                requirements.write("\n".join(["discord.py==2.3.1"]))
+
+        operations = [
+            CommitOperationAdd(path_in_repo="app.py", path_or_fileobj=app_file.name),
+            CommitOperationAdd(
+                path_in_repo="requirements.txt", path_or_fileobj=requirements.name
+            ),
+        ]
+
+        api.create_commit(
+            repo_id=space_id,
+            commit_message="Deploy Discord Bot",
+            repo_type="space",
+            operations=operations,
+            token=hf_token,
+        )
+
+        if discord_bot_token:
+            huggingface_hub.add_space_secret(
+                space_id, "DISCORD_TOKEN", discord_bot_token, token=hf_token
+            )
+        if is_private:
+            huggingface_hub.add_space_secret(
+                space_id, "HF_TOKEN", hf_token, token=hf_token
+            )
+
+        url = f"https://huggingface.co/spaces/{space_id}"
+        print(f"See your discord bot here! {url}")
+        return url
 
 
 class Endpoint:
@@ -775,11 +917,11 @@ class Endpoint:
                 data.insert(i, None)
         return tuple(data)
 
-    def remove_state(self, *data) -> tuple:
+    def remove_skipped_components(self, *data) -> tuple:
         data = [
             d
             for d, oct in zip(data, self.output_component_types)
-            if oct != utils.STATE_COMPONENT
+            if oct not in utils.SKIP_COMPONENTS
         ]
         return tuple(data)
 
@@ -789,7 +931,7 @@ class Endpoint:
                 [
                     oct
                     for oct in self.output_component_types
-                    if oct != utils.STATE_COMPONENT
+                    if oct not in utils.SKIP_COMPONENTS
                 ]
             )
             == 1
@@ -834,7 +976,7 @@ class Endpoint:
     def process_predictions(self, *predictions):
         if self.client.serialize:
             predictions = self.deserialize(*predictions)
-        predictions = self.remove_state(*predictions)
+        predictions = self.remove_skipped_components(*predictions)
         predictions = self.reduce_singleton_output(*predictions)
         return predictions
 
@@ -873,6 +1015,8 @@ class Endpoint:
                             serializer_name in serializing.SERIALIZER_MAPPING
                         ), f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
                         deserializer = serializing.SERIALIZER_MAPPING[serializer_name]
+                    elif component_name in utils.SKIP_COMPONENTS:
+                        deserializer = serializing.SimpleSerializable
                     else:
                         assert (
                             component_name in serializing.COMPONENT_MAPPING

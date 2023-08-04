@@ -14,13 +14,12 @@ export function determine_protocol(endpoint: string): {
 				host: host,
 				http_protocol: protocol as "http:" | "https:"
 			};
-		} else {
-			return {
-				ws_protocol: protocol === "https:" ? "wss" : "ws",
-				http_protocol: protocol as "http:" | "https:",
-				host
-			};
 		}
+		return {
+			ws_protocol: protocol === "https:" ? "wss" : "ws",
+			http_protocol: protocol as "http:" | "https:",
+			host
+		};
 	}
 
 	// default to secure if no protocol is provided
@@ -87,7 +86,9 @@ export async function process_endpoint(
 	};
 }
 
-export function map_names_to_ids(fns: Config["dependencies"]) {
+export function map_names_to_ids(
+	fns: Config["dependencies"]
+): Record<string, number> {
 	let apis: Record<string, number> = {};
 
 	fns.forEach(({ api_name }, i) => {
@@ -99,7 +100,7 @@ export function map_names_to_ids(fns: Config["dependencies"]) {
 
 const RE_DISABLED_DISCUSSION =
 	/^(?=[^]*\b[dD]iscussions{0,1}\b)(?=[^]*\b[dD]isabled\b)[^]*$/;
-export async function discussions_enabled(space_id: string) {
+export async function discussions_enabled(space_id: string): Promise<boolean> {
 	try {
 		const r = await fetch(
 			`https://huggingface.co/api/spaces/${space_id}/discussions`,
@@ -110,7 +111,7 @@ export async function discussions_enabled(space_id: string) {
 		const error = r.headers.get("x-error-message");
 
 		if (error && RE_DISABLED_DISCUSSION.test(error)) return false;
-		else return true;
+		return true;
 	} catch (e) {
 		return false;
 	}
@@ -119,7 +120,7 @@ export async function discussions_enabled(space_id: string) {
 export async function get_space_hardware(
 	space_id: string,
 	token: `hf_${string}`
-) {
+): Promise<(typeof hardware_types)[number]> {
 	const headers: { Authorization?: string } = {};
 	if (token) {
 		headers.Authorization = `Bearer ${token}`;
@@ -146,7 +147,7 @@ export async function set_space_hardware(
 	space_id: string,
 	new_hardware: (typeof hardware_types)[number],
 	token: `hf_${string}`
-) {
+): Promise<(typeof hardware_types)[number]> {
 	const headers: { Authorization?: string } = {};
 	if (token) {
 		headers.Authorization = `Bearer ${token}`;
@@ -175,7 +176,7 @@ export async function set_space_timeout(
 	space_id: string,
 	timeout: number,
 	token: `hf_${string}`
-) {
+): Promise<number> {
 	const headers: { Authorization?: string } = {};
 	if (token) {
 		headers.Authorization = `Bearer ${token}`;

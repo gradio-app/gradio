@@ -7,22 +7,22 @@ export function normalise_file(
 ): FileData | null;
 
 export function normalise_file(
-	file: Array<FileData> | null,
+	file: FileData[] | null,
 	root: string,
 	root_url: string | null
-): Array<FileData> | null;
+): FileData[] | null;
 
 export function normalise_file(
-	file: Array<FileData> | FileData | null,
+	file: FileData[] | FileData | null,
 	root: string,
 	root_url: string | null
-): Array<FileData> | FileData | null;
+): FileData[] | FileData | null;
 
 export function normalise_file(
-	file: Array<FileData> | FileData | string | null,
+	file: FileData[] | FileData | string | null,
 	root: string,
 	root_url: string | null
-): Array<FileData> | FileData | null {
+): FileData[] | FileData | null {
 	if (file == null) return null;
 	if (typeof file === "string") {
 		return {
@@ -30,7 +30,7 @@ export function normalise_file(
 			data: file
 		};
 	} else if (Array.isArray(file)) {
-		const normalized_file: Array<FileData | null> = [];
+		const normalized_file: (FileData | null)[] = [];
 
 		for (const x of file) {
 			if (x === null) {
@@ -40,7 +40,7 @@ export function normalise_file(
 			}
 		}
 
-		return normalized_file as Array<FileData>;
+		return normalized_file as FileData[];
 	} else if (file.is_file) {
 		if (root_url == null) {
 			file.data = root + "/file=" + file.name;
@@ -55,7 +55,7 @@ export const blobToBase64 = (blob: File): Promise<string> => {
 	const reader = new FileReader();
 	reader.readAsDataURL(blob);
 	return new Promise((resolve) => {
-		reader.onloadend = () => {
+		reader.onloadend = (): void => {
 			resolve(reader.result as string);
 		};
 	});

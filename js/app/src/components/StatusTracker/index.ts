@@ -1,2 +1,2 @@
-export { default as Component } from "./StatusTracker.svelte";
+export { StatusTracker as Component } from "@gradio/statustracker";
 export const modes = ["static"];

@@ -1,1 +1,1 @@
-# `@gradio/chart`
+# `@gradio/code`

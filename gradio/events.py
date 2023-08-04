@@ -3,7 +3,7 @@ of the on-page-load event, which is defined in gr.Blocks().load()."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
 
 from gradio_client.documentation import document, set_documentation_group
 
@@ -91,8 +91,8 @@ class EventListenerMethod:
     def __call__(
         self,
         fn: Callable | None,
-        inputs: Component | list[Component] | set[Component] | None = None,
-        outputs: Component | list[Component] | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
+        outputs: Component | Sequence[Component] | None = None,
         api_name: str | None | Literal[False] = None,
         status_tracker: None = None,
         scroll_to_output: bool = False,
@@ -286,9 +286,15 @@ class Recordable(EventListener):
         """
 
 
-@document("*blur", inherit=True)
-class Blurrable(EventListener):
+@document("*focus", "*blur", inherit=True)
+class Focusable(EventListener):
     def __init__(self):
+        self.focus = EventListenerMethod(self, "focus")
+        """
+        This listener is triggered when the component is focused (e.g. when the user clicks inside a textbox).
+        This method can be used when this component is in a Gradio Blocks.
+        """
+
         self.blur = EventListenerMethod(self, "blur")
         """
         This listener is triggered when the component's is unfocused/blurred (e.g. when the user clicks outside of a textbox). 

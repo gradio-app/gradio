@@ -1,6 +1,6 @@
 name: "\U0001F41E Bug report"
 description: Report a bug on Gradio
-labels: [ "bug" ]
+labels: ["bug"]
 body:
   - type: markdown
     attributes:
@@ -44,9 +44,8 @@ body:
     id: system-info
     attributes:
       label: System Info
-      description: Please ensure you are running the latest version of Gradio. You can get the Gradio version by running `pip show gradio`
+      description: Please ensure you are running the latest version of Gradio. You can get the Gradio version and all its dependencies by running `gradio environment`
       render: shell
-      placeholder: Please include (1) gradio (or gradio_client) version (2) the operating system (3) (if relevant,) the browser
     validations:
       required: true
   - type: dropdown
@@ -62,4 +61,4 @@ body:
   - type: markdown
     attributes:
       value: |
-        📌  Please ensure that you have filled all of the required sections above, and that the reproduction you have provided is [minimal, complete, and reproducible](https://stackoverflow.com/help/minimal-reproducible-example). Incomplete issues will be closed. 
+        📌  Please ensure that you have filled all of the required sections above, and that the reproduction you have provided is [minimal, complete, and reproducible](https://stackoverflow.com/help/minimal-reproducible-example). Incomplete issues will be closed.
