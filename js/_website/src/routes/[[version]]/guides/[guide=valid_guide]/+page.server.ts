@@ -1,10 +1,10 @@
-import changelog_json from "./changelog.json";
+import guide_names_json from "../json/guide_names.json";
+
 import { compile } from "mdsvex";
 import anchor from "$lib/assets/img/anchor.svg";
-
-let content = changelog_json.content;
 import { make_slug_processor } from "$lib/utils";
 import { toString as to_string } from "hast-util-to-string";
+let guide_names = guide_names_json.guide_names;
 
 import Prism from "prismjs";
 import "prismjs/components/prism-python";
@@ -13,6 +13,19 @@ import "prismjs/components/prism-json";
 import "prismjs/components/prism-typescript";
 import "prismjs/components/prism-csv";
 import "prismjs/components/prism-markup";
+
+
+
+function plugin() {
+	return function transform(tree: any) {
+		tree.children.forEach((n: any) => {
+			if (n.type === "heading") {
+				// console.log(n);
+			}
+		});
+	};
+}
+
 
 const langs = {
 	python: "python",
@@ -23,7 +36,7 @@ const langs = {
 	shell: "bash",
 	json: "json",
 	typescript: "typescript",
-	directory: "json"
+	directory: "json",
 };
 
 function highlight(code: string, lang: string | undefined) {
@@ -31,41 +44,46 @@ function highlight(code: string, lang: string | undefined) {
 
 	const highlighted = _lang
 		? `<pre class="language-${lang}"><code>${Prism.highlight(
-				code,
-				Prism.languages[_lang],
-				_lang
-		  )}</code></pre>`
+			code,
+			Prism.languages[_lang],
+			_lang
+		)}</code></pre>`
 		: code;
 
 	return highlighted;
 }
 
-export async function load() {
-	const changelog_slug: object[] = [];
+export async function load({ params }: any) {
+	let guide_json = await import(`../../guides/json/${params.guide}.json`);
+	let guide = guide_json.guide;
+	const guide_slug: object[] = [];
 
 	const get_slug = make_slug_processor();
 	function plugin() {
 		return function transform(tree: any) {
 			tree.children.forEach((n: any) => {
-				if (n.type === "element" && ["h2"].includes(n.tagName)) {
+				if (
+					n.type === "element" &&
+					["h2", "h3", "h4", "h5", "h6"].includes(n.tagName)
+				) {
 					const str_of_heading = to_string(n);
 					const slug = get_slug(str_of_heading);
 
-					changelog_slug.push({
+					guide_slug.push({
 						text: str_of_heading,
 						href: `#${slug}`,
 						level: parseInt(n.tagName.replace("h", ""))
 					});
 
 					if (!n.children) n.children = [];
-					n.properties.className = ["group"];
+					n.properties.className = ["group"]
 					n.properties.id = [slug];
 					n.children.push({
 						type: "element",
 						tagName: "a",
 						properties: {
 							href: `#${slug}`,
-							className: ["invisible", "group-hover-visible"]
+							className: ["invisible", "group-hover-visible"],
 						},
 						children: [
 							{
@@ -84,16 +102,17 @@ export async function load() {
 		};
 	}
 
-	const compiled = await compile(content, {
+	const compiled = await compile(guide.content, {
 		rehypePlugins: [plugin],
 		highlight: {
 			highlighter: highlight
 		}
 	});
-	content = (await compiled?.code) || "";
+	guide.new_html = await compiled?.code;
 
 	return {
-		content,
-		changelog_slug
+		guide,
+		guide_slug,
+		guide_names
 	};
 }

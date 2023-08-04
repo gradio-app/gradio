@@ -1,5 +1,5 @@
 <script lang="ts">
-	import MetaTags from "../../components/MetaTags.svelte";
+	import MetaTags from "$lib/components/MetaTags.svelte";
 
 	export let data: {
 		content: any;

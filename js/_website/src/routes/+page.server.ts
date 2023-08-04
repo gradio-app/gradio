@@ -1,5 +1,4 @@
-import gradio_banner from "../assets/img/header-image.jpg";
-import { logos, tweets } from "../assets";
+import { logos, tweets } from "$lib/assets";
 
 export async function load({ fetch }: any) {
 	let r = await fetch("https://api.github.com/repos/gradio-app/gradio");

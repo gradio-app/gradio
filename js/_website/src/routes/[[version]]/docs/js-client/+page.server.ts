@@ -1,11 +1,8 @@
-import changelog_json from "./changelog.json";
+import docs_json from "../docs.json";
 import { compile } from "mdsvex";
 import anchor from "$lib/assets/img/anchor.svg";
-
-let content = changelog_json.content;
 import { make_slug_processor } from "$lib/utils";
 import { toString as to_string } from "hast-util-to-string";
-
 import Prism from "prismjs";
 import "prismjs/components/prism-python";
 import "prismjs/components/prism-bash";
@@ -13,6 +10,22 @@ import "prismjs/components/prism-json";
 import "prismjs/components/prism-typescript";
 import "prismjs/components/prism-csv";
 import "prismjs/components/prism-markup";
+
+let components = docs_json.docs.components;
+let helpers = docs_json.docs.helpers;
+let routes = docs_json.docs.routes;
+let py_client = docs_json.docs["py-client"];
+let js_client = docs_json.js_client;
+
+function plugin() {
+	return function transform(tree: any) {
+		tree.children.forEach((n: any) => {
+			if (n.type === "heading") {
+				// console.log(n);
+			}
+		});
+	};
+}
 
 const langs = {
 	python: "python",
@@ -40,18 +53,21 @@ function highlight(code: string, lang: string | undefined) {
 	return highlighted;
 }
 
-export async function load() {
-	const changelog_slug: object[] = [];
+export async function load({ params }: any) {
+	const guide_slug = [];
 
 	const get_slug = make_slug_processor();
 	function plugin() {
 		return function transform(tree: any) {
 			tree.children.forEach((n: any) => {
-				if (n.type === "element" && ["h2"].includes(n.tagName)) {
+				if (
+					n.type === "element" &&
+					["h2", "h3", "h4", "h5", "h6"].includes(n.tagName)
+				) {
 					const str_of_heading = to_string(n);
 					const slug = get_slug(str_of_heading);
 
-					changelog_slug.push({
+					guide_slug.push({
 						text: str_of_heading,
 						href: `#${slug}`,
 						level: parseInt(n.tagName.replace("h", ""))
@@ -84,16 +100,19 @@ export async function load() {
 		};
 	}
 
-	const compiled = await compile(content, {
+	const compiled = await compile(js_client, {
 		rehypePlugins: [plugin],
 		highlight: {
 			highlighter: highlight
 		}
 	});
-	content = (await compiled?.code) || "";
+	let readme_html = await compiled?.code;
 
 	return {
-		content,
-		changelog_slug
+		readme_html,
+		components,
+		helpers,
+		routes,
+		py_client
 	};
 }

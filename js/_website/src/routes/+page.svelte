@@ -1,7 +1,7 @@
 <script lang="ts">
-	import DemosLanding from "../components/DemosLanding.svelte";
-	import MetaTags from "../components/MetaTags.svelte";
-	import gradio_banner from "../assets/img/header-image.jpg";
+	import DemosLanding from "$lib/components/DemosLanding.svelte";
+	import MetaTags from "$lib/components/MetaTags.svelte";
+	import gradio_banner from "$lib/assets/img/header-image.jpg";
 	export let data: {
 		logos: {
 			img: string;

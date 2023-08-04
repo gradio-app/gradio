@@ -1,4 +1,4 @@
-import docs_json from "../routes/docs/docs.json";
+import docs_json from "../routes/[[version]]/docs/docs.json";
 let docs = docs_json;
 
 export function match(value: string) {

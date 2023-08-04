@@ -8,6 +8,9 @@ const config = {
 	preprocess: vitePreprocess(),
 
 	kit: {
+		files: {
+			lib: "src/lib"
+		},
 		adapter: adapter()
 	}
 };

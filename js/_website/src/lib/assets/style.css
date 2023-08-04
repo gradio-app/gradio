@@ -1,0 +1,183 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.link {
+	@apply font-semibold hover:text-orange-500 transition-colors;
+}
+.thin-link {
+	@apply hover:text-orange-500 transition-colors;
+}
+.thinner-link {
+	@apply hover:text-orange-500 transition-colors;
+}
+
+.prose :where(img):not(:where([class~="not-prose"] *)) {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+.group:hover .group-hover\:flex {
+	/* for some reason, group-hover:flex not working on mobile */
+	display: flex;
+}
+.group:active .group-active\:flex {
+	/* for some reason, group-active:flex not working on mobile */
+	display: flex;
+}
+@media (min-width: 640px) {
+	/* for some reason, sm:block not working */
+	.sm\:block {
+		@apply block;
+	}
+}
+@media (min-width: 768px) {
+	/* for some reason, md:block not working */
+	.md\:block {
+		@apply block;
+	}
+}
+
+@layer base {
+	a.text-link {
+		@apply font-semibold text-gray-800 underline decoration-orange-500 underline-offset-2 hover:text-orange-500;
+	}
+}
+
+@layer utilities {
+	@variants hover, focus {
+		.filter-none {
+			filter: none;
+		}
+		.filter-grayscale {
+			filter: grayscale(100%);
+		}
+		.shadow-alternate-sm {
+			box-shadow:
+				0px 5px 5px rgba(0, 0, 0, 0.03),
+				0px 2px 2px rgba(0, 0, 0, 0.03),
+				0px 0px 1px rgba(0, 0, 0, 0.03);
+		}
+		.shadow-alternate {
+			box-shadow:
+				0px 10px 20px rgba(0, 0, 0, 0.04),
+				0px 2px 6px rgba(0, 0, 0, 0.04),
+				0px 0px 1px rgba(0, 0, 0, 0.04);
+		}
+		.shadow-alternate-xl {
+			box-shadow:
+				0px 24px 32px rgba(0, 0, 0, 0.04),
+				0px 16px 24px rgba(0, 0, 0, 0.04),
+				0px 4px 8px rgba(0, 0, 0, 0.04),
+				0px 0px 1px rgba(0, 0, 0, 0.04);
+		}
+	}
+}
+
+/* index */
+.active-example-tab {
+	@apply border-orange-500 rounded-full text-orange-500 ring-1 bg-orange-50 ring-orange-200 hover:!text-orange-500 cursor-pointer shadow shadow-orange-200;
+}
+
+/* guides */
+.prose > p > img {
+	@apply max-w-full mx-auto my-0 w-4/5;
+}
+.prose > p > video {
+	@apply max-w-full mx-auto my-0 w-4/5;
+}
+
+.prose code::before {
+	display: none;
+}
+
+.prose code::after {
+	display: none;
+}
+
+/* docs & guides */
+.thin-link.current-nav-link {
+	@apply text-orange-500;
+}
+.thin-link.current-nav-link:not(.subheading) {
+	@apply border-orange-500 md:border-l-2 pl-4;
+}
+.link.current-nav-link {
+	@apply border-orange-500 text-orange-500;
+}
+.thinner-link.current-nav-link {
+	@apply border-orange-500 text-orange-500;
+}
+.second-nav-link {
+	@apply border-l-2 border-gray-100 px-3;
+}
+.current-nav-link {
+	@apply border-orange-500 text-orange-500;
+}
+
+/* docs */
+.selected-demo {
+	@apply font-semibold bg-gray-50 rounded text-orange-500;
+}
+code.language-python {
+	@apply !leading-7 !whitespace-pre-wrap !break-all;
+}
+code.language-bash {
+	@apply !leading-7 !whitespace-pre-wrap !break-all;
+}
+
+.group-hover-visible {
+	@apply group-hover:visible;
+}
+.anchor-img {
+	@apply w-7 max-w-full inline-block m-0 ml-2;
+}
+.anchor-img-small {
+	@apply w-5 max-w-full inline-block m-0 ml-0.5;
+}
+.selected-version {
+	@apply font-semibold text-orange-500;
+}
+.selected-version:before {
+	content: "• ";
+}
+
+/* copy button */
+.clipboard-button {
+	@apply absolute right-0 px-1.5 pt-0.5 pb-1 m-4 text-gray-500 text-sm z-[100] opacity-0 duration-100;
+}
+.clipboard-button:hover {
+	@apply cursor-pointer;
+}
+.clipboard-button:hover > svg {
+	@apply fill-gray-700;
+}
+.clipboard-button:focus {
+	@apply outline-0;
+}
+.codeblock {
+	@apply relative;
+}
+.codeblock:hover > .clipboard-button {
+	@apply opacity-100 duration-200;
+}
+
+[type="search"]::-webkit-search-cancel-button {
+	@apply appearance-none h-5 w-5;
+	-webkit-appearance: none;
+	background-image: url("/src/lib/assets/img/esc.svg");
+	background-size: 20px 20px;
+}
+
+.view-code {
+	@apply w-16 p-2 mx-auto hover:bg-gray-100;
+	background: rgb(249, 250, 251);
+}
+
+/* demos */
+.selected-demo-tab {
+	@apply font-semibold text-orange-500 rounded-t-md border-2 border-gray-100 border-b-0 bg-white;
+}
+.selected-demo-window {
+	@apply rounded-b-md border-2  border-gray-100 -mt-0.5;
+}
