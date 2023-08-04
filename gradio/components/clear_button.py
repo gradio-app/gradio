@@ -43,8 +43,8 @@ class ClearButton(Button):
             value,
             variant=variant,
             size=size,
-            icon=icon
-            link=link
+            icon=icon,
+            link=link,
             visible=visible,
             interactive=interactive,
             elem_id=elem_id,
