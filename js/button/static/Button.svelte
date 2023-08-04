@@ -43,6 +43,7 @@
 		box-shadow: var(--button-shadow);
 		padding: var(--size-0-5) var(--size-2);
 		text-align: center;
+		width: var(--size-full);
 	}
 
 	button:hover,
