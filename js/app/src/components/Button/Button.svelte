@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Button } from "@gradio/button";
 	import { _ } from "svelte-i18n";
-	import { type FileData, normalise_file } from "@gradio/upload";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -24,7 +23,7 @@
 	{size}
 	{scale}
 	{link}
-	{icon}
+	icon={icon && `/file=${icon}`}
 	{min_width}
 	{visible}
 	disabled={mode === "static"}

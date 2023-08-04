@@ -28,7 +28,7 @@
 		{disabled}
 	>
 		{#if icon}
-			<img class="button-icon" src={`/file=${icon}`} alt={`${value}-icon`} />
+			<img class="button-icon" src={icon} alt={`${value}-icon`} />
 		{/if}
 		<slot />
 	</button>
