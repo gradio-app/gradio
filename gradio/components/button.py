@@ -72,7 +72,9 @@ class Button(Clickable, IOComponent, StringSerializable):
         self.size = size
 
         if icon is not None:
-            icon = "/file=" + self.icon
+            self.icon = "/file=" + icon
+        else:
+            self.icon = icon
 
         self.link = link
 
