@@ -28,7 +28,6 @@
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
-	let hover = false;
 	let timer: NodeJS.Timeout;
 	let hidden_upload: HTMLInputElement;
 	let accept_file_types: string | null;
@@ -245,7 +244,9 @@
 					>{value.files.length > 7 ? "7+" : value.files.length}</span>
 					<button
 						class="clear-button"
-						on:click={clearFiles}>
+						on:click={clearFiles}
+						{disabled}
+						>
 							<Clear />
 					</button>
 				</div>
@@ -258,6 +259,7 @@
 					bind:this={hidden_upload}
 					on:change={loadFilesFromUpload}
 					on:click={clearInputValue}
+					{disabled}
 					multiple={file_count === "multiple" || undefined}
 					webkitdirectory={file_count === "directory" || undefined}
 					mozdirectory={file_count === "directory" || undefined}

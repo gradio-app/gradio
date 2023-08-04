@@ -81,7 +81,7 @@ class RichTextbox(
     ):
         """
         Parameters:
-            value: default text to provide in textarea. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: dict that contains "text" and "files". "text" contains the default text to show in the rich textbox and "files" is a list of str file paths. If callable, the function will be called whenever the app loads to set the initial value of the component.
             lines: minimum number of line rows to provide in textarea.
             max_lines: maximum number of line rows to provide in textarea.
             placeholder: placeholder hint to provide behind textarea.
