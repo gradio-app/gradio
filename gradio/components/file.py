@@ -102,15 +102,9 @@ class File(
             raise ValueError(
                 f"Parameter file_types must be a list. Received {type(self.file_types)}"
             )
-<<<<<<< HEAD
         
         self.file_count = get(file_count)        
         if self.file_count == "directory" and isinstance(self.file_types, list):
-=======
-
-        self.file_count = get(file_count)
-        if self.file_count == "directory" and self.file_types is not None:
->>>>>>> a91172ec2eb495856f9e9cc8ae57325dd470ede7
             warnings.warn(
                 "The `file_types` parameter is ignored when `file_count` is 'directory'."
             )

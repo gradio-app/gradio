@@ -7,11 +7,6 @@ from typing import Any
 
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import SimpleSerializable
-<<<<<<< HEAD
-=======
-
-from gradio.blocks import Default
->>>>>>> a91172ec2eb495856f9e9cc8ae57325dd470ede7
 from gradio.components.base import IOComponent
 
 set_documentation_group("component")
