@@ -10,15 +10,20 @@
 	export let mode: "static" | "dynamic" = "dynamic";
 	export let size: "sm" | "lg" = "lg";
 	export let scale: number | null = null;
+	export let icon: string | null = null;
+	export let link: string | null = null;
 	export let min_width: number | undefined = undefined;
 </script>
 
 <Button
+	{value}
 	{variant}
 	{elem_id}
 	{elem_classes}
 	{size}
 	{scale}
+	{link}
+	{icon}
 	{min_width}
 	{visible}
 	disabled={mode === "static"}
