@@ -9,7 +9,7 @@ from gradio_client.serializing import (
     JSONSerializable,
 )
 
-from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.blocks import Default, get
 from gradio.components.base import IOComponent
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
@@ -34,22 +34,22 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
 
     def __init__(
         self,
-        value: list[tuple[str, str | float | None]] | dict | Callable | None | DefaultType = DEFAULT,
+        value: list[tuple[str, str | float | None]] | dict | Callable | None | Default = Default(None),
         *,
         color_map: dict[str, str]
         | None = None,  # Parameter moved to HighlightedText.style()
-        show_legend: bool | None = None,
-        combine_adjacent: bool | None = None,
-        adjacent_separator: str | None = None,
-        label: str | None = None,
-        every: float | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-        elem_id: str | None = None,
-        elem_classes: list[str] | str | None = None,
+        show_legend: bool | None | Default = Default(False),
+        combine_adjacent: bool | None | Default = Default(False),
+        adjacent_separator: str | None | Default = Default(""),
+        label: str | None | Default = Default(None),
+        every: float | None | Default = Default(None),
+        show_label: bool | None | Default = Default(None),
+        container: bool | None | Default = Default(True),
+        scale: int | None | Default = Default(None),
+        min_width: int | None | Default = Default(160),
+        visible: bool |  Default = Default(True),
+        elem_id: str | None | Default = Default(None),
+        elem_classes: list[str] | str | None | Default = Default(None),
         **kwargs,
     ):
         """
@@ -68,18 +68,10 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        value = default(value, None)
-        self.show_legend = default(show_legend, False)
-        self.combine_adjacent = default(combine_adjacent, False)
-        self.adjacent_separator = default(adjacent_separator, "")
-        container = default(container, True)
-        min_width = default(min_width, 160)
-        visible = default(visible, True)
-
-        self.color_map = color_map
-        self.show_legend = show_legend
-        self.combine_adjacent = combine_adjacent
-        self.adjacent_separator = adjacent_separator
+        self.show_legend = get(show_legend)
+        self.combine_adjacent = get(combine_adjacent)
+        self.adjacent_separator = get(adjacent_separator)
+        self.color_map = get(color_map)
         self.select: EventListenerMethod
         """
         Event listener for when the user selects Highlighted text span.

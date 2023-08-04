@@ -10,7 +10,7 @@ import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import NumberSerializable
 
-from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.blocks import Default, get
 from gradio.components.base import FormComponent, IOComponent
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Inputable, Releaseable
@@ -41,23 +41,23 @@ class Slider(
 
     def __init__(
         self,
-        minimum: float | None = None,
-        maximum: float | None = None,
-        value: float | Callable | None | DefaultType = DEFAULT,
+        minimum: float | None | Default = Default(0),
+        maximum: float | None | Default = Default(100),
+        value: float | Callable | None | Default = Default(None),
         *,
-        step: float | None = None,
-        label: str | None = None,
-        info: str | None = None,
-        every: float | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-        elem_id: str | None = None,
-        elem_classes: list[str] | str | None = None,
-        randomize: bool | None = None,
+        step: float | None | Default = Default(None),
+        label: str | None | Default = Default(None),
+        info: str | None | Default = Default(None),
+        every: float | None | Default = Default(None),
+        show_label: bool | None | Default = Default(None),
+        container: bool | None | Default = Default(True),
+        scale: int | None | Default = Default(None),
+        min_width: int | None | Default = Default(160),
+        interactive: bool | None | Default = Default(None),
+        visible: bool |  Default = Default(True),
+        elem_id: str | None | Default = Default(None),
+        elem_classes: list[str] | str | None | Default = Default(None),
+        randomize: bool | None | Default = Default(False),
         **kwargs,
     ):
         """
@@ -79,18 +79,13 @@ class Slider(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             randomize: If True, the value of the slider when the app loads is taken uniformly at random from the range given by the minimum and maximum.
         """
-        value = default(value, None)
-        self.minimum = default(minimum, 0)
-        self.maximum = default(maximum, 100)
-        container = default(container, True)
-        min_width = default(min_width, 160)
-        visible = default(visible, True)
-        self.randomize = default(randomize, False)
+        self.minimum = get(minimum)
+        self.maximum = get(maximum)
+        self.step = get(step)
+        randomize = get(randomize)
 
-        self.minimum = minimum
-        self.maximum = maximum
-        if step is None:
-            difference = maximum - minimum
+        if self.step is None:
+            difference = self.maximum - self.minimum
             power = math.floor(math.log10(difference) - 2)
             self.step = 10**power
         else:

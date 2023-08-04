@@ -6,7 +6,7 @@ import json
 from typing import Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.blocks import Default, get
 from gradio.components import Button, Component
 
 set_documentation_group("component")
@@ -24,19 +24,20 @@ class ClearButton(Button):
 
     def __init__(
         self,
-        components: None | list[Component] | Component = None,
+        components: None | list[Component] | Component | Default = Default(None),
         *,
-        value: str | None | DefaultType = DEFAULT,
-        variant: Literal["primary", "secondary", "stop"] | None = None,
-        size: Literal["sm", "lg"] | None = None,
-        visible: bool | None = None,
-        interactive: bool | None = None,
-        elem_id: str | None = None,
-        elem_classes: list[str] | str | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
+        value: str | None | Default = Default("Clear"),
+        variant: Literal["primary", "secondary", "stop"] | Default = Default("secondary"),
+        size: Literal["sm", "lg"] | Default = Default(None),
+        visible: bool | Default = Default(True),
+        interactive: bool | None | Default = Default(True),
+        elem_id: str | None | Default = Default(None),
+        elem_classes: list[str] | str | None | Default = Default(None),
+        scale: int | None | Default = Default(None),
+        min_width: int | Default = Default(160),
         **kwargs,
     ):
+        components = get(components)
         super().__init__(
             value,
             variant=variant,
@@ -49,10 +50,6 @@ class ClearButton(Button):
             min_width=min_width,
             **kwargs,
         )
-        self.value = default(value, "Clear")
-        self.variant = default(variant, "secondary")
-        visible = default(visible, True)
-        self.interactive = default(interactive, True)
 
         self.add(components)
 

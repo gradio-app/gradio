@@ -7,7 +7,7 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.blocks import Default, get
 from gradio.components.base import IOComponent
 from gradio.events import Changeable
 
@@ -27,14 +27,14 @@ class HTML(Changeable, IOComponent, StringSerializable):
 
     def __init__(
         self,
-        value: str | Callable | None | DefaultType = DEFAULT,
+        value: str | Callable | None | Default = Default(""),
         *,
-        label: str | None = None,
-        every: float | None = None,
-        show_label: bool | None = None,
-        visible: bool | None = None,
-        elem_id: str | None = None,
-        elem_classes: list[str] | str | None = None,
+        label: str | None | Default = Default(None),
+        every: float | None | Default = Default(None),
+        show_label: bool | None | Default = Default(None),
+        visible: bool |  Default = Default(True),
+        elem_id: str | None | Default = Default(None),
+        elem_classes: list[str] | str | None | Default = Default(None),
         **kwargs,
     ):
         """
@@ -47,8 +47,8 @@ class HTML(Changeable, IOComponent, StringSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        value = default(value, "")
-        visible = default(visible, True)
+        value = get(value)
+        visible = get(visible)
 
         IOComponent.__init__(
             self,

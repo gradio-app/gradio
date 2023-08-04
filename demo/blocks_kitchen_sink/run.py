@@ -25,7 +25,7 @@ with gr.Blocks(theme=base_theme) as demo:
     - Custom progress bar
     """
     )
-    toggle_dark = gr.Button("Toggle Dark").style(full_width=False)
+    toggle_dark = gr.Button("Toggle Dark", full_width=False)
     toggle_dark.click(
         None,
         _js="""
@@ -112,7 +112,7 @@ with gr.Blocks(theme=base_theme) as demo:
             check = gr.Checkbox(label="Go")
         with gr.Column(variant="panel", scale=2):
             img = gr.Image(
-                "https://gradio.app/assets/img/header-image.jpg", label="Image"
+                # "https://gradio.app/assets/img/header-image.jpg", label="Image"
             ).style(height=320)
             with gr.Row():
                 go_btn = gr.Button("Go", label="Primary Button", variant="primary")

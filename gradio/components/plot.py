@@ -12,7 +12,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
 from gradio import processing_utils
-from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.blocks import Default, get
 from gradio.components.base import IOComponent
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Clearable
@@ -33,17 +33,17 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
 
     def __init__(
         self,
-        value: Callable | None | pd.DataFrame | DefaultType = DEFAULT,
+        value: Callable | None | pd.DataFrame | Default = Default(None),
         *,
-        label: str | None = None,
-        every: float | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-        elem_id: str | None = None,
-        elem_classes: list[str] | str | None = None,
+        label: str | None | Default = Default(None),
+        every: float | None | Default = Default(None),
+        show_label: bool | None | Default = Default(None),
+        container: bool | None | Default = Default(True),
+        scale: int | None | Default = Default(None),
+        min_width: int | None | Default = Default(160),
+        visible: bool |  Default = Default(True),
+        elem_id: str | None | Default = Default(None),
+        elem_classes: list[str] | str | None | Default = Default(None),
         **kwargs,
     ):
         """
@@ -59,10 +59,10 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        value = default(value, None)
-        container = default(container, True)
-        min_width = default(min_width, 160)
-        visible = default(visible, True)
+        value = get(value)
+        container = get(container)
+        min_width = get(min_width)
+        visible = get(visible)
 
         IOComponent.__init__(
             self,

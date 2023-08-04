@@ -11,7 +11,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
 from gradio import utils
-from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.blocks import Default, get
 from gradio.components.base import IOComponent
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
@@ -38,22 +38,22 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         self,
         value: list[list[str | tuple[str] | tuple[str | Path, str] | None]]
         | Callable
-        | None | DefaultType = DEFAULT,
-        color_map: dict[str, str] | None = None,
+        | None | Default = Default(None),
+        color_map: dict[str, str] | None | Default = Default(None),
         *,
-        label: str | None = None,
-        every: float | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-        elem_id: str | None = None,
-        elem_classes: list[str] | str | None = None,
-        height: int | None = None,
-        latex_delimiters: list[dict[str, str | bool]] | None = None,
-        rtl: bool | None = None,
-        show_share_button: bool | None = None,
+        label: str | None | Default = Default(None),
+        every: float | None | Default = Default(None),
+        show_label: bool | None | Default = Default(None),
+        container: bool | None | Default = Default(True),
+        scale: int | None | Default = Default(None),
+        min_width: int | None | Default = Default(160),
+        visible: bool |  Default = Default(True),
+        elem_id: str | None | Default = Default(None),
+        elem_classes: list[str] | str | None | Default = Default(None),
+        height: int | None | Default = Default(None),
+        latex_delimiters: list[dict[str, str | bool]] | None | Default = Default(None),
+        rtl: bool | None | Default = Default(False),
+        show_share_button: bool | None | Default = Default(None),
         **kwargs,
     ):
         """
@@ -74,12 +74,20 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             rtl: If True, sets the direction of the rendered text to right-to-left. Default is False, which renders text left-to-right.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
-        value = default(value, None)
-        container = default(container, True)
-        min_width = default(min_width, 160)
-        visible = default(visible, True)
-        self.rtl = default(rtl, False)
+        self.rtl = get(rtl)
+        self.height = get(height)
+        self.rtl = get(rtl)
+        self.latex_delimiters = get(latex_delimiters)
+        if self.latex_delimiters is None:
+            self.latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
+        self.show_share_button = get(show_share_button)
+        self.show_share_button = (
+            (utils.get_space() is not None)
+            if self.show_share_button is None
+            else self.show_share_button
+        )
 
+        color_map = get(color_map)
         if color_map is not None:
             warn_deprecation("The 'color_map' parameter has been deprecated.")
         self.select: EventListenerMethod
@@ -88,17 +96,6 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         Uses event data gradio.SelectData to carry `value` referring to text of selected message, and `index` tuple to refer to [message, participant] index.
         See EventData documentation on how to use this event data.
         """
-        self.height = height
-        self.rtl = rtl
-        if latex_delimiters is None:
-            latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
-        self.latex_delimiters = latex_delimiters
-        self.show_share_button = (
-            (utils.get_space() is not None)
-            if show_share_button is None
-            else show_share_button
-        )
-
         IOComponent.__init__(
             self,
             label=label,

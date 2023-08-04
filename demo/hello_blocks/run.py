@@ -8,6 +8,8 @@ with gr.Blocks() as demo:
     output = gr.Textbox(label="Output Box")
     greet_btn = gr.Button("Greet")
     greet_btn.click(fn=greet, inputs=name, outputs=output, api_name="greet")
+
+    print(greet_btn.get_config())
    
 
 if __name__ == "__main__":

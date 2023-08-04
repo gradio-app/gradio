@@ -8,7 +8,7 @@ import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.blocks import Default, get, is_update
 from gradio.components.base import (
     FormComponent,
     IOComponent,
@@ -51,27 +51,27 @@ class Textbox(
 
     def __init__(
         self,
-        value: str | Callable | None | DefaultType = DEFAULT,
+        value: str | Callable | Default = Default(""),
         *,
-        lines: int | None = None,
-        max_lines: int | None = None,
-        placeholder: str | None = None,
-        label: str | None = None,
-        info: str | None = None,
-        every: float | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-        elem_id: str | None = None,
-        autofocus: bool | None = None,
-        elem_classes: list[str] | str | None = None,
-        type: Literal["text", "password", "email"] | None = None,
-        text_align: Literal["left", "right"] | None = None,
-        rtl: bool | None = None,
-        show_copy_button: bool | None = None,
+        lines: int | Default = Default(1),
+        max_lines: int | Default = Default(20),
+        placeholder: str | None | Default = Default(None),
+        label: str | None | Default = Default(None),
+        info: str | None | Default = Default(None),
+        every: float | None | Default = Default(None),
+        show_label: bool | None | Default = Default(None),
+        container: bool | Default = Default(True),
+        scale: int | None | Default = Default(None),
+        min_width: int | None | Default = Default(160),
+        interactive: bool | None | Default = Default(None),
+        visible: bool | Default = Default(True),
+        elem_id: str | None | Default = Default(None),
+        autofocus: bool | Default = Default(False),
+        elem_classes: list[str] | str | None | Default = Default(None),
+        type: Literal["text", "password", "email"] | Default = Default("text"),
+        text_align: Literal["left", "right"] | None | Default = Default(None),
+        rtl: bool | Default = Default(False),
+        show_copy_button: bool | Default = Default(False),
         **kwargs,
     ):
         """
@@ -97,27 +97,21 @@ class Textbox(
             rtl: If True and `type` is "text", sets the direction of the text to right-to-left (cursor appears on the left of the text). Default is False, which renders cursor on the right.
             show_copy_button: If True, includes a copy button to copy the text in the textbox. Only applies if show_label is True.
         """
-        value = default(value, "")
-        lines = default(lines, 1)
-        max_lines = default(max_lines, 20)
-        container = default(container, True)
-        min_width = default(min_width, 160)
-        visible = default(visible, True)
-        self.autofocus = default(autofocus, False)
-        self.type = default(type, "text")
-        self.rtl = default(rtl, False)
-        self.show_copy_button = default(show_copy_button, False)
+        self.lines = get(lines)
+        self.max_lines = get(max_lines)
+        self.autofocus = get(autofocus)
+        self.type = get(type)
+        self.rtl = get(rtl)
+        self.show_copy_button = get(show_copy_button)
+        self.placeholder = get(placeholder)
 
-        if self.type not in ["text", "password", "email", None]:
+        if not is_update() and self.type not in ["text", "password", "email", None]:
             raise ValueError('`type` must be one of "text", "password", or "email".')
 
-        self.lines = lines
         if self.type == "text":
-            self.max_lines = max(lines, max_lines)
+            self.max_lines = max(self.lines, self.max_lines)
         else:
             self.max_lines = 1
-        self.placeholder = placeholder
-        self.text_align = text_align
         self.select: EventListenerMethod
         """
         Event listener for when the user selects text in the Textbox.

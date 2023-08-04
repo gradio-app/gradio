@@ -8,7 +8,7 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import SimpleSerializable
 
-from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.blocks import Default, get
 from gradio.components.base import FormComponent, IOComponent
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
@@ -42,24 +42,24 @@ class Dropdown(
 
     def __init__(
         self,
-        choices: list[str] | None = None,
+        choices: list[str] | None | Default = Default(None),
         *,
-        value: str | list[str] | Callable | None | DefaultType = DEFAULT,
-        type: Literal["value", "index"] | None = None,
-        multiselect: bool | None = None,
-        allow_custom_value: bool | None = None,
-        max_choices: int | None = None,
-        label: str | None = None,
-        info: str | None = None,
-        every: float | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-        elem_id: str | None = None,
-        elem_classes: list[str] | str | None = None,
+        value: str | list[str] | Callable | None | Default = Default(None),
+        type: Literal["value", "index"] | None | Default = Default("value"),
+        multiselect: bool | None | Default = Default(None),
+        allow_custom_value: bool | None | Default = Default(False),
+        max_choices: int | None | Default = Default(None),
+        label: str | None | Default = Default(None),
+        info: str | None | Default = Default(None),
+        every: float | None | Default = Default(None),
+        show_label: bool | None | Default = Default(None),
+        container: bool | None | Default = Default(True),
+        scale: int | None | Default = Default(None),
+        min_width: int | None | Default = Default(160),
+        interactive: bool | None | Default = Default(None),
+        visible: bool |  Default = Default(True),
+        elem_id: str | None | Default = Default(None),
+        elem_classes: list[str] | str | None | Default = Default(None),
         **kwargs,
     ):
         """
@@ -82,29 +82,27 @@ class Dropdown(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        value = default(value, None)
-        type = default(type, "value")
-        self.allow_custom_value = default(allow_custom_value, False)
-        container = default(container, True)
-        min_width = default(min_width, 160)
-        visible = default(visible, True)
-
-        self.choices = [str(choice) for choice in choices] if choices else []
+        self.type = get(type)
         valid_types = ["value", "index"]
-        if type not in valid_types:
+        if self.type not in valid_types:
             raise ValueError(
-                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+                f"Invalid value for parameter `type`: {self.type}. Please choose from one of: {valid_types}"
             )
-        self.type = type
-        self.multiselect = multiselect
-        if multiselect and isinstance(value, str):
+
+        self.allow_custom_value = get(allow_custom_value)
+        self.choices = get(choices)
+        self.choices = [str(choice) for choice in self.choices] if self.choices else []
+
+        value = get(value)
+        self.multiselect = get(multiselect)
+        if self.multiselect and isinstance(value, str):
             value = [value]
-        if not multiselect and max_choices is not None:
+        self.max_choices = get(max_choices)
+        if not self.multiselect and self.max_choices is not None:
             warnings.warn(
                 "The `max_choices` parameter is ignored when `multiselect` is False."
             )
-        self.max_choices = max_choices
-        if multiselect and self.allow_custom_value:
+        if self.multiselect and self.allow_custom_value:
             raise ValueError(
                 "Custom values are not supported when `multiselect` is True."
             )

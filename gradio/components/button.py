@@ -7,7 +7,7 @@ from typing import Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.blocks import Default, get
 from gradio.components.base import IOComponent
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Clickable
@@ -27,16 +27,16 @@ class Button(Clickable, IOComponent, StringSerializable):
 
     def __init__(
         self,
-        value: str | Callable | None | DefaultType = DEFAULT,
+        value: str | Callable | None | Default = Default("Run"),
         *,
-        variant: Literal["primary", "secondary", "stop"] | None = None,
-        size: Literal["sm", "lg"] | None = None,
-        visible: bool | None = None,
-        interactive: bool | None = None,
-        elem_id: str | None = None,
-        elem_classes: list[str] | str | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
+        variant: Literal["primary", "secondary", "stop"] | Default = Default("secondary"),
+        size: Literal["sm", "lg"] | Default = Default(None),
+        visible: bool | Default = Default(True),
+        interactive: bool | None | Default = Default(True),
+        elem_id: str | None | Default = Default(None),
+        elem_classes: list[str] | str | None | Default = Default(None),
+        scale: int | None | Default = Default(None),
+        min_width: int | Default = Default(160),
         **kwargs,
     ):
         """
@@ -51,10 +51,11 @@ class Button(Clickable, IOComponent, StringSerializable):
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
         """
-        value = default(value, "Run")
-        self.variant = default(variant, "secondary")
-        visible = default(visible, True)
-        interactive = default(interactive, True)
+        self.variant = get(variant)
+        if self.variant == "plain":
+            warn_deprecation("'plain' variant deprecated, using 'secondary' instead.")
+            self.variant = "secondary"
+        self.size = get(size)
 
         IOComponent.__init__(
             self,
@@ -67,11 +68,6 @@ class Button(Clickable, IOComponent, StringSerializable):
             min_width=min_width,
             **kwargs,
         )
-        if variant == "plain":
-            warn_deprecation("'plain' variant deprecated, using 'secondary' instead.")
-            variant = "secondary"
-        self.variant = variant
-        self.size = size
 
     def style(
         self,

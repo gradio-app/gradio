@@ -11,7 +11,7 @@ from gradio_client.serializing import GallerySerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import utils
-from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.blocks import Default, get
 from gradio.components.base import IOComponent
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
@@ -36,26 +36,26 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         self,
         value: list[np.ndarray | _Image.Image | str | Path | tuple]
         | Callable
-        | None | DefaultType = DEFAULT,
+        | None | Default = Default(None),
         *,
-        label: str | None = None,
-        every: float | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-        elem_id: str | None = None,
-        elem_classes: list[str] | str | None = None,
-        columns: int | tuple | None = None,
-        rows: int | tuple | None = None,
-        height: str | None = None,
-        preview: bool | None = None,
+        label: str | None | Default = Default(None),
+        every: float | None | Default = Default(None),
+        show_label: bool | None | Default = Default(None),
+        container: bool | None | Default = Default(True),
+        scale: int | None | Default = Default(None),
+        min_width: int | None | Default = Default(160),
+        visible: bool |  Default = Default(True),
+        elem_id: str | None | Default = Default(None),
+        elem_classes: list[str] | str | None | Default = Default(None),
+        columns: int | tuple | None | Default = Default(2),
+        rows: int | tuple | None | Default = Default(None),
+        height: str | None | Default = Default(None),
+        preview: bool | None | Default = Default(None),
         object_fit: Literal["contain", "cover", "fill", "none", "scale-down"]
         | None = None,
-        allow_preview: bool | None = None,
-        show_share_button: bool | None = None,
-        show_download_button: bool | None = None,
+        allow_preview: bool | None | Default = Default(True),
+        show_share_button: bool | None | Default = Default(None),
+        show_download_button: bool | None | Default = Default(True),
         **kwargs,
     ):
         """
@@ -80,36 +80,33 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             show_download_button: If True, will show a download button in the corner of the selected image. If False, the icon does not appear. Default is True.
 
         """
-        value = default(value, None)
-        container = default(container, True)
-        min_width = default(min_width, 160)
-        visible = default(visible, True)
-        self.columns = default(columns, 2)
-        self.allow_preview = default(allow_preview, True)
-        self.show_download_button = default(show_download_button, True)
-
-        self.grid_cols = columns
-        self.grid_rows = rows
-        self.height = height
-        self.preview = preview
-        self.object_fit = object_fit
-        self.allow_preview = allow_preview
+        self.columns = get(columns)
+        self.allow_preview = get(allow_preview)
+        self.grid_cols = get(columns)
+        self.grid_rows = get(rows)
+        self.height = get(height)
+        self.preview = get(preview)
+        self.object_fit = get(object_fit)
+        self.show_download_button = get(show_download_button)
         self.show_download_button = (
             (utils.get_space() is not None)
-            if show_download_button is None
-            else show_download_button
+            if self.show_download_button is None
+            else self.show_download_button
         )
+
+        self.show_share_button = get(show_share_button)
+        self.show_share_button = (
+            (utils.get_space() is not None)
+            if show_share_button is None
+            else show_share_button
+        )
+
         self.select: EventListenerMethod
         """
         Event listener for when the user selects image within Gallery.
         Uses event data gradio.SelectData to carry `value` referring to caption of selected image, and `index` to refer to index.
         See EventData documentation on how to use this event data.
         """
-        self.show_share_button = (
-            (utils.get_space() is not None)
-            if show_share_button is None
-            else show_share_button
-        )
         IOComponent.__init__(
             self,
             label=label,

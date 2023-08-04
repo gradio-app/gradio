@@ -7,7 +7,7 @@ from typing import Any, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import SimpleSerializable
 
-from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.blocks import Default, get
 from gradio.components.base import Component
 
 set_documentation_group("component")
@@ -27,9 +27,9 @@ class Interpretation(Component, SimpleSerializable):
         self,
         component: Component,
         *,
-        visible: bool | None = None,
-        elem_id: str | None = None,
-        elem_classes: list[str] | str | None = None,
+        visible: bool |  Default = Default(True),
+        elem_id: str | None | Default = Default(None),
+        elem_classes: list[str] | str | None | Default = Default(None),
         **kwargs,
     ):
         """
@@ -39,7 +39,7 @@ class Interpretation(Component, SimpleSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        visible = default(visible, True)
+        visible = get(visible)
 
         Component.__init__(
             self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs

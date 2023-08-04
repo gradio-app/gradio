@@ -10,7 +10,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
 from gradio import utils
-from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.blocks import Default, get
 from gradio.components.base import IOComponent
 from gradio.events import (
     Changeable,
@@ -44,26 +44,28 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
 
     def __init__(
         self,
-        value: list[list[Any]] | Callable | None | DefaultType = DEFAULT,
+        value: list[list[Any]] | Callable | None | Default = Default(None),
         *,
-        headers: list[str] | None = None,
-        row_count: int | tuple[int, str] | None = None,
-        col_count: int | tuple[int, str] | None = None,
-        datatype: str | list[str] | None = None,
-        type: Literal["pandas", "numpy", "array"] | None = None,
-        max_rows: int | None = None,
-        max_cols: int | None = None,
-        overflow_row_behaviour: Literal["paginate", "show_ends"] | None = None,
-        label: str | None = None,
-        every: float | None = None,
-        show_label: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-        elem_id: str | None = None,
-        elem_classes: list[str] | str | None = None,
-        wrap: bool | None = None,
+        headers: list[str] | None | Default = Default(None),
+        row_count: int | tuple[int, str] | None | Default = Default((1, "dynamic")),
+        col_count: int | tuple[int, str] | None | Default = Default(None),
+        datatype: str | list[str] | None | Default = Default("str"),
+        type: Literal["pandas", "numpy", "array"] | None | Default = Default("pandas"),
+        max_rows: int | None | Default = Default(20),
+        max_cols: int | None | Default = Default(None),
+        overflow_row_behaviour: Literal["paginate", "show_ends"]
+        | None
+        | Default = Default("paginate"),
+        label: str | None | Default = Default(None),
+        every: float | None | Default = Default(None),
+        show_label: bool | None | Default = Default(None),
+        scale: int | None | Default = Default(None),
+        min_width: int | None | Default = Default(160),
+        interactive: bool | None | Default = Default(None),
+        visible: bool |  Default = Default(True),
+        elem_id: str | None | Default = Default(None),
+        elem_classes: list[str] | str | None | Default = Default(None),
+        wrap: bool | None | Default = Default(False),
         **kwargs,
     ):
         """
@@ -89,37 +91,40 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             wrap: if True text in table cells will wrap when appropriate, if False the table will scroll horizontally. Defaults to False.
         """
-        value = default(value, None)
-        row_count = default(row_count, (1, "dynamic"))        
-        datatype = default(datatype, "str")
-        type = default(type, "pandas")
-        self.max_rows = default(max_rows, 20)
-        self.overflow_row_behaviour = default(overflow_row_behaviour, "paginate")
-        min_width = default(min_width, 160)
-        visible = default(visible, True)
-        self.wrap = default(wrap, False)
-
-        self.wrap = wrap
-        self.row_count = self.__process_counts(row_count)
-        self.col_count = self.__process_counts(
-            col_count, len(headers) if headers else 3
-        )
-        self.max_cols = max_cols
-
-        self.__validate_headers(headers, self.col_count[0])
-
-        self.headers = (
-            headers if headers is not None else list(range(1, self.col_count[0] + 1))
-        )
-        self.datatype = (
-            datatype if isinstance(datatype, list) else [datatype] * self.col_count[0]
-        )
+        self.row_count = get(row_count)
+        self.row_count = self.__process_counts(self.row_count)
+        self.datatype = get(datatype)
+        self.type = get(type)
         valid_types = ["pandas", "numpy", "array"]
-        if type not in valid_types:
+        if self.type not in valid_types:
             raise ValueError(
-                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+                f"Invalid value for parameter `type`: {self.type}. Please choose from one of: {valid_types}"
             )
-        self.type = type
+
+        self.max_rows = get(max_rows)
+        self.overflow_row_behaviour = get(overflow_row_behaviour)
+        self.wrap = get(wrap)
+
+        self.col_count = get(col_count)
+        self.headers = get(headers)
+        self.col_count = self.__process_counts(
+            self.col_count, len(self.headers) if self.headers else 3
+        )
+
+        self.__validate_headers(self.headers, self.col_count[0])
+        self.headers = (
+            self.headers
+            if self.headers is not None
+            else list(range(1, self.col_count[0] + 1))
+        )
+
+        self.max_cols = get(max_cols)
+        self.datatype = get(datatype)
+        self.datatype = (
+            self.datatype
+            if isinstance(self.datatype, list)
+            else [self.datatype] * self.col_count[0]
+        )
         values = {
             "str": "",
             "number": 0,
@@ -129,7 +134,9 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             "html": "",
         }
         column_dtypes = (
-            [datatype] * self.col_count[0] if isinstance(datatype, str) else datatype
+            [self.datatype] * self.col_count[0]
+            if isinstance(self.datatype, str)
+            else self.datatype
         )
         self.empty_input = [
             [values[c] for c in column_dtypes] for _ in range(self.row_count[0])

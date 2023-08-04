@@ -8,7 +8,7 @@ from typing import Any
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import SimpleSerializable
 
-from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.blocks import Default, get
 from gradio.components.base import IOComponent
 
 set_documentation_group("component")
@@ -30,7 +30,7 @@ class State(IOComponent, SimpleSerializable):
 
     def __init__(
         self,
-        value: Any = None,
+        value: Any | Default = Default(None),
         **kwargs,
     ):
         """

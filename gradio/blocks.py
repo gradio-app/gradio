@@ -86,6 +86,19 @@ BUILT_IN_THEMES: dict[str, Theme] = {
     ]
 }
 
+class Default:
+    def __init__(self, value):
+        self.value = value
+    
+def is_update():
+    from gradio import context
+    return hasattr(context.thread_data, "blocks")
+
+def get(default: Any):
+    if is_update():
+        return NoOverride if isinstance(default, Default) else default
+    else:
+        return default.value if isinstance(default, Default) else default
 
 class Block:
     def __init__(
@@ -314,6 +327,10 @@ class Block:
             for k in signature.parameters.keys():
                 if hasattr(self, k):
                     config[k] = getattr(self, k)
+                    
+                    v = getattr(self, k)
+                    if isinstance(v, Default):
+                        print(self, k)
         return config
 
     @staticmethod
@@ -338,8 +355,9 @@ class Block:
 class BlockContext(Block):
     def __init__(
         self,
-        visible: bool = True,
-        render: bool = True,
+        visible: bool | Default = True,
+        render: bool | Default = True,
+        elem_id: str | None | Default = Default(None),
         **kwargs,
     ):
         """
@@ -347,6 +365,9 @@ class BlockContext(Block):
             visible: If False, this will be hidden but included in the Blocks config file (its visibility can later be updated).
             render: If False, this will not be included in the Blocks config file at all.
         """
+        visible = get(visible)
+        render = get(render)
+        elem_id = get(elem_id)
         self.children: list[Block] = []
         Block.__init__(self, visible=visible, render=render, **kwargs)
 
@@ -459,8 +480,9 @@ def postprocess_update_dict(block: Block, update_dict: dict, postprocess: bool =
     """
     if update_dict.get("__type__", "") == "generic_update":
         update_dict = block.get_specific_update(update_dict)
-    if update_dict.get("value") == DEFAULT:
-        update_dict.pop("value")
+    no_overrides = [k for k in update_dict if update_dict[k] == NoOverride]
+    for key in no_overrides:
+        del update_dict[key]
     interactive = update_dict.pop("interactive", None)
     if interactive is not None:
         update_dict["mode"] = "dynamic" if interactive else "static"
@@ -2189,26 +2211,12 @@ Received outputs:
             return self.enable_queue
         return self.dependencies[fn_index]["queue"]
 
-class DEFAULT:
+class NoOverride:
     pass
 
-DefaultType = Type[DEFAULT]
 
 class FINISHED_ITERATING:
     pass
 
 T = TypeVar("T")
 
-print(id(DEFAULT))
-
-def default(set_value: T | None | DefaultType, default_value: T) -> T:
-    from gradio import context
-
-    within_event_listener = hasattr(context.thread_data, "blocks")
-    if within_event_listener:
-        return set_value
-    else:
-        if set_value == DEFAULT or set_value == None:
-            return default_value
-        else:
-            return set_value

@@ -15,7 +15,7 @@ from gradio_client.serializing import ImgSerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
-from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.blocks import Default, get
 from gradio.components.base import IOComponent
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
@@ -56,35 +56,35 @@ class Image(
 
     def __init__(
         self,
-        value: str | _Image.Image | np.ndarray | None | DefaultType = DEFAULT,
+        value: str | _Image.Image | np.ndarray | None | Default = Default(None),
         *,
-        shape: tuple[int, int] | None = None,
-        height: int | None = None,
-        width: int | None = None,
+        shape: tuple[int, int] | None | Default = Default(None),
+        height: int | None | Default = Default(None),
+        width: int | None | Default = Default(None),
         image_mode: Literal[
             "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
         ] = "RGB",
-        invert_colors: bool | None = None,
-        source: Literal["upload", "webcam", "canvas"] | None = None,
-        tool: Literal["editor", "select", "sketch", "color-sketch"] | None = None,
-        type: Literal["numpy", "pil", "filepath"] | None = None,
-        label: str | None = None,
-        every: float | None = None,
-        show_label: bool | None = None,
-        show_download_button: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-        streaming: bool | None = None,
-        elem_id: str | None = None,
-        elem_classes: list[str] | str | None = None,
-        mirror_webcam: bool | None = None,
-        brush_radius: float | None = None,
-        brush_color: str | None = None,
-        mask_opacity: float | None = None,
-        show_share_button: bool | None = None,
+        invert_colors: bool | None | Default = Default(False),
+        source: Literal["upload", "webcam", "canvas"] | None | Default = Default("upload"),
+        tool: Literal["editor", "select", "sketch", "color-sketch"] | None | Default = Default(None),
+        type: Literal["numpy", "pil", "filepath"] | None | Default = Default("numpy"),
+        label: str | None | Default = Default(None),
+        every: float | None | Default = Default(None),
+        show_label: bool | None | Default = Default(None),
+        show_download_button: bool | None | Default = Default(True),
+        container: bool | None | Default = Default(True),
+        scale: int | None | Default = Default(None),
+        min_width: int | None | Default = Default(160),
+        interactive: bool | None | Default = Default(None),
+        visible: bool |  Default = Default(True),
+        streaming: bool | None | Default = Default(False),
+        elem_id: str | None | Default = Default(None),
+        elem_classes: list[str] | str | None | Default = Default(None),
+        mirror_webcam: bool | None | Default = Default(True),
+        brush_radius: float | None | Default = Default(None),
+        brush_color: str | None | Default = Default("#000000"),
+        mask_opacity: float | None | Default = Default(0),
+        show_share_button: bool | None | Default = Default(None),
         **kwargs,
     ):
         """
@@ -116,58 +116,50 @@ class Image(
             mask_opacity: Opacity of mask drawn on image, as a value between 0 and 1.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
-        value = default(value, None)
-        self.invert_colors = default(invert_colors, False)
-        source = default(source, "upload")
-        type = default(type, "numpy")
-        self.show_download_button = default(show_download_button, True)
-        container = default(container, True)
-        min_width = default(min_width, 160)
-        visible = default(visible, True)
-        self.streaming = default(streaming, False)
-        self.mirror_webcam = default(mirror_webcam, True)
-        self.brush_color = default(brush_color, "#000000")
-        self.mask_opacity = default(mask_opacity, 0)
-
-        self.brush_radius = brush_radius
-        self.brush_color = brush_color
-        self.mask_opacity = mask_opacity
-        self.mirror_webcam = mirror_webcam
-        valid_types = ["numpy", "pil", "filepath"]
-        if type not in valid_types:
-            raise ValueError(
-                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
-            )
-        self.type = type
-        self.shape = shape
-        self.height = height
-        self.width = width
-        self.image_mode = image_mode
+        self.invert_colors = get(invert_colors)
+        self.source = get(source)
         valid_sources = ["upload", "webcam", "canvas"]
-        if source not in valid_sources:
+        if self.source not in valid_sources:
             raise ValueError(
-                f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
+                f"Invalid value for parameter `source`: {self.source}. Please choose from one of: {valid_sources}"
             )
-        self.source = source
-        if tool is None:
-            self.tool = "sketch" if source == "canvas" else "editor"
-        else:
-            self.tool = tool
-        self.invert_colors = invert_colors
-        self.streaming = streaming
-        self.show_download_button = show_download_button
-        if streaming and source != "webcam":
+
+        self.type = get(type)
+        valid_types = ["numpy", "pil", "filepath"]
+        if self.type not in valid_types:
+            raise ValueError(
+                f"Invalid value for parameter `type`: {self.type}. Please choose from one of: {valid_types}"
+            )
+
+        self.show_download_button = get(show_download_button)
+        self.streaming = get(streaming)
+        self.mirror_webcam = get(mirror_webcam)
+        self.brush_color = get(brush_color)
+        self.mask_opacity = get(mask_opacity)
+        self.shape = get(shape)
+        self.height = get(height)
+        self.width = get(width)
+        self.image_mode = get(image_mode)
+        self.tool = get(tool)
+        if self.tool is None:
+            self.tool = "sketch" if self.source == "canvas" else "editor"
+        
+        self.streaming = get(streaming)
+        if self.streaming and self.source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")
+
+        self.show_download_button = get(show_download_button)
         self.select: EventListenerMethod
         """
         Event listener for when the user clicks on a pixel within the image.
         Uses event data gradio.SelectData to carry `index` to refer to the [x, y] coordinates of the clicked pixel.
         See EventData documentation on how to use this event data.
         """
+        self.show_share_button = get(show_share_button)
         self.show_share_button = (
             (utils.get_space() is not None)
-            if show_share_button is None
-            else show_share_button
+            if self.show_share_button is None
+            else self.show_share_button
         )
         IOComponent.__init__(
             self,

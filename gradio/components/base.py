@@ -18,7 +18,7 @@ import numpy as np
 import requests
 from fastapi import UploadFile
 from gradio_client import utils as client_utils
-from gradio.blocks import DEFAULT
+from gradio.blocks import NoOverride, Default, get, is_update
 from gradio_client.documentation import set_documentation_group
 from gradio_client.serializing import (
     Serializable,
@@ -116,63 +116,69 @@ class IOComponent(Component):
     def __init__(
         self,
         *,
-        value: Any = None,
-        label: str | None = None,
-        info: str | None = None,
-        show_label: bool | None = None,
-        container: bool = True,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool = True,
-        elem_id: str | None = None,
-        elem_classes: list[str] | str | None = None,
-        load_fn: Callable | None = None,
-        every: float | None = None,
+        value: Any | Default = None,
+        label: str | None | Default = None,
+        info: str | None | Default = None,
+        show_label: bool | None | Default = None,
+        container: bool | Default = True,
+        scale: int | None | Default = None,
+        min_width: int | None | Default = None,
+        interactive: bool | None | Default = None,
+        visible: bool | Default = True,
+        elem_id: str | None | Default = None,
+        elem_classes: list[str] | str | None | Default = None,
+        load_fn: Callable | None | Default = None,
+        every: float | None | Default = None,
         **kwargs,
     ):
+        self.value = get(value)
+        self.label = get(label)
+        self.info = get(info)
+        self.show_label = get(show_label)
+        self.container = get(container)
+        self.scale = get(scale)
+        self.min_width = get(min_width)
+        self.interactive = get(interactive)
+        self.visible = get(visible)
+        self.elem_id = get(elem_id)
+        self.elem_classes = get(elem_classes)
+        self.load_fn = get(load_fn)
+        self.every = get(every)
+        if is_update():
+            return
+
         self.temp_files: set[str] = set()
         self.DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
             Path(tempfile.gettempdir()) / "gradio"
         )
 
         Component.__init__(
-            self, elem_id=elem_id, elem_classes=elem_classes, visible=visible, **kwargs
+            self, elem_id=self.elem_id, elem_classes=self.elem_classes, visible=self.visible, **kwargs
         )
 
-        self.label = label
-        self.info = info
-        if not container:
-            if show_label:
+        if not self.container:
+            if self.show_label:
                 warn_deprecation("show_label has no effect when container is False.")
-            show_label = False
-        if show_label is None:
-            show_label = True
-        self.show_label = show_label
-        self.container = container
-        if scale is not None and scale != round(scale):
+            self.show_label = False
+        if self.show_label is None:
+            self.show_label = True
+        if self.scale is not None and self.scale != round(self.scale):
             warn_deprecation(
                 f"'scale' value should be an integer. Using {scale} will cause issues."
             )
-        self.scale = scale
-        self.min_width = min_width
-        self.interactive = interactive
 
         # load_event is set in the Blocks.attach_load_events method
         self.load_event: None | dict[str, Any] = None
         self.load_event_to_attach = None
         load_fn = None
-        if value == DEFAULT:
-            self.value = value
-        else:
-            load_fn, value = self.get_load_fn_and_initial_value(value)
-            self.value = (
-                value
-                if self._skip_init_processing
-                else self.postprocess(value)
-            )
+        load_fn, self.value = self.get_load_fn_and_initial_value(self.value)
+        self.value = (
+            self.value
+            if self._skip_init_processing
+            else self.postprocess(self.value)
+        )
         if callable(load_fn):
-            self.attach_load_event(load_fn, every)
+            self.attach_load_event(load_fn, self.every)
 
     @staticmethod
     def hash_file(file_path: str | Path, chunk_num_blocks: int = 128) -> str:

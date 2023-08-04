@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.blocks import BlockContext, default
+from gradio.blocks import BlockContext, Default, get
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Selectable
 
@@ -31,10 +31,10 @@ class Row(BlockContext):
     def __init__(
         self,
         *,
-        variant: Literal["default", "panel", "compact"] | None = None,
-        visible: bool | None = None,
-        elem_id: str | None = None,
-        equal_height: bool | None = None,
+        variant: Literal["default", "panel", "compact"] | Default = Default("default"),
+        visible: bool | Default = Default(True),
+        elem_id: str | None | Default = Default(None),
+        equal_height: bool | Default = Default(True),
         **kwargs,
     ):
         """
@@ -44,13 +44,12 @@ class Row(BlockContext):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             equal_height: If True, makes every child element have equal height
         """
-        self.variant = default(variant, "default")
-        self.visible = default(visible, True)
-        self.equal_height = default(equal_height, True)
+        self.variant = get(variant)
+        self.equal_height = get(equal_height)
 
         if variant == "compact":
             self.allow_expected_parents = False
-        super().__init__(visible=self.visible, elem_id=elem_id, **kwargs)
+        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
 
     def style(
         self,
@@ -89,11 +88,11 @@ class Column(BlockContext):
     def __init__(
         self,
         *,
-        scale: int | None = None,
-        min_width: int | None = None,
-        variant: Literal["default", "panel", "compact"] | None = None,
-        visible: bool | None = None,
-        elem_id: str | None = None,
+        scale: int | Default = Default(1),
+        min_width: int | Default = Default(360),
+        variant: Literal["default", "panel", "compact"] = Default("default"),
+        visible: bool | Default = Default(True),
+        elem_id: str | None | Default = Default(None),
         **kwargs,
     ):
         """
@@ -104,10 +103,9 @@ class Column(BlockContext):
             visible: If False, column will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.scale = default(scale, 1)
-        self.min_width = default(min_width, 320)
-        self.variant = default(variant, "default")
-        visible = default(visible, True)
+        self.scale = get(scale)
+        self.min_width = get(min_width)
+        self.variant = get(variant)
 
         if self.variant == "compact":
             self.allow_expected_parents = False
@@ -122,9 +120,9 @@ class Tabs(BlockContext, Changeable, Selectable):
     def __init__(
         self,
         *,
-        selected: int | str | None = None,
-        visible: bool | None = None,
-        elem_id: str | None = None,
+        selected: int | str | None | Default = Default(None),
+        visible: bool | Default = Default(True),
+        elem_id: str | None | Default = Default(None),
         **kwargs,
     ):
         """
@@ -133,12 +131,12 @@ class Tabs(BlockContext, Changeable, Selectable):
             visible: If False, Tabs will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.visible = default(visible, True)
-        
+        self.selected = get(selected)
+
         BlockContext.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         Changeable.__init__(self)
         Selectable.__init__(self)
-        self.selected = selected
+
 
 @document()
 class Tab(BlockContext, Selectable):
@@ -159,8 +157,8 @@ class Tab(BlockContext, Selectable):
         self,
         label: str,
         *,
-        id: int | str | None = None,
-        elem_id: str | None = None,
+        id: int | str | None | Default = Default(None),
+        elem_id: str | None | Default = Default(None),
         **kwargs,
     ):
         """
@@ -169,10 +167,11 @@ class Tab(BlockContext, Selectable):
             id: An optional identifier for the tab, required if you wish to control the selected tab from a predict function.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        self.id = get(id)
+
         BlockContext.__init__(self, elem_id=elem_id, **kwargs)
         Selectable.__init__(self)
         self.label = label
-        self.id = id
 
     def get_expected_parent(self) -> type[Tabs]:
         return Tabs
@@ -198,8 +197,8 @@ class Group(BlockContext):
     def __init__(
         self,
         *,
-        visible: bool | None = None,
-        elem_id: str | None = None,
+        visible: bool | Default = Default(True),
+        elem_id: str | None | Default = Default(None),
         **kwargs,
     ):
         """
@@ -207,7 +206,6 @@ class Group(BlockContext):
             visible: If False, group will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.visible = default(visible, True)
         super().__init__(visible=visible, elem_id=elem_id, **kwargs)
 
 
@@ -243,14 +241,20 @@ class Box(BlockContext):
 
 
 class Form(BlockContext):
-    def __init__(self, *, scale: int = 0, min_width: int = 0, **kwargs):
+    def __init__(
+        self,
+        *,
+        scale: int | Default = Default(0),
+        min_width: int | Default = Default(0),
+        **kwargs,
+    ):
         """
         Parameters:
             scale: relative width compared to adjacent Columns. For example, if Column A has scale=2, and Column B has scale=1, A will be twice as wide as B.
             min_width: minimum pixel width of Column, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in a column narrower than min_width, the min_width parameter will be respected first.
         """
-        self.scale = scale
-        self.min_width = min_width
+        self.scale = get(scale)
+        self.min_width = get(min_width)
         super().__init__(**kwargs)
 
     def add_child(self, child: Block):
@@ -272,11 +276,11 @@ class Accordion(BlockContext):
 
     def __init__(
         self,
-        label: str | None = None,
+        label: str | Default = Default("Click to expand"),
         *,
-        open: bool | None = None,
-        visible: bool | None = None,
-        elem_id: str | None = None,
+        open: bool | Default = Default(True),
+        visible: bool | Default = Default(True),
+        elem_id: str | None | Default = Default(None),
         **kwargs,
     ):
         """
@@ -285,8 +289,7 @@ class Accordion(BlockContext):
             open: if True, accordion is open by default.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.label = default(label, "Click to expand")
-        self.open = default(open, True)
-        self.visible = default(visible, True)
+        self.label = get(label)
+        self.open = get(open)
 
         super().__init__(visible=visible, elem_id=elem_id, **kwargs)

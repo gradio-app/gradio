@@ -7,7 +7,7 @@ from typing import Literal
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components import Button
-from gradio.blocks import DEFAULT
+from gradio.blocks import Default, get
 from gradio.utils import get_space
 
 set_documentation_group("component")
@@ -26,16 +26,16 @@ class DuplicateButton(Button):
     def __init__(
         self,
         *,
-        value: str | None | DefaultType = DEFAULT,
-        variant: Literal["primary", "secondary", "stop"] | None = None,
-        size: Literal["sm", "lg"] | None = None,
-        visible: bool | None = None,
-        interactive: bool | None = None,
-        elem_id: str | None = None,
-        elem_classes: list[str] | str | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        _activate: bool | None = None,
+        value: str | None | Default = Default(None),
+        variant: Literal["primary", "secondary", "stop"] | Default = Default("secondary"),
+        size: Literal["sm", "lg"] | Default = Default(None),
+        visible: bool | Default = Default(True),
+        interactive: bool | None | Default = Default(True),
+        elem_id: str | None | Default = Default(None),
+        elem_classes: list[str] | str | None | Default = Default(None),
+        scale: int | None | Default = Default(None),
+        min_width: int | Default = Default(160),
+        _activate: bool | Default = Default(True),
         **kwargs,
     ):
         super().__init__(
@@ -50,6 +50,7 @@ class DuplicateButton(Button):
             min_width=min_width,
             **kwargs,
         )
+        _activate = get(_activate)
         if _activate:
             self.activate()
 

@@ -8,7 +8,7 @@ import altair as alt
 import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.blocks import Default, get
 from gradio.components.plot import AltairPlot, Plot
 
 set_documentation_group("component")
@@ -27,19 +27,19 @@ class LinePlot(Plot):
 
     def __init__(
         self,
-        value: pd.DataFrame | Callable | None | DefaultType = DEFAULT,
-        x: str | None = None,
-        y: str | None = None,
+        value: pd.DataFrame | Callable | None | Default = Default(None),
+        x: str | None | Default = Default(None),
+        y: str | None | Default = Default(None),
         *,
-        color: str | None = None,
-        stroke_dash: str | None = None,
-        overlay_point: bool | None = None,
-        title: str | None = None,
-        tooltip: list[str] | str | None = None,
-        x_title: str | None = None,
-        y_title: str | None = None,
-        color_legend_title: str | None = None,
-        stroke_dash_legend_title: str | None = None,
+        color: str | None | Default = Default(None),
+        stroke_dash: str | None | Default = Default(None),
+        overlay_point: bool | None | Default = Default(None),
+        title: str | None | Default = Default(None),
+        tooltip: list[str] | str | None | Default = Default(None),
+        x_title: str | None | Default = Default(None),
+        y_title: str | None | Default = Default(None),
+        color_legend_title: str | None | Default = Default(None),
+        stroke_dash_legend_title: str | None | Default = Default(None),
         color_legend_position: Literal[
             "left",
             "right",
@@ -64,21 +64,21 @@ class LinePlot(Plot):
             "none",
         ]
         | None = None,
-        height: int | None = None,
-        width: int | None = None,
-        x_lim: list[int] | None = None,
-        y_lim: list[int] | None = None,
-        caption: str | None = None,
-        interactive: bool | None = None,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        every: float | None = None,
-        visible: bool | None = None,
-        elem_id: str | None = None,
-        elem_classes: list[str] | str | None = None,
+        height: int | None | Default = Default(None),
+        width: int | None | Default = Default(None),
+        x_lim: list[int] | None | Default = Default(None),
+        y_lim: list[int] | None | Default = Default(None),
+        caption: str | None | Default = Default(None),
+        interactive: bool | None | Default = Default(True),
+        label: str | None | Default = Default(None),
+        show_label: bool | None | Default = Default(None),
+        container: bool | None | Default = Default(True),
+        scale: int | None | Default = Default(None),
+        min_width: int | None | Default = Default(160),
+        every: float | None | Default = Default(None),
+        visible: bool |  Default = Default(True),
+        elem_id: str | None | Default = Default(None),
+        elem_classes: list[str] | str | None | Default = Default(None),
     ):
         """
         Parameters:
@@ -109,10 +109,11 @@ class LinePlot(Plot):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.interactive = default(interactive, True)
-        container = default(container, True)
-        min_width = default(min_width, 160)
-        visible = default(visible, True)
+        self.interactive = get(interactive)
+        container = get(container)
+        scale = get(scale)
+        min_width = get(min_width)
+        visible = get(visible)
 
         self.x = x
         self.y = y

@@ -13,7 +13,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio import processing_utils, utils
-from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.blocks import Default, get
 from gradio.components.base import IOComponent
 from gradio.events import (
     Changeable,
@@ -51,25 +51,25 @@ class Audio(
 
     def __init__(
         self,
-        value: str | Path | tuple[int, np.ndarray] | Callable | None | DefaultType = DEFAULT,
+        value: str | Path | tuple[int, np.ndarray] | Callable | None | Default = Default(None),
         *,
-        source: Literal["upload", "microphone"] | None = None,
-        type: Literal["numpy", "filepath"] | None = None,
-        label: str | None = None,
-        every: float | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-        streaming: bool | None = None,
-        elem_id: str | None = None,
-        elem_classes: list[str] | str | None = None,
-        format: Literal["wav", "mp3"] | None = None,
-        autoplay: bool | None = None,
+        source: Literal["upload", "microphone"] | None | Default = Default("upload"),
+        type: Literal["numpy", "filepath"] | None | Default = Default("numpy"),
+        label: str | None | Default = Default(None),
+        every: float | None | Default = Default(None),
+        show_label: bool | None | Default = Default(None),
+        container: bool | None | Default = Default(True),
+        scale: int | None | Default = Default(None),
+        min_width: int | None | Default = Default(160),
+        interactive: bool | None | Default = Default(None),
+        visible: bool |  Default = Default(True),
+        streaming: bool | None | Default = Default(False),
+        elem_id: str | None | Default = Default(None),
+        elem_classes: list[str] | str | None | Default = Default(None),
+        format: Literal["wav", "mp3"] | None | Default = Default("wav"),
+        autoplay: bool | None | Default = Default(False),
         show_download_button=True,
-        show_share_button: bool | None = None,
+        show_share_button: bool | None | Default = Default(None),
         **kwargs,
     ):
         """
@@ -93,37 +93,34 @@ class Audio(
             show_download_button: If True, will show a download button in the corner of the component for saving audio. If False, icon does not appear.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
-        value = default(value, None)
-        source = default(source, "upload")
-        type = default(type, "numpy")
-        container = default(container, True)
-        min_width = default(min_width, 160)
-        visible = default(visible, True)
-        self.streaming = default(streaming, False)
-        self.format = default(format, "wav")
-        self.autoplay = default(autoplay, False)
-
+        self.source = get(source)
         valid_sources = ["upload", "microphone"]
-        if source not in valid_sources:
+        if self.source not in valid_sources:
             raise ValueError(
-                f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
+                f"Invalid value for parameter `source`: {self.source}. Please choose from one of: {valid_sources}"
             )
-        self.source = source
+
+        self.type = get(type)
         valid_types = ["numpy", "filepath"]
-        if type not in valid_types:
+        if self.type not in valid_types:
             raise ValueError(
-                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+                f"Invalid value for parameter `type`: {self.type}. Please choose from one of: {valid_types}"
             )
-        self.type = type
-        if streaming and source != "microphone":
+
+        self.streaming = get(streaming)
+        if self.streaming and self.source != "microphone":
             raise ValueError(
                 "Audio streaming only available if source is 'microphone'."
             )
-        self.show_download_button = show_download_button
+
+        self.format = get(format)
+        self.autoplay = get(autoplay)
+        self.show_download_button = get(show_download_button)
+        self.show_share_button = get(show_share_button)
         self.show_share_button = (
             (utils.get_space() is not None)
-            if show_share_button is None
-            else show_share_button
+            if self.show_share_button is None
+            else self.show_share_button
         )
         IOComponent.__init__(
             self,

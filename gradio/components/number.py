@@ -9,7 +9,7 @@ import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import NumberSerializable
 
-from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.blocks import Default, get
 from gradio.components.base import FormComponent, IOComponent
 from gradio.events import (
     Blurrable,
@@ -45,22 +45,22 @@ class Number(
 
     def __init__(
         self,
-        value: float | Callable | None | DefaultType = DEFAULT,
+        value: float | Callable | None | Default = Default(None),
         *,
-        label: str | None = None,
-        info: str | None = None,
-        every: float | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-        elem_id: str | None = None,
-        elem_classes: list[str] | str | None = None,
-        precision: int | None = None,
-        minimum: float | None = None,
-        maximum: float | None = None,
+        label: str | None | Default = Default(None),
+        info: str | None | Default = Default(None),
+        every: float | None | Default = Default(None),
+        show_label: bool | None | Default = Default(None),
+        container: bool | None | Default = Default(True),
+        scale: int | None | Default = Default(None),
+        min_width: int | None | Default = Default(160),
+        interactive: bool | None | Default = Default(None),
+        visible: bool |  Default = Default(True),
+        elem_id: str | None | Default = Default(None),
+        elem_classes: list[str] | str | None | Default = Default(None),
+        precision: int | None | Default = Default(None),
+        minimum: float | None | Default = Default(None),
+        maximum: float | None | Default = Default(None),
         **kwargs,
     ):
         """
@@ -81,14 +81,11 @@ class Number(
             minimum: Minimum value. Only applied when component is used as an input. If a user provides a smaller value, a gr.Error exception is raised by the backend.
             maximum: Maximum value. Only applied when component is used as an input. If a user provides a larger value, a gr.Error exception is raised by the backend.
         """
-        value = default(value, None)
-        container = default(container, True)
-        min_width = default(min_width, 160)
-        visible = default(visible, True)
 
-        self.precision = precision
-        self.minimum = minimum
-        self.maximum = maximum
+
+        self.precision = get(precision)
+        self.minimum = get(minimum)
+        self.maximum = get(maximum)
 
         IOComponent.__init__(
             self,

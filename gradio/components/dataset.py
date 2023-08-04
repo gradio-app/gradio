@@ -7,7 +7,7 @@ from typing import Any, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.blocks import Default, get
 from gradio.components.base import (
     Component,
     IOComponent,
@@ -19,7 +19,7 @@ set_documentation_group("component")
 
 
 @document()
-class Dataset(Clickable, Selectable, Component, StringSerializable):
+class Dataset(Clickable, Selectable, IOComponent, StringSerializable):
     """
     Used to create an output widget for showing datasets. Used to render the examples
     box.
@@ -30,18 +30,18 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
     def __init__(
         self,
         *,
-        label: str | None = None,
+        label: str | None | Default = Default(None),
         components: list[IOComponent] | list[str],
-        samples: list[list[Any]] | None | DefaultType = DEFAULT,
-        headers: list[str] | None = None,
-        type: Literal["values", "index"] | None = None,
-        samples_per_page: int | None = None,
-        visible: bool | None = None,
-        elem_id: str | None = None,
-        elem_classes: list[str] | str | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
+        samples: list[list[Any]] | None | Default = Default(None),
+        headers: list[str] | None | Default = Default(None),
+        type: Literal["values", "index"] | None | Default = Default("values"),
+        samples_per_page: int | None | Default = Default(10),
+        visible: bool |  Default = Default(True),
+        elem_id: str | None | Default = Default(None),
+        elem_classes: list[str] | str | None | Default = Default(None),
+        container: bool | None | Default = Default(True),
+        scale: int | None | Default = Default(None),
+        min_width: int | None | Default = Default(160),
         **kwargs,
     ):
         """
@@ -58,19 +58,24 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
         """
-        samples = default(samples, None)
-        self.type = default(type, "values")
-        self.samples_per_page = default(samples_per_page, 10)
-        visible = default(visible, True)
-        container = default(container, True)
-        min_width = default(min_width, 160)
+        self.samples = get(samples)
+        self.type = get(type)
+        self.label = get(label)
+        self.samples_per_page = get(samples_per_page)
+        self.headers = get(headers)
+        self.samples_per_page = get(samples_per_page)
 
-        Component.__init__(
-            self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
+        IOComponent.__init__(
+            self,
+            label=label,
+            container=container,
+            scale=scale,
+            min_width=min_width,
+            visible=visible,
+            elem_id=elem_id,
+            elem_classes=elem_classes,
+            **kwargs,
         )
-        self.container = container
-        self.scale = scale
-        self.min_width = min_width
         self._components = [get_component_instance(c, render=False) for c in components]
 
         # Narrow type to IOComponent
@@ -82,19 +87,15 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
         for component in self._components:
             component.root_url = self.root_url
 
-        self.samples = [[]] if samples is None else samples
+        self.samples = [[]] if self.samples is None else self.samples
         for example in self.samples:
             for i, (component, ex) in enumerate(zip(self._components, example)):
                 example[i] = component.as_example(ex)
-        self.type = type
-        self.label = label
-        if headers is not None:
-            self.headers = headers
-        elif all(c.label is None for c in self._components):
-            self.headers = []
-        else:
-            self.headers = [c.label or "" for c in self._components]
-        self.samples_per_page = samples_per_page
+        if self.headers is None:
+            if all(c.label is None for c in self._components):
+                self.headers = []
+            else:
+                self.headers = [c.label or "" for c in self._components]
 
     def preprocess(self, x: Any) -> Any:
         """

@@ -12,7 +12,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio import utils
-from gradio.blocks import default, DEFAULT, DefaultType
+from gradio.blocks import Default, get
 from gradio.components.base import IOComponent
 from gradio.deprecation import warn_deprecation
 from gradio.events import (
@@ -45,21 +45,21 @@ class File(
 
     def __init__(
         self,
-        value: str | list[str] | Callable | None | DefaultType = DEFAULT,
+        value: str | list[str] | Callable | None | Default = Default(None),
         *,
-        file_count: Literal["single", "multiple", "directory"] | None = None,
-        file_types: list[str] | None = None,
-        type: Literal["file", "binary"] | None = None,
-        label: str | None = None,
-        every: float | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-        elem_id: str | None = None,
-        elem_classes: list[str] | str | None = None,
+        file_count: Literal["single", "multiple", "directory"] | None | Default = Default("single"),
+        file_types: list[str] | None | Default = Default(None),
+        type: Literal["file", "binary"] | None | Default = Default("file"),
+        label: str | None | Default = Default(None),
+        every: float | None | Default = Default(None),
+        show_label: bool | None | Default = Default(None),
+        container: bool | None | Default = Default(True),
+        scale: int | None | Default = Default(None),
+        min_width: int | None | Default = Default(160),
+        interactive: bool | None | Default = Default(None),
+        visible: bool |  Default = Default(True),
+        elem_id: str | None | Default = Default(None),
+        elem_classes: list[str] | str | None | Default = Default(None),
         **kwargs,
     ):
         """
@@ -79,37 +79,34 @@ class File(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        value = default(value, None)
-        self.file_count = default(file_count, "single")
-        type = default(type, "file")
-        container = default(container, True)
-        min_width = default(min_width, 160)
-        visible = default(visible, True)
-
-        self.file_count = file_count
-        self.file_types = file_types
-        if file_types is not None and not isinstance(file_types, list):
-            raise ValueError(
-                f"Parameter file_types must be a list. Received {file_types.__class__.__name__}"
-            )
+        self.file_count = get(file_count)
+        self.type = get(type)
         valid_types = [
             "file",
             "binary",
             "bytes",
         ]  # "bytes" is included for backwards compatibility
-        if type not in valid_types:
+        if self.type not in valid_types:
             raise ValueError(
-                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+                f"Invalid value for parameter `type`: {self.type}. Please choose from one of: {valid_types}"
             )
         if type == "bytes":
             warn_deprecation(
                 "The `bytes` type is deprecated and may not work as expected. Please use `binary` instead."
             )
-        if file_count == "directory" and file_types is not None:
+
+        self.file_types = get(file_types)
+        if self.file_types is not None and not isinstance(self.file_types, list):
+            raise ValueError(
+                f"Parameter file_types must be a list. Received {self.file_types.__class__.__name__}"
+            )
+        
+        self.file_count = get(file_count)        
+        if self.file_count == "directory" and self.file_types is not None:
             warnings.warn(
                 "The `file_types` parameter is ignored when `file_count` is 'directory'."
             )
-        self.type = type
+
         self.select: EventListenerMethod
         """
         Event listener for when the user selects file from list.

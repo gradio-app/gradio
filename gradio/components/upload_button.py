@@ -11,8 +11,8 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio import utils
-from gradio.blocks import default, DEFAULT, DefaultType
-from gradio.components.base import Component, IOComponent
+from gradio.blocks import Default, get
+from gradio.components.base import IOComponent
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Clickable, Uploadable
 
@@ -31,20 +31,22 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
 
     def __init__(
         self,
-        label: str | None = None,
-        value: str | list[str] | Callable | None | DefaultType = DEFAULT,
+        label: str | None | Default = Default("Upload a File"),
+        value: str | list[str] | Callable | None | Default = Default(None),
         *,
-        variant: Literal["primary", "secondary", "stop"] | None = None,
-        visible: bool | None = None,
-        size: Literal["sm", "lg"] | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        elem_id: str | None = None,
-        elem_classes: list[str] | str | None = None,
-        type: Literal["file", "bytes"] | None = None,
-        file_count: Literal["single", "multiple", "directory"] | None = None,
-        file_types: list[str] | None = None,
+        variant: Literal["primary", "secondary", "stop"]
+        | Default = Default("secondary"),
+        visible: bool | Default = Default(True),
+        size: Literal["sm", "lg"] | None | Default = Default(None),
+        scale: int | None | Default = Default(None),
+        min_width: int | None | Default = Default(None),
+        interactive: bool | None | Default = Default(True),
+        elem_id: str | None | Default = Default(None),
+        elem_classes: list[str] | str | None | Default = Default(None),
+        type: Literal["file", "bytes"] | Default = Default("file"),
+        file_count: Literal["single", "multiple", "directory"]
+        | Default = Default("single"),
+        file_types: list[str] | None | Default = Default(None),
         **kwargs,
     ):
         """
@@ -63,27 +65,19 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
             file_types: List of type of files to be uploaded. "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
         """
-        label = default(label, "Upload a File")
-        self.variant = default(variant, "secondary")
-        visible = default(visible, True)
-        self.interactive = default(interactive, True)
-        self.type = default(type, "file")
-        self.file_count = default(file_count, "single")
-
-        self.type = type
-        self.file_count = file_count
-        if file_count == "directory" and file_types is not None:
+        self.variant = get(variant)
+        self.type = get(type)
+        self.file_count = get(file_count)
+        self.file_types = get(file_types)
+        if file_count == "directory" and self.file_types is not None:
             warnings.warn(
                 "The `file_types` parameter is ignored when `file_count` is 'directory'."
             )
-        if file_types is not None and not isinstance(file_types, list):
+        if self.file_types is not None and not isinstance(self.file_types, list):
             raise ValueError(
-                f"Parameter file_types must be a list. Received {file_types.__class__.__name__}"
+                f"Parameter file_types must be a list. Received {type(self.file_types)}"
             )
-        self.size = size
-        self.file_types = file_types
-        self.label = label
-        self.variant = variant
+        self.size = get(size)
         IOComponent.__init__(
             self,
             label=label,
