@@ -6,7 +6,7 @@ No changes to highlight
 
 ## Bug Fixes:
 
-No changes to highlight.
+- Stripped spaces from username input during login by [@sweep-ai[bot]](https://github.com/sweep-ai) in [PR 5096](https://github.com/gradio-app/gradio/pull/5096)
 
 ## Breaking Changes:
 
