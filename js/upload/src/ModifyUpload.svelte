@@ -4,8 +4,8 @@
 
 	import { createEventDispatcher } from "svelte";
 
-	export let editable: boolean = false;
-	export let absolute: boolean = true;
+	export let editable = false;
+	export let absolute = true;
 
 	const dispatch = createEventDispatcher<{ edit: never; clear: never }>();
 </script>

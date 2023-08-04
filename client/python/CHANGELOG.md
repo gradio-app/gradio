@@ -1,265 +1,318 @@
-# Upcoming Release
+# gradio_client
 
-## New Features:
+## 0.3.0
+
+### Highlights
+
+#### Create Discord Bots from Gradio Apps 🤖 ([#4960](https://github.com/gradio-app/gradio/pull/4960) [`46e4ef67`](https://github.com/gradio-app/gradio/commit/46e4ef67d287dd68a91473b73172b29cbad064bc))
+
+We're excited to announce that Gradio can now automatically create a discord bot from any `gr.ChatInterface` app.
+
+It's as easy as importing `gradio_client`, connecting to the app, and calling `deploy_discord`!
+
+_🦙 Turning Llama 2 70b into a discord bot 🦙_
+
+```python
+import gradio_client as grc
+grc.Client("ysharma/Explore_llamav2_with_TGI").deploy_discord(to_id="llama2-70b-discord-bot")
+```
+
+<img src="https://gradio-builds.s3.amazonaws.com/demo-files/discordbots/guide/llama_chat.gif">
+
+#### Getting started with template spaces
+
+To help get you started, we have created an organization on Hugging Face called [gradio-discord-bots](https://huggingface.co/gradio-discord-bots) with template spaces you can use to turn state of the art LLMs powered by Gradio to discord bots.
+
+Currently we have template spaces for:
+
+- [Llama-2-70b-chat-hf](https://huggingface.co/spaces/gradio-discord-bots/Llama-2-70b-chat-hf) powered by a FREE Hugging Face Inference Endpoint!
+- [Llama-2-13b-chat-hf](https://huggingface.co/spaces/gradio-discord-bots/Llama-2-13b-chat-hf) powered by Hugging Face Inference Endpoints.
+- [Llama-2-13b-chat-hf](https://huggingface.co/spaces/gradio-discord-bots/llama-2-13b-chat-transformers) powered by Hugging Face transformers.
+- [falcon-7b-instruct](https://huggingface.co/spaces/gradio-discord-bots/falcon-7b-instruct) powered by Hugging Face Inference Endpoints.
+- [gpt-3.5-turbo](https://huggingface.co/spaces/gradio-discord-bots/gpt-35-turbo), powered by openai. Requires an OpenAI key.
+
+But once again, you can deploy ANY `gr.ChatInterface` app exposed on the internet! So don't hesitate to try it on your own Chatbots.
+
+❗️ Additional Note ❗️: Technically, any gradio app that exposes an api route that takes in a single string and outputs a single string can be deployed to discord. But `gr.ChatInterface` apps naturally lend themselves to discord's chat functionality so we suggest you start with those.
+
+Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
+### New Features:
+
+- Endpoints that return layout components are now properly handled in the `submit` and `view_api` methods. Output layout components are not returned by the API but all other components are (excluding `gr.State`). By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4871](https://github.com/gradio-app/gradio/pull/4871)
+
+### Bug Fixes:
 
 No changes to highlight
 
-## Bug Fixes:
+### Breaking Changes:
 
 - Strip leading and trailing spaces from username during login by [@sweep-ai[bot]](https://github.com/sweep-ai[bot]) in [PR 5093](https://github.com/gradio-app/gradio/pull/5093)
 
-## Breaking Changes:
+### Full Changelog:
 
 No changes to highlight.
 
-## Full Changelog:
+# 0.2.9
+
+### New Features:
+
+No changes to highlight
+
+### Bug Fixes:
+
+- Fix bug determining the api name when a demo has `api_name=False` by [@freddyboulton](https://github.com/freddyaboulton) in [PR 4886](https://github.com/gradio-app/gradio/pull/4886)
+
+### Breaking Changes:
 
 No changes to highlight.
 
-# Version 0.2.8
+### Full Changelog:
 
-## New Features:
+- Pinned dependencies to major versions to reduce the likelihood of a broken `gradio_client` due to changes in downstream dependencies by [@abidlabs](https://github.com/abidlabs) in [PR 4885](https://github.com/gradio-app/gradio/pull/4885)
+
+# 0.2.8
+
+### New Features:
 
 - Support loading gradio apps where `api_name=False` by [@abidlabs](https://github.com/abidlabs) in [PR 4683](https://github.com/gradio-app/gradio/pull/4683)
 
-## Bug Fixes:
+### Bug Fixes:
 
 - Fix bug where space duplication would error if the demo has cpu-basic hardware by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4583](https://github.com/gradio-app/gradio/pull/4583)
 - Fixes and optimizations to URL/download functions by [@akx](https://github.com/akx) in [PR 4695](https://github.com/gradio-app/gradio/pull/4695)
 
-## Breaking Changes:
+### Breaking Changes:
 
 No changes to highlight.
 
-## Full Changelog:
+### Full Changelog:
 
 No changes to highlight.
 
-# Version 0.2.7
+# 0.2.7
 
-## New Features:
+### New Features:
 
 - The output directory for files downloaded via the Client can now be set by the `output_dir` parameter in `Client` by [@abidlabs](https://github.com/abidlabs) in [PR 4501](https://github.com/gradio-app/gradio/pull/4501)
 
-## Bug Fixes:
+### Bug Fixes:
 
 - The output directory for files downloaded via the Client are now set to a temporary directory by default (instead of the working directory in some cases) by [@abidlabs](https://github.com/abidlabs) in [PR 4501](https://github.com/gradio-app/gradio/pull/4501)
 
-## Breaking Changes:
+### Breaking Changes:
 
 No changes to highlight.
 
-## Full Changelog:
+### Full Changelog:
 
 No changes to highlight.
 
-# Version 0.2.6
+# 0.2.6
 
-## New Features:
+### New Features:
 
 No changes to highlight.
 
-## Bug Fixes:
+### Bug Fixes:
 
 - Fixed bug file deserialization didn't preserve all file extensions by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4440](https://github.com/gradio-app/gradio/pull/4440)
 - Fixed bug where mounted apps could not be called via the client by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4435](https://github.com/gradio-app/gradio/pull/4435)
 
-## Breaking Changes:
+### Breaking Changes:
 
 No changes to highlight.
 
-## Full Changelog:
+### Full Changelog:
 
 No changes to highlight.
 
-# Version 0.2.5
+# 0.2.5
 
-## New Features:
+### New Features:
 
 No changes to highlight.
 
-## Bug Fixes:
+### Bug Fixes:
 
 - Fixes parameter names not showing underscores by [@abidlabs](https://github.com/abidlabs) in [PR 4230](https://github.com/gradio-app/gradio/pull/4230)
 - Fixes issue in which state was not handled correctly if `serialize=False` by [@abidlabs](https://github.com/abidlabs) in [PR 4230](https://github.com/gradio-app/gradio/pull/4230)
 
-## Breaking Changes:
+### Breaking Changes:
 
 No changes to highlight.
 
-## Full Changelog:
+### Full Changelog:
 
 No changes to highlight.
 
-# Version 0.2.4
+# 0.2.4
 
-## Bug Fixes:
+### Bug Fixes:
+
 - Fixes missing serialization classes for several components: `Barplot`, `Lineplot`, `Scatterplot`, `AnnotatedImage`, `Interpretation` by [@abidlabs](https://github.com/abidlabs) in [PR 4167](https://github.com/gradio-app/gradio/pull/4167)
 
-## Documentation Changes:
+### Documentation Changes:
 
 No changes to highlight.
 
-## Testing and Infrastructure Changes:
+### Testing and Infrastructure Changes:
 
 No changes to highlight.
 
-## Breaking Changes:
+### Breaking Changes:
 
 No changes to highlight.
 
-## Full Changelog:
+### Full Changelog:
 
 No changes to highlight.
 
-## Contributors Shoutout:
+### Contributors Shoutout:
 
 No changes to highlight.
 
-# Version 0.2.3
+# 0.2.3
 
-## New Features:
+### New Features:
 
 No changes to highlight.
 
-## Bug Fixes:
+### Bug Fixes:
+
 - Fix example inputs for `gr.File(file_count='multiple')` output components by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4153](https://github.com/gradio-app/gradio/pull/4153)
 
-## Documentation Changes:
+### Documentation Changes:
 
 No changes to highlight.
 
-## Testing and Infrastructure Changes:
+### Testing and Infrastructure Changes:
 
 No changes to highlight.
 
-## Breaking Changes:
+### Breaking Changes:
 
 No changes to highlight.
 
-## Full Changelog:
+### Full Changelog:
 
 No changes to highlight.
 
-## Contributors Shoutout:
+### Contributors Shoutout:
 
 No changes to highlight.
 
-# Version 0.2.2
+# 0.2.2
 
-## New Features:
+### New Features:
 
 No changes to highlight.
 
-## Bug Fixes:
+### Bug Fixes:
 
 - Only send request to `/info` route if demo version is above `3.28.3` by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4109](https://github.com/gradio-app/gradio/pull/4109)
 
-
-## Other Changes:
+### Other Changes:
 
 - Fix bug in test from gradio 3.29.0 refactor by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4138](https://github.com/gradio-app/gradio/pull/4138)
 
-
-## Breaking Changes:
-
-No changes to highlight.
-
-
-# Version 0.2.1
-
-## New Features:
+### Breaking Changes:
 
 No changes to highlight.
 
-## Bug Fixes:
+# 0.2.1
+
+### New Features:
+
+No changes to highlight.
+
+### Bug Fixes:
 
 Removes extraneous `State` component info from the `Client.view_api()` method by [@abidlabs](https://github.com/freddyaboulton) in [PR 4107](https://github.com/gradio-app/gradio/pull/4107)
 
-## Documentation Changes:
+### Documentation Changes:
 
 No changes to highlight.
 
-## Testing and Infrastructure Changes:
+### Testing and Infrastructure Changes:
 
 Separates flaky tests from non-flaky tests by [@abidlabs](https://github.com/freddyaboulton) in [PR 4107](https://github.com/gradio-app/gradio/pull/4107)
 
-
-## Breaking Changes:
-
-No changes to highlight.
-
-## Full Changelog:
+### Breaking Changes:
 
 No changes to highlight.
 
-## Contributors Shoutout:
+### Full Changelog:
 
 No changes to highlight.
 
-# Version 0.1.4
+### Contributors Shoutout:
 
-## New Features:
+No changes to highlight.
+
+# 0.1.4
+
+### New Features:
 
 - Progress Updates from `gr.Progress()` can be accessed via `job.status().progress_data` by @freddyaboulton](https://github.com/freddyaboulton) in [PR 3924](https://github.com/gradio-app/gradio/pull/3924)
 
-## Bug Fixes:
+### Bug Fixes:
 
 - Fixed bug where unnamed routes where displayed with `api_name` instead of `fn_index` in `view_api` by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3972](https://github.com/gradio-app/gradio/pull/3972)
 
-## Documentation Changes:
+### Documentation Changes:
 
 No changes to highlight.
 
-## Testing and Infrastructure Changes:
+### Testing and Infrastructure Changes:
 
 No changes to highlight.
 
-## Breaking Changes:
+### Breaking Changes:
 
 No changes to highlight.
 
-## Full Changelog:
+### Full Changelog:
 
 No changes to highlight.
 
-## Contributors Shoutout:
+### Contributors Shoutout:
 
 No changes to highlight.
 
-# Version 0.1.3
+# 0.1.3
 
-## New Features:
+### New Features:
 
 No changes to highlight.
 
-## Bug Fixes:
+### Bug Fixes:
 
 - Fixed bug where `Video` components in latest gradio were not able to be deserialized by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3860](https://github.com/gradio-app/gradio/pull/3860)
 
-## Documentation Changes:
+### Documentation Changes:
 
 No changes to highlight.
 
-## Testing and Infrastructure Changes:
+### Testing and Infrastructure Changes:
 
 No changes to highlight.
 
-## Breaking Changes:
+### Breaking Changes:
 
 No changes to highlight.
 
-## Full Changelog:
+### Full Changelog:
 
 No changes to highlight.
 
-## Contributors Shoutout:
+### Contributors Shoutout:
 
 No changes to highlight.
 
-# Version 0.1.2
+# 0.1.2
 
-First public release of the Gradio Client library! The `gradio_client` Python library that makes it very easy to use any Gradio app as an API. 
+First public release of the Gradio Client library! The `gradio_client` Python library that makes it very easy to use any Gradio app as an API.
 
 As an example, consider this [Hugging Face Space that transcribes audio files](https://huggingface.co/spaces/abidlabs/whisper) that are recorded from the microphone.
 
@@ -272,8 +325,8 @@ Here's the entire code to do it:
 ```python
 from gradio_client import Client
 
-client = Client("abidlabs/whisper") 
-client.predict("audio_sample.wav")  
+client = Client("abidlabs/whisper")
+client.predict("audio_sample.wav")
 
 >> "This is a test of the whisper speech recognition model."
 ```

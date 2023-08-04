@@ -2,22 +2,23 @@
 
 <div align="center">
 
-  [<img src="readme_files/gradio.svg" alt="gradio" width=300>](https://gradio.app)<br>
-  <em>Build & share delightful machine learning apps easily</em>
+[<img src="readme_files/gradio.svg" alt="gradio" width=300>](https://gradio.app)<br>
+<em>Build & share delightful machine learning apps easily</em>
 
-  [![gradio-backend](https://github.com/gradio-app/gradio/actions/workflows/backend.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/backend.yml)
-  [![gradio-ui](https://github.com/gradio-app/gradio/actions/workflows/ui.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/ui.yml)  
-  [![PyPI](https://img.shields.io/pypi/v/gradio)](https://pypi.org/project/gradio/)
-  [![PyPI downloads](https://img.shields.io/pypi/dm/gradio)](https://pypi.org/project/gradio/)
-  ![Python version](https://img.shields.io/badge/python-3.8+-important)
-  [![Twitter follow](https://img.shields.io/twitter/follow/gradio?style=social&label=follow)](https://twitter.com/gradio)
+[![gradio-backend](https://github.com/gradio-app/gradio/actions/workflows/backend.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/backend.yml)
+[![gradio-ui](https://github.com/gradio-app/gradio/actions/workflows/ui.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/ui.yml)  
+ [![PyPI](https://img.shields.io/pypi/v/gradio)](https://pypi.org/project/gradio/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/gradio)](https://pypi.org/project/gradio/)
+![Python version](https://img.shields.io/badge/python-3.8+-important)
+[![Twitter follow](https://img.shields.io/twitter/follow/gradio?style=social&label=follow)](https://twitter.com/gradio)
 
-  [Website](https://gradio.app)
-  | [Documentation](https://gradio.app/docs/)
-  | [Guides](https://gradio.app/guides/)
-  | [Getting Started](https://gradio.app/getting_started/)
-  | [Examples](demo/)
-  | [中文](readme_files/zh-cn#readme)
+[Website](https://gradio.app)
+| [Documentation](https://gradio.app/docs/)
+| [Guides](https://gradio.app/guides/)
+| [Getting Started](https://gradio.app/getting_started/)
+| [Examples](demo/)
+| [中文](readme_files/zh-cn#readme)
+
 </div>
 
 # Gradio: Build Machine Learning Web Apps — in Python
@@ -43,7 +44,7 @@ Gradio is useful for:
 
 ### What Does Gradio Do?
 
-One of the *best ways to share* your machine learning model, API, or data science workflow with others is to create an **interactive app** that allows your users or colleagues to try out the demo in their browsers.
+One of the _best ways to share_ your machine learning model, API, or data science workflow with others is to create an **interactive app** that allows your users or colleagues to try out the demo in their browsers.
 
 Gradio allows you to **build demos and share them, all in Python.** And usually in just a few lines of code! So let's get started.
 
@@ -66,10 +67,11 @@ def greet(name):
     return "Hello " + name + "!"
 
 demo = gr.Interface(fn=greet, inputs="text", outputs="text")
-    
+
 demo.launch()
 ```
 
+We shorten the imported name to `gr` for better readability of code using Gradio. This is a widely adopted convention that you should follow so that anyone working with your code can easily understand it.
 
 3\. The demo below will appear automatically within the Jupyter Notebook, or pop in a browser on [http://localhost:7860](http://localhost:7860) if running from a script:
 
@@ -85,7 +87,7 @@ Note: you can also do `python app.py`, but it won't provide the automatic reload
 
 ### The `Interface` Class
 
-You'll notice that in order to make the demo, we created a `gradio.Interface`. This `Interface` class can wrap any Python function with a user interface. In the example above, we saw a simple text-based function, but the function could be anything from music generator to a tax calculator to the prediction function of a pretrained machine learning model.
+You'll notice that in order to make the demo, we created a `gr.Interface`. This `Interface` class can wrap any Python function with a user interface. In the example above, we saw a simple text-based function, but the function could be anything from music generator to a tax calculator to the prediction function of a pretrained machine learning model.
 
 The core `Interface` class is initialized with three required parameters:
 
@@ -152,8 +154,8 @@ import gradio as gr
 
 def sepia(input_img):
     sepia_filter = np.array([
-        [0.393, 0.769, 0.189], 
-        [0.349, 0.686, 0.168], 
+        [0.393, 0.769, 0.189],
+        [0.349, 0.686, 0.168],
         [0.272, 0.534, 0.131]
     ])
     sepia_img = input_img.dot(sepia_filter.T)
@@ -178,11 +180,40 @@ Also note that our input `Image` component comes with an edit button 🖉, which
 
 You can read more about the many components and how to use them in the [Gradio docs](https://gradio.app/docs).
 
+### Chatbots
+
+Gradio includes a high-level class, `gr.ChatInterface`, which is similar to `gr.Interface`, but is specifically designed for chatbot UIs. The `gr.ChatInterface` class also wraps a function but this function must have a specific signature. The function should take two arguments: `message` and then `history` (the arguments can be named anything, but must be in this order)
+
+- `message`: a `str` representing the user's input
+- `history`: a `list` of `list` representing the conversations up until that point. Each inner list consists of two `str` representing a pair: `[user input, bot response]`.
+
+Your function should return a single string response, which is the bot's response to the particular user input `message`.
+
+Other than that, `gr.ChatInterface` has no required parameters (though several are available for customization of the UI).
+
+Here's a toy example:
+
+```python
+import random
+import gradio as gr
+
+def random_response(message, history):
+    return random.choice(["Yes", "No"])
+
+demo = gr.ChatInterface(random_response)
+
+demo.launch()
+```
+
+![`chatinterface_random_response` demo](demo/chatinterface_random_response/screenshot.gif)
+
+You can [read more about `gr.ChatInterface` here](https://gradio.app/guides/creating-a-chatbot-fast).
+
 ### Blocks: More Flexibility and Control
 
-Gradio offers two classes to build apps:
+Gradio offers two approaches to build apps:
 
-1\. **Interface**, that provides a high-level abstraction for creating demos that we've been discussing so far.
+1\. **Interface** and **ChatInterface**, which provide a high-level abstraction for creating demos that we've been discussing so far.
 
 2\. **Blocks**, a low-level API for designing web apps with more flexible layouts and data flows. Blocks allows you to do things like feature multiple data flows and demos, control where components appear on the page, handle complex data flows (e.g. outputs can serve as inputs to other functions), and update properties/visibility of components based on user interaction — still all in Python. If this customizability is what you need, try `Blocks` instead!
 
@@ -200,7 +231,8 @@ with gr.Blocks() as demo:
     name = gr.Textbox(label="Name")
     output = gr.Textbox(label="Output Box")
     greet_btn = gr.Button("Greet")
-    greet_btn.click(fn=greet, inputs=name, outputs=output)
+    greet_btn.click(fn=greet, inputs=name, outputs=output, api_name="greet")
+
 
 demo.launch()
 ```
@@ -257,7 +289,6 @@ A lot more going on here! We'll cover how to create complex `Blocks` apps like t
 
 Congrats, you're now familiar with the basics of Gradio! 🥳 Go to our [next guide](https://gradio.app/key_features) to learn more about the key features of Gradio.
 
-
 ## Open Source Stack
 
 Gradio is built with many wonderful open-source libraries, please support them as well!
@@ -273,14 +304,13 @@ Gradio is built with many wonderful open-source libraries, please support them a
 [<img src="readme_files/storybook.svg" alt="storybook" height=40>](https://storybook.js.org/)
 [<img src="readme_files/chromatic.svg" alt="chromatic" height=40>](https://www.chromatic.com/)
 
-
 ## License
 
 Gradio is licensed under the Apache License 2.0 found in the [LICENSE](LICENSE) file in the root directory of this repository.
 
 ## Citation
 
-Also check out the paper *[Gradio: Hassle-Free Sharing and Testing of ML Models in the Wild](https://arxiv.org/abs/1906.02569), ICML HILL 2019*, and please cite it if you use Gradio in your work.
+Also check out the paper _[Gradio: Hassle-Free Sharing and Testing of ML Models in the Wild](https://arxiv.org/abs/1906.02569), ICML HILL 2019_, and please cite it if you use Gradio in your work.
 
 ```
 @article{abid2019gradio,
