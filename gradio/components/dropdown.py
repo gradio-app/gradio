@@ -12,9 +12,9 @@ from gradio.blocks import Default, get
 from gradio.components.base import FormComponent, IOComponent
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
-    Blurrable,
     Changeable,
     EventListenerMethod,
+    Focusable,
     Inputable,
     Selectable,
 )
@@ -28,7 +28,7 @@ class Dropdown(
     Changeable,
     Inputable,
     Selectable,
-    Blurrable,
+    Focusable,
     IOComponent,
     SimpleSerializable,
 ):
