@@ -47,7 +47,9 @@ class File(
         self,
         value: str | list[str] | Callable | None | Default = Default(None),
         *,
-        file_count: Literal["single", "multiple", "directory"] | None | Default = Default("single"),
+        file_count: Literal["single", "multiple", "directory"]
+        | None
+        | Default = Default("single"),
         file_types: list[str] | None | Default = Default(None),
         type: Literal["file", "binary"] | None | Default = Default("file"),
         label: str | None | Default = Default(None),
@@ -57,7 +59,7 @@ class File(
         scale: int | None | Default = Default(None),
         min_width: int | None | Default = Default(160),
         interactive: bool | None | Default = Default(None),
-        visible: bool |  Default = Default(True),
+        visible: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
         elem_classes: list[str] | str | None | Default = Default(None),
         **kwargs,
@@ -100,8 +102,8 @@ class File(
             raise ValueError(
                 f"Parameter file_types must be a list. Received {self.file_types.__class__.__name__}"
             )
-        
-        self.file_count = get(file_count)        
+
+        self.file_count = get(file_count)
         if self.file_count == "directory" and self.file_types is not None:
             warnings.warn(
                 "The `file_types` parameter is ignored when `file_count` is 'directory'."

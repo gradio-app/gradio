@@ -716,7 +716,7 @@ def special_args(
 
 def update(**kwargs) -> dict:
     """
-    DEPRECATED. Updates component properties. Return 
+    DEPRECATED. Updates component properties. Return
     """
     warnings.warn(
         "The update method is deprecated. Simply return a new block, e.g. `return gr.Dropdown(visible=False)` instead of `return gr.update(visible=False)` ."

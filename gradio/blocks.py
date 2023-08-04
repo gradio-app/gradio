@@ -11,10 +11,17 @@ import threading
 import time
 import warnings
 import webbrowser
-from abc import abstractmethod
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast, TypeVar, Type
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    AsyncIterator,
+    Callable,
+    Literal,
+    TypeVar,
+    cast,
+)
 
 import anyio
 import requests
@@ -86,19 +93,24 @@ BUILT_IN_THEMES: dict[str, Theme] = {
     ]
 }
 
+
 class Default:
     def __init__(self, value):
         self.value = value
-    
+
+
 def is_update():
     from gradio import context
+
     return hasattr(context.thread_data, "blocks")
+
 
 def get(default: Any):
     if is_update():
         return NoOverride if isinstance(default, Default) else default
     else:
         return default.value if isinstance(default, Default) else default
+
 
 class Block:
     def __init__(
@@ -318,16 +330,16 @@ class Block:
         return dependency, len(Context.root_block.dependencies) - 1
 
     def get_config(self, with_globals=True):
-        config = {}  
+        config = {}
         if with_globals:
             config["root_url"] = self.root_url
             config["name"] = self.get_block_name()
         if hasattr(self.__class__, "__init__"):
             signature = inspect.signature(self.__class__.__init__)
-            for k in signature.parameters.keys():
+            for k in signature.parameters:
                 if hasattr(self, k):
                     config[k] = getattr(self, k)
-                    
+
                     v = getattr(self, k)
                     if isinstance(v, Default):
                         print(self, k)
@@ -347,10 +359,11 @@ class Block:
         del generic_update["__type__"]
         specific_update = cls.update(**generic_update)
         return specific_update
-    
+
     def __deepcopy__(self, memo):
         args = copy.deepcopy(self.get_config(with_globals=False), memo)
         return self.__class__(**args)
+
 
 class BlockContext(Block):
     def __init__(
@@ -1146,9 +1159,9 @@ class Blocks(BlockContext):
             except StopAsyncIteration:
                 n_outputs = len(self.dependencies[fn_index].get("outputs"))
                 prediction = (
-                    FINISHED_ITERATING
+                    FinishedIterating
                     if n_outputs == 1
-                    else (FINISHED_ITERATING,) * n_outputs
+                    else (FinishedIterating,) * n_outputs
                 )
                 iterator = None
 
@@ -1160,7 +1173,7 @@ class Blocks(BlockContext):
             "is_generating": is_generating,
             "iterator": iterator,
         }
-    
+
     def serialize_data(self, fn_index: int, inputs: list[Any]) -> list[Any]:
         dependency = self.dependencies[fn_index]
         processed_input = []
@@ -1242,7 +1255,9 @@ Received inputs:
     [{received}]"""
             )
 
-    def preprocess_data(self, fn_index: int, inputs: list[Any], state: dict[int, Block]):
+    def preprocess_data(
+        self, fn_index: int, inputs: list[Any], state: dict[int, Block]
+    ):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
@@ -1323,7 +1338,7 @@ Received outputs:
         output = []
         for i, output_id in enumerate(dependency["outputs"]):
             try:
-                if predictions[i] is FINISHED_ITERATING:
+                if predictions[i] is FinishedIterating:
                     output.append(None)
                     continue
             except (IndexError, KeyError) as err:
@@ -2228,12 +2243,13 @@ Received outputs:
             return self.enable_queue
         return self.dependencies[fn_index]["queue"]
 
+
 class NoOverride:
     pass
 
 
-class FINISHED_ITERATING:
+class FinishedIterating:
     pass
 
-T = TypeVar("T")
 
+T = TypeVar("T")

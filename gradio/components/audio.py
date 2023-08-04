@@ -51,7 +51,12 @@ class Audio(
 
     def __init__(
         self,
-        value: str | Path | tuple[int, np.ndarray] | Callable | None | Default = Default(None),
+        value: str
+        | Path
+        | tuple[int, np.ndarray]
+        | Callable
+        | None
+        | Default = Default(None),
         *,
         source: Literal["upload", "microphone"] | None | Default = Default("upload"),
         type: Literal["numpy", "filepath"] | None | Default = Default("numpy"),
@@ -62,7 +67,7 @@ class Audio(
         scale: int | None | Default = Default(None),
         min_width: int | None | Default = Default(160),
         interactive: bool | None | Default = Default(None),
-        visible: bool |  Default = Default(True),
+        visible: bool | Default = Default(True),
         streaming: bool | None | Default = Default(False),
         elem_id: str | None | Default = Default(None),
         elem_classes: list[str] | str | None | Default = Default(None),

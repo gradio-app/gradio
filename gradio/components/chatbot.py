@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import inspect
 from pathlib import Path
-from typing import Callable, Literal
+from typing import Callable
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
@@ -38,7 +38,8 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         self,
         value: list[list[str | tuple[str] | tuple[str | Path, str] | None]]
         | Callable
-        | None | Default = Default(None),
+        | None
+        | Default = Default(None),
         color_map: dict[str, str] | None | Default = Default(None),
         *,
         label: str | None | Default = Default(None),
@@ -47,7 +48,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         container: bool | None | Default = Default(True),
         scale: int | None | Default = Default(None),
         min_width: int | None | Default = Default(160),
-        visible: bool |  Default = Default(True),
+        visible: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
         elem_classes: list[str] | str | None | Default = Default(None),
         height: int | None | Default = Default(None),

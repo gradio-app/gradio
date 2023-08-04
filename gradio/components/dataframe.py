@@ -62,7 +62,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         scale: int | None | Default = Default(None),
         min_width: int | None | Default = Default(160),
         interactive: bool | None | Default = Default(None),
-        visible: bool |  Default = Default(True),
+        visible: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
         elem_classes: list[str] | str | None | Default = Default(None),
         wrap: bool | None | Default = Default(False),

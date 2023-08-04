@@ -9,7 +9,6 @@ from gradio_client.serializing import StringSerializable
 
 from gradio.blocks import Default, get
 from gradio.components.base import (
-    Component,
     IOComponent,
     get_component_instance,
 )
@@ -36,7 +35,7 @@ class Dataset(Clickable, Selectable, IOComponent, StringSerializable):
         headers: list[str] | None | Default = Default(None),
         type: Literal["values", "index"] | None | Default = Default("values"),
         samples_per_page: int | None | Default = Default(10),
-        visible: bool |  Default = Default(True),
+        visible: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
         elem_classes: list[str] | str | None | Default = Default(None),
         container: bool | None | Default = Default(True),

@@ -28,7 +28,7 @@ from gradio_client import media_data
 from PIL import Image
 
 import gradio as gr
-from gradio.blocks import get_api_info, DEFAULT, FINISHED_ITERATING
+from gradio.blocks import DEFAULT, FinishedIterating, get_api_info
 from gradio.events import SelectData
 from gradio.exceptions import DuplicateBlockError
 from gradio.networking import Server, get_first_available_port
@@ -849,7 +849,7 @@ class TestCallFunction:
         output = await demo.call_function(0, [3], iterator=output["iterator"])
         assert output["prediction"] == 2
         output = await demo.call_function(0, [3], iterator=output["iterator"])
-        assert output["prediction"] == FINISHED_ITERATING
+        assert output["prediction"] == FinishedIterating
         assert output["iterator"] is None
         output = await demo.call_function(0, [3], iterator=output["iterator"])
         assert output["prediction"] == 0
@@ -886,7 +886,7 @@ class TestCallFunction:
         output = await demo.call_function(1, [3], iterator=output["iterator"])
         assert output["prediction"] == (2, 3)
         output = await demo.call_function(1, [3], iterator=output["iterator"])
-        assert output["prediction"] == (FINISHED_ITERATING,) * 2
+        assert output["prediction"] == (FinishedIterating,) * 2
         assert output["iterator"] is None
         output = await demo.call_function(1, [3], iterator=output["iterator"])
         assert output["prediction"] == (0, 3)

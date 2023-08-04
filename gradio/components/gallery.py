@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import Callable, Literal
 
 import numpy as np
 from gradio_client.documentation import document, set_documentation_group
@@ -36,7 +36,8 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         self,
         value: list[np.ndarray | _Image.Image | str | Path | tuple]
         | Callable
-        | None | Default = Default(None),
+        | None
+        | Default = Default(None),
         *,
         label: str | None | Default = Default(None),
         every: float | None | Default = Default(None),
@@ -44,7 +45,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         container: bool | None | Default = Default(True),
         scale: int | None | Default = Default(None),
         min_width: int | None | Default = Default(160),
-        visible: bool |  Default = Default(True),
+        visible: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
         elem_classes: list[str] | str | None | Default = Default(None),
         columns: int | tuple | None | Default = Default(2),

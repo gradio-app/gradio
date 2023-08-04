@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, Literal
+from typing import Callable
 
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import (
@@ -34,7 +34,11 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
 
     def __init__(
         self,
-        value: list[tuple[str, str | float | None]] | dict | Callable | None | Default = Default(None),
+        value: list[tuple[str, str | float | None]]
+        | dict
+        | Callable
+        | None
+        | Default = Default(None),
         *,
         color_map: dict[str, str]
         | None = None,  # Parameter moved to HighlightedText.style()
@@ -47,7 +51,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
         container: bool | None | Default = Default(True),
         scale: int | None | Default = Default(None),
         min_width: int | None | Default = Default(160),
-        visible: bool |  Default = Default(True),
+        visible: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
         elem_classes: list[str] | str | None | Default = Default(None),
         **kwargs,

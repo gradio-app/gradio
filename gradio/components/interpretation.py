@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal
-
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import SimpleSerializable
 
@@ -27,7 +25,7 @@ class Interpretation(Component, SimpleSerializable):
         self,
         component: Component,
         *,
-        visible: bool |  Default = Default(True),
+        visible: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
         elem_classes: list[str] | str | None | Default = Default(None),
         **kwargs,
@@ -45,4 +43,3 @@ class Interpretation(Component, SimpleSerializable):
             self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
         )
         self.component = component
-
