@@ -32,7 +32,7 @@
 	<div class="flex flex-col w-full min-w-full lg:w-10/12 lg:min-w-0">
 		<div>
 			<p
-				class="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 mr-2 rounded-full text-orange-800 mb-1 w-fit float-left"
+				class="lg:ml-10 bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 mr-2 rounded-full text-orange-800 mb-1 w-fit float-left"
 			>
 				New to Gradio? Start here: <a class="link" href="/quickstart"
 					>Getting Started</a
@@ -45,7 +45,7 @@
 			</p>
 		</div>
 
-		<div class="flex justify-between mt-4">
+		<div class="lg:ml-10 flex justify-between mt-4">
 			<a
 				href="/docs/themes"
 				class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"

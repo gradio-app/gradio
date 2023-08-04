@@ -1,10 +1,8 @@
 """Contains tests for networking.py and app.py"""
 import json
 import os
-import sys
 import tempfile
 from contextlib import closing
-from pathlib import Path
 from unittest.mock import patch
 
 import numpy as np
@@ -26,8 +24,6 @@ from gradio import (
     close_all,
     routes,
 )
-
-os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 @pytest.fixture()
@@ -70,23 +66,19 @@ class TestRoutes:
         with open(file) as saved_file:
             assert saved_file.read() == "abcdefghijklmnopqrstuvwxyz"
 
-    def test_custom_upload_path(self):
-        os.environ["GRADIO_TEMP_DIR"] = str(Path(tempfile.gettempdir()) / "gradio-test")
+    def test_custom_upload_path(self, gradio_temp_dir):
         io = Interface(lambda x: x + x, "text", "text")
         app, _, _ = io.launch(prevent_thread_lock=True)
         test_client = TestClient(app)
-        try:
-            with open("test/test_files/alphabet.txt") as f:
-                response = test_client.post("/upload", files={"files": f})
-            assert response.status_code == 200
-            file = response.json()[0]
-            assert "alphabet" in file
-            assert file.startswith(str(Path(tempfile.gettempdir()) / "gradio-test"))
-            assert file.endswith(".txt")
-            with open(file) as saved_file:
-                assert saved_file.read() == "abcdefghijklmnopqrstuvwxyz"
-        finally:
-            os.environ["GRADIO_TEMP_DIR"] = ""
+        with open("test/test_files/alphabet.txt") as f:
+            response = test_client.post("/upload", files={"files": f})
+        assert response.status_code == 200
+        file = response.json()[0]
+        assert "alphabet" in file
+        assert file.startswith(str(gradio_temp_dir))
+        assert file.endswith(".txt")
+        with open(file) as saved_file:
+            assert saved_file.read() == "abcdefghijklmnopqrstuvwxyz"
 
     def test_predict_route(self, test_client):
         response = test_client.post(
@@ -482,10 +474,6 @@ class TestAuthenticatedRoutes:
 
 class TestQueueRoutes:
     @pytest.mark.asyncio
-    @pytest.mark.skipif(
-        sys.version_info < (3, 8),
-        reason="Mocks don't work with async context managers in 3.7",
-    )
     @patch("gradio.routes.get_server_url_from_ws_url", return_value="foo_url")
     async def test_queue_join_routes_sets_url_if_none_set(self, mock_get_url):
         io = Interface(lambda x: x, "text", "text").queue()

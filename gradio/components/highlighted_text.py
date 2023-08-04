@@ -25,7 +25,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels, or a {Dict} with two keys: (1) "text" whose value is the complete text, and "entities", which is a list of dictionaries, each of which have the keys: "entity" (consisting of the entity label), "start" (the character index where the label starts), and "end" (the character index where the label ends). Entities should not overlap.
+    Postprocessing: expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels, or a {Dict} with two keys: (1) "text" whose value is the complete text, and (2) "entities", which is a list of dictionaries, each of which have the keys: "entity" (consisting of the entity label, can alternatively be called "entity_group"), "start" (the character index where the label starts), and "end" (the character index where the label ends). Entities should not overlap.
 
     Demos: diff_texts, text_analysis
     Guides: named-entity-recognition
@@ -42,7 +42,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
         adjacent_separator: str = "",
         label: str | None = None,
         every: float | None = None,
-        show_label: bool = True,
+        show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
@@ -135,7 +135,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
     ) -> list[tuple[str, str | float | None]] | None:
         """
         Parameters:
-            y: List of (word, category) tuples
+            y: List of (word, category) tuples, or a dictionary of two keys: "text", and "entities", which itself is a list of dictionaries, each of which have the keys: "entity" (or "entity_group"), "start", and "end"
         Returns:
             List of (word, category) tuples
         """
@@ -158,8 +158,9 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
                 entities = sorted(entities, key=lambda x: x["start"])
                 for entity in entities:
                     list_format.append((text[index : entity["start"]], None))
+                    entity_category = entity.get("entity") or entity.get("entity_group")
                     list_format.append(
-                        (text[entity["start"] : entity["end"]], entity["entity"])
+                        (text[entity["start"] : entity["end"]], entity_category)
                     )
                     index = entity["end"]
                 list_format.append((text[index:], None))

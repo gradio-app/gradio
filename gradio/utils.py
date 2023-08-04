@@ -12,7 +12,6 @@ import os
 import pkgutil
 import random
 import re
-import sys
 import time
 import typing
 import warnings
@@ -64,7 +63,7 @@ def colab_check() -> bool:
     """
     is_colab = False
     try:  # Check if running interactively using ipython.
-        from IPython import get_ipython
+        from IPython.core.getipython import get_ipython
 
         from_ipynb = get_ipython()
         if "google.colab" in str(from_ipynb):
@@ -98,7 +97,7 @@ def ipython_check() -> bool:
     """
     is_ipython = False
     try:  # Check if running interactively using ipython.
-        from IPython import get_ipython
+        from IPython.core.getipython import get_ipython
 
         if get_ipython() is not None:
             is_ipython = True
@@ -111,6 +110,10 @@ def get_space() -> str | None:
     if os.getenv("SYSTEM") == "spaces":
         return os.getenv("SPACE_ID")
     return None
+
+
+def is_zero_gpu_space() -> bool:
+    return os.getenv("SPACES_ZERO_GPU") == "true"
 
 
 def readme_to_html(article: str) -> str:
@@ -716,9 +719,6 @@ def get_function_with_locals(fn: Callable, blocks: Blocks, event_id: str | None)
 
 
 async def cancel_tasks(task_ids: set[str]):
-    if sys.version_info < (3, 8):
-        return None
-
     matching_tasks = [
         task for task in asyncio.all_tasks() if task.get_name() in task_ids
     ]
@@ -728,9 +728,7 @@ async def cancel_tasks(task_ids: set[str]):
 
 
 def set_task_name(task, session_hash: str, fn_index: int, batch: bool):
-    if sys.version_info >= (3, 8) and not (
-        batch
-    ):  # You shouldn't be able to cancel a task if it's part of a batch
+    if not batch:
         task.set_name(f"{session_hash}_{fn_index}")
 
 
