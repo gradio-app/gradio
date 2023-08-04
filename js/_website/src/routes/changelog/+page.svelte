@@ -19,7 +19,7 @@
 		const anchor = document.getElementById(anchorId);
 		window.scrollTo({
 			top: anchor?.offsetTop,
-			behavior: "smooth",
+			behavior: "smooth"
 		});
 	}
 </script>
@@ -54,7 +54,7 @@
 			{/each}
 		</div>
 	</div>
-	<div class="w-full">
+	<div class="w-10/12 mx-auto">
 		<div class="prose text-lg max-w-full">{@html content}</div>
 	</div>
 </div>

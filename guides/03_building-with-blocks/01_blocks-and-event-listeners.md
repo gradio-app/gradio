@@ -15,11 +15,13 @@ $demo_hello_blocks
 
 ## Event Listeners and Interactivity
 
-In the example above, you'll notice that you are able to edit Textbox `name`, but not Textbox `output`. This is because any Component that acts as an input to an event listener is made interactive. However, since Textbox `output` acts only as an output, it is not interactive. You can directly configure the interactivity of a Component with the `interactive=` keyword argument. 
+In the example above, you'll notice that you are able to edit Textbox `name`, but not Textbox `output`. This is because any Component that acts as an input to an event listener is made interactive. However, since Textbox `output` acts only as an output, Gradio determines that it should not be made interactive. You can override the default behavior and directly configure the interactivity of a Component with the boolean `interactive` keyword argument. 
 
 ```python
 output = gr.Textbox(label="Output", interactive=True)
 ```
+
+_Note_: What happens if a Gradio component is neither an input nor an output? If a component is constructed with a default value, then it is presumed to be displaying content and is rendered non-interactive. Otherwise, it is rendered interactive. Again, this behavior can be overridden by specifying a value for the `interactive` argument.
 
 ## Types of Event Listeners
 
@@ -129,8 +131,8 @@ You can also run events consecutively by using the `then` method of an event lis
 
 For example, in the chatbot example below, we first update the chatbot with the user message immediately, and then update the chatbot with the computer response after a simulated delay.
 
-$code_chatbot_simple
-$demo_chatbot_simple
+$code_chatbot_consecutive
+$demo_chatbot_consecutive
 
 The `.then()` method of an event listener executes the subsequent event regardless of whether the previous event raised any errors. If you'd like to  only run subsequent events if the previous event executed successfully, use the `.success()` method, which takes the same arguments as `.then()`.
 

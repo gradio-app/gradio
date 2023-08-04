@@ -11,9 +11,9 @@ from gradio_client.serializing import SimpleSerializable
 from gradio.components.base import FormComponent, IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
-    Blurrable,
     Changeable,
     EventListenerMethod,
+    Focusable,
     Inputable,
     Selectable,
 )
@@ -27,7 +27,7 @@ class Dropdown(
     Changeable,
     Inputable,
     Selectable,
-    Blurrable,
+    Focusable,
     IOComponent,
     SimpleSerializable,
 ):
@@ -46,11 +46,12 @@ class Dropdown(
         value: str | list[str] | Callable | None = None,
         type: Literal["value", "index"] = "value",
         multiselect: bool | None = None,
+        allow_custom_value: bool = False,
         max_choices: int | None = None,
         label: str | None = None,
         info: str | None = None,
         every: float | None = None,
-        show_label: bool = True,
+        show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
@@ -58,7 +59,6 @@ class Dropdown(
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        allow_custom_value: bool = False,
         **kwargs,
     ):
         """
@@ -67,6 +67,7 @@ class Dropdown(
             value: default value(s) selected in dropdown. If None, no value is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
             multiselect: if True, multiple choices can be selected.
+            allow_custom_value: If True, allows user to enter a custom value that is not in the list of choices. Only applies if `multiselect` is False.
             max_choices: maximum number of choices that can be selected. If None, no limit is enforced.
             label: component name in interface.
             info: additional component description.
@@ -79,7 +80,6 @@ class Dropdown(
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
-            allow_custom_value: If True, allows user to enter a custom value that is not in the list of choices.
         """
         self.choices = [str(choice) for choice in choices] if choices else []
         valid_types = ["value", "index"]
@@ -155,6 +155,7 @@ class Dropdown(
             "multiselect": self.multiselect,
             "max_choices": self.max_choices,
             "allow_custom_value": self.allow_custom_value,
+            "container": self.container,
             **IOComponent.get_config(self),
         }
 

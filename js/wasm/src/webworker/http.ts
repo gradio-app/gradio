@@ -38,10 +38,8 @@ interface ResponseBodySendEvent {
 	more_body: boolean;
 }
 
-function headersToASGI(
-	headers: HttpRequest["headers"]
-): Array<[string, string]> {
-	const result: Array<[string, string]> = [];
+function headersToASGI(headers: HttpRequest["headers"]): [string, string][] {
+	const result: [string, string][] = [];
 	for (const [key, value] of Object.entries(headers)) {
 		result.push([key, value]);
 	}

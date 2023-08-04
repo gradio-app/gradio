@@ -13,7 +13,7 @@ let FONTS: string | [];
 
 FONTS = "__FONTS_CSS__";
 
-function create_custom_element() {
+function create_custom_element(): void {
 	class GradioApp extends HTMLElement {
 		control_page_title: string | null;
 		initial_height: string;
@@ -48,7 +48,7 @@ function create_custom_element() {
 			this.loading = false;
 		}
 
-		async connectedCallback() {
+		async connectedCallback(): Promise<void> {
 			this.loading = true;
 
 			if (this.app) {
@@ -110,11 +110,15 @@ function create_custom_element() {
 			this.loading = false;
 		}
 
-		static get observedAttributes() {
+		static get observedAttributes(): ["src", "space", "host"] {
 			return ["src", "space", "host"];
 		}
 
-		attributeChangedCallback(name: string, old_val: string, new_val: string) {
+		attributeChangedCallback(
+			name: string,
+			old_val: string,
+			new_val: string
+		): void {
 			if (
 				(name === "host" || name === "space" || name === "src") &&
 				new_val !== old_val

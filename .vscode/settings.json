@@ -5,8 +5,6 @@
 	"cssvar.disableSort": true,
 	"cssvar.extensions": ["js", "css", "html", "jsx", "tsx", "svelte"],
 	"python.analysis.extraPaths": ["./gradio/themes/utils"],
-	"prettier.useTabs": true,
-	"editor.formatOnSave": true,
 	"svelte.plugin.svelte.format.enable": true,
 	"svelte.plugin.svelte.diagnostics.enable": false,
 	"prettier.configPath": ".config/.prettierrc.json",
@@ -14,7 +12,6 @@
 	"python.testing.pytestArgs": ["."],
 	"python.testing.unittestEnabled": false,
 	"python.testing.pytestEnabled": true,
-	"eslint.packageManager": "pnpm",
 	"eslint.validate": ["javascript", "typescript", "html", "markdown", "svelte"],
 	"eslint.experimental.useFlatConfig": true,
 	"eslint.options": {

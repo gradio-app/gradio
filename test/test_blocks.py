@@ -210,16 +210,16 @@ class TestBlocksMethods:
             assert difference >= 0.01
             assert result
 
-    @mock.patch("requests.post")
-    def test_initiated_analytics(self, mock_post, monkeypatch):
+    @mock.patch("gradio.analytics._do_analytics_request")
+    def test_initiated_analytics(self, mock_anlaytics, monkeypatch):
         monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
         with gr.Blocks():
             pass
-        mock_post.assert_called_once()
+        mock_anlaytics.assert_called_once()
 
-    @mock.patch("requests.post")
+    @mock.patch("gradio.analytics._do_analytics_request")
     def test_launch_analytics_does_not_error_with_invalid_blocks(
-        self, mock_post, monkeypatch
+        self, mock_anlaytics, monkeypatch
     ):
         monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
         with gr.Blocks():
@@ -230,7 +230,7 @@ class TestBlocksMethods:
             t2.change(lambda x: x, t2, t1)
 
         demo.launch(prevent_thread_lock=True)
-        mock_post.assert_called()
+        mock_anlaytics.assert_called()
 
     def test_show_error(self):
         with gr.Blocks() as demo:
@@ -436,7 +436,7 @@ class TestBlocksMethods:
 
 
 class TestTempFile:
-    def test_pil_images_hashed(self, tmp_path, connect, monkeypatch):
+    def test_pil_images_hashed(self, connect, gradio_temp_dir):
         images = [
             Image.new("RGB", (512, 512), color) for color in ("red", "green", "blue")
         ]
@@ -444,7 +444,6 @@ class TestTempFile:
         def create_images(n_images):
             return random.sample(images, n_images)
 
-        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
         gallery = gr.Gallery()
         demo = gr.Interface(
             create_images,
@@ -455,14 +454,13 @@ class TestTempFile:
             path = client.predict(3)
             _ = client.predict(3)
         # only three files created and in temp directory
-        assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 3
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 3
         assert Path(tempfile.gettempdir()).resolve() in Path(path).resolve().parents
 
-    def test_no_empty_image_files(self, tmp_path, connect, monkeypatch):
+    def test_no_empty_image_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         image = str(file_dir / "bus.png")
 
-        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
         demo = gr.Interface(
             lambda x: x,
             inputs=gr.Image(type="filepath"),
@@ -473,12 +471,11 @@ class TestTempFile:
             _ = client.predict(image)
             _ = client.predict(image)
         # only three files created
-        assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 1
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
 
     @pytest.mark.parametrize("component", [gr.UploadButton, gr.File])
-    def test_file_component_uploads(self, component, tmp_path, connect, monkeypatch):
+    def test_file_component_uploads(self, component, connect, gradio_temp_dir):
         code_file = str(pathlib.Path(__file__))
-        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
         demo = gr.Interface(lambda x: x.name, component(), gr.File())
         with connect(demo) as client:
             _ = client.predict(code_file)
@@ -487,14 +484,13 @@ class TestTempFile:
         # We create two tempfiles (empty) because API says we return
         # preprocess/postprocess will only create one file since we hash
         # so 2 + 2 + 1 = 5
-        assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 5
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 5
 
     @pytest.mark.parametrize("component", [gr.UploadButton, gr.File])
     def test_file_component_uploads_no_serialize(
-        self, component, tmp_path, connect, monkeypatch
+        self, component, connect, gradio_temp_dir
     ):
         code_file = str(pathlib.Path(__file__))
-        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
         demo = gr.Interface(lambda x: x.name, component(), gr.File())
         with connect(demo, serialize=False) as client:
             _ = client.predict(gr.File().serialize(code_file))
@@ -503,12 +499,11 @@ class TestTempFile:
         # We create two tempfiles (empty) because API says we return
         # preprocess/postprocess will only create one file since we hash
         # so 2 + 1 = 3
-        assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 3
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 3
 
-    def test_no_empty_video_files(self, tmp_path, monkeypatch, connect):
+    def test_no_empty_video_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         video = str(file_dir / "video_sample.mp4")
-        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
         demo = gr.Interface(lambda x: x, gr.Video(type="file"), gr.Video())
         with connect(demo) as client:
             _, url, _ = demo.launch(prevent_thread_lock=True)
@@ -517,9 +512,9 @@ class TestTempFile:
             _ = client.predict(video)
         # During preprocessing we compute the hash based on base64
         # In postprocessing we compute it based on the file
-        assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 2
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
 
-    def test_no_empty_audio_files(self, tmp_path, monkeypatch, connect):
+    def test_no_empty_audio_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         audio = str(file_dir / "audio_sample.wav")
 
@@ -527,14 +522,13 @@ class TestTempFile:
             sr, data = audio
             return (sr, np.flipud(data))
 
-        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
         demo = gr.Interface(fn=reverse_audio, inputs=gr.Audio(), outputs=gr.Audio())
         with connect(demo) as client:
             _ = client.predict(audio)
             _ = client.predict(audio)
             # During preprocessing we compute the hash based on base64
             # In postprocessing we compute it based on the file
-            assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 2
+            assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
 
 
 class TestComponentsInBlocks:
@@ -1071,6 +1065,7 @@ class TestSpecificUpdate:
             "lines": 4,
             "info": None,
             "max_lines": None,
+            "autofocus": None,
             "placeholder": None,
             "label": None,
             "show_label": None,
@@ -1082,6 +1077,8 @@ class TestSpecificUpdate:
             "type": None,
             "interactive": False,
             "show_copy_button": None,
+            "rtl": None,
+            "text_align": None,
             "__type__": "update",
         }
 
@@ -1097,12 +1094,15 @@ class TestSpecificUpdate:
             "show_label": None,
             "container": None,
             "scale": None,
+            "autofocus": None,
             "min_width": None,
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
             "type": None,
             "interactive": True,
             "show_copy_button": None,
+            "rtl": None,
+            "text_align": None,
             "__type__": "update",
         }
 
@@ -1221,6 +1221,37 @@ class TestRender:
             io3 = io2.render()
         assert io2 == io3
 
+    def test_is_rendered(self):
+        t = gr.Textbox()
+        with gr.Blocks():
+            pass
+        assert not t.is_rendered
+
+        t = gr.Textbox()
+        with gr.Blocks():
+            t.render()
+        assert t.is_rendered
+
+        t = gr.Textbox()
+        with gr.Blocks():
+            t.render()
+            t.unrender()
+        assert not t.is_rendered
+
+        with gr.Blocks():
+            t = gr.Textbox()
+        assert t.is_rendered
+
+        with gr.Blocks():
+            t = gr.Textbox()
+        with gr.Blocks():
+            pass
+        assert t.is_rendered
+
+        t = gr.Textbox()
+        gr.Interface(lambda x: x, "textbox", t)
+        assert t.is_rendered
+
     def test_no_error_if_state_rendered_multiple_times(self):
         state = gr.State("")
         gr.TabbedInterface(
@@ -1241,10 +1272,6 @@ class TestRender:
 
 
 class TestCancel:
-    @pytest.mark.skipif(
-        sys.version_info < (3, 8),
-        reason="Tasks dont have names in 3.7",
-    )
     @pytest.mark.asyncio
     async def test_cancel_function(self, capsys):
         async def long_job():
@@ -1266,10 +1293,6 @@ class TestCancel:
         captured = capsys.readouterr()
         assert "HELLO FROM LONG JOB" not in captured.out
 
-    @pytest.mark.skipif(
-        sys.version_info < (3, 8),
-        reason="Tasks dont have names in 3.7",
-    )
     @pytest.mark.asyncio
     async def test_cancel_function_with_multiple_blocks(self, capsys):
         async def long_job():
@@ -1325,24 +1348,6 @@ class TestCancel:
                 cancel = gr.Button(value="Cancel")
                 cancel.click(None, None, None, cancels=[click])
             demo.queue().launch(prevent_thread_lock=True)
-
-    @pytest.mark.asyncio
-    async def test_cancel_button_for_interfaces(self, connect):
-        def generate(x):
-            for i in range(4):
-                yield i
-                time.sleep(0.2)
-
-        io = gr.Interface(generate, gr.Textbox(), gr.Textbox()).queue()
-        stop_btn_id = next(
-            i for i, k in io.blocks.items() if getattr(k, "value", None) == "Stop"
-        )
-        assert not io.blocks[stop_btn_id].visible
-
-        with connect(io) as client:
-            job = client.submit("freddy", fn_index=1)
-            wait([job])
-            assert job.outputs()[-1] == "3"
 
 
 class TestEvery:
