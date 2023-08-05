@@ -259,7 +259,7 @@
 				mozdirectory={file_count === "directory" || undefined}
 				data-testid="{label}-upload-button"
 			/>
-			<button class="upload-button" on:click={openFileUpload}><Plus /></button>
+			<button class:hide={disabled} class="upload-button" on:click={openFileUpload}><Plus /></button>
 		{/if}
 	</div>
 </label>
@@ -308,7 +308,7 @@
 	}
 
 	.hide {
-		display: none;
+		display: none !important;
 	}
 
 	.wrap {
