@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Callable, Literal, Any
 import warnings
 import tempfile
+from pathlib import Path
 
 from gradio import utils
 from gradio_client import utils as client_utils
@@ -46,8 +47,8 @@ class RichTextbox(
     """
     Used to create a textbox that allows a user to input text and/or upload files.
     Preprocessing: passes a dict with the "text" from the rich textbox and a list of "files" uploaded as {List[file-object]} {List{bytes}} depending on `type`
-    Postprocessing: expects a {str} returned from function and sets textarea value to it.
-    Examples-format: a {dict[str, str | list[str]]} representing the textbox input.
+    Postprocessing: expects function to return a dict with "text" of type {str} and "files" of type {List[str]} consisting of paths to files.
+    Examples-format: a {str} for the text and a {str} path to a local file that populates the component.
 
     Demos: chatbot_multimodal
     """
@@ -268,3 +269,27 @@ class RichTextbox(
                 "files": [process_single_file(f) for f in x["files"]],
             }
         return value
+
+    def postprocess(
+            self, y: dict[str, str | list[str]] | None
+        ) -> dict[str, Any] | list[dict[str, Any]] | None:
+            """
+            Parameters:
+                y: dict with key "text" for text and "files" for list of files
+            Returns:
+                Text and a list of JSON object with key 'name' for filename, 'data' for base64 url, and 'size' for filesize in bytes
+            """
+            if y is None:
+                return None
+            else:
+                files = [
+                    {
+                        "orig_name": Path(file).name,
+                        "name": self.make_temp_copy_if_needed(file),
+                        "size": Path(file).stat().st_size,
+                        "data": None,
+                        "is_file": True,
+                    }
+                    for file in y["files"]
+                ]
+                return {"text": y["text"], "files": files}
