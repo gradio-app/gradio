@@ -5,7 +5,5 @@
 	import { RichTextbox } from "@gradio/richtextbox";
 </script>
 
-<RichTextbox>
-	content
-</RichTextbox>
+<RichTextbox> content </RichTextbox>
 ```

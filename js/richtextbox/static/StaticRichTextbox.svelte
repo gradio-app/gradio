@@ -1,5 +1,5 @@
 <script lang="ts">
-    import RichTextBox from "../shared";
+	import RichTextBox from "../shared";
 	import { createEventDispatcher, getContext, tick } from "svelte";
 	import { upload_files as default_upload_files } from "@gradio/client";
 	import type { FileData } from "@gradio/upload";
@@ -39,7 +39,7 @@
 		default_upload_files;
 
 	async function handle_upload({
-		detail,
+		detail
 	}: CustomEvent<{
 		text: string | null;
 		files: [string | FileData];
@@ -99,27 +99,27 @@
 		<StatusTracker {...loading_status} />
 	{/if}
 
-    <RichTextBox
-        {value}
-        {label}
-        {info}
-        {show_label}
-        {lines}
-        {rtl}
-        {text_align}
-        max_lines={!max_lines ? lines + 1 : max_lines}
-        {placeholder}
-        {show_copy_button}
-        {autofocus}
-        {container}
-        {file_count}
-        {file_types}
-        on:change
-        on:input
-        on:submit
-        on:blur
-        on:select
-        on:load={handle_upload}
-        disabled
-    ></RichTextBox>
+	<RichTextBox
+		{value}
+		{label}
+		{info}
+		{show_label}
+		{lines}
+		{rtl}
+		{text_align}
+		max_lines={!max_lines ? lines + 1 : max_lines}
+		{placeholder}
+		{show_copy_button}
+		{autofocus}
+		{container}
+		{file_count}
+		{file_types}
+		on:change
+		on:input
+		on:submit
+		on:blur
+		on:select
+		on:load={handle_upload}
+		disabled
+	></RichTextBox>
 </Block>

@@ -14,43 +14,43 @@
 			control: "text",
 			description: "The text to display on the button",
 			name: "label",
-			value: "Gradio Button",
+			value: "Gradio Button"
 		},
 		variant: {
 			options: ["primary", "secondary", "stop"],
 			description: "The variant of the button",
 			control: { type: "select" },
-			defaultValue: "primary",
+			defaultValue: "primary"
 		},
 		size: {
 			options: ["sm", "lg"],
 			description: "The size of the button",
 			control: { type: "select" },
-			defaultValue: "lg",
+			defaultValue: "lg"
 		},
 		visible: {
 			options: [true, false],
 			description: "Sets the visibility of the button",
 			control: { type: "boolean" },
-			defaultValue: true,
+			defaultValue: true
 		},
 		interactive: {
 			options: [true, false],
 			description: "If false, the button will be in a disabled state",
 			control: { type: "boolean" },
-			defaultValue: true,
+			defaultValue: true
 		},
 		disabled: {
 			options: [true, false],
 			control: { type: "boolean" },
-			defaultValue: false,
+			defaultValue: false
 		},
 		scale: {
 			options: [null, 0.5, 1, 2],
 			description:
 				"relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.",
-			control: { type: "select" },
-		},
+			control: { type: "select" }
+		}
 	}}
 />
 
@@ -68,26 +68,26 @@
 <Story
 	name="Button with external image icon"
 	args={{
-		icon: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
+		icon: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg"
 	}}
 />
 <Story
 	name="Button with local icon file"
 	args={{
-		icon: "./HF_logo.svg",
+		icon: "./HF_logo.svg"
 	}}
 />
 
 <Story
 	name="Button with visible equal to false"
 	args={{
-		visible: false,
+		visible: false
 	}}
 />
 
 <Story
 	name="Button with local icon file"
 	args={{
-		icon: "./HF_logo.svg",
+		icon: "./HF_logo.svg"
 	}}
 />

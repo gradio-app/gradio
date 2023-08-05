@@ -352,6 +352,7 @@ class FileSerializable(Serializable):
                 x, save_dir=save_dir, root_url=root_url, hf_token=hf_token
             )
 
+
 class RichtextboxSerializable(Serializable):
     """Expects a dict with the text from the rich textbox and a dict with base64 representation of object as input/output which is serialized to a filepath."""
 
@@ -375,7 +376,7 @@ class RichtextboxSerializable(Serializable):
                 "serialized": [
                     "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
                 ],
-            }
+            },
         }
 
     def serialize(
@@ -393,7 +394,9 @@ class RichtextboxSerializable(Serializable):
         if x is None:
             return None
         else:
-            serialized_files = [self._serialize_single(f, load_dir=load_dir) for f in x["files"]]
+            serialized_files = [
+                self._serialize_single(f, load_dir=load_dir) for f in x["files"]
+            ]
             return {"text": x["text"], "files": serialized_files}
 
     def _deserialize_single(
@@ -448,7 +451,12 @@ class RichtextboxSerializable(Serializable):
         if x is None:
             return None
         else:
-            deserialized_files = [self._deserialize_single(f, save_dir=save_dir, root_url=root_url, hf_token=hf_token) for f in x["files"]]
+            deserialized_files = [
+                self._deserialize_single(
+                    f, save_dir=save_dir, root_url=root_url, hf_token=hf_token
+                )
+                for f in x["files"]
+            ]
             return {"text": x["text"], "files": deserialized_files}
 
 

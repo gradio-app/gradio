@@ -93,7 +93,7 @@
 		const text = target.value;
 		const index: [number, number] = [
 			target.selectionStart as number,
-			target.selectionEnd as number,
+			target.selectionEnd as number
 		];
 		dispatch("select", { value: text.substring(...index), index: index });
 	}
@@ -158,7 +158,7 @@
 				name: f.name,
 				size: f.size,
 				data: "",
-				blob: f,
+				blob: f
 			};
 			if (
 				all_file_data.filter((x) => x !== undefined).length === files.length
@@ -194,9 +194,7 @@
 
 	{#if show_label && show_copy_button}
 		{#if copied}
-			<button class="copy-button" in:fade={{ duration: 300 }}
-				><Check /></button
-			>
+			<button class="copy-button" in:fade={{ duration: 300 }}><Check /></button>
 		{:else}
 			<button class="copy-button" on:click={handle_copy}><Copy /></button>
 		{/if}
@@ -236,21 +234,18 @@
 			/>
 		{/if}
 		{#if value.files.length > 0}
-
 			<div class="file-icon-container">
 				<div class="file-icon"><File /></div>
-				<span class="file-count" style:visibility={file_count === "multiple" ? "visible" : "hidden"}
-				>{value.files.length > 7 ? "7+" : value.files.length}</span>
-				<button
-					class="clear-button"
-					on:click={clearFiles}
-					{disabled}
-					>
-						<Clear />
+				<span
+					class="file-count"
+					style:visibility={file_count === "multiple" ? "visible" : "hidden"}
+					>{value.files.length > 7 ? "7+" : value.files.length}</span
+				>
+				<button class="clear-button" on:click={clearFiles} {disabled}>
+					<Clear />
 				</button>
 			</div>
 		{:else}
-
 			<input
 				class="hide"
 				accept={accept_file_types}
@@ -264,8 +259,7 @@
 				mozdirectory={file_count === "directory" || undefined}
 				data-testid="{label}-upload-button"
 			/>
-			<button class="upload-button" on:click={openFileUpload}><Plus /></button
-			>
+			<button class="upload-button" on:click={openFileUpload}><Plus /></button>
 		{/if}
 	</div>
 </label>
@@ -364,10 +358,10 @@
 
 	.clear-button {
 		position: relative;
-		right:11px; 
-		bottom:39px; 
-		width:35%; 
-		height:35%;
+		right: 11px;
+		bottom: 39px;
+		width: 35%;
+		height: 35%;
 		border: 1px solid;
 		border-radius: 50%;
 		background-color: var(--background-fill-primary);
@@ -376,20 +370,18 @@
 
 	.file-icon {
 		position: relative;
-		left:0; 
-		top:0; 
-		width:100%; 
-		height:100%;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
 		font-size: var(--text-md);
 	}
 
 	.file-count {
 		position: relative;
-		left:10px; 
-		bottom:22px; 
+		left: 10px;
+		bottom: 22px;
 		z-index: var(--layer-4);
 		font-size: var(--text-md);
 	}
-
-	
 </style>

@@ -50,7 +50,7 @@
 						name: f.name,
 						size: f.size,
 						data: "",
-						blob: f,
+						blob: f
 				  }
 				: f;
 			if (
