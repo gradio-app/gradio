@@ -40,7 +40,7 @@
 					: normalise_file(user_msg, root, root_url),
 				typeof bot_msg === "string"
 					? redirect_src_url(bot_msg)
-					: normalise_file(bot_msg, root, root_url),
+					: normalise_file(bot_msg, root, root_url)
 		  ])
 		: [];
 	export let loading_status: LoadingStatus | undefined = undefined;

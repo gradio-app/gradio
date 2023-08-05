@@ -40,7 +40,7 @@
 		{lines}
 		{rtl}
 		{text_align}
-		max_lines={max_lines}
+		{max_lines}
 		{placeholder}
 		{show_copy_button}
 		{autofocus}
@@ -64,7 +64,7 @@
 		{lines}
 		{rtl}
 		{text_align}
-		max_lines={max_lines}
+		{max_lines}
 		{placeholder}
 		{show_copy_button}
 		{autofocus}

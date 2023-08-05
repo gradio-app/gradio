@@ -70,7 +70,7 @@
 		const text = target.value;
 		const index: [number, number] = [
 			target.selectionStart as number,
-			target.selectionEnd as number,
+			target.selectionEnd as number
 		];
 		dispatch("select", { value: text.substring(...index), index: index });
 	}
