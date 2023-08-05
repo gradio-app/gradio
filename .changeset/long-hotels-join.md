@@ -9,4 +9,6 @@
 "gradio_client": minor
 ---
 
-feat:RichTextbox component
+highlight:
+
+#### RichTextbox component
