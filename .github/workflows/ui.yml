@@ -44,6 +44,11 @@ jobs:
         uses: "./.github/actions/install-all-deps"
         with:
           always-install-pnpm: true
+      - name: echo path
+        run: |
+          ls -a /home/runner/work/gradio/gradio/js/_website/src/lib
+          ls -a /home/runner/work/gradio/gradio/js/_website/src/lib/json
+
       - name: Extract branch name
         shell: bash
         run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
