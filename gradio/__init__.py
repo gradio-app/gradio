@@ -8,6 +8,7 @@ import gradio.templates
 import gradio.themes as themes
 from gradio.blocks import Blocks
 from gradio.chat_interface import ChatInterface
+from gradio.cli import deploy
 from gradio.components import (
     HTML,
     JSON,
@@ -59,7 +60,6 @@ from gradio.components import (
     Video,
     component,
 )
-from gradio.cli import deploy
 from gradio.events import SelectData
 from gradio.exceptions import Error
 from gradio.external import load
