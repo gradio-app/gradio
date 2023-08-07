@@ -71,6 +71,7 @@ class Component(Block, Serializable):
         """
         return {
             "name": self.get_block_name(),
+            "custom_component": not self.__module__.startswith("gradio.components"),
             **super().get_config(),
         }
 
