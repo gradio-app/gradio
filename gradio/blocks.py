@@ -2237,6 +2237,7 @@ Received outputs:
 
 
 class _NoOverride:
+    @classmethod
     def __bool__(cls):
         return False
 
