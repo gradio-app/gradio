@@ -92,7 +92,6 @@ def _create_backend(name: str, template: str):
             )
         )
     else:
-        breakpoint()
         with importlib.resources.path("gradio", "components") as p:
             shutil.copy(
                 str(p / f"{template.lower()}.py"), str(backend / f"{name.lower()}.py")
