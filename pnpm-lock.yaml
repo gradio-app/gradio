@@ -599,11 +599,11 @@ importers:
         specifier: ^0.16.7
         version: 0.16.7
       marked:
-        specifier: ^5.0.1
-        version: 5.0.1
+        specifier: ^7.0.0
+        version: 7.0.0
       marked-highlight:
         specifier: ^2.0.1
-        version: 2.0.1(marked@5.0.1)
+        version: 2.0.1(marked@7.0.0)
       prismjs:
         specifier: 1.29.0
         version: 1.29.0
@@ -11040,17 +11040,17 @@ packages:
       react: 18.2.0
     dev: true
 
-  /marked-highlight@2.0.1(marked@5.0.1):
+  /marked-highlight@2.0.1(marked@7.0.0):
     resolution: {integrity: sha512-LDUfR/zDvD+dJ+lQOWHkxvBLNxiXcaN8pBtwJ/i4pI0bkDC/Ef6Mz1qUrAuHXfnpdr2rabdMpVFhqFuU+5Mskg==}
     peerDependencies:
       marked: ^4 || ^5
     dependencies:
-      marked: 5.0.1
+      marked: 7.0.0
     dev: false
 
-  /marked@5.0.1:
-    resolution: {integrity: sha512-Nn9peC4lvIZdcfp8Uze6xk4ZYowkcj/K6+e/6rLHadhtjqeip/bYRxMgt3124IGGJ3RPs2uX5YVmAGbUutY18g==}
-    engines: {node: '>= 18'}
+  /marked@7.0.0:
+    resolution: {integrity: sha512-7Gv1Ry8tqR352ElQOQfxdGpIh8kNZh/yYjNCxAQCN1DDbY4bCTG3qDCSkZWlRElSseeEILDxkY/G9w7cgziBNw==}
+    engines: {node: '>= 16'}
     hasBin: true
     dev: false
 
