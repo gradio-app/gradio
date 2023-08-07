@@ -6,7 +6,7 @@ This file defines a useful high-level abstraction to build Gradio chatbots: Chat
 from __future__ import annotations
 
 import inspect
-from typing import Callable, Generator
+from typing import AsyncGenerator, Callable
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
@@ -424,7 +424,7 @@ class ChatInterface(Blocks):
         history_with_input: list[list[str | None]],
         *args,
         **kwargs,
-    ) -> Generator[tuple[list[list[str | None]], list[list[str | None]]], None, None]:
+    ) -> AsyncGenerator:
         history = history_with_input[:-1]
         generator = self.fn(message, history, *args, **kwargs)
         try:
@@ -458,7 +458,7 @@ class ChatInterface(Blocks):
 
     async def _api_stream_fn(
         self, message: str, history: list[list[str | None]], *args, **kwargs
-    ) -> Generator[tuple[str | None, list[list[str | None]]], None, None]:
+    ) -> AsyncGenerator:
         generator = self.fn(message, history, *args, **kwargs)
         try:
             if self.is_async:
@@ -489,7 +489,7 @@ class ChatInterface(Blocks):
         message: str,
         *args,
         **kwargs,
-    ) -> Generator[list[list[str | None]], None, None]:
+    ) -> AsyncGenerator:
         if self.is_async:
             generator = self.fn(message, [], *args, **kwargs)
             async for response in generator:
