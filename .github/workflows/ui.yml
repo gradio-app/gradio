@@ -49,18 +49,19 @@ jobs:
         id: extract_branch
       - name: echo branch name
         run: echo ${{ steps.extract_branch.outputs.branch }}
-      # - name: deploy json to aws
-      #   if: steps.extract_branch.outputs.branch == 'changeset-release/main'
-      #   run: |
-      #     export AWS_ACCESS_KEY_ID=${{ secrets.AWSACCESSKEYID }}
-      #     export AWS_SECRET_ACCESS_KEY=${{ secrets.AWSSECRETKEY }}
-      #     export AWS_DEFAULT_REGION=us-west-2
-      #     version=$(sed -nr 's/{ "version": "([0-9\.]+)" }/\1/p'  ./js/_website/src/lib/json/version.json)
-      #     aws s3 cp ./js/_website/src/lib/json/ s3://gradio-docs-json/$version/ --recursive
-      # - name: deploy to vercel
-      #   uses: "./.github/actions/deploy-website"
-      #   with:
-      #     vercel_token: ${{ secrets.VERCEL_TOKEN }}
+      - name: deploy json to aws
+        if: steps.extract_branch.outputs.branch == 'changeset-release/main'
+        run: |
+          export AWS_ACCESS_KEY_ID=${{ secrets.AWSACCESSKEYID }}
+          export AWS_SECRET_ACCESS_KEY=${{ secrets.AWSSECRETKEY }}
+          export AWS_DEFAULT_REGION=us-west-2
+          version=$(sed -nr 's/{ "version": "([0-9\.]+)" }/\1/p'  ./js/_website/src/lib/json/version.json)
+          aws s3 cp ./js/_website/src/lib/json/ s3://gradio-docs-json/$version/ --recursive
+      - name: deploy to vercel
+        uses: "./.github/actions/deploy-website"
+        with:
+          vercel_token: ${{ secrets.VERCEL_TOKEN }}
+          branch_name: ${{ steps.extract_branch.outputs.branch }}
       # - name: install outbreak_forecast dependencies
       #   run: |
       #     . venv/bin/activate

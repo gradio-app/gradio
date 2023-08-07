@@ -4,6 +4,8 @@ description: "Deploy website to vercel"
 inputs:
   vercel_token:
     description: "Vercel API token"
+  branch_name:
+    description: "The branch name"
 
 runs:
   using: "composite"
@@ -23,7 +25,7 @@ runs:
       run: echo "VERCEL_URL=$(vercel deploy --prebuilt --token=${{ inputs.vercel_token }})" >> $GITHUB_ENV
     # production
     - name: Pull Vercel Environment Information
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      if: github.event_name == 'push' && ${{ inputs.branch_name }} == 'main'
       run: vercel pull --yes --environment=production --token=${{ inputs.vercel_token }}
     - name: Build Project Artifacts
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -32,4 +34,4 @@ runs:
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       run: echo "VERCEL_URL=$(vercel deploy --prebuilt --prod --token=${{ inputs.vercel_token }})" >> $GITHUB_ENV
     - name: echo vercel url
-      run: echo $VERCEL_URL
+      run: echo $VERCEL_URL #add to comment
