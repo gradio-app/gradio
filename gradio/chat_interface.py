@@ -101,8 +101,12 @@ class ChatInterface(Blocks):
             theme=theme,
         )
         self.fn = fn
-        self.is_async = inspect.iscoroutinefunction(self.fn) or inspect.isasyncgenfunction(self.fn)
-        self.is_generator = inspect.isgeneratorfunction(self.fn) or inspect.isasyncgenfunction(self.fn)
+        self.is_async = inspect.iscoroutinefunction(
+            self.fn
+        ) or inspect.isasyncgenfunction(self.fn)
+        self.is_generator = inspect.isgeneratorfunction(
+            self.fn
+        ) or inspect.isasyncgenfunction(self.fn)
         self.examples = examples
         if self.space_id and cache_examples is None:
             self.cache_examples = True
@@ -447,7 +451,7 @@ class ChatInterface(Blocks):
     ) -> tuple[str, list[list[str | None]]]:
         if self.is_async:
             response = await self.fn(message, history, *args, **kwargs)
-        else:       
+        else:
             response = self.fn(message, history, *args, **kwargs)
         history.append([message, response])
         return response, history
@@ -471,7 +475,9 @@ class ChatInterface(Blocks):
             for response in generator:
                 yield response, history + [[message, response]]
 
-    async def _examples_fn(self, message: str, *args, **kwargs) -> list[list[str | None]]:
+    async def _examples_fn(
+        self, message: str, *args, **kwargs
+    ) -> list[list[str | None]]:
         if self.is_async:
             response = await self.fn(message, [], *args, **kwargs)
         else:
