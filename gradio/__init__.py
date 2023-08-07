@@ -59,7 +59,7 @@ from gradio.components import (
     Video,
     component,
 )
-from gradio.deploy_space import deploy
+from gradio.cli import deploy
 from gradio.events import SelectData
 from gradio.exceptions import Error
 from gradio.external import load

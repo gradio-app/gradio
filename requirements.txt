@@ -26,3 +26,4 @@ semantic_version~=2.0
 typing_extensions~=4.0
 uvicorn>=0.14.0
 websockets>=10.0,<12.0
+typer>=0.9,<1.0
