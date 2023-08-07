@@ -38,6 +38,11 @@ runs:
         path: |
           venv/*
         key: gradio-lib-ubuntu-latest-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
+    - name: install-client
+      shell: bash
+      run: |
+        . venv/bin/activate
+        python -m pip install -e client/python
     - name: Install Gradio (Linux)
       shell: bash
       run: |
