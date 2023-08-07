@@ -1,5 +1,5 @@
-import os
 import json
+import os
 import re
 
 DIR = os.path.dirname(__file__)
@@ -7,7 +7,7 @@ CHANGELOG_FILE = os.path.abspath(os.path.join(DIR, "../../../../../CHANGELOG.md"
 
 
 def clean():
-    with open(CHANGELOG_FILE, "r") as change_file:
+    with open(CHANGELOG_FILE) as change_file:
         content = change_file.read()
     
     # remove empty/unused sections

@@ -1,8 +1,6 @@
-import os
-import markdown2
-import shutil
-import re
 import json
+import os
+import re
 
 DIR = os.path.dirname(__file__)
 GUIDES_DIR = os.path.abspath(os.path.join(DIR, "../../../../../guides"))
@@ -51,7 +49,7 @@ for guide_folder in guide_folders:
     guide_names.append({"category": pretty_guide_category, "guides": []})
     for guide_file in guide_list:
         guide_index, guide_name, pretty_guide_name = format_name(guide_file)
-        with open(os.path.join(GUIDES_DIR, guide_folder, guide_file), "r") as f:
+        with open(os.path.join(GUIDES_DIR, guide_folder, guide_file)) as f:
             guide_content = f.read()
 
         title = guide_content.split("\n")[0]
@@ -93,7 +91,7 @@ for guide_folder in guide_folders:
             [
                 line
                 for i, line in enumerate(guide_content.split("\n"))
-                if not any([line.startswith(label) for label in metadata_labels])
+                if not any(line.startswith(label) for label in metadata_labels)
             ]
         )
         guide_content = re.sub(
@@ -112,15 +110,7 @@ for guide_folder in guide_folders:
             lambda x: f"<gradio-app space='gradio/{x.group(1).replace('_', UNDERSCORE_TOKEN)}' />",
             guide_content,
         )
-        guide_html = markdown2.markdown(
-                    guide_content,
-                            extras=[
-                                "target-blank-links",
-                                "header-ids",
-                                "tables",
-                                "fenced-code-blocks",
-                            ],
-                ).replace(UNDERSCORE_TOKEN, "_")
+        
 
 
         guide_data = {
@@ -131,7 +121,6 @@ for guide_folder in guide_folders:
             "absolute_index": absolute_index,
             "pretty_name": pretty_guide_name,
             "content": content_no_html,
-            "html": guide_html,
             "tags": tags,
             "spaces": spaces,
             "url": url,
