@@ -3,4 +3,4 @@
 "website": patch
 ---
 
-fix:Remove icon and link from DuplicateButton docstring
+fix:Add icon and link to DuplicateButton
