@@ -18,7 +18,7 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
-	export let interactive = false;
+	export let interactive = true;
 </script>
 
 <Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
