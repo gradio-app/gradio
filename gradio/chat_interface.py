@@ -442,24 +442,34 @@ class ChatInterface(Blocks):
                 update = history + [[message, response]]
                 yield update, update
 
-    def _api_submit_fn(
+    async def _api_submit_fn(
         self, message: str, history: list[list[str | None]], *args, **kwargs
     ) -> tuple[str, list[list[str | None]]]:
-        response = self.fn(message, history)
+        if self.is_async:
+            response = await self.fn(message, history, *args, **kwargs)
+        else:       
+            response = self.fn(message, history, *args, **kwargs)
         history.append([message, response])
         return response, history
 
-    def _api_stream_fn(
+    async def _api_stream_fn(
         self, message: str, history: list[list[str | None]], *args, **kwargs
     ) -> Generator[tuple[str | None, list[list[str | None]]], None, None]:
         generator = self.fn(message, history, *args, **kwargs)
         try:
-            first_response = next(generator)
+            if self.is_async:
+                first_response = await async_iteration(generator)
+            else:
+                first_response = next(generator)
             yield first_response, history + [[message, first_response]]
         except StopIteration:
             yield None, history + [[message, None]]
-        for response in generator:
-            yield response, history + [[message, response]]
+        if self.is_async:
+            async for response in generator:
+                yield response, history + [[message, response]]
+        else:
+            for response in generator:
+                yield response, history + [[message, response]]
 
     def _examples_fn(self, message: str, *args, **kwargs) -> list[list[str | None]]:
         return [[message, self.fn(message, [], *args, **kwargs)]]
