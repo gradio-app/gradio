@@ -28,17 +28,18 @@ runs:
       run: echo "VERCEL_URL=$(vercel deploy --prebuilt --token=${{ inputs.vercel_token }})" >> $GITHUB_ENV
     # production
     - name: Pull Vercel Environment Information
-      if: github.event_name == 'push' && ${{ inputs.branch_name }} == 'main'
+      if: github.event_name == 'push' && inputs.branch_name == 'main'
       shell: bash
       run: vercel pull --yes --environment=production --token=${{ inputs.vercel_token }}
     - name: Build Project Artifacts
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      if: github.event_name == 'push' && inputs.branch_name == 'main'
       shell: bash
       run: vercel build --prod --token=${{ inputs.vercel_token }}
     - name: Deploy Project Artifacts to Vercel
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      if: github.event_name == 'push' && inputs.branch_name == 'main'
       shell: bash
-      run: echo "VERCEL_URL=$(vercel deploy --prebuilt --prod --token=${{ inputs.vercel_token }})" >> $GITHUB_ENV
+      run: echo "deploying production"
+      # run: echo "VERCEL_URL=$(vercel deploy --prebuilt --prod --token=${{ inputs.vercel_token }})" >> $GITHUB_ENV
     - name: echo vercel url
       shell: bash
       run: echo $VERCEL_URL #add to comment
