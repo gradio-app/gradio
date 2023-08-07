@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Update typing info for `gr.CheckboxGroup` and `gr.Radio`
+fix:Update typing info for `gr.CheckboxGroup` and `gr.Radio`
