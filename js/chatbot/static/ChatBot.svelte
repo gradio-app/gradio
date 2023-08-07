@@ -332,11 +332,8 @@
 		background-color: var(--chatbot-code-background-color);
 		padding: var(--spacing-xl) 10px;
 		direction: ltr;
-		white-space: break-spaces;
-	}
-
-	.message-wrap :global(code[class*="language-"]) {
-		white-space: break-spaces;
+		white-space: no-wrap;
+		overflow: auto;
 	}
 	
 	/* Tables */
