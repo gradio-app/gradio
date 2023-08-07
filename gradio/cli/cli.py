@@ -1,14 +1,12 @@
 import sys
 
-from gradio_client.cli import deploy_discord  # type: ignore
 import typer
+from gradio_client.cli import deploy_discord  # type: ignore
 
-from .commands import deploy
-from .commands import print_environment_info
-from .commands import reload
-from .commands import create_component
+from .commands import deploy, print_environment_info, reload
 
 app = typer.Typer()
+
 
 def cli():
     args = sys.argv[1:]
