@@ -159,7 +159,9 @@ class CheckboxGroup(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
 
-    def postprocess(self, y: list[str | int | float] | str | int | float | None) -> list[str | int | float]:
+    def postprocess(
+        self, y: list[str | int | float] | str | int | float | None
+    ) -> list[str | int | float]:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:

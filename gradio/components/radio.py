@@ -116,7 +116,11 @@ class Radio(
 
     @staticmethod
     def update(
-        value: str | int | float | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        value: str
+        | int
+        | float
+        | Literal[_Keywords.NO_VALUE]
+        | None = _Keywords.NO_VALUE,
         choices: list[str | int | float] | None = None,
         label: str | None = None,
         info: str | None = None,
