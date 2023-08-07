@@ -471,17 +471,26 @@ class ChatInterface(Blocks):
             for response in generator:
                 yield response, history + [[message, response]]
 
-    def _examples_fn(self, message: str, *args, **kwargs) -> list[list[str | None]]:
-        return [[message, self.fn(message, [], *args, **kwargs)]]
+    async def _examples_fn(self, message: str, *args, **kwargs) -> list[list[str | None]]:
+        if self.is_async:
+            response = await self.fn(message, [], *args, **kwargs)
+        else:
+            response = self.fn(message, [], *args, **kwargs)
+        return [[message, response]]
 
-    def _examples_stream_fn(
+    async def _examples_stream_fn(
         self,
         message: str,
         *args,
         **kwargs,
     ) -> Generator[list[list[str | None]], None, None]:
-        for response in self.fn(message, [], *args, **kwargs):
-            yield [[message, response]]
+        if self.is_async:
+            generator = self.fn(message, [], *args, **kwargs)
+            async for response in generator:
+                yield [[message, response]]
+        else:
+            for response in self.fn(message, [], *args, **kwargs):
+                yield [[message, response]]
 
     def _delete_prev_fn(
         self, history: list[list[str | None]]
