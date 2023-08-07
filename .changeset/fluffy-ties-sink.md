@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Add interactive args to colorpicker
+fix:Add `interactive` args to `gr.ColorPicker`
