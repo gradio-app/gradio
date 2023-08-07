@@ -28,3 +28,5 @@ guides.generate(make_dir(WEBSITE_DIR, "src/lib/json/guides/") + "/")
 docs.generate(make_dir(WEBSITE_DIR, "src/lib/json/docs.json"))
 changelog.generate(make_dir(WEBSITE_DIR, "src/lib/json/changelog.json"))
 get_latest_release()
+
+print("JSON generated! " + make_dir(WEBSITE_DIR, "src/lib/json/"))
