@@ -279,8 +279,8 @@ class RichTextbox(
             Returns:
                 Text and a list of JSON object with key 'name' for filename, 'data' for base64 url, and 'size' for filesize in bytes
             """
-            if y is None:
-                return None
+            if y is None or y == {}:
+                return y
             else:
                 files = [
                     {
