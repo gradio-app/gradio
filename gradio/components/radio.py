@@ -26,9 +26,9 @@ class Radio(
     NeighborInterpretable,
 ):
     """
-    Creates a set of radio buttons of which only one can be selected.
-    Preprocessing: passes the value of the selected radio button as a {str} or its index as an {int} into the function, depending on `type`.
-    Postprocessing: expects a {str} corresponding to the value of the radio button to be selected.
+    Creates a set of (string or numeric type) radio buttons of which only one can be selected.
+    Preprocessing: passes the value of the selected radio button as a {str} or {int} or {float} or its index as an {int} into the function, depending on `type`.
+    Postprocessing: expects a {str} or {int} or {float} corresponding to the value of the radio button to be selected.
     Examples-format: a {str} representing the radio option to select.
 
     Demos: sentence_builder, titanic_survival, blocks_essay
@@ -36,9 +36,9 @@ class Radio(
 
     def __init__(
         self,
-        choices: list[str] | None = None,
+        choices: list[str | int | float] | None = None,
         *,
-        value: str | Callable | None = None,
+        value: str | int | float | Callable | None = None,
         type: str = "value",
         label: str | None = None,
         info: str | None = None,
@@ -116,8 +116,12 @@ class Radio(
 
     @staticmethod
     def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        choices: list[str] | None = None,
+        value: str
+        | int
+        | float
+        | Literal[_Keywords.NO_VALUE]
+        | None = _Keywords.NO_VALUE,
+        choices: list[str | int | float] | None = None,
         label: str | None = None,
         info: str | None = None,
         show_label: bool | None = None,
@@ -141,7 +145,7 @@ class Radio(
             "__type__": "update",
         }
 
-    def preprocess(self, x: str | None) -> str | int | None:
+    def preprocess(self, x: str | int | float | None) -> str | int | float | None:
         """
         Parameters:
             x: selected choice
