@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:chore(deps): update dependency marked to v6
+feat:chore(deps): update dependency marked to v6 - abandoned
