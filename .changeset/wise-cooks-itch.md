@@ -1,6 +1,6 @@
 ---
-"gradio": minor
-"website": minor
+"gradio": patch
+"website": patch
 ---
 
-feat:Remove icon and link from DuplicateButton docstring
+fix:Remove icon and link from DuplicateButton docstring
