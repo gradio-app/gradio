@@ -49,3 +49,7 @@ runs:
       if: inputs.skip_build == 'false' && steps.frontend-cache.outputs.cache-hit != 'true'
       shell: bash
       run: pnpm build
+    - name: generate json
+      run: |
+        . venv/bin/activate
+        python js/_website/generate_jsons/generate.py
