@@ -10,7 +10,8 @@ env:
   CI: true
   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
   NODE_OPTIONS: "--max-old-space-size=4096"
-
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 concurrency:
   group: deploy-${{ github.ref }}-${{ github.event_name == 'push' || github.event.inputs.fire != null }}
   cancel-in-progress: true
