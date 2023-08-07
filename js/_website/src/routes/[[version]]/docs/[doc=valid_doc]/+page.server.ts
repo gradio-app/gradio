@@ -14,7 +14,6 @@ const COLOR_SETS = [
 ];
 
 export async function load({ params, parent }) {
-	console.log(params);
 	const { docs, components, helpers, py_client, routes } = await parent();
 
 	let name = params.doc;

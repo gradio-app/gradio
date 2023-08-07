@@ -21,15 +21,12 @@ export async function load({ params }) {
 			? await load_main_docs()
 			: await load_release_docs(params.version || VERSION);
 
-	console.log(docs_json);
 	let docs: { [key: string]: any } = docs_json.docs;
 	let components = docs_json.docs.components;
 	let helpers = docs_json.docs.helpers;
 	let routes = docs_json.docs.routes;
 	let py_client = docs_json.docs["py-client"];
 	let js_client = docs_json.js_client;
-
-	console.log(docs_json);
 
 	return {
 		docs,

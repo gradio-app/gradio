@@ -53,12 +53,11 @@ const VERSION = version.version;
 
 async function load_release_docs(version: string, guide: string): Promise<typeof import("$lib/json/docs.json")> {
 	let docs_json = await fetch(`${DOCS_BUCKET}/${version}/guides/${guide}.json`);
-	console.log(docs_json)
 	return await docs_json.json();
 }
 
 async function load_main_guide(guide:string) {
-	console.log(guide)
+
 	return await import(`../../../../lib/json/guides/${guide}.json`)
 }
 

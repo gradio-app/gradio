@@ -14,7 +14,6 @@
 	let searchBar: HTMLInputElement;
 
 	const search = () => {
-		console.log(searchTerm);
 		let links = document.querySelectorAll(
 			".navigation a"
 		) as NodeListOf<HTMLAnchorElement>;

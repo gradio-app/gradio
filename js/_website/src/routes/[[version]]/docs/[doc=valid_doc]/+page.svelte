@@ -26,7 +26,6 @@
 	function handleAnchorClick(event: MouseEvent) {
 		event.preventDefault();
 		const link = event.currentTarget as HTMLAnchorElement;
-		console.log(link);
 		const anchorId = new URL(link?.href).hash.replace("#", "");
 		const anchor = document.getElementById(anchorId);
 		window.scrollTo({
@@ -57,8 +56,6 @@
 
 	$: obj = data.obj;
 	$: mode = data.mode;
-
-	$: console.log("gradio/" + obj.name.toLowerCase());
 </script>
 
 <MetaTags

@@ -14,7 +14,6 @@ function plugin() {
 	return function transform(tree: any) {
 		tree.children.forEach((n: any) => {
 			if (n.type === "heading") {
-				// console.log(n);
 			}
 		});
 	};

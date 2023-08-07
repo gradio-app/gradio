@@ -6,7 +6,7 @@
 	function handleAnchorClick(event: MouseEvent) {
 		event.preventDefault();
 		const link = event.currentTarget as HTMLAnchorElement;
-		console.log(link);
+
 		const anchorId = new URL(link.href).hash.replace("#", "");
 		const anchor = document.getElementById(anchorId);
 		window.scrollTo({
