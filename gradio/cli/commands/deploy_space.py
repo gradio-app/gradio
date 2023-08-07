@@ -7,6 +7,7 @@ import re
 import huggingface_hub
 
 import gradio as gr
+import typer
 
 repo_directory = os.getcwd()
 readme_file = os.path.join(repo_directory, "README.md")

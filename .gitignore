@@ -12,6 +12,7 @@ __tmp/*
 # JS build
 gradio/templates/cdn
 gradio/templates/frontend
+gradio/_frontend_code
 
 # Secrets
 .env
