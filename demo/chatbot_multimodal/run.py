@@ -1,5 +1,5 @@
 import gradio as gr
-import random
+import os
 import time
 
 # Chatbot demo with multimodal input (text, markdown, LaTeX, code blocks, image, audio, & video). Plus shows support for streaming text.
@@ -8,7 +8,7 @@ def add_text(history, message):
     history = history + [(message["text"], None)]
     if message["files"]:
         history = history + [((message["files"][0].name,), None)]
-    return history, gr.update(value="", interactive=False)
+    return history, gr.update(value=None, interactive=False)
 
 def bot(history):
     response = "**That's cool!**"
