@@ -1,10 +1,12 @@
 """ Functions related to analytics and telemetry. """
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import pkgutil
 import threading
+import urllib.parse
 import warnings
 from distutils.version import StrictVersion
 from typing import Any
@@ -12,8 +14,20 @@ from typing import Any
 import requests
 
 import gradio
+from gradio import wasm_utils
 from gradio.context import Context
 from gradio.utils import GRADIO_VERSION
+
+# For testability, we import the pyfetch function into this module scope and define a fallback coroutine object to be patched in tests.
+try:
+    from pyodide.http import pyfetch as pyodide_pyfetch  # type: ignore
+except ImportError:
+
+    async def pyodide_pyfetch(*args, **kwargs):
+        raise NotImplementedError(
+            "pyodide.http.pyfetch is not available in this environment."
+        )
+
 
 ANALYTICS_URL = "https://api.gradio.app/"
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
@@ -27,10 +41,47 @@ def analytics_enabled() -> bool:
 
 
 def _do_analytics_request(url: str, data: dict[str, Any]) -> None:
+    if wasm_utils.IS_WASM:
+        asyncio.ensure_future(
+            _do_wasm_analytics_request(
+                url=url,
+                data=data,
+            )
+        )
+    else:
+        threading.Thread(
+            target=_do_normal_analytics_request,
+            kwargs={
+                "url": url,
+                "data": data,
+            },
+        ).start()
+
+
+def _do_normal_analytics_request(url: str, data: dict[str, Any]) -> None:
     data["ip_address"] = get_local_ip_address()
     try:
         requests.post(url, data=data, timeout=5)
     except (requests.ConnectionError, requests.exceptions.ReadTimeout):
+        pass  # do not push analytics if no network
+
+
+async def _do_wasm_analytics_request(url: str, data: dict[str, Any]) -> None:
+    data["ip_address"] = await get_local_ip_address_wasm()
+
+    # We use urllib.parse.urlencode to encode the data as a form.
+    # Ref: https://docs.python.org/3/library/urllib.request.html#urllib-examples
+    body = urllib.parse.urlencode(data).encode("ascii")
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+    }
+
+    try:
+        await asyncio.wait_for(
+            pyodide_pyfetch(url, method="POST", headers=headers, body=body),
+            timeout=5,
+        )
+    except asyncio.TimeoutError:
         pass  # do not push analytics if no network
 
 
@@ -80,17 +131,38 @@ def get_local_ip_address() -> str:
     return ip_address
 
 
+async def get_local_ip_address_wasm() -> str:
+    """The Wasm-compatible version of get_local_ip_address()."""
+    if not analytics_enabled():
+        return "Analytics disabled"
+
+    if Context.ip_address is None:
+        try:
+            response = await asyncio.wait_for(
+                pyodide_pyfetch(
+                    # The API used by the normal version (`get_local_ip_address()`), `https://checkip.amazonaws.com/``, blocks CORS requests, so here we use a different API.
+                    "https://api.ipify.org"
+                ),
+                timeout=5,
+            )
+            response_text: str = await response.string()  # type: ignore
+            ip_address = response_text.strip()
+        except (asyncio.TimeoutError, OSError):
+            ip_address = "No internet connection"
+        Context.ip_address = ip_address
+    else:
+        ip_address = Context.ip_address
+    return ip_address
+
+
 def initiated_analytics(data: dict[str, Any]) -> None:
     if not analytics_enabled():
         return
 
-    threading.Thread(
-        target=_do_analytics_request,
-        kwargs={
-            "url": f"{ANALYTICS_URL}gradio-initiated-analytics/",
-            "data": data,
-        },
-    ).start()
+    _do_analytics_request(
+        url=f"{ANALYTICS_URL}gradio-initiated-analytics/",
+        data=data,
+    )
 
 
 def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
@@ -142,30 +214,22 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
         "targets": targets_telemetry,
         "blocks": blocks_telemetry,
         "events": [str(x["trigger"]) for x in blocks.dependencies],
+        "is_wasm": wasm_utils.IS_WASM,
     }
 
     data.update(additional_data)
 
-    threading.Thread(
-        target=_do_analytics_request,
-        kwargs={
-            "url": f"{ANALYTICS_URL}gradio-launched-telemetry/",
-            "data": data,
-        },
-    ).start()
+    _do_analytics_request(url=f"{ANALYTICS_URL}gradio-launched-telemetry/", data=data)
 
 
 def integration_analytics(data: dict[str, Any]) -> None:
     if not analytics_enabled():
         return
 
-    threading.Thread(
-        target=_do_analytics_request,
-        kwargs={
-            "url": f"{ANALYTICS_URL}gradio-integration-analytics/",
-            "data": data,
-        },
-    ).start()
+    _do_analytics_request(
+        url=f"{ANALYTICS_URL}gradio-integration-analytics/",
+        data=data,
+    )
 
 
 def error_analytics(message: str) -> None:
@@ -179,10 +243,7 @@ def error_analytics(message: str) -> None:
 
     data = {"error": message}
 
-    threading.Thread(
-        target=_do_analytics_request,
-        kwargs={
-            "url": f"{ANALYTICS_URL}gradio-error-analytics/",
-            "data": data,
-        },
-    ).start()
+    _do_analytics_request(
+        url=f"{ANALYTICS_URL}gradio-error-analytics/",
+        data=data,
+    )

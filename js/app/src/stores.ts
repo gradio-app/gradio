@@ -1,4 +1,4 @@
-import { writable, get } from "svelte/store";
+import { type Writable, writable, get } from "svelte/store";
 
 export interface LoadingStatus {
 	eta: number | null;
@@ -10,27 +10,35 @@ export interface LoadingStatus {
 	message?: string | null;
 	scroll_to_output?: boolean;
 	show_progress?: "full" | "minimal" | "hidden";
-	progress?: Array<{
+	progress?: {
 		progress: number | null;
 		index: number | null;
 		length: number | null;
 		unit: string | null;
 		desc: string | null;
-	}>;
+	}[];
 }
 
 export type LoadingStatusCollection = Record<number, LoadingStatus>;
 
-export function create_loading_status_store() {
+interface LoadingStatusStore {
+	update: (status: LoadingStatus) => void;
+	subscribe: Writable<LoadingStatusCollection>["subscribe"];
+	register: (index: number, inputs: number[], outputs: number[]) => void;
+	get_status_for_fn: (i: number) => LoadingStatus["status"];
+	get_inputs_to_update: () => Map<number, string>;
+}
+
+export function create_loading_status_store(): LoadingStatusStore {
 	const store = writable<LoadingStatusCollection>({});
 
-	const fn_inputs: Array<Array<number>> = [];
-	const fn_outputs: Array<Array<number>> = [];
+	const fn_inputs: number[][] = [];
+	const fn_outputs: number[][] = [];
 	const pending_outputs = new Map<number, number>();
 	const pending_inputs = new Map<number, number>();
 
 	const inputs_to_update = new Map<number, string>();
-	const fn_status: Array<LoadingStatus["status"]> = [];
+	const fn_status: LoadingStatus["status"][] = [];
 
 	function update({
 		fn_index,
@@ -50,7 +58,7 @@ export function create_loading_status_store() {
 		eta?: LoadingStatus["eta"];
 		message?: LoadingStatus["message"];
 		progress?: LoadingStatus["progress"];
-	}) {
+	}): void {
 		const outputs = fn_outputs[fn_index];
 		const inputs = fn_inputs[fn_index];
 		const last_status = fn_status[fn_index];
@@ -91,7 +99,7 @@ export function create_loading_status_store() {
 			};
 		});
 
-		inputs.map((id) => {
+		inputs.forEach((id) => {
 			const pending_count = pending_inputs.get(id) || 0;
 
 			// from (pending -> error) | complete - decrement pending count
@@ -136,11 +144,7 @@ export function create_loading_status_store() {
 		fn_status[fn_index] = status;
 	}
 
-	function register(
-		index: number,
-		inputs: Array<number>,
-		outputs: Array<number>
-	) {
+	function register(index: number, inputs: number[], outputs: number[]): void {
 		fn_inputs[index] = inputs;
 		fn_outputs[index] = outputs;
 	}

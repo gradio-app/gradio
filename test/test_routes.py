@@ -465,6 +465,12 @@ class TestAuthenticatedRoutes:
         )
         assert response.status_code == 400
 
+        response = client.post(
+            "/login",
+            data={"username": " test ", "password": "correct_password"},
+        )
+        assert response.status_code == 200
+
 
 class TestQueueRoutes:
     @pytest.mark.asyncio

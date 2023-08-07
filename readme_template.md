@@ -1,21 +1,22 @@
 <div align="center">
 
-  [<img src="readme_files/gradio.svg" alt="gradio" width=300>](https://gradio.app)<br>
-  <em>Build & share delightful machine learning apps easily</em>
+[<img src="readme_files/gradio.svg" alt="gradio" width=300>](https://gradio.app)<br>
+<em>Build & share delightful machine learning apps easily</em>
 
-  [![gradio-backend](https://github.com/gradio-app/gradio/actions/workflows/backend.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/backend.yml)
-  [![gradio-ui](https://github.com/gradio-app/gradio/actions/workflows/ui.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/ui.yml)  
-  [![PyPI](https://img.shields.io/pypi/v/gradio)](https://pypi.org/project/gradio/)
-  [![PyPI downloads](https://img.shields.io/pypi/dm/gradio)](https://pypi.org/project/gradio/)
-  ![Python version](https://img.shields.io/badge/python-3.8+-important)
-  [![Twitter follow](https://img.shields.io/twitter/follow/gradio?style=social&label=follow)](https://twitter.com/gradio)
+[![gradio-backend](https://github.com/gradio-app/gradio/actions/workflows/backend.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/backend.yml)
+[![gradio-ui](https://github.com/gradio-app/gradio/actions/workflows/ui.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/ui.yml)  
+ [![PyPI](https://img.shields.io/pypi/v/gradio)](https://pypi.org/project/gradio/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/gradio)](https://pypi.org/project/gradio/)
+![Python version](https://img.shields.io/badge/python-3.8+-important)
+[![Twitter follow](https://img.shields.io/twitter/follow/gradio?style=social&label=follow)](https://twitter.com/gradio)
 
-  [Website](https://gradio.app)
-  | [Documentation](https://gradio.app/docs/)
-  | [Guides](https://gradio.app/guides/)
-  | [Getting Started](https://gradio.app/getting_started/)
-  | [Examples](demo/)
-  | [中文](readme_files/zh-cn#readme)
+[Website](https://gradio.app)
+| [Documentation](https://gradio.app/docs/)
+| [Guides](https://gradio.app/guides/)
+| [Getting Started](https://gradio.app/getting_started/)
+| [Examples](demo/)
+| [中文](readme_files/zh-cn#readme)
+
 </div>
 
 # Gradio: Build Machine Learning Web Apps — in Python
@@ -58,7 +59,7 @@ Gradio is licensed under the Apache License 2.0 found in the [LICENSE](LICENSE) 
 
 ## Citation
 
-Also check out the paper *[Gradio: Hassle-Free Sharing and Testing of ML Models in the Wild](https://arxiv.org/abs/1906.02569), ICML HILL 2019*, and please cite it if you use Gradio in your work.
+Also check out the paper _[Gradio: Hassle-Free Sharing and Testing of ML Models in the Wild](https://arxiv.org/abs/1906.02569), ICML HILL 2019_, and please cite it if you use Gradio in your work.
 
 ```
 @article{abid2019gradio,

@@ -29,13 +29,13 @@ const colorToString = (rgb: [number, number, number]): string => {
 	return "rgb(" + rgb[0] + ", " + rgb[1] + ", " + rgb[2] + ")";
 };
 
-export const getObjectFitSize = (
+export function getObjectFitSize(
 	contains: boolean /* true = contain, false = cover */,
 	containerWidth: number,
 	containerHeight: number,
 	width: number,
 	height: number
-) => {
+): { width: number; height: number; x: number; y: number } {
 	var doRatio = width / height;
 	var cRatio = containerWidth / containerHeight;
 	var targetWidth = 0;
@@ -56,4 +56,4 @@ export const getObjectFitSize = (
 		x: (containerWidth - targetWidth) / 2,
 		y: (containerHeight - targetHeight) / 2
 	};
-};
+}

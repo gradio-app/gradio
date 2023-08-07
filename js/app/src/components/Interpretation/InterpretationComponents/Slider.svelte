@@ -3,11 +3,11 @@
 	import { BlockTitle } from "@gradio/atoms";
 
 	export let original: number;
-	export let interpretation: Array<number>;
+	export let interpretation: number[];
 	export let minimum: number;
 	export let maximum: number;
 	export let step: number;
-	export let label: string = "";
+	export let label = "";
 </script>
 
 <div class="input-slider">
