@@ -6,23 +6,12 @@
 
 highlight:
 
-#### Better Code Snippet for Streaming API Routes
+#### Client.predict will now return the final output for streaming endpoints
 
-Previously, the `View API` page would always use the `predict` method of the python client. However, this would only return the first output for routes that stream results.
+### This is a breaking change (for gradio_client only)!
 
-API routes that stream results will now use the `submit` method as opposed to `predict`. This also highlights the new `finish` method of the python client, which lets block until a job is finished
+Previously, `Client.predict` would only return the first output of an endpoint that streamed results. This was causing confusion for developers that wanted to call these streaming demos via the client.
 
-```python
-from gradio_client import Client
+We realize that developers using the client don't know the internals of whether a demo streams or not, so we're changing the behavior of predict to match developer expectations. 
 
-client = Client("http://localhost:7860/")
-# This api route streams outputs
-result = client.submit(
-				1,	# int | float (numeric value between 1 and 10) in 'steps' Slider component
-				api_name="/predict"
-)
-result.finish(timeout=None)
-
-# Get the final output. outputs() returns a list of all streamed results.
-print(result.outputs()[-1])
-```
+Using `Client.predict` will now return the final output of a streaming endpoint. This will make it even easier to use gradio apps via the client.
