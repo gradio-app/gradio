@@ -8,6 +8,7 @@ from __future__ import annotations
 import inspect
 from typing import AsyncGenerator, Callable
 
+import anyio
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
@@ -408,13 +409,14 @@ class ChatInterface(Blocks):
         message: str,
         history_with_input: list[list[str | None]],
         *args,
-        **kwargs,
     ) -> tuple[list[list[str | None]], list[list[str | None]]]:
         history = history_with_input[:-1]
         if self.is_async:
-            response = await self.fn(message, history, *args, **kwargs)
+            response = await self.fn(message, history, *args)
         else:
-            response = self.fn(message, history, *args, **kwargs)
+            response = await anyio.to_thread.run_sync(
+                self.fn, message, history, *args, limiter=self.limiter
+            )
         history.append([message, response])
         return history, history
 
@@ -423,10 +425,9 @@ class ChatInterface(Blocks):
         message: str,
         history_with_input: list[list[str | None]],
         *args,
-        **kwargs,
     ) -> AsyncGenerator:
         history = history_with_input[:-1]
-        generator = self.fn(message, history, *args, **kwargs)
+        generator = self.fn(message, history, *args)
         if not self.is_async:
             generator = SyncToAsyncIterator(generator, self.limiter)
         try:
@@ -441,19 +442,21 @@ class ChatInterface(Blocks):
             yield update, update
 
     async def _api_submit_fn(
-        self, message: str, history: list[list[str | None]], *args, **kwargs
+        self, message: str, history: list[list[str | None]], *args
     ) -> tuple[str, list[list[str | None]]]:
         if self.is_async:
-            response = await self.fn(message, history, *args, **kwargs)
+            response = await self.fn(message, history, *args)
         else:
-            response = self.fn(message, history, *args, **kwargs)
+            response = await anyio.to_thread.run_sync(
+                self.fn, message, history, *args, limiter=self.limiter
+            )
         history.append([message, response])
         return response, history
 
     async def _api_stream_fn(
-        self, message: str, history: list[list[str | None]], *args, **kwargs
+        self, message: str, history: list[list[str | None]], *args
     ) -> AsyncGenerator:
-        generator = self.fn(message, history, *args, **kwargs)
+        generator = self.fn(message, history, *args)
         if not self.is_async:
             generator = SyncToAsyncIterator(generator, self.limiter)
         try:
@@ -464,22 +467,21 @@ class ChatInterface(Blocks):
         async for response in generator:
             yield response, history + [[message, response]]
 
-    async def _examples_fn(
-        self, message: str, *args, **kwargs
-    ) -> list[list[str | None]]:
+    async def _examples_fn(self, message: str, *args) -> list[list[str | None]]:
         if self.is_async:
-            response = await self.fn(message, [], *args, **kwargs)
+            response = await self.fn(message, [], *args)
         else:
-            response = self.fn(message, [], *args, **kwargs)
+            response = await anyio.to_thread.run_sync(
+                self.fn, message, [], *args, limiter=self.limiter
+            )
         return [[message, response]]
 
     async def _examples_stream_fn(
         self,
         message: str,
         *args,
-        **kwargs,
     ) -> AsyncGenerator:
-        generator = self.fn(message, [], *args, **kwargs)
+        generator = self.fn(message, [], *args)
         if not self.is_async:
             generator = SyncToAsyncIterator(generator, self.limiter)
         async for response in generator:
