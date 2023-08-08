@@ -261,7 +261,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                 ]
             },
             overwrite=True,
-            token=self.hf_token
+            token=self.hf_token,
         )
 
         # Setup flagging dir
