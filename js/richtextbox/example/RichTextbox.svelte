@@ -33,13 +33,12 @@
 	class:gallery={type === "gallery"}
 	class:selected
 >
-	{value}
+"{value.text}",&nbsp {value.files.join(", ")}
 </div>
 
 <style>
 	.gallery {
 		padding: var(--size-1) var(--size-2);
-		background-color: red;
 	}
 
 	div {
