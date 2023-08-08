@@ -21,6 +21,7 @@ from io import BytesIO
 from numbers import Number
 from pathlib import Path
 from types import GeneratorType
+from typing_extensions import ParamSpec
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -29,7 +30,6 @@ from typing import (
     TypeVar,
     Union,
 )
-from typing_extensions import ParamSpec
 
 import anyio
 import httpx
