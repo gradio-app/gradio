@@ -6,10 +6,22 @@ inputs:
     description: "Vercel API token"
   branch_name:
     description: "The branch name"
+  github_token:
+    description: "Github token"
+    default: ${{ github.token }}
+outputs:
+  vercel_url:
+    description: "Vercel URL"
 
 runs:
   using: "composite"
   steps:
+    - name: comment pr (start)
+      uses: .github/workflows/comment-queue.yml
+      with:
+        token: ${{ inputs.github_token }}
+        pr_number: ${{ github.event.pull_request.number }}
+        message: "<website>:<pending>:<null>" 
     - name: Install Vercel CLI
       shell: bash
       run: pnpm install --global vercel@latest
@@ -43,3 +55,9 @@ runs:
     - name: echo vercel url
       shell: bash
       run: echo $VERCEL_URL #add to comment
+    - name: comment pr (end)
+      uses: .github/workflows/comment-queue.yml
+      with:
+        token: ${{ inputs.github_token }}
+        pr_number: ${{ github.event.pull_request.number }}
+        message: "<website>:<sucess>:<$VERCEL_URL>" 

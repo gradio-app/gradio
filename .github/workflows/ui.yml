@@ -68,6 +68,7 @@ jobs:
         with:
           vercel_token: ${{ secrets.VERCEL_TOKEN }}
           branch_name: ${{ steps.extract_branch.outputs.branch }}
+          pr_number: ${{ github.event.number }}
       # - name: install outbreak_forecast dependencies
       #   run: |
       #     . venv/bin/activate
