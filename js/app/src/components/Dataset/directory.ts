@@ -6,6 +6,7 @@ import ExampleSlider from "@gradio/slider/example";
 import ExampleRadio from "@gradio/radio/example";
 import ExampleImage from "@gradio/image/example";
 import ExampleTextbox from "@gradio/textbox/example";
+import ExampleRichTextbox from "@gradio/richtextbox/example";
 import ExampleAudio from "@gradio/audio/example";
 import ExampleVideo from "@gradio/video/example";
 import ExampleFile from "@gradio/file/example";
@@ -26,6 +27,7 @@ export const component_map = {
 	radio: ExampleRadio,
 	image: ExampleImage,
 	textbox: ExampleTextbox,
+	richtextbox: ExampleRichTextbox,
 	audio: ExampleAudio,
 	video: ExampleVideo,
 	file: ExampleFile,
