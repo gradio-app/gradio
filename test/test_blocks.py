@@ -434,6 +434,17 @@ class TestBlocksMethods:
 
         demo.close()
 
+    def test_concurrency_count_zero_gpu(self):
+        ZERO_GPU_ENV = 'SPACES_ZERO_GPU'
+        os.environ[ZERO_GPU_ENV] = 'true'
+        demo = gr.Blocks()
+        with pytest.warns():
+            demo.queue(concurrency_count=42)
+        with pytest.warns():
+            demo.queue(42)
+        assert demo._queue.max_thread_count == demo.max_threads
+        del os.environ[ZERO_GPU_ENV]
+
 
 class TestTempFile:
     def test_pil_images_hashed(self, connect, gradio_temp_dir):
