@@ -26,7 +26,6 @@
 	export let min_width: number | undefined = undefined;
 	export let show_copy_button: boolean = false;
 	export let loading_status: LoadingStatus | undefined = undefined;
-	export let mode: "static" | "dynamic";
 	export let rtl = false;
 	export let text_align: "left" | "right" | undefined = undefined;
 	export let autofocus: boolean = false;
