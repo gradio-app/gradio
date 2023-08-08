@@ -6,8 +6,9 @@ This file defines a useful high-level abstraction to build Gradio chatbots: Chat
 from __future__ import annotations
 
 import inspect
-from typing import Callable, Generator
+from typing import AsyncGenerator, Callable
 
+import anyio
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
@@ -25,6 +26,7 @@ from gradio.events import Dependency, EventListenerMethod
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.layouts import Accordion, Column, Group, Row
 from gradio.themes import ThemeClass as Theme
+from gradio.utils import SyncToAsyncIterator, async_iteration
 
 set_documentation_group("chatinterface")
 
@@ -100,7 +102,12 @@ class ChatInterface(Blocks):
             theme=theme,
         )
         self.fn = fn
-        self.is_generator = inspect.isgeneratorfunction(self.fn)
+        self.is_async = inspect.iscoroutinefunction(
+            self.fn
+        ) or inspect.isasyncgenfunction(self.fn)
+        self.is_generator = inspect.isgeneratorfunction(
+            self.fn
+        ) or inspect.isasyncgenfunction(self.fn)
         self.examples = examples
         if self.space_id and cache_examples is None:
             self.cache_examples = True
@@ -397,67 +404,99 @@ class ChatInterface(Blocks):
         history.append([message, None])
         return history, history
 
-    def _submit_fn(
+    async def _submit_fn(
         self,
         message: str,
         history_with_input: list[list[str | None]],
         *args,
-        **kwargs,
     ) -> tuple[list[list[str | None]], list[list[str | None]]]:
         history = history_with_input[:-1]
-        response = self.fn(message, history, *args, **kwargs)
+        if self.is_async:
+            response = await self.fn(message, history, *args)
+        else:
+            response = await anyio.to_thread.run_sync(
+                self.fn, message, history, *args, limiter=self.limiter
+            )
         history.append([message, response])
         return history, history
 
-    def _stream_fn(
+    async def _stream_fn(
         self,
         message: str,
         history_with_input: list[list[str | None]],
         *args,
-        **kwargs,
-    ) -> Generator[tuple[list[list[str | None]], list[list[str | None]]], None, None]:
+    ) -> AsyncGenerator:
         history = history_with_input[:-1]
-        generator = self.fn(message, history, *args, **kwargs)
+        if self.is_async:
+            generator = self.fn(message, history, *args)
+        else:
+            generator = await anyio.to_thread.run_sync(
+                self.fn, message, history, *args, limiter=self.limiter
+            )
+            generator = SyncToAsyncIterator(generator, self.limiter)
         try:
-            first_response = next(generator)
+            first_response = await async_iteration(generator)
             update = history + [[message, first_response]]
             yield update, update
         except StopIteration:
             update = history + [[message, None]]
             yield update, update
-        for response in generator:
+        async for response in generator:
             update = history + [[message, response]]
             yield update, update
 
-    def _api_submit_fn(
-        self, message: str, history: list[list[str | None]], *args, **kwargs
+    async def _api_submit_fn(
+        self, message: str, history: list[list[str | None]], *args
     ) -> tuple[str, list[list[str | None]]]:
-        response = self.fn(message, history)
+        if self.is_async:
+            response = await self.fn(message, history, *args)
+        else:
+            response = await anyio.to_thread.run_sync(
+                self.fn, message, history, *args, limiter=self.limiter
+            )
         history.append([message, response])
         return response, history
 
-    def _api_stream_fn(
-        self, message: str, history: list[list[str | None]], *args, **kwargs
-    ) -> Generator[tuple[str | None, list[list[str | None]]], None, None]:
-        generator = self.fn(message, history, *args, **kwargs)
+    async def _api_stream_fn(
+        self, message: str, history: list[list[str | None]], *args
+    ) -> AsyncGenerator:
+        if self.is_async:
+            generator = self.fn(message, history, *args)
+        else:
+            generator = await anyio.to_thread.run_sync(
+                self.fn, message, history, *args, limiter=self.limiter
+            )
+            generator = SyncToAsyncIterator(generator, self.limiter)
         try:
-            first_response = next(generator)
+            first_response = await async_iteration(generator)
             yield first_response, history + [[message, first_response]]
         except StopIteration:
             yield None, history + [[message, None]]
-        for response in generator:
+        async for response in generator:
             yield response, history + [[message, response]]
 
-    def _examples_fn(self, message: str, *args, **kwargs) -> list[list[str | None]]:
-        return [[message, self.fn(message, [], *args, **kwargs)]]
+    async def _examples_fn(self, message: str, *args) -> list[list[str | None]]:
+        if self.is_async:
+            response = await self.fn(message, [], *args)
+        else:
+            response = await anyio.to_thread.run_sync(
+                self.fn, message, [], *args, limiter=self.limiter
+            )
+        return [[message, response]]
 
-    def _examples_stream_fn(
+    async def _examples_stream_fn(
         self,
         message: str,
         *args,
-        **kwargs,
-    ) -> Generator[list[list[str | None]], None, None]:
-        for response in self.fn(message, [], *args, **kwargs):
+    ) -> AsyncGenerator:
+        if self.is_async:
+            generator = self.fn(message, [], *args)
+        else:
+            generator = await anyio.to_thread.run_sync(
+                self.fn, message, [], *args, limiter=self.limiter
+            )
+            generator = SyncToAsyncIterator(generator, self.limiter)
+        async for response in generator:
             yield [[message, response]]
 
     def _delete_prev_fn(
