@@ -361,11 +361,12 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 
 					app
 						.on("data", (d) => {
+							// if complete message comes before data, resolve here
 							if (status_complete) {
 								app.destroy();
-								data_returned = true;
 								res(d);
 							}
+							data_returned = true;
 							result = d;
 						})
 						.on("status", (status) => {
@@ -373,7 +374,10 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 							if (status.stage === "complete") {
 								status_complete = true;
 								app.destroy();
-								res(result);
+								// if complete message comes after data, resolve here
+								if (data_returned) {
+									res(result);
+								}
 							}
 						});
 				});
