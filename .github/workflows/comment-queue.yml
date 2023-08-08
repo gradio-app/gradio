@@ -21,7 +21,7 @@ concurrency:
   group: ${{ github.event.inputs.pr_number }}
 
 jobs:
-  triage:
+  comment:
     runs-on: ubuntu-latest
     steps:
       - run: echo token = ${{ inputs.token }}

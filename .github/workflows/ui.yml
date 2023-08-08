@@ -44,11 +44,6 @@ jobs:
         uses: "./.github/actions/install-all-deps"
         with:
           always-install-pnpm: true
-      - name: echo path
-        run: |
-          ls -a /home/runner/work/gradio/gradio/js/_website/src/lib
-          ls -a /home/runner/work/gradio/gradio/js/_website/src/lib/json
-
       - name: Extract branch name
         shell: bash
         run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
@@ -64,11 +59,12 @@ jobs:
           version=$(sed -nr 's/{ "version": "([0-9\.]+)" }/\1/p'  ./js/_website/src/lib/json/version.json)
           aws s3 cp ./js/_website/src/lib/json/ s3://gradio-docs-json/$version/ --recursive
       - name: deploy to vercel
-        uses: "./.github/actions/deploy-website"
+        uses: "./.github/workflows/deploy-website.yml"
         with:
           vercel_token: ${{ secrets.VERCEL_TOKEN }}
           branch_name: ${{ steps.extract_branch.outputs.branch }}
           pr_number: ${{ github.event.number }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
       # - name: install outbreak_forecast dependencies
       #   run: |
       #     . venv/bin/activate
