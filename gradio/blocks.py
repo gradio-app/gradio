@@ -1346,10 +1346,8 @@ Received outputs:
             if isinstance(block, StreamableOutput) and block.streaming:
                 stream = block.stream_output(data[i])
                 if run not in self.pending_streams[session_hash]:
-                    self.pending_streams[session_hash][run] = {}
-                    self.pending_streams[session_hash][run][output_id] = [stream]
-                else:
-                    self.pending_streams[session_hash][run][output_id].append(stream)
+                    self.pending_streams[session_hash][run] = defaultdict(list)
+                self.pending_streams[session_hash][run][output_id].append(stream)
                 data[i] = {
                     "name": f"{session_hash}/{run}/{output_id}",
                     "is_stream": True,

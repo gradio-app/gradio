@@ -21,9 +21,9 @@ demo = gr.Interface(
     fn=stream_audio,
     inputs=[
         gr.Audio(type="filepath", label="Audio file to stream"),
-        gr.Slider(0, 3, 0,
+        gr.Slider(0, 10, 0,
             label="lag",
-            info="Duration before generating next second of audio. Set >1s to cause lag.",
+            info="Duration before generating next 3 second chunk of audio. Set >3s to cause lag.",
         ),
     ],
     outputs=[
