@@ -37,7 +37,6 @@ from fastapi.responses import (
     HTMLResponse,
     JSONResponse,
     PlainTextResponse,
-    StreamingResponse,
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
@@ -404,10 +403,10 @@ class App(FastAPI):
                 raise HTTPException(404, "Stream not found.")
 
             def stream_wrapper():
-                CHECK_STREAM_RATE = 0.001
+                check_stream_rate = 0.001
                 while True:
                     if len(stream) == 0:
-                        time.sleep(CHECK_STREAM_RATE)
+                        time.sleep(check_stream_rate)
                         continue
                     next_stream = stream.pop(0)
                     if next_stream is None:
