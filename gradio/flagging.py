@@ -248,6 +248,20 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             repo_type="dataset",
             exist_ok=True,
         ).repo_id
+        path_glob = "**/*.jsonl" if self.separate_dirs else "data.csv"
+        huggingface_hub.metadata_update(
+            repo_id=self.dataset_id,
+            repo_type="dataset",
+            metadata={
+                "configs": [
+                    {
+                        "config_name": "default",
+                        "data_files": [{"split": "train", "path": path_glob}],
+                    }
+                ]
+            },
+            overwrite=True,
+        )
 
         # Setup flagging dir
         self.components = components
@@ -284,7 +298,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         if self.separate_dirs:
             # JSONL files to support dataset preview on the Hub
             unique_id = str(uuid.uuid4())
-            components_dir = self.dataset_dir / str(uuid.uuid4())
+            components_dir = self.dataset_dir / unique_id
             data_file = components_dir / "metadata.jsonl"
             path_in_repo = unique_id  # upload in sub folder (safer for concurrency)
         else:
@@ -416,28 +430,32 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             features[label] = {"dtype": "string", "_type": "Value"}
             try:
                 assert Path(deserialized).exists()
-                row.append(Path(deserialized).name)
+                row.append(str(Path(deserialized).relative_to(self.dataset_dir)))
             except (AssertionError, TypeError, ValueError):
                 row.append(str(deserialized))
 
             # If component is eligible for a preview, add the URL of the file
+            # Be mindful that images and audio can be None
             if isinstance(component, tuple(file_preview_types)):  # type: ignore
                 for _component, _type in file_preview_types.items():
                     if isinstance(component, _component):
                         features[label + " file"] = {"_type": _type}
                         break
-                path_in_repo = str(  # returned filepath is absolute, we want it relative to compute URL
-                    Path(deserialized).relative_to(self.dataset_dir)
-                ).replace(
-                    "\\", "/"
-                )
-                row.append(
-                    huggingface_hub.hf_hub_url(
-                        repo_id=self.dataset_id,
-                        filename=path_in_repo,
-                        repo_type="dataset",
+                if deserialized:
+                    path_in_repo = str(  # returned filepath is absolute, we want it relative to compute URL
+                        Path(deserialized).relative_to(self.dataset_dir)
+                    ).replace(
+                        "\\", "/"
                     )
-                )
+                    row.append(
+                        huggingface_hub.hf_hub_url(
+                            repo_id=self.dataset_id,
+                            filename=path_in_repo,
+                            repo_type="dataset",
+                        )
+                    )
+                else:
+                    row.append("")
         features["flag"] = {"dtype": "string", "_type": "Value"}
         features["username"] = {"dtype": "string", "_type": "Value"}
         row.append(flag_option)
