@@ -9,7 +9,7 @@ highlight:
 
 #### Now supports loading streamed outputs
 
-From the backend, streamed outputs are served from the `/stream/` endpoint instead of the `/file/` endpoint. Currently just used to serve streaming output. 
+Allows users to use generators to stream audio out, yielding consecutive chunks of audio. Requires `streaming=True` to be set on the output audio.
 
 ```python
 import gradio as gr
@@ -37,4 +37,4 @@ demo = gr.Interface(
 demo.queue().launch()
 ```
 
-The output JSON will have `is_stream`: `true`, instead of `is_file`: `true` in the file data object.
+From the backend, streamed outputs are served from the `/stream/` endpoint instead of the `/file/` endpoint. Currently just used to serve audio streaming output.  The output JSON will have `is_stream`: `true`, instead of `is_file`: `true` in the file data object.
