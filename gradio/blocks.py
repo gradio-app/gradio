@@ -14,7 +14,8 @@ import webbrowser
 from abc import abstractmethod
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast
+from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast, Generator
+from collections import defaultdict
 
 import anyio
 import requests
@@ -707,7 +708,7 @@ class Blocks(BlockContext):
         self.share = False
         self.enable_queue = None
         self.max_threads = 40
-        self.pending_streams = {}
+        self.pending_streams = defaultdict(dict)
         self.show_error = True
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
@@ -1329,15 +1330,33 @@ Received outputs:
                         block, components.Component
                     ), f"{block.__class__} Component with id {output_id} not a valid output component."
                     prediction_value = block.postprocess(prediction_value)
-                    if isinstance(prediction_value, dict) and "__type__" in prediction_value:
-                        prediction_type = prediction_value["__type__"]
-                        if prediction_type == "stream":
-                            name = uuid.uuid4().hex
-                            self.pending_streams[name] = prediction_value["stream"]
-                            prediction_value = {"name": name, "is_stream": True}
                 output.append(prediction_value)
 
         return output
+
+    def handle_streaming_outputs(
+        self,
+        fn_index: int,
+        data: list,
+        session_hash: str | None,
+        run: int | None
+    ) -> list:
+        if session_hash is None or run is None:
+            return data
+
+        from gradio.events import StreamableOutput
+
+        for i, output_id in enumerate(self.dependencies[fn_index]["outputs"]):
+            block = self.blocks[output_id]
+            if isinstance(block, StreamableOutput) and block.streaming:
+                stream = block.stream_output(data[i])
+                if run not in self.pending_streams[session_hash]:
+                    self.pending_streams[session_hash][run] = {}
+                    self.pending_streams[session_hash][run][output_id] = [stream]
+                else:
+                    self.pending_streams[session_hash][run][output_id].append(stream)
+                data[i] = {"name": f"{session_hash}/{run}/{output_id}", "is_stream": True}
+        return data
 
     async def process_api(
         self,
@@ -1346,6 +1365,7 @@ Received outputs:
         state: dict[int, Any],
         request: routes.Request | list[routes.Request] | None = None,
         iterators: dict[int, Any] | None = None,
+        session_hash: str | None = None,
         event_id: str | None = None,
         event_data: EventData | None = None,
     ) -> dict[str, Any]:
@@ -1397,10 +1417,15 @@ Received outputs:
         else:
             inputs = self.preprocess_data(fn_index, inputs, state)
             iterator = iterators.get(fn_index, None) if iterators else None
+            was_generating = iterator is not None
             result = await self.call_function(
                 fn_index, inputs, iterator, request, event_id, event_data
             )
             data = self.postprocess_data(fn_index, result["prediction"], state)
+            if result["is_generating"] or was_generating:
+                data = self.handle_streaming_outputs(
+                    fn_index, data, session_hash, id(iterator)
+                )
             is_generating, iterator = result["is_generating"], result["iterator"]
 
         block_fn.total_runtime += result["duration"]

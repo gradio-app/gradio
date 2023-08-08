@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from typing import Any, Callable, Literal, Generator, TYPE_CHECKING
+from typing import Any, Callable, Literal
 
 import numpy as np
+import requests
 from gradio_client import media_data
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
@@ -20,12 +21,10 @@ from gradio.events import (
     Playable,
     Recordable,
     Streamable,
+    StreamableOutput,
     Uploadable,
 )
 from gradio.interpretation import TokenInterpretable
-
-if TYPE_CHECKING:
-    from gradio.blocks import Blocks
 
 set_documentation_group("component")
 
@@ -37,6 +36,7 @@ class Audio(
     Playable,
     Recordable,
     Streamable,
+    StreamableOutput,
     Uploadable,
     IOComponent,
     FileSerializable,
@@ -45,7 +45,7 @@ class Audio(
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
     Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a 16-bit int array whose values range from -32768 to 32767), or as a {str} filepath, depending on `type`.
-    Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a float or int numpy array) or as a {str} or {pathlib.Path} filepath or URL to an audio file, which gets displayed, or a generator that yields audio bytes (for streaming).
+    Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a float or int numpy array) or as a {str} or {pathlib.Path} filepath or URL to an audio file, which gets displayed
     Examples-format: a {str} filepath to a local file that contains audio.
     Demos: main_note, generate_tone, reverse_audio
     Guides: real-time-speech-recognition
@@ -55,7 +55,7 @@ class Audio(
         self,
         value: str | Path | tuple[int, np.ndarray] | Callable | None = None,
         *,
-        source: Literal["upload", "microphone"] = "upload",
+        source: Literal["upload", "microphone"] | None = None,
         type: Literal["numpy", "filepath"] = "numpy",
         label: str | None = None,
         every: float | None = None,
@@ -96,6 +96,7 @@ class Audio(
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
         valid_sources = ["upload", "microphone"]
+        source = source if source else ("microphone" if streaming else "upload")        
         if source not in valid_sources:
             raise ValueError(
                 f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
@@ -108,7 +109,7 @@ class Audio(
             )
         self.type = type
         self.streaming = streaming
-        if streaming and source != "microphone":
+        if streaming and source == "upload":
             raise ValueError(
                 "Audio streaming only available if source is 'microphone'."
             )
@@ -321,9 +322,7 @@ class Audio(
         return masked_inputs
 
     def postprocess(
-        self, 
-        y: tuple[int, np.ndarray] | str | Path | Generator | None,
-
+        self, y: tuple[int, np.ndarray] | str | Path | None
     ) -> str | dict | None:
         """
         Parameters:
@@ -335,9 +334,7 @@ class Audio(
             return None
         if isinstance(y, str) and client_utils.is_http_url_like(y):
             return {"name": y, "data": None, "is_file": True}
-        elif isinstance(y, Generator):
-            return {"__type__": "stream", "stream": y }
-        elif isinstance(y, tuple):
+        if isinstance(y, tuple):
             sample_rate, data = y
             file_path = self.audio_to_temp_file(
                 data, sample_rate, dir=self.DEFAULT_TEMP_DIR, format=self.format
@@ -346,6 +343,18 @@ class Audio(
         else:
             file_path = self.make_temp_copy_if_needed(y)
         return {"name": file_path, "data": None, "is_file": True}
+    
+    def stream_output(self, y):
+        if y is None:
+            return None
+        if client_utils.is_http_url_like(y["name"]):
+            response = requests.get(y["name"])
+            bytes = response.content            
+        else:
+            file_path = y["name"]
+            with open(file_path, "rb") as f:
+                bytes = f.read()
+        return bytes
 
     def check_streamable(self):
         if self.source != "microphone":

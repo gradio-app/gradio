@@ -24,6 +24,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 from urllib.parse import urlparse
+import time
 
 import fastapi
 import httpx
@@ -387,14 +388,23 @@ class App(FastAPI):
                     return response
             return FileResponse(abs_path, headers={"Accept-Ranges": "bytes"})
 
-        @app.head("/stream/{id}", dependencies=[Depends(login_check)])
-        @app.get("/stream/{id}", dependencies=[Depends(login_check)])
-        async def stream(id: str, request: fastapi.Request):
-            blocks = app.get_blocks()
-            if id not in blocks.pending_streams:
-                raise HTTPException(404, f"Stream not found: {id}.")
-            stream = blocks.pending_streams[id]
-            return StreamingResponse(stream)
+        @app.get("/stream/{session_hash}/{run}/{component_id}", dependencies=[Depends(login_check)])
+        async def stream(session_hash: str, run: int, component_id: int, request: fastapi.Request):
+            stream = app.blocks.pending_streams[session_hash].get(run, {}).get(component_id, None)
+            if stream is None:
+                raise HTTPException(404, f"Stream not found.")
+
+            def stream_wrapper():
+                CHECK_STREAM_RATE = 0.001
+                while True:
+                    if len(stream) == 0:
+                        time.sleep(CHECK_STREAM_RATE)
+                        continue
+                    next_stream = stream.pop(0)
+                    if next_stream is None:
+                        return
+                    yield next_stream
+            return StreamingResponse(stream_wrapper())
 
 
         @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
@@ -417,24 +427,25 @@ class App(FastAPI):
             fn_index_inferred: int,
         ):
             fn_index = body.fn_index
-            if hasattr(body, "session_hash"):
-                if body.session_hash not in app.state_holder:
-                    app.state_holder[body.session_hash] = {
+            session_hash = getattr(body, "session_hash", None)
+            if session_hash is not None:
+                if session_hash not in app.state_holder:
+                    app.state_holder[session_hash] = {
                         _id: deepcopy(getattr(block, "value", None))
                         for _id, block in app.get_blocks().blocks.items()
                         if getattr(block, "stateful", False)
                     }
-                session_state = app.state_holder[body.session_hash]
+                session_state = app.state_holder[session_hash]
                 # The should_reset set keeps track of the fn_indices
                 # that have been cancelled. When a job is cancelled,
                 # the /reset route will mark the jobs as having been reset.
                 # That way if the cancel job finishes BEFORE the job being cancelled
                 # the job being cancelled will not overwrite the state of the iterator.
-                if fn_index in app.iterators_to_reset[body.session_hash]:
+                if fn_index in app.iterators_to_reset[session_hash]:
                     iterators = {}
-                    app.iterators_to_reset[body.session_hash].remove(fn_index)
+                    app.iterators_to_reset[session_hash].remove(fn_index)
                 else:
-                    iterators = app.iterators[body.session_hash]
+                    iterators = app.iterators[session_hash]
             else:
                 session_state = {}
                 iterators = {}
@@ -459,6 +470,7 @@ class App(FastAPI):
                         request=request,
                         state=session_state,
                         iterators=iterators,
+                        session_hash=session_hash,
                         event_id=event_id,
                         event_data=event_data,
                     )
