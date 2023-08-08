@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-fix:WIP: Fix dataset features and dataset preview for HuggingFaceDatasetSaver
+fix:Fix dataset features and dataset preview for HuggingFaceDatasetSaver
