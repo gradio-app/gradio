@@ -427,8 +427,12 @@ class ChatInterface(Blocks):
         *args,
     ) -> AsyncGenerator:
         history = history_with_input[:-1]
-        generator = self.fn(message, history, *args)
-        if not self.is_async:
+        if self.is_async:
+            generator = self.fn(message, history, *args)
+        else:
+            generator = await anyio.to_thread.run_sync(
+                self.fn, message, history, *args, limiter=self.limiter
+            )
             generator = SyncToAsyncIterator(generator, self.limiter)
         try:
             first_response = await async_iteration(generator)
@@ -456,8 +460,12 @@ class ChatInterface(Blocks):
     async def _api_stream_fn(
         self, message: str, history: list[list[str | None]], *args
     ) -> AsyncGenerator:
-        generator = self.fn(message, history, *args)
-        if not self.is_async:
+        if self.is_async:
+            generator = self.fn(message, history, *args)
+        else:
+            generator = await anyio.to_thread.run_sync(
+                self.fn, message, history, *args, limiter=self.limiter
+            )
             generator = SyncToAsyncIterator(generator, self.limiter)
         try:
             first_response = await async_iteration(generator)
@@ -481,8 +489,12 @@ class ChatInterface(Blocks):
         message: str,
         *args,
     ) -> AsyncGenerator:
-        generator = self.fn(message, [], *args)
-        if not self.is_async:
+        if self.is_async:
+            generator = self.fn(message, [], *args)
+        else:
+            generator = await anyio.to_thread.run_sync(
+                self.fn, message, [], *args, limiter=self.limiter
+            )
             generator = SyncToAsyncIterator(generator, self.limiter)
         async for response in generator:
             yield [[message, response]]
