@@ -404,11 +404,17 @@ class App(FastAPI):
                 raise HTTPException(404, "Stream not found.")
 
             def stream_wrapper():
-                check_stream_rate = 0.001
+                check_stream_rate = 0.01
+                max_wait_time = 120  # maximum wait between yields - assume generator thread has crashed otherwise.
+                wait_time = 0
                 while True:
                     if len(stream) == 0:
+                        if wait_time > max_wait_time:
+                            return
+                        wait_time += check_stream_rate
                         time.sleep(check_stream_rate)
                         continue
+                    wait_time = 0
                     next_stream = stream.pop(0)
                     if next_stream is None:
                         return
@@ -489,6 +495,15 @@ class App(FastAPI):
                 if isinstance(output, Error):
                     raise output
             except BaseException as error:
+                iterator = iterators.get(fn_index, None)
+                if iterator is not None:  # close off any streams that are still open
+                    run_id = id(iterator)
+                    pending_streams: dict[int, list] = (
+                        app.get_blocks().pending_streams[session_hash].get(run_id, {})
+                    )
+                    for stream in pending_streams.values():
+                        stream.append(None)
+
                 show_error = app.get_blocks().show_error or isinstance(error, Error)
                 traceback.print_exc()
                 return JSONResponse(
