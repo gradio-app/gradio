@@ -28,18 +28,18 @@ class CheckboxGroup(
 ):
     """
     Creates a set of checkboxes of which a subset can be checked.
-    Preprocessing: passes the list of checked checkboxes as a {List[str]} or their indices as a {List[int]} into the function, depending on `type`.
-    Postprocessing: expects a {List[str]}, each element of which becomes a checked checkbox.
-    Examples-format: a {List[str]} representing the values to be checked.
+    Preprocessing: passes the list of checked checkboxes as a {List[str | int | float]} or their indices as a {List[int]} into the function, depending on `type`.
+    Postprocessing: expects a {List[str | int | float]}, each element of which becomes a checked checkbox.
+    Examples-format: a {List[str | int | float]} representing the values to be checked.
     Demos: sentence_builder, titanic_survival
     """
 
     def __init__(
         self,
-        choices: list[str] | None | Default = Default(None),
+        choices: list[str | float | int] | None | Default = Default(None),
         *,
-        value: list[str] | str | Callable | None | Default = Default(None),
-        type: Literal["value", "index"] | None | Default = Default("value"),
+        value: list[str | float | int] | str | float | int | Callable | None | Default = Default(None),
+        type: Literal["value", "index"] | Default = Default("value"),
         label: str | None | Default = Default(None),
         info: str | None | Default = Default(None),
         every: float | None | Default = Default(None),
@@ -55,8 +55,8 @@ class CheckboxGroup(
     ):
         """
         Parameters:
-            choices: list of options to select from.
-            value: default selected list of options. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            choices: list of (string or numeric) options to select from.
+            value: default selected list of options. If a single choice is selected, it can be passed in as a string or numeric type. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indices of the choices selected.
             label: component name in interface.
             info: additional component description.
@@ -76,9 +76,11 @@ class CheckboxGroup(
             raise ValueError(
                 f"Invalid value for parameter `type`: {self.type}. Please choose from one of: {valid_types}"
             )
+
         self.choices = get(choices)
         if self.choices is None:
             self.choices = []
+            
         self.select: EventListenerMethod
         """
         Event listener for when the user selects or deselects within CheckboxGroup.
@@ -125,7 +127,9 @@ class CheckboxGroup(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
 
-    def postprocess(self, y: list[str] | str | None) -> list[str]:
+    def postprocess(
+        self, y: list[str | int | float] | str | int | float | None
+    ) -> list[str | int | float]:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:

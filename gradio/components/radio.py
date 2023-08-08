@@ -27,9 +27,9 @@ class Radio(
     NeighborInterpretable,
 ):
     """
-    Creates a set of radio buttons of which only one can be selected.
-    Preprocessing: passes the value of the selected radio button as a {str} or its index as an {int} into the function, depending on `type`.
-    Postprocessing: expects a {str} corresponding to the value of the radio button to be selected.
+    Creates a set of (string or numeric type) radio buttons of which only one can be selected.
+    Preprocessing: passes the value of the selected radio button as a {str} or {int} or {float} or its index as an {int} into the function, depending on `type`.
+    Postprocessing: expects a {str} or {int} or {float} corresponding to the value of the radio button to be selected.
     Examples-format: a {str} representing the radio option to select.
 
     Demos: sentence_builder, titanic_survival, blocks_essay
@@ -37,9 +37,9 @@ class Radio(
 
     def __init__(
         self,
-        choices: list[str] | None | Default = Default(None),
+        choices: list[str | int | float] | None | Default = Default(None),
         *,
-        value: str | Callable | None | Default = Default(None),
+        value: str | int | float | Callable | None | Default = Default(None),
         type: Literal["value"] | Literal["index"] | Default = Default("value"),
         label: str | None | Default = Default(None),
         info: str | None | Default = Default(None),

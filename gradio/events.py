@@ -270,6 +270,14 @@ class Streamable(EventListener):
         pass
 
 
+class StreamableOutput(EventListener):
+    def __init__(self):
+        self.streaming: bool
+
+    def stream_output(self, y) -> bytes:
+        raise NotImplementedError
+
+
 @document("*start_recording", "*stop_recording", inherit=True)
 class Recordable(EventListener):
     def __init__(self):

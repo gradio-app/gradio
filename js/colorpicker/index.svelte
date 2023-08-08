@@ -19,6 +19,7 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let mode: "static" | "dynamic";
+	export let interactive: boolean;
 </script>
 
 {#if mode === "static"}
@@ -35,6 +36,7 @@
 		{scale}
 		{min_width}
 		{loading_status}
+		{interactive}
 		on:change
 		on:input
 		on:submit
@@ -55,6 +57,7 @@
 		{scale}
 		{min_width}
 		{loading_status}
+		{interactive}
 		on:change
 		on:input
 		on:submit

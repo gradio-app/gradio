@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Callable, Literal
 
 import numpy as np
+import requests
 from gradio_client import media_data
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
@@ -21,6 +22,7 @@ from gradio.events import (
     Playable,
     Recordable,
     Streamable,
+    StreamableOutput,
     Uploadable,
 )
 from gradio.interpretation import TokenInterpretable
@@ -35,6 +37,7 @@ class Audio(
     Playable,
     Recordable,
     Streamable,
+    StreamableOutput,
     Uploadable,
     IOComponent,
     FileSerializable,
@@ -58,7 +61,7 @@ class Audio(
         | None
         | Default = Default(None),
         *,
-        source: Literal["upload", "microphone"] | None | Default = Default("upload"),
+        source: Literal["upload", "microphone"] | None | Default = Default(None),
         type: Literal["numpy", "filepath"] | None | Default = Default("numpy"),
         label: str | None | Default = Default(None),
         every: float | None | Default = Default(None),
@@ -68,11 +71,11 @@ class Audio(
         min_width: int | None | Default = Default(160),
         interactive: bool | None | Default = Default(None),
         visible: bool | Default = Default(True),
-        streaming: bool | None | Default = Default(False),
+        streaming: bool | Default = Default(False),
         elem_id: str | None | Default = Default(None),
         elem_classes: list[str] | str | None | Default = Default(None),
-        format: Literal["wav", "mp3"] | None | Default = Default("wav"),
-        autoplay: bool | None | Default = Default(False),
+        format: Literal["wav", "mp3"] | Default = Default("wav"),
+        autoplay: bool | Default = Default(False),
         show_download_button=True,
         show_share_button: bool | None | Default = Default(None),
         **kwargs,
@@ -90,7 +93,7 @@ class Audio(
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: if True, will allow users to upload and edit a audio file; if False, can only be used to play audio. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
-            streaming: If set to True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
+            streaming: If set to True when used in a `live` interface as an input, will automatically stream webcam feed. When used set as an output, takes audio chunks yield from the backend and combines them into one streaming audio output.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             format: The file format to save audio files. Either 'wav' or 'mp3'. wav files are lossless but will tend to be larger files. mp3 files tend to be smaller. Default is wav. Applies both when this component is used as an input (when `type` is "format") and when this component is used as an output.
@@ -99,10 +102,16 @@ class Audio(
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
         self.source = get(source)
-        valid_sources = ["upload", "microphone", NoOverride]
-        if self.source not in valid_sources:
+        self.streaming = get(streaming)
+        self.source = self.source if self.source else ("microphone" if self.streaming else "upload")
+        valid_sources = ["upload", "microphone"]
+        if self.source not in valid_sources + [NoOverride]:
             raise ValueError(
                 f"Invalid value for parameter `source`: {self.source}. Please choose from one of: {valid_sources}"
+            )
+        if self.streaming and self.source != "microphone":
+            raise ValueError(
+                "Audio streaming only available if source is 'microphone'."
             )
 
         self.type = get(type)
@@ -110,12 +119,6 @@ class Audio(
         if self.type not in valid_types + [NoOverride]:
             raise ValueError(
                 f"Invalid value for parameter `type`: {self.type}. Please choose from one of: {valid_types}"
-            )
-
-        self.streaming = get(streaming)
-        if self.streaming and self.source != "microphone":
-            raise ValueError(
-                "Audio streaming only available if source is 'microphone'."
             )
 
         self.format = get(format)
@@ -308,6 +311,18 @@ class Audio(
         else:
             file_path = self.make_temp_copy_if_needed(y)
         return {"name": file_path, "data": None, "is_file": True}
+
+    def stream_output(self, y):
+        if y is None:
+            return None
+        if client_utils.is_http_url_like(y["name"]):
+            response = requests.get(y["name"])
+            bytes = response.content
+        else:
+            file_path = y["name"]
+            with open(file_path, "rb") as f:
+                bytes = f.read()
+        return bytes
 
     def check_streamable(self):
         if self.source != "microphone":
