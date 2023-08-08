@@ -849,13 +849,16 @@ def concurrency_count_warning(queue: Callable[P, T]) -> Callable[P, T]:
     @functools.wraps(queue)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         _self, *positional = args
-        if is_zero_gpu_space() and (len(positional) >= 1 or 'concurrency_count' in kwargs):
+        if is_zero_gpu_space() and (
+            len(positional) >= 1 or "concurrency_count" in kwargs
+        ):
             warnings.warn(
                 "Queue concurrency_count on ZeroGPU Spaces cannot be overriden "
                 "and is always equal to Block's max_threads. "
                 "Consider setting max_threads value on the Block instead"
             )
         return queue(*args, **kwargs)
+
     return wrapper
 
 
