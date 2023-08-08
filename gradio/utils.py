@@ -21,7 +21,6 @@ from io import BytesIO
 from numbers import Number
 from pathlib import Path
 from types import GeneratorType
-from typing_extensions import ParamSpec
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -40,6 +39,7 @@ from markdown_it import MarkdownIt
 from mdit_py_plugins.dollarmath.index import dollarmath_plugin
 from mdit_py_plugins.footnote.index import footnote_plugin
 from pydantic import BaseModel, parse_obj_as
+from typing_extensions import ParamSpec
 
 import gradio
 from gradio.context import Context
