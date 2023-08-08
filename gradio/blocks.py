@@ -1624,10 +1624,10 @@ Received outputs:
             warn_deprecation(
                 "The client_position_to_load_data parameter is deprecated."
             )
-        max_size_default = self.max_threads if utils.is_zero_gpu_space() else None
+        max_size_default = 1 if utils.is_zero_gpu_space() else None
         self._queue = queueing.Queue(
             live_updates=status_update_rate == "auto",
-            concurrency_count=concurrency_count,
+            concurrency_count=concurrency_count if utils.is_zero_gpu_space() else self.max_threads,
             update_intervals=status_update_rate if status_update_rate != "auto" else 1,
             max_size=max_size_default if max_size is None else max_size,
             blocks_dependencies=self.dependencies,
