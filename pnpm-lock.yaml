@@ -539,8 +539,8 @@ importers:
         specifier: workspace:^
         version: link:../utils
       extendable-media-recorder:
-        specifier: ^7.0.2
-        version: 7.0.2
+        specifier: ^8.0.0
+        version: 8.0.0
       extendable-media-recorder-wav-encoder:
         specifier: ^7.0.76
         version: 7.0.76
@@ -3449,7 +3449,6 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       regenerator-runtime: 0.13.11
-    dev: false
 
   /@babel/template@7.22.5:
     resolution: {integrity: sha512-X7yV7eiwAxdj9k94NEylvbVHLiVG1nvzCV2EAowhxLTwODV1jl9UzZ48leOC0sH7OnuHrIkllaBgneUykIcZaw==}
@@ -3514,7 +3513,7 @@ packages:
   /@changesets/apply-release-plan@6.1.3:
     resolution: {integrity: sha512-ECDNeoc3nfeAe1jqJb5aFQX7CqzQhD2klXRez2JDb/aVpGUbX673HgKrnrgJRuQR/9f2TtLoYIzrGB9qwD77mg==}
     dependencies:
-      '@babel/runtime': 7.21.0
+      '@babel/runtime': 7.22.6
       '@changesets/config': 2.3.0
       '@changesets/get-version-range-type': 0.3.2
       '@changesets/git': 2.0.0
@@ -3532,7 +3531,7 @@ packages:
   /@changesets/assemble-release-plan@5.2.3:
     resolution: {integrity: sha512-g7EVZCmnWz3zMBAdrcKhid4hkHT+Ft1n0mLussFMcB1dE2zCuwcvGoy9ec3yOgPGF4hoMtgHaMIk3T3TBdvU9g==}
     dependencies:
-      '@babel/runtime': 7.21.0
+      '@babel/runtime': 7.22.6
       '@changesets/errors': 0.1.4
       '@changesets/get-dependents-graph': 1.3.5
       '@changesets/types': 5.2.1
@@ -3635,7 +3634,7 @@ packages:
   /@changesets/get-release-plan@3.0.16:
     resolution: {integrity: sha512-OpP9QILpBp1bY2YNIKFzwigKh7Qe9KizRsZomzLe6pK8IUo8onkAAVUD8+JRKSr8R7d4+JRuQrfSSNlEwKyPYg==}
     dependencies:
-      '@babel/runtime': 7.21.0
+      '@babel/runtime': 7.22.6
       '@changesets/assemble-release-plan': 5.2.3
       '@changesets/config': 2.3.0
       '@changesets/pre': 1.0.14
@@ -3651,7 +3650,7 @@ packages:
   /@changesets/git@2.0.0:
     resolution: {integrity: sha512-enUVEWbiqUTxqSnmesyJGWfzd51PY4H7mH9yUw0hPVpZBJ6tQZFMU3F3mT/t9OJ/GjyiM4770i+sehAn6ymx6A==}
     dependencies:
-      '@babel/runtime': 7.21.0
+      '@babel/runtime': 7.22.6
       '@changesets/errors': 0.1.4
       '@changesets/types': 5.2.1
       '@manypkg/get-packages': 1.1.3
@@ -3676,7 +3675,7 @@ packages:
   /@changesets/pre@1.0.14:
     resolution: {integrity: sha512-dTsHmxQWEQekHYHbg+M1mDVYFvegDh9j/kySNuDKdylwfMEevTeDouR7IfHNyVodxZXu17sXoJuf2D0vi55FHQ==}
     dependencies:
-      '@babel/runtime': 7.21.0
+      '@babel/runtime': 7.22.6
       '@changesets/errors': 0.1.4
       '@changesets/types': 5.2.1
       '@manypkg/get-packages': 1.1.3
@@ -3686,7 +3685,7 @@ packages:
   /@changesets/read@0.5.9:
     resolution: {integrity: sha512-T8BJ6JS6j1gfO1HFq50kU3qawYxa4NTbI/ASNVVCBTsKquy2HYwM9r7ZnzkiMe8IEObAJtUVGSrePCOxAK2haQ==}
     dependencies:
-      '@babel/runtime': 7.21.0
+      '@babel/runtime': 7.22.6
       '@changesets/git': 2.0.0
       '@changesets/logger': 0.0.5
       '@changesets/parse': 0.3.16
@@ -3707,7 +3706,7 @@ packages:
   /@changesets/write@0.2.3:
     resolution: {integrity: sha512-Dbamr7AIMvslKnNYsLFafaVORx4H0pvCA2MHqgtNCySMe1blImEyAEOzDmcgKAkgz4+uwoLz7demIrX+JBr/Xw==}
     dependencies:
-      '@babel/runtime': 7.21.0
+      '@babel/runtime': 7.22.6
       '@changesets/types': 5.2.1
       fs-extra: 7.0.1
       human-id: 1.0.2
@@ -4593,7 +4592,7 @@ packages:
   /@manypkg/find-root@1.1.0:
     resolution: {integrity: sha512-mki5uBvhHzO8kYYix/WRy2WX8S3B5wdVSc9D6KcU5lQNglP2yt58/VfLuAK49glRXChosY8ap2oJ1qgma3GUVA==}
     dependencies:
-      '@babel/runtime': 7.21.0
+      '@babel/runtime': 7.22.6
       '@types/node': 12.20.55
       find-up: 4.1.0
       fs-extra: 8.1.0
@@ -4611,7 +4610,7 @@ packages:
   /@manypkg/get-packages@1.1.3:
     resolution: {integrity: sha512-fo+QhuU3qE/2TQMQmbVMqaQ6EWbMhi4ABWP+O4AM1NqPBuy0OrApV5LO6BrrgnhtAHS2NH6RrVk9OL181tTi8A==}
     dependencies:
-      '@babel/runtime': 7.21.0
+      '@babel/runtime': 7.22.6
       '@changesets/types': 4.1.0
       '@manypkg/find-root': 1.1.0
       fs-extra: 8.1.0
@@ -7022,7 +7021,7 @@ packages:
       esbuild: '>=0.10.0'
     dependencies:
       esbuild: 0.17.14
-      tslib: 2.5.3
+      tslib: 2.6.1
     dev: true
 
   /@zxing/text-encoding@0.9.0:
@@ -7260,14 +7259,14 @@ packages:
     resolution: {integrity: sha512-c27loCv9QkZinsa5ProX751khO9DJl/AcB5c2KNtA6NRvHKS0PgLfcftz72KVq504vB0Gku5s2kUZzDBvQWvHg==}
     engines: {node: '>=4'}
     dependencies:
-      tslib: 2.5.3
+      tslib: 2.6.1
     dev: true
 
   /ast-types@0.16.1:
     resolution: {integrity: sha512-6t10qk83GOG8p0vKmaCr8eiilZwO171AvbROMtvvNiwrTly62t+7XkA8RdIIVbpMhCASAsxgAzdRSwh6nw/5Dg==}
     engines: {node: '>=4'}
     dependencies:
-      tslib: 2.5.3
+      tslib: 2.6.1
     dev: true
 
   /async-limiter@1.0.1:
@@ -7283,6 +7282,14 @@ packages:
 
   /automation-events@6.0.7:
     resolution: {integrity: sha512-praCfxsKCU3v69+vKnUhyXfvHaVmK/ng8Slzl95U2FAOeLCz+qA3VXGpB6jlHuwrGNvTl9sx5E9942feZ4ISXw==}
+    engines: {node: '>=16.1.0'}
+    dependencies:
+      '@babel/runtime': 7.22.6
+      tslib: 2.6.1
+    dev: false
+
+  /automation-events@6.0.8:
+    resolution: {integrity: sha512-OXI9rEbA0LwWr+Tmvka4EHtVHBIVw8KD2NM7fIGjd4dyGnuiM3ULZL+Jlo4aKXZDY98raT4R4rEDOHAbz8Jm9A==}
     engines: {node: '>=16.1.0'}
     dependencies:
       '@babel/runtime': 7.22.6
@@ -7558,6 +7565,15 @@ packages:
       fast-unique-numbers: 8.0.6
       tslib: 2.6.1
       worker-factory: 7.0.8
+    dev: false
+
+  /broker-factory@3.0.84:
+    resolution: {integrity: sha512-Z5ihhfifx7n//u99AG88z1q4csVt8vgf72jN5JYD4FqkPWTMp+xCvUaKdWQUaiPFOmNYOV8uPIcqB1MtrLGjiQ==}
+    dependencies:
+      '@babel/runtime': 7.22.6
+      fast-unique-numbers: 8.0.7
+      tslib: 2.6.1
+      worker-factory: 7.0.9
     dev: false
 
   /browser-assert@1.2.1:
@@ -7953,9 +7969,9 @@ packages:
     resolution: {integrity: sha512-W9pAhw0ja1Edb5GVdIF1mjZw/ASI0AlShXM83UUGe2DVr5TdAPEA1OA8m/g8zWp9x6On7gqufY+FatDbC3MDQg==}
     dev: true
 
-  /compilerr@10.0.2:
-    resolution: {integrity: sha512-CFwUXxJ9OuWsSvnLSbefxi+GLsZ0YnuJh40ry5QdmZ1FWK59OG+QB8XSj6t7Kq+/c5DSS7en+cML6GlzHKH58A==}
-    engines: {node: '>=14.15.4'}
+  /compilerr@11.0.7:
+    resolution: {integrity: sha512-Y8Q3w3UAkvMpV3HzoHQhG6n1XYTr4VUA8K/7Tv/BPquhVflZ4isQBP8EG13uqGdIVP5Ud4dJWm0WZJCh2nYqPA==}
+    engines: {node: '>=16.1.0'}
     dependencies:
       '@babel/runtime': 7.22.6
       dashify: 2.0.0
@@ -7963,8 +7979,8 @@ packages:
       tslib: 2.6.1
     dev: false
 
-  /compilerr@11.0.7:
-    resolution: {integrity: sha512-Y8Q3w3UAkvMpV3HzoHQhG6n1XYTr4VUA8K/7Tv/BPquhVflZ4isQBP8EG13uqGdIVP5Ud4dJWm0WZJCh2nYqPA==}
+  /compilerr@11.0.8:
+    resolution: {integrity: sha512-tKUqynRzLkmVXCFDohSNUOPe3LfAGbvI+mVvF/21YydavzWrm+v27bpH6us9zYKwbSz7xF1/ncRgiXoNWT1hsQ==}
     engines: {node: '>=16.1.0'}
     dependencies:
       '@babel/runtime': 7.22.6
@@ -9357,13 +9373,13 @@ packages:
       tslib: 2.4.0
     dev: false
 
-  /extendable-media-recorder@7.0.2:
-    resolution: {integrity: sha512-rZAvRaAJgMyQUMWMrgSB1U1o9nNXaguVAwNVOnt396tRlfZtBbHxraygqjPQXNs6kb1H4XcG/RLTn+hfZJx2Xg==}
+  /extendable-media-recorder@8.0.0:
+    resolution: {integrity: sha512-J5S3At1uJJtcBxpxmR4eIaGZbXlZzl0HyYRprDBAHdt9Z75Y9ziJj7WXlEcSM84Oiz3qI7Gsi4oh8PZ+QnDhTA==}
     dependencies:
       '@babel/runtime': 7.22.6
       media-encoder-host: 8.0.98
-      multi-buffer-data-view: 3.0.24
-      recorder-audio-worklet: 5.1.39
+      multi-buffer-data-view: 5.0.8
+      recorder-audio-worklet: 6.0.13
       standardized-audio-context: 25.3.54
       subscribable-things: 2.1.22
       tslib: 2.6.1
@@ -9421,16 +9437,16 @@ packages:
       tslib: 2.5.3
     dev: false
 
-  /fast-unique-numbers@7.0.2:
-    resolution: {integrity: sha512-xnqpsnu889bHbq5cbDMwCJ2BPf6kjFPMu+RHfqKvisRxeEbTOVxY5aW/ZNsZ/r8OlwatxmjdFEVQog2xAhLkvg==}
-    engines: {node: '>=14.15.4'}
+  /fast-unique-numbers@8.0.6:
+    resolution: {integrity: sha512-qYstEvALsy12Xjtct+WkrdzdCGacIG85GQhPs1lsN7J3Fm3MfEkr6WgqYr9SIslg+UevsUhf9Y5Y7LZS2rE+sQ==}
+    engines: {node: '>=16.1.0'}
     dependencies:
       '@babel/runtime': 7.22.6
       tslib: 2.6.1
     dev: false
 
-  /fast-unique-numbers@8.0.6:
-    resolution: {integrity: sha512-qYstEvALsy12Xjtct+WkrdzdCGacIG85GQhPs1lsN7J3Fm3MfEkr6WgqYr9SIslg+UevsUhf9Y5Y7LZS2rE+sQ==}
+  /fast-unique-numbers@8.0.7:
+    resolution: {integrity: sha512-I+VCWGlHB6HSqE0W0FxB5mgmgBHJiBs19kS9y6JJKXDp84IzuE7H24NRwpnZbuONK7T2r+7T0z1OZbehc5URxA==}
     engines: {node: '>=16.1.0'}
     dependencies:
       '@babel/runtime': 7.22.6
@@ -11338,9 +11354,9 @@ packages:
       - supports-color
     dev: false
 
-  /multi-buffer-data-view@3.0.24:
-    resolution: {integrity: sha512-jm7Ycplx37ExXyQmqhwl7zfQmAj81y5LLzVx0XyWea4omP9W/xJhLEHs/5b+WojGyYSRt8BHiXZVcYzu68Ma0Q==}
-    engines: {node: '>=12.20.1'}
+  /multi-buffer-data-view@5.0.8:
+    resolution: {integrity: sha512-12yXpvoXK35COAqzXKzAReXxl87aza1TQTJbhqHrT7p60xvu1D7l5wayGZ0UwsVek2FsaSIO03rJFzjW79EW9A==}
+    engines: {node: '>=16.1.0'}
     dependencies:
       '@babel/runtime': 7.22.6
       tslib: 2.6.1
@@ -11870,7 +11886,7 @@ packages:
     resolution: {integrity: sha512-Sz2Lkdxz6F2Pgnpi9U5Ng/WdWAUZxmHrNPoVlm3aAemxoy2Qy7LGjQg4uf8qKelDAUW94F4np3iH2YPf2qefcQ==}
     engines: {node: '>=10'}
     dependencies:
-      '@babel/runtime': 7.21.0
+      '@babel/runtime': 7.22.6
     dev: true
 
   /polka@1.0.0-next.22:
@@ -12528,7 +12544,7 @@ packages:
       ast-types: 0.15.2
       esprima: 4.0.1
       source-map: 0.6.1
-      tslib: 2.5.3
+      tslib: 2.6.1
     dev: true
 
   /recast@0.23.2:
@@ -12539,7 +12555,7 @@ packages:
       ast-types: 0.16.1
       esprima: 4.0.1
       source-map: 0.6.1
-      tslib: 2.5.3
+      tslib: 2.6.1
     dev: true
 
   /rechoir@0.6.2:
@@ -12549,24 +12565,24 @@ packages:
       resolve: 1.22.1
     dev: true
 
-  /recorder-audio-worklet-processor@4.2.21:
-    resolution: {integrity: sha512-oiiS2sp6eMxkvjt13yetSYUJvnAxBZk60mIxz0Vf/2lDWa/4svCyMLHIDzYKbHahkISd0UYyqLS9dI7xDlUOCA==}
+  /recorder-audio-worklet-processor@5.0.8:
+    resolution: {integrity: sha512-TBN5M+ZFG4F573sJKgYsvlBnhQGV0lxOBRTEP+gkezaArZK8EBpN1QgmcldWY4Ay3ZNJnLLDWDWdhoi0A+mzWQ==}
     dependencies:
       '@babel/runtime': 7.22.6
       tslib: 2.6.1
     dev: false
 
-  /recorder-audio-worklet@5.1.39:
-    resolution: {integrity: sha512-w/RazoBwZnkFnEPRsJYNThOHznLQC98/IzWRrutpJQVvCcL0nbLsVSLDaRrnrqVpRUI11VgiXRh30HaHiSdVhQ==}
+  /recorder-audio-worklet@6.0.13:
+    resolution: {integrity: sha512-wT1ZwG1C5BAbGiKOEOAyvPjxb1zMxnxa6B3NaTwY0Jq5yjU8koqVCH7VO0YhYeVGtWFTSS916CuyyoRXTOVZkQ==}
     dependencies:
       '@babel/runtime': 7.22.6
-      broker-factory: 3.0.83
-      fast-unique-numbers: 7.0.2
-      recorder-audio-worklet-processor: 4.2.21
-      standardized-audio-context: 25.3.54
-      subscribable-things: 2.1.22
+      broker-factory: 3.0.84
+      fast-unique-numbers: 8.0.7
+      recorder-audio-worklet-processor: 5.0.8
+      standardized-audio-context: 25.3.55
+      subscribable-things: 2.1.23
       tslib: 2.6.1
-      worker-factory: 6.0.76
+      worker-factory: 7.0.9
     dev: false
 
   /redent@3.0.0:
@@ -12594,7 +12610,7 @@ packages:
   /regenerator-transform@0.15.1:
     resolution: {integrity: sha512-knzmNAcuyxV+gQCufkYcvOqX/qIIfHLv0u5x79kRxuGojfYVky1f15TzZEu2Avte8QGepvUNTnLskf8E6X6Vyg==}
     dependencies:
-      '@babel/runtime': 7.21.0
+      '@babel/runtime': 7.22.6
     dev: true
 
   /regex-parser@2.2.11:
@@ -12767,7 +12783,7 @@ packages:
   /rxjs@7.8.0:
     resolution: {integrity: sha512-F2+gxDshqmIub1KdvZkaEfGDwLNpPvk9Fs6LD/MyQxNgMds/WH9OdDDXOmxUZpME+iSK3rQCctkL0DYyytUqMg==}
     dependencies:
-      tslib: 2.5.3
+      tslib: 2.6.1
     dev: false
 
   /sade@1.8.1:
@@ -13132,6 +13148,14 @@ packages:
       tslib: 2.6.1
     dev: false
 
+  /standardized-audio-context@25.3.55:
+    resolution: {integrity: sha512-ym9g7FZ5S1FykbQ1///ktTJgk+zTtGF1hGR/BFRQjRkN6G2Xy9GbL5kOcM7DlzflV2yJtqVwfU2gL042b1oHwg==}
+    dependencies:
+      '@babel/runtime': 7.22.6
+      automation-events: 6.0.8
+      tslib: 2.6.1
+    dev: false
+
   /statuses@2.0.1:
     resolution: {integrity: sha512-RwNA9Z/7PrK06rYLIzFMlaF+l73iwpzsqRIFgbMLbTcLD6cOao82TaWefPXQvB2fOC4AjuYSEndS7N/mTCbkdQ==}
     engines: {node: '>= 0.8'}
@@ -13290,6 +13314,14 @@ packages:
 
   /subscribable-things@2.1.22:
     resolution: {integrity: sha512-EKZIRtDZjXiIML+/99Bin/EL4X0oUqWAF6N+4LwfAUbkKKcd5wRY2y/lp143soDg9W0qM0Czios11JfHEpRcQQ==}
+    dependencies:
+      '@babel/runtime': 7.22.6
+      rxjs-interop: 2.0.0
+      tslib: 2.6.1
+    dev: false
+
+  /subscribable-things@2.1.23:
+    resolution: {integrity: sha512-ks4rvqxofzIcXzOdRUCoNbAptNzsoa1LEJEbJBCy/ADahzWNEiy1Oa3LpRVw12QcTGUXHblxO4Gpb+JQNjprKQ==}
     dependencies:
       '@babel/runtime': 7.22.6
       rxjs-interop: 2.0.0
@@ -15110,21 +15142,21 @@ packages:
       tslib: 2.5.3
     dev: false
 
-  /worker-factory@6.0.76:
-    resolution: {integrity: sha512-W1iBNPmE9p0asU4aFmYJYCnMxhkvk4qlKc660GlHxWgmflY64NxxTbmKqipu4K5p9LiKKPjqXfcQme6153BZEQ==}
-    dependencies:
-      '@babel/runtime': 7.22.6
-      compilerr: 10.0.2
-      fast-unique-numbers: 7.0.2
-      tslib: 2.6.1
-    dev: false
-
   /worker-factory@7.0.8:
     resolution: {integrity: sha512-+vgtji3ps3R4YeIXtaBZdbP9qltaiy3KHbFF5A3DhNkvtxfxXyxhjVT10r3XfDvdKAxuWwAlhQHHwSuklykqww==}
     dependencies:
       '@babel/runtime': 7.22.6
       compilerr: 11.0.7
       fast-unique-numbers: 8.0.6
+      tslib: 2.6.1
+    dev: false
+
+  /worker-factory@7.0.9:
+    resolution: {integrity: sha512-t5tPtTLXh663SzgCW/2oFSLtsKZYI3Oko/lcOgrakH2EZ8Qm9p0zea/ceGmiEwwVgVdqjg+xE8AboIOwY3A7iA==}
+    dependencies:
+      '@babel/runtime': 7.22.6
+      compilerr: 11.0.8
+      fast-unique-numbers: 8.0.7
       tslib: 2.6.1
     dev: false
 
