@@ -395,7 +395,8 @@ class App(FastAPI):
             session_hash: str, run: int, component_id: int, request: fastapi.Request
         ):
             stream: list = (
-                app.get_blocks().pending_streams[session_hash]
+                app.get_blocks()
+                .pending_streams[session_hash]
                 .get(run, {})
                 .get(component_id, None)
             )
