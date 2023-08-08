@@ -25,7 +25,7 @@ from gradio.events import Dependency, EventListenerMethod
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.layouts import Accordion, Column, Group, Row
 from gradio.themes import ThemeClass as Theme
-from gradio.utils import async_iteration
+from gradio.utils import SyncToAsyncIterator, async_iteration
 
 set_documentation_group("chatinterface")
 
@@ -427,24 +427,18 @@ class ChatInterface(Blocks):
     ) -> AsyncGenerator:
         history = history_with_input[:-1]
         generator = self.fn(message, history, *args, **kwargs)
+        if not self.is_async:
+            generator = SyncToAsyncIterator(generator, self.limiter)
         try:
-            if self.is_async:
-                first_response = await async_iteration(generator)
-            else:
-                first_response = next(generator)
+            first_response = await async_iteration(generator)
             update = history + [[message, first_response]]
             yield update, update
         except StopIteration:
             update = history + [[message, None]]
             yield update, update
-        if self.is_async:
-            async for response in generator:
-                update = history + [[message, response]]
-                yield update, update
-        else:
-            for response in generator:
-                update = history + [[message, response]]
-                yield update, update
+        async for response in generator:
+            update = history + [[message, response]]
+            yield update, update
 
     async def _api_submit_fn(
         self, message: str, history: list[list[str | None]], *args, **kwargs
@@ -460,20 +454,15 @@ class ChatInterface(Blocks):
         self, message: str, history: list[list[str | None]], *args, **kwargs
     ) -> AsyncGenerator:
         generator = self.fn(message, history, *args, **kwargs)
+        if not self.is_async:
+            generator = SyncToAsyncIterator(generator, self.limiter)
         try:
-            if self.is_async:
-                first_response = await async_iteration(generator)
-            else:
-                first_response = next(generator)
+            first_response = await async_iteration(generator)
             yield first_response, history + [[message, first_response]]
         except StopIteration:
             yield None, history + [[message, None]]
-        if self.is_async:
-            async for response in generator:
-                yield response, history + [[message, response]]
-        else:
-            for response in generator:
-                yield response, history + [[message, response]]
+        async for response in generator:
+            yield response, history + [[message, response]]
 
     async def _examples_fn(
         self, message: str, *args, **kwargs
@@ -490,13 +479,11 @@ class ChatInterface(Blocks):
         *args,
         **kwargs,
     ) -> AsyncGenerator:
-        if self.is_async:
-            generator = self.fn(message, [], *args, **kwargs)
-            async for response in generator:
-                yield [[message, response]]
-        else:
-            for response in self.fn(message, [], *args, **kwargs):
-                yield [[message, response]]
+        generator = self.fn(message, [], *args, **kwargs)
+        if not self.is_async:
+            generator = SyncToAsyncIterator(generator, self.limiter)
+        async for response in generator:
+            yield [[message, response]]
 
     def _delete_prev_fn(
         self, history: list[list[str | None]]
