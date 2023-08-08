@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:[Spaces] ZeroGPU Queue fix
+fix:[Spaces] ZeroGPU Queue fix
