@@ -96,7 +96,7 @@ class Audio(
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
         valid_sources = ["upload", "microphone"]
-        source = source if source else ("microphone" if streaming else "upload")        
+        source = source if source else ("microphone" if streaming else "upload")
         if source not in valid_sources:
             raise ValueError(
                 f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
@@ -343,13 +343,13 @@ class Audio(
         else:
             file_path = self.make_temp_copy_if_needed(y)
         return {"name": file_path, "data": None, "is_file": True}
-    
+
     def stream_output(self, y):
         if y is None:
             return None
         if client_utils.is_http_url_like(y["name"]):
             response = requests.get(y["name"])
-            bytes = response.content            
+            bytes = response.content
         else:
             file_path = y["name"]
             with open(file_path, "rb") as f:

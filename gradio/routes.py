@@ -17,6 +17,7 @@ import os
 import posixpath
 import secrets
 import tempfile
+import time
 import traceback
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import defaultdict
@@ -24,7 +25,6 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 from urllib.parse import urlparse
-import time
 
 import fastapi
 import httpx
@@ -37,7 +37,7 @@ from fastapi.responses import (
     HTMLResponse,
     JSONResponse,
     PlainTextResponse,
-    StreamingResponse
+    StreamingResponse,
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
@@ -388,11 +388,20 @@ class App(FastAPI):
                     return response
             return FileResponse(abs_path, headers={"Accept-Ranges": "bytes"})
 
-        @app.get("/stream/{session_hash}/{run}/{component_id}", dependencies=[Depends(login_check)])
-        async def stream(session_hash: str, run: int, component_id: int, request: fastapi.Request):
-            stream = app.blocks.pending_streams[session_hash].get(run, {}).get(component_id, None)
+        @app.get(
+            "/stream/{session_hash}/{run}/{component_id}",
+            dependencies=[Depends(login_check)],
+        )
+        async def stream(
+            session_hash: str, run: int, component_id: int, request: fastapi.Request
+        ):
+            stream: list = (
+                app.get_blocks().pending_streams[session_hash]
+                .get(run, {})
+                .get(component_id, None)
+            )
             if stream is None:
-                raise HTTPException(404, f"Stream not found.")
+                raise HTTPException(404, "Stream not found.")
 
             def stream_wrapper():
                 CHECK_STREAM_RATE = 0.001
@@ -404,8 +413,8 @@ class App(FastAPI):
                     if next_stream is None:
                         return
                     yield next_stream
-            return StreamingResponse(stream_wrapper())
 
+            return StreamingResponse(stream_wrapper())
 
         @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
         async def file_deprecated(path: str, request: fastapi.Request):

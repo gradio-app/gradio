@@ -12,14 +12,13 @@ import time
 import warnings
 import webbrowser
 from abc import abstractmethod
+from collections import defaultdict
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast, Generator
-from collections import defaultdict
+from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast
 
 import anyio
 import requests
-import uuid
 from anyio import CapacityLimiter
 from gradio_client import serializing
 from gradio_client import utils as client_utils
@@ -1335,11 +1334,7 @@ Received outputs:
         return output
 
     def handle_streaming_outputs(
-        self,
-        fn_index: int,
-        data: list,
-        session_hash: str | None,
-        run: int | None
+        self, fn_index: int, data: list, session_hash: str | None, run: int | None
     ) -> list:
         if session_hash is None or run is None:
             return data
@@ -1355,7 +1350,10 @@ Received outputs:
                     self.pending_streams[session_hash][run][output_id] = [stream]
                 else:
                     self.pending_streams[session_hash][run][output_id].append(stream)
-                data[i] = {"name": f"{session_hash}/{run}/{output_id}", "is_stream": True}
+                data[i] = {
+                    "name": f"{session_hash}/{run}/{output_id}",
+                    "is_stream": True,
+                }
         return data
 
     async def process_api(
