@@ -22,3 +22,5 @@ Here is example code of streaming images from the webcam.
 $code_stream_frames
 
 Streaming can also be done in an output component. A `gr.Audio(streaming=True)` output component can take a stream of audio data yielded piece-wise by a generator function and combines them into a single audio file.
+
+$code_stream_audio_out
