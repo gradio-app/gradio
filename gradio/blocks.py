@@ -58,6 +58,7 @@ from gradio.utils import (
     TupleNoPrint,
     check_function_inputs_match,
     component_or_layout_class,
+    concurrency_count_warning,
     delete_none,
     get_cancel_function,
     get_continuous_fn,
@@ -1583,6 +1584,7 @@ Received outputs:
         self.children = []
         return self
 
+    @concurrency_count_warning
     @document()
     def queue(
         self,
