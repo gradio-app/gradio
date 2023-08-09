@@ -42,9 +42,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: install dependencies
-        uses: "./.github/actions/install-frontend-deps"
+        uses: "./.github/actions/install-all-deps"
         with:
           always-install-pnpm: true
+          skip_build: true
       - name: Install Vercel CLI
         shell: bash
         run: pnpm install --global vercel@latest
