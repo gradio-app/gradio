@@ -370,14 +370,20 @@ class RichtextboxSerializable(Serializable):
 
     def example_inputs(self) -> dict[str, Any]:
         return {
-            "raw": [{
-                "text": "This is a sample text",
-                "files": [{"is_file": False, "data": media_data.BASE64_FILE}],
-            }],
-            "serialized": [{
-                "text": "This is a sample text",
-                "files": ["https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"],
-            }],
+            "raw": [
+                {
+                    "text": "This is a sample text",
+                    "files": [{"is_file": False, "data": media_data.BASE64_FILE}],
+                }
+            ],
+            "serialized": [
+                {
+                    "text": "This is a sample text",
+                    "files": [
+                        "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+                    ],
+                }
+            ],
         }
 
     def serialize(
