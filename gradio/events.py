@@ -72,7 +72,7 @@ class EventListenerMethod:
 
     def __init__(
         self,
-        trigger: Block,
+        trigger,
         event_name: str,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
         callback: Callable | None = None,
