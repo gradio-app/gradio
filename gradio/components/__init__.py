@@ -6,7 +6,9 @@ from gradio.components.base import (
     Component,
     Form,
     FormComponent,
-    IOComponent,
+    Component,
+    StreamingInput,
+    StreamingOutput,
     Row,
     _Keywords,
     component,
@@ -45,7 +47,6 @@ from gradio.components.slider import Slider
 from gradio.components.state import State, Variable
 from gradio.components.status_tracker import StatusTracker
 from gradio.components.textbox import Textbox
-from gradio.components.timeseries import Timeseries
 from gradio.components.upload_button import UploadButton
 from gradio.components.video import Video
 
@@ -55,7 +56,6 @@ Highlightedtext = HighlightedText
 Annotatedimage = AnnotatedImage
 Highlight = HighlightedText
 Checkboxgroup = CheckboxGroup
-TimeSeries = Timeseries
 Json = JSON
 
 __all__ = [
@@ -83,7 +83,7 @@ __all__ = [
     "Gallery",
     "HTML",
     "Image",
-    "IOComponent",
+    "Component",
     "Interpretation",
     "JSON",
     "Json",
@@ -105,7 +105,6 @@ __all__ = [
     "Annotatedimage",
     "Highlight",
     "Checkboxgroup",
-    "TimeSeries",
     "Number",
     "Plot",
     "Radio",
@@ -117,4 +116,6 @@ __all__ = [
     "StatusTracker",
     "UploadButton",
     "Video",
+    "StreamingInput",
+    "StreamingOutput"
 ]

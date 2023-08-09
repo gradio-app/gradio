@@ -1,8 +1,6 @@
 import pkgutil
 
 import gradio.components as components
-import gradio.inputs as inputs
-import gradio.outputs as outputs
 import gradio.processing_utils
 import gradio.templates
 import gradio.themes as themes
@@ -53,8 +51,6 @@ from gradio.components import (
     StatusTracker,
     Text,
     Textbox,
-    TimeSeries,
-    Timeseries,
     UploadButton,
     Variable,
     Video,

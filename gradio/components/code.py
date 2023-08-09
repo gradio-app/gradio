@@ -7,14 +7,14 @@ from typing import Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.components.base import IOComponent, _Keywords
+from gradio.components.base import Component, _Keywords
 from gradio.events import Changeable, Inputable
 
 set_documentation_group("component")
 
 
 @document("languages")
-class Code(Changeable, Inputable, IOComponent, StringSerializable):
+class Code(Changeable, Inputable, StringSerializable, Component):
     """
     Creates a Code editor for entering, editing or viewing code.
     Preprocessing: passes a {str} of code into the function.
@@ -83,8 +83,7 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
         assert language in Code.languages, f"Language {language} not supported."
         self.language = language
         self.lines = lines
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             interactive=interactive,
             show_label=show_label,
@@ -103,7 +102,7 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
             "value": self.value,
             "language": self.language,
             "lines": self.lines,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     def postprocess(self, y):

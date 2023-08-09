@@ -36,11 +36,9 @@ def set_cancel_events(
         )
 
 
-class EventListener(Block):
-    def __init__(self: Any):
-        for event_listener_class in EventListener.__subclasses__():
-            if isinstance(self, event_listener_class):
-                event_listener_class.__init__(self)
+class EventListener:
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
 
 class Dependency(dict):
@@ -164,7 +162,8 @@ class EventListenerMethod:
 
 @document("*change", inherit=True)
 class Changeable(EventListener):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.change = EventListenerMethod(self, "change")
         """
         This listener is triggered when the component's value changes either because of user input (e.g. a user types in a textbox) OR because of a function update (e.g. an image receives a value from the output of an event trigger).
@@ -175,7 +174,8 @@ class Changeable(EventListener):
 
 @document("*input", inherit=True)
 class Inputable(EventListener):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.input = EventListenerMethod(self, "input")
         """
         This listener is triggered when the user changes the value of the component.
@@ -185,7 +185,8 @@ class Inputable(EventListener):
 
 @document("*click", inherit=True)
 class Clickable(EventListener):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.click = EventListenerMethod(self, "click")
         """
         This listener is triggered when the component (e.g. a button) is clicked.
@@ -195,7 +196,8 @@ class Clickable(EventListener):
 
 @document("*submit", inherit=True)
 class Submittable(EventListener):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.submit = EventListenerMethod(self, "submit")
         """
         This listener is triggered when the user presses the Enter key while the component (e.g. a textbox) is focused.
@@ -205,7 +207,8 @@ class Submittable(EventListener):
 
 @document("*edit", inherit=True)
 class Editable(EventListener):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.edit = EventListenerMethod(self, "edit")
         """
         This listener is triggered when the user edits the component (e.g. image) using the
@@ -215,7 +218,8 @@ class Editable(EventListener):
 
 @document("*clear", inherit=True)
 class Clearable(EventListener):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.clear = EventListenerMethod(self, "clear")
         """
         This listener is triggered when the user clears the component (e.g. image or audio)
@@ -225,7 +229,8 @@ class Clearable(EventListener):
 
 @document("*play", "*pause", "*stop", "*end", inherit=True)
 class Playable(EventListener):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.play = EventListenerMethod(self, "play")
         """
         This listener is triggered when the user plays the component (e.g. audio or video).
@@ -253,7 +258,8 @@ class Playable(EventListener):
 
 @document("*stream", inherit=True)
 class Streamable(EventListener):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.streaming: bool
         self.stream = EventListenerMethod(
             self,
@@ -266,21 +272,10 @@ class Streamable(EventListener):
         component). This method can be used when this component is in a Gradio Blocks.
         """
 
-    def check_streamable(self):
-        pass
-
-
-class StreamableOutput(EventListener):
-    def __init__(self):
-        self.streaming: bool
-
-    def stream_output(self, y) -> bytes:
-        raise NotImplementedError
-
-
 @document("*start_recording", "*stop_recording", inherit=True)
 class Recordable(EventListener):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.start_recording = EventListenerMethod(self, "start_recording")
         """
         This listener is triggered when the user starts recording with the component (e.g. audio or video).
@@ -296,7 +291,8 @@ class Recordable(EventListener):
 
 @document("*focus", "*blur", inherit=True)
 class Focusable(EventListener):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.focus = EventListenerMethod(self, "focus")
         """
         This listener is triggered when the component is focused (e.g. when the user clicks inside a textbox).
@@ -312,7 +308,8 @@ class Focusable(EventListener):
 
 @document("*upload", inherit=True)
 class Uploadable(EventListener):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.upload = EventListenerMethod(self, "upload")
         """
         This listener is triggered when the user uploads a file into the component (e.g. when the user uploads a video into a video component).
@@ -322,7 +319,8 @@ class Uploadable(EventListener):
 
 @document("*release", inherit=True)
 class Releaseable(EventListener):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.release = EventListenerMethod(self, "release")
         """
         This listener is triggered when the user releases the mouse on this component (e.g. when the user releases the slider).
@@ -332,7 +330,8 @@ class Releaseable(EventListener):
 
 @document("*select", inherit=True)
 class Selectable(EventListener):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.selectable: bool = False
         self.select = EventListenerMethod(
             self, "select", callback=lambda: setattr(self, "selectable", True)

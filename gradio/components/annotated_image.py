@@ -10,7 +10,7 @@ from gradio_client.serializing import JSONSerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import utils
-from gradio.components.base import IOComponent, _Keywords
+from gradio.components.base import Component, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
     EventListenerMethod,
@@ -23,7 +23,7 @@ _Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
 
 @document()
-class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
+class AnnotatedImage(Selectable, JSONSerializable, Component):
     """
     Displays a base image and colored subsections on top of that image. Subsections can take the from of rectangles (e.g. object detection) or masks (e.g. image segmentation).
     Preprocessing: this component does *not* accept input.
@@ -82,8 +82,7 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
         Uses event data gradio.SelectData to carry `value` referring to selected subsection label, and `index` to refer to subsection index.
         See EventData documentation on how to use this event data.
         """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -105,7 +104,7 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
             "width": self.width,
             "color_map": self.color_map,
             "selectable": self.selectable,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     @staticmethod

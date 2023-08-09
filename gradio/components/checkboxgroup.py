@@ -7,7 +7,7 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import ListStringSerializable
 
-from gradio.components.base import FormComponent, IOComponent, _Keywords
+from gradio.components.base import FormComponent, Component, _Keywords
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
 from gradio.interpretation import NeighborInterpretable
@@ -17,13 +17,11 @@ set_documentation_group("component")
 
 @document()
 class CheckboxGroup(
-    FormComponent,
     Changeable,
     Inputable,
     Selectable,
-    IOComponent,
     ListStringSerializable,
-    NeighborInterpretable,
+    FormComponent
 ):
     """
     Creates a set of checkboxes of which a subset can be checked.
@@ -82,8 +80,7 @@ class CheckboxGroup(
         Uses event data gradio.SelectData to carry `value` referring to label of selected checkbox, `index` to refer to index, and `selected` to refer to state of checkbox.
         See EventData documentation on how to use this event data.
         """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             info=info,
             every=every,
@@ -98,13 +95,12 @@ class CheckboxGroup(
             value=value,
             **kwargs,
         )
-        NeighborInterpretable.__init__(self)
 
     def get_config(self):
         return {
             "choices": self.choices,
             "value": self.value,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     def example_inputs(self) -> dict[str, Any]:
@@ -174,42 +170,3 @@ class CheckboxGroup(
         if not isinstance(y, list):
             y = [y]
         return y
-
-    def get_interpretation_neighbors(self, x):
-        leave_one_out_sets = []
-        for choice in self.choices:
-            leave_one_out_set = list(x)
-            if choice in leave_one_out_set:
-                leave_one_out_set.remove(choice)
-            else:
-                leave_one_out_set.append(choice)
-            leave_one_out_sets.append(leave_one_out_set)
-        return leave_one_out_sets, {}
-
-    def get_interpretation_scores(self, x, neighbors, scores, **kwargs):
-        """
-        Returns:
-            For each tuple in the list, the first value represents the interpretation score if the input is False, and the second if the input is True.
-        """
-        final_scores = []
-        for choice, score in zip(self.choices, scores):
-            score_set = [score, None] if choice in x else [None, score]
-            final_scores.append(score_set)
-        return final_scores
-
-    def style(
-        self,
-        *,
-        item_container: bool | None = None,
-        container: bool | None = None,
-        **kwargs,
-    ):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if item_container is not None:
-            warn_deprecation("The `item_container` parameter is deprecated.")
-        if container is not None:
-            self.container = container
-        return self

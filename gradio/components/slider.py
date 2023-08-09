@@ -10,23 +10,20 @@ import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import NumberSerializable
 
-from gradio.components.base import FormComponent, IOComponent, _Keywords
+from gradio.components.base import FormComponent, Component, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Inputable, Releaseable
-from gradio.interpretation import NeighborInterpretable
 
 set_documentation_group("component")
 
 
 @document()
 class Slider(
-    FormComponent,
     Changeable,
     Inputable,
     Releaseable,
-    IOComponent,
     NumberSerializable,
-    NeighborInterpretable,
+    FormComponent
 ):
     """
     Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
@@ -88,8 +85,7 @@ class Slider(
             self.step = step
         if randomize:
             value = self.get_random_value
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             info=info,
             every=every,
@@ -104,7 +100,6 @@ class Slider(
             value=value,
             **kwargs,
         )
-        NeighborInterpretable.__init__(self)
 
     def api_info(self) -> dict[str, dict | bool]:
         return {
@@ -127,7 +122,7 @@ class Slider(
             "maximum": self.maximum,
             "step": self.step,
             "value": self.value,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     def get_random_value(self):
@@ -170,41 +165,3 @@ class Slider(
             "value": value,
             "__type__": "update",
         }
-
-    def postprocess(self, y: float | None) -> float | None:
-        """
-        Any postprocessing needed to be performed on function output.
-        Parameters:
-            y: numeric output
-        Returns:
-            numeric output or minimum number if None
-        """
-        return self.minimum if y is None else y
-
-    def set_interpret_parameters(self, steps: int = 8) -> Slider:
-        """
-        Calculates interpretation scores of numeric values ranging between the minimum and maximum values of the slider.
-        Parameters:
-            steps: Number of neighboring values to measure between the minimum and maximum values of the slider range.
-        """
-        self.interpretation_steps = steps
-        return self
-
-    def get_interpretation_neighbors(self, x) -> tuple[object, dict]:
-        return (
-            np.linspace(self.minimum, self.maximum, self.interpretation_steps).tolist(),
-            {},
-        )
-
-    def style(
-        self,
-        *,
-        container: bool | None = None,
-    ):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if container is not None:
-            self.container = container
-        return self

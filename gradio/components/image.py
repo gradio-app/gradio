@@ -15,8 +15,7 @@ from gradio_client.serializing import ImgSerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
-from gradio.components.base import IOComponent, _Keywords
-from gradio.deprecation import warn_style_method_deprecation
+from gradio.components.base import Component, _Keywords, StreamingInput
 from gradio.events import (
     Changeable,
     Clearable,
@@ -26,7 +25,6 @@ from gradio.events import (
     Streamable,
     Uploadable,
 )
-from gradio.interpretation import TokenInterpretable
 
 set_documentation_group("component")
 _Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
@@ -34,15 +32,15 @@ _Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
 @document()
 class Image(
+    StreamingInput,
     Editable,
     Clearable,
     Changeable,
     Streamable,
     Selectable,
     Uploadable,
-    IOComponent,
     ImgSerializable,
-    TokenInterpretable,
+    Component,
 ):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
@@ -115,6 +113,20 @@ class Image(
             mask_opacity: Opacity of mask drawn on image, as a value between 0 and 1.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
+        super().__init__(
+            label=label,
+            every=every,
+            show_label=show_label,
+            container=container,
+            scale=scale,
+            min_width=min_width,
+            interactive=interactive,
+            visible=visible,
+            elem_id=elem_id,
+            elem_classes=elem_classes,
+            value=value,
+            **kwargs,
+        )
         self.brush_radius = brush_radius
         self.brush_color = brush_color
         self.mask_opacity = mask_opacity
@@ -155,22 +167,6 @@ class Image(
             if show_share_button is None
             else show_share_button
         )
-        IOComponent.__init__(
-            self,
-            label=label,
-            every=every,
-            show_label=show_label,
-            container=container,
-            scale=scale,
-            min_width=min_width,
-            interactive=interactive,
-            visible=visible,
-            elem_id=elem_id,
-            elem_classes=elem_classes,
-            value=value,
-            **kwargs,
-        )
-        TokenInterpretable.__init__(self)
 
     def get_config(self):
         return {
@@ -189,7 +185,7 @@ class Image(
             "selectable": self.selectable,
             "show_share_button": self.show_share_button,
             "show_download_button": self.show_download_button,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     @staticmethod
@@ -318,115 +314,6 @@ class Image(
             return client_utils.encode_url_or_file_to_base64(y)
         else:
             raise ValueError("Cannot process this value as an Image")
-
-    def set_interpret_parameters(self, segments: int = 16):
-        """
-        Calculates interpretation score of image subsections by splitting the image into subsections, then using a "leave one out" method to calculate the score of each subsection by whiting out the subsection and measuring the delta of the output value.
-        Parameters:
-            segments: Number of interpretation segments to split image into.
-        """
-        self.interpretation_segments = segments
-        return self
-
-    def _segment_by_slic(self, x):
-        """
-        Helper method that segments an image into superpixels using slic.
-        Parameters:
-            x: base64 representation of an image
-        """
-        x = processing_utils.decode_base64_to_image(x)
-        if self.shape is not None:
-            x = processing_utils.resize_and_crop(x, self.shape)
-        resized_and_cropped_image = np.array(x)
-        try:
-            from skimage.segmentation import slic
-        except (ImportError, ModuleNotFoundError) as err:
-            raise ValueError(
-                "Error: running this interpretation for images requires scikit-image, please install it first."
-            ) from err
-        try:
-            segments_slic = slic(
-                resized_and_cropped_image,
-                self.interpretation_segments,
-                compactness=10,
-                sigma=1,
-                start_label=1,
-            )
-        except TypeError:  # For skimage 0.16 and older
-            segments_slic = slic(
-                resized_and_cropped_image,
-                self.interpretation_segments,
-                compactness=10,
-                sigma=1,
-            )
-        return segments_slic, resized_and_cropped_image
-
-    def tokenize(self, x):
-        """
-        Segments image into tokens, masks, and leave-one-out-tokens
-        Parameters:
-            x: base64 representation of an image
-        Returns:
-            tokens: list of tokens, used by the get_masked_input() method
-            leave_one_out_tokens: list of left-out tokens, used by the get_interpretation_neighbors() method
-            masks: list of masks, used by the get_interpretation_neighbors() method
-        """
-        segments_slic, resized_and_cropped_image = self._segment_by_slic(x)
-        tokens, masks, leave_one_out_tokens = [], [], []
-        replace_color = np.mean(resized_and_cropped_image, axis=(0, 1))
-        for segment_value in np.unique(segments_slic):
-            mask = segments_slic == segment_value
-            image_screen = np.copy(resized_and_cropped_image)
-            image_screen[segments_slic == segment_value] = replace_color
-            leave_one_out_tokens.append(
-                processing_utils.encode_array_to_base64(image_screen)
-            )
-            token = np.copy(resized_and_cropped_image)
-            token[segments_slic != segment_value] = 0
-            tokens.append(token)
-            masks.append(mask)
-        return tokens, leave_one_out_tokens, masks
-
-    def get_masked_inputs(self, tokens, binary_mask_matrix):
-        masked_inputs = []
-        for binary_mask_vector in binary_mask_matrix:
-            masked_input = np.zeros_like(tokens[0], dtype=int)
-            for token, b in zip(tokens, binary_mask_vector):
-                masked_input = masked_input + token * int(b)
-            masked_inputs.append(processing_utils.encode_array_to_base64(masked_input))
-        return masked_inputs
-
-    def get_interpretation_scores(
-        self, x, neighbors, scores, masks, tokens=None, **kwargs
-    ) -> list[list[float]]:
-        """
-        Returns:
-            A 2D array representing the interpretation score of each pixel of the image.
-        """
-        x = processing_utils.decode_base64_to_image(x)
-        if self.shape is not None:
-            x = processing_utils.resize_and_crop(x, self.shape)
-        x = np.array(x)
-        output_scores = np.zeros((x.shape[0], x.shape[1]))
-
-        for score, mask in zip(scores, masks):
-            output_scores += score * mask
-
-        max_val, min_val = np.max(output_scores), np.min(output_scores)
-        if max_val > 0:
-            output_scores = (output_scores - min_val) / (max_val - min_val)
-        return output_scores.tolist()
-
-    def style(self, *, height: int | None = None, width: int | None = None, **kwargs):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if height is not None:
-            self.height = height
-        if width is not None:
-            self.width = width
-        return self
 
     def check_streamable(self):
         if self.source != "webcam":

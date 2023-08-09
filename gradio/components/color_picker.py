@@ -7,7 +7,7 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.components.base import IOComponent, _Keywords
+from gradio.components.base import Component, _Keywords
 from gradio.events import (
     Changeable,
     Focusable,
@@ -20,7 +20,7 @@ set_documentation_group("component")
 
 @document()
 class ColorPicker(
-    Changeable, Inputable, Submittable, Focusable, IOComponent, StringSerializable
+    Changeable, Inputable, Submittable, Focusable, StringSerializable, Component
 ):
     """
     Creates a color picker for user to select a color as string input.
@@ -62,8 +62,7 @@ class ColorPicker(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             info=info,
             every=every,
@@ -88,7 +87,7 @@ class ColorPicker(
     def get_config(self):
         return {
             "value": self.value,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     @staticmethod

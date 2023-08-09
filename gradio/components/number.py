@@ -9,7 +9,7 @@ import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import NumberSerializable
 
-from gradio.components.base import FormComponent, IOComponent, _Keywords
+from gradio.components.base import FormComponent, Component, _Keywords
 from gradio.events import (
     Changeable,
     Focusable,
@@ -24,14 +24,12 @@ set_documentation_group("component")
 
 @document()
 class Number(
-    FormComponent,
     Changeable,
     Inputable,
     Submittable,
     Focusable,
-    IOComponent,
     NumberSerializable,
-    NeighborInterpretable,
+    FormComponent,
 ):
     """
     Creates a numeric field for user to enter numbers as input or display numeric output.
@@ -87,8 +85,7 @@ class Number(
         self.maximum = maximum
         self.step = step
 
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             info=info,
             every=every,
@@ -103,7 +100,6 @@ class Number(
             value=value,
             **kwargs,
         )
-        NeighborInterpretable.__init__(self)
 
     @staticmethod
     def _round_to_precision(num: float | int, precision: int | None) -> float | int:
@@ -132,7 +128,7 @@ class Number(
             "maximum": self.maximum,
             "step": self.step,
             "container": self.container,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     @staticmethod
@@ -193,52 +189,3 @@ class Number(
         if y is None:
             return None
         return self._round_to_precision(y, self.precision)
-
-    def set_interpret_parameters(
-        self, steps: int = 3, delta: float = 1, delta_type: str = "percent"
-    ):
-        """
-        Calculates interpretation scores of numeric values close to the input number.
-        Parameters:
-            steps: Number of nearby values to measure in each direction (above and below the input number).
-            delta: Size of step in each direction between nearby values.
-            delta_type: "percent" if delta step between nearby values should be a calculated as a percent, or "absolute" if delta should be a constant step change.
-        """
-        self.interpretation_steps = steps
-        self.interpretation_delta = delta
-        self.interpretation_delta_type = delta_type
-        return self
-
-    def get_interpretation_neighbors(self, x: float | int) -> tuple[list[float], dict]:
-        x = self._round_to_precision(x, self.precision)
-        if self.interpretation_delta_type == "percent":
-            delta = 1.0 * self.interpretation_delta * x / 100
-        elif self.interpretation_delta_type == "absolute":
-            delta = self.interpretation_delta
-        else:
-            delta = self.interpretation_delta
-        if self.precision == 0 and math.floor(delta) != delta:
-            raise ValueError(
-                f"Delta value {delta} is not an integer and precision=0. Cannot generate valid set of neighbors. "
-                "If delta_type='percent', pick a value of delta such that x * delta is an integer. "
-                "If delta_type='absolute', pick a value of delta that is an integer."
-            )
-        # run_interpretation will preprocess the neighbors so no need to convert to int here
-        negatives = (
-            np.array(x) + np.arange(-self.interpretation_steps, 0) * delta
-        ).tolist()
-        positives = (
-            np.array(x) + np.arange(1, self.interpretation_steps + 1) * delta
-        ).tolist()
-        return negatives + positives, {}
-
-    def get_interpretation_scores(
-        self, x: float, neighbors: list[float], scores: list[float | None], **kwargs
-    ) -> list[tuple[float, float | None]]:
-        """
-        Returns:
-            Each tuple set represents a numeric value near the input and its corresponding interpretation score.
-        """
-        interpretation = list(zip(neighbors, scores))
-        interpretation.insert(int(len(interpretation) / 2), (x, None))
-        return interpretation

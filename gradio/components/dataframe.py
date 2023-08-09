@@ -10,7 +10,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
 from gradio import utils
-from gradio.components.base import IOComponent, _Keywords
+from gradio.components.base import Component, _Keywords
 from gradio.events import (
     Changeable,
     EventListenerMethod,
@@ -30,7 +30,7 @@ set_documentation_group("component")
 
 
 @document()
-class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable):
+class Dataframe(Changeable, Inputable, Selectable, JSONSerializable, Component):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
@@ -133,8 +133,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         Uses event data gradio.SelectData to carry `value` referring to value of selected cell, and `index` tuple to refer to index row and column.
         See EventData documentation on how to use this event data.
         """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -159,7 +158,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             "max_cols": self.max_cols,
             "overflow_row_behaviour": self.overflow_row_behaviour,
             "wrap": self.wrap,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     @staticmethod

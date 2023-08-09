@@ -562,7 +562,7 @@ class TestComponentsInBlocks:
                 label="Random Slider (Input 2)",
             )
         for component in demo.blocks.values():
-            if isinstance(component, gr.components.IOComponent):
+            if isinstance(component, gr.components.Component):
                 if "Non-random" in component.label:
                     assert not component.load_event_to_attach
                 else:

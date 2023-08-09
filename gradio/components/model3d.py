@@ -9,7 +9,7 @@ from gradio_client import media_data
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
-from gradio.components.base import IOComponent, _Keywords
+from gradio.components.base import Component, _Keywords
 from gradio.events import (
     Changeable,
     Clearable,
@@ -22,7 +22,7 @@ set_documentation_group("component")
 
 @document()
 class Model3D(
-    Changeable, Uploadable, Editable, Clearable, IOComponent, FileSerializable
+    Changeable, Uploadable, Editable, Clearable, FileSerializable, Component
 ):
     """
     Component allows users to upload or view 3D Model files (.obj, .glb, or .gltf).
@@ -64,8 +64,7 @@ class Model3D(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.clear_color = clear_color or [0, 0, 0, 0]
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -83,7 +82,7 @@ class Model3D(
         return {
             "clearColor": self.clear_color,
             "value": self.value,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     def example_inputs(self) -> dict[str, Any]:
