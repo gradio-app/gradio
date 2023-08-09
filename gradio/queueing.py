@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import json
 import time
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import deque
-from typing import Any
+from typing import Any, Optional
 
 import fastapi
 import httpx
@@ -35,7 +36,7 @@ class Event:
         self._id = f"{self.session_hash}_{self.fn_index}"
         self.data: PredictBody | None = None
         self.lost_connection_time: float | None = None
-        self.token: str | None = None
+        self.username: Optional[str] = None
         self.progress: Progress | None = None
         self.progress_pending: bool = False
         self.log_messages: deque[LogMessage] = deque()
@@ -47,12 +48,14 @@ class Event:
 class Queue:
     def __init__(
         self,
+        app: fastapi.FastAPI,
         live_updates: bool,
         concurrency_count: int,
         update_intervals: float,
         max_size: int | None,
         blocks_dependencies: list,
     ):
+        self.app = app
         self.event_queue: deque[Event] = deque()
         self.events_pending_reconnection = []
         self.stopped = False
@@ -71,7 +74,6 @@ class Queue:
         self.progress_update_sleep_when_free = 0.1
         self.max_size = max_size
         self.blocks_dependencies = blocks_dependencies
-        self.access_token = ""
         self.queue_client = None
         self.continuous_tasks: list[Event] = []
 
@@ -92,9 +94,6 @@ class Queue:
 
     def set_url(self, url: str):
         self.server_path = url
-
-    def set_access_token(self, token: str):
-        self.access_token = token
 
     def get_active_worker_count(self) -> int:
         count = 0
@@ -346,10 +345,10 @@ class Queue:
             "client": {"host": websocket.client.host, "port": websocket.client.port},  # type: ignore
         }
 
-    async def call_prediction(self, events: list[Event], batch: bool):
+    async def call_prediction(self, events: list[Event], batch: bool) -> fastapi.responses.JSONResponse:
         data = events[0].data
         assert data is not None, "No event data"
-        token = events[0].token
+        username = events[0].username
         data.event_id = events[0]._id if not batch else None
         try:
             data.request = self.get_request_params(events[0].websocket)
@@ -364,15 +363,116 @@ class Queue:
                 if event.data
             ]
             data.batched = True
-        response = await AsyncRequest(
-            method=AsyncRequest.Method.POST,
-            url=f"{self.server_path}api/predict",
-            json=dict(data),
-            headers={"Authorization": f"Bearer {self.access_token}"},
-            cookies={"access-token": token} if token is not None else None,
-            client=self.queue_client,
+
+        ## TODO: extract the following code copied from routes.py into a shared function.
+        from copy import deepcopy
+        import traceback
+        from gradio import utils
+        from gradio.helpers import EventData
+        from gradio.routes import Request
+        from gradio.exceptions import Error
+        from fastapi.responses import JSONResponse
+        api_name = "predict"
+        app = self.app
+        body = data
+        default_response_class = app.router.default_response_class
+
+        fn_index_inferred = None
+        if body.fn_index is None:
+            for i, fn in enumerate(app.get_blocks().dependencies):
+                if fn["api_name"] == api_name:
+                    fn_index_inferred = i
+                    break
+            if fn_index_inferred is None:
+                return JSONResponse(
+                    content={
+                        "error": f"This app has no endpoint /api/{api_name}/."
+                    },
+                    status_code=500,
+                )
+        else:
+            fn_index_inferred = body.fn_index
+
+        # If this fn_index cancels jobs, then the only input we need is the
+        # current session hash
+        if app.get_blocks().dependencies[fn_index_inferred]["cancels"]:
+            body.data = [body.session_hash]
+        if body.request:
+            if body.batched:
+                gr_request = [
+                    Request(username=username, **req) for req in body.request
+                ]
+            else:
+                assert isinstance(body.request, dict)
+                gr_request = Request(username=username, **body.request)
+        else:
+            gr_request = Request(username=username, request=request)  # TODO
+
+        fn_index = body.fn_index
+        if hasattr(body, "session_hash"):
+            if body.session_hash not in app.state_holder:
+                app.state_holder[body.session_hash] = {
+                    _id: deepcopy(getattr(block, "value", None))
+                    for _id, block in app.get_blocks().blocks.items()
+                    if getattr(block, "stateful", False)
+                }
+            session_state = app.state_holder[body.session_hash]
+            # The should_reset set keeps track of the fn_indices
+            # that have been cancelled. When a job is cancelled,
+            # the /reset route will mark the jobs as having been reset.
+            # That way if the cancel job finishes BEFORE the job being cancelled
+            # the job being cancelled will not overwrite the state of the iterator.
+            if fn_index in app.iterators_to_reset[body.session_hash]:
+                iterators = {}
+                app.iterators_to_reset[body.session_hash].remove(fn_index)
+            else:
+                iterators = app.iterators[body.session_hash]
+        else:
+            session_state = {}
+            iterators = {}
+
+        event_id = getattr(body, "event_id", None)
+        raw_input = body.data
+
+        dependency = app.get_blocks().dependencies[fn_index_inferred]
+        target = dependency["targets"][0] if len(dependency["targets"]) else None
+        event_data = EventData(
+            app.get_blocks().blocks.get(target) if target else None,
+            body.event_data,
         )
-        return response
+        batch = dependency["batch"]
+        if not (body.batched) and batch:
+            raw_input = [raw_input]
+        try:
+            with utils.MatplotlibBackendMananger():
+                output = await app.get_blocks().process_api(
+                    fn_index=fn_index_inferred,
+                    inputs=raw_input,
+                    request=gr_request,
+                    state=session_state,
+                    iterators=iterators,
+                    event_id=event_id,
+                    event_data=event_data,
+                )
+            iterator = output.pop("iterator", None)
+            if hasattr(body, "session_hash"):
+                app.iterators[body.session_hash][fn_index] = iterator
+            if isinstance(output, Error):
+                output = default_response_class(output)  # Added
+                raise output
+        except BaseException as error:
+            show_error = app.get_blocks().show_error or isinstance(error, Error)
+            traceback.print_exc()
+            return JSONResponse(
+                content={"error": str(error) if show_error else None},
+                status_code=500,
+            )
+
+        if not (body.batched) and batch:
+            output["data"] = output["data"][0]
+
+        output = default_response_class(output)  # Added
+        return output
 
     async def process_events(self, events: list[Event], batch: bool) -> None:
         awake_events: list[Event] = []
@@ -388,29 +488,33 @@ class Queue:
             if not awake_events:
                 return
             begin_time = time.time()
-            response = await self.call_prediction(awake_events, batch)
-            if response.has_exception:
+            try:
+                response = await self.call_prediction(awake_events, batch)
+                response_json = json.loads(response.body.decode("utf-8"))
+            except Exception as e:
+                response = None
                 for event in awake_events:
                     await self.send_message(
                         event,
                         {
                             "msg": "process_completed",
-                            "output": {"error": str(response.exception)},
+                            "output": {"error": str(e)},
                             "success": False,
                         },
                     )
-            elif response.json.get("is_generating", False):
+            if response and response_json.get("is_generating", False):
                 old_response = response
-                while response.json.get("is_generating", False):
+                while response_json.get("is_generating", False):
                     old_response = response
+                    old_response_json = response_json
                     open_ws = []
                     for event in awake_events:
                         open = await self.send_message(
                             event,
                             {
                                 "msg": "process_generating",
-                                "output": old_response.json,
-                                "success": old_response.status == 200,
+                                "output": old_response_json,
+                                "success": old_response.status_code == 200,
                             },
                         )
                         open_ws.append(open)
@@ -420,25 +524,29 @@ class Queue:
                     if not awake_events:
                         return
                     response = await self.call_prediction(awake_events, batch)
+                    response_json = json.loads(response.body.decode("utf-8"))
                 for event in awake_events:
-                    if response.status != 200:
+                    if response.status_code != 200:
                         relevant_response = response
                     else:
                         relevant_response = old_response
+                    relevant_response_json = json.loads(
+                        relevant_response.body.decode("utf-8")
+                    )
                     await self.send_log_updates_for_event(event)
                     await self.send_message(
                         event,
                         {
                             "msg": "process_completed",
-                            "output": relevant_response.json,
-                            "success": relevant_response.status == 200,
+                            "output": relevant_response_json,
+                            "success": relevant_response.status_code == 200,
                         },
                     )
-            else:
-                output = copy.deepcopy(response.json)
+            elif response:
+                output = copy.deepcopy(response_json)
                 for e, event in enumerate(awake_events):
                     if batch and "data" in output:
-                        output["data"] = list(zip(*response.json.get("data")))[e]
+                        output["data"] = list(zip(*response_json.get("data")))[e]
                     await self.send_log_updates_for_event(
                         event
                     )  # clean out pending log updates first
@@ -447,11 +555,11 @@ class Queue:
                         {
                             "msg": "process_completed",
                             "output": output,
-                            "success": response.status == 200,
+                            "success": response.status_code == 200,
                         },
                     )
             end_time = time.time()
-            if response.status == 200:
+            if response.status_code == 200:
                 self.update_estimation(end_time - begin_time)
         except Exception as e:
             print(e)
@@ -491,6 +599,7 @@ class Queue:
             return None, False
 
     async def reset_iterators(self, session_hash: str, fn_index: int):
+        # TODO: Replace with a direct function call
         await AsyncRequest(
             method=AsyncRequest.Method.POST,
             url=f"{self.server_path}reset",

@@ -115,7 +115,6 @@ class App(FastAPI):
         self.iterators = defaultdict(dict)
         self.iterators_to_reset = defaultdict(set)
         self.lock = asyncio.Lock()
-        self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
         self.uploaded_file_dir = os.environ.get("GRADIO_TEMP_DIR") or str(
             Path(tempfile.gettempdir()) / "gradio"
@@ -137,8 +136,6 @@ class App(FastAPI):
             self.auth = None
 
         self.blocks = blocks
-        if hasattr(self.blocks, "_queue"):
-            self.blocks._queue.set_access_token(self.queue_token)
         self.cwd = os.getcwd()
         self.favicon_path = blocks.favicon_path
         self.tokens = {}
@@ -205,7 +202,7 @@ class App(FastAPI):
             token = websocket.cookies.get("access-token") or websocket.cookies.get(
                 "access-token-unsecure"
             )
-            return token  # token is returned to allow request in queue
+            return token  # token is returned to authenticate the websocket connection in the endpoint handler.
 
         @app.get("/token")
         @app.get("/token/")
@@ -400,6 +397,7 @@ class App(FastAPI):
                 app.iterators_to_reset[body.session_hash].add(body.fn_index)
             return {"success": True}
 
+        # TODO: Delete this function
         async def run_predict(
             body: PredictBody,
             request: Request | List[Request],
@@ -494,15 +492,6 @@ class App(FastAPI):
                     )
             else:
                 fn_index_inferred = body.fn_index
-            if (
-                not app.get_blocks().api_open
-                and app.get_blocks().queue_enabled_for_fn(fn_index_inferred)
-                and f"Bearer {app.queue_token}" != request.headers.get("Authorization")
-            ):
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Not authorized to skip the queue",
-                )
 
             # If this fn_index cancels jobs, then the only input we need is the
             # current session hash
@@ -518,12 +507,77 @@ class App(FastAPI):
                     gr_request = Request(username=username, **body.request)
             else:
                 gr_request = Request(username=username, request=request)
-            result = await run_predict(
-                body=body,
-                fn_index_inferred=fn_index_inferred,
-                request=gr_request,
+
+            # result = await run_predict(
+            #     body=body,
+            #     fn_index_inferred=fn_index_inferred,
+            #     request=gr_request,
+            # )
+            # return result
+
+            fn_index = body.fn_index
+            if hasattr(body, "session_hash"):
+                if body.session_hash not in app.state_holder:
+                    app.state_holder[body.session_hash] = {
+                        _id: deepcopy(getattr(block, "value", None))
+                        for _id, block in app.get_blocks().blocks.items()
+                        if getattr(block, "stateful", False)
+                    }
+                session_state = app.state_holder[body.session_hash]
+                # The should_reset set keeps track of the fn_indices
+                # that have been cancelled. When a job is cancelled,
+                # the /reset route will mark the jobs as having been reset.
+                # That way if the cancel job finishes BEFORE the job being cancelled
+                # the job being cancelled will not overwrite the state of the iterator.
+                if fn_index in app.iterators_to_reset[body.session_hash]:
+                    iterators = {}
+                    app.iterators_to_reset[body.session_hash].remove(fn_index)
+                else:
+                    iterators = app.iterators[body.session_hash]
+            else:
+                session_state = {}
+                iterators = {}
+
+            event_id = getattr(body, "event_id", None)
+            raw_input = body.data
+
+            dependency = app.get_blocks().dependencies[fn_index_inferred]
+            target = dependency["targets"][0] if len(dependency["targets"]) else None
+            event_data = EventData(
+                app.get_blocks().blocks.get(target) if target else None,
+                body.event_data,
             )
-            return result
+            batch = dependency["batch"]
+            if not (body.batched) and batch:
+                raw_input = [raw_input]
+            try:
+                with utils.MatplotlibBackendMananger():
+                    output = await app.get_blocks().process_api(
+                        fn_index=fn_index_inferred,
+                        inputs=raw_input,
+                        request=gr_request,
+                        state=session_state,
+                        iterators=iterators,
+                        event_id=event_id,
+                        event_data=event_data,
+                    )
+                iterator = output.pop("iterator", None)
+                if hasattr(body, "session_hash"):
+                    app.iterators[body.session_hash][fn_index] = iterator
+                if isinstance(output, Error):
+                    raise output
+            except BaseException as error:
+                show_error = app.get_blocks().show_error or isinstance(error, Error)
+                traceback.print_exc()
+                return JSONResponse(
+                    content={"error": str(error) if show_error else None},
+                    status_code=500,
+                )
+
+            if not (body.batched) and batch:
+                output["data"] = output["data"][0]
+            return output
+
 
         @app.websocket("/queue/join")
         async def join_queue(
@@ -557,8 +611,8 @@ class App(FastAPI):
             event = Event(
                 websocket, session_info["session_hash"], session_info["fn_index"]
             )
-            # set the token into Event to allow using the same token for call_prediction
-            event.token = token
+            # set the username into Event to allow using the same username for call_prediction
+            event.username = app.tokens.get(token)
             event.session_hash = session_info["session_hash"]
 
             # Continuous events are not put in the queue  so that they do not
