@@ -74,8 +74,8 @@
 	}
 
 	const dispatch = createEventDispatcher<{
-		change: undefined;
-		upload: undefined;
+		change: never;
+		upload: never;
 	}>();
 
 	$: value = !value ? { text: null, files: [] } : value;
