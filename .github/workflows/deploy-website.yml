@@ -30,6 +30,11 @@ jobs:
     outputs:
       vercel_url: ${{ steps.output_url.outputs.vercel_url }}
     steps:
+      - uses: actions/checkout@v3
+      - name: install dependencies
+        uses: "./.github/actions/install-frontend-deps"
+        with:
+          always-install-pnpm: true
       - name: Install Vercel CLI
         shell: bash
         run: pnpm install --global vercel@latest
