@@ -107,7 +107,8 @@ def is_update():
     return hasattr(context.thread_data, "blocks")
 
 
-def get(default: Any):
+T = TypeVar("T")
+def get(default: T) -> T | _NoOverride:
     if is_update():
         return NoOverride if isinstance(default, Default) else default
     else:
@@ -2269,7 +2270,10 @@ Received outputs:
         return self.dependencies[fn_index]["queue"]
 
 
-class _NoOverride:
+class _NoOverride(Default):
+    def __init__(self):
+        pass
+
     @classmethod
     def __bool__(cls):
         return False
@@ -2281,5 +2285,3 @@ NoOverride = _NoOverride()
 class FinishedIterating:
     pass
 
-
-T = TypeVar("T")

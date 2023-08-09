@@ -17,7 +17,7 @@ class TextArea(components.Textbox):
 
     def __init__(
         self,
-        value: str | Callable | None = "",
+        value: str | Callable = "",
         *,
         lines: int = 7,
         max_lines: int = 20,
