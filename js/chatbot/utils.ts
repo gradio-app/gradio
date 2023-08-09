@@ -200,8 +200,26 @@ export const format_chat_for_sharing = async (
 					if (message === null) return "";
 					let speaker_emoji = i === 0 ? "😃" : "🤖";
 					let html_content = "";
+
 					if (typeof message === "string") {
+						const regexPatterns = {
+							'audio': /<audio.*?src="(\/file=.*?)"/g,
+							'video': /<video.*?src="(\/file=.*?)"/g,
+							'image': /<img.*?src="(\/file=.*?)".*?\/>|!\[.*?\]\((\/file=.*?)\)/g,
+						};
+				
 						html_content = message;
+				
+						for (let [_, regex] of Object.entries(regexPatterns)) {
+							let match;
+				
+							while ((match = regex.exec(message)) !== null) {
+								const fileUrl = match[1] || match[2];
+								const newUrl = await uploadToHuggingFace(fileUrl, "url");
+								html_content = html_content.replace(fileUrl, newUrl);
+							}
+						}
+				
 					} else {
 						const file_url = await uploadToHuggingFace(message.data, "url");
 						if (message.mime_type?.includes("audio")) {
@@ -212,6 +230,9 @@ export const format_chat_for_sharing = async (
 							html_content = `<img src="${file_url}" />`;
 						}
 					}
+				
+
+
 					return `${speaker_emoji}: ${html_content}`;
 				})
 			);
