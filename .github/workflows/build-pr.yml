@@ -60,7 +60,7 @@ jobs:
         path: demo/all_demos
     - name: Create metadata artifact
       run: |
-        python -c "import json; json.dump({'gh_sha': '${{ github.sha }}', 'pr_number': ${{ steps.get_pr_number.outputs.GRADIO_VERSION }}, 'version': '${{ steps.get_pr_number.outputs.GRADIO_VERSION }}', 'wheel': 'gradio-${{ steps.get_pr_number.outputs.GRADIO_VERSION }}-py3-none-any.whl'},  open('metadata.json', 'w'))"
+        python -c "import json; json.dump({'gh_sha': '${{ github.sha }}', 'pr_number': ${{ steps.get_pr_number.outputs.pr_number }}, 'version': '${{ steps.get_pr_number.outputs.GRADIO_VERSION }}', 'wheel': 'gradio-${{ steps.get_pr_number.outputs.GRADIO_VERSION }}-py3-none-any.whl'},  open('metadata.json', 'w'))"
     - name: Upload metadata
       uses: actions/upload-artifact@v3
       with:
