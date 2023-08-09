@@ -358,7 +358,7 @@ class RichtextboxSerializable(Serializable):
 
     def serialized_info(self):
         return {
-            "type": "dict",
+            "type": "string",
             "description": "Dict of text from rich textbox and List of filepath(s) or URL(s) to files",
         }
 
@@ -370,13 +370,14 @@ class RichtextboxSerializable(Serializable):
 
     def example_inputs(self) -> dict[str, Any]:
         return {
-            "text": "This is a sample text",
-            "files": {
-                "raw": [{"is_file": False, "data": media_data.BASE64_FILE}],
-                "serialized": [
-                    "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
-                ],
-            },
+            "raw": [{
+                "text": "This is a sample text",
+                "files": [{"is_file": False, "data": media_data.BASE64_FILE}],
+            }],
+            "serialized": [{
+                "text": "This is a sample text",
+                "files": ["https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"],
+            }],
         }
 
     def serialize(
@@ -624,7 +625,7 @@ SERIALIZER_MAPPING["UploadButton"] = FileSerializable
 
 COMPONENT_MAPPING: dict[str, type] = {
     "textbox": StringSerializable,
-    "richtextbox": StringSerializable,
+    "richtextbox": RichtextboxSerializable,
     "number": NumberSerializable,
     "slider": NumberSerializable,
     "checkbox": BooleanSerializable,

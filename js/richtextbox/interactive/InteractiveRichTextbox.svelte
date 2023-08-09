@@ -66,20 +66,14 @@
 					}
 				);
 			}
-			dispatch("change", value.files);
-			dispatch("upload", detail.files);
+			dispatch("change");
+			dispatch("upload");
 		});
 	}
 
 	const dispatch = createEventDispatcher<{
-		change: {
-			text: string | null;
-			files: [string | FileData][];
-		};
-		upload: {
-			text: string | null;
-			files: [string | FileData][];
-		};
+		change: undefined
+		upload: undefined
 	}>();
 
 	$: value = !value ? { text: null, files: [] } : value;

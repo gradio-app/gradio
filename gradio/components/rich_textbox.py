@@ -10,8 +10,7 @@ from pathlib import Path
 from gradio import utils
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import StringSerializable
-from gradio_client.serializing import FileSerializable
+from gradio_client.serializing import RichtextboxSerializable
 
 from gradio.components.base import (
     FormComponent,
@@ -39,10 +38,9 @@ class RichTextbox(
     Selectable,
     Submittable,
     IOComponent,
-    StringSerializable,
     Clickable,
     Uploadable,
-    FileSerializable,
+    RichtextboxSerializable,
 ):
     """
     Used to create a textbox that allows a user to input text and/or upload files.
@@ -280,7 +278,7 @@ class RichTextbox(
                 Text and a list of JSON object with key 'name' for filename, 'data' for base64 url, and 'size' for filesize in bytes
             """
             if y is None or y == {}:
-                return {"text": "", "files": []}
+                return {"text": None, "files": []}
             else:
                 files = [
                     {

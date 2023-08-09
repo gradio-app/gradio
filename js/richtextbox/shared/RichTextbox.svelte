@@ -47,22 +47,19 @@
 	$: value, el && lines !== max_lines && resize({ target: el });
 
 	const dispatch = createEventDispatcher<{
-		change: {
-			text: string | null;
-			files: [string | FileData];
-		};
+		change: undefined
 		submit: undefined;
 		blur: undefined;
 		select: SelectData;
 		input: undefined;
 		load: {
 			text: string | null;
-			files: [string | FileData];
+			files: [string | FileData][];
 		};
 	}>();
 
 	function handle_change() {
-		dispatch("change", value);
+		dispatch("change");
 		dispatch("input");
 	}
 	$: value, handle_change();
@@ -72,7 +69,7 @@
 	}
 
 	async function handle_copy() {
-		if ("clipboard" in navigator) {
+		if ("clipboard" in navigator && value.text != null) {
 			await navigator.clipboard.writeText(value.text);
 			copy_feedback();
 		}
