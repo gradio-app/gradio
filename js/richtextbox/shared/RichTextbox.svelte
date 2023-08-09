@@ -10,21 +10,20 @@
 		text: string | null;
 		files: string[] | FileData[];
 	} = { text: null, files: [] };
-	export let lines: number = 1;
-	export let placeholder: string = "Type here...";
+	export let lines = 1;
+	export let placeholder = "Type here...";
 	export let label: string;
 	export let info: string | undefined = undefined;
 	export let disabled = false;
-	export let show_label: boolean = true;
-	export let container: boolean = true;
+	export let show_label = true;
+	export let container = true;
 	export let max_lines: number;
-	export let show_copy_button: boolean = false;
+	export let show_copy_button = false;
 	export let rtl = false;
-	export let autofocus: boolean = false;
+	export let autofocus = false;
 	export let text_align: "left" | "right" | undefined = undefined;
 	export let file_count: string;
 	export let file_types: string[] = [];
-	export let include_file_metadata = true;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
@@ -58,24 +57,24 @@
 		};
 	}>();
 
-	function handle_change() {
+	function handle_change(): void {
 		dispatch("change");
 		dispatch("input");
 	}
 	$: value, handle_change();
 
-	function handle_blur() {
+	function handle_blur(): void {
 		dispatch("blur");
 	}
 
-	async function handle_copy() {
+	async function handle_copy(): Promise<void> {
 		if ("clipboard" in navigator && value.text != null) {
 			await navigator.clipboard.writeText(value.text);
 			copy_feedback();
 		}
 	}
 
-	function copy_feedback() {
+	function copy_feedback(): void {
 		copied = true;
 		if (timer) clearTimeout(timer);
 		timer = setTimeout(() => {
@@ -83,7 +82,7 @@
 		}, 1000);
 	}
 
-	function handle_select(event: Event) {
+	function handle_select(event: Event): void {
 		const target: HTMLTextAreaElement | HTMLInputElement = event.target as
 			| HTMLTextAreaElement
 			| HTMLInputElement;
@@ -95,7 +94,7 @@
 		dispatch("select", { value: text.substring(...index), index: index });
 	}
 
-	async function handle_keypress(e: KeyboardEvent) {
+	async function handle_keypress(e: KeyboardEvent): Promise<void> {
 		await tick();
 		if (e.key === "Enter" && e.shiftKey && lines > 1) {
 			e.preventDefault();
@@ -113,7 +112,7 @@
 
 	async function resize(
 		event: Event | { target: HTMLTextAreaElement | HTMLInputElement }
-	) {
+	): Promise<void> {
 		await tick();
 		if (lines === max_lines || !container) return;
 
@@ -139,11 +138,11 @@
 		target.style.height = `${scroll_height}px`;
 	}
 
-	const openFileUpload = () => {
+	function openFileUpload(): void {
 		hidden_upload.click();
 	};
 
-	const loadFiles = (files: FileList) => {
+	function loadFiles(files: FileList): void {
 		let _files: File[] = Array.from(files);
 		if (!files.length) {
 			return;
@@ -166,7 +165,7 @@
 		});
 	};
 
-	const loadFilesFromUpload = (e: Event) => {
+	function loadFilesFromUpload(e: Event): void {
 		const target = e.target as HTMLInputElement;
 		if (!target.files) {
 			return;
@@ -174,18 +173,18 @@
 		loadFiles(target.files);
 	};
 
-	const clearInputValue = (e: Event) => {
+	function clearInputValue(e: Event): void {
 		const target = e.target as HTMLInputElement;
 		if (target.value) target.value = "";
 	};
 
-	const clearFiles = (e: Event) => {
+	function clearFiles(e: Event): void {
 		value.files = [];
 		e.preventDefault();
 	};
 </script>
 
-<!-- svelte-ignore a11y-label-has-associated-control -->
+<!-- svelte-ignore a11y-autofocus -->
 <label class:container>
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
@@ -271,9 +270,7 @@
 		width: 100%;
 	}
 
-	label:not(.container),
-	label:not(.container) > input,
-	label:not(.container) > textarea {
+	label:not(.container) {
 		height: 100%;
 	}
 	input:disabled,
