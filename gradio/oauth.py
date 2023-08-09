@@ -5,9 +5,7 @@ import os
 import typing
 
 import fastapi
-from authlib.integrations.starlette_client import OAuth
 from fastapi.responses import RedirectResponse
-from starlette.middleware.sessions import SessionMiddleware
 
 OAUTH_CLIENT_ID = os.environ.get("OAUTH_CLIENT_ID")
 OAUTH_CLIENT_SECRET = os.environ.get("OAUTH_CLIENT_SECRET")
@@ -16,6 +14,14 @@ OPENID_PROVIDER_URL = os.environ.get("OPENID_PROVIDER_URL")
 
 
 def attach_oauth(app: fastapi.FastAPI):
+    try:
+        from authlib.integrations.starlette_client import OAuth
+        from starlette.middleware.sessions import SessionMiddleware
+    except ImportError as e:
+        raise ImportError(
+            "Cannot initialize OAuth to due a missing library. Please run `pip install gradio[oauth]` to install the required dependencies."
+        ) from e
+
     # Check environment variables
     msg = "OAuth is required but {} environment variable is not set. Make sure you've enabled OAuth in your Space by setting `hf_oauth: true` in the Space metadata."
     if OAUTH_CLIENT_ID is None:

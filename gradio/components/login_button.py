@@ -25,7 +25,8 @@ class LoginButton(Button):
         value: str = "Sign in with Hugging Face",
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         size: Literal["sm", "lg"] | None = None,
-        icon: str | None = "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
+        icon: str
+        | None = "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
         link: str | None = None,
         visible: bool = True,
         interactive: bool = True,

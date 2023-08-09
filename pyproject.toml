@@ -48,6 +48,9 @@ pattern = "(?P<version>.+)"
 [tool.hatch.metadata.hooks.requirements_txt]
 filename = "requirements.txt"
 
+[tool.hatch.metadata.hooks.requirements_txt.optional-dependencies]
+oauth = ["requirements-oauth.txt"]
+
 [tool.hatch.metadata.hooks.fancy-pypi-readme]
 content-type = "text/markdown"
 fragments = [
