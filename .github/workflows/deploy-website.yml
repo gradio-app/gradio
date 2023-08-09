@@ -92,7 +92,7 @@ jobs:
   comment-deploy-failure:
     uses: "./.github/workflows/comment-queue.yml"
     needs: deploy
-    if: needs.deploy.result == 'failure'
+    if: always() && needs.deploy.result == 'failure'
     secrets:
       gh_token: ${{ secrets.gh_token }}
     with:

@@ -8,6 +8,9 @@ on:
 
 jobs:
   deploy-current-pr:
+    outputs:
+      pr_number: ${{ steps.set-outputs.outputs.pr_number }}
+      space_url: ${{ steps.upload-demo.outputs.SPACE_URL }}
     runs-on: ubuntu-latest
     if: >
       github.event.workflow_run.event == 'pull_request' &&
@@ -23,21 +26,22 @@ jobs:
     - name: Download metadata
       run: python scripts/download_artifacts.py ${{github.event.workflow_run.id }} metadata.json ${{ secrets.COMMENT_TOKEN }} --owner ${{ github.repository_owner }}
     - run: unzip metadata.json.zip
-    - name: Pipe metadata to env
+    - name: set outputs
+      id: set-outputs
       run: |
-        echo "wheel_name=$(python -c 'import json; print(json.load(open("metadata.json"))["wheel"])')" >> $GITHUB_ENV
-        echo "gh_sha=$(python -c 'import json; print(json.load(open("metadata.json"))["gh_sha"])')" >> $GITHUB_ENV
-        echo "gradio_version=$(python -c 'import json; print(json.load(open("metadata.json"))["version"])')" >> $GITHUB_ENV
-        echo "pr_number=$(python -c 'import json; print(json.load(open("metadata.json"))["pr_number"])')" >> $GITHUB_ENV
+        echo "wheel_name=$(python -c 'import json; print(json.load(open("metadata.json"))["wheel"])')" >> $GITHUB_OUTPUT
+        echo "gh_sha=$(python -c 'import json; print(json.load(open("metadata.json"))["gh_sha"])')" >> $GITHUB_OUTPUT
+        echo "gradio_version=$(python -c 'import json; print(json.load(open("metadata.json"))["version"])')" >> $GITHUB_OUTPUT
+        echo "pr_number=$(python -c 'import json; print(json.load(open("metadata.json"))["pr_number"])')" >> $GITHUB_OUTPUT
     - name: 'Download wheel'
-      run: python scripts/download_artifacts.py ${{ github.event.workflow_run.id }} ${{ env.wheel_name }} ${{ secrets.COMMENT_TOKEN }} --owner ${{ github.repository_owner }}
-    - run: unzip ${{ env.wheel_name }}.zip
+      run: python scripts/download_artifacts.py ${{ github.event.workflow_run.id }} ${{ steps.set-outputs.outputs.wheel_name }} ${{ secrets.COMMENT_TOKEN }} --owner ${{ github.repository_owner }}
+    - run: unzip ${{ steps.set-outputs.outputs.wheel_name }}.zip
     - name: Upload wheel
       run: |
         export AWS_ACCESS_KEY_ID=${{ secrets.PR_DEPLOY_KEY }}
         export AWS_SECRET_ACCESS_KEY=${{ secrets.PR_DEPLOY_SECRET }}
         export AWS_DEFAULT_REGION=us-east-1
-        aws s3 cp ${{ env.wheel_name }} s3://gradio-builds/${{ env.gh_sha  }}/
+        aws s3 cp ${{ steps.set-outputs.outputs.wheel_name }} s3://gradio-builds/${{ steps.set-outputs.outputs.gh_sha  }}/
     - name: Install Hub Client Library
       run: pip install huggingface-hub
     - name: 'Download all_demos'
@@ -45,24 +49,46 @@ jobs:
     - run: unzip all_demos.zip -d all_demos
     - run: cp -R all_demos/* demo/all_demos
     - name: Upload demo to spaces
+      id: upload-demo
       run: |
         python scripts/upload_demo_to_space.py all_demos \
-        gradio-pr-deploys/pr-${{ env.pr_number }}-all-demos \
+        gradio-pr-deploys/pr-${{ steps.set-outputs.outputs.pr_number }}-all-demos \
         ${{ secrets.SPACES_DEPLOY_TOKEN }} \
-        --gradio-version ${{ env.gradio_version }} > url.txt
-        echo "SPACE_URL=$(cat url.txt)" >> $GITHUB_ENV
-    - name: Comment On Release PR
-      uses: thollander/actions-comment-pull-request@v2
-      with:
-        message: |
-          All the demos for this PR have been deployed at ${{ env.SPACE_URL }}
+        --gradio-version ${{ steps.set-outputs.outputs.gradio_version }} > url.txt
+        echo "SPACE_URL=$(cat url.txt)" >> $GITHUB_OUTPUT
+    # - name: Comment On Release PR
+    #   uses: thollander/actions-comment-pull-request@v2
+    #   with:
+    #     message: |
+    #       All the demos for this PR have been deployed at ${{ steps.set-outputs.outputs.SPACE_URL }}
 
-          ---
-          You can install the changes in this PR by running:
-          ```bash
-          pip install https://gradio-builds.s3.amazonaws.com/${{ env.gh_sha }}/gradio-${{ env.gradio_version }}-py3-none-any.whl
-          ```
+    #       ---
+    #       You can install the changes in this PR by running:
+    #       ```bash
+    #       pip install https://gradio-builds.s3.amazonaws.com/${{ steps.set-outputs.outputs.gh_sha }}/gradio-${{ steps.set-outputs.outputs.gradio_version }}-py3-none-any.whl
+    #       ```
 
-        comment_tag: All the demos for this PR have been deployed at
-        GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
-        pr_number: ${{ env.pr_number }}
+    #     comment_tag: All the demos for this PR have been deployed at
+    #     GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
+    #     pr_number: ${{ steps.set-outputs.outputs.pr_number }}
+  comment-spaces-success:
+    uses: "./.github/workflows/comment-queue.yml"
+    needs: [deploy-current-pr]
+    if: >
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      needs.deploy-current-pr.result == 'success'
+    secrets:
+      gh_token: ${{ secrets.COMMENT_TOKEN }}
+    with:
+      pr_number: ${{ needs.deploy-current-pr.outputs.pr_number }}
+      message: spaces~success~${{ needs.deploy-current-pr.outputs.space_url }}
+  comment-spaces-failure:
+    uses: "./.github/workflows/comment-queue.yml"
+    needs: [deploy-current-pr]
+    if: always() && needs.deploy-current-pr.result == 'failure'
+    secrets:
+      gh_token: ${{ secrets.COMMENT_TOKEN }}
+    with:
+      pr_number: ${{ needs.deploy-current-pr.outputs.pr_number }}
+      message: spaces~failure~null

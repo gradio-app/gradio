@@ -64,7 +64,7 @@ jobs:
     uses: "./.github/workflows/deploy-website.yml"
     needs:  functional-test
     secrets:
-      gh_token: ${{ secrets.GITHUB_TOKEN }}
+      gh_token: ${{ secrets.COMMENT_TOKEN }}
       vercel_token: ${{ secrets.VERCEL_TOKEN }}
       vercel_org_id: ${{ secrets.VERCEL_ORG_ID }}
       vercel_project_id: ${{ secrets.VERCEL_PROJECT_ID }}

@@ -9,24 +9,12 @@ on:
         - 'demo/**'
 
 jobs:
-  get-pr:
-    name: Get PR Number
-    runs-on: ubuntu-latest
-    outputs:
-      pr_number: ${{ steps.pr_number.outputs.pr_number }}
-    steps:
-      - name: Get PR Number
-        id: pr_number
-        run: |
-          python -c "import os;print(os.environ['GITHUB_REF'].split('/')[2])" > pr_number.txt
-          echo "PR_NUMBER=$(cat pr_number.txt)" >> $GITHUB_ENV
   comment-notebook-start:
     uses: "./.github/workflows/comment-queue.yml"
-    needs: get-pr
     secrets:
-      gh_token: ${{ secrets.github_token }}
+      gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
-      pr_number: ${{ needs.get-pr.outputs.pr_number }}
+      pr_number: ${{ github.event.pull_request.number }}
       message: notebooks~pending~null
   check-notebooks:
     name: Generate Notebooks and Check 

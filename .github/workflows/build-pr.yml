@@ -6,6 +6,13 @@ on:
       - main
 
 jobs:
+  comment-spaces-start:
+    uses: "./.github/workflows/comment-queue.yml"
+    secrets:
+      gh_token: ${{ secrets.COMMENT_TOKEN }}
+    with:
+      pr_number: ${{ github.event.pull_request.number }}
+      message: spaces~pending~null
   build_pr:
     runs-on: ubuntu-latest
     steps:
@@ -26,13 +33,14 @@ jobs:
     - name: Install pip
       run: python -m pip install build requests
     - name: Get PR Number
+      id: get_pr_number
       run: |
         python -c "import os;print(os.environ['GITHUB_REF'].split('/')[2])" > pr_number.txt
         echo "PR_NUMBER=$(cat pr_number.txt)" >> $GITHUB_ENV
-        echo "GRADIO_VERSION=$(python -c 'import requests;print(requests.get("https://pypi.org/pypi/gradio/json").json()["info"]["version"])')" >> $GITHUB_ENV
+        echo "GRADIO_VERSION=$(python -c 'import requests;print(requests.get("https://pypi.org/pypi/gradio/json").json()["info"]["version"])')" >> $GITHUB_OUTPUT
     - name: Build pr package
       run: |
-        echo ${{ env.GRADIO_VERSION }} > gradio/version.txt
+        echo ${{ steps.get_pr_number.outputs.GRADIO_VERSION }} > gradio/version.txt
         pnpm i --frozen-lockfile
         pnpm build
         python3 -m build -w
@@ -41,10 +49,10 @@ jobs:
     - name: Upload wheel
       uses: actions/upload-artifact@v3
       with:
-        name: gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl
-        path: dist/gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl
+        name: gradio-${{ steps.get_pr_number.outputs.GRADIO_VERSION }}-py3-none-any.whl
+        path: dist/gradio-${{ steps.get_pr_number.outputs.GRADIO_VERSION }}-py3-none-any.whl
     - name: Set up Demos
-      run: python scripts/copy_demos.py https://gradio-builds.s3.amazonaws.com/${{ github.sha }}/gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl
+      run: python scripts/copy_demos.py https://gradio-builds.s3.amazonaws.com/${{ github.sha }}/gradio-${{ steps.get_pr_number.outputs.GRADIO_VERSION }}-py3-none-any.whl
     - name: Upload all_demos
       uses: actions/upload-artifact@v3
       with:
@@ -52,7 +60,7 @@ jobs:
         path: demo/all_demos
     - name: Create metadata artifact
       run: |
-        python -c "import json; json.dump({'gh_sha': '${{ github.sha }}', 'pr_number': ${{ env.PR_NUMBER }}, 'version': '${{ env.GRADIO_VERSION }}', 'wheel': 'gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl'},  open('metadata.json', 'w'))"
+        python -c "import json; json.dump({'gh_sha': '${{ github.sha }}', 'pr_number': ${{ steps.get_pr_number.outputs.GRADIO_VERSION }}, 'version': '${{ steps.get_pr_number.outputs.GRADIO_VERSION }}', 'wheel': 'gradio-${{ steps.get_pr_number.outputs.GRADIO_VERSION }}-py3-none-any.whl'},  open('metadata.json', 'w'))"
     - name: Upload metadata
       uses: actions/upload-artifact@v3
       with:
