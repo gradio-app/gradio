@@ -13,7 +13,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import VideoSerializable
 
 from gradio import processing_utils, utils, wasm_utils
-from gradio.components.base import IOComponent, _Keywords
+from gradio.components.base import Component, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Clearable, Playable, Recordable, Uploadable
 
@@ -31,8 +31,8 @@ class Video(
     Playable,
     Recordable,
     Uploadable,
-    IOComponent,
     VideoSerializable,
+    Component
 ):
     """
     Creates a video component that can be used to upload/record videos (as an input) or display videos (as an output).
@@ -115,8 +115,7 @@ class Video(
             if show_share_button is None
             else show_share_button
         )
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -141,7 +140,7 @@ class Video(
             "include_audio": self.include_audio,
             "autoplay": self.autoplay,
             "show_share_button": self.show_share_button,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     @staticmethod

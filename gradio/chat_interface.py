@@ -16,7 +16,7 @@ from gradio.blocks import Blocks
 from gradio.components import (
     Button,
     Chatbot,
-    IOComponent,
+    Component,
     Markdown,
     State,
     Textbox,
@@ -57,7 +57,7 @@ class ChatInterface(Blocks):
         *,
         chatbot: Chatbot | None = None,
         textbox: Textbox | None = None,
-        additional_inputs: str | IOComponent | list[str | IOComponent] | None = None,
+        additional_inputs: str | Component | list[str | Component] | None = None,
         additional_inputs_accordion_name: str = "Additional Inputs",
         examples: list[str] | None = None,
         cache_examples: bool | None = None,

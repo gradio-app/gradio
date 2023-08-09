@@ -9,7 +9,7 @@ from gradio_client.serializing import (
     JSONSerializable,
 )
 
-from gradio.components.base import IOComponent, _Keywords
+from gradio.components.base import Component, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
     Changeable,
@@ -21,7 +21,7 @@ set_documentation_group("component")
 
 
 @document()
-class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
+class HighlightedText(Changeable, Selectable, Component, JSONSerializable):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
     Preprocessing: this component does *not* accept input.
@@ -77,8 +77,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
         Uses event data gradio.SelectData to carry `value` referring to selected [text, label] tuple, and `index` to refer to span index.
         See EventData documentation on how to use this event data.
         """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -98,7 +97,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
             "show_legend": self.show_legend,
             "value": self.value,
             "selectable": self.selectable,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     @staticmethod

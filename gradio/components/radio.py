@@ -7,23 +7,19 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.components.base import FormComponent, IOComponent, _Keywords
-from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
+from gradio.components.base import FormComponent, Component, _Keywords
 from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
-from gradio.interpretation import NeighborInterpretable
 
 set_documentation_group("component")
 
 
 @document()
 class Radio(
-    FormComponent,
     Selectable,
     Changeable,
     Inputable,
-    IOComponent,
     StringSerializable,
-    NeighborInterpretable,
+    FormComponent
 ):
     """
     Creates a set of (string or numeric type) radio buttons of which only one can be selected.
@@ -83,8 +79,7 @@ class Radio(
         Uses event data gradio.SelectData to carry `value` referring to label of selected option, and `index` to refer to index.
         See EventData documentation on how to use this event data.
         """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             info=info,
             every=every,
@@ -99,13 +94,12 @@ class Radio(
             value=value,
             **kwargs,
         )
-        NeighborInterpretable.__init__(self)
 
     def get_config(self):
         return {
             "choices": self.choices,
             "value": self.value,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     def example_inputs(self) -> dict[str, Any]:
@@ -163,35 +157,3 @@ class Radio(
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
-
-    def get_interpretation_neighbors(self, x):
-        choices = list(self.choices)
-        choices.remove(x)
-        return choices, {}
-
-    def get_interpretation_scores(
-        self, x, neighbors, scores: list[float | None], **kwargs
-    ) -> list:
-        """
-        Returns:
-            Each value represents the interpretation score corresponding to each choice.
-        """
-        scores.insert(self.choices.index(x), None)
-        return scores
-
-    def style(
-        self,
-        *,
-        item_container: bool | None = None,
-        container: bool | None = None,
-        **kwargs,
-    ):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if item_container is not None:
-            warn_deprecation("The `item_container` parameter is deprecated.")
-        if container is not None:
-            self.container = container
-        return self

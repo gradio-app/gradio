@@ -9,7 +9,7 @@ from gradio_client.serializing import StringSerializable
 
 from gradio.components.base import (
     Component,
-    IOComponent,
+    Component,
     _Keywords,
     get_component_instance,
 )
@@ -19,7 +19,7 @@ set_documentation_group("component")
 
 
 @document()
-class Dataset(Clickable, Selectable, Component, StringSerializable):
+class Dataset(Clickable, Selectable, StringSerializable, Component):
     """
     Used to create an output widget for showing datasets. Used to render the examples
     box.
@@ -31,7 +31,7 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
         self,
         *,
         label: str | None = None,
-        components: list[IOComponent] | list[str],
+        components: list[Component] | list[str],
         samples: list[list[Any]] | None = None,
         headers: list[str] | None = None,
         type: Literal["values", "index"] = "values",
@@ -58,8 +58,8 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
         """
-        Component.__init__(
-            self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
+        super().__init__(
+            visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
         )
         self.container = container
         self.scale = scale
@@ -68,9 +68,9 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
 
         # Narrow type to IOComponent
         assert all(
-            isinstance(c, IOComponent) for c in self.components
+            isinstance(c, Component) for c in self.components
         ), "All components in a `Dataset` must be subclasses of `IOComponent`"
-        self.components = [c for c in self.components if isinstance(c, IOComponent)]
+        self.components = [c for c in self.components if isinstance(c, Component)]
         for component in self.components:
             component.root_url = self.root_url
 

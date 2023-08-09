@@ -9,7 +9,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
 from gradio import utils
-from gradio.components.base import Component, IOComponent, _Keywords
+from gradio.components.base import Component, Component, _Keywords
 from gradio.events import (
     Changeable,
 )
@@ -18,7 +18,7 @@ set_documentation_group("component")
 
 
 @document()
-class Markdown(IOComponent, Changeable, StringSerializable):
+class Markdown(Changeable, StringSerializable, Component):
     """
     Used to render arbitrary Markdown output. Can also render latex enclosed by dollar signs.
     Preprocessing: this component does *not* accept input.
@@ -48,8 +48,7 @@ class Markdown(IOComponent, Changeable, StringSerializable):
         """
         self.md = utils.get_markdown_parser()
         self.rtl = rtl
-        IOComponent.__init__(
-            self,
+        super().__init__(
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,

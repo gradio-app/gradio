@@ -11,7 +11,7 @@ from gradio_client.serializing import GallerySerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import utils
-from gradio.components.base import IOComponent, _Keywords
+from gradio.components.base import Component, _Keywords
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
     EventListenerMethod,
@@ -22,7 +22,7 @@ set_documentation_group("component")
 
 
 @document()
-class Gallery(IOComponent, GallerySerializable, Selectable):
+class Gallery(GallerySerializable, Selectable, Component):
     """
     Used to display a list of images as a gallery that can be scrolled through.
     Preprocessing: this component does *not* accept input.
@@ -101,8 +101,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             if show_share_button is None
             else show_share_button
         )
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -166,7 +165,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             "allow_preview": self.allow_preview,
             "show_share_button": self.show_share_button,
             "show_download_button": self.show_download_button,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     def postprocess(

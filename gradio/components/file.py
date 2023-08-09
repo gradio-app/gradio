@@ -12,7 +12,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio import utils
-from gradio.components.base import IOComponent, _Keywords
+from gradio.components.base import Component, _Keywords
 from gradio.deprecation import warn_deprecation
 from gradio.events import (
     Changeable,
@@ -31,7 +31,7 @@ class File(
     Selectable,
     Clearable,
     Uploadable,
-    IOComponent,
+    Component,
     FileSerializable,
 ):
     """
@@ -108,8 +108,7 @@ class File(
         Uses event data gradio.SelectData to carry `value` referring to name of selected file, and `index` to refer to index.
         See EventData documentation on how to use this event data.
         """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -130,7 +129,7 @@ class File(
             "file_types": self.file_types,
             "value": self.value,
             "selectable": self.selectable,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     @staticmethod

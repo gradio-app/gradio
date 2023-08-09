@@ -7,22 +7,19 @@ from typing import Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import BooleanSerializable
 
-from gradio.components.base import FormComponent, IOComponent, _Keywords
+from gradio.components.base import FormComponent, Component, _Keywords
 from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
-from gradio.interpretation import NeighborInterpretable
 
 set_documentation_group("component")
 
 
 @document()
 class Checkbox(
-    FormComponent,
     Changeable,
     Inputable,
     Selectable,
-    IOComponent,
     BooleanSerializable,
-    NeighborInterpretable,
+    FormComponent
 ):
     """
     Creates a checkbox that can be set to `True` or `False`.
@@ -71,8 +68,7 @@ class Checkbox(
         Uses event data gradio.SelectData to carry `value` referring to label of checkbox, and `selected` to refer to state of checkbox.
         See EventData documentation on how to use this event data.
         """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             info=info,
             every=every,
@@ -87,12 +83,11 @@ class Checkbox(
             value=value,
             **kwargs,
         )
-        NeighborInterpretable.__init__(self)
 
     def get_config(self):
         return {
             "value": self.value,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     @staticmethod

@@ -12,7 +12,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
 from gradio import processing_utils
-from gradio.components.base import IOComponent, _Keywords
+from gradio.components.base import Component, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Clearable
 
@@ -20,7 +20,7 @@ set_documentation_group("component")
 
 
 @document()
-class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
+class Plot(Changeable, Clearable, JSONSerializable, Component):
     """
     Used to display various kinds of plots (matplotlib, plotly, or bokeh are supported)
     Preprocessing: this component does *not* accept input.
@@ -58,8 +58,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -83,7 +82,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         return {
             "value": self.value,
             "bokeh_version": bokeh_version,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     @staticmethod

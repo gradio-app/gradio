@@ -11,7 +11,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio import utils
-from gradio.components.base import Component, IOComponent, _Keywords
+from gradio.components.base import Component, Component, _Keywords
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Clickable, Uploadable
 
@@ -19,7 +19,7 @@ set_documentation_group("component")
 
 
 @document()
-class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
+class UploadButton(Clickable, Uploadable, FileSerializable, Component):
     """
     Used to create an upload button, when cicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
@@ -76,8 +76,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         self.file_types = file_types
         self.label = label
         self.variant = variant
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             visible=visible,
             elem_id=elem_id,

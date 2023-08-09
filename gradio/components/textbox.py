@@ -10,7 +10,7 @@ from gradio_client.serializing import StringSerializable
 
 from gradio.components.base import (
     FormComponent,
-    IOComponent,
+    Component,
     _Keywords,
 )
 from gradio.deprecation import warn_style_method_deprecation
@@ -22,22 +22,19 @@ from gradio.events import (
     Selectable,
     Submittable,
 )
-from gradio.interpretation import TokenInterpretable
 
 set_documentation_group("component")
 
 
 @document()
 class Textbox(
-    FormComponent,
     Changeable,
     Inputable,
     Selectable,
     Submittable,
     Focusable,
-    IOComponent,
     StringSerializable,
-    TokenInterpretable,
+    FormComponent
 ):
     """
     Creates a textarea for user to enter string input or display string output.
@@ -114,8 +111,7 @@ class Textbox(
         Uses event data gradio.SelectData to carry `value` referring to selected substring, and `index` tuple referring to selected range endpoints.
         See EventData documentation on how to use this event data.
         """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             info=info,
             every=every,
@@ -130,7 +126,6 @@ class Textbox(
             value=value,
             **kwargs,
         )
-        TokenInterpretable.__init__(self)
         self.type = type
         self.rtl = rtl
         self.text_align = text_align
@@ -147,7 +142,7 @@ class Textbox(
             "container": self.container,
             "text_align": self.text_align,
             "rtl": self.rtl,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     @staticmethod
@@ -210,75 +205,3 @@ class Textbox(
             text
         """
         return None if y is None else str(y)
-
-    def set_interpret_parameters(
-        self, separator: str = " ", replacement: str | None = None
-    ):
-        """
-        Calculates interpretation score of characters in input by splitting input into tokens, then using a "leave one out" method to calculate the score of each token by removing each token and measuring the delta of the output value.
-        Parameters:
-            separator: Separator to use to split input into tokens.
-            replacement: In the "leave one out" step, the text that the token should be replaced with. If None, the token is removed altogether.
-        """
-        self.interpretation_separator = separator
-        self.interpretation_replacement = replacement
-        return self
-
-    def tokenize(self, x: str) -> tuple[list[str], list[str], None]:
-        """
-        Tokenizes an input string by dividing into "words" delimited by self.interpretation_separator
-        """
-        tokens = x.split(self.interpretation_separator)
-        leave_one_out_strings = []
-        for index in range(len(tokens)):
-            leave_one_out_set = list(tokens)
-            if self.interpretation_replacement is None:
-                leave_one_out_set.pop(index)
-            else:
-                leave_one_out_set[index] = self.interpretation_replacement
-            leave_one_out_strings.append(
-                self.interpretation_separator.join(leave_one_out_set)
-            )
-        return tokens, leave_one_out_strings, None
-
-    def get_masked_inputs(
-        self, tokens: list[str], binary_mask_matrix: list[list[int]]
-    ) -> list[str]:
-        """
-        Constructs partially-masked sentences for SHAP interpretation
-        """
-        masked_inputs = []
-        for binary_mask_vector in binary_mask_matrix:
-            masked_input = np.array(tokens)[np.array(binary_mask_vector, dtype=bool)]
-            masked_inputs.append(self.interpretation_separator.join(masked_input))
-        return masked_inputs
-
-    def get_interpretation_scores(
-        self, x, neighbors, scores: list[float], tokens: list[str], masks=None, **kwargs
-    ) -> list[tuple[str, float]]:
-        """
-        Returns:
-            Each tuple set represents a set of characters and their corresponding interpretation score.
-        """
-        result = []
-        for token, score in zip(tokens, scores):
-            result.append((token, score))
-            result.append((self.interpretation_separator, 0))
-        return result
-
-    def style(
-        self,
-        *,
-        show_copy_button: bool | None = None,
-        container: bool | None = None,
-        **kwargs,
-    ):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if show_copy_button is not None:
-            self.show_copy_button = show_copy_button
-        if container is not None:
-            self.container = container
-        return self

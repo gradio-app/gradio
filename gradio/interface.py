@@ -20,7 +20,7 @@ from gradio.components import (
     ClearButton,
     DuplicateButton,
     Interpretation,
-    IOComponent,
+    Component,
     Markdown,
     State,
     get_component_instance,
@@ -122,8 +122,8 @@ class Interface(Blocks):
     def __init__(
         self,
         fn: Callable,
-        inputs: str | IOComponent | list[str | IOComponent] | None,
-        outputs: str | IOComponent | list[str | IOComponent] | None,
+        inputs: str | Component | list[str | Component] | None,
+        outputs: str | Component | list[str | Component] | None,
         examples: list[Any] | list[list[Any]] | str | None = None,
         cache_examples: bool | None = None,
         examples_per_page: int = 10,
@@ -199,8 +199,8 @@ class Interface(Blocks):
             inputs = []
             self.interface_type = InterfaceTypes.OUTPUT_ONLY
 
-        assert isinstance(inputs, (str, list, IOComponent))
-        assert isinstance(outputs, (str, list, IOComponent))
+        assert isinstance(inputs, (str, list, Component))
+        assert isinstance(outputs, (str, list, Component))
 
         if not isinstance(inputs, list):
             inputs = [inputs]
@@ -252,7 +252,7 @@ class Interface(Blocks):
         ]
 
         for component in self.input_components + self.output_components:
-            if not (isinstance(component, IOComponent)):
+            if not (isinstance(component, Component)):
                 raise ValueError(
                     f"{component} is not a valid input/output component for Interface."
                 )
@@ -269,7 +269,7 @@ class Interface(Blocks):
             InterfaceTypes.OUTPUT_ONLY,
         ]:
             for o in self.output_components:
-                assert isinstance(o, IOComponent)
+                assert isinstance(o, Component)
                 if o.interactive is None:
                     # Unless explicitly otherwise specified, force output components to
                     # be non-interactive
@@ -380,11 +380,11 @@ class Interface(Blocks):
             if utils.is_special_typed_parameter(param_name, param_types):
                 param_names.remove(param_name)
         for component, param_name in zip(self.input_components, param_names):
-            assert isinstance(component, IOComponent)
+            assert isinstance(component, Component)
             if component.label is None:
                 component.label = param_name
         for i, component in enumerate(self.output_components):
-            assert isinstance(component, IOComponent)
+            assert isinstance(component, Component)
             if component.label is None:
                 if len(self.output_components) == 1:
                     component.label = "output"

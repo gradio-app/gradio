@@ -8,7 +8,7 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import SimpleSerializable
 
-from gradio.components.base import FormComponent, IOComponent, _Keywords
+from gradio.components.base import FormComponent, Component, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
     Changeable,
@@ -23,13 +23,12 @@ set_documentation_group("component")
 
 @document()
 class Dropdown(
-    FormComponent,
     Changeable,
     Inputable,
     Selectable,
     Focusable,
-    IOComponent,
     SimpleSerializable,
+    FormComponent,
 ):
     """
     Creates a dropdown of choices from which entries can be selected.
@@ -108,8 +107,7 @@ class Dropdown(
         Uses event data gradio.SelectData to carry `value` referring to label of selected option, and `index` to refer to index.
         See EventData documentation on how to use this event data.
         """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             info=info,
             every=every,
@@ -156,7 +154,7 @@ class Dropdown(
             "max_choices": self.max_choices,
             "allow_custom_value": self.allow_custom_value,
             "container": self.container,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     @staticmethod

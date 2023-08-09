@@ -30,7 +30,7 @@ from gradio.flagging import CSVLogger
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio.blocks import Block
-    from gradio.components import IOComponent
+    from gradio.components import Component
 
 CACHED_FOLDER = "gradio_cached_examples"
 LOG_FILE = "log.csv"
@@ -40,8 +40,8 @@ set_documentation_group("helpers")
 
 def create_examples(
     examples: list[Any] | list[list[Any]] | str,
-    inputs: IOComponent | list[IOComponent],
-    outputs: IOComponent | list[IOComponent] | None = None,
+    inputs: Component | list[Component],
+    outputs: Component | list[Component] | None = None,
     fn: Callable | None = None,
     cache_examples: bool = False,
     examples_per_page: int = 10,
@@ -91,8 +91,8 @@ class Examples:
     def __init__(
         self,
         examples: list[Any] | list[list[Any]] | str,
-        inputs: IOComponent | list[IOComponent],
-        outputs: IOComponent | list[IOComponent] | None = None,
+        inputs: Component | list[Component],
+        outputs: Component | list[Component] | None = None,
         fn: Callable | None = None,
         cache_examples: bool = False,
         examples_per_page: int = 10,

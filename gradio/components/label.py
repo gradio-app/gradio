@@ -11,7 +11,7 @@ from gradio_client.serializing import (
     JSONSerializable,
 )
 
-from gradio.components.base import IOComponent, _Keywords
+from gradio.components.base import Component, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
     Changeable,
@@ -23,7 +23,7 @@ set_documentation_group("component")
 
 
 @document()
-class Label(Changeable, Selectable, IOComponent, JSONSerializable):
+class Label(Changeable, Selectable, JSONSerializable, Component):
     """
     Displays a classification label, along with confidence scores of top categories, if provided.
     Preprocessing: this component does *not* accept input.
@@ -75,8 +75,7 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
         Uses event data gradio.SelectData to carry `value` referring to name of selected category, and `index` to refer to index.
         See EventData documentation on how to use this event data.
         """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -96,7 +95,7 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
             "value": self.value,
             "color": self.color,
             "selectable": self.selectable,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     def postprocess(self, y: dict[str, float] | str | float | None) -> dict | None:

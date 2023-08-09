@@ -3,6 +3,7 @@ Along with the docs for each component, you can find the names of example demos 
 each component. These demos are located in the `demo` directory."""
 
 from __future__ import annotations
+import abc
 
 import hashlib
 import os
@@ -52,79 +53,6 @@ class _Keywords(Enum):
 
 class Component(Block, Serializable):
     """
-    A base class for defining the methods that all gradio components should have.
-    """
-
-    def __init__(self, *args, **kwargs):
-        Block.__init__(self, *args, **kwargs)
-        EventListener.__init__(self)
-
-    def __str__(self):
-        return self.__repr__()
-
-    def __repr__(self):
-        return f"{self.get_block_name()}"
-
-    def get_config(self):
-        """
-        :return: a dictionary with context variables for the javascript file associated with the context
-        """
-        return {
-            "name": self.get_block_name(),
-            "custom_component": not self.__module__.startswith("gradio.components"),
-            **super().get_config(),
-        }
-
-    def preprocess(self, x: Any) -> Any:
-        """
-        Any preprocessing needed to be performed on function input.
-        """
-        return x
-
-    def postprocess(self, y):
-        """
-        Any postprocessing needed to be performed on function output.
-        """
-        return y
-
-    def style(self, *args, **kwargs):
-        """
-        This method is deprecated. Please set these arguments in the Components constructor instead.
-        """
-        warn_style_method_deprecation()
-        put_deprecated_params_in_box = False
-        if "rounded" in kwargs:
-            warn_deprecation(
-                "'rounded' styling is no longer supported. To round adjacent components together, place them in a Column(variant='box')."
-            )
-            if isinstance(kwargs["rounded"], (list, tuple)):
-                put_deprecated_params_in_box = True
-            kwargs.pop("rounded")
-        if "margin" in kwargs:
-            warn_deprecation(
-                "'margin' styling is no longer supported. To place adjacent components together without margin, place them in a Column(variant='box')."
-            )
-            if isinstance(kwargs["margin"], (list, tuple)):
-                put_deprecated_params_in_box = True
-            kwargs.pop("margin")
-        if "border" in kwargs:
-            warn_deprecation(
-                "'border' styling is no longer supported. To place adjacent components in a shared border, place them in a Column(variant='box')."
-            )
-            kwargs.pop("border")
-        for key in kwargs:
-            warn_deprecation(f"Unknown style parameter: {key}")
-        if (
-            put_deprecated_params_in_box
-            and isinstance(self.parent, (Row, Column))
-            and self.parent.variant == "default"
-        ):
-            self.parent.variant = "compact"
-        return self
-
-
-class IOComponent(Component):
-    """
     A base class for defining methods that all input/output components should have.
     """
 
@@ -151,9 +79,7 @@ class IOComponent(Component):
             Path(tempfile.gettempdir()) / "gradio"
         )
 
-        Component.__init__(
-            self, elem_id=elem_id, elem_classes=elem_classes, visible=visible, **kwargs
-        )
+        Block.__init__(self, elem_id=elem_id, elem_classes=elem_classes, visible=visible, **kwargs)
 
         self.label = label
         self.info = info
@@ -346,10 +272,12 @@ class IOComponent(Component):
             "scale": self.scale,
             "min_width": self.min_width,
             "interactive": self.interactive,
+            "name": self.get_block_name(),
             **super().get_config(),
         }
         if self.info:
             config["info"] = self.info
+        config["custom_component"] = not self.__module__.startswith("gradio.components")
         return config
 
     @staticmethod
@@ -361,17 +289,74 @@ class IOComponent(Component):
             initial_value = value
             load_fn = None
         return load_fn, initial_value
+    
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        return f"{self.get_block_name()}"
+
+    def preprocess(self, x: Any) -> Any:
+        """
+        Any preprocessing needed to be performed on function input.
+        """
+        return x
+
+    def postprocess(self, y):
+        """
+        Any postprocessing needed to be performed on function output.
+        """
+        return y
+
 
     def attach_load_event(self, callable: Callable, every: float | None):
         """Add a load event that runs `callable`, optionally every `every` seconds."""
         self.load_event_to_attach = (callable, every)
+
 
     def as_example(self, input_data):
         """Return the input data in a way that can be displayed by the examples dataset component in the front-end."""
         return input_data
 
 
-class FormComponent:
+    def style(self, *args, **kwargs):
+        """
+        This method is deprecated. Please set these arguments in the Components constructor instead.
+        """
+        warn_style_method_deprecation()
+        put_deprecated_params_in_box = False
+        if "rounded" in kwargs:
+            warn_deprecation(
+                "'rounded' styling is no longer supported. To round adjacent components together, place them in a Column(variant='box')."
+            )
+            if isinstance(kwargs["rounded"], (list, tuple)):
+                put_deprecated_params_in_box = True
+            kwargs.pop("rounded")
+        if "margin" in kwargs:
+            warn_deprecation(
+                "'margin' styling is no longer supported. To place adjacent components together without margin, place them in a Column(variant='box')."
+            )
+            if isinstance(kwargs["margin"], (list, tuple)):
+                put_deprecated_params_in_box = True
+            kwargs.pop("margin")
+        if "border" in kwargs:
+            warn_deprecation(
+                "'border' styling is no longer supported. To place adjacent components in a shared border, place them in a Column(variant='box')."
+            )
+            kwargs.pop("border")
+        for key in kwargs:
+            warn_deprecation(f"Unknown style parameter: {key}")
+        if (
+            put_deprecated_params_in_box
+            and isinstance(self.parent, (Row, Column))
+            and self.parent.variant == "default"
+        ):
+            self.parent.variant = "compact"
+        return self
+
+
+class FormComponent(Component):
+
     def get_expected_parent(self) -> type[Form] | None:
         if getattr(self, "container", None) is False:
             return None
@@ -406,3 +391,22 @@ def get_component_instance(comp: str | dict | Component, render=True) -> Compone
         raise ValueError(
             f"Component must provided as a `str` or `dict` or `Component` but is {comp}"
         )
+
+
+class StreamingOutput(metaclass=abc.ABCMeta):
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.streaming: bool
+    
+    @abc.abstractmethod
+    def stream_output(self, y) -> bytes:
+        pass
+
+
+class StreamingInput(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def check_streamable(self):
+        """Used to check if streaming is supported given the input."""
+        pass
+

@@ -11,7 +11,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
 from gradio import utils
-from gradio.components.base import IOComponent, _Keywords
+from gradio.components.base import Component, _Keywords
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
     Changeable,
@@ -23,7 +23,7 @@ set_documentation_group("component")
 
 
 @document()
-class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
+class Chatbot(Changeable, Selectable, JSONSerializable, Component):
     """
     Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, tables. Also supports audio/video/image files, which are displayed in the Chatbot, and other kinds of files which are displayed as links.
     Preprocessing: passes the messages in the Chatbot as a {List[List[str | None | Tuple]]}, i.e. a list of lists. The inner list has 2 elements: the user message and the response message. See `Postprocessing` for the format of these messages.
@@ -95,8 +95,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         )
         self.show_copy_button = show_copy_button
 
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -119,7 +118,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             "show_share_button": self.show_share_button,
             "rtl": self.rtl,
             "show_copy_button": self.show_copy_button,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     @staticmethod

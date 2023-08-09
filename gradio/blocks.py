@@ -131,7 +131,7 @@ class Block:
         if Context.root_block is not None:
             Context.root_block.blocks[self._id] = self
             self.is_rendered = True
-            if isinstance(self, components.IOComponent):
+            if isinstance(self, components.Component):
                 Context.root_block.temp_file_sets.append(self.temp_files)
         return self
 
@@ -312,6 +312,7 @@ class Block:
             "elem_id": self.elem_id,
             "elem_classes": self.elem_classes,
             "root_url": self.root_url,
+            "custom_component": False,
         }
 
     @staticmethod
@@ -459,7 +460,7 @@ def postprocess_update_dict(block: Block, update_dict: dict, postprocess: bool =
     prediction_value = delete_none(update_dict, skip_value=True)
     if "value" in prediction_value and postprocess:
         assert isinstance(
-            block, components.IOComponent
+            block, components.Component
         ), f"Component {block.__class__} does not support value"
         prediction_value["value"] = block.postprocess(prediction_value["value"])
     return prediction_value
@@ -1152,7 +1153,7 @@ class Blocks(BlockContext):
                     f"Input component with id {input_id} used in {dependency['trigger']}() event is not defined in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
                 ) from e
             assert isinstance(
-                block, components.IOComponent
+                block, components.Component
             ), f"{block.__class__} Component with id {input_id} not a valid input component."
             serialized_input = block.serialize(inputs[i])
             processed_input.append(serialized_input)
@@ -1171,7 +1172,7 @@ class Blocks(BlockContext):
                     f"Output component with id {output_id} used in {dependency['trigger']}() event not found in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
                 ) from e
             assert isinstance(
-                block, components.IOComponent
+                block, components.Component
             ), f"{block.__class__} Component with id {output_id} not a valid output component."
             deserialized = block.deserialize(
                 outputs[o],
@@ -1349,11 +1350,9 @@ Received outputs:
         if session_hash is None or run is None:
             return data
 
-        from gradio.events import StreamableOutput
-
         for i, output_id in enumerate(self.dependencies[fn_index]["outputs"]):
             block = self.blocks[output_id]
-            if isinstance(block, StreamableOutput) and block.streaming:
+            if isinstance(block, components.StreamingOutput) and block.streaming:
                 stream = block.stream_output(data[i])
                 if run not in self.pending_streams[session_hash]:
                     self.pending_streams[session_hash][run] = defaultdict(list)
@@ -2201,7 +2200,7 @@ Received outputs:
         if Context.root_block:
             for component in Context.root_block.blocks.values():
                 if (
-                    isinstance(component, components.IOComponent)
+                    isinstance(component, components.Component)
                     and component.load_event_to_attach
                 ):
                     load_fn, every = component.load_event_to_attach

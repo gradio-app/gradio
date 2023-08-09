@@ -7,7 +7,7 @@ from typing import Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.components.base import Component, IOComponent, _Keywords
+from gradio.components.base import Component, Component, _Keywords
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Clickable
 
@@ -15,7 +15,7 @@ set_documentation_group("component")
 
 
 @document()
-class Button(Clickable, IOComponent, StringSerializable):
+class Button(Clickable, StringSerializable, Component):
     """
     Used to create a button, that can be assigned arbitrary click() events. The label (value) of the button can be used as an input or set via the output of a function.
 
@@ -54,8 +54,7 @@ class Button(Clickable, IOComponent, StringSerializable):
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
         """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
