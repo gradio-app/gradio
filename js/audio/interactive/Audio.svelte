@@ -27,6 +27,7 @@
 	export let pending = false;
 	export let streaming = false;
 	export let autoplay = false;
+	export let show_edit_button = true;
 
 	// TODO: make use of this
 	// export let type: "normal" | "numpy" = "normal";
@@ -51,7 +52,7 @@
 	function get_modules(): void {
 		module_promises = [
 			import("extendable-media-recorder"),
-			import("extendable-media-recorder-wav-encoder")
+			import("extendable-media-recorder-wav-encoder"),
 		];
 	}
 
@@ -91,7 +92,7 @@
 		let _audio_blob = new Blob(blobs, { type: "audio/wav" });
 		value = {
 			data: await blob_to_data_url(_audio_blob),
-			name: "audio.wav"
+			name: "audio.wav",
 		};
 		dispatch(event, value);
 	};
@@ -203,7 +204,7 @@
 	}
 
 	function handle_change({
-		detail: { values }
+		detail: { values },
 	}: {
 		detail: { values: [number, number] };
 	}): void {
@@ -213,14 +214,14 @@
 			data: value.data,
 			name,
 			crop_min: values[0],
-			crop_max: values[1]
+			crop_max: values[1],
 		});
 
 		dispatch("edit");
 	}
 
 	function handle_load({
-		detail
+		detail,
 	}: {
 		detail: {
 			data: string;
@@ -283,7 +284,7 @@
 	<ModifyUpload
 		on:clear={clear}
 		on:edit={() => (mode = "edit")}
-		editable
+		editable={show_edit_button}
 		absolute={true}
 	/>
 
