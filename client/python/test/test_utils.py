@@ -171,10 +171,13 @@ def test_json_schema_to_python_type(schema):
         answer = "str | Dict(name: str (name of file), data: str (base64 representation of file), size: int (size of image in bytes), is_file: bool (true if the file has been uploaded to the server), orig_name: str (original name of the file))"
     elif schema == "MultipleFileSerializable":
         answer = "List[str | Dict(name: str (name of file), data: str (base64 representation of file), size: int (size of image in bytes), is_file: bool (true if the file has been uploaded to the server), orig_name: str (original name of the file))]"
+    elif schema == "RichtextboxSerializable":
+        answer = "Dict[str, Any]"
     elif schema == "SingleFile":
         answer = "str"
     elif schema == "MultipleFile":
         answer = "List[str]"
+
     else:
         raise ValueError(f"This test has not been modified to check {schema}")
     assert utils.json_schema_to_python_type(types[schema]) == answer
