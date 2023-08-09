@@ -205,7 +205,7 @@ export const format_chat_for_sharing = async (
 						const regexPatterns = {
 							'audio': /<audio.*?src="(\/file=.*?)"/g,
 							'video': /<video.*?src="(\/file=.*?)"/g,
-							'image': /<img.*?src="(\/file=.*?)".*?\/>|!\[.*\]\((\/file=.*?)\)/g,
+							'image': /<img.*?src="(\/file=.*?)".*?\/>|!\[.*?\]\((\/file=.*?)\)/g,
 						};
 				
 						html_content = message;
