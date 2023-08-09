@@ -8,7 +8,7 @@ on:
         type: string
       pr_number:
         description: "The PR number"
-        type: number
+        type: string
     secrets:
       vercel_token:
         description: "Vercel API token"
