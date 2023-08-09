@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Callable, Literal
 
 import numpy as np
+import requests
 from gradio_client import media_data
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
@@ -20,6 +21,7 @@ from gradio.events import (
     Playable,
     Recordable,
     Streamable,
+    StreamableOutput,
     Uploadable,
 )
 from gradio.interpretation import TokenInterpretable
@@ -34,6 +36,7 @@ class Audio(
     Playable,
     Recordable,
     Streamable,
+    StreamableOutput,
     Uploadable,
     IOComponent,
     FileSerializable,
@@ -52,7 +55,7 @@ class Audio(
         self,
         value: str | Path | tuple[int, np.ndarray] | Callable | None = None,
         *,
-        source: Literal["upload", "microphone"] = "upload",
+        source: Literal["upload", "microphone"] | None = None,
         type: Literal["numpy", "filepath"] = "numpy",
         label: str | None = None,
         every: float | None = None,
@@ -85,7 +88,7 @@ class Audio(
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: if True, will allow users to upload and edit a audio file; if False, can only be used to play audio. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
-            streaming: If set to True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
+            streaming: If set to True when used in a `live` interface as an input, will automatically stream webcam feed. When used set as an output, takes audio chunks yield from the backend and combines them into one streaming audio output.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             format: The file format to save audio files. Either 'wav' or 'mp3'. wav files are lossless but will tend to be larger files. mp3 files tend to be smaller. Default is wav. Applies both when this component is used as an input (when `type` is "format") and when this component is used as an output.
@@ -95,6 +98,7 @@ class Audio(
             show_edit_button: If True, will show an edit icon in the corner of the component that allows user to edit the audio. If False, icon does not appear. Default is True. 
         """
         valid_sources = ["upload", "microphone"]
+        source = source if source else ("microphone" if streaming else "upload")
         if source not in valid_sources:
             raise ValueError(
                 f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
@@ -107,7 +111,7 @@ class Audio(
             )
         self.type = type
         self.streaming = streaming
-        if streaming and source != "microphone":
+        if streaming and source == "upload":
             raise ValueError(
                 "Audio streaming only available if source is 'microphone'."
             )
@@ -345,6 +349,18 @@ class Audio(
         else:
             file_path = self.make_temp_copy_if_needed(y)
         return {"name": file_path, "data": None, "is_file": True}
+
+    def stream_output(self, y):
+        if y is None:
+            return None
+        if client_utils.is_http_url_like(y["name"]):
+            response = requests.get(y["name"])
+            bytes = response.content
+        else:
+            file_path = y["name"]
+            with open(file_path, "rb") as f:
+                bytes = f.read()
+        return bytes
 
     def check_streamable(self):
         if self.source != "microphone":
