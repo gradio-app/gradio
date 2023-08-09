@@ -33,7 +33,6 @@ class LoginButton(Button):
         elem_classes: list[str] | str | None = None,
         scale: int | None = 0,
         min_width: int | None = None,
-        _activate: bool = True,
         **kwargs,
     ):
         super().__init__(
@@ -50,8 +49,7 @@ class LoginButton(Button):
             min_width=min_width,
             **kwargs,
         )
-        if _activate:
-            self.activate()
+        self.activate()
 
     def activate(self):
         # Taken from https://cmgdo.com/external-link-in-gradio-button/
