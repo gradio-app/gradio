@@ -42,10 +42,19 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: install dependencies
-        uses: "./.github/actions/install-all-deps"
+        uses: "./.github/actions/install-frontend-deps"
         with:
           always-install-pnpm: true
           skip_build: true
+      - name: download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: website-json-${{ inputs.pr_number }}}
+          path: |
+            ./js/_website/src/lib/json
+      - name: echo artifact path
+        shell: bash
+        run: ls ./js/_website/src/lib/json
       - name: Install Vercel CLI
         shell: bash
         run: pnpm install --global vercel@latest
