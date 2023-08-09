@@ -72,6 +72,7 @@ class Audio(
         autoplay: bool = False,
         show_download_button=True,
         show_share_button: bool | None = None,
+        show_edit_button: bool | None = True,
         **kwargs,
     ):
         """
@@ -94,6 +95,7 @@ class Audio(
             autoplay: Whether to automatically play the audio when the component is used as an output. Note: browsers will not autoplay audio files if the user has not interacted with the page yet.
             show_download_button: If True, will show a download button in the corner of the component for saving audio. If False, icon does not appear.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
+            show_edit_button: If True, will show an edit icon in the corner of the component that allows user to edit the audio. If False, icon does not appear. Default is True.
         """
         valid_sources = ["upload", "microphone"]
         source = source if source else ("microphone" if streaming else "upload")
@@ -121,6 +123,7 @@ class Audio(
             if show_share_button is None
             else show_share_button
         )
+        self.show_edit_button = show_edit_button
         IOComponent.__init__(
             self,
             label=label,
@@ -146,6 +149,7 @@ class Audio(
             "autoplay": self.autoplay,
             "show_download_button": self.show_download_button,
             "show_share_button": self.show_share_button,
+            "show_edit_button": self.show_edit_button,
             **IOComponent.get_config(self),
         }
 
@@ -169,6 +173,7 @@ class Audio(
         autoplay: bool | None = None,
         show_download_button: bool | None = None,
         show_share_button: bool | None = None,
+        show_edit_button: bool | None = None,
     ):
         return {
             "source": source,
@@ -183,6 +188,7 @@ class Audio(
             "autoplay": autoplay,
             "show_download_button": show_download_button,
             "show_share_button": show_share_button,
+            "show_edit_button": show_edit_button,
             "__type__": "update",
         }
 

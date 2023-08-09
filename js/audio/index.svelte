@@ -27,6 +27,7 @@
 	export let autoplay = false;
 	export let show_download_button = true;
 	export let show_share_button = false;
+	export let show_edit_button = true;
 </script>
 
 {#if mode === "dynamic"}
@@ -49,6 +50,7 @@
 		{min_width}
 		{loading_status}
 		{autoplay}
+		{show_edit_button}
 		on:change
 		on:stream
 		on:drag
