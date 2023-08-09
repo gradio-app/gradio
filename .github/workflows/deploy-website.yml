@@ -71,7 +71,7 @@ jobs:
         run: echo $VERCEL_URL #add to comment
   comment-deploy-success:
     uses: "./.github/workflows/comment-queue.yml"
-    needs: [deploy]
+    needs: deploy
     if: needs.deploy.result == 'success'
     secrets:
       gh_token: ${{ secrets.gh_token }}
@@ -80,7 +80,7 @@ jobs:
       message: website~success~${{needs.deploy.outputs.vercel_url}}
   comment-deploy-failure:
     uses: "./.github/workflows/comment-queue.yml"
-    needs: [deploy]
+    needs: deploy
     if: needs.deploy.result == 'failure'
     secrets:
       gh_token: ${{ secrets.gh_token }}
