@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import tempfile
 from pathlib import Path
 from typing import Any, Callable, Literal
 
@@ -14,7 +13,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio import processing_utils, utils
-from gradio.components.base import Component, _Keywords, StreamingOutput, StreamingInput
+from gradio.components.base import Component, StreamingInput, StreamingOutput, _Keywords
 from gradio.events import (
     Changeable,
     Clearable,
@@ -38,7 +37,8 @@ class Audio(
     Streamable,
     Uploadable,
     FileSerializable,
-    Component):
+    Component,
+):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
     Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a 16-bit int array whose values range from -32768 to 32767), or as a {str} filepath, depending on `type`.
@@ -94,20 +94,6 @@ class Audio(
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             show_edit_button: If True, will show an edit icon in the corner of the component that allows user to edit the audio. If False, icon does not appear. Default is True.
         """
-        super().__init__(
-            label=label,
-            every=every,
-            show_label=show_label,
-            container=container,
-            scale=scale,
-            min_width=min_width,
-            interactive=interactive,
-            visible=visible,
-            elem_id=elem_id,
-            elem_classes=elem_classes,
-            value=value,
-            **kwargs,
-        )
         valid_sources = ["upload", "microphone"]
         source = source if source else ("microphone" if streaming else "upload")
         if source not in valid_sources:
@@ -135,6 +121,20 @@ class Audio(
             else show_share_button
         )
         self.show_edit_button = show_edit_button
+        super().__init__(
+            label=label,
+            every=every,
+            show_label=show_label,
+            container=container,
+            scale=scale,
+            min_width=min_width,
+            interactive=interactive,
+            visible=visible,
+            elem_id=elem_id,
+            elem_classes=elem_classes,
+            value=value,
+            **kwargs,
+        )
 
     def get_config(self):
         return {

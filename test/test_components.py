@@ -42,14 +42,6 @@ class TestComponent:
         assert isinstance(gr.components.component("textarea"), gr.templates.TextArea)
 
 
-def test_raise_warnings():
-    for c_type, component in zip(
-        ["inputs", "outputs"], [gr.inputs.Textbox, gr.outputs.Label]
-    ):
-        with pytest.warns(UserWarning, match=f"Usage of gradio.{c_type}"):
-            component()
-
-
 class TestTextbox:
     def test_component_functions(self):
         """
@@ -63,28 +55,6 @@ class TestTextbox:
         assert text_input.postprocess(2) == "2"
         assert text_input.postprocess(2.14) == "2.14"
         assert text_input.serialize("Hello World!", True) == "Hello World!"
-
-        assert text_input.tokenize("Hello World! Gradio speaking.") == (
-            ["Hello", "World!", "Gradio", "speaking."],
-            [
-                "World! Gradio speaking.",
-                "Hello Gradio speaking.",
-                "Hello World! speaking.",
-                "Hello World! Gradio",
-            ],
-            None,
-        )
-        text_input.interpretation_replacement = "unknown"
-        assert text_input.tokenize("Hello World! Gradio speaking.") == (
-            ["Hello", "World!", "Gradio", "speaking."],
-            [
-                "unknown World! Gradio speaking.",
-                "Hello unknown Gradio speaking.",
-                "Hello World! unknown speaking.",
-                "Hello World! Gradio unknown",
-            ],
-            None,
-        )
         assert text_input.get_config() == {
             "lines": 1,
             "max_lines": 20,
@@ -106,6 +76,7 @@ class TestTextbox:
             "rtl": False,
             "text_align": None,
             "autofocus": False,
+            "custom_component": False,
         }
 
     @pytest.mark.asyncio
@@ -121,31 +92,6 @@ class TestTextbox:
             "number",
             interpretation="default",
         )
-        scores = await iface.interpret(
-            ["Return the length of the longest word in this sentence"]
-        )
-        assert scores[0]["interpretation"] == [
-            ("Return", 0.0),
-            (" ", 0),
-            ("the", 0.0),
-            (" ", 0),
-            ("length", 0.0),
-            (" ", 0),
-            ("of", 0.0),
-            (" ", 0),
-            ("the", 0.0),
-            (" ", 0),
-            ("longest", 0.0),
-            (" ", 0),
-            ("word", 0.0),
-            (" ", 0),
-            ("in", 0.0),
-            (" ", 0),
-            ("this", 0.0),
-            (" ", 0),
-            ("sentence", 1.0),
-            (" ", 0),
-        ]
 
     def test_in_interface_as_output(self):
         """
@@ -202,16 +148,6 @@ class TestNumber:
         assert numeric_input.postprocess(2.14) == 2.14
         assert numeric_input.postprocess(None) is None
         assert numeric_input.serialize(3, True) == 3
-        numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="absolute")
-        assert numeric_input.get_interpretation_neighbors(1) == (
-            [-2.0, -1.0, 0.0, 2.0, 3.0, 4.0],
-            {},
-        )
-        numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="percent")
-        assert numeric_input.get_interpretation_neighbors(1) == (
-            [0.97, 0.98, 0.99, 1.01, 1.02, 1.03],
-            {},
-        )
         assert numeric_input.get_config() == {
             "value": None,
             "name": "number",
@@ -228,6 +164,7 @@ class TestNumber:
             "visible": True,
             "interactive": None,
             "root_url": None,
+            "custom_component": False,
         }
 
     def test_component_functions_integer(self):
@@ -243,25 +180,6 @@ class TestNumber:
         assert numeric_input.postprocess(2.85) == 3
         assert numeric_input.postprocess(None) is None
         assert numeric_input.serialize(3, True) == 3
-        numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="absolute")
-        assert numeric_input.get_interpretation_neighbors(1) == (
-            [-2.0, -1.0, 0.0, 2.0, 3.0, 4.0],
-            {},
-        )
-        numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="percent")
-        assert numeric_input.get_interpretation_neighbors(100) == (
-            [97.0, 98.0, 99.0, 101.0, 102.0, 103.0],
-            {},
-        )
-        with pytest.raises(ValueError) as error:
-            numeric_input.get_interpretation_neighbors(1)
-            assert error.msg == "Cannot generate valid set of neighbors"
-        numeric_input.set_interpret_parameters(
-            steps=3, delta=1.24, delta_type="absolute"
-        )
-        with pytest.raises(ValueError) as error:
-            numeric_input.get_interpretation_neighbors(4)
-            assert error.msg == "Cannot generate valid set of neighbors"
         assert numeric_input.get_config() == {
             "value": 42,
             "name": "number",
@@ -278,6 +196,7 @@ class TestNumber:
             "visible": True,
             "interactive": None,
             "root_url": None,
+            "custom_component": False,
         }
 
     def test_component_functions_precision(self):
@@ -303,16 +222,6 @@ class TestNumber:
         iface = gr.Interface(
             lambda x: x**2, "number", "number", interpretation="default"
         )
-        scores = (await iface.interpret([2]))[0]["interpretation"]
-        assert scores == [
-            (1.94, -0.23640000000000017),
-            (1.96, -0.15840000000000032),
-            (1.98, -0.07960000000000012),
-            (2, None),
-            (2.02, 0.08040000000000003),
-            (2.04, 0.16159999999999997),
-            (2.06, 0.24359999999999982),
-        ]
 
     @pytest.mark.asyncio
     async def test_precision_0_in_interface(self):
@@ -324,17 +233,6 @@ class TestNumber:
         iface = gr.Interface(
             lambda x: x**2, "number", gr.Number(precision=0), interpretation="default"
         )
-        # Output gets rounded to 4 for all input so no change
-        scores = (await iface.interpret([2]))[0]["interpretation"]
-        assert scores == [
-            (1.94, 0.0),
-            (1.96, 0.0),
-            (1.98, 0.0),
-            (2, None),
-            (2.02, 0.0),
-            (2.04, 0.0),
-            (2.06, 0.0),
-        ]
 
     @pytest.mark.asyncio
     async def test_in_interface_as_output(self):
@@ -346,16 +244,6 @@ class TestNumber:
         iface = gr.Interface(
             lambda x: x**2, "number", "number", interpretation="default"
         )
-        scores = (await iface.interpret([2]))[0]["interpretation"]
-        assert scores == [
-            (1.94, -0.23640000000000017),
-            (1.96, -0.15840000000000032),
-            (1.98, -0.07960000000000012),
-            (2, None),
-            (2.02, 0.08040000000000003),
-            (2.04, 0.16159999999999997),
-            (2.06, 0.24359999999999982),
-        ]
 
     def test_static(self):
         """
@@ -396,6 +284,7 @@ class TestSlider:
             "visible": True,
             "interactive": None,
             "root_url": None,
+            "custom_component": False,
         }
 
     @pytest.mark.asyncio
@@ -405,20 +294,6 @@ class TestSlider:
         """
         iface = gr.Interface(lambda x: x**2, "slider", "textbox")
         assert iface(2) == "4"
-        iface = gr.Interface(
-            lambda x: x**2, "slider", "number", interpretation="default"
-        )
-        scores = (await iface.interpret([2]))[0]["interpretation"]
-        assert scores == [
-            -4.0,
-            200.08163265306123,
-            812.3265306122449,
-            1832.7346938775513,
-            3261.3061224489797,
-            5098.040816326531,
-            7342.938775510205,
-            9996.0,
-        ]
 
     def test_static(self):
         """
@@ -469,6 +344,7 @@ class TestCheckbox:
             "visible": True,
             "interactive": None,
             "root_url": None,
+            "custom_component": False,
         }
 
     @pytest.mark.asyncio
@@ -478,13 +354,6 @@ class TestCheckbox:
         """
         iface = gr.Interface(lambda x: 1 if x else 0, "checkbox", "number")
         assert iface(True) == 1
-        iface = gr.Interface(
-            lambda x: 1 if x else 0, "checkbox", "number", interpretation="default"
-        )
-        scores = (await iface.interpret([False]))[0]["interpretation"]
-        assert scores == (None, 1.0)
-        scores = (await iface.interpret([True]))[0]["interpretation"]
-        assert scores == (-1.0, None)
 
 
 class TestCheckboxGroup:
@@ -515,6 +384,7 @@ class TestCheckboxGroup:
             "visible": True,
             "interactive": None,
             "root_url": None,
+            "custom_component": False,
         }
         with pytest.raises(ValueError):
             gr.CheckboxGroup(["a"], type="unknown")
@@ -561,6 +431,7 @@ class TestRadio:
             "visible": True,
             "interactive": None,
             "root_url": None,
+            "custom_component": False,
         }
         with pytest.raises(ValueError):
             gr.Radio(["a", "b"], type="unknown")
@@ -573,13 +444,6 @@ class TestRadio:
         radio_input = gr.Radio(["a", "b", "c"])
         iface = gr.Interface(lambda x: 2 * x, radio_input, "textbox")
         assert iface("c") == "cc"
-        radio_input = gr.Radio(["a", "b", "c"], type="index")
-        iface = gr.Interface(
-            lambda x: 2 * x, radio_input, "number", interpretation="default"
-        )
-        assert iface("c") == 4
-        scores = (await iface.interpret(["b"]))[0]["interpretation"]
-        assert scores == [-2.0, None, 2.0]
 
 
 class TestDropdown:
@@ -619,6 +483,7 @@ class TestDropdown:
             "root_url": None,
             "multiselect": True,
             "max_choices": 2,
+            "custom_component": False,
         }
         with pytest.raises(ValueError):
             gr.Dropdown(["a"], type="unknown")
@@ -687,6 +552,7 @@ class TestImage:
             "root_url": None,
             "mirror_webcam": True,
             "selectable": False,
+            "custom_component": False,
         }
         assert image_input.preprocess(None) is None
         image_input = gr.Image(invert_colors=True)
@@ -697,7 +563,6 @@ class TestImage:
         with pytest.raises(ValueError):
             gr.Image(type="unknown")
         image_input.shape = (30, 10)
-        assert image_input._segment_by_slic(img) is not None
 
         # Output functionalities
         y_img = gr.processing_utils.decode_base64_to_image(
@@ -857,6 +722,7 @@ class TestAudio:
             "value": None,
             "interactive": None,
             "root_url": None,
+            "custom_component": False,
         }
         assert audio_input.preprocess(None) is None
         x_wav["is_example"] = True
@@ -898,6 +764,7 @@ class TestAudio:
             "value": None,
             "interactive": None,
             "root_url": None,
+            "custom_component": False,
         }
         assert audio_output.deserialize(
             {
@@ -918,18 +785,6 @@ class TestAudio:
         assert os.path.basename(serialized_input["name"]) == "audio_sample.wav"
         assert serialized_input["orig_name"] == "audio_sample.wav"
         assert not serialized_input["is_file"]
-
-    def test_tokenize(self):
-        """
-        Tokenize, get_masked_inputs
-        """
-        x_wav = deepcopy(media_data.BASE64_AUDIO)
-        audio_input = gr.Audio()
-        tokens, _, _ = audio_input.tokenize(x_wav)
-        assert len(tokens) == audio_input.interpretation_segments
-        x_new = audio_input.get_masked_inputs(tokens, [[1] * len(tokens)])[0]
-        similarity = SequenceMatcher(a=x_wav["data"], b=x_new).ratio()
-        assert similarity > 0.9
 
     def test_in_interface(self):
         def reverse_audio(audio):
@@ -1015,6 +870,7 @@ class TestFile:
             "interactive": None,
             "root_url": None,
             "selectable": False,
+            "custom_component": False,
         }
         assert file_input.preprocess(None) is None
         x_file["is_example"] = True
@@ -1130,6 +986,7 @@ class TestDataframe:
             "interactive": None,
             "root_url": None,
             "wrap": False,
+            "custom_component": False,
         }
         dataframe_input = gr.Dataframe()
         output = dataframe_input.preprocess(x_data)
@@ -1164,6 +1021,7 @@ class TestDataframe:
             "interactive": None,
             "root_url": None,
             "wrap": False,
+            "custom_component": False,
         }
 
     def test_postprocess(self):
@@ -1353,6 +1211,7 @@ class TestVideo:
             "root_url": None,
             "mirror_webcam": True,
             "include_audio": True,
+            "custom_component": False,
         }
         assert video_input.preprocess(None) is None
         x_video["is_example"] = True
@@ -1525,79 +1384,6 @@ class TestVideo:
         assert Path(output).name == "a.mp4" and not client_utils.probe_url(output)
 
 
-class TestTimeseries:
-    def test_component_functions(self):
-        """
-        Preprocess, postprocess,  get_config,
-        """
-        timeseries_input = gr.Timeseries(x="time", y=["retail", "food", "other"])
-        x_timeseries = {
-            "data": [[1] + [2] * len(timeseries_input.y)] * 4,
-            "headers": [timeseries_input.x] + timeseries_input.y,
-        }
-        output = timeseries_input.preprocess(x_timeseries)
-        assert isinstance(output, pd.core.frame.DataFrame)
-
-        timeseries_input = gr.Timeseries(
-            x="time", y="retail", label="Upload Your Timeseries"
-        )
-        assert timeseries_input.get_config() == {
-            "x": "time",
-            "y": ["retail"],
-            "name": "timeseries",
-            "show_label": True,
-            "label": "Upload Your Timeseries",
-            "colors": None,
-            "container": True,
-            "min_width": 160,
-            "scale": None,
-            "elem_id": None,
-            "elem_classes": None,
-            "visible": True,
-            "value": None,
-            "interactive": None,
-            "root_url": None,
-        }
-        assert timeseries_input.preprocess(None) is None
-        x_timeseries["range"] = (0, 1)
-        assert timeseries_input.preprocess(x_timeseries) is not None
-
-        # Output functionalities
-
-        timeseries_output = gr.Timeseries(label="Disease")
-
-        assert timeseries_output.get_config() == {
-            "x": None,
-            "y": None,
-            "name": "timeseries",
-            "show_label": True,
-            "label": "Disease",
-            "colors": None,
-            "container": True,
-            "min_width": 160,
-            "scale": None,
-            "elem_id": None,
-            "elem_classes": None,
-            "visible": True,
-            "value": None,
-            "interactive": None,
-            "root_url": None,
-        }
-        data = {"Name": ["Tom", "nick", "krish", "jack"], "Age": [20, 21, 19, 18]}
-        df = pd.DataFrame(data)
-        assert timeseries_output.postprocess(df) == {
-            "headers": ["Name", "Age"],
-            "data": [["Tom", 20], ["nick", 21], ["krish", 19], ["jack", 18]],
-        }
-
-        timeseries_output = gr.Timeseries(y="Age", label="Disease")
-        output = timeseries_output.postprocess(df)
-        assert output == {
-            "headers": ["Name", "Age"],
-            "data": [["Tom", 20], ["nick", 21], ["krish", 19], ["jack", 18]],
-        }
-
-
 class TestNames:
     # This test ensures that `components.get_component_instance()` works correctly when instantiating from components
     def test_no_duplicate_uncased_names(self, io_components):
@@ -1661,6 +1447,7 @@ class TestLabel:
             "root_url": None,
             "color": None,
             "selectable": False,
+            "custom_component": False,
         }
 
     def test_color_argument(self):
@@ -1810,6 +1597,7 @@ class TestHighlightedText:
             "interactive": None,
             "root_url": None,
             "selectable": False,
+            "custom_component": False,
         }
 
     def test_in_interface(self):
@@ -1889,6 +1677,7 @@ class TestAnnotatedImage:
             "root_url": None,
             "selectable": False,
             "interactive": None,
+            "custom_component": False,
         }
 
     def test_in_interface(self):
@@ -1998,6 +1787,7 @@ class TestChatbot:
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
             "rtl": False,
             "show_copy_button": False,
+            "custom_component": False,
         }
 
 
@@ -2021,6 +1811,7 @@ class TestJSON:
             "name": "json",
             "interactive": None,
             "root_url": None,
+            "custom_component": False,
         }
 
     @pytest.mark.asyncio
@@ -2078,6 +1869,7 @@ class TestHTML:
             "name": "html",
             "interactive": None,
             "root_url": None,
+            "custom_component": False,
         } == html_component.get_config()
 
     def test_in_interface(self):
@@ -2132,6 +1924,7 @@ class TestModel3D:
             "container": True,
             "min_width": 160,
             "scale": None,
+            "custom_component": False,
         } == component.get_config()
 
         file = "test/test_files/Box.gltf"
@@ -2176,6 +1969,7 @@ class TestColorPicker:
             "interactive": None,
             "root_url": None,
             "name": "colorpicker",
+            "custom_component": False,
         }
 
     def test_in_interface_as_input(self):
@@ -2304,7 +2098,7 @@ def test_as_example_returns_file_basename(component):
     assert component.as_example(None) == ""
 
 
-@patch("gradio.components.IOComponent.as_example")
+@patch("gradio.components.Component.as_example")
 @patch("gradio.components.Image.as_example")
 @patch("gradio.components.File.as_example")
 @patch("gradio.components.Dataframe.as_example")
@@ -2353,6 +2147,7 @@ class TestScatterPlot:
             "scale": None,
             "value": None,
             "visible": True,
+            "custom_component": False,
             "bokeh_version": "3.0.3",
         }
 
@@ -2540,6 +2335,7 @@ class TestLinePlot:
             "scale": None,
             "value": None,
             "visible": True,
+            "custom_component": False,
             "bokeh_version": "3.0.3",
         }
 
@@ -2706,6 +2502,7 @@ class TestBarPlot:
             "scale": None,
             "value": None,
             "visible": True,
+            "custom_component": False,
             "bokeh_version": "3.0.3",
         }
 
@@ -2888,6 +2685,7 @@ class TestCode:
             "visible": True,
             "interactive": None,
             "root_url": None,
+            "custom_component": False,
         }
 
 

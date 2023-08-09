@@ -7,20 +7,14 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.components.base import FormComponent, Component, _Keywords
+from gradio.components.base import Component, FormComponent, _Keywords
 from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
 
 set_documentation_group("component")
 
 
 @document()
-class Radio(
-    Selectable,
-    Changeable,
-    Inputable,
-    StringSerializable,
-    FormComponent
-):
+class Radio(Selectable, Changeable, Inputable, StringSerializable, FormComponent):
     """
     Creates a set of (string or numeric type) radio buttons of which only one can be selected.
     Preprocessing: passes the value of the selected radio button as a {str} or {int} or {float} or its index as an {int} into the function, depending on `type`.

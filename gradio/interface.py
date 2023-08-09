@@ -18,9 +18,9 @@ from gradio.blocks import Blocks
 from gradio.components import (
     Button,
     ClearButton,
+    Component,
     DuplicateButton,
     Interpretation,
-    Component,
     Markdown,
     State,
     get_component_instance,

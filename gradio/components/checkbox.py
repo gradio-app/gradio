@@ -7,20 +7,14 @@ from typing import Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import BooleanSerializable
 
-from gradio.components.base import FormComponent, Component, _Keywords
+from gradio.components.base import Component, FormComponent, _Keywords
 from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
 
 set_documentation_group("component")
 
 
 @document()
-class Checkbox(
-    Changeable,
-    Inputable,
-    Selectable,
-    BooleanSerializable,
-    FormComponent
-):
+class Checkbox(Changeable, Inputable, Selectable, BooleanSerializable, FormComponent):
     """
     Creates a checkbox that can be set to `True` or `False`.
 

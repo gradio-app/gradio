@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-import math
 from typing import Callable, Literal
 
-import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import NumberSerializable
 
-from gradio.components.base import FormComponent, Component, _Keywords
+from gradio.components.base import Component, FormComponent, _Keywords
 from gradio.events import (
     Changeable,
     Focusable,
@@ -17,7 +15,6 @@ from gradio.events import (
     Submittable,
 )
 from gradio.exceptions import Error
-from gradio.interpretation import NeighborInterpretable
 
 set_documentation_group("component")
 
