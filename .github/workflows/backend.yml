@@ -170,7 +170,7 @@ jobs:
       if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Linux'
       run: |
         . venv/bin/activate
-        python -m pip install -e . -r test/requirements.txt
+        bash scripts/install_test_requirements.sh
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@v2
     - name: Lint (Linux)
