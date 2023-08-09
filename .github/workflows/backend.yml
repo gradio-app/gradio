@@ -73,6 +73,28 @@ jobs:
         path: |
           client/python/venv/*
         key: python-client-${{ runner.os }}-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('client/python/test/requirements.txt') }}
+    - uses: actions/cache@v3
+      id: frontend-cache
+      with:
+        path: |
+          ../../gradio/templates/*
+        key: gradio-lib-front-end-${{ hashFiles('../../js/**')}}
+    - name: Install pnpm
+      if: steps.frontend-cache.outputs.cache-hit != 'true'
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+    - uses: actions/setup-node@v3
+      if: steps.frontend-cache.outputs.cache-hit != 'true'
+      with:
+        node-version: 18
+        cache: pnpm
+        cache-dependency-path: pnpm-lock.yaml
+    - name: Build frontend
+      if: steps.frontend-cache.outputs.cache-hit != 'true'
+      run: |
+        pnpm i --frozen-lockfile
+        pnpm build  
     - name: Install Test Requirements (Linux)
       if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Linux'
       run: |
