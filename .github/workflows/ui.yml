@@ -66,6 +66,8 @@ jobs:
     secrets:
       gh_token: ${{ secrets.GITHUB_TOKEN }}
       vercel_token: ${{ secrets.VERCEL_TOKEN }}
+      vercel_org_id: ${{ secrets.VERCEL_ORG_ID }}
+      vercel_project_id: ${{ secrets.VERCEL_PROJECT_ID }}
     with:
       branch_name: ${{ needs.functional-test.outputs.source_branch }}
       pr_number: ${{ needs.functional-test.outputs.pr_number }}

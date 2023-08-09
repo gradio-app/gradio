@@ -15,6 +15,16 @@ on:
       gh_token:
         description: "Github token"
         required: true
+      vercel_org_id:
+        description: "Vercel organization ID"
+        required: true
+      vercel_project_id:
+        description: "Vercel project ID"
+        required: true
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.vercel_org_id }}
+  VERCEL_PROJECT_ID: ${{ secrets.vercel_project_id }}
 
 jobs:
   comment-deploy-start:
