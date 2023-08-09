@@ -179,6 +179,32 @@ def count_generator_demo():
 
 
 @pytest.fixture
+def count_generator_demo_exception():
+    def count(n):
+        for i in range(int(n)):
+            time.sleep(0.1)
+            if i == 5:
+                raise ValueError("Oh no!")
+            yield i
+
+    def show(n):
+        return str(list(range(int(n))))
+
+    with gr.Blocks() as demo:
+        with gr.Column():
+            num = gr.Number(value=10)
+            with gr.Row():
+                count_btn = gr.Button("Count")
+                count_forever = gr.Button("Count forever")
+        with gr.Column():
+            out = gr.Textbox()
+
+        count_btn.click(count, num, out, api_name="count")
+        count_forever.click(show, num, out, api_name="count_forever", every=3)
+    return demo.queue()
+
+
+@pytest.fixture
 def file_io_demo():
     demo = gr.Interface(
         lambda x: print("foox"),

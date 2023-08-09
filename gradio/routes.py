@@ -17,6 +17,7 @@ import os
 import posixpath
 import secrets
 import tempfile
+import time
 import traceback
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import defaultdict
@@ -96,10 +97,6 @@ templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 templates.env.filters["toorjson"] = toorjson
 
 client = httpx.AsyncClient()
-
-###########
-# Auth
-###########
 
 
 class App(FastAPI):
@@ -386,6 +383,41 @@ class App(FastAPI):
                     return response
             return FileResponse(abs_path, headers={"Accept-Ranges": "bytes"})
 
+        @app.get(
+            "/stream/{session_hash}/{run}/{component_id}",
+            dependencies=[Depends(login_check)],
+        )
+        async def stream(
+            session_hash: str, run: int, component_id: int, request: fastapi.Request
+        ):
+            stream: list = (
+                app.get_blocks()
+                .pending_streams[session_hash]
+                .get(run, {})
+                .get(component_id, None)
+            )
+            if stream is None:
+                raise HTTPException(404, "Stream not found.")
+
+            def stream_wrapper():
+                check_stream_rate = 0.01
+                max_wait_time = 120  # maximum wait between yields - assume generator thread has crashed otherwise.
+                wait_time = 0
+                while True:
+                    if len(stream) == 0:
+                        if wait_time > max_wait_time:
+                            return
+                        wait_time += check_stream_rate
+                        time.sleep(check_stream_rate)
+                        continue
+                    wait_time = 0
+                    next_stream = stream.pop(0)
+                    if next_stream is None:
+                        return
+                    yield next_stream
+
+            return StreamingResponse(stream_wrapper())
+
         @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
         async def file_deprecated(path: str, request: fastapi.Request):
             return await file(path, request)
@@ -406,24 +438,25 @@ class App(FastAPI):
             fn_index_inferred: int,
         ):
             fn_index = body.fn_index
-            if hasattr(body, "session_hash"):
-                if body.session_hash not in app.state_holder:
-                    app.state_holder[body.session_hash] = {
+            session_hash = getattr(body, "session_hash", None)
+            if session_hash is not None:
+                if session_hash not in app.state_holder:
+                    app.state_holder[session_hash] = {
                         _id: deepcopy(getattr(block, "value", None))
                         for _id, block in app.get_blocks().blocks.items()
                         if getattr(block, "stateful", False)
                     }
-                session_state = app.state_holder[body.session_hash]
+                session_state = app.state_holder[session_hash]
                 # The should_reset set keeps track of the fn_indices
                 # that have been cancelled. When a job is cancelled,
                 # the /reset route will mark the jobs as having been reset.
                 # That way if the cancel job finishes BEFORE the job being cancelled
                 # the job being cancelled will not overwrite the state of the iterator.
-                if fn_index in app.iterators_to_reset[body.session_hash]:
+                if fn_index in app.iterators_to_reset[session_hash]:
                     iterators = {}
-                    app.iterators_to_reset[body.session_hash].remove(fn_index)
+                    app.iterators_to_reset[session_hash].remove(fn_index)
                 else:
-                    iterators = app.iterators[body.session_hash]
+                    iterators = app.iterators[session_hash]
             else:
                 session_state = {}
                 iterators = {}
@@ -448,6 +481,7 @@ class App(FastAPI):
                         request=request,
                         state=session_state,
                         iterators=iterators,
+                        session_hash=session_hash,
                         event_id=event_id,
                         event_data=event_data,
                     )
@@ -457,6 +491,15 @@ class App(FastAPI):
                 if isinstance(output, Error):
                     raise output
             except BaseException as error:
+                iterator = iterators.get(fn_index, None)
+                if iterator is not None:  # close off any streams that are still open
+                    run_id = id(iterator)
+                    pending_streams: dict[int, list] = (
+                        app.get_blocks().pending_streams[session_hash].get(run_id, {})
+                    )
+                    for stream in pending_streams.values():
+                        stream.append(None)
+
                 show_error = app.get_blocks().show_error or isinstance(error, Error)
                 traceback.print_exc()
                 return JSONResponse(
