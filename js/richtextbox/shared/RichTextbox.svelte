@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
-	import { Copy, Check, Plus, File, Clear } from "@gradio/icons";
+	import { Copy, Check, Plus, Clear, File as FileIcon } from "@gradio/icons";
 	import { fade } from "svelte/transition";
 	import type { SelectData } from "@gradio/utils";
 	import type { FileData } from "@gradio/upload";
 
 	export let value: {
 		text: string | null;
-		files: [string | FileData][];
+		files: string[] | FileData[];
 	} = { text: null, files: [] };
 	export let lines: number = 1;
 	export let placeholder: string = "Type here...";
@@ -54,7 +54,7 @@
 		input: undefined;
 		load: {
 			text: string | null;
-			files: [string | FileData][];
+			files: string[] | FileData[];
 		};
 	}>();
 
@@ -232,7 +232,7 @@
 		{/if}
 		{#if value.files.length > 0}
 			<div class="file-icon-container">
-				<div class="file-icon"><File /></div>
+				<div class="file-icon"><FileIcon /></div>
 				<span
 					class="file-count"
 					style:visibility={file_count === "multiple" ? "visible" : "hidden"}

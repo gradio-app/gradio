@@ -15,7 +15,7 @@
 	export let visible: boolean = true;
 	export let value: {
 		text: string | null;
-		files: [string | FileData][];
+		files: string[] | FileData[];
 	} = { text: null, files: [] };
 	export let lines: number;
 	export let placeholder: string = "";
@@ -41,9 +41,10 @@
 		detail
 	}: CustomEvent<{
 		text: string | null;
-		files: [string | FileData];
+		files: string[] | FileData[];
 	}>) {
 		value = detail;
+		value.files = value.files as FileData[];
 		await tick();
 		let files = value.files.map((file_data) => file_data.blob!);
 		upload_files(root, files).then(async (response) => {
@@ -55,6 +56,7 @@
 					}
 				);
 			} else {
+				detail.files = detail.files as FileData[];
 				(Array.isArray(detail.files) ? detail.files : [detail.files]).forEach(
 					(file_data, i) => {
 						if (response.files) {
