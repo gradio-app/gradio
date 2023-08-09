@@ -78,11 +78,12 @@ jobs:
       run: |
         . venv/bin/activate
         python -m pip install -r test/requirements.txt
-    - name: Install Client Library (Linux)
+    - name: Install Gradio and Client Libraries Locally (Linux)
       if: runner.os == 'Linux'
       run: |
         . venv/bin/activate
         python -m pip install -e .
+        python -m pip install -e ../..
     - name: Lint (Linux)
       if: runner.os == 'Linux'
       run: |
@@ -98,11 +99,12 @@ jobs:
       run: |
         venv\Scripts\activate
         pip install -r test/requirements.txt
-    - name: Install Client Library (Windows)
+    - name: Install Gradio and Client Libraries Locally (Windows)
       if: runner.os == 'Windows'
       run: |
         venv\Scripts\activate
-        pip install -e .
+        python -m pip install -e .
+        python -m pip install -e ../..
     - name: Tests (Windows)
       if: runner.os == 'Windows'
       run: |
@@ -161,21 +163,17 @@ jobs:
       run: |
         pnpm i --frozen-lockfile
         pnpm build
-    - name: Install Gradio (Linux)
+    - name: Install Gradio and Client Libraries Locally (Linux)
       if: runner.os == 'Linux'
       run: |
         . venv/bin/activate
         python -m pip install .
+        python -m pip install -e client/python
     - name: Install Test Dependencies (Linux)
       if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Linux'
       run: |
         . venv/bin/activate
         bash scripts/install_test_requirements.sh
-    - name: Install Gradio Client (Linux)
-      if: runner.os == 'Linux'
-      run: |
-        . venv/bin/activate
-        python -m pip install -e client/python
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@v2
     - name: Lint (Linux)
@@ -194,21 +192,17 @@ jobs:
         . venv/bin/activate
         python -m coverage run -m pytest -m "${{ matrix.test-type }}" --ignore=client
         python -m coverage xml
-    - name: Install Gradio (Windows)
+    - name: Install Gradio and Client Libraries Locally (Windows)
       if: runner.os == 'Windows'
       run: |
         venv\Scripts\activate
         python -m pip install .
+        python -m pip install -e client/python  
     - name: Install Test Dependencies (Windows)
       if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Windows'
       run: |
         venv\Scripts\activate
         python -m pip install -e . -r test/requirements.txt
-    - name: Install Gradio Client (Linux)
-      if: runner.os == 'Windows'
-      run: |
-        venv\Scripts\activate
-        python -m pip install -e client/python  
     - name: Run tests (Windows)
       if: runner.os == 'Windows'
       run: |
