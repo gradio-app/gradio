@@ -5,7 +5,7 @@
 	import type {
 		ComponentMeta,
 		Dependency,
-		LayoutNode
+		LayoutNode,
 	} from "./components/types";
 
 	declare let BUILD_MODE: string;
@@ -86,6 +86,7 @@
 	export let space: string | null;
 	export let host: string | null;
 	export let src: string | null;
+	export let on_load: (() => void) | null;
 
 	let _id = id++;
 
@@ -183,7 +184,7 @@
 		message: "",
 		load_status: "pending",
 		status: "sleeping",
-		detail: "SLEEPING"
+		detail: "SLEEPING",
 	};
 
 	let app: Awaited<ReturnType<typeof client>>;
@@ -203,7 +204,7 @@
 
 		app = await client(api_url, {
 			status_callback: handle_status,
-			normalise_files: false
+			normalise_files: false,
 		});
 		config = app.config;
 		window.__gradio_space__ = config.space_id;
@@ -212,7 +213,7 @@
 			message: "",
 			load_status: "complete",
 			status: "running",
-			detail: "RUNNING"
+			detail: "RUNNING",
 		};
 
 		await mount_custom_css(wrapper, config.css);
@@ -263,7 +264,7 @@
 			CONFIG_ERROR: "there is a config error",
 			BUILD_ERROR: "there is a build error",
 			RUNTIME_ERROR: "there is a runtime error",
-			PAUSED: "the space is paused"
+			PAUSED: "the space is paused",
 		} as const,
 		title(error: error_types): string {
 			return encodeURIComponent(
@@ -278,7 +279,7 @@
 					this.readable_error[error] || "an error"
 				}.\n\nIt would be great if you could take a look at this because this space is being embedded on ${site}.\n\nThanks!`
 			);
-		}
+		},
 	};
 
 	onMount(async () => {
@@ -294,6 +295,7 @@
 	{initial_height}
 	{space}
 	loaded={loader_status === "complete"}
+	{on_load}
 	bind:wrapper
 >
 	{#if (loader_status === "pending" || loader_status === "error") && !(config && config?.auth_required)}

@@ -9,6 +9,11 @@
 	export let display: boolean;
 	export let info: boolean;
 	export let loaded: boolean;
+	export let on_load: (() => void) | null;
+
+	$: if (loaded && on_load) {
+		on_load();
+	}
 </script>
 
 <div
