@@ -93,7 +93,7 @@ jobs:
         pnpm i --frozen-lockfile
         pnpm build  
     - name: Install Test Requirements (Linux)
-      if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Linux'
+      if: runner.os == 'Linux'
       run: |
         . venv/bin/activate
         python -m pip install -r client/python/test/requirements.txt
@@ -114,7 +114,7 @@ jobs:
         . venv/bin/activate
         python -m pytest -m "${{ matrix.test-type }}" client/python/
     - name: Install Test Requirements (Windows)
-      if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Windows'
+      if: runner.os == 'Windows'
       run: |
         venv\Scripts\activate
         pip install -r client/python/test/requirements.txt
