@@ -1625,7 +1625,9 @@ Received outputs:
                 "The client_position_to_load_data parameter is deprecated."
             )
         max_size_default = self.max_threads if utils.is_zero_gpu_space() else None
+        self.app = routes.App.create_app(self)
         self._queue = queueing.Queue(
+            app=self.app,
             live_updates=status_update_rate == "auto",
             concurrency_count=concurrency_count,
             update_intervals=status_update_rate if status_update_rate != "auto" else 1,
@@ -1633,7 +1635,6 @@ Received outputs:
             blocks_dependencies=self.dependencies,
         )
         self.config = self.get_config_file()
-        self.app = routes.App.create_app(self)
         return self
 
     def validate_queue_settings(self):
