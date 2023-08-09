@@ -433,7 +433,8 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                 assert Path(deserialized).exists()
                 row.append(str(Path(deserialized).relative_to(self.dataset_dir)))
             except (AssertionError, TypeError, ValueError):
-                row.append(str(deserialized))
+                deserialized = "" if deserialized is None else str(deserialized)
+                row.append(deserialized)
 
             # If component is eligible for a preview, add the URL of the file
             # Be mindful that images and audio can be None
