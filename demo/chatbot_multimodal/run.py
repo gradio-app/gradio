@@ -20,7 +20,7 @@ def bot(history):
 
 
 with gr.Blocks() as demo:
-    chatbot = gr.Chatbot([], elem_id="chatbot")
+    chatbot = gr.Chatbot([], elem_id="chatbot", height=750)
 
     with gr.Row():
         txt = gr.RichTextbox(show_label=False, placeholder="Enter text and press enter, or upload an image")
