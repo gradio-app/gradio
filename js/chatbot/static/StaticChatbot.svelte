@@ -22,7 +22,7 @@
 	export let theme_mode: ThemeMode;
 	export let show_share_button = false;
 	export let rtl = false;
-	export let show_chat_copy_button = false;
+	export let show_copy_button = false;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -83,7 +83,7 @@
 			{latex_delimiters}
 			pending_message={loading_status?.status === "pending"}
 			{rtl}
-			{show_chat_copy_button}
+			{show_copy_button}
 			on:change
 			on:select
 			on:share

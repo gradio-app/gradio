@@ -23,7 +23,7 @@
 	export let theme_mode: ThemeMode;
 	export let show_share_button = false;
 	export let rtl = false;
-	export let show_chat_copy_button = false;
+	export let show_copy_button = false;
 
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height = 400;
@@ -44,7 +44,7 @@
 	{theme_mode}
 	{show_share_button}
 	{rtl}
-	{show_chat_copy_button}
+	{show_copy_button}
 	{latex_delimiters}
 	on:change
 	on:select

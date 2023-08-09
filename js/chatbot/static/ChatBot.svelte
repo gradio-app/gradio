@@ -32,7 +32,7 @@
 	export let show_share_button = false;
 	export let theme_mode: ThemeMode;
 	export let rtl = false;
-	export let show_chat_copy_button = false;
+	export let show_copy_button = false;
 
 	$: if (theme_mode == "dark") {
 		code_highlight_css.dark();
@@ -126,9 +126,9 @@
 								</div>
 							{/if}
 
-							{#if show_chat_copy_button && message}
+							{#if show_copy_button && message}
 								<div class="icon-button">
-									<Copy on:error value={message} />
+									<Copy value={message} />
 								</div>
 							{/if}
 						{:else if message !== null && message.mime_type?.includes("audio")}
