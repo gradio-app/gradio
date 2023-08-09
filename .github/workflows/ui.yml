@@ -43,10 +43,10 @@ jobs:
       pr_number: ${{ steps.pr_details.outputs.pr_number }}
     steps:
       - uses: actions/checkout@v3
-      - name: install dependencies
-        uses: "./.github/actions/install-all-deps"
-        with:
-          always-install-pnpm: true
+      # - name: install dependencies
+      #   uses: "./.github/actions/install-all-deps"
+      #   with:
+      #     always-install-pnpm: true
       - name: get pr details
         id: pr_details
         uses: gradio-app/github/actions/find-pr@main
