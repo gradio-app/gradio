@@ -12,6 +12,7 @@ import time
 import warnings
 import webbrowser
 from abc import abstractmethod
+from collections import defaultdict
 from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast
@@ -58,6 +59,7 @@ from gradio.utils import (
     TupleNoPrint,
     check_function_inputs_match,
     component_or_layout_class,
+    concurrency_count_warning,
     delete_none,
     get_cancel_function,
     get_continuous_fn,
@@ -706,6 +708,7 @@ class Blocks(BlockContext):
         self.share = False
         self.enable_queue = None
         self.max_threads = 40
+        self.pending_streams = defaultdict(dict)
         self.show_error = True
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
@@ -1332,6 +1335,27 @@ Received outputs:
 
         return output
 
+    def handle_streaming_outputs(
+        self, fn_index: int, data: list, session_hash: str | None, run: int | None
+    ) -> list:
+        if session_hash is None or run is None:
+            return data
+
+        from gradio.events import StreamableOutput
+
+        for i, output_id in enumerate(self.dependencies[fn_index]["outputs"]):
+            block = self.blocks[output_id]
+            if isinstance(block, StreamableOutput) and block.streaming:
+                stream = block.stream_output(data[i])
+                if run not in self.pending_streams[session_hash]:
+                    self.pending_streams[session_hash][run] = defaultdict(list)
+                self.pending_streams[session_hash][run][output_id].append(stream)
+                data[i] = {
+                    "name": f"{session_hash}/{run}/{output_id}",
+                    "is_stream": True,
+                }
+        return data
+
     async def process_api(
         self,
         fn_index: int,
@@ -1339,6 +1363,7 @@ Received outputs:
         state: dict[int, Any],
         request: routes.Request | list[routes.Request] | None = None,
         iterators: dict[int, Any] | None = None,
+        session_hash: str | None = None,
         event_id: str | None = None,
         event_data: EventData | None = None,
     ) -> dict[str, Any]:
@@ -1390,10 +1415,15 @@ Received outputs:
         else:
             inputs = self.preprocess_data(fn_index, inputs, state)
             iterator = iterators.get(fn_index, None) if iterators else None
+            was_generating = iterator is not None
             result = await self.call_function(
                 fn_index, inputs, iterator, request, event_id, event_data
             )
             data = self.postprocess_data(fn_index, result["prediction"], state)
+            if result["is_generating"] or was_generating:
+                data = self.handle_streaming_outputs(
+                    fn_index, data, session_hash, id(iterator)
+                )
             is_generating, iterator = result["is_generating"], result["iterator"]
 
         block_fn.total_runtime += result["duration"]
@@ -1583,6 +1613,7 @@ Received outputs:
         self.children = []
         return self
 
+    @concurrency_count_warning
     @document()
     def queue(
         self,
@@ -1624,12 +1655,14 @@ Received outputs:
             warn_deprecation(
                 "The client_position_to_load_data parameter is deprecated."
             )
-        max_size_default = self.max_threads if utils.is_zero_gpu_space() else None
+        if utils.is_zero_gpu_space():
+            concurrency_count = self.max_threads
+            max_size = 1 if max_size is None else max_size
         self._queue = queueing.Queue(
             live_updates=status_update_rate == "auto",
             concurrency_count=concurrency_count,
             update_intervals=status_update_rate if status_update_rate != "auto" else 1,
-            max_size=max_size_default if max_size is None else max_size,
+            max_size=max_size,
             blocks_dependencies=self.dependencies,
         )
         self.config = self.get_config_file()
