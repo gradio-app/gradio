@@ -385,7 +385,7 @@ class RichtextboxSerializable(Serializable):
                 }
             ],
         }
-    
+
     def _serialize_single(
         self, x: str | FileData | None, load_dir: str | Path = ""
     ) -> str | FileData | None:
@@ -403,7 +403,7 @@ class RichtextboxSerializable(Serializable):
             "orig_name": Path(filename).name,
             "is_file": False,
             "size": size,
-    }
+        }
 
     def serialize(
         self,
