@@ -11,7 +11,7 @@
 	export let visible: boolean = true;
 	export let value: {
 		text: string | null;
-		files: [string | FileData][];
+		files: string[] | FileData[];
 	} = { text: null, files: [] };
 	export let lines: number;
 	export let placeholder: string = "";
