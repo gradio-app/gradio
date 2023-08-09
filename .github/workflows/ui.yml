@@ -38,6 +38,9 @@ jobs:
         run: pnpm test:run
   functional-test:
     runs-on: ubuntu-latest
+    outputs:
+      source_branch: ${{ steps.pr_details.outputs.source_branch }}
+      pr_number: ${{ steps.pr_details.outputs.pr_number }}
     steps:
       - uses: actions/checkout@v3
       - name: install dependencies
@@ -49,27 +52,24 @@ jobs:
         uses: gradio-app/github/actions/find-pr@main
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Extract branch name
-        shell: bash
-        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
-        id: extract_branch
-      - name: echo branch name
-        run: echo ${{ steps.extract_branch.outputs.branch }}
       - name: deploy json to aws
-        if: steps.extract_branch.outputs.branch == 'changeset-release/main'
+        if: steps.pr_details.outputs.source_branch == 'changeset-release/main'
         run: |
           export AWS_ACCESS_KEY_ID=${{ secrets.AWSACCESSKEYID }}
           export AWS_SECRET_ACCESS_KEY=${{ secrets.AWSSECRETKEY }}
           export AWS_DEFAULT_REGION=us-west-2
           version=$(sed -nr 's/{ "version": "([0-9\.]+)" }/\1/p'  ./js/_website/src/lib/json/version.json)
           aws s3 cp ./js/_website/src/lib/json/ s3://gradio-docs-json/$version/ --recursive
-      - name: deploy to vercel
-        uses: "./.github/workflows/deploy-website.yml"
-        with:
-          vercel_token: ${{ secrets.VERCEL_TOKEN }}
-          branch_name: ${{ steps.extract_branch.outputs.branch }}
-          pr_number: ${{ github.event.number }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+  deploy_to_vercel:
+    uses: "./.github/workflows/deploy-website.yml"
+    needs:  functional-test
+    secrets:
+      gh_token: ${{ secrets.GITHUB_TOKEN }}
+      vercel_token: ${{ secrets.VERCEL_TOKEN }}
+    with:
+      branch_name: ${{ needs.functional-test.outputs.source_branch }}
+      pr_number: ${{ needs.functional-test.outputs.pr_number }}
+
       # - name: install outbreak_forecast dependencies
       #   run: |
       #     . venv/bin/activate
