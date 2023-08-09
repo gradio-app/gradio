@@ -12,6 +12,7 @@ XRAY_CONFIG = {
                 "name": "markdown",
                 "visible": True,
                 "rtl": False,
+                "custom_component": False,
             },
             "serializer": "StringSerializable",
             "api_info": {"info": {"type": "string"}, "serialized_info": False},
@@ -29,6 +30,7 @@ XRAY_CONFIG = {
                 "min_width": 160,
                 "name": "checkboxgroup",
                 "visible": True,
+                "custom_component": False,
             },
             "serializer": "ListStringSerializable",
             "api_info": {
@@ -47,6 +49,7 @@ XRAY_CONFIG = {
                 "variant": "default",
                 "equal_height": True,
                 "visible": True,
+                "custom_component": False,
             },
         },
         {
@@ -68,6 +71,7 @@ XRAY_CONFIG = {
                 "show_share_button": False,
                 "show_download_button": True,
                 "visible": True,
+                "custom_component": False,
             },
             "serializer": "ImgSerializable",
             "api_info": {
@@ -91,6 +95,7 @@ XRAY_CONFIG = {
                 "min_width": 160,
                 "name": "json",
                 "visible": True,
+                "custom_component": False,
             },
             "serializer": "JSONSerializable",
             "api_info": {
@@ -108,6 +113,7 @@ XRAY_CONFIG = {
                 "interactive": True,
                 "name": "button",
                 "visible": True,
+                "custom_component": False,
             },
             "serializer": "StringSerializable",
             "api_info": {"info": {"type": "string"}, "serialized_info": False},
@@ -122,6 +128,7 @@ XRAY_CONFIG = {
                 "variant": "default",
                 "equal_height": True,
                 "visible": True,
+                "custom_component": False,
             },
         },
         {
@@ -143,6 +150,7 @@ XRAY_CONFIG = {
                 "show_share_button": False,
                 "show_download_button": True,
                 "visible": True,
+                "custom_component": False,
             },
             "serializer": "ImgSerializable",
             "api_info": {
@@ -166,6 +174,7 @@ XRAY_CONFIG = {
                 "min_width": 160,
                 "name": "json",
                 "visible": True,
+                "custom_component": False,
             },
             "serializer": "JSONSerializable",
             "api_info": {
@@ -183,6 +192,7 @@ XRAY_CONFIG = {
                 "interactive": True,
                 "name": "button",
                 "visible": True,
+                "custom_component": False,
             },
             "serializer": "StringSerializable",
             "api_info": {"info": {"type": "string"}, "serialized_info": False},
@@ -204,6 +214,7 @@ XRAY_CONFIG = {
                 "show_copy_button": False,
                 "visible": True,
                 "rtl": False,
+                "custom_component": False,
             },
             "serializer": "StringSerializable",
             "api_info": {"info": {"type": "string"}, "serialized_info": False},
@@ -212,12 +223,24 @@ XRAY_CONFIG = {
         {
             "id": 15,
             "type": "form",
-            "props": {"type": "form", "scale": 0, "min_width": 0, "visible": True},
+            "props": {
+                "type": "form",
+                "scale": 0,
+                "min_width": 0,
+                "visible": True,
+                "custom_component": False,
+            },
         },
         {
             "id": 16,
             "type": "form",
-            "props": {"type": "form", "scale": 0, "min_width": 0, "visible": True},
+            "props": {
+                "type": "form",
+                "scale": 0,
+                "min_width": 0,
+                "visible": True,
+                "custom_component": False,
+            },
         },
     ],
     "css": None,
@@ -337,6 +360,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "name": "markdown",
                 "visible": True,
                 "rtl": False,
+                "custom_component": False,
             },
             "serializer": "StringSerializable",
             "api_info": {"info": {"type": "string"}, "serialized_info": False},
@@ -354,6 +378,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "min_width": 160,
                 "name": "checkboxgroup",
                 "visible": True,
+                "custom_component": False,
             },
             "serializer": "ListStringSerializable",
             "api_info": {
@@ -372,6 +397,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "variant": "default",
                 "equal_height": True,
                 "visible": True,
+                "custom_component": False,
             },
         },
         {
@@ -393,6 +419,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "show_share_button": False,
                 "show_download_button": True,
                 "visible": True,
+                "custom_component": False,
             },
             "serializer": "ImgSerializable",
             "api_info": {
@@ -416,6 +443,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "min_width": 160,
                 "name": "json",
                 "visible": True,
+                "custom_component": False,
             },
             "serializer": "JSONSerializable",
             "api_info": {
@@ -433,6 +461,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "interactive": True,
                 "name": "button",
                 "visible": True,
+                "custom_component": False,
             },
             "serializer": "StringSerializable",
             "api_info": {"info": {"type": "string"}, "serialized_info": False},
@@ -447,6 +476,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "variant": "default",
                 "equal_height": True,
                 "visible": True,
+                "custom_component": False,
             },
         },
         {
@@ -468,6 +498,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "show_share_button": False,
                 "show_download_button": True,
                 "visible": True,
+                "custom_component": False,
             },
             "serializer": "ImgSerializable",
             "api_info": {
@@ -491,6 +522,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "min_width": 160,
                 "name": "json",
                 "visible": True,
+                "custom_component": False,
             },
             "serializer": "JSONSerializable",
             "api_info": {
@@ -508,6 +540,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "interactive": True,
                 "name": "button",
                 "visible": True,
+                "custom_component": False,
             },
             "serializer": "StringSerializable",
             "api_info": {"info": {"type": "string"}, "serialized_info": False},
@@ -529,6 +562,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "show_copy_button": False,
                 "visible": True,
                 "rtl": False,
+                "custom_component": False,
             },
             "serializer": "StringSerializable",
             "api_info": {"info": {"type": "string"}, "serialized_info": False},
@@ -537,12 +571,24 @@ XRAY_CONFIG_DIFF_IDS = {
         {
             "id": 20,
             "type": "form",
-            "props": {"type": "form", "scale": 0, "min_width": 0, "visible": True},
+            "props": {
+                "type": "form",
+                "scale": 0,
+                "min_width": 0,
+                "visible": True,
+                "custom_component": False,
+            },
         },
         {
             "id": 21,
             "type": "form",
-            "props": {"type": "form", "scale": 0, "min_width": 0, "visible": True},
+            "props": {
+                "type": "form",
+                "scale": 0,
+                "min_width": 0,
+                "visible": True,
+                "custom_component": False,
+            },
         },
     ],
     "css": None,
@@ -662,6 +708,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "value": "<h1>Detect Disease From Scan</h1>\n<p>With this model you can lorem ipsum</p>\n<ul>\n<li>ipsum 1</li>\n<li>ipsum 2</li>\n</ul>\n",
                 "name": "markdown",
                 "rtl": False,
+                "custom_component": False,
             },
         },
         {
@@ -675,6 +722,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "label": "Disease to Scan For",
                 "container": True,
                 "min_width": 160,
+                "custom_component": False,
             },
         },
         {
@@ -682,6 +730,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "type": "tabs",
             "props": {
                 "value": True,
+                "custom_component": False,
             },
         },
         {
@@ -690,6 +739,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "props": {
                 "label": "X-ray",
                 "value": True,
+                "custom_component": False,
             },
         },
         {
@@ -700,6 +750,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "variant": "default",
                 "equal_height": True,
                 "value": True,
+                "custom_component": False,
             },
         },
         {
@@ -716,6 +767,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "name": "image",
                 "show_share_button": False,
                 "selectable": False,
+                "custom_component": False,
             },
         },
         {
@@ -723,6 +775,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "type": "json",
             "props": {
                 "name": "json",
+                "custom_component": False,
             },
         },
         {
@@ -734,6 +787,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "interactive": True,
                 "css": {"background-color": "red", "--hover-color": "orange"},
                 "variant": "secondary",
+                "custom_component": False,
             },
         },
         {
@@ -743,6 +797,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "show_label": True,
                 "label": "CT Scan",
                 "value": True,
+                "custom_component": False,
             },
         },
         {
@@ -753,6 +808,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "variant": "default",
                 "equal_height": True,
                 "value": True,
+                "custom_component": False,
             },
         },
         {
@@ -769,6 +825,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "name": "image",
                 "show_share_button": False,
                 "selectable": False,
+                "custom_component": False,
             },
         },
         {
@@ -776,6 +833,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "type": "json",
             "props": {
                 "name": "json",
+                "custom_component": False,
             },
         },
         {
@@ -786,6 +844,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "interactive": True,
                 "name": "button",
                 "variant": "secondary",
+                "custom_component": False,
             },
         },
         {
@@ -799,6 +858,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "type": "text",
                 "rtl": False,
                 "autofocus": False,
+                "custom_component": False,
             },
         },
     ],

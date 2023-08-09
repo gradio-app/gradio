@@ -7,7 +7,6 @@ from string import capwords
 
 import pytest
 import requests
-from fastapi.testclient import TestClient
 
 import gradio
 from gradio.blocks import Blocks, get_api_info
@@ -205,68 +204,6 @@ class TestDeprecatedInterface:
     def test_deprecation_notice(self):
         with pytest.warns(Warning):
             _ = Interface(lambda x: x, "textbox", "textbox", verbose=True)
-
-
-class TestInterfaceInterpretation:
-    def test_interpretation_from_interface(self):
-        def quadratic(num1: float, num2: float) -> float:
-            return 3 * num1**2 + num2
-
-        iface = Interface(
-            fn=quadratic,
-            inputs=["number", "number"],
-            outputs="number",
-            interpretation="default",
-        )
-
-        interpretation_id = None
-        for c in iface.config["components"]:
-            if c["props"].get("value") == "Interpret" and c.get("type") == "button":
-                interpretation_id = c["id"]
-
-        # Make sure the event is configured correctly.
-        interpretation_dep = next(
-            d
-            for d in iface.config["dependencies"]
-            if d["targets"] == [interpretation_id]
-        )
-        interpretation_comps = [
-            c["id"]
-            for c in iface.config["components"]
-            if c.get("type") == "interpretation"
-        ]
-        interpretation_columns = [
-            c["id"]
-            for c in iface.config["components"]
-            if c.get("type") == "column" and c["props"].get("variant") == "default"
-        ]
-        assert sorted(interpretation_dep["outputs"]) == sorted(
-            interpretation_comps + interpretation_columns
-        )
-        assert sorted(interpretation_dep["inputs"]) == sorted(
-            [c._id for c in iface.input_components + iface.output_components]
-        )
-
-        app, _, _ = iface.launch(prevent_thread_lock=True)
-        client = TestClient(app)
-
-        btn = next(
-            c["id"]
-            for c in iface.config["components"]
-            if c["props"].get("value") == "Interpret"
-        )
-        fn_index = next(
-            i
-            for i, d in enumerate(iface.config["dependencies"])
-            if d["targets"] == [btn]
-        )
-
-        response = client.post(
-            "/api/predict/", json={"fn_index": fn_index, "data": [10, 50, 350]}
-        )
-        assert response.json()["data"][0]["interpretation"] is not None
-        iface.close()
-        close_all()
 
 
 @pytest.mark.parametrize(

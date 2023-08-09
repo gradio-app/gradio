@@ -32,7 +32,7 @@ class Video(
     Recordable,
     Uploadable,
     VideoSerializable,
-    Component
+    Component,
 ):
     """
     Creates a video component that can be used to upload/record videos (as an input) or display videos (as an output).

@@ -24,7 +24,7 @@ def io_components():
     classes_to_check = gr.components.Component.__subclasses__()
     subclasses = []
 
-    while classes_to_check:            
+    while classes_to_check:
         subclass = classes_to_check.pop()
         if subclass is gr.components.FormComponent:
             continue

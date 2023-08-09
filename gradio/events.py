@@ -129,8 +129,6 @@ class EventListenerMethod:
                 "The `stop` event on Video and Audio has been deprecated and will be remove in a future version. Use `ended` instead."
             )
 
-        if isinstance(self, Streamable):
-            self.check_streamable()
         if isinstance(show_progress, bool):
             show_progress = "full" if show_progress else "hidden"
 
@@ -271,6 +269,7 @@ class Streamable(EventListener):
         This listener is triggered when the user streams the component (e.g. a live webcam
         component). This method can be used when this component is in a Gradio Blocks.
         """
+
 
 @document("*start_recording", "*stop_recording", inherit=True)
 class Recordable(EventListener):

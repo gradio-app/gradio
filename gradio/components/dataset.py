@@ -9,7 +9,6 @@ from gradio_client.serializing import StringSerializable
 
 from gradio.components.base import (
     Component,
-    Component,
     _Keywords,
     get_component_instance,
 )

@@ -21,9 +21,7 @@ set_documentation_group("component")
 
 
 @document()
-class Model3D(
-    Changeable, Uploadable, Editable, Clearable, FileSerializable, Component
-):
+class Model3D(Changeable, Uploadable, Editable, Clearable, FileSerializable, Component):
     """
     Component allows users to upload or view 3D Model files (.obj, .glb, or .gltf).
     Preprocessing: This component passes the uploaded file as a {str}filepath.

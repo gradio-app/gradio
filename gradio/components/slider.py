@@ -6,25 +6,17 @@ import math
 import random
 from typing import Any, Callable, Literal
 
-import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import NumberSerializable
 
-from gradio.components.base import FormComponent, Component, _Keywords
-from gradio.deprecation import warn_style_method_deprecation
+from gradio.components.base import Component, FormComponent, _Keywords
 from gradio.events import Changeable, Inputable, Releaseable
 
 set_documentation_group("component")
 
 
 @document()
-class Slider(
-    Changeable,
-    Inputable,
-    Releaseable,
-    NumberSerializable,
-    FormComponent
-):
+class Slider(Changeable, Inputable, Releaseable, NumberSerializable, FormComponent):
     """
     Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
     Preprocessing: passes slider value as a {float} into the function.
@@ -165,3 +157,13 @@ class Slider(
             "value": value,
             "__type__": "update",
         }
+
+    def postprocess(self, y: float | None) -> float | None:
+        """
+        Any postprocessing needed to be performed on function output.
+        Parameters:
+            y: numeric output
+        Returns:
+            numeric output or minimum number if None
+        """
+        return self.minimum if y is None else y

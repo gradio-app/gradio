@@ -7,21 +7,15 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import ListStringSerializable
 
-from gradio.components.base import FormComponent, Component, _Keywords
-from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
+from gradio.components.base import Component, FormComponent, _Keywords
 from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
-from gradio.interpretation import NeighborInterpretable
 
 set_documentation_group("component")
 
 
 @document()
 class CheckboxGroup(
-    Changeable,
-    Inputable,
-    Selectable,
-    ListStringSerializable,
-    FormComponent
+    Changeable, Inputable, Selectable, ListStringSerializable, FormComponent
 ):
     """
     Creates a set of checkboxes of which a subset can be checked.

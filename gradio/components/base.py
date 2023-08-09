@@ -3,8 +3,8 @@ Along with the docs for each component, you can find the names of example demos 
 each component. These demos are located in the `demo` directory."""
 
 from __future__ import annotations
-import abc
 
+import abc
 import hashlib
 import os
 import secrets
@@ -29,9 +29,6 @@ from PIL import Image as _Image  # using _ to minimize namespace pollution
 from gradio import processing_utils, utils
 from gradio.blocks import Block, BlockContext
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
-from gradio.events import (
-    EventListener,
-)
 from gradio.layouts import Column, Form, Row
 
 if TYPE_CHECKING:
@@ -79,7 +76,11 @@ class Component(Block, Serializable):
             Path(tempfile.gettempdir()) / "gradio"
         )
 
-        Block.__init__(self, elem_id=elem_id, elem_classes=elem_classes, visible=visible, **kwargs)
+        Block.__init__(
+            self, elem_id=elem_id, elem_classes=elem_classes, visible=visible, **kwargs
+        )
+        if isinstance(self, StreamingInput):
+            self.check_streamable()
 
         self.label = label
         self.info = info
@@ -289,7 +290,7 @@ class Component(Block, Serializable):
             initial_value = value
             load_fn = None
         return load_fn, initial_value
-    
+
     def __str__(self):
         return self.__repr__()
 
@@ -308,16 +309,13 @@ class Component(Block, Serializable):
         """
         return y
 
-
     def attach_load_event(self, callable: Callable, every: float | None):
         """Add a load event that runs `callable`, optionally every `every` seconds."""
         self.load_event_to_attach = (callable, every)
 
-
     def as_example(self, input_data):
         """Return the input data in a way that can be displayed by the examples dataset component in the front-end."""
         return input_data
-
 
     def style(self, *args, **kwargs):
         """
@@ -356,7 +354,6 @@ class Component(Block, Serializable):
 
 
 class FormComponent(Component):
-
     def get_expected_parent(self) -> type[Form] | None:
         if getattr(self, "container", None) is False:
             return None
@@ -394,11 +391,10 @@ def get_component_instance(comp: str | dict | Component, render=True) -> Compone
 
 
 class StreamingOutput(metaclass=abc.ABCMeta):
-
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.streaming: bool
-    
+
     @abc.abstractmethod
     def stream_output(self, y) -> bytes:
         pass
@@ -409,4 +405,3 @@ class StreamingInput(metaclass=abc.ABCMeta):
     def check_streamable(self):
         """Used to check if streaming is supported given the input."""
         pass
-

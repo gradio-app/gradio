@@ -6,10 +6,9 @@ from gradio.components.base import (
     Component,
     Form,
     FormComponent,
-    Component,
+    Row,
     StreamingInput,
     StreamingOutput,
-    Row,
     _Keywords,
     component,
     get_component_instance,
@@ -99,7 +98,6 @@ __all__ = [
     "HighlightedText",
     "AnnotatedImage",
     "CheckboxGroup",
-    "Timeseries",
     "Text",
     "Highlightedtext",
     "Annotatedimage",
@@ -117,5 +115,5 @@ __all__ = [
     "UploadButton",
     "Video",
     "StreamingInput",
-    "StreamingOutput"
+    "StreamingOutput",
 ]

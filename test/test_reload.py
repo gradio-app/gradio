@@ -4,8 +4,8 @@ import pytest
 
 import gradio
 import gradio as gr
-from gradio.networking import Server
 from gradio.cli.commands.reload import _setup_config
+from gradio.networking import Server
 
 
 def build_demo():
