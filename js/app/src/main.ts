@@ -47,7 +47,7 @@ function create_custom_element(): void {
 			this.theme_mode = this.getAttribute("theme_mode") as ThemeMode | null;
 			this.updating = false;
 			this.loading = false;
-			this.on_load = this.getAttribute("onload") as (() => void) | null;
+			this.on_load = this.getAttribute("on_load") as (() => void) | null;
 		}
 
 		async connectedCallback(): Promise<void> {
