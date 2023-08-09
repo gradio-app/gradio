@@ -5,7 +5,7 @@
 	export let value: {
 		text: string | null;
 		files: [string | FileData][];
-	} = { text: null, files: [] };	
+	} = { text: null, files: [] };
 	export let type: "gallery" | "table";
 	export let selected = false;
 
@@ -33,7 +33,7 @@
 	class:gallery={type === "gallery"}
 	class:selected
 >
-"{value.text}",&nbsp {value.files.join(", ")}
+	"{value.text}",&nbsp {value.files.join(", ")}
 </div>
 
 <style>

@@ -269,25 +269,25 @@ class RichTextbox(
         return value
 
     def postprocess(
-            self, y: dict[str, str | list[str]] | None
-        ) -> dict[str, Any] | list[dict[str, Any]] | None:
-            """
-            Parameters:
-                y: dict with key "text" for text and "files" for list of files
-            Returns:
-                Text and a list of JSON object with key 'name' for filename, 'data' for base64 url, and 'size' for filesize in bytes
-            """
-            if y is None or y == {}:
-                return {"text": None, "files": []}
-            else:
-                files = [
-                    {
-                        "orig_name": Path(file).name,
-                        "name": self.make_temp_copy_if_needed(file),
-                        "size": Path(file).stat().st_size,
-                        "data": None,
-                        "is_file": True,
-                    }
-                    for file in y["files"]
-                ]
-                return {"text": y["text"], "files": files}
+        self, y: dict[str, str | list[str]] | None
+    ) -> dict[str, Any] | list[dict[str, Any]] | None:
+        """
+        Parameters:
+            y: dict with key "text" for text and "files" for list of files
+        Returns:
+            Text and a list of JSON object with key 'name' for filename, 'data' for base64 url, and 'size' for filesize in bytes
+        """
+        if y is None or y == {}:
+            return {"text": None, "files": []}
+        else:
+            files = [
+                {
+                    "orig_name": Path(file).name,
+                    "name": self.make_temp_copy_if_needed(file),
+                    "size": Path(file).stat().st_size,
+                    "data": None,
+                    "is_file": True,
+                }
+                for file in y["files"]
+            ]
+            return {"text": y["text"], "files": files}
