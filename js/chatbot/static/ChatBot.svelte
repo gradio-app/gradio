@@ -335,7 +335,10 @@
 		white-space: no-wrap;
 		overflow: auto;
 	}
-	
+  .message-wrap :global(code) {
+    font-size: var(--text-md);
+  }
+
 	/* Tables */
 	.message-wrap :global(table),
 	.message-wrap :global(tr),
