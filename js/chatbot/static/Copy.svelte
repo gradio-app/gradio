@@ -1,11 +1,10 @@
 <script lang="ts">
 	import { onDestroy } from "svelte";
-	import { fade } from "svelte/transition";
 	import { Copy, Check } from "@gradio/icons";
 
 	let copied = false;
 	export let value: string;
-	let timer: NodeJS.Timeout;
+	let timer: number;
 
 	function copy_feedback(): void {
 		copied = true;
@@ -46,30 +45,25 @@
 </script>
 
 <button on:click={handle_copy} title="copy">
-	<span class="copy-text" class:copied><Copy /> </span>
+	{#if !copied}
+		<span><Copy /> </span>
+	{/if}
 	{#if copied}
-		<span class="check" transition:fade><Check /></span>
+		<span><Check /></span>
 	{/if}
 </button>
 
 <style>
 	button {
 		position: relative;
-		cursor: pointer;
-		padding: 5px;
-		width: 22px;
-		height: 22px;
-	}
-
-	.check {
-		position: absolute;
 		top: 0;
 		right: 0;
-		z-index: var(--layer-top);
-		background: var(--background-fill-primary);
-		padding: var(--size-1);
-		width: 100%;
-		height: 100%;
-		color: var(--body-text-color);
+
+		width: 22px;
+		height: 22px;
+
+		padding: 5px;
+
+		cursor: pointer;
 	}
 </style>
