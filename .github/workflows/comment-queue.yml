@@ -4,7 +4,6 @@ on:
   workflow_call:
     inputs:
       pr_number:
-        required: true
         type: string
       message:
         required: true
@@ -13,23 +12,28 @@ on:
         required: false
         type: string
         default: "previews"
-      token:
-        required: true
+      additional_text:
+        required: false
         type: string
+        default: ""
+    secrets:
+      gh_token:
+        required: true
 
 concurrency:
-  group: ${{ github.event.inputs.pr_number }}
+  group: 1
 
 jobs:
   comment:
+    concurrency:
+      group: ${{inputs.pr_number || inputs.tag}}
     runs-on: ubuntu-latest
     steps:
-      - run: echo token = ${{ inputs.token }}
-      - run: echo pr_number = ${{ inputs.pr_number }}
-      - run: echo message = ${{ inputs.message }}
-      # - uses: "gradio-app/github/actions/comment_pr@main"
-      #   with:
-      #     github_token: ${{ inputs.token }}
-      #     pr_number: ${{ inputs.pr_number }}
-      #     message: ${{ inputs.message }}
-      #     tag: ${{ inputs.tag }}
+      - name: comment on pr
+        uses: "gradio-app/github/actions/comment-pr@main"
+        with:
+          gh_token: ${{ secrets.gh_token }}
+          tag: ${{ inputs.tag }}
+          pr_number: ${{ inputs.pr_number}}
+          message: ${{ inputs.message }}
+          additional_text: ${{ inputs.additional_text }}

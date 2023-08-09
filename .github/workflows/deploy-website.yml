@@ -18,9 +18,18 @@ on:
         type: number
 
 jobs:
+  comment-deploy-start:
+    uses: "./.github/workflows/comment-queue.yml"
+    secrets:
+      gh_token: ${{ secrets.github_token }}
+    with:
+      pr_number: ${{ inputs.pr_number }}
+      message: website~pending~null
   deploy:
     name: "Deploy website"
     runs-on: ubuntu-latest
+    outputs:
+      vercel_url: ${{ steps.output_url.outputs.vercel_url }}
     steps:
       - name: comment pr (start)
         uses: "./.github/workflows/comment-queue.yml"
@@ -42,8 +51,9 @@ jobs:
         run: vercel build --token=${{ inputs.vercel_token }}
       - name: Deploy Project Artifacts to Vercel
         if: github.event_name == 'pull_request'
+        id: output_url
         shell: bash
-        run: echo "VERCEL_URL=$(vercel deploy --prebuilt --token=${{ inputs.vercel_token }})" >> $GITHUB_ENV
+        run: echo "vercel_url=$(vercel deploy --prebuilt --token=${{ inputs.vercel_token }})" >> $GITHUB_OUTPUT
       # production
       - name: Pull Vercel Environment Information
         if: github.event_name == 'push' && inputs.branch_name == 'main'
@@ -67,3 +77,21 @@ jobs:
           token: ${{ inputs.github_token }}
           pr_number: ${{ github.event.pull_request.number }}
           message: "<website>:<sucess>:<$VERCEL_URL>" 
+  comment-deploy-success:
+    uses: "./.github/workflows/comment-queue.yml"
+    needs: [deploy]
+    if: needs.deploy.result == 'success'
+    secrets:
+      gh_token: ${{ secrets.gh_token }}
+    with:
+      pr_number: ${{ inputs.pr_number }}
+      message: website~success~${{needs.deploy.outputs.vercel_url}}
+  comment-deploy-failure:
+    uses: "./.github/workflows/comment-queue.yml"
+    needs: [deploy]
+    if: needs.deploy.result == 'failure'
+    secrets:
+      gh_token: ${{ secrets.gh_token }}
+    with:
+      pr_number: ${{ inputs.pr_number }}
+      message: website~failure~null
