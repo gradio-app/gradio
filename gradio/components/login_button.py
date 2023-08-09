@@ -57,7 +57,7 @@ class LoginButton(Button):
     def activate(self):
         if get_space() is None:
             warnings.warn(
-                "At the moment, `LoginButton` is only available in a Gradio Space. When developing an app locally, the button is disabled."
+                "At the moment, `LoginButton` is only available in a Gradio Space. When debugging an app locally, this button is disabled."
             )
             return
 
