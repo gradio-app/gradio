@@ -47,7 +47,7 @@
 	$: value, el && lines !== max_lines && resize({ target: el });
 
 	const dispatch = createEventDispatcher<{
-		change: undefined
+		change: undefined;
 		submit: undefined;
 		blur: undefined;
 		select: SelectData;
@@ -256,7 +256,11 @@
 				mozdirectory={file_count === "directory" || undefined}
 				data-testid="{label}-upload-button"
 			/>
-			<button class:hide={disabled} class="upload-button" on:click={openFileUpload}><Plus /></button>
+			<button
+				class:hide={disabled}
+				class="upload-button"
+				on:click={openFileUpload}><Plus /></button
+			>
 		{/if}
 	</div>
 </label>
