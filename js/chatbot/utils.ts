@@ -203,12 +203,13 @@ export const format_chat_for_sharing = async (
 
 					if (typeof message === "string") {
 						const regexPatterns = {
-							'audio': /<audio.*?src="(.*?)".*?<\/audio>|!\[audio\]\((.*?)\)/g,
-							'video': /<video.*?src="(.*?)".*?<\/video>|!\[video\]\((.*?)\)/g,
-							'image': /<img.*?src="(.*?)".*?\/>|!\[(.*?)\]\((.*?)\)/g,
+							'audio': /<audio.*?src="\/(file=.*?)"/g,
+							'video': /<video.*?src="(\/file=.*?)"/g,
+							'image': /<img.*?src="(\/file=.*?)".*?\/>|!\[.*\]\((\/file=.*?)\)/g,
 						};
 				
 						html_content = message;
+						console.log("Here")
 				
 						for (let [_, regex] of Object.entries(regexPatterns)) {
 							let match;
@@ -216,6 +217,7 @@ export const format_chat_for_sharing = async (
 							while ((match = regex.exec(message)) !== null) {
 								// Extract the URL from either HTML or Markdown syntax
 								const fileUrl = match[1] || match[2];
+								console.log(fileUrl)
 				
 								// Upload the file and replace the original URL
 								const newUrl = await uploadToHuggingFace(fileUrl, "url");
