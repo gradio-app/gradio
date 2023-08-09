@@ -333,7 +333,7 @@
 		padding: var(--spacing-xl) 10px;
 		direction: ltr;
 	}
-  .message-wrap code {
+  .message-wrap :global(code) {
     font-size: var(--text-md);
   }
 
