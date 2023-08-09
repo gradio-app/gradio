@@ -2,16 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Callable, Literal, Any
-import warnings
 import tempfile
+import warnings
 from pathlib import Path
+from typing import Any, Callable, Literal
 
-from gradio import utils
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import RichtextboxSerializable
 
+from gradio import utils
 from gradio.components.base import (
     FormComponent,
     IOComponent,
@@ -19,11 +19,11 @@ from gradio.components.base import (
 )
 from gradio.events import (
     Changeable,
+    Clickable,
     EventListenerMethod,
     Inputable,
     Selectable,
     Submittable,
-    Clickable,
     Uploadable,
 )
 

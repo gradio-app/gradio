@@ -38,12 +38,12 @@ from gradio.components.model3d import Model3D
 from gradio.components.number import Number
 from gradio.components.plot import Plot
 from gradio.components.radio import Radio
+from gradio.components.rich_textbox import RichTextbox
 from gradio.components.scatter_plot import ScatterPlot
 from gradio.components.slider import Slider
 from gradio.components.state import State, Variable
 from gradio.components.status_tracker import StatusTracker
 from gradio.components.textbox import Textbox
-from gradio.components.rich_textbox import RichTextbox
 from gradio.components.timeseries import Timeseries
 from gradio.components.upload_button import UploadButton
 from gradio.components.video import Video
