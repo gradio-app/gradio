@@ -95,7 +95,7 @@ class Audio(
             autoplay: Whether to automatically play the audio when the component is used as an output. Note: browsers will not autoplay audio files if the user has not interacted with the page yet.
             show_download_button: If True, will show a download button in the corner of the component for saving audio. If False, icon does not appear.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
-            show_edit_button: If True, will show an edit icon in the corner of the component that allows user to edit the audio. If False, icon does not appear. Default is True. 
+            show_edit_button: If True, will show an edit icon in the corner of the component that allows user to edit the audio. If False, icon does not appear. Default is True.
         """
         valid_sources = ["upload", "microphone"]
         source = source if source else ("microphone" if streaming else "upload")
