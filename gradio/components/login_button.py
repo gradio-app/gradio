@@ -1,12 +1,14 @@
 """Predefined button to sign in with Hugging Face in a Gradio Space."""
 from __future__ import annotations
 
+import warnings
 from typing import Any, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components import Button
 from gradio.routes import Request
+from gradio.utils import get_space
 
 set_documentation_group("component")
 
@@ -53,6 +55,12 @@ class LoginButton(Button):
         self.activate()
 
     def activate(self):
+        if get_space() is None:
+            warnings.warn(
+                "At the moment, `LoginButton` is only available in a Gradio Space. When developing an app locally, the button is disabled."
+            )
+            return
+
         # Taken from https://cmgdo.com/external-link-in-gradio-button/
         # Taking `self` as input to check if user is logged in
         # ('self' value will be either "Sign in with Hugging Face" or "Signed in as ...")
