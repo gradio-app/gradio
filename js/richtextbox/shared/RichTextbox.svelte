@@ -46,11 +46,11 @@
 	$: value, el && lines !== max_lines && resize({ target: el });
 
 	const dispatch = createEventDispatcher<{
-		change: undefined;
-		submit: undefined;
-		blur: undefined;
+		change: never;
+		submit: never;
+		blur: never;
 		select: SelectData;
-		input: undefined;
+		input: never;
 		load: {
 			text: string | null;
 			files: string[] | FileData[];
