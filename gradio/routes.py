@@ -99,10 +99,6 @@ templates.env.filters["toorjson"] = toorjson
 
 client = httpx.AsyncClient()
 
-###########
-# Auth
-###########
-
 
 class App(FastAPI):
     """
