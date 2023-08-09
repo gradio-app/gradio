@@ -49,9 +49,6 @@ jobs:
         python-version: ["3.8"]
     runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.test-type == 'flaky' }}
-    defaults:
-      run:
-        working-directory: client/python
     steps:
     - uses: actions/checkout@v3
     - name: Install Python
@@ -77,8 +74,8 @@ jobs:
       id: frontend-cache
       with:
         path: |
-          ../../gradio/templates/*
-        key: gradio-lib-front-end-${{ hashFiles('../../js/**')}}
+          gradio/templates/*
+        key: gradio-lib-front-end-${{ hashFiles('js/**')}}
     - name: Install pnpm
       if: steps.frontend-cache.outputs.cache-hit != 'true'
       uses: pnpm/action-setup@v2
@@ -99,28 +96,28 @@ jobs:
       if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Linux'
       run: |
         . venv/bin/activate
-        python -m pip install -r test/requirements.txt
+        python -m pip install -r client/python/test/requirements.txt
     - name: Install Gradio and Client Libraries Locally (Linux)
       if: runner.os == 'Linux'
       run: |
         . venv/bin/activate
+        python -m pip install -e client/python
         python -m pip install -e .
-        python -m pip install -e ../..
     - name: Lint (Linux)
       if: runner.os == 'Linux'
       run: |
         . venv/bin/activate
-        bash scripts/lint.sh
+        bash client/python/scripts/lint.sh
     - name: Tests (Linux)
       if: runner.os == 'Linux'
       run: |
         . venv/bin/activate
-        python -m pytest -m "${{ matrix.test-type }}"
+        python -m pytest -m "${{ matrix.test-type }}" client/python/
     - name: Install Test Requirements (Windows)
       if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Windows'
       run: |
         venv\Scripts\activate
-        pip install -r test/requirements.txt
+        pip install -r client/python/test/requirements.txt
     - name: Install Gradio and Client Libraries Locally (Windows)
       if: runner.os == 'Windows'
       run: |
@@ -131,7 +128,7 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         venv\Scripts\activate
-        python -m pytest -m "${{ matrix.test-type }}"
+        python -m pytest -m "${{ matrix.test-type }}" client/python/
   test:
     needs: [changes]
     if: needs.changes.outputs.gradio == 'true' || needs.changes.outputs.workflows == 'true' || needs.changes.outputs.scripts == 'true' || needs.changes.outputs.test == 'true'
