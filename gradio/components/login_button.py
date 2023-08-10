@@ -1,11 +1,13 @@
 """Predefined button to sign in with Hugging Face in a Gradio Space."""
 from __future__ import annotations
 
+import warnings
 from typing import Any, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components import Button
+from gradio.context import Context
 from gradio.routes import Request
 
 set_documentation_group("component")
@@ -50,7 +52,11 @@ class LoginButton(Button):
             min_width=min_width,
             **kwargs,
         )
-        self.activate()
+        if Context.root_block is not None:
+            self.activate()
+        else:
+            warnings.warn("LoginButton created outside of a Blocks context. May not work unless you call its `activate()` method manually.")
+
 
     def activate(self):
         # Taken from https://cmgdo.com/external-link-in-gradio-button/
