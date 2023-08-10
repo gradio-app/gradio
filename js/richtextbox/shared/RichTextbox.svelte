@@ -329,7 +329,6 @@
 		resize: none;
 		margin: 5px;
 		outline: none !important;
-		box-shadow: var(--input-shadow);
 		background: var(--input-background-fill);
 		padding: var(--input-padding);
 		width: 95%;

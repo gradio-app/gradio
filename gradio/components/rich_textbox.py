@@ -65,7 +65,7 @@ class RichTextbox(
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
-        interactive: bool | None = None,
+        interactive: bool | None = True,
         visible: bool = True,
         elem_id: str | None = None,
         autofocus: bool = False,
@@ -279,6 +279,8 @@ class RichTextbox(
         """
         if y is None or y == {}:
             return {"text": None, "files": []}
+        elif not y["files"]:
+            return {"text": y["text"], "files": []}
         else:
             files = [
                 {
