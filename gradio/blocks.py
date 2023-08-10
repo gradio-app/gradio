@@ -1637,7 +1637,7 @@ Received outputs:
             with gr.Blocks() as demo:
                 button = gr.Button(label="Generate Image")
                 button.click(fn=image_generator, inputs=gr.Textbox(), outputs=gr.Image())
-            demo.queue(concurrency_count=1)
+            demo.queue(max_size=10)
             demo.launch()
         Example: (Interface)
             demo = gr.Interface(image_generator, gr.Textbox(), gr.Image())
