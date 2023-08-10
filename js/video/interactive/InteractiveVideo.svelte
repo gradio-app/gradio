@@ -103,6 +103,7 @@
 		{mirror_webcam}
 		{include_audio}
 		{autoplay}
+		{root}
 		on:clear
 		on:play
 		on:pause

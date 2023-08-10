@@ -650,6 +650,7 @@ class App(FastAPI):
         async def upload_file(
             files: List[UploadFile] = File(...),
         ):
+            print("Here")
             output_files = []
             file_manager = gradio.File()
             for input_file in files:

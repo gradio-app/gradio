@@ -5,6 +5,7 @@
 	import { BlockLabel } from "@gradio/atoms";
 	import { Webcam } from "@gradio/image/interactive";
 	import { Video } from "@gradio/icons";
+	import { normalise_file } from "@gradio/upload";
 
 	import { prettyBytes, playable } from "../shared/utils";
 	import Player from "../shared/Player.svelte";
@@ -17,6 +18,7 @@
 	export let mirror_webcam = false;
 	export let include_audio: boolean;
 	export let autoplay: boolean;
+	export let root: string;
 
 	const dispatch = createEventDispatcher<{
 		change: any;
@@ -32,9 +34,11 @@
 	}>();
 
 	function handle_load({ detail }: CustomEvent<FileData | null>): void {
+		console.log("in handle_load");
+		console.log(detail);
+		value = detail;
 		dispatch("change", detail);
 		dispatch("upload", detail!);
-		value = detail;
 	}
 
 	function handle_clear({ detail }: CustomEvent<FileData | null>): void {
@@ -45,12 +49,18 @@
 
 	let dragging = false;
 	$: dispatch("drag", dragging);
+	$: console.log(value?.data);
 </script>
 
 <BlockLabel {show_label} Icon={Video} label={label || "Video"} />
 {#if value === null}
 	{#if source === "upload"}
-		<Upload bind:dragging filetype="video/x-m4v,video/*" on:load={handle_load}>
+		<Upload
+			bind:dragging
+			filetype="video/x-m4v,video/*"
+			on:load={handle_load}
+			{root}
+		>
 			<slot />
 		</Upload>
 	{:else if source === "webcam"}

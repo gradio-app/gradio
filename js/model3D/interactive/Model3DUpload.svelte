@@ -9,6 +9,7 @@
 	export let clearColor: [number, number, number, number] = [0, 0, 0, 0];
 	export let label = "";
 	export let show_label: boolean;
+	export let root: string;
 
 	onMount(() => {
 		if (value != null) {
@@ -108,7 +109,7 @@
 <BlockLabel {show_label} Icon={File} label={label || "3D Model"} />
 
 {#if value === null}
-	<Upload on:load={handle_upload} filetype=".obj, .gltf, .glb" bind:dragging>
+	<Upload on:load={handle_upload} {root} filetype=".obj, .gltf, .glb" bind:dragging>
 		<slot />
 	</Upload>
 {:else}
