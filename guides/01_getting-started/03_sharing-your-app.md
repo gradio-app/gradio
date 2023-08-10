@@ -205,6 +205,10 @@ When the user clicks on the login button, they get redirected in a new page to a
 
 Users can revoke access to their profile at any time in their [settings](https://huggingface.co/settings/connected-applications).
 
+As seen above, OAuth features are available only when your app runs in a Space. However, you often need to test your app
+locally before deploying it. To help with that, the `gr.LoginButton` is mocked. When a user clicks on it, they are
+automatically logged in with a fake user profile. This allows you to debug your app before deploying it to a Space.
+
 ## Accessing the Network Request Directly
 
 When a user makes a prediction to your app, you may need the underlying network request, in order to get the request headers (e.g. for advanced authentication), log the client's IP address, or for other reasons. Gradio supports this in a similar manner to FastAPI: simply add a function parameter whose type hint is `gr.Request` and Gradio will pass in the network request as that parameter. Here is an example:
