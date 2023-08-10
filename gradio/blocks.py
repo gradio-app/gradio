@@ -1625,7 +1625,7 @@ Received outputs:
         max_size: int | None = None,
     ):
         """
-        By adding queue you can control the rate of processed requests, let users know their position in the queue, and set a limit on maximum number of events allowed.
+        By enabling the queue you can control the rate of processed requests, let users know their position in the queue, and set a limit on maximum number of events allowed.
         Parameters:
             concurrency_count: Number of worker threads that will be processing requests from the queue concurrently. Increasing this number will increase the rate at which requests are processed, but will also increase the memory usage of the queue.
             status_update_rate: If "auto", Queue will send status estimations to all clients whenever a job is finished. Otherwise Queue will send status at regular intervals set by this parameter as the number of seconds.
