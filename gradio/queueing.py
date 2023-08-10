@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import copy
-import json
 import time
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import deque
@@ -346,9 +345,7 @@ class Queue:
             "client": {"host": websocket.client.host, "port": websocket.client.port},  # type: ignore
         }
 
-    async def call_prediction(
-        self, events: list[Event], batch: bool
-    ) -> fastapi.responses.JSONResponse:
+    async def call_prediction(self, events: list[Event], batch: bool):
         data = events[0].data
         assert data is not None, "No event data"
         username = events[0].username
@@ -369,8 +366,6 @@ class Queue:
 
         ## TODO: extract the following code copied from routes.py into a shared function.
         import traceback
-
-        from fastapi.responses import JSONResponse
 
         from gradio import utils
         from gradio.exceptions import Error
@@ -429,15 +424,11 @@ class Queue:
         except BaseException as error:
             show_error = app.get_blocks().show_error or isinstance(error, Error)
             traceback.print_exc()
-            return JSONResponse(
-                content={"error": str(error) if show_error else None},
-                status_code=500,
-            )
+            raise Exception(str(error) if show_error else None) from error
 
         if not (body.batched) and batch:
             output["data"] = output["data"][0]
 
-        output = default_response_class(output)  # Added
         return output
 
     async def process_events(self, events: list[Event], batch: bool) -> None:
@@ -456,9 +447,10 @@ class Queue:
             begin_time = time.time()
             try:
                 response = await self.call_prediction(awake_events, batch)
-                response_json = json.loads(response.body.decode("utf-8"))
+                err = None
             except Exception as e:
                 response = None
+                err = e
                 for event in awake_events:
                     await self.send_message(
                         event,
@@ -468,19 +460,20 @@ class Queue:
                             "success": False,
                         },
                     )
-            if response and response_json.get("is_generating", False):
+            if response and response.get("is_generating", False):
                 old_response = response
-                while response_json.get("is_generating", False):
+                old_err = err
+                while response.get("is_generating", False):
                     old_response = response
-                    old_response_json = response_json
+                    old_err = err
                     open_ws = []
                     for event in awake_events:
                         open = await self.send_message(
                             event,
                             {
                                 "msg": "process_generating",
-                                "output": old_response_json,
-                                "success": old_response.status_code == 200,
+                                "output": old_response,
+                                "success": old_response is not None,
                             },
                         )
                         open_ws.append(open)
@@ -489,30 +482,34 @@ class Queue:
                     ]
                     if not awake_events:
                         return
-                    response = await self.call_prediction(awake_events, batch)
-                    response_json = json.loads(response.body.decode("utf-8"))
+                    try:
+                        response = await self.call_prediction(awake_events, batch)
+                        err = None
+                    except Exception as e:
+                        response = None
+                        err = e
                 for event in awake_events:
-                    if response.status_code != 200:
-                        relevant_response = response
+                    if response is None:
+                        relevant_response = err
                     else:
-                        relevant_response = old_response
-                    relevant_response_json = json.loads(
-                        relevant_response.body.decode("utf-8")
-                    )
+                        relevant_response = old_response or old_err
                     await self.send_log_updates_for_event(event)
                     await self.send_message(
                         event,
                         {
                             "msg": "process_completed",
-                            "output": relevant_response_json,
-                            "success": relevant_response.status_code == 200,
+                            "output": {"error": relevant_response}
+                            if isinstance(relevant_response, Exception)
+                            else relevant_response,
+                            "success": relevant_response
+                            and not isinstance(relevant_response, Exception),
                         },
                     )
             elif response:
-                output = copy.deepcopy(response_json)
+                output = copy.deepcopy(response)
                 for e, event in enumerate(awake_events):
                     if batch and "data" in output:
-                        output["data"] = list(zip(*response_json.get("data")))[e]
+                        output["data"] = list(zip(*response.get("data")))[e]
                     await self.send_log_updates_for_event(
                         event
                     )  # clean out pending log updates first
@@ -521,11 +518,11 @@ class Queue:
                         {
                             "msg": "process_completed",
                             "output": output,
-                            "success": response.status_code == 200,
+                            "success": response is not None,
                         },
                     )
             end_time = time.time()
-            if response and response.status_code == 200:
+            if response is not None:
                 self.update_estimation(end_time - begin_time)
         except Exception as e:
             print(e)
