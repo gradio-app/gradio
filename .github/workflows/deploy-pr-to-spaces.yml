@@ -63,6 +63,11 @@ jobs:
           pip install https://gradio-builds.s3.amazonaws.com/${{ env.gh_sha }}/gradio-${{ env.gradio_version }}-py3-none-any.whl
           ```
 
+          ---
+          You can install the python gradio client in this PR by running:
+          ```bash
+          pip install "gradio-client @ git+https://github.com/gradio-app/gradio@${{ github.sha }}#subdirectory=client/python"
+          ```
         comment_tag: All the demos for this PR have been deployed at
         GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
         pr_number: ${{ env.pr_number }}
