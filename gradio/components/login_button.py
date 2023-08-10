@@ -55,8 +55,9 @@ class LoginButton(Button):
         if Context.root_block is not None:
             self.activate()
         else:
-            warnings.warn("LoginButton created outside of a Blocks context. May not work unless you call its `activate()` method manually.")
-
+            warnings.warn(
+                "LoginButton created outside of a Blocks context. May not work unless you call its `activate()` method manually."
+            )
 
     def activate(self):
         # Taken from https://cmgdo.com/external-link-in-gradio-button/
