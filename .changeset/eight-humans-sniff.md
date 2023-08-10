@@ -1,5 +1,5 @@
 ---
-"@gradio/form": patch
+"@gradio/dropdown": patch
 "gradio": patch
 ---
 
