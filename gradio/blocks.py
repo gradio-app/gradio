@@ -918,6 +918,14 @@ class Blocks(BlockContext):
                     repr += f"\n |-{block}"
         return repr
 
+    @property
+    def expects_oauth(self):
+        """Return whether the app expects user to authenticate via OAuth."""
+        return any(
+            isinstance(block, (components.LoginButton, components.LogoutButton))
+            for block in self.blocks.values()
+        )
+
     def render(self):
         if Context.root_block is not None:
             if self._id in Context.root_block.blocks:
