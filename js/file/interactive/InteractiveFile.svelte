@@ -128,6 +128,7 @@
 		{file_count}
 		{file_types}
 		{selectable}
+		{root}
 		on:change={({ detail }) => (value = detail)}
 		on:drag={({ detail }) => (dragging = detail)}
 		on:clear

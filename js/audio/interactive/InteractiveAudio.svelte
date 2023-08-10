@@ -85,6 +85,7 @@
 		{streaming}
 		{autoplay}
 		{show_edit_button}
+		{root}
 		on:edit
 		on:play
 		on:pause

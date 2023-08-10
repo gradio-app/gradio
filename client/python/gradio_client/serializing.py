@@ -14,6 +14,10 @@ with open(Path(__file__).parent / "types.json") as f:
 
 
 class Serializable:
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
     def serialized_info(self):
         """
         The typing information for this component as a dictionary whose values are a list of 2 strings: [Python type, language-agnostic description].
@@ -250,16 +254,17 @@ class FileSerializable(Serializable):
         }
 
     def _serialize_single(
-        self, x: str | FileData | None, load_dir: str | Path = ""
-    ) -> FileData | None:
-        if x is None or isinstance(x, dict):
+        self, x: FileData, load_dir: str | Path = ""
+    ) -> FileData:
+        if x.is_none() or x.is_dict():
             return x
-        if utils.is_http_url_like(x):
-            filename = x
-            size = None
         else:
-            filename = str(Path(load_dir) / x)
-            size = Path(filename).stat().st_size
+            if utils.is_http_url_like(x.value):
+                filename = x
+                size = None
+            else:
+                filename = str(Path(load_dir) / x)
+                size = Path(filename).stat().st_size
         return {
             "name": filename,
             "data": utils.encode_url_or_file_to_base64(filename),

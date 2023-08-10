@@ -21,6 +21,7 @@
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
+	export let root: string;
 	export let show_label = true;
 	export let name = "";
 	export let source: "microphone" | "upload" | "none";
@@ -231,7 +232,7 @@
 		};
 	}): void {
 		value = detail;
-		dispatch("change", { data: detail.data, name: detail.name });
+		dispatch("change", detail);
 		dispatch("upload", detail);
 	}
 
@@ -276,6 +277,7 @@
 			filetype="audio/aac,audio/midi,audio/mpeg,audio/ogg,audio/wav,audio/x-wav,audio/opus,audio/webm,audio/flac,audio/vnd.rn-realaudio,audio/x-ms-wma,audio/x-aiff,audio/amr,audio/*"
 			on:load={handle_load}
 			bind:dragging
+			{root}
 		>
 			<slot />
 		</Upload>

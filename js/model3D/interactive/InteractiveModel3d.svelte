@@ -45,6 +45,7 @@
 		{label}
 		{show_label}
 		{clearColor}
+		{root}
 		value={_value}
 		on:change={({ detail }) => (value = detail)}
 		on:drag={({ detail }) => (dragging = detail)}
