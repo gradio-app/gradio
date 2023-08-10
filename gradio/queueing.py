@@ -12,6 +12,7 @@ import fastapi
 import httpx
 from typing_extensions import Literal
 
+from gradio import route_utils, routes
 from gradio.data_classes import (
     Estimation,
     LogMessage,
@@ -48,7 +49,7 @@ class Event:
 class Queue:
     def __init__(
         self,
-        app: fastapi.FastAPI,
+        app: routes.App,
         live_updates: bool,
         concurrency_count: int,
         update_intervals: float,
@@ -345,7 +346,9 @@ class Queue:
             "client": {"host": websocket.client.host, "port": websocket.client.port},  # type: ignore
         }
 
-    async def call_prediction(self, events: list[Event], batch: bool) -> fastapi.responses.JSONResponse:
+    async def call_prediction(
+        self, events: list[Event], batch: bool
+    ) -> fastapi.responses.JSONResponse:
         data = events[0].data
         assert data is not None, "No event data"
         username = events[0].username
@@ -365,71 +368,34 @@ class Queue:
             data.batched = True
 
         ## TODO: extract the following code copied from routes.py into a shared function.
-        from copy import deepcopy
         import traceback
-        from gradio import utils
-        from gradio.helpers import EventData
-        from gradio.routes import Request
-        from gradio.exceptions import Error
+
         from fastapi.responses import JSONResponse
+
+        from gradio import utils
+        from gradio.exceptions import Error
+        from gradio.helpers import EventData
+
         api_name = "predict"
         app = self.app
         body = data
         default_response_class = app.router.default_response_class
 
-        fn_index_inferred = None
-        if body.fn_index is None:
-            for i, fn in enumerate(app.get_blocks().dependencies):
-                if fn["api_name"] == api_name:
-                    fn_index_inferred = i
-                    break
-            if fn_index_inferred is None:
-                return JSONResponse(
-                    content={
-                        "error": f"This app has no endpoint /api/{api_name}/."
-                    },
-                    status_code=500,
-                )
-        else:
-            fn_index_inferred = body.fn_index
+        fn_index_inferred = route_utils.infer_fn_index(
+            app=app, api_name=api_name, body=body
+        )
 
-        # If this fn_index cancels jobs, then the only input we need is the
-        # current session hash
-        if app.get_blocks().dependencies[fn_index_inferred]["cancels"]:
-            body.data = [body.session_hash]
-        if body.request:
-            if body.batched:
-                gr_request = [
-                    Request(username=username, **req) for req in body.request
-                ]
-            else:
-                assert isinstance(body.request, dict)
-                gr_request = Request(username=username, **body.request)
-        else:
-            gr_request = Request(username=username, request=request)  # TODO
+        gr_request = route_utils.compile_gr_request(
+            app=app,
+            body=body,
+            fn_index_inferred=fn_index_inferred,
+            username=username,
+            request=None,
+        )
+
+        session_state, iterators = route_utils.restore_session_state(app=app, body=body)
 
         fn_index = body.fn_index
-        if hasattr(body, "session_hash"):
-            if body.session_hash not in app.state_holder:
-                app.state_holder[body.session_hash] = {
-                    _id: deepcopy(getattr(block, "value", None))
-                    for _id, block in app.get_blocks().blocks.items()
-                    if getattr(block, "stateful", False)
-                }
-            session_state = app.state_holder[body.session_hash]
-            # The should_reset set keeps track of the fn_indices
-            # that have been cancelled. When a job is cancelled,
-            # the /reset route will mark the jobs as having been reset.
-            # That way if the cancel job finishes BEFORE the job being cancelled
-            # the job being cancelled will not overwrite the state of the iterator.
-            if fn_index in app.iterators_to_reset[body.session_hash]:
-                iterators = {}
-                app.iterators_to_reset[body.session_hash].remove(fn_index)
-            else:
-                iterators = app.iterators[body.session_hash]
-        else:
-            session_state = {}
-            iterators = {}
 
         event_id = getattr(body, "event_id", None)
         raw_input = body.data
@@ -559,7 +525,7 @@ class Queue:
                         },
                     )
             end_time = time.time()
-            if response.status_code == 200:
+            if response and response.status_code == 200:
                 self.update_estimation(end_time - begin_time)
         except Exception as e:
             print(e)
