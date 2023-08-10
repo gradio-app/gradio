@@ -153,6 +153,8 @@ _Note_: For Gradio apps in which [queueing is enabled](https://gradio.app/guides
 
 ## Authentication
 
+### Password-protected app
+
 You may wish to put an authentication page in front of your app to limit who can open your app. With the `auth=` keyword argument in the `launch()` method, you can provide a tuple with a username and password, or a list of acceptable username/password tuples; Here's an example that provides password-based authentication for a single user named "admin":
 
 ```python
@@ -171,6 +173,47 @@ demo.launch(auth=same_auth)
 
 For authentication to work properly, third party cookies must be enabled in your browser.
 This is not the case by default for Safari, Chrome Incognito Mode.
+
+### OAuth (Login via Hugging Face)
+
+Gradio supports OAuth login via Hugging Face. This feature is currently **experimental** and only available on Spaces.
+If allows to add a _"Sign in with Hugging Face"_ button to your demo. Check out [this Space](https://huggingface.co/spaces/Wauplin/gradio-oauth-demo)
+for a live demo.
+
+To enable OAuth, you must set `hf_oauth: true` as a Space metadata in your README.md file. This will register your Space
+as an OAuth application on Hugging Face. You also need to include `itsdangerous` and `authlib` in a separate
+`requirements.txt` file. Next, you can use `gr.LoginButton` and `gr.LogoutButton` to add login and logout buttons to
+your Gradio app. Once a user is logged in with their HF account, you can retrieve their profile. To do so, you only
+have to add a parameter of type `gr.OAuthProfile` to any Gradio function. The user profile will be automatically
+injected as a parameter value.
+
+Here is a short example:
+
+```py
+import gradio as gr
+
+
+def hello(profile: gr.OAuthProfile | None) -> str:
+    if profile is None:
+        return "I don't know you."
+    return f"Hello {profile.name}"
+
+
+with gr.Blocks() as demo:
+    gr.LoginButton()
+    gr.LogoutButton()
+    gr.Markdown().attach_load_event(hello, None)
+```
+
+When the user clicks on the login button, they get redirected in a new page to authorize your Space.
+
+![Allow Space app](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/oauth_sign_in.png)
+
+Users can revoke access to their profile at any time in their [settings](https://huggingface.co/settings/connected-applications).
+
+As seen above, OAuth features are available only when your app runs in a Space. However, you often need to test your app
+locally before deploying it. To help with that, the `gr.LoginButton` is mocked. When a user clicks on it, they are
+automatically logged in with a fake user profile. This allows you to debug your app before deploying it to a Space.
 
 ## Accessing the Network Request Directly
 

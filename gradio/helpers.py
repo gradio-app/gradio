@@ -13,7 +13,7 @@ import tempfile
 import threading
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal, Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -23,8 +23,9 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 from matplotlib import animation
 
-from gradio import components, processing_utils, routes, utils
+from gradio import components, oauth, processing_utils, routes, utils
 from gradio.context import Context
+from gradio.exceptions import Error
 from gradio.flagging import CSVLogger
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
@@ -690,6 +691,30 @@ def special_args(
         elif type_hint == routes.Request:
             if inputs is not None:
                 inputs.insert(i, request)
+        elif (
+            type_hint == Optional[oauth.OAuthProfile]
+            or type_hint == oauth.OAuthProfile
+            # Note: "OAuthProfile | None" is equals to Optional[OAuthProfile] in Python
+            #       => it is automatically handled as well by the above condition
+            #       (adding explicit "OAuthProfile | None" would break in Python3.9)
+        ):
+            if inputs is not None:
+                # Retrieve session from gr.Request, if it exists (i.e. if user is logged in)
+                session = (
+                    # request.session (if fastapi.Request obj i.e. direct call)
+                    getattr(request, "session", {})
+                    or
+                    # or request.request.session (if gr.Request obj i.e. websocket call)
+                    getattr(getattr(request, "request", None), "session", {})
+                )
+                oauth_profile = (
+                    session["oauth_profile"] if "oauth_profile" in session else None
+                )
+                if type_hint == oauth.OAuthProfile and oauth_profile is None:
+                    raise Error(
+                        "This action requires a logged in user. Please sign in and retry."
+                    )
+                inputs.insert(i, oauth_profile)
         elif (
             type_hint
             and inspect.isclass(type_hint)
