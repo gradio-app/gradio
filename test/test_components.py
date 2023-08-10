@@ -844,6 +844,7 @@ class TestAudio:
             "name": "audio",
             "show_download_button": True,
             "show_share_button": False,
+            "show_edit_button": True,
             "streaming": False,
             "show_label": True,
             "label": "Upload Your Audio",
@@ -883,6 +884,7 @@ class TestAudio:
             "name": "audio",
             "show_download_button": True,
             "show_share_button": False,
+            "show_edit_button": True,
             "streaming": False,
             "show_label": True,
             "label": None,
@@ -1995,6 +1997,7 @@ class TestChatbot:
             "selectable": False,
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
             "rtl": False,
+            "show_copy_button": False,
         }
 
 
