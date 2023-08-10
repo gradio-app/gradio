@@ -88,7 +88,7 @@
 
 			<div class="flex justify-between mt-4 lg:ml-10">
 				<a
-					href="/docs/blocks"
+					href="./docs/blocks"
 					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
@@ -96,7 +96,7 @@
 					</div>
 				</a>
 				<a
-					href="/docs/chatinterface"
+					href="./docs/chatinterface"
 					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
@@ -445,7 +445,7 @@
 					</div>
 				</a>
 				<a
-					href="/docs/chatinterface"
+					href="./docs/chatinterface"
 					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">

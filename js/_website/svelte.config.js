@@ -1,5 +1,8 @@
-import adapter from "@sveltejs/adapter-static";
+import adapter from "@sveltejs/adapter-vercel";
 import { vitePreprocess } from "@sveltejs/kit/vite";
+import _version from "./src/lib/json/version.json" assert { type: "json" };
+
+const version = _version.version;
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {

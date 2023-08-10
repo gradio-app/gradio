@@ -3,6 +3,7 @@
 	import { browser } from "$app/environment";
 	import { goto } from "$app/navigation";
 	import { version } from "$lib/json/version.json";
+	import path from "path";
 
 	export let choices = [version, "main"];
 	export let value: string = $page.params?.version || version;
@@ -11,11 +12,22 @@
 	$: is_docs = $page.route.id?.includes("/docs/");
 
 	$: docs_url = `${value === version ? "" : `/${value}`}/docs/${
-		$page.params?.doc || ""
+		$page.params?.doc ||
+		(is_dynamic || path_parts.length !== 4
+			? ""
+			: path_parts[path_parts.length - 1])
 	}`;
 
+	$: path_parts = $page.route.id?.split("/") || [];
+	$: is_dynamic = path_parts[path_parts.length - 1].match(/\[.+\]/);
+
+	$: console.log(docs_url, $page, path_parts, is_dynamic);
+
 	$: guide_url = `${value === version ? "" : `/${value}`}/guides/${
-		$page.params?.guide || ""
+		$page.params?.guide ||
+		(is_dynamic || path_parts.length !== 4
+			? ""
+			: path_parts[path_parts.length - 1])
 	}`;
 
 	$: browser && is_docs && goto(docs_url);

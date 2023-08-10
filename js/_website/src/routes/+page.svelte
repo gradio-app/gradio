@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { version } from "$lib/json/version.json";
 	import DemosLanding from "$lib/components/DemosLanding.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import gradio_banner from "$lib/assets/img/header-image.jpg";
@@ -283,6 +284,11 @@
 		{/each}
 	</div>
 </div>
+<!-- 
+<a href="/{version}/docs"></a>
+<a href="/{version}/guide"></a> -->
+<a style="display: none;" href="/main/docs"></a>
+<a style="display: none;" href="/main/guides"></a>
 
 <style>
 	#gradio-banner {
