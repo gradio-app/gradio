@@ -121,6 +121,7 @@ export function create(options: Options): GradioAppController {
 				// misc global behaviour
 				autoscroll: options.autoScroll,
 				control_page_title: options.controlPageTitle,
+				on_load: null,
 				// for gradio docs
 				// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
 				app_mode: options.appMode,
