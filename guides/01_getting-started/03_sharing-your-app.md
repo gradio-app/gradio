@@ -175,10 +175,11 @@ If allows to add a *"Sign in with Hugging Face"* button to your demo. Check out 
 for a live demo.
 
 To enable OAuth, you must set `hf_oauth: true` as a Space metadata in your README.md file. This will register your Space
-as an OAuth application on Hugging Face. Next, you can use `gr.LoginButton` and `gr.LogoutButton` to add login and
-logout buttons to your Gradio app. Once a user is logged in with their HF account, you can retrieve their profile. To
-do so, you only have to add a parameter of type `gr.OAuthProfile` to any Gradio function. The user profile will be
-automatically injected as a parameter value.
+as an OAuth application on Hugging Face. You also need to include `itsdangerous` and `authlib` in a separate
+`requirements.txt` file. Next, you can use `gr.LoginButton` and `gr.LogoutButton` to add login and logout buttons to
+your Gradio app. Once a user is logged in with their HF account, you can retrieve their profile. To do so, you only
+have to add a parameter of type `gr.OAuthProfile` to any Gradio function. The user profile will be automatically
+injected as a parameter value.
 
 Here is a short example:
 
