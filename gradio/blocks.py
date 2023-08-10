@@ -1641,7 +1641,7 @@ Received outputs:
             demo.launch()
         Example: (Interface)
             demo = gr.Interface(image_generator, gr.Textbox(), gr.Image())
-            demo.queue(concurrency_count=1)
+            demo.queue(max_size=20)
             demo.launch()
         """
         if default_enabled is not None:
