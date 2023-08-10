@@ -3,7 +3,7 @@ aiohttp~=3.0
 altair>=4.2.0,<6.0
 fastapi
 ffmpy
-gradio_client==0.3.0
+gradio_client>=0.4.0
 httpx
 huggingface_hub>=0.14.0
 importlib_resources>=1.3,<7.0

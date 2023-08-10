@@ -1,5 +1,11 @@
 # @gradio/video
 
+## 0.0.3
+
+### Fixes
+
+- [#5140](https://github.com/gradio-app/gradio/pull/5140) [`cd1353fa`](https://github.com/gradio-app/gradio/commit/cd1353fa3eb1b015f5860ca5d5a8e8d1aa4a831c) - Fixes the display of minutes in the video player. Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.0.2
 
 ### Patch Changes

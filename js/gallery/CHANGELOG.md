@@ -1,5 +1,11 @@
 # @gradio/gallery
 
+## 0.2.0
+
+### Features
+
+- [#5025](https://github.com/gradio-app/gradio/pull/5025) [`6693660a`](https://github.com/gradio-app/gradio/commit/6693660a790996f8f481feaf22a8c49130d52d89) - Add download button to selected images in `Gallery`. Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.1.0
 
 ### Features
