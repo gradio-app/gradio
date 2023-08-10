@@ -26,6 +26,7 @@
 	export let datatype: Datatype | Datatype[];
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+	export let root: string;
 
 	const dispatch = createEventDispatcher();
 
@@ -63,6 +64,7 @@
 		{label}
 		{row_count}
 		{col_count}
+		{root}
 		values={value}
 		{headers}
 		on:change={({ detail }) => {

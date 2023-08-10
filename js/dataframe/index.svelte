@@ -22,6 +22,7 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
+	export let root: string;
 	export let value: { data: Data; headers: Headers } = {
 		data: [["", "", ""]],
 		headers: ["1", "2", "3"]
@@ -64,6 +65,7 @@
 		{scale}
 		{min_width}
 		{loading_status}
+		{root}
 		on:change
 		on:select
 		on:input
