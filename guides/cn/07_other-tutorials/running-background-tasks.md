@@ -1,7 +1,7 @@
 # 运行后台任务
 
 Related spaces: https://huggingface.co/spaces/freddyaboulton/gradio-google-forms
-Tags: TASKS, SCHEDULED, TABULAR, DATA 
+Tags: TASKS, SCHEDULED, TABULAR, DATA
 
 ## 简介
 
@@ -20,6 +20,7 @@ Tags: TASKS, SCHEDULED, TABULAR, DATA
 <gradio-app space="freddyaboulton/gradio-google-forms"> </gradio-app>
 
 ## 第一步 - 编写数据库逻辑 💾
+
 我们的应用程序将存储评论者的姓名，他们对 gradio 给出的评分（1 到 5 的范围），以及他们想要分享的关于该库的任何评论。让我们编写一些代码，创建一个数据库表来存储这些数据。我们还将编写一些函数，以将评论插入该表中并获取最新的 10 条评论。
 
 我们将使用 `sqlite3` 库来连接我们的 sqlite 数据库，但 gradio 可以与任何库一起使用。
@@ -59,7 +60,7 @@ def add_review(name: str, review: int, comments: str):
     reviews, total_reviews = get_latest_reviews(db)
     db.close()
     return reviews, total_reviews
-```    
+```
 
 让我们还写一个函数，在 gradio 应用程序加载时加载最新的评论 :
 
@@ -69,9 +70,10 @@ def load_data():
     reviews, total_reviews = get_latest_reviews(db)
     db.close()
     return reviews, total_reviews
-```    
+```
 
 ## 第二步 - 创建 gradio 应用 ⚡
+
 现在我们已经定义了数据库逻辑，我们可以使用 gradio 创建一个动态的网页来询问用户的反馈意见！
 
 使用以下代码段 :
@@ -98,6 +100,7 @@ with gr.Blocks() as demo:
 在继续之前，请在[此处](https://huggingface.co/datasets)创建一个数据集。
 
 现在，在我们脚本的**顶部**，我们将使用[huggingface hub 客户端库](https://huggingface.co/docs/huggingface_hub/index)连接到我们的数据集并获取最新的备份。
+
 ```python
 TOKEN = os.environ.get('HUB_TOKEN')
 repo = huggingface_hub.Repository(
@@ -120,6 +123,7 @@ shutil.copyfile("./data/reviews.db", DB_FILE)
 然而，这并不是唯一可用的任务调度库。请随意使用您熟悉的任何库。
 
 备份数据的函数如下 :
+
 ```python
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -145,6 +149,7 @@ scheduler.start()
 您将需要将 `HUB_TOKEN` 环境变量作为指南中的一个秘密使用。
 
 ## 结论
+
 恭喜！您知道如何在您的 gradio 应用程序中按计划运行后台任务⏲️。
 
 在 Spaces 上运行的应用程序可在[此处](https://huggingface.co/spaces/freddyaboulton/gradio-google-forms)查看。

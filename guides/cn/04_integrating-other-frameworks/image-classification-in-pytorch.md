@@ -7,7 +7,7 @@ Tags: VISION, RESNET, PYTORCH
 
 图像分类是计算机视觉中的一个核心任务。构建更好的分类器以区分图片中存在的物体是当前研究的一个热点领域，因为它的应用范围从自动驾驶车辆到医学成像等领域都很广泛。
 
-这样的模型非常适合 Gradio 的 *image* 输入组件，因此在本教程中，我们将使用 Gradio 构建一个用于图像分类的 Web 演示。我们将能够在 Python 中构建整个 Web 应用程序，效果如下（试试其中一个示例！）:
+这样的模型非常适合 Gradio 的 _image_ 输入组件，因此在本教程中，我们将使用 Gradio 构建一个用于图像分类的 Web 演示。我们将能够在 Python 中构建整个 Web 应用程序，效果如下（试试其中一个示例！）:
 
 <iframe src="https://abidlabs-pytorch-image-classifier.hf.space" frameBorder="0" height="660" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
@@ -48,17 +48,17 @@ def predict(inp):
   inp = transforms.ToTensor()(inp).unsqueeze(0)
   with torch.no_grad():
     prediction = torch.nn.functional.softmax(model(inp)[0], dim=0)
-    confidences = {labels[i]: float(prediction[i]) for i in range(1000)}    
+    confidences = {labels[i]: float(prediction[i]) for i in range(1000)}
   return confidences
 ```
 
 让我们逐步来看一下这段代码。该函数接受一个参数：
 
-* `inp`：输入图片，类型为 `PIL` 图像
+- `inp`：输入图片，类型为 `PIL` 图像
 
 然后，该函数将图像转换为 PIL 图像，最终转换为 PyTorch 的 `tensor`，将其输入模型，并返回：
 
-* `confidences`：预测结果，以字典形式表示，其中键是类别标签，值是置信度概率
+- `confidences`：预测结果，以字典形式表示，其中键是类别标签，值是置信度概率
 
 ## 第三步 - 创建 Gradio 界面
 
@@ -73,7 +73,7 @@ def predict(inp):
 ```python
 import gradio as gr
 
-gr.Interface(fn=predict, 
+gr.Interface(fn=predict,
              inputs=gr.Image(type="pil"),
              outputs=gr.Label(num_top_classes=3),
              examples=["lion.jpg", "cheetah.jpg"]).launch()
@@ -83,6 +83,6 @@ gr.Interface(fn=predict,
 
 <iframe src="https://abidlabs-pytorch-image-classifier.hf.space" frameBorder="0" height="660" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
-----------
+---
 
 完成了！这就是构建图像分类器 Web 演示所需的所有代码。如果您想与他人共享，请在 `launch()` 接口时设置 `share=True`！

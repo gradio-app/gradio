@@ -109,7 +109,7 @@
 	<a
 		class:current-nav-link={current_nav_link == "interface"}
 		class="thin-link px-4 block"
-		href=".//interface/">Interface</a
+		href="./interface/">Interface</a
 	>
 	<a
 		class:current-nav-link={current_nav_link == "flagging"}
@@ -134,7 +134,7 @@
 	<a
 		class:current-nav-link={current_nav_link == "chatinterface"}
 		class="thin-link px-4 block"
-		href=".//chatinterface/"
+		href="./chatinterface/"
 		>ChatInterface<sup class="text-orange-500">NEW</sup></a
 	>
 	<a

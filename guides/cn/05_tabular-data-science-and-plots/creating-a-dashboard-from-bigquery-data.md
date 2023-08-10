@@ -1,6 +1,6 @@
 # 从 BigQuery 数据创建实时仪表盘
 
-Tags: 表格 , 仪表盘 , 绘图 
+Tags: 表格 , 仪表盘 , 绘图
 
 [Google BigQuery](https://cloud.google.com/bigquery) 是一个基于云的用于处理大规模数据集的服务。它是一个无服务器且高度可扩展的数据仓库解决方案，使用户能够使用类似 SQL 的查询分析数据。
 
@@ -12,7 +12,7 @@ Tags: 表格 , 仪表盘 , 绘图
 
 1. 设置 BigQuery 凭据
 2. 使用 BigQuery 客户端
-3. 构建实时仪表盘（仅需 *7 行 Python 代码*）
+3. 构建实时仪表盘（仅需 _7 行 Python 代码_）
 
 我们将使用[纽约时报的 COVID 数据集](https://www.nytimes.com/interactive/2021/us/covid-cases.html)，该数据集作为一个公共数据集可在 BigQuery 上使用。数据集名为 `covid19_nyt.us_counties`，其中包含有关美国各县 COVID 确诊病例和死亡人数的最新信息。
 
@@ -36,16 +36,16 @@ Tags: 表格 , 仪表盘 , 绘图
 
 ```json
 {
- "type": "service_account",
- "project_id": "your project",
- "private_key_id": "your private key id",
- "private_key": "private key",
- "client_email": "email",
- "client_id": "client id",
- "auth_uri": "https://accounts.google.com/o/oauth2/auth",
- "token_uri": "https://accounts.google.com/o/oauth2/token",
- "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
- "client_x509_cert_url":  "https://www.googleapis.com/robot/v1/metadata/x509/email_id"
+	"type": "service_account",
+	"project_id": "your project",
+	"private_key_id": "your private key id",
+	"private_key": "private key",
+	"client_email": "email",
+	"client_id": "client id",
+	"auth_uri": "https://accounts.google.com/o/oauth2/auth",
+	"token_uri": "https://accounts.google.com/o/oauth2/token",
+	"auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+	"client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/email_id"
 }
 ```
 
@@ -73,15 +73,15 @@ client = bigquery.Client.from_service_account_json("path/to/key.json")
 import numpy as np
 
 QUERY = (
-    'SELECT * FROM `bigquery-public-data.covid19_nyt.us_counties` ' 
+    'SELECT * FROM `bigquery-public-data.covid19_nyt.us_counties` '
     'ORDER BY date DESC,confirmed_cases DESC '
     'LIMIT 20')
 
 def run_query():
-    query_job = client.query(QUERY)  
-    query_result = query_job.result()  
+    query_job = client.query(QUERY)
+    query_result = query_job.result()
     df = query_result.to_dataframe()
-    # Select a subset of columns 
+    # Select a subset of columns
     df = df[["confirmed_cases", "deaths", "county", "state_name"]]
     # Convert numeric columns to standard numpy types
     df = df.astype({"deaths": np.int64, "confirmed_cases": np.int64})
@@ -92,7 +92,7 @@ def run_query():
 
 一旦您有了查询数据的函数，您可以使用 Gradio 库的 `gr.DataFrame` 组件以表格形式显示结果。这是一种检查数据并确保查询正确的有用方式。
 
-以下是如何使用 `gr.DataFrame` 组件显示结果的示例。通过将 `run_query` 函数传递给 `gr.DataFrame`，我们指示 Gradio 在页面加载时立即运行该函数并显示结果。此外，您还可以传递关键字 `every`，以告知仪表板每小时刷新一次（60*60 秒）。
+以下是如何使用 `gr.DataFrame` 组件显示结果的示例。通过将 `run_query` 函数传递给 `gr.DataFrame`，我们指示 Gradio 在页面加载时立即运行该函数并显示结果。此外，您还可以传递关键字 `every`，以告知仪表板每小时刷新一次（60\*60 秒）。
 
 ```py
 import gradio as gr
@@ -115,7 +115,7 @@ with gr.Blocks() as demo:
     gr.Markdown("# 💉 Covid Dashboard (Updated Hourly)")
     with gr.Row():
         gr.DataFrame(run_query, every=60*60)
-        gr.ScatterPlot(run_query, every=60*60, x="confirmed_cases", 
+        gr.ScatterPlot(run_query, every=60*60, x="confirmed_cases",
                         y="deaths", tooltip="county", width=500, height=500)
 
 demo.queue().launch()  # Run the demo with queuing enabled

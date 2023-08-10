@@ -1,6 +1,6 @@
 # Using Gradio Blocks Like Functions
-Tags: TRANSLATION, HUB, SPACES
 
+Tags: TRANSLATION, HUB, SPACES
 
 **Prerequisite**: This Guide builds on the Blocks Introduction. Make sure to [read that guide first](https://gradio.app/guides/quickstart/#blocks-more-flexibility-and-control).
 
@@ -18,7 +18,7 @@ The following section will show how.
 
 ## Treating Blocks like functions
 
-Let's say we have the following demo that translates english text to german text. 
+Let's say we have the following demo that translates english text to german text.
 
 $code_english_translator
 
@@ -78,12 +78,12 @@ english_generator(text, fn_index=1)[0]["generated_text"]
 ```
 
 Functions in gradio spaces are zero-indexed, so since the spanish translator would be the second function in my space,
-you would use index 1. 
+you would use index 1.
 
 ## Parting Remarks
 
 We showed how treating a Blocks app like a regular python helps you compose functionality across different apps.
-Any Blocks app can be treated like a function, but a powerful pattern is to `load` an app hosted on 
+Any Blocks app can be treated like a function, but a powerful pattern is to `load` an app hosted on
 [Hugging Face Spaces](https://huggingface.co/spaces) prior to treating it like a function in your own app.
 You can also load models hosted on the [Hugging Face Model Hub](https://huggingface.co/models) - see the [Using Hugging Face Integrations](/using_hugging_face_integrations) guide for an example.
 

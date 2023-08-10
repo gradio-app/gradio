@@ -14,7 +14,7 @@ Here's the entire code to do it:
 import { client } from "@gradio/client";
 
 const response = await fetch(
-  "https://github.com/audio-samples/audio-samples.github.io/raw/master/samples/wav/ted_speakers/SalmanKhan/sample-1.wav"
+	"https://github.com/audio-samples/audio-samples.github.io/raw/master/samples/wav/ted_speakers/SalmanKhan/sample-1.wav"
 );
 const audio_file = await response.blob();
 
@@ -69,7 +69,7 @@ The `@gradio/client` exports another function, `duplicate`, to make this process
 import { client } from "@gradio/client";
 
 const response = await fetch(
-  "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
+	"https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
 );
 const audio_file = await response.blob();
 
@@ -85,9 +85,9 @@ If you have previously duplicated a Space, re-running `duplicate` will _not_ cre
 import { client } from "@gradio/client";
 
 const app = await duplicate("abidlabs/whisper", {
-  hf_token: "hf_...",
-  timeout: 60,
-  hardware: "a10g-small",
+	hf_token: "hf_...",
+	timeout: 60,
+	hardware: "a10g-small"
 });
 ```
 
@@ -121,25 +121,25 @@ And we will see the following:
 
 ```json
 {
-  "named_endpoints": {
-    "/predict": {
-      "parameters": [
-        {
-          "label": "text",
-          "component": "Textbox",
-          "type": "string"
-        }
-      ],
-      "returns": [
-        {
-          "label": "output",
-          "component": "Textbox",
-          "type": "string"
-        }
-      ]
-    }
-  },
-  "unnamed_endpoints": {}
+	"named_endpoints": {
+		"/predict": {
+			"parameters": [
+				{
+					"label": "text",
+					"component": "Textbox",
+					"type": "string"
+				}
+			],
+			"returns": [
+				{
+					"label": "output",
+					"component": "Textbox",
+					"type": "string"
+				}
+			]
+		}
+	},
+	"unnamed_endpoints": {}
 }
 ```
 
@@ -173,7 +173,7 @@ For certain inputs, such as images, you should pass in a `Buffer`, `Blob` or `Fi
 import { client } from "@gradio/client";
 
 const response = await fetch(
-  "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
+	"https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
 );
 const audio_file = await response.blob();
 
@@ -189,11 +189,11 @@ If the API you are working with can return results over time, or you wish to acc
 import { client } from "@gradio/client";
 
 function log_result(payload) {
-  const {
-    data: [translation],
-  } = payload;
+	const {
+		data: [translation]
+	} = payload;
 
-  console.log(`The translated result is: ${translation}`);
+	console.log(`The translated result is: ${translation}`);
 }
 
 const app = await client("abidlabs/en2fr");
@@ -210,9 +210,9 @@ The event interface also allows you to get the status of the running job by list
 import { client } from "@gradio/client";
 
 function log_status(status) {
-  console.log(
-    `The current status for this job is: ${JSON.stringify(status, null, 2)}.`
-  );
+	console.log(
+		`The current status for this job is: ${JSON.stringify(status, null, 2)}.`
+	);
 }
 
 const app = await client("abidlabs/en2fr");
@@ -264,6 +264,6 @@ const job = app.submit(0, [9]);
 job.on("data", (data) => console.log(data));
 
 setTimeout(() => {
-  job.cancel();
+	job.cancel();
 }, 3000);
 ```

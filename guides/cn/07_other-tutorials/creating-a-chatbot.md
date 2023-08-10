@@ -1,7 +1,8 @@
 # 如何创建一个聊天机器人
 
 Tags: NLP, TEXT, CHAT
-Related spaces: https://huggingface.co/spaces/gradio/chatbot_streaming, https://huggingface.co/spaces/project-baize/Baize-7B, 
+Related spaces: https://huggingface.co/spaces/gradio/chatbot_streaming, https://huggingface.co/spaces/project-baize/Baize-7B,
+
 ## 简介
 
 聊天机器人在自然语言处理 (NLP) 研究和工业界被广泛使用。由于聊天机器人是直接由客户和最终用户使用的，因此验证聊天机器人在面对各种输入提示时的行为是否符合预期至关重要。
@@ -19,19 +20,19 @@ $ 演示 _ 聊天机器人 _ 流式
 
 让我们从重新创建上面的简单演示开始。正如您可能已经注意到的，我们的机器人只是随机对任何输入回复 " 你好吗？"、" 我爱你 " 或 " 我非常饿 "。这是使用 Gradio 创建此演示的代码：
 
-$ 代码 _ 简单聊天机器人
+$ 代码 \_ 简单聊天机器人
 
 这里有三个 Gradio 组件：
 
-* 一个 `Chatbot`，其值将整个对话的历史记录作为用户和机器人之间的响应对列表存储。
-* 一个文本框，用户可以在其中键入他们的消息，然后按下 Enter/ 提交以触发聊天机器人的响应
-* 一个 `ClearButton` 按钮，用于清除文本框和整个聊天机器人的历史记录
+- 一个 `Chatbot`，其值将整个对话的历史记录作为用户和机器人之间的响应对列表存储。
+- 一个文本框，用户可以在其中键入他们的消息，然后按下 Enter/ 提交以触发聊天机器人的响应
+- 一个 `ClearButton` 按钮，用于清除文本框和整个聊天机器人的历史记录
 
 我们有一个名为 `respond()` 的函数，它接收聊天机器人的整个历史记录，附加一个随机消息，等待 1 秒，然后返回更新后的聊天历史记录。`respond()` 函数在返回时还清除了文本框。
 
 当然，实际上，您会用自己更复杂的函数替换 `respond()`，该函数可能调用预训练模型或 API 来生成响应。
 
-$ 演示 _ 简单聊天机器人
+$ 演示 \_ 简单聊天机器人
 
 ## 为聊天机器人添加流式响应
 
@@ -39,7 +40,7 @@ $ 演示 _ 简单聊天机器人
 
 $code_chatbot_streaming
 
-当用户提交他们的消息时，您会注意到我们现在使用 `.then()` 与三个事件事件 *链* 起来：
+当用户提交他们的消息时，您会注意到我们现在使用 `.then()` 与三个事件事件 _链_ 起来：
 
 1. 第一个方法 `user()` 用用户消息更新聊天机器人并清除输入字段。此方法还使输入字段处于非交互状态，以防聊天机器人正在响应时用户发送另一条消息。由于我们希望此操作立即发生，因此我们设置 `queue=False`，以跳过任何可能的队列。聊天机器人的历史记录附加了`(user_message, None)`，其中的 `None` 表示机器人未作出响应。
 
@@ -77,5 +78,5 @@ $demo_chatbot_multimodal
 
 你完成了！这就是构建聊天机器人模型界面所需的所有代码。最后，我们将结束我们的指南，并提供一些在 Spaces 上运行的聊天机器人的链接，以让你了解其他可能性：
 
-* [project-baize/Baize-7B](https://huggingface.co/spaces/project-baize/Baize-7B)：一个带有停止生成和重新生成响应功能的样式化聊天机器人。 
-* [MAGAer13/mPLUG-Owl](https://huggingface.co/spaces/MAGAer13/mPLUG-Owl)：一个多模态聊天机器人，允许您对响应进行投票。
+- [project-baize/Baize-7B](https://huggingface.co/spaces/project-baize/Baize-7B)：一个带有停止生成和重新生成响应功能的样式化聊天机器人。
+- [MAGAer13/mPLUG-Owl](https://huggingface.co/spaces/MAGAer13/mPLUG-Owl)：一个多模态聊天机器人，允许您对响应进行投票。

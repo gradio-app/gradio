@@ -1,4 +1,5 @@
 # Custom Machine Learning Interpretations with Blocks
+
 Tags: INTERPRETATION, SENTIMENT ANALYSIS
 
 **Prerequisite**: This Guide requires you to know about Blocks and the interpretation feature of Interfaces.
@@ -29,7 +30,7 @@ We'll have a single input `Textbox` and a single output `Label` component.
 Below is the code for the app as well as the app itself.
 
 ```python
-import gradio as gr 
+import gradio as gr
 from transformers import pipeline
 
 sentiment_classifier = pipeline("text-classification", return_all_scores=True)
@@ -71,13 +72,13 @@ The following code computes the `(word, score)` pairs:
 def interpretation_function(text):
     explainer = shap.Explainer(sentiment_classifier)
     shap_values = explainer([text])
-    
+
     # Dimensions are (batch size, text size, number of classes)
     # Since we care about positive sentiment, use index 1
     scores = list(zip(shap_values.data[0], shap_values.values[0, :, 1]))
     # Scores contains (word, score) pairs
-    
-    
+
+
     # Format expected by gr.components.Interpretation
     return {"original": text, "interpretation": scores}
 ```
@@ -108,7 +109,6 @@ demo.launch()
 
 <gradio-app space="freddyaboulton/sentiment-classification-interpretation"> </gradio-app>
 
-
 ## Customizing how the interpretation is displayed
 
 The `gr.components.Interpretation` component does a good job of showing how individual words contribute to the sentiment prediction,
@@ -121,6 +121,7 @@ We can do this by modifying our `interpretation_function` to additionally return
 We will display it with the `gr.Plot` component in a separate tab.
 
 This is how the interpretation function will look:
+
 ```python
 def interpretation_function(text):
     explainer = shap.Explainer(sentiment_classifier)
@@ -135,7 +136,7 @@ def interpretation_function(text):
     scores_desc = [t for t in scores_desc if t[0] != ""]
 
     fig_m = plt.figure()
-    
+
     # Select top 5 words that contribute to positive sentiment
     plt.bar(x=[s[0] for s in scores_desc[:5]],
             height=[s[1] for s in scores_desc[:5]])
@@ -146,6 +147,7 @@ def interpretation_function(text):
 ```
 
 And this is how the app code will look:
+
 ```python
 with gr.Blocks() as demo:
     with gr.Row():
@@ -174,13 +176,13 @@ You can see the demo below!
 <gradio-app space="freddyaboulton/sentiment-classification-interpretation-tabs"> </gradio-app>
 
 ## Beyond Sentiment Classification
+
 Although we have focused on sentiment classification so far, you can add interpretations to almost any machine learning model.
 The output must be an `gr.Image` or `gr.Label` but the input can be almost anything (`gr.Number`, `gr.Slider`, `gr.Radio`, `gr.Image`).
 
 Here is a demo built with blocks of interpretations for an image classification model:
 
 <gradio-app space="freddyaboulton/image-classification-interpretation-blocks"> </gradio-app>
-
 
 ## Closing remarks
 

@@ -1,18 +1,18 @@
-# Running Background Tasks 
+# Running Background Tasks
 
 Related spaces: https://huggingface.co/spaces/freddyaboulton/gradio-google-forms
-Tags: TASKS, SCHEDULED, TABULAR, DATA 
+Tags: TASKS, SCHEDULED, TABULAR, DATA
 
 ## Introduction
 
 This guide explains how you can run background tasks from your gradio app.
 Background tasks are operations that you'd like to perform outside the request-response
 lifecycle of your app either once or on a periodic schedule.
-Examples of background tasks include periodically synchronizing data to an external database or 
+Examples of background tasks include periodically synchronizing data to an external database or
 sending a report of model predictions via email.
 
-## Overview 
-    
+## Overview
+
 We will be creating a simple "Google-forms-style" application to gather feedback from users of the gradio library.
 We will use a local sqlite database to store our data, but we will periodically synchronize the state of the database
 with a [HuggingFace Dataset](https://huggingface.co/datasets) so that our user reviews are always backed up.
@@ -22,8 +22,8 @@ At the end of the demo, you'll have a fully working application like this one:
 
 <gradio-app space="freddyaboulton/gradio-google-forms"> </gradio-app>
 
-
 ## Step 1 - Write your database logic 💾
+
 Our application will store the name of the reviewer, their rating of gradio on a scale of 1 to 5, as well as
 any comments they want to share about the library. Let's write some code that creates a database table to
 store this data. We'll also write some functions to insert a review into that table and fetch the latest 10 reviews.
@@ -68,6 +68,7 @@ def add_review(name: str, review: int, comments: str):
 ```
 
 Let's also write a function to load the latest reviews when the gradio application loads:
+
 ```python
 def load_data():
     db = sqlite3.connect(DB_FILE)
@@ -77,7 +78,8 @@ def load_data():
 ```
 
 ## Step 2 - Create a gradio app ⚡
-Now that we have our database logic defined, we can use gradio create a dynamic web page to ask our users for feedback! 
+
+Now that we have our database logic defined, we can use gradio create a dynamic web page to ask our users for feedback!
 
 ```python
 with gr.Blocks() as demo:
@@ -146,15 +148,16 @@ scheduler.add_job(func=backup_db, trigger="interval", seconds=60)
 scheduler.start()
 ```
 
-
 ## Step 4 (Bonus) - Deployment to HuggingFace Spaces
+
 You can use the HuggingFace [Spaces](https://huggingface.co/spaces) platform to deploy this application for free ✨
 
 If you haven't used Spaces before, follow the previous guide [here](/using_hugging_face_integrations).
 You will have to use the `HUB_TOKEN` environment variable as a secret in the Guides.
 
 ## Conclusion
-Congratulations! You know how to run background tasks from your gradio app on a schedule ⏲️.  
+
+Congratulations! You know how to run background tasks from your gradio app on a schedule ⏲️.
 
 Checkout the application running on Spaces [here](https://huggingface.co/spaces/freddyaboulton/gradio-google-forms).
 The complete code is [here](https://huggingface.co/spaces/freddyaboulton/gradio-google-forms/blob/main/app.py)

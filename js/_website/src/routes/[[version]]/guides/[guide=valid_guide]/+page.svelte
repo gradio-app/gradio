@@ -98,7 +98,7 @@
 						class:current-nav-link={guide.name == guide_page.name}
 						class="guide-link -indent-2 ml-2 thin-link px-4 block overflow-hidden"
 						style="max-width: 12rem"
-						href=".{guide.url}"
+						href="..{guide.url}"
 						on:click={handleAnchorClick}>{guide.pretty_name}</a
 					>
 

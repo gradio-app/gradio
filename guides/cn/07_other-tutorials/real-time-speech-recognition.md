@@ -18,21 +18,24 @@ Tags: ASR, SPEECH, STREAMING
 
 确保您已经[安装](/getting_started)了 `gradio` Python 包。您还需要一个预训练的语音识别模型。在本教程中，我们将从两个 ASR 库构建演示：
 
-* Transformers（为此，`pip install transformers` 和 `pip install torch`）* DeepSpeech（`pip install deepspeech==0.8.2`）
+- Transformers（为此，`pip install transformers` 和 `pip install torch`）\* DeepSpeech（`pip install deepspeech==0.8.2`）
 
 确保您至少安装了其中之一，以便您可以跟随本教程操作。如果您尚未安装 `ffmpeg`，请在[系统上下载并安装](https://www.ffmpeg.org/download.html)，以便从麦克风处理文件。
 
 下面是构建实时语音识别（ASR）应用程序的步骤：
+
 1. [设置 Transformers ASR 模型](#1-set-up-the-transformers-asr-model)
 2. [使用 Transformers 创建一个全文 ASR 演示]
-(#2-create-a-full-context-asr-demo-with-transformers)
+   (#2-create-a-full-context-asr-demo-with-transformers)
 3. [使用 Transformers 创建一个流式 ASR 演示](#3-create-a-streaming-asr-demo-with-transformers)
 4. [使用 DeepSpeech 创建一个流式 ASR 演示](#4-create-a-streaming-asr-demo-with-deepspeech)
 
 ## 1. 设置 Transformers ASR 模型
+
 首先，您需要拥有一个 ASR 模型，您可以自己训练，或者需要下载一个预训练模型。在本教程中，我们将使用 Hugging Face 模型的预训练 ASR 模型 `Wav2Vec2`。
 
 以下是从 Hugging Face 的 `transformers` 加载 `Wav2Vec2` 的代码：
+
 ```python
 from transformers import pipeline
 p = pipeline("automatic-speech-recognition")
@@ -41,6 +44,7 @@ p = pipeline("automatic-speech-recognition")
 就是这样！默认情况下，自动语音识别模型管道会加载 Facebook 的 `facebook/wav2vec2-base-960h` 模型。
 
 ## 2. 使用 Transformers 创建一个全文 ASR 演示
+
 我们将首先创建一个*全文*ASR 演示，其中用户在使用 ASR 模型进行预测之前说完整段音频。使用 Gradio 非常简单，我们只需在上面的 `pipeline` 对象周围创建一个函数。
 
 我们将使用 `gradio` 内置的 `Audio` 组件，配置从用户的麦克风接收输入并返回录制音频的文件路径。输出组件将是一个简单的 `Textbox`。
@@ -53,14 +57,15 @@ def transcribe(audio):
     return text
 
 gr.Interface(
-    fn=transcribe, 
-    inputs=gr.Audio(source="microphone", type="filepath"), 
+    fn=transcribe,
+    inputs=gr.Audio(source="microphone", type="filepath"),
     outputs="text").launch()
 ```
 
 那么这里发生了什么？`transcribe` 函数接受一个参数 `audio`，它是用户录制的音频文件的文件路径。`pipeline` 对象期望一个文件路径，并将其转换为文本，然后返回到前端并在文本框中显示。
 
 让我们看看它的效果吧！（录制一段短音频并点击提交，或[在新标签页打开](https://huggingface.co/spaces/abidlabs/full-context-asr)）：
+
 <iframe src="https://abidlabs-full-context-asr.hf.space" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 ## 3. 使用 Transformers 创建一个流式 ASR 演示
 太棒了！我们已经构建了一个对短音频剪辑效果良好的 ASR 模型。但是，如果您正在记录较长的音频剪辑，则可能需要一个*流式*界面，即在用户说话时逐句转录音频，而不仅仅在最后一次全部转录。
@@ -70,9 +75,11 @@ gr.Interface(
 最大的变化是我们现在必须引入一个 `state` 参数，它保存到目前为止*转录的音频*。这样，我们只需处理最新的音频块，并将其简单地追加到先前转录的音频中。
 
 在向 Gradio 演示添加状态时，您需要完成 3 件事：
-* 在函数中添加 `state` 参数* 在函数末尾返回更新后的 `state`* 在 `Interface` 的 `inputs` 和 `outputs` 中添加 `"state"` 组件
+
+- 在函数中添加 `state` 参数* 在函数末尾返回更新后的 `state`* 在 `Interface` 的 `inputs` 和 `outputs` 中添加 `"state"` 组件
 
 以下是代码示例：
+
 ```python
 def transcribe(audio, state=""):
     text = p(audio)["text"]
@@ -81,10 +88,10 @@ def transcribe(audio, state=""):
 
 # Set the starting state to an empty string
 gr.Interface(
-    fn=transcribe, 
+    fn=transcribe,
     inputs=[
-        gr.Audio(source="microphone", type="filepath", streaming=True), 
-        "state" 
+        gr.Audio(source="microphone", type="filepath", streaming=True),
+        "state"
     ],
     outputs=[
         "textbox",
@@ -115,9 +122,9 @@ def transcribe(audio, state=""):
     return state, state
 
 gr.Interface(
-    fn=transcribe, 
+    fn=transcribe,
     inputs=[
-        gr.Audio(source="microphone", type="filepath", streaming=True), 
+        gr.Audio(source="microphone", type="filepath", streaming=True),
         "state"
     ],
     outputs=[
@@ -199,21 +206,21 @@ def transcribe(speech, stream):
 import gradio as gr
 
 gr.Interface(
-    fn=transcribe, 
+    fn=transcribe,
     inputs=[
-        gr.Audio(source="microphone", type="numpy"), 
-        "state" 
-    ], 
-    outputs= [
-        "text", 
+        gr.Audio(source="microphone", type="numpy"),
         "state"
-    ], 
+    ],
+    outputs= [
+        "text",
+        "state"
+    ],
     live=True).launch()
 ```
 
 运行所有这些应该允许您使用一个漂亮的 GUI 部署实时 ASR 模型。尝试一下，看它在您那里运行得有多好。
 
---------------------------------------------
+---
 
 你已经完成了！这就是构建用于 ASR 模型的基于 Web 的 GUI 所需的所有代码。
 

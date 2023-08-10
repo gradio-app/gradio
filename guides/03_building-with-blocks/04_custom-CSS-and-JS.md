@@ -1,8 +1,8 @@
 # Custom JS and CSS
 
-This guide covers how to style Blocks with more flexibility, as well as adding Javascript code to event listeners. 
+This guide covers how to style Blocks with more flexibility, as well as adding Javascript code to event listeners.
 
-**Warning**: The use of query selectors in custom JS and CSS is *not* guaranteed to work across Gradio versions as the Gradio HTML DOM may change. We recommend using query selectors sparingly.
+**Warning**: The use of query selectors in custom JS and CSS is _not_ guaranteed to work across Gradio versions as the Gradio HTML DOM may change. We recommend using query selectors sparingly.
 
 ## Custom CSS
 
@@ -18,6 +18,7 @@ Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`
 For additional styling ability, you can pass any CSS to your app using the `css=` kwarg.
 
 The base class for the Gradio app is `gradio-container`, so here's an example that changes the background color of the Gradio app:
+
 ```python
 with gr.Blocks(css=".gradio-container {background-color: red}") as demo:
     ...
@@ -30,7 +31,7 @@ with gr.Blocks(css=".gradio-container {background: url('file=clouds.jpg')}") as 
     ...
 ```
 
-You can also pass the filepath to a CSS file to the `css` argument. 
+You can also pass the filepath to a CSS file to the `css` argument.
 
 ## The `elem_id` and `elem_classes` Arguments
 
@@ -38,7 +39,7 @@ You can `elem_id` to add an HTML element `id` to any component, and `elem_classe
 
 ```python
 css = """
-#warning {background-color: #FFCCCB} 
+#warning {background-color: #FFCCCB}
 .feedback textarea {font-size: 24px !important}
 """
 

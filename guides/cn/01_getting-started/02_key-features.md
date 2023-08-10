@@ -35,9 +35,9 @@ $demo_calculator
 
 Interface 构造函数中有三个参数用于指定此内容应放置在哪里：
 
-* `title`：接受文本，并可以将其显示在界面的顶部，也将成为页面标题。
-* `description`：接受文本、Markdown 或 HTML，并将其放置在标题正下方。
-* `article`：也接受文本、Markdown 或 HTML，并将其放置在界面下方。
+- `title`：接受文本，并可以将其显示在界面的顶部，也将成为页面标题。
+- `description`：接受文本、Markdown 或 HTML，并将其放置在标题正下方。
+- `article`：也接受文本、Markdown 或 HTML，并将其放置在界面下方。
 
 ![annotated](/assets/guides/annotated.png)
 
@@ -61,7 +61,7 @@ gr.Number(label='年龄', info='以年为单位，必须大于0')
 |   +-- logs.csv
 ```
 
-*flagged/logs.csv*
+_flagged/logs.csv_
 
 ```csv
 num1,operation,num2,Output
@@ -83,7 +83,7 @@ num1,operation,num2,Output
 |   |   +-- 1.png
 ```
 
-*flagged/logs.csv*
+_flagged/logs.csv_
 
 ```csv
 im,Output
@@ -234,12 +234,13 @@ def trim_words(words, lens):
     return [trimmed_words]
     for w, l in zip(words, lens):
 ```
+
 使用批处理函数的优点是，如果启用了队列，Gradio 服务器可以自动*批处理*传入的请求并并行处理它们，从而可能加快演示速度。以下是 Gradio 代码的示例（请注意 `batch=True` 和 `max_batch_size=16` - 这两个参数都可以传递给事件触发器或 `Interface` 类）
 
 with `Interface`：
 
 ```python
-demo = gr.Interface(trim_words, ["textbox", "number"], ["output"], 
+demo = gr.Interface(trim_words, ["textbox", "number"], ["output"],
                     batch=True, max_batch_size=16)
 demo.queue()
 demo.launch()

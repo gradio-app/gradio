@@ -12,8 +12,9 @@
 > 芝加哥有巴基斯坦餐厅吗？
 
 命名实体识别算法可以识别出：
-* "Chicago" as a **location**
-* "Pakistani" as an **ethnicity**  
+
+- "Chicago" as a **location**
+- "Pakistani" as an **ethnicity**
 
 等等。
 
@@ -34,7 +35,7 @@ $demo_ner_pipeline
 许多命名实体识别模型输出的是一个字典列表。每个字典包含一个*实体*，一个 " 起始 " 索引和一个 " 结束 " 索引。这就是 `transformers` 库中的 NER 模型的操作方式。
 
 ```py
-from transformers import pipeline 
+from transformers import pipeline
 ner_pipeline = pipeline("ner")
 ner_pipeline("芝加哥有巴基斯坦餐厅吗？")
 ```
@@ -72,7 +73,7 @@ $demo_ner_pipeline
 $code_text_analysis
 $demo_text_analysis
 
---------------------------------------------
+---
 
 到此为止！您已经了解了为您的 NER 模型构建基于 Web 的图形用户界面所需的全部内容。
 

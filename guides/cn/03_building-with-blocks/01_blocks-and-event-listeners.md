@@ -82,7 +82,7 @@ with gr.Blocks() as demo:
         else:
             return 0, "hungry"
     gr.Button("EAT").click(
-        fn=eat, 
+        fn=eat,
         inputs=food_box,
         outputs=[food_box, status_box]
     )
@@ -102,7 +102,7 @@ with gr.Blocks() as demo:
         else:
             return {status_box: "hungry"}
     gr.Button("EAT").click(
-        fn=eat, 
+        fn=eat,
         inputs=food_box,
         outputs=[food_box, status_box]
     )
