@@ -1997,6 +1997,7 @@ class TestChatbot:
             "selectable": False,
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
             "rtl": False,
+            "show_copy_button": False,
         }
 
 

@@ -53,6 +53,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         rtl: bool = False,
         show_share_button: bool | None = None,
+        show_copy_button: bool = False,
         **kwargs,
     ):
         """
@@ -72,6 +73,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html).
             rtl: If True, sets the direction of the rendered text to right-to-left. Default is False, which renders text left-to-right.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
+            show_copy_button: If True, will show a copy button for each chatbot message.
         """
         if color_map is not None:
             warn_deprecation("The 'color_map' parameter has been deprecated.")
@@ -91,6 +93,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             if show_share_button is None
             else show_share_button
         )
+        self.show_copy_button = show_copy_button
 
         IOComponent.__init__(
             self,
@@ -115,6 +118,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             "height": self.height,
             "show_share_button": self.show_share_button,
             "rtl": self.rtl,
+            "show_copy_button": self.show_copy_button,
             **IOComponent.get_config(self),
         }
 
@@ -132,6 +136,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         height: int | None = None,
         rtl: bool | None = None,
         show_share_button: bool | None = None,
+        show_copy_button: bool | None = None,
     ):
         updated_config = {
             "label": label,
@@ -144,6 +149,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             "height": height,
             "show_share_button": show_share_button,
             "rtl": rtl,
+            "show_copy_button": show_copy_button,
             "__type__": "update",
         }
         return updated_config
