@@ -1633,7 +1633,7 @@ Received outputs:
         max_size: int | None = None,
     ):
         """
-        You can control the rate of processed requests by creating a queue. This will allow you to set the number of requests to be processed at one time, and will let users know their position in the queue.
+        By enabling the queue you can control the rate of processed requests, let users know their position in the queue, and set a limit on maximum number of events allowed.
         Parameters:
             concurrency_count: Number of worker threads that will be processing requests from the queue concurrently. Increasing this number will increase the rate at which requests are processed, but will also increase the memory usage of the queue.
             status_update_rate: If "auto", Queue will send status estimations to all clients whenever a job is finished. Otherwise Queue will send status at regular intervals set by this parameter as the number of seconds.
@@ -1645,11 +1645,11 @@ Received outputs:
             with gr.Blocks() as demo:
                 button = gr.Button(label="Generate Image")
                 button.click(fn=image_generator, inputs=gr.Textbox(), outputs=gr.Image())
-            demo.queue(concurrency_count=3)
+            demo.queue(max_size=10)
             demo.launch()
         Example: (Interface)
             demo = gr.Interface(image_generator, gr.Textbox(), gr.Image())
-            demo.queue(concurrency_count=3)
+            demo.queue(max_size=20)
             demo.launch()
         """
         if default_enabled is not None:
