@@ -17,6 +17,7 @@
 		text: string | null;
 		files: string[] | FileData[];
 	} = { text: null, files: [] };
+	export let value_is_output = false;
 	export let lines: number;
 	export let placeholder = "";
 	export let show_label: boolean;
@@ -77,8 +78,6 @@
 		change: never;
 		upload: never;
 	}>();
-
-	$: value = !value ? { text: null, files: [] } : value;
 </script>
 
 <Block
@@ -95,7 +94,8 @@
 	{/if}
 
 	<RichTextBox
-		{value}
+		bind:value
+		bind:value_is_output
 		{label}
 		{info}
 		{show_label}

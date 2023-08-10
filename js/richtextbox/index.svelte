@@ -13,6 +13,7 @@
 		text: string | null;
 		files: string[] | FileData[];
 	} = { text: null, files: [] };
+	export let value_is_output = false;
 	export let lines: number;
 	export let placeholder = "";
 	export let show_label: boolean;
@@ -33,7 +34,8 @@
 
 {#if mode === "static"}
 	<Static
-		{value}
+		bind:value
+		bind:value_is_output
 		{label}
 		{info}
 		{show_label}
@@ -63,7 +65,8 @@
 	></Static>
 {:else}
 	<Interactive
-		{value}
+		bind:value
+		bind:value_is_output
 		{label}
 		{info}
 		{show_label}
