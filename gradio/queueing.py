@@ -344,9 +344,11 @@ class Queue:
             "query_params": dict(websocket.query_params),
             "path_params": dict(websocket.path_params),
             "client": {"host": websocket.client.host, "port": websocket.client.port},  # type: ignore
-        }        
+        }
         try:
-            params["session"] = websocket.session  # forward OAuth information if available
+            params[
+                "session"
+            ] = websocket.session  # forward OAuth information if available
         except Exception:
             pass
         return params
