@@ -4,7 +4,7 @@
 
 	let copied = false;
 	export let value: string;
-	let timer: number;
+	let timer: NodeJS.Timeout;
 
 	function copy_feedback(): void {
 		copied = true;
