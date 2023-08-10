@@ -1,5 +1,16 @@
 # website
 
+## 0.1.0
+
+### Features
+
+- [#5076](https://github.com/gradio-app/gradio/pull/5076) [`2745075a`](https://github.com/gradio-app/gradio/commit/2745075a26f80e0e16863d483401ff1b6c5ada7a) - Add deploy_discord to docs. Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
+### Fixes
+
+- [#5111](https://github.com/gradio-app/gradio/pull/5111) [`b84a35b7`](https://github.com/gradio-app/gradio/commit/b84a35b7b91eca947f787648ceb361b1d023427b) - Add icon and link to DuplicateButton. Thanks [@aliabd](https://github.com/aliabd)!
+- [#5037](https://github.com/gradio-app/gradio/pull/5037) [`42488c07`](https://github.com/gradio-app/gradio/commit/42488c076aaf3ac2302b27760773a87f5b6ecc41) - Correct gradio version on website. Thanks [@aliabd](https://github.com/aliabd)!
+
 ## 0.0.2
 
 ### Features
