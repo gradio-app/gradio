@@ -21,6 +21,7 @@
 
 	export let editable = true;
 	export let wrap = false;
+	export let root: string;
 
 	let selected: false | string = false;
 
@@ -534,6 +535,7 @@
 			center={false}
 			boundedheight={false}
 			disable_click={true}
+			{root}
 			on:load={(e) => blob_to_string(data_uri_to_blob(e.detail.data))}
 			bind:dragging
 		>

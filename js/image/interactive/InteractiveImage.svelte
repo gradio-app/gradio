@@ -32,6 +32,7 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
+	export let root: string;
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -70,6 +71,7 @@
 		{tool}
 		{selectable}
 		{mask_opacity}
+		{root}
 		on:edit
 		on:clear
 		on:stream

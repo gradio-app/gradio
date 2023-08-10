@@ -26,6 +26,7 @@
 	export let datatype: Datatype | Datatype[];
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+	export let root: string;
 
 	const dispatch = createEventDispatcher();
 
@@ -60,6 +61,7 @@
 >
 	<StatusTracker {...loading_status} />
 	<Table
+		{root}
 		{label}
 		{row_count}
 		{col_count}

@@ -204,7 +204,6 @@ class Audio(
             x.get("is_file", False),
         )
         crop_min, crop_max = x.get("crop_min", 0), x.get("crop_max", 100)
-        breakpoint()
         if is_file:
             if client_utils.is_http_url_like(file_name):
                 temp_file_path = self.download_temp_copy_if_needed(file_name)

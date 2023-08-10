@@ -31,6 +31,7 @@
 	export let brush_color = "#000000";
 	export let mask_opacity;
 	export let selectable = false;
+	export let root: string;
 
 	let sketch: Sketch;
 	let cropper: Cropper;
