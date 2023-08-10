@@ -16,8 +16,6 @@ Using `Client.predict` will now return the final output of a streaming endpoint.
 
  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
 
-highlight:
-
 #### Gradio now supports streaming audio outputs
 
 Allows users to use generators to stream audio out, yielding consecutive chunks of audio. Requires `streaming=True` to be set on the output audio.
