@@ -338,14 +338,18 @@ class Queue:
         )
 
     def get_request_params(self, websocket: fastapi.WebSocket) -> dict[str, Any]:
-        return {
+        params = {
             "url": str(websocket.url),
             "headers": dict(websocket.headers),
             "query_params": dict(websocket.query_params),
             "path_params": dict(websocket.path_params),
-            "session": websocket.session,  # forward OAuth information
             "client": {"host": websocket.client.host, "port": websocket.client.port},  # type: ignore
-        }
+        }        
+        try:
+            params["session"] = websocket.session  # forward OAuth information if available
+        except Exception:
+            pass
+        return params
 
     async def call_prediction(self, events: list[Event], batch: bool):
         data = events[0].data
