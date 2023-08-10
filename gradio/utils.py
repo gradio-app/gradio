@@ -26,6 +26,7 @@ from typing import (
     Any,
     Callable,
     Generator,
+    Optional,
     TypeVar,
     Union,
 )
@@ -760,7 +761,7 @@ def get_cancel_function(
 def get_type_hints(fn):
     # Importing gradio with the canonical abbreviation. Used in typing._eval_type.
     import gradio as gr  # noqa: F401
-    from gradio import Request  # noqa: F401
+    from gradio import OAuthProfile, Request  # noqa: F401
 
     if inspect.isfunction(fn) or inspect.ismethod(fn):
         pass
@@ -780,6 +781,9 @@ def get_type_hints(fn):
         for name, param in sig.parameters.items():
             if param.annotation is inspect.Parameter.empty:
                 continue
+            if param.annotation == "gr.OAuthProfile | None":
+                # Special case: we want to inject the OAuthProfile value even on Python 3.9
+                type_hints[name] = Optional[OAuthProfile]
             if "|" in str(param.annotation):
                 continue
             # To convert the string annotation to a class, we use the
@@ -797,15 +801,17 @@ def get_type_hints(fn):
 
 def is_special_typed_parameter(name, parameter_types):
     from gradio.helpers import EventData
+    from gradio.oauth import OAuthProfile
     from gradio.routes import Request
 
-    """Checks if parameter has a type hint designating it as a gr.Request or gr.EventData"""
+    """Checks if parameter has a type hint designating it as a gr.Request, gr.EventData or gr.OAuthProfile."""
     hint = parameter_types.get(name)
     if not hint:
         return False
     is_request = hint == Request
+    is_oauth_arg = hint in (OAuthProfile, Optional[OAuthProfile])
     is_event_data = inspect.isclass(hint) and issubclass(hint, EventData)
-    return is_request or is_event_data
+    return is_request or is_event_data or is_oauth_arg
 
 
 def check_function_inputs_match(fn: Callable, inputs: list, inputs_as_dict: bool):
