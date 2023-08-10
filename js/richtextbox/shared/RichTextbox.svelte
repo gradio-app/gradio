@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, tick } from "svelte";
+	import { afterUpdate, createEventDispatcher, tick } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Copy, Check, Plus, Clear, File as FileIcon } from "@gradio/icons";
 	import { fade } from "svelte/transition";
@@ -10,6 +10,7 @@
 		text: string | null;
 		files: string[] | FileData[];
 	} = { text: null, files: [] };
+	export let value_is_output = false;
 	export let lines = 1;
 	export let placeholder = "Type here...";
 	export let label: string;
@@ -25,6 +26,10 @@
 	export let file_count: string;
 	export let file_types: string[] = [];
 
+	let old_value: {
+		text: string | null;
+		files: string[] | FileData[];
+	} = { text: null, files: [] };
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
 	let timer: NodeJS.Timeout;
@@ -59,9 +64,17 @@
 
 	function handle_change(): void {
 		dispatch("change");
-		dispatch("input");
+		if (!value_is_output) {
+			dispatch("input");
+		}
 	}
-	$: value, handle_change();
+	afterUpdate(() => {
+		value_is_output = false;
+	});
+	$: if (JSON.stringify(old_value) !== JSON.stringify(value)) {
+		old_value = {...value};
+		handle_change();
+	}
 
 	function handle_blur(): void {
 		dispatch("blur");
@@ -202,7 +215,7 @@
 				type="text"
 				class="scroll-hide"
 				dir={rtl ? "rtl" : "ltr"}
-				bind:value={value["text"]}
+				bind:value={value.text}
 				bind:this={el}
 				{placeholder}
 				{disabled}
@@ -217,7 +230,7 @@
 				data-testid="textbox"
 				class="scroll-hide"
 				dir={rtl ? "rtl" : "ltr"}
-				bind:value={value["text"]}
+				bind:value={value.text}
 				bind:this={el}
 				{placeholder}
 				rows={lines}
