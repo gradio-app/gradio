@@ -33,6 +33,8 @@ from gradio.components.interpretation import Interpretation
 from gradio.components.json_component import JSON
 from gradio.components.label import Label
 from gradio.components.line_plot import LinePlot
+from gradio.components.login_button import LoginButton
+from gradio.components.logout_button import LogoutButton
 from gradio.components.markdown import Markdown
 from gradio.components.model3d import Model3D
 from gradio.components.number import Number
@@ -87,6 +89,8 @@ __all__ = [
     "Json",
     "Label",
     "LinePlot",
+    "LoginButton",
+    "LogoutButton",
     "Markdown",
     "Textbox",
     "Dropdown",

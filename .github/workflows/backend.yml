@@ -128,6 +128,7 @@ jobs:
         cache-dependency-path: |
           client/python/requirements.txt
           requirements.txt
+          requirements-oauth.txt
           test/requirements.txt
     - name: Create env
       run: |
@@ -138,7 +139,7 @@ jobs:
       with:
         path: |
           venv/*
-        key: gradio-lib-${{ runner.os }}-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
+        key: gradio-lib-${{ runner.os }}-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-oauth.txt') }}-${{ hashFiles('test/requirements.txt') }}
     - uses: actions/cache@v3
       id: frontend-cache
       with:
@@ -198,7 +199,7 @@ jobs:
       if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Windows'
       run: |
         venv\Scripts\activate
-        python -m pip install -e . -r test/requirements.txt
+        python -m pip install -e . -r test/requirements.txt -r requirements-oauth.txt
     - name: Run tests (Windows)
       if: runner.os == 'Windows'
       run: |
