@@ -1,5 +1,6 @@
-import unittest
 from unittest.mock import patch
+
+import pytest
 
 import gradio as gr
 
@@ -18,19 +19,20 @@ class TestClearButton:
         assert clear_event_trigger["outputs"] == [textbox._id, chatbot._id]
 
 
-class TestOAuthButtons(unittest.TestCase):
+class TestOAuthButtons:
     def test_login_button_warns_when_not_on_spaces(self):
-        with self.assertWarns(UserWarning):
+        with pytest.warns(UserWarning):
             with gr.Blocks():
                 gr.LoginButton()
 
     def test_logout_button_warns_when_not_on_spaces(self):
-        with self.assertWarns(UserWarning):
+        with pytest.warns(UserWarning):
             with gr.Blocks():
                 gr.LogoutButton()
 
     @patch("gradio.oauth.get_space", lambda: "fake_space")
-    def test_login_button_setup_correctly(self):
+    @patch("gradio.oauth._add_oauth_routes")
+    def test_login_button_setup_correctly(self, mock_add_oauth_routes):
         with gr.Blocks() as demo:
             button = gr.LoginButton()
 
