@@ -55,6 +55,7 @@ if __name__ == "__main__":
         description="Copy all demos to all_demos and update requirements"
     )
     parser.add_argument("gradio_version", type=str, help="Gradio")
+    parser.add_argument("gradio_client_version", type=str, help="Gradio Client Version")
     args = parser.parse_args()
 
     source_dir = pathlib.Path(pathlib.Path(__file__).parent, "..", "demo")
@@ -67,6 +68,7 @@ if __name__ == "__main__":
     )
     requirements = f"""
     {args.gradio_version}
+    {args.gradio_client_version}
     pypistats==1.1.0
     plotly==5.10.0
     opencv-python==4.6.0.66
