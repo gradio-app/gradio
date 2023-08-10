@@ -19,7 +19,6 @@ import tempfile
 import traceback
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import defaultdict
-from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 from urllib.parse import urlparse
@@ -52,7 +51,6 @@ from gradio.data_classes import PredictBody, ResetBody
 from gradio.exceptions import Error
 from gradio.helpers import EventData
 from gradio.queueing import Estimation, Event
-from gradio.route_utils import Request
 from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
 
 mimetypes.init()
@@ -396,75 +394,6 @@ class App(FastAPI):
                 app.iterators[body.session_hash][body.fn_index] = None
                 app.iterators_to_reset[body.session_hash].add(body.fn_index)
             return {"success": True}
-
-        # TODO: Delete this function
-        async def run_predict(
-            body: PredictBody,
-            request: Request | List[Request],
-            fn_index_inferred: int,
-        ):
-            fn_index = body.fn_index
-            if hasattr(body, "session_hash"):
-                if body.session_hash not in app.state_holder:
-                    app.state_holder[body.session_hash] = {
-                        _id: deepcopy(getattr(block, "value", None))
-                        for _id, block in app.get_blocks().blocks.items()
-                        if getattr(block, "stateful", False)
-                    }
-                session_state = app.state_holder[body.session_hash]
-                # The should_reset set keeps track of the fn_indices
-                # that have been cancelled. When a job is cancelled,
-                # the /reset route will mark the jobs as having been reset.
-                # That way if the cancel job finishes BEFORE the job being cancelled
-                # the job being cancelled will not overwrite the state of the iterator.
-                if fn_index in app.iterators_to_reset[body.session_hash]:
-                    iterators = {}
-                    app.iterators_to_reset[body.session_hash].remove(fn_index)
-                else:
-                    iterators = app.iterators[body.session_hash]
-            else:
-                session_state = {}
-                iterators = {}
-
-            event_id = getattr(body, "event_id", None)
-            raw_input = body.data
-
-            dependency = app.get_blocks().dependencies[fn_index_inferred]
-            target = dependency["targets"][0] if len(dependency["targets"]) else None
-            event_data = EventData(
-                app.get_blocks().blocks.get(target) if target else None,
-                body.event_data,
-            )
-            batch = dependency["batch"]
-            if not (body.batched) and batch:
-                raw_input = [raw_input]
-            try:
-                with utils.MatplotlibBackendMananger():
-                    output = await app.get_blocks().process_api(
-                        fn_index=fn_index_inferred,
-                        inputs=raw_input,
-                        request=request,
-                        state=session_state,
-                        iterators=iterators,
-                        event_id=event_id,
-                        event_data=event_data,
-                    )
-                iterator = output.pop("iterator", None)
-                if hasattr(body, "session_hash"):
-                    app.iterators[body.session_hash][fn_index] = iterator
-                if isinstance(output, Error):
-                    raise output
-            except BaseException as error:
-                show_error = app.get_blocks().show_error or isinstance(error, Error)
-                traceback.print_exc()
-                return JSONResponse(
-                    content={"error": str(error) if show_error else None},
-                    status_code=500,
-                )
-
-            if not (body.batched) and batch:
-                output["data"] = output["data"][0]
-            return output
 
         # had to use '/run' endpoint for Colab compatibility, '/api' supported for backwards compatibility
         @app.post("/run/{api_name}", dependencies=[Depends(login_check)])
