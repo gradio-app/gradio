@@ -1,13 +1,11 @@
 """Predefined button to sign out from Hugging Face in a Gradio Space."""
 from __future__ import annotations
 
-import warnings
 from typing import Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components import Button
-from gradio.utils import get_space
 
 set_documentation_group("component")
 
@@ -52,12 +50,3 @@ class LogoutButton(Button):
             min_width=min_width,
             **kwargs,
         )
-        self.activate()
-
-    def activate(self):
-        if get_space() is None:
-            warnings.warn(
-                "At the moment, `LogoutButton` is only available in a Gradio Space. When debugging an app locally, this button is disabled."
-            )
-            self.link = None
-            return
