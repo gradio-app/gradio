@@ -42,8 +42,8 @@ runs:
       shell: bash
       run: |
         . venv/bin/activate
-        python -m pip install -e .
         python -m pip install -e client/python
+        python -m pip install -e .
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@v2
     - name: install-frontend
