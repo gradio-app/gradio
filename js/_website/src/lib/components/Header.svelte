@@ -7,6 +7,8 @@
 	let show_help_menu = false;
 	let show_nav = false;
 	$: show_nav = click_nav || $store?.lg;
+
+	// $: selected_version === version && is_versioned && goto("/guides/quickstart");
 </script>
 
 <div
@@ -24,6 +26,7 @@
 		<rect x="-7" y="-1" width="14" height="2" />
 		<rect x="-7" y="4" width="14" height="2" />
 	</svg>
+
 	<nav
 		class:hidden={!show_nav}
 		class="w-full flex-col gap-3 lg:flex lg:w-auto lg:flex-row lg:gap-8"

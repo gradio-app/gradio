@@ -28,6 +28,7 @@ pre[class*="language-"] {
 	-moz-tab-size: 4;
 	-o-tab-size: 4;
 	tab-size: 4;
+	font-size: 0.9em;
 }
 
 pre[class*="language-"]::-moz-selection,
@@ -63,6 +64,11 @@ pre[class*="language-"] {
 :not(pre) > code[class*="language-"],
 pre[class*="language-"] {
 	background: rgb(249, 250, 251);
+}
+
+.prose code[class*="language-"],
+.prose pre[class*="language-"] {
+	font-size: 0.8em;
 }
 
 /* Inline code */

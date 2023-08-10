@@ -1,10 +1,9 @@
-import guide_names_json from "$lib/json/guides/guide_names.json";
-
 import { compile } from "mdsvex";
 import anchor from "$lib/assets/img/anchor.svg";
 import { make_slug_processor } from "$lib/utils";
 import { toString as to_string } from "hast-util-to-string";
-let guide_names = guide_names_json.guide_names;
+import { redirect } from "@sveltejs/kit";
+import guide_names_json from "$lib/json/guides/guide_names.json";
 
 import Prism from "prismjs";
 import "prismjs/components/prism-python";
@@ -13,9 +12,6 @@ import "prismjs/components/prism-json";
 import "prismjs/components/prism-typescript";
 import "prismjs/components/prism-csv";
 import "prismjs/components/prism-markup";
-
-
-
 
 const langs = {
 	python: "python",
@@ -26,7 +22,7 @@ const langs = {
 	shell: "bash",
 	json: "json",
 	typescript: "typescript",
-	directory: "json",
+	directory: "json"
 };
 
 function highlight(code: string, lang: string | undefined) {
@@ -34,39 +30,41 @@ function highlight(code: string, lang: string | undefined) {
 
 	const highlighted = _lang
 		? `<pre class="language-${lang}"><code>${Prism.highlight(
-			code,
-			Prism.languages[_lang],
-			_lang
-		)}</code></pre>`
+				code,
+				Prism.languages[_lang],
+				_lang
+		  )}</code></pre>`
 		: code;
 
 	return highlighted;
 }
 
-
-import version from '$lib/json/version.json';
+import version from "$lib/json/version.json";
 export const prerender = true;
-
 
 const DOCS_BUCKET = "https://gradio-docs-json.s3.us-west-2.amazonaws.com";
 const VERSION = version.version;
 
-async function load_release_docs(version: string, guide: string): Promise<typeof import("$lib/json/docs.json")> {
+async function load_release_guides(
+	version: string,
+	guide: string
+): Promise<typeof import("$lib/json/guides/Gradio-and-Comet.json")> {
 	let docs_json = await fetch(`${DOCS_BUCKET}/${version}/guides/${guide}.json`);
 	return await docs_json.json();
 }
 
-async function load_main_guide(guide:string) {
-
-	return await import(`../../../../lib/json/guides/${guide}.json`)
+async function load_main_guides(guide: string) {
+	return await import(`../../../../lib/json/guides/${guide}.json`);
 }
 
-
-export async function load({ params }) {
+export async function load({ params, url }) {
+	if (params?.version === VERSION) {
+		throw redirect(302, url.href.replace(`/${params.version}`, ""));
+	}
 	let guide_json =
-	params?.version === "main"
-		? await load_main_guide(params.guide)
-		: await load_release_docs(params.version || VERSION, params.guide);
+		params?.version === "main"
+			? await load_main_guides(params.guide)
+			: await load_release_guides(params.version || VERSION, params.guide);
 
 	let guide = guide_json.guide;
 	const guide_slug: object[] = [];
@@ -89,14 +87,14 @@ export async function load({ params }) {
 					});
 
 					if (!n.children) n.children = [];
-					n.properties.className = ["group"]
+					n.properties.className = ["group"];
 					n.properties.id = [slug];
 					n.children.push({
 						type: "element",
 						tagName: "a",
 						properties: {
 							href: `#${slug}`,
-							className: ["invisible", "group-hover-visible"],
+							className: ["invisible", "group-hover-visible"]
 						},
 						children: [
 							{
@@ -121,11 +119,11 @@ export async function load({ params }) {
 			highlighter: highlight
 		}
 	});
-	guide.new_html = await compiled?.code;
+	guide.new_html = compiled?.code;
 
 	return {
 		guide,
 		guide_slug,
-		guide_names
+		guide_names: guide_names_json.guide_names
 	};
 }

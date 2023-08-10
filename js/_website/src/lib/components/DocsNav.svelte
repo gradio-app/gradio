@@ -38,6 +38,8 @@
 			search();
 		}
 	}
+
+	import DropDown from "$lib/components/VersionDropdown.svelte";
 </script>
 
 <svelte:window on:keydown={onKeyDown} />
@@ -67,7 +69,7 @@
 	use:clickOutside
 	on:click_outside={() => (show_nav = false)}
 	class:hidden={!show_nav}
-	class="navigation mobile-nav overflow-y-auto fixed backdrop-blur-lg z-50 bg-gray-200/50 pr-6 pl-4 py-4 -ml-4 h-full inset-0 w-5/6 lg:inset-auto lg:h-auto lg:ml-0 lg:z-0 lg:backdrop-blur-none lg:navigation lg:p-0 lg:pb-4 lg:h-screen lg:leading-relaxed lg:sticky lg:top-0 lg:text-md lg:block rounded-t-xl lg:bg-gradient-to-r lg:from-white lg:to-gray-50 lg:overflow-x-clip lg:w-2/12 lg:min-w-2/12"
+	class="min-w-[200px] navigation mobile-nav overflow-y-auto fixed backdrop-blur-lg z-50 bg-gray-200/50 pr-6 pl-4 py-4 -ml-4 h-full inset-0 w-5/6 lg:inset-auto lg:ml-0 lg:z-0 lg:backdrop-blur-none lg:navigation lg:p-0 lg:pb-4 lg:h-screen lg:leading-relaxed lg:sticky lg:top-0 lg:text-md lg:block rounded-t-xl lg:bg-gradient-to-r lg:from-white lg:to-gray-50 lg:overflow-x-clip lg:w-2/12"
 	id="mobile-nav"
 >
 	<button
@@ -88,7 +90,7 @@
 	</button>
 
 	<div
-		class="w-full sticky top-0 bg-gradient-to-r from-white to-gray-50 z-10 hidden lg:block"
+		class="w-full sticky top-0 bg-gradient-to-r from-white to-gray-50 z-10 hidden lg:block my-4 ml-4"
 	>
 		<input
 			bind:value={searchTerm}
@@ -96,27 +98,28 @@
 			bind:this={searchBar}
 			id="search"
 			type="search"
-			class="w-4/5 m-4 rounded-md border-gray-200 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0"
+			class="w-4/5 rounded-md border-gray-200 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0"
 			placeholder="Search ⌘-k / ctrl-k"
 			autocomplete="off"
 		/>
+		<DropDown></DropDown>
 	</div>
 
 	<a class="link px-4 my-2 block" href="/docs/">Building Demos</a>
 	<a
 		class:current-nav-link={current_nav_link == "interface"}
 		class="thin-link px-4 block"
-		href="/docs/interface/">Interface</a
+		href=".//interface/">Interface</a
 	>
 	<a
 		class:current-nav-link={current_nav_link == "flagging"}
 		class="thin-link px-4 block"
-		href="/docs/flagging/">Flagging</a
+		href="./flagging/">Flagging</a
 	>
 	<a
 		class:current-nav-link={current_nav_link == "combining-interfaces"}
 		class="thin-link px-4 block"
-		href="/docs/combining-interfaces/">Combining Interfaces</a
+		href="./combining-interfaces/">Combining Interfaces</a
 	>
 	<a
 		class:current-nav-link={current_nav_link == "blocks"}
@@ -131,24 +134,24 @@
 	<a
 		class:current-nav-link={current_nav_link == "chatinterface"}
 		class="thin-link px-4 block"
-		href="/docs/chatinterface/"
+		href=".//chatinterface/"
 		>ChatInterface<sup class="text-orange-500">NEW</sup></a
 	>
 	<a
 		class:current-nav-link={current_nav_link == "themes"}
 		class="thin-link px-4 block"
-		href="/docs/themes/">Themes</a
+		href="./themes/">Themes</a
 	>
 	<a
 		class:current-nav-link={current_nav_link == "components"}
 		class="link px-4 my-2 block"
-		href="/docs/components/">Components</a
+		href="./components/">Components</a
 	>
 	{#each Object.entries(components) as [name, obj] (name)}
 		<a
 			class:current-nav-link={current_nav_link == name}
 			class="px-4 block thin-link"
-			href="/docs/{name}/">{obj.name}</a
+			href="./{name}/">{obj.name}</a
 		>
 	{/each}
 	<a class="link px-4 my-2 block">Helpers</a>
@@ -156,7 +159,7 @@
 		<a
 			class:current-nav-link={current_nav_link == name}
 			class="px-4 block thin-link"
-			href="/docs/{name}/">{obj.name}</a
+			href="./{name}/">{obj.name}</a
 		>
 	{/each}
 	<a class="link px-4 my-2 block">Routes</a>
@@ -164,24 +167,24 @@
 		<a
 			class:current-nav-link={current_nav_link == name}
 			class="px-4 block thin-link"
-			href="/docs/{name}/">{obj.name}</a
+			href="./{name}/">{obj.name}</a
 		>
 	{/each}
 	<a
 		class:current-nav-link={current_nav_link == "python-client"}
 		class="link px-4 my-2 block"
-		href="/docs/python-client/">Python Client</a
+		href="./python-client/">Python Client</a
 	>
 	{#each Object.entries(py_client) as [name, obj] (name)}
 		<a
 			class:current-nav-link={current_nav_link == name}
 			class="px-4 block thin-link"
-			href="/docs/{name}/">{obj.name}</a
+			href="./{name}/">{obj.name}</a
 		>
 	{/each}
 	<a
 		class:current_nav_link={current_nav_link == "js-client"}
 		class="link px-4 my-2 block"
-		href="/docs/js-client/">JavaScript Client</a
+		href="./js-client/">JavaScript Client</a
 	>
 </div>

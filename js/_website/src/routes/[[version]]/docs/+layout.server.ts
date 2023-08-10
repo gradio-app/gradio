@@ -1,3 +1,4 @@
+import { redirect } from "@sveltejs/kit";
 import version from "$lib/json/version.json";
 export const prerender = true;
 
@@ -15,7 +16,10 @@ async function load_main_docs(): Promise<typeof import("$lib/json/docs.json")> {
 	return await import("$lib/json/docs.json");
 }
 
-export async function load({ params }) {
+export async function load({ params, url }) {
+	if (params?.version === VERSION) {
+		throw redirect(302, url.href.replace(`/${params.version}`, ""));
+	}
 	let docs_json =
 		params?.version === "main"
 			? await load_main_docs()
