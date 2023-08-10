@@ -594,7 +594,7 @@ class TestComponentsInBlocks:
         with gr.Blocks() as demo:
             for component in io_components:
                 components.append(component(value=lambda: None, every=1))
-        assert [comp.load_event for comp in components] == demo.dependencies
+        assert all(comp.load_event in demo.dependencies for comp in components)
 
 
 class TestBlocksPostprocessing:

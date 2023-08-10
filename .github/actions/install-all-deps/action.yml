@@ -38,10 +38,11 @@ runs:
         path: |
           venv/*
         key: gradio-lib-ubuntu-latest-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
-    - name: Install Gradio (Linux)
+    - name: Install Gradio and Client Libraries Locally (Linux)
       shell: bash
       run: |
         . venv/bin/activate
+        python -m pip install -e client/python
         python -m pip install -e .
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@v2

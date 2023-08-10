@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "gradio"
-dynamic = ["version", "dependencies", "readme"]
+dynamic = ["version", "dependencies", "optional-dependencies", "readme"]
 description = "Python library for easily interacting with trained machine learning models"
 license = "Apache-2.0"
 requires-python = ">=3.8"
@@ -48,6 +48,9 @@ pattern = "(?P<version>.+)"
 [tool.hatch.metadata.hooks.requirements_txt]
 filename = "requirements.txt"
 
+[tool.hatch.metadata.hooks.requirements_txt.optional-dependencies]
+oauth = ["requirements-oauth.txt"]
+
 [tool.hatch.metadata.hooks.fancy-pypi-readme]
 content-type = "text/markdown"
 fragments = [
@@ -74,6 +77,7 @@ include = [
   "/test",
   "/README.md",
   "/requirements.txt",
+  "/requirements-oauth.txt",
 ]
 
 [tool.pyright]

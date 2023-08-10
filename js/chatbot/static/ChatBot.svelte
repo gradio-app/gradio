@@ -7,6 +7,7 @@
 	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
 	import Markdown from "./MarkdownCode.svelte";
+	import Copy from "./Copy.svelte";
 
 	const code_highlight_css = {
 		light: (): Promise<typeof import("prismjs/themes/prism.css")> =>
@@ -31,6 +32,7 @@
 	export let show_share_button = false;
 	export let theme_mode: ThemeMode;
 	export let rtl = false;
+	export let show_copy_button = false;
 
 	$: if (theme_mode == "dark") {
 		code_highlight_css.dark();
@@ -96,6 +98,7 @@
 		/>
 	</div>
 {/if}
+
 <div class="wrap" bind:this={div}>
 	<div class="message-wrap" use:copy>
 		{#if value !== null}
@@ -120,6 +123,12 @@
 									{#each feedback as f}
 										<button>{f}</button>
 									{/each}
+								</div>
+							{/if}
+
+							{#if show_copy_button && message}
+								<div class="icon-button">
+									<Copy value={message} />
 								</div>
 							{/if}
 						{:else if message !== null && message.mime_type?.includes("audio")}
@@ -333,6 +342,9 @@
 		padding: var(--spacing-xl) 10px;
 		direction: ltr;
 	}
+  .message-wrap :global(code) {
+    font-size: var(--text-md);
+  }
 
 	/* Tables */
 	.message-wrap :global(table),

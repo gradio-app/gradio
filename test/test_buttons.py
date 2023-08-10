@@ -1,3 +1,7 @@
+from unittest.mock import patch
+
+import pytest
+
 import gradio as gr
 
 
@@ -13,3 +17,28 @@ class TestClearButton:
         assert not clear_event_trigger["backend_fn"]
         assert clear_event_trigger["js"]
         assert clear_event_trigger["outputs"] == [textbox._id, chatbot._id]
+
+
+class TestOAuthButtons:
+    def test_login_button_warns_when_not_on_spaces(self):
+        with pytest.warns(UserWarning):
+            with gr.Blocks():
+                gr.LoginButton()
+
+    def test_logout_button_warns_when_not_on_spaces(self):
+        with pytest.warns(UserWarning):
+            with gr.Blocks():
+                gr.LogoutButton()
+
+    @patch("gradio.oauth.get_space", lambda: "fake_space")
+    @patch("gradio.oauth._add_oauth_routes")
+    def test_login_button_setup_correctly(self, mock_add_oauth_routes):
+        with gr.Blocks() as demo:
+            button = gr.LoginButton()
+
+        login_event = demo.dependencies[0]
+        assert login_event["trigger"] == "click"
+        assert not login_event["backend_fn"]  # No Python code
+        assert login_event["js"]  # But JS code instead
+        assert login_event["inputs"] == [button._id]
+        assert login_event["outputs"] == []

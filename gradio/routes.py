@@ -53,6 +53,7 @@ from gradio.context import Context
 from gradio.data_classes import PredictBody, ResetBody
 from gradio.exceptions import Error
 from gradio.helpers import EventData
+from gradio.oauth import attach_oauth
 from gradio.queueing import Estimation, Event
 from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
 
@@ -97,10 +98,6 @@ templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 templates.env.filters["toorjson"] = toorjson
 
 client = httpx.AsyncClient()
-
-###########
-# Auth
-###########
 
 
 class App(FastAPI):
@@ -246,6 +243,15 @@ class App(FastAPI):
                 return response
             else:
                 raise HTTPException(status_code=400, detail="Incorrect credentials.")
+
+        ###############
+        # OAuth Routes
+        ###############
+
+        # Define OAuth routes if the app expects it (i.e. a LoginButton is defined).
+        # It allows users to "Sign in with HuggingFace".
+        if app.blocks is not None and app.blocks.expects_oauth:
+            attach_oauth(app)
 
         ###############
         # Main Routes
