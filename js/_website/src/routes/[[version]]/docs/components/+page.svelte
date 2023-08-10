@@ -2,6 +2,7 @@
 	import DocsNav from "$lib/components/DocsNav.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import dataflow_svg from "$lib/assets/img/dataflow.svg";
+	import { page } from "$app/stores";
 
 	export let data;
 
@@ -15,8 +16,8 @@
 
 <MetaTags
 	title={"Gradio Component Docs"}
-	url={"https://gradio.app/docs/components"}
-	canonical={"https://gradio.app/docs/components"}
+	url={$page.url.pathname}
+	canonical={$page.url.pathname}
 	description={"Gradio includes pre-built components that can be used as inputs or outputs in your Interface or Blocks with a single line of code."}
 />
 
@@ -47,7 +48,7 @@
 
 		<div class="lg:ml-10 flex justify-between mt-4">
 			<a
-				href="/docs/themes"
+				href="./themes"
 				class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 			>
 				<div class="text-lg">
@@ -55,7 +56,7 @@
 				</div>
 			</a>
 			<a
-				href="/docs/audio"
+				href="./audio"
 				class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 			>
 				<div class="text-lg">
@@ -140,7 +141,7 @@
 		</div>
 		<div class="flex justify-between my-4">
 			<a
-				href="/docs/block-layouts"
+				href="./block-layouts"
 				class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 			>
 				<div class="text-lg">
@@ -148,7 +149,7 @@
 				</div>
 			</a>
 			<a
-				href="/docs/audio"
+				href="./audio"
 				class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 			>
 				<div class="text-lg">

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import MetaTags from "$lib/components/MetaTags.svelte";
-
+	import { page } from "$app/stores";
 	export let data: {
 		[key: string]: any;
 	};
@@ -31,8 +31,8 @@
 
 <MetaTags
 	title="Gradio Guides"
-	url="https://gradio.app/guides"
-	canonical="https://gradio.app/guides"
+	url={$page.url.pathname}
+	canonical={$page.url.pathname}
 	description="Step-by-Step Gradio Tutorials"
 />
 

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import space_logo from "$lib/assets/img/spaces-logo.svg";
 	import MetaTags from "$lib/components/MetaTags.svelte";
+	import { page } from "$app/stores";
 
 	export let data: {
 		guide: any;
@@ -61,8 +62,8 @@
 
 <MetaTags
 	title={guide_page.pretty_name}
-	url={"https://gradio.app/guides/" + guide_page.name}
-	canonical={"https://gradio.app/guides/" + guide_page.name}
+	url={$page.url.pathname}
+	canonical={$page.url.pathname}
 	description="A Step-by-Step Gradio Tutorial"
 />
 

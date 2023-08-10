@@ -5,6 +5,7 @@
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import anchor from "$lib/assets/img/anchor.svg";
 	import { onDestroy } from "svelte";
+	import { page } from "$app/stores";
 
 	export let data: any;
 
@@ -53,8 +54,8 @@
 
 <MetaTags
 	title={"Gradio Flagging Docs"}
-	url={"https://gradio.app/docs/flagging"}
-	canonical={"https://gradio.app/docs/flagging"}
+	url={$page.url.pathname}
+	canonical={$page.url.pathname}
 	{description}
 />
 

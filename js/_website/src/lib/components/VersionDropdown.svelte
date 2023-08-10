@@ -21,8 +21,6 @@
 	$: path_parts = $page.route.id?.split("/") || [];
 	$: is_dynamic = path_parts[path_parts.length - 1].match(/\[.+\]/);
 
-	$: console.log(docs_url, $page, path_parts, is_dynamic);
-
 	$: guide_url = `${value === version ? "" : `/${value}`}/guides/${
 		$page.params?.guide ||
 		(is_dynamic || path_parts.length !== 4

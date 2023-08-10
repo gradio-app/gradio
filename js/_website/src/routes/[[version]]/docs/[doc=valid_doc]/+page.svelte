@@ -5,6 +5,7 @@
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import anchor from "$lib/assets/img/anchor.svg";
 	import { onDestroy } from "svelte";
+	import { page } from "$app/stores";
 
 	export let data: any = {};
 
@@ -60,8 +61,8 @@
 
 <MetaTags
 	title={"Gradio " + obj.name + " Docs"}
-	url={"https://gradio.app/docs/" + obj.name.toLowerCase()}
-	canonical={"https://gradio.app/docs/" + obj.name.toLowerCase()}
+	url={$page.url.pathname}
+	canonical={$page.url.pathname}
 	description={obj.description}
 />
 
@@ -450,7 +451,7 @@
 			<div class="flex justify-between my-4">
 				{#if obj.prev_obj}
 					<a
-						href="/docs/{obj.prev_obj.toLowerCase()}"
+						href="./{obj.prev_obj.toLowerCase()}"
 						class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 					>
 						<div class="text-lg">
@@ -463,7 +464,7 @@
 				{/if}
 				{#if obj.next_obj}
 					<a
-						href="/docs/{obj.next_obj.toLowerCase()}"
+						href="./{obj.next_obj.toLowerCase()}"
 						class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 					>
 						<div class="text-lg">

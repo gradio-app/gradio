@@ -1,6 +1,7 @@
 <script lang="ts">
 	import DocsNav from "$lib/components/DocsNav.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
+	import { page } from "$app/stores";
 
 	export let data;
 
@@ -14,8 +15,8 @@
 
 <MetaTags
 	title={"Gradio Python Client Docs"}
-	url={"https://gradio.app/docs/python-client"}
-	canonical={"https://gradio.app/docs/python-client"}
+	url={$page.url.pathname}
+	canonical={$page.url.pathname}
 	description={"The lightweight Gradio client library that makes it easy to use any Gradio app as an API"}
 />
 
@@ -47,7 +48,7 @@
 
 			<div class="lg:ml-10 flex justify-between mt-4">
 				<a
-					href="/docs/job"
+					href="./job"
 					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">

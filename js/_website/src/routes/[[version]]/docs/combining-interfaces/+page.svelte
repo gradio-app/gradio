@@ -5,7 +5,7 @@
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import anchor from "$lib/assets/img/anchor.svg";
 	import { onDestroy } from "svelte";
-
+	import { page } from "$app/stores";
 	export let data: any = {};
 
 	let objs = data.objs;
@@ -53,8 +53,8 @@
 
 <MetaTags
 	title={"Gradio Combining Interfaces Docs"}
-	url={"https://gradio.app/docs/combining-interface"}
-	canonical={"https://gradio.app/docs/combining-interfaces"}
+	url={$page.url.pathname}
+	canonical={$page.url.pathname}
 	{description}
 />
 <svelte:window bind:scrollY={y} />
@@ -87,7 +87,7 @@
 
 			<div class="lg:ml-10 flex justify-between mt-4">
 				<a
-					href="/docs/flagging"
+					href="./flagging"
 					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
@@ -95,7 +95,7 @@
 					</div>
 				</a>
 				<a
-					href="/docs/blocks"
+					href="./blocks"
 					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
@@ -436,7 +436,7 @@
 			</div>
 			<div class="flex justify-between my-4">
 				<a
-					href="/docs/flagging"
+					href="./flagging"
 					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
@@ -444,7 +444,7 @@
 					</div>
 				</a>
 				<a
-					href="/docs/blocks"
+					href="./blocks"
 					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">

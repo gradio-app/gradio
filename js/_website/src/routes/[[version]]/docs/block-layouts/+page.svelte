@@ -5,6 +5,7 @@
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import anchor from "$lib/assets/img/anchor.svg";
 	import { onDestroy } from "svelte";
+	import { page } from "$app/stores";
 
 	export let data: any;
 
@@ -53,8 +54,8 @@
 
 <MetaTags
 	title={"Gradio Block Layouts Docs"}
-	url={"https://gradio.app/docs/block-layouts"}
-	canonical={"https://gradio.app/docs/block-layouts"}
+	url={$page.url.pathname}
+	canonical={$page.url.pathname}
 	{description}
 />
 
@@ -88,7 +89,7 @@
 
 			<div class="flex justify-between mt-4 lg:ml-10">
 				<a
-					href="./docs/blocks"
+					href="./blocks"
 					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
@@ -96,7 +97,7 @@
 					</div>
 				</a>
 				<a
-					href="./docs/chatinterface"
+					href="./chatinterface"
 					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
@@ -437,7 +438,7 @@
 
 			<div class="flex justify-between my-4">
 				<a
-					href="/docs/blocks"
+					href="./blocks"
 					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
@@ -445,7 +446,7 @@
 					</div>
 				</a>
 				<a
-					href="./docs/chatinterface"
+					href="./chatinterface"
 					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
