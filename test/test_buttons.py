@@ -29,10 +29,10 @@ class TestOAuthButtons(unittest.TestCase):
             with gr.Blocks():
                 gr.LogoutButton()
 
-    @patch("gradio.oauth.get_space", lambda: "fake_space")
     def test_login_button_setup_correctly(self):
-        with gr.Blocks() as demo:
-            button = gr.LoginButton()
+        with self.assertWarns(UserWarning):
+            with gr.Blocks() as demo:
+                button = gr.LoginButton()
 
         login_event = demo.dependencies[0]
         assert login_event["trigger"] == "click"
