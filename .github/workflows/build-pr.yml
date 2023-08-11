@@ -36,7 +36,7 @@ jobs:
       id: get_pr_number
       run: |
         python -c "import os;print(os.environ['GITHUB_REF'].split('/')[2])" > pr_number.txt
-        echo "PR_NUMBER=$(cat pr_number.txt)" >> $GITHUB_ENV
+        echo "PR_NUMBER=$(cat pr_number.txt)" >> $GITHUB_OUTPUT
         echo "GRADIO_VERSION=$(python -c 'import requests;print(requests.get("https://pypi.org/pypi/gradio/json").json()["info"]["version"])')" >> $GITHUB_OUTPUT
     - name: Build pr package
       run: |
