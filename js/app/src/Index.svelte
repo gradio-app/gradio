@@ -86,7 +86,6 @@
 	export let space: string | null;
 	export let host: string | null;
 	export let src: string | null;
-	export let on_load: (() => void) | null;
 
 	let _id = id++;
 
@@ -295,7 +294,7 @@
 	{initial_height}
 	{space}
 	loaded={loader_status === "complete"}
-	{on_load}
+	on:ready
 	bind:wrapper
 >
 	{#if (loader_status === "pending" || loader_status === "error") && !(config && config?.auth_required)}

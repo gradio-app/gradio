@@ -29,7 +29,6 @@ function create_custom_element(): void {
 		app?: Index;
 		loading: boolean;
 		updating: { name: string; value: string } | false;
-		on_load: (() => void) | null;
 
 		constructor() {
 			super();
@@ -47,7 +46,6 @@ function create_custom_element(): void {
 			this.theme_mode = this.getAttribute("theme_mode") as ThemeMode | null;
 			this.updating = false;
 			this.loading = false;
-			this.on_load = this.getAttribute("on_load") as (() => void) | null;
 		}
 
 		async connectedCallback(): Promise<void> {
@@ -94,7 +92,6 @@ function create_custom_element(): void {
 					// misc global behaviour
 					autoscroll: this.autoscroll === "true" ? true : false,
 					control_page_title: this.control_page_title === "true" ? true : false,
-					on_load: this.on_load,
 					// injectables
 					client,
 					upload_files,
@@ -163,7 +160,6 @@ function create_custom_element(): void {
 						autoscroll: this.autoscroll === "true" ? true : false,
 						control_page_title:
 							this.control_page_title === "true" ? true : false,
-						on_load: this.on_load,
 						// injectables
 						client,
 						upload_files,
