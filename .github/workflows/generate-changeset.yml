@@ -14,7 +14,6 @@ concurrency:
 
 jobs:
   get-pr:
-    
     runs-on: ubuntu-latest
     outputs:
       found_pr: ${{ steps.pr_details.outputs.found_pr }}
@@ -22,14 +21,12 @@ jobs:
       source_repo: ${{ steps.pr_details.outputs.source_repo }}
       source_branch: ${{ steps.pr_details.outputs.source_branch }}
     steps:
-    - name: echo concurrent group
-      run: echo ${{ github.event.workflow_run.head_repository.full_name }}::${{ github.event.workflow_run.head_branch }}  
     - name: get pr details
       id: pr_details
       uses: gradio-app/github/actions/find-pr@main
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-  comment-changes-start:
+  comment-chromatic-start:
     uses: "./.github/workflows/comment-queue.yml"
     needs: get-pr
     secrets:
@@ -44,7 +41,7 @@ jobs:
     runs-on: ubuntu-22.04
     if: needs.get-pr.outputs.found_pr == 'true'
     outputs:
-      skipped: ${{ steps.version.outputs.skipper }}
+      skipped: ${{ steps.version.outputs.skipped }}
       comment_url: ${{ steps.version.outputs.comment_url }}
     steps:
       - uses: actions/checkout@v3
@@ -60,7 +57,6 @@ jobs:
           github_token: ${{ secrets.COMMENT_TOKEN }}
           main_pkg: gradio
           pr_number: ${{ needs.get-pr.outputs.pr_number }}
-          branch_name: ${{ needs.get-pr.outputs.source_branch }}
   comment-changes-skipped:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [get-pr, version]
