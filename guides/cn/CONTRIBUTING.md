@@ -1,22 +1,22 @@
 # Contributing a Guide
 
-Want to help teach Gradio? Consider contributing a Guide! 🤗 
+Want to help teach Gradio? Consider contributing a Guide! 🤗
 
 Broadly speaking, there are two types of guides:
 
-* **Use cases**: guides that cover step-by-step how to build a particular type of machine learning demo or app using Gradio. Here's an example: [_Creating a Chatbot_](https://github.com/gradio-app/gradio/blob/master/guides/creating_a_chatbot.md)
-* **Feature explanation**: guides that describe in detail a particular feature of Gradio.  Here's an example: [_Using Flagging_](https://github.com/gradio-app/gradio/blob/master/guides/using_flagging.md)
+- **Use cases**: guides that cover step-by-step how to build a particular type of machine learning demo or app using Gradio. Here's an example: [_Creating a Chatbot_](https://github.com/gradio-app/gradio/blob/master/guides/creating_a_chatbot.md)
+- **Feature explanation**: guides that describe in detail a particular feature of Gradio. Here's an example: [_Using Flagging_](https://github.com/gradio-app/gradio/blob/master/guides/using_flagging.md)
 
 We encourage you to submit either type of Guide! (Looking for ideas? We may also have open [issues](https://github.com/gradio-app/gradio/issues?q=is%3Aopen+is%3Aissue+label%3Aguides) where users have asked for guides on particular topics)
 
 ## Guide Structure
 
 As you can see with the previous examples, Guides are standard markdown documents. They usually:
-* start with an Introduction section describing the topic
-* include subheadings to make articles easy to navigate
-* include real code snippets that make it easy to follow along and implement the Guide
-* include embedded Gradio demos to make them more interactive and provide immediate demonstrations of the topic being discussed. These Gradio demos are hosted on [Hugging Face Spaces](https://huggingface.co/spaces) and are embedded using the standard \<iframe\> tag.
 
+- start with an Introduction section describing the topic
+- include subheadings to make articles easy to navigate
+- include real code snippets that make it easy to follow along and implement the Guide
+- include embedded Gradio demos to make them more interactive and provide immediate demonstrations of the topic being discussed. These Gradio demos are hosted on [Hugging Face Spaces](https://huggingface.co/spaces) and are embedded using the standard \<iframe\> tag.
 
 ## How to Contribute a Guide
 
