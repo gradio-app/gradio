@@ -1,15 +1,11 @@
 <script lang="ts">
-	import { stable_diffusion, img, sketch, chat } from "../assets/demo_code";
+	import { stable_diffusion, sketch, chat } from "../assets/demo_code";
 
 	let tabs = [
 		{
 			title: "Sketch Recognition",
-		  	code: sketch,
-			demo: "gradio/pictionary" },
-		{
-			title: "Image Segmentation",
-			code: img,
-			demo: "gradio/Echocardiogram-Segmentation"
+			code: sketch,
+			demo: "gradio/pictionary"
 		},
 		{
 			title: "Stable Diffusion",
@@ -30,7 +26,7 @@
 			title: "Chat with Llama 2",
 			code: chat,
 			demo: "ysharma/Explore_llamav2_with_TGI"
-		},
+		}
 	];
 
 	let current_selection = 0;
