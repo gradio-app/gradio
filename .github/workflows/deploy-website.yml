@@ -49,7 +49,7 @@ jobs:
       - name: download artifacts
         uses: actions/download-artifact@v3
         with:
-          name: website-json-${{ inputs.pr_number }}}
+          name: website-json-${{ inputs.pr_number }}
           path: |
             ./js/_website/src/lib/json
       - name: echo artifact path
