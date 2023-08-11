@@ -61,26 +61,26 @@ jobs:
           export AWS_DEFAULT_REGION=us-west-2
           version=$(sed -nr 's/{ "version": "([0-9\.]+)" }/\1/p'  ./js/_website/src/lib/json/version.json)
           aws s3 cp ./js/_website/src/lib/json/ s3://gradio-docs-json/$version/ --recursive
-      # - name: install outbreak_forecast dependencies
-      #   run: |
-      #     . venv/bin/activate
-      #     python -m pip install -r demo/outbreak_forecast/requirements.txt
-      # - run: pnpm exec playwright install chromium
-      # - name: run browser tests
-      #   run: |
-      #     . venv/bin/activate
-      #     pnpm test:browser
-      # - name: upload screenshots
-      #   uses: actions/upload-artifact@v3
-      #   if: always()
-      #   with:
-      #     name: playwright-screenshots
-      #     path: |
-      #       ./test-results
-      # - name: run browser component tests
-      #   run: |
-      #     . venv/bin/activate
-      #     pnpm run test:ct
+      - name: install outbreak_forecast dependencies
+        run: |
+          . venv/bin/activate
+          python -m pip install -r demo/outbreak_forecast/requirements.txt
+      - run: pnpm exec playwright install chromium
+      - name: run browser tests
+        run: |
+          . venv/bin/activate
+          pnpm test:browser
+      - name: upload screenshots
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-screenshots
+          path: |
+            ./test-results
+      - name: run browser component tests
+        run: |
+          . venv/bin/activate
+          pnpm run test:ct
       - name: save artifacts
         uses: actions/upload-artifact@v2
         with:
@@ -98,24 +98,3 @@ jobs:
     with:
       branch_name: ${{ needs.functional-test.outputs.source_branch }}
       pr_number: ${{ needs.functional-test.outputs.pr_number }}
-
-      # - name: install outbreak_forecast dependencies
-      #   run: |
-      #     . venv/bin/activate
-      #     python -m pip install -r demo/outbreak_forecast/requirements.txt
-      # - run: pnpm exec playwright install chromium
-      # - name: run browser tests
-      #   run: |
-      #     . venv/bin/activate
-      #     pnpm test:browser
-      # - name: upload screenshots
-      #   uses: actions/upload-artifact@v3
-      #   if: always()
-      #   with:
-      #     name: playwright-screenshots
-      #     path: |
-      #       ./test-results
-      # - name: run browser component tests
-      #   run: |
-      #     . venv/bin/activate
-      #     pnpm run test:ct
