@@ -1166,6 +1166,17 @@ class TestDataframe:
             "wrap": False,
         }
 
+    def test_dataframe_update(self):
+        update = gr.DataFrame.update(row_count=(3, "fixed"), col_count=(4, "dynamic"))
+        assert update["row_count"] == (3, "fixed")
+        assert update["col_count"] == (4, "dynamic")
+
+        with pytest.warns(
+            GradioDeprecationWarning,
+            match="max_rows and max_cols parameters are deprecated",
+        ):
+            gr.DataFrame.update(max_cols=2, max_rows=4)
+
     def test_postprocess(self):
         """
         postprocess
