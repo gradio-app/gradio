@@ -15,6 +15,7 @@ concurrency:
 jobs:
   get-pr:
     runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
     outputs:
       found_pr: ${{ steps.pr_details.outputs.found_pr }}
       pr_number: ${{ steps.pr_details.outputs.pr_number }}
