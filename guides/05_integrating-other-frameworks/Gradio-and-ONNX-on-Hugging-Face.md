@@ -8,19 +8,19 @@ Contributed by Gradio and the <a href="https://onnx.ai/">ONNX</a> team
 
 In this Guide, we'll walk you through:
 
-* Introduction of ONNX, ONNX model zoo, Gradio, and Hugging Face Spaces
-* How to setup a Gradio demo for EfficientNet-Lite4
-* How to contribute your own Gradio demos for the ONNX organization on Hugging Face
+- Introduction of ONNX, ONNX model zoo, Gradio, and Hugging Face Spaces
+- How to setup a Gradio demo for EfficientNet-Lite4
+- How to contribute your own Gradio demos for the ONNX organization on Hugging Face
 
 Here's an example of an ONNX model: try out the EfficientNet-Lite4 demo below.
 
 <iframe src="https://onnx-efficientnet-lite4.hf.space" frameBorder="0" height="810" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 ## What is the ONNX Model Zoo?
+
 Open Neural Network Exchange ([ONNX](https://onnx.ai/)) is an open standard format for representing machine learning models. ONNX is supported by a community of partners who have implemented it in many frameworks and tools. For example, if you have trained a model in TensorFlow or PyTorch, you can convert it to ONNX easily, and from there run it on a variety of devices using an engine/compiler like ONNX Runtime.
 
 The [ONNX Model Zoo](https://github.com/onnx/models) is a collection of pre-trained, state-of-the-art models in the ONNX format contributed by community members. Accompanying each model are Jupyter notebooks for model training and running inference with the trained model. The notebooks are written in Python and include links to the training dataset as well as references to the original paper that describes the model architecture.
-
 
 ## What are Hugging Face Spaces & Gradio?
 
@@ -39,9 +39,11 @@ Hugging Face Spaces is a free hosting option for Gradio demos. Spaces comes with
 Hugging Face Model Hub also supports ONNX models and ONNX models can be filtered through the [ONNX tag](https://huggingface.co/models?library=onnx&sort=downloads)
 
 ## How did Hugging Face help the ONNX Model Zoo?
+
 There are a lot of Jupyter notebooks in the ONNX Model Zoo for users to test models. Previously, users needed to download the models themselves and run those notebooks locally for testing. With Hugging Face, the testing process can be much simpler and more user-friendly. Users can easily try certain ONNX Model Zoo model on Hugging Face Spaces and run a quick demo powered by Gradio with ONNX Runtime, all on cloud without downloading anything locally. Note, there are various runtimes for ONNX, e.g., [ONNX Runtime](https://github.com/microsoft/onnxruntime), [MXNet](https://github.com/apache/incubator-mxnet).
 
 ## What is the role of ONNX Runtime?
+
 ONNX Runtime is a cross-platform inference and training machine-learning accelerator. It makes live Gradio demos with ONNX Model Zoo model on Hugging Face possible.
 
 ONNX Runtime inference can enable faster customer experiences and lower costs, supporting models from deep learning frameworks such as PyTorch and TensorFlow/Keras as well as classical machine learning libraries such as scikit-learn, LightGBM, XGBoost, etc. ONNX Runtime is compatible with different hardware, drivers, and operating systems, and provides optimal performance by leveraging hardware accelerators where applicable alongside graph optimizations and transforms. For more information please see the [official website](https://onnxruntime.ai/).
@@ -53,7 +55,6 @@ EfficientNet-Lite 4 is the largest variant and most accurate of the set of Effic
 Here we walk through setting up a example demo for EfficientNet-Lite4 using Gradio
 
 First we import our dependencies and download and load the efficientnet-lite4 model from the onnx model zoo. Then load the labels from the labels_map.txt file. We then setup our preprocessing functions, load the model for inference, and setup the inference function. Finally, the inference function is wrapped into a gradio interface for a user to interact with. See the full code below.
-
 
 ```python
 import numpy as np
@@ -112,9 +113,9 @@ sess = ort.InferenceSession(model)
 def inference(img):
   img = cv2.imread(img)
   img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-  
+
   img = pre_process_edgetpu(img, (224, 224, 3))
-  
+
   img_batch = np.expand_dims(img, axis=0)
 
   results = sess.run(["Softmax:0"], {"images:0": img_batch})[0]
@@ -123,20 +124,19 @@ def inference(img):
   for r in result:
       resultdic[labels[str(r)]] = float(results[0][r])
   return resultdic
-  
+
 title = "EfficientNet-Lite4"
 description = "EfficientNet-Lite 4 is the largest variant and most accurate of the set of EfficientNet-Lite model. It is an integer-only quantized model that produces the highest accuracy of all of the EfficientNet models. It achieves 80.4% ImageNet top-1 accuracy, while still running in real-time (e.g. 30ms/image) on a Pixel 4 CPU."
 examples = [['catonnx.jpg']]
 gr.Interface(inference, gr.Image(type="filepath"), "label", title=title, description=description, examples=examples).launch()
 ```
 
-
 ## How to contribute Gradio demos on HF spaces using ONNX models
 
-* Add model to the [onnx model zoo](https://github.com/onnx/models/blob/main/.github/PULL_REQUEST_TEMPLATE.md)
-* Create an account on Hugging Face [here](https://huggingface.co/join).
-* See list of models left to add to ONNX organization, please refer to the table with the [Models list](https://github.com/onnx/models#models)
-* Add Gradio Demo under your username, see this [blog post](https://huggingface.co/blog/gradio-spaces) for setting up Gradio Demo on Hugging Face. 
-* Request to join ONNX Organization [here](https://huggingface.co/onnx).
-* Once approved transfer model from your username to ONNX organization
-* Add a badge for model in model table, see examples in [Models list](https://github.com/onnx/models#models)
+- Add model to the [onnx model zoo](https://github.com/onnx/models/blob/main/.github/PULL_REQUEST_TEMPLATE.md)
+- Create an account on Hugging Face [here](https://huggingface.co/join).
+- See list of models left to add to ONNX organization, please refer to the table with the [Models list](https://github.com/onnx/models#models)
+- Add Gradio Demo under your username, see this [blog post](https://huggingface.co/blog/gradio-spaces) for setting up Gradio Demo on Hugging Face.
+- Request to join ONNX Organization [here](https://huggingface.co/onnx).
+- Once approved transfer model from your username to ONNX organization
+- Add a badge for model in model table, see examples in [Models list](https://github.com/onnx/models#models)

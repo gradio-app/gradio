@@ -123,9 +123,9 @@ inp.change(fn=lambda x: f"欢迎，{x}！",
 
 请注意：
 
-* 您不需要放置样板代码 `with gr.Blocks() as demo:` 和 `demo.launch()` — Gradio 会自动为您完成！
+- 您不需要放置样板代码 `with gr.Blocks() as demo:` 和 `demo.launch()` — Gradio 会自动为您完成！
 
-* 每次重新运行单元格时，Gradio 都将在相同的端口上重新启动您的应用程序，并使用相同的底层网络服务器。这意味着您将比正常重新运行单元格更快地看到变化。
+- 每次重新运行单元格时，Gradio 都将在相同的端口上重新启动您的应用程序，并使用相同的底层网络服务器。这意味着您将比正常重新运行单元格更快地看到变化。
 
 下面是在 Jupyter Notebook 中的示例：
 
@@ -135,7 +135,7 @@ inp.change(fn=lambda x: f"欢迎，{x}！",
 
 Notebook Magic 现在是作者构建 Gradio 演示的首选方式。无论您如何编写 Python 代码，我们都希望这两种方法都能为您提供更好的 Gradio 开发体验。
 
---------
+---
 
 ## 下一步
 
