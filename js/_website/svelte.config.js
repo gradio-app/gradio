@@ -11,6 +11,16 @@ const config = {
 	preprocess: vitePreprocess(),
 
 	kit: {
+		prerender: {
+			entries: [
+				"*",
+				`/${version}/docs`,
+				`/${version}/guides`,
+				`/main/docs`,
+				`/main/guides`
+				// "/main/docs/interface"
+			]
+		},
 		files: {
 			lib: "src/lib"
 		},
