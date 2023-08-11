@@ -26,7 +26,7 @@ jobs:
       uses: gradio-app/github/actions/find-pr@main
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-  comment-chromatic-start:
+  comment-changes-start:
     uses: "./.github/workflows/comment-queue.yml"
     needs: get-pr
     secrets:
@@ -57,7 +57,9 @@ jobs:
           github_token: ${{ secrets.COMMENT_TOKEN }}
           main_pkg: gradio
           pr_number: ${{ needs.get-pr.outputs.pr_number }}
-  comment-changes-skipper:
+          branch_name: ${{ needs.get-pr.outputs.source_branch }}
+          
+  comment-changes-skipped:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [get-pr, version]
     if: needs.version.result == 'success' && needs.version.outputs.skipped == 'true'
