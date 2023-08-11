@@ -1349,7 +1349,6 @@ Received outputs:
         data: list,
         session_hash: str | None,
         run: int | None,
-        end: bool,
     ) -> list:
         if session_hash is None or run is None:
             return data
@@ -1359,10 +1358,7 @@ Received outputs:
         for i, output_id in enumerate(self.dependencies[fn_index]["outputs"]):
             block = self.blocks[output_id]
             if isinstance(block, StreamableOutput) and block.streaming:
-                if end:
-                    stream = None
-                else:
-                    stream = block.stream_output(data[i])
+                stream = block.stream_output(data[i])
                 if run not in self.pending_streams[session_hash]:
                     self.pending_streams[session_hash][run] = defaultdict(list)
                 self.pending_streams[session_hash][run][output_id].append(stream)
@@ -1443,7 +1439,6 @@ Received outputs:
                     data,
                     session_hash=session_hash,
                     run=id(old_iterator) if was_generating else id(iterator),
-                    end=(was_generating and not is_generating),
                 )
 
         block_fn.total_runtime += result["duration"]
