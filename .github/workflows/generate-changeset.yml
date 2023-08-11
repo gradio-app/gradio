@@ -42,7 +42,7 @@ jobs:
     name: static checks
     needs: get-pr
     runs-on: ubuntu-22.04
-    if: needs.get-pr.outputs.found_pr == 'true' 
+    if: needs.get-pr.outputs.found_pr == 'true'
     outputs:
       skipped: ${{ steps.version.outputs.skipped }}
       comment_url: ${{ steps.version.outputs.comment_url }}
