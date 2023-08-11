@@ -65,7 +65,7 @@ jobs:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
       pr_number: ${{ needs.get-pr.outputs.pr_number }}
-      message: changes~warning~https://github.com/${{github.action_repository}}/actions/runs/${{github.run_id}}/
+      message: changes~warning~https://github.com/gradio-app/gradio/actions/runs/${{github.run_id}}/
   comment-changes-success:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [get-pr, version]
@@ -83,4 +83,4 @@ jobs:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
       pr_number: ${{ needs.get-pr.outputs.pr_number }}
-      message: changes~failure~https://github.com/${{github.action_repository}}/actions/runs/${{github.run_id}}/
+      message: changes~failure~https://github.com/gradio-app/gradio/actions/runs/${{github.run_id}}/

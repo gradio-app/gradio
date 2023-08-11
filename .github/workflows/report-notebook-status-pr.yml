@@ -39,7 +39,7 @@ jobs:
       gh_token: ${{ secrets.GITHUB_TOKEN }}
     with:
       pr_number: ${{ needs.get-pr-number.outputs.pr_number }}
-      message: notebooks~failure~https://github.com/${{github.action_repository}}/actions/runs/${{github.run_id}}/
+      message: notebooks~failure~https://github.com/gradio-app/gradio/actions/runs/${{github.run_id}}/
       additional_text: |
         The demo notebooks don't match the run.py files. Please run this command from the root of the repo and then commit the changes:
         ```bash
