@@ -84,7 +84,7 @@ jobs:
       - name: save artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: website-json-${{ steps.pr_details.outputs.pr_number }}}
+          name: website-json-${{ steps.pr_details.outputs.pr_number }}
           path: |
             ./js/_website/src/lib/json
   deploy_to_vercel:
