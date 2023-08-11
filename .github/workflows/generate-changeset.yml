@@ -14,6 +14,7 @@ concurrency:
 
 jobs:
   get-pr:
+    
     runs-on: ubuntu-latest
     outputs:
       found_pr: ${{ steps.pr_details.outputs.found_pr }}
@@ -21,6 +22,8 @@ jobs:
       source_repo: ${{ steps.pr_details.outputs.source_repo }}
       source_branch: ${{ steps.pr_details.outputs.source_branch }}
     steps:
+    - name: echo concurrent group
+      run: echo ${{ github.event.workflow_run.head_repository.full_name }}::${{ github.event.workflow_run.head_branch }}  
     - name: get pr details
       id: pr_details
       uses: gradio-app/github/actions/find-pr@main
@@ -58,7 +61,6 @@ jobs:
           main_pkg: gradio
           pr_number: ${{ needs.get-pr.outputs.pr_number }}
           branch_name: ${{ needs.get-pr.outputs.source_branch }}
-          
   comment-changes-skipped:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [get-pr, version]
