@@ -41,7 +41,7 @@ jobs:
     - name: Build pr package
       run: |
         echo ${{ steps.get_pr_number.outputs.GRADIO_VERSION }} > gradio/version.txt
-        pnpm i --frozen-lockfile
+        pnpm i --frozen-lockfile --ignore-scripts
         pnpm build
         python3 -m build -w
       env:
