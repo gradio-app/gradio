@@ -70,3 +70,14 @@ jobs:
       message: |
         storybook~success~${{ needs.chromatic-deployment.outputs.storybook_url }}
         visual~success~${{ needs.chromatic-deployment.outputs.changes }}~${{ needs.chromatic-deployment.outputs.errors }}~${{ needs.chromatic-deployment.outputs.build_url }}
+  comment-chromatic-fail:
+    uses: "./.github/workflows/comment-queue.yml"
+    needs: [chromatic-deployment, get-current-pr]
+    if: always() && needs.chromatic-deployment.result == 'failure'
+    secrets:
+      gh_token: ${{ secrets.COMMENT_TOKEN }}
+    with:
+      pr_number: ${{ needs.get-current-pr.outputs.pr_number }}
+      message: |
+        storybook~failure~https://github.com/${{github.action_repository}}/actions/runs/${{github.run_id}}/
+        visual~failure~0~0~https://github.com/${{github.action_repository}}/actions/runs/${{github.run_id}}/
