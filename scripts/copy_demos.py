@@ -67,8 +67,8 @@ if __name__ == "__main__":
         pathlib.Path(__file__).parent, "..", "demo", "all_demos", "requirements.txt"
     )
     requirements = f"""
-    {args.gradio_version}
     {args.gradio_client_version}
+    {args.gradio_version}
     pypistats==1.1.0
     plotly==5.10.0
     opencv-python==4.6.0.66
