@@ -88,4 +88,4 @@ jobs:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
       pr_number: ${{ needs.deploy-current-pr.outputs.pr_number }}
-      message: spaces~failure~https://github.com/${{github.action_repository}}/actions/runs/${{github.run_id}}/
+      message: spaces~failure~https://github.com/gradio-app/gradio/actions/runs/${{github.run_id}}/
