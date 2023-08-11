@@ -11,6 +11,7 @@ from gradio_client.serializing import JSONSerializable
 
 from gradio import utils
 from gradio.components.base import IOComponent, _Keywords
+from gradio.deprecation import warn_deprecation
 from gradio.events import (
     Changeable,
     EventListenerMethod,
@@ -166,7 +167,9 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         max_rows: int | None = None,
-        max_cols: str | None = None,
+        max_cols: int | None = None,
+        row_count: int | None | tuple[int, str] = None,
+        col_count: str | None | tuple[int, str] = None,
         label: str | None = None,
         show_label: bool | None = None,
         scale: int | None = None,
@@ -174,9 +177,14 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
+        if max_rows or max_cols:
+            warn_deprecation(
+                "max_rows and max_cols parameters are deprecated and have no effect. "
+                "Please use row_count and col_count."
+            )
         return {
-            "max_rows": max_rows,
-            "max_cols": max_cols,
+            "row_count": row_count,
+            "col_count": col_count,
             "label": label,
             "show_label": show_label,
             "scale": scale,
