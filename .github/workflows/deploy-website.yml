@@ -84,8 +84,7 @@ jobs:
       - name: Deploy Project Artifacts to Vercel
         if: github.event_name == 'push' && inputs.branch_name == 'main'
         shell: bash
-        run: echo "deploying production"
-        # run: echo "VERCEL_URL=$(vercel deploy --prebuilt --prod --token=${{ inputs.vercel_token }})" >> $GITHUB_ENV
+        run: echo "VERCEL_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.vercel_token }})" >> $GITHUB_ENV
       - name: echo vercel url
         shell: bash
         run: echo $VERCEL_URL #add to comment
