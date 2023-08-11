@@ -15,6 +15,7 @@ concurrency:
 jobs:
   get-pr:
     runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
     outputs:
       found_pr: ${{ steps.pr_details.outputs.found_pr }}
       pr_number: ${{ steps.pr_details.outputs.pr_number }}
@@ -41,7 +42,7 @@ jobs:
     name: static checks
     needs: get-pr
     runs-on: ubuntu-22.04
-    if: needs.get-pr.outputs.found_pr == 'true'
+    if: needs.get-pr.outputs.found_pr == 'true' 
     outputs:
       skipped: ${{ steps.version.outputs.skipped }}
       comment_url: ${{ steps.version.outputs.comment_url }}
