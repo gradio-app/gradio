@@ -82,7 +82,7 @@ jobs:
           . venv/bin/activate
           pnpm run test:ct
       - name: save artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: website-json-${{ steps.pr_details.outputs.pr_number }}}
           path: |
