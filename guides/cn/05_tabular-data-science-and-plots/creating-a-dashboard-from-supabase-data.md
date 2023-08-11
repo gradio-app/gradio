@@ -1,5 +1,6 @@
 # 从 Supabase 数据创建仪表盘
-Tags: TABULAR, DASHBOARD, PLOTS 
+
+Tags: TABULAR, DASHBOARD, PLOTS
 
 [Supabase](https://supabase.com/) 是一个基于云的开源后端，提供了 PostgreSQL 数据库、身份验证和其他有用的功能，用于构建 Web 和移动应用程序。在本教程中，您将学习如何从 Supabase 读取数据，并在 Gradio 仪表盘上以**实时**方式绘制数据。
 
@@ -7,9 +8,9 @@ Tags: TABULAR, DASHBOARD, PLOTS
 
 在这个端到端指南中，您将学习如何：
 
-* 在 Supabase 中创建表
-* 使用 Supabase Python 客户端向 Supabase 写入数据
-* 使用 Gradio 在实时仪表盘中可视化数据
+- 在 Supabase 中创建表
+- 使用 Supabase Python 客户端向 Supabase 写入数据
+- 使用 Gradio 在实时仪表盘中可视化数据
 
 如果您已经在 Supabase 上有数据想要在仪表盘中可视化，您可以跳过前两个部分，直接到[可视化数据](#visualize-the-data-in-a-real-time-gradio-dashboard)！
 
@@ -63,9 +64,9 @@ import random
 
 main_list = []
 for i in range(10):
-    value = {'product_id': i, 
+    value = {'product_id': i,
              'product_name': f"Item {i}",
-             'inventory_count': random.randint(1, 100), 
+             'inventory_count': random.randint(1, 100),
              'price': random.random()*100
             }
     main_list.append(value)
@@ -85,6 +86,7 @@ data = client.table('Product').insert(main_list).execute()
 9\. 编写一个函数，从 `Product` 表加载数据并将其作为 pandas DataFrame 返回：
 
 import supabase
+
 ```python
 import supabase
 import pandas as pd

@@ -5,13 +5,13 @@ Tags: SKETCHPAD, LABELS, LIVE
 
 ## Introduction
 
-How well can an algorithm guess what you're drawing? A few years ago, Google released the **Quick Draw** dataset, which contains drawings made by humans of a variety of every objects. Researchers have used this dataset to train models to guess Pictionary-style drawings. 
+How well can an algorithm guess what you're drawing? A few years ago, Google released the **Quick Draw** dataset, which contains drawings made by humans of a variety of every objects. Researchers have used this dataset to train models to guess Pictionary-style drawings.
 
-Such models are perfect to use with Gradio's *sketchpad* input, so in this tutorial we will build a Pictionary web application using Gradio. We will be able to build the whole web application in Python, and will look like this (try drawing something!):
+Such models are perfect to use with Gradio's _sketchpad_ input, so in this tutorial we will build a Pictionary web application using Gradio. We will be able to build the whole web application in Python, and will look like this (try drawing something!):
 
 <iframe src="https://abidlabs-draw2.hf.space" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
-Let's get started! This guide covers how to build a pictionary app (step-by-step): 
+Let's get started! This guide covers how to build a pictionary app (step-by-step):
 
 1. [Set up the Sketch Recognition Model](#1-set-up-the-sketch-recognition-model)
 2. [Define a `predict` function](#2-define-a-predict-function)
@@ -23,7 +23,7 @@ Make sure you have the `gradio` Python package already [installed](/getting_star
 
 ## 1. Set up the Sketch Recognition Model
 
-First, you will need a sketch recognition model. Since many researchers have already trained their own models on the Quick Draw dataset, we will use a pretrained model in this tutorial. Our model is a light 1.5 MB  model trained by Nate Raw, that [you can download here](https://huggingface.co/spaces/nateraw/quickdraw/blob/main/pytorch_model.bin). 
+First, you will need a sketch recognition model. Since many researchers have already trained their own models on the Quick Draw dataset, we will use a pretrained model in this tutorial. Our model is a light 1.5 MB model trained by Nate Raw, that [you can download here](https://huggingface.co/spaces/nateraw/quickdraw/blob/main/pytorch_model.bin).
 
 If you are interested, here [is the code](https://github.com/nateraw/quickdraw-pytorch) that was used to train the model. We will simply load the pretrained model in PyTorch, as follows:
 
@@ -53,7 +53,7 @@ model.eval()
 
 ## 2. Define a `predict` function
 
-Next, you will need to define a function that takes in the *user input*, which in this case is a sketched image, and returns the prediction. The prediction should be returned as a dictionary whose keys are class name and values are confidence probabilities. We will load the class names from this [text file](https://huggingface.co/spaces/nateraw/quickdraw/blob/main/class_names.txt).
+Next, you will need to define a function that takes in the _user input_, which in this case is a sketched image, and returns the prediction. The prediction should be returned as a dictionary whose keys are class name and values are confidence probabilities. We will load the class names from this [text file](https://huggingface.co/spaces/nateraw/quickdraw/blob/main/class_names.txt).
 
 In the case of our pretrained model, it will look like this:
 
@@ -74,17 +74,17 @@ def predict(img):
 
 Let's break this down. The function takes one parameters:
 
-* `img`: the input image as a `numpy` array
+- `img`: the input image as a `numpy` array
 
 Then, the function converts the image to a PyTorch `tensor`, passes it through the model, and returns:
 
-* `confidences`: the top five predictions, as a dictionary whose keys are class labels and whose values are confidence probabilities
+- `confidences`: the top five predictions, as a dictionary whose keys are class labels and whose values are confidence probabilities
 
 ## 3. Create a Gradio Interface
 
-Now that we have our predictive function set up, we can create a Gradio Interface around it. 
+Now that we have our predictive function set up, we can create a Gradio Interface around it.
 
-In this case, the input component is a sketchpad. To create a sketchpad input, we can use the convenient string shortcut, `"sketchpad"` which creates a canvas for a user to draw on and handles the preprocessing to convert that to a numpy array. 
+In this case, the input component is a sketchpad. To create a sketchpad input, we can use the convenient string shortcut, `"sketchpad"` which creates a canvas for a user to draw on and handles the preprocessing to convert that to a numpy array.
 
 The output component will be a `"label"`, which displays the top labels in a nice form.
 
@@ -93,7 +93,7 @@ Finally, we'll add one more parameter, setting `live=True`, which allows our int
 ```python
 import gradio as gr
 
-gr.Interface(fn=predict, 
+gr.Interface(fn=predict,
              inputs="sketchpad",
              outputs="label",
              live=True).launch()
@@ -103,7 +103,6 @@ This produces the following interface, which you can try right here in your brow
 
 <iframe src="https://abidlabs-draw2.hf.space" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
-----------
+---
 
 And you're done! That's all the code you need to build a Pictionary-style guessing app. Have fun and try to find some edge cases 🧐
-

@@ -1,6 +1,6 @@
 import Prism from "prismjs";
 import "prismjs/components/prism-python";
-import demos_by_category from "./demos.json";
+import demos_by_category from "$lib/json/demos.json";
 
 let language = "python";
 

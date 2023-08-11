@@ -28,7 +28,8 @@
 		"ci:version": "changeset version && pnpm i --lockfile-only && node ./.changeset/fix_changelogs.cjs",
 		"ci:publish": "pnpm publish --no-git-checks --access public -r --filter=@gradio/*",
 		"chromatic": "chromatic",
-		"test:ct": "playwright test -c ./.config/playwright-ct.config.ts"
+		"test:ct": "playwright test -c ./.config/playwright-ct.config.ts",
+		"website": "pnpm --filter @gradio/website build"
 	},
 	"type": "module",
 	"author": "",

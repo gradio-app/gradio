@@ -40,7 +40,7 @@ Learn more about Rows in the [docs](https://gradio.app/docs/#row).
 
 ## Columns and Nesting
 
-Components within a Column will be placed vertically atop each other. Since the vertical layout is the default layout for Blocks apps anyway, to be useful, Columns are usually  nested within Rows. For example:
+Components within a Column will be placed vertically atop each other. Since the vertical layout is the default layout for Blocks apps anyway, to be useful, Columns are usually nested within Rows. For example:
 
 $code_rows_and_columns
 $demo_rows_and_columns
@@ -72,7 +72,7 @@ $demo_blocks_form
 ## Variable Number of Outputs
 
 By adjusting the visibility of components in a dynamic way, it is possible to create
-demos with Gradio that support a *variable numbers of outputs*. Here's a very simple example
+demos with Gradio that support a _variable numbers of outputs_. Here's a very simple example
 where the number of output textboxes is controlled by an input slider:
 
 $code_variable_outputs

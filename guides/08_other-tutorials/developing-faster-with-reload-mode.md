@@ -14,7 +14,7 @@ This short Guide will cover both of these methods, so no matter how you write Py
 
 ## Python IDE Reload 🔥
 
-If you are building Gradio Blocks using a Python IDE, your file of code (let's name it `run.py`) might look something like this: 
+If you are building Gradio Blocks using a Python IDE, your file of code (let's name it `run.py`) might look something like this:
 
 ```python
 import gradio as gr
@@ -24,19 +24,19 @@ with gr.Blocks() as demo:
     inp = gr.Textbox(placeholder="What is your name?")
     out = gr.Textbox()
 
-    inp.change(fn=lambda x: f"Welcome, {x}!", 
-               inputs=inp, 
+    inp.change(fn=lambda x: f"Welcome, {x}!",
+               inputs=inp,
                outputs=out)
 
 if __name__ == "__main__":
-    demo.launch()    
+    demo.launch()
 ```
 
 The problem is that anytime that you want to make a change to your layout, events, or components, you have to close and rerun your app by writing `python run.py`.
 
 Instead of doing this, you can run your code in **reload mode** by changing 1 word: `python` to `gradio`:
 
-In the terminal, run `gradio run.py`. That's it! 
+In the terminal, run `gradio run.py`. That's it!
 
 Now, you'll see that after you'll see something like this:
 
@@ -62,15 +62,15 @@ with gr.Blocks() as my_demo:
     inp = gr.Textbox(placeholder="What is your name?")
     out = gr.Textbox()
 
-    inp.change(fn=lambda x: f"Welcome, {x}!", 
-               inputs=inp, 
+    inp.change(fn=lambda x: f"Welcome, {x}!",
+               inputs=inp,
                outputs=out)
 
 if __name__ == "__main__":
-    my_demo.launch()    
+    my_demo.launch()
 ```
 
-Then you would launch it in reload mode like this: `gradio run.py my_demo.app`. 
+Then you would launch it in reload mode like this: `gradio run.py my_demo.app`.
 
 🔥 If your application accepts command line arguments, you can pass them in as well. Here's an example:
 
@@ -101,14 +101,14 @@ As a small aside, this auto-reloading happens if you change your `run.py` source
 
 What about if you use Jupyter Notebooks (or Colab Notebooks, etc.) to develop code? We got something for you too!
 
-We've developed a **magic command** that will create and run a Blocks demo for you. To use this, load the gradio extension at the top of your notebook: 
+We've developed a **magic command** that will create and run a Blocks demo for you. To use this, load the gradio extension at the top of your notebook:
 
 `%load_ext gradio`
 
 Then, in the cell that you are developing your Gradio demo, simply write the magic command **`%%blocks`** at the top, and then write the layout and components like you would normally:
 
 ```py
-%%blocks 
+%%blocks
 
 import gradio as gr
 
@@ -116,30 +116,29 @@ gr.Markdown("# Greetings from Gradio!")
 inp = gr.Textbox(placeholder="What is your name?")
 out = gr.Textbox()
 
-inp.change(fn=lambda x: f"Welcome, {x}!", 
-           inputs=inp, 
+inp.change(fn=lambda x: f"Welcome, {x}!",
+           inputs=inp,
            outputs=out)
 ```
 
 Notice that:
 
-* You do not need to put the boiler plate `with gr.Blocks() as demo:` and `demo.launch()` code — Gradio does that for you automatically!
+- You do not need to put the boiler plate `with gr.Blocks() as demo:` and `demo.launch()` code — Gradio does that for you automatically!
 
-* Every time you rerun the cell, Gradio will re-launch your app on the same port and using the same underlying web server. This means you'll see your changes *much, much faster* than if you were rerunning the cell normally. 
+- Every time you rerun the cell, Gradio will re-launch your app on the same port and using the same underlying web server. This means you'll see your changes _much, much faster_ than if you were rerunning the cell normally.
 
 Here's what it looks like in a jupyter notebook:
 
 ![](https://i.ibb.co/nrszFws/Blocks.gif)
 
-🪄 This works in colab notebooks too! [Here's a colab notebook](https://colab.research.google.com/drive/1jUlX1w7JqckRHVE-nbDyMPyZ7fYD8488?authuser=1#scrollTo=zxHYjbCTTz_5) where you can see the Blocks magic in action. Try making some changes and re-running the cell with the Gradio code! 
+🪄 This works in colab notebooks too! [Here's a colab notebook](https://colab.research.google.com/drive/1jUlX1w7JqckRHVE-nbDyMPyZ7fYD8488?authuser=1#scrollTo=zxHYjbCTTz_5) where you can see the Blocks magic in action. Try making some changes and re-running the cell with the Gradio code!
 
-The Notebook Magic is now the author's preferred way of building Gradio demos. Regardless of how you write Python code, we hope either of these methods will give you a much better development experience using Gradio. 
+The Notebook Magic is now the author's preferred way of building Gradio demos. Regardless of how you write Python code, we hope either of these methods will give you a much better development experience using Gradio.
 
---------
+---
 
 ## Next Steps
 
-Now that you know how to develop quickly using Gradio, start building your own! 
+Now that you know how to develop quickly using Gradio, start building your own!
 
 If you are looking for inspiration, try exploring demos other people have built with Gradio, [browse public Hugging Face Spaces](http://hf.space/) 🤗
-

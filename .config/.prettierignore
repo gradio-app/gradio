@@ -9,11 +9,10 @@
 **/.svelte-kit/**
 **/demo/**
 **/gradio/**
-**/website/**
 **/.pnpm-store/**
 **/.venv/**
 **/.github/**
-**/guides/**
+/guides/**
 **/.mypy_cache/**
 !test-strategy.md
 **/js/_space-test/**
@@ -23,3 +22,4 @@
 **/storybook-static/**  
 **/.vscode/**
 sweep.yaml
+**/.vercel/**

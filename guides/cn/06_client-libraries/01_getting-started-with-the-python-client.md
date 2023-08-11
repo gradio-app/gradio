@@ -13,8 +13,8 @@ Gradio Python 客户端使得将任何 Gradio 应用程序作为 API 使用变�
 ```python
 from gradio_client import Client
 
-client = Client("abidlabs/whisper") 
-client.predict("audio_sample.wav")  
+client = Client("abidlabs/whisper")
+client.predict("audio_sample.wav")
 
 >> "这是Whisper语音识别模型的测试。"
 ```
@@ -50,7 +50,7 @@ client = Client("abidlabs/en2fr")  # 一个将英文翻译为法文的Space
 ```python
 from gradio_client import Client
 
-client = Client("abidlabs/my-private-space", hf_token="...") 
+client = Client("abidlabs/my-private-space", hf_token="...")
 ```
 
 ## 复制空间以供私人使用
@@ -65,13 +65,13 @@ from gradio_client import Client
 
 HF_TOKEN = os.environ.get("HF_TOKEN")
 
-client = Client.duplicate("abidlabs/whisper", hf_token=HF_TOKEN) 
-client.predict("audio_sample.wav")  
+client = Client.duplicate("abidlabs/whisper", hf_token=HF_TOKEN)
+client.predict("audio_sample.wav")
 
 >> "This is a test of the whisper speech recognition model."
 ```
 
->> " 这是 Whisper 语音识别模型的测试。"
+> > " 这是 Whisper 语音识别模型的测试。"
 
 如果之前已复制了一个空间，重新运行 `duplicate()` 将*不会*创建一个新的空间。相反，客户端将连接到之前创建的空间。因此，多次运行 `Client.duplicate()` 方法是安全的。
 
@@ -90,6 +90,7 @@ client = Client("https://bec81a83-5b5c-471e.gradio.live")
 ## 检查 API 端点
 
 一旦连接到 Gradio 应用程序，可以通过调用 `Client.view_api()` 方法查看可用的 API 端点。对于 Whisper 空间，我们可以看到以下信息：
+
 ```bash
 Client.predict() Usage Info
 ---------------------------
@@ -101,6 +102,7 @@ Named API endpoints: 1
     Returns:
      - [Textbox] value_0: str (value)
 ```
+
 这显示了在此空间中有 1 个 API 端点，并显示了如何使用 API 端点进行预测：我们应该调用 `.predict()` 方法（我们将在下面探讨），提供类型为 `str` 的参数 `input_audio`，它是一个`文件路径或 URL`。
 
 我们还应该提供 `api_name='/predict'` 参数给 `predict()` 方法。虽然如果一个 Gradio 应用程序只有一个命名的端点，这不是必需的，但它允许我们在单个应用程序中调用不同的端点（如果它们可用）。如果一个应用程序有无名的 API 端点，可以通过运行 `.view_api(all_endpoints=True)` 来显示它们。
@@ -117,9 +119,10 @@ client.predict("Hello")
 
 >> Bonjour
 ```
+
 如果有多个参数，那么你应该将它们作为单独的参数传递给 `.predict()`，就像这样：
 
-```python
+````python
 from gradio_client import Client
 
 client = Client("gradio/calculator")
@@ -139,12 +142,11 @@ client.predict("https://audio-samples.github.io/samples/mp3/blizzard_uncondition
 
 >> "My thought I have nobody by a beauty and will as you poured. Mr. Rochester is serve in that so don't find simpus, and devoted abode, to at might in a r—"
 
-```
+````
 
 ## 异步运行任务（Running jobs asynchronously）
 
 应注意`.predict()`是一个*阻塞*操作，因为它在返回预测之前等待操作完成。
-
 
 在许多情况下，直到你需要预测结果之前，你最好让作业在后台运行。你可以通过使用`.submit()`方法创建一个`Job`实例，然后稍后调用`.result()`在作业上获取结果。例如：
 
@@ -195,23 +197,21 @@ job.status()
 >> <Status.STARTING: 'STARTING'>
 ```
 
-*注意*：`Job`类还有一个`.done()`实例方法，返回一个布尔值，指示作业是否已完成。
+_注意_：`Job`类还有一个`.done()`实例方法，返回一个布尔值，指示作业是否已完成。
 
 ## 取消作业 （Cancelling Jobs）
 
 `Job`类还有一个`.cancel()`实例方法，取消已排队但尚未开始的作业。例如，如果你运行：
 
 ```py
-client = Client("abidlabs/whisper") 
-job1 = client.submit("audio_sample1.wav")  
-job2 = client.submit("audio_sample2.wav")  
+client = Client("abidlabs/whisper")
+job1 = client.submit("audio_sample1.wav")
+job2 = client.submit("audio_sample2.wav")
 job1.cancel()  # 将返回 False，假设作业已开始
 job2.cancel()  # 将返回 True，表示作业已取消
 ```
 
 如果第一个作业已开始处理，则它将不会被取消。如果第二个作业尚未开始，则它将成功取消并从队列中删除。
-
-
 
 ## 生成器端点 （Generator Endpoints）
 

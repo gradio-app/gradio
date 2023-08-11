@@ -16,7 +16,8 @@
 对于多个输入，该目录必须包含一个带有示例值的 log.csv 文件。
 在计算器演示的上下文中，我们可以设置 `examples='/demo/calculator/examples'` ，在该目录中包含以下 `log.csv` 文件：
 contain a log.csv file with the example values.
-In the context of the calculator demo, we can set  `examples='/demo/calculator/examples'` and in that directory we include the following `log.csv` file:
+In the context of the calculator demo, we can set `examples='/demo/calculator/examples'` and in that directory we include the following `log.csv` file:
+
 ```csv
 num,operation,num2
 5,"add",3

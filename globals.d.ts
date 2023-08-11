@@ -1,6 +1,7 @@
 declare global {
 	interface Window {
 		__gradio_mode__: "app" | "website";
+		__gradio_space__: string | null;
 		launchGradio: Function;
 		launchGradioFromSpaces: Function;
 		gradio_config: Config;

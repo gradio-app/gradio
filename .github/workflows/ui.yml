@@ -10,7 +10,8 @@ env:
   CI: true
   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
   NODE_OPTIONS: "--max-old-space-size=4096"
-
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 concurrency:
   group: deploy-${{ github.ref }}-${{ github.event_name == 'push' || github.event.inputs.fire != null }}
   cancel-in-progress: true
@@ -37,12 +38,29 @@ jobs:
         run: pnpm test:run
   functional-test:
     runs-on: ubuntu-latest
+    outputs:
+      source_branch: ${{ steps.pr_details.outputs.source_branch }}
+      pr_number: ${{ steps.pr_details.outputs.pr_number }}
     steps:
       - uses: actions/checkout@v3
       - name: install dependencies
+        id: install_deps
         uses: "./.github/actions/install-all-deps"
         with:
           always-install-pnpm: true
+      - name: get pr details
+        id: pr_details
+        uses: gradio-app/github/actions/find-pr@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: deploy json to aws
+        if: steps.pr_details.outputs.source_branch == 'changeset-release/main'
+        run: |
+          export AWS_ACCESS_KEY_ID=${{ secrets.AWSACCESSKEYID }}
+          export AWS_SECRET_ACCESS_KEY=${{ secrets.AWSSECRETKEY }}
+          export AWS_DEFAULT_REGION=us-west-2
+          version=$(sed -nr 's/{ "version": "([0-9\.]+)" }/\1/p'  ./js/_website/src/lib/json/version.json)
+          aws s3 cp ./js/_website/src/lib/json/ s3://gradio-docs-json/$version/ --recursive
       - name: install outbreak_forecast dependencies
         run: |
           . venv/bin/activate
@@ -63,3 +81,21 @@ jobs:
         run: |
           . venv/bin/activate
           pnpm run test:ct
+      - name: save artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: website-json-${{ steps.pr_details.outputs.pr_number }}}
+          path: |
+            ./js/_website/src/lib/json
+  deploy_to_vercel:
+    uses: "./.github/workflows/deploy-website.yml"
+    needs:  functional-test
+    if: always()
+    secrets:
+      gh_token: ${{ secrets.COMMENT_TOKEN }}
+      vercel_token: ${{ secrets.VERCEL_TOKEN }}
+      vercel_org_id: ${{ secrets.VERCEL_ORG_ID }}
+      vercel_project_id: ${{ secrets.VERCEL_PROJECT_ID }}
+    with:
+      branch_name: ${{ needs.functional-test.outputs.source_branch }}
+      pr_number: ${{ needs.functional-test.outputs.pr_number }}

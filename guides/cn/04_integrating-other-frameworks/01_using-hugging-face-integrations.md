@@ -26,9 +26,9 @@ pipe = pipeline("translation", model="Helsinki-NLP/opus-mt-en-es")
 
 def predict(text):
   return pipe(text)[0]["translation_text"]
-  
+
 demo = gr.Interface(
-  fn=predict, 
+  fn=predict,
   inputs='text',
   outputs='text',
 )
@@ -70,9 +70,9 @@ demo.launch()
 
 您可能会注意到，第一次推理大约需要 20 秒。这是因为推理 API 正在服务器中加载模型。之后您会获得一些好处：
 
-* 推理速度更快。
-* 服务器缓存您的请求。
-* 您获得内置的自动缩放功能。
+- 推理速度更快。
+- 服务器缓存您的请求。
+- 您获得内置的自动缩放功能。
 
 ## 托管您的 Gradio 演示
 
@@ -96,6 +96,7 @@ file_url = upload_file(
     token=hf_token,
 )
 ```
+
 在这里，`create_repo` 使用特定帐户的 Write Token 在特定帐户下创建一个带有目标名称的 gradio repo。`repo_name` 获取相关存储库的完整存储库名称。最后，`upload_file` 将文件上传到存储库中，并将其命名为 `app.py`。
 
 ## 在其他网站上嵌入您的 Space 演示

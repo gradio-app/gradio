@@ -4,16 +4,15 @@ Tags: DEPLOYMENT, WEB SERVER, NGINX
 
 ## Introduction
 
-Gradio is a Python library that allows you to quickly create customizable web apps for your machine learning models and data processing pipelines. Gradio apps can be deployed on [Hugging Face Spaces](https://hf.space) for free. 
+Gradio is a Python library that allows you to quickly create customizable web apps for your machine learning models and data processing pipelines. Gradio apps can be deployed on [Hugging Face Spaces](https://hf.space) for free.
 
-In some cases though, you might want to deploy a Gradio app on your own web server. You might already be using [Nginx](https://www.nginx.com/), a highly performant web server, to serve your website (say `https://www.example.com`), and you want to attach Gradio to a specific subpath on your website (e.g. `https://www.example.com/gradio-demo`). 
+In some cases though, you might want to deploy a Gradio app on your own web server. You might already be using [Nginx](https://www.nginx.com/), a highly performant web server, to serve your website (say `https://www.example.com`), and you want to attach Gradio to a specific subpath on your website (e.g. `https://www.example.com/gradio-demo`).
 
 In this Guide, we will guide you through the process of running a Gradio app behind Nginx on your own web server to achieve this.
 
 **Prerequisites**
 
-1. A Linux web server with [Nginx installed](https://www.nginx.com/blog/setting-up-nginx/) and [Gradio installed](/quickstart)  
-    
+1. A Linux web server with [Nginx installed](https://www.nginx.com/blog/setting-up-nginx/) and [Gradio installed](/quickstart)
 2. A working Gradio app saved as a python file on your web server
 
 ## Editing your Nginx configuration file
@@ -33,7 +32,7 @@ include /etc/nginx/sites-enabled/*;
 ```bash
 server {
     listen 80;
-    server_name example.com www.example.com;  # Change this to your domain name 
+    server_name example.com www.example.com;  # Change this to your domain name
 
     location /gradio-demo/ {  # Change this if you'd like to server your Gradio app on a different path
         proxy_pass http://127.0.0.1:7860/; # Change this if your Gradio app will be running on a different port
@@ -63,7 +62,7 @@ return x
 gr.Interface(test, "textbox", "textbox").queue().launch(root_path="/gradio-demo")
 ```
 
-2. Start a `tmux` session by typing `tmux` and pressing enter (optional) 
+2. Start a `tmux` session by typing `tmux` and pressing enter (optional)
 
 It's recommended that you run your Gradio app in a `tmux` session so that you can keep it running in the background easily
 
@@ -73,7 +72,6 @@ It's recommended that you run your Gradio app in a `tmux` session so that you ca
 
 1. If you are in a tmux session, exit by typing CTRL+B (or CMD+B), followed by the "D" key.
 
-2. Finally, restart nginx by running `sudo systemctl restart nginx`. 
+2. Finally, restart nginx by running `sudo systemctl restart nginx`.
 
 And that's it! If you visit `https://example.com/gradio-demo` on your browser, you should see your Gradio app running there
-

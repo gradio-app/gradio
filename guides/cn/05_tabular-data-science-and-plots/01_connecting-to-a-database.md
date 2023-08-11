@@ -1,7 +1,7 @@
 # 连接到数据库
 
 相关空间：https://huggingface.co/spaces/gradio/chicago-bike-share-dashboard
-标签：TABULAR, PLOTS 
+标签：TABULAR, PLOTS
 
 ## 介绍
 
@@ -24,7 +24,7 @@
 ## 步骤 1 - 创建数据库
 
 我们将在 Amazon 的 RDS 服务上托管我们的数据。如果还没有 AWS 账号，请创建一个
-并在免费层级上创建一个 PostgreSQL 数据库。 
+并在免费层级上创建一个 PostgreSQL 数据库。
 
 **重要提示**：如果您计划在 HuggingFace Spaces 上托管此演示，请确保数据库在 **8080** 端口上。Spaces
 将阻止除端口 80、443 或 8080 之外的所有外部连接，如此[处所示](https://huggingface.co/docs/hub/spaces-overview#networking)。
@@ -34,13 +34,14 @@ RDS 不允许您在 80 或 443 端口上创建 postgreSQL 实例。
 为了演示的目的，我们只会上传 2022 年 3 月的数据。
 
 ## 步骤 2.a - 编写 ETL 代码
+
 我们将查询数据库，按自行车类型（电动、标准或有码）进行分组，并获取总骑行次数。
-我们还将查询每个站点的出发骑行次数，并获取前 5 个。 
+我们还将查询每个站点的出发骑行次数，并获取前 5 个。
 
 然后，我们将使用 matplotlib 将查询结果可视化。
 
 我们将使用 pandas 的[read_sql](https://pandas.pydata.org/docs/reference/api/pandas.read_sql.html)
-方法来连接数据库。这需要安装 `psycopg2` 库。 
+方法来连接数据库。这需要安装 `psycopg2` 库。
 
 为了连接到数据库，我们将指定数据库的用户名、密码和主机作为环境变量。
 这样可以通过避免将敏感信息以明文形式存储在应用程序文件中，使我们的应用程序更安全。
@@ -77,7 +78,7 @@ def get_count_ride_type():
 
 
 def get_most_popular_stations():
-    
+
     df = pd.read_sql(
         """
     SELECT COUNT(ride_id) as n, MAX(start_station_name) as station
@@ -109,6 +110,7 @@ DB_USER='username' DB_PASSWORD='password' DB_HOST='host' python app.py
 ```
 
 ## 步骤 2.c - 编写您的 gradio 应用程序
+
 我们将使用两个单独的 `gr.Plot` 组件将我们的 matplotlib 图表并排显示在一起，使用 `gr.Row()`。
 因为我们已经在 `demo.load()` 事件触发器中封装了获取数据的函数，
 我们的演示将在每次网页加载时从数据库**动态**获取最新数据。🪄
@@ -128,6 +130,7 @@ demo.launch()
 ```
 
 ## 步骤 3 - 部署
+
 如果您运行上述代码，您的应用程序将在本地运行。
 您甚至可以通过将 `share=True` 参数传递给 `launch` 来获得一个临时共享链接。
 
@@ -140,6 +143,7 @@ demo.launch()
 ![secrets](/assets/guides/secrets.png)
 
 ## 结论
+
 恭喜你！您知道如何将您的 Gradio 应用程序连接到云端托管的数据库！☁️
 
 我们的仪表板现在正在[Spaces](https://huggingface.co/spaces/gradio/chicago-bike-share-dashboard)上运行。

@@ -24,6 +24,7 @@ app = gr.Interface(lambda x:x, "image", "image")
 app.queue()  # <-- Sets up a queue with default parameters
 app.launch()
 ```
+
 在上面的演示 `app` 中，预测现在将通过 websocket 发送。
 与 POST 请求不同，websocket 不会超时并且允许双向通信。在 Gradio 服务器上，设置了一个 **queue 队列**，它将每个到达的请求添加到列表中。当一个工作线程可用时，第一个可用的请求将传递给工作线程用于预测。预测完成后，队列通过 websocket 将预测结果发送回调用该预测的特定 Gradio 用户。
 
@@ -41,7 +42,7 @@ app.launch()
 
 **推荐**：将 `concurrency_count` 参数增加到能够获得性能提升或达到机器内存限制为止。您可以[在此处了解有关 Hugging Face Spaces 机器规格的信息](https://huggingface.co/docs/hub/spaces-overview)。
 
-*注*：还有第二个参数可控制 Gradio 能够生成的*总*线程数，无论是否启用队列。这是 `launch()` 方法中的 `max_threads` 参数。当您增加 `queue()` 中的 `concurrency_count` 参数时，此参数也会自动增加。然而，在某些情况下，您可能希望手动增加此参数，例如，如果未启用队列。
+_注_：还有第二个参数可控制 Gradio 能够生成的*总*线程数，无论是否启用队列。这是 `launch()` 方法中的 `max_threads` 参数。当您增加 `queue()` 中的 `concurrency_count` 参数时，此参数也会自动增加。然而，在某些情况下，您可能希望手动增加此参数，例如，如果未启用队列。
 
 ### `max_size` 参数
 
@@ -77,7 +78,7 @@ import time
 def trim_words(words, lengths):
     trimmed_words = []
     for w, l in zip(words, lengths):
-        trimmed_words.append(w[:int(l)])        
+        trimmed_words.append(w[:int(l)])
     return [trimmed_words]
 
 ```
@@ -102,7 +103,7 @@ def trim_words(words, lengths):
 
 虽然您可能需要调整部分机器学习推理代码以在 GPU 上运行（如果您使用 PyTorch，[这里有一个方便的指南](https://cnvrg.io/pytorch-cuda/)），但 Gradio 对于硬件选择是完全无感知的，无论您是使用 CPU、GPU、TPU 还是其他任何硬件，都可以正常工作！
 
-注意：您的 GPU 内存与 CPU 内存不同，因此如果您升级了硬件，您可能需要调整上面描述的``concurrency_count`` 参数的值。
+注意：您的 GPU 内存与 CPU 内存不同，因此如果您升级了硬件，您可能需要调整上面描述的`concurrency_count` 参数的值。
 
 ## 结论
 

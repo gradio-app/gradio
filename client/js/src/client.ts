@@ -207,7 +207,7 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 		const chunkSize = 1000;
 		const uploadResponses = [];
 		for (let i = 0; i < files.length; i += chunkSize) {
-			const chunk = files.slice(i, i + chunkSize);		
+			const chunk = files.slice(i, i + chunkSize);
 			const formData = new FormData();
 			chunk.forEach((file) => {
 				formData.append("files", file);
@@ -222,7 +222,7 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 				return { error: BROKEN_CONNECTION_MSG };
 			}
 			const output: UploadResponse["files"] = await response.json();
-            uploadResponses.push(...output);
+			uploadResponses.push(...output);
 		}
 		return { files: uploadResponses };
 	}
