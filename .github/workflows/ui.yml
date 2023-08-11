@@ -59,7 +59,7 @@ jobs:
           export AWS_ACCESS_KEY_ID=${{ secrets.AWSACCESSKEYID }}
           export AWS_SECRET_ACCESS_KEY=${{ secrets.AWSSECRETKEY }}
           export AWS_DEFAULT_REGION=us-west-2
-          version=$(sed -nr 's/{ "version": "([0-9\.]+)" }/\1/p'  ./js/_website/src/lib/json/version.json)
+          version=$(sed -nr "s/{\"version\":\s\"([0-9\.]+)\"}/\1/p" ./js/_website/src/lib/json/version.json)
           aws s3 cp ./js/_website/src/lib/json/ s3://gradio-docs-json/$version/ --recursive
       - name: install outbreak_forecast dependencies
         run: |
@@ -82,7 +82,7 @@ jobs:
           . venv/bin/activate
           pnpm run test:ct
       - name: save artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: website-json-${{ steps.pr_details.outputs.pr_number }}}
           path: |

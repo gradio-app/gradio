@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-22.04
     if: needs.get-pr.outputs.found_pr == 'true'
     outputs:
-      skipped: ${{ steps.version.outputs.skipper }}
+      skipped: ${{ steps.version.outputs.skipped }}
       comment_url: ${{ steps.version.outputs.comment_url }}
     steps:
       - uses: actions/checkout@v3
@@ -57,7 +57,7 @@ jobs:
           github_token: ${{ secrets.COMMENT_TOKEN }}
           main_pkg: gradio
           pr_number: ${{ needs.get-pr.outputs.pr_number }}
-  comment-changes-skipper:
+  comment-changes-skipped:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [get-pr, version]
     if: needs.version.result == 'success' && needs.version.outputs.skipped == 'true'
@@ -65,7 +65,7 @@ jobs:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
       pr_number: ${{ needs.get-pr.outputs.pr_number }}
-      message: changes~warning~https://github.com/${{github.action_repository}}/actions/runs/${{github.run_id}}/
+      message: changes~warning~https://github.com/gradio-app/gradio/actions/runs/${{github.run_id}}/
   comment-changes-success:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [get-pr, version]
@@ -83,4 +83,4 @@ jobs:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
       pr_number: ${{ needs.get-pr.outputs.pr_number }}
-      message: changes~failure~https://github.com/${{github.action_repository}}/actions/runs/${{github.run_id}}/
+      message: changes~failure~https://github.com/gradio-app/gradio/actions/runs/${{github.run_id}}/
