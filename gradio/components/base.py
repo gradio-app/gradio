@@ -321,10 +321,8 @@ class IOComponent(Component):
         )
         return self.pil_to_temp_file(pil_image, dir, format="png")
 
-    def audio_to_temp_file(
-        self, data: np.ndarray, sample_rate: int, dir: str, format: str
-    ):
-        temp_dir = Path(dir) / self.hash_bytes(data.tobytes())
+    def audio_to_temp_file(self, data: np.ndarray, sample_rate: int, format: str):
+        temp_dir = Path(self.DEFAULT_TEMP_DIR) / self.hash_bytes(data.tobytes())
         temp_dir.mkdir(exist_ok=True, parents=True)
         filename = str(temp_dir / f"audio.{format}")
         processing_utils.audio_to_file(sample_rate, data, filename, format=format)
