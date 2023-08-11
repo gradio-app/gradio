@@ -90,6 +90,7 @@ jobs:
   deploy_to_vercel:
     uses: "./.github/workflows/deploy-website.yml"
     needs:  functional-test
+    if: always()
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
       vercel_token: ${{ secrets.VERCEL_TOKEN }}
