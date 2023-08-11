@@ -1385,7 +1385,11 @@ Received outputs:
         return output
 
     def handle_streaming_outputs(
-        self, fn_index: int, data: list, session_hash: str | None, run: int | None
+        self,
+        fn_index: int,
+        data: list,
+        session_hash: str | None,
+        run: int | None,
     ) -> list:
         if session_hash is None or run is None:
             return data
@@ -1463,17 +1467,20 @@ Received outputs:
             is_generating, iterator = None, None
         else:
             inputs = self.preprocess_data(fn_index, inputs, state)
-            iterator = iterators.get(fn_index, None) if iterators else None
-            was_generating = iterator is not None
+            old_iterator = iterators.get(fn_index, None) if iterators else None
+            was_generating = old_iterator is not None
             result = await self.call_function(
-                fn_index, inputs, iterator, request, event_id, event_data
+                fn_index, inputs, old_iterator, request, event_id, event_data
             )
             data = self.postprocess_data(fn_index, result["prediction"], state)
-            if result["is_generating"] or was_generating:
-                data = self.handle_streaming_outputs(
-                    fn_index, data, session_hash, id(iterator)
-                )
             is_generating, iterator = result["is_generating"], result["iterator"]
+            if is_generating or was_generating:
+                data = self.handle_streaming_outputs(
+                    fn_index,
+                    data,
+                    session_hash=session_hash,
+                    run=id(old_iterator) if was_generating else id(iterator),
+                )
 
         block_fn.total_runtime += result["duration"]
         block_fn.total_runs += 1

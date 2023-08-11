@@ -1,9 +1,11 @@
 import json
 import os
-from gradio_client.documentation import generate_documentation, document_cls
+
+from gradio_client.documentation import document_cls, generate_documentation
+
 from gradio.events import EventListener, EventListenerMethod
+
 from ..guides import guides
-import inspect
 
 DIR = os.path.dirname(__file__)
 DEMOS_DIR = os.path.abspath(os.path.join(DIR, "../../../../../demo"))
@@ -262,7 +264,7 @@ def organize_docs(d):
     organized["events_matrix"] = component_events
     organized["events"] = events
 
-    with open(JS_CLIENT_README, "r") as f:
+    with open(JS_CLIENT_README) as f:
         readme_content = f.read()
     return {"docs": organized, "pages": pages, "js_client": readme_content}
 

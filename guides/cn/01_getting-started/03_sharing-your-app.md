@@ -33,6 +33,7 @@ demo.launch(share=True)
 如果您想在互联网上获得您的 Gradio 演示的永久链接，请使用 Hugging Face Spaces。 [Hugging Face Spaces](http://huggingface.co/spaces/) 提供了免费托管您的机器学习模型的基础设施！
 
 在您创建了一个免费的 Hugging Face 账户后，有三种方法可以将您的 Gradio 应用部署到 Hugging Face Spaces：
+
 1. 从终端：在应用目录中运行 `gradio deploy`。CLI 将收集一些基本元数据，然后启动您的应用。要更新您的空间，可以重新运行此命令或启用 Github Actions 选项，在 `git push` 时自动更新 Spaces。
 2. 从浏览器：将包含 Gradio 模型和所有相关文件的文件夹拖放到 [此处](https://huggingface.co/new-space)。
 3. 将 Spaces 与您的 Git 存储库连接，Spaces 将从那里拉取 Gradio 应用。有关更多信息，请参阅 [此指南如何在 Hugging Face Spaces 上托管](https://huggingface.co/blog/gradio-spaces)。
@@ -55,22 +56,24 @@ demo.launch(share=True)
 
 要使用 Web 组件嵌入：
 
-1. 通过在您的网站中添加以下脚本来导入 gradio JS 库（在 URL 中替换{GRADIO_VERSION}为您使用的 Gradio 库的版本）。
+1.  通过在您的网站中添加以下脚本来导入 gradio JS 库（在 URL 中替换{GRADIO_VERSION}为您使用的 Gradio 库的版本）。
 
-    ```html
-&lt;script type="module"
-src="https://gradio.s3-us-west-2.amazonaws.com/{GRADIO_VERSION}/gradio.js">
-&lt;/script>
+        ```html
+
+    &lt;script type="module"
+    src="https://gradio.s3-us-west-2.amazonaws.com/{GRADIO_VERSION}/gradio.js">
+    &lt;/script>
     ```
 
-2. 在您想放置应用的位置添加
-    ```html
+2.  在您想放置应用的位置添加
+    `html
 &lt;gradio-app src="https://$your_space_host.hf.space">&lt;/gradio-app>
-    ```
-元素。将 `src=` 属性设置为您的 Space 的嵌入 URL，您可以在“嵌入此空间”按钮中找到。例如：
+    `
+    元素。将 `src=` 属性设置为您的 Space 的嵌入 URL，您可以在“嵌入此空间”按钮中找到。例如：
 
-    ```html
-&lt;gradio-app src="https://abidlabs-pytorch-image-classifier.hf.space">&lt;/gradio-app>
+        ```html
+
+    &lt;gradio-app src="https://abidlabs-pytorch-image-classifier.hf.space">&lt;/gradio-app>
     ```
 
 <script>
@@ -87,20 +90,20 @@ fetch("https://pypi.org/pypi/gradio/json"
 
 您还可以使用传递给 `<gradio-app>` 标签的属性来自定义 Web 组件的外观和行为：
 
-* `src`：如前所述，`src` 属性链接到您想要嵌入的托管 Gradio 演示的 URL
-* `space`：一个可选的缩写，如果您的 Gradio 演示托管在 Hugging Face Space 上。接受 `username/space_name` 而不是完整的 URL。示例：`gradio/Echocardiogram-Segmentation`。如果提供了此属性，则不需要提供 `src`。
-* `control_page_title`：一个布尔值，指定是否将 html 标题设置为 Gradio 应用的标题（默认为 `"false"`）
-* `initial_height`：加载 Gradio 应用时 Web 组件的初始高度（默认为 `"300px"`）。请注意，最终高度是根据 Gradio 应用的大小设置的。
-* `container`：是否显示边框框架和有关 Space 托管位置的信息（默认为 `"true"`）
-* `info`：是否仅显示有关 Space 托管位置的信息在嵌入的应用程序下方（默认为 `"true"`）
-* `autoscroll`：在预测完成后是否自动滚动到输出（默认为 `"false"`）
-* `eager`：在页面加载时是否立即加载 Gradio 应用（默认为 `"false"`）
-* `theme_mode`：是否使用 `dark`，`light` 或默认的 `system` 主题模式（默认为 `"system"`）
+- `src`：如前所述，`src` 属性链接到您想要嵌入的托管 Gradio 演示的 URL
+- `space`：一个可选的缩写，如果您的 Gradio 演示托管在 Hugging Face Space 上。接受 `username/space_name` 而不是完整的 URL。示例：`gradio/Echocardiogram-Segmentation`。如果提供了此属性，则不需要提供 `src`。
+- `control_page_title`：一个布尔值，指定是否将 html 标题设置为 Gradio 应用的标题（默认为 `"false"`）
+- `initial_height`：加载 Gradio 应用时 Web 组件的初始高度（默认为 `"300px"`）。请注意，最终高度是根据 Gradio 应用的大小设置的。
+- `container`：是否显示边框框架和有关 Space 托管位置的信息（默认为 `"true"`）
+- `info`：是否仅显示有关 Space 托管位置的信息在嵌入的应用程序下方（默认为 `"true"`）
+- `autoscroll`：在预测完成后是否自动滚动到输出（默认为 `"false"`）
+- `eager`：在页面加载时是否立即加载 Gradio 应用（默认为 `"false"`）
+- `theme_mode`：是否使用 `dark`，`light` 或默认的 `system` 主题模式（默认为 `"system"`）
 
 以下是使用这些属性创建一个懒加载且初始高度为 0px 的 Gradio 应用的示例。
 
 ```html
-&lt;gradio-app space="gradio/Echocardiogram-Segmentation" eager="true" 
+&lt;gradio-app space="gradio/Echocardiogram-Segmentation" eager="true"
 initial_height="0px">&lt;/gradio-app>
 ```
 
@@ -134,7 +137,7 @@ btn.click(add, [num1, num2], output, api_name="addition")
 
 这将记录自动生成的 API 页面的端点 `/api/addition/`。
 
-*注意*：对于启用了[队列功能](https://gradio.app/key-features#queuing)的 Gradio 应用程序，如果用户向您的 API 端点发出 POST 请求，他们可以绕过队列。要禁用此行为，请在 `queue()` 方法中设置 `api_open=False`。
+_注意_：对于启用了[队列功能](https://gradio.app/key-features#queuing)的 Gradio 应用程序，如果用户向您的 API 端点发出 POST 请求，他们可以绕过队列。要禁用此行为，请在 `queue()` 方法中设置 `api_open=False`。
 
 ## 鉴权
 
@@ -192,18 +195,18 @@ $code_custom_path
 
 特别是，Gradio 应用程序允许用户访问以下三类文件：
 
-* **与 Gradio 脚本所在目录（或子目录）中的文件相同。** 例如，如果您的 Gradio 脚本的路径是 `/home/usr/scripts/project/app.py`，并且您从 `/home/usr/scripts/project/` 启动它，则共享 Gradio 应用程序的用户将能够访问 `/home/usr/scripts/project/` 中的任何文件。这样做是为了您可以在 Gradio 应用程序中轻松引用这些文件（例如应用程序的“示例”）。
+- **与 Gradio 脚本所在目录（或子目录）中的文件相同。** 例如，如果您的 Gradio 脚本的路径是 `/home/usr/scripts/project/app.py`，并且您从 `/home/usr/scripts/project/` 启动它，则共享 Gradio 应用程序的用户将能够访问 `/home/usr/scripts/project/` 中的任何文件。这样做是为了您可以在 Gradio 应用程序中轻松引用这些文件（例如应用程序的“示例”）。
 
-* **Gradio 创建的临时文件。** 这些是由 Gradio 作为运行您的预测函数的一部分创建的文件。例如，如果您的预测函数返回一个视频文件，则 Gradio 将该视频保存到临时文件中，然后将临时文件的路径发送到前端。您可以通过设置环境变量 `GRADIO_TEMP_DIR` 为绝对路径（例如 `/home/usr/scripts/project/temp/`）来自定义 Gradio 创建的临时文件的位置。
+- **Gradio 创建的临时文件。** 这些是由 Gradio 作为运行您的预测函数的一部分创建的文件。例如，如果您的预测函数返回一个视频文件，则 Gradio 将该视频保存到临时文件中，然后将临时文件的路径发送到前端。您可以通过设置环境变量 `GRADIO_TEMP_DIR` 为绝对路径（例如 `/home/usr/scripts/project/temp/`）来自定义 Gradio 创建的临时文件的位置。
 
-* **通过 `launch()` 中的 `allowed_paths` 参数允许的文件。** 此参数允许您传递一个包含其他目录或确切文件路径的列表，以允许用户访问它们。（默认情况下，此参数为空列表）。
+- **通过 `launch()` 中的 `allowed_paths` 参数允许的文件。** 此参数允许您传递一个包含其他目录或确切文件路径的列表，以允许用户访问它们。（默认情况下，此参数为空列表）。
 
 Gradio**不允许**访问以下内容：
 
-* **点文件**（其名称以 '.' 开头的任何文件）或其名称以 '.' 开头的任何目录中的任何文件。
+- **点文件**（其名称以 '.' 开头的任何文件）或其名称以 '.' 开头的任何目录中的任何文件。
 
-* **通过 `launch()` 中的 `blocked_paths` 参数允许的文件。** 您可以将其他目录或确切文件路径的列表传递给 `launch()` 中的 `blocked_paths` 参数。此参数优先于 Gradio 默认或 `allowed_paths` 允许的文件。
+- **通过 `launch()` 中的 `blocked_paths` 参数允许的文件。** 您可以将其他目录或确切文件路径的列表传递给 `launch()` 中的 `blocked_paths` 参数。此参数优先于 Gradio 默认或 `allowed_paths` 允许的文件。
 
-* **主机机器上的任何其他路径**。用户不应能够访问主机上的其他任意路径。
+- **主机机器上的任何其他路径**。用户不应能够访问主机上的其他任意路径。
 
 请确保您正在运行最新版本的 `gradio`，以使这些安全设置生效。

@@ -9,6 +9,13 @@ on:
         - 'demo/**'
 
 jobs:
+  comment-notebook-start:
+    uses: "./.github/workflows/comment-queue.yml"
+    secrets:
+      gh_token: ${{ secrets.COMMENT_TOKEN }}
+    with:
+      pr_number: ${{ github.event.pull_request.number }}
+      message: notebooks~pending~null
   check-notebooks:
     name: Generate Notebooks and Check 
     runs-on: ubuntu-latest
@@ -34,7 +41,7 @@ jobs:
       - name: Upload PR Number
         if: always()
         run: |
-          python -c "import json; json.dump({'pr_number': ${{ env.PR_NUMBER }}},  open('metadata.json', 'w'))"
+          python -c "import json; json.dump({'pr_number': ${{ env.PR_NUMBER }},  open('metadata.json', 'w'))"
       - name: Upload metadata
         if: always()
         uses: actions/upload-artifact@v3
