@@ -89,7 +89,7 @@
 
 			<div class="lg:ml-10 flex justify-between mt-4">
 				<a
-					href="/docs/interface"
+					href="./interface"
 					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
@@ -97,7 +97,7 @@
 					</div>
 				</a>
 				<a
-					href="/docs/combining-interfaces"
+					href="./combining-interfaces"
 					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
@@ -436,7 +436,7 @@
 
 			<div class="flex justify-between my-4">
 				<a
-					href="/docs/interface"
+					href="./interface"
 					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
@@ -444,7 +444,7 @@
 					</div>
 				</a>
 				<a
-					href="/docs/combining-interfaces"
+					href="./combining-interfaces"
 					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
