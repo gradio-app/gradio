@@ -41,7 +41,7 @@ jobs:
       - name: Upload PR Number
         if: always()
         run: |
-          python -c "import json; json.dump({'pr_number': ${{ env.PR_NUMBER }},  open('metadata.json', 'w'))"
+          python -c "import json; json.dump({'pr_number': ${{ env.PR_NUMBER }},  open('metadata.json', 'w')})"
       - name: Upload metadata
         if: always()
         uses: actions/upload-artifact@v3
