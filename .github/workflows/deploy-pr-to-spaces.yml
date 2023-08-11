@@ -71,9 +71,14 @@ jobs:
       pr_number: ${{ needs.deploy-current-pr.outputs.pr_number }}
       message: spaces~success~${{ needs.deploy-current-pr.outputs.space_url }}
       additional_text: |
-        You can install the changes in this PR by running:
+        **Install Gradio from this PR**
         ```bash
         pip install https://gradio-builds.s3.amazonaws.com/${{ needs.deploy-current-pr.outputs.sha }}/gradio-${{ needs.deploy-current-pr.outputs.gradio_version }}-py3-none-any.whl
+        ```
+
+        **Install Gradio Python Client from this PR**
+        ```bash
+        pip install "gradio-client @ git+https://github.com/gradio-app/gradio@${{ needs.deploy-current-pr.outputs.sha }}#subdirectory=client/python"
         ```
   comment-spaces-failure:
     uses: "./.github/workflows/comment-queue.yml"
