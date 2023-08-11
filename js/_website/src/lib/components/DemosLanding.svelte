@@ -1,13 +1,18 @@
 <script lang="ts">
-	import { q_a, img, sketch } from "../assets/demo_code";
+	import { stable_diffusion, img, sketch, chat } from "../assets/demo_code";
 
 	let tabs = [
-		{ title: "Sketch Recognition", code: sketch, demo: "gradio/pictionary" },
 		{
-			title: "Question Answering",
-			code: q_a,
-			demo: "gradio/question-answering"
+			title: "Chat with Llama 2",
+			code: chat,
+			demo: "ysharma/Explore_llamav2_with_TGI"
 		},
+		{
+			title: "Stable Diffusion",
+			code: stable_diffusion,
+			demo: "hysts/SD-XL"
+		},
+		{ title: "Sketch Recognition", code: sketch, demo: "gradio/pictionary" },
 		{
 			title: "Image Segmentation",
 			code: img,
