@@ -33,15 +33,16 @@ jobs:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
       pr_number: ${{ needs.get-pr.outputs.pr_number }}
-      message: |
-        storybook~pending~null
-        visual~pending~0~0~null
+      message: changes~pending~null
   version:
     permissions: write-all
     name: static checks
     needs: get-pr
     runs-on: ubuntu-22.04
     if: needs.get-pr.outputs.found_pr == 'true'
+    outputs:
+      skipped: ${{ steps.version.outputs.skipper }}
+      comment_url: ${{ steps.version.outputs.comment_url }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -50,22 +51,31 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.COMMENT_TOKEN }}
       - name: generate changeset
+        id: version
         uses: "gradio-app/github/actions/generate-changeset@main"
         with: 
           github_token: ${{ secrets.COMMENT_TOKEN }}
           main_pkg: gradio
           pr_number: ${{ needs.get-pr.outputs.pr_number }}
-  comment-spaces-success:
+  comment-changes-skipper:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [get-pr, version]
-    if: needs.version.result == 'success'
+    if: needs.version.result == 'success' && needs.version.outputs.skipped == 'true'
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
       pr_number: ${{ needs.get-pr.outputs.pr_number }}
-      message: changes~success~https://github.com/${{needs.get-pr.outputs.source_repo}}/${{needs.get-pr.outputs.source_branch}}/actions/runs/${{github.run_id}}/
-      
-  comment-spaces-failure:
+      message: spaces~warning~https://github.com/${{github.action_repository}}/actions/runs/${{github.run_id}}/
+  comment-changes-success:
+    uses: "./.github/workflows/comment-queue.yml"
+    needs: [get-pr, version]
+    if: needs.version.result == 'success' && needs.version.outputs.skipped == 'false'
+    secrets:
+      gh_token: ${{ secrets.COMMENT_TOKEN }}
+    with:
+      pr_number: ${{ needs.get-pr.outputs.pr_number }}
+      message: changes~success~${{ needs.version.outputs.comment_url }}
+  comment-changes-failure:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [get-pr, version]
     if: always() && needs.version.result == 'failure'
@@ -73,4 +83,4 @@ jobs:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
       pr_number: ${{ needs.get-pr.outputs.pr_number }}
-      message: spaces~failure~null
+      message: spaces~failure~https://github.com/${{github.action_repository}}/actions/runs/${{github.run_id}}/
