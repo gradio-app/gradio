@@ -106,15 +106,6 @@ def is_update():
 
     return hasattr(context.thread_data, "blocks")
 
-
-T = TypeVar("T")
-def get(default: T) -> T | _NoOverride:
-    if is_update():
-        return NoOverride if isinstance(default, Default) else default
-    else:
-        return default.value if isinstance(default, Default) else default
-
-
 class Block:
     def __init__(
         self,
@@ -139,10 +130,24 @@ class Block:
         self._skip_init_processing = _skip_init_processing
         self.parent: BlockContext | None = None
         self.is_rendered: bool = False
+        self._config: dict
 
         if render:
             self.render()
         check_deprecated_parameters(self.__class__.__name__, kwargs=kwargs)
+
+    def __setattr__(self, __name: str, __value: Any) -> None:
+        if isinstance(__value, Default):
+            object.__setattr__(self, __name, __value.value)
+        else:
+            super().__setattr__(__name, __value)
+        
+        if not hasattr(self, "_config"):
+            object.__setattr__(self, "_config", {})
+
+        signature = inspect.signature(self.__class__.__init__)
+        if __name in signature.parameters:
+            self._config[__name] = __value
 
     def render(self):
         """
@@ -334,17 +339,17 @@ class Block:
 
     def get_config(self, with_globals=True):
         config = {}
+        for k, v in self._config.items():
+            if isinstance(v, Default):
+                if is_update():
+                    continue
+                else:
+                    v = v.value
+            config[k] = v
         if with_globals:
-            config["root_url"] = self.root_url
-            config["name"] = self.get_block_name()
-        if hasattr(self.__class__, "__init__"):
-            signature = inspect.signature(self.__class__.__init__)
-            for k in signature.parameters:
-                if hasattr(self, k):
-                    v = getattr(self, k)
-                    config[k] = v
-
-        return config
+            return {**config, "root_url": self.root_url, "name": self.get_block_name()}
+        else:
+            return config
 
     @staticmethod
     def update(**kwargs) -> dict:
@@ -372,11 +377,8 @@ class BlockContext(Block):
             visible: If False, this will be hidden but included in the Blocks config file (its visibility can later be updated).
             render: If False, this will not be included in the Blocks config file at all.
         """
-        visible = get(visible)
-        render = get(render)
-        elem_id = get(elem_id)
         self.children: list[Block] = []
-        Block.__init__(self, visible=visible, render=render, **kwargs)
+        Block.__init__(self, visible=visible, render=render, elem_id=elem_id, **kwargs)
 
     def add_child(self, child: Block):
         self.children.append(child)
@@ -485,9 +487,6 @@ def postprocess_update_dict(block: Block, update_dict: dict, postprocess: bool =
         update_dict: The original update dictionary
         postprocess: Whether to postprocess the "value" key of the update dictionary.
     """
-    no_overrides = [k for k in update_dict if update_dict[k] == NoOverride]
-    for key in no_overrides:
-        del update_dict[key]
     interactive = update_dict.pop("interactive", None)
     if interactive is not None:
         update_dict["mode"] = "dynamic" if interactive else "static"
@@ -2277,17 +2276,6 @@ Received outputs:
             return self.enable_queue
         return self.dependencies[fn_index]["queue"]
 
-
-class _NoOverride(Default):
-    def __init__(self):
-        pass
-
-    @classmethod
-    def __bool__(cls):
-        return False
-
-
-NoOverride = _NoOverride()
 
 
 class FinishedIterating:

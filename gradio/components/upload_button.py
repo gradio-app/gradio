@@ -11,7 +11,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio import utils
-from gradio.blocks import Default, get
+from gradio.blocks import Default
 from gradio.components.base import IOComponent
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Clickable, Uploadable
@@ -65,10 +65,10 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
             file_types: List of type of files to be uploaded. "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
         """
-        self.variant = get(variant)
-        self.type = get(type)
-        self.file_count = get(file_count)
-        self.file_types = get(file_types)
+        self.variant = variant
+        self.type = type
+        self.file_count = file_count
+        self.file_types = file_types
         if self.file_count == "directory" and self.file_types:
             warnings.warn(
                 "The `file_types` parameter is ignored when `file_count` is 'directory'."
@@ -78,7 +78,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
                 f"Parameter file_types must be a list. Received {type(self.file_types)}"
             )
 
-        self.size = get(size)
+        self.size = size
         IOComponent.__init__(
             self,
             label=label,
@@ -113,7 +113,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             file_name, data, is_file = (
                 f["name"],
                 f["data"],
-                f.get("is_file", False),
+                f.get(is_file), False,
             )
             if self.type == "file":
                 if is_file:

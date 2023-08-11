@@ -11,7 +11,7 @@ from gradio_client.serializing import (
     JSONSerializable,
 )
 
-from gradio.blocks import Default, get
+from gradio.blocks import Default
 from gradio.components.base import IOComponent
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
@@ -73,8 +73,8 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             color: The background color of the label (either a valid css color name or hexadecimal string).
         """
-        self.num_top_classes = get(num_top_classes)
-        self.color = get(color)
+        self.num_top_classes = num_top_classes
+        self.color = color
         self.select: EventListenerMethod
         """
         Event listener for when the user selects a category from Label.

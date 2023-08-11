@@ -9,7 +9,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
 from gradio import utils
-from gradio.blocks import Default, get
+from gradio.blocks import Default
 from gradio.components.base import IOComponent
 from gradio.events import (
     Changeable,
@@ -47,7 +47,7 @@ class Markdown(IOComponent, Changeable, StringSerializable):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             rtl: If True, sets the direction of the rendered text to right-to-left. Default is False, which renders text left-to-right.
         """
-        self.rtl = get(rtl)
+        self.rtl = rtl
         self.md = utils.get_markdown_parser()
         IOComponent.__init__(
             self,

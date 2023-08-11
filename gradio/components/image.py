@@ -15,7 +15,7 @@ from gradio_client.serializing import ImgSerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
-from gradio.blocks import Default, NoOverride, get
+from gradio.blocks import Default
 from gradio.components.base import IOComponent
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
@@ -120,47 +120,47 @@ class Image(
             mask_opacity: Opacity of mask drawn on image, as a value between 0 and 1.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
-        self.invert_colors = get(invert_colors)
-        self.source = get(source)
+        self.invert_colors = invert_colors
+        self.source = source
         valid_sources = ["upload", "webcam", "canvas"]
-        if self.source not in valid_sources + [NoOverride]:
+        if self.source not in valid_sources:
             raise ValueError(
                 f"Invalid value for parameter `source`: {self.source}. Please choose from one of: {valid_sources}"
             )
 
-        self.type = get(type)
+        self.type = type
         valid_types = ["numpy", "pil", "filepath"]
-        if self.type not in valid_types + [NoOverride]:
+        if self.type not in valid_types:
             raise ValueError(
                 f"Invalid value for parameter `type`: {self.type}. Please choose from one of: {valid_types}"
             )
 
-        self.show_download_button = get(show_download_button)
-        self.streaming = get(streaming)
-        self.mirror_webcam = get(mirror_webcam)
-        self.brush_color = get(brush_color)
-        self.brush_radius = get(brush_radius)
-        self.mask_opacity = get(mask_opacity)
-        self.shape = get(shape)
-        self.height = get(height)
-        self.width = get(width)
-        self.image_mode = get(image_mode)
-        self.tool = get(tool)
+        self.show_download_button = show_download_button
+        self.streaming = streaming
+        self.mirror_webcam = mirror_webcam
+        self.brush_color = brush_color
+        self.brush_radius = brush_radius
+        self.mask_opacity = mask_opacity
+        self.shape = shape
+        self.height = height
+        self.width = width
+        self.image_mode = image_mode
+        self.tool = tool
         if self.tool is None:
             self.tool = "sketch" if self.source == "canvas" else "editor"
 
-        self.streaming = get(streaming)
+        self.streaming = streaming
         if self.streaming and self.source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")
 
-        self.show_download_button = get(show_download_button)
+        self.show_download_button = show_download_button
         self.select: EventListenerMethod
         """
         Event listener for when the user clicks on a pixel within the image.
         Uses event data gradio.SelectData to carry `index` to refer to the [x, y] coordinates of the clicked pixel.
         See EventData documentation on how to use this event data.
         """
-        self.show_share_button = get(show_share_button)
+        self.show_share_button = show_share_button
         self.show_share_button = (
             (utils.get_space() is not None)
             if self.show_share_button is None

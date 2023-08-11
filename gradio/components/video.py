@@ -13,7 +13,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import VideoSerializable
 
 from gradio import processing_utils, utils, wasm_utils
-from gradio.blocks import Default, NoOverride, get, is_update
+from gradio.blocks import Default
 from gradio.components.base import IOComponent
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Clearable, Playable, Recordable, Uploadable
@@ -98,20 +98,20 @@ class Video(
             autoplay: Whether to automatically play the video when the component is used as an output. Note: browsers will not autoplay video files if the user has not interacted with the page yet.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
-        self.mirror_webcam = get(mirror_webcam)
-        self.autoplay = get(autoplay)
-        self.format = get(format)
-        self.autoplay = get(autoplay)
-        self.source = get(source)
+        self.mirror_webcam = mirror_webcam
+        self.autoplay = autoplay
+        self.format = format
+        self.autoplay = autoplay
+        self.source = source
         valid_sources = ["upload", "webcam"]
-        if self.source not in valid_sources + [NoOverride]:
+        if self.source not in valid_sources:
             raise ValueError(
                 f"Invalid value for parameter `source`: {self.source}. Please choose from one of: {valid_sources}"
             )
-        self.height = get(height)
-        self.width = get(width)
-        self.mirror_webcam = get(mirror_webcam)
-        self.include_audio = get(include_audio)
+        self.height = height
+        self.width = width
+        self.mirror_webcam = mirror_webcam
+        self.include_audio = include_audio
         if not is_update():
             self.include_audio = (
                 self.include_audio
@@ -119,7 +119,7 @@ class Video(
                 else source == "upload"
             )
 
-        self.show_share_button = get(show_share_button)
+        self.show_share_button = show_share_button
         self.show_share_button = (
             (utils.get_space() is not None)
             if self.show_share_button is None
@@ -158,9 +158,9 @@ class Video(
             video = x[0]
 
         file_name, file_data, is_file = (
-            video.get("name"),
+            video.get(name),
             video["data"],
-            video.get("is_file", False),
+            video.get(is_file), False,
         )
 
         if is_file:

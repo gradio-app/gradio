@@ -8,7 +8,7 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import SimpleSerializable
 
-from gradio.blocks import Default, NoOverride, get
+from gradio.blocks import Default
 from gradio.components.base import FormComponent, IOComponent
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
@@ -82,25 +82,25 @@ class Dropdown(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.type = get(type)
+        self.type = type
         valid_types = ["value", "index"]
-        if self.type not in valid_types + [NoOverride]:
+        if self.type not in valid_types:
             raise ValueError(
                 f"Invalid value for parameter `type`: {self.type}. Please choose from one of: {valid_types}"
             )
 
-        self.allow_custom_value = get(allow_custom_value)
-        self.choices = get(choices)
+        self.allow_custom_value = allow_custom_value
+        self.choices = choices
         if self.choices != NoOverride:
             self.choices = (
                 [str(choice) for choice in self.choices] if self.choices else []
             )
 
-        value = get(value)
-        self.multiselect = get(multiselect)
+        value = value
+        self.multiselect = multiselect
         if self.multiselect is True and isinstance(value, str):
             value = [value]
-        self.max_choices = get(max_choices)
+        self.max_choices = max_choices
         if self.multiselect is True and self.max_choices is not None:
             warnings.warn(
                 "The `max_choices` parameter is ignored when `multiselect` is False."

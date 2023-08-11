@@ -7,7 +7,7 @@ from typing import Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.blocks import Default, NoOverride, get
+from gradio.blocks import Default
 from gradio.components.base import IOComponent
 from gradio.events import Changeable, Inputable
 
@@ -81,8 +81,8 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.lines = get(lines)
-        self.language = get(language)
+        self.lines = lines
+        self.language = language
         if self.language != NoOverride:
             assert (
                 self.language in Code.languages

@@ -12,7 +12,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio import utils
-from gradio.blocks import Default, NoOverride, get
+from gradio.blocks import Default
 from gradio.components.base import IOComponent
 from gradio.deprecation import warn_deprecation
 from gradio.events import (
@@ -81,14 +81,14 @@ class File(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.file_count = get(file_count)
-        self.type = get(type)
+        self.file_count = file_count
+        self.type = type
         valid_types = [
             "file",
             "binary",
             "bytes",
         ]  # "bytes" is included for backwards compatibility
-        if self.type not in valid_types + [NoOverride]:
+        if self.type not in valid_types:
             raise ValueError(
                 f"Invalid value for parameter `type`: {self.type}. Please choose from one of: {valid_types}"
             )
@@ -97,13 +97,13 @@ class File(
                 "The `bytes` type is deprecated and may not work as expected. Please use `binary` instead."
             )
 
-        self.file_types = get(file_types)
+        self.file_types = file_types
         if self.file_types and not isinstance(self.file_types, list):
             raise ValueError(
                 f"Parameter file_types must be a list. Received {type(self.file_types)}"
             )
 
-        self.file_count = get(file_count)
+        self.file_count = file_count
         if self.file_count == "directory" and isinstance(self.file_types, list):
             warnings.warn(
                 "The `file_types` parameter is ignored when `file_count` is 'directory'."

@@ -25,7 +25,7 @@ from gradio_client.serializing import (
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
-from gradio.blocks import Block, BlockContext, Default, get, is_update
+from gradio.blocks import Block, BlockContext, Default
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
     EventListener,
@@ -130,21 +130,19 @@ class IOComponent(Component):
         every: float | None | Default = None,
         **kwargs,
     ):
-        self.value = get(value)
-        self.label = get(label)
-        self.info = get(info)
-        self.show_label = get(show_label)
-        self.container = get(container)
-        self.scale = get(scale)
-        self.min_width = get(min_width)
-        self.interactive = get(interactive)
-        self.visible = get(visible)
-        self.elem_id = get(elem_id)
-        self.elem_classes = get(elem_classes)
-        self.load_fn = get(load_fn)
-        self.every = get(every)
-        if is_update():
-            return
+        self.value = value
+        self.label = label
+        self.info = info
+        self.show_label = show_label
+        self.container = container
+        self.scale = scale
+        self.min_width = min_width
+        self.interactive = interactive
+        self.visible = visible
+        self.elem_id = elem_id
+        self.elem_classes = elem_classes
+        self.load_fn = load_fn
+        self.every = every
 
         self.temp_files: set[str] = set()
         self.DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(

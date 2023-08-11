@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.blocks import BlockContext, Default, get
+from gradio.blocks import BlockContext, Default
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Selectable
 
@@ -44,8 +44,8 @@ class Row(BlockContext):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             equal_height: If True, makes every child element have equal height
         """
-        self.variant = get(variant)
-        self.equal_height = get(equal_height)
+        self.variant = variant
+        self.equal_height = equal_height
 
         if variant == "compact":
             self.allow_expected_parents = False
@@ -103,9 +103,9 @@ class Column(BlockContext):
             visible: If False, column will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.scale = get(scale)
-        self.min_width = get(min_width)
-        self.variant = get(variant)
+        self.scale = scale
+        self.min_width = min_width
+        self.variant = variant
 
         if self.variant == "compact":
             self.allow_expected_parents = False
@@ -131,7 +131,7 @@ class Tabs(BlockContext, Changeable, Selectable):
             visible: If False, Tabs will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.selected = get(selected)
+        self.selected = selected
 
         BlockContext.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         Changeable.__init__(self)
@@ -167,7 +167,7 @@ class Tab(BlockContext, Selectable):
             id: An optional identifier for the tab, required if you wish to control the selected tab from a predict function.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.id = get(id)
+        self.id = id
 
         BlockContext.__init__(self, elem_id=elem_id, **kwargs)
         Selectable.__init__(self)
@@ -253,8 +253,8 @@ class Form(BlockContext):
             scale: relative width compared to adjacent Columns. For example, if Column A has scale=2, and Column B has scale=1, A will be twice as wide as B.
             min_width: minimum pixel width of Column, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in a column narrower than min_width, the min_width parameter will be respected first.
         """
-        self.scale = get(scale)
-        self.min_width = get(min_width)
+        self.scale = scale
+        self.min_width = min_width
         super().__init__(**kwargs)
 
     def add_child(self, child: Block):
@@ -289,7 +289,7 @@ class Accordion(BlockContext):
             open: if True, accordion is open by default.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.label = get(label)
-        self.open = get(open)
+        self.label = label
+        self.open = open
 
         super().__init__(visible=visible, elem_id=elem_id, **kwargs)

@@ -7,7 +7,7 @@ from typing import Any, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.blocks import Default, get, is_update
+from gradio.blocks import Default
 from gradio.components.base import (
     IOComponent,
     get_component_instance,
@@ -57,11 +57,11 @@ class Dataset(Clickable, Selectable, IOComponent, StringSerializable):
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
         """
-        self.samples = get(samples)
-        self.type = get(type)
-        self.label = get(label)
-        self.samples_per_page = get(samples_per_page)
-        self.headers = get(headers)
+        self.samples = samples
+        self.type = type
+        self.label = label
+        self.samples_per_page = samples_per_page
+        self.headers = headers
 
         IOComponent.__init__(
             self,

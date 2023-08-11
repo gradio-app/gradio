@@ -6,7 +6,7 @@ from typing import Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.blocks import Default, get
+from gradio.blocks import Default
 from gradio.components import Button
 from gradio.utils import get_space
 
@@ -67,7 +67,7 @@ class DuplicateButton(Button):
             min_width=min_width,
             **kwargs,
         )
-        _activate = get(_activate)
+        _activate = _activate
         if _activate:
             self.activate()
 

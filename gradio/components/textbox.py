@@ -8,7 +8,7 @@ import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.blocks import Default, NoOverride, get, is_update
+from gradio.blocks import Default
 from gradio.components.base import (
     FormComponent,
     IOComponent,
@@ -97,25 +97,26 @@ class Textbox(
             rtl: If True and `type` is "text", sets the direction of the text to right-to-left (cursor appears on the left of the text). Default is False, which renders cursor on the right.
             show_copy_button: If True, includes a copy button to copy the text in the textbox. Only applies if show_label is True.
         """
-        self.lines = get(lines)
-        self.max_lines = get(max_lines)
-        self.autofocus = get(autofocus)
-        self.type = get(type)
+        self.lines = lines
+        self.max_lines = max_lines
+        self.autofocus = autofocus
+        self.type = type
         valid_types = ["text", "password", "email"]
-        if self.type not in valid_types + [NoOverride]:
+        if self.type not in valid_types:
             raise ValueError(
                 f"Invalid value for parameter `type`: {self.type}. Please choose from one of: {valid_types}"
             )
 
-        self.rtl = get(rtl)
-        self.show_copy_button = get(show_copy_button)
-        self.placeholder = get(placeholder)
+        self.rtl = rtl
+        self.show_copy_button = show_copy_button
+        self.placeholder = placeholder
 
-        if not is_update():
-            if self.type == "text":
-                self.max_lines = max(self.lines, self.max_lines)
-            else:
-                self.max_lines = 1
+        if self.type == "text":
+            self.max_lines = max(self.lines, self.max_lines)
+        else:
+            self.max_lines = 1
+
+        self.text_align = text_align
         self.select: EventListenerMethod
         """
         Event listener for when the user selects text in the Textbox.

@@ -5,7 +5,7 @@ from __future__ import annotations
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import SimpleSerializable
 
-from gradio.blocks import Default, get
+from gradio.blocks import Default
 from gradio.components.base import Component
 
 set_documentation_group("component")
@@ -37,7 +37,7 @@ class Interpretation(Component, SimpleSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        visible = get(visible)
+        visible = visible
 
         Component.__init__(
             self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs

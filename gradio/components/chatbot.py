@@ -11,7 +11,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
 from gradio import utils
-from gradio.blocks import Default, get, is_update
+from gradio.blocks import Default
 from gradio.components.base import IOComponent
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
@@ -77,22 +77,22 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             show_copy_button: If True, will show a copy button for each chatbot message.
         """
-        self.rtl = get(rtl)
-        self.height = get(height)
-        self.rtl = get(rtl)
-        self.latex_delimiters = get(latex_delimiters)
+        self.rtl = rtl
+        self.height = height
+        self.rtl = rtl
+        self.latex_delimiters = latex_delimiters
         if self.latex_delimiters is None:
             self.latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
-        self.show_share_button = get(show_share_button)
+        self.show_share_button = show_share_button
         if not is_update():
             self.show_share_button = (
                 (utils.get_space() is not None)
                 if self.show_share_button is None
                 else self.show_share_button
             )
-        self.show_copy_button = get(show_copy_button)
+        self.show_copy_button = show_copy_button
 
-        color_map = get(color_map)
+        color_map = color_map
         if color_map:
             warn_deprecation("The 'color_map' parameter has been deprecated.")
         self.select: EventListenerMethod

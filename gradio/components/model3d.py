@@ -9,7 +9,7 @@ from gradio_client import media_data
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
-from gradio.blocks import Default, get
+from gradio.blocks import Default
 from gradio.components.base import IOComponent
 from gradio.events import (
     Changeable,
@@ -64,7 +64,7 @@ class Model3D(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.clear_color = get(clear_color)
+        self.clear_color = clear_color
         if self.clear_color is None:
             self.clear_color = [0, 0, 0, 0]
 
@@ -101,7 +101,7 @@ class Model3D(
         file_name, file_data, is_file = (
             x["name"],
             x["data"],
-            x.get("is_file", False),
+            x.get(is_file), False,
         )
         if is_file:
             temp_file_path = self.make_temp_copy_if_needed(file_name)

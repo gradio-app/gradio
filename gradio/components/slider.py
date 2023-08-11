@@ -10,7 +10,7 @@ import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import NumberSerializable
 
-from gradio.blocks import Default, get
+from gradio.blocks import Default
 from gradio.components.base import FormComponent, IOComponent
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Inputable, Releaseable
@@ -79,10 +79,10 @@ class Slider(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             randomize: If True, the value of the slider when the app loads is taken uniformly at random from the range given by the minimum and maximum.
         """
-        self.minimum = get(minimum)
-        self.maximum = get(maximum)
-        self.step = get(step)
-        randomize = get(randomize)
+        self.minimum = minimum
+        self.maximum = maximum
+        self.step = step
+        randomize = randomize
 
         if self.step is None:
             difference = self.maximum - self.minimum

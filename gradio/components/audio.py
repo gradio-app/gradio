@@ -14,7 +14,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio import processing_utils, utils
-from gradio.blocks import Default, NoOverride, get, is_update
+from gradio.blocks import Default
 from gradio.components.base import IOComponent
 from gradio.events import (
     Changeable,
@@ -103,11 +103,11 @@ class Audio(
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             show_edit_button: If True, will show an edit icon in the corner of the component that allows user to edit the audio. If False, icon does not appear. Default is True.
         """
-        self.source = get(source)
-        self.streaming = get(streaming)
+        self.source = source
+        self.streaming = streaming
         self.source = self.source if self.source else ("microphone" if self.streaming else "upload")
         valid_sources = ["upload", "microphone"]
-        if self.source not in valid_sources + [NoOverride]:
+        if self.source not in valid_sources:
             raise ValueError(
                 f"Invalid value for parameter `source`: {self.source}. Please choose from one of: {valid_sources}"
             )
@@ -116,25 +116,24 @@ class Audio(
                 "Audio streaming only available if source is 'microphone'."
             )
 
-        self.type = get(type)
+        self.type = type
         valid_types = ["numpy", "filepath"]
-        if self.type not in valid_types + [NoOverride]:
+        if self.type not in valid_types:
             raise ValueError(
                 f"Invalid value for parameter `type`: {self.type}. Please choose from one of: {valid_types}"
             )
 
-        self.format = get(format)
-        self.autoplay = get(autoplay)
-        self.show_download_button = get(show_download_button)
-        self.show_share_button = get(show_share_button)
-        if not is_update():
-            self.show_share_button = (
-                (utils.get_space() is not None)
-                if self.show_share_button is None
-                else self.show_share_button
-            )
+        self.format = format
+        self.autoplay = autoplay
+        self.show_download_button = show_download_button
+        self.show_share_button = show_share_button
+        self.show_share_button = (
+            (utils.get_space() is not None)
+            if self.show_share_button is None
+            else self.show_share_button
+        )
 
-        self.show_edit_button = get(show_edit_button)
+        self.show_edit_button = show_edit_button
         IOComponent.__init__(
             self,
             label=label,
@@ -320,7 +319,7 @@ class Audio(
         if y is None:
             return None
         if client_utils.is_http_url_like(y["name"]):
-            response = requests.get(y["name"])
+            response = requests.y["name"]
             bytes = response.content
         else:
             file_path = y["name"]

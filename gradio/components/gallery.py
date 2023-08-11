@@ -11,7 +11,7 @@ from gradio_client.serializing import GallerySerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import utils
-from gradio.blocks import Default, get
+from gradio.blocks import Default
 from gradio.components.base import IOComponent
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
@@ -81,21 +81,21 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             show_download_button: If True, will show a download button in the corner of the selected image. If False, the icon does not appear. Default is True.
 
         """
-        self.columns = get(columns)
-        self.allow_preview = get(allow_preview)
-        self.grid_cols = get(columns)
-        self.grid_rows = get(rows)
-        self.height = get(height)
-        self.preview = get(preview)
-        self.object_fit = get(object_fit)
-        self.show_download_button = get(show_download_button)
+        self.columns = columns
+        self.allow_preview = allow_preview
+        self.grid_cols = columns
+        self.grid_rows = rows
+        self.height = height
+        self.preview = preview
+        self.object_fit = object_fit
+        self.show_download_button = show_download_button
         self.show_download_button = (
             (utils.get_space() is not None)
             if self.show_download_button is None
             else self.show_download_button
         )
 
-        self.show_share_button = get(show_share_button)
+        self.show_share_button = show_share_button
         self.show_share_button = (
             (utils.get_space() is not None)
             if self.show_share_button is None

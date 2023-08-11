@@ -9,7 +9,7 @@ import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
-from gradio.blocks import Default, get
+from gradio.blocks import Default
 from gradio.components.base import IOComponent
 from gradio.events import Changeable
 
@@ -62,12 +62,12 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.x = get(x)
-        self.y = get(y)
+        self.x = x
+        self.y = y
         if isinstance(self.y, str):
             self.y = [self.y]
 
-        self.colors = get(colors)
+        self.colors = colors
         IOComponent.__init__(
             self,
             label=label,
@@ -93,11 +93,11 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
         """
         if x is None:
             return x
-        elif x.get("is_file"):
+        elif x.get(is_file):
             dataframe = pd.read_csv(x["name"])
         else:
             dataframe = pd.DataFrame(data=x["data"], columns=x["headers"])
-        if x.get("range") is not None:
+        if x.get(range) is not None:
             dataframe = dataframe.loc[dataframe[self.x or 0] >= x["range"][0]]
             dataframe = dataframe.loc[dataframe[self.x or 0] <= x["range"][1]]
         return dataframe

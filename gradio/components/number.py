@@ -9,7 +9,7 @@ import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import NumberSerializable
 
-from gradio.blocks import Default, get
+from gradio.blocks import Default
 from gradio.components.base import FormComponent, IOComponent
 from gradio.events import (
     Changeable,
@@ -83,10 +83,10 @@ class Number(
             maximum: Maximum value. Only applied when component is used as an input. If a user provides a larger value, a gr.Error exception is raised by the backend.
             step: The interval between allowed numbers in the component. Can be used along with optional parameters `minimum` and `maximum` to create a range of legal values starting from `minimum` and incrementing according to this parameter.
         """
-        self.precision = get(precision)
-        self.minimum = get(minimum)
-        self.maximum = get(maximum)
-        self.step = get(step)
+        self.precision = precision
+        self.minimum = minimum
+        self.maximum = maximum
+        self.step = step
 
         IOComponent.__init__(
             self,
