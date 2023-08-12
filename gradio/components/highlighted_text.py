@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Callable, Literal
+from typing import Any, Callable, Literal, Union
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import (
-    JSONSerializable,
-)
+from gradio.data_classes import GradioRootModel, GradioModel
 
 from gradio.components.base import Component, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
@@ -19,9 +17,17 @@ from gradio.events import (
 
 set_documentation_group("component")
 
+class HighlightedToken(GradioModel):
+    token: str
+    class_or_confidence: Union[str, float, None] = None
+
+
+class HighlightedTextData(GradioRootModel):
+    root: list[HighlightedToken]
+
 
 @document()
-class HighlightedText(Changeable, Selectable, Component, JSONSerializable):
+class HighlightedText(Changeable, Selectable, Component):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
     Preprocessing: this component does *not* accept input.
@@ -30,6 +36,7 @@ class HighlightedText(Changeable, Selectable, Component, JSONSerializable):
     Demos: diff_texts, text_analysis
     Guides: named-entity-recognition
     """
+    data_model = HighlightedTextData
 
     def __init__(
         self,
@@ -99,6 +106,9 @@ class HighlightedText(Changeable, Selectable, Component, JSONSerializable):
             "selectable": self.selectable,
             **Component.get_config(self),
         }
+    
+    def example_inputs(self) -> Any:
+        return {"value": [{"token": "Hello", "class_or_confidence": "1"}]}
 
     @staticmethod
     def update(
@@ -131,7 +141,7 @@ class HighlightedText(Changeable, Selectable, Component, JSONSerializable):
 
     def postprocess(
         self, y: list[tuple[str, str | float | None]] | dict | None
-    ) -> list[tuple[str, str | float | None]] | None:
+    ) -> HighlightedTextData | None:
         """
         Parameters:
             y: List of (word, category) tuples, or a dictionary of two keys: "text", and "entities", which itself is a list of dictionaries, each of which have the keys: "entity" (or "entity_group"), "start", and "end"
@@ -183,9 +193,12 @@ class HighlightedText(Changeable, Selectable, Component, JSONSerializable):
                     running_category = category
             if running_text is not None:
                 output.append((running_text, running_category))
-            return output
+            return HighlightedTextData([HighlightedToken(token=o[0], class_or_confidence=o[1]) for o in output])
         else:
-            return y
+            return HighlightedTextData([HighlightedToken(token=o[0], class_or_confidence=o[1]) for o in y])
+    
+    def preprocess(self, x: Any) -> Any:
+        return super().preprocess(x)
 
     def style(
         self,

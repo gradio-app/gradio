@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Callable, Literal
+from typing import Any, Callable, Literal
 
 import altair as alt
 import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import _Keywords
-from gradio.components.plot import AltairPlot, Plot
+from gradio.components.plot import AltairPlot, Plot, AltairPlotData
 
 set_documentation_group("component")
 
@@ -24,6 +24,7 @@ class BarPlot(Plot):
 
     Demos: bar_plot, chicago-bikeshare-dashboard
     """
+    data_model = AltairPlotData
 
     def __init__(
         self,
@@ -373,4 +374,7 @@ class BarPlot(Plot):
             width=self.width,
         )
 
-        return {"type": "altair", "plot": chart.to_json(), "chart": "bar"}
+        return AltairPlotData(**{"type": "altair", "plot": chart.to_json(), "chart": "bar"})
+
+    def example_inputs(self) -> dict[str, Any]:
+        return {}

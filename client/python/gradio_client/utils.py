@@ -524,6 +524,8 @@ class APIInfoParseError(ValueError):
 def get_type(schema: dict):
     if "type" in schema:
         return schema["type"]
+    elif schema.get("$ref"):
+        return "$ref"
     elif schema.get("oneOf"):
         return "oneOf"
     elif schema.get("anyOf"):
@@ -532,7 +534,7 @@ def get_type(schema: dict):
         raise APIInfoParseError(f"Cannot parse type for {schema}")
 
 
-def json_schema_to_python_type(schema: Any) -> str:
+def json_schema_to_python_type(schema: Any, defs=None) -> str:
     """Convert the json schema into a python type hint"""
     type_ = get_type(schema)
     if type_ == {}:
@@ -540,6 +542,8 @@ def json_schema_to_python_type(schema: Any) -> str:
             return "Dict[Any, Any]"
         else:
             return "Any"
+    elif type_ == "$ref":
+        return json_schema_to_python_type(defs[schema["$ref"].split("/")[-1]], defs)
     elif type_ == "null":
         return "None"
     elif type_ == "integer":
@@ -554,22 +558,22 @@ def json_schema_to_python_type(schema: Any) -> str:
         items = schema.get("items")
         if "prefixItems" in items:
             elements = ", ".join(
-                [json_schema_to_python_type(i) for i in items["prefixItems"]]
+                [json_schema_to_python_type(i, defs) for i in items["prefixItems"]]
             )
             return f"Tuple[{elements}]"
         else:
-            elements = json_schema_to_python_type(items)
+            elements = json_schema_to_python_type(items, defs)
             return f"List[{elements}]"
     elif type_ == "object":
         des = ", ".join(
             [
-                f"{n}: {json_schema_to_python_type(v)} ({v.get('description')})"
-                for n, v in schema["properties"].items()
+                f"{n}: {json_schema_to_python_type(v, defs)} ({v.get('description')})"
+                for n, v in schema["properties"].items() if n != "$defs"
             ]
         )
         return f"Dict({des})"
     elif type_ in ["oneOf", "anyOf"]:
-        desc = " | ".join([json_schema_to_python_type(i) for i in schema[type_]])
+        desc = " | ".join([json_schema_to_python_type(i, defs) for i in schema[type_]])
         return desc
     else:
         raise APIInfoParseError(f"Cannot parse schema {schema}")

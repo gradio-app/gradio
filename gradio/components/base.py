@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import abc
 import hashlib
+import json
 import os
 import secrets
 import shutil
@@ -14,6 +15,8 @@ import urllib.request
 from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
+from abc import ABCMeta, abstractmethod
+from gradio.data_classes import GradioBaseModel
 
 import aiofiles
 import numpy as np
@@ -21,9 +24,6 @@ import requests
 from fastapi import UploadFile
 from gradio_client import utils as client_utils
 from gradio_client.documentation import set_documentation_group
-from gradio_client.serializing import (
-    Serializable,
-)
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
@@ -48,7 +48,68 @@ class _Keywords(Enum):
     FINISHED_ITERATING = "FINISHED_ITERATING"  # Used to skip processing of a component's value (needed for generators + state)
 
 
-class Component(Block, Serializable):
+class ComponentBase(metaclass=ABCMeta):
+
+    @abstractmethod
+    def preprocess(self, x: Any) -> Any:
+        """
+        Any preprocessing needed to be performed on function input.
+        """
+        return x
+
+    @abstractmethod
+    def postprocess(self, y):
+        """
+        Any postprocessing needed to be performed on function output.
+        """
+        return y
+    
+    @abstractmethod
+    def as_example(self, y):
+        """
+        Return the input data in a way that can be displayed by the examples dataset component in the front-end.
+
+        For example, only return the name of a file as opposed to a full path. Or get the head of a dataframe.
+        Must be able to be converted to a string to put in the config.
+        """
+        pass
+    
+    @abstractmethod
+    def api_info(self) -> dict[str, list[str]]:
+        """
+        The typing information for this component as a dictionary whose values are a list of 2 strings: [Python type, language-agnostic description].
+        Keys of the dictionary are: raw_input, raw_output, serialized_input, serialized_output
+        """
+        pass
+
+    @abstractmethod
+    def example_inputs(self) -> Any:
+        """
+        The example inputs for this component as a dictionary whose values are example inputs compatible with this component.
+        Keys of the dictionary are: raw, serialized
+        """
+        pass
+
+    @abstractmethod
+    def flag(self, x: Any | GradioModel, flag_dir: str | Path = "") -> str:
+        """
+        Write the component's value to a format that can be stored in a csv or jsonl format for flagging.
+        """
+        pass
+    
+    @abstractmethod
+    def read_from_flag(
+        self,
+        x: Any,
+        flag_dir: str | Path | None = None,
+    ) -> GradioModel | Any:
+        """
+        Convert the data from the csv or jsonl file into the component state.
+        """
+        return x
+
+
+class Component(ComponentBase, Block):
     """
     A base class for defining methods that all input/output components should have.
     """
@@ -71,6 +132,8 @@ class Component(Block, Serializable):
         every: float | None = None,
         **kwargs,
     ):
+        if not hasattr(self, "data_model"):
+            self.data_model: GradioModel | None = None
         self.temp_files: set[str] = set()
         self.DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
             Path(tempfile.gettempdir()) / "gradio"
@@ -297,18 +360,6 @@ class Component(Block, Serializable):
     def __repr__(self):
         return f"{self.get_block_name()}"
 
-    def preprocess(self, x: Any) -> Any:
-        """
-        Any preprocessing needed to be performed on function input.
-        """
-        return x
-
-    def postprocess(self, y):
-        """
-        Any postprocessing needed to be performed on function output.
-        """
-        return y
-
     def attach_load_event(self, callable: Callable, every: float | None):
         """Add a load event that runs `callable`, optionally every `every` seconds."""
         self.load_event_to_attach = (callable, every)
@@ -316,48 +367,48 @@ class Component(Block, Serializable):
     def as_example(self, input_data):
         """Return the input data in a way that can be displayed by the examples dataset component in the front-end."""
         return input_data
-
-    def style(self, *args, **kwargs):
+    
+    def api_info(self) -> dict[str, list[str]]:
         """
-        This method is deprecated. Please set these arguments in the Components constructor instead.
+        The typing information for this component as a dictionary whose values are a list of 2 strings: [Python type, language-agnostic description].
+        Keys of the dictionary are: raw_input, raw_output, serialized_input, serialized_output
         """
-        warn_style_method_deprecation()
-        put_deprecated_params_in_box = False
-        if "rounded" in kwargs:
-            warn_deprecation(
-                "'rounded' styling is no longer supported. To round adjacent components together, place them in a Column(variant='box')."
-            )
-            if isinstance(kwargs["rounded"], (list, tuple)):
-                put_deprecated_params_in_box = True
-            kwargs.pop("rounded")
-        if "margin" in kwargs:
-            warn_deprecation(
-                "'margin' styling is no longer supported. To place adjacent components together without margin, place them in a Column(variant='box')."
-            )
-            if isinstance(kwargs["margin"], (list, tuple)):
-                put_deprecated_params_in_box = True
-            kwargs.pop("margin")
-        if "border" in kwargs:
-            warn_deprecation(
-                "'border' styling is no longer supported. To place adjacent components in a shared border, place them in a Column(variant='box')."
-            )
-            kwargs.pop("border")
-        for key in kwargs:
-            warn_deprecation(f"Unknown style parameter: {key}")
-        if (
-            put_deprecated_params_in_box
-            and isinstance(self.parent, (Row, Column))
-            and self.parent.variant == "default"
-        ):
-            self.parent.variant = "compact"
-        return self
+        if self.data_model:
+            return self.data_model.model_json_schema()
+        raise NotImplementedError(f"The api_info method has not been implemented for {self.get_block_name()}")
 
+    def flag(self, x: Any, flag_dir: str | Path = "") -> str:
+        """
+        Write the component's value to a format that can be stored in a csv or jsonl format for flagging.
+        """
+        if self.data_model:
+            assert isinstance(x, GradioBaseModel)
+            return x.copy_to_dir(flag_dir).model_dump_json()
+        raise NotImplementedError(f"The flag method has not been implemented for {self.get_block_name()}")
+    
+    def read_from_flag(
+        self,
+        x: Any,
+        flag_dir: str | Path | None = None,
+    ):
+        """
+        Convert the data from the csv or jsonl file into the component state.
+        """
+        if self.data_model:
+            return self.data_model(**json.loads(x))
+        return x
 
 class FormComponent(Component):
     def get_expected_parent(self) -> type[Form] | None:
         if getattr(self, "container", None) is False:
             return None
         return Form
+    
+    def preprocess(self, x: Any) -> Any:
+        return x
+    
+    def postprocess(self, y):
+        return y
 
 
 def component(cls_name: str) -> Component:

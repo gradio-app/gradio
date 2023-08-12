@@ -1,8 +1,9 @@
 """gr.Code() component"""
 
 from __future__ import annotations
+from pathlib import Path
 
-from typing import Literal
+from typing import Any, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
@@ -14,7 +15,7 @@ set_documentation_group("component")
 
 
 @document("languages")
-class Code(Changeable, Inputable, StringSerializable, Component):
+class Code(Changeable, Inputable, Component):
     """
     Creates a Code editor for entering, editing or viewing code.
     Preprocessing: passes a {str} of code into the function.
@@ -104,8 +105,11 @@ class Code(Changeable, Inputable, StringSerializable, Component):
             "lines": self.lines,
             **Component.get_config(self),
         }
+    
+    def preprocess(self, x: Any) -> Any:
+        return x
 
-    def postprocess(self, y):
+    def postprocess(self, y: tuple | str | None) -> None | str:
         if y is None:
             return None
         elif isinstance(y, tuple):
@@ -113,6 +117,12 @@ class Code(Changeable, Inputable, StringSerializable, Component):
                 return file_data.read()
         else:
             return y.strip()
+    
+    def flag(self, x: Any, flag_dir: str | Path = "") -> str:
+        return super().flag(x, flag_dir)
+    
+    def api_info(self) -> dict[str, list[str]]:
+        return {'type': 'string'}
 
     @staticmethod
     def update(

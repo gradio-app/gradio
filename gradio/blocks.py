@@ -38,6 +38,7 @@ from gradio import (
     wasm_utils,
 )
 from gradio.context import Context
+from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.deprecation import check_deprecated_parameters, warn_deprecation
 from gradio.exceptions import (
     DuplicateBlockError,
@@ -1335,11 +1336,15 @@ Received outputs:
                         update_dict=prediction_value,
                         postprocess=block_fn.postprocess,
                     )
+                    if isinstance(prediction_value['value'], (GradioModel, GradioRootModel)):
+                        prediction_value['value'] = prediction_value['value'].model_dump()
                 elif block_fn.postprocess:
                     assert isinstance(
                         block, components.Component
                     ), f"{block.__class__} Component with id {output_id} not a valid output component."
                     prediction_value = block.postprocess(prediction_value)
+                    if isinstance(prediction_value, (GradioRootModel, GradioModel)):
+                        prediction_value = prediction_value.model_dump()
                 output.append(prediction_value)
 
         return output

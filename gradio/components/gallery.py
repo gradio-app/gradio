@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import Any, Callable, Literal, Optional
 
 import numpy as np
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import GallerySerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
+from gradio.data_classes import GradioRootModel, FileData
 
 from gradio import utils
 from gradio.components.base import Component, _Keywords
@@ -21,8 +21,16 @@ from gradio.events import (
 set_documentation_group("component")
 
 
+class GalleryImage(FileData):
+    caption: Optional[str] = None
+
+
+class GalleryData(GradioRootModel):
+    root: list[GalleryImage]
+
+
 @document()
-class Gallery(GallerySerializable, Selectable, Component):
+class Gallery(Selectable, Component):
     """
     Used to display a list of images as a gallery that can be scrolled through.
     Preprocessing: this component does *not* accept input.
@@ -30,6 +38,8 @@ class Gallery(GallerySerializable, Selectable, Component):
 
     Demos: fake_gan
     """
+
+    data_model = GalleryData
 
     def __init__(
         self,
@@ -173,7 +183,7 @@ class Gallery(GallerySerializable, Selectable, Component):
         y: list[np.ndarray | _Image.Image | str]
         | list[tuple[np.ndarray | _Image.Image | str, str]]
         | None,
-    ) -> list[str]:
+    ) -> GalleryData:
         """
         Parameters:
             y: list of images, or list of (image, caption) tuples
@@ -205,44 +215,15 @@ class Gallery(GallerySerializable, Selectable, Component):
 
             if caption is not None:
                 output.append(
-                    [{"name": file_path, "data": None, "is_file": True}, caption]
+                    [{"name": file_path, "data": None, "is_file": True, "caption": caption}]
                 )
             else:
                 output.append({"name": file_path, "data": None, "is_file": True})
 
-        return output
+        return GalleryData(output)
 
-    def style(
-        self,
-        *,
-        grid: int | tuple | None = None,
-        columns: int | tuple | None = None,
-        rows: int | tuple | None = None,
-        height: str | None = None,
-        container: bool | None = None,
-        preview: bool | None = None,
-        object_fit: str | None = None,
-        **kwargs,
-    ):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if grid is not None:
-            warn_deprecation(
-                "The 'grid' parameter will be deprecated. Please use 'grid_cols' in the constructor instead.",
-            )
-            self.grid_cols = grid
-        if columns is not None:
-            self.grid_cols = columns
-        if rows is not None:
-            self.grid_rows = rows
-        if height is not None:
-            self.height = height
-        if preview is not None:
-            self.preview = preview
-        if object_fit is not None:
-            self.object_fit = object_fit
-        if container is not None:
-            self.container = container
-        return self
+    def preprocess(self, x: Any) -> Any:
+        return x
+
+    def example_inputs(self) -> Any:
+        return ["https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"]

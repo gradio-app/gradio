@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, Literal
+from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import BooleanSerializable
@@ -14,7 +14,7 @@ set_documentation_group("component")
 
 
 @document()
-class Checkbox(Changeable, Inputable, Selectable, BooleanSerializable, FormComponent):
+class Checkbox(Changeable, Inputable, Selectable, FormComponent):
     """
     Creates a checkbox that can be set to `True` or `False`.
 
@@ -121,3 +121,11 @@ class Checkbox(Changeable, Inputable, Selectable, BooleanSerializable, FormCompo
             return scores[0], None
         else:
             return None, scores[0]
+    
+    def api_info(self) -> dict[str, list[str]]:
+        return {
+		    "type": "boolean"
+	    }
+    
+    def example_inputs(self) -> bool:
+        return True

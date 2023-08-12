@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, Literal
+from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
@@ -132,3 +132,9 @@ class Button(Clickable, StringSerializable, Component):
         if size is not None:
             self.size = size
         return self
+    
+    def preprocess(self, x: Any) -> Any:
+        return x
+    
+    def postprocess(self, y):
+        return y

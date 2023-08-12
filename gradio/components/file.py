@@ -5,12 +5,11 @@ from __future__ import annotations
 import tempfile
 import warnings
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import Any, Callable, Literal, Union
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import FileSerializable
-
+from gradio.data_classes import FileData, GradioModel
 from gradio import utils
 from gradio.components.base import Component, _Keywords
 from gradio.deprecation import warn_deprecation
@@ -25,6 +24,10 @@ from gradio.events import (
 set_documentation_group("component")
 
 
+class FileDataModel(GradioModel):
+    value: Union[FileData, list[FileData]]
+
+
 @document()
 class File(
     Changeable,
@@ -32,7 +35,6 @@ class File(
     Clearable,
     Uploadable,
     Component,
-    FileSerializable,
 ):
     """
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
@@ -41,6 +43,7 @@ class File(
     Examples-format: a {str} path to a local file that populates the component.
     Demos: zip_to_json, zip_files
     """
+    data_model = FileDataModel
 
     def __init__(
         self,
@@ -223,7 +226,7 @@ class File(
 
     def postprocess(
         self, y: str | list[str] | None
-    ) -> dict[str, Any] | list[dict[str, Any]] | None:
+    ) -> FileDataModel | None:
         """
         Parameters:
             y: file path
@@ -233,7 +236,7 @@ class File(
         if y is None:
             return None
         if isinstance(y, list):
-            return [
+            return FileDataModel(value=[
                 {
                     "orig_name": Path(file).name,
                     "name": self.make_temp_copy_if_needed(file),
@@ -242,7 +245,7 @@ class File(
                     "is_file": True,
                 }
                 for file in y
-            ]
+            ])
         else:
             d = {
                 "orig_name": Path(y).name,
@@ -251,7 +254,7 @@ class File(
                 "data": None,
                 "is_file": True,
             }
-            return d
+            return FileDataModel(value=d)
 
     def as_example(self, input_data: str | list | None) -> str:
         if input_data is None:
@@ -261,20 +264,16 @@ class File(
         else:
             return Path(input_data).name
 
-    def api_info(self) -> dict[str, dict | bool]:
-        if self.file_count == "single":
-            return self._single_file_api_info()
-        else:
-            return self._multiple_file_api_info()
-
-    def serialized_info(self):
-        if self.file_count == "single":
-            return self._single_file_serialized_info()
-        else:
-            return self._multiple_file_serialized_info()
+    # The api_info implemented in the parent class will be wrong
+    # I don't think we should have File | list[File]
+    # def api_info(self) -> dict[str, dict | bool]:
+    #     if self.file_count == "single":
+    #         return self._single_file_api_info()
+    #     else:
+    #         return self._multiple_file_api_info()
 
     def example_inputs(self) -> dict[str, Any]:
         if self.file_count == "single":
-            return self._single_file_example_inputs()
+            return "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
         else:
-            return self._multiple_file_example_inputs()
+            return ["https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"]

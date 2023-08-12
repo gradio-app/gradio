@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Literal
+from typing import Any, Callable, Literal, Union
 
 import numpy as np
 import pandas as pd
@@ -10,7 +10,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
 from gradio import utils
-from gradio.components.base import Component, _Keywords
+from gradio.components.base import Component, _Keywords, GradioModel
 from gradio.events import (
     Changeable,
     EventListenerMethod,
@@ -18,19 +18,17 @@ from gradio.events import (
     Selectable,
 )
 
-if TYPE_CHECKING:
-    from typing import TypedDict
 
-    class DataframeData(TypedDict):
-        headers: list[str]
-        data: list[list[str | int | bool]]
+class DataframeData(GradioModel):
+    headers: list[str]
+    data: list[list[Union[str, int, bool]]]
 
 
 set_documentation_group("component")
 
 
 @document()
-class Dataframe(Changeable, Inputable, Selectable, JSONSerializable, Component):
+class Dataframe(Changeable, Inputable, Selectable, Component):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
@@ -40,6 +38,7 @@ class Dataframe(Changeable, Inputable, Selectable, JSONSerializable, Component):
     """
 
     markdown_parser = None
+    data_model = DataframeData
 
     def __init__(
         self,
@@ -211,7 +210,7 @@ class Dataframe(Changeable, Inputable, Selectable, JSONSerializable, Component):
 
     def postprocess(
         self, y: str | pd.DataFrame | np.ndarray | list[list[str | float]] | dict
-    ) -> dict:
+    ) -> DataframeData:
         """
         Parameters:
             y: dataframe in given format
@@ -224,19 +223,19 @@ class Dataframe(Changeable, Inputable, Selectable, JSONSerializable, Component):
             return y
         if isinstance(y, str):
             dataframe = pd.read_csv(y)
-            return {
+            return DataframeData(**{
                 "headers": list(dataframe.columns),
                 "data": Dataframe.__process_markdown(
                     dataframe.to_dict(orient="split")["data"], self.datatype
                 ),
-            }
+            })
         if isinstance(y, pd.DataFrame):
-            return {
+            return DataframeData(**{
                 "headers": list(y.columns),  # type: ignore
                 "data": Dataframe.__process_markdown(
                     y.to_dict(orient="split")["data"], self.datatype  # type: ignore
                 ),
-            }
+            })
         if isinstance(y, (np.ndarray, list)):
             if len(y) == 0:
                 return self.postprocess([[]])
@@ -254,10 +253,10 @@ class Dataframe(Changeable, Inputable, Selectable, JSONSerializable, Component):
             elif len(self.headers) > len(y[0]):
                 _headers = self.headers[: len(y[0])]
 
-            return {
+            return DataframeData(**{
                 "headers": _headers,
                 "data": Dataframe.__process_markdown(y, self.datatype),
-            }
+            })
         raise ValueError("Cannot process value as a Dataframe")
 
     @staticmethod
@@ -301,3 +300,6 @@ class Dataframe(Changeable, Inputable, Selectable, JSONSerializable, Component):
         elif isinstance(input_data, np.ndarray):
             return input_data.tolist()
         return input_data
+
+    def example_inputs(self) -> Any:
+        return {"headers": ["a", "b"], "data": [["foo", "bar"]]}

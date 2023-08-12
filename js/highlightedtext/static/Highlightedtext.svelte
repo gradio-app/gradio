@@ -5,7 +5,7 @@
 	import type { SelectData } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
 
-	export let value: [string, string | number][] = [];
+	export let value: [{token: string, class_or_confidence: string | number}] | [] = [];
 	export let show_legend = false;
 	export let color_map: Record<string, string> = {};
 	export let selectable = false;
@@ -58,13 +58,13 @@
 			color_map = {};
 		}
 		if (value.length > 0) {
-			for (let [_, label] of value) {
-				if (label !== null) {
-					if (typeof label === "string") {
+			for (let entry of value) {
+				if (entry.class_or_confidence !== null) {
+					if (typeof entry.class_or_confidence === "string") {
 						mode = "categories";
-						if (!(label in color_map)) {
+						if (!(entry.class_or_confidence in color_map)) {
 							let color = get_next_color(Object.keys(color_map).length);
-							color_map[label] = color;
+							color_map[entry.class_or_confidence] = color;
 						}
 					} else {
 						mode = "scores";
@@ -120,47 +120,47 @@
 			</div>
 		{/if}
 		<div class="textfield">
-			{#each value as [text, category], i}
-				{#each splitTextByNewline(text) as line, j}
+			{#each value as v, i}
+				{#each splitTextByNewline(v.token) as line, j}
 					{#if line.trim() !== ""}
 						<!-- TODO: fix -->
 						<!-- svelte-ignore a11y-no-static-element-interactions -->
 						<!-- svelte-ignore a11y-click-events-have-key-events-->
 						<span
 							class="textspan"
-							style:background-color={category === null ||
-							(active && active !== category)
+							style:background-color={v.class_or_confidence === null ||
+							(active && active !== v.class_or_confidence)
 								? ""
-								: _color_map[category].secondary}
-							class:no-cat={category === null ||
-								(active && active !== category)}
-							class:hl={category !== null}
+								: _color_map[v.class_or_confidence].secondary}
+							class:no-cat={v.class_or_confidence === null ||
+								(active && active !== v.class_or_confidence)}
+							class:hl={v.class_or_confidence !== null}
 							class:selectable
 							on:click={() => {
 								dispatch("select", {
 									index: i,
-									value: [text, category]
+									value: [v.token, v.class_or_confidence]
 								});
 							}}
 						>
-							<span class:no-label={!_color_map[category]} class="text"
+							<span class:no-label={!_color_map[v.class_or_confidence]} class="text"
 								>{line}</span
 							>
-							{#if !show_legend && category !== null}
+							{#if !show_legend && v.class_or_confidence !== null}
 								&nbsp;
 								<span
 									class="label"
-									style:background-color={category === null ||
-									(active && active !== category)
+									style:background-color={v.class_or_confidence === null ||
+									(active && active !== v.class_or_confidence)
 										? ""
-										: _color_map[category].primary}
+										: _color_map[v.class_or_confidence].primary}
 								>
-									{category}
+									{v.class_or_confidence}
 								</span>
 							{/if}
 						</span>
 					{/if}
-					{#if j < splitTextByNewline(text).length - 1}
+					{#if j < splitTextByNewline(v.token).length - 1}
 						<br />
 					{/if}
 				{/each}
@@ -175,15 +175,15 @@
 			</div>
 		{/if}
 		<div class="textfield" data-testid="highlighted-text:textfield">
-			{#each value as [text, _score]}
-				{@const score = typeof _score === "string" ? parseInt(_score) : _score}
+			{#each value as v}
+				{@const score = typeof v.class_or_confidence === "string" ? parseInt(v.class_or_confidence) : v.class_or_confidence}
 				<span
 					class="textspan score-text"
 					style={"background-color: rgba(" +
 						(score < 0 ? "128, 90, 213," + -score : "239, 68, 60," + score) +
 						")"}
 				>
-					<span class="text">{text}</span>
+					<span class="text">{v.token}</span>
 				</span>
 			{/each}
 		</div>

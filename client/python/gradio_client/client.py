@@ -535,6 +535,39 @@ class Client:
 
     def __str__(self):
         return self.view_api(print_info=False, return_format="str")
+    
+    def download_file(
+        self,
+        x: str | FileData | None,
+        save_dir: str | None = None,
+        root_url: str | None = None,
+        hf_token: str | None = None,
+    ) -> str | None:
+        if x is None:
+            return None
+        if isinstance(x, str):
+            file_name = utils.decode_base64_to_file(x, dir=save_dir).name
+        elif isinstance(x, dict):
+            if x.get("is_file"):
+                filepath = x.get("name")
+                assert filepath is not None, f"The 'name' field is missing in {x}"
+                if root_url is not None:
+                    file_name = utils.download_tmp_copy_of_file(
+                        root_url + "file=" + filepath,
+                        hf_token=hf_token,
+                        dir=save_dir,
+                    )
+                else:
+                    file_name = utils.create_tmp_copy_of_file(filepath, dir=save_dir)
+            else:
+                data = x.get("data")
+                assert data is not None, f"The 'data' field is missing in {x}"
+                file_name = utils.decode_base64_to_file(data, dir=save_dir).name
+        else:
+            raise ValueError(
+                f"A FileSerializable component can only deserialize a string or a dict, not a {type(x)}: {x}"
+            )
+        return file_name
 
     def _telemetry_thread(self) -> None:
         # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1

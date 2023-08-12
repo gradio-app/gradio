@@ -12,6 +12,7 @@ import PIL.ImageOps
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import ImgSerializable
+from gradio.data_classes import FileData
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
@@ -39,7 +40,6 @@ class Image(
     Streamable,
     Selectable,
     Uploadable,
-    ImgSerializable,
     Component,
 ):
     """
@@ -50,6 +50,7 @@ class Image(
     Demos: image_mod, image_mod_default_image
     Guides: image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, building-a-pictionary_app, create-your-own-friends-with-a-gan
     """
+    data_model = FileData
 
     def __init__(
         self,
@@ -113,20 +114,6 @@ class Image(
             mask_opacity: Opacity of mask drawn on image, as a value between 0 and 1.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
-        super().__init__(
-            label=label,
-            every=every,
-            show_label=show_label,
-            container=container,
-            scale=scale,
-            min_width=min_width,
-            interactive=interactive,
-            visible=visible,
-            elem_id=elem_id,
-            elem_classes=elem_classes,
-            value=value,
-            **kwargs,
-        )
         self.brush_radius = brush_radius
         self.brush_color = brush_color
         self.mask_opacity = mask_opacity
@@ -166,6 +153,20 @@ class Image(
             (utils.get_space() is not None)
             if show_share_button is None
             else show_share_button
+        )
+        super().__init__(
+            label=label,
+            every=every,
+            show_label=show_label,
+            container=container,
+            scale=scale,
+            min_width=min_width,
+            interactive=interactive,
+            visible=visible,
+            elem_id=elem_id,
+            elem_classes=elem_classes,
+            value=value,
+            **kwargs,
         )
 
     def get_config(self):
@@ -316,7 +317,7 @@ class Image(
             raise ValueError("Cannot process this value as an Image")
 
     def check_streamable(self):
-        if self.source != "webcam":
+        if self.source != "webcam" and self.streaming:
             raise ValueError("Image streaming only available if source is 'webcam'.")
 
     def as_example(self, input_data: str | None) -> str:
@@ -327,3 +328,6 @@ class Image(
         ):  # If an externally hosted image, don't convert to absolute path
             return input_data
         return str(utils.abspath(input_data))
+    
+    def example_inputs(self) -> Any:
+        return "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
