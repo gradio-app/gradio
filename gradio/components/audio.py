@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import Any, Callable, Literal, Optional
 
 import numpy as np
 import requests
 from gradio_client import media_data
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import FileSerializable
+from gradio.data_classes import FileData
 
 from gradio import processing_utils, utils
 from gradio.components.base import Component, StreamingInput, StreamingOutput, _Keywords
@@ -26,6 +26,11 @@ from gradio.events import (
 set_documentation_group("component")
 
 
+class AudioData(FileData):
+    crop_min: Optional[int] = None
+    crop_max: Optional[int] = None  
+
+
 @document()
 class Audio(
     StreamingInput,
@@ -36,7 +41,6 @@ class Audio(
     Recordable,
     Streamable,
     Uploadable,
-    FileSerializable,
     Component,
 ):
     """
@@ -47,6 +51,8 @@ class Audio(
     Demos: main_note, generate_tone, reverse_audio
     Guides: real-time-speech-recognition
     """
+
+    data_model = AudioData
 
     def __init__(
         self,
@@ -149,10 +155,7 @@ class Audio(
         }
 
     def example_inputs(self) -> dict[str, Any]:
-        return {
-            "raw": {"is_file": False, "data": media_data.BASE64_AUDIO},
-            "serialized": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav",
-        }
+        return  "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
 
     @staticmethod
     def update(
@@ -188,7 +191,7 @@ class Audio(
         }
 
     def preprocess(
-        self, x: dict[str, Any] | None
+        self, x: AudioData | None
     ) -> tuple[int, np.ndarray] | str | None:
         """
         Parameters:
@@ -198,22 +201,17 @@ class Audio(
         """
         if x is None:
             return x
-        file_name, file_data, is_file = (
-            x["name"],
-            x["data"],
-            x.get("is_file", False),
-        )
-        crop_min, crop_max = x.get("crop_min", 0), x.get("crop_max", 100)
-        if is_file:
-            if client_utils.is_http_url_like(file_name):
-                temp_file_path = self.download_temp_copy_if_needed(file_name)
+
+        if x.is_file:
+            if client_utils.is_http_url_like(x.name):
+                temp_file_path = self.download_temp_copy_if_needed(x.name)
             else:
-                temp_file_path = self.make_temp_copy_if_needed(file_name)
+                temp_file_path = self.make_temp_copy_if_needed(x.name)
         else:
-            temp_file_path = self.base64_to_temp_file_if_needed(file_data, file_name)
+            temp_file_path = self.base64_to_temp_file_if_needed(x.data, x.name)
 
         sample_rate, data = processing_utils.audio_from_file(
-            temp_file_path, crop_min=crop_min, crop_max=crop_max
+            temp_file_path, crop_min=x.crop_min, crop_max=x.crop_max
         )
 
         # Need a unique name for the file to avoid re-using the same audio file if
@@ -221,7 +219,7 @@ class Audio(
         temp_file_path = Path(temp_file_path)
         output_file_name = str(
             temp_file_path.with_name(
-                f"{temp_file_path.stem}-{crop_min}-{crop_max}{temp_file_path.suffix}"
+                f"{temp_file_path.stem}-{x.crop_min}-{x.crop_max}{temp_file_path.suffix}"
             )
         )
 
@@ -242,7 +240,7 @@ class Audio(
 
     def postprocess(
         self, y: tuple[int, np.ndarray] | str | Path | None
-    ) -> str | dict | None:
+    ) -> AudioData | None:
         """
         Parameters:
             y: audio data in either of the following formats: a tuple of (sample_rate, data), or a string filepath or URL to an audio file, or None.
@@ -261,16 +259,16 @@ class Audio(
             self.temp_files.add(file_path)
         else:
             file_path = self.make_temp_copy_if_needed(y)
-        return {"name": file_path, "data": None, "is_file": True}
+        return AudioData(**{"name": file_path, "data": None, "is_file": True})
 
-    def stream_output(self, y):
+    def stream_output(self, y: AudioData) -> bytes:
         if y is None:
             return None
-        if client_utils.is_http_url_like(y["name"]):
-            response = requests.get(y["name"])
+        if client_utils.is_http_url_like(y.name):
+            response = requests.get(y.name)
             bytes = response.content
         else:
-            file_path = y["name"]
+            file_path = y.name
             with open(file_path, "rb") as f:
                 bytes = f.read()
         return bytes

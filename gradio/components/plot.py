@@ -10,6 +10,7 @@ import altair as alt
 import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
+from gradio.data_classes import GradioModel
 
 from gradio import processing_utils
 from gradio.components.base import Component, _Keywords
@@ -17,6 +18,16 @@ from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Clearable
 
 set_documentation_group("component")
+
+
+class PlotData(GradioModel):
+    type: Literal["altair", "bokeh", "plotly", "matplotlib"]
+    plot: str
+
+
+class AltairPlotData(PlotData):
+    chart: Literal["bar", "line", "scatter"]
+    type: Literal["altair"] = "altair"
 
 
 @document()
@@ -29,6 +40,7 @@ class Plot(Changeable, Clearable, JSONSerializable, Component):
     Demos: altair_plot, outbreak_forecast, blocks_kinematics, stock_forecast, map_airbnb
     Guides: plot-component-for-maps
     """
+    data_model = PlotData
 
     def __init__(
         self,
@@ -107,7 +119,7 @@ class Plot(Changeable, Clearable, JSONSerializable, Component):
         }
         return updated_config
 
-    def postprocess(self, y) -> dict[str, str] | None:
+    def postprocess(self, y) -> PlotData | None:
         """
         Parameters:
             y: plot data
@@ -130,7 +142,7 @@ class Plot(Changeable, Clearable, JSONSerializable, Component):
             is_altair = "altair" in y.__module__
             dtype = "altair" if is_altair else "plotly"
             out_y = y.to_json()
-        return {"type": dtype, "plot": out_y}
+        return PlotData(**{"type": dtype, "plot": out_y})
 
     def style(self, container: bool | None = None):
         """

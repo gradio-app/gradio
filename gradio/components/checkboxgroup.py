@@ -15,7 +15,7 @@ set_documentation_group("component")
 
 @document()
 class CheckboxGroup(
-    Changeable, Inputable, Selectable, ListStringSerializable, FormComponent
+    Changeable, Inputable, Selectable, FormComponent
 ):
     """
     Creates a set of checkboxes of which a subset can be checked.
@@ -98,10 +98,16 @@ class CheckboxGroup(
         }
 
     def example_inputs(self) -> dict[str, Any]:
+        return self.choices[0] if self.choices else None
+    
+    def api_info(self) -> dict[str, bool | dict]:
         return {
-            "raw": self.choices[0] if self.choices else None,
-            "serialized": self.choices[0] if self.choices else None,
+		    "type": "array",
+		    "items": {
+			    "type": "string"
+		    }
         }
+	
 
     @staticmethod
     def update(

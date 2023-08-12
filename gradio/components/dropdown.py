@@ -27,7 +27,6 @@ class Dropdown(
     Inputable,
     Selectable,
     Focusable,
-    SimpleSerializable,
     FormComponent,
 ):
     """
@@ -125,26 +124,20 @@ class Dropdown(
 
     def api_info(self) -> dict[str, dict | bool]:
         if self.multiselect:
-            type = {
+            json_type = {
                 "type": "array",
                 "items": {"type": "string"},
                 "description": f"List of options from: {self.choices}",
             }
         else:
-            type = {"type": "string", "description": f"Option from: {self.choices}"}
-        return {"info": type, "serialized_info": False}
+            json_type = {"type": "string", "description": f"Option from: {self.choices}"}
+        return json_type
 
     def example_inputs(self) -> dict[str, Any]:
         if self.multiselect:
-            return {
-                "raw": [self.choices[0]] if self.choices else [],
-                "serialized": [self.choices[0]] if self.choices else [],
-            }
+            return [self.choices[0]] if self.choices else []
         else:
-            return {
-                "raw": self.choices[0] if self.choices else None,
-                "serialized": self.choices[0] if self.choices else None,
-            }
+            return self.choices[0] if self.choices else None
 
     def get_config(self):
         return {
@@ -209,27 +202,6 @@ class Dropdown(
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
-
-    def set_interpret_parameters(self):
-        """
-        Calculates interpretation score of each choice by comparing the output against each of the outputs when alternative choices are selected.
-        """
-        return self
-
-    def get_interpretation_neighbors(self, x):
-        choices = list(self.choices)
-        choices.remove(x)
-        return choices, {}
-
-    def get_interpretation_scores(
-        self, x, neighbors, scores: list[float | None], **kwargs
-    ) -> list:
-        """
-        Returns:
-            Each value represents the interpretation score corresponding to each choice.
-        """
-        scores.insert(self.choices.index(x), None)
-        return scores
 
     def style(self, *, container: bool | None = None, **kwargs):
         """

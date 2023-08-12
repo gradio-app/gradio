@@ -6,7 +6,6 @@ import json
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import JSONSerializable
 
 from gradio.components.base import Component, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
@@ -18,7 +17,7 @@ set_documentation_group("component")
 
 
 @document()
-class JSON(Changeable, JSONSerializable, Component):
+class JSON(Changeable, Component):
     """
     Used to display arbitrary JSON output prettily.
     Preprocessing: this component does *not* accept input.
@@ -110,6 +109,12 @@ class JSON(Changeable, JSONSerializable, Component):
             return json.loads(y)
         else:
             return y
+    
+    def preprocess(self, x: Any) -> Any:
+        return x
+    
+    def example_inputs(self) -> Any:
+        return {"foo": "bar"}
 
     def style(self, *, container: bool | None = None, **kwargs):
         """

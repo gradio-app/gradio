@@ -18,13 +18,6 @@ class Serializable:
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
-    def serialized_info(self):
-        """
-        The typing information for this component as a dictionary whose values are a list of 2 strings: [Python type, language-agnostic description].
-        Keys of the dictionary are: raw_input, raw_output, serialized_input, serialized_output
-        """
-        return self.api_info()
-
     def api_info(self) -> dict[str, list[str]]:
         """
         The typing information for this component as a dictionary whose values are a list of 2 strings: [Python type, language-agnostic description].
@@ -32,24 +25,11 @@ class Serializable:
         """
         raise NotImplementedError()
 
-    def example_inputs(self) -> dict[str, Any]:
+    def example_inputs(self) -> Any:
         """
-        The example inputs for this component as a dictionary whose values are example inputs compatible with this component.
-        Keys of the dictionary are: raw, serialized
+        The example inputs for this component as a dictionary whose values are example inputs compatible with this component. Must be json serializable.xs
         """
         raise NotImplementedError()
-
-    # For backwards compatibility
-    def input_api_info(self) -> tuple[str, str]:
-        api_info = self.api_info()
-        types = api_info.get("serialized_input", [api_info["info"]["type"]] * 2)  # type: ignore
-        return (types[0], types[1])
-
-    # For backwards compatibility
-    def output_api_info(self) -> tuple[str, str]:
-        api_info = self.api_info()
-        types = api_info.get("serialized_output", [api_info["info"]["type"]] * 2)  # type: ignore
-        return (types[0], types[1])
 
     def serialize(self, x: Any, load_dir: str | Path = ""):
         """

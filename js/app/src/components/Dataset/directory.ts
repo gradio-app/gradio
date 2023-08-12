@@ -12,7 +12,6 @@ import ExampleFile from "@gradio/file/example";
 import ExampleDataframe from "@gradio/dataframe/example";
 import ExampleModel3D from "@gradio/model3d/example";
 import ExampleColorPicker from "@gradio/colorpicker/example";
-import ExampleTimeSeries from "@gradio/timeseries/example";
 import ExampleMarkdown from "@gradio/markdown/example";
 import ExampleHTML from "@gradio/html/example";
 import ExampleCode from "@gradio/code/example";
@@ -32,7 +31,6 @@ export const component_map = {
 	dataframe: ExampleDataframe,
 	model3d: ExampleModel3D,
 	colorpicker: ExampleColorPicker,
-	timeseries: ExampleTimeSeries,
 	markdown: ExampleMarkdown,
 	html: ExampleHTML,
 	code: ExampleCode

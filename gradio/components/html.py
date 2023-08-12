@@ -14,7 +14,7 @@ set_documentation_group("component")
 
 
 @document()
-class HTML(Changeable, StringSerializable, Component):
+class HTML(Changeable, Component):
     """
     Used to display arbitrary HTML output.
     Preprocessing: this component does *not* accept input.
@@ -62,6 +62,15 @@ class HTML(Changeable, StringSerializable, Component):
             "value": self.value,
             **Component.get_config(self),
         }
+    
+    def example_inputs(self) -> Any:
+        return "<p>Hello</p>"
+
+    def preprocess(self, x: Any) -> Any:
+        return x
+    
+    def postprocess(self, y):
+        return y
 
     @staticmethod
     def update(

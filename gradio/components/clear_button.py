@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import Literal
+from typing import Any, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
@@ -72,3 +72,9 @@ class ClearButton(Button):
         )
         self.click(None, [], components, _js=f"() => {clear_values}")
         return self
+    
+    def postprocess(self, y):
+        return y
+    
+    def preprocess(self, x: Any) -> Any:
+        return x

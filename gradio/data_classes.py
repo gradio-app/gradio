@@ -3,8 +3,10 @@ typing syntax instead of | None syntax to work with pydantic"""
 from enum import Enum, auto
 from typing import Any, Dict, List, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, RootModel
 from typing_extensions import Literal
+import pathlib
+import shutil
 
 
 class PredictBody(BaseModel):
@@ -60,3 +62,68 @@ class LogMessage(BaseModel):
     msg: str = "log"
     log: str
     level: Literal["info", "warning"]
+
+
+class GradioBaseModel:
+
+    @classmethod
+    def traverse(cls, json_obj, func, is_root):
+        if is_root(json_obj):
+            return func(json_obj)
+        elif isinstance(json_obj, dict):
+            new_obj = {}
+            for key, value in json_obj.items():
+                new_obj[key] = cls.traverse(value, func, is_root)
+            return new_obj
+        elif isinstance(json_obj, list):
+            new_obj = []
+            for item in json_obj:
+                new_obj.append(cls.traverse(item, func, is_root))
+            return new_obj
+        else:
+            return json_obj
+
+    def copy_to_dir(self, dir: str):
+        assert isinstance(self, (BaseModel, RootModel))
+        return self.traverse(self.model_dump(), lambda obj: FileData(**obj).copy_to_dir(dir), FileData.is_file_data)
+
+
+class GradioModel(GradioBaseModel, BaseModel):
+    pass
+
+
+class GradioRootModel(GradioBaseModel, RootModel):
+    pass
+
+
+class FileData(GradioModel):
+    name: Optional[str] = None
+    data: Optional[str] = None # base64 encoded data
+    size: Optional[int] = None  # size in bytes
+    is_file: Optional[bool] = None
+    orig_name: Optional[str] = None  # original filename
+
+    @property
+    def is_none(self):
+        return all(f is None for f in [self.name, self.data, self.size, self.is_file, self.orig_name])
+    
+    @classmethod
+    def from_path(cls, path: str) -> "FileData":
+        return cls(name=path, is_file=True)
+    
+    def copy_to_dir(self, dir: str) -> "FileData":
+        new_obj = dict(self)
+        if self.is_file:
+            new_name = shutil.copy(self.name, dir)
+            new_obj['name'] = new_name
+        return self.__class__(**new_obj)
+    
+    @classmethod
+    def is_file_data(cls, obj: Any):
+        if isinstance(obj, dict):
+            try:
+                return not FileData(**obj).is_none
+            except:
+                return False
+        return False
+

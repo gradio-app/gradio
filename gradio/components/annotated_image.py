@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 import numpy as np
 from gradio_client.documentation import document, set_documentation_group
@@ -16,14 +16,24 @@ from gradio.events import (
     EventListenerMethod,
     Selectable,
 )
+from gradio.data_classes import FileData, GradioModel
 
 set_documentation_group("component")
 
 _Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
 
+class Annotation(FileData):
+    label: str
+
+
+class AnnotatedImageData(GradioModel):
+    image: FileData
+    files: list[Annotation]
+
+
 @document()
-class AnnotatedImage(Selectable, JSONSerializable, Component):
+class AnnotatedImage(Selectable, Component):
     """
     Displays a base image and colored subsections on top of that image. Subsections can take the from of rectangles (e.g. object detection) or masks (e.g. image segmentation).
     Preprocessing: this component does *not* accept input.
@@ -31,6 +41,8 @@ class AnnotatedImage(Selectable, JSONSerializable, Component):
 
     Demos: image_segmentation
     """
+
+    data_model = AnnotatedImageData
 
     def __init__(
         self,
@@ -147,7 +159,7 @@ class AnnotatedImage(Selectable, JSONSerializable, Component):
             np.ndarray | _Image.Image | str,
             list[tuple[np.ndarray | tuple[int, int, int, int], str]],
         ],
-    ) -> tuple[dict, list[tuple[dict, str]]] | None:
+    ) -> AnnotatedImageData | None: 
         """
         Parameters:
             y: Tuple of base image and list of subsections, with each subsection a two-part tuple where the first element is a 4 element bounding box or a 0-1 confidence mask, and the second element is the label.
@@ -216,27 +228,10 @@ class AnnotatedImage(Selectable, JSONSerializable, Component):
             self.temp_files.add(mask_file_path)
 
             sections.append(
-                ({"name": mask_file_path, "data": None, "is_file": True}, label)
+                {"name": mask_file_path, "data": None, "is_file": True, "label": label}
             )
 
-        return {"name": base_img_path, "data": None, "is_file": True}, sections
+        return AnnotatedImageData(image={"name": base_img_path, "data": None, "is_file": True}, files=[sections])
 
-    def style(
-        self,
-        *,
-        height: int | None = None,
-        width: int | None = None,
-        color_map: dict[str, str] | None = None,
-        **kwargs,
-    ):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if height is not None:
-            self.height = height
-        if width is not None:
-            self.width = width
-        if color_map is not None:
-            self.color_map = color_map
-        return self
+    def example_inputs(self) -> Any:
+        return {}

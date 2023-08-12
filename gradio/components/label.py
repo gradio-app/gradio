@@ -1,17 +1,16 @@
 """gr.Label() component."""
 
 from __future__ import annotations
+import json
 
 import operator
 from pathlib import Path
-from typing import Callable, Literal
+from typing import Callable, Literal, Optional
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import (
-    JSONSerializable,
-)
 
 from gradio.components.base import Component, _Keywords
+from gradio.data_classes import GradioModel
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
     Changeable,
@@ -22,8 +21,18 @@ from gradio.events import (
 set_documentation_group("component")
 
 
+class LabelConfidence(GradioModel):
+    label: Optional[str] = None
+    confidence: Optional[float] = None
+
+
+class LabelData(GradioModel):
+    label: str
+    confidences: list[LabelConfidence] = None
+
+
 @document()
-class Label(Changeable, Selectable, JSONSerializable, Component):
+class Label(Changeable, Selectable, Component):
     """
     Displays a classification label, along with confidence scores of top categories, if provided.
     Preprocessing: this component does *not* accept input.
@@ -108,9 +117,9 @@ class Label(Changeable, Selectable, JSONSerializable, Component):
         if y is None or y == {}:
             return {}
         if isinstance(y, str) and y.endswith(".json") and Path(y).exists():
-            return self.serialize(y)
+            return LabelData(**json.load(open(y, "r")))
         if isinstance(y, (str, float, int)):
-            return {"label": str(y)}
+            return LabelData({"label": str(y)})
         if isinstance(y, dict):
             if "confidences" in y and isinstance(y["confidences"], dict):
                 y = y["confidences"]
@@ -118,12 +127,12 @@ class Label(Changeable, Selectable, JSONSerializable, Component):
             sorted_pred = sorted(y.items(), key=operator.itemgetter(1), reverse=True)
             if self.num_top_classes is not None:
                 sorted_pred = sorted_pred[: self.num_top_classes]
-            return {
+            return LabelData(**{
                 "label": sorted_pred[0][0],
                 "confidences": [
                     {"label": pred[0], "confidence": pred[1]} for pred in sorted_pred
                 ],
-            }
+            })
         raise ValueError(
             "The `Label` output interface expects one of: a string label, or an int label, a "
             "float label, or a dictionary whose keys are labels and values are confidences. "
