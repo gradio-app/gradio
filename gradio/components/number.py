@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Callable, Literal
+from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import NumberSerializable
 
 from gradio.components.base import Component, FormComponent, _Keywords
 from gradio.events import (
@@ -25,7 +24,6 @@ class Number(
     Inputable,
     Submittable,
     Focusable,
-    NumberSerializable,
     FormComponent,
 ):
     """
@@ -186,3 +184,9 @@ class Number(
         if y is None:
             return None
         return self._round_to_precision(y, self.precision)
+
+    def api_info(self) -> dict[str, str]:
+        return {"type": "number"}
+
+    def example_inputs(self) -> Any:
+        return 3

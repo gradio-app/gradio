@@ -9,9 +9,10 @@ from typing import Any, Callable, Literal, Union
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
-from gradio.data_classes import FileData, GradioModel
+
 from gradio import utils
 from gradio.components.base import Component, _Keywords
+from gradio.data_classes import FileData, GradioModel
 from gradio.deprecation import warn_deprecation
 from gradio.events import (
     Changeable,
@@ -43,6 +44,7 @@ class File(
     Examples-format: a {str} path to a local file that populates the component.
     Demos: zip_to_json, zip_files
     """
+
     data_model = FileDataModel
 
     def __init__(
@@ -224,9 +226,7 @@ class File(
             else:
                 return process_single_file(x)
 
-    def postprocess(
-        self, y: str | list[str] | None
-    ) -> FileDataModel | None:
+    def postprocess(self, y: str | list[str] | None) -> FileDataModel | None:
         """
         Parameters:
             y: file path
@@ -236,16 +236,18 @@ class File(
         if y is None:
             return None
         if isinstance(y, list):
-            return FileDataModel(value=[
-                {
-                    "orig_name": Path(file).name,
-                    "name": self.make_temp_copy_if_needed(file),
-                    "size": Path(file).stat().st_size,
-                    "data": None,
-                    "is_file": True,
-                }
-                for file in y
-            ])
+            return FileDataModel(
+                value=[
+                    {
+                        "orig_name": Path(file).name,
+                        "name": self.make_temp_copy_if_needed(file),
+                        "size": Path(file).stat().st_size,
+                        "data": None,
+                        "is_file": True,
+                    }
+                    for file in y
+                ]
+            )
         else:
             d = {
                 "orig_name": Path(y).name,
@@ -264,16 +266,20 @@ class File(
         else:
             return Path(input_data).name
 
-    # The api_info implemented in the parent class will be wrong
-    # I don't think we should have File | list[File]
-    # def api_info(self) -> dict[str, dict | bool]:
-    #     if self.file_count == "single":
-    #         return self._single_file_api_info()
-    #     else:
-    #         return self._multiple_file_api_info()
+    def api_info(self) -> dict[str, Any]:
+        if self.file_count == "single":
+            return {"type": "string", "description": "filepath or URL to file"}
+        else:
+            return {
+                "type": "array",
+                "description": "List of filepath(s) or URL(s) to files",
+                "items": {"type": "string", "description": "filepath or URL to file"},
+            }
 
     def example_inputs(self) -> dict[str, Any]:
         if self.file_count == "single":
             return "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
         else:
-            return ["https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"]
+            return [
+                "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+            ]

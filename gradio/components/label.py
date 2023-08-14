@@ -1,11 +1,11 @@
 """gr.Label() component."""
 
 from __future__ import annotations
-import json
 
+import json
 import operator
 from pathlib import Path
-from typing import Callable, Literal, Optional
+from typing import Any, Callable, Literal, Optional
 
 from gradio_client.documentation import document, set_documentation_group
 
@@ -43,6 +43,7 @@ class Label(Changeable, Selectable, Component):
     """
 
     CONFIDENCES_KEY = "confidences"
+    data_model = LabelData
 
     def __init__(
         self,
@@ -117,7 +118,7 @@ class Label(Changeable, Selectable, Component):
         if y is None or y == {}:
             return {}
         if isinstance(y, str) and y.endswith(".json") and Path(y).exists():
-            return LabelData(**json.load(open(y, "r")))
+            return LabelData(**json.load(open(y)))
         if isinstance(y, (str, float, int)):
             return LabelData({"label": str(y)})
         if isinstance(y, dict):
@@ -127,12 +128,15 @@ class Label(Changeable, Selectable, Component):
             sorted_pred = sorted(y.items(), key=operator.itemgetter(1), reverse=True)
             if self.num_top_classes is not None:
                 sorted_pred = sorted_pred[: self.num_top_classes]
-            return LabelData(**{
-                "label": sorted_pred[0][0],
-                "confidences": [
-                    {"label": pred[0], "confidence": pred[1]} for pred in sorted_pred
-                ],
-            })
+            return LabelData(
+                **{
+                    "label": sorted_pred[0][0],
+                    "confidences": [
+                        {"label": pred[0], "confidence": pred[1]}
+                        for pred in sorted_pred
+                    ],
+                }
+            )
         raise ValueError(
             "The `Label` output interface expects one of: a string label, or an int label, a "
             "float label, or a dictionary whose keys are labels and values are confidences. "
@@ -188,3 +192,15 @@ class Label(Changeable, Selectable, Component):
         if container is not None:
             self.container = container
         return self
+
+    def preprocess(self, x: Any) -> Any:
+        return x
+
+    def example_inputs(self) -> Any:
+        return {
+            "label": "Cat",
+            "confidences": [
+                {"label": "cat", "confidence": 0.9},
+                {"label": "dog", "confidence": 0.1},
+            ],
+        }

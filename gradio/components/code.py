@@ -1,12 +1,11 @@
 """gr.Code() component"""
 
 from __future__ import annotations
-from pathlib import Path
 
+from pathlib import Path
 from typing import Any, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import StringSerializable
 
 from gradio.components.base import Component, _Keywords
 from gradio.events import Changeable, Inputable
@@ -105,7 +104,7 @@ class Code(Changeable, Inputable, Component):
             "lines": self.lines,
             **Component.get_config(self),
         }
-    
+
     def preprocess(self, x: Any) -> Any:
         return x
 
@@ -117,12 +116,15 @@ class Code(Changeable, Inputable, Component):
                 return file_data.read()
         else:
             return y.strip()
-    
+
     def flag(self, x: Any, flag_dir: str | Path = "") -> str:
         return super().flag(x, flag_dir)
-    
+
     def api_info(self) -> dict[str, list[str]]:
-        return {'type': 'string'}
+        return {"type": "string"}
+
+    def example_inputs(self) -> Any:
+        return "print('Hello World')"
 
     @staticmethod
     def update(

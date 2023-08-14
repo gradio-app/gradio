@@ -20,6 +20,11 @@
 	let duration: number;
 	let paused = true;
 	let video: HTMLVideoElement;
+	$: console.log("In Player")
+	$: {
+		console.log("In player")
+		console.log(src);
+	}
 
 	function handleMove(e: TouchEvent | MouseEvent): void {
 		if (!duration) return;

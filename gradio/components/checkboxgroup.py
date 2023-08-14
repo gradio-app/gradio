@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import ListStringSerializable
 
 from gradio.components.base import Component, FormComponent, _Keywords
 from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
@@ -14,9 +13,7 @@ set_documentation_group("component")
 
 
 @document()
-class CheckboxGroup(
-    Changeable, Inputable, Selectable, FormComponent
-):
+class CheckboxGroup(Changeable, Inputable, Selectable, FormComponent):
     """
     Creates a set of checkboxes of which a subset can be checked.
     Preprocessing: passes the list of checked checkboxes as a {List[str | int | float]} or their indices as a {List[int]} into the function, depending on `type`.
@@ -99,15 +96,9 @@ class CheckboxGroup(
 
     def example_inputs(self) -> dict[str, Any]:
         return self.choices[0] if self.choices else None
-    
+
     def api_info(self) -> dict[str, bool | dict]:
-        return {
-		    "type": "array",
-		    "items": {
-			    "type": "string"
-		    }
-        }
-	
+        return {"type": "array", "items": {"type": "string"}}
 
     @staticmethod
     def update(

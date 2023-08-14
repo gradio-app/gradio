@@ -11,12 +11,11 @@ import PIL
 import PIL.ImageOps
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import ImgSerializable
-from gradio.data_classes import FileData
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
 from gradio.components.base import Component, StreamingInput, _Keywords
+from gradio.data_classes import FileData
 from gradio.events import (
     Changeable,
     Clearable,
@@ -50,6 +49,7 @@ class Image(
     Demos: image_mod, image_mod_default_image
     Guides: image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, building-a-pictionary_app, create-your-own-friends-with-a-gan
     """
+
     data_model = FileData
 
     def __init__(
@@ -328,6 +328,6 @@ class Image(
         ):  # If an externally hosted image, don't convert to absolute path
             return input_data
         return str(utils.abspath(input_data))
-    
+
     def example_inputs(self) -> Any:
         return "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"

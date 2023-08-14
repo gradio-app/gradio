@@ -7,10 +7,10 @@ from typing import Any, Callable, Literal, Union
 import numpy as np
 import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import JSONSerializable
 
 from gradio import utils
-from gradio.components.base import Component, _Keywords, GradioModel
+from gradio.components import Component, _Keywords
+from gradio.data_classes import GradioModel
 from gradio.events import (
     Changeable,
     EventListenerMethod,
@@ -223,19 +223,23 @@ class Dataframe(Changeable, Inputable, Selectable, Component):
             return y
         if isinstance(y, str):
             dataframe = pd.read_csv(y)
-            return DataframeData(**{
-                "headers": list(dataframe.columns),
-                "data": Dataframe.__process_markdown(
-                    dataframe.to_dict(orient="split")["data"], self.datatype
-                ),
-            })
+            return DataframeData(
+                **{
+                    "headers": list(dataframe.columns),
+                    "data": Dataframe.__process_markdown(
+                        dataframe.to_dict(orient="split")["data"], self.datatype
+                    ),
+                }
+            )
         if isinstance(y, pd.DataFrame):
-            return DataframeData(**{
-                "headers": list(y.columns),  # type: ignore
-                "data": Dataframe.__process_markdown(
-                    y.to_dict(orient="split")["data"], self.datatype  # type: ignore
-                ),
-            })
+            return DataframeData(
+                **{
+                    "headers": list(y.columns),  # type: ignore
+                    "data": Dataframe.__process_markdown(
+                        y.to_dict(orient="split")["data"], self.datatype  # type: ignore
+                    ),
+                }
+            )
         if isinstance(y, (np.ndarray, list)):
             if len(y) == 0:
                 return self.postprocess([[]])
@@ -253,10 +257,12 @@ class Dataframe(Changeable, Inputable, Selectable, Component):
             elif len(self.headers) > len(y[0]):
                 _headers = self.headers[: len(y[0])]
 
-            return DataframeData(**{
-                "headers": _headers,
-                "data": Dataframe.__process_markdown(y, self.datatype),
-            })
+            return DataframeData(
+                **{
+                    "headers": _headers,
+                    "data": Dataframe.__process_markdown(y, self.datatype),
+                }
+            )
         raise ValueError("Cannot process value as a Dataframe")
 
     @staticmethod

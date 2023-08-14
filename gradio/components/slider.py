@@ -7,7 +7,6 @@ import random
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import NumberSerializable
 
 from gradio.components.base import Component, FormComponent, _Keywords
 from gradio.events import Changeable, Inputable, Releaseable
@@ -16,7 +15,7 @@ set_documentation_group("component")
 
 
 @document()
-class Slider(Changeable, Inputable, Releaseable, NumberSerializable, FormComponent):
+class Slider(Changeable, Inputable, Releaseable, FormComponent):
     """
     Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
     Preprocessing: passes slider value as a {float} into the function.
@@ -95,18 +94,12 @@ class Slider(Changeable, Inputable, Releaseable, NumberSerializable, FormCompone
 
     def api_info(self) -> dict[str, dict | bool]:
         return {
-            "info": {
-                "type": "number",
-                "description": f"numeric value between {self.minimum} and {self.maximum}",
-            },
-            "serialized_info": False,
+            "type": "number",
+            "description": f"numeric value between {self.minimum} and {self.maximum}",
         }
 
     def example_inputs(self) -> dict[str, Any]:
-        return {
-            "raw": self.minimum,
-            "serialized": self.minimum,
-        }
+        return self.minimum
 
     def get_config(self):
         return {
@@ -167,3 +160,6 @@ class Slider(Changeable, Inputable, Releaseable, NumberSerializable, FormCompone
             numeric output or minimum number if None
         """
         return self.minimum if y is None else y
+
+    def preprocess(self, x: Any) -> Any:
+        return x

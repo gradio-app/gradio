@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Callable, Literal
+from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import StringSerializable
 
 from gradio.components.base import (
     Component,
@@ -31,7 +30,6 @@ class Textbox(
     Selectable,
     Submittable,
     Focusable,
-    StringSerializable,
     FormComponent,
 ):
     """
@@ -203,3 +201,9 @@ class Textbox(
             text
         """
         return None if y is None else str(y)
+
+    def api_info(self) -> dict[str, list[str]]:
+        return {"type": "string"}
+
+    def example_inputs(self) -> Any:
+        return "Hello!!"

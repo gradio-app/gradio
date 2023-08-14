@@ -14,7 +14,6 @@ with open(Path(__file__).parent / "types.json") as f:
 
 
 class Serializable:
-
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
@@ -233,9 +232,7 @@ class FileSerializable(Serializable):
             ],
         }
 
-    def _serialize_single(
-        self, x: FileData, load_dir: str | Path = ""
-    ) -> FileData:
+    def _serialize_single(self, x: FileData, load_dir: str | Path = "") -> FileData:
         if x.is_none() or x.is_dict():
             return x
         else:

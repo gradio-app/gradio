@@ -9,7 +9,7 @@ import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import _Keywords
-from gradio.components.plot import AltairPlot, Plot, AltairPlotData
+from gradio.components.plot import AltairPlot, AltairPlotData, Plot
 
 set_documentation_group("component")
 
@@ -24,6 +24,7 @@ class BarPlot(Plot):
 
     Demos: bar_plot, chicago-bikeshare-dashboard
     """
+
     data_model = AltairPlotData
 
     def __init__(
@@ -348,7 +349,7 @@ class BarPlot(Plot):
 
         return chart
 
-    def postprocess(self, y: pd.DataFrame | dict | None) -> dict[str, str] | None:
+    def postprocess(self, y: pd.DataFrame | dict | None) -> AltairPlotData | None:
         # if None or update
         if y is None or isinstance(y, dict):
             return y
@@ -374,7 +375,12 @@ class BarPlot(Plot):
             width=self.width,
         )
 
-        return AltairPlotData(**{"type": "altair", "plot": chart.to_json(), "chart": "bar"})
+        return AltairPlotData(
+            **{"type": "altair", "plot": chart.to_json(), "chart": "bar"}
+        )
 
     def example_inputs(self) -> dict[str, Any]:
         return {}
+
+    def preprocess(self, x: Any) -> Any:
+        return x

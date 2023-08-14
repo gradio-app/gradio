@@ -1313,7 +1313,7 @@ class TestVideo:
             assert not processing_utils.video_is_playable(bad_vid)
             shutil.copy(bad_vid, tmp_not_playable_vid.name)
             output = gr.Video().postprocess(tmp_not_playable_vid.name)
-            assert processing_utils.video_is_playable(output[0]["name"])
+            assert processing_utils.video_is_playable(output.name)
 
         # This file has a playable codec but not a playable container
         with tempfile.NamedTemporaryFile(
@@ -1374,11 +1374,13 @@ class TestVideo:
     def test_preprocess_url(self):
         output = gr.Video().preprocess(
             {
-                "name": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
-                "is_file": True,
-                "data": None,
-                "size": None,
-                "orig_name": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
+                "video": {
+                    "name": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
+                    "is_file": True,
+                    "data": None,
+                    "size": None,
+                    "orig_name": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
+                }
             }
         )
         assert Path(output).name == "a.mp4" and not client_utils.probe_url(output)
@@ -1993,23 +1995,6 @@ class TestColorPicker:
         """
         component = gr.ColorPicker("#000000")
         assert component.get_config().get("value") == "#000000"
-
-
-class TestCarousel:
-    def test_deprecation(self):
-        test_file_dir = Path(Path(__file__).parent, "test_files")
-        with pytest.raises(DeprecationWarning):
-            gr.Carousel([Path(test_file_dir, "bus.png")])
-
-    def test_deprecation_in_interface(self):
-        with pytest.raises(DeprecationWarning):
-            gr.Interface(lambda x: ["lion.jpg"], "textbox", "carousel")
-
-    def test_deprecation_in_blocks(self):
-        with pytest.raises(DeprecationWarning):
-            with gr.Blocks():
-                gr.Textbox()
-                gr.Carousel()
 
 
 class TestGallery:

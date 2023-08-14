@@ -6,17 +6,15 @@ from typing import Any, Literal
 
 import numpy as np
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import JSONSerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import utils
 from gradio.components.base import Component, _Keywords
-from gradio.deprecation import warn_style_method_deprecation
+from gradio.data_classes import FileData, GradioModel
 from gradio.events import (
     EventListenerMethod,
     Selectable,
 )
-from gradio.data_classes import FileData, GradioModel
 
 set_documentation_group("component")
 
@@ -159,7 +157,7 @@ class AnnotatedImage(Selectable, Component):
             np.ndarray | _Image.Image | str,
             list[tuple[np.ndarray | tuple[int, int, int, int], str]],
         ],
-    ) -> AnnotatedImageData | None: 
+    ) -> AnnotatedImageData | None:
         """
         Parameters:
             y: Tuple of base image and list of subsections, with each subsection a two-part tuple where the first element is a 4 element bounding box or a 0-1 confidence mask, and the second element is the label.
@@ -231,7 +229,13 @@ class AnnotatedImage(Selectable, Component):
                 {"name": mask_file_path, "data": None, "is_file": True, "label": label}
             )
 
-        return AnnotatedImageData(image={"name": base_img_path, "data": None, "is_file": True}, files=[sections])
+        return AnnotatedImageData(
+            image={"name": base_img_path, "data": None, "is_file": True},
+            files=[sections],
+        )
 
     def example_inputs(self) -> Any:
         return {}
+
+    def preprocess(self, x: Any) -> Any:
+        return x

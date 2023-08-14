@@ -7,13 +7,12 @@ from typing import Any, Callable, Literal, Optional
 
 import numpy as np
 import requests
-from gradio_client import media_data
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
-from gradio.data_classes import FileData
 
 from gradio import processing_utils, utils
 from gradio.components.base import Component, StreamingInput, StreamingOutput, _Keywords
+from gradio.data_classes import FileData
 from gradio.events import (
     Changeable,
     Clearable,
@@ -28,7 +27,7 @@ set_documentation_group("component")
 
 class AudioData(FileData):
     crop_min: Optional[int] = None
-    crop_max: Optional[int] = None  
+    crop_max: Optional[int] = None
 
 
 @document()
@@ -155,7 +154,7 @@ class Audio(
         }
 
     def example_inputs(self) -> dict[str, Any]:
-        return  "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
+        return "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
 
     @staticmethod
     def update(
@@ -191,7 +190,7 @@ class Audio(
         }
 
     def preprocess(
-        self, x: AudioData | None
+        self, x: dict[str, Any] | None
     ) -> tuple[int, np.ndarray] | str | None:
         """
         Parameters:
@@ -201,6 +200,8 @@ class Audio(
         """
         if x is None:
             return x
+
+        x = AudioData(**x)
 
         if x.is_file:
             if client_utils.is_http_url_like(x.name):

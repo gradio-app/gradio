@@ -6,7 +6,6 @@ from copy import deepcopy
 from typing import Any
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import SimpleSerializable
 
 from gradio.components.base import Component
 
@@ -14,7 +13,7 @@ set_documentation_group("component")
 
 
 @document()
-class State(SimpleSerializable, Component):
+class State(Component):
     """
     Special hidden component that stores session state across runs of the demo by the
     same user. The value of the State variable is cleared when the user refreshes the page.
@@ -38,6 +37,18 @@ class State(SimpleSerializable, Component):
         """
         self.stateful = True
         super().__init__(value=deepcopy(value), **kwargs)
+
+    def preprocess(self, x: Any) -> Any:
+        return x
+
+    def postprocess(self, y):
+        return y
+
+    def api_info(self) -> dict[str, list[str]]:
+        return None
+
+    def example_inputs(self) -> Any:
+        return None
 
 
 class Variable(State):
