@@ -22,7 +22,7 @@ Tags: INTERPRETATION, SENTIMENT ANALYSIS
 让我们使用 Blocks API 构建一款情感分类应用程序。该应用程序将以文本作为输入，并输出此文本表达负面或正面情感的概率。我们会有一个单独的输入 `Textbox` 和一个单独的输出 `Label` 组件。以下是应用程序的代码以及应用程序本身。
 
 ```python
-import gradio as gr 
+import gradio as gr
 from transformers import pipeline
 
 sentiment_classifier = pipeline("text-classification", return_all_scores=True)
@@ -45,6 +45,7 @@ demo.launch()
 ```
 
 <gradio-app space="freddyaboulton/sentiment-classification"> </gradio-app>
+
 ## 向应用程序添加解释
 
 我们的目标是向用户呈现输入中的单词如何 contributed 到模型的预测。
@@ -62,13 +63,13 @@ demo.launch()
 def interpretation_function(text):
     explainer = shap.Explainer(sentiment_classifier)
     shap_values = explainer([text])
-    
+
     # Dimensions are (batch size, text size, number of classes)
     # Since we care about positive sentiment, use index 1
     scores = list(zip(shap_values.data[0], shap_values.values[0, :, 1]))
     # Scores contains (word, score) pairs
-    
-    
+
+
     # Format expected by gr.components.Interpretation
     return {"original": text, "interpretation": scores}
 ```
@@ -78,6 +79,7 @@ def interpretation_function(text):
 这将使输入中的每个单词变成红色或蓝色。
 如果它有助于积极情感，则为红色，如果它有助于负面情感，则为蓝色。
 这就是界面如何显示文本的解释输出。
+
 ```python
 with gr.Blocks() as demo:
     with gr.Row():
@@ -107,6 +109,7 @@ demo.launch()
 我们可以通过修改我们的 `interpretation_function` 来执行此操作，以同时返回一个 matplotlib 条形图。我们将在单独的选项卡中使用 'gr.Plot' 组件显示它。
 
 这是解释函数的外观：
+
 ```python
 def interpretation_function(text):
     explainer = shap.Explainer(sentiment_classifier)
@@ -121,7 +124,7 @@ def interpretation_function(text):
     scores_desc = [t for t in scores_desc if t[0] != ""]
 
     fig_m = plt.figure()
-    
+
     # Select top 5 words that contribute to positive sentiment
     plt.bar(x=[s[0] for s in scores_desc[:5]],
             height=[s[1] for s in scores_desc[:5]])

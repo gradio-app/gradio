@@ -1,7 +1,7 @@
 # Connecting to a Database
 
 Related spaces: https://huggingface.co/spaces/gradio/chicago-bikeshare-dashboard
-Tags: TABULAR, PLOTS 
+Tags: TABULAR, PLOTS
 
 ## Introduction
 
@@ -10,8 +10,8 @@ connecting to a PostgreSQL database hosted on AWS but gradio is completely agnos
 database you are connecting to and where it's hosted. So as long as you can write python code to connect
 to your data, you can display it in a web UI with gradio 💪
 
-## Overview 
-    
+## Overview
+
 We will be analyzing bike share data from Chicago. The data is hosted on kaggle [here](https://www.kaggle.com/datasets/evangower/cyclistic-bike-share?select=202203-divvy-tripdata.csv).
 Our goal is to create a dashboard that will enable our business stakeholders to answer the following questions:
 
@@ -22,11 +22,10 @@ At the end of this guide, we will have a functioning application that looks like
 
 <gradio-app space="gradio/chicago-bikeshare-dashboard"> </gradio-app>
 
-
 ## Step 1 - Creating your database
 
 We will be storing our data on a PostgreSQL hosted on Amazon's RDS service. Create an AWS account if you don't already have one
-and create a PostgreSQL database on the free tier. 
+and create a PostgreSQL database on the free tier.
 
 **Important**: If you plan to host this demo on HuggingFace Spaces, make sure database is on port **8080**. Spaces will
 block all outgoing connections unless they are made to port 80, 443, or 8080 as noted [here](https://huggingface.co/docs/hub/spaces-overview#networking).
@@ -35,15 +34,15 @@ RDS will not let you create a postgreSQL instance on ports 80 or 443.
 Once your database is created, download the dataset from Kaggle and upload it to your database.
 For the sake of this demo, we will only upload March 2022 data.
 
-
 ## Step 2.a - Write your ETL code
+
 We will be querying our database for the total count of rides split by the type of bicycle (electric, standard, or docked).
-We will also query for the total count of rides that depart from each station and take the top 5. 
+We will also query for the total count of rides that depart from each station and take the top 5.
 
 We will then take the result of our queries and visualize them in with matplotlib.
 
 We will use the pandas [read_sql](https://pandas.pydata.org/docs/reference/api/pandas.read_sql.html)
-method to connect to the database. This requires the `psycopg2` library to be installed. 
+method to connect to the database. This requires the `psycopg2` library to be installed.
 
 In order to connect to our database, we will specify the database username, password, and host as environment variables.
 This will make our app more secure by avoiding storing sensitive information as plain text in our application files.
@@ -80,7 +79,7 @@ def get_count_ride_type():
 
 
 def get_most_popular_stations():
-    
+
     df = pd.read_sql(
         """
     SELECT COUNT(ride_id) as n, MAX(start_station_name) as station
@@ -111,8 +110,8 @@ If you were to run our script locally, you could pass in your credentials as env
 DB_USER='username' DB_PASSWORD='password' DB_HOST='host' python app.py
 ```
 
-
 ## Step 2.c - Write your gradio app
+
 We will display or matplotlib plots in two separate `gr.Plot` components displayed side by side using `gr.Row()`.
 Because we have wrapped our function to fetch the data in a `demo.load()` event trigger,
 our demo will fetch the latest data **dynamically** from the database each time the web page loads. 🪄
@@ -132,6 +131,7 @@ demo.launch()
 ```
 
 ## Step 3 - Deployment
+
 If you run the code above, your app will start running locally.
 You can even get a temporary shareable link by passing the `share=True` parameter to `launch`.
 
@@ -144,9 +144,10 @@ You will have to add the `DB_USER`, `DB_PASSWORD`, and `DB_HOST` variables as "R
 ![secrets](https://github.com/gradio-app/gradio/blob/main/guides/assets/secrets.png?raw=true)
 
 ## Conclusion
+
 Congratulations! You know how to connect your gradio app to a database hosted on the cloud! ☁️
 
 Our dashboard is now running on [Spaces](https://huggingface.co/spaces/gradio/chicago-bikeshare-dashboard).
 The complete code is [here](https://huggingface.co/spaces/gradio/chicago-bikeshare-dashboard/blob/main/app.py)
- 
+
 As you can see, gradio gives you the power to connect to your data wherever it lives and display however you want! 🔥
