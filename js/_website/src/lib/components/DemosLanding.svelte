@@ -1,17 +1,16 @@
 <script lang="ts">
-	import { q_a, img, sketch } from "../assets/demo_code";
+	import { stable_diffusion, sketch, chat } from "../assets/demo_code";
 
 	let tabs = [
-		{ title: "Sketch Recognition", code: sketch, demo: "gradio/pictionary" },
 		{
-			title: "Question Answering",
-			code: q_a,
-			demo: "gradio/question-answering"
+			title: "Sketch Recognition",
+			code: sketch,
+			demo: "gradio/pictionary"
 		},
 		{
-			title: "Image Segmentation",
-			code: img,
-			demo: "gradio/Echocardiogram-Segmentation"
+			title: "Stable Diffusion",
+			code: stable_diffusion,
+			demo: "hysts/SD-XL"
 		},
 		{
 			title: "Time Series Forecasting",
@@ -22,6 +21,11 @@
 			title: "XGBoost with Explainability",
 			code: false,
 			demo: "gradio/xgboost-income-prediction-with-explainability"
+		},
+		{
+			title: "Chat with Llama 2",
+			code: chat,
+			demo: "ysharma/Explore_llamav2_with_TGI"
 		}
 	];
 
