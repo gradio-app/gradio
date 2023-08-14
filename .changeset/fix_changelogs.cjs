@@ -104,7 +104,7 @@ function bump_local_dependents(pkg_to_bump, version) {
 		});
 
 		if (pkg_index !== -1) {
-			requirements[pkg_index] = `${pkg_to_bump}>=${version}`;
+			requirements[pkg_index] = `${pkg_to_bump}==${version}`;
 			writeFileSync(requirements_path, requirements.join("\n"));
 		}
 	}
