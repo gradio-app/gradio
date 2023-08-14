@@ -61,14 +61,22 @@ function create_custom_element(): void {
 
 			await mount_css(ENTRY_CSS, document.head);
 
-			const event = new CustomEvent("domchange", {
+			const domChangeEvent = new CustomEvent("domchange", {
 				bubbles: true,
 				cancelable: false,
 				composed: true
 			});
 
+			const readyEvent = new CustomEvent("ready", {
+				bubbles: true,
+				cancelable: false,
+				composed: true
+			});
+
+
 			const observer = new MutationObserver((mutations) => {
-				this.dispatchEvent(event);
+				this.dispatchEvent(domChangeEvent);
+				this.dispatchEvent(readyEvent);
 			});
 
 			observer.observe(this, { childList: true });

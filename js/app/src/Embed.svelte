@@ -14,14 +14,9 @@
 
 	const dispatch = createEventDispatcher<{ ready: never }>();
 
-	function handleEmbedReady(): void {
-		if (loaded) dispatch("ready");
-	}
-
-	onMount(handleEmbedReady);
-	$: {
-		handleEmbedReady();
-	}
+	onMount(async () => {
+		loaded && dispatch("ready");
+	});
 </script>
 
 <div
