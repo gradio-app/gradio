@@ -1,6 +1,6 @@
 ---
-"@gradio/client": minor
-"gradio": minor
+"@gradio/client": patch
+"gradio": patch
 ---
 
-feat:transform_output api_info.returns optional chaining
+feat:Ensure gradio client works as expected for functions that return nothing.
