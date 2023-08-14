@@ -85,8 +85,8 @@ export const component_map = {
 		static: () => import("@gradio/markdown/static")
 	},
 	model3d: {
-		static: () => import("@gradio/model3D/static"),
-		interactive: () => import("@gradio/model3D/interactive")
+		static: () => import("@gradio/model3d/static"),
+		interactive: () => import("@gradio/model3d/interactive")
 	},
 	number: {
 		static: () => import("@gradio/number/static"),
