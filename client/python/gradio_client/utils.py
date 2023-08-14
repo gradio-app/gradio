@@ -568,7 +568,8 @@ def json_schema_to_python_type(schema: Any, defs=None) -> str:
         des = ", ".join(
             [
                 f"{n}: {json_schema_to_python_type(v, defs)} ({v.get('description')})"
-                for n, v in schema["properties"].items() if n != "$defs"
+                for n, v in schema["properties"].items()
+                if n != "$defs"
             ]
         )
         return f"Dict({des})"

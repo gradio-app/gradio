@@ -9,11 +9,10 @@ from typing import Any, Callable, Literal
 import altair as alt
 import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import JSONSerializable
-from gradio.data_classes import GradioModel
 
 from gradio import processing_utils
 from gradio.components.base import Component, _Keywords
+from gradio.data_classes import GradioModel
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Clearable
 
@@ -31,7 +30,7 @@ class AltairPlotData(PlotData):
 
 
 @document()
-class Plot(Changeable, Clearable, JSONSerializable, Component):
+class Plot(Changeable, Clearable, Component):
     """
     Used to display various kinds of plots (matplotlib, plotly, or bokeh are supported)
     Preprocessing: this component does *not* accept input.
@@ -40,6 +39,7 @@ class Plot(Changeable, Clearable, JSONSerializable, Component):
     Demos: altair_plot, outbreak_forecast, blocks_kinematics, stock_forecast, map_airbnb
     Guides: plot-component-for-maps
     """
+
     data_model = PlotData
 
     def __init__(
@@ -118,6 +118,12 @@ class Plot(Changeable, Clearable, JSONSerializable, Component):
             "__type__": "update",
         }
         return updated_config
+
+    def preprocess(self, x: Any) -> Any:
+        return x
+
+    def example_inputs(self) -> Any:
+        return None
 
     def postprocess(self, y) -> PlotData | None:
         """

@@ -6,7 +6,6 @@ import warnings
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import SimpleSerializable
 
 from gradio.components.base import Component, FormComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
@@ -130,7 +129,10 @@ class Dropdown(
                 "description": f"List of options from: {self.choices}",
             }
         else:
-            json_type = {"type": "string", "description": f"Option from: {self.choices}"}
+            json_type = {
+                "type": "string",
+                "description": f"Option from: {self.choices}",
+            }
         return json_type
 
     def example_inputs(self) -> dict[str, Any]:

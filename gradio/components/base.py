@@ -12,11 +12,10 @@ import secrets
 import shutil
 import tempfile
 import urllib.request
+from abc import ABCMeta, abstractmethod
 from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
-from abc import ABCMeta, abstractmethod
-from gradio.data_classes import GradioBaseModel
 
 import aiofiles
 import numpy as np
@@ -28,8 +27,9 @@ from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
 from gradio.blocks import Block, BlockContext
-from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
-from gradio.layouts import Column, Form, Row
+from gradio.data_classes import GradioBaseModel
+from gradio.deprecation import warn_deprecation
+from gradio.layouts import Form
 
 if TYPE_CHECKING:
     from typing import TypedDict
@@ -49,7 +49,6 @@ class _Keywords(Enum):
 
 
 class ComponentBase(metaclass=ABCMeta):
-
     @abstractmethod
     def preprocess(self, x: Any) -> Any:
         """
@@ -63,7 +62,7 @@ class ComponentBase(metaclass=ABCMeta):
         Any postprocessing needed to be performed on function output.
         """
         return y
-    
+
     @abstractmethod
     def as_example(self, y):
         """
@@ -73,7 +72,7 @@ class ComponentBase(metaclass=ABCMeta):
         Must be able to be converted to a string to put in the config.
         """
         pass
-    
+
     @abstractmethod
     def api_info(self) -> dict[str, list[str]]:
         """
@@ -91,18 +90,18 @@ class ComponentBase(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def flag(self, x: Any | GradioModel, flag_dir: str | Path = "") -> str:
+    def flag(self, x: Any | GradioBaseModel, flag_dir: str | Path = "") -> str:
         """
         Write the component's value to a format that can be stored in a csv or jsonl format for flagging.
         """
         pass
-    
+
     @abstractmethod
     def read_from_flag(
         self,
         x: Any,
         flag_dir: str | Path | None = None,
-    ) -> GradioModel | Any:
+    ) -> GradioBaseModel | Any:
         """
         Convert the data from the csv or jsonl file into the component state.
         """
@@ -367,7 +366,7 @@ class Component(ComponentBase, Block):
     def as_example(self, input_data):
         """Return the input data in a way that can be displayed by the examples dataset component in the front-end."""
         return input_data
-    
+
     def api_info(self) -> dict[str, list[str]]:
         """
         The typing information for this component as a dictionary whose values are a list of 2 strings: [Python type, language-agnostic description].
@@ -375,7 +374,9 @@ class Component(ComponentBase, Block):
         """
         if self.data_model:
             return self.data_model.model_json_schema()
-        raise NotImplementedError(f"The api_info method has not been implemented for {self.get_block_name()}")
+        raise NotImplementedError(
+            f"The api_info method has not been implemented for {self.get_block_name()}"
+        )
 
     def flag(self, x: Any, flag_dir: str | Path = "") -> str:
         """
@@ -384,8 +385,10 @@ class Component(ComponentBase, Block):
         if self.data_model:
             assert isinstance(x, GradioBaseModel)
             return x.copy_to_dir(flag_dir).model_dump_json()
-        raise NotImplementedError(f"The flag method has not been implemented for {self.get_block_name()}")
-    
+        raise NotImplementedError(
+            f"The flag method has not been implemented for {self.get_block_name()}"
+        )
+
     def read_from_flag(
         self,
         x: Any,
@@ -398,15 +401,16 @@ class Component(ComponentBase, Block):
             return self.data_model(**json.loads(x))
         return x
 
+
 class FormComponent(Component):
     def get_expected_parent(self) -> type[Form] | None:
         if getattr(self, "container", None) is False:
             return None
         return Form
-    
+
     def preprocess(self, x: Any) -> Any:
         return x
-    
+
     def postprocess(self, y):
         return y
 

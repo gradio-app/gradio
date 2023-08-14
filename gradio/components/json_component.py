@@ -109,10 +109,10 @@ class JSON(Changeable, Component):
             return json.loads(y)
         else:
             return y
-    
+
     def preprocess(self, x: Any) -> Any:
         return x
-    
+
     def example_inputs(self) -> Any:
         return {"foo": "bar"}
 

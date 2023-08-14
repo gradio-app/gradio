@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import StringSerializable
 
 from gradio.components.base import Component, _Keywords
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
@@ -15,7 +14,7 @@ set_documentation_group("component")
 
 
 @document()
-class Button(Clickable, StringSerializable, Component):
+class Button(Clickable, Component):
     """
     Used to create a button, that can be assigned arbitrary click() events. The label (value) of the button can be used as an input or set via the output of a function.
 
@@ -132,9 +131,12 @@ class Button(Clickable, StringSerializable, Component):
         if size is not None:
             self.size = size
         return self
-    
+
     def preprocess(self, x: Any) -> Any:
         return x
-    
+
     def postprocess(self, y):
         return y
+
+    def example_inputs(self) -> Any:
+        return None

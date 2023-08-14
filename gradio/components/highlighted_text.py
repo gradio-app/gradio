@@ -5,9 +5,9 @@ from __future__ import annotations
 from typing import Any, Callable, Literal, Union
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio.data_classes import GradioRootModel, GradioModel
 
 from gradio.components.base import Component, _Keywords
+from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
     Changeable,
@@ -16,6 +16,7 @@ from gradio.events import (
 )
 
 set_documentation_group("component")
+
 
 class HighlightedToken(GradioModel):
     token: str
@@ -36,6 +37,7 @@ class HighlightedText(Changeable, Selectable, Component):
     Demos: diff_texts, text_analysis
     Guides: named-entity-recognition
     """
+
     data_model = HighlightedTextData
 
     def __init__(
@@ -106,7 +108,7 @@ class HighlightedText(Changeable, Selectable, Component):
             "selectable": self.selectable,
             **Component.get_config(self),
         }
-    
+
     def example_inputs(self) -> Any:
         return {"value": [{"token": "Hello", "class_or_confidence": "1"}]}
 
@@ -193,10 +195,14 @@ class HighlightedText(Changeable, Selectable, Component):
                     running_category = category
             if running_text is not None:
                 output.append((running_text, running_category))
-            return HighlightedTextData([HighlightedToken(token=o[0], class_or_confidence=o[1]) for o in output])
+            return HighlightedTextData(
+                [HighlightedToken(token=o[0], class_or_confidence=o[1]) for o in output]
+            )
         else:
-            return HighlightedTextData([HighlightedToken(token=o[0], class_or_confidence=o[1]) for o in y])
-    
+            return HighlightedTextData(
+                [HighlightedToken(token=o[0], class_or_confidence=o[1]) for o in y]
+            )
+
     def preprocess(self, x: Any) -> Any:
         return super().preprocess(x)
 

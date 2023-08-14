@@ -1,12 +1,11 @@
 """gr.ColorPicker() component."""
 
 from __future__ import annotations
-from pathlib import Path
 
+from pathlib import Path
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import StringSerializable
 
 from gradio.components.base import Component, _Keywords
 from gradio.events import (
@@ -20,9 +19,7 @@ set_documentation_group("component")
 
 
 @document()
-class ColorPicker(
-    Changeable, Inputable, Submittable, Focusable, Component
-):
+class ColorPicker(Changeable, Inputable, Submittable, Focusable, Component):
     """
     Creates a color picker for user to select a color as string input.
     Preprocessing: passes selected color value as a {str} into the function.
@@ -87,13 +84,13 @@ class ColorPicker(
             "value": self.value,
             **Component.get_config(self),
         }
-    
+
     def flag(self, x: Any, flag_dir: str | Path = "") -> str:
         return x
-    
+
     def read_from_flag(self, x: Any, flag_dir: str | Path | None = None):
         return x
-    
+
     def api_info(self) -> dict[str, bool | dict]:
         return {"type": "string"}
 

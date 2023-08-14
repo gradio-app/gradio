@@ -8,7 +8,6 @@ from typing import Any, Callable, Literal
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import FileSerializable
 
 from gradio import utils
 from gradio.components.base import Component, _Keywords
@@ -19,7 +18,7 @@ set_documentation_group("component")
 
 
 @document()
-class UploadButton(Clickable, Uploadable, FileSerializable, Component):
+class UploadButton(Clickable, Uploadable, Component):
     """
     Used to create an upload button, when cicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
@@ -101,6 +100,24 @@ class UploadButton(Clickable, Uploadable, FileSerializable, Component):
             "interactive": self.interactive,
             **Component.get_config(self),
         }
+
+    def api_info(self) -> dict[str, list[str]]:
+        if self.file_count == "single":
+            return {"type": "string", "description": "filepath or URL to file"}
+        else:
+            return {
+                "type": "array",
+                "description": "List of filepath(s) or URL(s) to files",
+                "items": {"type": "string", "description": "filepath or URL to file"},
+            }
+
+    def example_inputs(self) -> dict[str, Any]:
+        if self.file_count == "single":
+            return "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+        else:
+            return [
+                "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+            ]
 
     @staticmethod
     def update(
@@ -187,6 +204,9 @@ class UploadButton(Clickable, Uploadable, FileSerializable, Component):
                 return [process_single_file(f) for f in x]
             else:
                 return process_single_file(x)
+
+    def postprocess(self, y):
+        return super().postprocess(y)
 
     def style(
         self,

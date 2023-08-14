@@ -535,7 +535,7 @@ class Client:
 
     def __str__(self):
         return self.view_api(print_info=False, return_format="str")
-    
+
     def download_file(
         self,
         x: str | FileData | None,

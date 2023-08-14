@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import StringSerializable
 
 from gradio.components.base import Component, _Keywords
 from gradio.events import Changeable
@@ -62,13 +61,13 @@ class HTML(Changeable, Component):
             "value": self.value,
             **Component.get_config(self),
         }
-    
+
     def example_inputs(self) -> Any:
         return "<p>Hello</p>"
 
     def preprocess(self, x: Any) -> Any:
         return x
-    
+
     def postprocess(self, y):
         return y
 

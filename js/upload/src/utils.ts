@@ -23,8 +23,6 @@ export function normalise_file(
 	root: string,
 	root_url: string | null
 ): FileData[] | FileData | null {
-	console.log("top");
-	console.log(file);
 	if (file == null) return null;
 	if (typeof file === "string") {
 		return {
@@ -44,9 +42,7 @@ export function normalise_file(
 
 		return normalized_file as FileData[];
 	} else if (file.is_file) {
-		console.log("is_file");
 		if (root_url == null) {
-			console.log("root_null");
 			file.data = root + "/file=" + file.name;
 		} else {
 			file.data = "/proxy=" + root_url + "file=" + file.name;
@@ -58,7 +54,6 @@ export function normalise_file(
 			file.data = "/proxy=" + root_url + "stream/" + file.name;
 		}
 	}
-	console.log(file);
 	return file;
 }
 

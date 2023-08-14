@@ -8,11 +8,10 @@ from typing import Any, Callable, Literal, Union
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import JSONSerializable
 
 from gradio import utils
-from gradio.data_classes import GradioModel, FileData
 from gradio.components.base import Component, _Keywords
+from gradio.data_classes import FileData, GradioModel
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
     Changeable,
@@ -37,6 +36,7 @@ class Chatbot(Changeable, Selectable, Component):
     Demos: chatbot_simple, chatbot_multimodal
     Guides: creating-a-chatbot
     """
+
     data_model = ChatbotData
 
     def __init__(
@@ -256,6 +256,6 @@ class Chatbot(Changeable, Selectable, Component):
         if height is not None:
             self.height = height
         return self
-    
+
     def example_inputs(self) -> Any:
         return [["Hello!", None]]

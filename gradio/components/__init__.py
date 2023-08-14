@@ -2,17 +2,16 @@ from gradio.components.annotated_image import AnnotatedImage
 from gradio.components.audio import Audio
 from gradio.components.bar_plot import BarPlot
 from gradio.components.base import (
-    Column,
     Component,
     Form,
     FormComponent,
-    Row,
     StreamingInput,
     StreamingOutput,
     _Keywords,
     component,
     get_component_instance,
 )
+from gradio.layouts import Column, Row
 from gradio.components.button import Button
 from gradio.components.carousel import Carousel
 from gradio.components.chatbot import Chatbot

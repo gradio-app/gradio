@@ -8,11 +8,10 @@ from typing import Any, Callable, Literal, Optional
 import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from PIL import Image as _Image  # using _ to minimize namespace pollution
-from gradio.data_classes import GradioRootModel, FileData
 
 from gradio import utils
 from gradio.components.base import Component, _Keywords
-from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
+from gradio.data_classes import FileData, GradioRootModel
 from gradio.events import (
     EventListenerMethod,
     Selectable,
@@ -215,7 +214,14 @@ class Gallery(Selectable, Component):
 
             if caption is not None:
                 output.append(
-                    [{"name": file_path, "data": None, "is_file": True, "caption": caption}]
+                    [
+                        {
+                            "name": file_path,
+                            "data": None,
+                            "is_file": True,
+                            "caption": caption,
+                        }
+                    ]
                 )
             else:
                 output.append({"name": file_path, "data": None, "is_file": True})
@@ -226,4 +232,6 @@ class Gallery(Selectable, Component):
         return x
 
     def example_inputs(self) -> Any:
-        return ["https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"]
+        return [
+            "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+        ]

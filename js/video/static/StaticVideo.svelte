@@ -14,8 +14,8 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: [FileData, FileData | null] | null = null;
-	let old_value: [FileData, FileData | null] | null = null;
+	export let value: {video: FileData, subtitles: FileData | null} | null = null;
+	let old_value: {video: FileData, subtitles: FileData | null} | null = null;
 
 	export let label: string;
 	export let source: "upload" | "webcam";
@@ -38,8 +38,8 @@
 
 	$: {
 		if (value != null) {
-			_video = normalise_file(value[0], root, root_url);
-			_subtitle = normalise_file(value[1], root, root_url);
+			_video = normalise_file(value.video, root, root_url);
+			_subtitle = normalise_file(value.subtitles, root, root_url);
 		} else {
 			_video = null;
 			_subtitle = null;

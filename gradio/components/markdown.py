@@ -6,7 +6,6 @@ import inspect
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import StringSerializable
 
 from gradio import utils
 from gradio.components.base import Component, _Keywords
@@ -18,7 +17,7 @@ set_documentation_group("component")
 
 
 @document()
-class Markdown(Changeable, StringSerializable, Component):
+class Markdown(Changeable, Component):
     """
     Used to render arbitrary Markdown output. Can also render latex enclosed by dollar signs.
     Preprocessing: this component does *not* accept input.
@@ -92,3 +91,12 @@ class Markdown(Changeable, StringSerializable, Component):
     def as_example(self, input_data: str | None) -> str:
         postprocessed = self.postprocess(input_data)
         return postprocessed if postprocessed else ""
+
+    def preprocess(self, x: Any) -> Any:
+        return x
+
+    def example_inputs(self) -> Any:
+        return "# Hello!"
+
+    def api_info(self) -> dict[str, list[str]]:
+        return {"type": "string"}

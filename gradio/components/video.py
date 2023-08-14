@@ -5,15 +5,15 @@ from __future__ import annotations
 import tempfile
 import warnings
 from pathlib import Path
-from typing import Callable, Literal
+from typing import Any, Callable, Literal, Optional
 
 from gradio_client import utils as client_utils
 from gradio_client.data_classes import FileData
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import VideoSerializable
 
 from gradio import processing_utils, utils, wasm_utils
 from gradio.components.base import Component, _Keywords
+from gradio.data_classes import FileData, GradioModel
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Clearable, Playable, Recordable, Uploadable
 
@@ -24,6 +24,11 @@ if not wasm_utils.IS_WASM:
 set_documentation_group("component")
 
 
+class VideoData(GradioModel):
+    video: Optional[FileData] = None
+    subtitles: Optional[FileData] = None
+
+
 @document()
 class Video(
     Changeable,
@@ -31,7 +36,6 @@ class Video(
     Playable,
     Recordable,
     Uploadable,
-    VideoSerializable,
     Component,
 ):
     """
@@ -45,6 +49,8 @@ class Video(
     Examples-format: a {str} filepath to a local file that contains the video, or a {Tuple[str, str]} where the first element is a filepath to a video file and the second element is a filepath to a subtitle file.
     Demos: video_identity, video_subtitle
     """
+
+    data_class = VideoData
 
     def __init__(
         self,
@@ -179,9 +185,7 @@ class Video(
             "__type__": "update",
         }
 
-    def preprocess(
-        self, x: tuple[FileData, FileData | None] | FileData | None
-    ) -> str | None:
+    def preprocess(self, x: dict[str, FileData]) -> str | None:
         """
         Parameters:
             x: A tuple of (video file data, subtitle file data) or just video file data.
@@ -190,27 +194,18 @@ class Video(
         """
         if x is None:
             return None
-        elif isinstance(x, dict):
-            video = x
-        else:
-            video = x[0]
+        video: FileData = VideoData(**x).video
 
-        file_name, file_data, is_file = (
-            video.get("name"),
-            video["data"],
-            video.get("is_file", False),
-        )
-
-        if is_file:
-            assert file_name is not None, "Received file data without a file name."
-            if client_utils.is_http_url_like(file_name):
+        if video.is_file:
+            assert video.name is not None, "Received file data without a file name."
+            if client_utils.is_http_url_like(video.name):
                 fn = self.download_temp_copy_if_needed
             else:
                 fn = self.make_temp_copy_if_needed
-            file_name = Path(fn(file_name))
+            file_name = Path(fn(video.name))
         else:
-            assert file_data is not None, "Received empty file data."
-            file_name = Path(self.base64_to_temp_file_if_needed(file_data, file_name))
+            assert video is not None, "Received empty file data."
+            file_name = Path(self.base64_to_temp_file_if_needed(video.data, video.name))
 
         uploaded_format = file_name.suffix.replace(".", "")
         needs_formatting = self.format is not None and uploaded_format != self.format
@@ -253,7 +248,7 @@ class Video(
 
     def postprocess(
         self, y: str | Path | tuple[str | Path, str | Path | None] | None
-    ) -> tuple[FileData | None, FileData | None] | None:
+    ) -> VideoData | None:
         """
         Processes a video to ensure that it is in the correct format before returning it to the front end.
         Parameters:
@@ -292,7 +287,7 @@ class Video(
         else:
             raise Exception(f"Cannot process type as video: {type(y)}")
 
-        return processed_files
+        return VideoData(video=processed_files[0], subtitles=processed_files[1])
 
     def _format_video(self, video: str | Path | None) -> FileData | None:
         """
@@ -415,3 +410,6 @@ class Video(
         if width is not None:
             self.width = width
         return self
+
+    def example_inputs(self) -> Any:
+        return "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"
