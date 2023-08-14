@@ -333,6 +333,17 @@
 	/* Code blocks */
 	.message-wrap :global(pre[class*="language-"]),
 	.message-wrap :global(pre) {
+		position: relative;
+		direction: ltr;
+		white-space: no-wrap;
+		overflow-x: auto;
+	}
+	.message-wrap :global(code) {
+		font-size: var(--text-md);
+	}
+
+	.message-wrap :global(div[class*="code_wrap"]) {
+		position: relative;
 		margin-top: var(--spacing-sm);
 		margin-bottom: var(--spacing-sm);
 		box-shadow: none;
@@ -340,12 +351,6 @@
 		border-radius: var(--radius-md);
 		background-color: var(--chatbot-code-background-color);
 		padding: var(--spacing-xl) 10px;
-		direction: ltr;
-		white-space: no-wrap;
-		overflow: auto;
-	}
-	.message-wrap :global(code) {
-		font-size: var(--text-md);
 	}
 
 	/* Tables */
@@ -385,7 +390,7 @@
 	}
 
 	/* Copy button */
-	.message-wrap :global(code > button) {
+	.message-wrap :global(div[class*="code_wrap"] > button) {
 		position: absolute;
 		top: var(--spacing-md);
 		right: var(--spacing-md);
@@ -394,8 +399,8 @@
 		border-bottom-left-radius: var(--radius-sm);
 		padding: 5px;
 		padding: var(--spacing-md);
-		width: 22px;
-		height: 22px;
+		width: 25px;
+		height: 25px;
 	}
 
 	.message-wrap :global(code > button > span) {
