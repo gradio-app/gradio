@@ -263,13 +263,13 @@
 					if (update_key === "__type__") {
 						continue;
 					} else {
-						output.props[update_key] = update_value;
 						if (update_key === "mode") {
 							update_interactive_mode(
 								output,
 								update_value as "dynamic" | "static"
 							);
 						}
+						output.props[update_key] = update_value;
 					}
 				}
 			} else {
