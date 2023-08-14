@@ -30,7 +30,7 @@ jobs:
   comment-deploy-start:
     uses: "./.github/workflows/comment-queue.yml"
     secrets:
-      gh_token: ${{ secrets.github_token }}
+      gh_token: ${{ secrets.gh_token }}
     with:
       pr_number: ${{ inputs.pr_number }}
       message: website~pending~null
