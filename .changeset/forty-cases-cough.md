@@ -28,7 +28,6 @@
 "@gradio/timeseries": patch
 "@gradio/video": patch
 "gradio": patch
-"gradio_client": patch
 ---
 
 feat:Lazy load interactive or static variants of a component individually, rather than loading both variants regardless. This change will improve performance for many applications.
