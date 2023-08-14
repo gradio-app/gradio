@@ -31,6 +31,7 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+	export let height: number | "auto" = "auto";
 </script>
 
 {#if mode === "static"}
@@ -49,6 +50,7 @@
 		{container}
 		{scale}
 		{min_width}
+		{height}
 		on:clear
 		on:select
 		on:change
@@ -73,6 +75,7 @@
 		{container}
 		{scale}
 		{min_width}
+		{height}
 		on:clear
 		on:select
 		on:change

@@ -8,6 +8,7 @@
 	export let label: string;
 	export let show_label = true;
 	export let selectable = false;
+	export let height: number | "auto" = "auto";
 </script>
 
 <BlockLabel
@@ -18,7 +19,7 @@
 />
 
 {#if value}
-	<FilePreview {selectable} on:select {value} />
+	<FilePreview {selectable} on:select {value} {height}/>
 {:else}
 	<Empty unpadded_box={true} size="large"><File /></Empty>
 {/if}
