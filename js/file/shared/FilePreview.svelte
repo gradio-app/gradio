@@ -9,10 +9,11 @@
 	}>();
 	export let value: FileData | FileData[];
 	export let selectable = false;
+	export let height: number | "auto" = "auto";
 </script>
 
 <div class="file-preview-holder">
-	<table class="file-preview">
+	<table class="file-preview" height={height}>
 		<tbody>
 			{#each Array.isArray(value) ? value : [value] as file, i}
 				<tr

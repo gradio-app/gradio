@@ -14,6 +14,7 @@
 	export let file_count = "single";
 	export let file_types: string[] | null = null;
 	export let selectable = false;
+	export let height: number | "auto" = "auto";
 
 	async function handle_upload({
 		detail
