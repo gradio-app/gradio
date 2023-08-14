@@ -11,7 +11,7 @@
 	import { upload_files as default_upload_files } from "@gradio/client";
 
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	import { _ } from "svelte-i18n";
 

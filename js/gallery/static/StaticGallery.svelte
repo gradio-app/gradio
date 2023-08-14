@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Block } from "@gradio/atoms";
 	import Gallery from "./Gallery.svelte";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { FileData } from "@gradio/upload";
 

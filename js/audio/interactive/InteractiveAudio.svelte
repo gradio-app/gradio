@@ -6,7 +6,7 @@
 	import { UploadText } from "@gradio/atoms";
 
 	import type { FileData } from "@gradio/upload";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	import Audio from "./Audio.svelte";
 	import { StatusTracker } from "@gradio/statustracker";
