@@ -16,7 +16,7 @@ export const component_map = {
 		static: () => import("@gradio/button/static")
 	},
 	chatbot: {
-		static: () => import("@gradio/Chatbot/static")
+		static: () => import("@gradio/chatbot/static")
 	},
 	checkbox: {
 		static: () => import("@gradio/checkbox/static"),
