@@ -4,8 +4,11 @@
 "@gradio/app": patch
 "@gradio/audio": patch
 "@gradio/box": patch
+"@gradio/button": patch
+"@gradio/chatbot": patch
 "@gradio/checkbox": patch
 "@gradio/checkboxgroup": patch
+"@gradio/client": patch
 "@gradio/code": patch
 "@gradio/colorpicker": patch
 "@gradio/dataframe": patch
@@ -24,9 +27,13 @@
 "@gradio/radio": patch
 "@gradio/slider": patch
 "@gradio/statustracker": patch
+"@gradio/textbox": patch
 "@gradio/timeseries": patch
+"@gradio/upload": patch
 "@gradio/video": patch
 "gradio": patch
+"gradio_client": patch
+"website": patch
 ---
 
 feat:Lazy load interactive or static variants of a component individually, rather than loading both variants regardless. This change will improve performance for many applications.
