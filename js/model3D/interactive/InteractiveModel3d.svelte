@@ -26,6 +26,7 @@
 		change: typeof value;
 		clear: never;
 	}>;
+	export let alpha: number | null;
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root, root_url);
@@ -47,10 +48,11 @@
 	<StatusTracker {...loading_status} />
 
 	<Model3DUpload
-		{label}
-		{show_label}
-		{clearColor}
+		label={label}
+		show_label={show_label}
+		clearColor={clearColor}
 		value={_value}
+		alpha={alpha}
 		on:change={({ detail }) => (value = detail)}
 		on:drag={({ detail }) => (dragging = detail)}
 		on:change={({ detail }) => gradio.dispatch("change", detail)}

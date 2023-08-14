@@ -47,6 +47,7 @@ class Model3D(
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        alpha: int | float | None = None,
         **kwargs,
     ):
         """
@@ -64,6 +65,8 @@ class Model3D(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.clear_color = clear_color or [0, 0, 0, 0]
+        self._alpha = alpha
+
         IOComponent.__init__(
             self,
             label=label,
@@ -83,6 +86,7 @@ class Model3D(
         return {
             "clearColor": self.clear_color,
             "value": self.value,
+            "alpha": self._alpha,
             **IOComponent.get_config(self),
         }
 

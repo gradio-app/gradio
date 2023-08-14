@@ -22,6 +22,7 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+	export let alpha: number | null;
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root, root_url);
@@ -43,7 +44,7 @@
 	<StatusTracker {...loading_status} />
 
 	{#if value}
-		<Model3D value={_value} {clearColor} {label} {show_label} />
+		<Model3D value={_value} clearColor={clearColor} label={label} show_label={show_label} alpha={alpha} />
 	{:else}
 		<!-- Not ideal but some bugs to work out before we can 
 				 make this consistent with other components -->
