@@ -143,6 +143,7 @@ class Interface(Blocks):
         analytics_enabled: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
+        api_name: str | bool | None = "predict",
         _api_mode: bool = False,
         allow_duplication: bool = False,
         **kwargs,
@@ -171,6 +172,7 @@ class Interface(Blocks):
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
             batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
+            api_name: Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False or None, the endpoint will not be exposed in the api docs. If set to a string, the endpoint will be exposed in the api docs with the given name. Default value is "predict".
             allow_duplication: If True, then will show a 'Duplicate Spaces' button on Hugging Face Spaces.
         """
         super().__init__(
@@ -181,6 +183,7 @@ class Interface(Blocks):
             theme=theme,
             **kwargs,
         )
+        self.api_name = api_name
 
         if isinstance(fn, list):
             raise DeprecationWarning(
@@ -620,7 +623,7 @@ class Interface(Blocks):
                     self.fn,
                     None,
                     self.output_components,
-                    api_name="predict",
+                    api_name=self.api_name,
                     preprocess=not (self.api_mode),
                     postprocess=not (self.api_mode),
                     batch=self.batch,
@@ -633,7 +636,7 @@ class Interface(Blocks):
                             self.fn,
                             self.input_components,
                             self.output_components,
-                            api_name="predict",
+                            api_name=self.api_name,
                             preprocess=not (self.api_mode),
                             postprocess=not (self.api_mode),
                         )
@@ -643,7 +646,7 @@ class Interface(Blocks):
                             self.fn,
                             self.input_components,
                             self.output_components,
-                            api_name="predict",
+                            api_name=self.api_name,
                             preprocess=not (self.api_mode),
                             postprocess=not (self.api_mode),
                         )
@@ -678,7 +681,7 @@ class Interface(Blocks):
                         self.fn,
                         self.input_components,
                         self.output_components,
-                        api_name="predict" if i == 0 else None,
+                        api_name=self.api_name if i == 0 else None,
                         scroll_to_output=True,
                         preprocess=not (self.api_mode),
                         postprocess=not (self.api_mode),
@@ -708,7 +711,7 @@ class Interface(Blocks):
                             fn,
                             self.input_components,
                             self.output_components,
-                            api_name="predict" if i == 0 else None,
+                            api_name=self.api_name if i == 0 else None,
                             scroll_to_output=True,
                             preprocess=not (self.api_mode),
                             postprocess=not (self.api_mode),
