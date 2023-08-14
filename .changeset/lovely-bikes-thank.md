@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:Allow configuring file height
+feat:Allows setting a height to `gr.File` and improves the UI of the component
