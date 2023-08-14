@@ -71,5 +71,6 @@
 		on:select
 		{wrap}
 		{datatype}
+		editable={false}
 	/>
 </Block>
