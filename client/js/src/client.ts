@@ -804,9 +804,9 @@ function transform_output(
 	remote_url?: string
 ): unknown[] {
 	return data.map((d, i) => {
-		if (api_info.returns?.[i]?.component === "File") {
+		if (api_info?.returns?.[i]?.component === "File") {
 			return normalise_file(d, root_url, remote_url);
-		} else if (api_info.returns?.[i]?.component === "Gallery") {
+		} else if (api_info?.returns?.[i]?.component === "Gallery") {
 			return d.map((img) => {
 				return Array.isArray(img)
 					? [normalise_file(img[0], root_url, remote_url), img[1]]
