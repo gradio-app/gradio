@@ -9,7 +9,7 @@ import json
 import os
 import warnings
 import weakref
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
@@ -143,7 +143,7 @@ class Interface(Blocks):
         analytics_enabled: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
-        api_name: str | bool | None = "predict",
+        api_name: str | Literal[False] | None = "predict",
         _api_mode: bool = False,
         allow_duplication: bool = False,
         **kwargs,
@@ -183,7 +183,7 @@ class Interface(Blocks):
             theme=theme,
             **kwargs,
         )
-        self.api_name = api_name
+        self.api_name: str | Literal[False] | None = api_name
 
         if isinstance(fn, list):
             raise DeprecationWarning(
