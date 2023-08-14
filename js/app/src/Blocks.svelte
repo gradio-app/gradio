@@ -223,6 +223,32 @@
 			});
 	});
 
+	async function update_interactive_mode(
+		instance: ComponentMeta,
+		mode: "dynamic" | "interactive" | "static"
+	): Promise<void> {
+		let new_mode: "interactive" | "static" =
+			mode === "dynamic" ? "interactive" : mode;
+
+		if (instance.props.mode === new_mode) return;
+
+		instance.props.mode = new_mode;
+		const _c = load_component(instance.type, instance.props.mode);
+		component_set.add(_c);
+		_component_map.set(
+			`${instance.type}_${instance.props.mode}`,
+			_c as Promise<{
+				name: ComponentMeta["type"];
+				component: LoadedComponent;
+			}>
+		);
+
+		_c.then((c) => {
+			instance.component = c.component.default;
+			rootNode = rootNode;
+		});
+	}
+
 	function handle_update(data: any, fn_index: number): void {
 		const outputs = dependencies[fn_index].outputs;
 		data?.forEach((value: any, i: number) => {
@@ -238,6 +264,12 @@
 						continue;
 					} else {
 						output.props[update_key] = update_value;
+						if (update_key === "mode") {
+							update_interactive_mode(
+								output,
+								update_value as "dynamic" | "static"
+							);
+						}
 					}
 				}
 			} else {
