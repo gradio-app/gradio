@@ -19,7 +19,7 @@
 />
 
 {#if value}
-	<FilePreview {selectable} on:select {value} {height}/>
+	<FilePreview {selectable} on:select {value} {height} />
 {:else}
 	<Empty unpadded_box={true} size="large"><File /></Empty>
 {/if}

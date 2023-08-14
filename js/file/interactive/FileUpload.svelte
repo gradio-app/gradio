@@ -65,7 +65,7 @@
 
 {#if value}
 	<ModifyUpload on:clear={handle_clear} absolute />
-	<FilePreview on:select {selectable} {value} {height}/>
+	<FilePreview on:select {selectable} {value} {height} />
 {:else}
 	<Upload
 		on:load={handle_upload}

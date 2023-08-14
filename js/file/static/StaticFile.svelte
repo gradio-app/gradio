@@ -121,5 +121,5 @@
 			: loading_status?.status || "complete"}
 	/>
 
-	<File on:select {selectable} value={_value} {label} {show_label} {height}/>
+	<File on:select {selectable} value={_value} {label} {show_label} {height} />
 </Block>

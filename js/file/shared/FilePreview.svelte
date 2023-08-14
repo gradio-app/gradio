@@ -13,8 +13,8 @@
 	let max_height: string = height === "auto" ? "auto" : height + "px";
 </script>
 
-<div 
-	class="file-preview-holder" 
+<div
+	class="file-preview-holder"
 	style="max-height: {max_height}; overflow-y:scroll;"
 >
 	<table class="file-preview">
@@ -31,15 +31,15 @@
 				>
 					<td class="download">
 						{#if file.data}
-						<a
-						href={file.data}
-						target="_blank"
-						download={window.__is_colab__
-							? null
-							: file.orig_name || file.name}
-					>
-							{display_file_name(file)}
-						</a>
+							<a
+								href={file.data}
+								target="_blank"
+								download={window.__is_colab__
+									? null
+									: file.orig_name || file.name}
+							>
+								{display_file_name(file)}
+							</a>
 						{:else}
 							Uploading...
 						{/if}
