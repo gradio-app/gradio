@@ -1015,6 +1015,7 @@ class TestFile:
             "interactive": None,
             "root_url": None,
             "selectable": False,
+            "height": None,
         }
         assert file_input.preprocess(None) is None
         x_file["is_example"] = True
