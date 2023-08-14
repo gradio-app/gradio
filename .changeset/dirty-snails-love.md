@@ -3,5 +3,4 @@
 "gradio": minor
 ---
 
-fix:Completely hide api page if show_api=False
-feat:Add `api_name` parameter to `gr.Interface`
+feat:Add `api_name` parameter to `gr.Interface`. Additionally, completely hide api page if show_api=False
