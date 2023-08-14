@@ -29,8 +29,6 @@
 	}
 </script>
 
-<!-- asd -->
-
 {#if mode === "static"}
 	<StaticDropdown
 		{visible}
