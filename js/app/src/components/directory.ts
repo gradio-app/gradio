@@ -13,7 +13,7 @@ export const component_map = {
 		static: () => import("@gradio/box/static")
 	},
 	button: {
-		static: () => import("@gradio/Button/static")
+		static: () => import("@gradio/button/static")
 	},
 	chatbot: {
 		static: () => import("@gradio/Chatbot/static")
@@ -39,7 +39,7 @@ export const component_map = {
 	},
 	dataframe: {
 		static: () => import("@gradio/dataframe/static"),
-		interactive: () => import("@gradio/DataFrame/interactive")
+		interactive: () => import("@gradio/dataframe/interactive")
 	},
 	dataset: {
 		static: () => import("./Dataset")
@@ -117,7 +117,6 @@ export const component_map = {
 	},
 	tabitem: {
 		static: () => import("@gradio/tabitem/static")
-		// interactive: () => import("@gradio/tabitem/interactive")
 	},
 	textbox: {
 		static: () => import("@gradio/textbox/static"),
