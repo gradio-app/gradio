@@ -15,7 +15,7 @@ from gradio_client.serializing import FileSerializable
 
 from gradio import processing_utils, utils
 from gradio.blocks import Default
-from gradio.components.base import IOComponent
+from gradio.components.base import IOComponent, _Keywords
 from gradio.events import (
     Changeable,
     Clearable,

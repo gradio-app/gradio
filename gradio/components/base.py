@@ -10,6 +10,7 @@ import secrets
 import shutil
 import tempfile
 import urllib.request
+from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
 
@@ -43,6 +44,9 @@ if TYPE_CHECKING:
 set_documentation_group("component")
 _Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
+class _Keywords(Enum):
+    NO_VALUE = "NO_VALUE"  # Used as a sentinel to determine if nothing is provided as a argument for `value` in `Component.update()`
+    FINISHED_ITERATING = "FINISHED_ITERATING"  # Used to skip processing of a component's value (needed for generators + state)
 
 class Component(Block, Serializable):
     """

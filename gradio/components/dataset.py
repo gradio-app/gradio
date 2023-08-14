@@ -8,7 +8,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
 from gradio.blocks import Default
-from gradio.components.base import (
+from gradio.components.base import (, _Keywords
     IOComponent,
     get_component_instance,
 )

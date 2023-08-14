@@ -10,7 +10,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio.blocks import Default
-from gradio.components.base import IOComponent
+from gradio.components.base import IOComponent, _Keywords
 from gradio.events import (
     Changeable,
     Clearable,

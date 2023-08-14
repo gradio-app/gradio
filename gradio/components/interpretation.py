@@ -6,7 +6,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import SimpleSerializable
 
 from gradio.blocks import Default
-from gradio.components.base import Component
+from gradio.components.base import Component, _Keywords
 
 set_documentation_group("component")
 
