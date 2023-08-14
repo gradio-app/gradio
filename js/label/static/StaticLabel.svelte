@@ -5,6 +5,7 @@
 	import { Block, BlockLabel, Empty } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import { _ } from "svelte-i18n";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -14,7 +15,7 @@
 		label?: string;
 		confidences?: { label: string; confidence: number }[];
 	} = {};
-	export let label = "Label";
+	export let label = $_("label.label");
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;

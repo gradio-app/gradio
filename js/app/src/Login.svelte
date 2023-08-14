@@ -3,6 +3,7 @@
 	import Textbox from "@gradio/textbox";
 	import { BaseButton } from "@gradio/button/static";
 	import { Component as Column } from "./components/Column";
+	import { _ } from "svelte-i18n";
 	export let root: string;
 	export let auth_message: string | null;
 	export let app_mode: boolean;
@@ -19,7 +20,7 @@
 
 		let response = await fetch(root + "/login", {
 			method: "POST",
-			body: formData
+			body: formData,
 		});
 		if (response.status === 400) {
 			incorrect_credentials = true;
@@ -33,18 +34,17 @@
 
 <div class="wrap" class:min-h-screen={app_mode}>
 	<Column variant="panel" min_width={480}>
-		<h2>Login</h2>
+		<h2>{$_("login.login")}</h2>
 		{#if auth_message}
 			<p class="auth">{auth_message}</p>
 		{/if}
 		{#if space_id}
 			<p class="auth">
-				If you are visiting a HuggingFace Space in Incognito mode, you must
-				enable third party cookies.
+				{$_("login.enable_cookies")}
 			</p>
 		{/if}
 		{#if incorrect_credentials}
-			<p class="creds">Incorrect Credentials</p>
+			<p class="creds">{$_("login.incorrect_credentials")}</p>
 		{/if}
 		<Form>
 			<Textbox
@@ -68,7 +68,9 @@
 			/>
 		</Form>
 
-		<BaseButton size="lg" variant="primary" on:click={submit}>Login</BaseButton>
+		<BaseButton size="lg" variant="primary" on:click={submit}
+			>{$_("login.login")}</BaseButton
+		>
 	</Column>
 </div>
 

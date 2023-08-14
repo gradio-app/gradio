@@ -5,8 +5,9 @@
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import { _ } from "svelte-i18n";
 
-	export let label = "ColorPicker";
+	export let label = $_("color_picker.color_picker");
 	export let info: string | undefined = undefined;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];

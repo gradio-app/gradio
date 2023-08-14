@@ -2,12 +2,10 @@
 	import Static from "./static";
 	import Interactive from "./interactive";
 
-	import Number from "./static";
-	import { Block } from "@gradio/atoms";
-	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import { _ } from "svelte-i18n";
 
-	export let label = "Number";
+	export let label = $_("number.number");
 	export let info: string | undefined = undefined;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -47,7 +45,7 @@
 		on:submit
 		on:blur
 		on:focus
-	></Static>
+	/>
 {:else}
 	<Interactive
 		bind:value
@@ -70,5 +68,5 @@
 		on:submit
 		on:blur
 		on:focus
-	></Interactive>
+	/>
 {/if}

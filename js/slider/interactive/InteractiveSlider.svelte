@@ -3,12 +3,13 @@
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import { _ } from "svelte-i18n";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value = 0;
-	export let label = "Slider";
+	export let label = $_("slider.slider");
 	export let info: string | undefined = undefined;
 	export let container = true;
 	export let scale: number | null = null;

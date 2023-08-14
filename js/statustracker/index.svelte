@@ -1,6 +1,7 @@
 <script context="module" lang="ts">
 	import { tick } from "svelte";
 	import { pretty_si } from "./utils";
+	import { _ } from "svelte-i18n";
 
 	let items: HTMLDivElement[] = [];
 
@@ -266,7 +267,7 @@
 			<p class="loading">{loading_text}</p>
 		{/if}
 	{:else if status === "error"}
-		<span class="error">Error</span>
+		<span class="error">{$_('common.error')}</span>
 		<slot name="error" />
 	{/if}
 </div>

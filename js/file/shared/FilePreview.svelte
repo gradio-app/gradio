@@ -3,6 +3,7 @@
 	import { display_file_name, display_file_size } from "./utils";
 	import { createEventDispatcher } from "svelte";
 	import type { SelectData } from "@gradio/utils";
+	import { _ } from "svelte-i18n";
 
 	const dispatch = createEventDispatcher<{
 		select: SelectData;
@@ -21,7 +22,7 @@
 					on:click={() =>
 						dispatch("select", {
 							value: file.orig_name || file.name,
-							index: i
+							index: i,
 						})}
 				>
 					<td>
@@ -41,10 +42,10 @@
 									? null
 									: file.orig_name || file.name}
 							>
-								Download
+								$_("common.download")
 							</a>
 						{:else}
-							Uploading...
+							$_('file.uploading')
 						{/if}
 					</td>
 				</tr>
