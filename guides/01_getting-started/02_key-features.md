@@ -16,7 +16,7 @@ Let's go through some of the most popular features of Gradio! Here are Gradio's 
 
 ## Example Inputs
 
-You can provide example data that a user can easily load into `Interface`. This can be helpful to demonstrate the types of inputs the model expects, as well as to provide a way to explore your dataset in conjunction with your model. To load example data, you can provide a **nested list** to the `examples=`  keyword argument of the Interface constructor. Each sublist within the outer list represents a data sample, and each element within the sublist represents an input for each input component. The format of example data for each component is specified in the [Docs](https://gradio.app/docs#components).
+You can provide example data that a user can easily load into `Interface`. This can be helpful to demonstrate the types of inputs the model expects, as well as to provide a way to explore your dataset in conjunction with your model. To load example data, you can provide a **nested list** to the `examples=` keyword argument of the Interface constructor. Each sublist within the outer list represents a data sample, and each element within the sublist represents an input for each input component. The format of example data for each component is specified in the [Docs](https://gradio.app/docs#components).
 
 $code_calculator
 $demo_calculator
@@ -27,9 +27,9 @@ Continue learning about examples in the [More On Examples](https://gradio.app/mo
 
 ## Alerts
 
-You wish to pass custom error messages to the user. To do so, raise a `gr.Error("custom message")` to display an error message. If you try to divide by zero in the calculator demo above, a popup modal will display the custom error message. Learn more about Error in the [docs](https://gradio.app/docs#error). 
+You wish to pass custom error messages to the user. To do so, raise a `gr.Error("custom message")` to display an error message. If you try to divide by zero in the calculator demo above, a popup modal will display the custom error message. Learn more about Error in the [docs](https://gradio.app/docs#error).
 
-You can also issue `gr.Warning("message")` and `gr.Info("message")` by having them as standalone lines in your function, which will immediately display modals while continuing the execution of your function. Queueing needs to be enabled for this to work. 
+You can also issue `gr.Warning("message")` and `gr.Info("message")` by having them as standalone lines in your function, which will immediately display modals while continuing the execution of your function. Queueing needs to be enabled for this to work.
 
 Note below how the `gr.Error` has to be raised, while the `gr.Warning` and `gr.Info` are single lines.
 
@@ -42,16 +42,16 @@ def start_process(name):
     if success == False:
         raise gr.Error("Process failed")
 ```
-  
+
 ## Descriptive Content
 
 In the previous example, you may have noticed the `title=` and `description=` keyword arguments in the `Interface` constructor that helps users understand your app.
 
 There are three arguments in the `Interface` constructor to specify where this content should go:
 
-* `title`: which accepts text and can display it at the very top of interface, and also becomes the page title.
-* `description`: which accepts text, markdown or HTML and places it right under the title.
-* `article`: which also accepts text, markdown or HTML and places it below the interface.
+- `title`: which accepts text and can display it at the very top of interface, and also becomes the page title.
+- `description`: which accepts text, markdown or HTML and places it right under the title.
+- `article`: which also accepts text, markdown or HTML and places it below the interface.
 
 ![annotated](https://github.com/gradio-app/gradio/blob/main/guides/assets/annotated.png?raw=true)
 
@@ -65,7 +65,7 @@ gr.Number(label='Age', info='In years, must be greater than 0')
 
 ## Flagging
 
-By default, an `Interface` will have "Flag" button. When a user testing your `Interface` sees input with interesting output, such as erroneous or unexpected model behaviour, they can flag the input for you to review. Within the directory provided by the  `flagging_dir=`  argument to the `Interface` constructor, a CSV file will log the flagged inputs. If the interface involves file data, such as for Image and Audio components, folders will be created to store those flagged data as well.
+By default, an `Interface` will have "Flag" button. When a user testing your `Interface` sees input with interesting output, such as erroneous or unexpected model behaviour, they can flag the input for you to review. Within the directory provided by the `flagging_dir=` argument to the `Interface` constructor, a CSV file will log the flagged inputs. If the interface involves file data, such as for Image and Audio components, folders will be created to store those flagged data as well.
 
 For example, with the calculator interface shown above, we would have the flagged data stored in the flagged directory shown below:
 
@@ -75,7 +75,7 @@ For example, with the calculator interface shown above, we would have the flagge
 |   +-- logs.csv
 ```
 
-*flagged/logs.csv*
+_flagged/logs.csv_
 
 ```csv
 num1,operation,num2,Output
@@ -97,7 +97,7 @@ With the sepia interface shown earlier, we would have the flagged data stored in
 |   |   +-- 1.png
 ```
 
-*flagged/logs.csv*
+_flagged/logs.csv_
 
 ```csv
 im,Output
@@ -113,11 +113,11 @@ If you wish for the user to provide a reason for flagging, you can pass a list o
 
 As you've seen, Gradio includes components that can handle a variety of different data types, such as images, audio, and video. Most components can be used both as inputs or outputs.
 
-When a component is used as an input, Gradio automatically handles the *preprocessing* needed to convert the data from a type sent by the user's browser (such as a base64 representation of a webcam snapshot) to a form that can be accepted by your function (such as a `numpy` array).
+When a component is used as an input, Gradio automatically handles the _preprocessing_ needed to convert the data from a type sent by the user's browser (such as a base64 representation of a webcam snapshot) to a form that can be accepted by your function (such as a `numpy` array).
 
-Similarly, when a component is used as an output, Gradio automatically handles the *postprocessing* needed to convert the data from what is returned by your function (such as a list of image paths) to a form that can be displayed in the user's browser (such as a `Gallery` of images in base64 format).
+Similarly, when a component is used as an output, Gradio automatically handles the _postprocessing_ needed to convert the data from what is returned by your function (such as a list of image paths) to a form that can be displayed in the user's browser (such as a `Gallery` of images in base64 format).
 
-You can control the *preprocessing* using the parameters when constructing the image component. For example, here if you instantiate the `Image` component with the following parameters, it will convert the image to the `PIL` type and reshape it to be `(100, 100)` no matter the original size that it was submitted as:
+You can control the _preprocessing_ using the parameters when constructing the image component. For example, here if you instantiate the `Image` component with the following parameters, it will convert the image to the `PIL` type and reshape it to be `(100, 100)` no matter the original size that it was submitted as:
 
 ```py
 img = gr.Image(shape=(100, 100), type="pil")
@@ -229,11 +229,11 @@ Gradio supports the ability to create a custom Progress Bars so that you have cu
 $code_progress_simple
 $demo_progress_simple
 
-If you use the `tqdm` library, you can even report progress updates automatically from any `tqdm.tqdm` that already exists within your function by setting the default argument as  `gr.Progress(track_tqdm=True)`!
+If you use the `tqdm` library, you can even report progress updates automatically from any `tqdm.tqdm` that already exists within your function by setting the default argument as `gr.Progress(track_tqdm=True)`!
 
 ## Batch Functions
 
-Gradio supports the ability to pass *batch* functions. Batch functions are just
+Gradio supports the ability to pass _batch_ functions. Batch functions are just
 functions which take in a list of inputs and return a list of predictions.
 
 For example, here is a batched function that takes in two lists of inputs (a list of
@@ -246,12 +246,12 @@ def trim_words(words, lens):
     trimmed_words = []
     time.sleep(5)
     for w, l in zip(words, lens):
-        trimmed_words.append(w[:int(l)])        
+        trimmed_words.append(w[:int(l)])
     return [trimmed_words]
 ```
 
 The advantage of using batched functions is that if you enable queuing, the Gradio
-server can automatically *batch* incoming requests and process them in parallel,
+server can automatically _batch_ incoming requests and process them in parallel,
 potentially speeding up your demo. Here's what the Gradio code looks like (notice
 the `batch=True` and `max_batch_size=16` -- both of these parameters can be passed
 into event triggers or into the `Interface` class)
@@ -259,7 +259,7 @@ into event triggers or into the `Interface` class)
 With `Interface`:
 
 ```python
-demo = gr.Interface(trim_words, ["textbox", "number"], ["output"], 
+demo = gr.Interface(trim_words, ["textbox", "number"], ["output"],
                     batch=True, max_batch_size=16)
 demo.queue()
 demo.launch()
@@ -292,8 +292,6 @@ generate images in batches](https://github.com/gradio-app/gradio/blob/main/demo/
 
 Note: using batch functions with Gradio **requires** you to enable queuing in the underlying Interface or Blocks (see the queuing section above).
 
-
 ## Colab Notebooks
 
-
-Gradio is able to run anywhere you run Python, including local jupyter notebooks as well as collaborative notebooks, such as [Google Colab](https://colab.research.google.com/). In the case of local jupyter notebooks and Google Colab notbooks, Gradio runs on a local server which you can interact with in your browser. (Note: for Google Colab, this is accomplished by [service worker tunneling](https://github.com/tensorflow/tensorboard/blob/master/docs/design/colab_integration.md), which requires cookies to be enabled in your browser.) For other remote notebooks, Gradio will also run on a server, but you will need to use [SSH tunneling](https://coderwall.com/p/ohk6cg/remote-access-to-ipython-notebooks-via-ssh) to view the app in your local browser. Often a simpler options is to use Gradio's built-in public links, [discussed in the next Guide](https://gradio.app/guides/sharing-your-app/#sharing-demos). 
+Gradio is able to run anywhere you run Python, including local jupyter notebooks as well as collaborative notebooks, such as [Google Colab](https://colab.research.google.com/). In the case of local jupyter notebooks and Google Colab notbooks, Gradio runs on a local server which you can interact with in your browser. (Note: for Google Colab, this is accomplished by [service worker tunneling](https://github.com/tensorflow/tensorboard/blob/master/docs/design/colab_integration.md), which requires cookies to be enabled in your browser.) For other remote notebooks, Gradio will also run on a server, but you will need to use [SSH tunneling](https://coderwall.com/p/ohk6cg/remote-access-to-ipython-notebooks-via-ssh) to view the app in your local browser. Often a simpler options is to use Gradio's built-in public links, [discussed in the next Guide](https://gradio.app/guides/sharing-your-app/#sharing-demos).

@@ -53,7 +53,7 @@ gr.Interface.load("huggingface/gpt2").launch();
 ```
 
 ```python
-gr.Interface.load("huggingface/EleutherAI/gpt-j-6B", 
+gr.Interface.load("huggingface/EleutherAI/gpt-j-6B",
     inputs=gr.Textbox(lines=5, label="Input Text")  # customizes the input component
 ).launch()
 ```

@@ -9,6 +9,13 @@ on:
         - 'demo/**'
 
 jobs:
+  comment-notebook-start:
+    uses: "./.github/workflows/comment-queue.yml"
+    secrets:
+      gh_token: ${{ secrets.COMMENT_TOKEN }}
+    with:
+      pr_number: ${{ github.event.pull_request.number }}
+      message: notebooks~pending~null
   check-notebooks:
     name: Generate Notebooks and Check 
     runs-on: ubuntu-latest

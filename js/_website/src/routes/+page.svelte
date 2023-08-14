@@ -1,7 +1,8 @@
 <script lang="ts">
-	import DemosLanding from "../components/DemosLanding.svelte";
-	import MetaTags from "../components/MetaTags.svelte";
-	import gradio_banner from "../assets/img/header-image.jpg";
+	import { version } from "$lib/json/version.json";
+	import DemosLanding from "$lib/components/DemosLanding.svelte";
+	import MetaTags from "$lib/components/MetaTags.svelte";
+	import gradio_banner from "$lib/assets/img/header-image.jpg";
 	export let data: {
 		logos: {
 			img: string;
@@ -45,7 +46,7 @@
 				<div class="flex space-x-4 justify-center lg:justify-start">
 					<a
 						class="rounded-full bg-gradient-to-br from-orange-500 via-orange-500 to-yellow-500 px-6 py-3 text-lg font-semibold text-white hover:to-yellow-400 hover:drop-shadow-md md:text-xl"
-						href="/getting_started">Get Started</a
+						href="/guides/quickstart">Get Started</a
 					>
 					<div class="flex items-center justify-center">
 						<a
@@ -121,15 +122,14 @@
 			Fast, easy setup
 		</h2>
 		<p class="mb-3 text-gray-600">
-			Gradio can be <a
-				class="text-link"
-				href="https://gradio.app/getting_started/">installed with pip</a
+			Gradio can be <a class="text-link" href="/guides/quickstart"
+				>installed with pip</a
 			>. Creating a Gradio interface only requires adding a couple lines of code
 			to your project.
 		</p>
 		<p class="text-gray-600">
-			You can choose from a variety of interface types to interface your
-			function.
+			Seamlessly use any python library on your computer. If you can write a
+			python function, gradio can run it.
 		</p>
 	</div>
 	<div
@@ -284,6 +284,11 @@
 		{/each}
 	</div>
 </div>
+<!-- 
+<a href="/{version}/docs"></a>
+<a href="/{version}/guide"></a> -->
+<a style="display: none;" href="/main/docs"></a>
+<a style="display: none;" href="/main/guides"></a>
 
 <style>
 	#gradio-banner {

@@ -260,10 +260,10 @@ with gr.Blocks() as demo:
 
 ## 如何在 Comet 组织上贡献 Gradio 演示
 
-* 在 Hugging Face 上创建帐号[此处](https://huggingface.co/join)。
-* 在用户名下添加 Gradio 演示，请参阅[此处](https://huggingface.co/course/chapter9/4?fw=pt)以设置 Gradio 演示。
-* 请求加入 Comet 组织[此处](https://huggingface.co/Comet)。
+- 在 Hugging Face 上创建帐号[此处](https://huggingface.co/join)。
+- 在用户名下添加 Gradio 演示，请参阅[此处](https://huggingface.co/course/chapter9/4?fw=pt)以设置 Gradio 演示。
+- 请求加入 Comet 组织[此处](https://huggingface.co/Comet)。
 
 ## 更多资源
 
-* [Comet 文档](https://www.comet.com/docs/v2/?utm_source=gradio&utm_medium=referral&utm_campaign=gradio-integration&utm_content=gradio-docs)
+- [Comet 文档](https://www.comet.com/docs/v2/?utm_source=gradio&utm_medium=referral&utm_campaign=gradio-integration&utm_content=gradio-docs)

@@ -5,7 +5,7 @@
 
 ## 介绍
 
-机器学习中的 3D 模型越来越受欢迎，并且是一些最有趣的演示实验。使用 `gradio`，您可以轻松构建您的 3D 图像模型的演示，并与任何人分享。Gradio 3D 模型组件接受 3 种文件类型，包括：*.obj*，*.glb* 和 *.gltf*。
+机器学习中的 3D 模型越来越受欢迎，并且是一些最有趣的演示实验。使用 `gradio`，您可以轻松构建您的 3D 图像模型的演示，并与任何人分享。Gradio 3D 模型组件接受 3 种文件类型，包括：_.obj_，_.glb_ 和 _.gltf_。
 
 本指南将向您展示如何使用几行代码构建您的 3D 图像模型的演示；像下面这个示例一样。点击、拖拽和缩放来玩转 3D 对象：
 
@@ -47,13 +47,13 @@ demo.launch()
 
 创建界面：
 
-* `fn`：当用户点击提交时使用的预测函数。在我们的例子中，它是 `load_mesh` 函数。
-* `inputs`：创建一个 model3D 输入组件。输入是一个上传的文件，作为{str}文件路径。
-* `outputs`：创建一个 model3D 输出组件。输出组件也期望一个文件作为{str}文件路径。
-  * `clear_color`：这是 3D 模型画布的背景颜色。期望 RGBa 值。
-  * `label`：出现在组件左上角的标签。
-* `examples`：3D 模型文件的列表。3D 模型组件可以接受*.obj*，*.glb*和*.gltf*文件类型。
-* `cache_examples`：保存示例的预测输出，以节省推理时间。
+- `fn`：当用户点击提交时使用的预测函数。在我们的例子中，它是 `load_mesh` 函数。
+- `inputs`：创建一个 model3D 输入组件。输入是一个上传的文件，作为{str}文件路径。
+- `outputs`：创建一个 model3D 输出组件。输出组件也期望一个文件作为{str}文件路径。
+  - `clear_color`：这是 3D 模型画布的背景颜色。期望 RGBa 值。
+  - `label`：出现在组件左上角的标签。
+- `examples`：3D 模型文件的列表。3D 模型组件可以接受*.obj*，*.glb*和*.gltf*文件类型。
+- `cache_examples`：保存示例的预测输出，以节省推理时间。
 
 ## 探索更复杂的 Model3D 演示
 
@@ -64,9 +64,9 @@ demo.launch()
 
 <gradio-app space="radames/PIFu-Clothed-Human-Digitization"> </gradio-app>
 
-----------
+---
 
 搞定！这就是构建 Model3D 模型界面所需的所有代码。以下是一些您可能会发现有用的参考资料：
 
-* Gradio 的[“入门指南”](https://gradio.app/getting_started/)
-* 第一个[3D 模型演示](https://huggingface.co/spaces/dawood/Model3D)和[完整代码](https://huggingface.co/spaces/dawood/Model3D/tree/main)（在 Hugging Face Spaces 上）
+- Gradio 的[“入门指南”](https://gradio.app/getting_started/)
+- 第一个[3D 模型演示](https://huggingface.co/spaces/dawood/Model3D)和[完整代码](https://huggingface.co/spaces/dawood/Model3D/tree/main)（在 Hugging Face Spaces 上）

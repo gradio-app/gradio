@@ -1,4 +1,5 @@
 # 主题 Theming
+
 Tags: THEMES
 
 ## 介绍
@@ -19,11 +20,11 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
 
 Gradio 带有一组预构建的主题，您可以从 `gr.themes.*` 中加载这些主题。这些主题包括：
 
-* `gr.themes.Base()`
-* `gr.themes.Default()`
-* `gr.themes.Glass()`
-* `gr.themes.Monochrome()`
-* `gr.themes.Soft()`
+- `gr.themes.Base()`
+- `gr.themes.Default()`
+- `gr.themes.Glass()`
+- `gr.themes.Monochrome()`
+- `gr.themes.Soft()`
 
 这些主题为数百个 CSS 变量设置了值。您可以使用预构建的主题作为自定义主题的起点，也可以从头开始创建自己的主题。让我们看看每种方法。
 
@@ -72,6 +73,7 @@ with gr.Blocks(theme=gr.themes.Default(primary_hue="red", secondary_hue="pink"))
 with gr.Blocks(theme=gr.themes.Default(primary_hue=gr.themes.colors.red, secondary_hue=gr.themes.colors.pink)) as demo:
     ...
 ```
+
 <div class="wrapper">
 <iframe
 	src="https://gradio-theme-extended-step-1.hf.space?__theme=light"
@@ -81,28 +83,28 @@ with gr.Blocks(theme=gr.themes.Default(primary_hue=gr.themes.colors.red, seconda
 
 预定义的颜色包括：
 
-* `slate`
-* `gray`
-* `zinc`
-* `neutral`
-* `stone`
-* `red`
-* `orange`
-* `amber`
-* `yellow`
-* `lime`
-* `green`
-* `emerald`
-* `teal`
-* `cyan`
-* `sky`
-* `blue`
-* `indigo`
-* `violet`
-* `purple`
-* `fuchsia`
-* `pink`
-* `rose`
+- `slate`
+- `gray`
+- `zinc`
+- `neutral`
+- `stone`
+- `red`
+- `orange`
+- `amber`
+- `yellow`
+- `lime`
+- `green`
+- `emerald`
+- `teal`
+- `cyan`
+- `sky`
+- `blue`
+- `indigo`
+- `violet`
+- `purple`
+- `fuchsia`
+- `pink`
+- `rose`
 
 您还可以创建自己的自定义 `Color` 对象并传递它们。
 
@@ -127,6 +129,7 @@ with gr.Blocks(theme=gr.themes.Default(spacing_size="sm", radius_size="none")) a
 with gr.Blocks(theme=gr.themes.Default(spacing_size=gr.themes.sizes.spacing_sm, radius_size=gr.themes.sizes.radius_none)) as demo:
     ...
 ```
+
 <div class="wrapper">
 <iframe
 	src="https://gradio-theme-extended-step-2.hf.space?__theme=light"
@@ -136,16 +139,16 @@ with gr.Blocks(theme=gr.themes.Default(spacing_size=gr.themes.sizes.spacing_sm, 
 
 预定义的大小对象包括：
 
-* `radius_none`
-* `radius_sm`
-* `radius_md`
-* `radius_lg`
-* `spacing_sm`
-* `spacing_md`
-* `spacing_lg`
-* `text_sm`
-* `text_md`
-* `text_lg`
+- `radius_none`
+- `radius_sm`
+- `radius_md`
+- `radius_lg`
+- `spacing_sm`
+- `spacing_md`
+- `spacing_lg`
+- `text_sm`
+- `text_md`
+- `text_lg`
 
 您还可以创建自己的自定义 `Size` 对象并传递它们。
 
@@ -173,6 +176,7 @@ with gr.Blocks(theme=gr.themes.Default(font=[gr.themes.GoogleFont("Inconsolata")
 ## 通过 `.set()` 扩展主题
 
 主题加载后，您还可以修改 CSS 变量的值。为此，请使用主题对象的 `.set()` 方法来访问 CSS 变量。例如：
+
 ```python
 theme = gr.themes.Default(primary_hue="blue").set(    loader_color="#FF0000",    slider_color="#FF0000",)
 使用`gr.Blocks(theme=theme)`创建演示块    ...
@@ -184,8 +188,9 @@ theme = gr.themes.Default(primary_hue="blue").set(    loader_color="#FF0000",   
 ### CSS 变量命名规范
 
 CSS 变量名可能会变得很长，例如 `button_primary_background_fill_hover_dark`！但是它们遵循一种常见的命名约定，使得理解变量功能和查找您要查找的变量变得容易。变量名由下划线分隔，由以下组成：
+
 1. 目标元素，例如 `button`、`slider` 或 `block`。2. 目标元素类型或子元素，例如 `button_primary` 或 `block_label`。3. 属性，例如 `button_primary_background_fill` 或 `block_label_border_width`。4. 任何相关状态，例如 `button_primary_background_fill_hover`。5. 如果在暗模式中值不同，则使用后缀 `_dark`。例如，`input_border_color_focus_dark`。
-当然，许多 CSS 变量名都比这个短，例如 `table_border_color` 或 `input_shadow`。
+   当然，许多 CSS 变量名都比这个短，例如 `table_border_color` 或 `input_shadow`。
 
 ### CSS 变量组织
 
@@ -194,6 +199,7 @@ CSS 变量名可能会变得很长，例如 `button_primary_background_fill_hove
 #### 引用核心变量
 
 要引用其中一个核心构造函数变量，请在变量名前加上星号。要引用核心颜色，请使用`*primary_`、`*secondary_` 或`*neutral_` 前缀，后跟亮度值。例如：
+
 ```python
 theme = gr.themes.Default(primary_hue="blue").set(
     button_primary_background_fill="*primary_200",
@@ -203,15 +209,19 @@ theme = gr.themes.Default(primary_hue="blue").set(
 
 在上面的示例中，我们将 `button_primary_background_fill` 和 `button_primary_background_fill_hover` 变量分别设置为`*primary_200` 和`*primary_300`。这些变量将分别设置为蓝色主色调调色板的 200 和 300 亮度值。
 同样地，要引用核心大小，请使用`*spacing_`、`*radius_` 或`*text_` 前缀，后跟大小值。例如：
+
 ```python
 theme = gr.themes.Default(radius_size="md").set(
     button_primary_border_radius="*radius_xl",
 )
 ```
+
 在上面的示例中，我们将 `button_primary_border_radius` 变量设置为`*radius_xl`。此变量将设置为中等半径大小范围的 `xl` 设置。
 
 #### 引用其他变量
+
 变量也可以引用彼此。例如，请看下面的示例：
+
 ```python
 theme = gr.themes.Default().set(
     button_primary_background_fill="#FF0000",
@@ -221,6 +231,7 @@ theme = gr.themes.Default().set(
 ```
 
 将这些值设置为相同的颜色有点繁琐。相反，我们可以在 `button_primary_background_fill_hover` 和 `button_primary_border` 变量中使用`*` 前缀引用 `button_primary_background_fill` 变量。
+
 ```python
 theme = gr.themes.Default().set(
     button_primary_background_fill="#FF0000",
@@ -232,6 +243,7 @@ theme = gr.themes.Default().set(
 现在，如果我们更改 `button_primary_background_fill` 变量，`button_primary_background_fill_hover` 和 `button_primary_border` 变量将自动更新。
 如果您打算共享主题，这将非常有用- 它使得修改主题变得容易，而无需更改每个变量。
 请注意，暗模式变量自动相互引用。例如：
+
 ```python
 theme = gr.themes.Default().set(
     button_primary_background_fill="#FF0000",
@@ -242,7 +254,9 @@ theme = gr.themes.Default().set(
 ```
 
 `button_primary_border_dark` 将从 `button_primary_background_fill_dark` 获取其值，因为暗模式总是使用变量的暗版本。
+
 ## 创建一个完整的主题
+
 假设您想从头开始创建一个主题！我们将逐步进行 - 您还可以参考 gradio 源代码库中预构建主题的源代码，请看这里的示例：[Monochrome theme 的源代码](https://github.com/gradio-app/gradio/blob/main/gradio/themes/monochrome.py)
 我们的新主题类将继承自 `gradio.themes.Base`，这是一个设置了许多方便默认值的主题。让我们创建一个名为 Seafoam 的简单演示，以及使用它的简单应用程序。
 $code_theme_new_step_1
@@ -269,6 +283,7 @@ $code_theme_new_step_2
 我们来直接修改主题。我们将调用 `set()` 方法来明确覆盖 CSS 变量值。我们可以使用任何 CSS 逻辑，并使用`*` 前缀引用我们的核心构造函数的参数。
 
 $code_theme_new_step_3
+
 <div class="wrapper">
 <iframe
 	src="https://gradio-theme-new-step-3.hf.space?__theme=light"
@@ -285,9 +300,10 @@ $code_theme_new_step_3
 在创建主题后，您可以将其上传到 HuggingFace Hub，让其他人查看、使用和构建主题！
 
 ### 上传主题
+
 有两种上传主题的方式，通过主题类实例或命令行。我们将使用之前创建的“seafoam”主题来介绍这两种方式。
 
-* 通过类实例
+- 通过类实例
 
 每个主题实例都有一个名为“push_to_hub”的方法，我们可以使用它来将主题上传到 HuggingFace Hub。
 
@@ -297,9 +313,10 @@ seafoam.push_to_hub(repo_name="seafoam",
 					hf_token="<token>")
 ```
 
-* 通过命令行
+- 通过命令行
 
 首先将主题保存到磁盘
+
 ```python
 seafoam.dump(filename="seafoam.json")
 ```
@@ -350,6 +367,7 @@ upload_theme\
 </div>
 
 ### 下载
+
 要使用 Hub 中的主题，请在 `ThemeClass` 上使用 `from_hub` 方法，然后将其传递给您的应用程序：
 
 ```python
