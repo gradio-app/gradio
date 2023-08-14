@@ -259,7 +259,7 @@ Here you will have three files, the first file is for the Svelte application, an
 	import { ColorPicker } from "@gradio/form";
 	import { Block } from "@gradio/atoms";
 	import StatusTracker from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
+	import type { LoadingStatus } from "@gradio/statustracker/types";
 	import type { Styles } from "@gradio/utils";
 
 	export let label: string = "ColorPicker";
@@ -303,7 +303,7 @@ import { test, describe, assert, afterEach } from "vitest";
 import { cleanup, render } from "@gradio/tootils";
 
 import ColorPicker from "./ColorPicker.svelte";
-import type { LoadingStatus } from "@gradio/statustracker";
+import type { LoadingStatus } from "@gradio/statustracker/types";
 
 const loading_status = {
 	eta: 0,
