@@ -328,7 +328,7 @@ class Audio(
         return masked_inputs
 
     def postprocess(
-        self, y: tuple[int, np.ndarray] | str | Path | None
+        self, y: tuple[int, np.ndarray] | str | Path | bytes | None
     ) -> str | dict | None:
         """
         Parameters:
@@ -338,9 +338,13 @@ class Audio(
         """
         if y is None:
             return None
-        if isinstance(y, str) and client_utils.is_http_url_like(y):
+        if isinstance(y, bytes):
+            if self.streaming:
+                return y
+            file_path = self.file_bytes_to_file(y, "audio")
+        elif isinstance(y, str) and client_utils.is_http_url_like(y):
             return {"name": y, "data": None, "is_file": True}
-        if isinstance(y, tuple):
+        elif isinstance(y, tuple):
             sample_rate, data = y
             file_path = self.audio_to_temp_file(
                 data,
@@ -359,17 +363,23 @@ class Audio(
                 file_path = self.make_temp_copy_if_needed(y)
         return {"name": file_path, "data": None, "is_file": True}
 
-    def stream_output(self, y):
+    def stream_output(self, y, output_id):
+        output_file = {
+            "name": output_id,
+            "is_stream": True,
+        }
         if y is None:
-            return None
+            return None, output_file
+        if isinstance(y, bytes):
+            return y, output_file
         if client_utils.is_http_url_like(y["name"]):
             response = requests.get(y["name"])
-            bytes = response.content
+            binary_data = response.content
         else:
             file_path = y["name"]
             with open(file_path, "rb") as f:
-                bytes = f.read()
-        return bytes
+                binary_data = f.read()
+        return binary_data, output_file
 
     def check_streamable(self):
         if self.source != "microphone":

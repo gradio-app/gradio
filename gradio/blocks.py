@@ -1358,14 +1358,11 @@ Received outputs:
         for i, output_id in enumerate(self.dependencies[fn_index]["outputs"]):
             block = self.blocks[output_id]
             if isinstance(block, StreamableOutput) and block.streaming:
-                stream = block.stream_output(data[i])
+                stream, output_data = block.stream_output(data[i], f"{session_hash}/{run}/{output_id}")
                 if run not in self.pending_streams[session_hash]:
                     self.pending_streams[session_hash][run] = defaultdict(list)
                 self.pending_streams[session_hash][run][output_id].append(stream)
-                data[i] = {
-                    "name": f"{session_hash}/{run}/{output_id}",
-                    "is_stream": True,
-                }
+                data[i] = output_data
         return data
 
     async def process_api(

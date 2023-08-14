@@ -274,7 +274,7 @@ class StreamableOutput(EventListener):
     def __init__(self):
         self.streaming: bool
 
-    def stream_output(self, y) -> bytes:
+    def stream_output(self, y, output_id: str) -> bytes:
         raise NotImplementedError
 
 
