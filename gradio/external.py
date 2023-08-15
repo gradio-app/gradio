@@ -152,8 +152,8 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
     pipelines = {
         "audio-classification": {
             # example model: ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition
-            "inputs": components.Audio(source="upload", type="filepath", label="Input"),
-            "outputs": components.Label(label="Class"),
+            "inputs": components.Audio(source="upload", type="filepath", label="Input", render=False),
+            "outputs": components.Label(label="Class", render=False),
             "preprocess": lambda i: to_binary,
             "postprocess": lambda r: postprocess_label(
                 {i["label"].split(", ")[0]: i["score"] for i in r.json()}
@@ -161,34 +161,34 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         },
         "audio-to-audio": {
             # example model: facebook/xm_transformer_sm_all-en
-            "inputs": components.Audio(source="upload", type="filepath", label="Input"),
-            "outputs": components.Audio(label="Output"),
+            "inputs": components.Audio(source="upload", type="filepath", label="Input", render=False),
+            "outputs": components.Audio(label="Output", render=False),
             "preprocess": to_binary,
             "postprocess": encode_to_base64,
         },
         "automatic-speech-recognition": {
             # example model: facebook/wav2vec2-base-960h
-            "inputs": components.Audio(source="upload", type="filepath", label="Input"),
-            "outputs": components.Textbox(label="Output"),
+            "inputs": components.Audio(source="upload", type="filepath", label="Input", render=False),
+            "outputs": components.Textbox(label="Output", render=False),
             "preprocess": to_binary,
             "postprocess": lambda r: r.json()["text"],
         },
         "conversational": {
-            "inputs": [components.Textbox(), components.State()],  # type: ignore
-            "outputs": [components.Chatbot(), components.State()],  # type: ignore
+            "inputs": [components.Textbox(render=False), components.State(render=False)],  # type: ignore
+            "outputs": [components.Chatbot(render=False), components.State(render=False)],  # type: ignore
             "preprocess": chatbot_preprocess,
             "postprocess": chatbot_postprocess,
         },
         "feature-extraction": {
             # example model: julien-c/distilbert-feature-extraction
-            "inputs": components.Textbox(label="Input"),
-            "outputs": components.Dataframe(label="Output"),
+            "inputs": components.Textbox(label="Input", render=False),
+            "outputs": components.Dataframe(label="Output", render=False),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r.json()[0],
         },
         "fill-mask": {
-            "inputs": components.Textbox(label="Input"),
-            "outputs": components.Label(label="Classification"),
+            "inputs": components.Textbox(label="Input", render=False),
+            "outputs": components.Label(label="Classification", render=False),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: postprocess_label(
                 {i["token_str"]: i["score"] for i in r.json()}
@@ -196,8 +196,8 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         },
         "image-classification": {
             # Example: google/vit-base-patch16-224
-            "inputs": components.Image(type="filepath", label="Input Image"),
-            "outputs": components.Label(label="Classification"),
+            "inputs": components.Image(type="filepath", label="Input Image", render=False),
+            "outputs": components.Label(label="Classification", render=False),
             "preprocess": to_binary,
             "postprocess": lambda r: postprocess_label(
                 {i["label"].split(", ")[0]: i["score"] for i in r.json()}
@@ -206,27 +206,27 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         "question-answering": {
             # Example: deepset/xlm-roberta-base-squad2
             "inputs": [
-                components.Textbox(lines=7, label="Context"),
-                components.Textbox(label="Question"),
+                components.Textbox(lines=7, label="Context", render=False),
+                components.Textbox(label="Question", render=False),
             ],
             "outputs": [
-                components.Textbox(label="Answer"),
-                components.Label(label="Score"),
+                components.Textbox(label="Answer", render=False),
+                components.Label(label="Score", render=False),
             ],
             "preprocess": lambda c, q: {"inputs": {"context": c, "question": q}},
             "postprocess": lambda r: (r.json()["answer"], {"label": r.json()["score"]}),
         },
         "summarization": {
             # Example: facebook/bart-large-cnn
-            "inputs": components.Textbox(label="Input"),
-            "outputs": components.Textbox(label="Summary"),
+            "inputs": components.Textbox(label="Input", render=False),
+            "outputs": components.Textbox(label="Summary", render=False),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r.json()[0]["summary_text"],
         },
         "text-classification": {
             # Example: distilbert-base-uncased-finetuned-sst-2-english
-            "inputs": components.Textbox(label="Input"),
-            "outputs": components.Label(label="Classification"),
+            "inputs": components.Textbox(label="Input", render=False),
+            "outputs": components.Label(label="Classification", render=False),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: postprocess_label(
                 {i["label"].split(", ")[0]: i["score"] for i in r.json()[0]}
@@ -234,32 +234,32 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         },
         "text-generation": {
             # Example: gpt2
-            "inputs": components.Textbox(label="Input"),
-            "outputs": components.Textbox(label="Output"),
+            "inputs": components.Textbox(label="Input", render=False),
+            "outputs": components.Textbox(label="Output", render=False),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r.json()[0]["generated_text"],
         },
         "text2text-generation": {
             # Example: valhalla/t5-small-qa-qg-hl
-            "inputs": components.Textbox(label="Input"),
-            "outputs": components.Textbox(label="Generated Text"),
+            "inputs": components.Textbox(label="Input", render=False),
+            "outputs": components.Textbox(label="Generated Text", render=False),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r.json()[0]["generated_text"],
         },
         "translation": {
-            "inputs": components.Textbox(label="Input"),
-            "outputs": components.Textbox(label="Translation"),
+            "inputs": components.Textbox(label="Input", render=False),
+            "outputs": components.Textbox(label="Translation", render=False),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r.json()[0]["translation_text"],
         },
         "zero-shot-classification": {
             # Example: facebook/bart-large-mnli
             "inputs": [
-                components.Textbox(label="Input"),
-                components.Textbox(label="Possible class names (" "comma-separated)"),
-                components.Checkbox(label="Allow multiple true classes"),
+                components.Textbox(label="Input", render=False),
+                components.Textbox(label="Possible class names (" "comma-separated)", render=False),
+                components.Checkbox(label="Allow multiple true classes", render=False),
             ],
-            "outputs": components.Label(label="Classification"),
+            "outputs": components.Label(label="Classification", render=False),
             "preprocess": lambda i, c, m: {
                 "inputs": i,
                 "parameters": {"candidate_labels": c, "multi_class": m},
@@ -275,15 +275,16 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             # Example: sentence-transformers/distilbert-base-nli-stsb-mean-tokens
             "inputs": [
                 components.Textbox(
-                    value="That is a happy person", label="Source Sentence"
+                    value="That is a happy person", label="Source Sentence", render=False
                 ),
                 components.Textbox(
                     lines=7,
                     placeholder="Separate each sentence by a newline",
                     label="Sentences to compare to",
+                    render=False
                 ),
             ],
-            "outputs": components.Label(label="Classification"),
+            "outputs": components.Label(label="Classification", render=False),
             "preprocess": lambda src, sentences: {
                 "inputs": {
                     "source_sentence": src,
@@ -296,32 +297,32 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         },
         "text-to-speech": {
             # Example: julien-c/ljspeech_tts_train_tacotron2_raw_phn_tacotron_g2p_en_no_space_train
-            "inputs": components.Textbox(label="Input"),
-            "outputs": components.Audio(label="Audio"),
+            "inputs": components.Textbox(label="Input", render=False),
+            "outputs": components.Audio(label="Audio", render=False),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": encode_to_base64,
         },
         "text-to-image": {
             # example model: osanseviero/BigGAN-deep-128
-            "inputs": components.Textbox(label="Input"),
-            "outputs": components.Image(label="Output"),
+            "inputs": components.Textbox(label="Input", render=False),
+            "outputs": components.Image(label="Output", render=False),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": encode_to_base64,
         },
         "token-classification": {
             # example model: huggingface-course/bert-finetuned-ner
-            "inputs": components.Textbox(label="Input"),
-            "outputs": components.HighlightedText(label="Output"),
+            "inputs": components.Textbox(label="Input", render=False),
+            "outputs": components.HighlightedText(label="Output", render=False),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r,  # Handled as a special case in query_huggingface_api()
         },
         "document-question-answering": {
             # example model: impira/layoutlm-document-qa
             "inputs": [
-                components.Image(type="filepath", label="Input Document"),
-                components.Textbox(label="Question"),
+                components.Image(type="filepath", label="Input Document", render=False),
+                components.Textbox(label="Question", render=False),
             ],
-            "outputs": components.Label(label="Label"),
+            "outputs": components.Label(label="Label", render=False),
             "preprocess": lambda img, q: {
                 "inputs": {
                     "image": extract_base64_data(img),  # Extract base64 data
@@ -335,10 +336,10 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         "visual-question-answering": {
             # example model: dandelin/vilt-b32-finetuned-vqa
             "inputs": [
-                components.Image(type="filepath", label="Input Image"),
-                components.Textbox(label="Question"),
+                components.Image(type="filepath", label="Input Image", render=False),
+                components.Textbox(label="Question", render=False),
             ],
-            "outputs": components.Label(label="Label"),
+            "outputs": components.Label(label="Label", render=False),
             "preprocess": lambda img, q: {
                 "inputs": {
                     "image": extract_base64_data(img),
@@ -351,8 +352,8 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         },
         "image-to-text": {
             # example model: Salesforce/blip-image-captioning-base
-            "inputs": components.Image(type="filepath", label="Input Image"),
-            "outputs": components.Textbox(label="Generated Text"),
+            "inputs": components.Image(type="filepath", label="Input Image", render=False),
+            "outputs": components.Textbox(label="Generated Text", render=False),
             "preprocess": to_binary,
             "postprocess": lambda r: r.json()[0]["generated_text"],
         },
@@ -369,9 +370,10 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
                 type="pandas",
                 headers=col_names,
                 col_count=(len(col_names), "fixed"),
+                render=False
             ),
             "outputs": components.Dataframe(
-                label="Predictions", type="array", headers=["prediction"]
+                label="Predictions", type="array", headers=["prediction"], render=False
             ),
             "preprocess": rows_to_cols,
             "postprocess": lambda r: {
