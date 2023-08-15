@@ -11,7 +11,6 @@ from gradio.components.base import (
     component,
     get_component_instance,
 )
-from gradio.layouts import Column, Row
 from gradio.components.button import Button
 from gradio.components.carousel import Carousel
 from gradio.components.chatbot import Chatbot
@@ -47,6 +46,7 @@ from gradio.components.status_tracker import StatusTracker
 from gradio.components.textbox import Textbox
 from gradio.components.upload_button import UploadButton
 from gradio.components.video import Video
+from gradio.layouts import Column, Row
 
 Text = Textbox
 DataFrame = Dataframe

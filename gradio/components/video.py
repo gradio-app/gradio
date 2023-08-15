@@ -50,7 +50,7 @@ class Video(
     Demos: video_identity, video_subtitle
     """
 
-    data_class = VideoData
+    data_model = VideoData
 
     def __init__(
         self,
@@ -185,7 +185,7 @@ class Video(
             "__type__": "update",
         }
 
-    def preprocess(self, x: dict[str, FileData]) -> str | None:
+    def preprocess(self, x: dict[str, FileData] | VideoData) -> str | None:
         """
         Parameters:
             x: A tuple of (video file data, subtitle file data) or just video file data.
@@ -194,7 +194,7 @@ class Video(
         """
         if x is None:
             return None
-        video: FileData = VideoData(**x).video
+        video: FileData = FileData(**x) if isinstance(x, dict) else x
 
         if video.is_file:
             assert video.name is not None, "Received file data without a file name."

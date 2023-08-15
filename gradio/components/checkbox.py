@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Literal
+from typing import Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import BooleanSerializable
 
 from gradio.components.base import Component, FormComponent, _Keywords
 from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
@@ -121,11 +120,9 @@ class Checkbox(Changeable, Inputable, Selectable, FormComponent):
             return scores[0], None
         else:
             return None, scores[0]
-    
+
     def api_info(self) -> dict[str, list[str]]:
-        return {
-		    "type": "boolean"
-	    }
-    
+        return {"type": "boolean"}
+
     def example_inputs(self) -> bool:
         return True

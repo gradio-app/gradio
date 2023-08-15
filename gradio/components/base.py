@@ -107,6 +107,11 @@ class ComponentBase(metaclass=ABCMeta):
         """
         return x
 
+    @property
+    @abstractmethod
+    def skip_api(self):
+        """Whether this component should be skipped from the api return value"""
+
 
 class Component(ComponentBase, Block):
     """
@@ -343,6 +348,10 @@ class Component(ComponentBase, Block):
         config["custom_component"] = not self.__module__.startswith("gradio.components")
         return config
 
+    @property
+    def skip_api(self):
+        return False
+
     @staticmethod
     def get_load_fn_and_initial_value(value):
         if callable(value):
@@ -383,11 +392,14 @@ class Component(ComponentBase, Block):
         Write the component's value to a format that can be stored in a csv or jsonl format for flagging.
         """
         if self.data_model:
+            breakpoint()
+            x = self.data_model(**x)
             assert isinstance(x, GradioBaseModel)
             return x.copy_to_dir(flag_dir).model_dump_json()
-        raise NotImplementedError(
-            f"The flag method has not been implemented for {self.get_block_name()}"
-        )
+        return x
+        # raise NotImplementedError(
+        #     f"The flag method has not been implemented for {self.get_block_name()}"
+        # )
 
     def read_from_flag(
         self,

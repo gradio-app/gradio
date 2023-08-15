@@ -394,7 +394,7 @@ class Examples:
                 output.append(value_as_dict)
             except (ValueError, TypeError, SyntaxError, AssertionError):
                 output.append(
-                    component.serialize(
+                    component.read_from_flag(
                         value_to_use,
                         self.cached_folder,
                     )

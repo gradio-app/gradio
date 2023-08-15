@@ -11,10 +11,15 @@ from gradio_client.documentation import document, set_documentation_group
 
 from gradio import utils
 from gradio.components.base import Component, _Keywords
+from gradio.data_classes import FileData, GradioRootModel
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Clickable, Uploadable
 
 set_documentation_group("component")
+
+
+class ListFiles(GradioRootModel):
+    root: list[FileData]
 
 
 @document()
@@ -103,13 +108,9 @@ class UploadButton(Clickable, Uploadable, Component):
 
     def api_info(self) -> dict[str, list[str]]:
         if self.file_count == "single":
-            return {"type": "string", "description": "filepath or URL to file"}
+            return FileData.model_json_schema()
         else:
-            return {
-                "type": "array",
-                "description": "List of filepath(s) or URL(s) to files",
-                "items": {"type": "string", "description": "filepath or URL to file"},
-            }
+            return ListFiles.model_json_schema()
 
     def example_inputs(self) -> dict[str, Any]:
         if self.file_count == "single":
@@ -228,3 +229,7 @@ class UploadButton(Clickable, Uploadable, Component):
         if size is not None:
             self.size = size
         return self
+
+    @property
+    def skip_api(self):
+        return False

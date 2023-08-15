@@ -11,7 +11,7 @@ from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import utils
 from gradio.components.base import Component, _Keywords
-from gradio.data_classes import FileData, GradioRootModel
+from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import (
     EventListenerMethod,
     Selectable,
@@ -20,7 +20,8 @@ from gradio.events import (
 set_documentation_group("component")
 
 
-class GalleryImage(FileData):
+class GalleryImage(GradioModel):
+    image: FileData
     caption: Optional[str] = None
 
 
@@ -214,17 +215,22 @@ class Gallery(Selectable, Component):
 
             if caption is not None:
                 output.append(
-                    [
-                        {
+                    {
+                        "image": {
                             "name": file_path,
                             "data": None,
                             "is_file": True,
-                            "caption": caption,
-                        }
-                    ]
+                        },
+                        "caption": caption,
+                    }
                 )
             else:
-                output.append({"name": file_path, "data": None, "is_file": True})
+                output.append(
+                    {
+                        "image": {"name": file_path, "data": None, "is_file": True},
+                        "caption": None,
+                    }
+                )
 
         return GalleryData(output)
 

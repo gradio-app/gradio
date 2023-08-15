@@ -61,7 +61,6 @@
 		"@gradio/tabs": "workspace:^",
 		"@gradio/textbox": "workspace:^",
 		"@gradio/theme": "workspace:^",
-		"@gradio/timeseries": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/uploadbutton": "workspace:^",
 		"@gradio/utils": "workspace:^",

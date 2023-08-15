@@ -267,7 +267,6 @@ class Image(
             assert isinstance(x, dict)
             x, mask = x["image"], x["mask"]
 
-        assert isinstance(x, str)
         im = processing_utils.decode_base64_to_image(x)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -331,3 +330,9 @@ class Image(
 
     def example_inputs(self) -> Any:
         return "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+
+    def flag(self, x: Any, flag_dir: str | Path = "") -> str:
+        return client_utils.decode_base64_to_file(x, dir=flag_dir).name
+
+    def read_from_flag(self, x: Any, flag_dir: str | Path | None = None):
+        return client_utils.encode_file_to_base64(x)

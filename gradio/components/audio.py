@@ -25,7 +25,7 @@ from gradio.events import (
 set_documentation_group("component")
 
 
-class AudioData(FileData):
+class AudioInputData(FileData):
     crop_min: Optional[int] = None
     crop_max: Optional[int] = None
 
@@ -51,7 +51,7 @@ class Audio(
     Guides: real-time-speech-recognition
     """
 
-    data_model = AudioData
+    data_model = FileData
 
     def __init__(
         self,
@@ -201,7 +201,7 @@ class Audio(
         if x is None:
             return x
 
-        x = AudioData(**x)
+        x = AudioInputData(**x)
 
         if x.is_file:
             if client_utils.is_http_url_like(x.name):
@@ -241,7 +241,7 @@ class Audio(
 
     def postprocess(
         self, y: tuple[int, np.ndarray] | str | Path | None
-    ) -> AudioData | None:
+    ) -> FileData | None:
         """
         Parameters:
             y: audio data in either of the following formats: a tuple of (sample_rate, data), or a string filepath or URL to an audio file, or None.
@@ -260,9 +260,9 @@ class Audio(
             self.temp_files.add(file_path)
         else:
             file_path = self.make_temp_copy_if_needed(y)
-        return AudioData(**{"name": file_path, "data": None, "is_file": True})
+        return FileData(**{"name": file_path, "data": None, "is_file": True})
 
-    def stream_output(self, y: AudioData) -> bytes:
+    def stream_output(self, y: FileData) -> bytes:
         if y is None:
             return None
         if client_utils.is_http_url_like(y.name):

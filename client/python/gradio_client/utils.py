@@ -35,20 +35,6 @@ SPACE_FETCHER_URL = "https://gradio-space-api-fetcher-v2.hf.space/api"
 RESET_URL = "reset"
 SPACE_URL = "https://hf.space/{}"
 
-SKIP_COMPONENTS = {
-    "state",
-    "row",
-    "column",
-    "tabs",
-    "tab",
-    "tabitem",
-    "box",
-    "form",
-    "accordion",
-    "group",
-    "interpretation",
-    "dataset",
-}
 STATE_COMPONENT = "state"
 INVALID_RUNTIME = [
     SpaceStage.NO_APP_FILE,
@@ -534,7 +520,7 @@ def get_type(schema: dict):
         raise APIInfoParseError(f"Cannot parse type for {schema}")
 
 
-def json_schema_to_python_type(schema: Any, defs=None) -> str:
+def json_schema_to_python_type(schema: Any, defs) -> str:
     """Convert the json schema into a python type hint"""
     type_ = get_type(schema)
     if type_ == {}:
@@ -578,3 +564,20 @@ def json_schema_to_python_type(schema: Any, defs=None) -> str:
         return desc
     else:
         raise APIInfoParseError(f"Cannot parse schema {schema}")
+
+
+def traverse(json_obj, func, is_root):
+    if is_root(json_obj):
+        return func(json_obj)
+    elif isinstance(json_obj, dict):
+        new_obj = {}
+        for key, value in json_obj.items():
+            new_obj[key] = traverse(value, func, is_root)
+        return new_obj
+    elif isinstance(json_obj, list):
+        new_obj = []
+        for item in json_obj:
+            new_obj.append(traverse(item, func, is_root))
+        return new_obj
+    else:
+        return json_obj
