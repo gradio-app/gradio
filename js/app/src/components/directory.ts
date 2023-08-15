@@ -35,7 +35,6 @@ export const component_map = {
 	tabs: () => import("./Tabs"),
 	tabitem: () => import("./TabItem"),
 	textbox: () => import("./Textbox"),
-	timeseries: () => import("./TimeSeries"),
 	uploadbutton: () => import("./UploadButton"),
 	video: () => import("./Video")
 };

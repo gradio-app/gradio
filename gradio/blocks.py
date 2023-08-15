@@ -22,7 +22,6 @@ import requests
 from anyio import CapacityLimiter
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
-from packaging import version
 
 from gradio import (
     analytics,
@@ -117,6 +116,10 @@ class Block:
         if render:
             self.render()
         check_deprecated_parameters(self.__class__.__name__, kwargs=kwargs)
+
+    @property
+    def skip_api(self):
+        return False
 
     def render(self):
         """
@@ -342,6 +345,10 @@ class BlockContext(Block):
         """
         self.children: list[Block] = []
         Block.__init__(self, visible=visible, render=render, **kwargs)
+
+    @property
+    def skip_api(self):
+        return True
 
     def add_child(self, child: Block):
         self.children.append(child)
@@ -1355,8 +1362,8 @@ Received outputs:
                 "type": block.get_block_name(),
                 "props": utils.delete_none(props),
             }
-            serializer = "foo"
-            if serializer:
+            block_config["skip_api"] = block.skip_api
+            if not block.skip_api:
                 block_config["api_info"] = block.api_info()  # type: ignore
                 block_config["example_inputs"] = block.example_inputs()  # type: ignore
             config["components"].append(block_config)
@@ -2099,19 +2106,13 @@ Received outputs:
             return self.enable_queue
         return self.dependencies[fn_index]["queue"]
 
-    def get_api_info(self,):
+    def get_api_info(self):
         """
-        Gets the information needed to generate the API docs from a Blocks config.
-        Parameters:
-            config: a Blocks config dictionary
-            serialize: If True, returns the serialized version of the typed information. If False, returns the raw version.
+        Gets the information needed to generate the API docs from a Blocks.
         """
         config = self.config
         api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
         mode = config.get("mode", None)
-        after_new_format = version.parse(config.get("version", "2.0")) > version.Version(
-            "3.28.3"
-        )
 
         for d, dependency in enumerate(config["dependencies"]):
             dependency_info = {"parameters": [], "returns": []}
@@ -2126,44 +2127,27 @@ Received outputs:
                     skip_endpoint = True  # if component not found, skip endpoint
                     break
                 type = component["type"]
-                if type in client_utils.SKIP_COMPONENTS:
-                    continue
-                if type in client_utils.SKIP_COMPONENTS:
+                if self.blocks[component["id"]].skip_api:
                     continue
                 label = component["props"].get("label", f"parameter_{i}")
                 # The config has the most specific API info (taking into account the parameters
                 # of the component), so we use that if it exists. Otherwise, we fallback to the
                 # Serializer's API info.
-                serializer = serializing.COMPONENT_MAPPING[type]()
-                if component.get("api_info") and after_new_format:
-                    info = component["api_info"]
-                    example = component["example_inputs"]["serialized"]
-                else:
-                    assert isinstance(serializer, serializing.Serializable)
-                    info = serializer.api_info()
-                    example = serializer.example_inputs()["raw"]
-                python_info = info["info"]
-                if serialize and info["serialized_info"]:
-                    python_info = serializer.serialized_info()
-                    if (
-                        isinstance(serializer, serializing.FileSerializable)
-                        and component["props"].get("file_count", "single") != "single"
-                    ):
-                        python_info = serializer._multiple_file_serialized_info()
-
-                python_type = client_utils.json_schema_to_python_type(python_info)
-                serializer_name = serializing.COMPONENT_MAPPING[type].__name__
+                info = self.blocks[component["id"]].api_info()
+                example = self.blocks[component["id"]].example_inputs()
+                python_type = client_utils.json_schema_to_python_type(
+                    info, defs=info.get("$defs")
+                )
                 dependency_info["parameters"].append(
                     {
                         "label": label,
-                        "type": info["info"],
+                        "type": info,
                         "python_type": {
                             "type": python_type,
-                            "description": python_info.get("description", ""),
+                            "description": info.get("description", ""),
                         },
                         "component": type.capitalize(),
                         "example_input": example,
-                        "serializer": serializer_name,
                     }
                 )
 
@@ -2176,43 +2160,24 @@ Received outputs:
                     skip_endpoint = True  # if component not found, skip endpoint
                     break
                 type = component["type"]
-                if type in client_utils.SKIP_COMPONENTS:
+                if self.blocks[component["id"]].skip_api:
                     continue
-                if (
-                    not component.get("serializer")
-                    and type not in serializing.COMPONENT_MAPPING
-                ):
-                    skip_endpoint = True  # if component not serializable, skip endpoint
-                    break
                 label = component["props"].get("label", f"value_{o}")
-                serializer = serializing.COMPONENT_MAPPING[type]()
-                if component.get("api_info") and after_new_format:
-                    info = component["api_info"]
-                    example = component["example_inputs"]["serialized"]
-                else:
-                    assert isinstance(serializer, serializing.Serializable)
-                    info = serializer.api_info()
-                    example = serializer.example_inputs()["raw"]
-                python_info = info["info"]
-                if serialize and info["serialized_info"]:
-                    python_info = serializer.serialized_info()
-                    if (
-                        isinstance(serializer, serializing.FileSerializable)
-                        and component["props"].get("file_count", "single") != "single"
-                    ):
-                        python_info = serializer._multiple_file_serialized_info()
-                python_type = client_utils.json_schema_to_python_type(python_info)
-                serializer_name = serializing.COMPONENT_MAPPING[type].__name__
+                info = self.blocks[component["id"]].api_info()
+                example = self.blocks[component["id"]].example_inputs()
+
+                python_type = client_utils.json_schema_to_python_type(
+                    info, defs=info.get("$defs")
+                )
                 dependency_info["returns"].append(
                     {
                         "label": label,
-                        "type": info["info"],
+                        "type": info,
                         "python_type": {
                             "type": python_type,
-                            "description": python_info.get("description", ""),
+                            "description": info.get("description", ""),
                         },
                         "component": type.capitalize(),
-                        "serializer": serializer_name,
                     }
                 )
 
@@ -2221,8 +2186,13 @@ Received outputs:
 
             if skip_endpoint:
                 continue
-            if dependency["api_name"] is not None and dependency["api_name"] is not False:
-                api_info["named_endpoints"][f"/{dependency['api_name']}"] = dependency_info
+            if (
+                dependency["api_name"] is not None
+                and dependency["api_name"] is not False
+            ):
+                api_info["named_endpoints"][
+                    f"/{dependency['api_name']}"
+                ] = dependency_info
             elif (
                 dependency["api_name"] is False
                 or mode == "interface"

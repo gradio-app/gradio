@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Any, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import SimpleSerializable
 
 from gradio.components.base import Component, _Keywords
 
@@ -13,7 +12,7 @@ set_documentation_group("component")
 
 
 @document()
-class Interpretation(Component, SimpleSerializable):
+class Interpretation(Component):
     """
     Used to create an interpretation widget for a component.
     Preprocessing: this component does *not* accept input.
@@ -59,3 +58,7 @@ class Interpretation(Component, SimpleSerializable):
             "value": value,
             "__type__": "update",
         }
+
+    @property
+    def skip_api(self):
+        return True

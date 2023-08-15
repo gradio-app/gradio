@@ -298,7 +298,7 @@ class App(FastAPI):
         @app.get("/info/", dependencies=[Depends(login_check)])
         @app.get("/info", dependencies=[Depends(login_check)])
         def api_info(serialize: bool = True):
-            #config = app.get_blocks().get_api_info()
+            # config = app.get_blocks().get_api_info()
             return app.get_blocks().get_api_info()  # type: ignore
 
         @app.get("/config/", dependencies=[Depends(login_check)])

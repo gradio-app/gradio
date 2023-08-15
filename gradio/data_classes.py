@@ -4,6 +4,7 @@ import shutil
 from enum import Enum, auto
 from typing import Any, Dict, List, Optional, Union
 
+from gradio_client.utils import traverse
 from pydantic import BaseModel, RootModel
 from typing_extensions import Literal
 
@@ -64,29 +65,14 @@ class LogMessage(BaseModel):
 
 
 class GradioBaseModel:
-    @classmethod
-    def traverse(cls, json_obj, func, is_root):
-        if is_root(json_obj):
-            return func(json_obj)
-        elif isinstance(json_obj, dict):
-            new_obj = {}
-            for key, value in json_obj.items():
-                new_obj[key] = cls.traverse(value, func, is_root)
-            return new_obj
-        elif isinstance(json_obj, list):
-            new_obj = []
-            for item in json_obj:
-                new_obj.append(cls.traverse(item, func, is_root))
-            return new_obj
-        else:
-            return json_obj
-
-    def copy_to_dir(self, dir: str):
+    def copy_to_dir(self, dir: str) -> "GradioBaseModel":
         assert isinstance(self, (BaseModel, RootModel))
-        return self.traverse(
-            self.model_dump(),
-            lambda obj: FileData(**obj).copy_to_dir(dir),
-            FileData.is_file_data,
+        return self.__class__(
+            **traverse(
+                self.model_dump(),
+                lambda obj: FileData(**obj).copy_to_dir(dir),
+                FileData.is_file_data,
+            )
         )
 
 

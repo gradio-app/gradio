@@ -99,11 +99,11 @@ class SimpleCSVLogger(FlaggingCallback):
             save_dir = Path(
                 flagging_dir
             ) / client_utils.strip_invalid_filename_characters(component.label or "")
+            save_dir.mkdir(exist_ok=True)
             csv_data.append(
-                component.deserialize(
+                component.flag(
                     sample,
                     save_dir,
-                    None,
                 )
             )
 
@@ -167,11 +167,12 @@ class CSVLogger(FlaggingCallback):
             ) / client_utils.strip_invalid_filename_characters(
                 getattr(component, "label", None) or f"component {idx}"
             )
+            save_dir.mkdir(exist_ok=True)
             if utils.is_update(sample):
                 csv_data.append(str(sample))
             else:
                 csv_data.append(
-                    component.deserialize(sample, save_dir=save_dir)
+                    component.flag(sample, flag_dir=save_dir)
                     if sample is not None
                     else ""
                 )
@@ -425,7 +426,8 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             # Get deserialized object (will save sample to disk if applicable -file, audio, image,...-)
             label = component.label or ""
             save_dir = data_dir / client_utils.strip_invalid_filename_characters(label)
-            deserialized = component.deserialize(sample, save_dir, None)
+            save_dir.mkdir(exist_ok=True)
+            deserialized = component.flag(sample, save_dir)
 
             # Add deserialized object to row
             features[label] = {"dtype": "string", "_type": "Value"}

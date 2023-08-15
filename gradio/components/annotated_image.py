@@ -21,13 +21,14 @@ set_documentation_group("component")
 _Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
 
-class Annotation(FileData):
+class Annotation(GradioModel):
+    image: FileData
     label: str
 
 
 class AnnotatedImageData(GradioModel):
     image: FileData
-    files: list[Annotation]
+    annotations: list[Annotation]
 
 
 @document()
@@ -224,14 +225,16 @@ class AnnotatedImage(Selectable, Component):
             )
             mask_file_path = str(utils.abspath(mask_file))
             self.temp_files.add(mask_file_path)
-
             sections.append(
-                {"name": mask_file_path, "data": None, "is_file": True, "label": label}
+                {
+                    "image": {"name": mask_file_path, "data": None, "is_file": True},
+                    "label": label,
+                }
             )
 
         return AnnotatedImageData(
             image={"name": base_img_path, "data": None, "is_file": True},
-            files=[sections],
+            annotations=sections,
         )
 
     def example_inputs(self) -> Any:

@@ -5,14 +5,14 @@ from __future__ import annotations
 import tempfile
 import warnings
 from pathlib import Path
-from typing import Any, Callable, Literal, Union
+from typing import Any, Callable, Literal
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio import utils
 from gradio.components.base import Component, _Keywords
-from gradio.data_classes import FileData, GradioModel
+from gradio.data_classes import FileData, GradioRootModel
 from gradio.deprecation import warn_deprecation
 from gradio.events import (
     Changeable,
@@ -25,8 +25,8 @@ from gradio.events import (
 set_documentation_group("component")
 
 
-class FileDataModel(GradioModel):
-    value: Union[FileData, list[FileData]]
+class ListFiles(GradioRootModel):
+    root: list[FileData]
 
 
 @document()
@@ -44,8 +44,6 @@ class File(
     Examples-format: a {str} path to a local file that populates the component.
     Demos: zip_to_json, zip_files
     """
-
-    data_model = FileDataModel
 
     def __init__(
         self,
@@ -84,6 +82,10 @@ class File(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.file_count = file_count
+        if self.file_count == "multiple":
+            self.data_model = ListFiles
+        else:
+            self.data_model = FileData
         self.file_types = file_types
         if file_types is not None and not isinstance(file_types, list):
             raise ValueError(
@@ -226,7 +228,7 @@ class File(
             else:
                 return process_single_file(x)
 
-    def postprocess(self, y: str | list[str] | None) -> FileDataModel | None:
+    def postprocess(self, y: str | list[str] | None) -> ListFiles | FileData | None:
         """
         Parameters:
             y: file path
@@ -236,8 +238,8 @@ class File(
         if y is None:
             return None
         if isinstance(y, list):
-            return FileDataModel(
-                value=[
+            return ListFiles(
+                [
                     {
                         "orig_name": Path(file).name,
                         "name": self.make_temp_copy_if_needed(file),
@@ -256,7 +258,7 @@ class File(
                 "data": None,
                 "is_file": True,
             }
-            return FileDataModel(value=d)
+            return FileData(value=d)
 
     def as_example(self, input_data: str | list | None) -> str:
         if input_data is None:
@@ -265,16 +267,6 @@ class File(
             return ", ".join([Path(file).name for file in input_data])
         else:
             return Path(input_data).name
-
-    def api_info(self) -> dict[str, Any]:
-        if self.file_count == "single":
-            return {"type": "string", "description": "filepath or URL to file"}
-        else:
-            return {
-                "type": "array",
-                "description": "List of filepath(s) or URL(s) to files",
-                "items": {"type": "string", "description": "filepath or URL to file"},
-            }
 
     def example_inputs(self) -> dict[str, Any]:
         if self.file_count == "single":

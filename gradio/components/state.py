@@ -50,6 +50,10 @@ class State(Component):
     def example_inputs(self) -> Any:
         return None
 
+    @property
+    def skip_api(self):
+        return True
+
 
 class Variable(State):
     """Variable was renamed to State. This class is kept for backwards compatibility."""

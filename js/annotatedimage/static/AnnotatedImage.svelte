@@ -10,9 +10,9 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: [FileData, [FileData, string][]] | null;
-	let old_value: [FileData, [FileData, string][]] | null;
-	let _value: [FileData, [FileData, string][]] | null;
+	export let value: {image: FileData, annotations: {image: FileData, label: string}[] | []} | null = null;
+	let old_value: {image: FileData, annotations: {image: FileData, label: string}[] | []} | null = null;
+	let _value: {image: FileData, annotations: {image: FileData, label: string}[]} | null = null;
 	export let label = "Annotated Image";
 	export let show_label = true;
 	export let show_legend = true;
@@ -37,14 +37,14 @@
 			old_value = value;
 			dispatch("change");
 		}
-		if (value) {
-			_value = [
-				normalise_file(value[0], root, root_url) as FileData,
-				value[1].map(([file, _label]) => [
-					normalise_file(file, root, root_url) as FileData,
-					_label
-				])
-			];
+		if (value !== null) {
+			_value = {
+					image: normalise_file(value.image, root, root_url) as FileData,
+					annotations: value.annotations.map((ann) => ({
+						 image: normalise_file(ann.image, root, root_url) as FileData,
+						 label: ann.label})
+					)
+			};
 		} else {
 			_value = null;
 		}
@@ -81,43 +81,43 @@
 				<img
 					class="base-image"
 					class:fit-height={height}
-					src={_value ? _value[0].data : null}
+					src={_value ? _value.image.data : null}
 				/>
-				{#each _value ? _value[1] : [] as [file, label], i}
+				{#each _value ? _value?.annotations : []  as ann, i}
 					<!-- svelte-ignore a11y-missing-attribute -->
 					<img
 						class="mask fit-height"
-						class:active={active == label}
-						class:inactive={active != label && active != null}
-						src={file.data}
-						style={color_map && label in color_map
+						class:active={active == ann.label}
+						class:inactive={active != ann.label && active != null}
+						src={ann.image.data}
+						style={color_map && ann.label in color_map
 							? null
 							: `filter: hue-rotate(${Math.round(
-									(i * 360) / _value[1].length
+									(i * 360) / _value?.annotations.length
 							  )}deg);`}
 					/>
 				{/each}
 			</div>
 			{#if show_legend && _value}
 				<div class="legend">
-					{#each _value[1] as [_, label], i}
+					{#each _value.annotations as ann, i}
 						<!-- TODO: fix -->
 						<!-- svelte-ignore a11y-click-events-have-key-events -->
 						<!-- svelte-ignore a11y-no-static-element-interactions -->
 						<div
 							class="legend-item"
-							style="background-color: {color_map && label in color_map
-								? color_map[label] + '88'
+							style="background-color: {color_map && ann.label in color_map
+								? color_map[ann.label] + '88'
 								: `hsla(${Math.round(
-										(i * 360) / _value[1].length
+										(i * 360) / _value.annotations.length
 								  )}, 100%, 50%, 0.3)`}"
-							on:mouseover={() => handle_mouseover(label)}
-							on:focus={() => handle_mouseover(label)}
+							on:mouseover={() => handle_mouseover(ann.label)}
+							on:focus={() => handle_mouseover(ann.label)}
 							on:mouseout={() => handle_mouseout()}
 							on:blur={() => handle_mouseout()}
-							on:click={() => dispatch("select", { index: i, value: label })}
+							on:click={() => dispatch("select", { index: i, value: ann.label })}
 						>
-							{label}
+							{ann.label}
 						</div>
 					{/each}
 				</div>

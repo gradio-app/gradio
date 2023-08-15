@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Any, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import StringSerializable
 
 from gradio.components.base import (
     Component,
@@ -18,7 +17,7 @@ set_documentation_group("component")
 
 
 @document()
-class Dataset(Clickable, Selectable, StringSerializable, Component):
+class Dataset(Clickable, Selectable, Component):
     """
     Used to create an output widget for showing datasets. Used to render the examples
     box.
@@ -87,6 +86,10 @@ class Dataset(Clickable, Selectable, StringSerializable, Component):
             self.headers = [c.label or "" for c in self.components]
         self.samples_per_page = samples_per_page
 
+    @property
+    def skip_api(self):
+        return True
+
     def get_config(self):
         return {
             "components": [component.get_block_name() for component in self.components],
@@ -134,3 +137,6 @@ class Dataset(Clickable, Selectable, StringSerializable, Component):
             "samples": samples,
             "__type__": "update",
         }
+
+    def example_inputs(self) -> Any:
+        return None

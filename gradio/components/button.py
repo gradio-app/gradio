@@ -86,6 +86,10 @@ class Button(Clickable, Component):
             **Component.get_config(self),
         }
 
+    @property
+    def skip_api(self):
+        return True
+
     @staticmethod
     def update(
         value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,

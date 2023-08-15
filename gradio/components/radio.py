@@ -147,3 +147,9 @@ class Radio(Selectable, Changeable, Inputable, FormComponent):
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
+
+    def postprocess(self, y):
+        return y
+
+    def api_info(self) -> dict[str, list[str]]:
+        return {"type": "string"}

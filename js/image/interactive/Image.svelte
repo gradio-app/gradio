@@ -203,6 +203,7 @@
 			on:load={handle_upload}
 			include_file_metadata={false}
 			disable_click={!!value}
+			root={root}
 		>
 			{#if (value === null && !static_image) || streaming}
 				<slot />
