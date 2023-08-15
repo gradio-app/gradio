@@ -83,21 +83,19 @@ const renderer: Partial<
 
 		if (!lang) {
 			return (
-				"<pre><code>" +
-				COPY_BUTTON_CODE +
+				'<div class="code_wrap">' + COPY_BUTTON_CODE + "<pre><code>" +
 				(escaped ? code : escape(code, true)) +
-				"</code></pre>\n"
+				"</code></pre></div>\n"
 			);
 		}
 
 		return (
-			'<pre><code class="' +
+			'<div class="code_wrap">' + COPY_BUTTON_CODE + '<pre><code class="' +
 			this.options.langPrefix +
 			escape(lang) +
 			'">' +
-			COPY_BUTTON_CODE +
 			(escaped ? code : escape(code, true)) +
-			"</code></pre>\n"
+			"</code></pre></div>\n"
 		);
 	}
 };
