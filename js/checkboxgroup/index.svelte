@@ -2,7 +2,7 @@
 	import StaticCheckboxgroup from "./static";
 	import InteractiveCheckboxgroup from "./interactive";
 
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
