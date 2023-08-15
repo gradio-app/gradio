@@ -78,7 +78,7 @@
 	});
 
 	let params = new URLSearchParams(window.location.search);
-	let api_docs_visible = params.get("view") === "api";
+	let api_docs_visible = params.get("view") === "api" && show_api;
 	function set_api_docs_visible(visible: boolean): void {
 		api_docs_visible = visible;
 		let params = new URLSearchParams(window.location.search);
