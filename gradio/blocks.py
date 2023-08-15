@@ -1355,14 +1355,16 @@ Received outputs:
         if run not in self.pending_streams[session_hash]:
             self.pending_streams[session_hash][run] = {}
         stream_run = self.pending_streams[session_hash][run]
-        
+
         from gradio.events import StreamableOutput
 
         for i, output_id in enumerate(self.dependencies[fn_index]["outputs"]):
             block = self.blocks[output_id]
             if isinstance(block, StreamableOutput) and block.streaming:
                 first_chunk = output_id not in stream_run
-                binary_data, output_data = block.stream_output(data[i], f"{session_hash}/{run}/{output_id}", first_chunk)
+                binary_data, output_data = block.stream_output(
+                    data[i], f"{session_hash}/{run}/{output_id}", first_chunk
+                )
                 if first_chunk:
                     stream_run[output_id] = []
                 self.pending_streams[session_hash][run][output_id].append(binary_data)
