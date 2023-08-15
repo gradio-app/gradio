@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Add `ready` function to `<gradio-app>`
+feat:Add `loadcomplete` function to `<gradio-app>`

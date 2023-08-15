@@ -918,6 +918,14 @@ class Blocks(BlockContext):
                     repr += f"\n |-{block}"
         return repr
 
+    @property
+    def expects_oauth(self):
+        """Return whether the app expects user to authenticate via OAuth."""
+        return any(
+            isinstance(block, (components.LoginButton, components.LogoutButton))
+            for block in self.blocks.values()
+        )
+
     def render(self):
         if Context.root_block is not None:
             if self._id in Context.root_block.blocks:
@@ -1336,7 +1344,11 @@ Received outputs:
         return output
 
     def handle_streaming_outputs(
-        self, fn_index: int, data: list, session_hash: str | None, run: int | None
+        self,
+        fn_index: int,
+        data: list,
+        session_hash: str | None,
+        run: int | None,
     ) -> list:
         if session_hash is None or run is None:
             return data
@@ -1414,17 +1426,20 @@ Received outputs:
             is_generating, iterator = None, None
         else:
             inputs = self.preprocess_data(fn_index, inputs, state)
-            iterator = iterators.get(fn_index, None) if iterators else None
-            was_generating = iterator is not None
+            old_iterator = iterators.get(fn_index, None) if iterators else None
+            was_generating = old_iterator is not None
             result = await self.call_function(
-                fn_index, inputs, iterator, request, event_id, event_data
+                fn_index, inputs, old_iterator, request, event_id, event_data
             )
             data = self.postprocess_data(fn_index, result["prediction"], state)
-            if result["is_generating"] or was_generating:
-                data = self.handle_streaming_outputs(
-                    fn_index, data, session_hash, id(iterator)
-                )
             is_generating, iterator = result["is_generating"], result["iterator"]
+            if is_generating or was_generating:
+                data = self.handle_streaming_outputs(
+                    fn_index,
+                    data,
+                    session_hash=session_hash,
+                    run=id(old_iterator) if was_generating else id(iterator),
+                )
 
         block_fn.total_runtime += result["duration"]
         block_fn.total_runs += 1
@@ -1625,7 +1640,7 @@ Received outputs:
         max_size: int | None = None,
     ):
         """
-        You can control the rate of processed requests by creating a queue. This will allow you to set the number of requests to be processed at one time, and will let users know their position in the queue.
+        By enabling the queue you can control the rate of processed requests, let users know their position in the queue, and set a limit on maximum number of events allowed.
         Parameters:
             concurrency_count: Number of worker threads that will be processing requests from the queue concurrently. Increasing this number will increase the rate at which requests are processed, but will also increase the memory usage of the queue.
             status_update_rate: If "auto", Queue will send status estimations to all clients whenever a job is finished. Otherwise Queue will send status at regular intervals set by this parameter as the number of seconds.
@@ -1637,11 +1652,11 @@ Received outputs:
             with gr.Blocks() as demo:
                 button = gr.Button(label="Generate Image")
                 button.click(fn=image_generator, inputs=gr.Textbox(), outputs=gr.Image())
-            demo.queue(concurrency_count=3)
+            demo.queue(max_size=10)
             demo.launch()
         Example: (Interface)
             demo = gr.Interface(image_generator, gr.Textbox(), gr.Image())
-            demo.queue(concurrency_count=3)
+            demo.queue(max_size=20)
             demo.launch()
         """
         if default_enabled is not None:

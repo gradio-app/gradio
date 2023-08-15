@@ -18,6 +18,7 @@ Gradio 自带一套预构建的主题，您可以从 `gr.themes.*` 中加载这�
 要增加附加的样式能力，您可以使用 `css=` kwarg 将任何 CSS 传递给您的应用程序。
 
 Gradio 应用程序的基类是 `gradio-container`，因此下面是一个示例，用于更改 Gradio 应用程序的背景颜色：
+
 ```python
 with gr.Blocks(css=".gradio-container {background-color: red}") as demo:
     ...
@@ -38,7 +39,7 @@ with gr.Blocks(css=".gradio-container {background: url('file=clouds.jpg')}") as 
 
 ```python
 css = """
-#warning {background-color: #FFCCCB} 
+#warning {background-color: #FFCCCB}
 .feedback textarea {font-size: 24px !important}
 """
 

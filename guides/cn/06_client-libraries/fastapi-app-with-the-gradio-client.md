@@ -4,14 +4,13 @@ Tags: CLIENT, API, WEB APP
 
 在本博客文章中，我们将演示如何使用 `gradio_client` [Python库](getting-started-with-the-python-client/) 来以编程方式创建Gradio应用的请求，通过创建一个示例FastAPI Web应用。我们将构建的 Web 应用名为“Acappellify”，它允许用户上传视频文件作为输入，并返回一个没有伴奏音乐的视频版本。它还会显示生成的视频库。
 
-
 **先决条件**
 
 在开始之前，请确保您正在运行Python 3.9或更高版本，并已安装以下库：
 
-* `gradio_client`
-* `fastapi`
-* `uvicorn`
+- `gradio_client`
+- `fastapi`
+- `uvicorn`
 
 您可以使用`pip`安装这些库：
 
@@ -138,103 +137,32 @@ async def upload_video(video: UploadFile = File(...)):
 将以下内容写入`home.html`文件中：
 
 ```html
-&lt;!DOCTYPE html>
-&lt;html>
-  &lt;head>
-    &lt;title> 视频库 &lt;/title>
-    &lt;style>
-      body {
-        font-family: sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #f5f5f5;
-      }
-      h1 {
-        text-align: center;
-        margin-top: 30px;
-        margin-bottom: 20px;
-      }
-      .gallery {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 20px;
-        padding: 20px;
-      }
-      .video {
-        border: 2px solid #ccc;
-        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
-        border-radius: 5px;
-        overflow: hidden;
-        width: 300px;
-        margin-bottom: 20px;
-      }
-      .video video {
-        width: 100%;
-        height: 200px;
-      }
-      .video p {
-        text-align: center;
-        margin: 10px 0;
-      }
-      form {
-        margin-top: 20px;
-        text-align: center;
-      }
-      input[type="file"] {
-        display: none;
-      }
-      .upload-btn {
-        display: inline-block;
-        background-color: #3498db;
-        color: #fff;
-        padding: 10px 20px;
-        font-size: 16px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-      }
-      .upload-btn:hover {
-        background-color: #2980b9;
-      }
-      .file-name {
-        margin-left: 10px;
-      }
-    &lt;/style>
-  &lt;/head>
-  &lt;body>
-    &lt;h1> 视频库 &lt;/h1>
-    {% if videos %}
-      &lt;div class="gallery">
-        {% for video in videos %}
-          &lt;div class="video">
-            &lt;video controls>
-              &lt;source src="{{ url_for('static', path=video) }}" type="video/mp4">
-              您的浏览器不支持视频标签。
-            &lt;/video>
-            &lt;p>{{ video }}&lt;/p>
-          &lt;/div>
-        {% endfor %}
-      &lt;/div>
-    {% else %}
-      &lt;p> 尚未上传任何视频。&lt;/p>
-    {% endif %}
-    &lt;form action="/uploadvideo/" method="post" enctype="multipart/form-data">
-      &lt;label for="video-upload" class="upload-btn"> 选择视频文件 &lt;/label>
-      &lt;input type="file" name="video" id="video-upload">
-      &lt;span class="file-name">&lt;/span>
-      &lt;button type="submit" class="upload-btn"> 上传 &lt;/button>
-    &lt;/form>
-    &lt;script>
-      // 在表单中显示所选文件名
-      const fileUpload = document.getElementById("video-upload");
-      const fileName = document.querySelector(".file-name");
-
-      fileUpload.addEventListener("change", (e) => {
-        fileName.textContent = e.target.files[0].name;
-      });
-    &lt;/script>
-  &lt;/body>
+&lt;!DOCTYPE html> &lt;html> &lt;head> &lt;title> 视频库 &lt;/title> &lt;style>
+body { font-family: sans-serif; margin: 0; padding: 0; background-color:
+#f5f5f5; } h1 { text-align: center; margin-top: 30px; margin-bottom: 20px; }
+.gallery { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px;
+padding: 20px; } .video { border: 2px solid #ccc; box-shadow: 0px 0px 10px
+rgba(0, 0, 0, 0.2); border-radius: 5px; overflow: hidden; width: 300px;
+margin-bottom: 20px; } .video video { width: 100%; height: 200px; } .video p {
+text-align: center; margin: 10px 0; } form { margin-top: 20px; text-align:
+center; } input[type="file"] { display: none; } .upload-btn { display:
+inline-block; background-color: #3498db; color: #fff; padding: 10px 20px;
+font-size: 16px; border: none; border-radius: 5px; cursor: pointer; }
+.upload-btn:hover { background-color: #2980b9; } .file-name { margin-left: 10px;
+} &lt;/style> &lt;/head> &lt;body> &lt;h1> 视频库 &lt;/h1> {% if videos %}
+&lt;div class="gallery"> {% for video in videos %} &lt;div class="video">
+&lt;video controls> &lt;source src="{{ url_for('static', path=video) }}"
+type="video/mp4"> 您的浏览器不支持视频标签。 &lt;/video> &lt;p>{{ video
+}}&lt;/p> &lt;/div> {% endfor %} &lt;/div> {% else %} &lt;p>
+尚未上传任何视频。&lt;/p> {% endif %} &lt;form action="/uploadvideo/"
+method="post" enctype="multipart/form-data"> &lt;label for="video-upload"
+class="upload-btn"> 选择视频文件 &lt;/label> &lt;input type="file" name="video"
+id="video-upload"> &lt;span class="file-name">&lt;/span> &lt;button
+type="submit" class="upload-btn"> 上传 &lt;/button> &lt;/form> &lt;script> //
+在表单中显示所选文件名 const fileUpload =
+document.getElementById("video-upload"); const fileName =
+document.querySelector(".file-name"); fileUpload.addEventListener("change", (e)
+=> { fileName.textContent = e.target.files[0].name; }); &lt;/script> &lt;/body>
 &lt;/html>
 ```
 
@@ -263,4 +191,3 @@ INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/acapellify.png)
 
 如果您想了解如何在项目中使用 Gradio Python 客户端的更多信息，请[阅读专门的指南](/getting-started-with-the-python-client/)。
-

@@ -207,7 +207,7 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 		const chunkSize = 1000;
 		const uploadResponses = [];
 		for (let i = 0; i < files.length; i += chunkSize) {
-			const chunk = files.slice(i, i + chunkSize);		
+			const chunk = files.slice(i, i + chunkSize);
 			const formData = new FormData();
 			chunk.forEach((file) => {
 				formData.append("files", file);
@@ -222,7 +222,7 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 				return { error: BROKEN_CONNECTION_MSG };
 			}
 			const output: UploadResponse["files"] = await response.json();
-            uploadResponses.push(...output);
+			uploadResponses.push(...output);
 		}
 		return { files: uploadResponses };
 	}
@@ -804,9 +804,9 @@ function transform_output(
 	remote_url?: string
 ): unknown[] {
 	return data.map((d, i) => {
-		if (api_info.returns?.[i]?.component === "File") {
+		if (api_info?.returns?.[i]?.component === "File") {
 			return normalise_file(d, root_url, remote_url);
-		} else if (api_info.returns?.[i]?.component === "Gallery") {
+		} else if (api_info?.returns?.[i]?.component === "Gallery") {
 			return d.map((img) => {
 				return Array.isArray(img)
 					? [normalise_file(img[0], root_url, remote_url), img[1]]
