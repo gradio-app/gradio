@@ -22,9 +22,7 @@ with gr.Blocks() as demo:
 
     with gr.Row():
         img_input = gr.Image()
-        img_output = gr.AnnotatedImage().style(
-            color_map={"banana": "#a89a00", "carrot": "#ffae00"}
-        )
+        img_output = gr.AnnotatedImage()
 
     section_btn = gr.Button("Identify Sections")
     selected_section = gr.Textbox(label="Selected Section")

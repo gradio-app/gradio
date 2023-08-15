@@ -8,14 +8,16 @@
 	import { _ } from "svelte-i18n";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { FileData } from "js/upload/src";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: null | string = null;
+	export let value: null | FileData = null;
 	export let label: string;
 	export let show_label: boolean;
 	export let show_download_button: boolean;
+	export let root: string;
 
 	export let height: number | undefined;
 	export let width: number | undefined;
@@ -57,6 +59,7 @@
 		on:select
 		on:share
 		on:error
+		{root}
 		{value}
 		{label}
 		{show_label}

@@ -844,13 +844,12 @@ class Endpoint:
 
     def value_is_file(self, component: dict) -> bool:
         # Hacky for now
-        file_data = "Dict(name: str | None (None), data: str | None (None), size: int | None (None), is_file: bool | None (None), orig_name: str | None (None))"
         if "api_info" not in component:
             return False
-        api_info = utils.json_schema_to_python_type(
+        api_info = utils._json_schema_to_python_type(
             component["api_info"], component["api_info"].get("$defs")
         )
-        return file_data in api_info
+        return utils.FILE_DATA in api_info
 
     def __repr__(self):
         return f"Endpoint src: {self.client.src}, api_name: {self.api_name}, fn_index: {self.fn_index}"
@@ -1027,13 +1026,11 @@ class Endpoint:
         return new_data
 
     def serialize(self, *data) -> tuple:
-        breakpoint()
         files, new_data = self._gather_files(*data)
         uploaded_files = self._upload(files)
         data = list(new_data)
         data = self._add_uploaded_files_to_data(data, uploaded_files)
         o = tuple(data)
-        breakpoint()
         return o
 
     def _download_file(
@@ -1080,6 +1077,7 @@ class Endpoint:
                 and "data" in d
                 and "size" in d
                 and "orig_name" in d
+                and "mime_type" in d
             )
 
         data = utils.traverse(data, self.download_file, is_file)

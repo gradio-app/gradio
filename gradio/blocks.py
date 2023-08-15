@@ -1202,7 +1202,7 @@ Received outputs:
                         postprocess=block_fn.postprocess,
                     )
                     if isinstance(
-                        prediction_value["value"], (GradioModel, GradioRootModel)
+                        prediction_value.get("value"), (GradioModel, GradioRootModel)
                     ):
                         prediction_value["value"] = prediction_value[
                             "value"
@@ -2135,9 +2135,7 @@ Received outputs:
                 # Serializer's API info.
                 info = self.blocks[component["id"]].api_info()
                 example = self.blocks[component["id"]].example_inputs()
-                python_type = client_utils.json_schema_to_python_type(
-                    info, defs=info.get("$defs")
-                )
+                python_type = client_utils.json_schema_to_python_type(info)
                 dependency_info["parameters"].append(
                     {
                         "label": label,
@@ -2166,9 +2164,7 @@ Received outputs:
                 info = self.blocks[component["id"]].api_info()
                 example = self.blocks[component["id"]].example_inputs()
 
-                python_type = client_utils.json_schema_to_python_type(
-                    info, defs=info.get("$defs")
-                )
+                python_type = client_utils.json_schema_to_python_type(info)
                 dependency_info["returns"].append(
                     {
                         "label": label,

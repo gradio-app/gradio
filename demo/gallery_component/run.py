@@ -10,6 +10,5 @@ with gr.Blocks() as demo:
         "https://www.lifegate.com/app/uploads/ghepardo-primo-piano.jpg",
         "https://qph.cf2.quoracdn.net/main-qimg-0bbf31c18a22178cb7a8dd53640a3d05-lq"
     ]
-    gr.Gallery(value=cheetahs).style(grid=4)
-
+    gr.Gallery(value=cheetahs, grid=4)
 demo.launch()

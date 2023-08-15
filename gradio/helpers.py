@@ -25,6 +25,7 @@ from matplotlib import animation
 
 from gradio import components, oauth, processing_utils, routes, utils
 from gradio.context import Context
+from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.exceptions import Error
 from gradio.flagging import CSVLogger
 
@@ -206,13 +207,15 @@ class Examples:
         self.batch = batch
 
         with utils.set_directory(working_directory):
-            self.processed_examples = [
-                [
-                    component.postprocess(sample)
-                    for component, sample in zip(inputs, example)
-                ]
-                for example in examples
-            ]
+            self.processed_examples = []
+            for example in examples:
+                sub = []
+                for component, sample in zip(inputs, example):
+                    prediction_value = component.postprocess(sample)
+                    if isinstance(prediction_value, (GradioRootModel, GradioModel)):
+                        prediction_value = prediction_value.model_dump()
+                    sub.append(prediction_value)
+                self.processed_examples.append(sub)
         self.non_none_processed_examples = [
             [ex for (ex, keep) in zip(example, input_has_examples) if keep]
             for example in self.processed_examples

@@ -9,11 +9,12 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker/types";
 	import { UploadText } from "@gradio/atoms";
+	import type { FileData } from "js/upload/src";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: null | string = null;
+	export let value: null | FileData = null;
 	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let tool: "editor" | "select" | "sketch" | "color-sketch" = "editor";
 	export let label: string;

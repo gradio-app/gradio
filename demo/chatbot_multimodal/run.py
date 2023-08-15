@@ -31,12 +31,13 @@ with gr.Blocks() as demo:
             txt = gr.Textbox(
                 show_label=False,
                 placeholder="Enter text and press enter, or upload an image",
-            ).style(container=False)
+                container=False
+            )
         with gr.Column(scale=0.15, min_width=0):
             btn = gr.UploadButton("📁", file_types=["image", "video", "audio"])
 
     txt_msg = txt.submit(add_text, [chatbot, txt], [chatbot, txt], queue=False).then(
-        bot, chatbot, chatbot
+        bot, chatbot, chatbot, api_name="bot_response"
     )
     txt_msg.then(lambda: gr.update(interactive=True), None, [txt], queue=False)
     file_msg = btn.upload(add_file, [chatbot, btn], [chatbot], queue=False).then(

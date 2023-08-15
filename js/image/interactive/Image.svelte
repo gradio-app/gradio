@@ -11,13 +11,11 @@
 	import Webcam from "./Webcam.svelte";
 	import ModifySketch from "./ModifySketch.svelte";
 	import SketchSettings from "./SketchSettings.svelte";
-
-	import { Upload, ModifyUpload } from "@gradio/upload";
+	import { Upload, ModifyUpload, type FileData, normalise_file } from "@gradio/upload";
 
 	export let value:
 		| null
-		| string
-		| { image: string | null; mask: string | null };
+		| { image: string | null; mask: string | null } | FileData;
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
 
@@ -105,6 +103,16 @@
 	let dragging = false;
 
 	$: dispatch("drag", dragging);
+
+	let value_: null | FileData = null;
+
+	$: if(value !== value_){
+		value_ = value
+		normalise_file(value_, root, null);
+	};
+
+	$: console.log(value_);
+
 
 	function handle_image_load(event: Event): void {
 		const element = event.currentTarget as HTMLImageElement;
@@ -208,7 +216,7 @@
 			{#if (value === null && !static_image) || streaming}
 				<slot />
 			{:else if tool === "select"}
-				<Cropper bind:this={cropper} image={value} on:crop={handle_save} />
+				<Cropper bind:this={cropper} image={value_.data} on:crop={handle_save} />
 				<ModifyUpload on:clear={(e) => (handle_clear(e), (tool = "editor"))} />
 			{:else if tool === "editor"}
 				<ModifyUpload
@@ -221,7 +229,7 @@
 				<!-- svelte-ignore a11y-click-events-have-key-events -->
 				<!-- svelte-ignore a11y-no-noninteractive-element-interactions-->
 				<img
-					src={value}
+					src={value_.data}
 					alt=""
 					class:scale-x-[-1]={source === "webcam" && mirror_webcam}
 					class:selectable
@@ -276,7 +284,7 @@
 				<!-- svelte-ignore a11y-click-events-have-key-events -->
 				<!-- svelte-ignore a11y-no-noninteractive-element-interactions-->
 				<img
-					src={value.image || value}
+					src={value.image || value.data}
 					alt="hello"
 					class:webcam={source === "webcam" && mirror_webcam}
 					class:selectable
@@ -324,7 +332,7 @@
 			/>
 		{/if}
 	{:else if tool === "select"}
-		<Cropper bind:this={cropper} image={value} on:crop={handle_save} />
+		<Cropper bind:this={cropper} image={value.data} on:crop={handle_save} />
 		<ModifyUpload on:clear={(e) => (handle_clear(e), (tool = "editor"))} />
 	{:else if tool === "editor"}
 		<ModifyUpload
@@ -338,7 +346,7 @@
 		<!-- svelte-ignore a11y-no-noninteractive-element-interactions-->
 
 		<img
-			src={value}
+			src={value.data}
 			alt=""
 			class:selectable
 			class:webcam={source === "webcam" && mirror_webcam}
@@ -349,7 +357,7 @@
 			<img
 				bind:this={value_img}
 				class="absolute-img"
-				src={static_image || value?.image || value}
+				src={static_image || value?.image || value.data}
 				alt=""
 				on:load={handle_image_load}
 				class:webcam={source === "webcam" && mirror_webcam}
@@ -390,7 +398,7 @@
 		<!-- svelte-ignore a11y-no-noninteractive-element-interactions-->
 
 		<img
-			src={value.image || value}
+			src={value.image || value.data}
 			alt=""
 			class:webcam={source === "webcam" && mirror_webcam}
 			class:selectable
