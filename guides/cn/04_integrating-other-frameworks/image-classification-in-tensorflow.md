@@ -7,7 +7,7 @@
 
 图像分类是计算机视觉中的一项核心任务。构建更好的分类器来识别图像中的物体是一个研究的热点领域，因为它在交通控制系统到卫星成像等应用中都有广泛的应用。
 
-这样的模型非常适合与 Gradio 的 *image* 输入组件一起使用，因此在本教程中，我们将使用 Gradio 构建一个用于图像分类的 Web 演示。我们可以在 Python 中构建整个 Web 应用程序，它的界面将如下所示（试试其中一个例子！）：
+这样的模型非常适合与 Gradio 的 _image_ 输入组件一起使用，因此在本教程中，我们将使用 Gradio 构建一个用于图像分类的 Web 演示。我们可以在 Python 中构建整个 Web 应用程序，它的界面将如下所示（试试其中一个例子！）：
 
 <iframe src="https://abidlabs-keras-image-classifier.hf.space" frameBorder="0" height="660" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
@@ -52,11 +52,11 @@ def classify_image(inp):
 
 让我们来详细了解一下。该函数接受一个参数：
 
-* `inp`：输入图像的 `numpy` 数组
+- `inp`：输入图像的 `numpy` 数组
 
 然后，函数添加一个批次维度，通过模型进行处理，并返回：
 
-* `confidences`：预测结果，以字典形式表示，其中键是类标签，值是置信概率
+- `confidences`：预测结果，以字典形式表示，其中键是类标签，值是置信概率
 
 ## 第三步 —— 创建 Gradio 界面
 
@@ -71,7 +71,7 @@ def classify_image(inp):
 ```python
 import gradio as gr
 
-gr.Interface(fn=classify_image, 
+gr.Interface(fn=classify_image,
              inputs=gr.Image(shape=(224, 224)),
              outputs=gr.Label(num_top_classes=3),
              examples=["banana.jpg", "car.jpg"]).launch()
@@ -81,6 +81,6 @@ gr.Interface(fn=classify_image,
 
 <iframe src="https://abidlabs-keras-image-classifier.hf.space" frameBorder="0" height="660" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
-----------
+---
 
 完成！这就是构建图像分类器的 Web 演示所需的所有代码。如果您想与他人分享，请尝试在启动接口时设置 `share=True`！
