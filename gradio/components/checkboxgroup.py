@@ -69,7 +69,11 @@ class CheckboxGroup(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.choices = [c if isinstance(c, tuple) else (str(c), c) for c in choices]
+        self.choices = (
+            [c if isinstance(c, tuple) else (str(c), c) for c in choices]
+            if choices
+            else []
+        )
         valid_types = ["value", "index"]
         if type not in valid_types:
             raise ValueError(
