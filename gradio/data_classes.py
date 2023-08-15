@@ -1,5 +1,7 @@
 """Pydantic data models and other dataclasses. This is the only file that uses Optional[]
 typing syntax instead of | None syntax to work with pydantic"""
+import pathlib
+import secrets
 import shutil
 from enum import Enum, auto
 from typing import Any, Dict, List, Optional, Union
@@ -67,21 +69,36 @@ class LogMessage(BaseModel):
 class GradioBaseModel:
     def copy_to_dir(self, dir: str) -> "GradioBaseModel":
         assert isinstance(self, (BaseModel, RootModel))
-        return self.__class__(
-            **traverse(
+
+        # TODO: Making sure path is unique should be done in caller
+        def unique_copy(obj: dict):
+            data = FileData(**obj)
+            return data._copy_to_dir(
+                str(pathlib.Path(dir / secrets.token_hex(10)))
+            ).model_dump()
+
+        return self.__class__.from_json(
+            traverse(
                 self.model_dump(),
-                lambda obj: FileData(**obj).copy_to_dir(dir),
+                unique_copy,
                 FileData.is_file_data,
             )
         )
 
+    def from_json(cls, x):
+        pass
+
 
 class GradioModel(GradioBaseModel, BaseModel):
-    pass
+    @classmethod
+    def from_json(cls, x) -> "GradioModel":
+        return cls(**x)
 
 
 class GradioRootModel(GradioBaseModel, RootModel):
-    pass
+    @classmethod
+    def from_json(cls, x) -> "GradioRootModel":
+        return cls(x)
 
 
 class FileData(GradioModel):
@@ -90,19 +107,28 @@ class FileData(GradioModel):
     size: Optional[int] = None  # size in bytes
     is_file: Optional[bool] = None
     orig_name: Optional[str] = None  # original filename
+    mime_type: Optional[str] = None
 
     @property
     def is_none(self):
         return all(
             f is None
-            for f in [self.name, self.data, self.size, self.is_file, self.orig_name]
+            for f in [
+                self.name,
+                self.data,
+                self.size,
+                self.is_file,
+                self.orig_name,
+                self.mime_type,
+            ]
         )
 
     @classmethod
     def from_path(cls, path: str) -> "FileData":
         return cls(name=path, is_file=True)
 
-    def copy_to_dir(self, dir: str) -> "FileData":
+    def _copy_to_dir(self, dir: str) -> "FileData":
+        pathlib.Path(dir).mkdir(exist_ok=True)
         new_obj = dict(self)
         if self.is_file:
             new_name = shutil.copy(self.name, dir)

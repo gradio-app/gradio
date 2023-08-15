@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import inspect
 from pathlib import Path
-from typing import Any, Callable, Literal, Union
+from typing import Any, Callable, Literal, Optional, Union
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio import utils
 from gradio.components.base import Component, _Keywords
-from gradio.data_classes import FileData, GradioModel
+from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
     Changeable,
@@ -22,8 +22,13 @@ from gradio.events import (
 set_documentation_group("component")
 
 
-class ChatbotData(GradioModel):
-    conversation: list[list[Union[str, FileData, None]]]
+class FileMessage(GradioModel):
+    file: FileData
+    alt_text: Optional[str] = None
+
+
+class ChatbotData(GradioRootModel):
+    root: list[tuple[Union[str, FileMessage, None], Union[str, FileMessage, None]]]
 
 
 @document()
@@ -165,10 +170,10 @@ class Chatbot(Changeable, Selectable, Component):
         if chat_message is None:
             return None
         elif isinstance(chat_message, dict):
-            if chat_message["alt_text"] is not None:
-                return (chat_message["name"], chat_message["alt_text"])
+            if chat_message.get("alt_text"):
+                return (chat_message["file"]["name"], chat_message["alt_text"])
             else:
-                return (chat_message["name"],)
+                return (chat_message["file"]["name"],)
         else:  # string
             return chat_message
 
@@ -208,11 +213,13 @@ class Chatbot(Changeable, Selectable, Component):
 
             mime_type = client_utils.get_mimetype(filepath)
             return {
-                "name": filepath,
-                "mime_type": mime_type,
+                "file": {
+                    "name": filepath,
+                    "mime_type": mime_type,
+                    "data": None,  # These last two fields are filled in by the frontend
+                    "is_file": True,
+                },
                 "alt_text": chat_message[1] if len(chat_message) > 1 else None,
-                "data": None,  # These last two fields are filled in by the frontend
-                "is_file": True,
             }
         elif isinstance(chat_message, str):
             chat_message = inspect.cleandoc(chat_message)
@@ -246,7 +253,7 @@ class Chatbot(Changeable, Selectable, Component):
                     self._postprocess_chat_messages(message_pair[1]),
                 ]
             )
-        return ChatbotData(conversation=processed_messages)
+        return ChatbotData(processed_messages)
 
     def style(self, height: int | None = None, **kwargs):
         """

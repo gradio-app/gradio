@@ -7,7 +7,7 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: [string | FileData | null, string | FileData | null][] = [];
+	export let value: [string | {file: FileData, alt_text: string | null } | null, string | {file: FileData, alt_text: string | null } | null][] = [];
 	export let latex_delimiters: {
 		left: string;
 		right: string;

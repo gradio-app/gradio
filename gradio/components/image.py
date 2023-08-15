@@ -267,7 +267,10 @@ class Image(
             assert isinstance(x, dict)
             x, mask = x["image"], x["mask"]
 
-        im = processing_utils.decode_base64_to_image(x)
+        if isinstance(x, str):
+            im = processing_utils.decode_base64_to_image(x)
+        else:
+            im = PIL.Image.open(self.make_temp_copy_if_needed(x["name"]))
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
@@ -307,13 +310,22 @@ class Image(
         if y is None:
             return None
         if isinstance(y, np.ndarray):
-            return processing_utils.encode_array_to_base64(y)
+            path = self.base64_to_temp_file_if_needed(
+                processing_utils.encode_array_to_base64(y), "file.png"
+            )
         elif isinstance(y, _Image.Image):
-            return processing_utils.encode_pil_to_base64(y)
+            path = self.base64_to_temp_file_if_needed(
+                processing_utils.encode_pil_to_base64(y), "file.png"
+            )
         elif isinstance(y, (str, Path)):
-            return client_utils.encode_url_or_file_to_base64(y)
+            name = y if isinstance(y, str) else y.name
+            if client_utils.is_http_url_like(name):
+                path = self.download_temp_copy_if_needed(name)
+            else:
+                path = self.make_temp_copy_if_needed(name)
         else:
             raise ValueError("Cannot process this value as an Image")
+        return FileData(name=path, data=None, is_file=True)
 
     def check_streamable(self):
         if self.source != "webcam" and self.streaming:
@@ -330,9 +342,3 @@ class Image(
 
     def example_inputs(self) -> Any:
         return "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
-
-    def flag(self, x: Any, flag_dir: str | Path = "") -> str:
-        return client_utils.decode_base64_to_file(x, dir=flag_dir).name
-
-    def read_from_flag(self, x: Any, flag_dir: str | Path | None = None):
-        return client_utils.encode_file_to_base64(x)

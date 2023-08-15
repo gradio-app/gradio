@@ -29,14 +29,12 @@ with gr.Blocks() as demo:
                 show_label=False,
                 max_lines=1,
                 placeholder="Enter your prompt",
-            ).style(
-                container=False,
-            )
-            btn = gr.Button("Generate image").style(full_width=False)
+                container=False)
+            btn = gr.Button("Generate image", full_width=False)
 
         gallery = gr.Gallery(
             label="Generated images", show_label=False, elem_id="gallery"
-        ).style(columns=[2], rows=[2], object_fit="contain", height="auto")
+        )
 
     btn.click(fake_gan, None, gallery)
 

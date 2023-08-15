@@ -520,7 +520,15 @@ def get_type(schema: dict):
         raise APIInfoParseError(f"Cannot parse type for {schema}")
 
 
-def json_schema_to_python_type(schema: Any, defs) -> str:
+FILE_DATA = "Dict(name: str | None, data: str | None, size: int | None, is_file: bool | None, orig_name: str | None, mime_type: str | None)"
+
+
+def json_schema_to_python_type(schema: Any) -> str:
+    type_ = _json_schema_to_python_type(schema, schema.get("$defs"))
+    return type_.replace(FILE_DATA, "filepath")
+
+
+def _json_schema_to_python_type(schema: Any, defs) -> str:
     """Convert the json schema into a python type hint"""
     type_ = get_type(schema)
     if type_ == {}:
@@ -529,7 +537,7 @@ def json_schema_to_python_type(schema: Any, defs) -> str:
         else:
             return "Any"
     elif type_ == "$ref":
-        return json_schema_to_python_type(defs[schema["$ref"].split("/")[-1]], defs)
+        return _json_schema_to_python_type(defs[schema["$ref"].split("/")[-1]], defs)
     elif type_ == "null":
         return "None"
     elif type_ == "integer":
@@ -544,23 +552,27 @@ def json_schema_to_python_type(schema: Any, defs) -> str:
         items = schema.get("items")
         if "prefixItems" in items:
             elements = ", ".join(
-                [json_schema_to_python_type(i, defs) for i in items["prefixItems"]]
+                [_json_schema_to_python_type(i, defs) for i in items["prefixItems"]]
             )
             return f"Tuple[{elements}]"
         else:
-            elements = json_schema_to_python_type(items, defs)
+            elements = _json_schema_to_python_type(items, defs)
             return f"List[{elements}]"
     elif type_ == "object":
+
+        def get_desc(v):
+            return f" ({v.get('description')})" if v.get("description") else ""
+
         des = ", ".join(
             [
-                f"{n}: {json_schema_to_python_type(v, defs)} ({v.get('description')})"
+                f"{n}: {_json_schema_to_python_type(v, defs)}{get_desc(v)}"
                 for n, v in schema["properties"].items()
                 if n != "$defs"
             ]
         )
         return f"Dict({des})"
     elif type_ in ["oneOf", "anyOf"]:
-        desc = " | ".join([json_schema_to_python_type(i, defs) for i in schema[type_]])
+        desc = " | ".join([_json_schema_to_python_type(i, defs) for i in schema[type_]])
         return desc
     else:
         raise APIInfoParseError(f"Cannot parse schema {schema}")

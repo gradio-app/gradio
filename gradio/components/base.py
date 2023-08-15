@@ -137,7 +137,7 @@ class Component(ComponentBase, Block):
         **kwargs,
     ):
         if not hasattr(self, "data_model"):
-            self.data_model: GradioModel | None = None
+            self.data_model: GradioBaseModel | None = None
         self.temp_files: set[str] = set()
         self.DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
             Path(tempfile.gettempdir()) / "gradio"
@@ -392,8 +392,7 @@ class Component(ComponentBase, Block):
         Write the component's value to a format that can be stored in a csv or jsonl format for flagging.
         """
         if self.data_model:
-            breakpoint()
-            x = self.data_model(**x)
+            x = self.data_model.from_json(x)
             assert isinstance(x, GradioBaseModel)
             return x.copy_to_dir(flag_dir).model_dump_json()
         return x
@@ -410,7 +409,7 @@ class Component(ComponentBase, Block):
         Convert the data from the csv or jsonl file into the component state.
         """
         if self.data_model:
-            return self.data_model(**json.loads(x))
+            return self.data_model.from_json(json.loads(x))
         return x
 
 
