@@ -6,6 +6,7 @@ import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
+from typing import Literal
 
 from gradio import utils
 from gradio.blocks import Default
@@ -103,6 +104,39 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
             value=value,
             **kwargs,
         )
+
+    def update(
+        value: tuple[
+            np.ndarray | _Image.Image | str,
+            list[tuple[np.ndarray | tuple[int, int, int, int], str]],
+        ]
+        | Literal[_Keywords.NO_VALUE] = _Keywords.NO_VALUE,
+        show_legend: bool | None = None,
+        height: int | None = None,
+        width: int | None = None,
+        color_map: dict[str, str] | None = None,
+        label: str | None = None,
+        show_label: bool | None = None,
+        container: bool | None = None,
+        scale: int | None = None,
+        min_width: int | None = None,
+        visible: bool | None = None,
+    ):
+        updated_config = {
+            "show_legend": show_legend,
+            "height": height,
+            "width": width,
+            "color_map": color_map,
+            "label": label,
+            "show_label": show_label,
+            "container": container,
+            "scale": scale,
+            "min_width": min_width,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
+        return updated_config
 
     def postprocess(
         self,

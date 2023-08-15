@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 
 from gradio_client import media_data
 from gradio_client.documentation import document, set_documentation_group
@@ -88,6 +88,27 @@ class Model3D(
             "raw": {"is_file": False, "data": media_data.BASE64_MODEL3D},
             "serialized": "https://github.com/gradio-app/gradio/raw/main/test/test_files/Box.gltf",
         }
+
+    def update(
+        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        label: str | None = None,
+        show_label: bool | None = None,
+        container: bool | None = None,
+        scale: int | None = None,
+        min_width: int | None = None,
+        visible: bool | None = None,
+    ):
+        updated_config = {
+            "label": label,
+            "show_label": show_label,
+            "container": container,
+            "scale": scale,
+            "min_width": min_width,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
+        return updated_config
 
     def preprocess(self, x: dict[str, str] | None) -> str | None:
         """

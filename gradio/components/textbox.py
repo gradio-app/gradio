@@ -138,6 +138,46 @@ class Textbox(
         )
         TokenInterpretable.__init__(self)
 
+    def update(
+        value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        lines: int | None = None,
+        max_lines: int | None = None,
+        placeholder: str | None = None,
+        label: str | None = None,
+        info: str | None = None,
+        show_label: bool | None = None,
+        container: bool | None = None,
+        scale: int | None = None,
+        min_width: int | None = None,
+        visible: bool | None = None,
+        interactive: bool | None = None,
+        type: Literal["text", "password", "email"] | None = None,
+        text_align: Literal["left", "right"] | None = None,
+        rtl: bool | None = None,
+        show_copy_button: bool | None = None,
+        autofocus: bool | None = None,
+    ):
+        return {
+            "lines": lines,
+            "max_lines": max_lines,
+            "placeholder": placeholder,
+            "label": label,
+            "info": info,
+            "show_label": show_label,
+            "container": container,
+            "scale": scale,
+            "min_width": min_width,
+            "visible": visible,
+            "value": value,
+            "type": type,
+            "interactive": interactive,
+            "show_copy_button": show_copy_button,
+            "autofocus": autofocus,
+            "text_align": text_align,
+            "rtl": rtl,
+            "__type__": "update",
+        }
+
     def preprocess(self, x: str | None) -> str | None:
         """
         Preprocesses input (converts it to a string) before passing it to the function.

@@ -92,6 +92,29 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             **kwargs,
         )
 
+    def update(
+        value: str
+        | list[str]
+        | Literal[_Keywords.NO_VALUE]
+        | None = _Keywords.NO_VALUE,
+        size: Literal["sm", "lg"] | None = None,
+        variant: Literal["primary", "secondary", "stop"] | None = None,
+        interactive: bool | None = None,
+        visible: bool | None = None,
+        scale: int | None = None,
+        min_width: int | None = None,
+    ):
+        return {
+            "variant": variant,
+            "interactive": interactive,
+            "size": size,
+            "visible": visible,
+            "value": value,
+            "scale": scale,
+            "min_width": min_width,
+            "__type__": "update",
+        }
+
     def preprocess(
         self, x: list[dict[str, Any]] | None
     ) -> (

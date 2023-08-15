@@ -131,6 +131,28 @@ class File(
             **kwargs,
         )
 
+    def update(
+        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        label: str | None = None,
+        show_label: bool | None = None,
+        container: bool | None = None,
+        scale: int | None = None,
+        min_width: int | None = None,
+        interactive: bool | None = None,
+        visible: bool | None = None,
+    ):
+        return {
+            "label": label,
+            "show_label": show_label,
+            "container": container,
+            "scale": scale,
+            "min_width": min_width,
+            "interactive": interactive,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
+
     def preprocess(
         self, x: list[dict[str, Any]] | None
     ) -> (

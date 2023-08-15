@@ -94,6 +94,24 @@ class Dataset(Clickable, Selectable, IOComponent, StringSerializable):
             else:
                 self.headers = [c.label or "" for c in self._components]
 
+    def update(
+        samples: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        visible: bool | None = None,
+        label: str | None = None,
+        container: bool | None = None,
+        scale: int | None = None,
+        min_width: int | None = None,
+    ):
+        return {
+            "samples": samples,
+            "visible": visible,
+            "label": label,
+            "container": container,
+            "scale": scale,
+            "min_width": min_width,
+            "__type__": "update",
+        }
+
     def preprocess(self, x: Any) -> Any:
         """
         Any preprocessing needed to be performed on function input.

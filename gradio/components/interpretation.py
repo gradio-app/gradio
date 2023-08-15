@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Literal, Any
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import SimpleSerializable
 
@@ -43,3 +44,12 @@ class Interpretation(Component, SimpleSerializable):
             self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
         )
         self.component = component
+    def update(
+        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        visible: bool | None = None,
+    ):
+        return {
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }

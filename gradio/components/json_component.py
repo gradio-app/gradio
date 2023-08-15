@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import Callable
+from typing import Callable, Literal, Any
 
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
@@ -70,6 +70,27 @@ class JSON(Changeable, IOComponent, JSONSerializable):
             value=value,
             **kwargs,
         )
+
+    def update(
+        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        label: str | None = None,
+        show_label: bool | None = None,
+        container: bool | None = None,
+        scale: int | None = None,
+        min_width: int | None = None,
+        visible: bool | None = None,
+    ):
+        updated_config = {
+            "label": label,
+            "show_label": show_label,
+            "container": container,
+            "scale": scale,
+            "min_width": min_width,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
+        return updated_config
 
     def postprocess(self, y: dict | list | str | None) -> dict | list | None:
         """

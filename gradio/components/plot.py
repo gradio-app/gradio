@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from types import ModuleType
-from typing import Callable
+from typing import Callable, Any, Literal
 
 import altair as alt
 import pandas as pd
@@ -73,6 +73,27 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
             value=value,
             **kwargs,
         )
+
+    def update(
+        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        label: str | None = None,
+        show_label: bool | None = None,
+        container: bool | None = None,
+        scale: int | None = None,
+        min_width: int | None = None,
+        visible: bool | None = None,
+    ):
+        updated_config = {
+            "label": label,
+            "show_label": show_label,
+            "container": container,
+            "scale": scale,
+            "min_width": min_width,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
+        return updated_config
 
     def postprocess(self, y) -> dict[str, str] | None:
         """

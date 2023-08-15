@@ -165,6 +165,30 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             **kwargs,
         )
 
+    def update(
+        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        max_rows: int | None = None,
+        max_cols: str | None = None,
+        label: str | None = None,
+        show_label: bool | None = None,
+        scale: int | None = None,
+        min_width: int | None = None,
+        interactive: bool | None = None,
+        visible: bool | None = None,
+    ):
+        return {
+            "max_rows": max_rows,
+            "max_cols": max_cols,
+            "label": label,
+            "show_label": show_label,
+            "scale": scale,
+            "min_width": min_width,
+            "interactive": interactive,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
+
     def preprocess(self, x: DataframeData):
         """
         Parameters:

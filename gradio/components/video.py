@@ -112,12 +112,11 @@ class Video(
         self.width = width
         self.mirror_webcam = mirror_webcam
         self.include_audio = include_audio
-        if not is_update():
-            self.include_audio = (
-                self.include_audio
-                if self.include_audio is not None
-                else source == "upload"
-            )
+        self.include_audio = (
+            self.include_audio
+            if self.include_audio is not None
+            else source == "upload"
+        )
 
         self.show_share_button = show_share_button
         self.show_share_button = (
@@ -141,6 +140,41 @@ class Video(
             **kwargs,
         )
 
+    def update(
+        value: str
+        | tuple[str, str | None]
+        | Literal[_Keywords.NO_VALUE]
+        | None = _Keywords.NO_VALUE,
+        source: Literal["upload", "webcam"] | None = None,
+        height: int | None = None,
+        width: int | None = None,
+        label: str | None = None,
+        show_label: bool | None = None,
+        container: bool | None = None,
+        scale: int | None = None,
+        min_width: int | None = None,
+        interactive: bool | None = None,
+        visible: bool | None = None,
+        autoplay: bool | None = None,
+        show_share_button: bool | None = None,
+    ):
+        return {
+            "source": source,
+            "height": height,
+            "width": width,
+            "label": label,
+            "show_label": show_label,
+            "container": container,
+            "scale": scale,
+            "min_width": min_width,
+            "interactive": interactive,
+            "visible": visible,
+            "value": value,
+            "autoplay": autoplay,
+            "show_share_button": show_share_button,
+            "__type__": "update",
+        }
+
     def preprocess(
         self, x: tuple[FileData, FileData | None] | FileData | None
     ) -> str | None:
@@ -158,9 +192,9 @@ class Video(
             video = x[0]
 
         file_name, file_data, is_file = (
-            video.get(name),
+            video.get("name"),
             video["data"],
-            video.get(is_file), False,
+            video.get("is_file", False),
         )
 
         if is_file:

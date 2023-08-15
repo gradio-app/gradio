@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Callable
+from typing import Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import (
@@ -96,6 +96,34 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
             value=value,
             **kwargs,
         )
+
+    def update(
+        value: list[tuple[str, str | float | None]]
+        | dict
+        | Literal[_Keywords.NO_VALUE]
+        | None = _Keywords.NO_VALUE,
+        color_map: dict[str, str] | None = None,
+        show_legend: bool | None = None,
+        label: str | None = None,
+        show_label: bool | None = None,
+        container: bool | None = None,
+        scale: int | None = None,
+        min_width: int | None = None,
+        visible: bool | None = None,
+    ):
+        updated_config = {
+            "color_map": color_map,
+            "show_legend": show_legend,
+            "label": label,
+            "show_label": show_label,
+            "container": container,
+            "scale": scale,
+            "min_width": min_width,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
+        return updated_config
 
     def postprocess(
         self, y: list[tuple[str, str | float | None]] | dict | None

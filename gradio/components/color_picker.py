@@ -86,6 +86,30 @@ class ColorPicker(
             "serialized": "#000000",
         }
 
+    def update(
+        value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        label: str | None = None,
+        info: str | None = None,
+        show_label: bool | None = None,
+        container: bool | None = None,
+        scale: int | None = None,
+        min_width: int | None = None,
+        visible: bool | None = None,
+        interactive: bool | None = None,
+    ):
+        return {
+            "value": value,
+            "label": label,
+            "info": info,
+            "show_label": show_label,
+            "container": container,
+            "scale": scale,
+            "min_width": min_width,
+            "visible": visible,
+            "interactive": interactive,
+            "__type__": "update",
+        }
+
     def preprocess(self, x: str | None) -> str | None:
         """
         Any preprocessing needed to be performed on function input.

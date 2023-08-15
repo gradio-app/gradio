@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import inspect
-from typing import Callable
+from typing import Callable, Literal, Any
 
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
@@ -69,6 +69,19 @@ class Markdown(IOComponent, Changeable, StringSerializable):
             return None
         unindented_y = inspect.cleandoc(y)
         return self.md.render(unindented_y)
+
+    def update(
+        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        visible: bool | None = None,
+        rtl: bool | None = None,
+    ):
+        updated_config = {
+            "visible": visible,
+            "value": value,
+            "rtl": rtl,
+            "__type__": "update",
+        }
+        return updated_config
 
     def as_example(self, input_data: str | None) -> str:
         postprocessed = self.postprocess(input_data)

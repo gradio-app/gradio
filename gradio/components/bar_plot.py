@@ -9,6 +9,7 @@ import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.blocks import Default
+from gradio.components.base import _Keywords
 from gradio.components.plot import AltairPlot, Plot
 
 set_documentation_group("component")
@@ -129,6 +130,118 @@ class BarPlot(Plot):
 
     def get_block_name(self) -> str:
         return "plot"
+
+    @staticmethod
+    def update(
+        value: pd.DataFrame | dict | Literal[_Keywords.NO_VALUE] = _Keywords.NO_VALUE,
+        x: str | None = None,
+        y: str | None = None,
+        color: str | None = None,
+        vertical: bool = True,
+        group: str | None = None,
+        title: str | None = None,
+        tooltip: list[str] | str | None = None,
+        x_title: str | None = None,
+        y_title: str | None = None,
+        color_legend_title: str | None = None,
+        group_title: str | None = None,
+        color_legend_position: Literal[
+            "left",
+            "right",
+            "top",
+            "bottom",
+            "top-left",
+            "top-right",
+            "bottom-left",
+            "bottom-right",
+            "none",
+        ]
+        | None = None,
+        height: int | None = None,
+        width: int | None = None,
+        y_lim: list[int] | None = None,
+        caption: str | None = None,
+        interactive: bool | None = None,
+        label: str | None = None,
+        show_label: bool | None = None,
+        container: bool | None = None,
+        scale: int | None = None,
+        min_width: int | None = None,
+        visible: bool | None = None,
+    ):
+        """Update an existing BarPlot component.
+
+        If updating any of the plot properties (color, size, etc) the value, x, and y parameters must be specified.
+
+        Parameters:
+            value: The pandas dataframe containing the data to display in a scatter plot.
+            x: Column corresponding to the x axis.
+            y: Column corresponding to the y axis.
+            color: The column to determine the bar color. Must be categorical (discrete values).
+            vertical: If True, the bars will be displayed vertically. If False, the x and y axis will be switched, displaying the bars horizontally. Default is True.
+            group: The column with which to split the overall plot into smaller subplots.
+            title: The title to display on top of the chart.
+            tooltip: The column (or list of columns) to display on the tooltip when a user hovers over a bar.
+            x_title: The title given to the x axis. By default, uses the value of the x parameter.
+            y_title: The title given to the y axis. By default, uses the value of the y parameter.
+            color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
+            group_title: The label displayed on top of the subplot columns (or rows if vertical=True). Use an empty string to omit.
+            color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
+            height: The height of the plot in pixels.
+            width: The width of the plot in pixels.
+            y_lim: A tuple of list containing the limits for the y-axis, specified as [y_min, y_max].
+            caption: The (optional) caption to display below the plot.
+            interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
+            label: The (optional) label to display on the top left corner of the plot.
+            show_label: Whether the label should be displayed.
+            visible: Whether the plot should be visible.
+        """
+        properties = [
+            x,
+            y,
+            color,
+            vertical,
+            group,
+            title,
+            tooltip,
+            x_title,
+            y_title,
+            color_legend_title,
+            group_title,
+            color_legend_position,
+            height,
+            width,
+            y_lim,
+            interactive,
+        ]
+        if any(properties):
+            if not isinstance(value, pd.DataFrame):
+                raise ValueError(
+                    "In order to update plot properties the value parameter "
+                    "must be provided, and it must be a Dataframe. Please pass a value "
+                    "parameter to gr.BarPlot.update."
+                )
+            if x is None or y is None:
+                raise ValueError(
+                    "In order to update plot properties, the x and y axis data "
+                    "must be specified. Please pass valid values for x an y to "
+                    "gr.BarPlot.update."
+                )
+            chart = BarPlot.create_plot(value, *properties)
+            value = {"type": "altair", "plot": chart.to_json(), "chart": "bar"}
+
+        updated_config = {
+            "label": label,
+            "show_label": show_label,
+            "container": container,
+            "scale": scale,
+            "min_width": min_width,
+            "visible": visible,
+            "value": value,
+            "caption": caption,
+            "__type__": "update",
+        }
+        return updated_config
 
     @staticmethod
     def create_plot(

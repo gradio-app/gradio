@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import inspect
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Literal
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
@@ -115,6 +115,37 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             value=value,
             **kwargs,
         )
+
+    def update(
+        value: list[list[str | tuple[str] | tuple[str, str] | None]]
+        | Literal[_Keywords.NO_VALUE]
+        | None = _Keywords.NO_VALUE,
+        label: str | None = None,
+        show_label: bool | None = None,
+        container: bool | None = None,
+        scale: int | None = None,
+        min_width: int | None = None,
+        visible: bool | None = None,
+        height: int | None = None,
+        rtl: bool | None = None,
+        show_share_button: bool | None = None,
+        show_copy_button: bool | None = None,
+    ):
+        updated_config = {
+            "label": label,
+            "show_label": show_label,
+            "container": container,
+            "scale": scale,
+            "min_width": min_width,
+            "visible": visible,
+            "value": value,
+            "height": height,
+            "show_share_button": show_share_button,
+            "rtl": rtl,
+            "show_copy_button": show_copy_button,
+            "__type__": "update",
+        }
+        return updated_config
 
     def _preprocess_chat_messages(
         self, chat_message: str | dict | None

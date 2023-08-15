@@ -91,10 +91,9 @@ class Dropdown(
 
         self.allow_custom_value = allow_custom_value
         self.choices = choices
-        if self.choices != NoOverride:
-            self.choices = (
-                [str(choice) for choice in self.choices] if self.choices else []
-            )
+        self.choices = (
+            [str(choice) for choice in self.choices] if self.choices else []
+        )
 
         value = value
         self.multiselect = multiselect
@@ -155,6 +154,34 @@ class Dropdown(
                 "raw": self.choices[0] if self.choices else None,
                 "serialized": self.choices[0] if self.choices else None,
             }
+
+    def update(
+        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        choices: str | list[str] | None = None,
+        label: str | None = None,
+        info: str | None = None,
+        show_label: bool | None = None,
+        container: bool | None = None,
+        scale: int | None = None,
+        min_width: int | None = None,
+        interactive: bool | None = None,
+        placeholder: str | None = None,
+        visible: bool | None = None,
+    ):
+        return {
+            "choices": choices,
+            "label": label,
+            "info": info,
+            "show_label": show_label,
+            "container": container,
+            "scale": scale,
+            "min_width": min_width,
+            "visible": visible,
+            "value": value,
+            "interactive": interactive,
+            "placeholder": placeholder,
+            "__type__": "update",
+        }
 
     def preprocess(
         self, x: str | list[str]

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Any, Literal
 
 import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
@@ -84,6 +84,30 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
             **kwargs,
         )
 
+    def update(
+        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        colors: list[str] | None = None,
+        label: str | None = None,
+        show_label: bool | None = None,
+        container: bool | None = None,
+        scale: int | None = None,
+        min_width: int | None = None,
+        interactive: bool | None = None,
+        visible: bool | None = None,
+    ):
+        return {
+            "colors": colors,
+            "label": label,
+            "show_label": show_label,
+            "container": container,
+            "scale": scale,
+            "min_width": min_width,
+            "interactive": interactive,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
+
     def preprocess(self, x: dict | None) -> pd.DataFrame | None:
         """
         Parameters:
@@ -93,7 +117,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
         """
         if x is None:
             return x
-        elif x.get(is_file):
+        elif x.get("is_file"):
             dataframe = pd.read_csv(x["name"])
         else:
             dataframe = pd.DataFrame(data=x["data"], columns=x["headers"])

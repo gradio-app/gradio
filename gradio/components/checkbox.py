@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Callable
+from typing import Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import BooleanSerializable
@@ -90,6 +90,30 @@ class Checkbox(
             **kwargs,
         )
         NeighborInterpretable.__init__(self)
+
+    def update(
+        value: bool | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        label: str | None = None,
+        info: str | None = None,
+        show_label: bool | None = None,
+        container: bool | None = None,
+        scale: int | None = None,
+        min_width: int | None = None,
+        interactive: bool | None = None,
+        visible: bool | None = None,
+    ):
+        return {
+            "label": label,
+            "info": info,
+            "show_label": show_label,
+            "container": container,
+            "scale": scale,
+            "min_width": min_width,
+            "interactive": interactive,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
 
     def get_interpretation_neighbors(self, x):
         return [not x], {}

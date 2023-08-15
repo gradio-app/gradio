@@ -111,3 +111,42 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
                 return file_data.read()
         else:
             return y.strip()
+    def update(
+        value: str
+        | tuple[str]
+        | None
+        | Literal[_Keywords.NO_VALUE] = _Keywords.NO_VALUE,
+        label: str | None = None,
+        show_label: bool | None = None,
+        container: bool | None = None,
+        scale: int | None = None,
+        min_width: int | None = None,
+        visible: bool | None = None,
+        language: Literal[
+            "python",
+            "markdown",
+            "json",
+            "html",
+            "css",
+            "javascript",
+            "typescript",
+            "yaml",
+            "dockerfile",
+            "shell",
+            "r",
+        ]
+        | None = None,
+        interactive: bool | None = None,
+    ):
+        return {
+            "label": label,
+            "show_label": show_label,
+            "container": container,
+            "scale": scale,
+            "min_width": min_width,
+            "visible": visible,
+            "value": value,
+            "language": language,
+            "interactive": interactive,
+            "__type__": "update",
+        }

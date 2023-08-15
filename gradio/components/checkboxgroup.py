@@ -111,6 +111,35 @@ class CheckboxGroup(
             "serialized": self.choices[0] if self.choices else None,
         }
 
+    def update(
+        value: list[str | int | float]
+        | str
+        | Literal[_Keywords.NO_VALUE]
+        | None = _Keywords.NO_VALUE,
+        choices: list[str] | None = None,
+        label: str | None = None,
+        info: str | None = None,
+        show_label: bool | None = None,
+        container: bool | None = None,
+        scale: int | None = None,
+        min_width: int | None = None,
+        interactive: bool | None = None,
+        visible: bool | None = None,
+    ):
+        return {
+            "choices": choices,
+            "label": label,
+            "info": info,
+            "show_label": show_label,
+            "container": container,
+            "scale": scale,
+            "min_width": min_width,
+            "interactive": interactive,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
+
     def preprocess(self, x: list[str]) -> list[str] | list[int]:
         """
         Parameters:

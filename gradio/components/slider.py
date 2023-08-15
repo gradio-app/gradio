@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 import random
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 
 import numpy as np
 from gradio_client.documentation import document, set_documentation_group
@@ -134,6 +134,36 @@ class Slider(
         if n_decimals:
             value = round(value, n_decimals)
         return value
+
+    def update(
+        value: float | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        minimum: float | None = None,
+        maximum: float | None = None,
+        step: float | None = None,
+        label: str | None = None,
+        info: str | None = None,
+        show_label: bool | None = None,
+        container: bool | None = None,
+        scale: int | None = None,
+        min_width: int | None = None,
+        interactive: bool | None = None,
+        visible: bool | None = None,
+    ):
+        return {
+            "minimum": minimum,
+            "maximum": maximum,
+            "step": step,
+            "label": label,
+            "info": info,
+            "show_label": show_label,
+            "container": container,
+            "scale": scale,
+            "min_width": min_width,
+            "interactive": interactive,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
 
     def postprocess(self, y: float | None) -> float | None:
         """

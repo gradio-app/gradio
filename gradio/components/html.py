@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Callable
+from typing import Callable, Any, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
@@ -58,3 +58,17 @@ class HTML(Changeable, IOComponent, StringSerializable):
             value=value,
             **kwargs,
         )
+    def update(
+        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        label: str | None = None,
+        show_label: bool | None = None,
+        visible: bool | None = None,
+    ):
+        updated_config = {
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
+        return updated_config

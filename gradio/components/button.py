@@ -78,6 +78,30 @@ class Button(Clickable, IOComponent, StringSerializable):
             **kwargs,
         )
 
+    def update(
+        value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        variant: Literal["primary", "secondary", "stop"] | None = None,
+        size: Literal["sm", "lg"] | None = None,
+        icon: str | None = None,
+        link: str | None = None,
+        visible: bool | None = None,
+        interactive: bool | None = None,
+        scale: int | None = None,
+        min_width: int | None = None,
+    ):
+        return {
+            "variant": variant,
+            "size": size,
+            "visible": visible,
+            "value": value,
+            "icon": icon,
+            "link": link,
+            "interactive": interactive,
+            "scale": scale,
+            "min_width": min_width,
+            "__type__": "update",
+        }
+
     def style(
         self,
         *,
