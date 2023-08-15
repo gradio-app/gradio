@@ -179,6 +179,12 @@ class TestInterface:
         assert len(api_info["named_endpoints"]) == 1
         assert len(api_info["unnamed_endpoints"]) == 0
 
+    def test_api_name(self):
+        io = Interface(lambda x: x, "textbox", "textbox", api_name="echo")
+        assert next(
+            (d for d in io.config["dependencies"] if d["api_name"] == "echo"), None
+        )
+
 
 class TestTabbedInterface:
     def test_tabbed_interface_config_matches_manual_tab(self):
