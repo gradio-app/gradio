@@ -8,10 +8,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
 from gradio.blocks import Default
-from gradio.components.base import (, _Keywords
-    IOComponent,
-    get_component_instance,
-)
+from gradio.components.base import _Keywords, IOComponent, get_component_instance
 from gradio.events import Clickable, Selectable
 
 set_documentation_group("component")
