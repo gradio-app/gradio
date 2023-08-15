@@ -33,7 +33,7 @@ import Textbox from "@gradio/textbox";
 import TimeSeries from "@gradio/timeseries";
 import UploadButton from "@gradio/uploadbutton";
 import Video from "@gradio/video";
-import { LoadingStatus } from "@gradio/statustracker/types";
+import { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status: LoadingStatus = {
 	eta: 0,

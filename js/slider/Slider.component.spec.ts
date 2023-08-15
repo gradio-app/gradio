@@ -3,7 +3,7 @@ import type { Page, Locator } from "@playwright/test";
 import Slider from "./index.svelte";
 import { spy } from "tinyspy";
 
-import type { LoadingStatus } from "@gradio/statustracker/types";
+import type { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status: LoadingStatus = {
 	eta: 0,

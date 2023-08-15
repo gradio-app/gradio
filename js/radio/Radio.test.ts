@@ -4,7 +4,7 @@ import { cleanup, render } from "@gradio/tootils";
 import event from "@testing-library/user-event";
 
 import Radio from "./index.svelte";
-import type { LoadingStatus } from "@gradio/statustracker/types";
+import type { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status = {
 	eta: 0,

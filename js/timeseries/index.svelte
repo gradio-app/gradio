@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Static from "./static";
 	import Interactive from "./interactive";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	interface StaticData {
 		data: number[][];

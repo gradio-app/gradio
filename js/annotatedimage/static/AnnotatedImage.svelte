@@ -3,7 +3,7 @@
 	import { Block, BlockLabel, Empty } from "@gradio/atoms";
 	import { Image } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 	import { type FileData, normalise_file } from "@gradio/upload";
 	import type { SelectData } from "@gradio/utils";
 

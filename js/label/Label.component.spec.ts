@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/experimental-ct-svelte";
 import Label from "./static";
 import { spy } from "tinyspy";
 
-import type { LoadingStatus } from "@gradio/statustracker/types";
+import type { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status: LoadingStatus = {
 	eta: 0,

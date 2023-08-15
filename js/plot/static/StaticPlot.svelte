@@ -5,7 +5,7 @@
 	import { Plot as PlotIcon } from "@gradio/icons";
 
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
 	import type { ThemeMode } from "js/app/src/components/types";
 

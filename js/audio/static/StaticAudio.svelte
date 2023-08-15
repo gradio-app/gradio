@@ -5,7 +5,7 @@
 	import { _ } from "svelte-i18n";
 
 	import type { FileData } from "@gradio/upload";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	import StaticAudio from "./AudioPlayer.svelte";
 	import { StatusTracker } from "@gradio/statustracker";

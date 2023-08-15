@@ -4,7 +4,7 @@
 	import { Block, BlockLabel, Empty } from "@gradio/atoms";
 	import { TextHighlight } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];

@@ -2,7 +2,7 @@
 
 <script lang="ts">
 	import type { FileData } from "@gradio/upload";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	import Audio from "./interactive";
 	import StaticAudio from "./static";

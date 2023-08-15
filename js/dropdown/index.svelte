@@ -1,7 +1,7 @@
 <script lang="ts">
 	import StaticDropdown from "./static";
 	import InteractiveDropdown from "./interactive";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	export let label = "Dropdown";
 	export let info: string | undefined = undefined;

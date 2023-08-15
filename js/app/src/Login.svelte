@@ -2,7 +2,7 @@
 	import Form from "@gradio/form";
 	import Textbox from "@gradio/textbox";
 	import { BaseButton } from "@gradio/button/static";
-	import { Component as Column } from "./components/Column";
+	import Column from "@gradio/column";
 	export let root: string;
 	export let auth_message: string | null;
 	export let app_mode: boolean;

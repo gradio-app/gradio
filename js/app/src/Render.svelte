@@ -12,24 +12,11 @@
 
 	export let children: ComponentMeta["children"];
 	export let dynamic_ids: Set<number>;
-	export let has_modes: boolean | undefined;
 	export let parent: string | null = null;
 	export let target: HTMLElement;
 	export let theme_mode: ThemeMode;
 
 	const dispatch = createEventDispatcher<{ mount: number; destroy: number }>();
-
-	if (has_modes) {
-		if ((props as any).interactive === false) {
-			(props as any).mode = "static";
-		} else if ((props as any).interactive === true) {
-			(props as any).mode = "dynamic";
-		} else if (dynamic_ids.has(id)) {
-			(props as any).mode = "dynamic";
-		} else {
-			(props as any).mode = "static";
-		}
-	}
 
 	onMount(() => {
 		dispatch("mount", id);

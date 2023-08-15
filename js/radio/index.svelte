@@ -5,7 +5,7 @@
 	import Radio from "./static";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	export let label = "Radio";
 	export let info: string | undefined = undefined;
