@@ -21,7 +21,11 @@ XRAY_CONFIG = {
             "id": 2,
             "type": "checkboxgroup",
             "props": {
-                "choices": ["Covid", "Malaria", "Lung Cancer"],
+                "choices": [
+                    ("Covid", "Covid"),
+                    ("Malaria", "Malaria"),
+                    ("Lung Cancer", "Lung Cancer"),
+                ],
                 "value": [],
                 "label": "Disease to Scan For",
                 "show_label": True,
@@ -346,7 +350,11 @@ XRAY_CONFIG_DIFF_IDS = {
             "id": 7,
             "type": "checkboxgroup",
             "props": {
-                "choices": ["Covid", "Malaria", "Lung Cancer"],
+                "choices": [
+                    ("Covid", "Covid"),
+                    ("Malaria", "Malaria"),
+                    ("Lung Cancer", "Lung Cancer"),
+                ],
                 "value": [],
                 "label": "Disease to Scan For",
                 "show_label": True,
@@ -668,7 +676,11 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "id": 2,
             "type": "checkboxgroup",
             "props": {
-                "choices": ["Covid", "Malaria", "Lung Cancer"],
+                "choices": [
+                    ("Covid", "Covid"),
+                    ("Malaria", "Malaria"),
+                    ("Lung Cancer", "Lung Cancer"),
+                ],
                 "value": [],
                 "name": "checkboxgroup",
                 "show_label": True,

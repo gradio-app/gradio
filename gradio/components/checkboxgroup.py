@@ -113,8 +113,8 @@ class CheckboxGroup(
 
     def example_inputs(self) -> dict[str, Any]:
         return {
-            "raw": self.choices[0] if self.choices else None,
-            "serialized": self.choices[0] if self.choices else None,
+            "raw": self.choices[0][1] if self.choices else None,
+            "serialized": self.choices[0][1] if self.choices else None,
         }
 
     @staticmethod
@@ -180,7 +180,7 @@ class CheckboxGroup(
 
     def get_interpretation_neighbors(self, x):
         leave_one_out_sets = []
-        for choice in self.choices:
+        for choice in [value for _, value in self.choices]:
             leave_one_out_set = list(x)
             if choice in leave_one_out_set:
                 leave_one_out_set.remove(choice)
@@ -195,7 +195,7 @@ class CheckboxGroup(
             For each tuple in the list, the first value represents the interpretation score if the input is False, and the second if the input is True.
         """
         final_scores = []
-        for choice, score in zip(self.choices, scores):
+        for choice, score in zip([value for _, value in self.choices], scores):
             score_set = [score, None] if choice in x else [None, score]
             final_scores.append(score_set)
         return final_scores

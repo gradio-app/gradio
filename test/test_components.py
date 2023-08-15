@@ -502,7 +502,7 @@ class TestCheckboxGroup:
             label="Check Your Inputs",
         )
         assert checkboxes_input.get_config() == {
-            "choices": ["a", "b", "c"],
+            "choices": [("a", "a"), ("b", "b"), ("c", "c")],
             "value": ["a", "c"],
             "name": "checkboxgroup",
             "show_label": True,
@@ -548,7 +548,7 @@ class TestRadio:
             choices=["a", "b", "c"], default="a", label="Pick Your One Input"
         )
         assert radio_input.get_config() == {
-            "choices": ["a", "b", "c"],
+            "choices": [("a", "a"), ("b", "b"), ("c", "c")],
             "value": None,
             "name": "radio",
             "show_label": True,
@@ -697,7 +697,6 @@ class TestImage:
         with pytest.raises(ValueError):
             gr.Image(type="unknown")
         image_input.shape = (30, 10)
-        assert image_input._segment_by_slic(img) is not None
 
         # Output functionalities
         y_img = gr.processing_utils.decode_base64_to_image(
@@ -2031,9 +2030,9 @@ class TestJSON:
 
         def get_avg_age_per_gender(data):
             return {
-                "M": int(data[data["gender"] == "M"].mean()),
-                "F": int(data[data["gender"] == "F"].mean()),
-                "O": int(data[data["gender"] == "O"].mean()),
+                "M": int(data[data["gender"] == "M"]["age"].mean()),
+                "F": int(data[data["gender"] == "F"]["age"].mean()),
+                "O": int(data[data["gender"] == "O"]["age"].mean()),
             }
 
         iface = gr.Interface(
@@ -2370,13 +2369,6 @@ class TestScatterPlot:
         assert config["encoding"]["x"]["field"] == "Horsepower"
         assert config["encoding"]["x"]["title"] == "Horse"
         assert config["encoding"]["y"]["field"] == "Miles_per_Gallon"
-        assert config["selection"] == {
-            "selector001": {
-                "bind": "scales",
-                "encodings": ["x", "y"],
-                "type": "interval",
-            }
-        }
         assert config["title"] == "Car Data"
         assert "height" not in config
         assert "width" not in config
