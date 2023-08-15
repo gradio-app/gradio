@@ -902,7 +902,11 @@ importers:
         specifier: workspace:^
         version: link:../utils
 
-  js/lite: {}
+  js/lite:
+    devDependencies:
+      gradio:
+        specifier: workspace:^
+        version: link:../../gradio
 
   js/markdown:
     dependencies:

@@ -11,5 +11,8 @@
 	],
 	"scripts": {
 		"build": "pnpm --filter @gradio/app build:lite"
+	},
+	"devDependencies": {
+		"gradio": "workspace:^"
 	}
 }
