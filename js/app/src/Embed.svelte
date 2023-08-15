@@ -1,6 +1,5 @@
 <script lang="ts">
 	import space_logo from "./images/spaces.svg";
-
 	export let wrapper: HTMLDivElement;
 	export let version: string;
 	export let initial_height: string;

@@ -66,7 +66,7 @@ function create_custom_element(): void {
 				cancelable: false,
 				composed: true
 			});
-			
+
 			const observer = new MutationObserver((mutations) => {
 				this.dispatchEvent(event);
 			});
