@@ -329,7 +329,7 @@ class Audio(
 
     def postprocess(
         self, y: tuple[int, np.ndarray] | str | Path | bytes | None
-    ) -> str | dict | None:
+    ) -> str | dict | bytes | None:
         """
         Parameters:
             y: audio data in either of the following formats: a tuple of (sample_rate, data), or a string filepath or URL to an audio file, or None.
@@ -353,10 +353,7 @@ class Audio(
             )
             self.temp_files.add(file_path)
         else:
-            if isinstance(y, Path):
-                y = str(y)
-            else:
-                file_path = self.make_temp_copy_if_needed(y)
+            file_path = self.make_temp_copy_if_needed(y)
         return {"name": file_path, "data": None, "is_file": True}
 
     def stream_output(self, y, output_id: str, first_chunk: bool):
