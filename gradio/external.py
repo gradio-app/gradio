@@ -152,7 +152,9 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
     pipelines = {
         "audio-classification": {
             # example model: ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition
-            "inputs": components.Audio(source="upload", type="filepath", label="Input", render=False),
+            "inputs": components.Audio(
+                source="upload", type="filepath", label="Input", render=False
+            ),
             "outputs": components.Label(label="Class", render=False),
             "preprocess": lambda i: to_binary,
             "postprocess": lambda r: postprocess_label(
@@ -161,14 +163,18 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         },
         "audio-to-audio": {
             # example model: facebook/xm_transformer_sm_all-en
-            "inputs": components.Audio(source="upload", type="filepath", label="Input", render=False),
+            "inputs": components.Audio(
+                source="upload", type="filepath", label="Input", render=False
+            ),
             "outputs": components.Audio(label="Output", render=False),
             "preprocess": to_binary,
             "postprocess": encode_to_base64,
         },
         "automatic-speech-recognition": {
             # example model: facebook/wav2vec2-base-960h
-            "inputs": components.Audio(source="upload", type="filepath", label="Input", render=False),
+            "inputs": components.Audio(
+                source="upload", type="filepath", label="Input", render=False
+            ),
             "outputs": components.Textbox(label="Output", render=False),
             "preprocess": to_binary,
             "postprocess": lambda r: r.json()["text"],
@@ -196,7 +202,9 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         },
         "image-classification": {
             # Example: google/vit-base-patch16-224
-            "inputs": components.Image(type="filepath", label="Input Image", render=False),
+            "inputs": components.Image(
+                type="filepath", label="Input Image", render=False
+            ),
             "outputs": components.Label(label="Classification", render=False),
             "preprocess": to_binary,
             "postprocess": lambda r: postprocess_label(
@@ -256,7 +264,9 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             # Example: facebook/bart-large-mnli
             "inputs": [
                 components.Textbox(label="Input", render=False),
-                components.Textbox(label="Possible class names (" "comma-separated)", render=False),
+                components.Textbox(
+                    label="Possible class names (" "comma-separated)", render=False
+                ),
                 components.Checkbox(label="Allow multiple true classes", render=False),
             ],
             "outputs": components.Label(label="Classification", render=False),
@@ -275,13 +285,15 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             # Example: sentence-transformers/distilbert-base-nli-stsb-mean-tokens
             "inputs": [
                 components.Textbox(
-                    value="That is a happy person", label="Source Sentence", render=False
+                    value="That is a happy person",
+                    label="Source Sentence",
+                    render=False,
                 ),
                 components.Textbox(
                     lines=7,
                     placeholder="Separate each sentence by a newline",
                     label="Sentences to compare to",
-                    render=False
+                    render=False,
                 ),
             ],
             "outputs": components.Label(label="Classification", render=False),
@@ -352,7 +364,9 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         },
         "image-to-text": {
             # example model: Salesforce/blip-image-captioning-base
-            "inputs": components.Image(type="filepath", label="Input Image", render=False),
+            "inputs": components.Image(
+                type="filepath", label="Input Image", render=False
+            ),
             "outputs": components.Textbox(label="Generated Text", render=False),
             "preprocess": to_binary,
             "postprocess": lambda r: r.json()[0]["generated_text"],
@@ -370,7 +384,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
                 type="pandas",
                 headers=col_names,
                 col_count=(len(col_names), "fixed"),
-                render=False
+                render=False,
             ),
             "outputs": components.Dataframe(
                 label="Predictions", type="array", headers=["prediction"], render=False
