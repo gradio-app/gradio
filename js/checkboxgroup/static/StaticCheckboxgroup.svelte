@@ -9,7 +9,7 @@
 	export let visible = true;
 	export let value: string[] = [];
 	export let value_is_output = false;
-	export let choices: string[];
+	export let choices: string[][];
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;

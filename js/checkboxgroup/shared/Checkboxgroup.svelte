@@ -6,7 +6,7 @@
 	export let value: string[] = [];
 	let old_value: string[] = value.slice();
 	export let value_is_output = false;
-	export let choices: string[];
+	export let choices: string[][];
 	export let disabled = false;
 	export let label: string;
 	export let info: string | undefined = undefined;
@@ -49,14 +49,14 @@
 <BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 <div class="wrap" data-testid="checkbox-group">
-	{#each choices as choice}
+	{#each choices as choice, i}
 		<label class:disabled class:selected={value.includes(choice[1])}>
 			<input
 				{disabled}
 				on:change={() => toggleChoice(choice[1])}
 				on:input={(evt) =>
 					dispatch("select", {
-						index: choices.indexOf(choice[1]),
+						index: i,
 						value: choice[1],
 						selected: evt.currentTarget.checked
 					})}

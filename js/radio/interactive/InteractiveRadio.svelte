@@ -11,7 +11,7 @@
 	export let visible = true;
 	export let value: string | null = null;
 	export let value_is_output = false;
-	export let choices: string[] = [];
+	export let choices: string[][] = [];
 	export let show_label: boolean;
 	export let container = false;
 	export let scale: number | null = null;
