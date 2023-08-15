@@ -2,7 +2,7 @@
 	import { createEventDispatcher } from "svelte";
 	import HTML from "./HTML.svelte";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 	import { Block } from "@gradio/atoms";
 
 	export let label: string;

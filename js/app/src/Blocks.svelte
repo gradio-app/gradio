@@ -50,7 +50,7 @@
 	let rootNode: ComponentMeta = {
 		id: layout.id,
 		type: "column",
-		props: {},
+		props: { mode: "static" },
 		has_modes: false,
 		instance: {} as ComponentMeta["instance"],
 		component: {} as ComponentMeta["component"]
@@ -78,7 +78,7 @@
 	});
 
 	let params = new URLSearchParams(window.location.search);
-	let api_docs_visible = params.get("view") === "api";
+	let api_docs_visible = params.get("view") === "api" && show_api;
 	function set_api_docs_visible(visible: boolean): void {
 		api_docs_visible = visible;
 		let params = new URLSearchParams(window.location.search);
@@ -134,48 +134,60 @@
 	);
 
 	type LoadedComponent = {
-		Component: ComponentMeta["component"];
-		modes?: string[];
-		document?: (arg0: Record<string, unknown>) => Documentation;
+		default: ComponentMeta["component"];
 	};
 
 	async function load_component<T extends ComponentMeta["type"]>(
-		name: T
+		name: T,
+		mode: ComponentMeta["props"]["mode"]
 	): Promise<{
 		name: T;
 		component: LoadedComponent;
 	}> {
 		try {
-			const c = await component_map[name]();
+			//@ts-ignore
+			const c = await component_map[name][mode]();
 			return {
 				name,
 				component: c as LoadedComponent
 			};
 		} catch (e) {
-			console.error(`failed to load: ${name}`);
-			console.error(e);
-			throw e;
+			if (mode === "interactive") {
+				try {
+					const c = await component_map[name]["static"]();
+					return {
+						name,
+						component: c as LoadedComponent
+					};
+				} catch (e) {
+					console.error(`failed to load: ${name}`);
+					console.error(e);
+					throw e;
+				}
+			} else {
+				console.error(`failed to load: ${name}`);
+				console.error(e);
+				throw e;
+			}
 		}
 	}
 
 	const component_set = new Set<
 		Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
 	>();
+
 	const _component_map = new Map<
-		ComponentMeta["type"],
+		`${ComponentMeta["type"]}_${ComponentMeta["props"]["mode"]}`,
 		Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
 	>();
+	const _type_for_id = new Map<number, ComponentMeta["props"]["mode"]>();
 
 	async function walk_layout(node: LayoutNode): Promise<void> {
 		let instance = instance_map[node.id];
-		const _component = (await _component_map.get(instance.type))!.component;
-		instance.component = _component.Component;
-		if (_component.document) {
-			instance.documentation = _component.document(instance.props);
-		}
-		if (_component.modes && _component.modes.length > 1) {
-			instance.has_modes = true;
-		}
+		const _component = (await _component_map.get(
+			`${instance.type}_${_type_for_id.get(node.id) || "static"}`
+		))!.component;
+		instance.component = _component.default;
 
 		if (node.children) {
 			instance.children = node.children.map((v) => instance_map[v.id]);
@@ -183,10 +195,21 @@
 		}
 	}
 
-	components.forEach(async (c) => {
-		const _c = load_component(c.type);
+	components.forEach((c) => {
+		if ((c.props as any).interactive === false) {
+			(c.props as any).mode = "static";
+		} else if ((c.props as any).interactive === true) {
+			(c.props as any).mode = "interactive";
+		} else if (dynamic_ids.has(c.id)) {
+			(c.props as any).mode = "interactive";
+		} else {
+			(c.props as any).mode = "static";
+		}
+		_type_for_id.set(c.id, c.props.mode);
+
+		const _c = load_component(c.type, c.props.mode);
 		component_set.add(_c);
-		_component_map.set(c.type, _c);
+		_component_map.set(`${c.type}_${c.props.mode}`, _c);
 	});
 
 	export let ready = false;
@@ -199,6 +222,32 @@
 				console.error(e);
 			});
 	});
+
+	async function update_interactive_mode(
+		instance: ComponentMeta,
+		mode: "dynamic" | "interactive" | "static"
+	): Promise<void> {
+		let new_mode: "interactive" | "static" =
+			mode === "dynamic" ? "interactive" : mode;
+
+		if (instance.props.mode === new_mode) return;
+
+		instance.props.mode = new_mode;
+		const _c = load_component(instance.type, instance.props.mode);
+		component_set.add(_c);
+		_component_map.set(
+			`${instance.type}_${instance.props.mode}`,
+			_c as Promise<{
+				name: ComponentMeta["type"];
+				component: LoadedComponent;
+			}>
+		);
+
+		_c.then((c) => {
+			instance.component = c.component.default;
+			rootNode = rootNode;
+		});
+	}
 
 	function handle_update(data: any, fn_index: number): void {
 		const outputs = dependencies[fn_index].outputs;
@@ -214,6 +263,12 @@
 					if (update_key === "__type__") {
 						continue;
 					} else {
+						if (update_key === "mode") {
+							update_interactive_mode(
+								output,
+								update_value as "dynamic" | "static"
+							);
+						}
 						output.props[update_key] = update_value;
 					}
 				}
@@ -232,6 +287,7 @@
 		val: any
 	): void {
 		if (!obj?.props) {
+			// @ts-ignore
 			obj.props = {};
 		}
 		obj.props[prop] = val;
@@ -570,7 +626,6 @@
 	<div class="contain" style:flex-grow={app_mode ? "1" : "auto"}>
 		{#if ready}
 			<Render
-				has_modes={rootNode.has_modes}
 				component={rootNode.component}
 				id={rootNode.id}
 				props={rootNode.props}
