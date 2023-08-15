@@ -284,6 +284,19 @@
 	onMount(async () => {
 		intersecting.register(_id, wrapper);
 	});
+
+	function handleLoadingComplete(): void {
+		wrapper.dispatchEvent(
+			new CustomEvent("loadcomplete", {
+				bubbles: true,
+				cancelable: false,
+				composed: true,
+			})
+		);
+	}
+	$: if (ready === true && loader_status === "complete") {
+		handleLoadingComplete();
+	}
 </script>
 
 <Embed
@@ -294,7 +307,6 @@
 	{initial_height}
 	{space}
 	loaded={loader_status === "complete"}
-	on:ready
 	bind:wrapper
 >
 	{#if (loader_status === "pending" || loader_status === "error") && !(config && config?.auth_required)}

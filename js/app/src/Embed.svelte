@@ -1,7 +1,6 @@
 <script lang="ts">
 	import space_logo from "./images/spaces.svg";
 
-	import { createEventDispatcher, onMount } from "svelte";
 	export let wrapper: HTMLDivElement;
 	export let version: string;
 	export let initial_height: string;
@@ -11,12 +10,6 @@
 	export let display: boolean;
 	export let info: boolean;
 	export let loaded: boolean;
-
-	const dispatch = createEventDispatcher<{ ready: never }>();
-
-	onMount(async () => {
-		loaded && dispatch("ready");
-	});
 </script>
 
 <div
