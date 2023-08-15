@@ -70,8 +70,7 @@ class Radio(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.choices = choices or []
-        self.choice_values = [c[1] if isinstance(c, tuple) else c for c in self.choices]
+        self.choices = [c if isinstance(c, tuple) else (str(c), c) for c in choices]
         valid_types = ["value", "index"]
         if type not in valid_types:
             raise ValueError(
@@ -151,7 +150,7 @@ class Radio(
         Parameters:
             x: selected choice
         Returns:
-            selected choice as string or index within choice list
+            value of the selected choice as string or index within choice list
         """
         if self.type == "value":
             return x
@@ -159,7 +158,7 @@ class Radio(
             if x is None:
                 return None
             else:
-                return self.choice_values.index(x)
+                return [value for _, value in self.choices].index(x)
         else:
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."

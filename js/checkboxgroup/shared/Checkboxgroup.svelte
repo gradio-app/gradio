@@ -50,21 +50,21 @@
 
 <div class="wrap" data-testid="checkbox-group">
 	{#each choices as choice}
-		<label class:disabled class:selected={value.includes(choice)}>
+		<label class:disabled class:selected={value.includes(choice[1])}>
 			<input
 				{disabled}
-				on:change={() => toggleChoice(choice)}
+				on:change={() => toggleChoice(choice[1])}
 				on:input={(evt) =>
 					dispatch("select", {
-						index: choices.indexOf(choice),
-						value: choice,
+						index: choices.indexOf(choice[1]),
+						value: choice[1],
 						selected: evt.currentTarget.checked
 					})}
-				checked={value.includes(choice)}
+				checked={value.includes(choice[1])}
 				type="checkbox"
 				name="test"
 			/>
-			<span class="ml-2">{choice}</span>
+			<span class="ml-2">{choice[0]}</span>
 		</label>
 	{/each}
 </div>
