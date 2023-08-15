@@ -2,6 +2,7 @@
 
 from gradio_client.serializing import SimpleSerializable
 
+from gradio.blocks import updateable
 from gradio.components.base import IOComponent
 from gradio.events import Changeable
 
@@ -11,6 +12,7 @@ class Carousel(IOComponent, Changeable, SimpleSerializable):
     Deprecated Component
     """
 
+    @updateable
     def __init__(
         self,
         *args,

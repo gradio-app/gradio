@@ -10,6 +10,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
 from gradio import utils
+from gradio.blocks import updateable
 from gradio.components.base import IOComponent, _Keywords
 from gradio.events import (
     Changeable,
@@ -41,6 +42,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
 
     markdown_parser = None
 
+    @updateable
     def __init__(
         self,
         value: list[list[Any]] | Callable | None = None,
@@ -147,20 +149,6 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             value=value,
             **kwargs,
         )
-
-    def get_config(self):
-        return {
-            "headers": self.headers,
-            "datatype": self.datatype,
-            "row_count": self.row_count,
-            "col_count": self.col_count,
-            "value": self.value,
-            "max_rows": self.max_rows,
-            "max_cols": self.max_cols,
-            "overflow_row_behaviour": self.overflow_row_behaviour,
-            "wrap": self.wrap,
-            **IOComponent.get_config(self),
-        }
 
     @staticmethod
     def update(

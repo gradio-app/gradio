@@ -7,6 +7,7 @@ from typing import Any, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
+from gradio.blocks import updateable
 from gradio.components.base import (
     Component,
     IOComponent,
@@ -27,6 +28,7 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
     Postprocessing: expects a {list} of {lists} corresponding to the dataset data.
     """
 
+    @updateable
     def __init__(
         self,
         *,
@@ -87,20 +89,6 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
         else:
             self.headers = [c.label or "" for c in self.components]
         self.samples_per_page = samples_per_page
-
-    def get_config(self):
-        return {
-            "components": [component.get_block_name() for component in self.components],
-            "headers": self.headers,
-            "samples": self.samples,
-            "type": self.type,
-            "label": self.label,
-            "samples_per_page": self.samples_per_page,
-            "container": self.container,
-            "scale": self.scale,
-            "min_width": self.min_width,
-            **Component.get_config(self),
-        }
 
     @staticmethod
     def update(

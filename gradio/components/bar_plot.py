@@ -8,7 +8,9 @@ import altair as alt
 import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
 
+from gradio.blocks import updateable
 from gradio.components.base import _Keywords
+from gradio.blocks import updateable
 from gradio.components.plot import AltairPlot, Plot
 
 set_documentation_group("component")
@@ -25,6 +27,7 @@ class BarPlot(Plot):
     Demos: bar_plot, chicago-bikeshare-dashboard
     """
 
+    @updateable
     def __init__(
         self,
         value: pd.DataFrame | Callable | None = None,
@@ -124,11 +127,6 @@ class BarPlot(Plot):
             elem_classes=elem_classes,
             every=every,
         )
-
-    def get_config(self):
-        config = super().get_config()
-        config["caption"] = self.caption
-        return config
 
     def get_block_name(self) -> str:
         return "plot"

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.blocks import BlockContext
+from gradio.blocks import BlockContext, updateable
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Selectable
 
@@ -28,6 +28,7 @@ class Row(BlockContext):
     Guides: controlling-layout
     """
 
+    @updateable
     def __init__(
         self,
         *,
@@ -49,14 +50,6 @@ class Row(BlockContext):
         if variant == "compact":
             self.allow_expected_parents = False
         super().__init__(visible=visible, elem_id=elem_id, **kwargs)
-
-    def get_config(self):
-        return {
-            "type": "row",
-            "variant": self.variant,
-            "equal_height": self.equal_height,
-            **super().get_config(),
-        }
 
     @staticmethod
     def update(
@@ -101,6 +94,7 @@ class Column(BlockContext):
     Guides: controlling-layout
     """
 
+    @updateable
     def __init__(
         self,
         *,
@@ -126,15 +120,6 @@ class Column(BlockContext):
             self.allow_expected_parents = False
         super().__init__(visible=visible, elem_id=elem_id, **kwargs)
 
-    def get_config(self):
-        return {
-            "type": "column",
-            "variant": self.variant,
-            "scale": self.scale,
-            "min_width": self.min_width,
-            **super().get_config(),
-        }
-
     @staticmethod
     def update(
         variant: str | None = None,
@@ -152,6 +137,7 @@ class Tabs(BlockContext, Changeable, Selectable):
     Tabs is a layout element within Blocks that can contain multiple "Tab" Components.
     """
 
+    @updateable
     def __init__(
         self,
         *,
@@ -170,9 +156,6 @@ class Tabs(BlockContext, Changeable, Selectable):
         Changeable.__init__(self)
         Selectable.__init__(self)
         self.selected = selected
-
-    def get_config(self):
-        return {"selected": self.selected, **super(BlockContext, self).get_config()}
 
     @staticmethod
     def update(
@@ -199,6 +182,7 @@ class Tab(BlockContext, Selectable):
     Guides: controlling-layout
     """
 
+    @updateable
     def __init__(
         self,
         label: str,
@@ -217,13 +201,6 @@ class Tab(BlockContext, Selectable):
         Selectable.__init__(self)
         self.label = label
         self.id = id
-
-    def get_config(self):
-        return {
-            "label": self.label,
-            "id": self.id,
-            **super(BlockContext, self).get_config(),
-        }
 
     def get_expected_parent(self) -> type[Tabs]:
         return Tabs
@@ -246,6 +223,7 @@ class Group(BlockContext):
             gr.Textbox(label="Last")
     """
 
+    @updateable
     def __init__(
         self,
         *,
@@ -259,9 +237,6 @@ class Group(BlockContext):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         super().__init__(visible=visible, elem_id=elem_id, **kwargs)
-
-    def get_config(self):
-        return {"type": "group", **super().get_config()}
 
     @staticmethod
     def update(
@@ -284,6 +259,7 @@ class Box(BlockContext):
             gr.Textbox(label="Last")
     """
 
+    @updateable
     def __init__(
         self,
         *,
@@ -298,9 +274,6 @@ class Box(BlockContext):
         """
         warnings.warn("gr.Box is deprecated. Use gr.Group instead.", DeprecationWarning)
         super().__init__(visible=visible, elem_id=elem_id, **kwargs)
-
-    def get_config(self):
-        return {"type": "box", **super().get_config()}
 
     @staticmethod
     def update(
@@ -317,6 +290,7 @@ class Box(BlockContext):
 
 
 class Form(BlockContext):
+    @updateable
     def __init__(self, *, scale: int = 0, min_width: int = 0, **kwargs):
         """
         Parameters:
@@ -334,14 +308,6 @@ class Form(BlockContext):
             self.min_width += getattr(child, "min_width", 0) or 0
         super().add_child(child)
 
-    def get_config(self):
-        return {
-            "type": "form",
-            "scale": self.scale,
-            "min_width": self.min_width,
-            **super().get_config(),
-        }
-
 
 @document()
 class Accordion(BlockContext):
@@ -352,6 +318,7 @@ class Accordion(BlockContext):
             gr.Markdown("lorem ipsum")
     """
 
+    @updateable
     def __init__(
         self,
         label,
@@ -370,14 +337,6 @@ class Accordion(BlockContext):
         self.label = label
         self.open = open
         super().__init__(visible=visible, elem_id=elem_id, **kwargs)
-
-    def get_config(self):
-        return {
-            "type": "accordion",
-            "open": self.open,
-            "label": self.label,
-            **super().get_config(),
-        }
 
     @staticmethod
     def update(

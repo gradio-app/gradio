@@ -14,6 +14,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio import processing_utils, utils
+from gradio.blocks import updateable
 from gradio.components.base import IOComponent, _Keywords
 from gradio.events import (
     Changeable,
@@ -51,6 +52,7 @@ class Audio(
     Guides: real-time-speech-recognition
     """
 
+    @updateable
     def __init__(
         self,
         value: str | Path | tuple[int, np.ndarray] | Callable | None = None,
@@ -140,18 +142,6 @@ class Audio(
             **kwargs,
         )
         TokenInterpretable.__init__(self)
-
-    def get_config(self):
-        return {
-            "source": self.source,
-            "value": self.value,
-            "streaming": self.streaming,
-            "autoplay": self.autoplay,
-            "show_download_button": self.show_download_button,
-            "show_share_button": self.show_share_button,
-            "show_edit_button": self.show_edit_button,
-            **IOComponent.get_config(self),
-        }
 
     def example_inputs(self) -> dict[str, Any]:
         return {

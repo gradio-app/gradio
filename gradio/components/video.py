@@ -13,6 +13,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import VideoSerializable
 
 from gradio import processing_utils, utils, wasm_utils
+from gradio.blocks import updateable
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Clearable, Playable, Recordable, Uploadable
@@ -46,6 +47,7 @@ class Video(
     Demos: video_identity, video_subtitle
     """
 
+    @updateable
     def __init__(
         self,
         value: str
@@ -130,19 +132,6 @@ class Video(
             value=value,
             **kwargs,
         )
-
-    def get_config(self):
-        return {
-            "source": self.source,
-            "value": self.value,
-            "height": self.height,
-            "width": self.width,
-            "mirror_webcam": self.mirror_webcam,
-            "include_audio": self.include_audio,
-            "autoplay": self.autoplay,
-            "show_share_button": self.show_share_button,
-            **IOComponent.get_config(self),
-        }
 
     @staticmethod
     def update(

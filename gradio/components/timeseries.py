@@ -9,6 +9,7 @@ import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
+from gradio.blocks import updateable
 from gradio.components.base import IOComponent, _Keywords
 from gradio.events import Changeable
 
@@ -25,6 +26,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
     Demos: fraud_detector
     """
 
+    @updateable
     def __init__(
         self,
         value: str | Callable | None = None,
@@ -81,15 +83,6 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
             value=value,
             **kwargs,
         )
-
-    def get_config(self):
-        return {
-            "x": self.x,
-            "y": self.y,
-            "value": self.value,
-            "colors": self.colors,
-            **IOComponent.get_config(self),
-        }
 
     @staticmethod
     def update(

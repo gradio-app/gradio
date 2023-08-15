@@ -9,6 +9,7 @@ import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import NumberSerializable
 
+from gradio.blocks import updateable
 from gradio.components.base import FormComponent, IOComponent, _Keywords
 from gradio.events import (
     Changeable,
@@ -42,6 +43,7 @@ class Number(
     Demos: tax_calculator, titanic_survival, blocks_simple_squares
     """
 
+    @updateable
     def __init__(
         self,
         value: float | Callable | None = None,
@@ -124,16 +126,6 @@ class Number(
             return int(round(num, precision))
         else:
             return round(num, precision)
-
-    def get_config(self):
-        return {
-            "value": self.value,
-            "minimum": self.minimum,
-            "maximum": self.maximum,
-            "step": self.step,
-            "container": self.container,
-            **IOComponent.get_config(self),
-        }
 
     @staticmethod
     def update(

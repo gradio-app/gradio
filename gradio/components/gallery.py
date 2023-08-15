@@ -11,6 +11,7 @@ from gradio_client.serializing import GallerySerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import utils
+from gradio.blocks import updateable
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
@@ -31,6 +32,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
     Demos: fake_gan
     """
 
+    @updateable
     def __init__(
         self,
         value: list[np.ndarray | _Image.Image | str | Path | tuple]
@@ -154,20 +156,6 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             "__type__": "update",
         }
         return updated_config
-
-    def get_config(self):
-        return {
-            "value": self.value,
-            "grid_cols": self.grid_cols,
-            "grid_rows": self.grid_rows,
-            "height": self.height,
-            "preview": self.preview,
-            "object_fit": self.object_fit,
-            "allow_preview": self.allow_preview,
-            "show_share_button": self.show_share_button,
-            "show_download_button": self.show_download_button,
-            **IOComponent.get_config(self),
-        }
 
     def postprocess(
         self,

@@ -7,6 +7,7 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
+from gradio.blocks import updateable
 from gradio.components.base import IOComponent, _Keywords
 from gradio.events import Changeable
 
@@ -24,6 +25,7 @@ class HTML(Changeable, IOComponent, StringSerializable):
     Guides: key-features
     """
 
+    @updateable
     def __init__(
         self,
         value: str | Callable = "",
@@ -57,12 +59,6 @@ class HTML(Changeable, IOComponent, StringSerializable):
             value=value,
             **kwargs,
         )
-
-    def get_config(self):
-        return {
-            "value": self.value,
-            **IOComponent.get_config(self),
-        }
 
     @staticmethod
     def update(

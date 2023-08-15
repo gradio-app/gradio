@@ -7,6 +7,7 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
+from gradio.blocks import updateable
 from gradio.components.base import IOComponent, _Keywords
 from gradio.events import (
     Changeable,
@@ -30,6 +31,7 @@ class ColorPicker(
     Demos: color_picker, color_generator
     """
 
+    @updateable
     def __init__(
         self,
         value: str | Callable | None = None,
@@ -83,12 +85,6 @@ class ColorPicker(
         return {
             "raw": "#000000",
             "serialized": "#000000",
-        }
-
-    def get_config(self):
-        return {
-            "value": self.value,
-            **IOComponent.get_config(self),
         }
 
     @staticmethod

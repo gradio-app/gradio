@@ -11,6 +11,7 @@ from gradio_client.serializing import (
     JSONSerializable,
 )
 
+from gradio.blocks import updateable
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
@@ -35,6 +36,7 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
 
     CONFIDENCES_KEY = "confidences"
 
+    @updateable
     def __init__(
         self,
         value: dict[str, float] | str | float | Callable | None = None,
@@ -89,15 +91,6 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
             value=value,
             **kwargs,
         )
-
-    def get_config(self):
-        return {
-            "num_top_classes": self.num_top_classes,
-            "value": self.value,
-            "color": self.color,
-            "selectable": self.selectable,
-            **IOComponent.get_config(self),
-        }
 
     def postprocess(self, y: dict[str, float] | str | float | None) -> dict | None:
         """

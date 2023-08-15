@@ -65,15 +65,6 @@ class Component(Block, Serializable):
     def __repr__(self):
         return f"{self.get_block_name()}"
 
-    def get_config(self):
-        """
-        :return: a dictionary with context variables for the javascript file associated with the context
-        """
-        return {
-            "name": self.get_block_name(),
-            **super().get_config(),
-        }
-
     def preprocess(self, x: Any) -> Any:
         """
         Any preprocessing needed to be performed on function input.
@@ -334,20 +325,6 @@ class IOComponent(Component):
         path = path / Path(file_name).name
         path.write_bytes(data)
         return path
-
-    def get_config(self):
-        config = {
-            "label": self.label,
-            "show_label": self.show_label,
-            "container": self.container,
-            "scale": self.scale,
-            "min_width": self.min_width,
-            "interactive": self.interactive,
-            **super().get_config(),
-        }
-        if self.info:
-            config["info"] = self.info
-        return config
 
     @staticmethod
     def get_load_fn_and_initial_value(value):

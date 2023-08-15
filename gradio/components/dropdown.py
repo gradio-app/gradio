@@ -8,6 +8,7 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import SimpleSerializable
 
+from gradio.blocks import updateable
 from gradio.components.base import FormComponent, IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
@@ -39,6 +40,7 @@ class Dropdown(
     Demos: sentence_builder, titanic_survival
     """
 
+    @updateable
     def __init__(
         self,
         choices: list[str] | None = None,
@@ -147,17 +149,6 @@ class Dropdown(
                 "raw": self.choices[0] if self.choices else None,
                 "serialized": self.choices[0] if self.choices else None,
             }
-
-    def get_config(self):
-        return {
-            "choices": self.choices,
-            "value": self.value,
-            "multiselect": self.multiselect,
-            "max_choices": self.max_choices,
-            "allow_custom_value": self.allow_custom_value,
-            "container": self.container,
-            **IOComponent.get_config(self),
-        }
 
     @staticmethod
     def update(

@@ -8,7 +8,9 @@ import altair as alt
 import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
 
+from gradio.blocks import updateable
 from gradio.components.base import _Keywords
+from gradio.blocks import updateable
 from gradio.components.plot import AltairPlot, Plot
 
 set_documentation_group("component")
@@ -25,6 +27,7 @@ class LinePlot(Plot):
     Demos: line_plot, live_dashboard
     """
 
+    @updateable
     def __init__(
         self,
         value: pd.DataFrame | Callable | None = None,
@@ -140,11 +143,6 @@ class LinePlot(Plot):
             elem_classes=elem_classes,
             every=every,
         )
-
-    def get_config(self):
-        config = super().get_config()
-        config["caption"] = self.caption
-        return config
 
     def get_block_name(self) -> str:
         return "plot"

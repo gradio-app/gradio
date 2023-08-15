@@ -12,6 +12,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
 from gradio import processing_utils
+from gradio.blocks import updateable
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Clearable
@@ -30,6 +31,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
     Guides: plot-component-for-maps
     """
 
+    @updateable
     def __init__(
         self,
         value: Callable | None | pd.DataFrame = None,
@@ -72,19 +74,6 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
             value=value,
             **kwargs,
         )
-
-    def get_config(self):
-        try:
-            import bokeh  # type: ignore
-
-            bokeh_version = bokeh.__version__
-        except ImportError:
-            bokeh_version = None
-        return {
-            "value": self.value,
-            "bokeh_version": bokeh_version,
-            **IOComponent.get_config(self),
-        }
 
     @staticmethod
     def update(

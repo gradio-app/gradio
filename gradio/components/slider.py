@@ -10,6 +10,7 @@ import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import NumberSerializable
 
+from gradio.blocks import updateable
 from gradio.components.base import FormComponent, IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Inputable, Releaseable
@@ -38,6 +39,7 @@ class Slider(
     Guides: create-your-own-friends-with-a-gan
     """
 
+    @updateable
     def __init__(
         self,
         minimum: float = 0,
@@ -119,15 +121,6 @@ class Slider(
         return {
             "raw": self.minimum,
             "serialized": self.minimum,
-        }
-
-    def get_config(self):
-        return {
-            "minimum": self.minimum,
-            "maximum": self.maximum,
-            "step": self.step,
-            "value": self.value,
-            **IOComponent.get_config(self),
         }
 
     def get_random_value(self):

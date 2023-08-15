@@ -7,6 +7,7 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import ListStringSerializable
 
+from gradio.blocks import updateable
 from gradio.components.base import FormComponent, IOComponent, _Keywords
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
@@ -33,6 +34,7 @@ class CheckboxGroup(
     Demos: sentence_builder, titanic_survival
     """
 
+    @updateable
     def __init__(
         self,
         choices: list[str | float | int] | None = None,
@@ -99,13 +101,6 @@ class CheckboxGroup(
             **kwargs,
         )
         NeighborInterpretable.__init__(self)
-
-    def get_config(self):
-        return {
-            "choices": self.choices,
-            "value": self.value,
-            **IOComponent.get_config(self),
-        }
 
     def example_inputs(self) -> dict[str, Any]:
         return {

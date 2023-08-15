@@ -12,6 +12,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio import utils
+from gradio.blocks import updateable
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_deprecation
 from gradio.events import (
@@ -42,6 +43,7 @@ class File(
     Demos: zip_to_json, zip_files
     """
 
+    @updateable
     def __init__(
         self,
         value: str | list[str] | Callable | None = None,
@@ -123,15 +125,6 @@ class File(
             value=value,
             **kwargs,
         )
-
-    def get_config(self):
-        return {
-            "file_count": self.file_count,
-            "file_types": self.file_types,
-            "value": self.value,
-            "selectable": self.selectable,
-            **IOComponent.get_config(self),
-        }
 
     @staticmethod
     def update(

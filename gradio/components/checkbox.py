@@ -7,6 +7,7 @@ from typing import Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import BooleanSerializable
 
+from gradio.blocks import updateable
 from gradio.components.base import FormComponent, IOComponent, _Keywords
 from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
 from gradio.interpretation import NeighborInterpretable
@@ -33,6 +34,7 @@ class Checkbox(
     Demos: sentence_builder, titanic_survival
     """
 
+    @updateable
     def __init__(
         self,
         value: bool | Callable = False,
@@ -88,12 +90,6 @@ class Checkbox(
             **kwargs,
         )
         NeighborInterpretable.__init__(self)
-
-    def get_config(self):
-        return {
-            "value": self.value,
-            **IOComponent.get_config(self),
-        }
 
     @staticmethod
     def update(

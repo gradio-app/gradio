@@ -10,6 +10,7 @@ from gradio_client.serializing import JSONSerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import utils
+from gradio.blocks import updateable
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
@@ -32,6 +33,7 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
     Demos: image_segmentation
     """
 
+    @updateable
     def __init__(
         self,
         value: tuple[
@@ -96,17 +98,6 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
             value=value,
             **kwargs,
         )
-
-    def get_config(self):
-        return {
-            "show_legend": self.show_legend,
-            "value": self.value,
-            "height": self.height,
-            "width": self.width,
-            "color_map": self.color_map,
-            "selectable": self.selectable,
-            **IOComponent.get_config(self),
-        }
 
     @staticmethod
     def update(

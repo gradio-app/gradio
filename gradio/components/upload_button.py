@@ -11,6 +11,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio import utils
+from gradio.blocks import updateable
 from gradio.components.base import Component, IOComponent, _Keywords
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Clickable, Uploadable
@@ -28,6 +29,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
     Demos: upload_button
     """
 
+    @updateable
     def __init__(
         self,
         label: str = "Upload a File",
@@ -88,20 +90,6 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             interactive=interactive,
             **kwargs,
         )
-
-    def get_config(self):
-        return {
-            "label": self.label,
-            "value": self.value,
-            "size": self.size,
-            "file_count": self.file_count,
-            "file_types": self.file_types,
-            "scale": self.scale,
-            "min_width": self.min_width,
-            "variant": self.variant,
-            "interactive": self.interactive,
-            **Component.get_config(self),
-        }
 
     @staticmethod
     def update(

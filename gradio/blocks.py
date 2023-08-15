@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast
 
 import anyio
 import requests
+from functools import wraps
 from anyio import CapacityLimiter
 from gradio_client import serializing
 from gradio_client import utils as client_utils
@@ -113,6 +114,7 @@ class Block:
         self._skip_init_processing = _skip_init_processing
         self.parent: BlockContext | None = None
         self.is_rendered: bool = False
+        self.update_config: dict
 
         if render:
             self.render()
@@ -307,12 +309,13 @@ class Block:
         return dependency, len(Context.root_block.dependencies) - 1
 
     def get_config(self):
-        return {
-            "visible": self.visible,
-            "elem_id": self.elem_id,
-            "elem_classes": self.elem_classes,
-            "root_url": self.root_url,
-        }
+        config = {}
+        signature = inspect.signature(self.__class__.__init__)
+        for parameter in signature.parameters.values():
+            if hasattr(self, parameter.name):
+                value = getattr(self, parameter.name)
+                config[parameter.name] = value
+        return {**config, "root_url": self.root_url, "name": self.get_block_name()}
 
     @staticmethod
     @abstractmethod
@@ -1327,6 +1330,8 @@ Received outputs:
                 output.append(None)
             else:
                 prediction_value = predictions[i]
+                if isinstance(prediction_value, Block):
+                    prediction_value = prediction_value.update_config
                 if utils.is_update(prediction_value):
                     assert isinstance(prediction_value, dict)
                     prediction_value = postprocess_update_dict(
@@ -2241,3 +2246,29 @@ Received outputs:
         if self.dependencies[fn_index]["queue"] is None:
             return self.enable_queue
         return self.dependencies[fn_index]["queue"]
+
+
+def is_update():
+    from gradio import context
+
+    return hasattr(context.thread_data, "blocks")
+
+
+def updateable(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if is_update():
+            fn_args = inspect.getfullargspec(fn).args
+            self = args[0]
+            for i, arg in enumerate(args):
+                if i == 0:  #  skip self
+                    continue
+                arg_name = fn_args[i]
+                kwargs[arg_name] = arg
+            kwargs["__type__"] = "update"
+            self.update_config = kwargs
+            return None
+        else:
+            return fn(*args, **kwargs)
+
+    return wrapper

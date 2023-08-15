@@ -9,6 +9,7 @@ from gradio_client.serializing import (
     JSONSerializable,
 )
 
+from gradio.blocks import updateable
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
@@ -31,6 +32,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
     Guides: named-entity-recognition
     """
 
+    @updateable
     def __init__(
         self,
         value: list[tuple[str, str | float | None]] | dict | Callable | None = None,
@@ -91,15 +93,6 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
             value=value,
             **kwargs,
         )
-
-    def get_config(self):
-        return {
-            "color_map": self.color_map,
-            "show_legend": self.show_legend,
-            "value": self.value,
-            "selectable": self.selectable,
-            **IOComponent.get_config(self),
-        }
 
     @staticmethod
     def update(

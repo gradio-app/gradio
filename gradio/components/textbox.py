@@ -8,6 +8,7 @@ import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
+from gradio.blocks import updateable
 from gradio.components.base import (
     FormComponent,
     IOComponent,
@@ -49,6 +50,7 @@ class Textbox(
     Guides: creating-a-chatbot, real-time-speech-recognition
     """
 
+    @updateable
     def __init__(
         self,
         value: str | Callable | None = "",
@@ -134,21 +136,6 @@ class Textbox(
         self.type = type
         self.rtl = rtl
         self.text_align = text_align
-
-    def get_config(self):
-        return {
-            "lines": self.lines,
-            "max_lines": self.max_lines,
-            "placeholder": self.placeholder,
-            "value": self.value,
-            "type": self.type,
-            "autofocus": self.autofocus,
-            "show_copy_button": self.show_copy_button,
-            "container": self.container,
-            "text_align": self.text_align,
-            "rtl": self.rtl,
-            **IOComponent.get_config(self),
-        }
 
     @staticmethod
     def update(

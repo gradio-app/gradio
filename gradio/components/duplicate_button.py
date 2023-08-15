@@ -6,6 +6,7 @@ from typing import Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
+from gradio.blocks import updateable
 from gradio.components import Button
 from gradio.utils import get_space
 
@@ -22,6 +23,7 @@ class DuplicateButton(Button):
 
     is_template = True
 
+    @updateable
     def __init__(
         self,
         *,

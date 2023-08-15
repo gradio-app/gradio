@@ -9,7 +9,9 @@ import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
 from pandas.api.types import is_numeric_dtype
 
+from gradio.blocks import updateable
 from gradio.components.base import _Keywords
+from gradio.blocks import updateable
 from gradio.components.plot import AltairPlot, Plot
 
 set_documentation_group("component")
@@ -27,6 +29,7 @@ class ScatterPlot(Plot):
     Guides: creating-a-dashboard-from-bigquery-data
     """
 
+    @updateable
     def __init__(
         self,
         value: pd.DataFrame | Callable | None = None,
@@ -159,11 +162,6 @@ class ScatterPlot(Plot):
             elem_id=elem_id,
             elem_classes=elem_classes,
         )
-
-    def get_config(self):
-        config = super().get_config()
-        config["caption"] = self.caption
-        return config
 
     def get_block_name(self) -> str:
         return "plot"
