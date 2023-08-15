@@ -31,16 +31,16 @@ describe("Radio", () => {
 			mode: "dynamic"
 		});
 
-		const radioButtons: HTMLOptionElement[] = getAllByRole("radio");
-
 		assert.equal(
 			getByTestId("cat-radio-label").className.includes("selected"),
 			true
 		);
+		
+		const radioButtons: HTMLOptionElement[] = getAllByRole("radio");
 		assert.equal(radioButtons.length, 3);
 
 		radioButtons.forEach((radioButton: HTMLOptionElement, index) => {
-			assert.equal(radioButton.value === choices[index], true);
+			assert.equal(radioButton.value === choices[index][1], true);
 		});
 	});
 
