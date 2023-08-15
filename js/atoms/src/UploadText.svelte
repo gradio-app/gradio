@@ -4,11 +4,11 @@
 	export let type: "video" | "image" | "audio" | "file" | "csv" = "file";
 
 	const defs = {
-		image: $_("upload_text.drop_image"),
-		video: $_("upload_text.drop_video"),
-		audio: $_("upload_text.drop_audio"),
-		file: $_("upload_text.drop_file"),
-		csv: $_("upload_text.drop_csv"),
+		image: "upload_text.drop_image",
+		video: "upload_text.drop_video",
+		audio: "upload_text.drop_audio",
+		file: "upload_text.drop_file",
+		csv: "upload_text.drop_csv",
 	};
 </script>
 

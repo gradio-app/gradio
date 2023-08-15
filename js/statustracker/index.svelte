@@ -267,7 +267,7 @@
 			<p class="loading">{loading_text}</p>
 		{/if}
 	{:else if status === "error"}
-		<span class="error">{$_('common.error')}</span>
+		<span class="error">{$_("common.error")}</span>
 		<slot name="error" />
 	{/if}
 </div>

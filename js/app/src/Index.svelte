@@ -258,7 +258,7 @@
 		| "RUNTIME_ERROR"
 		| "PAUSED";
 
-	// todo: translate these messages
+	// todo @hannahblair: translate these messages
 	const discussion_message = {
 		readable_error: {
 			NO_APP_FILE: $_("errors.no_app_file"),
