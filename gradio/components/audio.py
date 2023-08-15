@@ -308,11 +308,20 @@ class Audio(
         if isinstance(y, tuple):
             sample_rate, data = y
             file_path = self.audio_to_temp_file(
-                data, sample_rate, dir=self.DEFAULT_TEMP_DIR, format=self.format
+                data,
+                sample_rate,
+                format="mp3" if self.streaming else self.format,
             )
             self.temp_files.add(file_path)
         else:
-            file_path = self.make_temp_copy_if_needed(y)
+            if isinstance(y, Path):
+                y = str(y)
+            if self.streaming and not y.endswith(".mp3"):
+                sample_rate, data = processing_utils.audio_from_file(y)
+                file_path = self.audio_to_temp_file(data, sample_rate, format="mp3")
+                self.temp_files.add(file_path)
+            else:
+                file_path = self.make_temp_copy_if_needed(y)
         return {"name": file_path, "data": None, "is_file": True}
 
     def stream_output(self, y):
