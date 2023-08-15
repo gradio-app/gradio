@@ -1,6 +1,7 @@
 <script lang="ts">
 	import space_logo from "$lib/assets/img/spaces-logo.svg";
 	import Demos from "$lib/components/Demos.svelte";
+	import DemosLite from "../../lib/components/DemosLite.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
 
 	export let data: {
@@ -71,11 +72,19 @@
 								class:selected-demo-window={current_selection == i}
 								class="demo-content px-4"
 							>
+							{#if demo.name == "Hello World"}
+								<DemosLite
+									name={demo.dir}
+									code={demo.code}
+									highlighted_code={demo.highlighted_code}
+								/>
+							{:else}
 								<Demos
 									name={demo.dir}
 									code={demo.code}
 									highlighted_code={demo.highlighted_code}
 								/>
+							{/if}
 							</div>
 						{/each}
 					</div>

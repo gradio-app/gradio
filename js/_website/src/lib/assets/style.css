@@ -144,7 +144,7 @@ code.language-bash {
 
 /* copy button */
 .clipboard-button {
-	@apply absolute right-0 px-1.5 pt-0.5 pb-1 m-4 text-gray-500 text-sm z-[100] opacity-0 duration-100;
+	@apply absolute right-0 px-1.5 pt-0.5 pb-1 m-4 mt-6 text-gray-500 text-sm z-[100] opacity-0 duration-100;
 }
 .clipboard-button:hover {
 	@apply cursor-pointer;
@@ -155,6 +155,12 @@ code.language-bash {
 .clipboard-button:focus {
 	@apply outline-0;
 }
+
+/* interactive banner */
+.interactive-banner {
+	@apply absolute right-0 px-1.5 pt-0.5 pb-1 m-4 -mt-1 text-sm z-[100] bg-orange-500 rounded-lg ;
+}
+
 .codeblock {
 	@apply relative;
 }
