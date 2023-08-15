@@ -349,21 +349,17 @@ class Audio(
             file_path = self.audio_to_temp_file(
                 data,
                 sample_rate,
-                format="mp3" if self.streaming else self.format,
+                format=self.format,
             )
             self.temp_files.add(file_path)
         else:
             if isinstance(y, Path):
                 y = str(y)
-            if self.streaming and not y.endswith(".mp3"):
-                sample_rate, data = processing_utils.audio_from_file(y)
-                file_path = self.audio_to_temp_file(data, sample_rate, format="mp3")
-                self.temp_files.add(file_path)
             else:
                 file_path = self.make_temp_copy_if_needed(y)
         return {"name": file_path, "data": None, "is_file": True}
 
-    def stream_output(self, y, output_id):
+    def stream_output(self, y, output_id: str, first_chunk: bool):
         output_file = {
             "name": output_id,
             "is_stream": True,
@@ -377,8 +373,16 @@ class Audio(
             binary_data = response.content
         else:
             file_path = y["name"]
+            is_wav = file_path.endswith(".wav")
             with open(file_path, "rb") as f:
                 binary_data = f.read()
+            if is_wav:
+                # strip length information from first chunk header, remove headers entirely from subsequent chunks
+                if first_chunk:
+                    binary_data = binary_data[:4] + b'\xFF\xFF\xFF\xFF' + binary_data[8:]
+                    binary_data = binary_data[:40] + b'\xFF\xFF\xFF\xFF' + binary_data[44:]
+                else:
+                    binary_data = binary_data[44:]
         return binary_data, output_file
 
     def check_streamable(self):

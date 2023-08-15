@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import tempfile
 import warnings
-import requests
 from pathlib import Path
 from typing import Callable, Literal
 
@@ -16,7 +15,7 @@ from gradio_client.serializing import VideoSerializable
 from gradio import processing_utils, utils, wasm_utils
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
-from gradio.events import Changeable, Clearable, Playable, Recordable, Uploadable, StreamableOutput
+from gradio.events import Changeable, Clearable, Playable, Recordable, Uploadable
 
 if not wasm_utils.IS_WASM:
     # TODO: Support ffmpeg on Wasm
@@ -33,7 +32,6 @@ class Video(
     Recordable,
     Uploadable,
     IOComponent,
-    StreamableOutput,
     VideoSerializable,
 ):
     """
@@ -73,7 +71,6 @@ class Video(
         mirror_webcam: bool = True,
         include_audio: bool | None = None,
         autoplay: bool = False,
-        streaming: bool = False,
         show_share_button: bool | None = None,
         **kwargs,
     ):
@@ -97,7 +94,6 @@ class Video(
             mirror_webcam: If True webcam will be mirrored. Default is True.
             include_audio: Whether the component should record/retain the audio track for a video. By default, audio is excluded for webcam videos and included for uploaded videos.
             autoplay: Whether to automatically play the video when the component is used as an output. Note: browsers will not autoplay video files if the user has not interacted with the page yet.
-            streaming: If set to True when set as an output, takes video chunks yielded from the backend and combines them into one streaming video output.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
         self.format = format
@@ -114,7 +110,6 @@ class Video(
         self.include_audio = (
             include_audio if include_audio is not None else source == "upload"
         )
-        self.streaming = streaming
         self.show_share_button = (
             (utils.get_space() is not None)
             if show_share_button is None
@@ -258,7 +253,7 @@ class Video(
             return str(file_name)
 
     def postprocess(
-        self, y: str | Path | tuple[str | Path, str | Path | bytes | None] | None
+        self, y: str | Path | tuple[str | Path, str | Path | None] | None
     ) -> tuple[FileData | None, FileData | None] | None:
         """
         Processes a video to ensure that it is in the correct format before returning it to the front end.
@@ -280,14 +275,7 @@ class Video(
 
         if y is None or y == [None, None] or y == (None, None):
             return None
-        elif isinstance(y, bytes):
-            if self.streaming:
-                return (y, None)
-            else:
-                raise ValueError(
-                    "Video component does not support returning binary data unless streaming=True."
-                )
-        elif isinstance(y, (str, Path)):
+        if isinstance(y, (str, Path)):
             processed_files = (self._format_video(y), None)
         elif isinstance(y, (tuple, list)):
             assert (
@@ -306,26 +294,6 @@ class Video(
             raise Exception(f"Cannot process type as video: {type(y)}")
 
         return processed_files
-    
-    def stream_output(self, y, output_id):
-        output_file = ({
-            "name": output_id,
-            "is_stream": True,
-        }, None)
-        if y is None:
-            return None, output_file
-        y = y[0]
-        if isinstance(y, bytes):
-            return y, output_file
-        if client_utils.is_http_url_like(y["name"]):
-            response = requests.get(y["name"])
-            binary_data = response.content
-        else:
-            file_path = y["name"]
-            with open(file_path, "rb") as f:
-                binary_data = f.read()
-        return binary_data, output_file
-
 
     def _format_video(self, video: str | Path | None) -> FileData | None:
         """
