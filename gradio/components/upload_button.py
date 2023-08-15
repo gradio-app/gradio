@@ -92,6 +92,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             **kwargs,
         )
 
+    @staticmethod
     def update(
         value: str
         | list[str]

@@ -59,9 +59,9 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
         label: str | None | Default = Default(None),
         interactive: bool | None | Default = Default(None),
         show_label: bool | None | Default = Default(None),
-        container: bool | None | Default = Default(True),
+        container: bool | Default = Default(True),
         scale: int | None | Default = Default(None),
-        min_width: int | None | Default = Default(160),
+        min_width: int |  Default = Default(160),
         visible: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
         elem_classes: list[str] | str | None | Default = Default(None),
@@ -83,10 +83,8 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
         """
         self.lines = lines
         self.language = language
-        if self.language != NoOverride:
-            assert (
-                self.language in Code.languages
-            ), f"Language {self.language} not supported."
+        if self.language not in Code.languages:
+            raise ValueError(f"Language {self.language} not supported.")
 
         IOComponent.__init__(
             self,
@@ -111,6 +109,8 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
                 return file_data.read()
         else:
             return y.strip()
+
+    @staticmethod
     def update(
         value: str
         | tuple[str]

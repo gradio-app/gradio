@@ -42,9 +42,9 @@ class Checkbox(
         info: str | None | Default = Default(None),
         every: float | None | Default = Default(None),
         show_label: bool | None | Default = Default(None),
-        container: bool | None | Default = Default(True),
+        container: bool | Default = Default(True),
         scale: int | None | Default = Default(None),
-        min_width: int | None | Default = Default(160),
+        min_width: int |  Default = Default(160),
         interactive: bool | None | Default = Default(None),
         visible: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
@@ -91,6 +91,7 @@ class Checkbox(
         )
         NeighborInterpretable.__init__(self)
 
+    @staticmethod
     def update(
         value: bool | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         label: str | None = None,

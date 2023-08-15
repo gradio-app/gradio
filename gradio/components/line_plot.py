@@ -73,9 +73,9 @@ class LinePlot(Plot):
         interactive: bool | None | Default = Default(True),
         label: str | None | Default = Default(None),
         show_label: bool | None | Default = Default(None),
-        container: bool | None | Default = Default(True),
+        container: bool | Default = Default(True),
         scale: int | None | Default = Default(None),
-        min_width: int | None | Default = Default(160),
+        min_width: int |  Default = Default(160),
         every: float | None | Default = Default(None),
         visible: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
@@ -145,6 +145,7 @@ class LinePlot(Plot):
     def get_block_name(self) -> str:
         return "plot"
 
+    @staticmethod
     @staticmethod
     def update(
         value: pd.DataFrame | dict | Literal[_Keywords.NO_VALUE] = _Keywords.NO_VALUE,

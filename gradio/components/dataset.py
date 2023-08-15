@@ -35,9 +35,9 @@ class Dataset(Clickable, Selectable, IOComponent, StringSerializable):
         visible: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
         elem_classes: list[str] | str | None | Default = Default(None),
-        container: bool | None | Default = Default(True),
+        container: bool | Default = Default(True),
         scale: int | None | Default = Default(None),
-        min_width: int | None | Default = Default(160),
+        min_width: int |  Default = Default(160),
         **kwargs,
     ):
         """
@@ -71,8 +71,6 @@ class Dataset(Clickable, Selectable, IOComponent, StringSerializable):
             elem_classes=elem_classes,
             **kwargs,
         )
-        if is_update():
-            return
         self._components = [get_component_instance(c, render=False) for c in components]
 
         # Narrow type to IOComponent
@@ -94,6 +92,7 @@ class Dataset(Clickable, Selectable, IOComponent, StringSerializable):
             else:
                 self.headers = [c.label or "" for c in self._components]
 
+    @staticmethod
     def update(
         samples: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         visible: bool | None = None,

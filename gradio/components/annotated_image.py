@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
-from typing import Literal
 
 from gradio import utils
 from gradio.blocks import Default
@@ -41,16 +42,16 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
         | None
         | Default = Default(None),
         *,
-        show_legend: bool | None | Default = Default(True),
+        show_legend: bool | Default = Default(True),
         height: int | None | Default = Default(None),
         width: int | None | Default = Default(None),
         color_map: dict[str, str] | None | Default = Default(None),
         label: str | None | Default = Default(None),
         every: float | None | Default = Default(None),
         show_label: bool | None | Default = Default(None),
-        container: bool | None | Default = Default(True),
+        container: bool | Default = Default(True),
         scale: int | None | Default = Default(None),
-        min_width: int | None | Default = Default(160),
+        min_width: int |  Default = Default(160),
         visible: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
         elem_classes: list[str] | str | None | Default = Default(None),
@@ -73,13 +74,6 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        value = value
-        self.show_legend = show_legend
-        container = container
-        scale = scale
-        min_width = min_width
-        visible = visible
-
         self.show_legend = show_legend
         self.height = height
         self.width = width
@@ -105,6 +99,7 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
             **kwargs,
         )
 
+    @staticmethod
     def update(
         value: tuple[
             np.ndarray | _Image.Image | str,

@@ -89,9 +89,9 @@ class ScatterPlot(Plot):
         label: str | None | Default = Default(None),
         every: float | None | Default = Default(None),
         show_label: bool | None | Default = Default(None),
-        container: bool | None | Default = Default(True),
+        container: bool | Default = Default(True),
         scale: int | None | Default = Default(None),
-        min_width: int | None | Default = Default(160),
+        min_width: int |  Default = Default(160),
         visible: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
         elem_classes: list[str] | str | None | Default = Default(None),
@@ -164,6 +164,7 @@ class ScatterPlot(Plot):
     def get_block_name(self) -> str:
         return "plot"
 
+    @staticmethod
     @staticmethod
     def update(
         value: pd.DataFrame | dict | Literal[_Keywords.NO_VALUE] = _Keywords.NO_VALUE,

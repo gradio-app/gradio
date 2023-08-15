@@ -27,15 +27,15 @@ class Button(Clickable, IOComponent, StringSerializable):
 
     def __init__(
         self,
-        value: str | Callable | None | Default = Default("Run"),
+        value: str | Callable | Default = Default("Run"),
         *,
         variant: Literal["primary", "secondary", "stop"]
         | Default = Default("secondary"),
-        size: Literal["sm", "lg"] | Default = Default(None),
+        size: Literal["sm", "lg"] | None | Default = Default(None),
         visible: bool | Default = Default(True),
         icon: str | None | Default = Default(None),
         link: str | None | Default = Default(None),
-        interactive: bool | None | Default = Default(True),
+        interactive: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
         elem_classes: list[str] | str | None | Default = Default(None),
         scale: int | None | Default = Default(None),
@@ -78,6 +78,7 @@ class Button(Clickable, IOComponent, StringSerializable):
             **kwargs,
         )
 
+    @staticmethod
     def update(
         value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         variant: Literal["primary", "secondary", "stop"] | None = None,

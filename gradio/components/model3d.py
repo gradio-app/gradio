@@ -42,9 +42,9 @@ class Model3D(
         label: str | None | Default = Default(None),
         every: float | None | Default = Default(None),
         show_label: bool | None | Default = Default(None),
-        container: bool | None | Default = Default(True),
+        container: bool | Default = Default(True),
         scale: int | None | Default = Default(None),
-        min_width: int | None | Default = Default(160),
+        min_width: int |  Default = Default(160),
         visible: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
         elem_classes: list[str] | str | None | Default = Default(None),
@@ -89,6 +89,7 @@ class Model3D(
             "serialized": "https://github.com/gradio-app/gradio/raw/main/test/test_files/Box.gltf",
         }
 
+    @staticmethod
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         label: str | None = None,

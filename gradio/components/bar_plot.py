@@ -60,9 +60,9 @@ class BarPlot(Plot):
         interactive: bool | None | Default = Default(True),
         label: str | None | Default = Default(None),
         show_label: bool | None | Default = Default(None),
-        container: bool | None | Default = Default(True),
+        container: bool | Default = Default(True),
         scale: int | None | Default = Default(None),
-        min_width: int | None | Default = Default(160),
+        min_width: int |  Default = Default(160),
         every: float | None | Default = Default(None),
         visible: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
@@ -112,7 +112,7 @@ class BarPlot(Plot):
         self.color_legend_position = color_legend_position
         self.y_lim = y_lim
         self.caption = caption
-        self.interactive_chart = interactive
+        self.interactive_chart = self.interactive
         self.width = width
         self.height = height
         super().__init__(

@@ -62,13 +62,13 @@ class Audio(
         | Default = Default(None),
         *,
         source: Literal["upload", "microphone"] | None | Default = Default(None),
-        type: Literal["numpy", "filepath"] | None | Default = Default("numpy"),
+        type: Literal["numpy", "filepath"] | Default = Default("numpy"),
         label: str | None | Default = Default(None),
         every: float | None | Default = Default(None),
         show_label: bool | None | Default = Default(None),
-        container: bool | None | Default = Default(True),
+        container: bool | Default = Default(True),
         scale: int | None | Default = Default(None),
-        min_width: int | None | Default = Default(160),
+        min_width: int |  Default = Default(160),
         interactive: bool | None | Default = Default(None),
         visible: bool | Default = Default(True),
         streaming: bool | Default = Default(False),
@@ -76,7 +76,7 @@ class Audio(
         elem_classes: list[str] | str | None | Default = Default(None),
         format: Literal["wav", "mp3"] | Default = Default("wav"),
         autoplay: bool | Default = Default(False),
-        show_download_button=True,
+        show_download_button: bool | Default = Default(True),
         show_share_button: bool | None | Default = Default(None),
         show_edit_button: bool | Default = Default(True),
         **kwargs,
@@ -157,6 +157,7 @@ class Audio(
             "serialized": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav",
         }
 
+    @staticmethod
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         source: Literal["upload", "microphone"] | None = None,
@@ -360,7 +361,7 @@ class Audio(
         if y is None:
             return None
         if client_utils.is_http_url_like(y["name"]):
-            response = requests.y["name"]
+            response = requests.get(y["name"])
             bytes = response.content
         else:
             file_path = y["name"]

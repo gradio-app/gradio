@@ -70,6 +70,7 @@ class Markdown(IOComponent, Changeable, StringSerializable):
         unindented_y = inspect.cleandoc(y)
         return self.md.render(unindented_y)
 
+    @staticmethod
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         visible: bool | None = None,

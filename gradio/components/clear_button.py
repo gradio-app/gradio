@@ -27,10 +27,10 @@ class ClearButton(Button):
         self,
         components: None | list[Component] | Component = None,
         *,
-        value: str | None | Default = Default("Clear"),
+        value: str | Default = Default("Clear"),
         variant: Literal["primary", "secondary", "stop"]
         | Default = Default("secondary"),
-        size: Literal["sm", "lg"] | Default = Default(None),
+        size: Literal["sm", "lg"] | None | Default = Default(None),
         visible: bool | Default = Default(True),
         icon: str | None | Default = Default(None),
         link: str | None | Default = Default(None),

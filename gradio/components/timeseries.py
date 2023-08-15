@@ -36,9 +36,9 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
         label: str | None | Default = Default(None),
         every: float | None | Default = Default(None),
         show_label: bool | None | Default = Default(None),
-        container: bool | None | Default = Default(True),
+        container: bool | Default = Default(True),
         scale: int | None | Default = Default(None),
-        min_width: int | None | Default = Default(160),
+        min_width: int |  Default = Default(160),
         interactive: bool | None | Default = Default(None),
         visible: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
@@ -84,6 +84,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
             **kwargs,
         )
 
+    @staticmethod
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         colors: list[str] | None = None,

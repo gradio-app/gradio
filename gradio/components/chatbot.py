@@ -45,9 +45,9 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         label: str | None | Default = Default(None),
         every: float | None | Default = Default(None),
         show_label: bool | None | Default = Default(None),
-        container: bool | None | Default = Default(True),
+        container: bool | Default = Default(True),
         scale: int | None | Default = Default(None),
-        min_width: int | None | Default = Default(160),
+        min_width: int |  Default = Default(160),
         visible: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
         elem_classes: list[str] | str | None | Default = Default(None),
@@ -84,16 +84,15 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         if self.latex_delimiters is None:
             self.latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
         self.show_share_button = show_share_button
-        if not is_update():
-            self.show_share_button = (
-                (utils.get_space() is not None)
-                if self.show_share_button is None
-                else self.show_share_button
-            )
+        self.show_share_button = (
+            (utils.get_space() is not None)
+            if self.show_share_button is None
+            else self.show_share_button
+        )
         self.show_copy_button = show_copy_button
 
-        color_map = color_map
-        if color_map:
+        self.color_map = color_map
+        if self.color_map:
             warn_deprecation("The 'color_map' parameter has been deprecated.")
         self.select: EventListenerMethod
         """
@@ -116,6 +115,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             **kwargs,
         )
 
+    @staticmethod
     def update(
         value: list[list[str | tuple[str] | tuple[str, str] | None]]
         | Literal[_Keywords.NO_VALUE]

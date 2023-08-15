@@ -58,6 +58,7 @@ class HTML(Changeable, IOComponent, StringSerializable):
             value=value,
             **kwargs,
         )
+    @staticmethod
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         label: str | None = None,

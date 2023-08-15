@@ -44,9 +44,9 @@ class CheckboxGroup(
         info: str | None | Default = Default(None),
         every: float | None | Default = Default(None),
         show_label: bool | None | Default = Default(None),
-        container: bool | None | Default = Default(True),
+        container: bool | Default = Default(True),
         scale: int | None | Default = Default(None),
-        min_width: int | None | Default = Default(160),
+        min_width: int |  Default = Default(160),
         interactive: bool | None | Default = Default(None),
         visible: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
@@ -111,6 +111,7 @@ class CheckboxGroup(
             "serialized": self.choices[0] if self.choices else None,
         }
 
+    @staticmethod
     def update(
         value: list[str | int | float]
         | str
@@ -140,7 +141,7 @@ class CheckboxGroup(
             "__type__": "update",
         }
 
-    def preprocess(self, x: list[str]) -> list[str] | list[int]:
+    def preprocess(self, x: list[str | int | float]) -> list[str | int | float]:
         """
         Parameters:
             x: list of selected choices

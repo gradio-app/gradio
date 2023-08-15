@@ -47,7 +47,7 @@ class Radio(
         show_label: bool | None | Default = Default(None),
         container: bool | Default = Default(True),
         scale: int | None | Default = Default(None),
-        min_width: int | None | Default = Default(160),
+        min_width: int |  Default = Default(160),
         interactive: bool | None | Default = Default(None),
         visible: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
@@ -112,6 +112,7 @@ class Radio(
             "serialized": self.choices[0] if self.choices else None,
         }
 
+    @staticmethod
     def update(
         value: str
         | int

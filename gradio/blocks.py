@@ -106,6 +106,7 @@ def is_update():
 
     return hasattr(context.thread_data, "blocks")
 
+
 class Block:
     def __init__(
         self,
@@ -141,7 +142,7 @@ class Block:
             object.__setattr__(self, __name, __value.value)
         else:
             super().__setattr__(__name, __value)
-        
+
         if not hasattr(self, "_config"):
             object.__setattr__(self, "_config", {})
 
@@ -2284,7 +2285,5 @@ Received outputs:
         return self.dependencies[fn_index]["queue"]
 
 
-
 class FinishedIterating:
     pass
-

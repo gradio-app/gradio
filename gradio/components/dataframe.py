@@ -60,7 +60,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         every: float | None | Default = Default(None),
         show_label: bool | None | Default = Default(None),
         scale: int | None | Default = Default(None),
-        min_width: int | None | Default = Default(160),
+        min_width: int |  Default = Default(160),
         interactive: bool | None | Default = Default(None),
         visible: bool | Default = Default(True),
         elem_id: str | None | Default = Default(None),
@@ -92,8 +92,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             wrap: if True text in table cells will wrap when appropriate, if False the table will scroll horizontally. Defaults to False.
         """
         self.row_count = row_count
-        if self.row_count != NoOverride:
-            self.row_count = self.__process_counts(self.row_count)
+        self.row_count = self.__process_counts(self.row_count)
         self.datatype = datatype
         self.type = type
         valid_types = ["pandas", "numpy", "array"]
@@ -107,26 +106,24 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         self.wrap = wrap
         self.col_count = col_count
         self.headers = headers
-        if self.col_count != NoOverride and self.headers != NoOverride:
-            self.col_count = self.__process_counts(
-                self.col_count, len(self.headers) if self.headers else 3
-            )
-            self.__validate_headers(self.headers, self.col_count[0])
+        self.col_count = self.__process_counts(
+            self.col_count, len(self.headers) if self.headers else 3
+        )
+        self.__validate_headers(self.headers, self.col_count[0])
 
-            self.headers = (
-                self.headers
-                if self.headers is not None
-                else list(range(1, self.col_count[0] + 1))
-            )
+        self.headers = (
+            self.headers
+            if self.headers is not None
+            else list(range(1, self.col_count[0] + 1))
+        )
 
         self.max_cols = max_cols
         self.datatype = datatype
-        if self.datatype != NoOverride:
-            self.datatype = (
-                self.datatype
-                if isinstance(self.datatype, list)
-                else [self.datatype] * self.col_count[0]
-            )
+        self.datatype = (
+            self.datatype
+            if isinstance(self.datatype, list)
+            else [self.datatype] * self.col_count[0]
+        )
         values = {
             "str": "",
             "number": 0,
@@ -165,6 +162,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             **kwargs,
         )
 
+    @staticmethod
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         max_rows: int | None = None,
