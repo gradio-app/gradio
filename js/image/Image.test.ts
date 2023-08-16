@@ -12,7 +12,7 @@ import { cleanup, render } from "@gradio/tootils";
 import { setupi18n } from "../app/src/i18n";
 
 import Image from "./index.svelte";
-import type { LoadingStatus } from "@gradio/statustracker/types";
+import type { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status = {
 	eta: 0,

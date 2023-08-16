@@ -13,7 +13,7 @@
 		light: (): Promise<typeof import("prismjs/themes/prism.css")> =>
 			import("prismjs/themes/prism.css"),
 		dark: (): Promise<typeof import("prismjs/themes/prism.css")> =>
-			import("prismjs/themes/prism-dark.css")
+			import("prismjs/themes/prism-dark.css"),
 	};
 
 	export let value:
@@ -83,7 +83,7 @@
 	): void {
 		dispatch("select", {
 			index: [i, j],
-			value: message
+			value: message,
 		});
 	}
 </script>
@@ -222,6 +222,7 @@
 		border-radius: var(--radius-xxl);
 		background: var(--background-fill-secondary);
 		padding: var(--spacing-xxl);
+		padding-right: calc(var(--spacing-xxl) + var(--spacing-md));
 		width: calc(100% - var(--spacing-xxl));
 		color: var(--body-text-color);
 		font-size: var(--text-lg);
@@ -333,6 +334,17 @@
 	/* Code blocks */
 	.message-wrap :global(pre[class*="language-"]),
 	.message-wrap :global(pre) {
+		position: relative;
+		direction: ltr;
+		white-space: no-wrap;
+		overflow-x: auto;
+	}
+	.message-wrap :global(code) {
+		font-size: var(--text-md);
+	}
+
+	.message-wrap :global(div[class*="code_wrap"]) {
+		position: relative;
 		margin-top: var(--spacing-sm);
 		margin-bottom: var(--spacing-sm);
 		box-shadow: none;
@@ -340,10 +352,6 @@
 		border-radius: var(--radius-md);
 		background-color: var(--chatbot-code-background-color);
 		padding: var(--spacing-xl) 10px;
-		direction: ltr;
-	}
-	.message-wrap :global(code) {
-		font-size: var(--text-md);
 	}
 
 	/* Tables */
@@ -383,7 +391,7 @@
 	}
 
 	/* Copy button */
-	.message-wrap :global(code > button) {
+	.message-wrap :global(div[class*="code_wrap"] > button) {
 		position: absolute;
 		top: var(--spacing-md);
 		right: var(--spacing-md);
@@ -392,8 +400,8 @@
 		border-bottom-left-radius: var(--radius-sm);
 		padding: 5px;
 		padding: var(--spacing-md);
-		width: 22px;
-		height: 22px;
+		width: 25px;
+		height: 25px;
 	}
 
 	.message-wrap :global(code > button > span) {

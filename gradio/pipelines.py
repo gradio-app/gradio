@@ -35,9 +35,12 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> dict:
     ):
         pipeline_info = {
             "inputs": components.Audio(
-                source="microphone", type="filepath", label="Input"
+                source="microphone",
+                type="filepath",
+                label="Input",
+                render=False,
             ),
-            "outputs": components.Label(label="Class"),
+            "outputs": components.Label(label="Class", render=False),
             "preprocess": lambda i: {"inputs": i},
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
         }
@@ -47,9 +50,9 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> dict:
     ):
         pipeline_info = {
             "inputs": components.Audio(
-                source="microphone", type="filepath", label="Input"
+                source="microphone", type="filepath", label="Input", render=False
             ),
-            "outputs": components.Textbox(label="Output"),
+            "outputs": components.Textbox(label="Output", render=False),
             "preprocess": lambda i: {"inputs": i},
             "postprocess": lambda r: r["text"],
         }
@@ -57,8 +60,8 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> dict:
         pipeline, pipelines.feature_extraction.FeatureExtractionPipeline
     ):
         pipeline_info = {
-            "inputs": components.Textbox(label="Input"),
-            "outputs": components.Dataframe(label="Output"),
+            "inputs": components.Textbox(label="Input", render=False),
+            "outputs": components.Dataframe(label="Output", render=False),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r[0],
         }
@@ -66,8 +69,8 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> dict:
         pipeline, pipelines.fill_mask.FillMaskPipeline
     ):
         pipeline_info = {
-            "inputs": components.Textbox(label="Input"),
-            "outputs": components.Label(label="Classification"),
+            "inputs": components.Textbox(label="Input", render=False),
+            "outputs": components.Label(label="Classification", render=False),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: {i["token_str"]: i["score"] for i in r},
         }
@@ -75,8 +78,10 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> dict:
         pipeline, pipelines.image_classification.ImageClassificationPipeline
     ):
         pipeline_info = {
-            "inputs": components.Image(type="filepath", label="Input Image"),
-            "outputs": components.Label(type="confidences", label="Classification"),
+            "inputs": components.Image(
+                type="filepath", label="Input Image", render=False
+            ),
+            "outputs": components.Label(label="Classification", render=False),
             "preprocess": lambda i: {"images": i},
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
         }
@@ -85,12 +90,12 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> dict:
     ):
         pipeline_info = {
             "inputs": [
-                components.Textbox(lines=7, label="Context"),
-                components.Textbox(label="Question"),
+                components.Textbox(lines=7, label="Context", render=False),
+                components.Textbox(label="Question", render=False),
             ],
             "outputs": [
-                components.Textbox(label="Answer"),
-                components.Label(label="Score"),
+                components.Textbox(label="Answer", render=False),
+                components.Label(label="Score", render=False),
             ],
             "preprocess": lambda c, q: {"context": c, "question": q},
             "postprocess": lambda r: (r["answer"], r["score"]),
@@ -99,8 +104,8 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> dict:
         pipeline, pipelines.text2text_generation.SummarizationPipeline
     ):
         pipeline_info = {
-            "inputs": components.Textbox(lines=7, label="Input"),
-            "outputs": components.Textbox(label="Summary"),
+            "inputs": components.Textbox(lines=7, label="Input", render=False),
+            "outputs": components.Textbox(label="Summary", render=False),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r[0]["summary_text"],
         }
@@ -108,8 +113,8 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> dict:
         pipeline, pipelines.text_classification.TextClassificationPipeline
     ):
         pipeline_info = {
-            "inputs": components.Textbox(label="Input"),
-            "outputs": components.Label(label="Classification"),
+            "inputs": components.Textbox(label="Input", render=False),
+            "outputs": components.Label(label="Classification", render=False),
             "preprocess": lambda x: [x],
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
         }
@@ -117,8 +122,8 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> dict:
         pipeline, pipelines.text_generation.TextGenerationPipeline
     ):
         pipeline_info = {
-            "inputs": components.Textbox(label="Input"),
-            "outputs": components.Textbox(label="Output"),
+            "inputs": components.Textbox(label="Input", render=False),
+            "outputs": components.Textbox(label="Output", render=False),
             "preprocess": lambda x: {"text_inputs": x},
             "postprocess": lambda r: r[0]["generated_text"],
         }
@@ -126,8 +131,8 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> dict:
         pipeline, pipelines.text2text_generation.TranslationPipeline
     ):
         pipeline_info = {
-            "inputs": components.Textbox(label="Input"),
-            "outputs": components.Textbox(label="Translation"),
+            "inputs": components.Textbox(label="Input", render=False),
+            "outputs": components.Textbox(label="Translation", render=False),
             "preprocess": lambda x: [x],
             "postprocess": lambda r: r[0]["translation_text"],
         }
@@ -135,8 +140,8 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> dict:
         pipeline, pipelines.text2text_generation.Text2TextGenerationPipeline
     ):
         pipeline_info = {
-            "inputs": components.Textbox(label="Input"),
-            "outputs": components.Textbox(label="Generated Text"),
+            "inputs": components.Textbox(label="Input", render=False),
+            "outputs": components.Textbox(label="Generated Text", render=False),
             "preprocess": lambda x: [x],
             "postprocess": lambda r: r[0]["generated_text"],
         }
@@ -145,11 +150,13 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> dict:
     ):
         pipeline_info = {
             "inputs": [
-                components.Textbox(label="Input"),
-                components.Textbox(label="Possible class names (" "comma-separated)"),
-                components.Checkbox(label="Allow multiple true classes"),
+                components.Textbox(label="Input", render=False),
+                components.Textbox(
+                    label="Possible class names (" "comma-separated)", render=False
+                ),
+                components.Checkbox(label="Allow multiple true classes", render=False),
             ],
-            "outputs": components.Label(label="Classification"),
+            "outputs": components.Label(label="Classification", render=False),
             "preprocess": lambda i, c, m: {
                 "sequences": i,
                 "candidate_labels": c,
@@ -165,10 +172,10 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> dict:
     ):
         pipeline_info = {
             "inputs": [
-                components.Image(type="filepath", label="Input Document"),
-                components.Textbox(label="Question"),
+                components.Image(type="filepath", label="Input Document", render=False),
+                components.Textbox(label="Question", render=False),
             ],
-            "outputs": components.Label(label="Label"),
+            "outputs": components.Label(label="Label", render=False),
             "preprocess": lambda img, q: {"image": img, "question": q},
             "postprocess": lambda r: {i["answer"]: i["score"] for i in r},
         }
@@ -177,10 +184,10 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> dict:
     ):
         pipeline_info = {
             "inputs": [
-                components.Image(type="filepath", label="Input Image"),
-                components.Textbox(label="Question"),
+                components.Image(type="filepath", label="Input Image", render=False),
+                components.Textbox(label="Question", render=False),
             ],
-            "outputs": components.Label(label="Score"),
+            "outputs": components.Label(label="Score", render=False),
             "preprocess": lambda img, q: {"image": img, "question": q},
             "postprocess": lambda r: {i["answer"]: i["score"] for i in r},
         }
@@ -188,8 +195,10 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> dict:
         pipeline, pipelines.image_to_text.ImageToTextPipeline  # type: ignore
     ):
         pipeline_info = {
-            "inputs": components.Image(type="filepath", label="Input Image"),
-            "outputs": components.Textbox(label="Text"),
+            "inputs": components.Image(
+                type="filepath", label="Input Image", render=False
+            ),
+            "outputs": components.Textbox(label="Text", render=False),
             "preprocess": lambda i: {"images": i},
             "postprocess": lambda r: r[0]["generated_text"],
         }
