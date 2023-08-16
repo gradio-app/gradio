@@ -4,7 +4,7 @@
 	import StaticColorpicker from "./static";
 	import InteractiveColorpicker from "./interactive";
 
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	export let label = "ColorPicker";
 	export let info: string | undefined = undefined;

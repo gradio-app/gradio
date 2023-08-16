@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	import StaticDataframe from "./static";
 	import InteractiveDataframe from "./interactive";
