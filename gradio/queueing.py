@@ -348,45 +348,45 @@ class Queue:
         }
 
     async def call_prediction(self, events: list[Event], batch: bool):
-        data = events[0].data
-        assert data is not None, "No event data"
+        body = events[0].data
+        assert body is not None, "No event data"
         username = events[0].username
-        data.event_id = events[0]._id if not batch else None
+        body.event_id = events[0]._id if not batch else None
         try:
-            data.request = self.get_request_params(events[0].websocket)
+            body.request = self.get_request_params(events[0].websocket)
         except ValueError:
             pass
 
         if batch:
-            data.data = list(zip(*[event.data.data for event in events if event.data]))
-            data.request = [
+            body.data = list(zip(*[event.data.data for event in events if event.data]))
+            body.request = [
                 self.get_request_params(event.websocket)
                 for event in events
                 if event.data
             ]
-            data.batched = True
+            body.batched = True
 
         api_name = "predict"
-        app = self.app
-        body = data
 
         fn_index_inferred = route_utils.infer_fn_index(
-            app=app, api_name=api_name, body=body
+            app=self.app, api_name=api_name, body=body
         )
 
         gr_request = route_utils.compile_gr_request(
-            app=app,
+            app=self.app,
             body=body,
             fn_index_inferred=fn_index_inferred,
             username=username,
             request=None,
         )
 
-        session_state, iterators = route_utils.restore_session_state(app=app, body=body)
+        session_state, iterators = route_utils.restore_session_state(
+            app=self.app, body=body
+        )
 
         try:
             output = await route_utils.call_process_api(
-                app=app,
+                app=self.app,
                 body=body,
                 gr_request=gr_request,
                 session_state=session_state,
@@ -394,7 +394,7 @@ class Queue:
                 fn_index_inferred=fn_index_inferred,
             )
         except BaseException as error:
-            show_error = app.get_blocks().show_error or isinstance(error, Error)
+            show_error = self.app.get_blocks().show_error or isinstance(error, Error)
             traceback.print_exc()
             raise Exception(str(error) if show_error else None) from error
 
