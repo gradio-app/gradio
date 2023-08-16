@@ -10,7 +10,6 @@ from gradio_client.documentation import document, set_documentation_group
 
 from gradio.blocks import updateable
 from gradio.components.base import _Keywords
-from gradio.blocks import updateable
 from gradio.components.plot import AltairPlot, Plot
 
 set_documentation_group("component")

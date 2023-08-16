@@ -10,7 +10,7 @@ from gradio_client.serializing import StringSerializable
 
 from gradio import utils
 from gradio.blocks import updateable
-from gradio.components.base import Component, IOComponent, _Keywords
+from gradio.components.base import IOComponent, _Keywords
 from gradio.events import (
     Changeable,
 )

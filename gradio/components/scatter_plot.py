@@ -11,7 +11,6 @@ from pandas.api.types import is_numeric_dtype
 
 from gradio.blocks import updateable
 from gradio.components.base import _Keywords
-from gradio.blocks import updateable
 from gradio.components.plot import AltairPlot, Plot
 
 set_documentation_group("component")

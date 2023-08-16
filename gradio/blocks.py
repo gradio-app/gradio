@@ -13,13 +13,13 @@ import warnings
 import webbrowser
 from abc import abstractmethod
 from collections import defaultdict
+from functools import wraps
 from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast
 
 import anyio
 import requests
-from functools import wraps
 from anyio import CapacityLimiter
 from gradio_client import serializing
 from gradio_client import utils as client_utils
