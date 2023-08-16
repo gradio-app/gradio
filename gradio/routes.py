@@ -406,6 +406,11 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
+            if not app.get_blocks().api_open:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                )
+
             fn_index_inferred = route_utils.infer_fn_index(
                 app=app, api_name=api_name, body=body
             )
