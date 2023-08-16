@@ -7,7 +7,6 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.blocks import updateable
 from gradio.components.base import FormComponent, IOComponent, _Keywords
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
@@ -35,7 +34,6 @@ class Radio(
     Demos: sentence_builder, titanic_survival, blocks_essay
     """
 
-    @updateable
     def __init__(
         self,
         choices: list[str | int | float] | None = None,

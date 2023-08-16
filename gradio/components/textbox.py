@@ -8,7 +8,6 @@ import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.blocks import updateable
 from gradio.components.base import (
     FormComponent,
     IOComponent,
@@ -50,7 +49,6 @@ class Textbox(
     Guides: creating-a-chatbot, real-time-speech-recognition
     """
 
-    @updateable
     def __init__(
         self,
         value: str | Callable | None = "",

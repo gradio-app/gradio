@@ -8,7 +8,6 @@ import altair as alt
 import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.blocks import updateable
 from gradio.components.base import _Keywords
 from gradio.components.plot import AltairPlot, Plot
 
@@ -26,7 +25,6 @@ class LinePlot(Plot):
     Demos: line_plot, live_dashboard
     """
 
-    @updateable
     def __init__(
         self,
         value: pd.DataFrame | Callable | None = None,

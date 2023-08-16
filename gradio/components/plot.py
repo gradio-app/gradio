@@ -12,7 +12,6 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
 from gradio import processing_utils
-from gradio.blocks import updateable
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Clearable
@@ -31,7 +30,6 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
     Guides: plot-component-for-maps
     """
 
-    @updateable
     def __init__(
         self,
         value: Callable | None | pd.DataFrame = None,

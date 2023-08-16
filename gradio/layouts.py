@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.blocks import BlockContext, updateable
+from gradio.blocks import BlockContext
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Selectable
 
@@ -28,7 +28,6 @@ class Row(BlockContext):
     Guides: controlling-layout
     """
 
-    @updateable
     def __init__(
         self,
         *,
@@ -94,7 +93,6 @@ class Column(BlockContext):
     Guides: controlling-layout
     """
 
-    @updateable
     def __init__(
         self,
         *,
@@ -137,7 +135,6 @@ class Tabs(BlockContext, Changeable, Selectable):
     Tabs is a layout element within Blocks that can contain multiple "Tab" Components.
     """
 
-    @updateable
     def __init__(
         self,
         *,
@@ -182,7 +179,6 @@ class Tab(BlockContext, Selectable):
     Guides: controlling-layout
     """
 
-    @updateable
     def __init__(
         self,
         label: str,
@@ -223,7 +219,6 @@ class Group(BlockContext):
             gr.Textbox(label="Last")
     """
 
-    @updateable
     def __init__(
         self,
         *,
@@ -259,7 +254,6 @@ class Box(BlockContext):
             gr.Textbox(label="Last")
     """
 
-    @updateable
     def __init__(
         self,
         *,
@@ -290,7 +284,6 @@ class Box(BlockContext):
 
 
 class Form(BlockContext):
-    @updateable
     def __init__(self, *, scale: int = 0, min_width: int = 0, **kwargs):
         """
         Parameters:
@@ -318,7 +311,6 @@ class Accordion(BlockContext):
             gr.Markdown("lorem ipsum")
     """
 
-    @updateable
     def __init__(
         self,
         label,

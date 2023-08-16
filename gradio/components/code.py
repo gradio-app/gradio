@@ -7,7 +7,6 @@ from typing import Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.blocks import updateable
 from gradio.components.base import IOComponent, _Keywords
 from gradio.events import Changeable, Inputable
 
@@ -37,7 +36,6 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
         None,
     ]
 
-    @updateable
     def __init__(
         self,
         value: str | tuple[str] | None = None,

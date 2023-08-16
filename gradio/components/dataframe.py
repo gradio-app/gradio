@@ -10,7 +10,6 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
 from gradio import utils
-from gradio.blocks import updateable
 from gradio.components.base import IOComponent, _Keywords
 from gradio.events import (
     Changeable,
@@ -42,7 +41,6 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
 
     markdown_parser = None
 
-    @updateable
     def __init__(
         self,
         value: list[list[Any]] | Callable | None = None,

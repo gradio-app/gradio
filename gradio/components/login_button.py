@@ -6,7 +6,6 @@ from typing import Any, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.blocks import updateable
 from gradio.components import Button
 from gradio.context import Context
 from gradio.routes import Request
@@ -22,7 +21,6 @@ class LoginButton(Button):
 
     is_template = True
 
-    @updateable
     def __init__(
         self,
         *,

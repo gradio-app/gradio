@@ -7,7 +7,6 @@ from typing import Any, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import SimpleSerializable
 
-from gradio.blocks import updateable
 from gradio.components.base import Component, _Keywords
 
 set_documentation_group("component")
@@ -23,7 +22,6 @@ class Interpretation(Component, SimpleSerializable):
     Guides: custom-interpretations-with-blocks
     """
 
-    @updateable
     def __init__(
         self,
         component: Component,

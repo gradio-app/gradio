@@ -90,7 +90,26 @@ BUILT_IN_THEMES: dict[str, Theme] = {
 }
 
 
-class Block:
+def updateable(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if is_update():
+            fn_args = inspect.getfullargspec(fn).args
+            self = args[0]
+            for i, arg in enumerate(args):
+                if i == 0:  #  skip self
+                    continue
+                arg_name = fn_args[i]
+                kwargs[arg_name] = arg
+            kwargs["__type__"] = "update"
+            self.update_config = kwargs
+            return None
+        else:
+            return fn(*args, **kwargs)
+
+    return wrapper
+
+class Block():
     def __init__(
         self,
         *,
@@ -119,6 +138,10 @@ class Block:
         if render:
             self.render()
         check_deprecated_parameters(self.__class__.__name__, kwargs=kwargs)
+
+    def __new__(cls, *args, **kwargs):
+        cls.__init__ = updateable(cls.__init__)
+        return super().__new__(cls)
 
     def render(self):
         """
@@ -2252,23 +2275,3 @@ def is_update():
     from gradio import context
 
     return hasattr(context.thread_data, "blocks")
-
-
-def updateable(fn):
-    @wraps(fn)
-    def wrapper(*args, **kwargs):
-        if is_update():
-            fn_args = inspect.getfullargspec(fn).args
-            self = args[0]
-            for i, arg in enumerate(args):
-                if i == 0:  #  skip self
-                    continue
-                arg_name = fn_args[i]
-                kwargs[arg_name] = arg
-            kwargs["__type__"] = "update"
-            self.update_config = kwargs
-            return None
-        else:
-            return fn(*args, **kwargs)
-
-    return wrapper

@@ -13,7 +13,6 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import VideoSerializable
 
 from gradio import processing_utils, utils, wasm_utils
-from gradio.blocks import updateable
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Clearable, Playable, Recordable, Uploadable
@@ -47,7 +46,6 @@ class Video(
     Demos: video_identity, video_subtitle
     """
 
-    @updateable
     def __init__(
         self,
         value: str

@@ -7,7 +7,6 @@ from typing import Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.blocks import updateable
 from gradio.components import Button, Component
 
 set_documentation_group("component")
@@ -23,7 +22,6 @@ class ClearButton(Button):
 
     is_template = True
 
-    @updateable
     def __init__(
         self,
         components: None | list[Component] | Component = None,

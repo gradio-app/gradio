@@ -8,7 +8,6 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import SimpleSerializable
 
-from gradio.blocks import updateable
 from gradio.components.base import FormComponent, IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
@@ -40,7 +39,6 @@ class Dropdown(
     Demos: sentence_builder, titanic_survival
     """
 
-    @updateable
     def __init__(
         self,
         choices: list[str] | None = None,

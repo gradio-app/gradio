@@ -7,7 +7,6 @@ from typing import Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.blocks import updateable
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Clickable
@@ -25,7 +24,6 @@ class Button(Clickable, IOComponent, StringSerializable):
     Demos: blocks_inputs, blocks_kinematics
     """
 
-    @updateable
     def __init__(
         self,
         value: str | Callable = "Run",

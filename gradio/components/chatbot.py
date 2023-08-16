@@ -11,7 +11,6 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
 from gradio import utils
-from gradio.blocks import updateable
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
@@ -34,7 +33,6 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
     Guides: creating-a-chatbot
     """
 
-    @updateable
     def __init__(
         self,
         value: list[list[str | tuple[str] | tuple[str | Path, str] | None]]

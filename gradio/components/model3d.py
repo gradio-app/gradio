@@ -9,7 +9,6 @@ from gradio_client import media_data
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
-from gradio.blocks import updateable
 from gradio.components.base import IOComponent, _Keywords
 from gradio.events import (
     Changeable,
@@ -34,7 +33,6 @@ class Model3D(
     Guides: how-to-use-3D-model-component
     """
 
-    @updateable
     def __init__(
         self,
         value: str | Callable | None = None,

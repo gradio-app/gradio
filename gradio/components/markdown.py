@@ -9,7 +9,6 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
 from gradio import utils
-from gradio.blocks import updateable
 from gradio.components.base import IOComponent, _Keywords
 from gradio.events import (
     Changeable,
@@ -29,7 +28,6 @@ class Markdown(IOComponent, Changeable, StringSerializable):
     Guides: key-features
     """
 
-    @updateable
     def __init__(
         self,
         value: str | Callable = "",

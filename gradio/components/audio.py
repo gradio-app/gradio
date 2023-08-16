@@ -14,7 +14,6 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio import processing_utils, utils
-from gradio.blocks import updateable
 from gradio.components.base import IOComponent, _Keywords
 from gradio.events import (
     Changeable,
@@ -52,7 +51,6 @@ class Audio(
     Guides: real-time-speech-recognition
     """
 
-    @updateable
     def __init__(
         self,
         value: str | Path | tuple[int, np.ndarray] | Callable | None = None,

@@ -9,7 +9,6 @@ import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
 from pandas.api.types import is_numeric_dtype
 
-from gradio.blocks import updateable
 from gradio.components.base import _Keywords
 from gradio.components.plot import AltairPlot, Plot
 
@@ -28,7 +27,6 @@ class ScatterPlot(Plot):
     Guides: creating-a-dashboard-from-bigquery-data
     """
 
-    @updateable
     def __init__(
         self,
         value: pd.DataFrame | Callable | None = None,

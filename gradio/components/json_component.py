@@ -8,7 +8,6 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
-from gradio.blocks import updateable
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
@@ -28,7 +27,6 @@ class JSON(Changeable, IOComponent, JSONSerializable):
     Demos: zip_to_json, blocks_xray
     """
 
-    @updateable
     def __init__(
         self,
         value: str | dict | list | Callable | None = None,

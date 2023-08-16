@@ -5,7 +5,6 @@ from typing import Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.blocks import updateable
 from gradio.components import Button
 
 set_documentation_group("component")
@@ -19,7 +18,6 @@ class LogoutButton(Button):
 
     is_template = True
 
-    @updateable
     def __init__(
         self,
         *,

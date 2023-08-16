@@ -8,7 +8,6 @@ from typing import Any
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import SimpleSerializable
 
-from gradio.blocks import updateable
 from gradio.components.base import IOComponent
 
 set_documentation_group("component")
@@ -28,7 +27,6 @@ class State(IOComponent, SimpleSerializable):
 
     allow_string_shortcut = False
 
-    @updateable
     def __init__(
         self,
         value: Any = None,
