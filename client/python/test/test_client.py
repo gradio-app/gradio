@@ -268,6 +268,28 @@ class TestClientPredictions:
             assert job2.status().code == Status.FINISHED
             assert len(job2.outputs()) == 4
 
+    def test_stream_audio(self, stream_audio):
+        with connect(stream_audio) as client:
+            job1 = client.submit(
+                "https://gradio-builds.s3.amazonaws.com/demo-files/bark_demo.mp4",
+                api_name="/predict",
+            )
+            file_bytes = Path(job1.result()).read_bytes()
+            assert (
+                gr.components.IOComponent.hash_bytes(file_bytes)
+                == "c05b5b24c2927272fec5ae1ddfda794f4b4304c9"
+            )
+
+            job2 = client.submit(
+                "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
+                api_name="/predict",
+            )
+            file_bytes = Path(job2.result()).read_bytes()
+            assert (
+                gr.components.IOComponent.hash_bytes(file_bytes)
+                == "25fe89c144abbabb1855177acf3ff98d611c6d68"
+            )
+
     @pytest.mark.flaky
     def test_upload_file_private_space(self):
         client = Client(

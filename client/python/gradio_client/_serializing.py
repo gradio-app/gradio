@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import os
-import secrets
 import uuid
 from pathlib import Path
 from typing import Any
@@ -15,12 +14,8 @@ with open(Path(__file__).parent / "types.json") as f:
 
 
 class Serializable:
-    def serialized_info(self):
-        """
-        The typing information for this component as a dictionary whose values are a list of 2 strings: [Python type, language-agnostic description].
-        Keys of the dictionary are: raw_input, raw_output, serialized_input, serialized_output
-        """
-        return self.api_info()
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
     def api_info(self) -> dict[str, list[str]]:
         """
@@ -29,24 +24,11 @@ class Serializable:
         """
         raise NotImplementedError()
 
-    def example_inputs(self) -> dict[str, Any]:
+    def example_inputs(self) -> Any:
         """
-        The example inputs for this component as a dictionary whose values are example inputs compatible with this component.
-        Keys of the dictionary are: raw, serialized
+        The example inputs for this component as a dictionary whose values are example inputs compatible with this component. Must be json serializable.xs
         """
         raise NotImplementedError()
-
-    # For backwards compatibility
-    def input_api_info(self) -> tuple[str, str]:
-        api_info = self.api_info()
-        types = api_info.get("serialized_input", [api_info["info"]["type"]] * 2)  # type: ignore
-        return (types[0], types[1])
-
-    # For backwards compatibility
-    def output_api_info(self) -> tuple[str, str]:
-        api_info = self.api_info()
-        types = api_info.get("serialized_output", [api_info["info"]["type"]] * 2)  # type: ignore
-        return (types[0], types[1])
 
     def serialize(self, x: Any, load_dir: str | Path = ""):
         """
@@ -205,10 +187,6 @@ class ImgSerializable(Serializable):
 class FileSerializable(Serializable):
     """Expects a dict with base64 representation of object as input/output which is serialized to a filepath."""
 
-    def __init__(self) -> None:
-        self.stream = None
-        super().__init__()
-
     def serialized_info(self):
         return self._single_file_serialized_info()
 
@@ -254,17 +232,16 @@ class FileSerializable(Serializable):
             ],
         }
 
-    def _serialize_single(
-        self, x: str | FileData | None, load_dir: str | Path = ""
-    ) -> FileData | None:
-        if x is None or isinstance(x, dict):
+    def _serialize_single(self, x: FileData, load_dir: str | Path = "") -> FileData:
+        if x.is_none() or x.is_dict():
             return x
-        if utils.is_http_url_like(x):
-            filename = x
-            size = None
         else:
-            filename = str(Path(load_dir) / x)
-            size = Path(filename).stat().st_size
+            if utils.is_http_url_like(x.value):
+                filename = x
+                size = None
+            else:
+                filename = str(Path(load_dir) / x)
+                size = Path(filename).stat().st_size
         return {
             "name": filename,
             "data": utils.encode_url_or_file_to_base64(filename),
@@ -272,9 +249,6 @@ class FileSerializable(Serializable):
             "is_file": False,
             "size": size,
         }
-
-    def _setup_stream(self, url, hf_token):
-        return utils.download_byte_stream(url, hf_token)
 
     def _deserialize_single(
         self,
@@ -299,23 +273,6 @@ class FileSerializable(Serializable):
                     )
                 else:
                     file_name = utils.create_tmp_copy_of_file(filepath, dir=save_dir)
-            elif x.get("is_stream"):
-                if not self.stream:
-                    self.stream = self._setup_stream(
-                        root_url + "stream/" + x.get("name"), hf_token=hf_token
-                    )
-                try:
-                    chunk = next(self.stream)
-                except StopIteration:
-                    self.stream = self._setup_stream(
-                        root_url + "stream/" + x.get("name"), hf_token=hf_token
-                    )
-                    chunk = next(self.stream)
-                path = Path(save_dir) / secrets.token_hex(20)
-                path.mkdir(parents=True, exist_ok=True)
-                path = path / x.get("orig_name", "output")
-                path.write_bytes(chunk)
-                file_name = str(path)
             else:
                 data = x.get("data")
                 assert data is not None, f"The 'data' field is missing in {x}"

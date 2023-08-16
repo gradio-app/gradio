@@ -1362,10 +1362,10 @@ Received outputs:
                 if run not in self.pending_streams[session_hash]:
                     self.pending_streams[session_hash][run] = defaultdict(list)
                 self.pending_streams[session_hash][run][output_id].append(stream)
-                data[i] = {
-                    "name": f"{session_hash}/{run}/{output_id}",
-                    "is_stream": True,
-                }
+                if data[i]:
+                    data[i]["is_file"] = False
+                    data[i]["name"] = f"{session_hash}/{run}/{output_id}"
+                    data[i]["is_stream"] = True
         return data
 
     async def process_api(
