@@ -154,7 +154,7 @@
 					const c = await component_map[name]["static"]();
 					return {
 						name,
-						component: c as LoadedComponent
+						component: c as LoadedComponent,
 					};
 				} catch (e) {
 					console.error(`failed to load: ${name}`);
@@ -657,7 +657,7 @@
 				target="_blank"
 				rel="noreferrer"
 			>
-				$_('common.built_with')
+				$_('common.built_with_gradio')
 				<img src={logo} alt={$_("common.logo")} />
 			</a>
 		</footer>
