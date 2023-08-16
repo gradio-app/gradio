@@ -10,6 +10,7 @@ import json
 import json.decoder
 import os
 import pkgutil
+import pprint
 import random
 import re
 import time
@@ -175,6 +176,7 @@ def assert_configs_are_equivalent_besides_ids(
     """
     config1 = copy.deepcopy(config1)
     config2 = copy.deepcopy(config2)
+    pp = pprint.PrettyPrinter(indent=2)
 
     for key in root_keys:
         assert config1[key] == config2[key], f"Configs have different: {key}"
@@ -184,9 +186,6 @@ def assert_configs_are_equivalent_besides_ids(
     ), "# of components are different"
 
     def assert_same_components(config1_id, config2_id):
-        import pprint
-
-        pp = pprint.PrettyPrinter(indent=2)
         c1 = list(filter(lambda c: c["id"] == config1_id, config1["components"]))[0]
         c2 = list(filter(lambda c: c["id"] == config2_id, config2["components"]))[0]
         c1 = copy.deepcopy(c1)

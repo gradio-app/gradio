@@ -113,8 +113,8 @@ class CheckboxGroup(
 
     def example_inputs(self) -> dict[str, Any]:
         return {
-            "raw": self.choices[0][1] if self.choices else None,
-            "serialized": self.choices[0][1] if self.choices else None,
+            "raw": [self.choices[0][1]] if self.choices else None,
+            "serialized": [self.choices[0][1]] if self.choices else None,
         }
 
     @staticmethod
