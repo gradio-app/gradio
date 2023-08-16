@@ -1331,7 +1331,7 @@ class TestVideo:
         assert isinstance(output1, str)
         output2 = video_input.preprocess(x_video)
         assert output1 == output2
-        
+
         video_input = gr.Video(include_audio=False)
         output1 = video_input.preprocess(x_video)
         output2 = video_input.preprocess(x_video)
