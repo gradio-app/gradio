@@ -70,6 +70,7 @@
 		width: var(--size-full);
 		max-height: var(--size-60);
 		overflow-y: auto;
+		margin-top: var(--size-1);
 		color: var(--body-text-color);
 	}
 	.file {
