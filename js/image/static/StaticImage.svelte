@@ -7,7 +7,7 @@
 	import { Block } from "@gradio/atoms";
 	import { _ } from "svelte-i18n";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
