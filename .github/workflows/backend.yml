@@ -33,6 +33,7 @@ jobs:
             - 'client/python/**'
           gradio:
             - 'gradio/**'
+            - 'requirements.txt'
           test:
             - 'test/**'
           workflows:
