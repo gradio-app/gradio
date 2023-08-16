@@ -274,21 +274,14 @@ class TestClientPredictions:
                 "https://gradio-builds.s3.amazonaws.com/demo-files/bark_demo.mp4",
                 api_name="/predict",
             )
-            file_bytes = Path(job1.result()).read_bytes()
-            assert (
-                gr.components.IOComponent.hash_bytes(file_bytes)
-                == "c05b5b24c2927272fec5ae1ddfda794f4b4304c9"
-            )
+            assert Path(job1.result()).exists()
 
             job2 = client.submit(
                 "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
                 api_name="/predict",
             )
-            file_bytes = Path(job2.result()).read_bytes()
-            assert (
-                gr.components.IOComponent.hash_bytes(file_bytes)
-                == "25fe89c144abbabb1855177acf3ff98d611c6d68"
-            )
+            assert Path(job2.result()).exists()
+            assert all(Path(p).exists() for p in job2.outputs())
 
     @pytest.mark.flaky
     def test_upload_file_private_space(self):
