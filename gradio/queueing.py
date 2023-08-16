@@ -367,14 +367,11 @@ class Queue:
         ## TODO: extract the following code copied from routes.py into a shared function.
         import traceback
 
-        from gradio import utils
         from gradio.exceptions import Error
-        from gradio.helpers import EventData
 
         api_name = "predict"
         app = self.app
         body = data
-        default_response_class = app.router.default_response_class
 
         fn_index_inferred = route_utils.infer_fn_index(
             app=app, api_name=api_name, body=body
@@ -390,44 +387,19 @@ class Queue:
 
         session_state, iterators = route_utils.restore_session_state(app=app, body=body)
 
-        fn_index = body.fn_index
-
-        event_id = getattr(body, "event_id", None)
-        raw_input = body.data
-
-        dependency = app.get_blocks().dependencies[fn_index_inferred]
-        target = dependency["targets"][0] if len(dependency["targets"]) else None
-        event_data = EventData(
-            app.get_blocks().blocks.get(target) if target else None,
-            body.event_data,
-        )
-        batch = dependency["batch"]
-        if not (body.batched) and batch:
-            raw_input = [raw_input]
         try:
-            with utils.MatplotlibBackendMananger():
-                output = await app.get_blocks().process_api(
-                    fn_index=fn_index_inferred,
-                    inputs=raw_input,
-                    request=gr_request,
-                    state=session_state,
-                    iterators=iterators,
-                    event_id=event_id,
-                    event_data=event_data,
-                )
-            iterator = output.pop("iterator", None)
-            if hasattr(body, "session_hash"):
-                app.iterators[body.session_hash][fn_index] = iterator
-            if isinstance(output, Error):
-                output = default_response_class(output)  # Added
-                raise output
+            output = await route_utils.call_process_api(
+                app=app,
+                body=body,
+                gr_request=gr_request,
+                session_state=session_state,
+                iterators=iterators,
+                fn_index_inferred=fn_index_inferred,
+            )
         except BaseException as error:
             show_error = app.get_blocks().show_error or isinstance(error, Error)
             traceback.print_exc()
             raise Exception(str(error) if show_error else None) from error
-
-        if not (body.batched) and batch:
-            output["data"] = output["data"][0]
 
         return output
 

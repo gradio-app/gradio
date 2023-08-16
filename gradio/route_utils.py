@@ -5,7 +5,10 @@ from typing import TYPE_CHECKING, Dict, Optional
 import fastapi
 from gradio_client.documentation import document, set_documentation_group
 
+from gradio import utils
 from gradio.data_classes import PredictBody
+from gradio.exceptions import Error
+from gradio.helpers import EventData
 
 if TYPE_CHECKING:
     from gradio.routes import App
@@ -180,3 +183,52 @@ def restore_session_state(app: "App", body: PredictBody):
         iterators = {}
 
     return session_state, iterators
+
+
+async def call_process_api(
+    app: "App",
+    body: PredictBody,
+    gr_request: Request,
+    session_state,
+    iterators,
+    fn_index_inferred,
+):
+    dependency = app.get_blocks().dependencies[fn_index_inferred]
+
+    target = dependency["targets"][0] if len(dependency["targets"]) else None
+    event_data = EventData(
+        app.get_blocks().blocks.get(target) if target else None,
+        body.event_data,
+    )
+
+    event_id = getattr(body, "event_id", None)
+
+    inputs = body.data
+
+    batch_in_single_out = not body.batched and dependency["batch"]
+    if batch_in_single_out:
+        inputs = [inputs]
+
+    with utils.MatplotlibBackendMananger():
+        output = await app.get_blocks().process_api(
+            fn_index=fn_index_inferred,
+            inputs=inputs,
+            request=gr_request,
+            state=session_state,
+            iterators=iterators,
+            event_id=event_id,
+            event_data=event_data,
+        )
+
+    if hasattr(body, "session_hash"):
+        iterator = output.pop("iterator", None)
+        fn_index = body.fn_index
+        app.iterators[body.session_hash][fn_index] = iterator
+
+    if isinstance(output, Error):
+        raise output
+
+    if batch_in_single_out:
+        output["data"] = output["data"][0]
+
+    return output

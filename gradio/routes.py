@@ -49,8 +49,8 @@ from gradio import route_utils, utils, wasm_utils
 from gradio.context import Context
 from gradio.data_classes import PredictBody, ResetBody
 from gradio.exceptions import Error
-from gradio.helpers import EventData
 from gradio.queueing import Estimation, Event
+from gradio.route_utils import Request  # noqa: F401
 from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
 
 mimetypes.init()
@@ -420,36 +420,15 @@ class App(FastAPI):
 
             session_state, iterators = route_utils.restore_session_state(app, body)
 
-            fn_index = body.fn_index
-
-            event_id = getattr(body, "event_id", None)
-            raw_input = body.data
-
-            dependency = app.get_blocks().dependencies[fn_index_inferred]
-            target = dependency["targets"][0] if len(dependency["targets"]) else None
-            event_data = EventData(
-                app.get_blocks().blocks.get(target) if target else None,
-                body.event_data,
-            )
-            batch = dependency["batch"]
-            if not (body.batched) and batch:
-                raw_input = [raw_input]
             try:
-                with utils.MatplotlibBackendMananger():
-                    output = await app.get_blocks().process_api(
-                        fn_index=fn_index_inferred,
-                        inputs=raw_input,
-                        request=gr_request,
-                        state=session_state,
-                        iterators=iterators,
-                        event_id=event_id,
-                        event_data=event_data,
-                    )
-                iterator = output.pop("iterator", None)
-                if hasattr(body, "session_hash"):
-                    app.iterators[body.session_hash][fn_index] = iterator
-                if isinstance(output, Error):
-                    raise output
+                output = await route_utils.call_process_api(
+                    app=app,
+                    body=body,
+                    gr_request=gr_request,
+                    session_state=session_state,
+                    iterators=iterators,
+                    fn_index_inferred=fn_index_inferred,
+                )
             except BaseException as error:
                 show_error = app.get_blocks().show_error or isinstance(error, Error)
                 traceback.print_exc()
@@ -457,9 +436,6 @@ class App(FastAPI):
                     content={"error": str(error) if show_error else None},
                     status_code=500,
                 )
-
-            if not (body.batched) and batch:
-                output["data"] = output["data"][0]
             return output
 
         @app.websocket("/queue/join")
