@@ -9,6 +9,7 @@ from typing import Any
 
 from gradio_client import media_data, utils
 from gradio_client.data_classes import FileData
+import tempfile
 
 with open(Path(__file__).parent / "types.json") as f:
     serializer_types = json.load(f)
@@ -300,18 +301,19 @@ class FileSerializable(Serializable):
                 else:
                     file_name = utils.create_tmp_copy_of_file(filepath, dir=save_dir)
             elif x.get("is_stream"):
+                assert x["name"] and root_url and save_dir
                 if not self.stream:
                     self.stream = self._setup_stream(
-                        root_url + "stream/" + x.get("name"), hf_token=hf_token
+                        root_url + "stream/" + x['name'], hf_token=hf_token
                     )
                 try:
                     chunk = next(self.stream)
                 except StopIteration:
                     self.stream = self._setup_stream(
-                        root_url + "stream/" + x.get("name"), hf_token=hf_token
+                        root_url + "stream/" + x["name"], hf_token=hf_token
                     )
                     chunk = next(self.stream)
-                path = Path(save_dir) / secrets.token_hex(20)
+                path = Path(save_dir or tempfile.gettempdir()) / secrets.token_hex(20)
                 path.mkdir(parents=True, exist_ok=True)
                 path = path / x.get("orig_name", "output")
                 path.write_bytes(chunk)
