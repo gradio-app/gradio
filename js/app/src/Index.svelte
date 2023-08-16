@@ -67,6 +67,9 @@
 	import type { ThemeMode } from "./components/types";
 	import { StatusTracker } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
+	import { setupi18n } from "./i18n";
+
+	setupi18n();
 
 	export let autoscroll: boolean;
 	export let version: string;
@@ -96,7 +99,7 @@
 	let wrapper: HTMLDivElement;
 	let ready = false;
 	let config: Config;
-	let loading_text = $_("common.loading");
+	let loading_text = $_("common.loading") + "...";
 	let active_theme_mode: ThemeMode;
 
 	async function mount_custom_css(
