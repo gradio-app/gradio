@@ -9,9 +9,9 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: string | null = null;
+	export let value: string | number | null = null;
 	export let value_is_output = false;
-	export let choices: string[] = [];
+	export let choices: [string, number][] = [];
 	export let show_label: boolean;
 	export let container = false;
 	export let scale: number | null = null;
