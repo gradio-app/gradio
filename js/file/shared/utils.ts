@@ -14,17 +14,17 @@ export const prettyBytes = (bytes: number): string => {
 export const display_file_name = (value: FileData): string => {
 	var str: string;
 	str = value.orig_name || value.name;
-    const max_length = 30;
+	const max_length = 30;
 
 	if (str.length > max_length) {
 		const truncated_name = str.substring(0, max_length);
-		const file_extension_index = str.lastIndexOf('.');
+		const file_extension_index = str.lastIndexOf(".");
 		if (file_extension_index !== -1) {
-		  const file_extension = str.slice(file_extension_index);
-		  return `${truncated_name}..${file_extension}`;
-		} 
+			const file_extension = str.slice(file_extension_index);
+			return `${truncated_name}..${file_extension}`;
+		}
 		return truncated_name;
-	  }
+	}
 	return str;
 };
 
