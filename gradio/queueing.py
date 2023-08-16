@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import copy
 import time
+import traceback
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import deque
 from typing import Any, Optional
@@ -19,6 +20,7 @@ from gradio.data_classes import (
     Progress,
     ProgressUnit,
 )
+from gradio.exceptions import Error
 from gradio.helpers import TrackedIterable
 from gradio.utils import AsyncRequest, run_coro_in_background, set_task_name
 
@@ -363,11 +365,6 @@ class Queue:
                 if event.data
             ]
             data.batched = True
-
-        ## TODO: extract the following code copied from routes.py into a shared function.
-        import traceback
-
-        from gradio.exceptions import Error
 
         api_name = "predict"
         app = self.app
