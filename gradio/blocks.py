@@ -109,7 +109,8 @@ def updateable(fn):
 
     return wrapper
 
-class Block():
+
+class Block:
     def __init__(
         self,
         *,
