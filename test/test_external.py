@@ -236,8 +236,9 @@ class TestLoadInterface:
         except TooManyRequestsError:
             pass
 
-    def test_conversational(self):
-        io = gr.load("models/microsoft/DialoGPT-medium")
+    def test_conversational_in_blocks(self):
+        with gr.Blocks() as io:
+            gr.load("models/microsoft/DialoGPT-medium")
         app, _, _ = io.launch(prevent_thread_lock=True)
         client = TestClient(app)
         assert app.state_holder == {}
