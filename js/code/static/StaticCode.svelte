@@ -2,7 +2,7 @@
 	import { createEventDispatcher, afterUpdate } from "svelte";
 	import { _ } from "svelte-i18n";
 
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	import Code, { Widget } from "../shared";
 	import { StatusTracker } from "@gradio/statustracker";

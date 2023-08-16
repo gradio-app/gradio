@@ -1331,6 +1331,11 @@ class TestVideo:
         output2 = video_input.preprocess(x_video)
         assert output1 == output2
 
+        video_input = gr.Video(include_audio=False)
+        output1 = video_input.preprocess(x_video)
+        output2 = video_input.preprocess(x_video)
+        assert output1 == output2
+
         video_input = gr.Video(label="Upload Your Video")
         assert video_input.get_config() == {
             "autoplay": False,

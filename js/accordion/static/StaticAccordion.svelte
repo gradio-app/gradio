@@ -2,7 +2,7 @@
 	import Accordion from "./Accordion.svelte";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	import Column from "@gradio/column";
 

@@ -3,7 +3,7 @@
 	import { Block, BlockLabel, Empty } from "@gradio/atoms";
 	import Chart from "../shared";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
 
 	import { Chart as ChartIcon } from "@gradio/icons";
