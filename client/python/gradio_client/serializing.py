@@ -3,13 +3,13 @@ from __future__ import annotations
 import json
 import os
 import secrets
+import tempfile
 import uuid
 from pathlib import Path
 from typing import Any
 
 from gradio_client import media_data, utils
 from gradio_client.data_classes import FileData
-import tempfile
 
 with open(Path(__file__).parent / "types.json") as f:
     serializer_types = json.load(f)
@@ -304,7 +304,7 @@ class FileSerializable(Serializable):
                 assert x["name"] and root_url and save_dir
                 if not self.stream:
                     self.stream = self._setup_stream(
-                        root_url + "stream/" + x['name'], hf_token=hf_token
+                        root_url + "stream/" + x["name"], hf_token=hf_token
                     )
                 try:
                     chunk = next(self.stream)
