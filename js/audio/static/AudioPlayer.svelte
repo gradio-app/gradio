@@ -48,7 +48,7 @@
 	{show_label}
 	Icon={Music}
 	float={false}
-	label="{label || $_('audio.audio')}}"
+	label={label || $_("audio.audio")}
 />
 {#if value !== null}
 	<div class="icon-buttons">
