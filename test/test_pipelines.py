@@ -22,3 +22,4 @@ def test_interface_in_blocks():
         with gr.Tab("Image Inference"):
             gr.Interface.from_pipeline(pipe2)
     demo.launch(prevent_thread_lock=True)
+    demo.close()
