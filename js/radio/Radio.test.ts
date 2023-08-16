@@ -19,7 +19,11 @@ const loading_status = {
 
 describe("Radio", () => {
 	afterEach(() => cleanup());
-	const choices = [["dog", "dog"], ["cat", "cat"], ["turtle", "turtle"]];
+	const choices = [
+		["dog", "dog"],
+		["cat", "cat"],
+		["turtle", "turtle"]
+	];
 
 	test("renders provided value", async () => {
 		const { getAllByRole, getByTestId } = await render(Radio, {
@@ -35,7 +39,7 @@ describe("Radio", () => {
 			getByTestId("cat-radio-label").className.includes("selected"),
 			true
 		);
-		
+
 		const radioButtons: HTMLOptionElement[] = getAllByRole("radio");
 		assert.equal(radioButtons.length, 3);
 

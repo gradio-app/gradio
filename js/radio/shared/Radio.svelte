@@ -3,7 +3,7 @@
 	import { BlockTitle } from "@gradio/atoms";
 	import type { SelectData } from "@gradio/utils";
 
-	export let value: string | null;
+	export let value: string | number | null;
 	export let value_is_output = false;
 	export let choices: [string, number][];
 	export let disabled = false;
@@ -13,7 +13,7 @@
 	export let elem_id: string;
 
 	const dispatch = createEventDispatcher<{
-		change: string | null;
+		change: string | number | null;
 		input: undefined;
 		select: SelectData;
 	}>();

@@ -3,8 +3,8 @@
 	import { BlockTitle } from "@gradio/atoms";
 	import type { SelectData } from "@gradio/utils";
 
-	export let value: string[] = [];
-	let old_value: string[] = value.slice();
+	export let value: (string | number)[] = [];
+	let old_value: (string | number)[] = value.slice();
 	export let value_is_output = false;
 	export let choices: [string, number][];
 	export let disabled = false;
@@ -13,12 +13,12 @@
 	export let show_label: boolean;
 
 	const dispatch = createEventDispatcher<{
-		change: string[];
+		change: (string | number)[];
 		input: undefined;
 		select: SelectData;
 	}>();
 
-	function toggleChoice(choice: string): void {
+	function toggleChoice(choice: string | number): void {
 		if (value.includes(choice)) {
 			value.splice(value.indexOf(choice), 1);
 		} else {
