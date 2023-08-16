@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from "$app/stores";
-	import gradio_banner from "../assets/img/header-faded.jpg";
-	import logo_melted from "../assets/img/logo-melted.png";
+	import gradio_banner from "$lib/assets/img/header-faded.jpg";
+	import logo_melted from "$lib/assets/img/logo-melted.png";
 </script>
 
 <div class="flex-1 m-auto">

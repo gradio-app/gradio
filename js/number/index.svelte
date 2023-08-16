@@ -2,7 +2,7 @@
 	import Static from "./static";
 	import Interactive from "./interactive";
 
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
 
 	export let label = $_("number.number");

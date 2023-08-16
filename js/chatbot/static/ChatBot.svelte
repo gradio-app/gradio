@@ -7,6 +7,7 @@
 	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
 	import Markdown from "./MarkdownCode.svelte";
+	import Copy from "./Copy.svelte";
 
 	const code_highlight_css = {
 		light: (): Promise<typeof import("prismjs/themes/prism.css")> =>
@@ -31,6 +32,7 @@
 	export let show_share_button = false;
 	export let theme_mode: ThemeMode;
 	export let rtl = false;
+	export let show_copy_button = false;
 
 	$: if (theme_mode == "dark") {
 		code_highlight_css.dark();
@@ -96,6 +98,7 @@
 		/>
 	</div>
 {/if}
+
 <div class="wrap" bind:this={div}>
 	<div class="message-wrap" use:copy>
 		{#if value !== null}
@@ -120,6 +123,12 @@
 									{#each feedback as f}
 										<button>{f}</button>
 									{/each}
+								</div>
+							{/if}
+
+							{#if show_copy_button && message}
+								<div class="icon-button">
+									<Copy value={message} />
 								</div>
 							{/if}
 						{:else if message !== null && message.mime_type?.includes("audio")}
@@ -324,6 +333,17 @@
 	/* Code blocks */
 	.message-wrap :global(pre[class*="language-"]),
 	.message-wrap :global(pre) {
+		position: relative;
+		direction: ltr;
+		white-space: no-wrap;
+		overflow-x: auto;
+	}
+	.message-wrap :global(code) {
+		font-size: var(--text-md);
+	}
+
+	.message-wrap :global(div[class*="code_wrap"]) {
+		position: relative;
 		margin-top: var(--spacing-sm);
 		margin-bottom: var(--spacing-sm);
 		box-shadow: none;
@@ -331,7 +351,6 @@
 		border-radius: var(--radius-md);
 		background-color: var(--chatbot-code-background-color);
 		padding: var(--spacing-xl) 10px;
-		direction: ltr;
 	}
 
 	/* Tables */
@@ -371,7 +390,7 @@
 	}
 
 	/* Copy button */
-	.message-wrap :global(code > button) {
+	.message-wrap :global(div[class*="code_wrap"] > button) {
 		position: absolute;
 		top: var(--spacing-md);
 		right: var(--spacing-md);
@@ -380,8 +399,8 @@
 		border-bottom-left-radius: var(--radius-sm);
 		padding: 5px;
 		padding: var(--spacing-md);
-		width: 22px;
-		height: 22px;
+		width: 25px;
+		height: 25px;
 	}
 
 	.message-wrap :global(code > button > span) {

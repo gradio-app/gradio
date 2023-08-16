@@ -6,7 +6,7 @@
 	import { UploadText } from "@gradio/atoms";
 
 	import type { FileData } from "@gradio/upload";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	import Audio from "./Audio.svelte";
 	import { StatusTracker } from "@gradio/statustracker";
@@ -38,6 +38,7 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let autoplay = false;
+	export let show_edit_button = true;
 
 	let old_value: null | FileData | string = null;
 
@@ -83,6 +84,7 @@
 		{pending}
 		{streaming}
 		{autoplay}
+		{show_edit_button}
 		on:edit
 		on:play
 		on:pause

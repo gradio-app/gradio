@@ -1,9 +1,9 @@
 {
 	"name": "website",
-	"version": "0.0.2",
+	"version": "0.1.0",
 	"private": true,
 	"scripts": {
-		"dev": "vite dev",
+		"dev": "python generate_jsons/generate.py && vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
@@ -29,6 +29,7 @@
 	"type": "module",
 	"dependencies": {
 		"@sindresorhus/slugify": "^2.2.0",
+		"@sveltejs/adapter-vercel": "^3.0.3",
 		"hast-util-to-string": "^2.0.0",
 		"mdsvex": "^0.11.0",
 		"postcss": ">=8.3.3 <9.0.0"

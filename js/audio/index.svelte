@@ -2,7 +2,7 @@
 
 <script lang="ts">
 	import type { FileData } from "@gradio/upload";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	import Audio from "./interactive";
 	import StaticAudio from "./static";
@@ -27,6 +27,7 @@
 	export let autoplay = false;
 	export let show_download_button = true;
 	export let show_share_button = false;
+	export let show_edit_button = true;
 </script>
 
 {#if mode === "dynamic"}
@@ -49,6 +50,7 @@
 		{min_width}
 		{loading_status}
 		{autoplay}
+		{show_edit_button}
 		on:change
 		on:stream
 		on:drag

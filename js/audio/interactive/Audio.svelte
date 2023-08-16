@@ -28,6 +28,7 @@
 	export let pending = false;
 	export let streaming = false;
 	export let autoplay = false;
+	export let show_edit_button = true;
 
 	// TODO: make use of this
 	// export let type: "normal" | "numpy" = "normal";
@@ -281,7 +282,7 @@
 	<ModifyUpload
 		on:clear={clear}
 		on:edit={() => (mode = "edit")}
-		editable
+		editable={show_edit_button}
 		absolute={true}
 	/>
 

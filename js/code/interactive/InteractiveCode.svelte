@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, afterUpdate } from "svelte";
 
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
 	import Code from "../shared";
 	import { StatusTracker } from "@gradio/statustracker";

@@ -2,7 +2,7 @@
 	import Static from "./static";
 	import Interactive from "./interactive";
 	import { _ } from "svelte-i18n";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];

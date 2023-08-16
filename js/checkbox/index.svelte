@@ -1,7 +1,7 @@
 <script lang="ts">
 	import StaticCheckbox from "./static";
 	import InteractiveCheckbox from "./interactive";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
 	export let elem_id = "";
 	export let elem_classes: string[] = [];

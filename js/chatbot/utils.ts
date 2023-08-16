@@ -83,21 +83,19 @@ const renderer: Partial<
 
 		if (!lang) {
 			return (
-				"<pre><code>" +
-				COPY_BUTTON_CODE +
+				'<div class="code_wrap">' + COPY_BUTTON_CODE + "<pre><code>" +
 				(escaped ? code : escape(code, true)) +
-				"</code></pre>\n"
+				"</code></pre></div>\n"
 			);
 		}
 
 		return (
-			'<pre><code class="' +
+			'<div class="code_wrap">' + COPY_BUTTON_CODE + '<pre><code class="' +
 			this.options.langPrefix +
 			escape(lang) +
 			'">' +
-			COPY_BUTTON_CODE +
 			(escaped ? code : escape(code, true)) +
-			"</code></pre>\n"
+			"</code></pre></div>\n"
 		);
 	}
 };
@@ -200,8 +198,25 @@ export const format_chat_for_sharing = async (
 					if (message === null) return "";
 					let speaker_emoji = i === 0 ? "😃" : "🤖";
 					let html_content = "";
+
 					if (typeof message === "string") {
+						const regexPatterns = {
+							audio: /<audio.*?src="(\/file=.*?)"/g,
+							video: /<video.*?src="(\/file=.*?)"/g,
+							image: /<img.*?src="(\/file=.*?)".*?\/>|!\[.*?\]\((\/file=.*?)\)/g
+						};
+
 						html_content = message;
+
+						for (let [_, regex] of Object.entries(regexPatterns)) {
+							let match;
+
+							while ((match = regex.exec(message)) !== null) {
+								const fileUrl = match[1] || match[2];
+								const newUrl = await uploadToHuggingFace(fileUrl, "url");
+								html_content = html_content.replace(fileUrl, newUrl);
+							}
+						}
 					} else {
 						const file_url = await uploadToHuggingFace(message.data, "url");
 						if (message.mime_type?.includes("audio")) {
@@ -212,6 +227,7 @@ export const format_chat_for_sharing = async (
 							html_content = `<img src="${file_url}" />`;
 						}
 					}
+
 					return `${speaker_emoji}: ${html_content}`;
 				})
 			);

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import StaticDropdown from "./static";
 	import InteractiveDropdown from "./interactive";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
 
 	export let label = $_("dropdown.dropdown");
