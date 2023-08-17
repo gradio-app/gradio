@@ -147,6 +147,7 @@
 		try {
 			//@ts-ignore
 			const c = await component_map[name][mode]();
+			console.log(c, name);
 			return {
 				name,
 				component: c as LoadedComponent
@@ -155,6 +156,7 @@
 			if (mode === "interactive") {
 				try {
 					const c = await component_map[name]["static"]();
+					console.log(c, name);
 					return {
 						name,
 						component: c as LoadedComponent

@@ -1,4 +1,12 @@
+const custom = {
+	textbox: {
+		static: () => import("__REPLACE_ME_STATIC__"),
+		interactive: () => import("__REPLACE_ME_INTERACTIVE__")
+	}
+};
 export const component_map = {
+	/** __CUSTOM_COMPONENTS_REPLACEMENT__ */
+
 	accordion: {
 		static: () => import("@gradio/accordion/static")
 	},
@@ -133,5 +141,6 @@ export const component_map = {
 	video: {
 		static: () => import("@gradio/video/static"),
 		interactive: () => import("@gradio/video/interactive")
-	}
+	},
+	...custom
 };

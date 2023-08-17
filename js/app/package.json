@@ -10,7 +10,7 @@
 		"dev:lite:worker": "pnpm --filter @gradio/wasm dev",
 		"build:cdn": "vite build --mode production:cdn --emptyOutDir",
 		"build:website": "vite build --mode production:website --emptyOutDir",
-		"build:local": "vite build --mode production:local --emptyOutDir",
+		"build:local": "NODE_ENV=development vite build --mode production:local --emptyOutDir",
 		"cssbuild": "python ../../scripts/generate_theme.py --outfile ./src/lite/theme.css",
 		"pybuild:gradio": "cd ../../ && rm -rf gradio/templates/frontend && python -m build",
 		"pybuild:gradio-client": "cd ../../client/python && python -m build",

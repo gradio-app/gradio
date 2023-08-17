@@ -10,8 +10,9 @@ build/
 __tmp/*
 
 # JS build
-gradio/templates/cdn
-gradio/templates/frontend
+gradio/templates/*
+gradio/node/*
+
 
 # Secrets
 .env
@@ -73,6 +74,6 @@ build-storybook.log
 js/storybook/theme.css
 
 # playwright
-.config/playwright
+.config/playwright/*
 !.config/playwright/index.html
 !.config/playwright/index.ts
