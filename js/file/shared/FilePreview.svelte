@@ -28,6 +28,10 @@
 							index: i
 						})}
 				>
+					<td>
+						{display_file_name(file)}
+					</td>
+
 					<td class="download">
 						{#if file.data}
 							<a
@@ -37,15 +41,11 @@
 									? null
 									: file.orig_name || file.name}
 							>
-								{display_file_name(file)}
-							</a>
+							{display_file_size(file)} &#8675;
+						</a>
 						{:else}
 							Uploading...
 						{/if}
-					</td>
-
-					<td>
-						{display_file_size(file)}
 					</td>
 				</tr>
 			{/each}
