@@ -745,7 +745,7 @@ class Blocks(BlockContext):
         self.space_id = utils.get_space()
         self.favicon_path = None
         self.auth = None
-        self.dev_mode = True
+        self.dev_mode = bool(os.getenv("GRADIO_WATCH_DIRS", False))
         self.app_id = random.getrandbits(64)
         self.temp_file_sets = []
         self.title = title
@@ -1799,7 +1799,6 @@ Received outputs:
         if not self.exited:
             self.__exit__()
 
-        self.dev_mode = False
         if (
             auth
             and not callable(auth)

@@ -4,15 +4,20 @@ creating tunnels.
 """
 from __future__ import annotations
 
+import importlib
 import os
 import socket
 import threading
 import time
 import warnings
-from typing import TYPE_CHECKING
+from functools import partial
+from typing import TYPE_CHECKING, Iterator
+from pathlib import Path
 
 import requests
 import uvicorn
+from uvicorn.config import Config
+from watchfiles import DefaultFilter, watch
 
 from gradio.exceptions import ServerFailedToStartError
 from gradio.routes import App
@@ -28,13 +33,59 @@ TRY_NUM_PORTS = int(os.getenv("GRADIO_NUM_PORTS", "100"))
 LOCALHOST_NAME = os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
 GRADIO_API_SERVER = "https://api.gradio.app/v2/tunnel-request"
 
+should_watch = bool(os.getenv("GRADIO_WATCH_DIRS", False))
+GRADIO_WATCH_DIRS = (
+    os.getenv("GRADIO_WATCH_DIRS", "").split(",") if should_watch else []
+)
+GRADIO_WATCH_FILE = os.getenv("GRADIO_WATCH_FILE")
+
+
+def watchfn(app: App, watch_dirs: list[str]):
+    # default plus launches.json
+    ignore_patterns = {
+        "\\.py[cod]$",
+        "\\.___jb_...___$",
+        "\\.sw.$",
+        "~$",
+        "^\\.\\#",
+        "^\\.DS_Store$",
+        "^flycheck_",
+        "launches.json",
+    }
+    watch_filter = DefaultFilter(ignore_entity_patterns=ignore_patterns)
+    module = importlib.import_module(GRADIO_WATCH_FILE)
+
+    for changes in watch(*watch_dirs, raise_interrupt=False, watch_filter=watch_filter):
+        print(f"Changes detected in: {','.join([c[1] for c in changes]) }")
+        module = importlib.reload(module)
+        # Copy over the blocks to get new components and events but 
+        # not a new queue
+        module.demo._queue = app.blocks._queue
+        app.blocks: Blocks = module.demo
+
 
 class Server(uvicorn.Server):
+    def __init__(
+        self,
+        config: Config,
+        app: App | None = None,
+        watch_dirs: list[str] | None = None,
+    ) -> None:
+        super().__init__(config)
+        self.watch = None
+        self.watch_thread = None
+        self.app = app
+        if app and watch_dirs:
+            self.watch = partial(watchfn, self.app, watch_dirs)
+
     def install_signal_handlers(self):
         pass
 
     def run_in_thread(self):
         self.thread = threading.Thread(target=self.run, daemon=True)
+        if self.watch:
+            self.watch_thread = threading.Thread(target=self.watch, daemon=True)
+            self.watch_thread.start()
         self.thread.start()
         start = time.time()
         while not self.started:
@@ -46,6 +97,7 @@ class Server(uvicorn.Server):
 
     def close(self):
         self.should_exit = True
+        self.watch_thread.join()
         self.thread.join()
 
 
@@ -160,7 +212,10 @@ def start_server(
                 ssl_keyfile_password=ssl_keyfile_password,
                 ws_max_size=1024 * 1024 * 1024,  # Setting max websocket size to be 1 GB
             )
-            server = Server(config=config)
+            kwargs = {}
+            if GRADIO_WATCH_DIRS:
+                kwargs = {"app": app, "watch_dirs": GRADIO_WATCH_DIRS}
+            server = Server(config=config, **kwargs)
             server.run_in_thread()
             break
         except (OSError, ServerFailedToStartError):

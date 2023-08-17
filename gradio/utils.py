@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import copy
 import functools
 import inspect
@@ -39,6 +40,7 @@ import requests
 from gradio_client.serializing import Serializable
 from pydantic import BaseModel, parse_obj_as
 from typing_extensions import ParamSpec
+import asyncio
 
 import gradio
 from gradio.context import Context
@@ -55,6 +57,19 @@ GRADIO_VERSION = (
 
 P = ParamSpec("P")
 T = TypeVar("T")
+
+
+def safe_get_lock() -> asyncio.Lock:
+    """Get asyncio.Lock() without fear of getting an Exception.
+    
+    Needed because in reload mode we import the Blocks object outside
+    the main thread.
+    """
+    try:
+        asyncio.get_event_loop()
+        return asyncio.Lock()
+    except RuntimeError:
+        return None
 
 
 def colab_check() -> bool:

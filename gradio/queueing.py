@@ -19,7 +19,7 @@ from gradio.data_classes import (
     ProgressUnit,
 )
 from gradio.helpers import TrackedIterable
-from gradio.utils import AsyncRequest, run_coro_in_background, set_task_name
+from gradio.utils import AsyncRequest, run_coro_in_background, set_task_name, safe_get_lock
 
 
 class Event:
@@ -59,7 +59,7 @@ class Queue:
         self.max_thread_count = concurrency_count
         self.update_intervals = update_intervals
         self.active_jobs: list[None | list[Event]] = [None] * concurrency_count
-        self.delete_lock = asyncio.Lock()
+        self.delete_lock = safe_get_lock()
         self.server_path = None
         self.duration_history_total = 0
         self.duration_history_count = 0

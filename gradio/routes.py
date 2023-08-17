@@ -112,7 +112,7 @@ class App(FastAPI):
         self.state_holder = {}
         self.iterators = defaultdict(dict)
         self.iterators_to_reset = defaultdict(set)
-        self.lock = asyncio.Lock()
+        self.lock = utils.safe_get_lock()
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
         self.uploaded_file_dir = os.environ.get("GRADIO_TEMP_DIR") or str(
