@@ -14,7 +14,7 @@ We realize that developers using the client don't know the internals of whether 
 
 Using `Client.predict` will now return the final output of a streaming endpoint. This will make it even easier to use gradio apps via the client.
 
-Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+ Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
 
 ### Features
 

@@ -57,12 +57,3 @@
 		latex_delimiters: [{ left: "$$", right: "$$", display: true }]
 	}}
 />
-
-<Story
-	name="Chatbot with copy button"
-	args={{
-		rtl: true,
-		latex_delimiters: [{ left: "$$", right: "$$", display: true }],
-		show_copy_button: true
-	}}
-/>
