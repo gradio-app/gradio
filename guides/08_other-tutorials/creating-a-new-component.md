@@ -273,7 +273,7 @@ Here you will have three files, the first file is for the Svelte application, an
 
 	export let loading_status: LoadingStatus;
 
-	export let mode: "static" | "interactive";
+	export let mode: "static" | "dynamic";
 </script>
 
 <Block
