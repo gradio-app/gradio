@@ -1,6 +1,6 @@
 ---
-"@gradio/dataframe": minor
-"gradio": minor
+"@gradio/dataframe": patch
+"gradio": patch
 ---
 
-feat:Better handling of empty dataframe in `gr.DataFrame`
+fix:Better handling of empty dataframe in `gr.DataFrame`
