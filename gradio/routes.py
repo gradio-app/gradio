@@ -406,14 +406,16 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            if not app.get_blocks().api_open:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                )
-
             fn_index_inferred = route_utils.infer_fn_index(
                 app=app, api_name=api_name, body=body
             )
+
+            if not app.get_blocks().api_open and app.get_blocks().queue_enabled_for_fn(
+                fn_index_inferred
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                )
 
             gr_request = route_utils.compile_gr_request(
                 app,
