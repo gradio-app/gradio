@@ -35,7 +35,6 @@
 		{elem_id}
 		{elem_classes}
 		{visible}
-		{mode}
 		bind:value
 		{name}
 		{source}

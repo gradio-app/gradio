@@ -46,7 +46,6 @@
 		{container}
 		{scale}
 		{min_width}
-		{mode}
 		{autoplay}
 		{show_share_button}
 		on:clear
@@ -78,7 +77,6 @@
 		{container}
 		{scale}
 		{min_width}
-		{mode}
 		{autoplay}
 		on:clear
 		on:play
