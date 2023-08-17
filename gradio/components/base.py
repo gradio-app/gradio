@@ -396,9 +396,6 @@ class Component(ComponentBase, Block):
             assert isinstance(x, GradioBaseModel)
             return x.copy_to_dir(flag_dir).model_dump_json()
         return x
-        # raise NotImplementedError(
-        #     f"The flag method has not been implemented for {self.get_block_name()}"
-        # )
 
     def read_from_flag(
         self,
