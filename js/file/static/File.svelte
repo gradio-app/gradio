@@ -8,7 +8,7 @@
 	export let label: string;
 	export let show_label = true;
 	export let selectable = false;
-	export let height: number | "auto" = "auto";
+	export let height: number | undefined = undefined;
 </script>
 
 <BlockLabel

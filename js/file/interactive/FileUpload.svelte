@@ -14,7 +14,7 @@
 	export let file_count = "single";
 	export let file_types: string[] | null = null;
 	export let selectable = false;
-	export let height: number | "auto" = "auto";
+	export let height: number | undefined = undefined;
 
 	async function handle_upload({
 		detail
@@ -72,7 +72,6 @@
 		filetype={accept_file_types}
 		parse_to_data_url={false}
 		{file_count}
-		{height}
 		bind:dragging
 	>
 		<slot />

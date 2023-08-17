@@ -9,13 +9,12 @@
 	}>();
 	export let value: FileData | FileData[];
 	export let selectable = false;
-	export let height: number | "auto" = "auto";
-	let max_height: string = height === "auto" ? "auto" : height + "px";
+	export let height: number | undefined = undefined;
 </script>
 
 <div
 	class="file-preview-holder"
-	style="max-height: {max_height}; overflow-y:scroll;"
+	style="max-height: {typeof height === undefined ? "auto" : height + "px"};"
 >
 	<table class="file-preview">
 		<tbody>
@@ -65,6 +64,7 @@
 	}
 	.file-preview-holder {
 		overflow-x: auto;
+		overflow-y:scroll;	
 	}
 	.file-preview {
 		width: var(--size-full);

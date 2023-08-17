@@ -12,7 +12,6 @@
 	export let file_count = "single";
 	export let disable_click = false;
 	export let parse_to_data_url = true;
-	export let height: number | "auto" = "auto";
 
 	let hidden_upload: HTMLInputElement;
 
@@ -104,7 +103,6 @@
 	on:drop={loadFilesFromDrop}
 	on:dragenter={updateDragging}
 	on:dragleave={updateDragging}
-	style="height: {height === 'auto' ? 'auto' : height + 'px'};"
 >
 	<slot />
 	<input

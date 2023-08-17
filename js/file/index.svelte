@@ -31,7 +31,7 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let height: number | "auto" = "auto";
+	export let height: number | undefined = undefined;
 </script>
 
 {#if mode === "static"}
