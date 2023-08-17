@@ -397,7 +397,7 @@
 		data.splice(
 			index ? index + 1 : data.length,
 			0,
-			Array(data[0] ? data[0].length: 1)
+			Array(data[0].length)
 				.fill(0)
 				.map((_, i) => {
 					const _id = `${data.length}-${i}`;
