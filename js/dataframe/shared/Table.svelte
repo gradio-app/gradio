@@ -100,7 +100,13 @@
 		)
 			.fill(0)
 			.map((_, i) =>
-				Array(col_count[1] === "fixed" ? col_count[0] : data_row_length > 0 ? _values[0].length : headers.length)
+				Array(
+					col_count[1] === "fixed"
+						? col_count[0]
+						: data_row_length > 0
+						? _values[0].length
+						: headers.length
+				)
 					.fill(0)
 					.map((_, j) => {
 						const id = `${i}-${j}`;
@@ -391,7 +397,7 @@
 	function add_row(index?: number): void {
 		if (row_count[1] !== "dynamic") return;
 		if (data.length === 0) {
-			values = [Array(headers.length).fill("")]
+			values = [Array(headers.length).fill("")];
 			return;
 		}
 		data.splice(
@@ -405,6 +411,7 @@
 					return { id: _id, value: "" };
 				})
 		);
+
 		data = data;
 	}
 
