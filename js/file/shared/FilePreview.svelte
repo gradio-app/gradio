@@ -33,9 +33,9 @@
 					</td>
 
 					<td class="download">
-						{#if file.data}
+						{#if file.data || file.blob}
 							<a
-								href={file.data}
+								href={file.data ? file.data : URL.createObjectURL(file.blob)}
 								target="_blank"
 								download={window.__is_colab__
 									? null
