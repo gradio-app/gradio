@@ -41,7 +41,7 @@
 									? null
 									: file.orig_name || file.name}
 							>
-								{display_file_size(file)} &#8675;
+								{@html display_file_size(file)}&nbsp;&#8675;
 							</a>
 						{:else}
 							Uploading...
@@ -99,5 +99,13 @@
 	}
 	.selectable {
 		cursor: pointer;
+	}
+
+	tbody > tr:nth-child(even) {
+		background: var(--block-background-fill);
+	}
+
+	tbody > tr:nth-child(odd) {
+		background: var(--table-odd-background-fill);
 	}
 </style>

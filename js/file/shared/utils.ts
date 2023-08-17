@@ -8,7 +8,7 @@ export const prettyBytes = (bytes: number): string => {
 		i++;
 	}
 	let unit = units[i];
-	return bytes.toFixed(1) + " " + unit;
+	return bytes.toFixed(1) + "&nbsp;" + unit;
 };
 
 export const display_file_name = (value: FileData): string => {
