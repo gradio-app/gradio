@@ -14,7 +14,7 @@
 
 <div
 	class="file-preview-holder"
-	style="max-height: {typeof height === undefined ? "auto" : height + "px"};"
+	style="max-height: {typeof height === undefined ? 'auto' : height + 'px'};"
 >
 	<table class="file-preview">
 		<tbody>
@@ -64,7 +64,7 @@
 	}
 	.file-preview-holder {
 		overflow-x: auto;
-		overflow-y:scroll;	
+		overflow-y: scroll;
 	}
 	.file-preview {
 		width: var(--size-full);

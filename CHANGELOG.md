@@ -14,7 +14,7 @@ We realize that developers using the client don't know the internals of whether 
 
 Using `Client.predict` will now return the final output of a streaming endpoint. This will make it even easier to use gradio apps via the client.
 
- Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
 
 #### Gradio now supports streaming audio outputs
 
@@ -28,15 +28,15 @@ def stream_audio(audio_file):
     audio = AudioSegment.from_mp3(audio_file)
     i = 0
     chunk_size = 3000
-    
+
     while chunk_size*i < len(audio):
         chunk = audio[chunk_size*i:chunk_size*(i+1)]
         i += 1
         if chunk:
             file = f"/tmp/{i}.mp3"
-            chunk.export(file, format="mp3")            
+            chunk.export(file, format="mp3")
             yield file
-        
+
 demo = gr.Interface(
     fn=stream_audio,
     inputs=gr.Audio(type="filepath", label="Audio file to stream"),
@@ -46,7 +46,7 @@ demo = gr.Interface(
 demo.queue().launch()
 ```
 
-From the backend, streamed outputs are served from the `/stream/` endpoint instead of the `/file/` endpoint. Currently just used to serve audio streaming output.  The output JSON will have `is_stream`: `true`, instead of `is_file`: `true` in the file data object. Thanks [@aliabid94](https://github.com/aliabid94)!
+From the backend, streamed outputs are served from the `/stream/` endpoint instead of the `/file/` endpoint. Currently just used to serve audio streaming output. The output JSON will have `is_stream`: `true`, instead of `is_file`: `true` in the file data object. Thanks [@aliabid94](https://github.com/aliabid94)!
 
 ### Features
 

@@ -63,6 +63,9 @@ demo.launch(share=True)
     &lt;script type="module"
     src="https://gradio.s3-us-west-2.amazonaws.com/{GRADIO_VERSION}/gradio.js">
     &lt;/script>
+
+    ```
+
     ```
 
 2.  在您想放置应用的位置添加
@@ -71,10 +74,10 @@ demo.launch(share=True)
     `
     元素。将 `src=` 属性设置为您的 Space 的嵌入 URL，您可以在“嵌入此空间”按钮中找到。例如：
 
-        ```html
+            ```html
 
-    &lt;gradio-app src="https://abidlabs-pytorch-image-classifier.hf.space">&lt;/gradio-app>
-    ```
+        &lt;gradio-app src="https://abidlabs-pytorch-image-classifier.hf.space">&lt;/gradio-app>
+        ```
 
 <script>
 fetch("https://pypi.org/pypi/gradio/json"
