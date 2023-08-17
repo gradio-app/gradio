@@ -23,6 +23,7 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
+	export let mode: "static" | "dynamic";
 	export let value: null | FileData | string = null;
 	export let name: string;
 	export let source: "microphone" | "upload";
@@ -55,7 +56,9 @@
 </script>
 
 <Block
-	variant={value === null && source === "upload" ? "dashed" : "solid"}
+	variant={mode === "dynamic" && value === null && source === "upload"
+		? "dashed"
+		: "solid"}
 	border_mode={dragging ? "focus" : "base"}
 	padding={false}
 	{elem_id}

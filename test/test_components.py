@@ -582,8 +582,14 @@ class TestRadio:
         assert scores == [-2.0, None, 2.0]
 
     def test_update(self):
-        update = gr.Radio.update(choices=[("zeroth", ""), "first", "second"], label="ordinal")
-        assert update["choices"] == [("zeroth", ""), ("first", "first"), ("second", "second")]
+        update = gr.Radio.update(
+            choices=[("zeroth", ""), "first", "second"], label="ordinal"
+        )
+        assert update["choices"] == [
+            ("zeroth", ""),
+            ("first", "first"),
+            ("second", "second"),
+        ]
 
 
 class TestDropdown:

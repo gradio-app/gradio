@@ -22,7 +22,7 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let mode: "static" | "interactive";
+	export let mode: "static" | "dynamic";
 	export let value: null | FileData | string = null;
 	export let source: "microphone" | "upload";
 	export let label: string;
@@ -53,7 +53,7 @@
 </script>
 
 <Block
-	variant={mode === "interactive" && value === null && source === "upload"
+	variant={mode === "dynamic" && value === null && source === "upload"
 		? "dashed"
 		: "solid"}
 	border_mode={dragging ? "focus" : "base"}

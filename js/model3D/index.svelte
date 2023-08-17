@@ -9,7 +9,7 @@
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value: null | FileData = null;
-	export let mode: "static" | "interactive";
+	export let mode: "static" | "dynamic";
 	export let root: string;
 	export let root_url: null | string;
 	export let clearColor: [number, number, number, number];

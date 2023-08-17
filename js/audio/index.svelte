@@ -10,7 +10,7 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let mode: "static" | "interactive";
+	export let mode: "static" | "dynamic";
 	export let value: null | FileData | string = null;
 	export let name: string;
 	export let source: "microphone" | "upload";
@@ -30,7 +30,7 @@
 	export let show_edit_button = true;
 </script>
 
-{#if mode === "interactive"}
+{#if mode === "dynamic"}
 	<Audio
 		{elem_id}
 		{elem_classes}

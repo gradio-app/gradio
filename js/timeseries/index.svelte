@@ -18,7 +18,7 @@
 	export let value: null | Data;
 	export let y: string[];
 	export let x: string;
-	export let mode: "static" | "interactive";
+	export let mode: "static" | "dynamic";
 	export let label: string;
 	export let show_label: boolean;
 	export let colors: string[];
@@ -34,6 +34,7 @@
 		{elem_id}
 		{elem_classes}
 		{visible}
+		{mode}
 		{label}
 		{show_label}
 		{colors}

@@ -18,7 +18,7 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
-	export let mode: "static" | "interactive";
+	export let mode: "static" | "dynamic";
 	export let interactive: boolean;
 </script>
 

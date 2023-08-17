@@ -52,7 +52,7 @@
 				lines={1}
 				show_label={true}
 				max_lines={1}
-				mode="interactive"
+				mode="dynamic"
 				on:submit={submit}
 				bind:value={username}
 			/>
@@ -61,7 +61,7 @@
 				lines={1}
 				show_label={true}
 				max_lines={1}
-				mode="interactive"
+				mode="dynamic"
 				type="password"
 				on:submit={submit}
 				bind:value={password}

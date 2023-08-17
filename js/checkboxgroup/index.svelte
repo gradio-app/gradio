@@ -13,7 +13,7 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let mode: "static" | "interactive";
+	export let mode: "static" | "dynamic";
 	export let label = "Checkbox Group";
 	export let info: string | undefined = undefined;
 	export let show_label: boolean;

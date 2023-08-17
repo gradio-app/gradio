@@ -31,6 +31,7 @@
 	export let container = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+	export let mode: "static" | "dynamic";
 	export let autoplay = false;
 
 	let _video: FileData | null = null;
@@ -70,7 +71,9 @@
 
 <Block
 	{visible}
-	variant={value === null && source === "upload" ? "dashed" : "solid"}
+	variant={mode === "dynamic" && value === null && source === "upload"
+		? "dashed"
+		: "solid"}
 	border_mode={dragging ? "focus" : "base"}
 	padding={false}
 	{elem_id}

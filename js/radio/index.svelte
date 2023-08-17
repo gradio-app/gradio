@@ -15,7 +15,7 @@
 	export let value: string | number | null = null;
 	export let value_is_output = false;
 	export let choices: [string, number][] = [];
-	export let mode: "static" | "interactive";
+	export let mode: "static" | "dynamic";
 	export let show_label: boolean;
 	export let container = false;
 	export let scale: number | null = null;
