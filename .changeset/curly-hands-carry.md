@@ -20,4 +20,4 @@
 "gradio": minor
 ---
 
-feat:Ensure File component uploads files to the server.
+fix:Ensure File component uploads files to the server.
