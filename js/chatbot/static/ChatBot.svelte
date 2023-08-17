@@ -33,7 +33,7 @@
 	export let theme_mode: ThemeMode;
 	export let rtl = false;
 	export let show_copy_button = false;
-
+	export let avatar_images: [string | FileData | null][] = [];
 	$: if (theme_mode == "dark") {
 		code_highlight_css.dark();
 	} else {
@@ -104,75 +104,82 @@
 		{#if value !== null}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
-					<!-- TODO: fix-->
-					<!-- svelte-ignore a11y-no-static-element-interactions-->
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<div
-						data-testid={j == 0 ? "user" : "bot"}
-						class:latest={i === value.length - 1}
-						class="message {j == 0 ? 'user' : 'bot'}"
-						class:hide={message === null}
-						class:selectable
-						on:click={() => handle_select(i, j, message)}
-						dir={rtl ? "rtl" : "ltr"}
-					>
-						{#if typeof message === "string"}
-							<Markdown {message} {latex_delimiters} on:load={scroll} />
-							{#if feedback && j == 1}
-								<div class="feedback">
-									{#each feedback as f}
-										<button>{f}</button>
-									{/each}
-								</div>
-							{/if}
+					<div class="avatar-row">
+						<img
+								class="avatar-image-{j == 0 ? "user" : "bot"}"
+								src={avatar_images[0]}
+								alt="avatar"
+							/>
+						<!-- TODO: fix-->
+						<!-- svelte-ignore a11y-no-static-element-interactions-->
+						<!-- svelte-ignore a11y-click-events-have-key-events -->
+						<div
+							data-testid={j == 0 ? "user" : "bot"}
+							class:latest={i === value.length - 1}
+							class="message {j == 0 ? 'user' : 'bot'}"
+							class:hide={message === null}
+							class:selectable
+							on:click={() => handle_select(i, j, message)}
+							dir={rtl ? "rtl" : "ltr"}
+						>
+							{#if typeof message === "string"}
+								<Markdown {message} {latex_delimiters} on:load={scroll} />
+								{#if feedback && j == 1}
+									<div class="feedback">
+										{#each feedback as f}
+											<button>{f}</button>
+										{/each}
+									</div>
+								{/if}
 
-							{#if show_copy_button && message}
-								<div class="icon-button">
-									<Copy value={message} />
-								</div>
+								{#if show_copy_button && message}
+									<div class="icon-button">
+										<Copy value={message} />
+									</div>
+								{/if}
+							{:else if message !== null && message.mime_type?.includes("audio")}
+								<audio
+									data-testid="chatbot-audio"
+									controls
+									preload="metadata"
+									src={message.data}
+									title={message.alt_text}
+									on:play
+									on:pause
+									on:ended
+								/>
+							{:else if message !== null && message.mime_type?.includes("video")}
+								<video
+									data-testid="chatbot-video"
+									controls
+									src={message.data}
+									title={message.alt_text}
+									preload="auto"
+									on:play
+									on:pause
+									on:ended
+								>
+									<track kind="captions" />
+								</video>
+							{:else if message !== null && message.mime_type?.includes("image")}
+								<img
+									data-testid="chatbot-image"
+									src={message.data}
+									alt={message.alt_text}
+								/>
+							{:else if message !== null && message.data !== null}
+								<a
+									data-testid="chatbot-file"
+									href={message.data}
+									target="_blank"
+									download={window.__is_colab__
+										? null
+										: message.orig_name || message.name}
+								>
+									{message.orig_name || message.name}
+								</a>
 							{/if}
-						{:else if message !== null && message.mime_type?.includes("audio")}
-							<audio
-								data-testid="chatbot-audio"
-								controls
-								preload="metadata"
-								src={message.data}
-								title={message.alt_text}
-								on:play
-								on:pause
-								on:ended
-							/>
-						{:else if message !== null && message.mime_type?.includes("video")}
-							<video
-								data-testid="chatbot-video"
-								controls
-								src={message.data}
-								title={message.alt_text}
-								preload="auto"
-								on:play
-								on:pause
-								on:ended
-							>
-								<track kind="captions" />
-							</video>
-						{:else if message !== null && message.mime_type?.includes("image")}
-							<img
-								data-testid="chatbot-image"
-								src={message.data}
-								alt={message.alt_text}
-							/>
-						{:else if message !== null && message.data !== null}
-							<a
-								data-testid="chatbot-file"
-								href={message.data}
-								target="_blank"
-								download={window.__is_colab__
-									? null
-									: message.orig_name || message.name}
-							>
-								{message.orig_name || message.name}
-							</a>
-						{/if}
+						</div>
 					</div>
 				{/each}
 			{/each}
@@ -256,6 +263,29 @@
 		border-color: var(--border-color-accent-subdued);
 		background-color: var(--color-accent-soft);
 	}
+	.avatar-row {
+		display: flex;
+		flex-direction: row;
+	}
+	.avatar-image-user,
+	.avatar-image-bot{
+		align-self: flex-end;
+		position: relative;
+		justify-content: center;
+		max-width: 35px;
+		max-height: 35px;
+		background-color: aqua;
+		border-radius: 50%;
+		bottom: 0px;
+	}
+	.avatar-image-user {
+		order: 2;
+		margin-left: 10px;
+	}
+	.avatar-image-bot {
+		margin-right: 10px;
+	}
+
 	.feedback {
 		display: flex;
 		position: absolute;

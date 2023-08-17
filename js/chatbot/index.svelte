@@ -24,7 +24,7 @@
 	export let show_share_button = false;
 	export let rtl = false;
 	export let show_copy_button = false;
-
+	export let avatar_images: [string | FileData | null][] = [];
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height = 400;
 </script>
@@ -46,6 +46,7 @@
 	{rtl}
 	{show_copy_button}
 	{latex_delimiters}
+	{avatar_images}
 	on:change
 	on:select
 	on:share

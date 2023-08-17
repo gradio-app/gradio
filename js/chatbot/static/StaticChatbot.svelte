@@ -28,6 +28,7 @@
 		right: string;
 		display: boolean;
 	}[];
+	export let avatar_images: [string | FileData | null][] = [];
 
 	let _value: [string | FileData | null, string | FileData | null][];
 
@@ -84,6 +85,7 @@
 			pending_message={loading_status?.status === "pending"}
 			{rtl}
 			{show_copy_button}
+			{avatar_images}
 			on:change
 			on:select
 			on:share

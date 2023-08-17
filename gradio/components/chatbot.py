@@ -54,6 +54,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         rtl: bool = False,
         show_share_button: bool | None = None,
         show_copy_button: bool = False,
+        avatar_images: list[str | Path | None] | None = None,
         **kwargs,
     ):
         """
@@ -74,6 +75,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             rtl: If True, sets the direction of the rendered text to right-to-left. Default is False, which renders text left-to-right.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             show_copy_button: If True, will show a copy button for each chatbot message.
+            avatar_images: List of two avatar images for user and bot.
         """
         if color_map is not None:
             warn_deprecation("The 'color_map' parameter has been deprecated.")
@@ -94,6 +96,14 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             else show_share_button
         )
         self.show_copy_button = show_copy_button
+
+        self.avatar_images = []
+        if avatar_images is not None:
+            for avatar in avatar_images:
+                if isinstance(avatar, (str, Path)):
+                    self.avatar_images.append(client_utils.encode_url_or_file_to_base64(avatar))
+                else:
+                    self.avatar_images.append(None)
 
         IOComponent.__init__(
             self,
@@ -119,6 +129,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             "show_share_button": self.show_share_button,
             "rtl": self.rtl,
             "show_copy_button": self.show_copy_button,
+            "avatar_images": self.avatar_images,
             **IOComponent.get_config(self),
         }
 
@@ -137,6 +148,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         rtl: bool | None = None,
         show_share_button: bool | None = None,
         show_copy_button: bool | None = None,
+        avatar_images: list[str | Path | None] | None = None,
     ):
         updated_config = {
             "label": label,
@@ -150,6 +162,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             "show_share_button": show_share_button,
             "rtl": rtl,
             "show_copy_button": show_copy_button,
+            "avatar_images": avatar_images,
             "__type__": "update",
         }
         return updated_config
