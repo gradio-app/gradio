@@ -27,11 +27,9 @@
 	$: {
 		if (values && !Array.isArray(values)) {
 			headers = values.headers;
-			// values = values.data.length === 0 ? [Array(headers.length).fill("")] : values.data;
 			values = values.data;
 			selected = false;
 		} else if (values === null) {
-			// values = []
 			values = [Array(headers.length).fill("")];
 			selected = false;
 		}
@@ -318,7 +316,6 @@
 
 		if (type === "select" && typeof id == "string") {
 			const { cell } = els[id];
-			// cell?.setAttribute("tabindex", "0");
 			await tick();
 			cell?.focus();
 		}
