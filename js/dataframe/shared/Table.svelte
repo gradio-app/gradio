@@ -30,7 +30,7 @@
 			values = values.data;
 			selected = false;
 		} else if (values === null) {
-			values = [Array(headers.length).fill("")];
+			values = [];
 			selected = false;
 		}
 	}
