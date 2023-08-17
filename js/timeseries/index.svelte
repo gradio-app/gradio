@@ -34,7 +34,6 @@
 		{elem_id}
 		{elem_classes}
 		{visible}
-		{mode}
 		{label}
 		{show_label}
 		{colors}

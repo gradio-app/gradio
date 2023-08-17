@@ -52,7 +52,6 @@
 	$: value = !value ? null : value;
 </script>
 
-
 {#if mode === "static"}
 	<Static
 		bind:value

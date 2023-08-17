@@ -56,9 +56,7 @@
 </script>
 
 <Block
-	variant={value === null && source === "upload"
-		? "dashed"
-		: "solid"}
+	variant={value === null && source === "upload" ? "dashed" : "solid"}
 	border_mode={dragging ? "focus" : "base"}
 	padding={false}
 	{elem_id}

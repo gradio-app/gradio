@@ -41,8 +41,7 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 
-	$: static_data =
-		value && format_value(value as StaticData);
+	$: static_data = value && format_value(value as StaticData);
 
 	$: value, dispatch("change");
 </script>
