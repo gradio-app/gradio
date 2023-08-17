@@ -275,7 +275,7 @@ class TestColorPicker(unittest.TestCase):
 
 	export let loading_status: LoadingStatus;
 
-	export let mode: "static" | "dynamic";
+	export let mode: "static" | "interactive";
 </script>
 
 <Block

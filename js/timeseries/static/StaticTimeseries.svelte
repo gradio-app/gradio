@@ -33,7 +33,6 @@
 	export let visible = true;
 	export let value: null | Data;
 
-	export let mode: "static" | "dynamic";
 	export let label: string;
 	export let show_label: boolean;
 	export let colors: string[];
@@ -43,7 +42,7 @@
 	export let loading_status: LoadingStatus;
 
 	$: static_data =
-		mode === "static" && value && format_value(value as StaticData);
+		value && format_value(value as StaticData);
 
 	$: value, dispatch("change");
 </script>

@@ -18,7 +18,7 @@
 	export let value: null | Data;
 	export let y: string[];
 	export let x: string;
-	export let mode: "static" | "dynamic";
+	export let mode: "static" | "interactive";
 	export let label: string;
 	export let show_label: boolean;
 	export let colors: string[];
