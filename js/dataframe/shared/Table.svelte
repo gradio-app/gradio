@@ -27,12 +27,11 @@
 	$: {
 		if (values && !Array.isArray(values)) {
 			headers = values.headers;
-			values =
-				values.data.length === 0
-					? [Array(headers.length).fill("")]
-					: values.data;
+			// values = values.data.length === 0 ? [Array(headers.length).fill("")] : values.data;
+			values = values.data;
 			selected = false;
 		} else if (values === null) {
+			// values = []
 			values = [Array(headers.length).fill("")];
 			selected = false;
 		}
@@ -93,8 +92,7 @@
 		value: string | number;
 		id: string;
 	}[][] {
-		const data_row_length = _values.length > 0 ? _values.length : row_count[0];
-
+		const data_row_length = _values.length;
 		return Array(
 			row_count[1] === "fixed"
 				? row_count[0]
@@ -104,7 +102,7 @@
 		)
 			.fill(0)
 			.map((_, i) =>
-				Array(col_count[1] === "fixed" ? col_count[0] : _values[0].length)
+				Array(col_count[1] === "fixed" ? col_count[0] : data_row_length > 0 ? _values[0].length : headers.length)
 					.fill(0)
 					.map((_, j) => {
 						const id = `${i}-${j}`;
@@ -395,10 +393,14 @@
 
 	function add_row(index?: number): void {
 		if (row_count[1] !== "dynamic") return;
+		if (data.length === 0) {
+			values = [Array(headers.length).fill("")]
+			return;
+		}
 		data.splice(
 			index ? index + 1 : data.length,
 			0,
-			Array(data[0].length)
+			Array(data[0] ? data[0].length: 1)
 				.fill(0)
 				.map((_, i) => {
 					const _id = `${data.length}-${i}`;
@@ -406,7 +408,6 @@
 					return { id: _id, value: "" };
 				})
 		);
-
 		data = data;
 	}
 
