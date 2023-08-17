@@ -21,7 +21,7 @@
 	export let value: null | FileData | FileData[];
 	let old_value: null | FileData | FileData[];
 
-	export let mode: "static" | "dynamic";
+	export let mode: "static" | "interactive";
 	export let root: string;
 	export let label: string;
 	export let show_label: boolean;
@@ -63,7 +63,7 @@
 			) {
 				pending_upload = false;
 				dispatch("change");
-			} else if (mode === "dynamic") {
+			} else if (mode === "interactive") {
 				let files = (Array.isArray(_value) ? _value : [_value]).map(
 					(file_data) => file_data.blob!
 				);
@@ -106,7 +106,7 @@
 
 <Block
 	{visible}
-	variant={mode === "dynamic" && value === null ? "dashed" : "solid"}
+	variant={value === null ? "dashed" : "solid"}
 	border_mode={dragging ? "focus" : "base"}
 	padding={false}
 	{elem_id}

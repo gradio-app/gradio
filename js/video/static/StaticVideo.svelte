@@ -29,7 +29,6 @@
 	export let container = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let mode: "static" | "dynamic";
 	export let autoplay = false;
 	export let show_share_button = true;
 
@@ -62,9 +61,7 @@
 
 <Block
 	{visible}
-	variant={mode === "dynamic" && value === null && source === "upload"
-		? "dashed"
-		: "solid"}
+	variant={value === null && source === "upload" ? "dashed" : "solid"}
 	border_mode={dragging ? "focus" : "base"}
 	padding={false}
 	{elem_id}
