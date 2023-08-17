@@ -24,4 +24,3 @@
 sweep.yaml
 **/.vercel/**
 **/build/**
-**/*.md
