@@ -41,8 +41,8 @@
 									? null
 									: file.orig_name || file.name}
 							>
-							{display_file_size(file)} &#8675;
-						</a>
+								{display_file_size(file)} &#8675;
+							</a>
 						{:else}
 							Uploading...
 						{/if}
