@@ -208,6 +208,7 @@ class FileSerializable(Serializable):
 
     def __init__(self) -> None:
         self.stream = None
+        self.stream_name = None
         super().__init__()
 
     def serialized_info(self):
@@ -302,17 +303,12 @@ class FileSerializable(Serializable):
                     file_name = utils.create_tmp_copy_of_file(filepath, dir=save_dir)
             elif x.get("is_stream"):
                 assert x["name"] and root_url and save_dir
-                if not self.stream:
+                if not self.stream or self.stream_name != x["name"]:
                     self.stream = self._setup_stream(
                         root_url + "stream/" + x["name"], hf_token=hf_token
                     )
-                try:
-                    chunk = next(self.stream)
-                except StopIteration:
-                    self.stream = self._setup_stream(
-                        root_url + "stream/" + x["name"], hf_token=hf_token
-                    )
-                    chunk = next(self.stream)
+                    self.stream_name = x["name"]
+                chunk = next(self.stream)
                 path = Path(save_dir or tempfile.gettempdir()) / secrets.token_hex(20)
                 path.mkdir(parents=True, exist_ok=True)
                 path = path / x.get("orig_name", "output")
