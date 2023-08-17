@@ -108,6 +108,7 @@ You can also customize the appearance and behavior of your web component with at
 - `autoscroll`: whether to autoscroll to the output when prediction has finished (by default `"false"`)
 - `eager`: whether to load the Gradio app as soon as the page loads (by default `"false"`)
 - `theme_mode`: whether to use the `dark`, `light`, or default `system` theme mode (by default `"system"`)
+- `onloadcomplete`: an event that is triggered once the embedded space has finished loading.
 
 Here's an example of how to use these attributes to create a Gradio app that does not lazy load and has an initial height of 0px.
 
@@ -117,6 +118,29 @@ Here's an example of how to use these attributes to create a Gradio app that doe
 	eager="true"
 	initial_height="0px"
 ></gradio-app>
+```
+
+Here's another example of how to use the `onloadcomplete` event. The event
+is passed into the `gradio-app` tag and an event listener is used to capture the
+`onloadcomplete` event and call the `handleLoadComplete()` function.
+
+```html
+<gradio-app
+	space="gradio/live_with_vars"
+	initial_height="0px"
+	onloadcomplete="handleLoadComplete()"
+></gradio-app>
+
+...
+
+<script>
+	function handleLoadComplete() {
+		console.log("Embedded space has finished loading");
+	}
+
+	const gradioApp = document.querySelector("gradio-app");
+	gradioApp.addEventListener("onloadcomplete", handleLoadComplete);
+</script>
 ```
 
 _Note: While Gradio's CSS will never impact the embedding page, the embedding page can affect the style of the embedded Gradio app. Make sure that any CSS in the parent page isn't so general that it could also apply to the embedded Gradio app and cause the styling to break. Element selectors such as `header { ... }` and `footer { ... }` will be the most likely to cause issues._
