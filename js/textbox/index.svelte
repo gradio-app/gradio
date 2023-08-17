@@ -22,7 +22,7 @@
 	export let min_width: number | undefined = undefined;
 	export let show_copy_button = false;
 	export let loading_status: LoadingStatus | undefined = undefined;
-	export let mode: "static" | "dynamic";
+	export let mode: "static" | "interactive";
 	export let value_is_output = false;
 	export let rtl = false;
 	export let text_align: "left" | "right" | undefined = undefined;

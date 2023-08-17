@@ -13,7 +13,7 @@
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value_is_output = false;
-	export let mode: "static" | "dynamic";
+	export let mode: "static" | "interactive";
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
 	export let label: string | null = null;

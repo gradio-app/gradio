@@ -20,7 +20,7 @@
 	export let loading_status: LoadingStatus;
 	export let allow_custom_value = false;
 
-	export let mode: "static" | "dynamic";
+	export let mode: "static" | "interactive";
 
 	if (multiselect && !value) {
 		value = [];

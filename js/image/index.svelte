@@ -37,7 +37,7 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
-	export let mode: "static" | "dynamic";
+	export let mode: "static" | "interactive";
 	export let show_share_button = false;
 
 	const dispatch = createEventDispatcher<{
@@ -51,70 +51,6 @@
 
 	$: value = !value ? null : value;
 </script>
-
-<!-- 
-<Block
-	{visible}
-	variant={mode === "dynamic" && value === null && source === "upload"
-		? "dashed"
-		: "solid"}
-	border_mode={dragging ? "focus" : "base"}
-	padding={false}
-	{elem_id}
-	{elem_classes}
-	height={height ||
-		(source === "webcam" || mode === "static" ? undefined : FIXED_HEIGHT)}
-	{width}
-	allow_overflow={false}
-	{container}
-	{scale}
-	{min_width}
->
-	<StatusTracker {...loading_status} />
-	{#if mode === "static"}
-		<StaticImage
-			on:select
-			on:share
-			on:error
-			{value}
-			{label}
-			{show_label}
-			{show_download_button}
-			{selectable}
-			{show_share_button}
-		/>
-	{:else}
-		<Image
-			{brush_radius}
-			{brush_color}
-			{shape}
-			bind:value
-			{source}
-			{tool}
-			{selectable}
-			{mask_opacity}
-			on:edit
-			on:clear
-			on:stream
-			on:drag={({ detail }) => (dragging = detail)}
-			on:upload
-			on:select
-			on:share
-			on:error={({ detail }) => {
-				loading_status = loading_status || {};
-				loading_status.status = "error";
-				dispatch("error", detail);
-			}}
-			{label}
-			{show_label}
-			{pending}
-			{streaming}
-			{mirror_webcam}
-		>
-			<UploadText type="image" />
-		</Image>
-	{/if}
-</Block> -->
 
 {#if mode === "static"}
 	<Static
