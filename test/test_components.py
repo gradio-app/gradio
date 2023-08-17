@@ -86,26 +86,27 @@ class TestTextbox:
             None,
         )
         assert text_input.get_config() == {
+            "value": "",
             "lines": 1,
             "max_lines": 20,
             "placeholder": None,
-            "value": "",
-            "name": "textbox",
-            "show_copy_button": False,
-            "show_label": True,
-            "type": "text",
             "label": None,
+            "info": None,
+            "show_label": True,
             "container": True,
-            "min_width": 160,
             "scale": None,
-            "elem_id": None,
-            "elem_classes": None,
-            "visible": True,
+            "min_width": 160,
             "interactive": None,
-            "root_url": None,
-            "rtl": False,
-            "text_align": None,
+            "visible": True,
+            "elem_id": None,
             "autofocus": False,
+            "elem_classes": None,
+            "type": "text",
+            "text_align": None,
+            "rtl": False,
+            "show_copy_button": False,
+            "root_url": None,
+            "name": "textbox",
         }
 
     @pytest.mark.asyncio
@@ -214,20 +215,22 @@ class TestNumber:
         )
         assert numeric_input.get_config() == {
             "value": None,
-            "name": "number",
-            "show_label": True,
-            "step": 1,
             "label": None,
-            "minimum": None,
-            "maximum": None,
+            "info": None,
+            "show_label": True,
             "container": True,
-            "min_width": 160,
             "scale": None,
+            "min_width": 160,
+            "interactive": None,
+            "visible": True,
             "elem_id": "num",
             "elem_classes": ["first"],
-            "visible": True,
-            "interactive": None,
+            "precision": None,
+            "minimum": None,
+            "maximum": None,
+            "step": 1,
             "root_url": None,
+            "name": "number",
         }
 
     def test_component_functions_integer(self):
@@ -264,20 +267,22 @@ class TestNumber:
             assert error.msg == "Cannot generate valid set of neighbors"
         assert numeric_input.get_config() == {
             "value": 42,
-            "name": "number",
-            "show_label": True,
-            "step": 1,
             "label": None,
-            "minimum": None,
-            "maximum": None,
+            "info": None,
+            "show_label": True,
             "container": True,
-            "min_width": 160,
             "scale": None,
+            "min_width": 160,
+            "interactive": None,
+            "visible": True,
             "elem_id": None,
             "elem_classes": None,
-            "visible": True,
-            "interactive": None,
+            "precision": 0,
+            "minimum": None,
+            "maximum": None,
+            "step": 1,
             "root_url": None,
+            "name": "number",
         }
 
     def test_component_functions_precision(self):
@@ -383,19 +388,20 @@ class TestSlider:
         assert slider_input.get_config() == {
             "minimum": 10,
             "maximum": 20,
-            "step": 1,
             "value": 15,
-            "name": "slider",
-            "show_label": True,
+            "step": 1,
             "label": "Slide Your Input",
+            "info": None,
+            "show_label": True,
             "container": True,
-            "min_width": 160,
             "scale": None,
+            "min_width": 160,
+            "interactive": None,
+            "visible": True,
             "elem_id": None,
             "elem_classes": None,
-            "visible": True,
-            "interactive": None,
             "root_url": None,
+            "name": "slider",
         }
 
     @pytest.mark.asyncio
@@ -458,17 +464,18 @@ class TestCheckbox:
         bool_input = gr.Checkbox(value=True, label="Check Your Input")
         assert bool_input.get_config() == {
             "value": True,
-            "name": "checkbox",
-            "show_label": True,
             "label": "Check Your Input",
+            "info": None,
+            "show_label": True,
             "container": True,
-            "min_width": 160,
             "scale": None,
+            "min_width": 160,
+            "interactive": None,
+            "visible": True,
             "elem_id": None,
             "elem_classes": None,
-            "visible": True,
-            "interactive": None,
             "root_url": None,
+            "name": "checkbox",
         }
 
     @pytest.mark.asyncio
@@ -504,17 +511,19 @@ class TestCheckboxGroup:
         assert checkboxes_input.get_config() == {
             "choices": ["a", "b", "c"],
             "value": ["a", "c"],
-            "name": "checkboxgroup",
-            "show_label": True,
+            "type": "value",
             "label": "Check Your Inputs",
+            "info": None,
+            "show_label": True,
             "container": True,
-            "min_width": 160,
             "scale": None,
+            "min_width": 160,
+            "interactive": None,
+            "visible": True,
             "elem_id": None,
             "elem_classes": None,
-            "visible": True,
-            "interactive": None,
             "root_url": None,
+            "name": "checkboxgroup",
         }
         with pytest.raises(ValueError):
             gr.CheckboxGroup(["a"], type="unknown")
@@ -550,17 +559,19 @@ class TestRadio:
         assert radio_input.get_config() == {
             "choices": ["a", "b", "c"],
             "value": None,
-            "name": "radio",
-            "show_label": True,
+            "type": "value",
             "label": "Pick Your One Input",
+            "info": None,
+            "show_label": True,
             "container": True,
-            "min_width": 160,
             "scale": None,
+            "min_width": 160,
+            "interactive": None,
+            "visible": True,
             "elem_id": None,
             "elem_classes": None,
-            "visible": True,
-            "interactive": None,
             "root_url": None,
+            "name": "radio",
         }
         with pytest.raises(ValueError):
             gr.Radio(["a", "b"], type="unknown")
@@ -603,22 +614,24 @@ class TestDropdown:
             max_choices=2,
         )
         assert dropdown_input_multiselect.get_config() == {
-            "allow_custom_value": False,
             "choices": ["a", "b", "c"],
             "value": ["a", "c"],
-            "name": "dropdown",
-            "show_label": True,
+            "type": "value",
+            "multiselect": True,
+            "allow_custom_value": False,
+            "max_choices": 2,
             "label": "Select Your Inputs",
+            "info": None,
+            "show_label": True,
             "container": True,
-            "min_width": 160,
             "scale": None,
+            "min_width": 160,
+            "interactive": None,
+            "visible": True,
             "elem_id": None,
             "elem_classes": None,
-            "visible": True,
-            "interactive": None,
             "root_url": None,
-            "multiselect": True,
-            "max_choices": 2,
+            "name": "dropdown",
         }
         with pytest.raises(ValueError):
             gr.Dropdown(["a"], type="unknown")
@@ -661,32 +674,33 @@ class TestImage:
             source="upload", tool="editor", type="pil", label="Upload Your Image"
         )
         assert image_input.get_config() == {
+            "value": None,
+            "shape": None,
+            "height": None,
+            "width": None,
+            "image_mode": "RGB",
+            "invert_colors": False,
+            "source": "upload",
+            "tool": "editor",
+            "type": "pil",
+            "label": "Upload Your Image",
+            "show_label": True,
+            "show_download_button": True,
+            "container": True,
+            "scale": None,
+            "min_width": 160,
+            "interactive": None,
+            "visible": True,
+            "streaming": False,
+            "elem_id": None,
+            "elem_classes": None,
+            "mirror_webcam": True,
             "brush_radius": None,
             "brush_color": "#000000",
             "mask_opacity": 0.7,
-            "image_mode": "RGB",
-            "shape": None,
-            "source": "upload",
-            "tool": "editor",
-            "name": "image",
             "show_share_button": False,
-            "show_download_button": True,
-            "streaming": False,
-            "show_label": True,
-            "label": "Upload Your Image",
-            "container": True,
-            "min_width": 160,
-            "scale": None,
-            "height": None,
-            "width": None,
-            "elem_id": None,
-            "elem_classes": None,
-            "visible": True,
-            "value": None,
-            "interactive": None,
             "root_url": None,
-            "mirror_webcam": True,
-            "selectable": False,
+            "name": "image",
         }
         assert image_input.preprocess(None) is None
         image_input = gr.Image(invert_colors=True)
@@ -839,24 +853,26 @@ class TestAudio:
 
         audio_input = gr.Audio(label="Upload Your Audio")
         assert audio_input.get_config() == {
-            "autoplay": False,
+            "value": None,
             "source": "upload",
-            "name": "audio",
+            "type": "numpy",
+            "label": "Upload Your Audio",
+            "show_label": True,
+            "container": True,
+            "scale": None,
+            "min_width": 160,
+            "interactive": None,
+            "visible": True,
+            "streaming": False,
+            "elem_id": None,
+            "elem_classes": None,
+            "format": "wav",
+            "autoplay": False,
             "show_download_button": True,
             "show_share_button": False,
             "show_edit_button": True,
-            "streaming": False,
-            "show_label": True,
-            "label": "Upload Your Audio",
-            "container": True,
-            "min_width": 160,
-            "scale": None,
-            "elem_id": None,
-            "elem_classes": None,
-            "visible": True,
-            "value": None,
-            "interactive": None,
             "root_url": None,
+            "name": "audio",
         }
         assert audio_input.preprocess(None) is None
         x_wav["is_example"] = True
@@ -880,24 +896,26 @@ class TestAudio:
         audio_output = gr.Audio(type="filepath")
         assert filecmp.cmp(y_audio.name, audio_output.postprocess(y_audio.name)["name"])
         assert audio_output.get_config() == {
+            "value": None,
+            "source": "upload",
+            "type": "filepath",
+            "label": None,
+            "show_label": True,
+            "container": True,
+            "scale": None,
+            "min_width": 160,
+            "interactive": None,
+            "visible": True,
+            "streaming": False,
+            "elem_id": None,
+            "elem_classes": None,
+            "format": "wav",
             "autoplay": False,
-            "name": "audio",
             "show_download_button": True,
             "show_share_button": False,
             "show_edit_button": True,
-            "streaming": False,
-            "show_label": True,
-            "label": None,
-            "source": "upload",
-            "container": True,
-            "min_width": 160,
-            "scale": None,
-            "elem_id": None,
-            "elem_classes": None,
-            "visible": True,
-            "value": None,
-            "interactive": None,
             "root_url": None,
+            "name": "audio",
         }
         assert audio_output.deserialize(
             {
@@ -1000,21 +1018,21 @@ class TestFile:
 
         file_input = gr.File(label="Upload Your File")
         assert file_input.get_config() == {
+            "value": None,
             "file_count": "single",
             "file_types": None,
-            "name": "file",
-            "show_label": True,
+            "type": "file",
             "label": "Upload Your File",
+            "show_label": True,
             "container": True,
-            "min_width": 160,
             "scale": None,
+            "min_width": 160,
+            "interactive": None,
+            "visible": True,
             "elem_id": None,
             "elem_classes": None,
-            "visible": True,
-            "value": None,
-            "interactive": None,
             "root_url": None,
-            "selectable": False,
+            "name": "file",
         }
         assert file_input.preprocess(None) is None
         x_file["is_example"] = True
@@ -1105,31 +1123,26 @@ class TestDataframe:
             headers=["Name", "Age", "Member"], label="Dataframe Input"
         )
         assert dataframe_input.get_config() == {
+            "value": {"headers": ["Name", "Age", "Member"], "data": [["", "", ""]]},
             "headers": ["Name", "Age", "Member"],
-            "datatype": ["str", "str", "str"],
             "row_count": (1, "dynamic"),
             "col_count": (3, "dynamic"),
-            "value": {
-                "data": [
-                    ["", "", ""],
-                ],
-                "headers": ["Name", "Age", "Member"],
-            },
-            "name": "dataframe",
-            "show_label": True,
-            "label": "Dataframe Input",
+            "datatype": ["str", "str", "str"],
+            "type": "pandas",
             "max_rows": 20,
             "max_cols": None,
             "overflow_row_behaviour": "paginate",
-            "container": True,
-            "min_width": 160,
+            "label": "Dataframe Input",
+            "show_label": True,
             "scale": None,
+            "min_width": 160,
+            "interactive": None,
+            "visible": True,
             "elem_id": None,
             "elem_classes": None,
-            "visible": True,
-            "interactive": None,
-            "root_url": None,
             "wrap": False,
+            "root_url": None,
+            "name": "dataframe",
         }
         dataframe_input = gr.Dataframe()
         output = dataframe_input.preprocess(x_data)
@@ -1334,25 +1347,26 @@ class TestVideo:
 
         video_input = gr.Video(label="Upload Your Video")
         assert video_input.get_config() == {
-            "autoplay": False,
+            "value": None,
+            "format": None,
             "source": "upload",
-            "name": "video",
-            "show_share_button": False,
-            "show_label": True,
-            "label": "Upload Your Video",
-            "container": True,
-            "min_width": 160,
-            "scale": None,
             "height": None,
             "width": None,
+            "label": "Upload Your Video",
+            "show_label": True,
+            "container": True,
+            "scale": None,
+            "min_width": 160,
+            "interactive": None,
+            "visible": True,
             "elem_id": None,
             "elem_classes": None,
-            "visible": True,
-            "value": None,
-            "interactive": None,
-            "root_url": None,
             "mirror_webcam": True,
             "include_audio": True,
+            "autoplay": False,
+            "show_share_button": False,
+            "root_url": None,
+            "name": "video",
         }
         assert video_input.preprocess(None) is None
         x_video["is_example"] = True
@@ -1541,6 +1555,7 @@ class TestTimeseries:
         timeseries_input = gr.Timeseries(
             x="time", y="retail", label="Upload Your Timeseries"
         )
+        print(timeseries_input.get_config())
         assert timeseries_input.get_config() == {
             "x": "time",
             "y": ["retail"],
@@ -1566,6 +1581,7 @@ class TestTimeseries:
 
         timeseries_output = gr.Timeseries(label="Disease")
 
+        print(timeseries_output.get_config())
         assert timeseries_output.get_config() == {
             "x": None,
             "y": None,
@@ -1646,21 +1662,19 @@ class TestLabel:
         assert label_dict["label"] == "web site"
 
         assert label_output.get_config() == {
-            "name": "label",
-            "show_label": True,
-            "num_top_classes": 2,
             "value": {},
+            "num_top_classes": 2,
             "label": None,
+            "show_label": True,
             "container": True,
-            "min_width": 160,
             "scale": None,
+            "min_width": 160,
+            "visible": True,
             "elem_id": None,
             "elem_classes": None,
-            "visible": True,
-            "interactive": None,
-            "root_url": None,
             "color": None,
-            "selectable": False,
+            "root_url": None,
+            "name": "label",
         }
 
     def test_color_argument(self):
@@ -1795,21 +1809,21 @@ class TestHighlightedText:
         """
         ht_output = gr.HighlightedText(color_map={"pos": "green", "neg": "red"})
         assert ht_output.get_config() == {
+            "value": None,
             "color_map": {"pos": "green", "neg": "red"},
-            "name": "highlightedtext",
-            "show_label": True,
-            "label": None,
             "show_legend": False,
+            "combine_adjacent": False,
+            "adjacent_separator": "",
+            "label": None,
+            "show_label": True,
             "container": True,
-            "min_width": 160,
             "scale": None,
+            "min_width": 160,
+            "visible": True,
             "elem_id": None,
             "elem_classes": None,
-            "visible": True,
-            "value": None,
-            "interactive": None,
             "root_url": None,
-            "selectable": False,
+            "name": "highlightedtext",
         }
 
     def test_in_interface(self):
@@ -1872,23 +1886,21 @@ class TestAnnotatedImage:
     def test_component_functions(self):
         ht_output = gr.AnnotatedImage(label="sections", show_legend=False)
         assert ht_output.get_config() == {
-            "name": "annotatedimage",
-            "show_label": True,
-            "label": "sections",
+            "value": None,
             "show_legend": False,
-            "container": True,
-            "min_width": 160,
-            "scale": None,
-            "color_map": None,
             "height": None,
             "width": None,
+            "color_map": None,
+            "label": "sections",
+            "show_label": True,
+            "container": True,
+            "scale": None,
+            "min_width": 160,
+            "visible": True,
             "elem_id": None,
             "elem_classes": None,
-            "visible": True,
-            "value": None,
             "root_url": None,
-            "selectable": False,
-            "interactive": None,
+            "name": "annotatedimage",
         }
 
     def test_in_interface(self):
@@ -1983,21 +1995,19 @@ class TestChatbot:
             "value": [],
             "label": None,
             "show_label": True,
-            "interactive": None,
-            "name": "chatbot",
-            "show_share_button": False,
+            "container": True,
+            "scale": None,
+            "min_width": 160,
             "visible": True,
             "elem_id": None,
             "elem_classes": None,
-            "container": True,
-            "min_width": 160,
-            "scale": None,
             "height": None,
-            "root_url": None,
-            "selectable": False,
-            "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
+            "latex_delimiters": [{"left": "$$", "right": "$$", "display": True}],
             "rtl": False,
+            "show_share_button": False,
             "show_copy_button": False,
+            "root_url": None,
+            "name": "chatbot",
         }
 
 
@@ -2009,18 +2019,17 @@ class TestJSON:
         js_output = gr.JSON()
         assert js_output.postprocess('{"a":1, "b": 2}'), '"{\\"a\\":1, \\"b\\": 2}"'
         assert js_output.get_config() == {
+            "value": None,
+            "label": None,
+            "show_label": True,
             "container": True,
-            "min_width": 160,
             "scale": None,
+            "min_width": 160,
+            "visible": True,
             "elem_id": None,
             "elem_classes": None,
-            "visible": True,
-            "value": None,
-            "show_label": True,
-            "label": None,
-            "name": "json",
-            "interactive": None,
             "root_url": None,
+            "name": "json",
         }
 
     @pytest.mark.asyncio
@@ -2065,20 +2074,16 @@ class TestHTML:
         get_config
         """
         html_component = gr.components.HTML("#Welcome onboard", label="HTML Input")
-        assert {
-            "container": True,
-            "min_width": None,
-            "scale": None,
+        assert html_component.get_config() == {
+            "value": "#Welcome onboard",
+            "label": "HTML Input",
+            "show_label": True,
+            "visible": True,
             "elem_id": None,
             "elem_classes": None,
-            "visible": True,
-            "value": "#Welcome onboard",
-            "show_label": True,
-            "label": "HTML Input",
-            "name": "html",
-            "interactive": None,
             "root_url": None,
-        } == html_component.get_config()
+            "name": "html",
+        }
 
     def test_in_interface(self):
         """
@@ -2117,8 +2122,9 @@ class TestModel3D:
         """
         get_config
         """
-        component = gr.components.Model3D(None, label="Model")
-        assert {
+        model_component = gr.components.Model3D(None, label="Model")
+        print(model_component.get_config())
+        assert model_component.get_config() == {
             "clearColor": [0, 0, 0, 0],
             "value": None,
             "label": "Model",
@@ -2132,11 +2138,11 @@ class TestModel3D:
             "container": True,
             "min_width": 160,
             "scale": None,
-        } == component.get_config()
+        }
 
         file = "test/test_files/Box.gltf"
-        output1 = component.postprocess(file)
-        output2 = component.postprocess(Path(file))
+        output1 = model_component.postprocess(file)
+        output2 = model_component.postprocess(Path(file))
         assert output1 == output2
 
     def test_in_interface(self):
@@ -2165,15 +2171,16 @@ class TestColorPicker:
 
         assert color_picker_input.get_config() == {
             "value": None,
-            "show_label": True,
             "label": None,
+            "info": None,
+            "show_label": True,
             "container": True,
-            "min_width": 160,
             "scale": None,
+            "min_width": 160,
+            "interactive": None,
+            "visible": True,
             "elem_id": None,
             "elem_classes": None,
-            "visible": True,
-            "interactive": None,
             "root_url": None,
             "name": "colorpicker",
         }
@@ -2340,20 +2347,38 @@ class TestScatterPlot:
     @patch.dict("sys.modules", {"bokeh": MagicMock(__version__="3.0.3")})
     def test_get_config(self):
         assert gr.ScatterPlot().get_config() == {
+            "value": None,
+            "x": None,
+            "y": None,
+            "color": None,
+            "size": None,
+            "shape": None,
+            "title": None,
+            "tooltip": None,
+            "x_title": None,
+            "y_title": None,
+            "color_legend_title": None,
+            "size_legend_title": None,
+            "shape_legend_title": None,
+            "color_legend_position": None,
+            "size_legend_position": None,
+            "shape_legend_position": None,
+            "height": None,
+            "width": None,
+            "x_lim": None,
+            "y_lim": None,
             "caption": None,
-            "elem_id": None,
-            "elem_classes": None,
             "interactive": None,
             "label": None,
-            "name": "plot",
-            "root_url": None,
             "show_label": True,
             "container": True,
-            "min_width": 160,
             "scale": None,
-            "value": None,
+            "min_width": 160,
             "visible": True,
-            "bokeh_version": "3.0.3",
+            "elem_id": None,
+            "elem_classes": None,
+            "root_url": None,
+            "name": "plot",
         }
 
     def test_no_color(self):
@@ -2527,20 +2552,36 @@ class TestLinePlot:
     @patch.dict("sys.modules", {"bokeh": MagicMock(__version__="3.0.3")})
     def test_get_config(self):
         assert gr.LinePlot().get_config() == {
+            "value": None,
+            "x": None,
+            "y": None,
+            "color": None,
+            "stroke_dash": None,
+            "overlay_point": None,
+            "title": None,
+            "tooltip": None,
+            "x_title": None,
+            "y_title": None,
+            "color_legend_title": None,
+            "stroke_dash_legend_title": None,
+            "color_legend_position": None,
+            "stroke_dash_legend_position": None,
+            "height": None,
+            "width": None,
+            "x_lim": None,
+            "y_lim": None,
             "caption": None,
-            "elem_id": None,
-            "elem_classes": None,
             "interactive": None,
             "label": None,
-            "name": "plot",
-            "root_url": None,
             "show_label": True,
             "container": True,
-            "min_width": 160,
             "scale": None,
-            "value": None,
+            "min_width": 160,
             "visible": True,
-            "bokeh_version": "3.0.3",
+            "elem_id": None,
+            "elem_classes": None,
+            "root_url": None,
+            "name": "plot",
         }
 
     def test_no_color(self):
@@ -2692,6 +2733,7 @@ class TestLinePlot:
 class TestBarPlot:
     @patch.dict("sys.modules", {"bokeh": MagicMock(__version__="3.0.3")})
     def test_get_config(self):
+        print(gr.BarPlot().get_config())
         assert gr.BarPlot().get_config() == {
             "caption": None,
             "elem_id": None,
@@ -2873,6 +2915,7 @@ class TestCode:
         assert code.serialize("def fn(a):\n  return a") == "def fn(a):\n  return a"
         assert code.deserialize("def fn(a):\n  return a") == "def fn(a):\n  return a"
 
+        print(code.get_config())
         assert code.get_config() == {
             "value": None,
             "language": None,

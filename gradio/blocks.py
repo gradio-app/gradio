@@ -89,11 +89,16 @@ BUILT_IN_THEMES: dict[str, Theme] = {
     ]
 }
 
+def in_event_listener():
+    from gradio import context
+
+    return getattr(context.thread_data, "in_event_listener", False)
+
 
 def updateable(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        if is_update():
+        if in_event_listener():
             fn_args = inspect.getfullargspec(fn).args
             self = args[0]
             for i, arg in enumerate(args):
@@ -141,7 +146,9 @@ class Block:
         check_deprecated_parameters(self.__class__.__name__, kwargs=kwargs)
 
     def __new__(cls, *args, **kwargs):
-        cls.__init__ = updateable(cls.__init__)
+        if not hasattr(cls, "updatable_init"):
+            cls.__init__ = updateable(cls.__init__)
+            cls.updatable_init = True
         return super().__new__(cls)
 
     def render(self):
@@ -1093,6 +1100,7 @@ class Blocks(BlockContext):
         requests: routes.Request | list[routes.Request] | None = None,
         event_id: str | None = None,
         event_data: EventData | None = None,
+        in_event_listener: bool = False,
     ):
         """
         Calls function with given index and preprocessed input, and measures process time.
@@ -1121,7 +1129,7 @@ class Blocks(BlockContext):
 
         start = time.time()
 
-        fn = utils.get_function_with_locals(block_fn.fn, self, event_id)
+        fn = utils.get_function_with_locals(block_fn.fn, self, event_id, in_event_listener)
 
         if iterator is None:  # If not a generator function that has already run
             if progress_tracker is not None and progress_index is not None:
@@ -1407,6 +1415,7 @@ Received outputs:
         session_hash: str | None = None,
         event_id: str | None = None,
         event_data: EventData | None = None,
+        in_event_listener: bool = False,
     ) -> dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -1445,7 +1454,7 @@ Received outputs:
                 self.preprocess_data(fn_index, list(i), state) for i in zip(*inputs)
             ]
             result = await self.call_function(
-                fn_index, list(zip(*inputs)), None, request, event_id, event_data
+                fn_index, list(zip(*inputs)), None, request, event_id, event_data, in_event_listener
             )
             preds = result["prediction"]
             data = [
@@ -1458,7 +1467,7 @@ Received outputs:
             old_iterator = iterators.get(fn_index, None) if iterators else None
             was_generating = old_iterator is not None
             result = await self.call_function(
-                fn_index, inputs, old_iterator, request, event_id, event_data
+                fn_index, inputs, old_iterator, request, event_id, event_data, in_event_listener
             )
             data = self.postprocess_data(fn_index, result["prediction"], state)
             is_generating, iterator = result["is_generating"], result["iterator"]
@@ -2270,9 +2279,3 @@ Received outputs:
         if self.dependencies[fn_index]["queue"] is None:
             return self.enable_queue
         return self.dependencies[fn_index]["queue"]
-
-
-def is_update():
-    from gradio import context
-
-    return hasattr(context.thread_data, "blocks")

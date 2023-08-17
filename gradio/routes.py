@@ -494,6 +494,7 @@ class App(FastAPI):
                         session_hash=session_hash,
                         event_id=event_id,
                         event_data=event_data,
+                        in_event_listener=True
                     )
                 iterator = output.pop("iterator", None)
                 if hasattr(body, "session_hash"):
