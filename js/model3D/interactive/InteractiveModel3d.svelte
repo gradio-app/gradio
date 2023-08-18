@@ -27,6 +27,8 @@
 		clear: never;
 	}>;
 	export let alpha: number | null;
+	export let beta: number | null;
+	export let radius: number | null;
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root, root_url);
@@ -53,6 +55,8 @@
 		clearColor={clearColor}
 		value={_value}
 		alpha={alpha}
+		beta={beta}
+		radius={radius}
 		on:change={({ detail }) => (value = detail)}
 		on:drag={({ detail }) => (dragging = detail)}
 		on:change={({ detail }) => gradio.dispatch("change", detail)}

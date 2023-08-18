@@ -12,6 +12,8 @@
 	export let label = "";
 	export let show_label: boolean;
 	export let alpha: number | null;
+	export let beta: number | null;
+	export let radius: number | null;
 
 	BABYLON_LOADERS.OBJFileLoader.IMPORT_VERTEX_COLORS = true;
 
@@ -81,9 +83,17 @@
 			() => {
 				scene.createDefaultCamera(true, true, true);
 				var helperCamera = scene.activeCamera;
-				// var current_radius = helperCamera.radius;
+
 				if (alpha != null) {
 					helperCamera.alpha = Math.PI * alpha / 360;
+				}
+
+				if (beta != null) {
+					helperCamera.beta = Math.PI * beta / 360;
+				}
+
+				if (radius != null) {
+					helperCamera.radius = radius;
 				}
 			},
 			undefined,

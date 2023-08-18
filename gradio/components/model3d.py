@@ -48,6 +48,8 @@ class Model3D(
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         alpha: int | float | None = None,
+        beta: int | float | None = None,
+        radius: int | float | None = None,
         **kwargs,
     ):
         """
@@ -66,6 +68,8 @@ class Model3D(
         """
         self.clear_color = clear_color or [0, 0, 0, 0]
         self._alpha = alpha
+        self._beta = beta
+        self._radius = radius
 
         IOComponent.__init__(
             self,
@@ -87,6 +91,8 @@ class Model3D(
             "clearColor": self.clear_color,
             "value": self.value,
             "alpha": self._alpha,
+            "beta": self._beta,
+            "radius": self._radius,
             **IOComponent.get_config(self),
         }
 
