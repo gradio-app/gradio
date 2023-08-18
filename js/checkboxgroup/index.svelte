@@ -3,6 +3,7 @@
 	import InteractiveCheckboxgroup from "./interactive";
 
 	import type { LoadingStatus } from "@gradio/statustracker";
+	import { _ } from "svelte-i18n";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -14,7 +15,7 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let mode: "static" | "interactive";
-	export let label = "Checkbox Group";
+	export let label = $_("checkbox.checkbox_group");
 	export let info: string | undefined = undefined;
 	export let show_label: boolean;
 

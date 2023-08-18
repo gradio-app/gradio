@@ -6,14 +6,14 @@
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { type FileData, normalise_file } from "@gradio/upload";
 	import type { SelectData } from "@gradio/utils";
-
+	import { _ } from "svelte-i18n";
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value: [FileData, [FileData, string][]] | null;
 	let old_value: [FileData, [FileData, string][]] | null;
 	let _value: [FileData, [FileData, string][]] | null;
-	export let label = "Annotated Image";
+	export let label = $_("annotated_image.annotated_image");
 	export let show_label = true;
 	export let show_legend = true;
 	export let height: number | undefined;
@@ -42,8 +42,8 @@
 				normalise_file(value[0], root, root_url) as FileData,
 				value[1].map(([file, _label]) => [
 					normalise_file(file, root, root_url) as FileData,
-					_label
-				])
+					_label,
+				]),
 			];
 		} else {
 			_value = null;
@@ -70,7 +70,7 @@
 	{min_width}
 >
 	<StatusTracker {...loading_status} />
-	<BlockLabel {show_label} Icon={Image} label={label || "Image"} />
+	<BlockLabel {show_label} Icon={Image} label={label || $_("image.image")} />
 
 	<div class="container">
 		{#if _value == null}

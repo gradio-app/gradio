@@ -3,17 +3,8 @@
 <script lang="ts">
 	import Static from "./static";
 	import Interactive from "./interactive";
-
-	import { createEventDispatcher, getContext } from "svelte";
-
 	import type { FileData } from "@gradio/upload";
-	import { normalise_file } from "@gradio/upload";
-
-	import { upload_files as default_upload_files } from "@gradio/client";
-
 	import type { LoadingStatus } from "@gradio/statustracker";
-
-	import { _ } from "svelte-i18n";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -56,7 +47,7 @@
 		on:change
 		on:upload
 		on:error
-	></Static>
+	/>
 {:else}
 	<Interactive
 		{elem_id}
@@ -81,5 +72,5 @@
 		on:change
 		on:upload
 		on:error
-	></Interactive>
+	/>
 {/if}

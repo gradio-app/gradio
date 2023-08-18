@@ -1,5 +1,6 @@
 <script lang="ts">
 	import space_logo from "./images/spaces.svg";
+	import { _ } from "svelte-i18n";
 	export let wrapper: HTMLDivElement;
 	export let version: string;
 	export let initial_height: string;
@@ -30,14 +31,14 @@
 				>
 			</span>
 			<span>
-				built with
+				$_('common.built_with')
 				<a class="gradio" href="https://gradio.app">Gradio</a>.
 			</span>
 			<span>
-				Hosted on
+				$_('common.hosted_on')
 				<a class="hf" href="https://huggingface.co/spaces"
 					><span class="space-logo">
-						<img src={space_logo} alt="Hugging Face space logo" />
+						<img src={space_logo} alt={`Hugging Face space ${$_("logo")}`} />
 					</span> Spaces</a
 				>
 			</span>

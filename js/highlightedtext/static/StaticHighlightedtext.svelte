@@ -5,6 +5,7 @@
 	import { TextHighlight } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
+	import { _ } from "svelte-i18n";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -13,7 +14,7 @@
 	let old_value: [string, string | number][];
 	export let show_legend: boolean;
 	export let color_map: Record<string, string> = {};
-	export let label = "Highlighted Text";
+	export let label = $_("highlighted_text.highlighted_text");
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;

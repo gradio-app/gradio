@@ -34,7 +34,7 @@
 	{scale}
 	{min_width}
 >
-	<BlockLabel {show_label} label={label || "Plot"} Icon={PlotIcon} />
+	<BlockLabel {show_label} label={label || $_("plot.plot")} Icon={PlotIcon} />
 	<StatusTracker {...loading_status} />
 	<Plot {value} {target} {theme_mode} {caption} {bokeh_version} on:change />
 </Block>

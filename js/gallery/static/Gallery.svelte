@@ -5,6 +5,7 @@
 
 	import { createEventDispatcher } from "svelte";
 	import { tick } from "svelte";
+	import { _ } from "svelte-i18n";
 
 	import { Download, Image } from "@gradio/icons";
 	import type { FileData } from "@gradio/upload";
@@ -126,7 +127,7 @@
 			if (selected_image !== null) {
 				dispatch("select", {
 					index: selected_image,
-					value: _value?.[selected_image][1]
+					value: _value?.[selected_image][1],
 				});
 			}
 		}
@@ -159,7 +160,7 @@
 
 		container_element?.scrollTo({
 			left: pos < 0 ? 0 : pos,
-			behavior: "smooth"
+			behavior: "smooth",
 		});
 	}
 
@@ -185,7 +186,7 @@
 						target={window.__is_colab__ ? "_blank" : null}
 						download="image"
 					>
-						<IconButton Icon={Download} label="Download" />
+						<IconButton Icon={Download} label={$_("common.download")} />
 					</a>
 				{/if}
 
@@ -337,9 +338,7 @@
 	.thumbnail-item {
 		--ring-color: transparent;
 		position: relative;
-		box-shadow:
-			0 0 0 2px var(--ring-color),
-			var(--shadow-drop);
+		box-shadow: 0 0 0 2px var(--ring-color), var(--shadow-drop);
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--button-small-radius);
 		background: var(--background-fill-secondary);

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from "svelte";
 	import { Camera, Circle, Square } from "@gradio/icons";
+	import { _ } from "svelte-i18n";
 
 	let video_source: HTMLVideoElement;
 	let canvas: HTMLCanvasElement;
@@ -31,14 +32,14 @@
 		try {
 			stream = await navigator.mediaDevices.getUserMedia({
 				video: true,
-				audio: include_audio
+				audio: include_audio,
 			});
 			video_source.srcObject = stream;
 			video_source.muted = true;
 			video_source.play();
 		} catch (err) {
 			if (err instanceof DOMException && err.name == "NotAllowedError") {
-				dispatch("error", "Please allow access to the webcam for recording.");
+				dispatch("error", $_("image.allow_webcam_access"));
 			} else {
 				throw err;
 			}
@@ -80,7 +81,7 @@
 					dispatch("capture", {
 						data: e.target.result,
 						name: "sample." + mimeType.substring(6),
-						is_example: false
+						is_example: false,
 					});
 					dispatch("stop_recording");
 				}
@@ -101,7 +102,7 @@
 				return;
 			}
 			media_recorder = new MediaRecorder(stream, {
-				mimeType: mimeType
+				mimeType: mimeType,
 			});
 			media_recorder.addEventListener("dataavailable", function (e) {
 				recorded_blobs.push(e.data);
