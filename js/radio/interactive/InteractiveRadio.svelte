@@ -3,8 +3,9 @@
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
+	import { _ } from "svelte-i18n";
 
-	export let label = "Radio";
+	export let label = $_("radio.radio");
 	export let info: string | undefined = undefined;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];

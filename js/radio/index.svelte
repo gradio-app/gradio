@@ -1,13 +1,10 @@
 <script lang="ts">
 	import Static from "./static";
 	import Interactive from "./interactive";
-
-	import Radio from "./static";
-	import { Block } from "@gradio/atoms";
-	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
+	import { _ } from "svelte-i18n";
 
-	export let label = "Radio";
+	export let label = $_("radio.radio");
 	export let info: string | undefined = undefined;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -41,7 +38,7 @@
 		on:change
 		on:input
 		on:select
-	></Static>
+	/>
 {:else}
 	<Interactive
 		bind:value
@@ -60,5 +57,5 @@
 		on:change
 		on:input
 		on:select
-	></Interactive>
+	/>
 {/if}
