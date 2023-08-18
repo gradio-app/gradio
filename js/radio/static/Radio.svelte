@@ -2,16 +2,16 @@
 	import Radio from "../shared";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	export let label = "Radio";
 	export let info: string | undefined = undefined;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: string | null = null;
+	export let value: string | number | null = null;
 	export let value_is_output = false;
-	export let choices: string[] = [];
+	export let choices: [string, number][] = [];
 	export let show_label: boolean;
 	export let container = false;
 	export let scale: number | null = null;

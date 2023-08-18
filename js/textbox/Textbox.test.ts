@@ -4,7 +4,7 @@ import { cleanup, fireEvent, render, get_text, wait } from "@gradio/tootils";
 import event from "@testing-library/user-event";
 
 import Textbox from "./index.svelte";
-import type { LoadingStatus } from "@gradio/statustracker/types";
+import type { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status = {
 	eta: 0,

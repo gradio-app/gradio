@@ -4,7 +4,7 @@
 	import StaticColorpicker from "./static";
 	import InteractiveColorpicker from "./interactive";
 
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	export let label = "ColorPicker";
 	export let info: string | undefined = undefined;
@@ -18,7 +18,7 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
-	export let mode: "static" | "dynamic";
+	export let mode: "static" | "interactive";
 	export let interactive: boolean;
 </script>
 

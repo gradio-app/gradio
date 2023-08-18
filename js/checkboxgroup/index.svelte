@@ -2,18 +2,18 @@
 	import StaticCheckboxgroup from "./static";
 	import InteractiveCheckboxgroup from "./interactive";
 
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: string[] = [];
+	export let value: (string | number)[] = [];
 	export let value_is_output = false;
-	export let choices: string[];
+	export let choices: [string, number][];
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let mode: "static" | "dynamic";
+	export let mode: "static" | "interactive";
 	export let label = "Checkbox Group";
 	export let info: string | undefined = undefined;
 	export let show_label: boolean;

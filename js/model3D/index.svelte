@@ -3,13 +3,13 @@
 	import Interactive from "./interactive";
 
 	import type { FileData } from "@gradio/upload";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value: null | FileData = null;
-	export let mode: "static" | "dynamic";
+	export let mode: "static" | "interactive";
 	export let root: string;
 	export let root_url: null | string;
 	export let clearColor: [number, number, number, number];

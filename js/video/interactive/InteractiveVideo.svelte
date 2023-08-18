@@ -9,7 +9,7 @@
 	import { UploadText } from "@gradio/atoms";
 
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
 
 	export let elem_id = "";
@@ -31,7 +31,6 @@
 	export let container = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let mode: "static" | "dynamic";
 	export let autoplay = false;
 
 	let _video: FileData | null = null;
@@ -71,9 +70,7 @@
 
 <Block
 	{visible}
-	variant={mode === "dynamic" && value === null && source === "upload"
-		? "dashed"
-		: "solid"}
+	variant={value === null && source === "upload" ? "dashed" : "solid"}
 	border_mode={dragging ? "focus" : "base"}
 	padding={false}
 	{elem_id}

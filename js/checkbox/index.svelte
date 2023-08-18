@@ -1,7 +1,7 @@
 <script lang="ts">
 	import StaticCheckbox from "./static";
 	import InteractiveCheckbox from "./interactive";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -10,7 +10,7 @@
 	export let value_is_output = false;
 	export let label = "Checkbox";
 	export let info: string | undefined = undefined;
-	export let mode: "static" | "dynamic";
+	export let mode: "static" | "interactive";
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;

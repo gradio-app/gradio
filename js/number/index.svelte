@@ -5,7 +5,7 @@
 	import Number from "./static";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	export let label = "Number";
 	export let info: string | undefined = undefined;
@@ -20,7 +20,7 @@
 	export let minimum: number | undefined = undefined;
 	export let maximum: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
-	export let mode: "static" | "dynamic";
+	export let mode: "static" | "interactive";
 	export let value_is_output = false;
 	export let step: number | null = null;
 </script>
