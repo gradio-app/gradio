@@ -26,6 +26,12 @@
 	export let datatype: Datatype | Datatype[];
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+	export let latex_delimiters: {
+		left: string;
+		right: string;
+		display: boolean;
+	}[];
+
 
 	const dispatch = createEventDispatcher();
 
@@ -71,6 +77,7 @@
 		on:select
 		{wrap}
 		{datatype}
+		{latex_delimiters}
 		editable={false}
 	/>
 </Block>

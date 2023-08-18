@@ -16,9 +16,24 @@
 		| "number"
 		| "bool"
 		| "date" = "str";
+	export let latex_delimiters: {
+		left: string;
+		right: string;
+		display: boolean;
+	}[];
 		
 	let span: HTMLSpanElement;
 	let mounted = false;
+	
+	console.log(latex_delimiters)
+	
+	$: mounted &&
+		latex_delimiters.length > 0 &&
+		render_math_in_element(span, {
+			delimiters: latex_delimiters,
+			throwOnError: false
+		});
+
 	afterUpdate(() => {
 		if (datatype == "markdown"){
 			tick().then(() => {

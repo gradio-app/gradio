@@ -19,6 +19,11 @@
 		| { data: (string | number)[][]; headers: string[] } = [[]];
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
+	export let latex_delimiters: {
+		left: string;
+		right: string;
+		display: boolean;
+	}[];
 
 	export let editable = true;
 	export let wrap = false;
@@ -609,6 +614,7 @@
 										<EditableCell
 											bind:value
 											bind:el={els[id].input}
+											{latex_delimiters}
 											edit={editing === id}
 											datatype={Array.isArray(datatype)
 												? datatype[j]
