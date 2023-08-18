@@ -53,9 +53,9 @@ for (const pkg_name in packages) {
 		.map(([lines, title]) => {
 			if (title === "### Highlights") {
 				return `${title}\n\n${lines.join("\n\n")}`;
-			} else {
-				return `${title}\n\n${lines.join("\n")}`;
 			}
+
+			return `${title}\n\n${lines.join("\n")}`;
 		})
 		.join("\n\n");
 
