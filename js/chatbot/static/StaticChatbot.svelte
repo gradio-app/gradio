@@ -28,7 +28,7 @@
 		right: string;
 		display: boolean;
 	}[];
-	export let avatar_images: [string | FileData | null] | null = null;
+	export let avatar_images: [string | null] | null = null;
 
 	let _value: [string | FileData | null, string | FileData | null][];
 

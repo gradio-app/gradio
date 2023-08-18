@@ -33,7 +33,7 @@
 	export let theme_mode: ThemeMode;
 	export let rtl = false;
 	export let show_copy_button = false;
-	export let avatar_images: [string | FileData | null] | null = null;
+	export let avatar_images: [string | null] | null = null;
 	$: if (theme_mode == "dark") {
 		code_highlight_css.dark();
 	} else {

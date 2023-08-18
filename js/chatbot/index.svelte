@@ -24,7 +24,7 @@
 	export let show_share_button = false;
 	export let rtl = false;
 	export let show_copy_button = false;
-	export let avatar_images: [string | FileData | null] | null = null;
+	export let avatar_images: [string | null] | null = null;
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height = 400;
 </script>
