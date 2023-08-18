@@ -2013,6 +2013,7 @@ class TestChatbot:
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
             "rtl": False,
             "show_copy_button": False,
+            'avatar_images': None,
         }
 
 
