@@ -28,13 +28,10 @@
 	$: {
 		if (values && !Array.isArray(values)) {
 			headers = values.headers;
-			values =
-				values.data.length === 0
-					? [Array(headers.length).fill("")]
-					: values.data;
+			values = values.data;
 			selected = false;
 		} else if (values === null) {
-			values = [Array(headers.length).fill("")];
+			values = [];
 			selected = false;
 		}
 	}
@@ -94,8 +91,7 @@
 		value: string | number;
 		id: string;
 	}[][] {
-		const data_row_length = _values.length > 0 ? _values.length : row_count[0];
-
+		const data_row_length = _values.length;
 		return Array(
 			row_count[1] === "fixed"
 				? row_count[0]
@@ -105,7 +101,13 @@
 		)
 			.fill(0)
 			.map((_, i) =>
-				Array(col_count[1] === "fixed" ? col_count[0] : _values[0].length)
+				Array(
+					col_count[1] === "fixed"
+						? col_count[0]
+						: data_row_length > 0
+						? _values[0].length
+						: headers.length
+				)
 					.fill(0)
 					.map((_, j) => {
 						const id = `${i}-${j}`;
@@ -321,7 +323,6 @@
 
 		if (type === "select" && typeof id == "string") {
 			const { cell } = els[id];
-			// cell?.setAttribute("tabindex", "0");
 			await tick();
 			cell?.focus();
 		}
@@ -396,6 +397,10 @@
 
 	function add_row(index?: number): void {
 		if (row_count[1] !== "dynamic") return;
+		if (data.length === 0) {
+			values = [Array(headers.length).fill("")];
+			return;
+		}
 		data.splice(
 			index ? index + 1 : data.length,
 			0,
