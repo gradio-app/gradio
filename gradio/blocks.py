@@ -1061,7 +1061,7 @@ class Blocks(BlockContext):
     async def call_function(
         self,
         fn_index: int,
-        processed_input: list[Any] | None,
+        processed_input: list[Any],
         iterator: AsyncIterator[Any] | None = None,
         requests: routes.Request | list[routes.Request] | None = None,
         event_id: str | None = None,
