@@ -65,7 +65,7 @@
 	}
 	.file-preview-holder {
 		overflow-x: auto;
-		overflow-y: scroll;
+		overflow-y: auto;
 	}
 	.file-preview {
 		width: var(--size-full);
