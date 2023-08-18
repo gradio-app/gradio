@@ -257,14 +257,14 @@
 						<span class="pinger" />
 						<span class="dot" />
 					</span>
-					$_('audio.stop_recording')
+					{$_("audio.stop_recording")}
 				</BaseButton>
 			{:else}
 				<BaseButton size="sm" on:click={record}>
 					<span class="record-icon">
 						<span class="dot" />
 					</span>
-					$_('audio.record_from_microphone')
+					{$_("audio.record_from_microphone")}
 				</BaseButton>
 			{/if}
 		</div>
