@@ -744,15 +744,6 @@ importers:
       dequal:
         specifier: ^2.0.2
         version: 2.0.2
-      dompurify:
-        specifier: ^3.0.3
-        version: 3.0.3
-      katex:
-        specifier: ^0.16.7
-        version: 0.16.7
-      marked:
-        specifier: ^7.0.0
-        version: 7.0.0
 
   js/dropdown:
     dependencies:
@@ -922,15 +913,6 @@ importers:
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker
-      dompurify:
-        specifier: ^3.0.3
-        version: 3.0.3
-      katex:
-        specifier: ^0.16.7
-        version: 0.16.7
-      marked:
-        specifier: ^7.0.0
-        version: 7.0.0
 
   js/model3D:
     dependencies:
