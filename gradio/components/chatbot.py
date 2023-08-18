@@ -135,6 +135,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         visible: bool | None = None,
         height: int | None = None,
         rtl: bool | None = None,
+        latex_delimiters: list[dict[str, str | bool]] | None = None,
         show_share_button: bool | None = None,
         show_copy_button: bool | None = None,
     ):
@@ -149,6 +150,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             "height": height,
             "show_share_button": show_share_button,
             "rtl": rtl,
+            "latex_delimiters": latex_delimiters,
             "show_copy_button": show_copy_button,
             "__type__": "update",
         }

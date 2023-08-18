@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { afterUpdate, createEventDispatcher, tick } from "svelte";
-	import { marked, type Renderer } from "marked";
-	import render_math_in_element from "katex/dist/contrib/auto-render.js";
+	import { marked } from "marked";
 	import DOMPurify from "dompurify";
+	import render_math_in_element from "katex/dist/contrib/auto-render.js";
+	import "katex/dist/katex.min.css";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -17,15 +18,14 @@
 
 	$: value, dispatch("change");
 
-	let old_message = "";
 	export let latex_delimiters: {
 		left: string;
 		right: string;
 		display: boolean;
-	}[] = [{left: '$', right: '$', display: false}];
+	}[];
 
 	let mounted = false;
-	
+
 	$: mounted &&
 		latex_delimiters.length > 0 &&
 		render_math_in_element(div, {
@@ -35,13 +35,10 @@
 
 	afterUpdate(() => {
 		tick().then(() => {
-			if (value !== old_message) {
-				requestAnimationFrame(() => {
-					div.innerHTML = DOMPurify.sanitize(marked.parse(value));
-					mounted = true;
-					old_message = value;
-				});
-			}
+			requestAnimationFrame(() => {
+				div.innerHTML = DOMPurify.sanitize(marked.parse(value));
+				mounted = true;
+			});
 		});
 	});
 </script>

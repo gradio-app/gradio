@@ -43,12 +43,16 @@ class Markdown(IOComponent, Changeable, StringSerializable):
         Parameters:
             value: Value to show in Markdown component. If callable, the function will be called whenever the app loads to set the initial value of the component.
             rtl: If True, sets the direction of the rendered text to right-to-left. Default is False, which renders text left-to-right.
-            latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html).
+            latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$", "right": "$", "display": False }]`, so only expressions enclosed in $ delimiters will be rendered as LaTeX, and in the same line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html).
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.rtl = rtl
+        if latex_delimiters is None:
+            latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
+        self.latex_delimiters = latex_delimiters
+
         IOComponent.__init__(
             self,
             visible=visible,
@@ -74,6 +78,7 @@ class Markdown(IOComponent, Changeable, StringSerializable):
         return {
             "value": self.value,
             "rtl": self.rtl,
+            "latex_delimiters": self.latex_delimiters,
             **Component.get_config(self),
         }
 
@@ -82,11 +87,13 @@ class Markdown(IOComponent, Changeable, StringSerializable):
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         visible: bool | None = None,
         rtl: bool | None = None,
+        latex_delimiters: list[dict[str, str | bool]] | None = None,
     ):
         updated_config = {
             "visible": visible,
             "value": value,
             "rtl": rtl,
+            "latex_delimiters": latex_delimiters,
             "__type__": "update",
         }
         return updated_config
