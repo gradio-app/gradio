@@ -2,8 +2,9 @@
 	import StaticDropdown from "./static";
 	import InteractiveDropdown from "./interactive";
 	import type { LoadingStatus } from "@gradio/statustracker";
+	import { _ } from "svelte-i18n";
 
-	export let label = "Dropdown";
+	export let label = $_("dropdown.dropdown");
 	export let info: string | undefined = undefined;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -20,7 +21,7 @@
 	export let loading_status: LoadingStatus;
 	export let allow_custom_value = false;
 
-	export let mode: "static" | "dynamic";
+	export let mode: "static" | "interactive";
 
 	if (multiselect && !value) {
 		value = [];

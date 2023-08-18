@@ -222,6 +222,7 @@
 		border-radius: var(--radius-xxl);
 		background: var(--background-fill-secondary);
 		padding: var(--spacing-xxl);
+		padding-right: calc(var(--spacing-xxl) + var(--spacing-md));
 		width: calc(100% - var(--spacing-xxl));
 		color: var(--body-text-color);
 		font-size: var(--text-lg);

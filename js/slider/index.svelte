@@ -1,14 +1,14 @@
 <script lang="ts">
 	import Static from "./static";
 	import Interactive from "./interactive";
-
+	import { _ } from "svelte-i18n";
 	import type { LoadingStatus } from "@gradio/statustracker";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value = 0;
-	export let label = "Slider";
+	export let label = $_("slider.slider");
 	export let info: string | undefined = undefined;
 	export let container = true;
 	export let scale: number | null = null;
@@ -16,7 +16,7 @@
 	export let minimum: number;
 	export let maximum: number;
 	export let step: number;
-	export let mode: "static" | "dynamic";
+	export let mode: "static" | "interactive";
 	export let show_label: boolean;
 
 	export let loading_status: LoadingStatus;
@@ -43,7 +43,7 @@
 		on:input
 		on:change
 		on:release
-	></Static>
+	/>
 {:else}
 	<Interactive
 		bind:value
@@ -64,5 +64,5 @@
 		on:input
 		on:change
 		on:release
-	></Interactive>
+	/>
 {/if}

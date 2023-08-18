@@ -111,7 +111,7 @@ grc.Client("ysharma/Explore_llamav2_with_TGI").deploy_discord(to_id="llama2-70b-
 
 ## 🦜 Additional LLMs 🦜
 
-In addion to Meta's 70 billion Llama 2 model, we have prepared template spaces for the following LLMs and deployment options:
+In addition to Meta's 70 billion Llama 2 model, we have prepared template spaces for the following LLMs and deployment options:
 
 - [gpt-3.5-turbo](https://huggingface.co/spaces/gradio-discord-bots/gpt-35-turbo), powered by openai. Required OpenAI key.
 - [falcon-7b-instruct](https://huggingface.co/spaces/gradio-discord-bots/falcon-7b-instruct) powered by Hugging Face Inference Endpoints.

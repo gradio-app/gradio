@@ -5,7 +5,7 @@
 	import type {
 		ComponentMeta,
 		Dependency,
-		LayoutNode
+		LayoutNode,
 	} from "./components/types";
 
 	declare let BUILD_MODE: string;
@@ -66,6 +66,10 @@
 	import Embed from "./Embed.svelte";
 	import type { ThemeMode } from "./components/types";
 	import { StatusTracker } from "@gradio/statustracker";
+	import { _ } from "svelte-i18n";
+	import { setupi18n } from "./i18n";
+
+	setupi18n();
 
 	export let autoscroll: boolean;
 	export let version: string;
@@ -95,7 +99,7 @@
 	let wrapper: HTMLDivElement;
 	let ready = false;
 	let config: Config;
-	let loading_text = "Loading...";
+	let loading_text = $_("common.loading") + "...";
 	let active_theme_mode: ThemeMode;
 
 	async function mount_custom_css(
@@ -183,7 +187,7 @@
 		message: "",
 		load_status: "pending",
 		status: "sleeping",
-		detail: "SLEEPING"
+		detail: "SLEEPING",
 	};
 
 	let app: Awaited<ReturnType<typeof client>>;
@@ -203,7 +207,7 @@
 
 		app = await client(api_url, {
 			status_callback: handle_status,
-			normalise_files: false
+			normalise_files: false,
 		});
 		config = app.config;
 		window.__gradio_space__ = config.space_id;
@@ -212,7 +216,7 @@
 			message: "",
 			load_status: "complete",
 			status: "running",
-			detail: "RUNNING"
+			detail: "RUNNING",
 		};
 
 		await mount_custom_css(wrapper, config.css);
@@ -257,20 +261,17 @@
 		| "RUNTIME_ERROR"
 		| "PAUSED";
 
+	// todo @hannahblair: translate these messages
 	const discussion_message = {
 		readable_error: {
-			NO_APP_FILE: "there is no app file",
-			CONFIG_ERROR: "there is a config error",
-			BUILD_ERROR: "there is a build error",
-			RUNTIME_ERROR: "there is a runtime error",
-			PAUSED: "the space is paused"
+			NO_APP_FILE: $_("errors.no_app_file"),
+			CONFIG_ERROR: $_("errors.config_error"),
+			BUILD_ERROR: $_("errors.build_error"),
+			RUNTIME_ERROR: $_("errors.runtime_error"),
+			PAUSED: $_("errors.space_paused"),
 		} as const,
 		title(error: error_types): string {
-			return encodeURIComponent(
-				`Space isn't working because ${
-					this.readable_error[error] || "an error"
-				}`
-			);
+			return encodeURIComponent($_("errors.space_not_working"));
 		},
 		description(error: error_types, site: string): string {
 			return encodeURIComponent(
@@ -278,7 +279,7 @@
 					this.readable_error[error] || "an error"
 				}.\n\nIt would be great if you could take a look at this because this space is being embedded on ${site}.\n\nThanks!`
 			);
-		}
+		},
 	};
 
 	onMount(async () => {
@@ -306,6 +307,7 @@
 			translucent={true}
 			{loading_text}
 		>
+			<!-- todo: translate message text -->
 			<div class="error" slot="error">
 				<p><strong>{status?.message || ""}</strong></p>
 				{#if (status.status === "space_error" || status.status === "paused") && status.discussions_enabled}
@@ -322,7 +324,7 @@
 						> to let them know.
 					</p>
 				{:else}
-					<p>Please contact the author of the page to let them know.</p>
+					<p>{$_("errors.contact_page_author")}</p>
 				{/if}
 			</div>
 		</StatusTracker>

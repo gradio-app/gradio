@@ -3,9 +3,9 @@
 	import { BlockTitle } from "@gradio/atoms";
 	import type { SelectData } from "@gradio/utils";
 
-	export let value: string | null;
+	export let value: string | number | null;
 	export let value_is_output = false;
-	export let choices: string[];
+	export let choices: [string, number][];
 	export let disabled = false;
 	export let label: string;
 	export let info: string | undefined = undefined;
@@ -13,7 +13,7 @@
 	export let elem_id: string;
 
 	const dispatch = createEventDispatcher<{
-		change: string | null;
+		change: string | number | null;
 		input: undefined;
 		select: SelectData;
 	}>();
@@ -36,18 +36,18 @@
 	{#each choices as choice, i (i)}
 		<label
 			class:disabled
-			class:selected={value === choice}
-			data-testid={`${choice}-radio-label`}
+			class:selected={value === choice[1]}
+			data-testid={`${choice[1]}-radio-label`}
 		>
 			<input
 				{disabled}
 				bind:group={value}
-				on:input={() => dispatch("select", { value: choice, index: i })}
+				on:input={() => dispatch("select", { value: choice[1], index: i })}
 				type="radio"
 				name="radio-{elem_id}"
-				value={choice}
+				value={choice[1]}
 			/>
-			<span class="ml-2">{choice}</span>
+			<span class="ml-2">{choice[0]}</span>
 		</label>
 	{/each}
 </div>
