@@ -1152,31 +1152,26 @@ class TestDataframe:
 
         dataframe_output = gr.Dataframe()
         assert dataframe_output.get_config() == {
+            "value": {"headers": [1, 2, 3], "data": [["", "", ""]]},
             "headers": [1, 2, 3],
+            "row_count": (1, "dynamic"),
+            "col_count": (3, "dynamic"),
+            "datatype": ["str", "str", "str"],
+            "type": "pandas",
             "max_rows": 20,
             "max_cols": None,
             "overflow_row_behaviour": "paginate",
-            "name": "dataframe",
-            "show_label": True,
             "label": None,
-            "container": True,
-            "min_width": 160,
+            "show_label": True,
             "scale": None,
+            "min_width": 160,
+            "interactive": None,
+            "visible": True,
             "elem_id": None,
             "elem_classes": None,
-            "visible": True,
-            "datatype": ["str", "str", "str"],
-            "row_count": (1, "dynamic"),
-            "col_count": (3, "dynamic"),
-            "value": {
-                "data": [
-                    ["", "", ""],
-                ],
-                "headers": [1, 2, 3],
-            },
-            "interactive": None,
-            "root_url": None,
             "wrap": False,
+            "root_url": None,
+            "name": "dataframe",
         }
 
     def test_postprocess(self):
@@ -1555,7 +1550,6 @@ class TestTimeseries:
         timeseries_input = gr.Timeseries(
             x="time", y="retail", label="Upload Your Timeseries"
         )
-        print(timeseries_input.get_config())
         assert timeseries_input.get_config() == {
             "x": "time",
             "y": ["retail"],
@@ -1581,7 +1575,6 @@ class TestTimeseries:
 
         timeseries_output = gr.Timeseries(label="Disease")
 
-        print(timeseries_output.get_config())
         assert timeseries_output.get_config() == {
             "x": None,
             "y": None,
@@ -2123,21 +2116,19 @@ class TestModel3D:
         get_config
         """
         model_component = gr.components.Model3D(None, label="Model")
-        print(model_component.get_config())
         assert model_component.get_config() == {
-            "clearColor": [0, 0, 0, 0],
             "value": None,
+            "clear_color": [0, 0, 0, 0],
             "label": "Model",
             "show_label": True,
-            "interactive": None,
-            "root_url": None,
-            "name": "model3d",
+            "container": True,
+            "scale": None,
+            "min_width": 160,
             "visible": True,
             "elem_id": None,
             "elem_classes": None,
-            "container": True,
-            "min_width": 160,
-            "scale": None,
+            "root_url": None,
+            "name": "model3d",
         }
 
         file = "test/test_files/Box.gltf"
@@ -2733,22 +2724,35 @@ class TestLinePlot:
 class TestBarPlot:
     @patch.dict("sys.modules", {"bokeh": MagicMock(__version__="3.0.3")})
     def test_get_config(self):
-        print(gr.BarPlot().get_config())
         assert gr.BarPlot().get_config() == {
+            "value": None,
+            "x": None,
+            "y": None,
+            "color": None,
+            "vertical": True,
+            "group": None,
+            "title": None,
+            "tooltip": None,
+            "x_title": None,
+            "y_title": None,
+            "color_legend_title": None,
+            "group_title": None,
+            "color_legend_position": None,
+            "height": None,
+            "width": None,
+            "y_lim": None,
             "caption": None,
-            "elem_id": None,
-            "elem_classes": None,
             "interactive": None,
             "label": None,
-            "name": "plot",
-            "root_url": None,
             "show_label": True,
             "container": True,
-            "min_width": 160,
             "scale": None,
-            "value": None,
+            "min_width": 160,
             "visible": True,
-            "bokeh_version": "3.0.3",
+            "elem_id": None,
+            "elem_classes": None,
+            "root_url": None,
+            "name": "plot",
         }
 
     def test_update_defaults_none(self):
@@ -2915,7 +2919,6 @@ class TestCode:
         assert code.serialize("def fn(a):\n  return a") == "def fn(a):\n  return a"
         assert code.deserialize("def fn(a):\n  return a") == "def fn(a):\n  return a"
 
-        print(code.get_config())
         assert code.get_config() == {
             "value": None,
             "language": None,
