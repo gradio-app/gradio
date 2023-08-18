@@ -27,7 +27,10 @@
 
 <Story name="Right aligned Markdown with HTML" args={{ rtl: true }} />
 
-<Story name="Markdown with math" args={{
-	value:"What is the solution of $y=x^2$?",
-	latex_delimiters: [{left: "$", right: "$", display: false}]
-}}/>
+<Story
+	name="Markdown with math"
+	args={{
+		value: "What is the solution of $y=x^2$?",
+		latex_delimiters: [{ left: "$", right: "$", display: false }]
+	}}
+/>

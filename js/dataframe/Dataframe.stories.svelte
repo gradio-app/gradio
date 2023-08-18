@@ -61,7 +61,7 @@
 		],
 		headers: ["Type", "Example", "Roots"],
 		datatype: ["str", "markdown", "markdown"],
-		latex_delimiters: [{left: "$", right: "$", display: false}],
+		latex_delimiters: [{ left: "$", right: "$", display: false }],
 		label: "Math",
 		col_count: [3, "dynamic"],
 		row_count: [3, "dynamic"],
