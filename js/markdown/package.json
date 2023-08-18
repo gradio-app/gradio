@@ -17,6 +17,9 @@
 	},
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
-		"@gradio/statustracker": "workspace:^"
+		"@gradio/statustracker": "workspace:^",
+		"dompurify": "^3.0.3",
+		"katex": "^0.16.7",
+		"marked": "^7.0.0"
 	}
 }

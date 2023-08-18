@@ -32,21 +32,22 @@ class Markdown(IOComponent, Changeable, StringSerializable):
         self,
         value: str | Callable = "",
         *,
+        rtl: bool = False,
+        latex_delimiters: list[dict[str, str | bool]] | None = None,
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        rtl: bool = False,
         **kwargs,
     ):
         """
         Parameters:
             value: Value to show in Markdown component. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            rtl: If True, sets the direction of the rendered text to right-to-left. Default is False, which renders text left-to-right.
+            latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html).
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
-            rtl: If True, sets the direction of the rendered text to right-to-left. Default is False, which renders text left-to-right.
         """
-        self.md = utils.get_markdown_parser()
         self.rtl = rtl
         IOComponent.__init__(
             self,
@@ -67,7 +68,7 @@ class Markdown(IOComponent, Changeable, StringSerializable):
         if y is None:
             return None
         unindented_y = inspect.cleandoc(y)
-        return self.md.render(unindented_y)
+        return unindented_y
 
     def get_config(self):
         return {

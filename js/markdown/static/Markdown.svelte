@@ -1,5 +1,9 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import { afterUpdate, createEventDispatcher, tick } from "svelte";
+	import { marked, type Renderer } from "marked";
+	import render_math_in_element from "katex/dist/contrib/auto-render.js";
+	import DOMPurify from "dompurify";
+
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -7,9 +11,39 @@
 	export let min_height = false;
 	export let rtl = false;
 
+	let div: HTMLDivElement;
+
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
 	$: value, dispatch("change");
+
+	let old_message = "";
+	export let latex_delimiters: {
+		left: string;
+		right: string;
+		display: boolean;
+	}[] = [{left: '$', right: '$', display: false}];
+
+	let mounted = false;
+	
+	$: mounted &&
+		latex_delimiters.length > 0 &&
+		render_math_in_element(div, {
+			delimiters: latex_delimiters,
+			throwOnError: false
+		});
+
+	afterUpdate(() => {
+		tick().then(() => {
+			if (value !== old_message) {
+				requestAnimationFrame(() => {
+					div.innerHTML = DOMPurify.sanitize(marked.parse(value));
+					mounted = true;
+					old_message = value;
+				});
+			}
+		});
+	});
 </script>
 
 <div
@@ -19,8 +53,9 @@
 	class:hide={!visible}
 	data-testid="markdown"
 	dir={rtl ? "rtl" : "ltr"}
+	bind:this={div}
 >
-	{@html value}
+	{@html DOMPurify.sanitize(marked.parse(value))}
 </div>
 
 <style>
