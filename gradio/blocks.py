@@ -1061,7 +1061,7 @@ class Blocks(BlockContext):
     async def call_function(
         self,
         fn_index: int,
-        processed_input: list[Any],
+        processed_input: list[Any] | None,
         iterator: AsyncIterator[Any] | None = None,
         requests: routes.Request | list[routes.Request] | None = None,
         event_id: str | None = None,
@@ -1080,23 +1080,22 @@ class Blocks(BlockContext):
         block_fn = self.fns[fn_index]
         assert block_fn.fn, f"function with index {fn_index} not defined."
         is_generating = False
-
-        if block_fn.inputs_as_dict:
-            processed_input = [dict(zip(block_fn.inputs, processed_input))]
-
         request = requests[0] if isinstance(requests, list) else requests
-        processed_input, progress_index, _ = special_args(
-            block_fn.fn, processed_input, request, event_data
-        )
-        progress_tracker = (
-            processed_input[progress_index] if progress_index is not None else None
-        )
-
         start = time.time()
-
         fn = utils.get_function_with_locals(block_fn.fn, self, event_id)
 
         if iterator is None:  # If not a generator function that has already run
+            if block_fn.inputs_as_dict:
+                processed_input = [dict(zip(block_fn.inputs, processed_input))]
+
+
+            processed_input, progress_index, _ = special_args(
+                block_fn.fn, processed_input, request, event_data
+            )
+            progress_tracker = (
+                processed_input[progress_index] if progress_index is not None else None
+            )
+
             if progress_tracker is not None and progress_index is not None:
                 progress_tracker, fn = create_tracker(
                     self, event_id, fn, progress_tracker.track_tqdm
@@ -1222,23 +1221,16 @@ Received inputs:
             )
 
     def preprocess_data(self, fn_index: int, inputs: list[Any], state: dict[int, Any]):
-        import time
-        start = time.time()
         block_fn = self.fns[fn_index]
-        print(1, time.time() - start)
         dependency = self.dependencies[fn_index]
-        print(2, time.time() - start)
 
         self.validate_inputs(fn_index, inputs)
-        print(3, time.time() - start)
 
         if block_fn.preprocess:
             processed_input = []
-            print(4, time.time() - start)
             for i, input_id in enumerate(dependency["inputs"]):
                 try:
                     block = self.blocks[input_id]
-                    print(5, time.time() - start)
                 except KeyError as e:
                     raise InvalidBlockError(
                         f"Input component with id {input_id} used in {dependency['trigger']}() event not found in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
@@ -1246,16 +1238,12 @@ Received inputs:
                 assert isinstance(
                     block, components.Component
                 ), f"{block.__class__} Component with id {input_id} not a valid input component."
-                print(6, time.time() - start)
                 if getattr(block, "stateful", False):
                     processed_input.append(state.get(input_id))
-                    print(7, time.time() - start)
                 else:
                     processed_input.append(block.preprocess(inputs[i]))
-                    print(8, time.time() - start)
         else:
             processed_input = inputs
-            print(9, time.time() - start)
         return processed_input
 
     def validate_outputs(self, fn_index: int, predictions: Any | list[Any]):
@@ -1436,8 +1424,11 @@ Received outputs:
             data = list(zip(*data))
             is_generating, iterator = None, None
         else:
-            inputs = self.preprocess_data(fn_index, inputs, state)
             old_iterator = iterators.get(fn_index, None) if iterators else None
+            if old_iterator:
+                inputs = []
+            else:
+                inputs = self.preprocess_data(fn_index, inputs, state)
             was_generating = old_iterator is not None
             result = await self.call_function(
                 fn_index, inputs, old_iterator, request, event_id, event_data
