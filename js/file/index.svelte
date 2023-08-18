@@ -19,7 +19,7 @@
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value: null | FileData | FileData[];
-	export let mode: "static" | "dynamic";
+	export let mode: "static" | "interactive";
 	export let root: string;
 	export let label: string;
 	export let show_label: boolean;
@@ -31,6 +31,7 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+	export let height: number | undefined = undefined;
 </script>
 
 {#if mode === "static"}
@@ -49,6 +50,7 @@
 		{container}
 		{scale}
 		{min_width}
+		{height}
 		on:clear
 		on:select
 		on:change
@@ -73,6 +75,7 @@
 		{container}
 		{scale}
 		{min_width}
+		{height}
 		on:clear
 		on:select
 		on:change

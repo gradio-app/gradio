@@ -21,7 +21,11 @@ XRAY_CONFIG = {
             "id": 32,
             "type": "checkboxgroup",
             "props": {
-                "choices": ["Covid", "Malaria", "Lung Cancer"],
+                "choices": [
+                    ("Covid", "Covid"),
+                    ("Malaria", "Malaria"),
+                    ("Lung Cancer", "Lung Cancer"),
+                ],
                 "value": [],
                 "type": "value",
                 "label": "Disease to Scan For",
@@ -36,7 +40,7 @@ XRAY_CONFIG = {
                 "info": {"type": "array", "items": {"type": "string"}},
                 "serialized_info": False,
             },
-            "example_inputs": {"raw": "Covid", "serialized": "Covid"},
+            "example_inputs": {"raw": ["Covid"], "serialized": ["Covid"]},
         },
         {"id": 33, "type": "tabs", "props": {"visible": True, "name": "tabs"}},
         {"id": 34, "type": "tabitem", "props": {"label": "X-ray", "name": "tabitem"}},
@@ -349,7 +353,11 @@ XRAY_CONFIG_DIFF_IDS = {
             "id": 2,
             "type": "checkboxgroup",
             "props": {
-                "choices": ["Covid", "Malaria", "Lung Cancer"],
+                "choices": [
+                    ("Covid", "Covid"),
+                    ("Malaria", "Malaria"),
+                    ("Lung Cancer", "Lung Cancer"),
+                ],
                 "value": [],
                 "type": "value",
                 "label": "Disease to Scan For",
@@ -364,7 +372,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "info": {"type": "array", "items": {"type": "string"}},
                 "serialized_info": False,
             },
-            "example_inputs": {"raw": "Covid", "serialized": "Covid"},
+            "example_inputs": {"raw": ["Covid"], "serialized": ["Covid"]},
         },
         {"id": 3, "type": "tabs", "props": {"visible": True, "name": "tabs"}},
         {"id": 4, "type": "tabitem", "props": {"label": "X-ray", "name": "tabitem"}},
@@ -674,7 +682,11 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "id": 2,
             "type": "checkboxgroup",
             "props": {
-                "choices": ["Covid", "Malaria", "Lung Cancer"],
+                "choices": [
+                    ("Covid", "Covid"),
+                    ("Malaria", "Malaria"),
+                    ("Lung Cancer", "Lung Cancer"),
+                ],
                 "value": [],
                 "name": "checkboxgroup",
                 "show_label": True,

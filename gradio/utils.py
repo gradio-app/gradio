@@ -10,6 +10,7 @@ import json
 import json.decoder
 import os
 import pkgutil
+import pprint
 import random
 import re
 import time
@@ -175,6 +176,7 @@ def assert_configs_are_equivalent_besides_ids(
     """
     config1 = copy.deepcopy(config1)
     config2 = copy.deepcopy(config2)
+    pp = pprint.PrettyPrinter(indent=2)
 
     for key in root_keys:
         assert config1[key] == config2[key], f"Configs have different: {key}"
@@ -190,7 +192,7 @@ def assert_configs_are_equivalent_besides_ids(
         c1.pop("id")
         c2 = copy.deepcopy(c2)
         c2.pop("id")
-        assert c1 == c2, f"{c1} does not match {c2}"
+        assert c1 == c2, f"{pp.pprint(c1)} does not match {pp.pprint(c2)}"
 
     def same_children_recursive(children1, chidren2):
         for child1, child2 in zip(children1, chidren2):
