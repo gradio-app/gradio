@@ -1,4 +1,5 @@
 ---
+"@gradio/app": minor
 "@gradio/audio": minor
 "@gradio/file": minor
 "gradio": minor
