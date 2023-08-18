@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:Move markdown & latex rendering to the frontend
+feat:Move markdown & latex processing to the frontend
