@@ -713,7 +713,9 @@ def function_wrapper(
         return wrapper
 
 
-def get_function_with_locals(fn: Callable, blocks: Blocks, event_id: str | None, in_event_listener: bool):
+def get_function_with_locals(
+    fn: Callable, blocks: Blocks, event_id: str | None, in_event_listener: bool
+):
     def before_fn(blocks, event_id):
         from gradio.context import thread_data
 

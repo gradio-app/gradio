@@ -89,6 +89,7 @@ BUILT_IN_THEMES: dict[str, Theme] = {
     ]
 }
 
+
 def in_event_listener():
     from gradio import context
 
@@ -1129,7 +1130,9 @@ class Blocks(BlockContext):
 
         start = time.time()
 
-        fn = utils.get_function_with_locals(block_fn.fn, self, event_id, in_event_listener)
+        fn = utils.get_function_with_locals(
+            block_fn.fn, self, event_id, in_event_listener
+        )
 
         if iterator is None:  # If not a generator function that has already run
             if progress_tracker is not None and progress_index is not None:
@@ -1454,7 +1457,13 @@ Received outputs:
                 self.preprocess_data(fn_index, list(i), state) for i in zip(*inputs)
             ]
             result = await self.call_function(
-                fn_index, list(zip(*inputs)), None, request, event_id, event_data, in_event_listener
+                fn_index,
+                list(zip(*inputs)),
+                None,
+                request,
+                event_id,
+                event_data,
+                in_event_listener,
             )
             preds = result["prediction"]
             data = [
@@ -1467,7 +1476,13 @@ Received outputs:
             old_iterator = iterators.get(fn_index, None) if iterators else None
             was_generating = old_iterator is not None
             result = await self.call_function(
-                fn_index, inputs, old_iterator, request, event_id, event_data, in_event_listener
+                fn_index,
+                inputs,
+                old_iterator,
+                request,
+                event_id,
+                event_data,
+                in_event_listener,
             )
             data = self.postprocess_data(fn_index, result["prediction"], state)
             is_generating, iterator = result["is_generating"], result["iterator"]
