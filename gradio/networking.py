@@ -19,7 +19,7 @@ from uvicorn.config import Config
 from gradio.exceptions import ServerFailedToStartError
 from gradio.routes import App
 from gradio.tunneling import Tunnel
-from gradio.utils import watchfn, ReloadConfig
+from gradio.utils import ReloadConfig, watchfn
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio.blocks import Blocks
@@ -41,9 +41,7 @@ GRADIO_WATCH_DEMO_NAME = os.getenv("GRADIO_WATCH_DEMO_NAME", "demo")
 
 class Server(uvicorn.Server):
     def __init__(
-        self,
-        config: Config,
-        reload_config: ReloadConfig | None = None
+        self, config: Config, reload_config: ReloadConfig | None = None
     ) -> None:
         super().__init__(config)
         self.reload_config = reload_config
@@ -189,9 +187,13 @@ def start_server(
             )
             reload_config = None
             if GRADIO_WATCH_DIRS:
-                reload_config = ReloadConfig(app=app, watch_dirs=GRADIO_WATCH_DIRS,
-                                             watch_file=GRADIO_WATCH_FILE,
-                                             demo_name=GRADIO_WATCH_DEMO_NAME, event=threading.Event())
+                reload_config = ReloadConfig(
+                    app=app,
+                    watch_dirs=GRADIO_WATCH_DIRS,
+                    watch_file=GRADIO_WATCH_FILE,
+                    demo_name=GRADIO_WATCH_DEMO_NAME,
+                    event=threading.Event(),
+                )
             server = Server(config=config, reload_config=reload_config)
             server.run_in_thread()
             break

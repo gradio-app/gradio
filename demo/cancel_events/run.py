@@ -1,6 +1,6 @@
 import time
 import gradio as gr
-import foo
+
 
 def fake_diffusion(steps):
     for i in range(steps):
@@ -13,12 +13,10 @@ def long_prediction(*args, **kwargs):
     time.sleep(10)
     return 42
 
-print(foo.CONSTANT)
-
 with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column():
-            n = gr.Slider(1, 10, value=9, step=1, label="Number Steps")
+            n = gr.Slider(1, 10, value=9, step=1, label="No of Steps")
             run = gr.Button(value="Start Iterating")
             output = gr.Textbox(label="Iterative Output")
             stop = gr.Button(value="Stop Iterating")

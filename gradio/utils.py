@@ -19,6 +19,7 @@ import time
 import typing
 import warnings
 from contextlib import contextmanager
+from dataclasses import dataclass
 from enum import Enum
 from io import BytesIO
 from numbers import Number
@@ -42,7 +43,6 @@ import requests
 from gradio_client.serializing import Serializable
 from pydantic import BaseModel, parse_obj_as
 from typing_extensions import ParamSpec
-from dataclasses import dataclass
 
 import gradio
 from gradio.context import Context
@@ -72,7 +72,7 @@ def safe_get_lock() -> asyncio.Lock:
         asyncio.get_event_loop()
         return asyncio.Lock()
     except RuntimeError:
-        return None # type: ignore
+        return None  # type: ignore
 
 
 @dataclass
@@ -84,11 +84,9 @@ class ReloadConfig:
     demo_name: str = "demo"
 
 
+def watchfn(reload_config: ReloadConfig):
+    """Watch python files in a given module."""
 
-def watchfn(
-    reload_config: ReloadConfig
-):
-    """Watch python files in a given module. """
     def get_changes():
         for file in iter_py_files():
             try:
@@ -126,7 +124,9 @@ def watchfn(
                 reload_config.app.blocks._queue.blocks_dependencies = getattr(
                     module, reload_config.demo_name
                 ).dependencies
-                getattr(module, reload_config.demo_name)._queue = reload_config.app.blocks._queue
+                getattr(
+                    module, reload_config.demo_name
+                )._queue = reload_config.app.blocks._queue
             reload_config.app.blocks = module.demo
             mtimes = {}
 
