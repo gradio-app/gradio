@@ -37,6 +37,9 @@ import httpx
 import matplotlib
 import requests
 from gradio_client.serializing import Serializable
+from markdown_it import MarkdownIt
+from mdit_py_plugins.dollarmath.index import dollarmath_plugin
+from mdit_py_plugins.footnote.index import footnote_plugin
 from pydantic import BaseModel, parse_obj_as
 from typing_extensions import ParamSpec
 
@@ -189,7 +192,9 @@ def assert_configs_are_equivalent_besides_ids(
         c1.pop("id")
         c2 = copy.deepcopy(c2)
         c2.pop("id")
-        assert c1 == c2, f"{pp.pprint(c1)} does not match {pp.pprint(c2)}"
+        assert json.dumps(c1) == json.dumps(
+            c2
+        ), f"{pp.pprint(c1)} does not match {pp.pprint(c2)}"
 
     def same_children_recursive(children1, chidren2):
         for child1, child2 in zip(children1, chidren2):
@@ -989,6 +994,31 @@ def get_serializer_name(block: Block) -> str | None:
     cls = get_class_that_defined_method(block.serialize)  # type: ignore
     if cls:
         return cls.__name__
+
+
+def get_markdown_parser() -> MarkdownIt:
+    md = (
+        MarkdownIt(
+            "js-default",
+            {
+                "linkify": True,
+                "typographer": True,
+                "html": True,
+            },
+        )
+        .use(dollarmath_plugin, renderer=tex2svg, allow_digits=False)
+        .use(footnote_plugin)
+        .enable("table")
+    )
+
+    # Add target="_blank" to all links. Taken from MarkdownIt docs: https://github.com/executablebooks/markdown-it-py/blob/master/docs/architecture.md
+    def render_blank_link(self, tokens, idx, options, env):
+        tokens[idx].attrSet("target", "_blank")
+        return self.renderToken(tokens, idx, options, env)
+
+    md.add_render_rule("link_open", render_blank_link)
+
+    return md
 
 
 HTML_TAG_RE = re.compile("<.*?>")
