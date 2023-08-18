@@ -105,7 +105,7 @@
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
 					<div 
-					class="avatar-row"
+					class="message-row"
 					>
 					{#if avatar_images && avatar_images[j]}
 						<img
@@ -267,7 +267,7 @@
 		border-color: var(--border-color-accent-subdued);
 		background-color: var(--color-accent-soft);
 	}
-	.avatar-row {
+	.message-row {
 		display: flex;
 		flex-direction: row;
 	}
@@ -278,7 +278,6 @@
 		justify-content: center;
 		max-width: 35px;
 		max-height: 35px;
-		background-color: aqua;
 		border-radius: 50%;
 		bottom: 0px;
 	}

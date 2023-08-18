@@ -75,7 +75,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             rtl: If True, sets the direction of the rendered text to right-to-left. Default is False, which renders text left-to-right.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             show_copy_button: If True, will show a copy button for each chatbot message.
-            avatar_images: List of two avatar images for user and bot.
+            avatar_images: List of two avatar images for user and bot (in that order). Pass None for either the user or bot image to skip.
         """
         if color_map is not None:
             warn_deprecation("The 'color_map' parameter has been deprecated.")
