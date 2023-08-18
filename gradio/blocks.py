@@ -1088,7 +1088,6 @@ class Blocks(BlockContext):
             if block_fn.inputs_as_dict:
                 processed_input = [dict(zip(block_fn.inputs, processed_input))]
 
-
             processed_input, progress_index, _ = special_args(
                 block_fn.fn, processed_input, request, event_data
             )
