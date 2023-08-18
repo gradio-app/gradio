@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Fix `.update()` for `gr.Radio()` and `gr.CheckboxGroup`
+fix:Fix `.update()` for `gr.Radio()` and `gr.CheckboxGroup()`
