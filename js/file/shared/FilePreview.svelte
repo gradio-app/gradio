@@ -45,7 +45,7 @@
 								{@html display_file_size(file)}&nbsp;&#8675;
 							</a>
 						{:else}
-							$_('file.uploading')
+							{$_('file.uploading')}
 						{/if}
 					</td>
 				</tr>
