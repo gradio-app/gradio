@@ -20,7 +20,6 @@
 	},
 	"main_changeset": true,
 	"exports": {
-		".": "./index.svelte",
 		"./package.json": "./package.json",
 		"./interactive": "./interactive/index.ts",
 		"./static": "./static/index.ts",
