@@ -1,6 +1,6 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import Video from "./index.svelte";
+	import Video from "./interactive";
 </script>
 
 <Meta

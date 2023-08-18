@@ -3,7 +3,7 @@ import { spy } from "tinyspy";
 import { cleanup, fireEvent, render, get_text, wait } from "@gradio/tootils";
 import event from "@testing-library/user-event";
 
-import Textbox from "./index.svelte";
+import Textbox from "./interactive";
 import type { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status = {
@@ -30,7 +30,9 @@ describe("Textbox", () => {
 			label: "Textbox"
 		});
 
-		const item: HTMLInputElement = getByDisplayValue("hello world");
+		const item: HTMLInputElement = getByDisplayValue(
+			"hello world"
+		) as HTMLInputElement;
 		assert.equal(item.value, "hello world");
 	});
 
@@ -45,7 +47,7 @@ describe("Textbox", () => {
 			label: "Textbox"
 		});
 
-		const item: HTMLInputElement = getByDisplayValue("hi");
+		const item: HTMLInputElement = getByDisplayValue("hi") as HTMLInputElement;
 
 		const mock = spy();
 		component.$on("change", mock);
