@@ -1,6 +1,6 @@
 import time
 import gradio as gr
-
+import foo
 
 def fake_diffusion(steps):
     for i in range(steps):
@@ -13,6 +13,7 @@ def long_prediction(*args, **kwargs):
     time.sleep(10)
     return 42
 
+print(foo.CONSTANT)
 
 with gr.Blocks() as demo:
     with gr.Row():

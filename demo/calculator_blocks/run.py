@@ -21,6 +21,10 @@ with gr.Blocks() as demo:
             submit_btn = gr.Button(value="Calculate")
         with gr.Column():
             result = gr.Number()
+    with gr.Row():
+        btn = gr.Button()
+        mkd = gr.Markdown()
+        btn.click(lambda: "# Hello", None, mkd)
 
     submit_btn.click(calculator, inputs=[num_1, operation, num_2], outputs=[result])
     examples = gr.Examples(examples=[[5, "add", 3],

@@ -4,24 +4,22 @@ creating tunnels.
 """
 from __future__ import annotations
 
-import importlib
 import os
 import socket
 import threading
 import time
 import warnings
 from functools import partial
-from typing import TYPE_CHECKING, Iterator
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import requests
 import uvicorn
 from uvicorn.config import Config
-from watchfiles import DefaultFilter, watch
 
 from gradio.exceptions import ServerFailedToStartError
 from gradio.routes import App
 from gradio.tunneling import Tunnel
+from gradio.utils import watchfn, ReloadConfig
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio.blocks import Blocks
@@ -37,66 +35,28 @@ should_watch = bool(os.getenv("GRADIO_WATCH_DIRS", False))
 GRADIO_WATCH_DIRS = (
     os.getenv("GRADIO_WATCH_DIRS", "").split(",") if should_watch else []
 )
-GRADIO_WATCH_FILE = os.getenv("GRADIO_WATCH_FILE")
-
-
-def watchfn(app: App, watch_dirs: list[str]):
-    def get_changes():
-        for file in iter_py_files():
-            try:
-                mtime = file.stat().st_mtime
-            except OSError:  # pragma: nocover
-                continue
-
-            old_time =  mtimes.get(file)
-            if old_time is None:
-                mtimes[file] = mtime
-                continue
-            elif mtime > old_time:
-                return [file]
-        return []
-
-
-    def iter_py_files() -> Iterator[Path]:
-        for reload_dir in reload_dirs:
-            for path in list(reload_dir.rglob("*.py")):
-                yield path.resolve()
-    
-    module = importlib.import_module(GRADIO_WATCH_FILE)
-    reload_dirs = [Path(dir_) for dir_ in watch_dirs]
-    mtimes = {}
-    while True:
-        changes = get_changes()
-        if changes:
-            print(f"Changes detected in: {','.join(str(f) for f in changes)}")
-            module = importlib.reload(module)
-            # Copy over the blocks to get new components and events but 
-            # not a new queue
-            module.demo._queue = app.blocks._queue
-            app.blocks: Blocks = module.demo
-            mtimes = {}
+GRADIO_WATCH_FILE = os.getenv("GRADIO_WATCH_FILE", "app")
+GRADIO_WATCH_DEMO_NAME = os.getenv("GRADIO_WATCH_DEMO_NAME", "demo")
 
 
 class Server(uvicorn.Server):
     def __init__(
         self,
         config: Config,
-        app: App | None = None,
-        watch_dirs: list[str] | None = None,
+        reload_config: ReloadConfig | None = None
     ) -> None:
         super().__init__(config)
-        self.watch = None
-        self.watch_thread = None
-        self.app = app
-        if app and watch_dirs:
-            self.watch = partial(watchfn, self.app, watch_dirs)
+        self.reload_config = reload_config
+        if self.reload_config:
+            self.event = threading.Event()
+            self.watch = partial(watchfn, self.reload_config)
 
     def install_signal_handlers(self):
         pass
 
     def run_in_thread(self):
         self.thread = threading.Thread(target=self.run, daemon=True)
-        if self.watch:
+        if self.reload_config:
             self.watch_thread = threading.Thread(target=self.watch, daemon=True)
             self.watch_thread.start()
         self.thread.start()
@@ -110,7 +70,9 @@ class Server(uvicorn.Server):
 
     def close(self):
         self.should_exit = True
-        self.watch_thread.join()
+        if self.reload_config:
+            self.reload_config.event.set()
+            self.watch_thread.join()
         self.thread.join()
 
 
@@ -225,10 +187,12 @@ def start_server(
                 ssl_keyfile_password=ssl_keyfile_password,
                 ws_max_size=1024 * 1024 * 1024,  # Setting max websocket size to be 1 GB
             )
-            kwargs = {}
+            reload_config = None
             if GRADIO_WATCH_DIRS:
-                kwargs = {"app": app, "watch_dirs": GRADIO_WATCH_DIRS}
-            server = Server(config=config, **kwargs)
+                reload_config = ReloadConfig(app=app, watch_dirs=GRADIO_WATCH_DIRS,
+                                             watch_file=GRADIO_WATCH_FILE,
+                                             demo_name=GRADIO_WATCH_DEMO_NAME, event=threading.Event())
+            server = Server(config=config, reload_config=reload_config)
             server.run_in_thread()
             break
         except (OSError, ServerFailedToStartError):

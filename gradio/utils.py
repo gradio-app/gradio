@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import copy
 import functools
+import importlib
 import inspect
 import json
 import json.decoder
@@ -14,6 +14,7 @@ import pkgutil
 import pprint
 import random
 import re
+import threading
 import time
 import typing
 import warnings
@@ -28,6 +29,7 @@ from typing import (
     Any,
     Callable,
     Generator,
+    Iterator,
     Optional,
     TypeVar,
     Union,
@@ -40,7 +42,7 @@ import requests
 from gradio_client.serializing import Serializable
 from pydantic import BaseModel, parse_obj_as
 from typing_extensions import ParamSpec
-import asyncio
+from dataclasses import dataclass
 
 import gradio
 from gradio.context import Context
@@ -49,6 +51,7 @@ from gradio.strings import en
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import Block, BlockContext, Blocks
     from gradio.components import Component
+    from gradio.routes import App
 
 JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 GRADIO_VERSION = (
@@ -61,7 +64,7 @@ T = TypeVar("T")
 
 def safe_get_lock() -> asyncio.Lock:
     """Get asyncio.Lock() without fear of getting an Exception.
-    
+
     Needed because in reload mode we import the Blocks object outside
     the main thread.
     """
@@ -69,7 +72,63 @@ def safe_get_lock() -> asyncio.Lock:
         asyncio.get_event_loop()
         return asyncio.Lock()
     except RuntimeError:
-        return None
+        return None # type: ignore
+
+
+@dataclass
+class ReloadConfig:
+    app: App
+    watch_dirs: list[str]
+    watch_file: str
+    event: threading.Event
+    demo_name: str = "demo"
+
+
+
+def watchfn(
+    reload_config: ReloadConfig
+):
+    """Watch python files in a given module. """
+    def get_changes():
+        for file in iter_py_files():
+            try:
+                mtime = file.stat().st_mtime
+            except OSError:  # pragma: nocover
+                continue
+
+            old_time = mtimes.get(file)
+            if old_time is None:
+                mtimes[file] = mtime
+                continue
+            elif mtime > old_time:
+                return [file]
+        return []
+
+    def iter_py_files() -> Iterator[Path]:
+        for reload_dir in reload_dirs:
+            for path in list(reload_dir.rglob("*.py")):
+                yield path.resolve()
+
+    module = None
+    reload_dirs = [Path(dir_) for dir_ in reload_config.watch_dirs]
+    mtimes = {}
+    while not reload_config.event.is_set():
+        changes = get_changes()
+        if changes:
+            print(f"Changes detected in: {','.join(str(f) for f in changes)}")
+            if not module:
+                module = importlib.import_module(reload_config.watch_file)
+            module = importlib.reload(module)
+            # Copy over the blocks to get new components and events but
+            # not a new queue
+            assert reload_config.app.blocks
+            if hasattr(reload_config.app.blocks, "_queue"):
+                reload_config.app.blocks._queue.blocks_dependencies = getattr(
+                    module, reload_config.demo_name
+                ).dependencies
+                getattr(module, reload_config.demo_name)._queue = reload_config.app.blocks._queue
+            reload_config.app.blocks = module.demo
+            mtimes = {}
 
 
 def colab_check() -> bool:

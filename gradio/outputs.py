@@ -13,8 +13,6 @@ from gradio import components
 from gradio.deprecation import warn_deprecation
 
 
-
-
 def warn_outputs_deprecation():
     warn_deprecation(
         "Usage of gradio.outputs is deprecated, and will not be supported in the future, "

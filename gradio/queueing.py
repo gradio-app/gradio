@@ -19,7 +19,12 @@ from gradio.data_classes import (
     ProgressUnit,
 )
 from gradio.helpers import TrackedIterable
-from gradio.utils import AsyncRequest, run_coro_in_background, set_task_name, safe_get_lock
+from gradio.utils import (
+    AsyncRequest,
+    run_coro_in_background,
+    safe_get_lock,
+    set_task_name,
+)
 
 
 class Event:

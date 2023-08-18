@@ -21,7 +21,7 @@ demo = gr.Interface(
     ],
     "number",
     examples=[
-        [5, "add", 3],
+        [10, "add", 4],
         [4, "divide", 2],
         [-4, "multiply", 2.5],
         [0, "subtract", 1.2],
