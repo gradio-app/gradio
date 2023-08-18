@@ -1,4 +1,10 @@
 <script lang="ts">
+	import { afterUpdate, tick } from "svelte";
+	import { marked } from "marked";
+	import DOMPurify from "dompurify";
+	import render_math_in_element from "katex/dist/contrib/auto-render.js";
+	import "katex/dist/katex.min.css";
+
 	export let edit: boolean;
 	export let value: string | number = "";
 	export let el: HTMLInputElement | null;
@@ -10,6 +16,20 @@
 		| "number"
 		| "bool"
 		| "date" = "str";
+		
+	let span: HTMLSpanElement;
+	let mounted = false;
+	afterUpdate(() => {
+		if (datatype == "markdown"){
+			tick().then(() => {
+			requestAnimationFrame(() => {
+				span.innerHTML = DOMPurify.sanitize(marked.parse(value.toString()));
+				mounted = true;
+			});
+		});
+		}
+	});
+
 </script>
 
 {#if edit}
@@ -25,8 +45,8 @@
 		}}
 	/>
 {/if}
-<span on:dblclick tabindex="-1" role="button" class:edit>
-	{#if datatype === "markdown" || datatype === "html"}
+<span on:dblclick tabindex="-1" role="button" class:edit bind:this={span}>
+	{#if datatype === "html"}
 		{@html value}
 	{:else}
 		{value}

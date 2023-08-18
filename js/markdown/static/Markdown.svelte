@@ -52,7 +52,6 @@
 	dir={rtl ? "rtl" : "ltr"}
 	bind:this={div}
 >
-	{@html DOMPurify.sanitize(marked.parse(value))}
 </div>
 
 <style>

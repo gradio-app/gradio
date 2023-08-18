@@ -50,7 +50,7 @@ class Markdown(IOComponent, Changeable, StringSerializable):
         """
         self.rtl = rtl
         if latex_delimiters is None:
-            latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
+            latex_delimiters = [{"left": "$", "right": "$", "display": False}]
         self.latex_delimiters = latex_delimiters
 
         IOComponent.__init__(
