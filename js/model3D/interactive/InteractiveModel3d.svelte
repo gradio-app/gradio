@@ -50,13 +50,13 @@
 	<StatusTracker {...loading_status} />
 
 	<Model3DUpload
-		label={label}
-		show_label={show_label}
-		clearColor={clearColor}
+		{label}
+		{show_label}
+		{clearColor}
 		value={_value}
-		alpha={alpha}
-		beta={beta}
-		radius={radius}
+		{alpha}
+		{beta}
+		{radius}
 		on:change={({ detail }) => (value = detail)}
 		on:drag={({ detail }) => (dragging = detail)}
 		on:change={({ detail }) => gradio.dispatch("change", detail)}

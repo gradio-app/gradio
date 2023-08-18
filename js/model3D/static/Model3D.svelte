@@ -85,11 +85,11 @@
 				var helperCamera = scene.activeCamera;
 
 				if (alpha != null) {
-					helperCamera.alpha = Math.PI * alpha / 360;
+					helperCamera.alpha = (Math.PI * alpha) / 360;
 				}
 
 				if (beta != null) {
-					helperCamera.beta = Math.PI * beta / 360;
+					helperCamera.beta = (Math.PI * beta) / 360;
 				}
 
 				if (radius != null) {

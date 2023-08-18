@@ -46,7 +46,15 @@
 	<StatusTracker {...loading_status} />
 
 	{#if value}
-		<Model3D value={_value} clearColor={clearColor} label={label} show_label={show_label} alpha={alpha} beta={beta} radius={radius} />
+		<Model3D
+			value={_value}
+			{clearColor}
+			{label}
+			{show_label}
+			{alpha}
+			{beta}
+			{radius}
+		/>
 	{:else}
 		<!-- Not ideal but some bugs to work out before we can 
 				 make this consistent with other components -->
