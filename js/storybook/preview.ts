@@ -1,5 +1,11 @@
 import type { Preview } from "@storybook/svelte";
 import "./theme.css";
+import { init, getLocaleFromNavigator } from "svelte-i18n";
+
+init({
+	fallbackLocale: "en",
+	initialLocale: getLocaleFromNavigator()
+});
 
 const preview: Preview = {
 	parameters: {
