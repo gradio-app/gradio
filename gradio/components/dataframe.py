@@ -37,6 +37,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
     Examples-format: a {str} filepath to a csv with data, a pandas dataframe, or a list of lists (excluding headers) where each sublist is a row of data.
     Demos: filter_records, matrix_transpose, tax_calculator
     """
+
     def __init__(
         self,
         value: list[list[Any]] | Callable | None = None,
@@ -233,7 +234,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
                 y = pd.read_csv(y)
             return {
                 "headers": list(y.columns),
-                "data": y.to_dict(orient="split")["data"]
+                "data": y.to_dict(orient="split")["data"],
             }
         if isinstance(y, (np.ndarray, list)):
             if len(y) == 0:
