@@ -9,7 +9,7 @@ export interface ComponentMeta {
 	type: keyof ComponentMap;
 	id: number;
 	has_modes: boolean;
-	props: Record<string, unknown>;
+	props: Record<string, unknown> & { mode: "interactive" | "static" };
 	instance: SvelteComponent;
 	component: ComponentType<SvelteComponent>;
 	documentation?: Documentation;

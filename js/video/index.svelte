@@ -5,7 +5,7 @@
 	import Interactive from "./interactive";
 
 	import type { FileData } from "@gradio/upload";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -24,7 +24,7 @@
 	export let container = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let mode: "static" | "dynamic";
+	export let mode: "static" | "interactive";
 	export let autoplay = false;
 	export let show_share_button = true;
 </script>
@@ -46,7 +46,6 @@
 		{container}
 		{scale}
 		{min_width}
-		{mode}
 		{autoplay}
 		{show_share_button}
 		on:clear
@@ -78,7 +77,6 @@
 		{container}
 		{scale}
 		{min_width}
-		{mode}
 		{autoplay}
 		on:clear
 		on:play

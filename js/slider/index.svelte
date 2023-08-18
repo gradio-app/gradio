@@ -2,7 +2,7 @@
 	import Static from "./static";
 	import Interactive from "./interactive";
 
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -16,7 +16,7 @@
 	export let minimum: number;
 	export let maximum: number;
 	export let step: number;
-	export let mode: "static" | "dynamic";
+	export let mode: "static" | "interactive";
 	export let show_label: boolean;
 
 	export let loading_status: LoadingStatus;

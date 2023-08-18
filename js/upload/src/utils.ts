@@ -47,6 +47,12 @@ export function normalise_file(
 		} else {
 			file.data = "/proxy=" + root_url + "file=" + file.name;
 		}
+	} else if (file.is_stream) {
+		if (root_url == null) {
+			file.data = root + "/stream/" + file.name;
+		} else {
+			file.data = "/proxy=" + root_url + "stream/" + file.name;
+		}
 	}
 	return file;
 }

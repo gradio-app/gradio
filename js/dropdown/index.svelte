@@ -1,7 +1,7 @@
 <script lang="ts">
 	import StaticDropdown from "./static";
 	import InteractiveDropdown from "./interactive";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	export let label = "Dropdown";
 	export let info: string | undefined = undefined;
@@ -20,7 +20,7 @@
 	export let loading_status: LoadingStatus;
 	export let allow_custom_value = false;
 
-	export let mode: "static" | "dynamic";
+	export let mode: "static" | "interactive";
 
 	if (multiselect && !value) {
 		value = [];

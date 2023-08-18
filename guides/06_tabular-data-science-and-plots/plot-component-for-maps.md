@@ -23,7 +23,7 @@ dataset = load_dataset("gradio/NYC-Airbnb-Open-Data", split="train")
 df = dataset.to_pandas()
 
 def filter_map(min_price, max_price, boroughs):
-    new_df = df[(df['neighbourhood_group'].isin(boroughs)) & 
+    new_df = df[(df['neighbourhood_group'].isin(boroughs)) &
             (df['price'] > min_price) & (df['price'] < max_price)]
     names = new_df["name"].tolist()
     prices = new_df["price"].tolist()
@@ -66,7 +66,7 @@ fig.update_layout(
 )
 ```
 
-Above, we create a scatter plot on mapbox by passing it our list of latitudes and longitudes to plot markers.  We also pass in our custom data of names and prices for additional info to appear on every marker we hover over. Next we use `update_layout` to specify other map settings such as zoom, and centering.
+Above, we create a scatter plot on mapbox by passing it our list of latitudes and longitudes to plot markers. We also pass in our custom data of names and prices for additional info to appear on every marker we hover over. Next we use `update_layout` to specify other map settings such as zoom, and centering.
 
 More info [here](https://plotly.com/python/scattermapbox/) on scatter plots using Mapbox and Plotly.
 

@@ -2,7 +2,7 @@
 
 <script lang="ts">
 	import type { FileData } from "@gradio/upload";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	import Audio from "./interactive";
 	import StaticAudio from "./static";
@@ -10,7 +10,7 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let mode: "static" | "dynamic";
+	export let mode: "static" | "interactive";
 	export let value: null | FileData | string = null;
 	export let name: string;
 	export let source: "microphone" | "upload";
@@ -27,14 +27,14 @@
 	export let autoplay = false;
 	export let show_download_button = true;
 	export let show_share_button = false;
+	export let show_edit_button = true;
 </script>
 
-{#if mode === "dynamic"}
+{#if mode === "interactive"}
 	<Audio
 		{elem_id}
 		{elem_classes}
 		{visible}
-		{mode}
 		bind:value
 		{name}
 		{source}
@@ -49,6 +49,7 @@
 		{min_width}
 		{loading_status}
 		{autoplay}
+		{show_edit_button}
 		on:change
 		on:stream
 		on:drag

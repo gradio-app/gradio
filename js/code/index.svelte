@@ -2,7 +2,7 @@
 	import { createEventDispatcher, afterUpdate } from "svelte";
 	import { _ } from "svelte-i18n";
 
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	import StaticCode from "./static";
 	import InteractiveCode from "./interactive";
@@ -15,7 +15,7 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let mode: "static" | "dynamic";
+	export let mode: "static" | "interactive";
 	export let label = "Code";
 	export let show_label = true;
 	export let loading_status: LoadingStatus;

@@ -11,7 +11,7 @@
 	import { upload_files as default_upload_files } from "@gradio/client";
 
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	import { _ } from "svelte-i18n";
 
@@ -21,7 +21,7 @@
 	export let value: null | FileData | FileData[];
 	let old_value: null | FileData | FileData[];
 
-	export let mode: "static" | "dynamic";
+	export let mode: "static" | "interactive";
 	export let root: string;
 	export let label: string;
 	export let show_label: boolean;
@@ -33,6 +33,7 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+	export let height: number | undefined = undefined;
 
 	const upload_files =
 		getContext<typeof default_upload_files>("upload_files") ??
@@ -62,7 +63,7 @@
 			) {
 				pending_upload = false;
 				dispatch("change");
-			} else if (mode === "dynamic") {
+			} else if (mode === "interactive") {
 				let files = (Array.isArray(_value) ? _value : [_value]).map(
 					(file_data) => file_data.blob!
 				);
@@ -105,7 +106,7 @@
 
 <Block
 	{visible}
-	variant={mode === "dynamic" && value === null ? "dashed" : "solid"}
+	variant={value === null ? "dashed" : "solid"}
 	border_mode={dragging ? "focus" : "base"}
 	padding={false}
 	{elem_id}
@@ -113,6 +114,8 @@
 	{container}
 	{scale}
 	{min_width}
+	{height}
+	allow_overflow={false}
 >
 	<StatusTracker
 		{...loading_status}
@@ -128,6 +131,7 @@
 		{file_count}
 		{file_types}
 		{selectable}
+		{height}
 		on:change={({ detail }) => (value = detail)}
 		on:drag={({ detail }) => (dragging = detail)}
 		on:clear

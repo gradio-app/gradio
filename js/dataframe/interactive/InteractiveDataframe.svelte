@@ -2,7 +2,7 @@
 	import { Block } from "@gradio/atoms";
 	import Table from "../shared";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 	import { createEventDispatcher, afterUpdate } from "svelte";
 
 	type Headers = string[];

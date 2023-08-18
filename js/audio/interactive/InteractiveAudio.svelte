@@ -6,7 +6,7 @@
 	import { UploadText } from "@gradio/atoms";
 
 	import type { FileData } from "@gradio/upload";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	import Audio from "./Audio.svelte";
 	import { StatusTracker } from "@gradio/statustracker";
@@ -23,7 +23,6 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let mode: "static" | "dynamic";
 	export let value: null | FileData | string = null;
 	export let name: string;
 	export let source: "microphone" | "upload";
@@ -38,6 +37,7 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let autoplay = false;
+	export let show_edit_button = true;
 
 	let old_value: null | FileData | string = null;
 
@@ -55,9 +55,7 @@
 </script>
 
 <Block
-	variant={mode === "dynamic" && value === null && source === "upload"
-		? "dashed"
-		: "solid"}
+	variant={value === null && source === "upload" ? "dashed" : "solid"}
 	border_mode={dragging ? "focus" : "base"}
 	padding={false}
 	{elem_id}
@@ -83,6 +81,7 @@
 		{pending}
 		{streaming}
 		{autoplay}
+		{show_edit_button}
 		on:edit
 		on:play
 		on:pause

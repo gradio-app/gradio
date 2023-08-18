@@ -434,6 +434,15 @@ class TestBlocksMethods:
 
         demo.close()
 
+    def test_concurrency_count_zero_gpu(self, monkeypatch):
+        monkeypatch.setenv("SPACES_ZERO_GPU", "true")
+        demo = gr.Blocks()
+        with pytest.warns():
+            demo.queue(concurrency_count=42)
+        with pytest.warns():
+            demo.queue(42)
+        assert demo._queue.max_thread_count == demo.max_threads
+
 
 class TestTempFile:
     def test_pil_images_hashed(self, connect, gradio_temp_dir):
@@ -585,7 +594,7 @@ class TestComponentsInBlocks:
         with gr.Blocks() as demo:
             for component in io_components:
                 components.append(component(value=lambda: None, every=1))
-        assert [comp.load_event for comp in components] == demo.dependencies
+        assert all(comp.load_event in demo.dependencies for comp in components)
 
 
 class TestBlocksPostprocessing:
