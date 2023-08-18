@@ -51,8 +51,7 @@
 	data-testid="markdown"
 	dir={rtl ? "rtl" : "ltr"}
 	bind:this={div}
->
-</div>
+></div>
 
 <style>
 	div :global(.math.inline) {

@@ -32,7 +32,6 @@
 		display: boolean;
 	}[];
 
-
 	const dispatch = createEventDispatcher();
 
 	export let loading_status: LoadingStatus;

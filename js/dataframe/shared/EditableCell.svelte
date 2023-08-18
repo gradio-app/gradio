@@ -21,12 +21,10 @@
 		right: string;
 		display: boolean;
 	}[];
-		
+
 	let span: HTMLSpanElement;
 	let mounted = false;
-	
-	console.log(latex_delimiters)
-	
+
 	$: mounted &&
 		latex_delimiters.length > 0 &&
 		render_math_in_element(span, {
@@ -35,16 +33,15 @@
 		});
 
 	afterUpdate(() => {
-		if (datatype == "markdown"){
+		if (datatype == "markdown") {
 			tick().then(() => {
-			requestAnimationFrame(() => {
-				span.innerHTML = DOMPurify.sanitize(marked.parse(value.toString()));
-				mounted = true;
+				requestAnimationFrame(() => {
+					span.innerHTML = DOMPurify.sanitize(marked.parse(value.toString()));
+					mounted = true;
+				});
 			});
-		});
 		}
 	});
-
 </script>
 
 {#if edit}
