@@ -1222,16 +1222,23 @@ Received inputs:
             )
 
     def preprocess_data(self, fn_index: int, inputs: list[Any], state: dict[int, Any]):
+        import time
+        start = time.time()
         block_fn = self.fns[fn_index]
+        print(1, time.time() - start)
         dependency = self.dependencies[fn_index]
+        print(2, time.time() - start)
 
         self.validate_inputs(fn_index, inputs)
+        print(3, time.time() - start)
 
         if block_fn.preprocess:
             processed_input = []
+            print(4, time.time() - start)
             for i, input_id in enumerate(dependency["inputs"]):
                 try:
                     block = self.blocks[input_id]
+                    print(5, time.time() - start)
                 except KeyError as e:
                     raise InvalidBlockError(
                         f"Input component with id {input_id} used in {dependency['trigger']}() event not found in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
@@ -1239,12 +1246,16 @@ Received inputs:
                 assert isinstance(
                     block, components.Component
                 ), f"{block.__class__} Component with id {input_id} not a valid input component."
+                print(6, time.time() - start)
                 if getattr(block, "stateful", False):
                     processed_input.append(state.get(input_id))
+                    print(7, time.time() - start)
                 else:
                     processed_input.append(block.preprocess(inputs[i]))
+                    print(8, time.time() - start)
         else:
             processed_input = inputs
+            print(9, time.time() - start)
         return processed_input
 
     def validate_outputs(self, fn_index: int, predictions: Any | list[Any]):
