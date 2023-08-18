@@ -1,6 +1,6 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import Textbox from "./index.svelte";
+	import Textbox from "./interactive";
 </script>
 
 <Meta

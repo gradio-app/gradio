@@ -19,7 +19,6 @@
 		"dequal": "^2.0.2"
 	},
 	"exports": {
-		".": "./index.svelte",
 		"./package.json": "./package.json",
 		"./interactive": "./interactive/index.ts",
 		"./static": "./static/index.ts",
