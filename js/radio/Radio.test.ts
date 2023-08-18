@@ -3,7 +3,7 @@ import { test, describe, assert, afterEach } from "vitest";
 import { cleanup, render } from "@gradio/tootils";
 import event from "@testing-library/user-event";
 
-import Radio from "./index.svelte";
+import Radio from "./interactive";
 import type { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status = {
@@ -40,7 +40,9 @@ describe("Radio", () => {
 			true
 		);
 
-		const radioButtons: HTMLOptionElement[] = getAllByRole("radio");
+		const radioButtons: HTMLOptionElement[] = getAllByRole(
+			"radio"
+		) as HTMLOptionElement[];
 		assert.equal(radioButtons.length, 3);
 
 		radioButtons.forEach((radioButton: HTMLOptionElement, index) => {

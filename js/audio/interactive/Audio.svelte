@@ -1,6 +1,7 @@
 <script context="module" lang="ts">
 	import type { FileData } from "@gradio/upload";
 	import { BaseButton } from "@gradio/button/static";
+	import { _ } from "svelte-i18n";
 
 	export interface AudioData extends FileData {
 		crop_min?: number;
@@ -52,7 +53,7 @@
 	function get_modules(): void {
 		module_promises = [
 			import("extendable-media-recorder"),
-			import("extendable-media-recorder-wav-encoder")
+			import("extendable-media-recorder-wav-encoder"),
 		];
 	}
 
@@ -92,7 +93,7 @@
 		let _audio_blob = new Blob(blobs, { type: "audio/wav" });
 		value = {
 			data: await blob_to_data_url(_audio_blob),
-			name: "audio.wav"
+			name: "audio.wav",
 		};
 		dispatch(event, value);
 	};
@@ -104,10 +105,7 @@
 			stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 		} catch (err) {
 			if (err instanceof DOMException && err.name == "NotAllowedError") {
-				dispatch(
-					"error",
-					"Please allow access to the microphone for recording."
-				);
+				dispatch("error", $_("audio.allow_recording_access"));
 				return;
 			}
 			throw err;
@@ -204,7 +202,7 @@
 	}
 
 	function handle_change({
-		detail: { values }
+		detail: { values },
 	}: {
 		detail: { values: [number, number] };
 	}): void {
@@ -214,14 +212,14 @@
 			data: value.data,
 			name,
 			crop_min: values[0],
-			crop_max: values[1]
+			crop_max: values[1],
 		});
 
 		dispatch("edit");
 	}
 
 	function handle_load({
-		detail
+		detail,
 	}: {
 		detail: {
 			data: string;
@@ -248,7 +246,7 @@
 	{show_label}
 	Icon={Music}
 	float={source === "upload" && value === null}
-	label={label || "Audio"}
+	label={label || $_("audio.audio")}
 />
 {#if value === null || streaming}
 	{#if source === "microphone"}
@@ -259,14 +257,14 @@
 						<span class="pinger" />
 						<span class="dot" />
 					</span>
-					Stop recording
+					$_('audio.stop_recording')
 				</BaseButton>
 			{:else}
 				<BaseButton size="sm" on:click={record}>
 					<span class="record-icon">
 						<span class="dot" />
 					</span>
-					Record from microphone
+					$_('audio.record_from_microphone')
 				</BaseButton>
 			{/if}
 		</div>

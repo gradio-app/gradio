@@ -25,6 +25,7 @@
 	export let root: string;
 	export let label: string;
 	export let show_label: boolean;
+	export let height: number | undefined = undefined;
 
 	export let root_url: null | string;
 	export let selectable = false;
@@ -120,5 +121,5 @@
 			: loading_status?.status || "complete"}
 	/>
 
-	<File on:select {selectable} value={_value} {label} {show_label} />
+	<File on:select {selectable} value={_value} {label} {show_label} {height} />
 </Block>

@@ -581,6 +581,16 @@ class TestRadio:
         scores = (await iface.interpret(["b"]))[0]["interpretation"]
         assert scores == [-2.0, None, 2.0]
 
+    def test_update(self):
+        update = gr.Radio.update(
+            choices=[("zeroth", ""), "first", "second"], label="ordinal"
+        )
+        assert update["choices"] == [
+            ("zeroth", ""),
+            ("first", "first"),
+            ("second", "second"),
+        ]
+
 
 class TestDropdown:
     def test_component_functions(self):
@@ -1014,6 +1024,7 @@ class TestFile:
             "interactive": None,
             "root_url": None,
             "selectable": False,
+            "height": None,
         }
         assert file_input.preprocess(None) is None
         x_file["is_example"] = True

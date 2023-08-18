@@ -3,13 +3,14 @@
 	import { Block, Info } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
+	import { _ } from "svelte-i18n";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value = false;
 	export let value_is_output = false;
-	export let label = "Checkbox";
+	export let label = $_("checkbox.checkbox");
 	export let info: string | undefined = undefined;
 	export let container = true;
 	export let scale: number | null = null;
