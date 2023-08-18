@@ -41,27 +41,40 @@ GRADIO_WATCH_FILE = os.getenv("GRADIO_WATCH_FILE")
 
 
 def watchfn(app: App, watch_dirs: list[str]):
-    # default plus launches.json
-    ignore_patterns = {
-        "\\.py[cod]$",
-        "\\.___jb_...___$",
-        "\\.sw.$",
-        "~$",
-        "^\\.\\#",
-        "^\\.DS_Store$",
-        "^flycheck_",
-        "launches.json",
-    }
-    watch_filter = DefaultFilter(ignore_entity_patterns=ignore_patterns)
-    module = importlib.import_module(GRADIO_WATCH_FILE)
+    def get_changes():
+        for file in iter_py_files():
+            try:
+                mtime = file.stat().st_mtime
+            except OSError:  # pragma: nocover
+                continue
 
-    for changes in watch(*watch_dirs, raise_interrupt=False, watch_filter=watch_filter):
-        print(f"Changes detected in: {','.join([c[1] for c in changes]) }")
-        module = importlib.reload(module)
-        # Copy over the blocks to get new components and events but 
-        # not a new queue
-        module.demo._queue = app.blocks._queue
-        app.blocks: Blocks = module.demo
+            old_time =  mtimes.get(file)
+            if old_time is None:
+                mtimes[file] = mtime
+                continue
+            elif mtime > old_time:
+                return [file]
+        return []
+
+
+    def iter_py_files() -> Iterator[Path]:
+        for reload_dir in reload_dirs:
+            for path in list(reload_dir.rglob("*.py")):
+                yield path.resolve()
+    
+    module = importlib.import_module(GRADIO_WATCH_FILE)
+    reload_dirs = [Path(dir_) for dir_ in watch_dirs]
+    mtimes = {}
+    while True:
+        changes = get_changes()
+        if changes:
+            print(f"Changes detected in: {','.join(str(f) for f in changes)}")
+            module = importlib.reload(module)
+            # Copy over the blocks to get new components and events but 
+            # not a new queue
+            module.demo._queue = app.blocks._queue
+            app.blocks: Blocks = module.demo
+            mtimes = {}
 
 
 class Server(uvicorn.Server):
