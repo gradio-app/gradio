@@ -33,6 +33,7 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+	export let height: number | undefined = undefined;
 
 	const upload_files =
 		getContext<typeof default_upload_files>("upload_files") ??
@@ -113,6 +114,8 @@
 	{container}
 	{scale}
 	{min_width}
+	{height}
+	allow_overflow={false}
 >
 	<StatusTracker
 		{...loading_status}
@@ -128,6 +131,7 @@
 		{file_count}
 		{file_types}
 		{selectable}
+		{height}
 		on:change={({ detail }) => (value = detail)}
 		on:drag={({ detail }) => (dragging = detail)}
 		on:clear
