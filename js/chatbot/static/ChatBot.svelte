@@ -104,16 +104,14 @@
 		{#if value !== null}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
-					<div 
-					class="message-row"
-					>
-					{#if avatar_images && avatar_images[j]}
-						<img
-								class="avatar-image-{j == 0 ? "user" : "bot"}"
+					<div class="message-row">
+						{#if avatar_images && avatar_images[j]}
+							<img
+								class="avatar-image-{j == 0 ? 'user' : 'bot'}"
 								src={avatar_images[j]}
 								alt="avatar"
 							/>
-					{/if}
+						{/if}
 						<!-- TODO: fix-->
 						<!-- svelte-ignore a11y-no-static-element-interactions-->
 						<!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -272,7 +270,7 @@
 		flex-direction: row;
 	}
 	.avatar-image-user,
-	.avatar-image-bot{
+	.avatar-image-bot {
 		align-self: flex-end;
 		position: relative;
 		justify-content: center;

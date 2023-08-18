@@ -101,7 +101,9 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             self.avatar_images = []
             for avatar in avatar_images:
                 if isinstance(avatar, (str, Path)):
-                    self.avatar_images.append(client_utils.encode_url_or_file_to_base64(avatar))
+                    self.avatar_images.append(
+                        client_utils.encode_url_or_file_to_base64(avatar)
+                    )
                 else:
                     self.avatar_images.append(None)
 
