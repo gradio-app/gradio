@@ -96,9 +96,9 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             else show_share_button
         )
         self.show_copy_button = show_copy_button
-
-        self.avatar_images = []
+        self.avatar_images = avatar_images
         if avatar_images is not None:
+            self.avatar_images = []
             for avatar in avatar_images:
                 if isinstance(avatar, (str, Path)):
                     self.avatar_images.append(client_utils.encode_url_or_file_to_base64(avatar))

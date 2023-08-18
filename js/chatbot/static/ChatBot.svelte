@@ -33,7 +33,7 @@
 	export let theme_mode: ThemeMode;
 	export let rtl = false;
 	export let show_copy_button = false;
-	export let avatar_images: [string | FileData | null][] = [];
+	export let avatar_images: [string | FileData | null] | null = null;
 	$: if (theme_mode == "dark") {
 		code_highlight_css.dark();
 	} else {
@@ -104,12 +104,16 @@
 		{#if value !== null}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
-					<div class="avatar-row">
+					<div 
+					class="avatar-row"
+					>
+					{#if avatar_images && avatar_images[j]}
 						<img
 								class="avatar-image-{j == 0 ? "user" : "bot"}"
-								src={avatar_images[0]}
+								src={avatar_images[j]}
 								alt="avatar"
 							/>
+					{/if}
 						<!-- TODO: fix-->
 						<!-- svelte-ignore a11y-no-static-element-interactions-->
 						<!-- svelte-ignore a11y-click-events-have-key-events -->
