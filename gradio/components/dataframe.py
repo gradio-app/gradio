@@ -233,8 +233,8 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             if isinstance(y, str):
                 y = pd.read_csv(y)
             return {
-                "headers": list(y.columns),
-                "data": y.to_dict(orient="split")["data"],
+                "headers": list(y.columns),  # type: ignore
+                "data": y.to_dict(orient="split")["data"],  # type: ignore
             }
         if isinstance(y, (np.ndarray, list)):
             if len(y) == 0:
