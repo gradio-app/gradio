@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Fix storybook i18n
+feat:ensure translations for audio work correctly
