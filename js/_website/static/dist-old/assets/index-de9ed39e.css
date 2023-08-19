@@ -1,0 +1,342 @@
+.rangeSlider {
+	--pip: var(--range-pip, lightslategray);
+	--pip-text: var(--range-pip-text, var(--pip));
+	--pip-active: var(--range-pip-active, darkslategrey);
+	--pip-active-text: var(--range-pip-active-text, var(--pip-active));
+	--pip-hover: var(--range-pip-hover, darkslategrey);
+	--pip-hover-text: var(--range-pip-hover-text, var(--pip-hover));
+	--pip-in-range: var(--range-pip-in-range, var(--pip-active));
+	--pip-in-range-text: var(--range-pip-in-range-text, var(--pip-active-text));
+}
+.rangePips {
+	position: absolute;
+	right: 0;
+	bottom: -1em;
+	left: 0;
+	height: 1em;
+}
+.rangePips.vertical {
+	inset: 0 auto 0 100%;
+	width: 1em;
+	height: auto;
+}
+.rangePips .pip {
+	position: absolute;
+	top: 0.25em;
+	width: 1px;
+	height: 0.4em;
+	white-space: nowrap;
+}
+.rangePips.vertical .pip {
+	top: auto;
+	bottom: auto;
+	left: 0.25em;
+	width: 0.4em;
+	height: 1px;
+}
+.rangePips .pipVal {
+	position: absolute;
+	top: 0.4em;
+	transform: translate(-50%, 25%);
+}
+.rangePips.vertical .pipVal {
+	position: absolute;
+	top: 0;
+	left: 0.4em;
+	transform: translate(25%, -50%);
+}
+.rangePips .pip {
+	transition: all 0.15s ease;
+}
+.rangePips .pipVal {
+	transition:
+		all 0.15s ease,
+		font-weight 0s linear;
+}
+.rangePips .pip {
+	background-color: #789;
+	background-color: var(--pip);
+	color: #789;
+	color: var(--pip-text);
+}
+.rangePips .pip.selected {
+	background-color: #2f4f4f;
+	background-color: var(--pip-active);
+	color: #2f4f4f;
+	color: var(--pip-active-text);
+}
+.rangePips.hoverable:not(.disabled) .pip:hover {
+	background-color: #2f4f4f;
+	background-color: var(--pip-hover);
+	color: #2f4f4f;
+	color: var(--pip-hover-text);
+}
+.rangePips .pip.in-range {
+	background-color: #2f4f4f;
+	background-color: var(--pip-in-range);
+	color: #2f4f4f;
+	color: var(--pip-in-range-text);
+}
+.rangePips .pip.selected {
+	height: 0.75em;
+}
+.rangePips.vertical .pip.selected {
+	width: 0.75em;
+	height: 1px;
+}
+.rangePips .pip.selected .pipVal {
+	top: 0.75em;
+	font-weight: 700;
+}
+.rangePips.vertical .pip.selected .pipVal {
+	top: 0;
+	left: 0.75em;
+}
+.rangePips.hoverable:not(.disabled) .pip:not(.selected):hover {
+	transition: none;
+}
+.rangePips.hoverable:not(.disabled) .pip:not(.selected):hover .pipVal {
+	transition: none;
+	font-weight: 700;
+}
+.rangeSlider {
+	--slider: var(--range-slider, #d7dada);
+	--handle-inactive: var(--range-handle-inactive, #99a2a2);
+	--handle: var(--range-handle, #838de7);
+	--handle-focus: var(--range-handle-focus, #4a40d4);
+	--handle-border: var(--range-handle-border, var(--handle));
+	--range-inactive: var(--range-range-inactive, var(--handle-inactive));
+	--range: var(--range-range, var(--handle-focus));
+	--float-inactive: var(--range-float-inactive, var(--handle-inactive));
+	--float: var(--range-float, var(--handle-focus));
+	--float-text: var(--range-float-text, white);
+}
+.rangeSlider {
+	position: relative;
+	transition: opacity 0.2s ease;
+	margin: 1em;
+	border-radius: 100px;
+	height: 0.5em;
+	user-select: none;
+}
+.rangeSlider * {
+	user-select: none;
+}
+.rangeSlider.pips {
+	margin-bottom: 1.8em;
+}
+.rangeSlider.pip-labels {
+	margin-bottom: 2.8em;
+}
+.rangeSlider.vertical {
+	display: inline-block;
+	border-radius: 100px;
+	width: 0.5em;
+	min-height: 200px;
+}
+.rangeSlider.vertical.pips {
+	margin-right: 1.8em;
+	margin-bottom: 1em;
+}
+.rangeSlider.vertical.pip-labels {
+	margin-right: 2.8em;
+	margin-bottom: 1em;
+}
+.rangeSlider .rangeHandle {
+	display: block;
+	position: absolute;
+	top: 0.25em;
+	bottom: auto;
+	transform: translateY(-50%) translate(-50%);
+	z-index: 2;
+	width: 1.4em;
+	height: 1.4em;
+}
+.rangeSlider.reversed .rangeHandle {
+	transform: translateY(-50%) translate(50%);
+}
+.rangeSlider.vertical .rangeHandle {
+	top: auto;
+	left: 0.25em;
+	transform: translateY(50%) translate(-50%);
+}
+.rangeSlider.vertical.reversed .rangeHandle {
+	transform: translateY(-50%) translate(-50%);
+}
+.rangeSlider .rangeNub,
+.rangeSlider .rangeHandle:before {
+	display: block;
+	position: absolute;
+	top: 0;
+	left: 0;
+	transition: box-shadow 0.2s ease;
+	border-radius: 10em;
+	width: 100%;
+	height: 100%;
+}
+.rangeSlider .rangeHandle:before {
+	opacity: 0;
+	inset: 1px;
+	box-shadow: 0 0 0 0 var(--handle-border);
+	width: auto;
+	height: auto;
+	content: "";
+}
+.rangeSlider.hoverable:not(.disabled) .rangeHandle:hover:before {
+	opacity: 0.2;
+	box-shadow: 0 0 0 8px var(--handle-border);
+}
+.rangeSlider.hoverable:not(.disabled) .rangeHandle.press:before,
+.rangeSlider.hoverable:not(.disabled) .rangeHandle.press:hover:before {
+	opacity: 0.4;
+	box-shadow: 0 0 0 12px var(--handle-border);
+}
+.rangeSlider.range:not(.min):not(.max) .rangeNub {
+	border-radius: 10em 10em 10em 1.6em;
+}
+.rangeSlider.range .rangeHandle:nth-of-type(1) .rangeNub {
+	transform: rotate(-135deg);
+}
+.rangeSlider.range .rangeHandle:nth-of-type(2) .rangeNub {
+	transform: rotate(45deg);
+}
+.rangeSlider.range.reversed .rangeHandle:nth-of-type(1) .rangeNub {
+	transform: rotate(45deg);
+}
+.rangeSlider.range.reversed .rangeHandle:nth-of-type(2) .rangeNub {
+	transform: rotate(-135deg);
+}
+.rangeSlider.range.vertical .rangeHandle:nth-of-type(1) .rangeNub {
+	transform: rotate(135deg);
+}
+.rangeSlider.range.vertical .rangeHandle:nth-of-type(2) .rangeNub {
+	transform: rotate(-45deg);
+}
+.rangeSlider.range.vertical.reversed .rangeHandle:nth-of-type(1) .rangeNub {
+	transform: rotate(-45deg);
+}
+.rangeSlider.range.vertical.reversed .rangeHandle:nth-of-type(2) .rangeNub {
+	transform: rotate(135deg);
+}
+.rangeSlider .rangeFloat {
+	display: block;
+	position: absolute;
+	top: -0.5em;
+	left: 50%;
+	transform: translate(-50%, -100%);
+	opacity: 0;
+	transition: all 0.2s ease;
+	border-radius: 0.2em;
+	padding: 0.2em 0.4em;
+	pointer-events: none;
+	font-size: 1em;
+	font-size: 0.9em;
+	text-align: center;
+	white-space: nowrap;
+}
+.rangeSlider .rangeHandle.active .rangeFloat,
+.rangeSlider.hoverable .rangeHandle:hover .rangeFloat {
+	top: -0.2em;
+	transform: translate(-50%, -100%);
+	opacity: 1;
+}
+.rangeSlider .rangeBar {
+	display: block;
+	position: absolute;
+	top: 0;
+	z-index: 1;
+	transition: background 0.2s ease;
+	border-radius: 1em;
+	height: 0.5em;
+	user-select: none;
+}
+.rangeSlider.vertical .rangeBar {
+	width: 0.5em;
+	height: auto;
+}
+.rangeSlider {
+	background-color: #d7dada;
+	background-color: var(--slider);
+}
+.rangeSlider .rangeBar {
+	background-color: #99a2a2;
+	background-color: var(--range-inactive);
+}
+.rangeSlider.focus .rangeBar {
+	background-color: #838de7;
+	background-color: var(--range);
+}
+.rangeSlider .rangeNub {
+	background-color: #99a2a2;
+	background-color: var(--handle-inactive);
+}
+.rangeSlider.focus .rangeNub {
+	background-color: #838de7;
+	background-color: var(--handle);
+}
+.rangeSlider .rangeHandle.active .rangeNub {
+	background-color: #4a40d4;
+	background-color: var(--handle-focus);
+}
+.rangeSlider .rangeFloat {
+	background-color: #99a2a2;
+	background-color: var(--float-inactive);
+	color: #fff;
+	color: var(--float-text);
+}
+.rangeSlider.focus .rangeFloat {
+	background-color: #4a40d4;
+	background-color: var(--float);
+}
+.rangeSlider.disabled {
+	opacity: 0.5;
+}
+.rangeSlider.disabled .rangeNub {
+	background-color: #d7dada;
+	background-color: var(--slider);
+}
+.mic-wrap.svelte-1thnwz {
+	padding: var(--size-2);
+}
+.record-icon.svelte-1thnwz {
+	display: flex;
+	position: relative;
+	margin-right: var(--size-2);
+	width: 6px;
+	height: 6px;
+}
+.dot.svelte-1thnwz {
+	display: inline-flex;
+	position: relative;
+	border-radius: var(--radius-full);
+	background: var(--color-red-500);
+	width: 6px;
+	height: 6px;
+}
+.pinger.svelte-1thnwz {
+	display: inline-flex;
+	position: absolute;
+	opacity: 0.9;
+	animation: svelte-1thnwz-ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+	border-radius: var(--radius-full);
+	background: var(--color-red-500);
+	width: var(--size-full);
+	height: var(--size-full);
+}
+@keyframes svelte-1thnwz-ping {
+	75%,
+	to {
+		transform: scale(2);
+		opacity: 0;
+	}
+}
+audio.svelte-1thnwz {
+	padding: var(--size-2);
+	width: var(--size-full);
+	height: var(--size-14);
+}
+audio.svelte-eemfgq {
+	padding: var(--size-2);
+	width: var(--size-full);
+	height: var(--size-14);
+}

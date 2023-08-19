@@ -1,0 +1,1 @@
+{"version":3,"file":"index-13cc089e.js","sources":["../../../js/app/src/components/Form/index.ts"],"sourcesContent":["export { default as Component } from \"./Form.svelte\";\nexport const modes = [\"static\"];\n"],"names":["modes"],"mappings":"0DACa,MAAAA,EAAQ,CAAC,QAAQ"}
