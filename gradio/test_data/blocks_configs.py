@@ -767,7 +767,6 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "name": "image",
                 "selectable": False,
                 "show_share_button": False,
-                "selectable": False,
             },
         },
         {
@@ -821,7 +820,6 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "name": "image",
                 "selectable": False,
                 "show_share_button": False,
-                "selectable": False,
             },
         },
         {

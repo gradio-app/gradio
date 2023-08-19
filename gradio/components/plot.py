@@ -73,6 +73,18 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
             **kwargs,
         )
 
+    def get_config(self):
+        try:
+            import bokeh  # type: ignore
+
+            bokeh_version = bokeh.__version__
+        except ImportError:
+            bokeh_version = None
+
+        config = super().get_config()
+        config["bokeh_version"] = bokeh_version
+        return config
+
     @staticmethod
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
