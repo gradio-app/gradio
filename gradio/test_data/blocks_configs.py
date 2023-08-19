@@ -632,7 +632,7 @@ XRAY_CONFIG_DIFF_IDS = {
     },
     "dependencies": [
         {
-            "targets": [18],
+            "targets": [8],
             "trigger": "click",
             "inputs": [2, 6],
             "outputs": [7],
