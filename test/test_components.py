@@ -87,6 +87,7 @@ class TestTextbox:
         )
         assert text_input.get_config() == {
             "value": "",
+            "selectable": False,
             "lines": 1,
             "max_lines": 20,
             "placeholder": None,
@@ -464,6 +465,7 @@ class TestCheckbox:
         bool_input = gr.Checkbox(value=True, label="Check Your Input")
         assert bool_input.get_config() == {
             "value": True,
+            "selectable": False,
             "label": "Check Your Input",
             "info": None,
             "show_label": True,
@@ -510,6 +512,7 @@ class TestCheckboxGroup:
         )
         assert checkboxes_input.get_config() == {
             "choices": [("a", "a"), ("b", "b"), ("c", "c")],
+            "selectable": False,
             "value": ["a", "c"],
             "type": "value",
             "label": "Check Your Inputs",
@@ -558,6 +561,7 @@ class TestRadio:
         )
         assert radio_input.get_config() == {
             "choices": [("a", "a"), ("b", "b"), ("c", "c")],
+            "selectable": False,
             "value": None,
             "type": "value",
             "label": "Pick Your One Input",
@@ -615,6 +619,7 @@ class TestDropdown:
         )
         assert dropdown_input_multiselect.get_config() == {
             "choices": ["a", "b", "c"],
+            "selectable": False,
             "value": ["a", "c"],
             "type": "value",
             "multiselect": True,
@@ -675,6 +680,7 @@ class TestImage:
         )
         assert image_input.get_config() == {
             "value": None,
+            "selectable": False,
             "shape": None,
             "height": None,
             "width": None,
@@ -1018,6 +1024,7 @@ class TestFile:
         file_input = gr.File(label="Upload Your File")
         assert file_input.get_config() == {
             "value": None,
+            "selectable": False,
             "file_count": "single",
             "file_types": None,
             "type": "file",
@@ -1124,6 +1131,7 @@ class TestDataframe:
         )
         assert dataframe_input.get_config() == {
             "value": {"headers": ["Name", "Age", "Member"], "data": [["", "", ""]]},
+            "selectable": False,
             "headers": ["Name", "Age", "Member"],
             "row_count": (1, "dynamic"),
             "col_count": (3, "dynamic"),
@@ -1153,6 +1161,7 @@ class TestDataframe:
         dataframe_output = gr.Dataframe()
         assert dataframe_output.get_config() == {
             "value": {"headers": [1, 2, 3], "data": [["", "", ""]]},
+            "selectable": False,
             "headers": [1, 2, 3],
             "row_count": (1, "dynamic"),
             "col_count": (3, "dynamic"),
@@ -1661,6 +1670,7 @@ class TestLabel:
 
         assert label_output.get_config() == {
             "value": {},
+            "selectable": False,
             "num_top_classes": 2,
             "label": None,
             "show_label": True,
@@ -1808,6 +1818,7 @@ class TestHighlightedText:
         ht_output = gr.HighlightedText(color_map={"pos": "green", "neg": "red"})
         assert ht_output.get_config() == {
             "value": None,
+            "selectable": False,
             "color_map": {"pos": "green", "neg": "red"},
             "show_legend": False,
             "combine_adjacent": False,
@@ -1885,6 +1896,7 @@ class TestAnnotatedImage:
         ht_output = gr.AnnotatedImage(label="sections", show_legend=False)
         assert ht_output.get_config() == {
             "value": None,
+            "selectable": False,
             "show_legend": False,
             "height": None,
             "width": None,
@@ -1991,6 +2003,7 @@ class TestChatbot:
 
         assert chatbot.get_config() == {
             "value": [],
+            "selectable": False,
             "label": None,
             "show_label": True,
             "container": True,

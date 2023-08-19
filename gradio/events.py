@@ -343,6 +343,11 @@ class Selectable(EventListener):
         See EventData documentation on how to use this event data.
         """
 
+    def get_config(self):
+        config = super().get_config()
+        config["selectable"] = self.selectable
+        return config
+
 
 class SelectData(EventData):
     def __init__(self, target: Block | None, data: Any):

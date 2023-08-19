@@ -34,6 +34,7 @@ XRAY_CONFIG = {
                 "min_width": 160,
                 "visible": True,
                 "name": "checkboxgroup",
+                "selectable": False,
             },
             "serializer": "ListStringSerializable",
             "api_info": {
@@ -42,8 +43,16 @@ XRAY_CONFIG = {
             },
             "example_inputs": {"raw": ["Covid"], "serialized": ["Covid"]},
         },
-        {"id": 33, "type": "tabs", "props": {"visible": True, "name": "tabs"}},
-        {"id": 34, "type": "tabitem", "props": {"label": "X-ray", "name": "tabitem"}},
+        {
+            "id": 33,
+            "type": "tabs",
+            "props": {"visible": True, "name": "tabs", "selectable": False},
+        },
+        {
+            "id": 34,
+            "type": "tabitem",
+            "props": {"label": "X-ray", "name": "tabitem", "selectable": False},
+        },
         {
             "id": 35,
             "type": "row",
@@ -74,6 +83,7 @@ XRAY_CONFIG = {
                 "mask_opacity": 0.7,
                 "show_share_button": False,
                 "name": "image",
+                "selectable": False,
             },
             "serializer": "ImgSerializable",
             "api_info": {
@@ -119,7 +129,11 @@ XRAY_CONFIG = {
             "api_info": {"info": {"type": "string"}, "serialized_info": False},
             "example_inputs": {"raw": "Howdy!", "serialized": "Howdy!"},
         },
-        {"id": 39, "type": "tabitem", "props": {"label": "CT Scan", "name": "tabitem"}},
+        {
+            "id": 39,
+            "type": "tabitem",
+            "props": {"label": "CT Scan", "name": "tabitem", "selectable": False},
+        },
         {
             "id": 40,
             "type": "row",
@@ -150,6 +164,7 @@ XRAY_CONFIG = {
                 "mask_opacity": 0.7,
                 "show_share_button": False,
                 "name": "image",
+                "selectable": False,
             },
             "serializer": "ImgSerializable",
             "api_info": {
@@ -211,6 +226,7 @@ XRAY_CONFIG = {
                 "rtl": False,
                 "show_copy_button": False,
                 "name": "textbox",
+                "selectable": False,
             },
             "serializer": "StringSerializable",
             "api_info": {"info": {"type": "string"}, "serialized_info": False},
@@ -366,6 +382,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "min_width": 160,
                 "visible": True,
                 "name": "checkboxgroup",
+                "selectable": False,
             },
             "serializer": "ListStringSerializable",
             "api_info": {
@@ -374,8 +391,16 @@ XRAY_CONFIG_DIFF_IDS = {
             },
             "example_inputs": {"raw": ["Covid"], "serialized": ["Covid"]},
         },
-        {"id": 3, "type": "tabs", "props": {"visible": True, "name": "tabs"}},
-        {"id": 4, "type": "tabitem", "props": {"label": "X-ray", "name": "tabitem"}},
+        {
+            "id": 3,
+            "type": "tabs",
+            "props": {"visible": True, "name": "tabs", "selectable": False},
+        },
+        {
+            "id": 4,
+            "type": "tabitem",
+            "props": {"label": "X-ray", "name": "tabitem", "selectable": False},
+        },
         {
             "id": 5,
             "type": "row",
@@ -406,6 +431,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "mask_opacity": 0.7,
                 "show_share_button": False,
                 "name": "image",
+                "selectable": False,
             },
             "serializer": "ImgSerializable",
             "api_info": {
@@ -451,7 +477,11 @@ XRAY_CONFIG_DIFF_IDS = {
             "api_info": {"info": {"type": "string"}, "serialized_info": False},
             "example_inputs": {"raw": "Howdy!", "serialized": "Howdy!"},
         },
-        {"id": 9, "type": "tabitem", "props": {"label": "CT Scan", "name": "tabitem"}},
+        {
+            "id": 9,
+            "type": "tabitem",
+            "props": {"label": "CT Scan", "name": "tabitem", "selectable": False},
+        },
         {
             "id": 10,
             "type": "row",
@@ -482,6 +512,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "mask_opacity": 0.7,
                 "show_share_button": False,
                 "name": "image",
+                "selectable": False,
             },
             "serializer": "ImgSerializable",
             "api_info": {
@@ -543,6 +574,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "rtl": False,
                 "show_copy_button": False,
                 "name": "textbox",
+                "selectable": False,
             },
             "serializer": "StringSerializable",
             "api_info": {"info": {"type": "string"}, "serialized_info": False},
@@ -689,6 +721,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 ],
                 "value": [],
                 "name": "checkboxgroup",
+                "selectable": False,
                 "show_label": True,
                 "label": "Disease to Scan For",
                 "container": True,
@@ -732,6 +765,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "mirror_webcam": True,
                 "tool": "editor",
                 "name": "image",
+                "selectable": False,
                 "show_share_button": False,
                 "selectable": False,
             },
@@ -785,6 +819,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "streaming": False,
                 "mirror_webcam": True,
                 "name": "image",
+                "selectable": False,
                 "show_share_button": False,
                 "selectable": False,
             },
@@ -813,6 +848,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "lines": 1,
                 "value": "",
                 "name": "textbox",
+                "selectable": False,
                 "show_copy_button": False,
                 "type": "text",
                 "rtl": False,
