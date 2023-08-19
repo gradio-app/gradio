@@ -21,8 +21,23 @@
 </Template>
 
 <Story
-	name="Default"
-	args={{ value: "swim", choices: ["run", "swim", "jump"], label: "Dropdown" }}
+	name="Single-select"
+	args={{
+		value: "swim",
+		choices: ["run", "swim", "jump"],
+		multiselect: false,
+		label: "Single-select Dropdown"
+	}}
+/>
+<Story
+	name="Single-select Static"
+	args={{
+		value: "swim",
+		choices: ["run", "swim", "jump"],
+		multiselect: false,
+		disabled: true,
+		label: "Single-select Dropdown"
+	}}
 />
 <Story
 	name="Multiselect"

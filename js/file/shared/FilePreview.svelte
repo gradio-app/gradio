@@ -3,6 +3,7 @@
 	import { display_file_name, display_file_size } from "./utils";
 	import { createEventDispatcher } from "svelte";
 	import type { SelectData } from "@gradio/utils";
+	import { _ } from "svelte-i18n";
 
 	const dispatch = createEventDispatcher<{
 		select: SelectData;
@@ -25,7 +26,7 @@
 					on:click={() =>
 						dispatch("select", {
 							value: file.orig_name || file.name,
-							index: i
+							index: i,
 						})}
 				>
 					<td>
@@ -44,7 +45,7 @@
 								{@html display_file_size(file)}&nbsp;&#8675;
 							</a>
 						{:else}
-							Uploading...
+							{$_('file.uploading')}
 						{/if}
 					</td>
 				</tr>
@@ -64,7 +65,7 @@
 	}
 	.file-preview-holder {
 		overflow-x: auto;
-		overflow-y: scroll;
+		overflow-y: auto;
 	}
 	.file-preview {
 		width: var(--size-full);

@@ -1116,18 +1116,7 @@ class Blocks(BlockContext):
         block_fn = self.fns[fn_index]
         assert block_fn.fn, f"function with index {fn_index} not defined."
         is_generating = False
-
-        if block_fn.inputs_as_dict:
-            processed_input = [dict(zip(block_fn.inputs, processed_input))]
-
         request = requests[0] if isinstance(requests, list) else requests
-        processed_input, progress_index, _ = special_args(
-            block_fn.fn, processed_input, request, event_data
-        )
-        progress_tracker = (
-            processed_input[progress_index] if progress_index is not None else None
-        )
-
         start = time.time()
 
         fn = utils.get_function_with_locals(
@@ -1135,6 +1124,16 @@ class Blocks(BlockContext):
         )
 
         if iterator is None:  # If not a generator function that has already run
+            if block_fn.inputs_as_dict:
+                processed_input = [dict(zip(block_fn.inputs, processed_input))]
+
+            processed_input, progress_index, _ = special_args(
+                block_fn.fn, processed_input, request, event_data
+            )
+            progress_tracker = (
+                processed_input[progress_index] if progress_index is not None else None
+            )
+
             if progress_tracker is not None and progress_index is not None:
                 progress_tracker, fn = create_tracker(
                     self, event_id, fn, progress_tracker.track_tqdm
@@ -1472,8 +1471,11 @@ Received outputs:
             data = list(zip(*data))
             is_generating, iterator = None, None
         else:
-            inputs = self.preprocess_data(fn_index, inputs, state)
             old_iterator = iterators.get(fn_index, None) if iterators else None
+            if old_iterator:
+                inputs = []
+            else:
+                inputs = self.preprocess_data(fn_index, inputs, state)
             was_generating = old_iterator is not None
             result = await self.call_function(
                 fn_index,
