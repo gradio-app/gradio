@@ -58,13 +58,22 @@ def upload_demo_to_space(
                             sdk_version: {gradio_version}
                             app_file: run.py
                             pinned: false
+                            hf_oauth: true
                             ---
                             """
         readme.open("w").write(textwrap.dedent(readme_content))
 
         if gradio_wheel_url:
-            with open(os.path.join(tmpdir, "requirements.txt"), "a+") as r:
-                r.write("\n"+gradio_wheel_url)
+            requirements_path = os.path.join(tmpdir, "requirements.txt")
+            if not os.path.exists(requirements_path):
+                with open(os.path.join(requirements_path), "w") as f:
+                    f.write(gradio_wheel_url)
+            else:
+                with open(os.path.join(requirements_path), "r") as f:
+                    content = f.read()
+                with open(os.path.join(requirements_path), "w") as f:
+                    f.seek(0, 0)
+                    f.write(gradio_wheel_url + '\n' + content)
 
         api = huggingface_hub.HfApi()
         huggingface_hub.create_repo(
