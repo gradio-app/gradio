@@ -10,6 +10,7 @@ on:
       - main
 jobs:
   upload-wheel-aws:
+    if: github.event.pull_request.merged == true || github.event.action == ''
     name: Upload Demos
     runs-on: ubuntu-latest
     steps:
