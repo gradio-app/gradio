@@ -18,6 +18,12 @@
 		data: [["", "", ""]],
 		headers: ["1", "2", "3"]
 	};
+	export let latex_delimiters: {
+		left: string;
+		right: string;
+		display: boolean;
+	}[];
+
 	let old_value: string = JSON.stringify(value);
 	export let value_is_output = false;
 	export let col_count: [number, "fixed" | "dynamic"];
@@ -80,5 +86,6 @@
 		editable
 		{wrap}
 		{datatype}
+		{latex_delimiters}
 	/>
 </Block>
