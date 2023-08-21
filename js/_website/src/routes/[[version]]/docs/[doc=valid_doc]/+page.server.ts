@@ -106,6 +106,11 @@ export async function load({ params, parent }) {
 			event_listeners.push(obj?.fns[fn]);
 		}
 	}
+	let event_listener_docs: any = {...event_listeners[0]};
+	event_listener_docs.name = "Event Listeners";
+	event_listener_docs.slug = "event-listeners";
+	event_listener_docs.description = "Event listeners are functions that are called when an event is triggered. Every event listener takes the same arguments, shown in the arguments table below.";
+	event_listener_docs.listeners = event_listeners.map((listener: any) => listener.name);
 
 	return {
 		name,
@@ -118,6 +123,7 @@ export async function load({ params, parent }) {
 		COLOR_SETS,
 		headers,
 		method_headers,
-		event_listeners
+		event_listeners,
+		event_listener_docs
 	};
 }

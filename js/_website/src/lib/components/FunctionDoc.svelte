@@ -30,7 +30,7 @@
 			>
 		</h3>
 	</div>
-
+	
 	{#if fn.override_signature}
 		<div class="codeblock bg-gray-50 mx-auto p-3">
 			<pre><code class="code language-python">{fn.override_signature}</code
@@ -66,6 +66,16 @@
 		>
 	</h4>
 	<p class="mb-2 text-lg">{@html fn.description}</p>
+
+	{#if fn.listeners} 
+	<p class="mb-2 text-lg">
+		{parent} has the following listeners: {#each fn.listeners as listener}<span class="text-orange-500 font-light"><a href="#{parent.toLowerCase()}-{listener}">{listener}</a></span>&nbsp&nbsp {/each} 
+	</p>
+	
+	<p class="mb-2 text-lg">
+		You can read more about each further below.
+	</p>
+	{/if}
 
 	{#if fn.example}
 		<h4
