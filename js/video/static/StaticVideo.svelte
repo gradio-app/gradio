@@ -1,7 +1,7 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import type { Gradio, ShareData } from "@gradio/utils";
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
 	import { Block } from "@gradio/atoms";
@@ -31,6 +31,19 @@
 	export let min_width: number | undefined = undefined;
 	export let autoplay = false;
 	export let show_share_button = true;
+	export let gradio: Gradio<{
+		change: never;
+		clear: never;
+		play: never;
+		pause: never;
+		upload: never;
+		stop: never;
+		end: never;
+		start_recording: never;
+		stop_recording: never;
+		share: ShareData;
+		error: string;
+	}>;
 
 	let _video: FileData | null = null;
 	let _subtitle: FileData | null = null;
@@ -47,14 +60,10 @@
 
 	let dragging = false;
 
-	const dispatch = createEventDispatcher<{
-		change: undefined;
-	}>();
-
 	$: {
 		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
 			old_value = value;
-			dispatch("change");
+			gradio.dispatch("change");
 		}
 	}
 </script>
@@ -82,10 +91,10 @@
 		{show_label}
 		{autoplay}
 		{show_share_button}
-		on:play
-		on:pause
-		on:stop
-		on:share
-		on:error
+		on:play={() => gradio.dispatch("play")}
+		on:pause={() => gradio.dispatch("pause")}
+		on:stop={() => gradio.dispatch("stop")}
+		on:share={({ detail }) => gradio.dispatch("share", detail)}
+		on:error={({ detail }) => gradio.dispatch("error", detail)}
 	/>
 </Block>

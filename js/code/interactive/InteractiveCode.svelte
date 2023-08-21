@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Gradio } from "@gradio/utils";
 	import { createEventDispatcher, afterUpdate } from "svelte";
 
 	import type { LoadingStatus } from "@gradio/statustracker";
@@ -24,13 +25,19 @@
 	export let label = $_("code.code");
 	export let show_label = true;
 	export let loading_status: LoadingStatus;
+	export let gradio: Gradio<{
+		change: typeof value;
+		input: never;
+	}>;
 
 	let dark_mode = target.classList.contains("dark");
 
 	function handle_change(): void {
 		dispatch("change", value);
+		gradio.dispatch("change", value);
 		if (!value_is_output) {
 			dispatch("input");
+			gradio.dispatch("input");
 		}
 	}
 	afterUpdate(() => {

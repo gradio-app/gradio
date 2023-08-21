@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Gradio } from "@gradio/utils";
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
 	import Model3DUpload from "./Model3DUpload.svelte";
@@ -21,6 +22,10 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+	export let gradio: Gradio<{
+		change: typeof value;
+		clear: never;
+	}>;
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root, root_url);
@@ -48,8 +53,8 @@
 		value={_value}
 		on:change={({ detail }) => (value = detail)}
 		on:drag={({ detail }) => (dragging = detail)}
-		on:change
-		on:clear
+		on:change={({ detail }) => gradio.dispatch("change", detail)}
+		on:clear={() => gradio.dispatch("clear")}
 	>
 		<UploadText type="file" />
 	</Model3DUpload>
