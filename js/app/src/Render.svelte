@@ -17,18 +17,35 @@
 	export let theme_mode: ThemeMode;
 
 	const dispatch = createEventDispatcher<{ mount: number; destroy: number }>();
+	let filtered_children: ComponentMeta[] = [];
 
 	onMount(() => {
 		dispatch("mount", id);
 
-		return () => dispatch("destroy", id);
+		for (const child of filtered_children) {
+			dispatch("mount", child.id);
+		}
+
+		return () => {
+			dispatch("destroy", id);
+
+			for (const child of filtered_children) {
+				dispatch("mount", child.id);
+			}
+		};
 	});
 
 	$: children =
 		children &&
-		children.filter((v) => instance_map[v.id].type !== "statustracker");
+		children.filter((v) => {
+			const valid_node = instance_map[v.id].type !== "statustracker";
+			if (!valid_node) {
+				filtered_children.push(v);
+			}
+			return valid_node;
+		});
 
-	setContext("BLOCK_KEY", parent);
+	$: setContext("BLOCK_KEY", parent);
 
 	function handle_prop_change(e: { detail: Record<string, any> }): void {
 		for (const k in e.detail) {
