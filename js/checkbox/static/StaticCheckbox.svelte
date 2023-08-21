@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Gradio } from "@gradio/utils";
 	import Checkbox from "../shared";
 	import { Block, Info } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
@@ -15,6 +16,11 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
+	export let gradio: Gradio<{
+		change: never;
+		select: never;
+		input: never;
+	}>;
 </script>
 
 <Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
@@ -27,9 +33,9 @@
 		{label}
 		bind:value
 		bind:value_is_output
-		on:change
-		on:input
-		on:select
+		on:change={() => gradio.dispatch("change")}
+		on:input={() => gradio.dispatch("input")}
+		on:select={() => gradio.dispatch("select")}
 		disabled
 	/>
 </Block>

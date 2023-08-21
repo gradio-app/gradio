@@ -1,6 +1,7 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
+	import type { Gradio, ShareData } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
 	import { _ } from "svelte-i18n";
 
@@ -12,6 +13,7 @@
 	import { Block } from "@gradio/atoms";
 
 	import { normalise_file } from "@gradio/upload";
+	import type { S } from "@storybook/theming/dist/create-c2b2ce6d";
 
 	const dispatch = createEventDispatcher<{
 		change: typeof value;
@@ -36,6 +38,11 @@
 	export let autoplay = false;
 	export let show_download_button = true;
 	export let show_share_button = false;
+	export let gradio: Gradio<{
+		change: typeof value;
+		share: ShareData;
+		error: string;
+	}>;
 
 	let old_value: null | FileData | string = null;
 
@@ -46,6 +53,7 @@
 		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
 			old_value = value;
 			dispatch("change");
+			gradio.dispatch("change");
 		}
 	}
 
@@ -75,7 +83,7 @@
 		value={_value}
 		name={_value?.name || "audio_file"}
 		{label}
-		on:share
-		on:error
+		on:share={(e) => gradio.dispatch("share", e.detail)}
+		on:error={(e) => gradio.dispatch("error", e.detail)}
 	/>
 </Block>

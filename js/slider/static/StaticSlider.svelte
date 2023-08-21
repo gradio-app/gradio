@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Gradio, ShareData } from "@gradio/utils";
 	import Slider from "../shared";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
@@ -21,6 +22,11 @@
 
 	export let loading_status: LoadingStatus;
 	export let value_is_output = false;
+	export let gradio: Gradio<{
+		change: never;
+		input: never;
+		release: number;
+	}>;
 </script>
 
 <Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
@@ -36,8 +42,8 @@
 		{maximum}
 		{step}
 		disabled
-		on:input
-		on:change
-		on:release
+		on:input={() => gradio.dispatch("input")}
+		on:change={() => gradio.dispatch("change")}
+		on:release={(e) => gradio.dispatch("release", e.detail)}
 	/>
 </Block>

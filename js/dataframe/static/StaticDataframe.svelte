@@ -1,9 +1,11 @@
 <script lang="ts">
+	import type { Gradio, SelectData } from "@gradio/utils";
 	import { Block } from "@gradio/atoms";
 	import Table from "../shared";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { createEventDispatcher, afterUpdate } from "svelte";
+	import type { S } from "@storybook/theming/dist/create-c2b2ce6d";
 
 	type Headers = string[];
 	type Data = (string | number)[][];
@@ -26,6 +28,11 @@
 	export let datatype: Datatype | Datatype[];
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+	export let gradio: Gradio<{
+		change: never;
+		select: SelectData;
+		input: never;
+	}>;
 
 	const dispatch = createEventDispatcher();
 
@@ -33,8 +40,10 @@
 
 	function handle_change(): void {
 		dispatch("change", value);
+		gradio.dispatch("change");
 		if (!value_is_output) {
 			dispatch("input");
+			gradio.dispatch("input");
 		}
 	}
 	afterUpdate(() => {
@@ -68,7 +77,7 @@
 		on:change={({ detail }) => {
 			value = detail;
 		}}
-		on:select
+		on:select={(e) => gradio.dispatch("select", e.detail)}
 		{wrap}
 		{datatype}
 		editable={false}

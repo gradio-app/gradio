@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import type { Gradio, SelectData } from "@gradio/utils";
 	import HighlightedText from "./Highlightedtext.svelte";
 	import { Block, BlockLabel, Empty } from "@gradio/atoms";
 	import { TextHighlight } from "@gradio/icons";
@@ -19,6 +19,10 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let selectable = false;
+	export let gradio: Gradio<{
+		select: SelectData;
+		change: never;
+	}>;
 
 	$: if (!color_map && Object.keys(color_map).length) {
 		color_map = color_map;
@@ -26,12 +30,10 @@
 
 	export let loading_status: LoadingStatus;
 
-	const dispatch = createEventDispatcher<{ change: undefined }>();
-
 	$: {
 		if (value !== old_value) {
 			old_value = value;
-			dispatch("change");
+			gradio.dispatch("change");
 		}
 	}
 </script>
@@ -57,7 +59,13 @@
 	{/if}
 
 	{#if value}
-		<HighlightedText on:select {selectable} {value} {show_legend} {color_map} />
+		<HighlightedText
+			on:select={({ detail }) => gradio.dispatch("select", detail)}
+			{selectable}
+			{value}
+			{show_legend}
+			{color_map}
+		/>
 	{:else}
 		<Empty>
 			<TextHighlight />

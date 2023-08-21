@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tick } from "svelte";
+	import { onMount, tick } from "svelte";
 	import { _ } from "svelte-i18n";
 	import type { client } from "@gradio/client";
 
@@ -11,7 +11,7 @@
 		ComponentMeta,
 		Dependency,
 		LayoutNode,
-		Documentation,
+		Documentation
 	} from "./components/types";
 	import { setupi18n } from "./i18n";
 	import Render from "./Render.svelte";
@@ -23,6 +23,7 @@
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
+	import { EffectWrapper } from "babylonjs";
 
 	setupi18n();
 
@@ -42,6 +43,7 @@
 	export let theme_mode: ThemeMode;
 	export let app: Awaited<ReturnType<typeof client>>;
 	export let space_id: string | null;
+	export let version: string;
 
 	let loading_status = create_loading_status_store();
 
@@ -53,7 +55,7 @@
 		props: { mode: "static" },
 		has_modes: false,
 		instance: {} as ComponentMeta["instance"],
-		component: {} as ComponentMeta["component"],
+		component: {} as ComponentMeta["component"]
 	};
 
 	components.push(rootNode);
@@ -125,10 +127,13 @@
 		);
 	}
 
-	let instance_map = components.reduce((acc, next) => {
-		acc[next.id] = next;
-		return acc;
-	}, {} as { [id: number]: ComponentMeta });
+	let instance_map = components.reduce(
+		(acc, next) => {
+			acc[next.id] = next;
+			return acc;
+		},
+		{} as { [id: number]: ComponentMeta }
+	);
 
 	type LoadedComponent = {
 		default: ComponentMeta["component"];
@@ -146,7 +151,7 @@
 			const c = await component_map[name][mode]();
 			return {
 				name,
-				component: c as LoadedComponent,
+				component: c as LoadedComponent
 			};
 		} catch (e) {
 			if (mode === "interactive") {
@@ -154,7 +159,7 @@
 					const c = await component_map[name]["static"]();
 					return {
 						name,
-						component: c as LoadedComponent,
+						component: c as LoadedComponent
 					};
 				} catch (e) {
 					console.error(`failed to load: ${name}`);
@@ -302,7 +307,7 @@
 			message,
 			fn_index,
 			type,
-			id: ++_error_id,
+			id: ++_error_id
 		};
 	}
 
@@ -353,7 +358,7 @@
 		let payload = {
 			fn_index: dep_index,
 			data: dep.inputs.map((id) => instance_map[id].props.value),
-			event_data: dep.collects_event_data ? event_data : null,
+			event_data: dep.collects_event_data ? event_data : null
 		};
 
 		if (dep.frontend_fn) {
@@ -389,7 +394,7 @@
 						...status,
 						status: status.stage,
 						progress: status.progress_data,
-						fn_index,
+						fn_index
 					});
 					if (
 						!showed_duplicate_message &&
@@ -402,7 +407,7 @@
 						showed_duplicate_message = true;
 						messages = [
 							new_message(DUPLICATE_MESSAGE, fn_index, "warning"),
-							...messages,
+							...messages
 						];
 					}
 					if (
@@ -414,7 +419,7 @@
 						showed_mobile_warning = true;
 						messages = [
 							new_message(MOBILE_QUEUE_WARNING, fn_index, "warning"),
-							...messages,
+							...messages
 						];
 					}
 
@@ -431,7 +436,7 @@
 						window.setTimeout(() => {
 							messages = [
 								new_message(MOBILE_RECONNECT_MESSAGE, fn_index, "error"),
-								...messages,
+								...messages
 							];
 						}, 0);
 						trigger_api_call(dep_index, event_data);
@@ -444,7 +449,7 @@
 							);
 							messages = [
 								new_message(_message, fn_index, "error"),
-								...messages,
+								...messages
 							];
 						}
 						dependencies.map(async (dep, i) => {
@@ -509,61 +514,61 @@
 			let { targets, trigger, inputs, outputs } = dep;
 			const target_instances: [number, ComponentMeta][] = targets.map((t) => [
 				t,
-				instance_map[t],
+				instance_map[t]
 			]);
 
 			// page events
-			if (
-				targets.length === 0 &&
-				!handled_dependencies[i]?.includes(-1) &&
-				trigger === "load" &&
-				// check all input + output elements are on the page
-				outputs.every((v) => instance_map?.[v].instance) &&
-				inputs.every((v) => instance_map?.[v].instance)
-			) {
-				trigger_api_call(i);
-				handled_dependencies[i] = [-1];
-			}
+			// if (
+			// 	targets.length === 0 &&
+			// 	!handled_dependencies[i]?.includes(-1) &&
+			// 	trigger === "load" &&
+			// 	// check all input + output elements are on the page
+			// 	outputs.every((v) => instance_map?.[v].instance) &&
+			// 	inputs.every((v) => instance_map?.[v].instance)
+			// ) {
+			// 	trigger_api_call(i);
+			// 	handled_dependencies[i] = [-1];
+			// }
 
 			// component events
-			target_instances
-				.filter((v) => !!v && !!v[1])
-				.forEach(([id, { instance }]: [number, ComponentMeta]) => {
-					if (handled_dependencies[i]?.includes(id) || !instance) return;
-					instance?.$on(trigger, (event_data: any) => {
-						trigger_api_call(i, event_data.detail);
-					});
+			// 	target_instances
+			// 		.filter((v) => !!v && !!v[1])
+			// 		.forEach(([id, { instance }]: [number, ComponentMeta]) => {
+			// 			if (handled_dependencies[i]?.includes(id) || !instance) return;
+			// 			instance?.$on(trigger, (event_data: any) => {
+			// 				trigger_api_call(i, event_data.detail);
+			// 			});
 
-					if (!handled_dependencies[i]) handled_dependencies[i] = [];
-					handled_dependencies[i].push(id);
-				});
-		});
-		// share events
-		components.forEach((c) => {
-			if (
-				c.props.show_share_button &&
-				!shareable_components.includes(c.id) // only one share listener per component
-			) {
-				shareable_components.push(c.id);
-				c.instance.$on("share", (event_data) => {
-					const { title, description } = event_data.detail as ShareData;
-					trigger_share(title, description);
-				});
-			}
-		});
+			// 			if (!handled_dependencies[i]) handled_dependencies[i] = [];
+			// 			handled_dependencies[i].push(id);
+			// 		});
+			// });
+			// share events
+			// components.forEach((c) => {
+			// 	if (
+			// 		c.props.show_share_button &&
+			// 		!shareable_components.includes(c.id) // only one share listener per component
+			// 	) {
+			// 		shareable_components.push(c.id);
+			// 		c.instance.$on("share", (event_data) => {
+			// 			const { title, description } = event_data.detail as ShareData;
+			// 			trigger_share(title, description);
+			// 		});
+			// 	}
+			// });
 
-		components.forEach((c) => {
-			if (!attached_error_listeners.includes(c.id)) {
-				if (c.instance) {
-					attached_error_listeners.push(c.id);
-					c.instance.$on("error", (event_data: any) => {
-						messages = [
-							new_message(event_data.detail, -1, "error"),
-							...messages,
-						];
-					});
-				}
-			}
+			// components.forEach((c) => {
+			// 	if (!attached_error_listeners.includes(c.id)) {
+			// 		if (c.instance) {
+			// 			attached_error_listeners.push(c.id);
+			// 			c.instance.$on("error", (event_data: any) => {
+			// 				messages = [
+			// 					new_message(event_data.detail, -1, "error"),
+			// 					...messages
+			// 				];
+			// 			});
+			// 		}
+			// 	}
 		});
 	}
 
@@ -593,6 +598,58 @@
 			set_prop(instance_map[id], "pending", pending_status === "pending");
 		}
 	}
+
+	const target_map: Record<number, Record<string, number[]>> = {};
+
+	function isCustomEvent(event: Event): event is CustomEvent {
+		return "detail" in event;
+	}
+
+	onMount(() => {
+		dependencies.forEach((dep, i) => {
+			let { targets, trigger, inputs, outputs } = dep;
+			const target_instances: [number, ComponentMeta][] = targets.map((t) => [
+				t,
+				instance_map[t]
+			]);
+
+			target_instances.forEach(([id]) => {
+				if (!target_map[id]) {
+					target_map[id] = {};
+				}
+				if (target_map[id]?.[trigger]) {
+					target_map[id][trigger].push(i);
+				} else {
+					target_map[id][trigger] = [i];
+				}
+			});
+
+			if (targets.length === 0 && trigger === "load") {
+				trigger_api_call(i);
+			}
+		});
+
+		target.addEventListener("gradio", (e: Event) => {
+			if (!isCustomEvent(e)) throw new Error("not a custom event");
+
+			console.log(e, target_map);
+
+			const { id, event, data } = e.detail;
+
+			if (event === "share") {
+				const { title, description } = data as ShareData;
+				trigger_share(title, description);
+			} else if (event === "error") {
+				messages = [new_message(data, -1, "error"), ...messages];
+			}
+
+			const deps = target_map[id]?.[event];
+			// console.log(deps);
+			deps?.forEach((dep_id) => {
+				trigger_api_call(dep_id, data);
+			});
+		});
+	});
 </script>
 
 <svelte:head>
@@ -631,6 +688,7 @@
 				{theme_mode}
 				on:mount={handle_mount}
 				on:destroy={({ detail }) => handle_destroy(detail)}
+				{version}
 			/>
 		{/if}
 	</div>

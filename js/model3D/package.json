@@ -12,6 +12,7 @@
 		"@gradio/icons": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/upload": "workspace:^",
+		"@gradio/utils": "workspace:^",
 		"babylonjs": "^4.2.1",
 		"babylonjs-loaders": "^4.2.1"
 	},

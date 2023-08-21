@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { Gradio, ShareData } from "@gradio/utils";
+
 	import Button from "./Button.svelte";
 	import { _ } from "svelte-i18n";
 
@@ -13,6 +15,9 @@
 	export let icon: string | null = null;
 	export let link: string | null = null;
 	export let min_width: number | undefined = undefined;
+	export let gradio: Gradio<{
+		click: never;
+	}>;
 </script>
 
 <Button
@@ -27,7 +32,7 @@
 	{min_width}
 	{visible}
 	disabled={mode === "static"}
-	on:click
+	on:click={() => gradio.dispatch("click")}
 >
 	{$_(value)}
 </Button>

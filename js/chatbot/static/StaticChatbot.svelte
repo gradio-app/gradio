@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { Gradio, SelectData } from "@gradio/utils";
+
 	import ChatBot from "./ChatBot.svelte";
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import type { LoadingStatus } from "@gradio/statustracker";
@@ -28,6 +30,12 @@
 		right: string;
 		display: boolean;
 	}[];
+	export let gradio: Gradio<{
+		change: typeof value;
+		select: SelectData;
+		share: ShareData;
+		error: string;
+	}>;
 
 	let _value: [string | FileData | null, string | FileData | null][];
 
@@ -84,10 +92,10 @@
 			pending_message={loading_status?.status === "pending"}
 			{rtl}
 			{show_copy_button}
-			on:change
-			on:select
-			on:share
-			on:error
+			on:change={() => gradio.dispatch("change", value)}
+			on:select={(e) => gradio.dispatch("select", e.detail)}
+			on:share={(e) => gradio.dispatch("share", e.detail)}
+			on:error={(e) => gradio.dispatch("error", e.detail)}
 		/>
 	</div>
 </Block>

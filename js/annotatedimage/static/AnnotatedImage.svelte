@@ -1,11 +1,12 @@
 <script lang="ts">
+	import type { Gradio, SelectData } from "@gradio/utils";
+
 	import { createEventDispatcher } from "svelte";
 	import { Block, BlockLabel, Empty } from "@gradio/atoms";
 	import { Image } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { type FileData, normalise_file } from "@gradio/upload";
-	import type { SelectData } from "@gradio/utils";
 	import { _ } from "svelte-i18n";
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -26,6 +27,10 @@
 	export let root_url: string;
 	let active: string | null = null;
 	export let loading_status: LoadingStatus;
+	export let gradio: Gradio<{
+		change: undefined;
+		select: SelectData;
+	}>;
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -36,14 +41,15 @@
 		if (value !== old_value) {
 			old_value = value;
 			dispatch("change");
+			gradio.dispatch("change");
 		}
 		if (value) {
 			_value = [
 				normalise_file(value[0], root, root_url) as FileData,
 				value[1].map(([file, _label]) => [
 					normalise_file(file, root, root_url) as FileData,
-					_label,
-				]),
+					_label
+				])
 			];
 		} else {
 			_value = null;
@@ -54,6 +60,17 @@
 	}
 	function handle_mouseout(): void {
 		active = null;
+	}
+
+	function handle_click(i: number): void {
+		dispatch("select", {
+			value: label,
+			index: i
+		});
+		gradio.dispatch("select", {
+			value: label,
+			index: i
+		});
 	}
 </script>
 
@@ -115,7 +132,7 @@
 							on:focus={() => handle_mouseover(label)}
 							on:mouseout={() => handle_mouseout()}
 							on:blur={() => handle_mouseout()}
-							on:click={() => dispatch("select", { index: i, value: label })}
+							on:click={() => handle_click(i)}
 						>
 							{label}
 						</div>
