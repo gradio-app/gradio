@@ -300,6 +300,9 @@ def hello_world_with_state_and_accordion():
 
 @pytest.fixture
 def stream_audio():
+    import pathlib
+    import tempfile
+
     def _stream_audio(audio_file):
         audio = AudioSegment.from_mp3(audio_file)
         i = 0
@@ -309,7 +312,7 @@ def stream_audio():
             chunk = audio[chunk_size * i : chunk_size * (i + 1)]
             i += 1
             if chunk:
-                file = f"/tmp/{i}.wav"
+                file = str(pathlib.Path(tempfile.gettempdir()) / f"{i}.wav")
                 chunk.export(file, format="wav")
                 yield file
 
