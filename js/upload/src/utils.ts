@@ -57,6 +57,25 @@ export function normalise_file(
 	return file;
 }
 
+function is_url(str: string): boolean {
+	try {
+	  const url = new URL(str);
+	  return url.protocol === "http:" || url.protocol === "https:";
+	} catch {
+	  return false;
+	}
+  }
+  
+export function get_fetchable_url_or_file(path: string | null, root: string, root_url: string | null): string {
+	if (path == null) {
+		return root_url ? "proxy=" + root_url + "file=" : root + "/file=";	
+	} 
+	if (is_url(path)) {
+		return path;
+	} 
+	return root_url ? "proxy=" + root_url + "file=" : root + "/file=" + path;
+}
+
 export const blobToBase64 = (blob: File): Promise<string> => {
 	const reader = new FileReader();
 	reader.readAsDataURL(blob);

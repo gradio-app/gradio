@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { get_fetchable_url_or_file } from "@gradio/upload";
+
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -10,6 +12,9 @@
 	export let disabled = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+	export let root: string;
+	export let root_url: null | string;
+	$: icon_path = get_fetchable_url_or_file(icon, root, root_url);
 </script>
 
 {#if link && link.length > 0}
@@ -29,7 +34,7 @@
 		id={elem_id}
 	>
 		{#if icon}
-			<img class="button-icon" src={icon} alt={`${value}-icon`} />
+			<img class="button-icon" src={icon_path} alt={`${value}-icon`} />
 		{/if}
 		<slot />
 	</a>
@@ -47,7 +52,7 @@
 		{disabled}
 	>
 		{#if icon}
-			<img class="button-icon" src={icon} alt={`${value}-icon`} />
+			<img class="button-icon" src={icon_path} alt={`${value}-icon`} />
 		{/if}
 		<slot />
 	</button>
