@@ -13,6 +13,11 @@
 	export let value = "";
 	export let loading_status: LoadingStatus;
 	export let rtl = false;
+	export let latex_delimiters: {
+		left: string;
+		right: string;
+		display: boolean;
+	}[];
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
@@ -29,6 +34,7 @@
 			{elem_classes}
 			{visible}
 			{rtl}
+			{latex_delimiters}
 			on:change
 		/>
 	</div>
