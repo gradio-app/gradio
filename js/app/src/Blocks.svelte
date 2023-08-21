@@ -45,7 +45,7 @@
 
 	let loading_status = create_loading_status_store();
 
-	const rendered_node_ids = new Set();
+	const walked_node_ids = new Set();
 	const mounted_node_ids = new Set();
 
 	$: app_state.update((s) => ({ ...s, autoscroll }));
@@ -184,7 +184,7 @@
 
 	async function walk_layout(node: LayoutNode): Promise<void> {
 		let instance = instance_map[node.id];
-		rendered_node_ids.add(node.id);
+		walked_node_ids.add(node.id);
 
 		const _component = (await _component_map.get(
 			`${instance.type}_${_type_for_id.get(node.id) || "static"}`
@@ -497,7 +497,9 @@
 
 	let attached_error_listeners: number[] = [];
 	let shareable_components: number[] = [];
-	async function handle_mount(): Promise<void> {
+	async function handle_mount({ detail }: { detail: number }): Promise<void> {
+		mounted_node_ids.add(detail);
+
 		await tick();
 
 		var a = target.getElementsByTagName("a");
@@ -605,7 +607,7 @@
 	}
 
 	function checkRenderCompletion(): void {
-		if (dequal(rendered_node_ids, mounted_node_ids)) {
+		if (dequal(walked_node_ids, mounted_node_ids)) {
 			render_complete = true;
 		}
 	}
