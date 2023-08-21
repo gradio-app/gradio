@@ -13,8 +13,8 @@
 	export let icon: string | null = null;
 	export let link: string | null = null;
 	export let min_width: number | undefined = undefined;
-	export let root: string;
-	export let root_url: null | string;
+	export let root = "";
+	export let root_url: null | string = null;
 </script>
 
 <Button
