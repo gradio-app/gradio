@@ -1140,6 +1140,7 @@ class TestDataframe:
             "interactive": None,
             "root_url": None,
             "wrap": False,
+            "height": None,
             "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
         }
         dataframe_input = gr.Dataframe()
@@ -1175,6 +1176,7 @@ class TestDataframe:
             "interactive": None,
             "root_url": None,
             "wrap": False,
+            "height": None,
             "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
         }
 
