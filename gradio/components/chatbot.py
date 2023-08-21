@@ -54,7 +54,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         rtl: bool = False,
         show_share_button: bool | None = None,
         show_copy_button: bool = False,
-        avatar_images: list[str | Path | None] | None = None,
+        avatar_images: tuple[str | Path | None] | None = None,
         **kwargs,
     ):
         """
@@ -75,7 +75,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             rtl: If True, sets the direction of the rendered text to right-to-left. Default is False, which renders text left-to-right.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             show_copy_button: If True, will show a copy button for each chatbot message.
-            avatar_images: List of two avatar image paths for user and bot (in that order). Pass None for either the user or bot image to skip.
+            avatar_images: Tuple of two avatar image paths for user and bot (in that order). Pass None for either the user or bot image to skip.
         """
         if color_map is not None:
             warn_deprecation("The 'color_map' parameter has been deprecated.")
@@ -114,7 +114,6 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         if avatar_images is not None:
             for avatar in avatar_images:
                 if isinstance(avatar, (str, Path)):
-
                     self.avatar_images.append(
                         {
                             "orig_name": Path(avatar).name,
@@ -126,6 +125,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
                     )
                 else:
                     self.avatar_images.append(None)
+        self.avatar_images = tuple(self.avatar_images)
 
     def get_config(self):
         return {
@@ -156,7 +156,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         show_share_button: bool | None = None,
         show_copy_button: bool | None = None,
-        avatar_images: list[str | Path | None] | None = None,
+        avatar_images: tuple[str | Path | None] | None = None,
     ):
         updated_config = {
             "label": label,
