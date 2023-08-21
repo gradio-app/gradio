@@ -4,7 +4,7 @@
 	import type { SvelteComponent, ComponentType } from "svelte";
 	import { component_map } from "./directory";
 	import type { SelectData } from "@gradio/utils";
-	import {get_fetchable_url_or_file} from "@gradio/upload";
+	import { get_fetchable_url_or_file } from "@gradio/upload";
 
 	export let components: (keyof typeof component_map)[];
 	export let label = "Examples";
