@@ -94,7 +94,7 @@
 	let app_id: string | null = null;
 	let wrapper: HTMLDivElement;
 	let ready = false;
-	let renderComplete = false;
+	let render_complete = false;
 	let config: Config;
 	let loading_text = "Loading...";
 	let active_theme_mode: ThemeMode;
@@ -286,7 +286,7 @@
 		intersecting.register(_id, wrapper);
 	});
 
-	$: if (renderComplete) {
+	$: if (render_complete) {
 		wrapper.dispatchEvent(
 			new CustomEvent("render", {
 				bubbles: true,
@@ -354,7 +354,7 @@
 			target={wrapper}
 			{autoscroll}
 			bind:ready
-			bind:renderComplete
+			bind:render_complete
 			show_footer={!is_embed}
 			{app_mode}
 		/>

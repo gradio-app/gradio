@@ -215,7 +215,7 @@
 	});
 
 	export let ready = false;
-	export let renderComplete = false;
+	export let render_complete = false;
 	Promise.all(Array.from(component_set)).then(() => {
 		walk_layout(layout)
 			.then(async () => {
@@ -611,7 +611,7 @@
 
 	function checkRenderCompletion(): void {
 		if (dequal(renderedNodeIds, mountedNodeIds)) {
-			renderComplete = true;
+			render_complete = true;
 		}
 	}
 </script>
