@@ -54,7 +54,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         rtl: bool = False,
         show_share_button: bool | None = None,
         show_copy_button: bool = False,
-        avatar_images: tuple[str | Path | None] | None = None,
+        avatar_images: tuple[str | Path | None, str | Path | None] | None = None,
         **kwargs,
     ):
         """
@@ -110,8 +110,8 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             value=value,
             **kwargs,
         )
-        self.avatar_images = []
         if avatar_images is not None:
+            self.avatar_images = []
             for avatar in avatar_images:
                 if isinstance(avatar, (str, Path)):
                     self.avatar_images.append(
@@ -125,7 +125,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
                     )
                 else:
                     self.avatar_images.append(None)
-        self.avatar_images = tuple(self.avatar_images)
+            self.avatar_images = tuple(self.avatar_images)
 
     def get_config(self):
         return {
