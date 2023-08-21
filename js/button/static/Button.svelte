@@ -12,8 +12,8 @@
 	export let disabled = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let root: string;
-	export let root_url: null | string;
+	export let root = "";
+	export let root_url: string | null = null;
 	$: icon_path = get_fetchable_url_or_file(icon, root, root_url);
 </script>
 
