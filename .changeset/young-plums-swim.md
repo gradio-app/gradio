@@ -1,6 +1,6 @@
 ---
-"@gradio/app": minor
-"gradio": minor
+"@gradio/app": patch
+"gradio": patch
 ---
 
-feat:Ensure `Blocks` translation copy renders correctly
+fix:Ensure `Blocks` translation copy renders correctly
