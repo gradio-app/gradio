@@ -99,7 +99,7 @@ def watchfn(reload_config: ReloadConfig):
                 mtimes[file] = mtime
                 continue
             elif mtime > old_time:
-                return [file]
+                return file
         return []
 
     def iter_py_files() -> Iterator[Path]:
@@ -113,16 +113,15 @@ def watchfn(reload_config: ReloadConfig):
     while not reload_config.event.is_set():
         import sys
 
-        changes = get_changes()
-        if changes:
-            print(f"Changes detected in: {','.join(str(f) for f in changes)}")
+        changed = get_changes()
+        if changed:
+            print(f"Changes detected in: {changed}")
             # Delete all references to local files in sys.modules so we can load
             # them fresh
+            dir_ = next(d for d in reload_dirs if changed.is_relative_to(d))
             for k, v in list(sys.modules.items()):
                 sourcefile = getattr(v, "__file__", None)
-                if sourcefile and any(
-                    Path(sourcefile).is_relative_to(p) for p in reload_dirs
-                ):
+                if sourcefile and Path(sourcefile).is_relative_to(dir_):
                     del sys.modules[k]
             module = importlib.import_module(reload_config.watch_file)
             module = importlib.reload(module)
