@@ -87,7 +87,7 @@ class ReloadConfig:
 def watchfn(reload_config: ReloadConfig):
     """Watch python files in a given module."""
 
-    def get_changes():
+    def get_changes() -> Path | None:
         for file in iter_py_files():
             try:
                 mtime = file.stat().st_mtime
@@ -100,7 +100,7 @@ def watchfn(reload_config: ReloadConfig):
                 continue
             elif mtime > old_time:
                 return file
-        return []
+        return None
 
     def iter_py_files() -> Iterator[Path]:
         for reload_dir in reload_dirs:
