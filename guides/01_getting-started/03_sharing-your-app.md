@@ -120,8 +120,7 @@ Here's an example of how to use these attributes to create a Gradio app that doe
 ></gradio-app>
 ```
 
-Here's another example of how to use the `render` event. An event listener is used to capture the
-`render` event and will call the `handleLoadComplete()` function once rendering is complete. 
+Here's another example of how to use the `render` event. An event listener is used to capture the `render` event and will call the `handleLoadComplete()` function once rendering is complete. 
 
 ```html
 <script>
