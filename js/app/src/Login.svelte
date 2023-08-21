@@ -1,8 +1,9 @@
 <script lang="ts">
 	import Form from "@gradio/form";
-	import Textbox from "@gradio/textbox";
+	import Textbox from "@gradio/textbox/interactive";
 	import { BaseButton } from "@gradio/button/static";
 	import Column from "@gradio/column";
+	import { _ } from "svelte-i18n";
 	export let root: string;
 	export let auth_message: string | null;
 	export let app_mode: boolean;
@@ -33,18 +34,17 @@
 
 <div class="wrap" class:min-h-screen={app_mode}>
 	<Column variant="panel" min_width={480}>
-		<h2>Login</h2>
+		<h2>{$_("login.login")}</h2>
 		{#if auth_message}
 			<p class="auth">{auth_message}</p>
 		{/if}
 		{#if space_id}
 			<p class="auth">
-				If you are visiting a HuggingFace Space in Incognito mode, you must
-				enable third party cookies.
+				{$_("login.enable_cookies")}
 			</p>
 		{/if}
 		{#if incorrect_credentials}
-			<p class="creds">Incorrect Credentials</p>
+			<p class="creds">{$_("login.incorrect_credentials")}</p>
 		{/if}
 		<Form>
 			<Textbox
@@ -52,7 +52,6 @@
 				lines={1}
 				show_label={true}
 				max_lines={1}
-				mode="dynamic"
 				on:submit={submit}
 				bind:value={username}
 			/>
@@ -61,14 +60,15 @@
 				lines={1}
 				show_label={true}
 				max_lines={1}
-				mode="dynamic"
 				type="password"
 				on:submit={submit}
 				bind:value={password}
 			/>
 		</Form>
 
-		<BaseButton size="lg" variant="primary" on:click={submit}>Login</BaseButton>
+		<BaseButton size="lg" variant="primary" on:click={submit}
+			>{$_("login.login")}</BaseButton
+		>
 	</Column>
 </div>
 

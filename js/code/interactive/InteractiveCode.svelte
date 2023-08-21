@@ -2,10 +2,10 @@
 	import { createEventDispatcher, afterUpdate } from "svelte";
 
 	import type { LoadingStatus } from "@gradio/statustracker";
-
+	import { _ } from "svelte-i18n";
 	import Code from "../shared";
 	import { StatusTracker } from "@gradio/statustracker";
-	import { Block, BlockLabel, Empty } from "@gradio/atoms";
+	import { Block, BlockLabel } from "@gradio/atoms";
 	import { Code as CodeIcon } from "@gradio/icons";
 
 	const dispatch = createEventDispatcher<{
@@ -21,7 +21,7 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let label = "Code";
+	export let label = $_("code.code");
 	export let show_label = true;
 	export let loading_status: LoadingStatus;
 

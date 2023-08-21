@@ -1,4 +1,4 @@
-lockfileVersion: '6.0'
+lockfileVersion: '6.1'
 
 settings:
   autoInstallPeers: true
@@ -589,9 +589,6 @@ importers:
       '@types/katex':
         specifier: ^0.16.0
         version: 0.16.0
-      '@types/marked':
-        specifier: ^5.0.0
-        version: 5.0.0
       '@types/prismjs':
         specifier: 1.26.0
         version: 1.26.0
@@ -602,11 +599,11 @@ importers:
         specifier: ^0.16.7
         version: 0.16.7
       marked:
-        specifier: ^5.0.1
-        version: 5.0.1
+        specifier: ^7.0.0
+        version: 7.0.0
       marked-highlight:
         specifier: ^2.0.1
-        version: 2.0.1(marked@5.0.1)
+        version: 2.0.1(marked@7.0.0)
       prismjs:
         specifier: 1.29.0
         version: 1.29.0
@@ -741,12 +738,27 @@ importers:
       '@types/d3-dsv':
         specifier: ^3.0.0
         version: 3.0.0
+      '@types/dompurify':
+        specifier: ^3.0.2
+        version: 3.0.2
+      '@types/katex':
+        specifier: ^0.16.0
+        version: 0.16.0
       d3-dsv:
         specifier: ^3.0.1
         version: 3.0.1
       dequal:
         specifier: ^2.0.2
         version: 2.0.2
+      dompurify:
+        specifier: ^3.0.3
+        version: 3.0.3
+      katex:
+        specifier: ^0.16.7
+        version: 0.16.7
+      marked:
+        specifier: ^7.0.0
+        version: 7.0.0
 
   js/dropdown:
     dependencies:
@@ -916,6 +928,21 @@ importers:
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker
+      '@types/dompurify':
+        specifier: ^3.0.2
+        version: 3.0.2
+      '@types/katex':
+        specifier: ^0.16.0
+        version: 0.16.0
+      dompurify:
+        specifier: ^3.0.3
+        version: 3.0.3
+      katex:
+        specifier: ^0.16.7
+        version: 0.16.7
+      marked:
+        specifier: ^7.0.0
+        version: 7.0.0
 
   js/model3D:
     dependencies:
@@ -6816,10 +6843,6 @@ packages:
     resolution: {integrity: sha512-Hwx9EUgdwf2GLarOjQp5ZH8ZmblzcbTBC2wtQWNKARBSxM9ezRIAUpeDTgoQRAFB0+8CNWXVA9+MaSOzOF3nPg==}
     dev: true
 
-  /@types/marked@5.0.0:
-    resolution: {integrity: sha512-YcZe50jhltsCq7rc9MNZC/4QB/OnA2Pd6hrOSTOFajtabN+38slqgDDCeE/0F83SjkKBQcsZUj7VLWR0H5cKRA==}
-    dev: false
-
   /@types/mdx@2.0.5:
     resolution: {integrity: sha512-76CqzuD6Q7LC+AtbPqrvD9AqsN0k8bsYo2bM2J8pmNldP1aIPAbzUQ7QbobyXL4eLr1wK5x8FZFe8eF/ubRuBg==}
     dev: true
@@ -11354,17 +11377,17 @@ packages:
       react: 18.2.0
     dev: true
 
-  /marked-highlight@2.0.1(marked@5.0.1):
+  /marked-highlight@2.0.1(marked@7.0.0):
     resolution: {integrity: sha512-LDUfR/zDvD+dJ+lQOWHkxvBLNxiXcaN8pBtwJ/i4pI0bkDC/Ef6Mz1qUrAuHXfnpdr2rabdMpVFhqFuU+5Mskg==}
     peerDependencies:
       marked: ^4 || ^5
     dependencies:
-      marked: 5.0.1
+      marked: 7.0.0
     dev: false
 
-  /marked@5.0.1:
-    resolution: {integrity: sha512-Nn9peC4lvIZdcfp8Uze6xk4ZYowkcj/K6+e/6rLHadhtjqeip/bYRxMgt3124IGGJ3RPs2uX5YVmAGbUutY18g==}
-    engines: {node: '>= 18'}
+  /marked@7.0.0:
+    resolution: {integrity: sha512-7Gv1Ry8tqR352ElQOQfxdGpIh8kNZh/yYjNCxAQCN1DDbY4bCTG3qDCSkZWlRElSseeEILDxkY/G9w7cgziBNw==}
+    engines: {node: '>= 16'}
     hasBin: true
     dev: false
 

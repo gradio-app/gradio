@@ -15,11 +15,15 @@
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",
 		"@types/d3-dsv": "^3.0.0",
+		"@types/dompurify": "^3.0.2",
+		"@types/katex": "^0.16.0",
 		"d3-dsv": "^3.0.1",
-		"dequal": "^2.0.2"
+		"dequal": "^2.0.2",
+		"dompurify": "^3.0.3",
+		"katex": "^0.16.7",
+		"marked": "^7.0.0"
 	},
 	"exports": {
-		".": "./index.svelte",
 		"./package.json": "./package.json",
 		"./interactive": "./interactive/index.ts",
 		"./static": "./static/index.ts",

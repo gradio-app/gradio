@@ -1,4 +1,4 @@
-import { marked, Renderer } from "marked";
+import { marked, type Renderer } from "marked";
 import { markedHighlight } from "marked-highlight";
 import Prism from "prismjs";
 import "prismjs/components/prism-python";
@@ -61,9 +61,7 @@ function escape(html: string, encode?: boolean): string {
 	return html;
 }
 
-const renderer: Partial<
-	Omit<marked.Renderer<false>, "constructor" | "options">
-> = {
+const renderer: Partial<Omit<Renderer, "constructor" | "options">> = {
 	code(
 		this: Renderer,
 		code: string,
@@ -83,14 +81,18 @@ const renderer: Partial<
 
 		if (!lang) {
 			return (
-				'<div class="code_wrap">' + COPY_BUTTON_CODE + "<pre><code>" +
+				'<div class="code_wrap">' +
+				COPY_BUTTON_CODE +
+				"<pre><code>" +
 				(escaped ? code : escape(code, true)) +
 				"</code></pre></div>\n"
 			);
 		}
 
 		return (
-			'<div class="code_wrap">' + COPY_BUTTON_CODE + '<pre><code class="' +
+			'<div class="code_wrap">' +
+			COPY_BUTTON_CODE +
+			'<pre><code class="' +
 			this.options.langPrefix +
 			escape(lang) +
 			'">' +

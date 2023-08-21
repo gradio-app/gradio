@@ -4,6 +4,8 @@
 	import { BlockTitle } from "@gradio/atoms";
 	import { Remove, DropdownArrow } from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
+	import { _ } from "svelte-i18n";
+
 	export let label: string;
 	export let info: string | undefined = undefined;
 	export let value: string | string[] | undefined;
@@ -65,7 +67,7 @@
 			dispatch("select", {
 				index: choices.indexOf(option),
 				value: option,
-				selected: true
+				selected: true,
 			});
 		}
 		value = value;
@@ -79,7 +81,7 @@
 		dispatch("select", {
 			index: choices.indexOf(option),
 			value: option,
-			selected: false
+			selected: false,
 		});
 	}
 
@@ -133,7 +135,7 @@
 				dispatch("select", {
 					index: choices.indexOf(option),
 					value: option,
-					selected: true
+					selected: true,
 				});
 				filterInput.blur();
 			}
@@ -149,7 +151,7 @@
 					dispatch("select", {
 						index: choices.indexOf(value),
 						value: value,
-						selected: true
+						selected: true,
 					});
 				}
 				inputValue = activeOption;
@@ -216,7 +218,7 @@
 							<div
 								class:hidden={disabled}
 								class="token-remove"
-								title="Remove {s}"
+								title={$_("common.remove") + " " + s}
 							>
 								<Remove />
 							</div>
@@ -247,7 +249,7 @@
 				<div
 					class:hide={!multiselect || !value?.length || disabled}
 					class="token-remove remove-all"
-					title="Clear"
+					title={$_("common.clear")}
 					on:click={remove_all}
 				>
 					<Remove />

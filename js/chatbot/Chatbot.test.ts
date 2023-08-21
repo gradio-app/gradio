@@ -1,6 +1,6 @@
 import { test, describe, assert, afterEach } from "vitest";
 import { cleanup, render } from "@gradio/tootils";
-import Chatbot from "./index.svelte";
+import Chatbot from "./static";
 import type { LoadingStatus } from "@gradio/statustracker";
 import type { FileData } from "@gradio/upload";
 
