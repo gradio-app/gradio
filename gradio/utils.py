@@ -111,11 +111,20 @@ def watchfn(reload_config: ReloadConfig):
     reload_dirs = [Path(dir_) for dir_ in reload_config.watch_dirs]
     mtimes = {}
     while not reload_config.event.is_set():
+        import sys
+
         changes = get_changes()
         if changes:
             print(f"Changes detected in: {','.join(str(f) for f in changes)}")
-            if not module:
-                module = importlib.import_module(reload_config.watch_file)
+            # Delete all references to local files in sys.modules so we can load
+            # them fresh
+            for k, v in list(sys.modules.items()):
+                sourcefile = getattr(v, "__file__", None)
+                if sourcefile and any(
+                    Path(sourcefile).is_relative_to(p) for p in reload_dirs
+                ):
+                    del sys.modules[k]
+            module = importlib.import_module(reload_config.watch_file)
             module = importlib.reload(module)
             # Copy over the blocks to get new components and events but
             # not a new queue
