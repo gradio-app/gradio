@@ -21,6 +21,7 @@ export async function load({ params, parent }) {
 	let mode;
 	let headers = [];
 	let method_headers = [];
+	let events_matrix = docs.events_matrix;
 	const get_slug = make_slug_processor();
 
 	for (const key in docs) {
@@ -99,6 +100,13 @@ export async function load({ params, parent }) {
 		}
 	}
 
+	let event_listeners: any = [];
+	for (const fn in obj?.fns) {
+		if ( obj.name in events_matrix && events_matrix[obj.name].includes(obj?.fns[fn].name)) {
+			event_listeners.push(obj?.fns[fn]);
+		}
+	}
+
 	return {
 		name,
 		obj,
@@ -109,6 +117,7 @@ export async function load({ params, parent }) {
 		py_client,
 		COLOR_SETS,
 		headers,
-		method_headers
+		method_headers,
+		event_listeners
 	};
 }

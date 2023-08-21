@@ -16,11 +16,14 @@
 	let helpers = data.helpers;
 	let routes = data.routes;
 	let py_client = data.py_client;
+	let event_listeners: any[];
+
 
 	let headers: [string, string][];
 	let method_headers: [string, string][];
 	$: headers = data.headers;
 	$: method_headers = data.method_headers;
+	$: event_listeners = data.event_listeners;
 
 	let current_selection = 0;
 
@@ -404,8 +407,14 @@
 									>
 								</h4>
 								<div class="flex flex-col gap-8 pl-12">
+									{#each event_listeners as fn}
+										<FunctionDoc {fn} parent={obj.name} listener={true} />
+									{/each}
+
 									{#each obj.fns as fn}
-										<FunctionDoc {fn} parent={obj.name} />
+										{#if !event_listeners.includes(fn)}
+											<FunctionDoc {fn} parent={obj.name} />
+										{/if}
 									{/each}
 									<div class="ml-12" />
 								</div>

@@ -12,6 +12,8 @@
 	let events = data.events;
 	let events_matrix = data.events_matrix;
 	let py_client = data.py_client;
+
+	console.log(events_matrix);
 </script>
 
 <MetaTags
