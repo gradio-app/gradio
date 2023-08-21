@@ -273,9 +273,9 @@ class Group(BlockContext):
         }
 
 
-@document()
 class Box(BlockContext):
     """
+    DEPRECATED.
     Box is a a layout element which places children in a box with rounded corners and
     some padding around them.
     Example:

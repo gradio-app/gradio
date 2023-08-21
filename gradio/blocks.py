@@ -377,7 +377,9 @@ class BlockContext(Block):
                 child.parent = pseudo_parent
         self.children = children
 
-    def __exit__(self, *args):
+    def __exit__(self, exc_type, *args):
+        if exc_type is not None:
+            return
         if getattr(self, "allow_expected_parents", True):
             self.fill_expected_parents()
         Context.block = self.parent
@@ -1515,7 +1517,9 @@ Received outputs:
         self.exited = False
         return self
 
-    def __exit__(self, *args):
+    def __exit__(self, exc_type, *args):
+        if exc_type is not None:
+            return
         super().fill_expected_parents()
         Context.block = self.parent
         # Configure the load events before root_block is reset
