@@ -32,7 +32,6 @@ from gradio.blocks import get_api_info
 from gradio.events import SelectData
 from gradio.exceptions import DuplicateBlockError
 from gradio.networking import Server, get_first_available_port
-from gradio.test_data.blocks_configs import XRAY_CONFIG
 from gradio.utils import assert_configs_are_equivalent_besides_ids
 
 pytest_plugins = ("pytest_asyncio",)
@@ -135,7 +134,13 @@ class TestBlocksMethods:
             demo.load(fake_func, [], [textbox])
 
         config = demo.get_config_file()
-        assert assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, config)
+        xray_config_file = (
+            pathlib.Path(__file__).parent / "test_files" / "xray_config.json"
+        )
+        with open(xray_config_file) as fp:
+            xray_config = json.load(fp)
+
+        assert assert_configs_are_equivalent_besides_ids(xray_config, config)
         assert config["show_api"] is True
         _ = demo.launch(prevent_thread_lock=True, show_api=False)
         assert demo.config["show_api"] is False

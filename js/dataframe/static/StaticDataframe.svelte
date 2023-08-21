@@ -4,8 +4,7 @@
 	import Table from "../shared";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { createEventDispatcher, afterUpdate } from "svelte";
-	import type { S } from "@storybook/theming/dist/create-c2b2ce6d";
+	import { afterUpdate } from "svelte";
 
 	type Headers = string[];
 	type Data = (string | number)[][];
@@ -33,16 +32,17 @@
 		select: SelectData;
 		input: never;
 	}>;
-
-	const dispatch = createEventDispatcher();
+	export let latex_delimiters: {
+		left: string;
+		right: string;
+		display: boolean;
+	}[];
 
 	export let loading_status: LoadingStatus;
 
 	function handle_change(): void {
-		dispatch("change", value);
 		gradio.dispatch("change");
 		if (!value_is_output) {
-			dispatch("input");
 			gradio.dispatch("input");
 		}
 	}
@@ -80,6 +80,7 @@
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 		{wrap}
 		{datatype}
+		{latex_delimiters}
 		editable={false}
 	/>
 </Block>

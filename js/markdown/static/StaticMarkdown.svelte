@@ -16,6 +16,11 @@
 	export let gradio: Gradio<{
 		change: never;
 	}>;
+	export let latex_delimiters: {
+		left: string;
+		right: string;
+		display: boolean;
+	}[];
 
 	$: label, gradio.dispatch("change");
 </script>
@@ -31,6 +36,7 @@
 			{visible}
 			{rtl}
 			on:change={() => gradio.dispatch("change")}
+			{latex_delimiters}
 		/>
 	</div>
 </Block>

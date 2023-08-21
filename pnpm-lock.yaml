@@ -744,12 +744,27 @@ importers:
       '@types/d3-dsv':
         specifier: ^3.0.0
         version: 3.0.0
+      '@types/dompurify':
+        specifier: ^3.0.2
+        version: 3.0.2
+      '@types/katex':
+        specifier: ^0.16.0
+        version: 0.16.0
       d3-dsv:
         specifier: ^3.0.1
         version: 3.0.1
       dequal:
         specifier: ^2.0.2
         version: 2.0.2
+      dompurify:
+        specifier: ^3.0.3
+        version: 3.0.3
+      katex:
+        specifier: ^0.16.7
+        version: 0.16.7
+      marked:
+        specifier: ^7.0.0
+        version: 7.0.0
 
   js/dropdown:
     dependencies:
@@ -928,6 +943,21 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      '@types/dompurify':
+        specifier: ^3.0.2
+        version: 3.0.2
+      '@types/katex':
+        specifier: ^0.16.0
+        version: 0.16.0
+      dompurify:
+        specifier: ^3.0.3
+        version: 3.0.3
+      katex:
+        specifier: ^0.16.7
+        version: 0.16.7
+      marked:
+        specifier: ^7.0.0
+        version: 7.0.0
 
   js/model3D:
     dependencies:
@@ -6362,7 +6392,7 @@ packages:
     peerDependencies:
       '@sveltejs/kit': ^1.0.0
     dependencies:
-      '@sveltejs/kit': 1.16.3(svelte@3.57.0)(vite@4.3.5)
+      '@sveltejs/kit': 1.16.3(svelte@3.59.2)(vite@4.3.9)
       import-meta-resolve: 3.0.0
     dev: true
 

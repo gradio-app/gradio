@@ -10,8 +10,7 @@
 	import type {
 		ComponentMeta,
 		Dependency,
-		LayoutNode,
-		Documentation
+		LayoutNode
 	} from "./components/types";
 	import { setupi18n } from "./i18n";
 	import Render from "./Render.svelte";
@@ -23,7 +22,6 @@
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
-	import { EffectWrapper } from "babylonjs";
 
 	setupi18n();
 
@@ -632,8 +630,6 @@
 		target.addEventListener("gradio", (e: Event) => {
 			if (!isCustomEvent(e)) throw new Error("not a custom event");
 
-			console.log(e, target_map);
-
 			const { id, event, data } = e.detail;
 
 			if (event === "share") {
@@ -702,10 +698,8 @@
 					}}
 					class="show-api"
 				>
-					$_('errors.use_via_api') <img
-						src={api_logo}
-						alt={$_("common.logo")}
-					/>
+					{$_("errors.use_via_api")}
+					<img src={api_logo} alt={$_("common.logo")} />
 				</button>
 				<div>·</div>
 			{/if}
@@ -715,7 +709,7 @@
 				target="_blank"
 				rel="noreferrer"
 			>
-				$_('common.built_with_gradio')
+				{$_("common.built_with_gradio")}
 				<img src={logo} alt={$_("common.logo")} />
 			</a>
 		</footer>

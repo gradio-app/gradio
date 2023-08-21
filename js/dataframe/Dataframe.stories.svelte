@@ -52,6 +52,24 @@
 />
 
 <Story
+	name="Dataframe with markdown and math"
+	args={{
+		values: [
+			["Linear", "$y=x$", "Has a *maximum*  of 1 root"],
+			["Quadratic", "$y=x^2$", "Has a *maximum*  of 2 roots"],
+			["Cubic", "$y=x^3$", "Has a *maximum*  of 3 roots"]
+		],
+		headers: ["Type", "Example", "Roots"],
+		datatype: ["str", "markdown", "markdown"],
+		latex_delimiters: [{ left: "$", right: "$", display: false }],
+		label: "Math",
+		col_count: [3, "dynamic"],
+		row_count: [3, "dynamic"],
+		editable: false
+	}}
+/>
+
+<Story
 	name="Empty dataframe"
 	args={{
 		values: [[]],
