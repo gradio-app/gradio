@@ -109,6 +109,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         | list[str]
         | Literal[_Keywords.NO_VALUE]
         | None = _Keywords.NO_VALUE,
+        label: str | None = None,
         size: Literal["sm", "lg"] | None = None,
         variant: Literal["primary", "secondary", "stop"] | None = None,
         interactive: bool | None = None,
@@ -124,6 +125,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             "value": value,
             "scale": scale,
             "min_width": min_width,
+            "label": label,
             "__type__": "update",
         }
 
