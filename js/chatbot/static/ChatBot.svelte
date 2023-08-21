@@ -33,7 +33,9 @@
 	export let theme_mode: ThemeMode;
 	export let rtl = false;
 	export let show_copy_button = false;
-	export let avatar_images: (FileData | null)[] | null = null;
+	export let avatar_images: (string | null)[] | null = null;
+	export let root: string;
+	export let root_url: null | string;
 	$: if (theme_mode == "dark") {
 		code_highlight_css.dark();
 	} else {
@@ -42,6 +44,9 @@
 
 	let div: HTMLDivElement;
 	let autoscroll: boolean;
+	let images_dir: string = root_url
+		? "proxy=" + root_url + "file="
+		: root + "/file=";
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -108,7 +113,7 @@
 						{#if avatar_images && avatar_images[j]}
 							<img
 								class="avatar-image-{j == 0 ? 'user' : 'bot'}"
-								src={avatar_images[j]?.data}
+								src={images_dir + avatar_images[j]}
 								alt="avatar"
 							/>
 						{/if}

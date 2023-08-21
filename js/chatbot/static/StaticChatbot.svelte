@@ -28,7 +28,7 @@
 		right: string;
 		display: boolean;
 	}[];
-	export let avatar_images: (FileData | null)[] | null = null;
+	export let avatar_images: (string | null)[] | null = null;
 
 	let _value: [string | FileData | null, string | FileData | null][];
 
@@ -46,11 +46,6 @@
 		  ])
 		: [];
 
-	$: avatar_images = avatar_images
-		? avatar_images.map(avatar => 
-			normalise_file(avatar, root, root_url)
-		  )
-		: null;
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height = 400;
 </script>
@@ -92,6 +87,8 @@
 			{rtl}
 			{show_copy_button}
 			{avatar_images}
+			{root_url}
+			{root}
 			on:change
 			on:select
 			on:share
