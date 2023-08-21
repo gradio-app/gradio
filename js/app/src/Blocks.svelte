@@ -662,10 +662,8 @@
 					}}
 					class="show-api"
 				>
-					$_('errors.use_via_api') <img
-						src={api_logo}
-						alt={$_("common.logo")}
-					/>
+					{$_("errors.use_via_api")}
+					<img src={api_logo} alt={$_("common.logo")} />
 				</button>
 				<div>·</div>
 			{/if}
@@ -675,7 +673,7 @@
 				target="_blank"
 				rel="noreferrer"
 			>
-				$_('common.built_with_gradio')
+				{$_("common.built_with_gradio")}
 				<img src={logo} alt={$_("common.logo")} />
 			</a>
 		</footer>

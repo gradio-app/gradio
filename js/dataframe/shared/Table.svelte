@@ -19,6 +19,11 @@
 		| { data: (string | number)[][]; headers: string[] } = [[]];
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
+	export let latex_delimiters: {
+		left: string;
+		right: string;
+		display: boolean;
+	}[];
 
 	export let editable = true;
 	export let wrap = false;
@@ -152,7 +157,7 @@
 	$: _headers &&
 		dispatch("change", {
 			data: data.map((r) => r.map(({ value }) => value)),
-			headers: _headers.map((h) => h.value),
+			headers: _headers.map((h) => h.value)
 		});
 
 	function get_sort_status(
@@ -558,6 +563,7 @@
 								<div class="cell-wrap">
 									<EditableCell
 										{value}
+										{latex_delimiters}
 										bind:el={els[id].input}
 										edit={header_edit === id}
 										on:keydown={end_header_edit}
@@ -609,6 +615,7 @@
 										<EditableCell
 											bind:value
 											bind:el={els[id].input}
+											{latex_delimiters}
 											edit={editing === id}
 											datatype={Array.isArray(datatype)
 												? datatype[j]

@@ -18,10 +18,19 @@
 
 <Template let:args>
 	<Markdown
-		{...args}
 		value="Here's some <strong>bold</strong> text. And some <em>italics</em> and some <code>code</code>"
+		{...args}
 	/>
 </Template>
 
 <Story name="Simple inline Markdown with HTML" />
+
 <Story name="Right aligned Markdown with HTML" args={{ rtl: true }} />
+
+<Story
+	name="Markdown with math"
+	args={{
+		value: "What is the solution of $y=x^2$?",
+		latex_delimiters: [{ left: "$", right: "$", display: false }]
+	}}
+/>
