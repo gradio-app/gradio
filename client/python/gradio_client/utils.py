@@ -387,6 +387,16 @@ def encode_url_or_file_to_base64(path: str | Path):
     return encode_file_to_base64(path)
 
 
+def download_byte_stream(url: str, hf_token=None):
+    arr = bytearray()
+    headers = {"Authorization": "Bearer " + hf_token} if hf_token else {}
+    with httpx.stream("GET", url, headers=headers) as r:
+        for data in r.iter_bytes():
+            arr += data
+            yield data
+    yield arr
+
+
 def decode_base64_to_binary(encoding: str) -> tuple[bytes, str | None]:
     extension = get_extension(encoding)
     data = encoding.rsplit(",", 1)[-1]

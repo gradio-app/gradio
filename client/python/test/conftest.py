@@ -4,6 +4,7 @@ import time
 
 import gradio as gr
 import pytest
+from pydub import AudioSegment
 
 
 def pytest_configure(config):
@@ -295,6 +296,31 @@ def hello_world_with_state_and_accordion():
             api_name="close",
         )
     return demo
+
+
+@pytest.fixture
+def stream_audio():
+    import pathlib
+    import tempfile
+
+    def _stream_audio(audio_file):
+        audio = AudioSegment.from_mp3(audio_file)
+        i = 0
+        chunk_size = 3000
+
+        while chunk_size * i < len(audio):
+            chunk = audio[chunk_size * i : chunk_size * (i + 1)]
+            i += 1
+            if chunk:
+                file = str(pathlib.Path(tempfile.gettempdir()) / f"{i}.wav")
+                chunk.export(file, format="wav")
+                yield file
+
+    return gr.Interface(
+        fn=_stream_audio,
+        inputs=gr.Audio(type="filepath", label="Audio file to stream"),
+        outputs=gr.Audio(autoplay=True, streaming=True),
+    ).queue()
 
 
 @pytest.fixture
