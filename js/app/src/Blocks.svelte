@@ -323,12 +323,9 @@
 
 	const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
-	const DUPLICATE_MESSAGE =
-		"There is a long queue of requests pending. Duplicate this Space to skip.";
-	const MOBILE_QUEUE_WARNING =
-		"On mobile, the connection can break if this tab is unfocused or the device sleeps, losing your position in queue.";
-	const MOBILE_RECONNECT_MESSAGE =
-		"Lost connection due to leaving page. Rejoining queue...";
+	const DUPLICATE_MESSAGE = $_("blocks.long_requests_queue");
+	const MOBILE_QUEUE_WARNING = $_("blocks.connection_can_break");
+	const MOBILE_RECONNECT_MESSAGE = $_("blocks.lost_connection");
 	const SHOW_DUPLICATE_MESSAGE_ON_ETA = 15;
 	const SHOW_MOBILE_QUEUE_WARNING_ON_ETA = 10;
 	const is_mobile_device =
@@ -665,7 +662,10 @@
 					}}
 					class="show-api"
 				>
-					Use via API <img src={api_logo} alt="" />
+					$_('errors.use_via_api') <img
+						src={api_logo}
+						alt={$_("common.logo")}
+					/>
 				</button>
 				<div>·</div>
 			{/if}
@@ -675,8 +675,8 @@
 				target="_blank"
 				rel="noreferrer"
 			>
-				Built with Gradio
-				<img src={logo} alt="logo" />
+				$_('common.built_with_gradio')
+				<img src={logo} alt={$_("common.logo")} />
 			</a>
 		</footer>
 	{/if}

@@ -1,6 +1,6 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import Chatbot from "./index.svelte";
+	import Chatbot from "./static";
 </script>
 
 <Meta

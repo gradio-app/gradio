@@ -133,6 +133,11 @@ class CheckboxGroup(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
+        choices = (
+            None
+            if choices is None
+            else [c if isinstance(c, tuple) else (str(c), c) for c in choices]
+        )
         return {
             "choices": choices,
             "label": label,

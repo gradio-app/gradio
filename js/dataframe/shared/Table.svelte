@@ -7,6 +7,7 @@
 	import { BaseButton } from "@gradio/button/static";
 	import EditableCell from "./EditableCell.svelte";
 	import type { SelectData } from "@gradio/utils";
+	import { _ } from "svelte-i18n";
 
 	type Datatype = "str" | "markdown" | "html" | "number" | "bool" | "date";
 
@@ -27,13 +28,10 @@
 	$: {
 		if (values && !Array.isArray(values)) {
 			headers = values.headers;
-			values =
-				values.data.length === 0
-					? [Array(headers.length).fill("")]
-					: values.data;
+			values = values.data;
 			selected = false;
 		} else if (values === null) {
-			values = [Array(headers.length).fill("")];
+			values = [];
 			selected = false;
 		}
 	}
@@ -93,8 +91,7 @@
 		value: string | number;
 		id: string;
 	}[][] {
-		const data_row_length = _values.length > 0 ? _values.length : row_count[0];
-
+		const data_row_length = _values.length;
 		return Array(
 			row_count[1] === "fixed"
 				? row_count[0]
@@ -104,7 +101,13 @@
 		)
 			.fill(0)
 			.map((_, i) =>
-				Array(col_count[1] === "fixed" ? col_count[0] : _values[0].length)
+				Array(
+					col_count[1] === "fixed"
+						? col_count[0]
+						: data_row_length > 0
+						? _values[0].length
+						: headers.length
+				)
 					.fill(0)
 					.map((_, j) => {
 						const id = `${i}-${j}`;
@@ -149,7 +152,7 @@
 	$: _headers &&
 		dispatch("change", {
 			data: data.map((r) => r.map(({ value }) => value)),
-			headers: _headers.map((h) => h.value)
+			headers: _headers.map((h) => h.value),
 		});
 
 	function get_sort_status(
@@ -320,7 +323,6 @@
 
 		if (type === "select" && typeof id == "string") {
 			const { cell } = els[id];
-			// cell?.setAttribute("tabindex", "0");
 			await tick();
 			cell?.focus();
 		}
@@ -395,6 +397,10 @@
 
 	function add_row(index?: number): void {
 		if (row_count[1] !== "dynamic") return;
+		if (data.length === 0) {
+			values = [Array(headers.length).fill("")];
+			return;
+		}
 		data.splice(
 			index ? index + 1 : data.length,
 			0,
@@ -637,7 +643,7 @@
 								d="M24.59 16.59L17 24.17V4h-2v20.17l-7.59-7.58L6 18l10 10l10-10l-1.41-1.41z"
 							/>
 						</svg>
-						New row
+						{$_("dataframe.new_row")}
 					</BaseButton>
 				</span>
 			{/if}
@@ -659,7 +665,7 @@
 								d="m18 6l-1.43 1.393L24.15 15H4v2h20.15l-7.58 7.573L18 26l10-10L18 6z"
 							/>
 						</svg>
-						New column
+						{$_("dataframe.new_column")}
 					</BaseButton>
 				</span>
 			{/if}
