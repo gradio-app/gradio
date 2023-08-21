@@ -45,7 +45,7 @@
 			return valid_node;
 		});
 
-	$: setContext("BLOCK_KEY", parent);
+	setContext("BLOCK_KEY", parent);
 
 	function handle_prop_change(e: { detail: Record<string, any> }): void {
 		for (const k in e.detail) {
