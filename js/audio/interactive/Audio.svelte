@@ -1,7 +1,6 @@
 <script context="module" lang="ts">
 	import type { FileData } from "@gradio/upload";
 	import { BaseButton } from "@gradio/button/static";
-	import { _ } from "svelte-i18n";
 
 	export interface AudioData extends FileData {
 		crop_min?: number;
@@ -17,6 +16,7 @@
 	// @ts-ignore
 	import Range from "svelte-range-slider-pips";
 	import { loaded } from "../shared/utils";
+	import { _ } from "svelte-i18n";
 
 	import type { IBlobEvent, IMediaRecorder } from "extendable-media-recorder";
 
@@ -257,14 +257,14 @@
 						<span class="pinger" />
 						<span class="dot" />
 					</span>
-					$_('audio.stop_recording')
+					{$_("audio.stop_recording")}
 				</BaseButton>
 			{:else}
 				<BaseButton size="sm" on:click={record}>
 					<span class="record-icon">
 						<span class="dot" />
 					</span>
-					$_('audio.record_from_microphone')
+					{$_("audio.record_from_microphone")}
 				</BaseButton>
 			{/if}
 		</div>
