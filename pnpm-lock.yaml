@@ -68,9 +68,6 @@ importers:
       babylonjs-loaders:
         specifier: ^5.17.1
         version: 5.18.0
-      dequal:
-        specifier: ^2.0.2
-        version: 2.0.2
       eslint:
         specifier: ^8.46.0
         version: 8.46.0
@@ -5921,7 +5918,7 @@ packages:
       ts-dedent: 2.2.0
       util-deprecate: 1.0.2
       watchpack: 2.4.0
-      ws: 8.13.0(bufferutil@4.0.7)
+      ws: 8.13.0
     transitivePeerDependencies:
       - bufferutil
       - encoding
@@ -11060,7 +11057,7 @@ packages:
       whatwg-encoding: 2.0.0
       whatwg-mimetype: 3.0.0
       whatwg-url: 12.0.1
-      ws: 8.13.0(bufferutil@4.0.7)
+      ws: 8.13.0
       xml-name-validator: 4.0.0
     transitivePeerDependencies:
       - bufferutil
@@ -15573,6 +15570,18 @@ packages:
     dependencies:
       async-limiter: 1.0.1
     dev: true
+
+  /ws@8.13.0:
+    resolution: {integrity: sha512-x9vcZYTrFPC7aSIbj7sRCYo7L/Xb8Iy+pW0ng0wt2vCJv7M9HOMy0UoN3rr+IFC7hb7vXoqS+P9ktyLLLhO+LA==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
 
   /ws@8.13.0(bufferutil@4.0.7):
     resolution: {integrity: sha512-x9vcZYTrFPC7aSIbj7sRCYo7L/Xb8Iy+pW0ng0wt2vCJv7M9HOMy0UoN3rr+IFC7hb7vXoqS+P9ktyLLLhO+LA==}
