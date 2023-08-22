@@ -8,6 +8,7 @@
 	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
 	import { MarkdownCode as Markdown } from "@gradio/markdown/static";
+	import {get_fetchable_url_or_file} from "@gradio/upload";
 	import Copy from "./Copy.svelte";
 
 	export let value:
@@ -27,15 +28,12 @@
 	export let theme_mode: ThemeMode;
 	export let rtl = false;
 	export let show_copy_button = false;
-	export let avatar_images: (string | null)[] | null = null;
+	export let avatar_images: [string | null, string | null] = [null, null];
 	export let root: string;
 	export let root_url: null | string;
 
 	let div: HTMLDivElement;
 	let autoscroll: boolean;
-	let images_dir: string = root_url
-		? "proxy=" + root_url + "file="
-		: root + "/file=";
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -99,10 +97,10 @@
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
 					<div class="message-row">
-						{#if avatar_images && avatar_images[j]}
+						{#if avatar_images[j] !== null}
 							<img
 								class="avatar-image-{j == 0 ? 'user' : 'bot'}"
-								src={images_dir + avatar_images[j]}
+								src={get_fetchable_url_or_file(avatar_images[j], root, root_url)}
 								alt="avatar"
 							/>
 						{/if}

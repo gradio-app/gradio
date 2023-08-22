@@ -559,6 +559,9 @@ importers:
 
   js/button:
     dependencies:
+      '@gradio/upload':
+        specifier: workspace:^
+        version: link:../upload
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
