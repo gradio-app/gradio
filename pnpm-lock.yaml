@@ -720,6 +720,9 @@ importers:
       '@gradio/button':
         specifier: workspace:^
         version: link:../button
+      '@gradio/markdown':
+        specifier: workspace:^
+        version: link:../markdown
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker
