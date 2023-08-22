@@ -31,6 +31,7 @@
 		right: string;
 		display: boolean;
 	}[];
+	export let height: number | undefined = undefined;
 
 	const dispatch = createEventDispatcher();
 
@@ -78,5 +79,6 @@
 		{datatype}
 		{latex_delimiters}
 		editable={false}
+		{height}
 	/>
 </Block>
