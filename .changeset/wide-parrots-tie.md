@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:remove useless assignment
+fix:Removes unnecessary assignment in `interface.py`
