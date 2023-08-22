@@ -167,6 +167,7 @@ class ImgSerializable(Serializable):
         self,
         x: str | None,
         load_dir: str | Path = "",
+        allow_links: bool = False,
     ) -> str | None:
         """
         Convert from human-friendly version of a file (string filepath) to a serialized
