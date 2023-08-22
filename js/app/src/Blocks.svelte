@@ -13,13 +13,11 @@
 		LayoutNode
 	} from "./components/types";
 	import { setupi18n } from "./i18n";
-	import Render from "./Render.svelte";
 	import { ApiDocs } from "./api_docs/";
 	import type { ThemeMode } from "./components/types";
 	import { Toast } from "@gradio/statustracker";
 	import type { ToastMessage } from "@gradio/statustracker";
 	import type { ShareData } from "@gradio/utils";
-	import { dequal } from "dequal";
 	import MountComponents from "./MountComponents.svelte";
 
 	import logo from "./images/logo.svg";
