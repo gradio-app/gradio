@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import pytest
 import websockets
-from gradio_client import media_data
+from gradio_client import media_data, utils
 from starlette.testclient import TestClient
 from tqdm import tqdm
 
@@ -93,7 +93,8 @@ class TestExamples:
             )
 
         prediction = await examples.load_from_cache(0)
-        assert prediction[0][0][0]["data"] == media_data.BASE64_IMAGE
+        file = prediction[0][0][0]["name"]
+        assert utils.encode_url_or_file_to_base64(file) == media_data.BASE64_IMAGE
 
 
 @patch("gradio.helpers.CACHED_FOLDER", tempfile.mkdtemp())
@@ -152,7 +153,10 @@ class TestProcessExamples:
             cache_examples=True,
         )
         prediction = await io.examples_handler.load_from_cache(0)
-        assert prediction[0]["data"].startswith("data:audio/wav;base64,UklGRgA/")
+        file = prediction[0]["name"]
+        assert utils.encode_url_or_file_to_base64(file).startswith(
+            "data:audio/wav;base64,UklGRgA/"
+        )
 
     @pytest.mark.asyncio
     async def test_caching_with_update(self):
