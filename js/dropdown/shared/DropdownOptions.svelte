@@ -70,7 +70,7 @@
 <svelte:window on:scroll={scroll_listener} bind:innerHeight />
 
 <div class="reference" bind:this={refElement} />
-{#if true || (showOptions && !disabled)}
+{#if showOptions && !disabled}
 	<!-- TODO: fix-->
 	<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 	<ul
