@@ -29,6 +29,7 @@
 
 	export let editable = true;
 	export let wrap = false;
+	export let height: number | undefined = undefined;
 
 	let selected: false | string = false;
 
@@ -541,7 +542,7 @@
 			{label}
 		</p>
 	{/if}
-	<div class="table-wrap scroll-hide" class:dragging class:no-wrap={!wrap}>
+	<div class="table-wrap" class:dragging class:no-wrap={!wrap} style="max-height: {typeof height === undefined ? 'auto' : height + 'px'};">
 		<Upload
 			flex={false}
 			center={false}
@@ -707,8 +708,8 @@
 		transition: 150ms;
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--table-radius);
-		overflow-x: scroll;
-		overflow-y: hidden;
+		overflow-x: auto;
+		overflow-y: auto;
 	}
 
 	.dragging {

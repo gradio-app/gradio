@@ -39,6 +39,9 @@
 		display: boolean;
 	}[];
 	export let theme_mode: ThemeMode;
+	export let height: number | undefined = undefined;
+
+	const dispatch = createEventDispatcher();
 
 	export let loading_status: LoadingStatus;
 
@@ -85,5 +88,6 @@
 		{latex_delimiters}
 		editable={false}
 		{theme_mode}
+		{height}
 	/>
 </Block>

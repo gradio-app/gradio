@@ -36,7 +36,7 @@
 		share: ShareData;
 		error: string;
 	}>;
-	export let avatar_images: (string | null)[] | null = null;
+	export let avatar_images: [string | null, string | null] = [null, null];
 
 	let _value: [string | FileData | null, string | FileData | null][];
 

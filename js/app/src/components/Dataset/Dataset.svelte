@@ -3,7 +3,7 @@
 	import type { SvelteComponent, ComponentType } from "svelte";
 	import { component_map } from "./directory";
 	import type { Gradio, SelectData } from "@gradio/utils";
-
+	import { get_fetchable_url_or_file } from "@gradio/upload";
 	export let components: (keyof typeof component_map)[];
 	export let label = "Examples";
 	export let headers: string[];
@@ -22,9 +22,7 @@
 		select: SelectData;
 	}>;
 
-	let samples_dir: string = root_url
-		? "proxy=" + root_url + "file="
-		: root + "/file=";
+	let samples_dir: string = get_fetchable_url_or_file(null, root, root_url);
 	let page = 0;
 	$: gallery = components.length < 2;
 	let paginate = samples.length > samples_per_page;

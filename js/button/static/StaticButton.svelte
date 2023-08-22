@@ -18,6 +18,8 @@
 	export let gradio: Gradio<{
 		click: never;
 	}>;
+	export let root = "";
+	export let root_url: null | string = null;
 </script>
 
 <Button
@@ -31,6 +33,8 @@
 	{icon}
 	{min_width}
 	{visible}
+	{root}
+	{root_url}
 	disabled={mode === "static"}
 	on:click={() => gradio.dispatch("click")}
 >
