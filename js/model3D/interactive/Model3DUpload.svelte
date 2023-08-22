@@ -16,11 +16,16 @@
 		}
 	});
 
-	afterUpdate(() => {
-		if (value != null && value.is_file) {
-			addNewModel();
-		}
+	$: ({ data, is_file, name } = value || {
+		data: undefined,
+		is_file: undefined,
+		name: undefined
 	});
+
+	$: if (data != null && is_file && name) {
+		console.log("triggered");
+		tick().then(addNewModel);
+	}
 
 	async function handle_upload({
 		detail

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { afterUpdate, createEventDispatcher, tick } from "svelte";
+	import { createEventDispatcher, tick } from "svelte";
 	import { copy } from "@gradio/utils";
 	import type { ThemeMode } from "js/app/src/components/types";
 
