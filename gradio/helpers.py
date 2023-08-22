@@ -291,12 +291,14 @@ class Examples:
             print(f"Caching examples at: '{utils.abspath(self.cached_folder)}'")
             cache_logger = CSVLogger()
 
+            generated_values = []
             if inspect.isgeneratorfunction(self.fn):
 
                 def get_final_item(*args):  # type: ignore
                     x = None
+                    generated_values.clear()
                     for x in self.fn(*args):  # noqa: B007  # type: ignore
-                        pass
+                        generated_values.append(x)
                     return x
 
                 fn = get_final_item
@@ -304,14 +306,17 @@ class Examples:
 
                 async def get_final_item(*args):
                     x = None
+                    generated_values.clear()
                     async for x in self.fn(*args):  # noqa: B007  # type: ignore
-                        pass
+                        generated_values.append(x)
                     return x
 
                 fn = get_final_item
             else:
                 fn = self.fn
             # create a fake dependency to process the examples and get the predictions
+            from gradio.events import StreamableOutput
+
             dependency, fn_index = Context.root_block.set_event_trigger(
                 event_name="fake_event",
                 fn=fn,
@@ -337,6 +342,38 @@ class Examples:
                         state={},
                     )
                 output = prediction["data"]
+                for output_index, output_component in enumerate(self.outputs):
+                    if (
+                        isinstance(output_component, StreamableOutput)
+                        and output_component.streaming
+                    ):
+                        binary_chunks = []
+                        for i, chunk in enumerate(generated_values):
+                            if len(self.outputs) > 1:
+                                chunk = chunk[output_index]
+                            processed_chunk = output_component.postprocess(chunk)
+                            binary_chunks.append(
+                                output_component.stream_output(
+                                    processed_chunk, "", i == 0
+                                )[0]
+                            )
+                        binary_data = b"".join(binary_chunks)
+                        tempdir = os.environ.get("GRADIO_TEMP_DIR") or str(
+                            Path(tempfile.gettempdir()) / "gradio"
+                        )
+                        os.makedirs(tempdir, exist_ok=True)
+                        temp_file = tempfile.NamedTemporaryFile(
+                            dir=tempdir, delete=False
+                        )
+                        with open(temp_file.name, "wb") as f:
+                            f.write(binary_data)
+
+                        output[output_index] = {
+                            "name": temp_file.name,
+                            "is_file": True,
+                            "data": None,
+                        }
+
                 if self.batch:
                     output = [value[0] for value in output]
                 cache_logger.flag(output)
@@ -397,6 +434,7 @@ class Examples:
                     component.serialize(
                         value_to_use,
                         self.cached_folder,
+                        allow_links=True
                     )
                 )
         return output

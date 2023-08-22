@@ -13,17 +13,27 @@ with gr.Blocks() as demo:
             def stream_file(audio_file, format):
                 audio = AudioSegment.from_file(audio_file)
                 i = 0
-                chunk_size = 3000                
-                while chunk_size*i < len(audio):
-                    chunk = audio[chunk_size*i:chunk_size*(i+1)]
+                chunk_size = 1000
+                while chunk_size * i < len(audio):
+                    chunk = audio[chunk_size * i : chunk_size * (i + 1)]
                     i += 1
                     if chunk:
                         file = f"/tmp/{i}.{format}"
                         chunk.export(file, format=format)
                         yield file
-                        sleep(1)
-                
-            stream_as_file_btn.click(stream_file, [input_audio, format], stream_as_file_output)
+                        sleep(0.5)
+
+            stream_as_file_btn.click(
+                stream_file, [input_audio, format], stream_as_file_output
+            )
+
+            gr.Examples(
+                [["audio/cantina.wav", "wav"], ["audio/cantina.wav", "mp3"]],
+                [input_audio, format],
+                fn=stream_file,
+                outputs=stream_as_file_output,
+                cache_examples=True,
+            )
 
         with gr.Column():
             stream_as_bytes_btn = gr.Button("Stream as Bytes")
@@ -39,7 +49,7 @@ with gr.Blocks() as demo:
                             sleep(1)
                         else:
                             break
-            
+
             stream_as_bytes_btn.click(stream_bytes, input_audio, stream_as_bytes_output)
 
 if __name__ == "__main__":
