@@ -28,6 +28,7 @@
 		show_api: boolean;
 		stylesheets?: string[];
 		path: string;
+		app_id: string;
 	}
 
 	let id = -1;
@@ -62,7 +63,7 @@
 </script>
 
 <script lang="ts">
-	import { onMount, setContext, onDestroy } from "svelte";
+	import { onMount, setContext } from "svelte";
 	import type { api_factory, SpaceStatus } from "@gradio/client";
 	import Embed from "./Embed.svelte";
 	import type { ThemeMode } from "./components/types";
@@ -103,7 +104,10 @@
 	let config: Config;
 	let loading_text = $_("common.loading") + "...";
 	let active_theme_mode: ThemeMode;
-	let compRef;
+	
+	$: if(config) {
+		app_id = config.app_id;
+	}
 
 	async function mount_custom_css(
 		target: HTMLElement,
@@ -347,17 +351,20 @@
 			{app_mode}
 		/>
 	{:else if config && Blocks && css_ready}
-		<Blocks
-			{app}
-			{...config}
-			theme_mode={active_theme_mode}
-			{control_page_title}
-			target={wrapper}
-			{autoscroll}
-			bind:ready
-			show_footer={!is_embed}
-			{app_mode}
-		/>
+		{#key app_id}
+			<Blocks
+				{app}
+				{...config}
+				theme_mode={active_theme_mode}
+				{control_page_title}
+				target={wrapper}
+				{autoscroll}
+				bind:ready
+				show_footer={!is_embed}
+				{app_mode}
+				{version}
+			/>
+		{/key}
 	{/if}
 </Embed>
 

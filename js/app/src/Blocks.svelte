@@ -57,8 +57,6 @@
 
 	components.push(rootNode);
 
-	$: console.log(components);
-
 	const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 	dependencies.forEach((d) => {
 		if (d.js) {
