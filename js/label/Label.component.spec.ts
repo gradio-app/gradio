@@ -30,7 +30,10 @@ test("gr.Label default value and label rendered with confidences", async ({
 			},
 			label: "My Label",
 			show_label: true,
-			loading_status: loading_status
+			loading_status: loading_status,
+			gradio: {
+				dispatch() {}
+			}
 		}
 	});
 	await expect(component).toContainText("My Label");
@@ -52,7 +55,10 @@ test("gr.Label hides label when show_label=false", async ({ mount, page }) => {
 			},
 			label: "My Label",
 			show_label: false,
-			loading_status: loading_status
+			loading_status: loading_status,
+			gradio: {
+				dispatch() {}
+			}
 		}
 	});
 	await expect(component.getByTestId("block-label")).toBeHidden();
@@ -68,7 +74,10 @@ test("gr.Label confidence bars not rendered without confidences", async ({
 			},
 			label: "My Label",
 			show_label: true,
-			loading_status: loading_status
+			loading_status: loading_status,
+			gradio: {
+				dispatch() {}
+			}
 		}
 	});
 	await expect(component).toContainText("My Label");
@@ -79,7 +88,14 @@ test("gr.Label confidence bars trigger select event when clicked", async ({
 	mount,
 	page
 }) => {
-	const select = spy();
+	const events = {
+		select: [0, null]
+	};
+
+	function event(name: "select", value: any) {
+		events[name] = [events[name][0]! + 1, value];
+	}
+
 	const component = await mount(Label, {
 		props: {
 			value: {
@@ -91,20 +107,27 @@ test("gr.Label confidence bars trigger select event when clicked", async ({
 			},
 			label: "My Label",
 			show_label: true,
-			loading_status: loading_status
-		},
-		on: {
-			select: select
+			loading_status: loading_status,
+			gradio: {
+				dispatch: event
+			}
 		}
 	});
 	await expect(component).toContainText("My Label");
 	await component.getByTestId("Bad-confidence-set").click();
-	expect(select.callCount).toEqual(1);
-	expect(select.calls[0][0]).toEqual({ index: 1, value: "Bad" });
+	expect(events.select[0]).toEqual(1);
+	expect(events.select[1]).toEqual({ index: 1, value: "Bad" });
 });
 
 test("gr.Label triggers change event", async ({ mount, page }) => {
-	const change = spy();
+	const events = {
+		change: 0
+	};
+
+	function event(name: "change") {
+		events[name] += 1;
+	}
+
 	const component = await mount(Label, {
 		props: {
 			value: {
@@ -116,12 +139,13 @@ test("gr.Label triggers change event", async ({ mount, page }) => {
 			},
 			label: "My Label",
 			show_label: true,
-			loading_status: loading_status
-		},
-		on: {
-			change: change
+			loading_status: loading_status,
+			gradio: {
+				dispatch: event
+			}
 		}
 	});
+
 	await component.update({
 		props: {
 			value: {
@@ -133,5 +157,5 @@ test("gr.Label triggers change event", async ({ mount, page }) => {
 			}
 		}
 	});
-	expect(change.callCount).toEqual(1);
+	expect(events.change).toEqual(2);
 });

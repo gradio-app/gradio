@@ -39,26 +39,23 @@
 		}
 	});
 
-	$: render_markdown(message);
+	$: el && html && render_html(message);
 
-	async function render_markdown(value: string): Promise<void> {
-		// console.log("render_markdown, value: ", value, marked.parse(value));
-		await tick();
-		requestAnimationFrame(() => {
-			el.innerHTML = DOMPurify.sanitize(marked.parse(value));
-			if (latex_delimiters.length > 0) {
-				render_math_in_element(el, {
-					delimiters: latex_delimiters,
-					throwOnError: false
-				});
-			}
+	$: html = DOMPurify.sanitize(marked.parse(message));
 
-			dispatch("load");
-		});
+	async function render_html(value: string): Promise<void> {
+		if (latex_delimiters.length > 0) {
+			render_math_in_element(el, {
+				delimiters: latex_delimiters,
+				throwOnError: false
+			});
+		}
 	}
 </script>
 
-<span class:chatbot bind:this={el} />
+<span class:chatbot bind:this={el}>
+	{@html html}
+</span>
 
 <style>
 	span:not(.chatbot) :global(code[class*="language-"]) {

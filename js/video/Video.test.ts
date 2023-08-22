@@ -252,7 +252,7 @@ describe("Video", () => {
 	});
 
 	test("video change event trigger fires when value is changed and only fires once", async () => {
-		const { component } = await render(InteractiveVideo, {
+		const { component, listen } = await render(InteractiveVideo, {
 			show_label: true,
 			loading_status,
 			mode: "dynamic",
@@ -271,8 +271,7 @@ describe("Video", () => {
 			autoplay: true
 		});
 
-		const mock = spy();
-		component.$on("change", mock);
+		const mock = listen("change");
 
 		(component.value = [
 			{
