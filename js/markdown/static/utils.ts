@@ -70,7 +70,6 @@ const renderer: Partial<Omit<Renderer, "constructor" | "options">> = {
 		infostring: string | undefined,
 		escaped: boolean
 	) {
-		console.log("hello", code);
 		const lang = (infostring ?? "").match(/\S*/)?.[0] ?? "";
 		if (this.options.highlight) {
 			const out = this.options.highlight(code, lang);
@@ -115,7 +114,6 @@ marked.use(
 	},
 	markedHighlight({
 		highlight: (code: string, lang: string) => {
-			console.log({ code });
 			if (Prism.languages[lang]) {
 				return Prism.highlight(code, Prism.languages[lang], lang);
 			}
