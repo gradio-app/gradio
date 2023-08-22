@@ -20,6 +20,7 @@
 	import type { ToastMessage } from "@gradio/statustracker";
 	import type { ShareData } from "@gradio/utils";
 	import { dequal } from "dequal";
+	import MountComponents from "./MountComponents.svelte";
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
@@ -45,9 +46,6 @@
 	export let version: string;
 
 	let loading_status = create_loading_status_store();
-
-	const walked_node_ids = new Set();
-	const mounted_node_ids = new Set();
 
 	$: app_state.update((s) => ({ ...s, autoscroll }));
 
@@ -188,7 +186,6 @@
 
 	async function walk_layout(node: LayoutNode): Promise<void> {
 		let instance = instance_map[node.id];
-		walked_node_ids.add(node.id);
 
 		const _component = (await _component_map.get(
 			`${instance.type}_${_type_for_id.get(node.id) || "static"}`
@@ -499,9 +496,7 @@
 	const is_external_url = (link: string | null): boolean =>
 		!!(link && new URL(link, location.href).origin !== location.origin);
 
-	async function handle_mount({ detail }: { detail: number }): Promise<void> {
-		mounted_node_ids.add(detail);
-
+	async function handle_mount(): Promise<void> {
 		await tick();
 
 		var a = target.getElementsByTagName("a");
@@ -515,7 +510,7 @@
 				a[i].setAttribute("target", "_blank");
 		}
 
-		checkRenderCompletion();
+		render_complete = true;
 	}
 
 	function handle_destroy(id: number): void {
@@ -577,7 +572,6 @@
 
 		target.addEventListener("gradio", (e: Event) => {
 			if (!isCustomEvent(e)) throw new Error("not a custom event");
-			console.log(e);
 
 			const { id, event, data } = e.detail;
 
@@ -595,12 +589,6 @@
 			});
 		});
 	});
-
-	function checkRenderCompletion(): void {
-		if (dequal(walked_node_ids, mounted_node_ids)) {
-			render_complete = true;
-		}
-	}
 </script>
 
 <svelte:head>
@@ -627,11 +615,8 @@
 <div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
 	<div class="contain" style:flex-grow={app_mode ? "1" : "auto"}>
 		{#if ready}
-			<Render
-				component={rootNode.component}
-				id={rootNode.id}
-				props={rootNode.props}
-				children={rootNode.children}
+			<MountComponents
+				{rootNode}
 				{dynamic_ids}
 				{instance_map}
 				{root}
