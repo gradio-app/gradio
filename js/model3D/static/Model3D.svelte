@@ -26,7 +26,14 @@
 		});
 	});
 
-	afterUpdate(() => {
+	$: ({ data, name } = value || {
+		data: undefined,
+		name: undefined
+	});
+
+	$: data, name, dispose();
+
+	function dispose(): void {
 		if (scene && !scene.isDisposed) {
 			scene.dispose();
 			engine?.stopRenderLoop();
@@ -38,7 +45,11 @@
 			});
 		}
 		addNewModel();
-	});
+	}
+
+	// afterUpdate(() => {
+	// 	console.log("after update");
+	// });
 
 	function addNewModel(): void {
 		scene = new BABYLON.Scene(engine!);
