@@ -581,6 +581,16 @@ class TestRadio:
         scores = (await iface.interpret(["b"]))[0]["interpretation"]
         assert scores == [-2.0, None, 2.0]
 
+    def test_update(self):
+        update = gr.Radio.update(
+            choices=[("zeroth", ""), "first", "second"], label="ordinal"
+        )
+        assert update["choices"] == [
+            ("zeroth", ""),
+            ("first", "first"),
+            ("second", "second"),
+        ]
+
 
 class TestDropdown:
     def test_component_functions(self):
@@ -1130,6 +1140,7 @@ class TestDataframe:
             "interactive": None,
             "root_url": None,
             "wrap": False,
+            "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
         }
         dataframe_input = gr.Dataframe()
         output = dataframe_input.preprocess(x_data)
@@ -1164,6 +1175,7 @@ class TestDataframe:
             "interactive": None,
             "root_url": None,
             "wrap": False,
+            "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
         }
 
     def test_postprocess(self):
@@ -1227,7 +1239,7 @@ class TestDataframe:
                     0.2233,
                     84,
                     True,
-                    "<h1>Hello</h1>\n",
+                    "# Hello",
                 ],
                 [
                     pd.Timestamp("2021-01-02 00:00:00"),
@@ -1235,7 +1247,7 @@ class TestDataframe:
                     0.57281,
                     23,
                     False,
-                    "<h1>Goodbye</h1>\n",
+                    "# Goodbye",
                 ],
             ],
         }
@@ -1282,7 +1294,7 @@ class TestDataset:
             "hi",
             bus,
             "<i>Italics</i>",
-            "<p><em>Italics</em></p>\n",
+            "*Italics*",
         ]
 
         dataset = gr.Dataset(
@@ -2003,6 +2015,7 @@ class TestChatbot:
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
             "rtl": False,
             "show_copy_button": False,
+            "avatar_images": (None, None),
         }
 
 
@@ -2100,21 +2113,16 @@ class TestHTML:
 class TestMarkdown:
     def test_component_functions(self):
         markdown_component = gr.Markdown("# Let's learn about $x$", label="Markdown")
-        assert markdown_component.get_config()["value"].startswith(
-            """<h1>Let’s learn about <span class="math inline"><span style=\'font-size: 0px\'>x</span><svg xmlns:xlink="http://www.w3.org/1999/xlink" height="0.9678125em" viewBox="0 0 11.6 19.35625" xmlns="http://www.w3.org/2000/svg" version="1.1">\n \n <defs>\n  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>\n </defs>\n <g id="figure_1">\n  <g id="patch_1">"""
-        )
+        assert markdown_component.get_config()["value"] == "# Let's learn about $x$"
 
     def test_in_interface(self):
         """
         Interface, process
         """
         iface = gr.Interface(lambda x: x, "text", "markdown")
-        input_data = "Here's an [image](https://gradio.app/images/gradio_logo.png)"
+        input_data = "    Here's an [image](https://gradio.app/images/gradio_logo.png)"
         output_data = iface(input_data)
-        assert (
-            output_data
-            == """<p>Here’s an <a href="https://gradio.app/images/gradio_logo.png" target="_blank">image</a></p>\n"""
-        )
+        assert output_data == input_data.strip()
 
 
 class TestModel3D:

@@ -1,4 +1,4 @@
-lockfileVersion: '6.0'
+lockfileVersion: '6.1'
 
 settings:
   autoInstallPeers: true
@@ -738,12 +738,27 @@ importers:
       '@types/d3-dsv':
         specifier: ^3.0.0
         version: 3.0.0
+      '@types/dompurify':
+        specifier: ^3.0.2
+        version: 3.0.2
+      '@types/katex':
+        specifier: ^0.16.0
+        version: 0.16.0
       d3-dsv:
         specifier: ^3.0.1
         version: 3.0.1
       dequal:
         specifier: ^2.0.2
         version: 2.0.2
+      dompurify:
+        specifier: ^3.0.3
+        version: 3.0.3
+      katex:
+        specifier: ^0.16.7
+        version: 0.16.7
+      marked:
+        specifier: ^7.0.0
+        version: 7.0.0
 
   js/dropdown:
     dependencies:
@@ -913,6 +928,21 @@ importers:
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker
+      '@types/dompurify':
+        specifier: ^3.0.2
+        version: 3.0.2
+      '@types/katex':
+        specifier: ^0.16.0
+        version: 0.16.0
+      dompurify:
+        specifier: ^3.0.3
+        version: 3.0.3
+      katex:
+        specifier: ^0.16.7
+        version: 0.16.7
+      marked:
+        specifier: ^7.0.0
+        version: 7.0.0
 
   js/model3D:
     dependencies:

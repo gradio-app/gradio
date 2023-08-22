@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-import copy
+import json
 import os
 import sys
 import unittest.mock as mock
 import warnings
+from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
@@ -15,11 +16,6 @@ from pydantic import BaseModel
 from typing_extensions import Literal
 
 from gradio import EventData, Request
-from gradio.test_data.blocks_configs import (
-    XRAY_CONFIG,
-    XRAY_CONFIG_DIFF_IDS,
-    XRAY_CONFIG_WITH_MISTAKE,
-)
 from gradio.utils import (
     AsyncRequest,
     abspath,
@@ -112,93 +108,19 @@ class TestUtils:
             assert not kaggle_check()
 
 
-class TestAssertConfigsEquivalent:
-    def test_same_configs(self):
-        assert assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, XRAY_CONFIG)
+def test_assert_configs_are_equivalent():
+    test_dir = Path(__file__).parent / "test_files"
+    with open(test_dir / "xray_config.json") as fp:
+        xray_config = json.load(fp)
+    with open(test_dir / "xray_config_diff_ids.json") as fp:
+        xray_config_diff_ids = json.load(fp)
+    with open(test_dir / "xray_config_wrong.json") as fp:
+        xray_config_wrong = json.load(fp)
 
-    def test_equivalent_configs(self):
-        assert assert_configs_are_equivalent_besides_ids(
-            XRAY_CONFIG, XRAY_CONFIG_DIFF_IDS
-        )
-
-    def test_different_configs(self):
-        with pytest.raises(AssertionError):
-            assert_configs_are_equivalent_besides_ids(
-                XRAY_CONFIG_WITH_MISTAKE, XRAY_CONFIG
-            )
-
-    def test_different_dependencies(self):
-        config1 = {
-            "version": "3.0.20\n",
-            "mode": "blocks",
-            "dev_mode": True,
-            "components": [
-                {
-                    "id": 1,
-                    "type": "textbox",
-                    "props": {
-                        "lines": 1,
-                        "max_lines": 20,
-                        "placeholder": "What is your name?",
-                        "value": "",
-                        "show_label": True,
-                        "name": "textbox",
-                        "visible": True,
-                        "style": {},
-                    },
-                },
-                {
-                    "id": 2,
-                    "type": "textbox",
-                    "props": {
-                        "lines": 1,
-                        "max_lines": 20,
-                        "value": "",
-                        "show_label": True,
-                        "name": "textbox",
-                        "visible": True,
-                        "style": {},
-                    },
-                },
-                {
-                    "id": 3,
-                    "type": "image",
-                    "props": {
-                        "image_mode": "RGB",
-                        "source": "upload",
-                        "tool": "editor",
-                        "streaming": False,
-                        "show_label": True,
-                        "name": "image",
-                        "visible": True,
-                        "style": {"height": 54, "width": 240},
-                    },
-                },
-            ],
-            "css": None,
-            "enable_queue": False,
-            "layout": {"id": 0, "children": [{"id": 1}, {"id": 2}, {"id": 3}]},
-            "dependencies": [
-                {
-                    "targets": [1],
-                    "trigger": "submit",
-                    "inputs": [1],
-                    "outputs": [2],
-                    "backend_fn": True,
-                    "js": None,
-                    "queue": None,
-                    "api_name": "greet",
-                    "scroll_to_output": False,
-                    "show_progress": True,
-                    "documentation": [["(str): text"], ["(str | None): text"]],
-                }
-            ],
-        }
-
-        config2 = copy.deepcopy(config1)
-        config2["dependencies"][0]["documentation"] = None
-        with pytest.raises(AssertionError):
-            assert_configs_are_equivalent_besides_ids(config1, config2)
+    assert assert_configs_are_equivalent_besides_ids(xray_config, xray_config)
+    assert assert_configs_are_equivalent_besides_ids(xray_config, xray_config_diff_ids)
+    with pytest.raises(AssertionError):
+        assert_configs_are_equivalent_besides_ids(xray_config, xray_config_wrong)
 
 
 class TestFormatNERList:

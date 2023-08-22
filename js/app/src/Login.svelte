@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Form from "@gradio/form";
-	import Textbox from "@gradio/textbox";
+	import Textbox from "@gradio/textbox/interactive";
 	import { BaseButton } from "@gradio/button/static";
 	import Column from "@gradio/column";
 	import { _ } from "svelte-i18n";
@@ -20,7 +20,7 @@
 
 		let response = await fetch(root + "/login", {
 			method: "POST",
-			body: formData,
+			body: formData
 		});
 		if (response.status === 400) {
 			incorrect_credentials = true;
@@ -52,7 +52,6 @@
 				lines={1}
 				show_label={true}
 				max_lines={1}
-				mode="interactive"
 				on:submit={submit}
 				bind:value={username}
 			/>
@@ -61,7 +60,6 @@
 				lines={1}
 				show_label={true}
 				max_lines={1}
-				mode="interactive"
 				type="password"
 				on:submit={submit}
 				bind:value={password}

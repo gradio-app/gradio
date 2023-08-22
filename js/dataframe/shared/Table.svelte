@@ -19,6 +19,11 @@
 		| { data: (string | number)[][]; headers: string[] } = [[]];
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
+	export let latex_delimiters: {
+		left: string;
+		right: string;
+		display: boolean;
+	}[];
 
 	export let editable = true;
 	export let wrap = false;
@@ -28,13 +33,10 @@
 	$: {
 		if (values && !Array.isArray(values)) {
 			headers = values.headers;
-			values =
-				values.data.length === 0
-					? [Array(headers.length).fill("")]
-					: values.data;
+			values = values.data;
 			selected = false;
 		} else if (values === null) {
-			values = [Array(headers.length).fill("")];
+			values = [];
 			selected = false;
 		}
 	}
@@ -94,8 +96,7 @@
 		value: string | number;
 		id: string;
 	}[][] {
-		const data_row_length = _values.length > 0 ? _values.length : row_count[0];
-
+		const data_row_length = _values.length;
 		return Array(
 			row_count[1] === "fixed"
 				? row_count[0]
@@ -105,7 +106,13 @@
 		)
 			.fill(0)
 			.map((_, i) =>
-				Array(col_count[1] === "fixed" ? col_count[0] : _values[0].length)
+				Array(
+					col_count[1] === "fixed"
+						? col_count[0]
+						: data_row_length > 0
+						? _values[0].length
+						: headers.length
+				)
 					.fill(0)
 					.map((_, j) => {
 						const id = `${i}-${j}`;
@@ -150,7 +157,7 @@
 	$: _headers &&
 		dispatch("change", {
 			data: data.map((r) => r.map(({ value }) => value)),
-			headers: _headers.map((h) => h.value),
+			headers: _headers.map((h) => h.value)
 		});
 
 	function get_sort_status(
@@ -321,7 +328,6 @@
 
 		if (type === "select" && typeof id == "string") {
 			const { cell } = els[id];
-			// cell?.setAttribute("tabindex", "0");
 			await tick();
 			cell?.focus();
 		}
@@ -396,6 +402,10 @@
 
 	function add_row(index?: number): void {
 		if (row_count[1] !== "dynamic") return;
+		if (data.length === 0) {
+			values = [Array(headers.length).fill("")];
+			return;
+		}
 		data.splice(
 			index ? index + 1 : data.length,
 			0,
@@ -553,6 +563,7 @@
 								<div class="cell-wrap">
 									<EditableCell
 										{value}
+										{latex_delimiters}
 										bind:el={els[id].input}
 										edit={header_edit === id}
 										on:keydown={end_header_edit}
@@ -604,6 +615,7 @@
 										<EditableCell
 											bind:value
 											bind:el={els[id].input}
+											{latex_delimiters}
 											edit={editing === id}
 											datatype={Array.isArray(datatype)
 												? datatype[j]

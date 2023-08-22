@@ -354,12 +354,13 @@ class Audio(
             self.temp_files.add(file_path)
         else:
             file_path = self.make_temp_copy_if_needed(y)
-        return {"name": file_path, "data": None, "is_file": True}
+        return {"name": file_path, "data": None, "is_file": True, "orig_name": Path(file_path).name}
 
     def stream_output(self, y, output_id: str, first_chunk: bool):
         output_file = {
             "name": output_id,
             "is_stream": True,
+            "is_file": False,
         }
         if y is None:
             return None, output_file
@@ -369,6 +370,7 @@ class Audio(
             response = requests.get(y["name"])
             binary_data = response.content
         else:
+            output_file["orig_name"] = y["orig_name"]
             file_path = y["name"]
             is_wav = file_path.endswith(".wav")
             with open(file_path, "rb") as f:
