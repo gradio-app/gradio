@@ -1,0 +1,141 @@
+<script lang="ts">
+	import { tick, createEventDispatcher } from "svelte";
+	import DOMPurify from "dompurify";
+	import render_math_in_element from "katex/dist/contrib/auto-render.js";
+	import "katex/dist/katex.min.css";
+	import type { ThemeMode } from "js/app/src/components/types";
+
+	import { marked } from "./utils";
+	const dispatch = createEventDispatcher();
+
+	const code_highlight_css = {
+		light: (): Promise<typeof import("prismjs/themes/prism.css")> =>
+			import("prismjs/themes/prism.css"),
+		dark: (): Promise<typeof import("prismjs/themes/prism.css")> =>
+			import("prismjs/themes/prism-dark.css")
+	};
+
+	$: if (theme_mode == "dark") {
+		code_highlight_css.dark();
+	} else {
+		code_highlight_css.light();
+	}
+
+	export let chatbot = true;
+	export let theme_mode: ThemeMode;
+	export let message: string;
+	export let latex_delimiters: {
+		left: string;
+		right: string;
+		display: boolean;
+	}[];
+
+	let el: HTMLSpanElement;
+
+	DOMPurify.addHook("afterSanitizeAttributes", function (node) {
+		if ("target" in node) {
+			node.setAttribute("target", "_blank");
+			node.setAttribute("rel", "noopener noreferrer");
+		}
+	});
+
+	$: render_markdown(message);
+
+	async function render_markdown(value: string): Promise<void> {
+		// console.log("render_markdown, value: ", value, marked.parse(value));
+		await tick();
+		requestAnimationFrame(() => {
+			el.innerHTML = DOMPurify.sanitize(marked.parse(value));
+			if (latex_delimiters.length > 0) {
+				render_math_in_element(el, {
+					delimiters: latex_delimiters,
+					throwOnError: false
+				});
+			}
+
+			dispatch("load");
+		});
+	}
+</script>
+
+<span class:chatbot bind:this={el} />
+
+<style>
+	span:not(.chatbot) :global(code[class*="language-"]) {
+		background: var(--background-fill-secondary);
+		font-family: var(--font-mono);
+		font-size: var(--text-sm) !important;
+	}
+
+	span :global(pre[class*="language-"]),
+	span :global(pre) {
+		position: relative;
+		direction: ltr;
+		white-space: no-wrap;
+		overflow-x: auto;
+		font-size: var(--text-md);
+	}
+	span :global(code) {
+		font-size: var(--text-md);
+	}
+
+	span :global(div[class*="code_wrap"]) {
+		position: relative;
+		margin-top: var(--spacing-sm);
+		margin-bottom: var(--spacing-sm);
+		box-shadow: none;
+		border: none;
+		border-radius: var(--radius-md);
+	}
+
+	span :global(td),
+	span :global(th) {
+		border: 1px solid var(--border-color-primary);
+		padding: 12px 15px !important;
+	}
+
+	/* KaTeX */
+	span :global(span.katex) {
+		font-size: var(--text-lg);
+		direction: ltr;
+	}
+
+	span :global(div[class*="code_wrap"] > button) {
+		position: absolute;
+		top: var(--spacing-sm);
+		right: var(--spacing-sm);
+		z-index: 1;
+		cursor: pointer;
+		border-bottom-left-radius: var(--radius-sm);
+		padding: 5px;
+		padding: var(--spacing-md);
+		width: 25px;
+		height: 25px;
+	}
+
+	span :global(code > button > span) {
+		position: absolute;
+		top: var(--spacing-sm);
+		right: var(--spacing-sm);
+		width: 12px;
+		height: 12px;
+	}
+
+	span :global(.check) {
+		position: absolute;
+		top: 0;
+		right: 0;
+		opacity: 0;
+		z-index: var(--layer-top);
+		transition: opacity 0.2s;
+		background: var(--background-fill-primary);
+		padding: var(--size-1);
+		width: 100%;
+		height: 100%;
+		color: var(--body-text-color);
+	}
+
+	span :global(pre) {
+		position: relative;
+	}
+</style>
