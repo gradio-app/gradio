@@ -432,9 +432,7 @@ class Examples:
             except (ValueError, TypeError, SyntaxError, AssertionError):
                 output.append(
                     component.serialize(
-                        value_to_use,
-                        self.cached_folder,
-                        allow_links=True
+                        value_to_use, self.cached_folder, allow_links=True
                     )
                 )
         return output

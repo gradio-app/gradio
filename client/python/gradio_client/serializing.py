@@ -257,7 +257,10 @@ class FileSerializable(Serializable):
         }
 
     def _serialize_single(
-        self, x: str | FileData | None, load_dir: str | Path = "", allow_links: bool = False
+        self,
+        x: str | FileData | None,
+        load_dir: str | Path = "",
+        allow_links: bool = False,
     ) -> FileData | None:
         if x is None or isinstance(x, dict):
             return x
@@ -269,7 +272,9 @@ class FileSerializable(Serializable):
             size = Path(filename).stat().st_size
         return {
             "name": filename,
-            "data": None if allow_links else utils.encode_url_or_file_to_base64(filename),
+            "data": None
+            if allow_links
+            else utils.encode_url_or_file_to_base64(filename),
             "orig_name": Path(filename).name,
             "is_file": allow_links,
             "size": size,
