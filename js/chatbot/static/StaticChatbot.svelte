@@ -36,6 +36,7 @@
 		share: ShareData;
 		error: string;
 	}>;
+	export let avatar_images: (string | null)[] | null = null;
 
 	let _value: [string | FileData | null, string | FileData | null][];
 
@@ -52,6 +53,7 @@
 					: normalise_file(bot_msg, root, root_url)
 		  ])
 		: [];
+
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height = 400;
 </script>
@@ -96,6 +98,9 @@
 			on:select={(e) => gradio.dispatch("select", e.detail)}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
+			{avatar_images}
+			{root_url}
+			{root}
 		/>
 	</div>
 </Block>
