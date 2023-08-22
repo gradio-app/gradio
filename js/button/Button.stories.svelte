@@ -69,22 +69,8 @@
 	}}
 />
 <Story
-	name="Button with local icon file"
-	args={{
-		icon: "./HF_logo.svg",
-	}}
-/>
-
-<Story
 	name="Button with visible equal to false"
 	args={{
 		visible: false,
-	}}
-/>
-
-<Story
-	name="Button with local icon file"
-	args={{
-		icon: "./HF_logo.svg",
 	}}
 />
