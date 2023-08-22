@@ -652,7 +652,6 @@ class Interface(Blocks):
                         )
         else:
             assert submit_btn is not None, "Submit button not rendered"
-            fn = self.fn
             extra_output = []
 
             triggers = [submit_btn.click] + [
@@ -708,7 +707,7 @@ class Interface(Blocks):
                 for i, trigger in enumerate(triggers):
                     predict_events.append(
                         trigger(
-                            fn,
+                            self.fn,
                             self.input_components,
                             self.output_components,
                             api_name=self.api_name if i == 0 else None,
