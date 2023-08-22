@@ -354,7 +354,12 @@ class Audio(
             self.temp_files.add(file_path)
         else:
             file_path = self.make_temp_copy_if_needed(y)
-        return {"name": file_path, "data": None, "is_file": True, "orig_name": Path(file_path).name}
+        return {
+            "name": file_path,
+            "data": None,
+            "is_file": True,
+            "orig_name": Path(file_path).name,
+        }
 
     def stream_output(self, y, output_id: str, first_chunk: bool):
         output_file = {
