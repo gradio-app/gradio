@@ -66,6 +66,7 @@
 
 	span :global(pre[class*="language-"]),
 	span :global(pre) {
+		padding: 0;
 		position: relative;
 		direction: ltr;
 		white-space: no-wrap;
