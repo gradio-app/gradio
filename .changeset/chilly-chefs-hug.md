@@ -1,6 +1,7 @@
 ---
 "@gradio/annotatedimage": patch
 "@gradio/app": patch
+"@gradio/atoms": patch
 "@gradio/audio": patch
 "@gradio/button": patch
 "@gradio/chatbot": patch
@@ -28,6 +29,7 @@
 "@gradio/textbox": patch
 "@gradio/theme": patch
 "@gradio/timeseries": patch
+"@gradio/tootils": patch
 "@gradio/uploadbutton": patch
 "@gradio/utils": patch
 "@gradio/video": patch
