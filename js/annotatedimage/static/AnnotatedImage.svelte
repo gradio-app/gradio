@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { Gradio, SelectData } from "@gradio/utils";
 
-	import { createEventDispatcher } from "svelte";
 	import { Block, BlockLabel, Empty } from "@gradio/atoms";
 	import { Image } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
@@ -32,15 +31,9 @@
 		select: SelectData;
 	}>;
 
-	const dispatch = createEventDispatcher<{
-		change: undefined;
-		select: SelectData;
-	}>();
-
 	$: {
 		if (value !== old_value) {
 			old_value = value;
-			dispatch("change");
 			gradio.dispatch("change");
 		}
 		if (value) {
@@ -63,10 +56,6 @@
 	}
 
 	function handle_click(i: number): void {
-		dispatch("select", {
-			value: label,
-			index: i
-		});
 		gradio.dispatch("select", {
 			value: label,
 			index: i
