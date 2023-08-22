@@ -7,7 +7,7 @@ highlight:
 
 #### Add `render` function to `<gradio-app>`
 
-We now have an event `render` on the <gradio-app> web component, which is triggered once the embedded space has finished loading.
+We now have an event `render` on the <gradio-app> web component, which is triggered once the embedded space has finished rendering.
 
 ```html
 <script>
