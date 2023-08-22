@@ -2,6 +2,7 @@
 	import { createEventDispatcher, tick } from "svelte";
 	import { dsvFormat } from "d3-dsv";
 	import { dequal } from "dequal/lite";
+	import type { ThemeMode } from "js/app/src/components/types";
 
 	import { Upload } from "@gradio/upload";
 	import { BaseButton } from "@gradio/button/static";
@@ -24,6 +25,7 @@
 		right: string;
 		display: boolean;
 	}[];
+	export let theme_mode: ThemeMode;
 
 	export let editable = true;
 	export let wrap = false;
@@ -569,6 +571,7 @@
 										on:keydown={end_header_edit}
 										on:dblclick={() => edit_header(id)}
 										header
+										{theme_mode}
 									/>
 
 									<!-- TODO: fix -->
@@ -620,6 +623,7 @@
 											datatype={Array.isArray(datatype)
 												? datatype[j]
 												: datatype}
+											{theme_mode}
 										/>
 									</div>
 								</td>

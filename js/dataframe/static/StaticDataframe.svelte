@@ -5,6 +5,7 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { afterUpdate } from "svelte";
+	import type { ThemeMode } from "js/app/src/components/types";
 
 	type Headers = string[];
 	type Data = (string | number)[][];
@@ -37,6 +38,7 @@
 		right: string;
 		display: boolean;
 	}[];
+	export let theme_mode: ThemeMode;
 
 	export let loading_status: LoadingStatus;
 
@@ -82,5 +84,6 @@
 		{datatype}
 		{latex_delimiters}
 		editable={false}
+		{theme_mode}
 	/>
 </Block>

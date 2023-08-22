@@ -19,10 +19,12 @@
 	}[];
 
 	export let theme_mode: ThemeMode;
+	export let el: HTMLInputElement | null;
 </script>
 
 {#if edit}
 	<input
+		bind:this={el}
 		class:header
 		tabindex="-1"
 		{value}
