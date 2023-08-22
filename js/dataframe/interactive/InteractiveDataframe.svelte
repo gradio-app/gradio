@@ -5,6 +5,7 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { afterUpdate } from "svelte";
+	import type { ThemeMode } from "js/app/src/components/types";
 
 	type Headers = string[];
 	type Data = (string | number)[][];
@@ -40,6 +41,7 @@
 	}>;
 
 	export let loading_status: LoadingStatus;
+	export let theme_mode: ThemeMode;
 
 	function handle_change(): void {
 		gradio.dispatch("change");
@@ -83,5 +85,6 @@
 		{wrap}
 		{datatype}
 		{latex_delimiters}
+		{theme_mode}
 	/>
 </Block>

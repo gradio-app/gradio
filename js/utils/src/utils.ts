@@ -1,3 +1,4 @@
+import { type ActionReturn } from "svelte/action";
 export interface SelectData {
 	index: number | [number, number];
 	value: any;
