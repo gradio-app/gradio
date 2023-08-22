@@ -508,6 +508,13 @@
 				a[i].setAttribute("target", "_blank");
 		}
 
+		// handle load triggers
+		dependencies.forEach((dep, i) => {
+			if (dep.targets.length === 0 && dep.trigger === "load") {
+				trigger_api_call(i);
+			}
+		});
+
 		render_complete = true;
 	}
 
@@ -562,10 +569,6 @@
 					target_map[id][trigger] = [i];
 				}
 			});
-
-			if (targets.length === 0 && trigger === "load") {
-				trigger_api_call(i);
-			}
 		});
 
 		target.addEventListener("gradio", (e: Event) => {
@@ -581,7 +584,6 @@
 			}
 
 			const deps = target_map[id]?.[event];
-			// console.log(deps);
 			deps?.forEach((dep_id) => {
 				trigger_api_call(dep_id, data);
 			});
