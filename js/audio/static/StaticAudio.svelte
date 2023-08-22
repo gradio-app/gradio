@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	import type { Gradio, ShareData } from "@gradio/utils";
-	import { createEventDispatcher } from "svelte";
 	import { _ } from "svelte-i18n";
 
 	import type { FileData } from "@gradio/upload";
@@ -13,13 +12,6 @@
 	import { Block } from "@gradio/atoms";
 
 	import { normalise_file } from "@gradio/upload";
-	import type { S } from "@storybook/theming/dist/create-c2b2ce6d";
-
-	const dispatch = createEventDispatcher<{
-		change: typeof value;
-		stream: typeof value;
-		error: string;
-	}>();
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -52,7 +44,6 @@
 	$: {
 		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
 			old_value = value;
-			dispatch("change");
 			gradio.dispatch("change");
 		}
 	}
