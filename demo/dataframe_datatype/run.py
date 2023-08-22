@@ -14,7 +14,7 @@ def make_dataframe(n_periods):
 
 demo = gr.Interface(make_dataframe,
              gr.Number(precision=0),
-             gr.Dataframe(datatype=["date", "date", "number", "number", "bool", "markdown"], interactive=True))
+             gr.Dataframe(datatype=["date", "date", "number", "number", "bool", "markdown"]))
 
 
 if __name__ == "__main__":
