@@ -73,8 +73,6 @@ function create_custom_element(): void {
 
 			observer.observe(this, { childList: true });
 
-			// if (this.)
-
 			this.app = new Index({
 				target: this,
 				props: {
