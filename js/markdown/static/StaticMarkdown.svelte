@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Gradio } from "@gradio/utils";
 	import Markdown from "./Markdown.svelte";
+	import type { ThemeMode } from "js/app/src/components/types";
 
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
@@ -21,6 +22,7 @@
 		right: string;
 		display: boolean;
 	}[];
+	export let theme_mode: ThemeMode;
 
 	$: label, gradio.dispatch("change");
 </script>
@@ -37,6 +39,7 @@
 			{rtl}
 			on:change={() => gradio.dispatch("change")}
 			{latex_delimiters}
+			{theme_mode}
 		/>
 	</div>
 </Block>

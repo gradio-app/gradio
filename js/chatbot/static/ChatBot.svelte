@@ -1,20 +1,14 @@
 <script lang="ts">
-	import { copy, format_chat_for_sharing } from "../utils";
-	import "katex/dist/katex.min.css";
+	import { format_chat_for_sharing } from "../utils";
+	import { copy } from "@gradio/utils";
+
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import { ShareButton } from "@gradio/atoms";
 	import type { SelectData } from "@gradio/utils";
 	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
-	import Markdown from "./MarkdownCode.svelte";
+	import { MarkdownCode as Markdown } from "@gradio/markdown/static";
 	import Copy from "./Copy.svelte";
-
-	const code_highlight_css = {
-		light: (): Promise<typeof import("prismjs/themes/prism.css")> =>
-			import("prismjs/themes/prism.css"),
-		dark: (): Promise<typeof import("prismjs/themes/prism.css")> =>
-			import("prismjs/themes/prism-dark.css")
-	};
 
 	export let value:
 		| [string | FileData | null, string | FileData | null][]
@@ -36,11 +30,6 @@
 	export let avatar_images: (string | null)[] | null = null;
 	export let root: string;
 	export let root_url: null | string;
-	$: if (theme_mode == "dark") {
-		code_highlight_css.dark();
-	} else {
-		code_highlight_css.light();
-	}
 
 	let div: HTMLDivElement;
 	let autoscroll: boolean;
@@ -130,7 +119,12 @@
 							dir={rtl ? "rtl" : "ltr"}
 						>
 							{#if typeof message === "string"}
-								<Markdown {message} {latex_delimiters} on:load={scroll} />
+								<Markdown
+									{message}
+									{latex_delimiters}
+									on:load={scroll}
+									{theme_mode}
+								/>
 								{#if feedback && j == 1}
 									<div class="feedback">
 										{#each feedback as f}

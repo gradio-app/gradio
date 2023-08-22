@@ -172,6 +172,6 @@
 	padding-left: var(--size-2);
 }
 
-.prose :last-child {
+.prose:last-child {
 	margin-bottom: 0 !important;
 }
