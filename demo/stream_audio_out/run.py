@@ -49,7 +49,6 @@ with gr.Blocks() as demo:
                             sleep(1)
                         else:
                             break
-
             stream_as_bytes_btn.click(stream_bytes, input_audio, stream_as_bytes_output)
 
 if __name__ == "__main__":
