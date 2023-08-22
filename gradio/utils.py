@@ -80,12 +80,25 @@ class ReloadConfig:
     app: App
     watch_dirs: list[str]
     watch_file: str
-    event: threading.Event
+    stop_event: threading.Event
+    change_event: threading.Event
     demo_name: str = "demo"
+
+    def should_watch(self) -> bool:
+        return not self.stop_event.is_set()
+
+    def stop(self) -> None:
+        self.stop_event.set()
+
+    def alert_change(self):
+        self.change_event.set()
 
 
 def watchfn(reload_config: ReloadConfig):
-    """Watch python files in a given module."""
+    """Watch python files in a given module.
+
+    get_changes is taken from uvicorn's default file watcher.
+    """
 
     def get_changes() -> Path | None:
         for file in iter_py_files():
@@ -110,14 +123,14 @@ def watchfn(reload_config: ReloadConfig):
     module = None
     reload_dirs = [Path(dir_) for dir_ in reload_config.watch_dirs]
     mtimes = {}
-    while not reload_config.event.is_set():
+    while reload_config.should_watch():
         import sys
 
         changed = get_changes()
         if changed:
             print(f"Changes detected in: {changed}")
-            # Delete all references to local files in sys.modules so we can load
-            # them fresh
+            # To simulate a fresh reload, delete all module references from sys.modules
+            # for the modules in the package the change came from.
             dir_ = next(d for d in reload_dirs if changed.is_relative_to(d))
             for k, v in list(sys.modules.items()):
                 sourcefile = getattr(v, "__file__", None)
@@ -136,6 +149,7 @@ def watchfn(reload_config: ReloadConfig):
                     module, reload_config.demo_name
                 )._queue = reload_config.app.blocks._queue
             reload_config.app.blocks = module.demo
+            reload_config.alert_change()
             mtimes = {}
 
 

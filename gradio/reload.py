@@ -26,7 +26,7 @@ def _setup_config():
         if "." in demo_name:
             demo_name = demo_name.split(".")[0]
             print(
-                "\nWARNING: As of Gradio 3.31, the parameter after the file path must be the name of the FastAPI app, not the Gradio demo. In most cases, this just means you should add '.app' after the name of your demo, e.g. 'demo' -> 'demo.app'."
+                "\nWARNING: As of Gradio 3.41.0, the parameter after the file path must be the name of the Gradio demo, not the FastAPI app. In most cases, this just means you should remove '.app' after the name of your demo, e.g. 'demo.app' -> 'demo'."
             )
 
     original_path = args[0]

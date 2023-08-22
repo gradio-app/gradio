@@ -10,7 +10,7 @@
 	import type {
 		ComponentMeta,
 		Dependency,
-		LayoutNode,
+		LayoutNode
 	} from "./components/types";
 	import { setupi18n } from "./i18n";
 	import Render from "./Render.svelte";
@@ -52,10 +52,12 @@
 		props: { mode: "static" },
 		has_modes: false,
 		instance: {} as ComponentMeta["instance"],
-		component: {} as ComponentMeta["component"],
+		component: {} as ComponentMeta["component"]
 	};
 
 	components.push(rootNode);
+
+	$: console.log(components);
 
 	const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 	dependencies.forEach((d) => {
@@ -124,10 +126,13 @@
 		);
 	}
 
-	let instance_map = components.reduce((acc, next) => {
-		acc[next.id] = next;
-		return acc;
-	}, {} as { [id: number]: ComponentMeta });
+	let instance_map = components.reduce(
+		(acc, next) => {
+			acc[next.id] = next;
+			return acc;
+		},
+		{} as { [id: number]: ComponentMeta }
+	);
 
 	type LoadedComponent = {
 		default: ComponentMeta["component"];
@@ -145,7 +150,7 @@
 			const c = await component_map[name][mode]();
 			return {
 				name,
-				component: c as LoadedComponent,
+				component: c as LoadedComponent
 			};
 		} catch (e) {
 			if (mode === "interactive") {
@@ -153,7 +158,7 @@
 					const c = await component_map[name]["static"]();
 					return {
 						name,
-						component: c as LoadedComponent,
+						component: c as LoadedComponent
 					};
 				} catch (e) {
 					console.error(`failed to load: ${name}`);
@@ -301,7 +306,7 @@
 			message,
 			fn_index,
 			type,
-			id: ++_error_id,
+			id: ++_error_id
 		};
 	}
 
@@ -352,7 +357,7 @@
 		let payload = {
 			fn_index: dep_index,
 			data: dep.inputs.map((id) => instance_map[id].props.value),
-			event_data: dep.collects_event_data ? event_data : null,
+			event_data: dep.collects_event_data ? event_data : null
 		};
 
 		if (dep.frontend_fn) {
@@ -388,7 +393,7 @@
 						...status,
 						status: status.stage,
 						progress: status.progress_data,
-						fn_index,
+						fn_index
 					});
 					if (
 						!showed_duplicate_message &&
@@ -401,7 +406,7 @@
 						showed_duplicate_message = true;
 						messages = [
 							new_message(DUPLICATE_MESSAGE, fn_index, "warning"),
-							...messages,
+							...messages
 						];
 					}
 					if (
@@ -413,7 +418,7 @@
 						showed_mobile_warning = true;
 						messages = [
 							new_message(MOBILE_QUEUE_WARNING, fn_index, "warning"),
-							...messages,
+							...messages
 						];
 					}
 
@@ -430,7 +435,7 @@
 						window.setTimeout(() => {
 							messages = [
 								new_message(MOBILE_RECONNECT_MESSAGE, fn_index, "error"),
-								...messages,
+								...messages
 							];
 						}, 0);
 						trigger_api_call(dep_index, event_data);
@@ -443,7 +448,7 @@
 							);
 							messages = [
 								new_message(_message, fn_index, "error"),
-								...messages,
+								...messages
 							];
 						}
 						dependencies.map(async (dep, i) => {
@@ -508,7 +513,7 @@
 			let { targets, trigger, inputs, outputs } = dep;
 			const target_instances: [number, ComponentMeta][] = targets.map((t) => [
 				t,
-				instance_map[t],
+				instance_map[t]
 			]);
 
 			// page events
@@ -558,7 +563,7 @@
 					c.instance.$on("error", (event_data: any) => {
 						messages = [
 							new_message(event_data.detail, -1, "error"),
-							...messages,
+							...messages
 						];
 					});
 				}

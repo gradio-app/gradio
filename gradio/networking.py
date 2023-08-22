@@ -69,7 +69,7 @@ class Server(uvicorn.Server):
     def close(self):
         self.should_exit = True
         if self.reload_config:
-            self.reload_config.event.set()
+            self.reload_config.stop()
             self.watch_thread.join()
         self.thread.join()
 
@@ -187,12 +187,15 @@ def start_server(
             )
             reload_config = None
             if GRADIO_WATCH_DIRS:
+                change_event = threading.Event()
+                app.change_event = change_event
                 reload_config = ReloadConfig(
                     app=app,
                     watch_dirs=GRADIO_WATCH_DIRS,
                     watch_file=GRADIO_WATCH_FILE,
                     demo_name=GRADIO_WATCH_DEMO_NAME,
-                    event=threading.Event(),
+                    stop_event=threading.Event(),
+                    change_event=change_event,
                 )
             server = Server(config=config, reload_config=reload_config)
             server.run_in_thread()

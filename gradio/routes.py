@@ -17,6 +17,7 @@ import os
 import posixpath
 import secrets
 import tempfile
+import threading
 import time
 import traceback
 from asyncio import TimeoutError as AsyncTimeOutError
@@ -118,6 +119,7 @@ class App(FastAPI):
         self.uploaded_file_dir = os.environ.get("GRADIO_TEMP_DIR") or str(
             Path(tempfile.gettempdir()) / "gradio"
         )
+        self.change_event: None | threading.Event = None
         # Allow user to manually set `docs_url` and `redoc_url`
         # when instantiating an App; when they're not set, disable docs and redoc.
         kwargs.setdefault("docs_url", None)
@@ -215,6 +217,24 @@ class App(FastAPI):
         @app.get("/app_id/")
         def app_id(request: fastapi.Request) -> dict:
             return {"app_id": app.get_blocks().app_id}
+
+        @app.websocket("/dev/reload")
+        async def notify_changes(
+            websocket: WebSocket,
+        ):
+            assert app.change_event
+            await websocket.accept()
+            while True:
+                if app.change_event.is_set():
+                    print("HERE 2")
+                    await websocket.send_text("CHANGE")
+                    app.change_event.clear()
+                try:
+                    await asyncio.wait_for(websocket.send_text("PING"), timeout=0.02)
+                except Exception:
+                    await websocket.close()
+                if websocket.application_state == WebSocketState.DISCONNECTED:
+                    return
 
         @app.post("/login")
         @app.post("/login/")
