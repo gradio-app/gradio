@@ -12,7 +12,7 @@ We now have an event `render` on the <gradio-app> web component, which is trigge
 ```html
 <script>
 	function handleLoadComplete() {
-		console.log("Embedded space has finished loading");
+		console.log("Embedded space has finished rendering");
 	}
 	const gradioApp = document.querySelector("gradio-app");
 	gradioApp.addEventListener("render", handleLoadComplete);

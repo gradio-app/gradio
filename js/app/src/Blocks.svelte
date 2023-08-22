@@ -561,8 +561,6 @@
 		});
 
 		components.forEach((c) => {
-			mounted_node_ids.add(c.id);
-
 			if (!attached_error_listeners.includes(c.id)) {
 				if (c.instance) {
 					attached_error_listeners.push(c.id);

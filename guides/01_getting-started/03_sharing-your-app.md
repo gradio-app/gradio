@@ -108,7 +108,7 @@ You can also customize the appearance and behavior of your web component with at
 - `autoscroll`: whether to autoscroll to the output when prediction has finished (by default `"false"`)
 - `eager`: whether to load the Gradio app as soon as the page loads (by default `"false"`)
 - `theme_mode`: whether to use the `dark`, `light`, or default `system` theme mode (by default `"system"`)
-- `render`: an event that is triggered once the embedded space has finished loading.
+- `render`: an event that is triggered once the embedded space has finished rendering.
 
 Here's an example of how to use these attributes to create a Gradio app that does not lazy load and has an initial height of 0px.
 
@@ -125,7 +125,7 @@ Here's another example of how to use the `render` event. An event listener is us
 ```html
 <script>
 	function handleLoadComplete() {
-		console.log("Embedded space has finished loading");
+		console.log("Embedded space has finished rendering");
 	}
 
 	const gradioApp = document.querySelector("gradio-app");
