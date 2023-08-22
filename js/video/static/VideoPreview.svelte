@@ -55,7 +55,8 @@
 			{autoplay}
 			on:play
 			on:pause
-			on:ended
+			on:stop
+			on:end
 			mirror={false}
 			{label}
 		/>
