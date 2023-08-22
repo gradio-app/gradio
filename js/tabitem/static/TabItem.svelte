@@ -36,6 +36,7 @@
 
 <style>
 	div {
+		content-visibility: auto;
 		display: flex;
 		position: relative;
 		border: 1px solid var(--border-color-primary);
