@@ -2,7 +2,7 @@
 "gradio": patch
 ---
 
-fix:Improve audio streaming
+highlight:Improve audio streaming
 
 This PR improves audio streaming in two ways:
 
