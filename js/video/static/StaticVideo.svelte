@@ -94,6 +94,7 @@
 		on:play={() => gradio.dispatch("play")}
 		on:pause={() => gradio.dispatch("pause")}
 		on:stop={() => gradio.dispatch("stop")}
+		on:end={() => gradio.dispatch("end")}
 		on:share={({ detail }) => gradio.dispatch("share", detail)}
 		on:error={({ detail }) => gradio.dispatch("error", detail)}
 	/>
