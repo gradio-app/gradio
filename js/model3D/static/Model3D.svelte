@@ -3,15 +3,14 @@
 	import { BlockLabel, IconButton } from "@gradio/atoms";
 	import { File, Download } from "@gradio/icons";
 	import { _ } from "svelte-i18n";
+	import { onMount } from "svelte";
+	import * as BABYLON from "babylonjs";
+	import * as BABYLON_LOADERS from "babylonjs-loaders";
 
 	export let value: FileData | null;
 	export let clearColor: [number, number, number, number] = [0, 0, 0, 0];
 	export let label = "";
 	export let show_label: boolean;
-
-	import { onMount, afterUpdate } from "svelte";
-	import * as BABYLON from "babylonjs";
-	import * as BABYLON_LOADERS from "babylonjs-loaders";
 
 	BABYLON_LOADERS.OBJFileLoader.IMPORT_VERTEX_COLORS = true;
 
@@ -19,11 +18,14 @@
 	let scene: BABYLON.Scene;
 	let engine: BABYLON.Engine | null;
 
+	let mounted = false;
+
 	onMount(() => {
 		engine = new BABYLON.Engine(canvas, true);
 		window.addEventListener("resize", () => {
 			engine?.resize();
 		});
+		mounted = true;
 	});
 
 	$: ({ data, name } = value || {
@@ -31,7 +33,7 @@
 		name: undefined
 	});
 
-	$: data, name, dispose();
+	$: mounted, data, name, dispose();
 
 	function dispose(): void {
 		if (scene && !scene.isDisposed) {
@@ -46,10 +48,6 @@
 		}
 		addNewModel();
 	}
-
-	// afterUpdate(() => {
-	// 	console.log("after update");
-	// });
 
 	function addNewModel(): void {
 		scene = new BABYLON.Scene(engine!);
@@ -72,7 +70,6 @@
 			let blob = new Blob([raw_content]);
 			url = URL.createObjectURL(blob);
 		}
-
 		BABYLON.SceneLoader.Append(
 			"",
 			url,

@@ -577,6 +577,7 @@
 
 		target.addEventListener("gradio", (e: Event) => {
 			if (!isCustomEvent(e)) throw new Error("not a custom event");
+			console.log(e);
 
 			const { id, event, data } = e.detail;
 
@@ -594,6 +595,7 @@
 			});
 		});
 	});
+
 	function checkRenderCompletion(): void {
 		if (dequal(walked_node_ids, mounted_node_ids)) {
 			render_complete = true;
