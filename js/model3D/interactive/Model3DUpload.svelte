@@ -10,10 +10,13 @@
 	export let label = "";
 	export let show_label: boolean;
 
+	let mounted = false;
+
 	onMount(() => {
 		if (value != null) {
 			addNewModel();
 		}
+		mounted = true;
 	});
 
 	$: ({ data, is_file, name } = value || {
@@ -22,8 +25,7 @@
 		name: undefined
 	});
 
-	$: if (data != null && is_file && name) {
-		console.log("triggered");
+	$: if (mounted && data != null && is_file && name) {
 		tick().then(addNewModel);
 	}
 
