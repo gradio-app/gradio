@@ -67,7 +67,7 @@
 			dispatch("select", {
 				index: choices.indexOf(option),
 				value: option,
-				selected: true,
+				selected: true
 			});
 		}
 		value = value;
@@ -81,7 +81,7 @@
 		dispatch("select", {
 			index: choices.indexOf(option),
 			value: option,
-			selected: false,
+			selected: false
 		});
 	}
 
@@ -135,7 +135,7 @@
 				dispatch("select", {
 					index: choices.indexOf(option),
 					value: option,
-					selected: true,
+					selected: true
 				});
 				filterInput.blur();
 			}
@@ -151,7 +151,7 @@
 					dispatch("select", {
 						index: choices.indexOf(value),
 						value: value,
-						selected: true,
+						selected: true
 					});
 				}
 				inputValue = activeOption;

@@ -25,7 +25,7 @@
 			pending = true;
 			const formatted = await formatter(value);
 			dispatch("share", {
-				description: formatted,
+				description: formatted
 			});
 		} catch (e) {
 			console.error(e);
