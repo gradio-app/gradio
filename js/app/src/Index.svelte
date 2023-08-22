@@ -98,6 +98,7 @@
 	let app_id: string | null = null;
 	let wrapper: HTMLDivElement;
 	let ready = false;
+	let render_complete = false;
 	let config: Config;
 	let loading_text = $_("common.loading") + "...";
 	let active_theme_mode: ThemeMode;
@@ -285,6 +286,16 @@
 	onMount(async () => {
 		intersecting.register(_id, wrapper);
 	});
+
+	$: if (render_complete) {
+		wrapper.dispatchEvent(
+			new CustomEvent("render", {
+				bubbles: true,
+				cancelable: false,
+				composed: true,
+			})
+		);
+	}
 </script>
 
 <Embed
@@ -345,6 +356,7 @@
 			target={wrapper}
 			{autoscroll}
 			bind:ready
+			bind:render_complete
 			show_footer={!is_embed}
 			{app_mode}
 			{version}

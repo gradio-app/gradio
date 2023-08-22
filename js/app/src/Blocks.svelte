@@ -19,6 +19,7 @@
 	import { Toast } from "@gradio/statustracker";
 	import type { ToastMessage } from "@gradio/statustracker";
 	import type { ShareData } from "@gradio/utils";
+	import { dequal } from "dequal";
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
@@ -44,6 +45,9 @@
 	export let version: string;
 
 	let loading_status = create_loading_status_store();
+
+	const walked_node_ids = new Set();
+	const mounted_node_ids = new Set();
 
 	$: app_state.update((s) => ({ ...s, autoscroll }));
 
@@ -184,6 +188,8 @@
 
 	async function walk_layout(node: LayoutNode): Promise<void> {
 		let instance = instance_map[node.id];
+		walked_node_ids.add(node.id);
+
 		const _component = (await _component_map.get(
 			`${instance.type}_${_type_for_id.get(node.id) || "static"}`
 		))!.component;
@@ -213,6 +219,7 @@
 	});
 
 	export let ready = false;
+	export let render_complete = false;
 	Promise.all(Array.from(component_set)).then(() => {
 		walk_layout(layout)
 			.then(async () => {
@@ -492,9 +499,9 @@
 	const is_external_url = (link: string | null): boolean =>
 		!!(link && new URL(link, location.href).origin !== location.origin);
 
-	let attached_error_listeners: number[] = [];
-	let shareable_components: number[] = [];
-	async function handle_mount(): Promise<void> {
+	async function handle_mount({ detail }: { detail: number }): Promise<void> {
+		mounted_node_ids.add(detail);
+
 		await tick();
 
 		var a = target.getElementsByTagName("a");
@@ -508,66 +515,7 @@
 				a[i].setAttribute("target", "_blank");
 		}
 
-		dependencies.forEach((dep, i) => {
-			let { targets, trigger, inputs, outputs } = dep;
-			const target_instances: [number, ComponentMeta][] = targets.map((t) => [
-				t,
-				instance_map[t]
-			]);
-
-			// page events
-			// if (
-			// 	targets.length === 0 &&
-			// 	!handled_dependencies[i]?.includes(-1) &&
-			// 	trigger === "load" &&
-			// 	// check all input + output elements are on the page
-			// 	outputs.every((v) => instance_map?.[v].instance) &&
-			// 	inputs.every((v) => instance_map?.[v].instance)
-			// ) {
-			// 	trigger_api_call(i);
-			// 	handled_dependencies[i] = [-1];
-			// }
-
-			// component events
-			// 	target_instances
-			// 		.filter((v) => !!v && !!v[1])
-			// 		.forEach(([id, { instance }]: [number, ComponentMeta]) => {
-			// 			if (handled_dependencies[i]?.includes(id) || !instance) return;
-			// 			instance?.$on(trigger, (event_data: any) => {
-			// 				trigger_api_call(i, event_data.detail);
-			// 			});
-
-			// 			if (!handled_dependencies[i]) handled_dependencies[i] = [];
-			// 			handled_dependencies[i].push(id);
-			// 		});
-			// });
-			// share events
-			// components.forEach((c) => {
-			// 	if (
-			// 		c.props.show_share_button &&
-			// 		!shareable_components.includes(c.id) // only one share listener per component
-			// 	) {
-			// 		shareable_components.push(c.id);
-			// 		c.instance.$on("share", (event_data) => {
-			// 			const { title, description } = event_data.detail as ShareData;
-			// 			trigger_share(title, description);
-			// 		});
-			// 	}
-			// });
-
-			// components.forEach((c) => {
-			// 	if (!attached_error_listeners.includes(c.id)) {
-			// 		if (c.instance) {
-			// 			attached_error_listeners.push(c.id);
-			// 			c.instance.$on("error", (event_data: any) => {
-			// 				messages = [
-			// 					new_message(event_data.detail, -1, "error"),
-			// 					...messages
-			// 				];
-			// 			});
-			// 		}
-			// 	}
-		});
+		checkRenderCompletion();
 	}
 
 	function handle_destroy(id: number): void {
@@ -646,6 +594,11 @@
 			});
 		});
 	});
+	function checkRenderCompletion(): void {
+		if (dequal(walked_node_ids, mounted_node_ids)) {
+			render_complete = true;
+		}
+	}
 </script>
 
 <svelte:head>
