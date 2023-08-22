@@ -892,7 +892,7 @@ def make_waveform(
 
         if not animate:
             waveform_img = PIL.Image.open(tmp_img.name)
-            waveform_img = waveform_img.resize((1000, 200))
+            waveform_img = waveform_img.resize((1000, 400))
 
             # Composite waveform with background image
             if bg_image is not None:
@@ -987,11 +987,11 @@ def make_waveform(
             "-i",
             audio_file,
             "-filter_complex",
-            "[0:v][1:a]concat=n=1:v=1:a=1[v][a]",
+            "[0:v][1:a]concat=n=1:v=1:a=1[v];[v]scale=1000:400,format=yuv420p[v_scaled]",
             "-map",
-            "[v]",
+            "[v_scaled]",
             "-map",
-            "[a]",
+            "1:a",
             "-c:v",
             "libx264",
             "-c:a",
