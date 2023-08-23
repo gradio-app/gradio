@@ -51,7 +51,7 @@
     class="text-xl text-orange-500 font-light group"
     id="event-listener-arguments"
 >
-    Arguments
+    Event Arguments
 </h4>
 
 <table class="table-fixed w-full leading-loose">
