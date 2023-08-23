@@ -2,6 +2,7 @@
 	import Demos from "$lib/components/Demos.svelte";
 	import DocsNav from "$lib/components/DocsNav.svelte";
 	import FunctionDoc from "$lib/components/FunctionDoc.svelte";
+	import EventListeners from "$lib/components/EventListeners.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import anchor from "$lib/assets/img/anchor.svg";
 	import { onDestroy } from "svelte";
@@ -16,16 +17,12 @@
 	let helpers = data.helpers;
 	let routes = data.routes;
 	let py_client = data.py_client;
-	let event_listeners: any[];
-	let event_listener_docs: any[];
 
 
 	let headers: [string, string][];
 	let method_headers: [string, string][];
 	$: headers = data.headers;
 	$: method_headers = data.method_headers;
-	$: event_listeners = data.event_listeners;
-	$: event_listener_docs = data.event_listener_docs;
 
 	let current_selection = 0;
 
@@ -398,32 +395,41 @@
 						{/if}
 
 						{#if obj.fns && obj.fns.length > 0}
-							<div id="methods">
-								<h4 class="mt-4 p-3 text-xl text-orange-500 font-light group">
-									Methods
-									<a
-										href="#methods"
-										class="invisible group-hover-visible"
-										on:click={handleAnchorClick}
-										><img class="anchor-img-small" src={anchor} /></a
-									>
-								</h4>
-								<div class="flex flex-col gap-8 pl-12">
-									{#if event_listeners}
-										<FunctionDoc fn={event_listener_docs} parent={obj.name} />
-										{#each event_listeners as fn}
-											<FunctionDoc {fn} parent={obj.name} listener={true} />
-										{/each}
-									{/if}
-
-									{#each obj.fns as fn}
-										{#if !event_listeners.includes(fn)}
-											<FunctionDoc {fn} parent={obj.name} />
-										{/if}
-									{/each}
-									<div class="ml-12" />
+							{#if mode === "components"}
+								<div id="event-listeners">
+									<h4 class="mt-4 p-3 text-xl text-orange-500 font-light group">
+										Event Listeners
+										<a
+											href="#event-listeners"
+												class="invisible group-hover-visible"
+												on:click={handleAnchorClick}
+												><img class="anchor-img-small" src={anchor} /></a
+											>
+										</h4>
+										<div class="flex flex-col gap-8 pl-12">
+											<EventListeners fns={obj.fns} />
+											<div class="ml-12" />
+										</div>
 								</div>
-							</div>
+							{:else}
+								<div id="methods">
+									<h4 class="mt-4 p-3 text-xl text-orange-500 font-light group">
+										Methods
+										<a
+											href="#methods"
+											class="invisible group-hover-visible"
+											on:click={handleAnchorClick}
+											><img class="anchor-img-small" src={anchor} /></a
+										>
+									</h4>
+									<div class="flex flex-col gap-8 pl-12">
+										{#each obj.fns as fn}
+												<FunctionDoc {fn} />
+										{/each}
+										<div class="ml-12" />
+									</div>
+								</div>
+							{/if}
 						{/if}
 
 						{#if obj.guides && obj.guides.length > 0}

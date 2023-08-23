@@ -21,7 +21,6 @@ export async function load({ params, parent }) {
 	let mode;
 	let headers = [];
 	let method_headers = [];
-	let events_matrix = docs.events_matrix;
 	const get_slug = make_slug_processor();
 
 	for (const key in docs) {
@@ -84,33 +83,25 @@ export async function load({ params, parent }) {
 				}
 
 				if ("fns" in obj && obj.fns.length > 0) {
-					headers.push(["Methods", "methods"]);
-					for (const fn of obj.fns) {
-						method_headers.push([fn.name, fn.slug]);
-						if (fn.example) {
-							fn.highlighted_example = Prism.highlight(
-								fn.example,
-								Prism.languages[language],
-								"python"
-							);
+					if (mode === "components") {
+						headers.push(["Event Listeners", "event-listeners"]);
+					} else {
+						headers.push(["Methods", "methods"]);
+						for (const fn of obj.fns) {
+							method_headers.push([fn.name, fn.slug]);
+							if (fn.example) {
+								fn.highlighted_example = Prism.highlight(
+									fn.example,
+									Prism.languages[language],
+									"python"
+								);
+							}
 						}
 					}
 				}
 			}
 		}
 	}
-
-	let event_listeners: any = [];
-	for (const fn in obj?.fns) {
-		if ( obj.name in events_matrix && events_matrix[obj.name].includes(obj?.fns[fn].name)) {
-			event_listeners.push(obj?.fns[fn]);
-		}
-	}
-	let event_listener_docs: any = {...event_listeners[0]};
-	event_listener_docs.name = "Event Listeners";
-	event_listener_docs.slug = "event-listeners";
-	event_listener_docs.description = "Event listeners are functions that are called when an event is triggered. Every event listener takes the same arguments, shown in the arguments table below.";
-	event_listener_docs.listeners = event_listeners.map((listener: any) => listener.name);
 
 	return {
 		name,
@@ -122,8 +113,6 @@ export async function load({ params, parent }) {
 		py_client,
 		COLOR_SETS,
 		headers,
-		method_headers,
-		event_listeners,
-		event_listener_docs
+		method_headers
 	};
 }

@@ -1,0 +1,96 @@
+<script lang="ts">
+	export let fns: any[];
+</script>
+
+
+<div id="event-listeners-description">
+    <h4 class="mt-8 text-xl text-orange-500 font-light group">
+        Description
+    </h4>
+    <p class="mb-2 text-lg text-gray-600">Event listeners are functions that are called when an event is triggered. Every event listener takes the same arguments, shown in the arguments table below.</p>
+    <p class="mb-2 text-lg text-gray-600"> The table below shows the event listeners supported by {fns[0].parent.replace("gradio.","")}.</p>
+</div>
+
+<h4
+    class="text-xl text-orange-500 font-light group"
+    id="supported-event-listeners"
+>
+    Supported Event Listeners
+</h4>
+<table class="mb-4 table-fixed w-full">
+    <thead class="text-left">
+        <tr>
+            <th class="px-3 pb-3 text-gray-700 font-semibold w-2/5"
+                >Listener</th
+            >
+            <th class="px-3 pb-3 text-gray-700 font-semibold"
+                >Description</th
+            >
+        </tr>
+    </thead>
+    <tbody
+        class="text-left divide-y rounded-lg bg-gray-50 border border-gray-100 overflow-hidden"
+    >
+        {#each fns as fn}
+            <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80 align-top	">
+                <td class="p-3 w-2/5 break-words">
+                    <p>
+                        <code class="lang-python">{fn.parent}.{fn.name}(fn, ···)</code
+                        >
+                    </p>
+                </td>
+                <td class="p-3 break-words text-gray-700">
+                    <p>{fn.description}</p>
+                </td>
+            </tr>
+        {/each}
+    </tbody>
+</table>
+
+<h4
+    class="text-xl text-orange-500 font-light group"
+    id="event-listener-arguments"
+>
+    Arguments
+</h4>
+
+<table class="table-fixed w-full leading-loose">
+    <thead class="text-left">
+        <tr>
+            <th class="px-3 pb-3 font-semibold text-gray-700 w-2/5">Parameter</th>
+            <th class="px-3 pb-3 font-semibold text-gray-700">Description</th>
+        </tr>
+    </thead>
+    <tbody
+        class=" rounded-lg bg-gray-50 border border-gray-100 overflow-hidden text-left align-top divide-y"
+    >
+        {#each fns[0].parameters as param}
+            {#if param["name"] != "self"}
+                <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+                    <td class="p-3 w-2/5 break-words">
+                        <code class="block">
+                            {param["name"]}
+                        </code>
+                        <p class="text-gray-500 italic">{param["annotation"]}</p>
+                        {#if "default" in param}
+                            <p class="text-gray-500 font-semibold">
+                                default: {param["default"]}
+                            </p>
+                        {:else if !("kwargs" in param)}
+                            <p class="text-orange-600 font-semibold italic">required</p>
+                        {/if}
+                    </td>
+                    <td class="p-3 text-gray-700 break-words">
+                        <p>{param["doc"] || ""}</p>
+                    </td>
+                </tr>
+            {/if}
+        {/each}
+    </tbody>
+</table>
+
+<style>
+	code {
+		font-size: 0.9em;
+	}
+</style>
