@@ -10,12 +10,6 @@
 		"ghcr.io/devcontainers-contrib/features/ffmpeg-apt-get:1": {}
 	},
 
-	"hostRequirements": {
-		"cpus": 4,
-		"memory": "8gb",
-		"storage": "32gb"
-	 },
-
 	"customizations": {
 		"vscode": {
 			"extensions": [
