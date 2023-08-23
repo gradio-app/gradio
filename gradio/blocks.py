@@ -1352,20 +1352,23 @@ Received outputs:
     ) -> list:
         if session_hash is None or run is None:
             return data
+        if run not in self.pending_streams[session_hash]:
+            self.pending_streams[session_hash][run] = {}
+        stream_run = self.pending_streams[session_hash][run]
 
         from gradio.events import StreamableOutput
 
         for i, output_id in enumerate(self.dependencies[fn_index]["outputs"]):
             block = self.blocks[output_id]
             if isinstance(block, StreamableOutput) and block.streaming:
-                stream = block.stream_output(data[i])
-                if run not in self.pending_streams[session_hash]:
-                    self.pending_streams[session_hash][run] = defaultdict(list)
-                self.pending_streams[session_hash][run][output_id].append(stream)
-                if data[i]:
-                    data[i]["is_file"] = False
-                    data[i]["name"] = f"{session_hash}/{run}/{output_id}"
-                    data[i]["is_stream"] = True
+                first_chunk = output_id not in stream_run
+                binary_data, output_data = block.stream_output(
+                    data[i], f"{session_hash}/{run}/{output_id}", first_chunk
+                )
+                if first_chunk:
+                    stream_run[output_id] = []
+                self.pending_streams[session_hash][run][output_id].append(binary_data)
+                data[i] = output_data
         return data
 
     async def process_api(
