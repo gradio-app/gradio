@@ -95,7 +95,7 @@
 		{#if value !== null}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
-					<div class="message-row">
+					<div class="message-row {j == 0 ? 'user-row' : 'bot-row'}">
 						{#if avatar_images[j] !== null}
 							<img
 								class="avatar-image-{j == 0 ? 'user' : 'bot'}"
@@ -198,6 +198,14 @@
 		padding: var(--block-padding);
 		width: 100%;
 		overflow-y: auto;
+	}
+
+	.user-row {
+		align-self: flex-end;
+	}
+
+	.bot-row {
+		align-self: flex-start;
 	}
 
 	.message-wrap {
