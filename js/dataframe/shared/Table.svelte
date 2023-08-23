@@ -3,7 +3,7 @@
 	import { dsvFormat } from "d3-dsv";
 	import { dequal } from "dequal/lite";
 	import type { ThemeMode } from "js/app/src/components/types";
-
+	import { copy } from "@gradio/utils";
 	import { Upload } from "@gradio/upload";
 	import { BaseButton } from "@gradio/button/static";
 	import EditableCell from "./EditableCell.svelte";
@@ -536,13 +536,18 @@
 	on:touchstart={handle_click_outside}
 />
 
-<div class:label={label && label.length !== 0}>
+<div class:label={label && label.length !== 0} use:copy>
 	{#if label && label.length !== 0}
 		<p>
 			{label}
 		</p>
 	{/if}
-	<div class="table-wrap" class:dragging class:no-wrap={!wrap} style="max-height: {typeof height === undefined ? 'auto' : height + 'px'};">
+	<div
+		class="table-wrap"
+		class:dragging
+		class:no-wrap={!wrap}
+		style="max-height: {typeof height === undefined ? 'auto' : height + 'px'};"
+	>
 		<Upload
 			flex={false}
 			center={false}
@@ -858,5 +863,12 @@
 
 	.controls-wrap > * + * {
 		margin-left: var(--size-1);
+	}
+
+	tr:nth-of-type(even) :global(span):not(.chatbot) :global(code) {
+		background: var(--table-odd-background-fill);
+	}
+	tr:nth-of-type(odd) :global(span):not(.chatbot) :global(code) {
+		background: var(--table-even-background-fill);
 	}
 </style>
