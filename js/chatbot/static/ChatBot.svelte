@@ -25,7 +25,6 @@
 	export let feedback: string[] | null = null;
 	export let selectable = false;
 	export let show_share_button = false;
-	export let theme_mode: ThemeMode;
 	export let rtl = false;
 	export let show_copy_button = false;
 	export let avatar_images: [string | null, string | null] = [null, null];
@@ -121,12 +120,7 @@
 							dir={rtl ? "rtl" : "ltr"}
 						>
 							{#if typeof message === "string"}
-								<Markdown
-									{message}
-									{latex_delimiters}
-									on:load={scroll}
-									{theme_mode}
-								/>
+								<Markdown {message} {latex_delimiters} on:load={scroll} />
 								{#if feedback && j == 1}
 									<div class="feedback">
 										{#each feedback as f}
@@ -245,7 +239,7 @@
 	}
 	.bot {
 		border-bottom-left-radius: 0;
-		padding-left: calc(2 * var(--spacing-xxl));
+		padding-left: var(--spacing-xxl);
 	}
 	@media (max-width: 480px) {
 		.message {
@@ -361,39 +355,6 @@
 
 	.hide {
 		display: none;
-	}
-
-	/* Code blocks */
-	.message-wrap :global(pre),
-	.message-wrap :global(pre) {
-		position: relative;
-		direction: ltr;
-		white-space: no-wrap;
-		overflow-x: auto;
-	}
-	.message-wrap :global(code) {
-		font-size: var(--text-md);
-	}
-
-	.message-wrap :global(div[class*="code_wrap"]) {
-		position: relative;
-		margin-top: var(--spacing-sm);
-		margin-bottom: var(--spacing-sm);
-		box-shadow: none;
-		border: none;
-		border-radius: var(--radius-md);
-		background-color: var(--chatbot-code-background-color);
-		padding: var(--spacing-xl) 10px;
-	}
-
-	/* Tables */
-	.message-wrap :global(table),
-	.message-wrap :global(tr),
-	.message-wrap :global(td),
-	.message-wrap :global(th) {
-		margin-top: var(--spacing-sm);
-		margin-bottom: var(--spacing-sm);
-		padding: var(--spacing-xl);
 	}
 
 	.message-wrap .bot :global(table),

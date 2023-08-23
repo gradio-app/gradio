@@ -1,11 +1,10 @@
 <script lang="ts">
-	import { afterUpdate, createEventDispatcher } from "svelte";
+	import { afterUpdate } from "svelte";
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import { Block } from "@gradio/atoms";
 	import Table from "../shared";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import type { ThemeMode } from "js/app/src/components/types";
 
 	type Headers = string[];
 	type Data = (string | number)[][];
@@ -38,10 +37,7 @@
 		right: string;
 		display: boolean;
 	}[];
-	export let theme_mode: ThemeMode;
 	export let height: number | undefined = undefined;
-
-	const dispatch = createEventDispatcher();
 
 	export let loading_status: LoadingStatus;
 
@@ -87,7 +83,6 @@
 		{datatype}
 		{latex_delimiters}
 		editable={false}
-		{theme_mode}
 		{height}
 	/>
 </Block>

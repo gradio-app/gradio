@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { tick } from "svelte";
 	import type { FileData } from "@gradio/upload";
 	import { BlockLabel, IconButton } from "@gradio/atoms";
 	import { File, Download } from "@gradio/icons";
@@ -34,9 +33,7 @@
 		name: undefined
 	});
 
-	$: if (mounted && data != null && name) {
-		tick().then(dispose);
-	}
+	$: canvas && mounted && data != null && name && dispose();
 
 	function dispose(): void {
 		if (scene && !scene.isDisposed) {
@@ -73,6 +70,9 @@
 			let blob = new Blob([raw_content]);
 			url = URL.createObjectURL(blob);
 		}
+
+		BABYLON.SceneLoader.ShowLoadingScreen = false;
+
 		BABYLON.SceneLoader.Append(
 			"",
 			url,
