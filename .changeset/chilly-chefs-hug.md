@@ -42,7 +42,7 @@ highlight:
 
 #### Improve startup performance and markdown support
 
-#### Improved markdown support
+##### Improved markdown support
 
 We now have better support for markdown in `gr.Markdown` and `gr.Dataframe`. Including syntax highlighting and Github Flavoured Markdown. We also have more consistent markdown behaviour and styling.
 
