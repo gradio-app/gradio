@@ -477,9 +477,14 @@
 		if (space_id === null) {
 			return;
 		}
+		console.log(space_id);
+
 		const discussion_url = new URL(
 			`https://huggingface.co/spaces/${space_id}/discussions/new`
 		);
+
+		console.log(discussion_url);
+
 		if (title !== undefined && title.length > 0) {
 			discussion_url.searchParams.set("title", title);
 		}
@@ -554,7 +559,9 @@
 			) {
 				shareable_components.push(c.id);
 				c.instance.$on("share", (event_data) => {
+					console.log(event_data);
 					const { title, description } = event_data.detail as ShareData;
+					console.log(title, description);
 					trigger_share(title, description);
 				});
 			}

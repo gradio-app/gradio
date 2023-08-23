@@ -21,9 +21,11 @@
 	label={$_("common.share")}
 	{pending}
 	on:click={async () => {
+		console.log(value);
 		try {
 			pending = true;
 			const formatted = await formatter(value);
+			console.log(formatted);
 			dispatch("share", {
 				description: formatted,
 			});

@@ -49,6 +49,8 @@ export async function uploadToHuggingFace(
 		}
 	});
 
+	console.log(uploadResponse);
+
 	// Check status of response
 	if (!uploadResponse.ok) {
 		if (
@@ -62,6 +64,8 @@ export async function uploadToHuggingFace(
 
 	// Return response if needed
 	const result = await uploadResponse.text();
+
+	console.log(result);
 	return result;
 }
 
