@@ -28,6 +28,7 @@
 		right: string;
 		display: boolean;
 	}[];
+	export let avatar_images: [string | null, string | null] = [null, null];
 
 	let _value: [string | FileData | null, string | FileData | null][];
 
@@ -44,6 +45,7 @@
 					: normalise_file(bot_msg, root, root_url)
 		  ])
 		: [];
+
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height = 400;
 </script>
@@ -84,6 +86,9 @@
 			pending_message={loading_status?.status === "pending"}
 			{rtl}
 			{show_copy_button}
+			{avatar_images}
+			{root_url}
+			{root}
 			on:change
 			on:select
 			on:share

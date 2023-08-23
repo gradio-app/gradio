@@ -11,7 +11,6 @@
 		ComponentMeta,
 		Dependency,
 		LayoutNode,
-		Documentation,
 	} from "./components/types";
 	import { setupi18n } from "./i18n";
 	import Render from "./Render.svelte";
@@ -20,6 +19,7 @@
 	import { Toast } from "@gradio/statustracker";
 	import type { ToastMessage } from "@gradio/statustracker";
 	import type { ShareData } from "@gradio/utils";
+	import { dequal } from "dequal";
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
@@ -44,6 +44,9 @@
 	export let space_id: string | null;
 
 	let loading_status = create_loading_status_store();
+
+	const walked_node_ids = new Set();
+	const mounted_node_ids = new Set();
 
 	$: app_state.update((s) => ({ ...s, autoscroll }));
 
@@ -181,6 +184,8 @@
 
 	async function walk_layout(node: LayoutNode): Promise<void> {
 		let instance = instance_map[node.id];
+		walked_node_ids.add(node.id);
+
 		const _component = (await _component_map.get(
 			`${instance.type}_${_type_for_id.get(node.id) || "static"}`
 		))!.component;
@@ -210,6 +215,7 @@
 	});
 
 	export let ready = false;
+	export let render_complete = false;
 	Promise.all(Array.from(component_set)).then(() => {
 		walk_layout(layout)
 			.then(async () => {
@@ -491,7 +497,9 @@
 
 	let attached_error_listeners: number[] = [];
 	let shareable_components: number[] = [];
-	async function handle_mount(): Promise<void> {
+	async function handle_mount({ detail }: { detail: number }): Promise<void> {
+		mounted_node_ids.add(detail);
+
 		await tick();
 
 		var a = target.getElementsByTagName("a");
@@ -565,6 +573,8 @@
 				}
 			}
 		});
+
+		checkRenderCompletion();
 	}
 
 	function handle_destroy(id: number): void {
@@ -591,6 +601,12 @@
 		const inputs_to_update = loading_status.get_inputs_to_update();
 		for (const [id, pending_status] of inputs_to_update) {
 			set_prop(instance_map[id], "pending", pending_status === "pending");
+		}
+	}
+
+	function checkRenderCompletion(): void {
+		if (dequal(walked_node_ids, mounted_node_ids)) {
+			render_complete = true;
 		}
 	}
 </script>
@@ -644,10 +660,8 @@
 					}}
 					class="show-api"
 				>
-					$_('errors.use_via_api') <img
-						src={api_logo}
-						alt={$_("common.logo")}
-					/>
+					{$_("errors.use_via_api")}
+					<img src={api_logo} alt={$_("common.logo")} />
 				</button>
 				<div>·</div>
 			{/if}
@@ -657,7 +671,7 @@
 				target="_blank"
 				rel="noreferrer"
 			>
-				$_('common.built_with_gradio')
+				{$_("common.built_with_gradio")}
 				<img src={logo} alt={$_("common.logo")} />
 			</a>
 		</footer>

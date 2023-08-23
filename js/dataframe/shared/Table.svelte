@@ -19,9 +19,15 @@
 		| { data: (string | number)[][]; headers: string[] } = [[]];
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
+	export let latex_delimiters: {
+		left: string;
+		right: string;
+		display: boolean;
+	}[];
 
 	export let editable = true;
 	export let wrap = false;
+	export let height: number | undefined = undefined;
 
 	let selected: false | string = false;
 
@@ -152,7 +158,7 @@
 	$: _headers &&
 		dispatch("change", {
 			data: data.map((r) => r.map(({ value }) => value)),
-			headers: _headers.map((h) => h.value),
+			headers: _headers.map((h) => h.value)
 		});
 
 	function get_sort_status(
@@ -534,7 +540,7 @@
 			{label}
 		</p>
 	{/if}
-	<div class="table-wrap scroll-hide" class:dragging class:no-wrap={!wrap}>
+	<div class="table-wrap" class:dragging class:no-wrap={!wrap} style="max-height: {typeof height === undefined ? 'auto' : height + 'px'};">
 		<Upload
 			flex={false}
 			center={false}
@@ -558,6 +564,7 @@
 								<div class="cell-wrap">
 									<EditableCell
 										{value}
+										{latex_delimiters}
 										bind:el={els[id].input}
 										edit={header_edit === id}
 										on:keydown={end_header_edit}
@@ -609,6 +616,7 @@
 										<EditableCell
 											bind:value
 											bind:el={els[id].input}
+											{latex_delimiters}
 											edit={editing === id}
 											datatype={Array.isArray(datatype)
 												? datatype[j]
@@ -696,8 +704,8 @@
 		transition: 150ms;
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--table-radius);
-		overflow-x: scroll;
-		overflow-y: hidden;
+		overflow-x: auto;
+		overflow-y: auto;
 	}
 
 	.dragging {
