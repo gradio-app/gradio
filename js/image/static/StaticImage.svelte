@@ -1,7 +1,7 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import type { Gradio, SelectData } from "@gradio/utils";
 	import StaticImage from "./ImagePreview.svelte";
 
 	import { Block } from "@gradio/atoms";
@@ -26,13 +26,14 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let show_share_button = false;
-
-	const dispatch = createEventDispatcher<{
-		change: undefined;
+	export let gradio: Gradio<{
+		change: never;
 		error: string;
-	}>();
+		select: SelectData;
+		share: ShareData;
+	}>;
 
-	$: value, dispatch("change");
+	$: value, gradio.dispatch("change");
 	let dragging: boolean;
 
 	$: value = !value ? null : value;
@@ -54,9 +55,9 @@
 >
 	<StatusTracker {...loading_status} />
 	<StaticImage
-		on:select
-		on:share
-		on:error
+		on:select={({ detail }) => gradio.dispatch("select", detail)}
+		on:share={({ detail }) => gradio.dispatch("share", detail)}
+		on:error={({ detail }) => gradio.dispatch("error", detail)}
 		{value}
 		{label}
 		{show_label}

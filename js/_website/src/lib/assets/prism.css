@@ -9,7 +9,6 @@ https://prismjs.com/download.html#themes=prism&languages=python */
 code[class*="language-"],
 pre[class*="language-"] {
 	word-wrap: normal;
-	background: none;
 	color: black;
 	font-size: 1em;
 	line-height: 1.5;
