@@ -452,6 +452,32 @@ def test_make_waveform_with_spaces_in_filename():
         waveform = gr.make_waveform(audio)
         assert waveform.endswith(".mp4")
 
+        try:
+            command = [
+                "ffprobe",
+                "-v",
+                "error",
+                "-select_streams",
+                "v:0",
+                "-show_entries",
+                "stream=width,height",
+                "-of",
+                "json",
+                waveform,
+            ]
+
+            result = subprocess.run(command, capture_output=True, text=True, check=True)
+            output = result.stdout
+            data = json.loads(output)
+
+            width = data["streams"][0]["width"]
+            height = data["streams"][0]["height"]
+            assert width == 1000
+            assert height == 400
+
+        except subprocess.CalledProcessError as e:
+            print("Error retrieving resolution of output waveform video:", e)
+
 
 def test_make_waveform_raises_if_ffmpeg_fails(tmp_path, monkeypatch):
     """
