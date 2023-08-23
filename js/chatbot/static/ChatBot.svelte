@@ -8,7 +8,7 @@
 	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
 	import { MarkdownCode as Markdown } from "@gradio/markdown/static";
-	import {get_fetchable_url_or_file} from "@gradio/upload";
+	import { get_fetchable_url_or_file } from "@gradio/upload";
 	import Copy from "./Copy.svelte";
 
 	export let value:
@@ -100,7 +100,11 @@
 						{#if avatar_images[j] !== null}
 							<img
 								class="avatar-image-{j == 0 ? 'user' : 'bot'}"
-								src={get_fetchable_url_or_file(avatar_images[j], root, root_url)}
+								src={get_fetchable_url_or_file(
+									avatar_images[j],
+									root,
+									root_url
+								)}
 								alt="avatar"
 							/>
 						{/if}
@@ -360,7 +364,7 @@
 	}
 
 	/* Code blocks */
-	.message-wrap :global(pre[class*="language-"]),
+	.message-wrap :global(pre),
 	.message-wrap :global(pre) {
 		position: relative;
 		direction: ltr;

@@ -59,13 +59,18 @@
 </span>
 
 <style>
-	span:not(.chatbot) :global(code[class*="language-"]) {
+	span:not(.chatbot) :global(code) {
 		background: var(--background-fill-secondary);
 		font-family: var(--font-mono);
 		font-size: var(--text-sm) !important;
+		display: block;
+		padding: 0.5em 0.7em;
+		white-space: pre;
+		border-radius: var(--radius-sm);
+		text-shadow: none;
 	}
 
-	span :global(pre[class*="language-"]),
+	span :global(pre),
 	span :global(pre) {
 		padding: 0;
 		position: relative;
@@ -73,9 +78,11 @@
 		white-space: no-wrap;
 		overflow-x: auto;
 		font-size: var(--text-md);
+		text-shadow: none;
 	}
 	span :global(code) {
 		font-size: var(--text-md);
+		text-shadow: none;
 	}
 
 	span :global(div[class*="code_wrap"]) {
