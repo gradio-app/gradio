@@ -268,6 +268,21 @@ class TestClientPredictions:
             assert job2.status().code == Status.FINISHED
             assert len(job2.outputs()) == 4
 
+    def test_stream_audio(self, stream_audio):
+        with connect(stream_audio) as client:
+            job1 = client.submit(
+                "https://gradio-builds.s3.amazonaws.com/demo-files/bark_demo.mp4",
+                api_name="/predict",
+            )
+            assert Path(job1.result()).exists()
+
+            job2 = client.submit(
+                "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
+                api_name="/predict",
+            )
+            assert Path(job2.result()).exists()
+            assert all(Path(p).exists() for p in job2.outputs())
+
     @pytest.mark.flaky
     def test_upload_file_private_space(self):
         client = Client(
