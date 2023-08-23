@@ -1,5 +1,11 @@
 # @gradio/lite
 
+## 0.3.1
+
+### Features
+
+- [#5226](https://github.com/gradio-app/gradio/pull/5226) [`64039707`](https://github.com/gradio-app/gradio/commit/640397075d17307dd4f0713d063ef3d009a87aa0) - add gradio as a devdep of @gradio/lite.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.3.0
 
 ### Minor Changes

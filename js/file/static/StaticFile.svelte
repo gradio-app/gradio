@@ -115,6 +115,7 @@
 	{container}
 	{scale}
 	{min_width}
+	allow_overflow={false}
 >
 	<StatusTracker
 		{...loading_status}
