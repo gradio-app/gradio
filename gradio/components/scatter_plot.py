@@ -107,10 +107,10 @@ class ScatterPlot(Plot):
             shape: The column used to determine the point shape. Should contain categorical data. Gradio will map each unique value to a different shape.
             title: The title to display on top of the chart.
             tooltip: The column (or list of columns) to display on the tooltip when a user hovers a point on the plot.
-            x_title: The title given to the x axis. By default, uses the value of the x parameter.
-            y_title: The title given to the y axis. By default, uses the value of the y parameter.
-            x_label_angle:  The angle for the x axis labels rotation.
-            y_label_angle:  The angle for the y axis labels rotation.
+            x_title: The title given to the x-axis. By default, uses the value of the x parameter.
+            y_title: The title given to the y-axis. By default, uses the value of the y parameter.
+            x_label_angle:  The angle for the x axis labels rotation. Positive values are clockwise, and negative values are counter-clockwise.
+            y_label_angle:  The angle for the y axis labels rotation. Positive values are clockwise, and negative values are counter-clockwise.
             color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
             size_legend_title: The title given to the size legend. By default, uses the value of the size parameter.
             shape_legend_title: The title given to the shape legend. By default, uses the value of the shape parameter.
@@ -255,8 +255,8 @@ class ScatterPlot(Plot):
             tooltip: The column (or list of columns) to display on the tooltip when a user hovers a point on the plot.
             x_title: The title given to the x axis. By default, uses the value of the x parameter.
             y_title: The title given to the y axis. By default, uses the value of the y parameter.
-            x_label_angle:  The angle for the x axis labels rotation.
-            y_label_angle:  The angle for the y axis labels rotation.
+            x_label_angle:  The angle for the x axis labels rotation. Positive values are clockwise, and negative values are counter-clockwise.
+            y_label_angle:  The angle for the y axis labels rotation. Positive values are clockwise, and negative values are counter-clockwise.
             color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
             size_legend_title: The title given to the size legend. By default, uses the value of the size parameter.
             shape_legend_title: The title given to the shape legend. By default, uses the value of the shape parameter.

@@ -94,8 +94,8 @@ class LinePlot(Plot):
             tooltip: The column (or list of columns) to display on the tooltip when a user hovers a point on the plot.
             x_title: The title given to the x axis. By default, uses the value of the x parameter.
             y_title: The title given to the y axis. By default, uses the value of the y parameter.
-            x_label_angle:  The angle for the x axis labels rotation.
-            y_label_angle:  The angle for the y axis labels rotation.
+            x_label_angle: The angle for the x axis labels. Positive values are clockwise, and negative values are counter-clockwise.
+            y_label_angle: The angle for the y axis labels. Positive values are clockwise, and negative values are counter-clockwise.
             color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
             stroke_dash_legend_title: The title given to the stroke_dash legend. By default, uses the value of the stroke_dash parameter.
             color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
@@ -223,8 +223,8 @@ class LinePlot(Plot):
             tooltip: The column (or list of columns) to display on the tooltip when a user hovers a point on the plot.
             x_title: The title given to the x axis. By default, uses the value of the x parameter.
             y_title: The title given to the y axis. By default, uses the value of the y parameter.
-            x_label_angle:  The angle for the x axis labels rotation.
-            y_label_angle:  The angle for the y axis labels rotation.
+            x_label_angle:  The angle for the x axis labels. Positive values are clockwise, and negative values are counter-clockwise.
+            y_label_angle:  The angle for the y axis labels. Positive values are clockwise, and negative values are counter-clockwise.
             color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
             stroke_dash_legend_title: The title given to the stroke legend. By default, uses the value of stroke parameter.
             color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation

@@ -81,8 +81,8 @@ class BarPlot(Plot):
             tooltip: The column (or list of columns) to display on the tooltip when a user hovers over a bar.
             x_title: The title given to the x axis. By default, uses the value of the x parameter.
             y_title: The title given to the y axis. By default, uses the value of the y parameter.
-            x_label_angle: The angle (in degrees) of the x axis labels. Default is 0.
-            y_label_angle: The angle (in degrees) of the y axis labels. Default is 0.
+            x_label_angle: The angle (in degrees) of the x axis labels. Positive values are clockwise, and negative values are counter-clockwise.
+            y_label_angle: The angle (in degrees) of the y axis labels. Positive values are clockwise, and negative values are counter-clockwise.
             color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
             group_title: The label displayed on top of the subplot columns (or rows if vertical=True). Use an empty string to omit.
             color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
@@ -194,8 +194,8 @@ class BarPlot(Plot):
             tooltip: The column (or list of columns) to display on the tooltip when a user hovers over a bar.
             x_title: The title given to the x axis. By default, uses the value of the x parameter.
             y_title: The title given to the y axis. By default, uses the value of the y parameter.
-            x_label_angle: The angle (in degrees) of the x axis labels. Default is 0.
-            y_label_angle: The angle (in degrees) of the y axis labels. Default is 0.
+            x_label_angle: The angle (in degrees) of the x axis labels. Positive values are clockwise, and negative values are counter-clockwise.
+            y_label_angle: The angle (in degrees) of the y axis labels. Positive values are clockwise, and negative values are counter-clockwise.
             color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
             group_title: The label displayed on top of the subplot columns (or rows if vertical=True). Use an empty string to omit.
             color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
