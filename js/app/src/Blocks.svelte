@@ -209,8 +209,8 @@
 
 	$: components, layout, prepare_components();
 
-	function prepare_components() {
-		const _rootNode = {
+	function prepare_components(): void {
+		const _rootNode: typeof rootNode = {
 			id: layout.id,
 			type: "column",
 			props: { mode: "static" },
@@ -252,7 +252,6 @@
 		});
 
 		Promise.all(Array.from(_component_set)).then(() => {
-			console.log(layout, __type_for_id);
 			walk_layout(layout, __type_for_id, _instance_map, __component_map)
 				.then(async () => {
 					ready = true;
