@@ -226,7 +226,6 @@ class App(FastAPI):
             await websocket.accept()
             while True:
                 if app.change_event.is_set():
-                    print("HERE 2")
                     await websocket.send_text("CHANGE")
                     app.change_event.clear()
                 try:

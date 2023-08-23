@@ -31,13 +31,6 @@ TRY_NUM_PORTS = int(os.getenv("GRADIO_NUM_PORTS", "100"))
 LOCALHOST_NAME = os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
 GRADIO_API_SERVER = "https://api.gradio.app/v2/tunnel-request"
 
-should_watch = bool(os.getenv("GRADIO_WATCH_DIRS", False))
-GRADIO_WATCH_DIRS = (
-    os.getenv("GRADIO_WATCH_DIRS", "").split(",") if should_watch else []
-)
-GRADIO_WATCH_FILE = os.getenv("GRADIO_WATCH_FILE", "app")
-GRADIO_WATCH_DEMO_NAME = os.getenv("GRADIO_WATCH_DEMO_NAME", "demo")
-
 
 class Server(uvicorn.Server):
     def __init__(
@@ -186,6 +179,13 @@ def start_server(
                 ws_max_size=1024 * 1024 * 1024,  # Setting max websocket size to be 1 GB
             )
             reload_config = None
+            should_watch = bool(os.getenv("GRADIO_WATCH_DIRS", False))
+            GRADIO_WATCH_DIRS = (
+                os.getenv("GRADIO_WATCH_DIRS", "").split(",") if should_watch else []
+            )
+            GRADIO_WATCH_FILE = os.getenv("GRADIO_WATCH_FILE", "app")
+            GRADIO_WATCH_DEMO_NAME = os.getenv("GRADIO_WATCH_DEMO_NAME", "demo")
+            
             if GRADIO_WATCH_DIRS:
                 change_event = threading.Event()
                 app.change_event = change_event
