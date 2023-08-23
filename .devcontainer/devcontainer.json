@@ -32,5 +32,4 @@
 	},
 
 	"postCreateCommand": "bash scripts/install_gradio.sh && scripts/install_test_requirements.sh && bash scripts/build_frontend.sh"
-
 }
