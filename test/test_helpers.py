@@ -242,7 +242,6 @@ class TestProcessExamples:
             cache_examples=True,
         )
         prediction = await io.examples_handler.load_from_cache(0)
-        print(prediction)
         len_input_audio = len(AudioSegment.from_wav(audio))
         len_output_audio = len(AudioSegment.from_wav(prediction[0]["name"]))
         length_ratio = len_output_audio / len_input_audio
