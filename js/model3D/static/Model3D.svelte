@@ -115,6 +115,7 @@
 		width: var(--size-full);
 		height: var(--size-full);
 		object-fit: contain;
+		overflow: hidden;
 	}
 	.download {
 		position: absolute;
