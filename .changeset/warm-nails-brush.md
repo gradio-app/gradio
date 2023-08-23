@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Restores missing part of bottom border on file component
+fix:Restores missing part of bottom border on file component
