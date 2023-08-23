@@ -200,14 +200,6 @@
 		overflow-y: auto;
 	}
 
-	.user-row {
-		align-self: flex-end;
-	}
-
-	.bot-row {
-		align-self: flex-start;
-	}
-
 	.message-wrap {
 		display: flex;
 		flex-direction: column;
@@ -249,14 +241,6 @@
 		border-bottom-left-radius: 0;
 		padding-left: var(--spacing-xxl);
 	}
-	@media (max-width: 480px) {
-		.message {
-			width: auto;
-		}
-		.bot {
-			padding-left: var(--spacing-xxl);
-		}
-	}
 
 	/* Colors */
 	.bot,
@@ -271,6 +255,22 @@
 	.message-row {
 		display: flex;
 		flex-direction: row;
+	}
+
+	@media (max-width: 480px) {
+		.user-row {
+			align-self: flex-end;
+		}
+
+		.bot-row {
+			align-self: flex-start;
+		}
+		.message {
+			width: auto;
+		}
+		.bot {
+			padding-left: var(--spacing-xxl);
+		}
 	}
 	.avatar-image-user,
 	.avatar-image-bot {
