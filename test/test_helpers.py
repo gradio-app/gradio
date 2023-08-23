@@ -9,7 +9,8 @@ from unittest.mock import patch
 
 import pytest
 import websockets
-from gradio_client import media_data
+from gradio_client import media_data, utils
+from pydub import AudioSegment
 from starlette.testclient import TestClient
 from tqdm import tqdm
 
@@ -93,7 +94,8 @@ class TestExamples:
             )
 
         prediction = await examples.load_from_cache(0)
-        assert prediction[0][0][0]["data"] == media_data.BASE64_IMAGE
+        file = prediction[0][0][0]["name"]
+        assert utils.encode_url_or_file_to_base64(file) == media_data.BASE64_IMAGE
 
 
 @patch("gradio.helpers.CACHED_FOLDER", tempfile.mkdtemp())
@@ -152,7 +154,10 @@ class TestProcessExamples:
             cache_examples=True,
         )
         prediction = await io.examples_handler.load_from_cache(0)
-        assert prediction[0]["data"].startswith("data:audio/wav;base64,UklGRgA/")
+        file = prediction[0]["name"]
+        assert utils.encode_url_or_file_to_base64(file).startswith(
+            "data:audio/wav;base64,UklGRgA/"
+        )
 
     @pytest.mark.asyncio
     async def test_caching_with_update(self):
@@ -219,6 +224,29 @@ class TestProcessExamples:
         )
         prediction = await io.examples_handler.load_from_cache(0)
         assert prediction[0] == "Your output: abcdef"
+
+    @pytest.mark.asyncio
+    async def test_caching_with_generators_and_streamed_output(self):
+        file_dir = Path(Path(__file__).parent, "test_files")
+        audio = str(file_dir / "audio_sample.wav")
+
+        def test_generator(x):
+            for y in range(int(x)):
+                yield audio, y * 5
+
+        io = gr.Interface(
+            test_generator,
+            "number",
+            [gr.Audio(streaming=True), "number"],
+            examples=[3],
+            cache_examples=True,
+        )
+        prediction = await io.examples_handler.load_from_cache(0)
+        len_input_audio = len(AudioSegment.from_wav(audio))
+        len_output_audio = len(AudioSegment.from_wav(prediction[0]["name"]))
+        length_ratio = len_output_audio / len_input_audio
+        assert round(length_ratio, 1) == 3.0  # might not be exactly 3x
+        assert float(prediction[1]) == 10.0
 
     @pytest.mark.asyncio
     async def test_caching_with_async_generators(self):
