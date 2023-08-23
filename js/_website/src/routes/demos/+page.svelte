@@ -72,7 +72,7 @@
 								class:selected-demo-window={current_selection == i}
 								class="demo-content px-4"
 							>
-							{#if demo.name == "Hello World"}
+							{#if ["Hello World"].includes(demo.name)}
 								<DemosLite
 									name={demo.dir}
 									code={demo.code}

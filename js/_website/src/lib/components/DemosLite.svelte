@@ -5,6 +5,8 @@
 	export let code: string;
 	export let highlighted_code: string;
 
+	console.log(name);
+
 
 	let copied = false;
 	function copy(code: string) {
@@ -15,14 +17,16 @@
 	
 	let mounted = false;
 	let target;
+	let controller;
 	onMount(() => {
 	mounted = true;
-	createGradioApp({
-		target: document.getElementById("hello-world"),
+	controller = createGradioApp({
+		target: document.getElementById(name),
+				requirements: [],
 				code: code,
 				info: true,
 				container: true,
-				isEmbed: false,
+				isEmbed: true,
 				initialHeight: "300px",
 				eager: false,
 				themeMode: null,
@@ -33,21 +37,7 @@
 	
 });
 $: if (mounted) {
-	target = document.getElementById("hello-world");
-	target.innerHTML = '';
-	createGradioApp({
-		target: target,
-		code: code,
-		info: true,
-		container: true,
-		isEmbed: false,
-		initialHeight: "300px",
-		eager: false,
-		themeMode: null,
-		autoScroll: false,
-		controlPageTitle: false,
-		appMode: true
-	});
+	controller.run_code(code);
 }
 </script>
 
@@ -78,7 +68,7 @@ $: if (mounted) {
 </div>
 
 {#key name}
-	<div id="hello-world" />
+	<div id="{name}" />
 {/key}
 
 <style>
