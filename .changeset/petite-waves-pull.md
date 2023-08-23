@@ -5,4 +5,4 @@
 "gradio": minor
 ---
 
-feat:Ensure sharing audio output on Spaces works
+feat:Ensure sharing audio output in Spaces works
