@@ -45,7 +45,9 @@
 	"dataframe": {
 		"incorrect_format": "Incorrect format, only CSV and TSV files are supported",
 		"new_column": "New column",
-		"new_row": "New row"
+		"new_row": "New row",
+		"delete_row": "Delete row",
+		"delete_column": "Delete column"
 	},
 	"dropdown": {
 		"dropdown": "Dropdown"
