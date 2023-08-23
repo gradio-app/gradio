@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 0.2.1
+
+### Features
+
+- [#5173](https://github.com/gradio-app/gradio/pull/5173) [`730f0c1d`](https://github.com/gradio-app/gradio/commit/730f0c1d54792eb11359e40c9f2326e8a6e39203) - Ensure gradio client works as expected for functions that return nothing.  Thanks [@raymondtri](https://github.com/raymondtri)!
+
 ## 0.2.0
 
 ### Features
