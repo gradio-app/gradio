@@ -435,6 +435,8 @@ class LinePlot(Plot):
             tooltip=self.tooltip,
             x_title=self.x_title,
             y_title=self.y_title,
+            x_label_angle=self.x_label_angle,
+            y_label_angle=self.y_label_angle,
             color_legend_title=self.color_legend_title,  # type: ignore
             color_legend_position=self.color_legend_position,  # type: ignore
             stroke_dash_legend_title=self.stroke_dash_legend_title,
