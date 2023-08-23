@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Gradio } from "@gradio/utils";
 	import Number from "../shared";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
@@ -20,6 +21,13 @@
 	export let loading_status: LoadingStatus;
 	export let value_is_output = false;
 	export let step: number | null = null;
+	export let gradio: Gradio<{
+		change: never;
+		input: never;
+		submit: never;
+		blur: never;
+		focus: never;
+	}>;
 </script>
 
 <Block
@@ -43,10 +51,10 @@
 		{step}
 		{container}
 		disabled
-		on:change
-		on:input
-		on:submit
-		on:blur
-		on:focus
+		on:change={() => gradio.dispatch("change")}
+		on:input={() => gradio.dispatch("input")}
+		on:submit={() => gradio.dispatch("submit")}
+		on:blur={() => gradio.dispatch("blur")}
+		on:focus={() => gradio.dispatch("focus")}
 	/>
 </Block>

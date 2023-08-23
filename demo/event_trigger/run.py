@@ -69,9 +69,13 @@ with gr.Blocks() as demo:
         def video_stop():
             print("video_stop")
 
+        def video_end():
+            print("video_end")
+
         video1.play(fn=video_play)
         video1.pause(fn=video_pause)
         video1.stop(fn=video_stop)
+        video1.end(fn=video_end)
 
         radio1.change(fn=change_video, inputs=radio1, outputs=video1)
         video1.change(fn=alert_change, inputs=[gr.State("Video"), video1])
