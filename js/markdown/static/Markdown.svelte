@@ -1,9 +1,6 @@
 <script lang="ts">
-	import { createEventDispatcher, tick } from "svelte";
+	import { createEventDispatcher } from "svelte";
 	import { copy } from "@gradio/utils";
-	import type { ThemeMode } from "js/app/src/components/types";
-
-	import "katex/dist/katex.min.css";
 
 	import MarkdownCode from "./MarkdownCode.svelte";
 
@@ -13,7 +10,6 @@
 	export let value: string;
 	export let min_height = false;
 	export let rtl = false;
-	export let theme_mode: ThemeMode;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
@@ -35,12 +31,7 @@
 	dir={rtl ? "rtl" : "ltr"}
 	use:copy
 >
-	<MarkdownCode
-		message={value}
-		{latex_delimiters}
-		{theme_mode}
-		chatbot={false}
-	/>
+	<MarkdownCode message={value} {latex_delimiters} chatbot={false} />
 </div>
 
 <style>

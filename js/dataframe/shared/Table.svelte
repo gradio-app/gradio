@@ -2,7 +2,6 @@
 	import { createEventDispatcher, tick } from "svelte";
 	import { dsvFormat } from "d3-dsv";
 	import { dequal } from "dequal/lite";
-	import type { ThemeMode } from "js/app/src/components/types";
 	import { copy } from "@gradio/utils";
 	import { Upload } from "@gradio/upload";
 	import { BaseButton } from "@gradio/button/static";
@@ -25,7 +24,6 @@
 		right: string;
 		display: boolean;
 	}[];
-	export let theme_mode: ThemeMode;
 
 	export let editable = true;
 	export let wrap = false;
@@ -577,7 +575,6 @@
 										on:keydown={end_header_edit}
 										on:dblclick={() => edit_header(id)}
 										header
-										{theme_mode}
 									/>
 
 									<!-- TODO: fix -->
@@ -629,7 +626,6 @@
 											datatype={Array.isArray(datatype)
 												? datatype[j]
 												: datatype}
-											{theme_mode}
 										/>
 									</div>
 								</td>
@@ -863,12 +859,5 @@
 
 	.controls-wrap > * + * {
 		margin-left: var(--size-1);
-	}
-
-	tr:nth-of-type(even) :global(span):not(.chatbot) :global(code) {
-		background: var(--table-odd-background-fill);
-	}
-	tr:nth-of-type(odd) :global(span):not(.chatbot) :global(code) {
-		background: var(--table-even-background-fill);
 	}
 </style>

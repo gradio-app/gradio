@@ -55,7 +55,7 @@ describe("Video", () => {
 			name: "bar",
 			source: "upload"
 		});
-		let vid = getByTestId("Test Label-player") as HTMLVideoElement
+		let vid = getByTestId("Test Label-player") as HTMLVideoElement;
 		assert.equal(
 			vid.src,
 			"https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
@@ -101,7 +101,7 @@ describe("Video", () => {
 			name: "bar",
 			source: "upload"
 		});
-		let vid = getByTestId("test-player") as HTMLVideoElement
+		let vid = getByTestId("test-player") as HTMLVideoElement;
 		assert.equal(
 			vid.src,
 			"https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"

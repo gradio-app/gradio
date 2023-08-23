@@ -1,28 +1,23 @@
 <script lang="ts">
-	import { tick, createEventDispatcher } from "svelte";
+	import { createEventDispatcher } from "svelte";
 	import DOMPurify from "dompurify";
 	import render_math_in_element from "katex/dist/contrib/auto-render.js";
 	import "katex/dist/katex.min.css";
-	import type { ThemeMode } from "js/app/src/components/types";
 
 	import { marked } from "./utils";
 	const dispatch = createEventDispatcher();
 
-	const code_highlight_css = {
-		light: (): Promise<typeof import("prismjs/themes/prism.css")> =>
-			import("prismjs/themes/prism.css"),
-		dark: (): Promise<typeof import("prismjs/themes/prism.css")> =>
-			import("prismjs/themes/prism-dark.css")
-	};
+	import "./prism.css";
+	// import "./prism-dark.css";
 
-	$: if (theme_mode == "dark") {
-		code_highlight_css.dark();
-	} else {
-		code_highlight_css.light();
-	}
+	// const code_highlight_css = {
+	// 	light: (): Promise<typeof import("prismjs/themes/prism.css")> =>
+	// 		import("prismjs/themes/prism.css"),
+	// 	dark: (): Promise<typeof import("prismjs/themes/prism.css")> =>
+	// 		import("prismjs/themes/prism-dark.css")
+	// };
 
 	export let chatbot = true;
-	export let theme_mode: ThemeMode;
 	export let message: string;
 	export let latex_delimiters: {
 		left: string;
@@ -54,50 +49,13 @@
 	}
 </script>
 
-<span class:chatbot bind:this={el}>
+<span class:chatbot bind:this={el} class="md">
 	{@html html}
 </span>
 
 <style>
-	span:not(.chatbot) :global(code) {
-		background: var(--background-fill-secondary);
-		font-family: var(--font-mono);
-		font-size: var(--text-sm) !important;
-		display: block;
-		padding: 0.5em 0.7em;
-		white-space: pre;
-		border-radius: var(--radius-sm);
-		text-shadow: none;
-	}
-
-	span :global(pre),
-	span :global(pre) {
-		padding: 0;
-		position: relative;
-		direction: ltr;
-		white-space: no-wrap;
-		overflow-x: auto;
-		font-size: var(--text-md);
-		text-shadow: none;
-	}
-	span :global(code) {
-		font-size: var(--text-md);
-		text-shadow: none;
-	}
-
 	span :global(div[class*="code_wrap"]) {
 		position: relative;
-		margin-top: var(--spacing-sm);
-		margin-bottom: var(--spacing-sm);
-		box-shadow: none;
-		border: none;
-		border-radius: var(--radius-md);
-	}
-
-	span :global(td),
-	span :global(th) {
-		border: 1px solid var(--border-color-primary);
-		padding: 12px 15px !important;
 	}
 
 	/* KaTeX */

@@ -8,7 +8,7 @@ import {
 	test
 } from "vitest";
 import { render, cleanup } from "@gradio/tootils";
-// import { setupi18n } from "../src/i18n";
+import { setupi18n } from "../src/i18n";
 
 import StaticAnnotatedImage from "@gradio/annotatedimage/static";
 import StaticAudio from "@gradio/audio/static";

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type { ThemeMode } from "js/app/src/components/types";
 	import { MarkdownCode } from "@gradio/markdown";
 
 	export let edit: boolean;
@@ -18,7 +17,6 @@
 		display: boolean;
 	}[];
 
-	export let theme_mode: ThemeMode;
 	export let el: HTMLInputElement | null;
 </script>
 
@@ -43,7 +41,6 @@
 		<MarkdownCode
 			message={value.toLocaleString()}
 			{latex_delimiters}
-			{theme_mode}
 			chatbot={false}
 		/>
 	{:else}
