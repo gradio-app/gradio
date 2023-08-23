@@ -2,4 +2,4 @@
 "website": patch
 ---
 
-feat:Add json generation to prepare; fixing releases
+feat:Remove svelte-kit sync command from website 
