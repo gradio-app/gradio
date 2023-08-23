@@ -474,6 +474,7 @@
 	}
 
 	function trigger_share(title: string | undefined, description: string): void {
+		console.log("triggering share");
 		if (space_id === null) {
 			return;
 		}
@@ -488,7 +489,13 @@
 		if (title !== undefined && title.length > 0) {
 			discussion_url.searchParams.set("title", title);
 		}
+
+		console.log(title, description);
+
 		discussion_url.searchParams.set("description", description);
+
+		console.log(discussion_url.toString(), window);
+
 		window.open(discussion_url.toString(), "_blank");
 	}
 
