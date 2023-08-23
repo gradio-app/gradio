@@ -5,7 +5,6 @@ import event from "@testing-library/user-event";
 
 import Textbox from "./interactive";
 import type { LoadingStatus } from "@gradio/statustracker";
-import { Spy } from "tinyspy";
 
 const loading_status: LoadingStatus = {
 	eta: 0,

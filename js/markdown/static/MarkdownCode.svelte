@@ -41,7 +41,8 @@
 
 	$: el && html && render_html(message);
 
-	$: html = DOMPurify.sanitize(marked.parse(message));
+	$: html =
+		message && message.trim() ? DOMPurify.sanitize(marked.parse(message)) : "";
 
 	async function render_html(value: string): Promise<void> {
 		if (latex_delimiters.length > 0) {
