@@ -515,43 +515,6 @@
 			}
 		});
 
-		render_complete = true;
-	}
-
-	function handle_destroy(id: number): void {
-		handled_dependencies = handled_dependencies.map((dep) => {
-			return dep.filter((_id) => _id !== id);
-		});
-	}
-
-	$: set_status($loading_status);
-
-	dependencies.forEach((v, i) => {
-		loading_status.register(i, v.inputs, v.outputs);
-	});
-
-	function set_status(statuses: LoadingStatusCollection): void {
-		for (const id in statuses) {
-			let loading_status = statuses[id];
-			let dependency = dependencies[loading_status.fn_index];
-			loading_status.scroll_to_output = dependency.scroll_to_output;
-			loading_status.show_progress = dependency.show_progress;
-
-			set_prop(instance_map[id], "loading_status", loading_status);
-		}
-		const inputs_to_update = loading_status.get_inputs_to_update();
-		for (const [id, pending_status] of inputs_to_update) {
-			set_prop(instance_map[id], "pending", pending_status === "pending");
-		}
-	}
-
-	const target_map: Record<number, Record<string, number[]>> = {};
-
-	function isCustomEvent(event: Event): event is CustomEvent {
-		return "detail" in event;
-	}
-
-	onMount(() => {
 		dependencies.forEach((dep, i) => {
 			let { targets, trigger, inputs, outputs } = dep;
 			const target_instances: [number, ComponentMeta][] = targets.map((t) => [
@@ -588,7 +551,42 @@
 				trigger_api_call(dep_id, data);
 			});
 		});
+
+		render_complete = true;
+	}
+
+	function handle_destroy(id: number): void {
+		handled_dependencies = handled_dependencies.map((dep) => {
+			return dep.filter((_id) => _id !== id);
+		});
+	}
+
+	$: set_status($loading_status);
+
+	dependencies.forEach((v, i) => {
+		loading_status.register(i, v.inputs, v.outputs);
 	});
+
+	function set_status(statuses: LoadingStatusCollection): void {
+		for (const id in statuses) {
+			let loading_status = statuses[id];
+			let dependency = dependencies[loading_status.fn_index];
+			loading_status.scroll_to_output = dependency.scroll_to_output;
+			loading_status.show_progress = dependency.show_progress;
+
+			set_prop(instance_map[id], "loading_status", loading_status);
+		}
+		const inputs_to_update = loading_status.get_inputs_to_update();
+		for (const [id, pending_status] of inputs_to_update) {
+			set_prop(instance_map[id], "pending", pending_status === "pending");
+		}
+	}
+
+	const target_map: Record<number, Record<string, number[]>> = {};
+
+	function isCustomEvent(event: Event): event is CustomEvent {
+		return "detail" in event;
+	}
 </script>
 
 <svelte:head>
