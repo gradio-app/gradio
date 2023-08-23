@@ -1,10 +1,10 @@
-import { _ } from "svelte-i18n";
+// import { _ } from "svelte-i18n";
 
 export class Gradio<T extends Record<string, any>> {
 	#id: number;
 	theme: string;
 	version: string;
-	i18n: typeof _;
+	// i18n: typeof _;
 	#el: HTMLElement;
 	root: string;
 
@@ -19,7 +19,7 @@ export class Gradio<T extends Record<string, any>> {
 		this.theme = theme;
 		this.version = version;
 		this.#el = el;
-		this.i18n = _;
+		// this.i18n = _;
 		this.root = root;
 	}
 
