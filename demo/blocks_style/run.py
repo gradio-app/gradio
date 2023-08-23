@@ -34,11 +34,11 @@ with gr.Blocks(title="Styling Examples") as demo:
         json = gr.JSON(container=False)
         html = gr.HTML(show_label=False)
         gallery = gr.Gallery(
-            grid=(3, 3, 1),
+            columns=(3, 3, 1),
             height="auto",
             container=False,
         )
-        chat = gr.Chatbot([("hi", "good bye")], color_map=("pink", "blue"))
+        chat = gr.Chatbot([("hi", "good bye")])
 
         model = gr.Model3D()
 

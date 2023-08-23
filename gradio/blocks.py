@@ -15,7 +15,7 @@ from abc import abstractmethod
 from collections import defaultdict
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast, Type
+from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast
 
 import anyio
 import requests
@@ -377,7 +377,7 @@ class BlockContext(Block):
                 child.parent = pseudo_parent
         self.children = children
 
-    def __exit__(self, exc_type: Type[BaseException] | None, *args):
+    def __exit__(self, exc_type: type[BaseException] | None = None, *args):
         if exc_type is not None:
             return
         if getattr(self, "allow_expected_parents", True):
@@ -1517,7 +1517,7 @@ Received outputs:
         self.exited = False
         return self
 
-    def __exit__(self, exc_type: Type[BaseException] | None, *args):
+    def __exit__(self, exc_type: type[BaseException] | None = None, *args):
         if exc_type is not None:
             return
         super().fill_expected_parents()

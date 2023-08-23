@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Literal
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.blocks import BlockContext
-from gradio.deprecation import warn_style_method_deprecation, warn_deprecation
+from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Changeable, Selectable
 
 if TYPE_CHECKING:
