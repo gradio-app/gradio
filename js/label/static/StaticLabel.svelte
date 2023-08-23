@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import type { Gradio, SelectData } from "@gradio/utils";
 	import Label from "./Label.svelte";
 	import { LineChart as LabelIcon } from "@gradio/icons";
 	import { Block, BlockLabel, Empty } from "@gradio/atoms";
@@ -22,11 +22,13 @@
 	export let loading_status: LoadingStatus;
 	export let show_label = true;
 	export let selectable = false;
-
-	const dispatch = createEventDispatcher<{ change: undefined }>();
+	export let gradio: Gradio<{
+		change: never;
+		select: SelectData;
+	}>;
 
 	$: ({ confidences, label: _label } = value);
-	$: _label, confidences, dispatch("change");
+	$: _label, confidences, gradio.dispatch("change");
 </script>
 
 <Block
@@ -44,7 +46,12 @@
 		<BlockLabel Icon={LabelIcon} {label} disable={container === false} />
 	{/if}
 	{#if _label !== undefined && _label !== null}
-		<Label on:select {selectable} {value} {color} />
+		<Label
+			on:select={({ detail }) => gradio.dispatch("select", detail)}
+			{selectable}
+			{value}
+			{color}
+		/>
 	{:else}
 		<Empty unpadded_box={true}><LabelIcon /></Empty>
 	{/if}

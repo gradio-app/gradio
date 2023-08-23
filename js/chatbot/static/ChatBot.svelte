@@ -1,21 +1,15 @@
 <script lang="ts">
-	import { copy, format_chat_for_sharing } from "../utils";
-	import "katex/dist/katex.min.css";
+	import { format_chat_for_sharing } from "../utils";
+	import { copy } from "@gradio/utils";
+
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import { ShareButton } from "@gradio/atoms";
 	import type { SelectData } from "@gradio/utils";
 	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
-	import {get_fetchable_url_or_file} from "@gradio/upload";
-	import Markdown from "./MarkdownCode.svelte";
+	import { MarkdownCode as Markdown } from "@gradio/markdown/static";
+	import { get_fetchable_url_or_file } from "@gradio/upload";
 	import Copy from "./Copy.svelte";
-
-	const code_highlight_css = {
-		light: (): Promise<typeof import("prismjs/themes/prism.css")> =>
-			import("prismjs/themes/prism.css"),
-		dark: (): Promise<typeof import("prismjs/themes/prism.css")> =>
-			import("prismjs/themes/prism-dark.css")
-	};
 
 	export let value:
 		| [string | FileData | null, string | FileData | null][]
@@ -31,17 +25,11 @@
 	export let feedback: string[] | null = null;
 	export let selectable = false;
 	export let show_share_button = false;
-	export let theme_mode: ThemeMode;
 	export let rtl = false;
 	export let show_copy_button = false;
 	export let avatar_images: [string | null, string | null] = [null, null];
 	export let root: string;
 	export let root_url: null | string;
-	$: if (theme_mode == "dark") {
-		code_highlight_css.dark();
-	} else {
-		code_highlight_css.light();
-	}
 
 	let div: HTMLDivElement;
 	let autoscroll: boolean;
@@ -107,11 +95,15 @@
 		{#if value !== null}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
-					<div class="message-row">
+					<div class="message-row {j == 0 ? 'user-row' : 'bot-row'}">
 						{#if avatar_images[j] !== null}
 							<img
 								class="avatar-image-{j == 0 ? 'user' : 'bot'}"
-								src={get_fetchable_url_or_file(avatar_images[j], root, root_url)}
+								src={get_fetchable_url_or_file(
+									avatar_images[j],
+									root,
+									root_url
+								)}
 								alt="avatar"
 							/>
 						{/if}
@@ -247,15 +239,7 @@
 	}
 	.bot {
 		border-bottom-left-radius: 0;
-		padding-left: calc(2 * var(--spacing-xxl));
-	}
-	@media (max-width: 480px) {
-		.message {
-			width: auto;
-		}
-		.bot {
-			padding-left: var(--spacing-xxl);
-		}
+		padding-left: var(--spacing-xxl);
 	}
 
 	/* Colors */
@@ -271,6 +255,22 @@
 	.message-row {
 		display: flex;
 		flex-direction: row;
+	}
+
+	@media (max-width: 480px) {
+		.user-row {
+			align-self: flex-end;
+		}
+
+		.bot-row {
+			align-self: flex-start;
+		}
+		.message {
+			width: auto;
+		}
+		.bot {
+			padding-left: var(--spacing-xxl);
+		}
 	}
 	.avatar-image-user,
 	.avatar-image-bot {
@@ -363,39 +363,6 @@
 
 	.hide {
 		display: none;
-	}
-
-	/* Code blocks */
-	.message-wrap :global(pre[class*="language-"]),
-	.message-wrap :global(pre) {
-		position: relative;
-		direction: ltr;
-		white-space: no-wrap;
-		overflow-x: auto;
-	}
-	.message-wrap :global(code) {
-		font-size: var(--text-md);
-	}
-
-	.message-wrap :global(div[class*="code_wrap"]) {
-		position: relative;
-		margin-top: var(--spacing-sm);
-		margin-bottom: var(--spacing-sm);
-		box-shadow: none;
-		border: none;
-		border-radius: var(--radius-md);
-		background-color: var(--chatbot-code-background-color);
-		padding: var(--spacing-xl) 10px;
-	}
-
-	/* Tables */
-	.message-wrap :global(table),
-	.message-wrap :global(tr),
-	.message-wrap :global(td),
-	.message-wrap :global(th) {
-		margin-top: var(--spacing-sm);
-		margin-bottom: var(--spacing-sm);
-		padding: var(--spacing-xl);
 	}
 
 	.message-wrap .bot :global(table),

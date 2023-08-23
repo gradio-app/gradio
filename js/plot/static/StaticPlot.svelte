@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Gradio } from "@gradio/utils";
 	import Plot from "./Plot.svelte";
 
 	import { Block, BlockLabel } from "@gradio/atoms";
@@ -23,6 +24,9 @@
 	export let theme_mode: ThemeMode;
 	export let caption: string;
 	export let bokeh_version: string | null;
+	export let gradio: Gradio<{
+		change: never;
+	}>;
 </script>
 
 <Block
@@ -36,5 +40,12 @@
 >
 	<BlockLabel {show_label} label={label || $_("plot.plot")} Icon={PlotIcon} />
 	<StatusTracker {...loading_status} />
-	<Plot {value} {target} {theme_mode} {caption} {bokeh_version} on:change />
+	<Plot
+		{value}
+		{target}
+		{theme_mode}
+		{caption}
+		{bokeh_version}
+		on:change={() => gradio.dispatch("change")}
+	/>
 </Block>

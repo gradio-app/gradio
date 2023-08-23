@@ -34,21 +34,25 @@ describe("Image", () => {
 	afterEach(() => cleanup());
 
 	test("image change event trigger fires when value is changed and only fires once", async () => {
-		const { component } = await render(Image, {
+		const { component, listen } = await render(Image, {
 			show_label: true,
 			loading_status,
-			mode: "dynamic",
 			value:
 				"https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
-			root: "foo",
-			root_url: null,
 			streaming: false,
 			pending: false,
-			source: "upload"
+			source: "upload",
+			label: "Test Label",
+			width: 224,
+			height: 224,
+			mirror_webcam: false,
+			shape: [224, 224],
+			brush_color: "#000000",
+			brush_radius: 5,
+			mask_opacity: 0.5
 		});
 
-		const mock = spy();
-		component.$on("change", mock);
+		const mock = listen("change");
 
 		component.value =
 			"https://github.com/gradio-app/gradio/blob/main/test/test_files/cheetah1.jpg";

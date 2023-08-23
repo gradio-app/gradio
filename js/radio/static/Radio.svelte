@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Gradio, SelectData } from "@gradio/utils";
 	import Radio from "../shared";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
@@ -18,6 +19,11 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
+	export let gradio: Gradio<{
+		change: never;
+		select: SelectData;
+		input: never;
+	}>;
 </script>
 
 <Block
@@ -40,8 +46,8 @@
 		{show_label}
 		{choices}
 		disabled
-		on:change
-		on:input
-		on:select
+		on:change={() => gradio.dispatch("change")}
+		on:input={() => gradio.dispatch("input")}
+		on:select={(e) => gradio.dispatch("select", e.detail)}
 	/>
 </Block>

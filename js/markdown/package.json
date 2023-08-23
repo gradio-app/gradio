@@ -18,10 +18,14 @@
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
+		"@gradio/utils": "workspace:^",
 		"@types/dompurify": "^3.0.2",
 		"@types/katex": "^0.16.0",
+		"@types/prismjs": "1.26.0",
 		"dompurify": "^3.0.3",
 		"katex": "^0.16.7",
-		"marked": "^7.0.0"
+		"marked": "^7.0.0",
+		"marked-highlight": "^2.0.1",
+		"prismjs": "1.29.0"
 	}
 }

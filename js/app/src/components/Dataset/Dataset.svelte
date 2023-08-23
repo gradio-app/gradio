@@ -1,11 +1,9 @@
 <script lang="ts">
 	import { Block } from "@gradio/atoms";
-	import { createEventDispatcher } from "svelte";
 	import type { SvelteComponent, ComponentType } from "svelte";
 	import { component_map } from "./directory";
-	import type { SelectData } from "@gradio/utils";
+	import type { Gradio, SelectData } from "@gradio/utils";
 	import { get_fetchable_url_or_file } from "@gradio/upload";
-
 	export let components: (keyof typeof component_map)[];
 	export let label = "Examples";
 	export let headers: string[];
@@ -19,11 +17,10 @@
 	export let samples_per_page = 10;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-
-	const dispatch = createEventDispatcher<{
+	export let gradio: Gradio<{
 		click: number;
 		select: SelectData;
-	}>();
+	}>;
 
 	let samples_dir: string = get_fetchable_url_or_file(null, root, root_url);
 	let page = 0;
@@ -112,8 +109,8 @@
 					class="gallery-item"
 					on:click={() => {
 						value = i + page * samples_per_page;
-						dispatch("click", value);
-						dispatch("select", { index: value, value: sample_row });
+						gradio.dispatch("click", value);
+						gradio.dispatch("select", { index: value, value: sample_row });
 					}}
 					on:mouseenter={() => handle_mouseenter(i)}
 					on:mouseleave={() => handle_mouseleave()}
@@ -149,7 +146,7 @@
 							class="tr-body"
 							on:click={() => {
 								value = i + page * samples_per_page;
-								dispatch("click", value);
+								gradio.dispatch("click", value);
 							}}
 							on:mouseenter={() => handle_mouseenter(i)}
 							on:mouseleave={() => handle_mouseleave()}

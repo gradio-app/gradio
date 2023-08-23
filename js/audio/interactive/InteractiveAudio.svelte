@@ -1,7 +1,7 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import type { Gradio } from "@gradio/utils";
 	import { _ } from "svelte-i18n";
 	import { UploadText } from "@gradio/atoms";
 
@@ -13,12 +13,6 @@
 	import { Block } from "@gradio/atoms";
 
 	import { normalise_file } from "@gradio/upload";
-
-	const dispatch = createEventDispatcher<{
-		change: typeof value;
-		stream: typeof value;
-		error: string;
-	}>();
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -38,6 +32,19 @@
 	export let loading_status: LoadingStatus;
 	export let autoplay = false;
 	export let show_edit_button = true;
+	export let gradio: Gradio<{
+		change: typeof value;
+		stream: typeof value;
+		error: string;
+		edit: never;
+		play: never;
+		pause: never;
+		stop: never;
+		end: never;
+		start_recording: never;
+		stop_recording: never;
+		upload: never;
+	}>;
 
 	let old_value: null | FileData | string = null;
 
@@ -47,7 +54,7 @@
 	$: {
 		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
 			old_value = value;
-			dispatch("change");
+			gradio.dispatch("change");
 		}
 	}
 
@@ -73,7 +80,7 @@
 		on:change={({ detail }) => (value = detail)}
 		on:stream={({ detail }) => {
 			value = detail;
-			dispatch("stream", value);
+			gradio.dispatch("stream", value);
 		}}
 		on:drag={({ detail }) => (dragging = detail)}
 		{name}
@@ -82,18 +89,18 @@
 		{streaming}
 		{autoplay}
 		{show_edit_button}
-		on:edit
-		on:play
-		on:pause
-		on:stop
-		on:end
-		on:start_recording
-		on:stop_recording
-		on:upload
+		on:edit={() => gradio.dispatch("edit")}
+		on:play={() => gradio.dispatch("play")}
+		on:pause={() => gradio.dispatch("pause")}
+		on:stop={() => gradio.dispatch("stop")}
+		on:end={() => gradio.dispatch("end")}
+		on:start_recording={() => gradio.dispatch("start_recording")}
+		on:stop_recording={() => gradio.dispatch("stop_recording")}
+		on:upload={() => gradio.dispatch("upload")}
 		on:error={({ detail }) => {
 			loading_status = loading_status || {};
 			loading_status.status = "error";
-			dispatch("error", detail);
+			gradio.dispatch("error", detail);
 		}}
 	>
 		<UploadText type="audio" />
