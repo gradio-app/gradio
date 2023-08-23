@@ -19,6 +19,7 @@
 	import { Toast } from "@gradio/statustracker";
 	import type { ToastMessage } from "@gradio/statustracker";
 	import type { ShareData } from "@gradio/utils";
+	import { dequal } from "dequal";
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
@@ -43,6 +44,9 @@
 	export let space_id: string | null;
 
 	let loading_status = create_loading_status_store();
+
+	const walked_node_ids = new Set();
+	const mounted_node_ids = new Set();
 
 	$: app_state.update((s) => ({ ...s, autoscroll }));
 
@@ -183,6 +187,8 @@
 	): Promise<void> {
 		ready = false;
 		let instance = instance_map[node.id];
+		walked_node_ids.add(node.id);
+
 		const _component = (await component_map.get(
 			`${instance.type}_${type_map.get(node.id) || "static"}`
 		))!.component;
@@ -199,6 +205,7 @@
 	}
 
 	export let ready = false;
+	export let render_complete = false;
 
 	$: components, layout, prepare_components();
 
@@ -531,7 +538,9 @@
 
 	let attached_error_listeners: number[] = [];
 	let shareable_components: number[] = [];
-	async function handle_mount(): Promise<void> {
+	async function handle_mount({ detail }: { detail: number }): Promise<void> {
+		mounted_node_ids.add(detail);
+
 		await tick();
 
 		var a = target.getElementsByTagName("a");
@@ -605,6 +614,8 @@
 				}
 			}
 		});
+
+		checkRenderCompletion();
 	}
 
 	function handle_destroy(id: number): void {
@@ -634,9 +645,11 @@
 		}
 	}
 
-	onMount(() => {
-		console.log("Gradio is running!");
-	});
+	function checkRenderCompletion(): void {
+		if (dequal(walked_node_ids, mounted_node_ids)) {
+			render_complete = true;
+		}
+	}
 </script>
 
 <svelte:head>
