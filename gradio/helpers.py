@@ -314,9 +314,8 @@ class Examples:
                 fn = get_final_item
             else:
                 fn = self.fn
-            # create a fake dependency to process the examples and get the predictions
-            from gradio.events import StreamableOutput
 
+            # create a fake dependency to process the examples and get the predictions
             dependency, fn_index = Context.root_block.set_event_trigger(
                 event_name="fake_event",
                 fn=fn,
@@ -342,37 +341,10 @@ class Examples:
                         state={},
                     )
                 output = prediction["data"]
-                for output_index, output_component in enumerate(self.outputs):
-                    if (
-                        isinstance(output_component, StreamableOutput)
-                        and output_component.streaming
-                    ):
-                        binary_chunks = []
-                        for i, chunk in enumerate(generated_values):
-                            if len(self.outputs) > 1:
-                                chunk = chunk[output_index]
-                            processed_chunk = output_component.postprocess(chunk)
-                            binary_chunks.append(
-                                output_component.stream_output(
-                                    processed_chunk, "", i == 0
-                                )[0]
-                            )
-                        binary_data = b"".join(binary_chunks)
-                        tempdir = os.environ.get("GRADIO_TEMP_DIR") or str(
-                            Path(tempfile.gettempdir()) / "gradio"
-                        )
-                        os.makedirs(tempdir, exist_ok=True)
-                        temp_file = tempfile.NamedTemporaryFile(
-                            dir=tempdir, delete=False
-                        )
-                        with open(temp_file.name, "wb") as f:
-                            f.write(binary_data)
-
-                        output[output_index] = {
-                            "name": temp_file.name,
-                            "is_file": True,
-                            "data": None,
-                        }
+                if len(generated_values):
+                    output = merge_generated_values_into_output(
+                        self.outputs, generated_values, output
+                    )
 
                 if self.batch:
                     output = [value[0] for value in output]
@@ -436,6 +408,42 @@ class Examples:
                     )
                 )
         return output
+
+
+def merge_generated_values_into_output(
+    components: list[IOComponent], generated_values: list, output: list
+):
+    from gradio.events import StreamableOutput
+
+    for output_index, output_component in enumerate(components):
+        if (
+            isinstance(output_component, StreamableOutput)
+            and output_component.streaming
+        ):
+            binary_chunks = []
+            for i, chunk in enumerate(generated_values):
+                if len(components) > 1:
+                    chunk = chunk[output_index]
+                processed_chunk = output_component.postprocess(chunk)
+                binary_chunks.append(
+                    output_component.stream_output(processed_chunk, "", i == 0)[0]
+                )
+            binary_data = b"".join(binary_chunks)
+            tempdir = os.environ.get("GRADIO_TEMP_DIR") or str(
+                Path(tempfile.gettempdir()) / "gradio"
+            )
+            os.makedirs(tempdir, exist_ok=True)
+            temp_file = tempfile.NamedTemporaryFile(dir=tempdir, delete=False)
+            with open(temp_file.name, "wb") as f:
+                f.write(binary_data)
+
+            output[output_index] = {
+                "name": temp_file.name,
+                "is_file": True,
+                "data": None,
+            }
+
+    return output
 
 
 class TrackedIterable:
