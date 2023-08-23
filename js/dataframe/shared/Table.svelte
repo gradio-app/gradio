@@ -639,46 +639,26 @@
 	{#if editable}
 		<div class="controls-wrap">
 			{#if row_count[1] === "dynamic"}
-				<span class="button-wrap">
-					<BaseButton variant="secondary" size="sm" on:click={() => add_row()}>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							xmlns:xlink="http://www.w3.org/1999/xlink"
-							aria-hidden="true"
-							role="img"
-							width="1em"
-							height="1em"
-							preserveAspectRatio="xMidYMid meet"
-							viewBox="0 0 32 32"
-						>
-							<path
-								fill="currentColor"
-								d="M24.59 16.59L17 24.17V4h-2v20.17l-7.59-7.58L6 18l10 10l10-10l-1.41-1.41z"
-							/>
-						</svg>
-						{$_("dataframe.new_row")}
-					</BaseButton>
-				</span>
+			<span class="button-wrap">
+				<BaseButton variant="secondary" size="sm" on:click={() => add_row()}>
+					{$_("dataframe.delete_row")} &#8673;
+				</BaseButton>
+			</span>
+		<span class="button-wrap">
+				<BaseButton variant="secondary" size="sm" on:click={() => add_row()}>
+					{$_("dataframe.new_row")} &#8595;
+				</BaseButton>
+			</span>
 			{/if}
 			{#if col_count[1] === "dynamic"}
-				<span class="button-wrap">
+			<span class="button-wrap">
+				<BaseButton variant="secondary" size="sm" on:click={add_col}>
+					{$_("dataframe.delete_column")} &#8672;
+				</BaseButton>
+			</span>
+			<span class="button-wrap">
 					<BaseButton variant="secondary" size="sm" on:click={add_col}>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							xmlns:xlink="http://www.w3.org/1999/xlink"
-							aria-hidden="true"
-							role="img"
-							width="1em"
-							height="1em"
-							preserveAspectRatio="xMidYMid meet"
-							viewBox="0 0 32 32"
-						>
-							<path
-								fill="currentColor"
-								d="m18 6l-1.43 1.393L24.15 15H4v2h20.15l-7.58 7.573L18 26l10-10L18 6z"
-							/>
-						</svg>
-						{$_("dataframe.new_column")}
+						{$_("dataframe.new_column")} &#8594;
 					</BaseButton>
 				</span>
 			{/if}
