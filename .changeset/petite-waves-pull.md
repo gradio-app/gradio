@@ -1,6 +1,5 @@
 ---
 "@gradio/app": minor
-"@gradio/atoms": minor
 "@gradio/utils": minor
 "gradio": minor
 ---
