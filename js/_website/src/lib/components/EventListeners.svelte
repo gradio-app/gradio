@@ -8,7 +8,7 @@
         Description
     </h4>
     <p class="mb-2 text-lg text-gray-600">Event listeners allow you to capture and respond to user interactions with the UI components you've defined in a Gradio Blocks app. When a user interacts with an element, such as changing a slider value or uploading an image, a function is called.</p>
-    <p class="mb-2 text-lg text-gray-600"> The table below shows the event listeners supported by {fns[0].parent.replace("gradio.","")}.</p>
+    <p class="mb-2 text-lg text-gray-600"> The `{fns[0].parent.replace("gradio.","")}` component supports the following event listeners. Each event listener takes the same parameters, which are <a href="">listed below</a>.</p>
 </div>
 
 <h4
