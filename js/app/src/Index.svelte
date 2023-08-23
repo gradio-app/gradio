@@ -28,7 +28,7 @@
 		show_api: boolean;
 		stylesheets?: string[];
 		path: string;
-		app_id: string;
+		app_id?: string;
 	}
 
 	let id = -1;
@@ -104,8 +104,8 @@
 	let config: Config;
 	let loading_text = $_("common.loading") + "...";
 	let active_theme_mode: ThemeMode;
-	
-	$: if(config) {
+
+	$: if (config?.app_id) {
 		app_id = config.app_id;
 	}
 
@@ -222,7 +222,7 @@
 			setTimeout(() => {
 				const { host } = new URL(api_url);
 				console.log(host);
-				console.log(`ws://${host}dev/reload`);
+				console.log(`ws://${host}/dev/reload`);
 				let url = new URL(`ws://${host}/dev/reload`);
 				websocket = new WebSocket(url);
 				websocket.onmessage = async function (event) {
@@ -351,20 +351,18 @@
 			{app_mode}
 		/>
 	{:else if config && Blocks && css_ready}
-		{#key app_id}
-			<Blocks
-				{app}
-				{...config}
-				theme_mode={active_theme_mode}
-				{control_page_title}
-				target={wrapper}
-				{autoscroll}
-				bind:ready
-				show_footer={!is_embed}
-				{app_mode}
-				{version}
-			/>
-		{/key}
+		<Blocks
+			{app}
+			{...config}
+			theme_mode={active_theme_mode}
+			{control_page_title}
+			target={wrapper}
+			{autoscroll}
+			bind:ready
+			show_footer={!is_embed}
+			{app_mode}
+			{version}
+		/>
 	{/if}
 </Embed>
 

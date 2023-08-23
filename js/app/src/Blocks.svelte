@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tick } from "svelte";
+	import { onMount, tick } from "svelte";
 	import { _ } from "svelte-i18n";
 	import type { client } from "@gradio/client";
 
@@ -51,11 +51,9 @@
 		type: "column",
 		props: { mode: "static" },
 		has_modes: false,
-		instance: {} as ComponentMeta["instance"],
-		component: {} as ComponentMeta["component"]
+		instance: null as unknown as ComponentMeta["instance"],
+		component: null as unknown as ComponentMeta["component"]
 	};
-
-	components.push(rootNode);
 
 	const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 	dependencies.forEach((d) => {
@@ -124,13 +122,7 @@
 		);
 	}
 
-	let instance_map = components.reduce(
-		(acc, next) => {
-			acc[next.id] = next;
-			return acc;
-		},
-		{} as { [id: number]: ComponentMeta }
-	);
+	let instance_map: { [id: number]: ComponentMeta };
 
 	type LoadedComponent = {
 		default: ComponentMeta["component"];
@@ -171,56 +163,102 @@
 		}
 	}
 
-	const component_set = new Set<
+	let component_set = new Set<
 		Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
 	>();
 
-	const _component_map = new Map<
+	let _component_map = new Map<
 		`${ComponentMeta["type"]}_${ComponentMeta["props"]["mode"]}`,
 		Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
 	>();
-	const _type_for_id = new Map<number, ComponentMeta["props"]["mode"]>();
 
-	async function walk_layout(node: LayoutNode): Promise<void> {
+	async function walk_layout(
+		node: LayoutNode,
+		type_map: Map<number, ComponentMeta["props"]["mode"]>,
+		instance_map: { [id: number]: ComponentMeta },
+		component_map: Map<
+			`${ComponentMeta["type"]}_${ComponentMeta["props"]["mode"]}`,
+			Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
+		>
+	): Promise<void> {
+		ready = false;
 		let instance = instance_map[node.id];
-		const _component = (await _component_map.get(
-			`${instance.type}_${_type_for_id.get(node.id) || "static"}`
+		const _component = (await component_map.get(
+			`${instance.type}_${type_map.get(node.id) || "static"}`
 		))!.component;
 		instance.component = _component.default;
 
 		if (node.children) {
 			instance.children = node.children.map((v) => instance_map[v.id]);
-			await Promise.all(node.children.map((v) => walk_layout(v)));
+			await Promise.all(
+				node.children.map((v) =>
+					walk_layout(v, type_map, instance_map, component_map)
+				)
+			);
 		}
 	}
 
-	components.forEach((c) => {
-		if ((c.props as any).interactive === false) {
-			(c.props as any).mode = "static";
-		} else if ((c.props as any).interactive === true) {
-			(c.props as any).mode = "interactive";
-		} else if (dynamic_ids.has(c.id)) {
-			(c.props as any).mode = "interactive";
-		} else {
-			(c.props as any).mode = "static";
-		}
-		_type_for_id.set(c.id, c.props.mode);
-
-		const _c = load_component(c.type, c.props.mode);
-		component_set.add(_c);
-		_component_map.set(`${c.type}_${c.props.mode}`, _c);
-	});
-
 	export let ready = false;
-	Promise.all(Array.from(component_set)).then(() => {
-		walk_layout(layout)
-			.then(async () => {
-				ready = true;
-			})
-			.catch((e) => {
-				console.error(e);
-			});
-	});
+
+	$: components, layout, prepare_components();
+
+	function prepare_components() {
+		const _rootNode = {
+			id: layout.id,
+			type: "column",
+			props: { mode: "static" },
+			has_modes: false,
+			instance: null as unknown as ComponentMeta["instance"],
+			component: null as unknown as ComponentMeta["component"]
+		};
+		components.push(_rootNode);
+		const _component_set = new Set<
+			Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
+		>();
+		const __component_map = new Map<
+			`${ComponentMeta["type"]}_${ComponentMeta["props"]["mode"]}`,
+			Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
+		>();
+		const __type_for_id = new Map<number, ComponentMeta["props"]["mode"]>();
+		const _instance_map = components.reduce(
+			(acc, next) => {
+				acc[next.id] = next;
+				return acc;
+			},
+			{} as { [id: number]: ComponentMeta }
+		);
+		components.forEach((c) => {
+			if ((c.props as any).interactive === false) {
+				(c.props as any).mode = "static";
+			} else if ((c.props as any).interactive === true) {
+				(c.props as any).mode = "interactive";
+			} else if (dynamic_ids.has(c.id)) {
+				(c.props as any).mode = "interactive";
+			} else {
+				(c.props as any).mode = "static";
+			}
+			__type_for_id.set(c.id, c.props.mode);
+
+			const _c = load_component(c.type, c.props.mode);
+			_component_set.add(_c);
+			__component_map.set(`${c.type}_${c.props.mode}`, _c);
+		});
+
+		Promise.all(Array.from(_component_set)).then(() => {
+			console.log(layout, __type_for_id);
+			walk_layout(layout, __type_for_id, _instance_map, __component_map)
+				.then(async () => {
+					ready = true;
+					component_set = _component_set;
+					_component_map = __component_map;
+					instance_map = _instance_map;
+					rootNode = _rootNode;
+				})
+				.catch((e) => {
+					console.error(e);
+				});
+		});
+	}
 
 	async function update_interactive_mode(
 		instance: ComponentMeta,
@@ -595,6 +633,10 @@
 			set_prop(instance_map[id], "pending", pending_status === "pending");
 		}
 	}
+
+	onMount(() => {
+		console.log("Gradio is running!");
+	});
 </script>
 
 <svelte:head>
