@@ -38,4 +38,6 @@
 "website": patch
 ---
 
-fix:delegate gradio events via a custom event dispatcher
+highlight:
+
+#### delegate gradio events via a custom event dispatcher
