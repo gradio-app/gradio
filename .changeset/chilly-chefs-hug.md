@@ -30,6 +30,7 @@
 "@gradio/theme": patch
 "@gradio/timeseries": patch
 "@gradio/tootils": patch
+"@gradio/upload": patch
 "@gradio/uploadbutton": patch
 "@gradio/utils": patch
 "@gradio/video": patch
