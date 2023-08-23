@@ -341,7 +341,7 @@
 								<h4 class="mt-4 p-3 font-semibold">Methods</h4>
 								<div class="flex flex-col gap-8 pl-12">
 									{#each obj.fns as fn}
-										<FunctionDoc {fn} parent={obj.name} />
+										<FunctionDoc {fn} />
 									{/each}
 									<div class="ml-12" />
 								</div>
