@@ -12,7 +12,7 @@
 		right: string;
 		display: boolean;
 	}[];
-
+	export let disable_html_sanitization = false;
 	let el: HTMLSpanElement;
 	let mounted = false;
 
@@ -27,7 +27,8 @@
 		tick().then(() => {
 			if (message !== old_message) {
 				requestAnimationFrame(() => {
-					el.innerHTML = DOMPurify.sanitize(marked.parse(message));
+					disable_html_sanitization ? (el.innerHTML = marked.parse(message)) : (
+					el.innerHTML = DOMPurify.sanitize(marked.parse(message)));
 					mounted = true;
 					old_message = message;
 					dispatch("load");

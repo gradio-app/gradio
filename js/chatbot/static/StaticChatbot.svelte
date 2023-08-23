@@ -23,6 +23,7 @@
 	export let show_share_button = false;
 	export let rtl = false;
 	export let show_copy_button = false;
+	export let disable_html_sanitization = false;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -87,6 +88,7 @@
 			{rtl}
 			{show_copy_button}
 			{avatar_images}
+			{disable_html_sanitization}
 			{root_url}
 			{root}
 			on:change

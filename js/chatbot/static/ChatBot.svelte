@@ -35,6 +35,7 @@
 	export let rtl = false;
 	export let show_copy_button = false;
 	export let avatar_images: [string | null, string | null] = [null, null];
+	export let disable_html_sanitization = false;
 	export let root: string;
 	export let root_url: null | string;
 	$: if (theme_mode == "dark") {
@@ -128,7 +129,7 @@
 							dir={rtl ? "rtl" : "ltr"}
 						>
 							{#if typeof message === "string"}
-								<Markdown {message} {latex_delimiters} on:load={scroll} />
+								<Markdown {message} {latex_delimiters} {disable_html_sanitization} on:load={scroll} />
 								{#if feedback && j == 1}
 									<div class="feedback">
 										{#each feedback as f}
