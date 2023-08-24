@@ -12,7 +12,7 @@ rm -rf gradio/templates/cdn
 pnpm i --frozen-lockfile --ignore-scripts
 GRADIO_VERSION=$new_version pnpm build
 GRADIO_VERSION=$new_version pnpm build:cdn
-aws s3 cp gradio/templates/cdn "s3://gradio/${new_version}/" --recursive
+aws s3 cp gradio/templates/cdn "s3://gradio/${new_version}/" --recursive --region us-west-2
 cp gradio/templates/cdn/index.html gradio/templates/frontend/share.html
 
 rm -rf dist/*
