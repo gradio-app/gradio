@@ -224,6 +224,7 @@ class App(FastAPI):
                 await asyncio.sleep(1)
 
         async def listen_for_changes(websocket: WebSocket):
+            assert app.change_event
             while True:
                 if app.change_event.is_set():
                     await websocket.send_text("CHANGE")
@@ -232,12 +233,11 @@ class App(FastAPI):
 
         @app.websocket("/dev/reload")
         async def notify_changes(websocket: WebSocket):
-            assert app.change_event
             await websocket.accept()
 
             done, pending = await asyncio.wait(
                 [send_ping_periodically(websocket), listen_for_changes(websocket)],
-                return_when=asyncio.FIRST_COMPLETED
+                return_when=asyncio.FIRST_COMPLETED,
             )
 
             for task in pending:

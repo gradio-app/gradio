@@ -7,29 +7,42 @@ try:
 except ImportError:
     pass
 
-import threading
-
 import gradio as gr
+from gradio.networking import App
+from gradio.utils import BaseReloader
 
 
 class CellIdTracker:
-    def __init__(self, ip):
-        self.shell = ip
-        self.current_cell = None
+    """Determines the most recently run cell in the notebook.
+
+    Needed to keep track of which demo the user is updating.
+    """
+
+    def __init__(self, ipython):
+        ipython.events.register("pre_run_cell", self.pre_run_cell)
+        self.shell = ipython
+        self.current_cell: str = ""
 
     def pre_run_cell(self, info):
-        self.current_cell = info.cell_id
+        self._current_cell = info.cell_id
 
 
-class State:
+class JupyterReloader(BaseReloader):
+    """Swap a running blocks class in a notebook with the latest cell contents."""
+
     def __init__(self, ipython) -> None:
+        super().__init__()
         self._cell_tracker = CellIdTracker(ipython)
-        ipython.events.register("pre_run_cell", self._cell_tracker.pre_run_cell)
         self._running: dict[str, gr.Blocks] = {}
 
     @property
     def current_cell(self):
         return self._cell_tracker.current_cell
+
+    @property
+    def running_app(self) -> App:
+        assert self.running_demo.server
+        return self.running_demo.server.running_app
 
     @property
     def running_demo(self):
@@ -41,38 +54,36 @@ class State:
     def track(self, demo: gr.Blocks):
         self._running[self.current_cell] = demo
 
-    def queue_changed(self, demo: gr.Blocks):
-        return (
-            hasattr(self.running_demo, "_queue") and not hasattr(demo, "_queue")
-        ) or (not hasattr(self.running_demo, "_queue") and hasattr(demo, "_queue"))
-
 
 def load_ipython_extension(ipython):
-    state = State(ipython)
+    reloader = JupyterReloader(ipython)
 
     @magic_arguments()
     @argument("--demo-name", default="demo", help="Name of gradio blocks instance.")
+    @argument(
+        "--share",
+        default=False,
+        const=True,
+        nargs="?",
+        help="Whether to launch with sharing. Will slow down reloading.",
+    )
     @register_cell_magic
     @needs_local_scope
     def blocks(line, cell, local_ns):
+        """Launch a demo defined in a cell in reload mode."""
+
         args = parse_argstring(blocks, line)
+
         exec(cell, None, local_ns)
         demo: gr.Blocks = local_ns[args.demo_name]
-        if not state.demo_tracked():
-            demo.launch(share=True)
-            demo.server.app.change_event = threading.Event()
-            state.track(demo)
-        elif state.queue_changed(demo):
-            state.running_demo.close()
+        if not reloader.demo_tracked():
+            demo.launch(share=args.share)
+            reloader.track(demo)
+        elif reloader.queue_changed(demo):
+            print("Queue got added or removed. Restarting demo.")
+            reloader.running_demo.close()
             demo.launch()
-            demo.server.app.change_event = threading.Event()
-            state.track(demo)
+            reloader.track(demo)
         else:
-            if hasattr(state.running_demo.server.app.blocks, "_queue"):
-                state.running_demo.server.app.blocks._queue.blocks_dependencies = (
-                    demo.dependencies
-                )
-                demo._queue = state.running_demo.server.app.blocks._queue
-            state.running_demo.server.app.blocks = demo
-            state.running_demo.server.app.change_event.set()
-            return state.running_demo.artifact
+            reloader.swap_blocks(demo)
+            return reloader.running_demo.artifact

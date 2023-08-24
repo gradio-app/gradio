@@ -16,10 +16,11 @@ import random
 import re
 import threading
 import time
+import traceback
 import typing
 import warnings
+from abc import ABC, abstractmethod
 from contextlib import contextmanager
-from dataclasses import dataclass
 from enum import Enum
 from io import BytesIO
 from numbers import Number
@@ -75,14 +76,50 @@ def safe_get_lock() -> asyncio.Lock:
         return None  # type: ignore
 
 
-@dataclass
-class ReloadConfig:
-    app: App
-    watch_dirs: list[str]
-    watch_file: str
-    stop_event: threading.Event
-    change_event: threading.Event
-    demo_name: str = "demo"
+class BaseReloader(ABC):
+    @property
+    @abstractmethod
+    def running_app(self) -> App:
+        pass
+
+    def queue_changed(self, demo: Blocks):
+        return (
+            hasattr(self.running_app.blocks, "_queue") and not hasattr(demo, "_queue")
+        ) or (
+            not hasattr(self.running_app.blocks, "_queue") and hasattr(demo, "_queue")
+        )
+
+    def swap_blocks(self, demo: Blocks):
+        assert self.running_app.blocks
+        # Copy over the blocks to get new components and events but
+        # not a new queue
+        if hasattr(self.running_app.blocks, "_queue"):
+            self.running_app.blocks._queue.blocks_dependencies = demo.dependencies
+            demo._queue = self.running_app.blocks._queue
+        self.running_app.blocks = demo
+
+
+class SourceFileReloader(BaseReloader):
+    def __init__(
+        self,
+        app: App,
+        watch_dirs: list[str],
+        watch_file: str,
+        stop_event: threading.Event,
+        change_event: threading.Event,
+        demo_name: str = "demo",
+    ) -> None:
+        super().__init__()
+        self.app = app
+        self.watch_dirs = watch_dirs
+        self.watch_file = watch_file
+        self.stop_event = stop_event
+        self.change_event = change_event
+        self.demo_name = demo_name
+
+    @property
+    def running_app(self) -> App:
+        return self.app
 
     def should_watch(self) -> bool:
         return not self.stop_event.is_set()
@@ -93,8 +130,12 @@ class ReloadConfig:
     def alert_change(self):
         self.change_event.set()
 
+    def swap_blocks(self, demo: Blocks):
+        super().swap_blocks(demo)
+        self.alert_change()
 
-def watchfn(reload_config: ReloadConfig):
+
+def watchfn(reloader: SourceFileReloader):
     """Watch python files in a given module.
 
     get_changes is taken from uvicorn's default file watcher.
@@ -121,9 +162,9 @@ def watchfn(reload_config: ReloadConfig):
                 yield path.resolve()
 
     module = None
-    reload_dirs = [Path(dir_) for dir_ in reload_config.watch_dirs]
+    reload_dirs = [Path(dir_) for dir_ in reloader.watch_dirs]
     mtimes = {}
-    while reload_config.should_watch():
+    while reloader.should_watch():
         import sys
 
         changed = get_changes()
@@ -136,20 +177,25 @@ def watchfn(reload_config: ReloadConfig):
                 sourcefile = getattr(v, "__file__", None)
                 if sourcefile and Path(sourcefile).is_relative_to(dir_):
                     del sys.modules[k]
-            module = importlib.import_module(reload_config.watch_file)
-            module = importlib.reload(module)
-            # Copy over the blocks to get new components and events but
-            # not a new queue
-            assert reload_config.app.blocks
-            if hasattr(reload_config.app.blocks, "_queue"):
-                reload_config.app.blocks._queue.blocks_dependencies = getattr(
-                    module, reload_config.demo_name
-                ).dependencies
-                getattr(
-                    module, reload_config.demo_name
-                )._queue = reload_config.app.blocks._queue
-            reload_config.app.blocks = getattr(module, reload_config.demo_name)
-            reload_config.alert_change()
+            try:
+                module = importlib.import_module(reloader.watch_file)
+                module = importlib.reload(module)
+            except Exception as e:
+                print(
+                    f"Reloading {reloader.watch_file} failed with the following exception: "
+                )
+                traceback.print_exception(etype=None, value=e, tb=None)
+                mtimes = {}
+                continue
+
+            demo = getattr(module, reloader.demo_name)
+            if reloader.queue_changed(demo):
+                print(
+                    "Reloading failed. The new demo has a queue and the old one doesn't (or vice versa). "
+                    "Please launch your demo again"
+                )
+            else:
+                reloader.swap_blocks(demo)
             mtimes = {}
 
 
