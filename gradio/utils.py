@@ -172,10 +172,10 @@ def watchfn(reloader: SourceFileReloader):
             print(f"Changes detected in: {changed}")
             # To simulate a fresh reload, delete all module references from sys.modules
             # for the modules in the package the change came from.
-            dir_ = next(d for d in reload_dirs if changed.is_relative_to(d))
+            dir_ = next(d for d in reload_dirs if is_in_or_equal(changed, d))
             for k, v in list(sys.modules.items()):
                 sourcefile = getattr(v, "__file__", None)
-                if sourcefile and Path(sourcefile).is_relative_to(dir_):
+                if sourcefile and is_in_or_equal(sourcefile, dir_):
                     del sys.modules[k]
             try:
                 module = importlib.import_module(reloader.watch_file)
