@@ -218,23 +218,34 @@ class App(FastAPI):
         def app_id(request: fastapi.Request) -> dict:
             return {"app_id": app.get_blocks().app_id}
 
-        @app.websocket("/dev/reload")
-        async def notify_changes(
-            websocket: WebSocket,
-        ):
-            assert app.change_event
-            await websocket.accept()
+        async def send_ping_periodically(websocket: WebSocket):
+            while True:
+                await websocket.send_text("PING")
+                await asyncio.sleep(1)
+
+        async def listen_for_changes(websocket: WebSocket):
             while True:
                 if app.change_event.is_set():
                     print("HERE 2")
                     await websocket.send_text("CHANGE")
                     app.change_event.clear()
-                try:
-                    await asyncio.wait_for(websocket.send_text("PING"), timeout=0.02)
-                except Exception:
-                    await websocket.close()
-                if websocket.application_state == WebSocketState.DISCONNECTED:
-                    return
+                await asyncio.sleep(0.1)  # Short sleep to not make this a tight loop
+
+        @app.websocket("/dev/reload")
+        async def notify_changes(websocket: WebSocket):
+            assert app.change_event
+            await websocket.accept()
+
+            done, pending = await asyncio.wait(
+                [send_ping_periodically(websocket), listen_for_changes(websocket)],
+                return_when=asyncio.FIRST_COMPLETED
+            )
+
+            for task in pending:
+                task.cancel()
+
+            if any(isinstance(task.exception(), Exception) for task in done):
+                await websocket.close()
 
         @app.post("/login")
         @app.post("/login/")

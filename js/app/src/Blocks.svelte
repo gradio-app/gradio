@@ -101,18 +101,7 @@
 		return false;
 	}
 
-	const dynamic_ids: Set<number> = new Set();
-	for (const comp of components) {
-		const { id, props } = comp;
-		const is_input = is_dep(id, "inputs", dependencies);
-		if (
-			is_input ||
-			(!is_dep(id, "outputs", dependencies) &&
-				has_no_default_value(props?.value))
-		) {
-			dynamic_ids.add(id);
-		}
-	}
+	let dynamic_ids: Set<number> = new Set();
 
 	function has_no_default_value(value: any): boolean {
 		return (
@@ -206,6 +195,27 @@
 	$: components, layout, prepare_components();
 
 	function prepare_components(): void {
+		loading_status = create_loading_status_store();
+
+		dependencies.forEach((v, i) => {
+			loading_status.register(i, v.inputs, v.outputs);
+		});
+
+		const _dynamic_ids = new Set<number>();
+		for (const comp of components) {
+			const { id, props } = comp;
+			const is_input = is_dep(id, "inputs", dependencies);
+			if (
+				is_input ||
+				(!is_dep(id, "outputs", dependencies) &&
+					has_no_default_value(props?.value))
+			) {
+				_dynamic_ids.add(id);
+			}
+		}
+
+		dynamic_ids = _dynamic_ids;
+
 		const _rootNode: typeof rootNode = {
 			id: layout.id,
 			type: "column",
@@ -531,6 +541,26 @@
 	const is_external_url = (link: string | null): boolean =>
 		!!(link && new URL(link, location.href).origin !== location.origin);
 
+	$: target_map = dependencies.reduce(
+		(acc, dep, i) => {
+			let { targets, trigger } = dep;
+
+			targets.forEach((id) => {
+				if (!acc[id]) {
+					acc[id] = {};
+				}
+				if (acc[id]?.[trigger]) {
+					acc[id][trigger].push(i);
+				} else {
+					acc[id][trigger] = [i];
+				}
+			});
+
+			return acc;
+		},
+		{} as Record<number, Record<string, number[]>>
+	);
+
 	async function handle_mount(): Promise<void> {
 		await tick();
 
@@ -552,25 +582,6 @@
 			}
 		});
 
-		dependencies.forEach((dep, i) => {
-			let { targets, trigger, inputs, outputs } = dep;
-			const target_instances: [number, ComponentMeta][] = targets.map((t) => [
-				t,
-				instance_map[t]
-			]);
-
-			target_instances.forEach(([id]) => {
-				if (!target_map[id]) {
-					target_map[id] = {};
-				}
-				if (target_map[id]?.[trigger]) {
-					target_map[id][trigger].push(i);
-				} else {
-					target_map[id][trigger] = [i];
-				}
-			});
-		});
-
 		target.addEventListener("gradio", (e: Event) => {
 			if (!isCustomEvent(e)) throw new Error("not a custom event");
 
@@ -581,12 +592,12 @@
 				trigger_share(title, description);
 			} else if (event === "error") {
 				messages = [new_message(data, -1, "error"), ...messages];
+			} else {
+				const deps = target_map[id]?.[event];
+				deps?.forEach((dep_id) => {
+					trigger_api_call(dep_id, data);
+				});
 			}
-
-			const deps = target_map[id]?.[event];
-			deps?.forEach((dep_id) => {
-				trigger_api_call(dep_id, data);
-			});
 		});
 
 		render_complete = true;
@@ -599,10 +610,6 @@
 	}
 
 	$: set_status($loading_status);
-
-	dependencies.forEach((v, i) => {
-		loading_status.register(i, v.inputs, v.outputs);
-	});
 
 	function set_status(statuses: LoadingStatusCollection): void {
 		for (const id in statuses) {
@@ -618,8 +625,6 @@
 			set_prop(instance_map[id], "pending", pending_status === "pending");
 		}
 	}
-
-	const target_map: Record<number, Record<string, number[]>> = {};
 
 	function isCustomEvent(event: Event): event is CustomEvent {
 		return "detail" in event;
