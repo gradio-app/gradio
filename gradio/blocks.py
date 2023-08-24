@@ -16,6 +16,7 @@ from collections import defaultdict
 from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast
+import functools
 
 import anyio
 import requests
@@ -432,13 +433,6 @@ class BlockFunction:
 
     def __repr__(self):
         return str(self)
-
-
-class class_or_instancemethod(classmethod):  # noqa: N801
-    def __get__(self, instance, type_):
-        descr_get = super().__get__ if instance is None else self.__func__.__get__
-        return descr_get(instance, type_)
-
 
 def postprocess_update_dict(block: Block, update_dict: dict, postprocess: bool = True):
     """
@@ -2249,3 +2243,9 @@ Received outputs:
         if self.dependencies[fn_index]["queue"] is None:
             return self.enable_queue
         return self.dependencies[fn_index]["queue"]
+
+@functools.wraps(Blocks.load)
+class class_or_instancemethod(classmethod):  # noqa: N801
+    def __get__(self, instance, type_):
+        descr_get = super().__get__ if instance is None else self.__func__.__get__
+        return descr_get(instance, type_)
