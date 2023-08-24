@@ -13,10 +13,11 @@ def long_prediction(*args, **kwargs):
     time.sleep(10)
     return 42
 
+
 with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column():
-            n = gr.Slider(1, 10, value=9, step=1, label="No of Steps")
+            n = gr.Slider(1, 10, value=9, step=1, label="Number Steps")
             run = gr.Button(value="Start Iterating")
             output = gr.Textbox(label="Iterative Output")
             stop = gr.Button(value="Stop Iterating")
