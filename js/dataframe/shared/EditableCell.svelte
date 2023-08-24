@@ -1,13 +1,8 @@
 <script lang="ts">
-	import { afterUpdate, tick } from "svelte";
-	import { marked } from "marked";
-	import DOMPurify from "dompurify";
-	import render_math_in_element from "katex/dist/contrib/auto-render.js";
-	import "katex/dist/katex.min.css";
+	import { MarkdownCode } from "@gradio/markdown";
 
 	export let edit: boolean;
 	export let value: string | number = "";
-	export let el: HTMLInputElement | null;
 	export let header = false;
 	export let datatype:
 		| "str"
@@ -22,34 +17,15 @@
 		display: boolean;
 	}[];
 
-	let span: HTMLSpanElement;
-	let mounted = false;
-
-	$: mounted &&
-		latex_delimiters.length > 0 &&
-		render_math_in_element(span, {
-			delimiters: latex_delimiters,
-			throwOnError: false
-		});
-
-	afterUpdate(() => {
-		if (datatype == "markdown") {
-			tick().then(() => {
-				requestAnimationFrame(() => {
-					span.innerHTML = DOMPurify.sanitize(marked.parse(value.toString()));
-					mounted = true;
-				});
-			});
-		}
-	});
+	export let el: HTMLInputElement | null;
 </script>
 
 {#if edit}
 	<input
+		bind:this={el}
 		class:header
 		tabindex="-1"
 		{value}
-		bind:this={el}
 		on:keydown
 		on:blur={({ currentTarget }) => {
 			value = currentTarget.value;
@@ -57,9 +33,16 @@
 		}}
 	/>
 {/if}
-<span on:dblclick tabindex="-1" role="button" class:edit bind:this={span}>
+
+<span on:dblclick tabindex="-1" role="button" class:edit>
 	{#if datatype === "html"}
 		{@html value}
+	{:else if datatype === "markdown"}
+		<MarkdownCode
+			message={value.toLocaleString()}
+			{latex_delimiters}
+			chatbot={false}
+		/>
 	{:else}
 		{value}
 	{/if}

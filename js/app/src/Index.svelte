@@ -306,7 +306,7 @@
 			new CustomEvent("render", {
 				bubbles: true,
 				cancelable: false,
-				composed: true,
+				composed: true
 			})
 		);
 	}

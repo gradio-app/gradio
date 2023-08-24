@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Gradio } from "./gradio_helper";
 	import { onMount, createEventDispatcher, setContext } from "svelte";
 	import type { ComponentMeta } from "./components/types";
 	import type { ThemeMode } from "./components/types";
@@ -15,6 +16,7 @@
 	export let parent: string | null = null;
 	export let target: HTMLElement;
 	export let theme_mode: ThemeMode;
+	export let version: string;
 
 	const dispatch = createEventDispatcher<{ mount: number; destroy: number }>();
 	let filtered_children: ComponentMeta[] = [];
@@ -75,6 +77,7 @@
 	{...props}
 	{theme_mode}
 	{root}
+	gradio={new Gradio(id, target, theme_mode, version, root)}
 >
 	{#if children && children.length}
 		{#each children as { component, id: each_id, props, children: _children, has_modes } (each_id)}

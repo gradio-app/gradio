@@ -6,14 +6,15 @@ import event from "@testing-library/user-event";
 import Textbox from "./interactive";
 import type { LoadingStatus } from "@gradio/statustracker";
 
-const loading_status = {
+const loading_status: LoadingStatus = {
 	eta: 0,
 	queue_position: 1,
 	queue_size: 1,
 	status: "complete" as LoadingStatus["status"],
 	scroll_to_output: false,
 	visible: true,
-	fn_index: 0
+	fn_index: 0,
+	show_progress: "full"
 };
 
 describe("Textbox", () => {
@@ -25,7 +26,6 @@ describe("Textbox", () => {
 			max_lines: 1,
 			loading_status,
 			lines: 1,
-			mode: "dynamic",
 			value: "hello world",
 			label: "Textbox"
 		});
@@ -37,20 +37,18 @@ describe("Textbox", () => {
 	});
 
 	test("changing the text should update the value", async () => {
-		const { component, getByDisplayValue } = await render(Textbox, {
+		const { component, getByDisplayValue, listen } = await render(Textbox, {
 			show_label: true,
 			max_lines: 10,
 			loading_status,
 			lines: 1,
-			mode: "dynamic",
 			value: "hi ",
 			label: "Textbox"
 		});
 
 		const item: HTMLInputElement = getByDisplayValue("hi") as HTMLInputElement;
 
-		const mock = spy();
-		component.$on("change", mock);
+		const mock = listen("change");
 
 		item.focus();
 		await event.keyboard("some text");
@@ -58,6 +56,6 @@ describe("Textbox", () => {
 		assert.equal(item.value, "hi some text");
 		assert.equal(component.value, "hi some text");
 		assert.equal(mock.callCount, 9);
-		assert.equal(mock.calls[8][0].detail, "hi some text");
+		assert.equal(mock.calls[8][0].detail.data, "hi some text");
 	});
 });
