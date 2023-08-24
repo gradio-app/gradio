@@ -69,13 +69,13 @@ function run() {
 			.join("\n\n");
 
 		const new_changelog = `# ${pkg_name}
-	
-	## ${version}
-	
-	${release_notes}
-	
-	${current_changelog.replace(`# ${pkg_name}`, "").trim()}
-	`.trim();
+
+## ${version}
+
+${release_notes}
+
+${current_changelog.replace(`# ${pkg_name}`, "").trim()}
+`.trim();
 
 		dirs.forEach((dir) => {
 			writeFileSync(join(dir, "CHANGELOG.md"), new_changelog);
