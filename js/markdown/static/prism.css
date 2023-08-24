@@ -86,10 +86,13 @@ th {
 }
 
 /* Inline code */
-.md :not(pre) > code[class*="language-"] {
+.md :not(pre) > code {
 	padding: 0.1em;
 	border-radius: var(--radius-xs);
 	white-space: normal;
+	background-color: var(--chatbot-code-background-color);
+	border: 1px solid var(--panel-border-color);
+	padding: var(--spacing-xxs) var(--spacing-xs);
 }
 
 .md .token.comment,
