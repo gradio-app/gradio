@@ -10,7 +10,7 @@ test("renders the correct elements", async ({ page }) => {
 	);
 });
 
-test("renders the footer", async ({ page }) => {
+test("renders the footer text", async ({ page }) => {
 	const footer = page.locator("footer");
 
 	await expect(footer).toBeVisible();
