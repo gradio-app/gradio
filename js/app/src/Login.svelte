@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Form from "@gradio/form";
-	import { BaseTextbox as Textbox } from "@gradio/textbox/interactive";
+	import Textbox from "@gradio/textbox/interactive";
 	import { BaseButton } from "@gradio/button/static";
 	import Column from "@gradio/column";
 	import { _ } from "svelte-i18n";
