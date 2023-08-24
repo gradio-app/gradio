@@ -13,7 +13,7 @@ GRADIO_VERSION=$new_version
 
 rm -rf gradio/templates/frontend
 rm -rf gradio/templates/cdn
-pnpm i
+pnpm i --frozen-lockfile --ignore-scripts
 GRADIO_VERSION=$new_version pnpm build
 GRADIO_VERSION=$new_version pnpm build:cdn
 aws s3 cp gradio/templates/cdn "s3://gradio/${new_version}/" --recursive
