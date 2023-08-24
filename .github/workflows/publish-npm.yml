@@ -52,5 +52,5 @@ jobs:
         with:
           user: __token__
           passwords: |
-            gradio-test-pypi:${{ secrets.PYPI_API_TOKEN }}
-            gradio-test-client-pypi:${{ secrets.PYPI_GRADIO_CLIENT_TOKEN }}
+            gradio:${{ secrets.PYPI_API_TOKEN }}
+            gradio_client:${{ secrets.PYPI_GRADIO_CLIENT_TOKEN }}
