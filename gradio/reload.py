@@ -15,21 +15,7 @@ import gradio
 from gradio import utils
 
 
-def _setup_config():
-    args = sys.argv[1:]
-    if len(args) == 0:
-        raise ValueError("No file specified.")
-    if len(args) == 1 or args[1].startswith("--"):
-        demo_name = "demo"
-    else:
-        demo_name = args[1]
-        if "." in demo_name:
-            demo_name = demo_name.split(".")[0]
-            print(
-                "\nWARNING: As of Gradio 3.41.0, the parameter after the file path must be the name of the Gradio demo, not the FastAPI app. In most cases, this just means you should remove '.app' after the name of your demo, e.g. 'demo.app' -> 'demo'."
-            )
-
-    original_path = args[0]
+def _get_config(original_path):
     abs_original_path = utils.abspath(original_path)
     path = os.path.normpath(original_path)
     path = path.replace("/", ".")
@@ -58,7 +44,26 @@ def _setup_config():
 
     # guaranty access to the module of an app
     sys.path.insert(0, os.getcwd())
-    return filename, abs_original_path, [str(s) for s in watching_dirs], demo_name
+    return filename, abs_original_path, [str(s) for s in watching_dirs]
+
+
+def _setup_config():
+    args = sys.argv[1:]
+    if len(args) == 0:
+        raise ValueError("No file specified.")
+    if len(args) == 1 or args[1].startswith("--"):
+        demo_name = "demo"
+    else:
+        demo_name = args[1]
+        if "." in demo_name:
+            demo_name = demo_name.split(".")[0]
+            print(
+                "\nWARNING: As of Gradio 3.41.0, the parameter after the file path must be the name of the Gradio demo, not the FastAPI app. In most cases, this just means you should remove '.app' after the name of your demo, e.g. 'demo.app' -> 'demo'."
+            )
+
+    original_path = args[0]
+
+    return *_get_config(original_path), demo_name
 
 
 def main():

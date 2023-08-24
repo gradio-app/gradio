@@ -148,7 +148,7 @@ def watchfn(reload_config: ReloadConfig):
                 getattr(
                     module, reload_config.demo_name
                 )._queue = reload_config.app.blocks._queue
-            reload_config.app.blocks = module.demo
+            reload_config.app.blocks = getattr(module, reload_config.demo_name)
             reload_config.alert_change()
             mtimes = {}
 

@@ -226,7 +226,6 @@ class App(FastAPI):
         async def listen_for_changes(websocket: WebSocket):
             while True:
                 if app.change_event.is_set():
-                    print("HERE 2")
                     await websocket.send_text("CHANGE")
                     app.change_event.clear()
                 await asyncio.sleep(0.1)  # Short sleep to not make this a tight loop

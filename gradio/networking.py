@@ -38,11 +38,11 @@ GRADIO_WATCH_DIRS = (
 GRADIO_WATCH_FILE = os.getenv("GRADIO_WATCH_FILE", "app")
 GRADIO_WATCH_DEMO_NAME = os.getenv("GRADIO_WATCH_DEMO_NAME", "demo")
 
-
 class Server(uvicorn.Server):
     def __init__(
         self, config: Config, reload_config: ReloadConfig | None = None
     ) -> None:
+        self.app = config.app
         super().__init__(config)
         self.reload_config = reload_config
         if self.reload_config:
