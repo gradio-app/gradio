@@ -2,10 +2,6 @@
 set -e
 
 cd "$(dirname ${0})"
-source scripts/helpers.sh
-
-pnpm_required
-aws_required
 
 # You should update the version in version.txt before running this script
 new_version="$(cat gradio/version.txt)"
