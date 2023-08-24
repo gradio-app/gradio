@@ -62,6 +62,10 @@ function is_url(str: string): boolean {
 	}
 }
 
+function is_data_url(str: string): boolean {
+	return str.startsWith("data:");
+}
+
 export function get_fetchable_url_or_file(
 	path: string | null,
 	root: string,
@@ -71,6 +75,9 @@ export function get_fetchable_url_or_file(
 		return root_url ? `/proxy=${root_url}file=` : `${root}/file=`;
 	}
 	if (is_url(path)) {
+		return path;
+	}
+	if (is_data_url(path)) {
 		return path;
 	}
 	return root_url ? `/proxy=${root_url}file=${path}` : `${root}/file=${path}`;
