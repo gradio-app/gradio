@@ -16,6 +16,7 @@
 	},
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
-		"@gradio/statustracker": "workspace:^"
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/utils": "workspace:^"
 	}
 }

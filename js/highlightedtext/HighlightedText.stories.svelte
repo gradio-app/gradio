@@ -1,6 +1,7 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import HighlightedText from "./static";
+	import { Gradio } from "../app/src/gradio_helper";
 </script>
 
 <Meta title="Components/HighlightedText" component={HighlightedText} />
@@ -12,6 +13,13 @@
 			["dogs", "-"],
 			["elephants", "+"]
 		]}
+		gradio={new Gradio(
+			0,
+			document.body,
+			"light",
+			"1.1.1",
+			"http://localhost:7860"
+		)}
 		{...args}
 	/>
 </Template>

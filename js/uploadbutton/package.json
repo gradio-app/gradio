@@ -17,6 +17,7 @@
 	"dependencies": {
 		"@gradio/button": "workspace:^",
 		"@gradio/client": "workspace:^",
-		"@gradio/upload": "workspace:^"
+		"@gradio/upload": "workspace:^",
+		"@gradio/utils": "workspace:^"
 	}
 }
