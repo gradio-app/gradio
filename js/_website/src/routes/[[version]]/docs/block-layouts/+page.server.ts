@@ -19,6 +19,7 @@ export async function load({ parent }) {
 		docs.building.row,
 		docs.building.column,
 		docs.building.tab,
+		docs.building.group,
 		docs.building.accordion
 	];
 
@@ -29,11 +30,6 @@ export async function load({ parent }) {
 		["Group", "group"],
 		["Accordion", "accordion"]
 	];
-
-	if (docs.building.box) {
-		objs.push(docs.building.box);
-		headers.push(["Box", "box"]);
-	}
 
 	let method_headers: string[][] = [];
 	const get_slug = make_slug_processor();
