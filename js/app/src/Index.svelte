@@ -222,13 +222,10 @@
 		if (config.dev_mode) {
 			setTimeout(() => {
 				const { host } = new URL(api_url);
-				console.log(host);
-				console.log(`ws://${host}/dev/reload`);
 				let url = new URL(`ws://${host}/dev/reload`);
 				websocket = new WebSocket(url);
 				websocket.onmessage = async function (event) {
 					if (event.data === "CHANGE") {
-						console.log("HERE!");
 						app = await client(api_url, {
 							status_callback: handle_status,
 							normalise_files: false
@@ -264,7 +261,6 @@
 	}
 
 	function load_demo(): void {
-		console.log("TRIGGERED");
 		if (config.auth_required) get_login();
 		else get_blocks();
 	}
