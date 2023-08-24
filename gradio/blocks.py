@@ -378,11 +378,11 @@ class BlockContext(Block):
         self.children = children
 
     def __exit__(self, exc_type: type[BaseException] | None = None, *args):
+        Context.block = self.parent
         if exc_type is not None:
             return
         if getattr(self, "allow_expected_parents", True):
             self.fill_expected_parents()
-        Context.block = self.parent
 
     def postprocess(self, y):
         """
@@ -1522,6 +1522,8 @@ Received outputs:
 
     def __exit__(self, exc_type: type[BaseException] | None = None, *args):
         if exc_type is not None:
+            Context.block = None
+            Context.root_block = None
             return
         super().fill_expected_parents()
         Context.block = self.parent
