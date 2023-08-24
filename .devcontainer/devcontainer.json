@@ -14,7 +14,7 @@
 		"cpus": 4,
 		"memory": "8gb",
 		"storage": "32gb"
-	 },
+	},
 
 	"customizations": {
 		"vscode": {
@@ -38,5 +38,4 @@
 	},
 
 	"postCreateCommand": "export NODE_OPTIONS=\"--max-old-space-size=8192\" && chmod +x scripts/install_gradio.sh scripts/install_test_requirements.sh scripts/build_frontend.sh && ./scripts/install_gradio.sh && ./scripts/install_test_requirements.sh && ./scripts/build_frontend.sh"
-
 }
