@@ -3,10 +3,11 @@
 Contains the functions that run when `gradio` is called from the command line. Specifically, allows
 
 $ gradio app.py, to run app.py in reload mode where any changes in the app.py file or Gradio library reloads the demo.
-$ gradio app.py my_demo.app, to use variable names other than "demo"
+$ gradio app.py my_demo, to use variable names other than "demo"
 """
 import inspect
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -15,7 +16,46 @@ import gradio
 from gradio import utils
 
 
-def _get_config(original_path):
+def _setup_config():
+    args = sys.argv[1:]
+    if len(args) == 0:
+        raise ValueError("No file specified.")
+    if len(args) == 1 or args[1].startswith("--"):
+        demo_name = "demo"
+    else:
+        demo_name = args[1]
+        if "." in demo_name:
+            demo_name = demo_name.split(".")[0]
+            print(
+                "\nWARNING: As of Gradio 3.41.0, the parameter after the file path must be the name of the Gradio demo, not the FastAPI app. In most cases, this just means you should remove '.app' after the name of your demo, e.g. 'demo.app' -> 'demo'."
+            )
+
+    original_path = args[0]
+    app_text = Path(original_path).read_text()
+
+    patterns = [
+        f"with gr\\.Blocks\\(\\) as {demo_name}",
+        f"{demo_name} = gr\\.Blocks",
+        f"{demo_name} = gr\\.Interface",
+        f"{demo_name} = gr\\.ChatInterface",
+        f"{demo_name} = gr\\.Series",
+        f"{demo_name} = gr\\.Paralles",
+        f"{demo_name} = gr\\.TabbedInterface",
+    ]
+
+    if not any(re.search(p, app_text) for p in patterns):
+        print(
+            f"\nWarning: Cannot statically find a gradio demo called {demo_name}. "
+            "Reload work may fail."
+        )
+
+    if not re.search("""if __name__ == ["']__main__["']:""", app_text):
+        raise ValueError(
+            f"{original_path} does not "
+            "have an if __name__ == '__main__' clause. Please add one "
+            "and launch your demo there."
+        )
+
     abs_original_path = utils.abspath(original_path)
     path = os.path.normpath(original_path)
     path = path.replace("/", ".")
@@ -44,26 +84,7 @@ def _get_config(original_path):
 
     # guaranty access to the module of an app
     sys.path.insert(0, os.getcwd())
-    return filename, abs_original_path, [str(s) for s in watching_dirs]
-
-
-def _setup_config():
-    args = sys.argv[1:]
-    if len(args) == 0:
-        raise ValueError("No file specified.")
-    if len(args) == 1 or args[1].startswith("--"):
-        demo_name = "demo"
-    else:
-        demo_name = args[1]
-        if "." in demo_name:
-            demo_name = demo_name.split(".")[0]
-            print(
-                "\nWARNING: As of Gradio 3.41.0, the parameter after the file path must be the name of the Gradio demo, not the FastAPI app. In most cases, this just means you should remove '.app' after the name of your demo, e.g. 'demo.app' -> 'demo'."
-            )
-
-    original_path = args[0]
-
-    return *_get_config(original_path), demo_name
+    return filename, abs_original_path, [str(s) for s in watching_dirs], demo_name
 
 
 def main():
