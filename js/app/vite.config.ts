@@ -58,7 +58,7 @@ export default defineConfig(({ mode }) => {
 
 		build: {
 			sourcemap: true,
-			target: "esnext",
+			target: "modules",
 			minify: production,
 			outDir: is_lite
 				? resolve(__dirname, "../lite/dist")
