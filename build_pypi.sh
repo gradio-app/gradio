@@ -2,10 +2,6 @@
 set -e
 
 cd "$(dirname ${0})"
-source scripts/helpers.sh
-
-pnpm_required
-aws_required
 
 # You should update the version in version.txt before running this script
 new_version="$(cat gradio/version.txt)"
@@ -13,7 +9,7 @@ GRADIO_VERSION=$new_version
 
 rm -rf gradio/templates/frontend
 rm -rf gradio/templates/cdn
-pnpm i
+pnpm i --frozen-lockfile --ignore-scripts
 GRADIO_VERSION=$new_version pnpm build
 GRADIO_VERSION=$new_version pnpm build:cdn
 aws s3 cp gradio/templates/cdn "s3://gradio/${new_version}/" --recursive
