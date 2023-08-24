@@ -14,5 +14,7 @@ test("renders the footer", async ({ page }) => {
 	const footer = page.locator("footer");
 
 	await expect(footer).toBeVisible();
-	await expect(footer).toHaveText("Use via API  · Built with Gradio ");
+	await expect(
+		footer.getByText("Use via API  · Built with Gradio ")
+	).toBeVisible();
 });
