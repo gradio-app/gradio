@@ -45,6 +45,10 @@ jobs:
       - name: publish to pypi
         if: steps.changesets.outputs.hasChangesets != 'true'
         uses: "gradio-app/github/actions/publish-pypi@main"
+        env: 
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWSACCESSKEYID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWSSECRETKEY }}
+          AWS_DEFAULT_REGION: us-west-2
         with:
           user: __token__
           passwords: |
