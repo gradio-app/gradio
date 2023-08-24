@@ -14,6 +14,7 @@ from pathlib import Path
 import gradio
 from gradio import utils
 
+
 def _get_config(original_path):
     abs_original_path = utils.abspath(original_path)
     path = os.path.normpath(original_path)
@@ -45,6 +46,7 @@ def _get_config(original_path):
     sys.path.insert(0, os.getcwd())
     return filename, abs_original_path, [str(s) for s in watching_dirs]
 
+
 def _setup_config():
     args = sys.argv[1:]
     if len(args) == 0:
@@ -60,7 +62,7 @@ def _setup_config():
             )
 
     original_path = args[0]
-    
+
     return *_get_config(original_path), demo_name
 
 
