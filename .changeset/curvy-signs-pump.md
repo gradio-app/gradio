@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:WIP: Faster reload mode
+feat:Faster reload mode
