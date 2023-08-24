@@ -1,5 +1,11 @@
 # @gradio/dropdown
 
+## 0.1.1
+
+### Fixes
+
+- [#5323](https://github.com/gradio-app/gradio/pull/5323) [`e32b0928`](https://github.com/gradio-app/gradio/commit/e32b0928d2d00342ca917ebb10c379ffc2ec200d) - ensure dropdown stays open when identical data is passed in.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.1.0
 
 ### Highlights
