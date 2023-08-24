@@ -5,7 +5,6 @@
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import { ShareButton } from "@gradio/atoms";
 	import type { SelectData } from "@gradio/utils";
-	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
 	import { MarkdownCode as Markdown } from "@gradio/markdown/static";
 	import { get_fetchable_url_or_file } from "@gradio/upload";
@@ -28,6 +27,7 @@
 	export let rtl = false;
 	export let show_copy_button = false;
 	export let avatar_images: [string | null, string | null] = [null, null];
+	export let chat_bubble_fit_content: false;
 	export let root: string;
 	export let root_url: null | string;
 
@@ -114,6 +114,7 @@
 							data-testid={j == 0 ? "user" : "bot"}
 							class:latest={i === value.length - 1}
 							class="message {j == 0 ? 'user' : 'bot'}"
+							class:message-fit={chat_bubble_fit_content}
 							class:hide={message === null}
 							class:selectable
 							on:click={() => handle_select(i, j, message)}
@@ -232,6 +233,12 @@
 		font-size: var(--text-lg);
 		line-height: var(--line-lg);
 		overflow-wrap: break-word;
+	}
+	.message-fit {
+		width: fit-content !important;
+	}
+	.message-fit.user {
+		margin-left: auto;
 	}
 	.user {
 		align-self: flex-end;
