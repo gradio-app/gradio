@@ -8,15 +8,27 @@
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-
-	export let gradio: Gradio<{
+	const dispatch = createEventDispatcher<{
 		change: string;
 		submit: never;
 		blur: never;
 		select: SelectData;
 		input: never;
 		focus: never;
-	}> = undefined;
+	}>();
+
+	export let gradio:
+		| Gradio<{
+				change: string;
+				submit: never;
+				blur: never;
+				select: SelectData;
+				input: never;
+				focus: never;
+		  }>
+		| { dispatch: typeof dispatch } = {
+		dispatch
+	};
 	export let label = "Textbox";
 	export let info: string | undefined = undefined;
 	export let elem_id = "";
@@ -37,21 +49,6 @@
 	export let rtl = false;
 	export let text_align: "left" | "right" | undefined = undefined;
 	export let autofocus = false;
-
-	const dispatch = createEventDispatcher<{
-		change: string;
-		submit: never;
-		blur: never;
-		select: SelectData;
-		input: never;
-		focus: never;
-	}>();
-
-	if (!gradio) {
-		gradio = {
-			dispatch
-		};
-	}
 </script>
 
 <Block
