@@ -19,7 +19,6 @@ export async function load({ parent }) {
 		docs.building.row,
 		docs.building.column,
 		docs.building.tab,
-		docs.building.group,
 		docs.building.accordion
 	];
 
