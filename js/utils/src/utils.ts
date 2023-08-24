@@ -1,3 +1,4 @@
+import { type ActionReturn } from "svelte/action";
 export interface SelectData {
 	index: number | [number, number];
 	value: any;
@@ -75,4 +76,71 @@ function dataURLtoBlob(dataurl: string): Blob {
 		u8arr[n] = bstr.charCodeAt(n);
 	}
 	return new Blob([u8arr], { type: mime });
+}
+
+export function copy(node: HTMLDivElement): ActionReturn {
+	node.addEventListener("click", handle_copy);
+
+	async function handle_copy(event: MouseEvent): Promise<void> {
+		const path = event.composedPath() as HTMLButtonElement[];
+
+		const [copy_button] = path.filter(
+			(e) => e?.tagName === "BUTTON" && e.classList.contains("copy_code_button")
+		);
+
+		if (copy_button) {
+			event.stopImmediatePropagation();
+
+			const copy_text = copy_button.parentElement!.innerText.trim();
+			const copy_sucess_button = Array.from(
+				copy_button.children
+			)[1] as HTMLDivElement;
+
+			const copied = await copy_to_clipboard(copy_text);
+
+			if (copied) copy_feedback(copy_sucess_button);
+
+			function copy_feedback(_copy_sucess_button: HTMLDivElement): void {
+				_copy_sucess_button.style.opacity = "1";
+				setTimeout(() => {
+					_copy_sucess_button.style.opacity = "0";
+				}, 2000);
+			}
+		}
+	}
+
+	return {
+		destroy(): void {
+			node.removeEventListener("click", handle_copy);
+		}
+	};
+}
+
+async function copy_to_clipboard(value: string): Promise<boolean> {
+	let copied = false;
+	if ("clipboard" in navigator) {
+		await navigator.clipboard.writeText(value);
+		copied = true;
+	} else {
+		const textArea = document.createElement("textarea");
+		textArea.value = value;
+
+		textArea.style.position = "absolute";
+		textArea.style.left = "-999999px";
+
+		document.body.prepend(textArea);
+		textArea.select();
+
+		try {
+			document.execCommand("copy");
+			copied = true;
+		} catch (error) {
+			console.error(error);
+			copied = false;
+		} finally {
+			textArea.remove();
+		}
+	}
+
+	return copied;
 }

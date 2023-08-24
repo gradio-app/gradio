@@ -83,15 +83,19 @@ export async function load({ params, parent }) {
 				}
 
 				if ("fns" in obj && obj.fns.length > 0) {
-					headers.push(["Methods", "methods"]);
-					for (const fn of obj.fns) {
-						method_headers.push([fn.name, fn.slug]);
-						if (fn.example) {
-							fn.highlighted_example = Prism.highlight(
-								fn.example,
-								Prism.languages[language],
-								"python"
-							);
+					if (mode === "components") {
+						headers.push(["Event Listeners", "event-listeners"]);
+					} else {
+						headers.push(["Methods", "methods"]);
+						for (const fn of obj.fns) {
+							method_headers.push([fn.name, fn.slug]);
+							if (fn.example) {
+								fn.highlighted_example = Prism.highlight(
+									fn.example,
+									Prism.languages[language],
+									"python"
+								);
+							}
 						}
 					}
 				}

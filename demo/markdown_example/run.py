@@ -168,6 +168,23 @@ your preferred browser.
 127.0.0.1:8000
 ```
 
+```python
+import gradio as gr
+
+gr.Blocks() as demo:
+    gr.Markdown(value=md)
+
+demo.launch()
+```
+
+```js
+function fancyAlert(arg) {
+    if(arg) {
+        $.facebox({div:'#foo'})
+    }
+}
+```
+
 ## License
 
 MIT
