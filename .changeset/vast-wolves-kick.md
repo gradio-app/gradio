@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:ensure dropdown stays open when iodentical data is passed in
+fix:ensure dropdown stays open when identical data is passed in
