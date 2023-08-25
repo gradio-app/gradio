@@ -8,6 +8,7 @@
 	import EditableCell from "./EditableCell.svelte";
 	import type { SelectData } from "@gradio/utils";
 	import { _ } from "svelte-i18n";
+	import VirtualTable from "./VirtualTable.svelte";
 
 	type Datatype = "str" | "markdown" | "html" | "number" | "bool" | "date";
 
@@ -163,7 +164,7 @@
 
 	function get_sort_status(
 		name: string,
-		_sort: number,
+		_sort?: number,
 		direction?: SortDirection
 	): "none" | "ascending" | "descending" {
 		if (!_sort) return "none";
@@ -338,16 +339,8 @@
 	$: set_focus(selected, "select");
 
 	type SortDirection = "asc" | "des";
-	let sort_direction: SortDirection;
-	let sort_by: number;
-
-	function sort(col: number, dir: SortDirection): void {
-		if (dir === "asc") {
-			data = data.sort((a, b) => (a[col].value < b[col].value ? -1 : 1));
-		} else if (dir === "des") {
-			data = data.sort((a, b) => (a[col].value > b[col].value ? -1 : 1));
-		}
-	}
+	let sort_direction: SortDirection | undefined;
+	let sort_by: number | undefined;
 
 	function handle_sort(col: number): void {
 		if (typeof sort_by !== "number" || sort_by !== col) {
@@ -361,7 +354,7 @@
 			}
 		}
 
-		sort(col, sort_direction);
+		// sort(col, sort_direction);
 	}
 
 	let header_edit: string | false;
@@ -527,6 +520,26 @@
 	}
 
 	let dragging = false;
+
+	let t_width = 0;
+	let c_width: number[] = [];
+	let row_height = 0;
+	function get_max(
+		_d: { value: any; id: string }[][]
+	): { value: any; id: string }[] {
+		let max = _d[0].slice();
+		for (let i = 0; i < _d.length; i++) {
+			for (let j = 0; j < _d[i].length; j++) {
+				if (max[j].value.length < _d[i][j].value.length) {
+					max[j] = _d[i][j];
+				}
+			}
+		}
+
+		return max;
+	}
+
+	$: max = get_max(data);
 </script>
 
 <svelte:window
@@ -546,6 +559,58 @@
 		class:no-wrap={!wrap}
 		style="max-height: {typeof height === undefined ? 'auto' : height + 'px'};"
 	>
+		<table bind:clientWidth={t_width}>
+			{#if label && label.length !== 0}
+				<caption class="sr-only">{label}</caption>
+			{/if}
+			<thead>
+				<tr>
+					{#each _headers as { value, id }, i (id)}
+						<th
+							class:editing={header_edit === id}
+							aria-sort={get_sort_status(value, sort_by, sort_direction)}
+						>
+							<div class="cell-wrap">
+								<EditableCell {value} {latex_delimiters} header />
+								<!-- TODO: fix -->
+								<!-- svelte-ignore a11y-click-events-have-key-events -->
+								<!-- svelte-ignore a11y-no-static-element-interactions-->
+								<div
+									class:sorted={sort_by === i}
+									class:des={sort_by === i && sort_direction === "des"}
+									class="sort-button {sort_direction} "
+								>
+									<svg
+										width="1em"
+										height="1em"
+										viewBox="0 0 9 7"
+										fill="none"
+										xmlns="http://www.w3.org/2000/svg"
+									>
+										<path d="M4.49999 0L8.3971 6.75H0.602875L4.49999 0Z" />
+									</svg>
+								</div>
+							</div>
+						</th>
+					{/each}
+				</tr>
+			</thead>
+			<tbody>
+				<tr bind:clientHeight={row_height}>
+					{#each max as { value, id }, j (id)}
+						<td tabindex="0" bind:clientWidth={c_width[j]}>
+							<div class:border-transparent={selected !== id} class="cell-wrap">
+								<EditableCell
+									{value}
+									{latex_delimiters}
+									datatype={Array.isArray(datatype) ? datatype[j] : datatype}
+								/>
+							</div>
+						</td>
+					{/each}
+				</tr>
+			</tbody>
+		</table>
 		<Upload
 			flex={false}
 			center={false}
@@ -554,86 +619,82 @@
 			on:load={(e) => blob_to_string(data_uri_to_blob(e.detail.data))}
 			bind:dragging
 		>
-			<table class:dragging>
+			<VirtualTable
+				items={data}
+				sort={[sort_by, sort_direction]}
+				table_width={t_width}
+				item_height={row_height}
+			>
 				{#if label && label.length !== 0}
 					<caption class="sr-only">{label}</caption>
 				{/if}
-				<thead>
-					<tr>
-						{#each _headers as { value, id }, i (id)}
-							<th
-								bind:this={els[id].cell}
-								class:editing={header_edit === id}
-								aria-sort={get_sort_status(value, sort_by, sort_direction)}
-							>
-								<div class="cell-wrap">
-									<EditableCell
-										{value}
-										{latex_delimiters}
-										bind:el={els[id].input}
-										edit={header_edit === id}
-										on:keydown={end_header_edit}
-										on:dblclick={() => edit_header(id)}
-										header
-									/>
+				<tr slot="thead">
+					{#each _headers as { value, id }, i (id)}
+						<th
+							bind:this={els[id].cell}
+							class:editing={header_edit === id}
+							aria-sort={get_sort_status(value, sort_by, sort_direction)}
+							style="width:{c_width[i]}px"
+						>
+							<div class="cell-wrap">
+								<EditableCell
+									bind:value={_headers[i].value}
+									bind:el={els[id].input}
+									{latex_delimiters}
+									edit={header_edit === id}
+									on:keydown={end_header_edit}
+									on:dblclick={() => edit_header(id)}
+									header
+								/>
 
-									<!-- TODO: fix -->
-									<!-- svelte-ignore a11y-click-events-have-key-events -->
-									<!-- svelte-ignore a11y-no-static-element-interactions-->
-									<div
-										class:sorted={sort_by === i}
-										class:des={sort_by === i && sort_direction === "des"}
-										class="sort-button {sort_direction} "
-										on:click={() => handle_sort(i)}
-									>
-										<svg
-											width="1em"
-											height="1em"
-											viewBox="0 0 9 7"
-											fill="none"
-											xmlns="http://www.w3.org/2000/svg"
-										>
-											<path d="M4.49999 0L8.3971 6.75H0.602875L4.49999 0Z" />
-										</svg>
-									</div>
-								</div>
-							</th>
-						{/each}
-					</tr>
-				</thead>
-
-				<tbody>
-					{#each data as row, i (row)}
-						<tr>
-							{#each row as { value, id }, j (id)}
-								<td
-									tabindex="0"
-									bind:this={els[id].cell}
-									on:touchstart={() => start_edit(id)}
-									on:click={() => handle_cell_click(id)}
-									on:dblclick={() => start_edit(id)}
-									on:keydown={(e) => handle_keydown(e, i, j, id)}
+								<!-- TODO: fix -->
+								<!-- svelte-ignore a11y-click-events-have-key-events -->
+								<!-- svelte-ignore a11y-no-static-element-interactions-->
+								<div
+									class:sorted={sort_by === i}
+									class:des={sort_by === i && sort_direction === "des"}
+									class="sort-button {sort_direction} "
+									on:click={() => handle_sort(i)}
 								>
-									<div
-										class:border-transparent={selected !== id}
-										class="cell-wrap"
+									<svg
+										width="1em"
+										height="1em"
+										viewBox="0 0 9 7"
+										fill="none"
+										xmlns="http://www.w3.org/2000/svg"
 									>
-										<EditableCell
-											bind:value
-											bind:el={els[id].input}
-											{latex_delimiters}
-											edit={editing === id}
-											datatype={Array.isArray(datatype)
-												? datatype[j]
-												: datatype}
-										/>
-									</div>
-								</td>
-							{/each}
-						</tr>
+										<path d="M4.49999 0L8.3971 6.75H0.602875L4.49999 0Z" />
+									</svg>
+								</div>
+							</div>
+						</th>
 					{/each}
-				</tbody>
-			</table>
+				</tr>
+
+				<tr slot="tbody" let:item let:index class:row_odd={index % 2 === 0}>
+					{#each item as { value, id }, j (id)}
+						<td
+							tabindex="0"
+							bind:this={els[id].cell}
+							on:touchstart={() => start_edit(id)}
+							on:click={() => handle_cell_click(id)}
+							on:dblclick={() => start_edit(id)}
+							on:keydown={(e) => handle_keydown(e, index, j, id)}
+							style="width:{c_width[j]}px"
+						>
+							<div class:border-transparent={selected !== id} class="cell-wrap">
+								<EditableCell
+									bind:value={data[index][j].value}
+									bind:el={els[id].input}
+									{latex_delimiters}
+									edit={editing === id}
+									datatype={Array.isArray(datatype) ? datatype[j] : datatype}
+								/>
+							</div>
+						</td>
+					{/each}
+				</tr>
+			</VirtualTable>
 		</Upload>
 	</div>
 	{#if editable}
@@ -711,6 +772,7 @@
 		border-radius: var(--table-radius);
 		overflow-x: auto;
 		overflow-y: auto;
+		height: 500px;
 	}
 
 	.dragging {
@@ -722,19 +784,22 @@
 	}
 
 	table {
+		position: absolute;
+		opacity: 0;
 		transition: 150ms;
 		width: var(--size-full);
 		table-layout: auto;
-		overflow: hidden;
+		/* overflow: hidden; */
 		color: var(--body-text-color);
 		font-size: var(--input-text-size);
 		line-height: var(--line-md);
 		font-family: var(--font-mono);
+		border-spacing: 0;
 	}
 
-	table.dragging {
+	/* table.dragging {
 		opacity: 0.4;
-	}
+	} */
 
 	thead {
 		position: sticky;
@@ -819,26 +884,6 @@
 		color: var(--color-accent);
 	}
 
-	tbody {
-		overflow-y: scroll;
-	}
-
-	tbody > tr:last-child {
-		border: none;
-	}
-
-	tbody > tr:nth-child(even) {
-		background: var(--table-even-background-fill);
-	}
-
-	tbody > tr:nth-child(odd) {
-		background: var(--table-odd-background-fill);
-	}
-
-	tbody > tr:nth-child(odd):focus {
-		background: var(--background-fill-primary);
-	}
-
 	.editing {
 		background: var(--table-editing);
 	}
@@ -859,5 +904,13 @@
 
 	.controls-wrap > * + * {
 		margin-left: var(--size-1);
+	}
+
+	.row_odd {
+		background: var(--table-odd-background-fill);
+	}
+
+	.row_odd:focus {
+		background: var(--background-fill-primary);
 	}
 </style>
