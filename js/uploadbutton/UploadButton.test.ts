@@ -3,8 +3,7 @@ import { spy, spyOn } from "tinyspy";
 import { cleanup, render, wait_for_event } from "@gradio/tootils";
 import event from "@testing-library/user-event";
 import { setupi18n } from "../app/src/i18n";
-import type { LoadingStatus } from "@gradio/statustracker/types";
-import UploadButton from "./index.svelte";
+import UploadButton from "./interactive";
 
 describe("UploadButton", () => {
 	afterEach(() => {
@@ -26,7 +25,6 @@ describe("UploadButton", () => {
 		const { getByTestId } = await render(UploadButton, {
 			label: "file",
 			value: null,
-			mode: "dynamic",
 			root: "http://localhost:7860",
 			file_count: "1"
 		});
@@ -48,18 +46,20 @@ describe("UploadButton", () => {
 
 		await import("@gradio/client");
 		setupi18n();
-		const { component, getByTestId } = await render(UploadButton, {
-			label: "file",
-			value: null,
-			mode: "dynamic",
-			root: "http://localhost:7860",
-			file_count: "1"
-		});
+		const { component, getByTestId, wait_for_event } = await render(
+			UploadButton,
+			{
+				label: "file",
+				value: null,
+				root: "http://localhost:7860",
+				file_count: "1"
+			}
+		);
 
 		const item = getByTestId("file-upload-button"); //container.querySelectorAll("input")[0];
 		const file = new File(["hello"], "my-audio.wav", { type: "audio/wav" });
 		event.upload(item, file);
-		const mock = await wait_for_event(component, "change");
+		const mock = await wait_for_event("change");
 		expect(mock.callCount).toBe(1);
 		const [data] = component.$capture_state().value;
 		expect(data).toBeTruthy();

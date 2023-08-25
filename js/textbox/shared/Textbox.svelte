@@ -28,6 +28,8 @@
 
 	$: value, el && lines !== max_lines && resize({ target: el });
 
+	$: if (value === null) value = "";
+
 	const dispatch = createEventDispatcher<{
 		change: string;
 		submit: undefined;

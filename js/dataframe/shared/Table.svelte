@@ -2,11 +2,12 @@
 	import { createEventDispatcher, tick } from "svelte";
 	import { dsvFormat } from "d3-dsv";
 	import { dequal } from "dequal/lite";
-
+	import { copy } from "@gradio/utils";
 	import { Upload } from "@gradio/upload";
 	import { BaseButton } from "@gradio/button/static";
 	import EditableCell from "./EditableCell.svelte";
 	import type { SelectData } from "@gradio/utils";
+	import { _ } from "svelte-i18n";
 
 	type Datatype = "str" | "markdown" | "html" | "number" | "bool" | "date";
 
@@ -18,22 +19,25 @@
 		| { data: (string | number)[][]; headers: string[] } = [[]];
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
+	export let latex_delimiters: {
+		left: string;
+		right: string;
+		display: boolean;
+	}[];
 
 	export let editable = true;
 	export let wrap = false;
+	export let height: number | undefined = undefined;
 
 	let selected: false | string = false;
 
 	$: {
 		if (values && !Array.isArray(values)) {
 			headers = values.headers;
-			values =
-				values.data.length === 0
-					? [Array(headers.length).fill("")]
-					: values.data;
+			values = values.data;
 			selected = false;
 		} else if (values === null) {
-			values = [Array(headers.length).fill("")];
+			values = [];
 			selected = false;
 		}
 	}
@@ -93,8 +97,7 @@
 		value: string | number;
 		id: string;
 	}[][] {
-		const data_row_length = _values.length > 0 ? _values.length : row_count[0];
-
+		const data_row_length = _values.length;
 		return Array(
 			row_count[1] === "fixed"
 				? row_count[0]
@@ -104,7 +107,13 @@
 		)
 			.fill(0)
 			.map((_, i) =>
-				Array(col_count[1] === "fixed" ? col_count[0] : _values[0].length)
+				Array(
+					col_count[1] === "fixed"
+						? col_count[0]
+						: data_row_length > 0
+						? _values[0].length
+						: headers.length
+				)
 					.fill(0)
 					.map((_, j) => {
 						const id = `${i}-${j}`;
@@ -320,7 +329,6 @@
 
 		if (type === "select" && typeof id == "string") {
 			const { cell } = els[id];
-			// cell?.setAttribute("tabindex", "0");
 			await tick();
 			cell?.focus();
 		}
@@ -395,6 +403,10 @@
 
 	function add_row(index?: number): void {
 		if (row_count[1] !== "dynamic") return;
+		if (data.length === 0) {
+			values = [Array(headers.length).fill("")];
+			return;
+		}
 		data.splice(
 			index ? index + 1 : data.length,
 			0,
@@ -522,13 +534,18 @@
 	on:touchstart={handle_click_outside}
 />
 
-<div class:label={label && label.length !== 0}>
+<div class:label={label && label.length !== 0} use:copy>
 	{#if label && label.length !== 0}
 		<p>
 			{label}
 		</p>
 	{/if}
-	<div class="table-wrap scroll-hide" class:dragging class:no-wrap={!wrap}>
+	<div
+		class="table-wrap"
+		class:dragging
+		class:no-wrap={!wrap}
+		style="max-height: {typeof height === undefined ? 'auto' : height + 'px'};"
+	>
 		<Upload
 			flex={false}
 			center={false}
@@ -552,6 +569,7 @@
 								<div class="cell-wrap">
 									<EditableCell
 										{value}
+										{latex_delimiters}
 										bind:el={els[id].input}
 										edit={header_edit === id}
 										on:keydown={end_header_edit}
@@ -603,6 +621,7 @@
 										<EditableCell
 											bind:value
 											bind:el={els[id].input}
+											{latex_delimiters}
 											edit={editing === id}
 											datatype={Array.isArray(datatype)
 												? datatype[j]
@@ -637,7 +656,7 @@
 								d="M24.59 16.59L17 24.17V4h-2v20.17l-7.59-7.58L6 18l10 10l10-10l-1.41-1.41z"
 							/>
 						</svg>
-						New row
+						{$_("dataframe.new_row")}
 					</BaseButton>
 				</span>
 			{/if}
@@ -659,7 +678,7 @@
 								d="m18 6l-1.43 1.393L24.15 15H4v2h20.15l-7.58 7.573L18 26l10-10L18 6z"
 							/>
 						</svg>
-						New column
+						{$_("dataframe.new_column")}
 					</BaseButton>
 				</span>
 			{/if}
@@ -690,8 +709,8 @@
 		transition: 150ms;
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--table-radius);
-		overflow-x: scroll;
-		overflow-y: hidden;
+		overflow-x: auto;
+		overflow-y: auto;
 	}
 
 	.dragging {

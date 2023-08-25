@@ -3,7 +3,7 @@
 	import { Block, BlockLabel, Empty } from "@gradio/atoms";
 	import Chart from "../shared";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
 
 	import { Chart as ChartIcon } from "@gradio/icons";
@@ -33,7 +33,6 @@
 	export let visible = true;
 	export let value: null | Data;
 
-	export let mode: "static" | "dynamic";
 	export let label: string;
 	export let show_label: boolean;
 	export let colors: string[];
@@ -42,8 +41,7 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 
-	$: static_data =
-		mode === "static" && value && format_value(value as StaticData);
+	$: static_data = value && format_value(value as StaticData);
 
 	$: value, dispatch("change");
 </script>

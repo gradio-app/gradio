@@ -1,6 +1,7 @@
 <script context="module" lang="ts">
 	import type { FileData } from "@gradio/upload";
 	import { Empty } from "@gradio/atoms";
+	import { _ } from "svelte-i18n";
 	export interface AudioData extends FileData {
 		crop_min?: number;
 		crop_max?: number;
@@ -43,7 +44,12 @@
 	}
 </script>
 
-<BlockLabel {show_label} Icon={Music} float={false} label={label || "Audio"} />
+<BlockLabel
+	{show_label}
+	Icon={Music}
+	float={false}
+	label={label || $_("audio.audio")}
+/>
 {#if value !== null}
 	<div class="icon-buttons">
 		{#if show_download_button}
@@ -52,7 +58,7 @@
 				target={window.__is_colab__ ? "_blank" : null}
 				download={value.name}
 			>
-				<IconButton Icon={Download} label="Download" />
+				<IconButton Icon={Download} label={$_("common.download")} />
 			</a>
 		{/if}
 		{#if show_share_button}

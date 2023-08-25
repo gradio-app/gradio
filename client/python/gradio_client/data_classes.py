@@ -13,3 +13,5 @@ class FileData(TypedDict):
         bool
     ]  # whether the data corresponds to a file or base64 encoded data
     orig_name: NotRequired[str]  # original filename
+    mime_type: NotRequired[str]
+    is_stream: NotRequired[bool]

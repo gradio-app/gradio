@@ -13,6 +13,8 @@ import type {
 	EventType,
 	FireObject
 } from "@testing-library/dom";
+import { spy, type Spy } from "tinyspy";
+import { Gradio } from "../../app/src/gradio_helper";
 
 const containerCache = new Map();
 const componentCache = new Set();
@@ -40,21 +42,36 @@ export interface RenderOptions<Q extends Queries = typeof queries> {
 export async function render<
 	Events extends Record<string, any>,
 	Props extends Record<string, any>,
-	T extends SvelteComponent<Props, Events>
+	T extends SvelteComponent<Props, Events>,
+	X extends Record<string, any>
 >(
 	Component: ComponentType<T, Props> | { default: ComponentType<T, Props> },
-	props?: Props
-): Promise<RenderResult<T>> {
+	props?: Omit<Props, "gradio">
+): Promise<
+	RenderResult<T> & {
+		listen: typeof listen;
+		wait_for_event: typeof wait_for_event;
+	}
+> {
 	const container = document.body;
 	const target = container.appendChild(document.createElement("div"));
 
-	const ComponentConstructor: ComponentType<T, Props> =
+	const ComponentConstructor: ComponentType<
+		T,
+		Props & { gradio: typeof Gradio<X> }
+	> =
 		//@ts-ignore
 		Component.default || Component;
 
+	const id = Math.floor(Math.random() * 1000000);
+
 	const component = new ComponentConstructor({
 		target,
-		props
+		//@ts-ignore
+		props: {
+			...(props || {}),
+			gradio: new Gradio(id, target, "light", "2.0.0", "http://localhost:8000")
+		}
 	});
 
 	containerCache.set(container, { target, component });
@@ -66,6 +83,36 @@ export async function render<
 
 	await tick();
 
+	type extractGeneric<Type> = Type extends Gradio<infer X> ? X : null;
+	type event_name = keyof extractGeneric<Props["gradio"]>;
+
+	function listen(event: event_name): Spy {
+		const mock = spy();
+		target.addEventListener("gradio", (e: Event) => {
+			if (isCustomEvent(e)) {
+				if (e.detail.event === event && e.detail.id === id) {
+					mock(e);
+				}
+			}
+		});
+
+		return mock;
+	}
+
+	async function wait_for_event(event: event_name): Promise<Spy> {
+		return new Promise((res) => {
+			const mock = spy();
+			target.addEventListener("gradio", (e: Event) => {
+				if (isCustomEvent(e)) {
+					if (e.detail.event === event && e.detail.id === id) {
+						mock(e);
+						res(mock);
+					}
+				}
+			});
+		});
+	}
+
 	return {
 		container,
 		component,
@@ -74,7 +121,9 @@ export async function render<
 		unmount: (): void => {
 			if (componentCache.has(component)) component.$destroy();
 		},
-		...getQueriesForElement(container)
+		...getQueriesForElement(container),
+		listen,
+		wait_for_event
 	};
 }
 
@@ -115,3 +164,7 @@ export type FireFunction = (
 ) => Promise<boolean>;
 
 export * from "@testing-library/dom";
+
+function isCustomEvent(event: Event): event is CustomEvent {
+	return "detail" in event;
+}

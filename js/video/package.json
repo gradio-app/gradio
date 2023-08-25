@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/video",
-	"version": "0.0.2",
+	"version": "0.0.4",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "index.svelte",
@@ -17,7 +17,6 @@
 	},
 	"main_changeset": true,
 	"exports": {
-		".": "./index.svelte",
 		"./package.json": "./package.json",
 		"./interactive": "./interactive/index.ts",
 		"./static": "./static/index.ts",

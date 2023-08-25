@@ -207,7 +207,7 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 		const chunkSize = 1000;
 		const uploadResponses = [];
 		for (let i = 0; i < files.length; i += chunkSize) {
-			const chunk = files.slice(i, i + chunkSize);		
+			const chunk = files.slice(i, i + chunkSize);
 			const formData = new FormData();
 			chunk.forEach((file) => {
 				formData.append("files", file);
@@ -222,7 +222,7 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 				return { error: BROKEN_CONNECTION_MSG };
 			}
 			const output: UploadResponse["files"] = await response.json();
-            uploadResponses.push(...output);
+			uploadResponses.push(...output);
 		}
 		return { files: uploadResponses };
 	}
@@ -341,24 +341,43 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 			): Promise<unknown> {
 				let data_returned = false;
 				let status_complete = false;
+				let dependency;
+				if (typeof endpoint === "number") {
+					dependency = config.dependencies[endpoint];
+				} else {
+					const trimmed_endpoint = endpoint.replace(/^\//, "");
+					dependency = config.dependencies[api_map[trimmed_endpoint]];
+				}
+
+				if (dependency.types.continuous) {
+					throw new Error(
+						"Cannot call predict on this function as it may run forever. Use submit instead"
+					);
+				}
+
 				return new Promise((res, rej) => {
 					const app = submit(endpoint, data, event_data);
+					let result;
 
 					app
 						.on("data", (d) => {
-							data_returned = true;
+							// if complete message comes before data, resolve here
 							if (status_complete) {
 								app.destroy();
+								res(d);
 							}
-							res(d);
+							data_returned = true;
+							result = d;
 						})
 						.on("status", (status) => {
 							if (status.stage === "error") rej(status);
-							if (status.stage === "complete" && data_returned) {
-								app.destroy();
-							}
 							if (status.stage === "complete") {
 								status_complete = true;
+								app.destroy();
+								// if complete message comes after data, resolve here
+								if (data_returned) {
+									res(result);
+								}
 							}
 						});
 				});
@@ -785,9 +804,9 @@ function transform_output(
 	remote_url?: string
 ): unknown[] {
 	return data.map((d, i) => {
-		if (api_info.returns?.[i]?.component === "File") {
+		if (api_info?.returns?.[i]?.component === "File") {
 			return normalise_file(d, root_url, remote_url);
-		} else if (api_info.returns?.[i]?.component === "Gallery") {
+		} else if (api_info?.returns?.[i]?.component === "Gallery") {
 			return d.map((img) => {
 				return Array.isArray(img)
 					? [normalise_file(img[0], root_url, remote_url), img[1]]

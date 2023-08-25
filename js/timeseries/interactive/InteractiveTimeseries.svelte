@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import type { Gradio } from "@gradio/utils";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import type { FileData } from "@gradio/upload";
 	import { Block, BlockLabel, Empty } from "@gradio/atoms";
@@ -7,7 +7,7 @@
 	import { UploadText } from "@gradio/atoms";
 
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
 
 	import { Chart as ChartIcon } from "@gradio/icons";
@@ -17,11 +17,6 @@
 			r.reduce((acc, next, i) => ({ ...acc, [val.headers[i]]: next }), {})
 		);
 	}
-
-	const dispatch = createEventDispatcher<{
-		change: undefined;
-		clear: undefined;
-	}>();
 
 	interface StaticData {
 		data: number[][];
@@ -45,6 +40,10 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
+	export let gradio: Gradio<{
+		change: undefined;
+		clear: undefined;
+	}>;
 
 	let _value: string | null;
 
@@ -128,13 +127,13 @@
 
 	function handle_clear({ detail }: CustomEvent<FileData | null>): void {
 		value = null;
-		dispatch("change");
-		dispatch("clear");
+		gradio.dispatch("change");
+		gradio.dispatch("clear");
 	}
 
 	$: _value = value == null ? null : _value;
 
-	$: value, dispatch("change");
+	$: value, gradio.dispatch("change");
 </script>
 
 <Block

@@ -122,7 +122,7 @@ class FnIndexInferError(Exception):
     pass
 
 
-def infer_fn_index(app: "App", api_name: str, body: PredictBody) -> int:
+def infer_fn_index(app: App, api_name: str, body: PredictBody) -> int:
     if body.fn_index is None:
         for i, fn in enumerate(app.get_blocks().dependencies):
             if fn["api_name"] == api_name:
@@ -134,7 +134,7 @@ def infer_fn_index(app: "App", api_name: str, body: PredictBody) -> int:
 
 
 def compile_gr_request(
-    app: "App",
+    app: App,
     body: PredictBody,
     fn_index_inferred: int,
     username: Optional[str],
@@ -158,7 +158,7 @@ def compile_gr_request(
     return gr_request
 
 
-def restore_session_state(app: "App", body: PredictBody):
+def restore_session_state(app: App, body: PredictBody):
     fn_index = body.fn_index
     if hasattr(body, "session_hash"):
         if body.session_hash not in app.state_holder:
@@ -185,13 +185,24 @@ def restore_session_state(app: "App", body: PredictBody):
     return session_state, iterators
 
 
+def clear_pending_streams(app: App, body: PredictBody, iterators, fn_index_inferred: int):
+    iterator = iterators.get(fn_index_inferred, None)
+    if iterator is not None:  # close off any streams that are still open
+        run_id = id(iterator)
+        pending_streams: dict[int, list] = (
+            app.get_blocks().pending_streams[body.session_hash].get(run_id, {})
+        )
+        for stream in pending_streams.values():
+            stream.append(None)
+
+
 async def call_process_api(
-    app: "App",
+    app: App,
     body: PredictBody,
     gr_request: Request,
     session_state,
     iterators,
-    fn_index_inferred,
+    fn_index_inferred: int,
 ):
     dependency = app.get_blocks().dependencies[fn_index_inferred]
 

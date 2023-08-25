@@ -12,6 +12,7 @@ import time
 import warnings
 import webbrowser
 from abc import abstractmethod
+from collections import defaultdict
 from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast
@@ -58,6 +59,7 @@ from gradio.utils import (
     TupleNoPrint,
     check_function_inputs_match,
     component_or_layout_class,
+    concurrency_count_warning,
     delete_none,
     get_cancel_function,
     get_continuous_fn,
@@ -706,6 +708,7 @@ class Blocks(BlockContext):
         self.share = False
         self.enable_queue = None
         self.max_threads = 40
+        self.pending_streams = defaultdict(dict)
         self.show_error = True
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
@@ -915,6 +918,14 @@ class Blocks(BlockContext):
                     repr += f"\n |-{block}"
         return repr
 
+    @property
+    def expects_oauth(self):
+        """Return whether the app expects user to authenticate via OAuth."""
+        return any(
+            isinstance(block, (components.LoginButton, components.LogoutButton))
+            for block in self.blocks.values()
+        )
+
     def render(self):
         if Context.root_block is not None:
             if self._id in Context.root_block.blocks:
@@ -1069,23 +1080,21 @@ class Blocks(BlockContext):
         block_fn = self.fns[fn_index]
         assert block_fn.fn, f"function with index {fn_index} not defined."
         is_generating = False
-
-        if block_fn.inputs_as_dict:
-            processed_input = [dict(zip(block_fn.inputs, processed_input))]
-
         request = requests[0] if isinstance(requests, list) else requests
-        processed_input, progress_index, _ = special_args(
-            block_fn.fn, processed_input, request, event_data
-        )
-        progress_tracker = (
-            processed_input[progress_index] if progress_index is not None else None
-        )
-
         start = time.time()
-
         fn = utils.get_function_with_locals(block_fn.fn, self, event_id)
 
         if iterator is None:  # If not a generator function that has already run
+            if block_fn.inputs_as_dict:
+                processed_input = [dict(zip(block_fn.inputs, processed_input))]
+
+            processed_input, progress_index, _ = special_args(
+                block_fn.fn, processed_input, request, event_data
+            )
+            progress_tracker = (
+                processed_input[progress_index] if progress_index is not None else None
+            )
+
             if progress_tracker is not None and progress_index is not None:
                 progress_tracker, fn = create_tracker(
                     self, event_id, fn, progress_tracker.track_tqdm
@@ -1332,6 +1341,34 @@ Received outputs:
 
         return output
 
+    def handle_streaming_outputs(
+        self,
+        fn_index: int,
+        data: list,
+        session_hash: str | None,
+        run: int | None,
+    ) -> list:
+        if session_hash is None or run is None:
+            return data
+        if run not in self.pending_streams[session_hash]:
+            self.pending_streams[session_hash][run] = {}
+        stream_run = self.pending_streams[session_hash][run]
+
+        from gradio.events import StreamableOutput
+
+        for i, output_id in enumerate(self.dependencies[fn_index]["outputs"]):
+            block = self.blocks[output_id]
+            if isinstance(block, StreamableOutput) and block.streaming:
+                first_chunk = output_id not in stream_run
+                binary_data, output_data = block.stream_output(
+                    data[i], f"{session_hash}/{run}/{output_id}", first_chunk
+                )
+                if first_chunk:
+                    stream_run[output_id] = []
+                self.pending_streams[session_hash][run][output_id].append(binary_data)
+                data[i] = output_data
+        return data
+
     async def process_api(
         self,
         fn_index: int,
@@ -1339,6 +1376,7 @@ Received outputs:
         state: dict[int, Any],
         request: routes.Request | list[routes.Request] | None = None,
         iterators: dict[int, Any] | None = None,
+        session_hash: str | None = None,
         event_id: str | None = None,
         event_data: EventData | None = None,
     ) -> dict[str, Any]:
@@ -1388,13 +1426,24 @@ Received outputs:
             data = list(zip(*data))
             is_generating, iterator = None, None
         else:
-            inputs = self.preprocess_data(fn_index, inputs, state)
-            iterator = iterators.get(fn_index, None) if iterators else None
+            old_iterator = iterators.get(fn_index, None) if iterators else None
+            if old_iterator:
+                inputs = []
+            else:
+                inputs = self.preprocess_data(fn_index, inputs, state)
+            was_generating = old_iterator is not None
             result = await self.call_function(
-                fn_index, inputs, iterator, request, event_id, event_data
+                fn_index, inputs, old_iterator, request, event_id, event_data
             )
             data = self.postprocess_data(fn_index, result["prediction"], state)
             is_generating, iterator = result["is_generating"], result["iterator"]
+            if is_generating or was_generating:
+                data = self.handle_streaming_outputs(
+                    fn_index,
+                    data,
+                    session_hash=session_hash,
+                    run=id(old_iterator) if was_generating else id(iterator),
+                )
 
         block_fn.total_runtime += result["duration"]
         block_fn.total_runs += 1
@@ -1583,6 +1632,7 @@ Received outputs:
         self.children = []
         return self
 
+    @concurrency_count_warning
     @document()
     def queue(
         self,
@@ -1594,7 +1644,7 @@ Received outputs:
         max_size: int | None = None,
     ):
         """
-        You can control the rate of processed requests by creating a queue. This will allow you to set the number of requests to be processed at one time, and will let users know their position in the queue.
+        By enabling the queue you can control the rate of processed requests, let users know their position in the queue, and set a limit on maximum number of events allowed.
         Parameters:
             concurrency_count: Number of worker threads that will be processing requests from the queue concurrently. Increasing this number will increase the rate at which requests are processed, but will also increase the memory usage of the queue.
             status_update_rate: If "auto", Queue will send status estimations to all clients whenever a job is finished. Otherwise Queue will send status at regular intervals set by this parameter as the number of seconds.
@@ -1606,11 +1656,11 @@ Received outputs:
             with gr.Blocks() as demo:
                 button = gr.Button(label="Generate Image")
                 button.click(fn=image_generator, inputs=gr.Textbox(), outputs=gr.Image())
-            demo.queue(concurrency_count=3)
+            demo.queue(max_size=10)
             demo.launch()
         Example: (Interface)
             demo = gr.Interface(image_generator, gr.Textbox(), gr.Image())
-            demo.queue(concurrency_count=3)
+            demo.queue(max_size=20)
             demo.launch()
         """
         if default_enabled is not None:
@@ -1624,14 +1674,16 @@ Received outputs:
             warn_deprecation(
                 "The client_position_to_load_data parameter is deprecated."
             )
-        max_size_default = self.max_threads if utils.is_zero_gpu_space() else None
+        if utils.is_zero_gpu_space():
+            concurrency_count = self.max_threads
+            max_size = 1 if max_size is None else max_size
         self.app = routes.App.create_app(self)
         self._queue = queueing.Queue(
             app=self.app,
             live_updates=status_update_rate == "auto",
             concurrency_count=concurrency_count,
             update_intervals=status_update_rate if status_update_rate != "auto" else 1,
-            max_size=max_size_default if max_size is None else max_size,
+            max_size=max_size,
             blocks_dependencies=self.dependencies,
         )
         self.config = self.get_config_file()

@@ -1,0 +1,108 @@
+name: "deploy website"
+
+on:
+  workflow_call:
+    inputs:
+      branch_name:
+        description: "The branch name"
+        type: string
+      pr_number:
+        description: "The PR number"
+        type: string
+    secrets:
+      vercel_token:
+        description: "Vercel API token"
+      gh_token:
+        description: "Github token"
+        required: true
+      vercel_org_id:
+        description: "Vercel organization ID"
+        required: true
+      vercel_project_id:
+        description: "Vercel project ID"
+        required: true
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.vercel_org_id }}
+  VERCEL_PROJECT_ID: ${{ secrets.vercel_project_id }}
+
+jobs:
+  comment-deploy-start:
+    uses: "./.github/workflows/comment-queue.yml"
+    secrets:
+      gh_token: ${{ secrets.gh_token }}
+    with:
+      pr_number: ${{ inputs.pr_number }}
+      message: website~pending~null
+  deploy:
+    name: "Deploy website"
+    runs-on: ubuntu-latest
+    outputs:
+      vercel_url: ${{ steps.output_url.outputs.vercel_url }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: install dependencies
+        uses: "./.github/actions/install-frontend-deps"
+        with:
+          always-install-pnpm: true
+          skip_build: true
+      - name: download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: website-json-${{ inputs.pr_number }}
+          path: |
+            ./js/_website/src/lib/json
+      - name: echo artifact path
+        shell: bash
+        run: ls ./js/_website/src/lib/json
+      - name: Install Vercel CLI
+        shell: bash
+        run: pnpm install --global vercel@latest
+      # preview
+      - name: Pull Vercel Environment Information
+        shell: bash
+        if: github.event_name == 'pull_request'
+        run: vercel pull --yes --environment=preview --token=${{ secrets.vercel_token }}
+      - name: Build Project Artifacts
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: vercel build --token=${{ secrets.vercel_token }}
+      - name: Deploy Project Artifacts to Vercel
+        if: github.event_name == 'pull_request'
+        id: output_url
+        shell: bash
+        run: echo "vercel_url=$(vercel deploy --prebuilt --token=${{ secrets.vercel_token }})" >> $GITHUB_OUTPUT
+      # production
+      - name: Pull Vercel Environment Information
+        if: github.event_name == 'push' && inputs.branch_name == 'main'
+        shell: bash
+        run: vercel pull --yes --environment=production --token=${{ secrets.vercel_token }}
+      - name: Build Project Artifacts
+        if: github.event_name == 'push' && inputs.branch_name == 'main'
+        shell: bash
+        run: vercel build --prod --token=${{ secrets.vercel_token }}
+      - name: Deploy Project Artifacts to Vercel
+        if: github.event_name == 'push' && inputs.branch_name == 'main'
+        shell: bash
+        run: echo "VERCEL_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.vercel_token }})" >> $GITHUB_ENV
+      - name: echo vercel url
+        shell: bash
+        run: echo $VERCEL_URL #add to comment
+  comment-deploy-success:
+    uses: "./.github/workflows/comment-queue.yml"
+    needs: deploy
+    if: needs.deploy.result == 'success'
+    secrets:
+      gh_token: ${{ secrets.gh_token }}
+    with:
+      pr_number: ${{ inputs.pr_number }}
+      message: website~success~${{needs.deploy.outputs.vercel_url}}
+  comment-deploy-failure:
+    uses: "./.github/workflows/comment-queue.yml"
+    needs: deploy
+    if: always() && needs.deploy.result == 'failure'
+    secrets:
+      gh_token: ${{ secrets.gh_token }}
+    with:
+      pr_number: ${{ inputs.pr_number }}
+      message: website~failure~https://github.com/gradio-app/gradio/actions/runs/${{github.run_id}}/

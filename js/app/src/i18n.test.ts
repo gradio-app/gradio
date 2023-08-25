@@ -5,7 +5,7 @@ describe("i18n", () => {
 	test("languages are loaded correctly", () => {
 		const langs = process_langs();
 		assert.ok(langs.en);
-		assert.ok(langs.en.interface);
+		assert.ok(langs.en.common);
 	});
 
 	test("language codes follow the correct format", () => {
@@ -16,7 +16,7 @@ describe("i18n", () => {
 			const RE = /^([a-z]{2}-[a-zA-Z]{2}|[a-z]{2})$/;
 
 			assert.ok(RE.test(code));
-			assert.ok(translation.interface);
+			assert.ok(translation.common);
 		});
 	});
 });

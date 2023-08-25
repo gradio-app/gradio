@@ -351,7 +351,7 @@ with gr.Blocks(  # noqa: SIM117
                     check = gr.Checkbox(label="Go")
                 with gr.Column(variant="panel", scale=2):
                     img = gr.Image(
-                        "https://raw.githubusercontent.com/gradio-app/gradio/main/js/_website/src/assets/img/header-image.jpg",
+                        "https://gradio-static-files.s3.us-west-2.amazonaws.com/header-image.jpg",
                         label="Image",
                         height=320,
                     )
@@ -365,7 +365,7 @@ with gr.Blocks(  # noqa: SIM117
 
                         def go(*args):
                             time.sleep(3)
-                            return "https://raw.githubusercontent.com/gradio-app/gradio/main/js/_website/src/assets/img/header-image.jpg"
+                            return "https://gradio-static-files.s3.us-west-2.amazonaws.com/header-image.jpg"
 
                         go_btn.click(
                             go,

@@ -4,7 +4,7 @@
 
 ## What Does Gradio Do?
 
-One of the *best ways to share* your machine learning model, API, or data science workflow with others is to create an **interactive app** that allows your users or colleagues to try out the demo in their browsers.
+One of the _best ways to share_ your machine learning model, API, or data science workflow with others is to create an **interactive app** that allows your users or colleagues to try out the demo in their browsers.
 
 Gradio allows you to **build demos and share them, all in Python.** And usually in just a few lines of code! So let's get started.
 
@@ -89,8 +89,8 @@ You can read more about the many components and how to use them in the [Gradio d
 
 Gradio includes a high-level class, `gr.ChatInterface`, which is similar to `gr.Interface`, but is specifically designed for chatbot UIs. The `gr.ChatInterface` class also wraps a function but this function must have a specific signature. The function should take two arguments: `message` and then `history` (the arguments can be named anything, but must be in this order)
 
-* `message`: a `str` representing the user's input
-* `history`: a `list` of `list` representing the conversations up until that point. Each inner list consists of two `str` representing a pair: `[user input, bot response]`. 
+- `message`: a `str` representing the user's input
+- `history`: a `list` of `list` representing the conversations up until that point. Each inner list consists of two `str` representing a pair: `[user input, bot response]`.
 
 Your function should return a single string response, which is the bot's response to the particular user input `message`.
 

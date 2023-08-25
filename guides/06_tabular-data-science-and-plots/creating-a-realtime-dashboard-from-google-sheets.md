@@ -1,14 +1,14 @@
 # Creating a Real-Time Dashboard from Google Sheets
 
-Tags: TABULAR, DASHBOARD, PLOTS 
+Tags: TABULAR, DASHBOARD, PLOTS
 
-[Google Sheets](https://www.google.com/sheets/about/) are an easy way to store tabular data in the form of spreadsheets. With Gradio and pandas, it's easy to read data from public or private Google Sheets and then display the data or plot it. In this blog post, we'll build a small *real-time* dashboard, one that updates when the data in the Google Sheets updates. 
+[Google Sheets](https://www.google.com/sheets/about/) are an easy way to store tabular data in the form of spreadsheets. With Gradio and pandas, it's easy to read data from public or private Google Sheets and then display the data or plot it. In this blog post, we'll build a small _real-time_ dashboard, one that updates when the data in the Google Sheets updates.
 
 Building the dashboard itself will just be 9 lines of Python code using Gradio, and our final dashboard will look like this:
 
 <gradio-app space="gradio/line-plot"></gradio-app>
 
-**Prerequisites**: This Guide uses [Gradio Blocks](/guides/quickstart/#blocks-more-flexibility-and-control), so make you are familiar with the Blocks class. 
+**Prerequisites**: This Guide uses [Gradio Blocks](/guides/quickstart/#blocks-more-flexibility-and-control), so make you are familiar with the Blocks class.
 
 The process is a little different depending on if you are working with a publicly accessible or a private Google Sheet. We'll cover both, so let's get started!
 
@@ -49,7 +49,7 @@ with gr.Blocks() as demo:
 
 demo.queue().launch()  # Run the demo with queuing enabled
 ```
- 
+
 And that's it! You have a dashboard that refreshes every 5 seconds, pulling the data from your Google Sheet.
 
 ## Private Google Sheets
@@ -64,7 +64,7 @@ To authenticate yourself, obtain credentials from Google Cloud. Here's [how to s
 
 2\. In the Cloud Console, click on the hamburger menu in the top-left corner and select "APIs & Services" from the menu. If you do not have an existing project, you will need to create one.
 
-3\. Then, click the "+ Enabled APIs & services" button, which allows you to enable specific services for your project. Search for "Google Sheets API", click on it, and click the "Enable" button. If you see the "Manage" button, then Google Sheets is already enabled, and you're all set. 
+3\. Then, click the "+ Enabled APIs & services" button, which allows you to enable specific services for your project. Search for "Google Sheets API", click on it, and click the "Enable" button. If you see the "Manage" button, then Google Sheets is already enabled, and you're all set.
 
 4\. In the APIs & Services menu, click on the "Credentials" tab and then click on the "Create credentials" button.
 
@@ -74,16 +74,16 @@ To authenticate yourself, obtain credentials from Google Cloud. Here's [how to s
 
 ```json
 {
- "type": "service_account",
- "project_id": "your project",
- "private_key_id": "your private key id",
- "private_key": "private key",
- "client_email": "email",
- "client_id": "client id",
- "auth_uri": "https://accounts.google.com/o/oauth2/auth",
- "token_uri": "https://accounts.google.com/o/oauth2/token",
- "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
- "client_x509_cert_url":  "https://www.googleapis.com/robot/v1/metadata/x509/email_id"
+	"type": "service_account",
+	"project_id": "your project",
+	"private_key_id": "your private key id",
+	"private_key": "private key",
+	"client_email": "email",
+	"client_id": "client id",
+	"auth_uri": "https://accounts.google.com/o/oauth2/auth",
+	"token_uri": "https://accounts.google.com/o/oauth2/token",
+	"auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+	"client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/email_id"
 }
 ```
 
@@ -96,7 +96,6 @@ Once you have the credentials `.json` file, you can use the following steps to q
 ```html
 https://docs.google.com/spreadsheets/d/1UoKzzRzOCt-FXLLqDKLbryEKEgllGAQUEJ5qtmmQwpU/edit#gid=0
 ```
-
 
 2\. Install the [`gspread` library](https://docs.gspread.org/en/v5.7.0/), which makes it easy to work with the [Google Sheets API](https://developers.google.com/sheets/api/guides/concepts) in Python by running in the terminal: `pip install gspread`
 
@@ -111,7 +110,7 @@ URL = 'https://docs.google.com/spreadsheets/d/1_91Vps76SKOdDQ8cFxZQdgjTJiz23375s
 
 gc = gspread.service_account("path/to/key.json")
 sh = gc.open_by_url(URL)
-worksheet = sh.sheet1 
+worksheet = sh.sheet1
 
 def get_data():
     values = worksheet.get_all_values()
@@ -135,13 +134,9 @@ with gr.Blocks() as demo:
 
 demo.queue().launch()  # Run the demo with queuing enabled
 ```
- 
-You now have a Dashboard that refreshes every 5 seconds, pulling the data from your Google Sheet.
 
+You now have a Dashboard that refreshes every 5 seconds, pulling the data from your Google Sheet.
 
 ## Conclusion
 
 And that's all there is to it! With just a few lines of code, you can use `gradio` and other libraries to read data from a public or private Google Sheet and then display and plot the data in a real-time dashboard.
-
-
-
