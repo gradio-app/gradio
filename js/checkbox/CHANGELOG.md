@@ -1,5 +1,11 @@
 # @gradio/checkbox
 
+## 0.1.1
+
+### Fixes
+
+- [#5340](https://github.com/gradio-app/gradio/pull/5340) [`df090e89`](https://github.com/gradio-app/gradio/commit/df090e89f74a16e4cb2b700a1e3263cabd2bdd91) - Fix Checkbox select dispatch.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 0.1.0
 
 ### Highlights
