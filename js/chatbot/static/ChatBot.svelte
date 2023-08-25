@@ -1,20 +1,15 @@
 <script lang="ts">
-	import { copy, format_chat_for_sharing } from "../utils";
-	import "katex/dist/katex.min.css";
+	import { format_chat_for_sharing } from "../utils";
+	import { copy } from "@gradio/utils";
+
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import { ShareButton } from "@gradio/atoms";
 	import type { SelectData } from "@gradio/utils";
 	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
-	import Markdown from "./MarkdownCode.svelte";
+	import { MarkdownCode as Markdown } from "@gradio/markdown/static";
+	import { get_fetchable_url_or_file } from "@gradio/upload";
 	import Copy from "./Copy.svelte";
-
-	const code_highlight_css = {
-		light: (): Promise<typeof import("prismjs/themes/prism.css")> =>
-			import("prismjs/themes/prism.css"),
-		dark: (): Promise<typeof import("prismjs/themes/prism.css")> =>
-			import("prismjs/themes/prism-dark.css")
-	};
 
 	export let value:
 		| [string | FileData | null, string | FileData | null][]
@@ -30,15 +25,11 @@
 	export let feedback: string[] | null = null;
 	export let selectable = false;
 	export let show_share_button = false;
-	export let theme_mode: ThemeMode;
 	export let rtl = false;
 	export let show_copy_button = false;
-
-	$: if (theme_mode == "dark") {
-		code_highlight_css.dark();
-	} else {
-		code_highlight_css.light();
-	}
+	export let avatar_images: [string | null, string | null] = [null, null];
+	export let root: string;
+	export let root_url: null | string;
 
 	let div: HTMLDivElement;
 	let autoscroll: boolean;
@@ -104,75 +95,88 @@
 		{#if value !== null}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
-					<!-- TODO: fix-->
-					<!-- svelte-ignore a11y-no-static-element-interactions-->
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<div
-						data-testid={j == 0 ? "user" : "bot"}
-						class:latest={i === value.length - 1}
-						class="message {j == 0 ? 'user' : 'bot'}"
-						class:hide={message === null}
-						class:selectable
-						on:click={() => handle_select(i, j, message)}
-						dir={rtl ? "rtl" : "ltr"}
-					>
-						{#if typeof message === "string"}
-							<Markdown {message} {latex_delimiters} on:load={scroll} />
-							{#if feedback && j == 1}
-								<div class="feedback">
-									{#each feedback as f}
-										<button>{f}</button>
-									{/each}
-								</div>
-							{/if}
-
-							{#if show_copy_button && message}
-								<div class="icon-button">
-									<Copy value={message} />
-								</div>
-							{/if}
-						{:else if message !== null && message.mime_type?.includes("audio")}
-							<audio
-								data-testid="chatbot-audio"
-								controls
-								preload="metadata"
-								src={message.data}
-								title={message.alt_text}
-								on:play
-								on:pause
-								on:ended
-							/>
-						{:else if message !== null && message.mime_type?.includes("video")}
-							<video
-								data-testid="chatbot-video"
-								controls
-								src={message.data}
-								title={message.alt_text}
-								preload="auto"
-								on:play
-								on:pause
-								on:ended
-							>
-								<track kind="captions" />
-							</video>
-						{:else if message !== null && message.mime_type?.includes("image")}
+					<div class="message-row {j == 0 ? 'user-row' : 'bot-row'}">
+						{#if avatar_images[j] !== null}
 							<img
-								data-testid="chatbot-image"
-								src={message.data}
-								alt={message.alt_text}
+								class="avatar-image-{j == 0 ? 'user' : 'bot'}"
+								src={get_fetchable_url_or_file(
+									avatar_images[j],
+									root,
+									root_url
+								)}
+								alt="avatar"
 							/>
-						{:else if message !== null && message.data !== null}
-							<a
-								data-testid="chatbot-file"
-								href={message.data}
-								target="_blank"
-								download={window.__is_colab__
-									? null
-									: message.orig_name || message.name}
-							>
-								{message.orig_name || message.name}
-							</a>
 						{/if}
+						<!-- TODO: fix-->
+						<!-- svelte-ignore a11y-no-static-element-interactions-->
+						<!-- svelte-ignore a11y-click-events-have-key-events -->
+						<div
+							data-testid={j == 0 ? "user" : "bot"}
+							class:latest={i === value.length - 1}
+							class="message {j == 0 ? 'user' : 'bot'}"
+							class:hide={message === null}
+							class:selectable
+							on:click={() => handle_select(i, j, message)}
+							dir={rtl ? "rtl" : "ltr"}
+						>
+							{#if typeof message === "string"}
+								<Markdown {message} {latex_delimiters} on:load={scroll} />
+								{#if feedback && j == 1}
+									<div class="feedback">
+										{#each feedback as f}
+											<button>{f}</button>
+										{/each}
+									</div>
+								{/if}
+
+								{#if show_copy_button && message}
+									<div class="icon-button">
+										<Copy value={message} />
+									</div>
+								{/if}
+							{:else if message !== null && message.mime_type?.includes("audio")}
+								<audio
+									data-testid="chatbot-audio"
+									controls
+									preload="metadata"
+									src={message.data}
+									title={message.alt_text}
+									on:play
+									on:pause
+									on:ended
+								/>
+							{:else if message !== null && message.mime_type?.includes("video")}
+								<video
+									data-testid="chatbot-video"
+									controls
+									src={message.data}
+									title={message.alt_text}
+									preload="auto"
+									on:play
+									on:pause
+									on:ended
+								>
+									<track kind="captions" />
+								</video>
+							{:else if message !== null && message.mime_type?.includes("image")}
+								<img
+									data-testid="chatbot-image"
+									src={message.data}
+									alt={message.alt_text}
+								/>
+							{:else if message !== null && message.data !== null}
+								<a
+									data-testid="chatbot-file"
+									href={message.data}
+									target="_blank"
+									download={window.__is_colab__
+										? null
+										: message.orig_name || message.name}
+								>
+									{message.orig_name || message.name}
+								</a>
+							{/if}
+						</div>
 					</div>
 				{/each}
 			{/each}
@@ -235,15 +239,7 @@
 	}
 	.bot {
 		border-bottom-left-radius: 0;
-		padding-left: calc(2 * var(--spacing-xxl));
-	}
-	@media (max-width: 480px) {
-		.message {
-			width: auto;
-		}
-		.bot {
-			padding-left: var(--spacing-xxl);
-		}
+		padding-left: var(--spacing-xxl);
 	}
 
 	/* Colors */
@@ -256,6 +252,44 @@
 		border-color: var(--border-color-accent-subdued);
 		background-color: var(--color-accent-soft);
 	}
+	.message-row {
+		display: flex;
+		flex-direction: row;
+	}
+
+	@media (max-width: 480px) {
+		.user-row {
+			align-self: flex-end;
+		}
+
+		.bot-row {
+			align-self: flex-start;
+		}
+		.message {
+			width: auto;
+		}
+		.bot {
+			padding-left: var(--spacing-xxl);
+		}
+	}
+	.avatar-image-user,
+	.avatar-image-bot {
+		align-self: flex-end;
+		position: relative;
+		justify-content: center;
+		max-width: 35px;
+		max-height: 35px;
+		border-radius: 50%;
+		bottom: 0px;
+	}
+	.avatar-image-user {
+		order: 2;
+		margin-left: 10px;
+	}
+	.avatar-image-bot {
+		margin-right: 10px;
+	}
+
 	.feedback {
 		display: flex;
 		position: absolute;
@@ -329,39 +363,6 @@
 
 	.hide {
 		display: none;
-	}
-
-	/* Code blocks */
-	.message-wrap :global(pre[class*="language-"]),
-	.message-wrap :global(pre) {
-		position: relative;
-		direction: ltr;
-		white-space: no-wrap;
-		overflow-x: auto;
-	}
-	.message-wrap :global(code) {
-		font-size: var(--text-md);
-	}
-
-	.message-wrap :global(div[class*="code_wrap"]) {
-		position: relative;
-		margin-top: var(--spacing-sm);
-		margin-bottom: var(--spacing-sm);
-		box-shadow: none;
-		border: none;
-		border-radius: var(--radius-md);
-		background-color: var(--chatbot-code-background-color);
-		padding: var(--spacing-xl) 10px;
-	}
-
-	/* Tables */
-	.message-wrap :global(table),
-	.message-wrap :global(tr),
-	.message-wrap :global(td),
-	.message-wrap :global(th) {
-		margin-top: var(--spacing-sm);
-		margin-bottom: var(--spacing-sm);
-		padding: var(--spacing-xl);
 	}
 
 	.message-wrap .bot :global(table),

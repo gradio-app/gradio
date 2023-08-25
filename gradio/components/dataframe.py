@@ -9,7 +9,6 @@ import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
-from gradio import utils
 from gradio.components.base import IOComponent, _Keywords
 from gradio.events import (
     Changeable,
@@ -39,8 +38,6 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
     Demos: filter_records, matrix_transpose, tax_calculator
     """
 
-    markdown_parser = None
-
     def __init__(
         self,
         value: list[list[Any]] | Callable | None = None,
@@ -53,9 +50,11 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         max_rows: int | None = 20,
         max_cols: int | None = None,
         overflow_row_behaviour: Literal["paginate", "show_ends"] = "paginate",
+        latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
+        height: int | float | None = None,
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
@@ -77,9 +76,11 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             max_rows: Maximum number of rows to display at once. Set to None for infinite.
             max_cols: Maximum number of columns to display at once. Set to None for infinite.
             overflow_row_behaviour: If set to "paginate", will create pages for overflow rows. If set to "show_ends", will show initial and final rows and truncate middle rows.
+            latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$", "right": "$", "display": False }]`, so only expressions enclosed in $ delimiters will be rendered as LaTeX, and in the same line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html). Only applies to columns whose datatype is "markdown".
             label: component name in interface.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
+            height: The maximum height of the file component, in pixels. If more files are uploaded than can fit in the height, a scrollbar will appear.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: if True, will allow users to edit the dataframe; if False, can only be used to display data. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -127,6 +128,11 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         self.max_rows = max_rows
         self.max_cols = max_cols
         self.overflow_row_behaviour = overflow_row_behaviour
+        if latex_delimiters is None:
+            latex_delimiters = [{"left": "$", "right": "$", "display": False}]
+        self.latex_delimiters = latex_delimiters
+        self.height = height
+
         self.select: EventListenerMethod
         """
         Event listener for when the user selects cell within Dataframe.
@@ -155,8 +161,10 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         max_cols: str | None = None,
         label: str | None = None,
         show_label: bool | None = None,
+        latex_delimiters: list[dict[str, str | bool]] | None = None,
         scale: int | None = None,
         min_width: int | None = None,
+        height: int | float | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
@@ -167,9 +175,11 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             "show_label": show_label,
             "scale": scale,
             "min_width": min_width,
+            "height": height,
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "latex_delimiters": latex_delimiters,
             "__type__": "update",
         }
 
@@ -209,20 +219,12 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             return self.postprocess(self.empty_input)
         if isinstance(y, dict):
             return y
-        if isinstance(y, str):
-            dataframe = pd.read_csv(y)
-            return {
-                "headers": list(dataframe.columns),
-                "data": Dataframe.__process_markdown(
-                    dataframe.to_dict(orient="split")["data"], self.datatype
-                ),
-            }
-        if isinstance(y, pd.DataFrame):
+        if isinstance(y, (str, pd.DataFrame)):
+            if isinstance(y, str):
+                y = pd.read_csv(y)
             return {
                 "headers": list(y.columns),  # type: ignore
-                "data": Dataframe.__process_markdown(
-                    y.to_dict(orient="split")["data"], self.datatype  # type: ignore
-                ),
+                "data": y.to_dict(orient="split")["data"],  # type: ignore
             }
         if isinstance(y, (np.ndarray, list)):
             if len(y) == 0:
@@ -243,7 +245,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
 
             return {
                 "headers": _headers,
-                "data": Dataframe.__process_markdown(y, self.datatype),
+                "data": y,
             }
         raise ValueError("Cannot process value as a Dataframe")
 
@@ -264,21 +266,6 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
                 f"The column count is set to {col_count} but `headers` has {len(headers)} items. "
                 f"Check the values passed to `col_count` and `headers`."
             )
-
-    @classmethod
-    def __process_markdown(cls, data: list[list[Any]], datatype: list[str]):
-        if "markdown" not in datatype:
-            return data
-
-        if cls.markdown_parser is None:
-            cls.markdown_parser = utils.get_markdown_parser()
-
-        for i in range(len(data)):
-            for j in range(len(data[i])):
-                if datatype[j] == "markdown":
-                    data[i][j] = cls.markdown_parser.render(data[i][j])
-
-        return data
 
     def as_example(self, input_data: pd.DataFrame | np.ndarray | str | None):
         if input_data is None:

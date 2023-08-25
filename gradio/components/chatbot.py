@@ -54,6 +54,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         rtl: bool = False,
         show_share_button: bool | None = None,
         show_copy_button: bool = False,
+        avatar_images: tuple[str | Path | None, str | Path | None] | None = None,
         **kwargs,
     ):
         """
@@ -74,6 +75,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             rtl: If True, sets the direction of the rendered text to right-to-left. Default is False, which renders text left-to-right.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             show_copy_button: If True, will show a copy button for each chatbot message.
+            avatar_images: Tuple of two avatar image paths or URLs for user and bot (in that order). Pass None for either the user or bot image to skip. Must be within the working directory of the Gradio app or an external URL.
         """
         if color_map is not None:
             warn_deprecation("The 'color_map' parameter has been deprecated.")
@@ -88,13 +90,13 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         if latex_delimiters is None:
             latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
         self.latex_delimiters = latex_delimiters
+        self.avatar_images = avatar_images or (None, None)
         self.show_share_button = (
             (utils.get_space() is not None)
             if show_share_button is None
             else show_share_button
         )
         self.show_copy_button = show_copy_button
-
         IOComponent.__init__(
             self,
             label=label,
@@ -123,8 +125,10 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         visible: bool | None = None,
         height: int | None = None,
         rtl: bool | None = None,
+        latex_delimiters: list[dict[str, str | bool]] | None = None,
         show_share_button: bool | None = None,
         show_copy_button: bool | None = None,
+        avatar_images: tuple[str | Path | None] | None = None,
     ):
         updated_config = {
             "label": label,
@@ -137,7 +141,9 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             "height": height,
             "show_share_button": show_share_button,
             "rtl": rtl,
+            "latex_delimiters": latex_delimiters,
             "show_copy_button": show_copy_button,
+            "avatar_images": avatar_images,
             "__type__": "update",
         }
         return updated_config

@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/number",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "./index.svelte",
@@ -16,6 +16,7 @@
 	},
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
-		"@gradio/statustracker": "workspace:^"
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/utils": "workspace:^"
 	}
 }

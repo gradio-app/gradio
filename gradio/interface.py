@@ -297,16 +297,10 @@ class Interface(Blocks):
         self.live = live
         self.title = title
 
-        md = utils.get_markdown_parser()
-        simple_description: str | None = None
-        if description is not None:
-            description = md.render(description)
-            simple_description = utils.remove_html_tags(description)
-        self.simple_description = simple_description
+        self.simple_description = utils.remove_html_tags(description)
         self.description = description
         if article is not None:
             article = utils.readme_to_html(article)
-            article = md.render(article)
         self.article = article
 
         self.thumbnail = thumbnail

@@ -1,0 +1,269 @@
+{
+	"mode": "blocks",
+	"dev_mode": true,
+	"analytics_enabled": false,
+	"theme": "default",
+	"components": [
+		{
+			"id": 1,
+			"type": "markdown",
+			"props": {
+				"value": "# Detect Disease From Scan\nWith this model you can lorem ipsum\n- ipsum 1\n- ipsum 2",
+				"name": "markdown", "latex_delimiters": [{"left": "$", "right": "$", "display": false}],
+				"rtl": false
+			}
+		},
+		{
+			"id": 2,
+			"type": "checkboxgroup",
+			"props": {
+				"choices": [
+					[
+						"Covid",
+						"Covid"
+					],
+					[
+						"Malaria",
+						"Malaria"
+					],
+					[
+						"Lung Cancer",
+						"Lung Cancer"
+					]
+				],
+				"value": [],
+				"name": "checkboxgroup",
+				"selectable": false,
+				"show_label": true,
+				"label": "Disease to Scan For",
+				"container": true,
+				"min_width": 160
+			}
+		},
+		{
+			"id": 3,
+			"type": "tabs",
+			"props": {
+				"value": true
+			}
+		},
+		{
+			"id": 4,
+			"type": "tabitem",
+			"props": {
+				"label": "X-ray",
+				"value": true
+			}
+		},
+		{
+			"id": 5,
+			"type": "row",
+			"props": {
+				"type": "row",
+				"variant": "default",
+				"equal_height": true,
+				"value": true
+			}
+		},
+		{
+			"id": 6,
+			"type": "image",
+			"props": {
+				"image_mode": "RGB",
+				"brush_color": "#000000",
+				"mask_opacity": 0.7,
+				"source": "upload",
+				"streaming": false,
+				"mirror_webcam": true,
+				"tool": "editor",
+				"name": "image",
+				"selectable": false,
+				"show_share_button": false
+			}
+		},
+		{
+			"id": 7,
+			"type": "json",
+			"props": {
+				"name": "json"
+			}
+		},
+		{
+			"id": 8,
+			"type": "button",
+			"props": {
+				"value": "Run",
+				"name": "button",
+				"interactive": true,
+				"css": {
+					"background-color": "red",
+					"--hover-color": "orange"
+				},
+				"variant": "secondary"
+			}
+		},
+		{
+			"id": 9,
+			"type": "tabitem",
+			"props": {
+				"show_label": true,
+				"label": "CT Scan",
+				"value": true
+			}
+		},
+		{
+			"id": 10,
+			"type": "row",
+			"props": {
+				"type": "row",
+				"variant": "default",
+				"equal_height": true,
+				"value": true
+			}
+		},
+		{
+			"id": 11,
+			"type": "image",
+			"props": {
+				"image_mode": "RGB",
+				"brush_color": "#000000",
+				"mask_opacity": 0.7,
+				"source": "upload",
+				"tool": "editor",
+				"streaming": false,
+				"mirror_webcam": true,
+				"name": "image",
+				"selectable": false,
+				"show_share_button": false
+			}
+		},
+		{
+			"id": 12,
+			"type": "json",
+			"props": {
+				"name": "json"
+			}
+		},
+		{
+			"id": 13,
+			"type": "button",
+			"props": {
+				"value": "Run",
+				"interactive": true,
+				"name": "button",
+				"variant": "secondary"
+			}
+		},
+		{
+			"id": 14,
+			"type": "textbox",
+			"props": {
+				"lines": 1,
+				"value": "",
+				"name": "textbox",
+				"selectable": false,
+				"show_copy_button": false,
+				"type": "text",
+				"rtl": false,
+				"autofocus": false
+			}
+		}
+	],
+	"layout": {
+		"id": 0,
+		"children": [
+			{
+				"id": 1
+			},
+			{
+				"id": 2
+			},
+			{
+				"id": 3,
+				"children": [
+					{
+						"id": 4,
+						"children": [
+							{
+								"id": 5,
+								"children": [
+									{
+										"id": 6
+									},
+									{
+										"id": 7
+									}
+								]
+							},
+							{
+								"id": 8
+							}
+						]
+					},
+					{
+						"id": 9,
+						"children": [
+							{
+								"id": 10,
+								"children": [
+									{
+										"id": 12
+									},
+									{
+										"id": 11
+									}
+								]
+							},
+							{
+								"id": 13
+							}
+						]
+					}
+				]
+			},
+			{
+				"id": 14
+			}
+		]
+	},
+	"dependencies": [
+		{
+			"targets": [
+				8
+			],
+			"trigger": "click",
+			"inputs": [
+				2,
+				6
+			],
+			"outputs": [
+				7
+			],
+			"api_name": null,
+			"scroll_to_output": false,
+			"cancels": [],
+			"trigger_after": null,
+			"trigger_only_on_success": false,
+			"show_progress": "full"
+		},
+		{
+			"targets": [
+				13
+			],
+			"trigger": "click",
+			"inputs": [
+				2,
+				11
+			],
+			"outputs": [
+				12
+			],
+			"api_name": null,
+			"scroll_to_output": false,
+			"cancels": [],
+			"trigger_after": null,
+			"trigger_only_on_success": false,
+			"show_progress": "full"
+		}
+	]
+}

@@ -42,11 +42,7 @@ export function normalise_file(
 
 		return normalized_file as FileData[];
 	} else if (file.is_file) {
-		if (root_url == null) {
-			file.data = root + "/file=" + file.name;
-		} else {
-			file.data = "/proxy=" + root_url + "file=" + file.name;
-		}
+		file.data = get_fetchable_url_or_file(file.name, root, root_url);
 	} else if (file.is_stream) {
 		if (root_url == null) {
 			file.data = root + "/stream/" + file.name;
@@ -55,6 +51,29 @@ export function normalise_file(
 		}
 	}
 	return file;
+}
+
+function is_url(str: string): boolean {
+	try {
+		const url = new URL(str);
+		return url.protocol === "http:" || url.protocol === "https:";
+	} catch {
+		return false;
+	}
+}
+
+export function get_fetchable_url_or_file(
+	path: string | null,
+	root: string,
+	root_url: string | null
+): string {
+	if (path == null) {
+		return root_url ? `/proxy=${root_url}file=` : `${root}/file=`;
+	}
+	if (is_url(path)) {
+		return path;
+	}
+	return root_url ? `/proxy=${root_url}file=${path}` : `${root}/file=${path}`;
 }
 
 export const blobToBase64 = (blob: File): Promise<string> => {

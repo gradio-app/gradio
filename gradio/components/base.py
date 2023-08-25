@@ -319,8 +319,8 @@ class IOComponent(Component):
         processing_utils.audio_to_file(sample_rate, data, filename, format=format)
         return filename
 
-    def file_bytes_to_file(self, data: bytes, dir: str, file_name: str):
-        path = Path(dir) / self.hash_bytes(data)
+    def file_bytes_to_file(self, data: bytes, file_name: str):
+        path = Path(self.DEFAULT_TEMP_DIR) / self.hash_bytes(data)
         path.mkdir(exist_ok=True, parents=True)
         path = path / Path(file_name).name
         path.write_bytes(data)

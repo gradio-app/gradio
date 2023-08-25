@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Gradio } from "./gradio_helper";
 	import { onMount, createEventDispatcher, setContext } from "svelte";
 	import type { ComponentMeta } from "./components/types";
 	import type { ThemeMode } from "./components/types";
@@ -15,18 +16,36 @@
 	export let parent: string | null = null;
 	export let target: HTMLElement;
 	export let theme_mode: ThemeMode;
+	export let version: string;
 
 	const dispatch = createEventDispatcher<{ mount: number; destroy: number }>();
+	let filtered_children: ComponentMeta[] = [];
 
 	onMount(() => {
 		dispatch("mount", id);
 
-		return () => dispatch("destroy", id);
+		for (const child of filtered_children) {
+			dispatch("mount", child.id);
+		}
+
+		return () => {
+			dispatch("destroy", id);
+
+			for (const child of filtered_children) {
+				dispatch("mount", child.id);
+			}
+		};
 	});
 
 	$: children =
 		children &&
-		children.filter((v) => instance_map[v.id].type !== "statustracker");
+		children.filter((v) => {
+			const valid_node = instance_map[v.id].type !== "statustracker";
+			if (!valid_node) {
+				filtered_children.push(v);
+			}
+			return valid_node;
+		});
 
 	setContext("BLOCK_KEY", parent);
 
@@ -58,6 +77,7 @@
 	{...props}
 	{theme_mode}
 	{root}
+	gradio={new Gradio(id, target, theme_mode, version, root)}
 >
 	{#if children && children.length}
 		{#each children as { component, id: each_id, props, children: _children, has_modes } (each_id)}

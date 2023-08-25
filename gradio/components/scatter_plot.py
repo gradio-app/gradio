@@ -40,6 +40,8 @@ class ScatterPlot(Plot):
         tooltip: list[str] | str | None = None,
         x_title: str | None = None,
         y_title: str | None = None,
+        x_label_angle: float | None = None,
+        y_label_angle: float | None = None,
         color_legend_title: str | None = None,
         size_legend_title: str | None = None,
         shape_legend_title: str | None = None,
@@ -105,8 +107,10 @@ class ScatterPlot(Plot):
             shape: The column used to determine the point shape. Should contain categorical data. Gradio will map each unique value to a different shape.
             title: The title to display on top of the chart.
             tooltip: The column (or list of columns) to display on the tooltip when a user hovers a point on the plot.
-            x_title: The title given to the x axis. By default, uses the value of the x parameter.
-            y_title: The title given to the y axis. By default, uses the value of the y parameter.
+            x_title: The title given to the x-axis. By default, uses the value of the x parameter.
+            y_title: The title given to the y-axis. By default, uses the value of the y parameter.
+            x_label_angle:  The angle for the x axis labels rotation. Positive values are clockwise, and negative values are counter-clockwise.
+            y_label_angle:  The angle for the y axis labels rotation. Positive values are clockwise, and negative values are counter-clockwise.
             color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
             size_legend_title: The title given to the size legend. By default, uses the value of the size parameter.
             shape_legend_title: The title given to the shape legend. By default, uses the value of the shape parameter.
@@ -135,6 +139,8 @@ class ScatterPlot(Plot):
         self.title = title
         self.x_title = x_title
         self.y_title = y_title
+        self.x_label_angle = x_label_angle
+        self.y_label_angle = y_label_angle
         self.color_legend_title = color_legend_title
         self.color_legend_position = color_legend_position
         self.size_legend_title = size_legend_title
@@ -175,6 +181,8 @@ class ScatterPlot(Plot):
         tooltip: list[str] | str | None = None,
         x_title: str | None = None,
         y_title: str | None = None,
+        x_label_angle: float | None = None,
+        y_label_angle: float | None = None,
         color_legend_title: str | None = None,
         size_legend_title: str | None = None,
         shape_legend_title: str | None = None,
@@ -242,6 +250,8 @@ class ScatterPlot(Plot):
             tooltip: The column (or list of columns) to display on the tooltip when a user hovers a point on the plot.
             x_title: The title given to the x axis. By default, uses the value of the x parameter.
             y_title: The title given to the y axis. By default, uses the value of the y parameter.
+            x_label_angle:  The angle for the x axis labels rotation. Positive values are clockwise, and negative values are counter-clockwise.
+            y_label_angle:  The angle for the y axis labels rotation. Positive values are clockwise, and negative values are counter-clockwise.
             color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
             size_legend_title: The title given to the size legend. By default, uses the value of the size parameter.
             shape_legend_title: The title given to the shape legend. By default, uses the value of the shape parameter.
@@ -268,6 +278,8 @@ class ScatterPlot(Plot):
             tooltip,
             x_title,
             y_title,
+            x_label_angle,
+            y_label_angle,
             color_legend_title,
             size_legend_title,
             shape_legend_title,
@@ -321,6 +333,8 @@ class ScatterPlot(Plot):
         tooltip: list[str] | str | None = None,
         x_title: str | None = None,
         y_title: str | None = None,
+        x_label_angle: float | None = None,
+        y_label_angle: float | None = None,
         color_legend_title: str | None = None,
         size_legend_title: str | None = None,
         shape_legend_title: str | None = None,
@@ -373,11 +387,17 @@ class ScatterPlot(Plot):
                 x,  # type: ignore
                 title=x_title or x,  # type: ignore
                 scale=AltairPlot.create_scale(x_lim),  # type: ignore
+                axis=alt.Axis(labelAngle=x_label_angle)
+                if x_label_angle is not None
+                else alt.Axis(),
             ),  # ignore: type
             "y": alt.Y(
                 y,  # type: ignore
                 title=y_title or y,  # type: ignore
                 scale=AltairPlot.create_scale(y_lim),  # type: ignore
+                axis=alt.Axis(labelAngle=y_label_angle)
+                if y_label_angle is not None
+                else alt.Axis(),
             ),
         }
         properties = {}
@@ -451,6 +471,8 @@ class ScatterPlot(Plot):
             tooltip=self.tooltip,
             x_title=self.x_title,
             y_title=self.y_title,
+            x_label_angle=self.x_label_angle,
+            y_label_angle=self.y_label_angle,
             color_legend_title=self.color_legend_title,
             size_legend_title=self.size_legend_title,
             shape_legend_title=self.size_legend_title,

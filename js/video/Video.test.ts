@@ -55,10 +55,10 @@ describe("Video", () => {
 			name: "bar",
 			source: "upload"
 		});
-		assert.isTrue(
-			(getByTestId("Test Label-player") as HTMLVideoElement).src.endsWith(
-				"foo/file=https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
-			)
+		let vid = getByTestId("Test Label-player") as HTMLVideoElement;
+		assert.equal(
+			vid.src,
+			"https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
 		);
 		assert.equal(queryAllByText("Test Label").length, 1);
 	});
@@ -101,10 +101,10 @@ describe("Video", () => {
 			name: "bar",
 			source: "upload"
 		});
-		assert.isTrue(
-			(getByTestId("test-player") as HTMLVideoElement).src.endsWith(
-				"foo/file=https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
-			)
+		let vid = getByTestId("test-player") as HTMLVideoElement;
+		assert.equal(
+			vid.src,
+			"https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
 		);
 	});
 
@@ -245,14 +245,14 @@ describe("Video", () => {
 		const downloadButton = results.getAllByTestId("download-div")[0];
 		expect(
 			downloadButton.getElementsByTagName("a")[0].getAttribute("href")
-		).toBe(`foo/file=${data[0].name}`);
+		).toBe(data[0].name);
 		expect(
 			downloadButton.getElementsByTagName("button").length
 		).toBeGreaterThan(0);
 	});
 
 	test("video change event trigger fires when value is changed and only fires once", async () => {
-		const { component } = await render(InteractiveVideo, {
+		const { component, listen } = await render(InteractiveVideo, {
 			show_label: true,
 			loading_status,
 			mode: "dynamic",
@@ -271,8 +271,7 @@ describe("Video", () => {
 			autoplay: true
 		});
 
-		const mock = spy();
-		component.$on("change", mock);
+		const mock = listen("change");
 
 		(component.value = [
 			{

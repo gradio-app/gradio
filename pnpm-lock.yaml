@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -27,11 +27,11 @@ importers:
         specifier: ^2.2.0
         version: 2.2.0
       '@playwright/experimental-ct-svelte':
-        specifier: ^1.35.1
-        version: 1.35.1(@types/node@20.3.1)(less@4.1.3)(svelte@4.0.0)(vite@4.3.9)
+        specifier: ^1.37.1
+        version: 1.37.1(@types/node@20.3.1)(less@4.1.3)(svelte@4.0.0)(vite@4.3.9)
       '@playwright/test':
-        specifier: ^1.35.1
-        version: 1.35.1
+        specifier: ^1.37.1
+        version: 1.37.1
       '@sveltejs/vite-plugin-svelte':
         specifier: ^2.4.2
         version: 2.4.2(svelte@4.0.0)(vite@4.3.9)
@@ -136,7 +136,7 @@ importers:
         version: 3.4.4(@babel/core@7.22.5)(less@4.1.3)(postcss@8.4.27)(svelte@4.0.0)
       svelte-i18n:
         specifier: ^3.6.0
-        version: 3.6.0(svelte@4.0.0)
+        version: 3.7.0(svelte@4.0.0)
       svelte-preprocess:
         specifier: ^5.0.4
         version: 5.0.4(@babel/core@7.22.5)(less@4.1.3)(postcss@8.4.27)(svelte@4.0.0)(typescript@5.1.3)
@@ -496,9 +496,6 @@ importers:
       '@gradio/wasm':
         specifier: workspace:^
         version: link:../wasm
-      '@playwright/test':
-        specifier: ^1.35.1
-        version: 1.35.1
       d3-dsv:
         specifier: ^3.0.1
         version: 3.0.1
@@ -559,6 +556,9 @@ importers:
 
   js/button:
     dependencies:
+      '@gradio/upload':
+        specifier: workspace:^
+        version: link:../upload
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
@@ -571,6 +571,9 @@ importers:
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
+      '@gradio/markdown':
+        specifier: workspace:^
+        version: link:../markdown
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker
@@ -592,21 +595,6 @@ importers:
       '@types/prismjs':
         specifier: 1.26.0
         version: 1.26.0
-      dompurify:
-        specifier: ^3.0.3
-        version: 3.0.3
-      katex:
-        specifier: ^0.16.7
-        version: 0.16.7
-      marked:
-        specifier: ^7.0.0
-        version: 7.0.0
-      marked-highlight:
-        specifier: ^2.0.1
-        version: 2.0.1(marked@7.0.0)
-      prismjs:
-        specifier: 1.29.0
-        version: 1.29.0
 
   js/checkbox:
     dependencies:
@@ -688,6 +676,9 @@ importers:
       '@gradio/upload':
         specifier: workspace:^
         version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
       '@lezer/common':
         specifier: ^1.0.2
         version: 1.0.2
@@ -715,6 +706,9 @@ importers:
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
 
   js/column: {}
 
@@ -726,6 +720,9 @@ importers:
       '@gradio/button':
         specifier: workspace:^
         version: link:../button
+      '@gradio/markdown':
+        specifier: workspace:^
+        version: link:../markdown
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker
@@ -738,12 +735,27 @@ importers:
       '@types/d3-dsv':
         specifier: ^3.0.0
         version: 3.0.0
+      '@types/dompurify':
+        specifier: ^3.0.2
+        version: 3.0.2
+      '@types/katex':
+        specifier: ^0.16.0
+        version: 0.16.0
       d3-dsv:
         specifier: ^3.0.1
         version: 3.0.1
       dequal:
         specifier: ^2.0.2
         version: 2.0.2
+      dompurify:
+        specifier: ^3.0.3
+        version: 3.0.3
+      katex:
+        specifier: ^0.16.7
+        version: 0.16.7
+      marked:
+        specifier: ^7.0.0
+        version: 7.0.0
 
   js/dropdown:
     dependencies:
@@ -842,6 +854,9 @@ importers:
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
 
   js/icons: {}
 
@@ -883,6 +898,9 @@ importers:
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
 
   js/label:
     dependencies:
@@ -913,6 +931,33 @@ importers:
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+      '@types/dompurify':
+        specifier: ^3.0.2
+        version: 3.0.2
+      '@types/katex':
+        specifier: ^0.16.0
+        version: 0.16.0
+      '@types/prismjs':
+        specifier: 1.26.0
+        version: 1.26.0
+      dompurify:
+        specifier: ^3.0.3
+        version: 3.0.3
+      katex:
+        specifier: ^0.16.7
+        version: 0.16.7
+      marked:
+        specifier: ^7.0.0
+        version: 7.0.0
+      marked-highlight:
+        specifier: ^2.0.1
+        version: 2.0.1(marked@7.0.0)
+      prismjs:
+        specifier: 1.29.0
+        version: 1.29.0
 
   js/model3D:
     dependencies:
@@ -928,6 +973,9 @@ importers:
       '@gradio/upload':
         specifier: workspace:^
         version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
       babylonjs:
         specifier: ^4.2.1
         version: 4.2.2
@@ -943,6 +991,9 @@ importers:
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
 
   js/plot:
     dependencies:
@@ -1003,6 +1054,9 @@ importers:
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
 
   js/state: {}
 
@@ -1120,6 +1174,9 @@ importers:
       '@gradio/upload':
         specifier: workspace:^
         version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
 
   js/utils:
     dependencies:
@@ -4552,13 +4609,13 @@ packages:
     resolution: {integrity: sha512-EBikYFp2JCdIfGEb5G9dyCkTGDmC57KSHhRQOC3aYxoPWVZvfWCDjZwkGYHN7Lis/fmuWl906bnNTJifDQ3sXw==}
     dependencies:
       '@formatjs/intl-localematcher': 0.2.25
-      tslib: 2.5.3
+      tslib: 2.6.1
     dev: false
 
   /@formatjs/fast-memoize@1.2.1:
     resolution: {integrity: sha512-Rg0e76nomkz3vF9IPlKeV+Qynok0r7YZjL6syLz4/urSg0IbjPZCB/iYUMNsYA643gh4mgrX3T7KEIFIxJBQeg==}
     dependencies:
-      tslib: 2.5.3
+      tslib: 2.6.1
     dev: false
 
   /@formatjs/icu-messageformat-parser@2.1.0:
@@ -4566,20 +4623,20 @@ packages:
     dependencies:
       '@formatjs/ecma402-abstract': 1.11.4
       '@formatjs/icu-skeleton-parser': 1.3.6
-      tslib: 2.5.3
+      tslib: 2.6.1
     dev: false
 
   /@formatjs/icu-skeleton-parser@1.3.6:
     resolution: {integrity: sha512-I96mOxvml/YLrwU2Txnd4klA7V8fRhb6JG/4hm3VMNmeJo1F03IpV2L3wWt7EweqNLES59SZ4d6hVOPCSf80Bg==}
     dependencies:
       '@formatjs/ecma402-abstract': 1.11.4
-      tslib: 2.5.3
+      tslib: 2.6.1
     dev: false
 
   /@formatjs/intl-localematcher@0.2.25:
     resolution: {integrity: sha512-YmLcX70BxoSopLFdLr1Ds99NdlTI2oWoLbaUW2M406lxOIPzE1KQhRz2fPUkq34xVZQaihCoU29h0KK7An3bhA==}
     dependencies:
-      tslib: 2.5.3
+      tslib: 2.6.1
     dev: false
 
   /@humanwhocodes/config-array@0.11.10:
@@ -4920,12 +4977,13 @@ packages:
     resolution: {integrity: sha512-Aq58f5HiWdyDlFffbbSjAlv596h/cOnt2DO1w3DOC7OJ5EHs0hd/nycJfiu9RJbT6Yk6F1knnRRXNSpxoIVZ9Q==}
     dev: false
 
-  /@playwright/experimental-ct-core@1.35.1(@types/node@20.3.1)(less@4.1.3):
-    resolution: {integrity: sha512-NSoUf6JDLeZFy0HiENwA1GkIwZHvg5KrygnZknwWs7O8yksYLsmiuMb09sf2zsZmfYgVen401SNgf3KfekbweA==}
+  /@playwright/experimental-ct-core@1.37.1(@types/node@20.3.1)(less@4.1.3):
+    resolution: {integrity: sha512-3OmhDzrIAcVQlyVHmyaVtzcht/OUEH47uvwPh/rQmz/CrvB6zHMxH/7dIo6SCswMbCFkACepbqGmTW4HjW+yeQ==}
     engines: {node: '>=16'}
     hasBin: true
     dependencies:
-      '@playwright/test': 1.35.1
+      '@playwright/test': 1.37.1
+      playwright-core: 1.37.1
       vite: 4.3.9(@types/node@20.3.1)(less@4.1.3)
     transitivePeerDependencies:
       - '@types/node'
@@ -4936,12 +4994,12 @@ packages:
       - terser
     dev: false
 
-  /@playwright/experimental-ct-svelte@1.35.1(@types/node@20.3.1)(less@4.1.3)(svelte@4.0.0)(vite@4.3.9):
-    resolution: {integrity: sha512-7CV6pXyZMX9IQl0+J9+eNIv1hZj23z9hMA0GHZr7EubkbJvneIB2HsMKgEGxgW/KSGRqPMBNResfl2ShmHgHHQ==}
+  /@playwright/experimental-ct-svelte@1.37.1(@types/node@20.3.1)(less@4.1.3)(svelte@4.0.0)(vite@4.3.9):
+    resolution: {integrity: sha512-UwdO4uyDkr57uh1NWe04PFuH0QKnFvb9KioY20pLswt9K1DfTemY1ql/NJFg8cWR8kZlYTxhbazFQv6iAi3JFQ==}
     engines: {node: '>=16'}
     hasBin: true
     dependencies:
-      '@playwright/experimental-ct-core': 1.35.1(@types/node@20.3.1)(less@4.1.3)
+      '@playwright/experimental-ct-core': 1.37.1(@types/node@20.3.1)(less@4.1.3)
       '@sveltejs/vite-plugin-svelte': 2.4.2(svelte@4.0.0)(vite@4.3.9)
     transitivePeerDependencies:
       - '@types/node'
@@ -4955,13 +5013,13 @@ packages:
       - vite
     dev: false
 
-  /@playwright/test@1.35.1:
-    resolution: {integrity: sha512-b5YoFe6J9exsMYg0pQAobNDR85T1nLumUYgUTtKm4d21iX2L7WqKq9dW8NGJ+2vX0etZd+Y7UeuqsxDXm9+5ZA==}
+  /@playwright/test@1.37.1:
+    resolution: {integrity: sha512-bq9zTli3vWJo8S3LwB91U0qDNQDpEXnw7knhxLM0nwDvexQAwx9tO8iKDZSqqneVq+URd/WIoz+BALMqUTgdSg==}
     engines: {node: '>=16'}
     hasBin: true
     dependencies:
-      '@types/node': 20.3.1
-      playwright-core: 1.35.1
+      '@types/node': 20.3.2
+      playwright-core: 1.37.1
     optionalDependencies:
       fsevents: 2.3.2
     dev: false
@@ -7834,7 +7892,7 @@ packages:
     dependencies:
       '@babel/runtime': 7.22.6
       fast-unique-numbers: 6.0.21
-      tslib: 2.5.3
+      tslib: 2.6.1
       worker-factory: 6.0.69
     dev: false
 
@@ -8273,7 +8331,7 @@ packages:
       '@babel/runtime': 7.22.6
       dashify: 2.0.0
       indefinite-article: 0.0.2
-      tslib: 2.5.3
+      tslib: 2.6.1
     dev: false
 
   /compressible@2.0.18:
@@ -9741,7 +9799,7 @@ packages:
     engines: {node: '>=12.20.1'}
     dependencies:
       '@babel/runtime': 7.22.6
-      tslib: 2.5.3
+      tslib: 2.6.1
     dev: false
 
   /fast-unique-numbers@8.0.6:
@@ -10470,7 +10528,7 @@ packages:
       '@formatjs/ecma402-abstract': 1.11.4
       '@formatjs/fast-memoize': 1.2.1
       '@formatjs/icu-messageformat-parser': 2.1.0
-      tslib: 2.5.3
+      tslib: 2.6.1
     dev: false
 
   /ip@2.0.0:
@@ -12180,8 +12238,8 @@ packages:
       pathe: 1.1.1
     dev: false
 
-  /playwright-core@1.35.1:
-    resolution: {integrity: sha512-pNXb6CQ7OqmGDRspEjlxE49w+4YtR6a3X6mT1hZXeJHWmsEz7SunmvZeiG/+y1yyMZdHnnn73WKYdtV1er0Xyg==}
+  /playwright-core@1.37.1:
+    resolution: {integrity: sha512-17EuQxlSIYCmEMwzMqusJ2ztDgJePjrbttaefgdsiqeLWidjYz9BxXaTaZWxH1J95SHGk6tjE+dwgWILJoUZfA==}
     engines: {node: '>=16'}
     hasBin: true
     dev: false
@@ -13781,12 +13839,12 @@ packages:
     dependencies:
       svelte: 4.0.0
 
-  /svelte-i18n@3.6.0(svelte@4.0.0):
-    resolution: {integrity: sha512-qvvcMqHVCXJ5pHoQR5uGzWAW5vS3qB9mBq+W6veLZ6jkrzZGOziR+wyOUJsc59BupMh+Ae30qjOndFrRU6v5jA==}
+  /svelte-i18n@3.7.0(svelte@4.0.0):
+    resolution: {integrity: sha512-kfdJsYsyOE9tFEVtjPXvrUaufXQnbFAI6LsX9vaQP+xm8A5Wao2qQ6pRZmIUCAvXvYQt7aXQ7hK9+NP9AlxehA==}
     engines: {node: '>= 16'}
     hasBin: true
     peerDependencies:
-      svelte: ^3.25.1
+      svelte: ^3 || ^4
     dependencies:
       cli-color: 2.0.3
       deepmerge: 4.3.1
@@ -15442,7 +15500,7 @@ packages:
       '@babel/runtime': 7.22.6
       compilerr: 9.0.21
       fast-unique-numbers: 6.0.21
-      tslib: 2.5.3
+      tslib: 2.6.1
     dev: false
 
   /worker-factory@7.0.8:

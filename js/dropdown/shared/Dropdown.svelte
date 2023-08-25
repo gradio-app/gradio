@@ -36,10 +36,19 @@
 		inputValue = value;
 	}
 
-	$: filtered = choices.filter((o) =>
-		inputValue ? o.toLowerCase().includes(inputValue.toLowerCase()) : o
-	);
+	let old_choices: string[] = [];
+	let filtered: string[] = [];
 
+	$: old_choices, inputValue, handle_filter();
+
+	function handle_filter(): void {
+		if (choices !== old_choices || typeof inputValue === "string") {
+			old_choices = choices;
+			filtered = choices.filter((o) =>
+				inputValue ? o.toLowerCase().includes(inputValue.toLowerCase()) : o
+			);
+		}
+	}
 	$: if (!activeOption || !filtered.includes(activeOption)) {
 		activeOption = filtered.length ? filtered[0] : null;
 	}
@@ -53,6 +62,7 @@
 	afterUpdate(() => {
 		value_is_output = false;
 	});
+
 	$: {
 		if (JSON.stringify(value) != JSON.stringify(old_value)) {
 			old_value = Array.isArray(value) ? value.slice() : value;
@@ -67,7 +77,7 @@
 			dispatch("select", {
 				index: choices.indexOf(option),
 				value: option,
-				selected: true,
+				selected: true
 			});
 		}
 		value = value;
@@ -81,7 +91,7 @@
 		dispatch("select", {
 			index: choices.indexOf(option),
 			value: option,
-			selected: false,
+			selected: false
 		});
 	}
 
@@ -135,7 +145,7 @@
 				dispatch("select", {
 					index: choices.indexOf(option),
 					value: option,
-					selected: true,
+					selected: true
 				});
 				filterInput.blur();
 			}
@@ -151,7 +161,7 @@
 					dispatch("select", {
 						index: choices.indexOf(value),
 						value: value,
-						selected: true,
+						selected: true
 					});
 				}
 				inputValue = activeOption;
