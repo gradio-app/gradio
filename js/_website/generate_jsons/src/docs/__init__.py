@@ -133,7 +133,6 @@ override_signature("Row", "with gradio.Row():")
 override_signature("Column", "with gradio.Column():")
 override_signature("Tab", "with gradio.Tab():")
 override_signature("Group", "with gradio.Group():")
-override_signature("Box", "with gradio.Box():")
 override_signature("Dataset", "gr.Dataset(components, samples)")
 
 
