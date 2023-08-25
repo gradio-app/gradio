@@ -310,7 +310,7 @@ class Image(
         """
         if y is None:
             return None
-        
+
         if isinstance(y, dict):
             assert self.tool == "sketch" and self.source in ["upload", "webcam"]
             return {
