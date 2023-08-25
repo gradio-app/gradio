@@ -1,5 +1,11 @@
 # @gradio/chatbot
 
+## 0.2.2
+
+### Fixes
+
+- [#5319](https://github.com/gradio-app/gradio/pull/5319) [`3341148c`](https://github.com/gradio-app/gradio/commit/3341148c109b5458cc88435d27eb154210efc472) - Fix: wrap avatar-image in a div to clip its shape.  Thanks [@Keldos-Li](https://github.com/Keldos-Li)!
+
 ## 0.2.1
 
 ### Patch Changes
