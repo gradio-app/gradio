@@ -300,6 +300,27 @@ class Image(
         return self._format_image(im)
 
     def postprocess(
+        self, y: np.ndarray | _Image.Image | str | Path | dict | None
+    ) -> str | dict[str, str] | None:
+        """
+        Parameters:
+            y: image as a numpy array, PIL Image, string/Path filepath, or string URL -- unless `tool` is `sketch` AND source is one of `upload` or `webcam`. In these cases, y is a dict with keys `image` and `mask`.
+        Returns:
+            base64 url data or dict of base64 url data with keys `image` and `mask`
+        """
+        if y is None:
+            return None
+        
+        if isinstance(y, dict):
+            assert self.tool == "sketch" and self.source in ["upload", "webcam"]
+            return {
+                "image": self._postprocess_image(y["image"]),
+                "mask": self._postprocess_image(y["mask"]),
+            }
+        else:
+            return self._postprocess_image(y)
+
+    def _postprocess_image(
         self, y: np.ndarray | _Image.Image | str | Path | None
     ) -> str | None:
         """
