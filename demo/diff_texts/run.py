@@ -31,7 +31,7 @@ demo = gr.Interface(
         label="Diff",
         combine_adjacent=True,
         show_legend=True,
-    ).style(color_map={"+": "red", "-": "green"}),
+        color_map={"+": "red", "-": "green"}),
     theme=gr.themes.Base()
 )
 if __name__ == "__main__":

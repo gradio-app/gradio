@@ -231,7 +231,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         warn_style_method_deprecation()
         if grid is not None:
             warn_deprecation(
-                "The 'grid' parameter will be deprecated. Please use 'grid_cols' in the constructor instead.",
+                "The 'grid' parameter will be deprecated. Please use 'columns' in the constructor instead.",
             )
             self.grid_cols = grid
         if columns is not None:
