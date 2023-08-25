@@ -1,7 +1,7 @@
 ---
-"@gradio/highlightedtext": minor
-"gradio": minor
-"website": minor
+"@gradio/highlightedtext": patch
+"gradio": patch
+"website": patch
 ---
 
 feat:Minor bug fix sweep
