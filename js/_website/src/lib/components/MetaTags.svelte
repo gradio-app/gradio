@@ -29,5 +29,6 @@
 		content="https://raw.githubusercontent.com/gradio-app/gradio/main/website/homepage/src/assets/img/meta-image.png"
 	/>
 
+	<meta name="theme-color" content="#ff7c00" />
 	<link rel="canonical" href={canonical} />
 </svelte:head>
