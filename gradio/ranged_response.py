@@ -102,7 +102,7 @@ class RangedFileResponse(Response):
                 if not stat.S_ISREG(mode):
                     raise RuntimeError(f"File at path {self.path} is not a file.")
 
-        byte_range = self.range.clamp(0, self.stat_result.st_size)
+        byte_range = self.range.clamp(0, self.stat_result.st_size - 1)
         self.set_range_headers(byte_range)
 
         async with aiofiles.open(self.path, mode="rb") as file:
