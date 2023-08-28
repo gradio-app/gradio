@@ -469,7 +469,7 @@ class Queue:
                         event,
                         {
                             "msg": "process_completed",
-                            "output": {"error": relevant_response}
+                            "output": {"error": str(relevant_response)}
                             if isinstance(relevant_response, Exception)
                             else relevant_response,
                             "success": relevant_response
