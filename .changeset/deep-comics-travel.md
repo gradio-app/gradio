@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Fix the Queue to call API endpoints without internal HTTP routing
+feat:Queue api call wo http bk
