@@ -89,11 +89,11 @@
 				var helperCamera = scene.activeCamera;
 
 				if (camera_position[0] !== null) {
-					helperCamera.alpha = (Math.PI * camera_position[0]) / 360;
+					helperCamera.alpha = (Math.PI * camera_position[0]) / 180;
 				}
 
 				if (camera_position[1] !== null) {
-					helperCamera.beta = (Math.PI * camera_position[1]) / 360;
+					helperCamera.beta = (Math.PI * camera_position[1]) / 180;
 				}
 
 				if (camera_position[2] !== null) {
