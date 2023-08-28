@@ -27,7 +27,7 @@
 	export let rtl = false;
 	export let show_copy_button = false;
 	export let avatar_images: [string | null, string | null] = [null, null];
-	export let chat_bubble_fit_content: false;
+	export let bubble_full_width: true;
 	export let root: string;
 	export let root_url: null | string;
 
@@ -114,7 +114,7 @@
 							data-testid={j == 0 ? "user" : "bot"}
 							class:latest={i === value.length - 1}
 							class="message {j == 0 ? 'user' : 'bot'}"
-							class:message-fit={chat_bubble_fit_content}
+							class:message-fit={!bubble_full_width}
 							class:hide={message === null}
 							class:selectable
 							on:click={() => handle_select(i, j, message)}

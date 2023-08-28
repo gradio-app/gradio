@@ -24,7 +24,7 @@ def bot(history):
 
 
 with gr.Blocks() as demo:
-    chatbot = gr.Chatbot([], elem_id="chatbot", height=750, chat_bubble_fit_content=True, avatar_images=((os.path.join(os.path.dirname(__file__), "avatar.png")), (os.path.join(os.path.dirname(__file__), "avatar.png"))))
+    chatbot = gr.Chatbot([], elem_id="chatbot", height=750, bubble_full_width=False, avatar_images=((os.path.join(os.path.dirname(__file__), "avatar.png")), (os.path.join(os.path.dirname(__file__), "avatar.png"))))
 
     with gr.Row():
         with gr.Column(scale=0.85):

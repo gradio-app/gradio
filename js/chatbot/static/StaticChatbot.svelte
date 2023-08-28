@@ -23,7 +23,7 @@
 	export let show_share_button = false;
 	export let rtl = false;
 	export let show_copy_button = false;
-	export let chat_bubble_fit_content = false;
+	export let bubble_full_width = true;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -97,7 +97,7 @@
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
 			{avatar_images}
-			{chat_bubble_fit_content}
+			{bubble_full_width}
 			{root_url}
 			{root}
 		/>
