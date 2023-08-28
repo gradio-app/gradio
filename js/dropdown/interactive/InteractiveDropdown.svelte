@@ -1,10 +1,12 @@
 <script lang="ts">
+	import type { Gradio, SelectData } from "@gradio/utils";
 	import Dropdown from "../shared";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
+	import { _ } from "svelte-i18n";
 
-	export let label = "Dropdown";
+	export let label = $_("dropdown.dropdown");
 	export let info: string | undefined = undefined;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -20,6 +22,13 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let allow_custom_value = false;
+	export let gradio: Gradio<{
+		change: never;
+		input: never;
+		select: SelectData;
+		blur: never;
+		focus: never;
+	}>;
 
 	if (multiselect && !value) {
 		value = [];
@@ -50,10 +59,10 @@
 		{show_label}
 		{allow_custom_value}
 		{container}
-		on:change
-		on:input
-		on:select
-		on:blur
-		on:focus
+		on:change={() => gradio.dispatch("change")}
+		on:input={() => gradio.dispatch("input")}
+		on:select={(e) => gradio.dispatch("select", e.detail)}
+		on:blur={() => gradio.dispatch("blur")}
+		on:focus={() => gradio.dispatch("focus")}
 	/>
 </Block>

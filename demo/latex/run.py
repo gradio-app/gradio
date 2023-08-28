@@ -13,8 +13,7 @@ with gr.Blocks() as demo:
     
     the first is $\gamma^2 + \theta^2 = \omega^2$
     
-    $\sqrt{x^2+1}
-    $ is next
+    $\sqrt{x^2+1}$ is next
     
     Integral $\int_{a}^{b} x^2 \,dx$ is last
 

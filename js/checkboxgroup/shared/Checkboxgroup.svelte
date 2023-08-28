@@ -3,22 +3,22 @@
 	import { BlockTitle } from "@gradio/atoms";
 	import type { SelectData } from "@gradio/utils";
 
-	export let value: string[] = [];
-	let old_value: string[] = value.slice();
+	export let value: (string | number)[] = [];
+	let old_value: (string | number)[] = value.slice();
 	export let value_is_output = false;
-	export let choices: string[];
+	export let choices: [string, number][];
 	export let disabled = false;
 	export let label: string;
 	export let info: string | undefined = undefined;
 	export let show_label: boolean;
 
 	const dispatch = createEventDispatcher<{
-		change: string[];
+		change: (string | number)[];
 		input: undefined;
 		select: SelectData;
 	}>();
 
-	function toggleChoice(choice: string): void {
+	function toggleChoice(choice: string | number): void {
 		if (value.includes(choice)) {
 			value.splice(value.indexOf(choice), 1);
 		} else {
@@ -49,22 +49,22 @@
 <BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 <div class="wrap" data-testid="checkbox-group">
-	{#each choices as choice}
-		<label class:disabled class:selected={value.includes(choice)}>
+	{#each choices as choice, i}
+		<label class:disabled class:selected={value.includes(choice[1])}>
 			<input
 				{disabled}
-				on:change={() => toggleChoice(choice)}
+				on:change={() => toggleChoice(choice[1])}
 				on:input={(evt) =>
 					dispatch("select", {
-						index: choices.indexOf(choice),
-						value: choice,
+						index: i,
+						value: choice[1],
 						selected: evt.currentTarget.checked
 					})}
-				checked={value.includes(choice)}
+				checked={value.includes(choice[1])}
 				type="checkbox"
 				name="test"
 			/>
-			<span class="ml-2">{choice}</span>
+			<span class="ml-2">{choice[0]}</span>
 		</label>
 	{/each}
 </div>

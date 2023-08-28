@@ -15,24 +15,24 @@ Gradio 通过在每个“界面”中包含一个**标记**按钮来简化这些
 
 在 `gradio.Interface` 中有[四个参数](https://gradio.app/docs/#interface-header)控制标记的工作方式。我们将详细介绍它们。
 
-* `allow_flagging`：此参数可以设置为 `"manual"`（默认值），`"auto"` 或 `"never"`。                 
-    * `manual`：用户将看到一个标记按钮，只有在点击按钮时样本才会被标记。
-    * `auto`：用户将不会看到一个标记按钮，但每个样本都会自动被标记。 
-    * `never`：用户将不会看到一个标记按钮，并且不会标记任何样本。 
-* `flagging_options`：此参数可以是 `None`（默认值）或字符串列表。
-    * 如果是 `None`，则用户只需点击**标记**按钮，不会显示其他选项。
-    * 如果提供了一个字符串列表，则用户会看到多个按钮，对应于提供的每个字符串。例如，如果此参数的值为`[" 错误 ", " 模糊 "]`，则会显示标记为**标记为错误**和**标记为模糊**的按钮。这仅适用于 `allow_flagging` 为 `"manual"` 的情况。
-    * 所选选项将与输入和输出一起记录。
-* `flagging_dir`：此参数接受一个字符串。
-    * 它表示标记数据存储的目录名称。
-* `flagging_callback`：此参数接受 `FlaggingCallback` 类的子类的实例
-    * 使用此参数允许您编写在点击标记按钮时运行的自定义代码
-    * 默认情况下，它设置为 `gr.CSVLogger` 的一个实例
-    * 一个示例是将其设置为 `gr.HuggingFaceDatasetSaver` 的一个实例，这样您可以将任何标记的数据导入到 HuggingFace 数据集中（参见下文）。
+- `allow_flagging`：此参数可以设置为 `"manual"`（默认值），`"auto"` 或 `"never"`。
+  - `manual`：用户将看到一个标记按钮，只有在点击按钮时样本才会被标记。
+  - `auto`：用户将不会看到一个标记按钮，但每个样本都会自动被标记。
+  - `never`：用户将不会看到一个标记按钮，并且不会标记任何样本。
+- `flagging_options`：此参数可以是 `None`（默认值）或字符串列表。
+  - 如果是 `None`，则用户只需点击**标记**按钮，不会显示其他选项。
+  - 如果提供了一个字符串列表，则用户会看到多个按钮，对应于提供的每个字符串。例如，如果此参数的值为`[" 错误 ", " 模糊 "]`，则会显示标记为**标记为错误**和**标记为模糊**的按钮。这仅适用于 `allow_flagging` 为 `"manual"` 的情况。
+  - 所选选项将与输入和输出一起记录。
+- `flagging_dir`：此参数接受一个字符串。
+  - 它表示标记数据存储的目录名称。
+- `flagging_callback`：此参数接受 `FlaggingCallback` 类的子类的实例
+  - 使用此参数允许您编写在点击标记按钮时运行的自定义代码
+  - 默认情况下，它设置为 `gr.CSVLogger` 的一个实例
+  - 一个示例是将其设置为 `gr.HuggingFaceDatasetSaver` 的一个实例，这样您可以将任何标记的数据导入到 HuggingFace 数据集中（参见下文）。
 
 ## 标记的数据会发生什么？
 
-在 `flagging_dir` 参数提供的目录中，将记录标记的数据的 CSV 文件。 
+在 `flagging_dir` 参数提供的目录中，将记录标记的数据的 CSV 文件。
 
 以下是一个示例：下面的代码创建了嵌入其中的计算器界面：
 
@@ -69,7 +69,9 @@ iface.launch()
 +-- flagged/
 |   +-- logs.csv
 ```
+
 _flagged/logs.csv_
+
 ```csv
 num1,operation,num2,Output,timestamp
 5,add,7,12,2022-01-31 11:40:51.093412
@@ -88,7 +90,9 @@ num1,operation,num2,Output,timestamp
 |   |   +-- 0.png
 |   |   +-- 1.png
 ```
+
 _flagged/logs.csv_
+
 ```csv
 im,Output timestamp
 im/0.png,Output/0.png,2022-02-04 19:49:58.026963
@@ -97,7 +101,8 @@ im/1.png,Output/1.png,2022-02-02 10:40:51.093412
 
 如果您希望用户为标记提供一个原因，您可以将字符串列表传递给 Interface 的 `flagging_options` 参数。用户在标记时必须选择其中一项，选项将作为附加列保存在 CSV 文件中。
 
-如果我们回到计算器示例，下面的代码将创建嵌入其中的界面。  
+如果我们回到计算器示例，下面的代码将创建嵌入其中的界面。
+
 ```python
 iface = gr.Interface(
     calculator,
@@ -109,11 +114,13 @@ iface = gr.Interface(
 
 iface.launch()
 ```
+
 <gradio-app space="gradio/calculator-flagging-options/"></gradio-app>
 
 当用户点击标记按钮时，CSV 文件现在将包括指示所选选项的列。
 
 _flagged/logs.csv_
+
 ```csv
 num1,operation,num2,Output,flag,timestamp
 5,add,7,-12,wrong sign,2022-02-04 11:40:51.093412
@@ -161,7 +168,7 @@ iface.launch()
 
 ![flagging callback hf](/assets/guides/flagging-callback-hf.png)
 
-我们创建了 `gradio.HuggingFaceDatasetSaver` 类，但只要它继承自[此文件](https://github.com/gradio-app/gradio/blob/master/gradio/flagging.py)中定义的 `FlaggingCallback`，您可以传递自己的自定义类。如果您创建了一个很棒的回调，请将其贡献给该存储库！ 
+我们创建了 `gradio.HuggingFaceDatasetSaver` 类，但只要它继承自[此文件](https://github.com/gradio-app/gradio/blob/master/gradio/flagging.py)中定义的 `FlaggingCallback`，您可以传递自己的自定义类。如果您创建了一个很棒的回调，请将其贡献给该存储库！
 
 ## 使用 Blocks 进行标记
 
@@ -173,9 +180,9 @@ iface.launch()
 这需要两个步骤：
 
 1. 您必须在代码中的某个位置运行您的回调的 `.setup()` 方法
-在第一次标记数据之前
+   在第一次标记数据之前
 2. 当点击标记按钮时，您触发回调的 `.flag()` 方法，
-确保正确收集参数并禁用通常的预处理。 
+   确保正确收集参数并禁用通常的预处理。
 
 下面是一个使用默认的 `CSVLogger` 标记图像怀旧滤镜 Blocks 演示的示例：
 data using the default `CSVLogger`:
@@ -187,4 +194,4 @@ $demo_blocks_flag
 
 重要提示：请确保用户了解他们提交的数据何时被保存以及您计划如何处理它。当您使用 `allow_flagging=auto`（当通过演示提交的所有数据都被标记时），这一点尤为重要
 
-### 这就是全部！祝您建设愉快 :) 
+### 这就是全部！祝您建设愉快 :)

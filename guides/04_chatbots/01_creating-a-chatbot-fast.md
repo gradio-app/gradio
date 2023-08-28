@@ -10,9 +10,9 @@ This tutorial uses `gr.ChatInterface()`, which is a high-level abstraction that 
 
 $demo_chatinterface_streaming_echo
 
-We'll start with a couple of simple examples, and then show how to use `gr.ChatInterface()` with real language models from several popular APIs and libraries, including `langchain`, `openai`, and Hugging Face. 
+We'll start with a couple of simple examples, and then show how to use `gr.ChatInterface()` with real language models from several popular APIs and libraries, including `langchain`, `openai`, and Hugging Face.
 
-**Prerequisites**: please make sure you are using the **latest version** version of Gradio:  
+**Prerequisites**: please make sure you are using the **latest version** version of Gradio:
 
 ```bash
 $ pip install --upgrade gradio
@@ -22,8 +22,8 @@ $ pip install --upgrade gradio
 
 When working with `gr.ChatInterface()`, the first thing you should do is define your chat function. Your chat function should take two arguments: `message` and then `history` (the arguments can be named anything, but must be in this order).
 
-* `message`: a `str` representing the user's input.
-* `history`: a `list` of `list` representing the conversations up until that point. Each inner list consists of two `str` representing a pair: `[user input, bot response]`. 
+- `message`: a `str` representing the user's input.
+- `history`: a `list` of `list` representing the conversations up until that point. Each inner list consists of two `str` representing a pair: `[user input, bot response]`.
 
 Your function should return a single string response, which is the bot's response to the particular user input `message`. Your function can take into account the `history` of messages, as well as the current message.
 
@@ -71,7 +71,7 @@ def alternatingly_agree(message, history):
 gr.ChatInterface(alternatingly_agree).launch()
 ```
 
-## Streaming chatbots 
+## Streaming chatbots
 
 If in your chat function, you use `yield` to generate a sequence of responses, you'll end up with a streaming chatbot. It's that simple!
 
@@ -93,13 +93,12 @@ Notice that we've [enabled queuing](/guides/key-features#queuing), which is requ
 
 If you're familiar with Gradio's `Interface` class, the `gr.ChatInterface` includes many of the same arguments that you can use to customize the look and feel of your Chatbot. For example, you can:
 
-* add a title and description above your chatbot using `title` and `description` arguments.
-* add a theme or custom css using `theme` and `css` arguments respectively.
-* add `examples` and even enable `cache_examples`, which make it easier for users to try it out .
-* You can change the text or disable each of the buttons that appear in the chatbot interface: `submit_btn`, `retry_btn`, `undo_btn`, `clear_btn`.
+- add a title and description above your chatbot using `title` and `description` arguments.
+- add a theme or custom css using `theme` and `css` arguments respectively.
+- add `examples` and even enable `cache_examples`, which make it easier for users to try it out .
+- You can change the text or disable each of the buttons that appear in the chatbot interface: `submit_btn`, `retry_btn`, `undo_btn`, `clear_btn`.
 
 If you want to customize the `gr.Chatbot` or `gr.Textbox` that compose the `ChatInterface`, then you can pass in your own chatbot or textbox as well. Here's an example of how we can use these parameters:
-
 
 ```python
 import gradio as gr
@@ -129,13 +128,13 @@ gr.ChatInterface(
 
 You may want to add additional parameters to your chatbot and expose them to your users through the Chatbot UI. For example, suppose you want to add a textbox for a system prompt, or a slider that sets the number of tokens in the chatbot's response. The `ChatInterface` class supports an `additional_inputs` parameter which can be used to add additional input components.
 
-The `additional_inputs` parameters accepts a component or a list of components. You can pass the component instances directly, or use their string shortcuts (e.g. `"textbox"` instead of `gr.Textbox()`). If you pass in component instances, and they have *not* already been rendered, then the components will appear underneath the chatbot (and any examples) within a `gr.Accordion()`. You can set the label of this accordion using the `additional_inputs_accordion_name` parameter. 
+The `additional_inputs` parameters accepts a component or a list of components. You can pass the component instances directly, or use their string shortcuts (e.g. `"textbox"` instead of `gr.Textbox()`). If you pass in component instances, and they have _not_ already been rendered, then the components will appear underneath the chatbot (and any examples) within a `gr.Accordion()`. You can set the label of this accordion using the `additional_inputs_accordion_name` parameter.
 
 Here's a complete example:
 
 $code_chatinterface_system_prompt
 
-If the components you pass into the `additional_inputs` have already been rendered in a parent `gr.Blocks()`, then they will *not* be re-rendered in the accordion. This provides flexibility in deciding where to lay out the input components. In the example below, we position the `gr.Textbox()` on top of the Chatbot UI, while keeping the slider underneath.
+If the components you pass into the `additional_inputs` have already been rendered in a parent `gr.Blocks()`, then they will _not_ be re-rendered in the accordion. This provides flexibility in deciding where to lay out the input components. In the example below, we position the `gr.Textbox()` on top of the Chatbot UI, while keeping the slider underneath.
 
 ```python
 import gradio as gr
@@ -150,7 +149,7 @@ def echo(message, history, system_prompt, tokens):
 with gr.Blocks() as demo:
     system_prompt = gr.Textbox("You are helpful AI.", label="System Prompt")
     slider = gr.Slider(10, 100, render=False)
-    
+
     gr.ChatInterface(
         echo, additional_inputs=[system_prompt, slider]
     )
@@ -191,13 +190,12 @@ def predict(message, history):
     gpt_response = llm(history_langchain_format)
     return gpt_response.content
 
-gr.ChatInterface(predict).launch() 
+gr.ChatInterface(predict).launch()
 ```
 
 ## A streaming example using `openai`
 
 Of course, we could also use the `openai` library directy. Here a similar example, but this time with streaming results as well:
-
 
 ```python
 import openai
@@ -214,18 +212,18 @@ def predict(message, history):
 
     response = openai.ChatCompletion.create(
         model='gpt-3.5-turbo',
-        messages= history_openai_format,         
+        messages= history_openai_format,
         temperature=1.0,
         stream=True
     )
-    
+
     partial_message = ""
     for chunk in response:
         if len(chunk['choices'][0]['delta']) != 0:
             partial_message = partial_message + chunk['choices'][0]['delta']['content']
-            yield partial_message 
+            yield partial_message
 
-gr.ChatInterface(predict).queue().launch() 
+gr.ChatInterface(predict).queue().launch()
 ```
 
 ## Example using a local, open-source LLM with Hugging Face
@@ -250,14 +248,14 @@ class StopOnTokens(StoppingCriteria):
                 return True
         return False
 
-def predict(message, history): 
+def predict(message, history):
 
     history_transformer_format = history + [[message, ""]]
     stop = StopOnTokens()
 
-    messages = "".join(["".join(["\n<human>:"+item[0], "\n<bot>:"+item[1]])  #curr_system_message + 
+    messages = "".join(["".join(["\n<human>:"+item[0], "\n<bot>:"+item[1]])  #curr_system_message +
                 for item in history_transformer_format])
-    
+
     model_inputs = tokenizer([messages], return_tensors="pt").to("cuda")
     streamer = TextIteratorStreamer(tokenizer, timeout=10., skip_prompt=True, skip_special_tokens=True)
     generate_kwargs = dict(
@@ -278,8 +276,8 @@ def predict(message, history):
     for new_token in streamer:
         if new_token != '<':
             partial_message += new_token
-            yield partial_message 
-            
+            yield partial_message
+
 
 gr.ChatInterface(predict).queue().launch()
 ```

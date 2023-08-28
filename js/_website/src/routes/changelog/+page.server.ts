@@ -1,9 +1,9 @@
-import changelog_json from "./changelog.json";
+import changelog_json from "$lib/json/changelog.json";
 import { compile } from "mdsvex";
-import anchor from "../../assets/img/anchor.svg";
+import anchor from "$lib/assets/img/anchor.svg";
+import version from "$lib/json/version.json";
 
-let content = changelog_json.content;
-import { make_slug_processor } from "../../utils";
+import { make_slug_processor } from "$lib/utils";
 import { toString as to_string } from "hast-util-to-string";
 
 import Prism from "prismjs";
@@ -39,6 +39,8 @@ function highlight(code: string, lang: string | undefined) {
 
 	return highlighted;
 }
+
+let content = changelog_json.content;
 
 export async function load() {
 	const changelog_slug: object[] = [];

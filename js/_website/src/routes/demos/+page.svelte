@@ -1,7 +1,7 @@
 <script lang="ts">
-	import space_logo from "../../assets/img/spaces-logo.svg";
-	import Demos from "../../components/Demos.svelte";
-	import MetaTags from "../../components/MetaTags.svelte";
+	import space_logo from "$lib/assets/img/spaces-logo.svg";
+	import Demos from "$lib/components/Demos.svelte";
+	import MetaTags from "$lib/components/MetaTags.svelte";
 
 	export let data: {
 		demos_by_category: {

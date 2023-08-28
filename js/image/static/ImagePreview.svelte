@@ -5,6 +5,7 @@
 	import { BlockLabel, Empty, IconButton, ShareButton } from "@gradio/atoms";
 	import { Download } from "@gradio/icons";
 	import { get_coordinates_of_clicked_image } from "../shared/utils";
+	import { _ } from "svelte-i18n";
 
 	import { Image } from "@gradio/icons";
 
@@ -30,7 +31,7 @@
 	};
 </script>
 
-<BlockLabel {show_label} Icon={Image} label={label || "Image"} />
+<BlockLabel {show_label} Icon={Image} label={label || $_("image.image")} />
 {#if value === null}
 	<Empty unpadded_box={true} size="large"><Image /></Empty>
 {:else}
@@ -41,7 +42,7 @@
 				target={window.__is_colab__ ? "_blank" : null}
 				download={"image"}
 			>
-				<IconButton Icon={Download} label="Download" />
+				<IconButton Icon={Download} label={$_("common.download")} />
 			</a>
 		{/if}
 		{#if show_share_button}

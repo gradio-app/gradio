@@ -1,5 +1,6 @@
 <script lang="ts">
-	import MetaTags from "../../components/MetaTags.svelte";
+	import MetaTags from "$lib/components/MetaTags.svelte";
+	import { page } from "$app/stores";
 
 	export let data: {
 		content: any;
@@ -26,8 +27,8 @@
 
 <MetaTags
 	title={"Gradio Changelog"}
-	url={"https://gradio.app/changelog"}
-	canonical={"https://gradio.app/changelog"}
+	url={$page.url.pathname}
+	canonical={$page.url.pathname}
 	description="Gradio Changelog and Release Notes"
 />
 

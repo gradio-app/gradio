@@ -13,7 +13,7 @@ import tempfile
 import threading
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal, Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -23,8 +23,9 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 from matplotlib import animation
 
-from gradio import components, processing_utils, routes, utils
+from gradio import components, oauth, processing_utils, routes, utils
 from gradio.context import Context
+from gradio.exceptions import Error
 from gradio.flagging import CSVLogger
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
@@ -290,12 +291,14 @@ class Examples:
             print(f"Caching examples at: '{utils.abspath(self.cached_folder)}'")
             cache_logger = CSVLogger()
 
+            generated_values = []
             if inspect.isgeneratorfunction(self.fn):
 
                 def get_final_item(*args):  # type: ignore
                     x = None
+                    generated_values.clear()
                     for x in self.fn(*args):  # noqa: B007  # type: ignore
-                        pass
+                        generated_values.append(x)
                     return x
 
                 fn = get_final_item
@@ -303,13 +306,15 @@ class Examples:
 
                 async def get_final_item(*args):
                     x = None
+                    generated_values.clear()
                     async for x in self.fn(*args):  # noqa: B007  # type: ignore
-                        pass
+                        generated_values.append(x)
                     return x
 
                 fn = get_final_item
             else:
                 fn = self.fn
+
             # create a fake dependency to process the examples and get the predictions
             dependency, fn_index = Context.root_block.set_event_trigger(
                 event_name="fake_event",
@@ -336,6 +341,11 @@ class Examples:
                         state={},
                     )
                 output = prediction["data"]
+                if len(generated_values):
+                    output = merge_generated_values_into_output(
+                        self.outputs, generated_values, output
+                    )
+
                 if self.batch:
                     output = [value[0] for value in output]
                 cache_logger.flag(output)
@@ -394,11 +404,46 @@ class Examples:
             except (ValueError, TypeError, SyntaxError, AssertionError):
                 output.append(
                     component.serialize(
-                        value_to_use,
-                        self.cached_folder,
+                        value_to_use, self.cached_folder, allow_links=True
                     )
                 )
         return output
+
+
+def merge_generated_values_into_output(
+    components: list[IOComponent], generated_values: list, output: list
+):
+    from gradio.events import StreamableOutput
+
+    for output_index, output_component in enumerate(components):
+        if (
+            isinstance(output_component, StreamableOutput)
+            and output_component.streaming
+        ):
+            binary_chunks = []
+            for i, chunk in enumerate(generated_values):
+                if len(components) > 1:
+                    chunk = chunk[output_index]
+                processed_chunk = output_component.postprocess(chunk)
+                binary_chunks.append(
+                    output_component.stream_output(processed_chunk, "", i == 0)[0]
+                )
+            binary_data = b"".join(binary_chunks)
+            tempdir = os.environ.get("GRADIO_TEMP_DIR") or str(
+                Path(tempfile.gettempdir()) / "gradio"
+            )
+            os.makedirs(tempdir, exist_ok=True)
+            temp_file = tempfile.NamedTemporaryFile(dir=tempdir, delete=False)
+            with open(temp_file.name, "wb") as f:
+                f.write(binary_data)
+
+            output[output_index] = {
+                "name": temp_file.name,
+                "is_file": True,
+                "data": None,
+            }
+
+    return output
 
 
 class TrackedIterable:
@@ -691,6 +736,30 @@ def special_args(
             if inputs is not None:
                 inputs.insert(i, request)
         elif (
+            type_hint == Optional[oauth.OAuthProfile]
+            or type_hint == oauth.OAuthProfile
+            # Note: "OAuthProfile | None" is equals to Optional[OAuthProfile] in Python
+            #       => it is automatically handled as well by the above condition
+            #       (adding explicit "OAuthProfile | None" would break in Python3.9)
+        ):
+            if inputs is not None:
+                # Retrieve session from gr.Request, if it exists (i.e. if user is logged in)
+                session = (
+                    # request.session (if fastapi.Request obj i.e. direct call)
+                    getattr(request, "session", {})
+                    or
+                    # or request.request.session (if gr.Request obj i.e. websocket call)
+                    getattr(getattr(request, "request", None), "session", {})
+                )
+                oauth_profile = (
+                    session["oauth_profile"] if "oauth_profile" in session else None
+                )
+                if type_hint == oauth.OAuthProfile and oauth_profile is None:
+                    raise Error(
+                        "This action requires a logged in user. Please sign in and retry."
+                    )
+                inputs.insert(i, oauth_profile)
+        elif (
             type_hint
             and inspect.isclass(type_hint)
             and issubclass(type_hint, EventData)
@@ -867,7 +936,7 @@ def make_waveform(
 
         if not animate:
             waveform_img = PIL.Image.open(tmp_img.name)
-            waveform_img = waveform_img.resize((1000, 200))
+            waveform_img = waveform_img.resize((1000, 400))
 
             # Composite waveform with background image
             if bg_image is not None:
@@ -962,11 +1031,11 @@ def make_waveform(
             "-i",
             audio_file,
             "-filter_complex",
-            "[0:v][1:a]concat=n=1:v=1:a=1[v][a]",
+            "[0:v][1:a]concat=n=1:v=1:a=1[v];[v]scale=1000:400,format=yuv420p[v_scaled]",
             "-map",
-            "[v]",
+            "[v_scaled]",
             "-map",
-            "[a]",
+            "1:a",
             "-c:v",
             "libx264",
             "-c:a",

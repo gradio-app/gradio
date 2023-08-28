@@ -1,4 +1,5 @@
 # 在 Web 服务器上使用 Nginx 运行 Gradio 应用
+
 标签：部署，Web 服务器，Nginx
 
 ## 介绍
@@ -32,7 +33,7 @@ include /etc/nginx/sites-enabled/*;
 ```bash
 server {
     listen 80;
-    server_name example.com www.example.com;  # 将此项更改为您的域名 
+    server_name example.com www.example.com;  # 将此项更改为您的域名
 
     location /gradio-demo/ {  # 如果要在不同路径上提供Gradio应用，请更改此项
         proxy_pass http://127.0.0.1:7860/; # 如果您的Gradio应用将在不同端口上运行，请更改此项

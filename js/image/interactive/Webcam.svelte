@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from "svelte";
 	import { Camera, Circle, Square } from "@gradio/icons";
+	import { _ } from "svelte-i18n";
 
 	let video_source: HTMLVideoElement;
 	let canvas: HTMLCanvasElement;
@@ -38,7 +39,7 @@
 			video_source.play();
 		} catch (err) {
 			if (err instanceof DOMException && err.name == "NotAllowedError") {
-				dispatch("error", "Please allow access to the webcam for recording.");
+				dispatch("error", $_("image.allow_webcam_access"));
 			} else {
 				throw err;
 			}

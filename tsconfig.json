@@ -24,6 +24,7 @@
 		}
 	},
 	"exclude": [
+		"**/_website/**/*",
 		"**/dist/**/*",
 		"**/public/**/*",
 		"**/.config/**/*",

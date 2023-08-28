@@ -160,24 +160,25 @@ def compile_gr_request(
 
 def restore_session_state(app: "App", body: PredictBody):
     fn_index = body.fn_index
-    if hasattr(body, "session_hash"):
-        if body.session_hash not in app.state_holder:
-            app.state_holder[body.session_hash] = {
+    session_hash = getattr(body, "session_hash", None)
+    if session_hash is not None:
+        if session_hash not in app.state_holder:
+            app.state_holder[session_hash] = {
                 _id: deepcopy(getattr(block, "value", None))
                 for _id, block in app.get_blocks().blocks.items()
                 if getattr(block, "stateful", False)
             }
-        session_state = app.state_holder[body.session_hash]
+        session_state = app.state_holder[session_hash]
         # The should_reset set keeps track of the fn_indices
         # that have been cancelled. When a job is cancelled,
         # the /reset route will mark the jobs as having been reset.
         # That way if the cancel job finishes BEFORE the job being cancelled
         # the job being cancelled will not overwrite the state of the iterator.
-        if fn_index in app.iterators_to_reset[body.session_hash]:
+        if fn_index in app.iterators_to_reset[session_hash]:
             iterators = {}
-            app.iterators_to_reset[body.session_hash].remove(fn_index)
+            app.iterators_to_reset[session_hash].remove(fn_index)
         else:
-            iterators = app.iterators[body.session_hash]
+            iterators = app.iterators[session_hash]
     else:
         session_state = {}
         iterators = {}
@@ -203,6 +204,7 @@ async def call_process_api(
 
     event_id = getattr(body, "event_id", None)
 
+    session_hash = getattr(body, "session_hash", None)
     inputs = body.data
 
     batch_in_single_out = not body.batched and dependency["batch"]
@@ -216,6 +218,7 @@ async def call_process_api(
             request=gr_request,
             state=session_state,
             iterators=iterators,
+            session_hash=session_hash,
             event_id=event_id,
             event_data=event_data,
         )

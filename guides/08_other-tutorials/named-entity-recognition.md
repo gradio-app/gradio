@@ -1,23 +1,22 @@
-# Named-Entity Recognition 
+# Named-Entity Recognition
 
 Related spaces: https://huggingface.co/spaces/rajistics/biobert_ner_demo, https://huggingface.co/spaces/abidlabs/ner, https://huggingface.co/spaces/rajistics/Financial_Analyst_AI
 Tags: NER, TEXT, HIGHLIGHT
 
 ## Introduction
 
-Named-entity recognition (NER), also known as token classification or text tagging, is the task of taking a sentence and classifying every word (or "token") into different categories, such as names of people or names of locations, or different parts of speech. 
+Named-entity recognition (NER), also known as token classification or text tagging, is the task of taking a sentence and classifying every word (or "token") into different categories, such as names of people or names of locations, or different parts of speech.
 
 For example, given the sentence:
 
 > Does Chicago have any Pakistani restaurants?
 
-A named-entity recognition algorithm may  identify:
+A named-entity recognition algorithm may identify:
 
-* "Chicago" as a **location**
-* "Pakistani" as an **ethnicity**  
+- "Chicago" as a **location**
+- "Pakistani" as an **ethnicity**
 
-
-and so on. 
+and so on.
 
 Using `gradio` (specifically the `HighlightedText` component), you can easily build a web demo of your NER model and share that with the rest of your team.
 
@@ -25,7 +24,7 @@ Here is an example of a demo that you'll be able to build:
 
 $demo_ner_pipeline
 
-This tutorial will show how to take a pretrained NER model and deploy it with a Gradio interface. We will show two different ways to use the `HighlightedText` component -- depending on your NER model, either of these two ways may be easier to learn! 
+This tutorial will show how to take a pretrained NER model and deploy it with a Gradio interface. We will show two different ways to use the `HighlightedText` component -- depending on your NER model, either of these two ways may be easier to learn!
 
 ### Prerequisites
 
@@ -33,10 +32,10 @@ Make sure you have the `gradio` Python package already [installed](/getting_star
 
 ### Approach 1: List of Entity Dictionaries
 
-Many named-entity recognition models output a list of dictionaries. Each dictionary consists of an *entity*, a "start" index, and an "end" index. This is, for example, how NER models in the `transformers` library operate:
+Many named-entity recognition models output a list of dictionaries. Each dictionary consists of an _entity_, a "start" index, and an "end" index. This is, for example, how NER models in the `transformers` library operate:
 
 ```py
-from transformers import pipeline 
+from transformers import pipeline
 ner_pipeline = pipeline("ner")
 ner_pipeline("Does Chicago have any Pakistani restaurants")
 ```
@@ -74,12 +73,8 @@ In some cases, this can be easier than the first approach. Here is a demo showin
 $code_text_analysis
 $demo_text_analysis
 
+---
 
---------------------------------------------
+And you're done! That's all you need to know to build a web-based GUI for your NER model.
 
-
-And you're done! That's all you need to know to build a web-based GUI for your NER model. 
-
-Fun tip: you can share your NER demo instantly with others simply by setting `share=True` in `launch()`. 
-
-
+Fun tip: you can share your NER demo instantly with others simply by setting `share=True` in `launch()`.

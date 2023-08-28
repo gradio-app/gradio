@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { createEventDispatcher, tick, getContext } from "svelte";
+	import type { Gradio } from "@gradio/utils";
+	import { tick, getContext } from "svelte";
 	import type { FileData } from "@gradio/upload";
 	import UploadButton from "../shared";
 	import { upload_files as default_upload_files } from "@gradio/client";
@@ -18,6 +19,11 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
+	export let gradio: Gradio<{
+		change: FileData | null;
+		upload: FileData;
+		click: never;
+	}>;
 
 	const upload_files =
 		getContext<typeof default_upload_files>("upload_files") ??
@@ -51,15 +57,10 @@
 				});
 			}
 
-			dispatch("change", value);
-			dispatch("upload", detail);
+			gradio.dispatch("change", value);
+			gradio.dispatch("upload", detail);
 		});
 	}
-
-	const dispatch = createEventDispatcher<{
-		change: FileData | null;
-		upload: FileData;
-	}>();
 </script>
 
 <UploadButton
@@ -74,7 +75,7 @@
 	disabled
 	{variant}
 	{label}
-	on:click
+	on:click={() => gradio.dispatch("click")}
 	on:load={handle_upload}
 >
 	{$_(label)}

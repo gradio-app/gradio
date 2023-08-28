@@ -3,8 +3,8 @@ import { test, describe, assert, afterEach } from "vitest";
 import { cleanup, render } from "@gradio/tootils";
 import event from "@testing-library/user-event";
 
-import Radio from "./index.svelte";
-import type { LoadingStatus } from "@gradio/statustracker/types";
+import Radio from "./interactive";
+import type { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status = {
 	eta: 0,
@@ -19,7 +19,11 @@ const loading_status = {
 
 describe("Radio", () => {
 	afterEach(() => cleanup());
-	const choices = ["dog", "cat", "turtle"];
+	const choices = [
+		["dog", "dog"],
+		["cat", "cat"],
+		["turtle", "turtle"]
+	];
 
 	test("renders provided value", async () => {
 		const { getAllByRole, getByTestId } = await render(Radio, {
@@ -31,17 +35,18 @@ describe("Radio", () => {
 			mode: "dynamic"
 		});
 
-		const radioButtons: HTMLOptionElement[] = getAllByRole("radio");
-
 		assert.equal(
 			getByTestId("cat-radio-label").className.includes("selected"),
 			true
 		);
 
+		const radioButtons: HTMLOptionElement[] = getAllByRole(
+			"radio"
+		) as HTMLOptionElement[];
 		assert.equal(radioButtons.length, 3);
 
 		radioButtons.forEach((radioButton: HTMLOptionElement, index) => {
-			assert.equal(radioButton.value === choices[index], true);
+			assert.equal(radioButton.value === choices[index][1], true);
 		});
 	});
 

@@ -32,7 +32,6 @@ from gradio.blocks import get_api_info
 from gradio.events import SelectData
 from gradio.exceptions import DuplicateBlockError
 from gradio.networking import Server, get_first_available_port
-from gradio.test_data.blocks_configs import XRAY_CONFIG
 from gradio.utils import assert_configs_are_equivalent_besides_ids
 
 pytest_plugins = ("pytest_asyncio",)
@@ -135,7 +134,13 @@ class TestBlocksMethods:
             demo.load(fake_func, [], [textbox])
 
         config = demo.get_config_file()
-        assert assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, config)
+        xray_config_file = (
+            pathlib.Path(__file__).parent / "test_files" / "xray_config.json"
+        )
+        with open(xray_config_file) as fp:
+            xray_config = json.load(fp)
+
+        assert assert_configs_are_equivalent_besides_ids(xray_config, config)
         assert config["show_api"] is True
         _ = demo.launch(prevent_thread_lock=True, show_api=False)
         assert demo.config["show_api"] is False
@@ -434,6 +439,15 @@ class TestBlocksMethods:
 
         demo.close()
 
+    def test_concurrency_count_zero_gpu(self, monkeypatch):
+        monkeypatch.setenv("SPACES_ZERO_GPU", "true")
+        demo = gr.Blocks()
+        with pytest.warns():
+            demo.queue(concurrency_count=42)
+        with pytest.warns():
+            demo.queue(42)
+        assert demo._queue.max_thread_count == demo.max_threads
+
 
 class TestTempFile:
     def test_pil_images_hashed(self, connect, gradio_temp_dir):
@@ -585,7 +599,7 @@ class TestComponentsInBlocks:
         with gr.Blocks() as demo:
             for component in io_components:
                 components.append(component(value=lambda: None, every=1))
-        assert [comp.load_event for comp in components] == demo.dependencies
+        assert all(comp.load_event in demo.dependencies for comp in components)
 
 
 class TestBlocksPostprocessing:

@@ -1,4 +1,5 @@
 # 如何使用地图组件绘制图表
+
 Related spaces:
 Tags: PLOTS, MAPS
 
@@ -23,7 +24,7 @@ dataset = load_dataset("gradio/NYC-Airbnb-Open-Data", split="train")
 df = dataset.to_pandas()
 
 def filter_map(min_price, max_price, boroughs):
-    new_df = df[(df['neighbourhood_group'].isin(boroughs)) & 
+    new_df = df[(df['neighbourhood_group'].isin(boroughs)) &
             (df['price'] > min_price) & (df['price'] < max_price)]
     names = new_df["name"].tolist()
     prices = new_df["price"].tolist()

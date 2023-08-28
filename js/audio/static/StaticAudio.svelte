@@ -1,11 +1,11 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import type { Gradio, ShareData } from "@gradio/utils";
 	import { _ } from "svelte-i18n";
 
 	import type { FileData } from "@gradio/upload";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	import StaticAudio from "./AudioPlayer.svelte";
 	import { StatusTracker } from "@gradio/statustracker";
@@ -13,16 +13,10 @@
 
 	import { normalise_file } from "@gradio/upload";
 
-	const dispatch = createEventDispatcher<{
-		change: typeof value;
-		stream: typeof value;
-		error: string;
-	}>();
-
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let mode: "static" | "dynamic";
+	export let mode: "static" | "interactive";
 	export let value: null | FileData | string = null;
 	export let source: "microphone" | "upload";
 	export let label: string;
@@ -36,6 +30,11 @@
 	export let autoplay = false;
 	export let show_download_button = true;
 	export let show_share_button = false;
+	export let gradio: Gradio<{
+		change: typeof value;
+		share: ShareData;
+		error: string;
+	}>;
 
 	let old_value: null | FileData | string = null;
 
@@ -45,7 +44,7 @@
 	$: {
 		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
 			old_value = value;
-			dispatch("change");
+			gradio.dispatch("change");
 		}
 	}
 
@@ -53,7 +52,7 @@
 </script>
 
 <Block
-	variant={mode === "dynamic" && value === null && source === "upload"
+	variant={mode === "interactive" && value === null && source === "upload"
 		? "dashed"
 		: "solid"}
 	border_mode={dragging ? "focus" : "base"}
@@ -75,7 +74,7 @@
 		value={_value}
 		name={_value?.name || "audio_file"}
 		{label}
-		on:share
-		on:error
+		on:share={(e) => gradio.dispatch("share", e.detail)}
+		on:error={(e) => gradio.dispatch("error", e.detail)}
 	/>
 </Block>

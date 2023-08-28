@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Gradio, SelectData } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
 	import Tabs from "./Tabs.svelte";
 
@@ -8,10 +9,21 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let selected: number | string;
+	export let gradio: Gradio<{
+		change: never;
+		select: SelectData;
+	}>;
 
 	$: dispatch("prop_change", { selected });
 </script>
 
-<Tabs {visible} {elem_id} {elem_classes} bind:selected on:change on:select>
+<Tabs
+	{visible}
+	{elem_id}
+	{elem_classes}
+	bind:selected
+	on:change={() => gradio.dispatch("change")}
+	on:select={(e) => gradio.dispatch("select", e.detail)}
+>
 	<slot />
 </Tabs>

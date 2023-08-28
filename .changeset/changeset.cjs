@@ -16,8 +16,8 @@ const { packages, rootDir } = getPackagesSync(process.cwd());
 
 /**
  *
- * @param {string} package_name
- * @returns {string[]}
+ * @param {string} package_name The name of the package to find the directories for
+ * @returns {string[]} The directories for the package
  */
 function find_packages_dirs(package_name) {
 	/** @type {string[]} */
@@ -37,10 +37,10 @@ function find_packages_dirs(package_name) {
 const changelogFunctions = {
 	/**
 	 *
-	 * @param {Changeset[]} changesets
-	 * @param {any} dependenciesUpdated
-	 * @param {any} options
-	 * @returns
+	 * @param {Changeset[]} changesets The changesets that have been created
+	 * @param {any} dependenciesUpdated The dependencies that have been updated
+	 * @param {any} options The options passed to the changelog generator
+	 * @returns {Promise<string>} The release line for the dependencies
 	 */
 	getDependencyReleaseLine: async (
 		changesets,
@@ -73,8 +73,8 @@ const changelogFunctions = {
 		const updatedDepenenciesList = dependenciesUpdated.map(
 			/**
 			 *
-			 * @param {any} dependency
-			 * @returns
+			 * @param {any} dependency The dependency that has been updated
+			 * @returns {string} The formatted dependency
 			 */
 			(dependency) => `  - ${dependency.name}@${dependency.newVersion}`
 		);
@@ -83,10 +83,10 @@ const changelogFunctions = {
 	},
 	/**
 	 *
-	 * @param {{summary: string, id: string, commit: string, releases: {name: string}[]}} changeset
-	 * @param {any} type
-	 * @param {any} options
-	 * @returns
+	 * @param {{summary: string, id: string, commit: string, releases: {name: string}[]}} changeset The changeset that has been created
+	 * @param {any} type The type of changeset
+	 * @param {any} options The options passed to the changelog generator
+	 * @returns {Promise<string>} The release line for the changeset
 	 */
 	getReleaseLine: async (changeset, type, options) => {
 		if (!options || !options.repo) {
@@ -190,9 +190,8 @@ const changelogFunctions = {
 
 		if (lines._handled.includes(changeset.id)) {
 			return "done";
-		} else {
-			lines._handled.push(changeset.id);
 		}
+		lines._handled.push(changeset.id);
 
 		changeset.releases.forEach((release) => {
 			if (!lines[release.name])
@@ -237,10 +236,7 @@ const changelogFunctions = {
 
 				formatted_summary = `${_heading}\n${_rest.join("\n")}`;
 			} else {
-				formatted_summary = `${prefix ? `${prefix} -` : ""} ${summary.replace(
-					/[\s\.]$/,
-					""
-				)}.${suffix}`;
+				formatted_summary = handle_line(summary, prefix, suffix);
 			}
 
 			//@ts-ignore
@@ -259,5 +255,26 @@ const changelogFunctions = {
 			.join("\n")}`;
 	}
 };
+
+/**
+ * @param {string} str The changelog entry
+ * @param {string} prefix The prefix to add to the first line
+ * @param {string} suffix The suffix to add to the last line
+ * @returns {string} The formatted changelog entry
+ */
+function handle_line(str, prefix, suffix) {
+	const [_s, ...lines] = str.split("\n").filter(Boolean);
+
+	const desc = `${prefix ? `${prefix} -` : ""} ${_s.replace(
+		/[\s\.]$/,
+		""
+	)}. ${suffix}`;
+
+	if (_s.length === 1) {
+		return desc;
+	}
+
+	return [desc, ...lines.map((l) => `  ${l}`)].join("/n");
+}
 
 module.exports = changelogFunctions;

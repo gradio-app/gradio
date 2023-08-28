@@ -5,6 +5,7 @@
 
 	import { createEventDispatcher } from "svelte";
 	import { tick } from "svelte";
+	import { _ } from "svelte-i18n";
 
 	import { Download, Image } from "@gradio/icons";
 	import type { FileData } from "@gradio/upload";
@@ -185,7 +186,7 @@
 						target={window.__is_colab__ ? "_blank" : null}
 						download="image"
 					>
-						<IconButton Icon={Download} label="Download" />
+						<IconButton Icon={Download} label={$_("common.download")} />
 					</a>
 				{/if}
 

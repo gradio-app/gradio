@@ -16,7 +16,7 @@ def fake_gan():
 demo = gr.Interface(
     fn=fake_gan,
     inputs=None,
-    outputs=gr.Gallery(label="Generated Images").style(grid=[2]),
+    outputs=gr.Gallery(label="Generated Images", columns=[2]),
     title="FD-GAN",
     description="This is a fake demo of a GAN. In reality, the images are randomly chosen from Unsplash.",
 )

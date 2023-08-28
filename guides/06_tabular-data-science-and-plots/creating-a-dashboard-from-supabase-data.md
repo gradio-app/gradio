@@ -1,6 +1,6 @@
 # Create a Dashboard from Supabase Data
 
-Tags: TABULAR, DASHBOARD, PLOTS 
+Tags: TABULAR, DASHBOARD, PLOTS
 
 [Supabase](https://supabase.com/) is a cloud-based open-source backend that provides a PostgreSQL database, authentication, and other useful features for building web and mobile applications. In this tutorial, you will learn how to read data from Supabase and plot it in **real-time** on a Gradio Dashboard.
 
@@ -8,21 +8,21 @@ Tags: TABULAR, DASHBOARD, PLOTS
 
 In this end-to-end guide, you will learn how to:
 
-* Create tables in Supabase
-* Write data to Supabase using the Supabase Python Client
-* Visualize the data in a real-time dashboard using Gradio
+- Create tables in Supabase
+- Write data to Supabase using the Supabase Python Client
+- Visualize the data in a real-time dashboard using Gradio
 
 If you already have data on Supabase that you'd like to visualize in a dashboard, you can skip the first two sections and go directly to [visualizing the data](#visualize-the-data-in-a-real-time-gradio-dashboard)!
 
 ## Create a table in Supabase
 
-First of all, we need some data to visualize. Following this [excellent guide](https://supabase.com/blog/loading-data-supabase-python), we'll create fake commerce data and put it in Supabase. 
+First of all, we need some data to visualize. Following this [excellent guide](https://supabase.com/blog/loading-data-supabase-python), we'll create fake commerce data and put it in Supabase.
 
 1\. Start by creating a new project in Supabase. Once you're logged in, click the "New Project" button
 
 2\. Give your project a name and database password. You can also choose a pricing plan (for our purposes, the Free Tier is sufficient!)
 
-3\. You'll be presented with your API keys while the database spins up (can take up to 2 minutes). 
+3\. You'll be presented with your API keys while the database spins up (can take up to 2 minutes).
 
 4\. Click on "Table Editor" (the table icon) in the left pane to create a new table. We'll create a single table called `Product`, with the following schema:
 
@@ -35,15 +35,13 @@ First of all, we need some data to visualize. Following this [excellent guide](h
 </table>
 </center>
 
-5\. Click Save to save the table schema. 
-
+5\. Click Save to save the table schema.
 
 Our table is now ready!
 
-
 ## Write data to Supabase
 
-The next step is to write data to a Supabase dataset. We will use the Supabase Python library to do this. 
+The next step is to write data to a Supabase dataset. We will use the Supabase Python library to do this.
 
 6\. Install `supabase` by running the following command in your terminal:
 
@@ -53,7 +51,7 @@ pip install supabase
 
 7\. Get your project URL and API key. Click the Settings (gear icon) on the left pane and click 'API'. The URL is listed in the Project URL box, while the API key is listed in Project API keys (with the tags `service_role`, `secret`)
 
-8\. Now, run the following Python script to write some fake data to the table (note you have to put the values of `SUPABASE_URL` and `SUPABASE_SECRET_KEY` from step 7): 
+8\. Now, run the following Python script to write some fake data to the table (note you have to put the values of `SUPABASE_URL` and `SUPABASE_SECRET_KEY` from step 7):
 
 ```python
 import supabase
@@ -66,9 +64,9 @@ import random
 
 main_list = []
 for i in range(10):
-    value = {'product_id': i, 
+    value = {'product_id': i,
              'product_name': f"Item {i}",
-             'inventory_count': random.randint(1, 100), 
+             'inventory_count': random.randint(1, 100),
              'price': random.random()*100
             }
     main_list.append(value)
@@ -81,12 +79,11 @@ Return to your Supabase dashboard and refresh the page, you should now see 10 ro
 
 ## Visualize the Data in a Real-Time Gradio Dashboard
 
-Finally, we will read the data from the Supabase dataset using the same `supabase` Python library and create a realtime dashboard using `gradio`. 
+Finally, we will read the data from the Supabase dataset using the same `supabase` Python library and create a realtime dashboard using `gradio`.
 
 Note: We repeat certain steps in this section (like creating the Supabase client) in case you did not go through the previous sections. As described in Step 7, you will need the project URL and API Key for your database.
 
 9\. Write a function that loads the data from the `Product` table and returns it as a pandas Dataframe:
-
 
 ```python
 import supabase
@@ -117,9 +114,8 @@ Notice that by passing in a function to `gr.BarPlot()`, we have the BarPlot quer
 
 <gradio-app space="abidlabs/supabase"></gradio-app>
 
-
 ## Conclusion
 
-That's it! In this tutorial, you learned how to write data to a Supabase dataset, and then read that data and plot the results as bar plots. If you update the data in the Supabase database, you'll notice that the Gradio dashboard will update within a minute. 
+That's it! In this tutorial, you learned how to write data to a Supabase dataset, and then read that data and plot the results as bar plots. If you update the data in the Supabase database, you'll notice that the Gradio dashboard will update within a minute.
 
-Try adding more plots and visualizations to this example (or with a different dataset) to build a more complex dashboard! 
+Try adding more plots and visualizations to this example (or with a different dataset) to build a more complex dashboard!

@@ -1,14 +1,14 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import type { Gradio, ShareData } from "@gradio/utils";
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
 	import { Block } from "@gradio/atoms";
 	import StaticVideo from "./VideoPreview.svelte";
 
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
 
 	export let elem_id = "";
@@ -29,9 +29,21 @@
 	export let container = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let mode: "static" | "dynamic";
 	export let autoplay = false;
 	export let show_share_button = true;
+	export let gradio: Gradio<{
+		change: never;
+		clear: never;
+		play: never;
+		pause: never;
+		upload: never;
+		stop: never;
+		end: never;
+		start_recording: never;
+		stop_recording: never;
+		share: ShareData;
+		error: string;
+	}>;
 
 	let _video: FileData | null = null;
 	let _subtitle: FileData | null = null;
@@ -48,23 +60,17 @@
 
 	let dragging = false;
 
-	const dispatch = createEventDispatcher<{
-		change: undefined;
-	}>();
-
 	$: {
 		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
 			old_value = value;
-			dispatch("change");
+			gradio.dispatch("change");
 		}
 	}
 </script>
 
 <Block
 	{visible}
-	variant={mode === "dynamic" && value === null && source === "upload"
-		? "dashed"
-		: "solid"}
+	variant={value === null && source === "upload" ? "dashed" : "solid"}
 	border_mode={dragging ? "focus" : "base"}
 	padding={false}
 	{elem_id}
@@ -85,10 +91,11 @@
 		{show_label}
 		{autoplay}
 		{show_share_button}
-		on:play
-		on:pause
-		on:stop
-		on:share
-		on:error
+		on:play={() => gradio.dispatch("play")}
+		on:pause={() => gradio.dispatch("pause")}
+		on:stop={() => gradio.dispatch("stop")}
+		on:end={() => gradio.dispatch("end")}
+		on:share={({ detail }) => gradio.dispatch("share", detail)}
+		on:error={({ detail }) => gradio.dispatch("error", detail)}
 	/>
 </Block>

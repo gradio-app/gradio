@@ -46,7 +46,8 @@ class TestHuggingFaceDatasetSaver:
         return_value=MagicMock(repo_id="gradio-tests/test"),
     )
     @patch("huggingface_hub.hf_hub_download")
-    def test_saver_setup(self, mock_download, mock_create):
+    @patch("huggingface_hub.metadata_update")
+    def test_saver_setup(self, metadata_update, mock_download, mock_create):
         flagger = flagging.HuggingFaceDatasetSaver("test_token", "test")
         with tempfile.TemporaryDirectory() as tmpdirname:
             flagger.setup([gr.Audio, gr.Textbox], tmpdirname)
@@ -60,8 +61,9 @@ class TestHuggingFaceDatasetSaver:
     @patch("huggingface_hub.hf_hub_download")
     @patch("huggingface_hub.upload_folder")
     @patch("huggingface_hub.upload_file")
+    @patch("huggingface_hub.metadata_update")
     def test_saver_flag_same_dir(
-        self, mock_upload_file, mock_upload, mock_download, mock_create
+        self, metadata_update, mock_upload_file, mock_upload, mock_download, mock_create
     ):
         with tempfile.TemporaryDirectory() as tmpdirname:
             io = gr.Interface(
@@ -89,8 +91,9 @@ class TestHuggingFaceDatasetSaver:
     @patch("huggingface_hub.hf_hub_download")
     @patch("huggingface_hub.upload_folder")
     @patch("huggingface_hub.upload_file")
+    @patch("huggingface_hub.metadata_update")
     def test_saver_flag_separate_dirs(
-        self, mock_upload_file, mock_upload, mock_download, mock_create
+        self, metadata_update, mock_upload_file, mock_upload, mock_download, mock_create
     ):
         with tempfile.TemporaryDirectory() as tmpdirname:
             io = gr.Interface(

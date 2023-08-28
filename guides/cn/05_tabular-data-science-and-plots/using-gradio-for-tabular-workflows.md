@@ -33,16 +33,16 @@ df = df["train"].to_pandas()
 
 def infer(input_dataframe):
   return pd.DataFrame(model.predict(input_dataframe))
-  
+
 gr.Interface(fn = infer, inputs = inputs, outputs = outputs, examples = [[df.head(2)]]).launch()
 ```
 
 让我们来解析上述代码。
 
-* `fn`：推理函数，接受输入数据帧并返回预测结果。
-* `inputs`：我们使用 `Dataframe` 组件作为输入。我们将输入定义为具有 2 行 4 列的数据帧，最初的数据帧将呈现出上述形状的空数据帧。当将 `row_count` 设置为 `dynamic` 时，不必依赖于正在输入的数据集来预定义组件。
-* `outputs`：用于存储输出的数据帧组件。该界面可以接受单个或多个样本进行推断，并在一列中为每个样本返回 0 或 1，因此我们将 `row_count` 设置为 2，`col_count` 设置为 1。`headers` 是由数据帧的列名组成的列表。
-* `examples`：您可以通过拖放 CSV 文件或通过示例传递 pandas DataFrame，界面会自动获取其标题。
+- `fn`：推理函数，接受输入数据帧并返回预测结果。
+- `inputs`：我们使用 `Dataframe` 组件作为输入。我们将输入定义为具有 2 行 4 列的数据帧，最初的数据帧将呈现出上述形状的空数据帧。当将 `row_count` 设置为 `dynamic` 时，不必依赖于正在输入的数据集来预定义组件。
+- `outputs`：用于存储输出的数据帧组件。该界面可以接受单个或多个样本进行推断，并在一列中为每个样本返回 0 或 1，因此我们将 `row_count` 设置为 2，`col_count` 设置为 1。`headers` 是由数据帧的列名组成的列表。
+- `examples`：您可以通过拖放 CSV 文件或通过示例传递 pandas DataFrame，界面会自动获取其标题。
 
 现在我们将为简化版数据可视化仪表板创建一个示例。您可以在相关空间中找到更全面的版本。
 
@@ -68,7 +68,7 @@ def plot(df):
   plt.savefig("corr.png")
   plots = ["corr.png","scatter.png", "bar.png"]
   return plots
-  
+
 inputs = [gr.Dataframe(label="Supersoaker Production Data")]
 outputs = [gr.Gallery(label="Profiling Dashboard").style(grid=(1,3))]
 
@@ -79,10 +79,10 @@ gr.Interface(plot, inputs=inputs, outputs=outputs, examples=[df.head(100)], titl
 
 我们将使用与训练模型相同的数据集，但这次我们将创建一个可视化仪表板以展示它。
 
-* `fn`：根据数据创建图表的函数。
-* `inputs`：我们使用了与上述相同的 `Dataframe` 组件。
-* `outputs`：我们使用 `Gallery` 组件来存放我们的可视化结果。
-* `examples`：我们将数据集本身作为示例。
+- `fn`：根据数据创建图表的函数。
+- `inputs`：我们使用了与上述相同的 `Dataframe` 组件。
+- `outputs`：我们使用 `Gallery` 组件来存放我们的可视化结果。
+- `examples`：我们将数据集本身作为示例。
 
 ## 使用 skops 一行代码轻松加载表格数据界面
 

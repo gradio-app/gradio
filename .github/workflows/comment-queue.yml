@@ -1,0 +1,36 @@
+name: Comment on pull request without race conditions
+
+on:
+  workflow_call:
+    inputs:
+      pr_number:
+        type: string
+      message:
+        required: true
+        type: string
+      tag:
+        required: false
+        type: string
+        default: "previews"
+      additional_text:
+        required: false
+        type: string
+        default: ""
+    secrets:
+      gh_token:
+        required: true
+
+jobs:
+  comment:
+    concurrency:
+      group: ${{inputs.pr_number || inputs.tag}}
+    runs-on: ubuntu-latest
+    steps:
+      - name: comment on pr
+        uses: "gradio-app/github/actions/comment-pr@main"
+        with:
+          gh_token: ${{ secrets.gh_token }}
+          tag: ${{ inputs.tag }}
+          pr_number: ${{ inputs.pr_number}}
+          message: ${{ inputs.message }}
+          additional_text: ${{ inputs.additional_text }}

@@ -48,7 +48,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         elem_classes: list[str] | str | None = None,
         columns: int | tuple | None = 2,
         rows: int | tuple | None = None,
-        height: str | None = None,
+        height: int | float | None = None,
         preview: bool | None = None,
         object_fit: Literal["contain", "cover", "fill", "none", "scale-down"]
         | None = None,
@@ -71,7 +71,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             columns: Represents the number of images that should be shown in one row, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
             rows: Represents the number of rows in the image grid, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
-            height: Height of the gallery.
+            height: The height of the gallery component, in pixels. If more images are displayed than can fit in the height, a scrollbar will appear.
             preview: If True, will display the Gallery in preview mode, which shows all of the images as thumbnails and allows the user to click on them to view them in full size.
             object_fit: CSS object-fit property for the thumbnail images in the gallery. Can be "contain", "cover", "fill", "none", or "scale-down".
             allow_preview: If True, images in the gallery will be enlarged when they are clicked. Default is True.
@@ -127,7 +127,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         visible: bool | None = None,
         columns: int | tuple | None = None,
         rows: int | tuple | None = None,
-        height: str | None = None,
+        height: int | float | None = None,
         preview: bool | None = None,
         object_fit: Literal["contain", "cover", "fill", "none", "scale-down"]
         | None = None,
@@ -231,7 +231,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         warn_style_method_deprecation()
         if grid is not None:
             warn_deprecation(
-                "The 'grid' parameter will be deprecated. Please use 'grid_cols' in the constructor instead.",
+                "The 'grid' parameter will be deprecated. Please use 'columns' in the constructor instead.",
             )
             self.grid_cols = grid
         if columns is not None:

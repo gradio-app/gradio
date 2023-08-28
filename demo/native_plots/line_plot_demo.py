@@ -69,7 +69,7 @@ with gr.Blocks() as line_plot:
                 value="stocks",
             )
         with gr.Column():
-            plot = gr.LinePlot(show_label=False).style(container=False)
+            plot = gr.LinePlot(show_label=False, container=False)
     dataset.change(line_plot_fn, inputs=dataset, outputs=plot)
     line_plot.load(fn=line_plot_fn, inputs=dataset, outputs=plot)
 

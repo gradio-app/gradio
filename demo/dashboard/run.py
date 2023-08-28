@@ -47,15 +47,13 @@ def create_issue_plot(libraries, issue_choices):
 with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column():
-            with gr.Box():
-                gr.Markdown("## Select libraries to display")
-                libraries = gr.CheckboxGroup(choices=LIBRARIES, label="")
+            gr.Markdown("## Select libraries to display")
+            libraries = gr.CheckboxGroup(choices=LIBRARIES, label="")
         with gr.Column():
-            with gr.Box():
-                gr.Markdown("## Select graphs to display")
-                pip = gr.CheckboxGroup(choices=["Pip", "Cumulated"], label="")
-                stars = gr.CheckboxGroup(choices=["Stars", "Week over Week"], label="")
-                issues = gr.CheckboxGroup(choices=["Issue", "Exclude org members", "week over week"], label="")
+            gr.Markdown("## Select graphs to display")
+            pip = gr.CheckboxGroup(choices=["Pip", "Cumulated"], label="")
+            stars = gr.CheckboxGroup(choices=["Stars", "Week over Week"], label="")
+            issues = gr.CheckboxGroup(choices=["Issue", "Exclude org members", "week over week"], label="")
     with gr.Row():
         fetch = gr.Button(value="Fetch")
     with gr.Row():

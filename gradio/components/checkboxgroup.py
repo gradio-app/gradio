@@ -35,7 +35,7 @@ class CheckboxGroup(
 
     def __init__(
         self,
-        choices: list[str | float | int] | None = None,
+        choices: list[str | int | float | tuple[str, str | int | float]] | None = None,
         *,
         value: list[str | float | int] | str | float | int | Callable | None = None,
         type: Literal["value", "index"] = "value",
@@ -54,22 +54,26 @@ class CheckboxGroup(
     ):
         """
         Parameters:
-            choices: list of (string or numeric) options to select from.
-            value: default selected list of options. If a single choice is selected, it can be passed in as a string or numeric type. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            choices: A list of string or numeric options to select from. An option can also be a tuple of the form (name, value), where name is the displayed name of the checkbox button and value is the value to be passed to the function, or returned by the function.
+            value: Default selected list of options. If a single choice is selected, it can be passed in as a string or numeric type. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indices of the choices selected.
-            label: component name in interface.
-            info: additional component description.
+            label: Component name in interface.
+            info: Additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
-            show_label: if True, will display label.
+            show_label: If True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
-            scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
-            min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
-            interactive: if True, choices in this checkbox group will be checkable; if False, checking will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
+            scale: Relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
+            min_width: Minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
+            interactive: If True, choices in this checkbox group will be checkable; if False, checking will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.choices = choices or []
+        self.choices = (
+            [c if isinstance(c, tuple) else (str(c), c) for c in choices]
+            if choices
+            else []
+        )
         valid_types = ["value", "index"]
         if type not in valid_types:
             raise ValueError(
@@ -109,8 +113,8 @@ class CheckboxGroup(
 
     def example_inputs(self) -> dict[str, Any]:
         return {
-            "raw": self.choices[0] if self.choices else None,
-            "serialized": self.choices[0] if self.choices else None,
+            "raw": [self.choices[0][1]] if self.choices else None,
+            "serialized": [self.choices[0][1]] if self.choices else None,
         }
 
     @staticmethod
@@ -119,7 +123,7 @@ class CheckboxGroup(
         | str
         | Literal[_Keywords.NO_VALUE]
         | None = _Keywords.NO_VALUE,
-        choices: list[str] | None = None,
+        choices: list[str | int | float | tuple[str, str | int | float]] | None = None,
         label: str | None = None,
         info: str | None = None,
         show_label: bool | None = None,
@@ -129,6 +133,11 @@ class CheckboxGroup(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
+        choices = (
+            None
+            if choices is None
+            else [c if isinstance(c, tuple) else (str(c), c) for c in choices]
+        )
         return {
             "choices": choices,
             "label": label,
@@ -148,12 +157,12 @@ class CheckboxGroup(
         Parameters:
             x: list of selected choices
         Returns:
-            list of selected choices as strings or indices within choice list
+            list of selected choice values as strings or indices within choice list
         """
         if self.type == "value":
             return x
         elif self.type == "index":
-            return [self.choices.index(choice) for choice in x]
+            return [[value for _, value in self.choices].index(choice) for choice in x]
         else:
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
@@ -163,9 +172,8 @@ class CheckboxGroup(
         self, y: list[str | int | float] | str | int | float | None
     ) -> list[str | int | float]:
         """
-        Any postprocessing needed to be performed on function output.
         Parameters:
-            y: List of selected choices. If a single choice is selected, it can be passed in as a string
+            y: List of selected choice values. If a single choice is selected, it can be passed in as a string
         Returns:
             List of selected choices
         """
@@ -177,7 +185,7 @@ class CheckboxGroup(
 
     def get_interpretation_neighbors(self, x):
         leave_one_out_sets = []
-        for choice in self.choices:
+        for choice in [value for _, value in self.choices]:
             leave_one_out_set = list(x)
             if choice in leave_one_out_set:
                 leave_one_out_set.remove(choice)
@@ -192,7 +200,7 @@ class CheckboxGroup(
             For each tuple in the list, the first value represents the interpretation score if the input is False, and the second if the input is True.
         """
         final_scores = []
-        for choice, score in zip(self.choices, scores):
+        for choice, score in zip([value for _, value in self.choices], scores):
             score_set = [score, None] if choice in x else [None, score]
             final_scores.append(score_set)
         return final_scores
@@ -213,3 +221,16 @@ class CheckboxGroup(
         if container is not None:
             self.container = container
         return self
+
+    def as_example(self, input_data):
+        if input_data is None:
+            return None
+        elif not isinstance(input_data, list):
+            input_data = [input_data]
+        for data in input_data:
+            if data not in [c[0] for c in self.choices]:
+                raise ValueError(f"Example {data} provided not a valid choice.")
+        return [
+            next((c[0] for c in self.choices if c[1] == data), None)
+            for data in input_data
+        ]

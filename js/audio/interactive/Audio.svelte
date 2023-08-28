@@ -16,6 +16,7 @@
 	// @ts-ignore
 	import Range from "svelte-range-slider-pips";
 	import { loaded } from "../shared/utils";
+	import { _ } from "svelte-i18n";
 
 	import type { IBlobEvent, IMediaRecorder } from "extendable-media-recorder";
 
@@ -27,6 +28,7 @@
 	export let pending = false;
 	export let streaming = false;
 	export let autoplay = false;
+	export let show_edit_button = true;
 
 	// TODO: make use of this
 	// export let type: "normal" | "numpy" = "normal";
@@ -103,10 +105,7 @@
 			stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 		} catch (err) {
 			if (err instanceof DOMException && err.name == "NotAllowedError") {
-				dispatch(
-					"error",
-					"Please allow access to the microphone for recording."
-				);
+				dispatch("error", $_("audio.allow_recording_access"));
 				return;
 			}
 			throw err;
@@ -247,7 +246,7 @@
 	{show_label}
 	Icon={Music}
 	float={source === "upload" && value === null}
-	label={label || "Audio"}
+	label={label || $_("audio.audio")}
 />
 {#if value === null || streaming}
 	{#if source === "microphone"}
@@ -258,14 +257,14 @@
 						<span class="pinger" />
 						<span class="dot" />
 					</span>
-					Stop recording
+					{$_("audio.stop_recording")}
 				</BaseButton>
 			{:else}
 				<BaseButton size="sm" on:click={record}>
 					<span class="record-icon">
 						<span class="dot" />
 					</span>
-					Record from microphone
+					{$_("audio.record_from_microphone")}
 				</BaseButton>
 			{/if}
 		</div>
@@ -283,7 +282,7 @@
 	<ModifyUpload
 		on:clear={clear}
 		on:edit={() => (mode = "edit")}
-		editable
+		editable={show_edit_button}
 		absolute={true}
 	/>
 
