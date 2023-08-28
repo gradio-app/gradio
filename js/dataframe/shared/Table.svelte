@@ -639,28 +639,32 @@
 	{#if editable}
 		<div class="controls-wrap">
 			{#if row_count[1] === "dynamic"}
+			<div>
 			<span class="button-wrap">
 				<BaseButton variant="secondary" size="sm" on:click={() => add_row()}>
-					{$_("dataframe.delete_row")} &#8673;
+					&#8673; {$_("dataframe.delete_row")}
 				</BaseButton>
 			</span>
-		<span class="button-wrap">
+			<span class="button-wrap">
 				<BaseButton variant="secondary" size="sm" on:click={() => add_row()}>
-					{$_("dataframe.new_row")} &#8595;
+					{$_("dataframe.new_row")} &#8675;
 				</BaseButton>
 			</span>
+			</div>
 			{/if}
 			{#if col_count[1] === "dynamic"}
-			<span class="button-wrap">
+			<div>
+				<span class="button-wrap">
 				<BaseButton variant="secondary" size="sm" on:click={add_col}>
-					{$_("dataframe.delete_column")} &#8672;
+					&#8672; {$_("dataframe.delete_column")}
 				</BaseButton>
 			</span>
 			<span class="button-wrap">
 					<BaseButton variant="secondary" size="sm" on:click={add_col}>
-						{$_("dataframe.new_column")} &#8594;
+						{$_("dataframe.new_column")} &#8674;
 					</BaseButton>
 				</span>
+			</div>
 			{/if}
 		</div>
 	{/if}
@@ -833,8 +837,8 @@
 
 	.controls-wrap {
 		display: flex;
-		justify-content: flex-end;
 		padding-top: var(--size-2);
+		justify-content: space-between;
 	}
 
 	.controls-wrap > * + * {
