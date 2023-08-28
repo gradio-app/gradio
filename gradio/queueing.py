@@ -9,7 +9,6 @@ from collections import deque
 from typing import Any, Optional
 
 import fastapi
-import httpx
 from typing_extensions import Literal
 
 from gradio import route_utils, routes
@@ -76,13 +75,9 @@ class Queue:
         self.progress_update_sleep_when_free = 0.1
         self.max_size = max_size
         self.blocks_dependencies = blocks_dependencies
-        self.queue_client = None
         self.continuous_tasks: list[Event] = []
 
     async def start(self, ssl_verify=True):
-        # So that the client is attached to the running event loop
-        self.queue_client = httpx.AsyncClient(verify=ssl_verify)
-
         run_coro_in_background(self.start_processing)
         run_coro_in_background(self.start_log_and_progress_updates)
         if not self.live_updates:
