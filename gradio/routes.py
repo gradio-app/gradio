@@ -437,7 +437,6 @@ class App(FastAPI):
                 app.iterators_to_reset[body.session_hash].add(body.fn_index)
             return {"success": True}
 
-
         # had to use '/run' endpoint for Colab compatibility, '/api' supported for backwards compatibility
         @app.post("/run/{api_name}", dependencies=[Depends(login_check)])
         @app.post("/run/{api_name}/", dependencies=[Depends(login_check)])
