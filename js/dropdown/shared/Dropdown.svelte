@@ -105,14 +105,7 @@
 		if (multiselect) {
 			inputValue = "";
 		} else if (!allow_custom_value) {
-			if (value !== inputValue) {
-				if (typeof value === "string" && inputValue == "") {
-					inputValue = value;
-				} else {
-					value = undefined;
-					inputValue = "";
-				}
-			}
+			inputValue = value as string | undefined;
 		}
 		showOptions = false;
 		dispatch("blur");

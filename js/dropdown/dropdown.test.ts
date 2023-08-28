@@ -87,6 +87,30 @@ describe("Dropdown", () => {
 		expect(options[0]).toContainHTML("zebra");
 	});
 
+	test("blurring the textbox should cancel the filter", async () => {
+		const { getByLabelText, listen } = await render(Dropdown, {
+			show_label: true,
+			loading_status,
+			value: "default",
+			label: "Dropdown",
+			choices: ["default", "other"]
+		});
+
+		const item: HTMLInputElement = getByLabelText(
+			"Dropdown"
+		) as HTMLInputElement;
+		const change_event = listen("change");
+		const select_event = listen("select");
+
+		await item.focus();
+		await event.keyboard("other");
+		await item.blur();
+
+		assert.equal(item.value, "default");
+		assert.equal(change_event.callCount, 0);
+		assert.equal(select_event.callCount, 0);
+	});
+
 	test("deselecting and reselcting a filtered dropdown should show all options again", async () => {
 		const { getByLabelText, getAllByTestId, debug } = await render(Dropdown, {
 			show_label: true,
