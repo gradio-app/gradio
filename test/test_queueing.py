@@ -1,12 +1,11 @@
 import asyncio
 import os
 from collections import deque
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
 from gradio.queueing import Event, Queue
-from gradio.utils import AsyncRequest
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -19,6 +18,7 @@ class AsyncMock(MagicMock):
 @pytest.fixture()
 def queue() -> Queue:
     queue_object = Queue(
+        app=None,
         live_updates=True,
         concurrency_count=1,
         update_intervals=1,
@@ -168,18 +168,16 @@ class TestQueueEstimation:
 
 class TestQueueProcessEvents:
     @pytest.mark.asyncio
-    @patch("gradio.queueing.AsyncRequest", new_callable=AsyncMock)
-    async def test_process_event(self, mock_request, queue: Queue, mock_event: Event):
+    async def test_process_event(self, queue: Queue, mock_event: Event):
         queue.gather_event_data = AsyncMock()
         queue.gather_event_data.return_value = True
         queue.send_message = AsyncMock()
         queue.send_message.return_value = True
         queue.call_prediction = AsyncMock()
-        queue.call_prediction.return_value = MagicMock()
-        queue.call_prediction.return_value.has_exception = False
-        queue.call_prediction.return_value.json = {"is_generating": False}
+        queue.call_prediction.return_value = {"is_generating": False}
         mock_event.disconnect = AsyncMock()
         queue.clean_event = AsyncMock()
+        queue.reset_iterators = AsyncMock()
 
         queue.active_jobs = [[mock_event]]
         await queue.process_events([mock_event], batch=False)
@@ -187,14 +185,9 @@ class TestQueueProcessEvents:
         queue.call_prediction.assert_called_once()
         mock_event.disconnect.assert_called_once()
         queue.clean_event.assert_called_once()
-        mock_request.assert_called_with(
-            method=AsyncRequest.Method.POST,
-            url=f"{queue.server_path}reset",
-            json={
-                "session_hash": mock_event.session_hash,
-                "fn_index": mock_event.fn_index,
-            },
-            client=None,
+        queue.reset_iterators.assert_called_with(
+            mock_event.session_hash,
+            mock_event.fn_index,
         )
 
     @pytest.mark.asyncio
@@ -206,6 +199,7 @@ class TestQueueProcessEvents:
         queue.call_prediction = AsyncMock()
         mock_event.disconnect = AsyncMock()
         queue.clean_event = AsyncMock()
+        queue.reset_iterators = AsyncMock()
         mock_event.data = None
 
         queue.active_jobs = [[mock_event]]
@@ -225,6 +219,7 @@ class TestQueueProcessEvents:
         queue.call_prediction = AsyncMock()
         mock_event.disconnect = AsyncMock()
         queue.clean_event = AsyncMock()
+        queue.reset_iterators = AsyncMock()
         mock_event.data = None
 
         queue.active_jobs = [[mock_event]]
@@ -241,9 +236,8 @@ class TestQueueProcessEvents:
         queue.gather_event_data = AsyncMock(return_value=True)
         queue.clean_event = AsyncMock()
         queue.send_message = AsyncMock(return_value=True)
-        queue.call_prediction = AsyncMock(
-            return_value=MagicMock(has_exception=True, exception=ValueError("foo"))
-        )
+        queue.call_prediction = AsyncMock(side_effect=ValueError("foo"))
+        queue.reset_iterators = AsyncMock()
 
         queue.active_jobs = [[mock_event]]
         await queue.process_events([mock_event], batch=False)
@@ -260,14 +254,15 @@ class TestQueueProcessEvents:
         # setting up the function to expect further iterative responses.
         # Then we provide a 500 response.
         side_effects = [
-            MagicMock(has_exception=False, status=200, json={"is_generating": True}),
-            MagicMock(has_exception=False, status=500, json={"error": "Foo"}),
+            {"is_generating": True},
+            Exception("Foo"),
         ]
         mock_event.disconnect = AsyncMock()
         queue.gather_event_data = AsyncMock(return_value=True)
         queue.clean_event = AsyncMock()
         queue.send_message = AsyncMock(return_value=True)
         queue.call_prediction = AsyncMock(side_effect=side_effects)
+        queue.reset_iterators = AsyncMock()
 
         queue.active_jobs = [[mock_event]]
         await queue.process_events([mock_event], batch=False)
@@ -295,11 +290,10 @@ class TestQueueProcessEvents:
             "3",
             ValueError("Can't connect"),
         ]
-        queue.call_prediction = AsyncMock(
-            return_value=MagicMock(has_exception=False, json={"is_generating": False})
-        )
+        queue.call_prediction = AsyncMock(return_value={"is_generating": False})
         mock_event.disconnect = AsyncMock()
         queue.clean_event = AsyncMock()
+        queue.reset_iterators = AsyncMock()
         mock_event.data = None
 
         queue.active_jobs = [[mock_event]]
@@ -310,29 +304,22 @@ class TestQueueProcessEvents:
         assert queue.clean_event.call_count >= 1
 
     @pytest.mark.asyncio
-    @patch("gradio.queueing.AsyncRequest", new_callable=AsyncMock)
     async def test_process_event_handles_exception_during_disconnect(
-        self, mock_request, queue: Queue, mock_event: Event
+        self, queue: Queue, mock_event: Event
     ):
         mock_event.websocket.receive_json.return_value = {"data": ["test"], "fn": 0}
         mock_event.websocket.send_json = AsyncMock()
-        queue.call_prediction = AsyncMock(
-            return_value=MagicMock(has_exception=False, json={"is_generating": False})
-        )
+        queue.call_prediction = AsyncMock(return_value={"is_generating": False})
+        queue.reset_iterators = AsyncMock()
         # No exception should be raised during `process_event`
         mock_event.disconnect = AsyncMock(side_effect=ValueError("..."))
         queue.clean_event = AsyncMock()
         mock_event.data = None
         queue.active_jobs = [[mock_event]]
         await queue.process_events([mock_event], batch=False)
-        mock_request.assert_called_with(
-            method=AsyncRequest.Method.POST,
-            url=f"{queue.server_path}reset",
-            json={
-                "session_hash": mock_event.session_hash,
-                "fn_index": mock_event.fn_index,
-            },
-            client=None,
+        queue.reset_iterators.assert_called_with(
+            mock_event.session_hash,
+            mock_event.fn_index,
         )
 
 
@@ -344,14 +331,13 @@ class TestQueueBatch:
         queue.send_message = AsyncMock()
         queue.send_message.return_value = True
         queue.call_prediction = AsyncMock()
-        queue.call_prediction.return_value = MagicMock()
-        queue.call_prediction.return_value.has_exception = False
-        queue.call_prediction.return_value.json = {
+        queue.call_prediction.return_value = {
             "is_generating": False,
             "data": [[1, 2]],
         }
         mock_event.disconnect = AsyncMock()
         queue.clean_event = AsyncMock()
+        queue.reset_iterators = AsyncMock()
 
         websocket = MagicMock()
         mock_event2 = Event(websocket=websocket, session_hash="test", fn_index=0)
