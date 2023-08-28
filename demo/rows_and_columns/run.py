@@ -14,7 +14,7 @@ with gr.Blocks() as demo:
             text5 = gr.Textbox(label="prompt 2")
         with gr.Column(scale=2, min_width=600):
             img1 = gr.Image("images/cheetah.jpg")
-            btn = gr.Button("Go").style(full_width=True)
+            btn = gr.Button("Go")
 
 if __name__ == "__main__":
     demo.launch()

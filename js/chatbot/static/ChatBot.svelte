@@ -97,15 +97,17 @@
 				{#each message_pair as message, j}
 					<div class="message-row {j == 0 ? 'user-row' : 'bot-row'}">
 						{#if avatar_images[j] !== null}
-							<img
-								class="avatar-image-{j == 0 ? 'user' : 'bot'}"
-								src={get_fetchable_url_or_file(
-									avatar_images[j],
-									root,
-									root_url
-								)}
-								alt="avatar"
-							/>
+							<div class="avatar-container">
+								<img
+									class="avatar-image"
+									src={get_fetchable_url_or_file(
+										avatar_images[j],
+										root,
+										root_url
+									)}
+									alt="avatar-{j == 0 ? 'user' : 'bot'}"
+								/>
+							</div>
 						{/if}
 						<!-- TODO: fix-->
 						<!-- svelte-ignore a11y-no-static-element-interactions-->
@@ -207,7 +209,7 @@
 		gap: var(--spacing-xxl);
 	}
 
-	.message-wrap > div :global(img) {
+	.message-wrap > div :not(.avatar-container) :global(img) {
 		border-radius: 13px;
 		max-width: 30vw;
 	}
@@ -279,22 +281,26 @@
 			padding-left: var(--spacing-xxl);
 		}
 	}
-	.avatar-image-user,
-	.avatar-image-bot {
+	.avatar-container {
 		align-self: flex-end;
 		position: relative;
 		justify-content: center;
-		max-width: 35px;
-		max-height: 35px;
-		border-radius: 50%;
-		bottom: 0px;
+		width: 35px;
+		height: 35px;
+		bottom: 0;
 	}
-	.avatar-image-user {
+	.user-row > .avatar-container {
 		order: 2;
 		margin-left: 10px;
 	}
-	.avatar-image-bot {
+	.bot-row > .avatar-container {
 		margin-right: 10px;
+	}
+	img.avatar-image {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		border-radius: 50%;
 	}
 
 	.feedback {
