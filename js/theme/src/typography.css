@@ -82,20 +82,6 @@
 
 /* code
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
-.prose code {
-	border: 1px solid var(--border-color-primary);
-	border-radius: var(--radius-sm);
-	background: var(--background-fill-secondary);
-	padding: 1px 3px;
-	font-size: 85%;
-	white-space: nowrap;
-}
-.prose pre > code {
-	display: block;
-	padding: 0.5em 0.7em;
-	/* font-size: 100%; */
-	white-space: pre;
-}
 
 /* tables
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
@@ -172,6 +158,6 @@
 	padding-left: var(--size-2);
 }
 
-.prose :last-child {
+.prose:last-child {
 	margin-bottom: 0 !important;
 }

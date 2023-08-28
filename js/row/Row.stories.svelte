@@ -1,7 +1,7 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import Row from "./static";
-	import Image from "@gradio/image";
+	import Image from "@gradio/image/interactive";
 </script>
 
 <Meta title="Layout Elements/Row" component={Row} />

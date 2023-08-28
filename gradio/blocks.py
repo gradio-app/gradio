@@ -385,10 +385,12 @@ class BlockContext(Block):
                 child.parent = pseudo_parent
         self.children = children
 
-    def __exit__(self, *args):
+    def __exit__(self, exc_type: type[BaseException] | None = None, *args):
+        Context.block = self.parent
+        if exc_type is not None:
+            return
         if getattr(self, "allow_expected_parents", True):
             self.fill_expected_parents()
-        Context.block = self.parent
 
     def postprocess(self, y):
         """
@@ -438,12 +440,6 @@ class BlockFunction:
 
     def __repr__(self):
         return str(self)
-
-
-class class_or_instancemethod(classmethod):  # noqa: N801
-    def __get__(self, instance, type_):
-        descr_get = super().__get__ if instance is None else self.__func__.__get__
-        return descr_get(instance, type_)
 
 
 def postprocess_update_dict(block: Block, update_dict: dict, postprocess: bool = True):
@@ -947,23 +943,21 @@ class Blocks(BlockContext):
         block_fn = self.fns[fn_index]
         assert block_fn.fn, f"function with index {fn_index} not defined."
         is_generating = False
-
-        if block_fn.inputs_as_dict:
-            processed_input = [dict(zip(block_fn.inputs, processed_input))]
-
         request = requests[0] if isinstance(requests, list) else requests
-        processed_input, progress_index, _ = special_args(
-            block_fn.fn, processed_input, request, event_data
-        )
-        progress_tracker = (
-            processed_input[progress_index] if progress_index is not None else None
-        )
-
         start = time.time()
-
         fn = utils.get_function_with_locals(block_fn.fn, self, event_id)
 
         if iterator is None:  # If not a generator function that has already run
+            if block_fn.inputs_as_dict:
+                processed_input = [dict(zip(block_fn.inputs, processed_input))]
+
+            processed_input, progress_index, _ = special_args(
+                block_fn.fn, processed_input, request, event_data
+            )
+            progress_tracker = (
+                processed_input[progress_index] if progress_index is not None else None
+            )
+
             if progress_tracker is not None and progress_index is not None:
                 progress_tracker, fn = create_tracker(
                     self, event_id, fn, progress_tracker.track_tqdm
@@ -1219,22 +1213,29 @@ Received outputs:
         return output
 
     def handle_streaming_outputs(
-        self, fn_index: int, data: list, session_hash: str | None, run: int | None
+        self,
+        fn_index: int,
+        data: list,
+        session_hash: str | None,
+        run: int | None,
     ) -> list:
         if session_hash is None or run is None:
             return data
+        if run not in self.pending_streams[session_hash]:
+            self.pending_streams[session_hash][run] = {}
+        stream_run = self.pending_streams[session_hash][run]
 
         for i, output_id in enumerate(self.dependencies[fn_index]["outputs"]):
             block = self.blocks[output_id]
-            if isinstance(block, components.StreamingOutput) and block.streaming:
-                stream = block.stream_output(data[i])
-                if run not in self.pending_streams[session_hash]:
-                    self.pending_streams[session_hash][run] = defaultdict(list)
-                self.pending_streams[session_hash][run][output_id].append(stream)
-                data[i] = {
-                    "name": f"{session_hash}/{run}/{output_id}",
-                    "is_stream": True,
-                }
+            if isinstance(block, StreamableOutput) and block.streaming:
+                first_chunk = output_id not in stream_run
+                binary_data, output_data = block.stream_output(
+                    data[i], f"{session_hash}/{run}/{output_id}", first_chunk
+                )
+                if first_chunk:
+                    stream_run[output_id] = []
+                self.pending_streams[session_hash][run][output_id].append(binary_data)
+                data[i] = output_data
         return data
 
     async def process_api(
@@ -1294,18 +1295,24 @@ Received outputs:
             data = list(zip(*data))
             is_generating, iterator = None, None
         else:
-            inputs = self.preprocess_data(fn_index, inputs, state)
-            iterator = iterators.get(fn_index, None) if iterators else None
-            was_generating = iterator is not None
+            old_iterator = iterators.get(fn_index, None) if iterators else None
+            if old_iterator:
+                inputs = []
+            else:
+                inputs = self.preprocess_data(fn_index, inputs, state)
+            was_generating = old_iterator is not None
             result = await self.call_function(
-                fn_index, inputs, iterator, request, event_id, event_data
+                fn_index, inputs, old_iterator, request, event_id, event_data
             )
             data = self.postprocess_data(fn_index, result["prediction"], state)
-            if result["is_generating"] or was_generating:
-                data = self.handle_streaming_outputs(
-                    fn_index, data, session_hash, id(iterator)
-                )
             is_generating, iterator = result["is_generating"], result["iterator"]
+            if is_generating or was_generating:
+                data = self.handle_streaming_outputs(
+                    fn_index,
+                    data,
+                    session_hash=session_hash,
+                    run=id(old_iterator) if was_generating else id(iterator),
+                )
 
         block_fn.total_runtime += result["duration"]
         block_fn.total_runs += 1
@@ -1378,7 +1385,11 @@ Received outputs:
         self.exited = False
         return self
 
-    def __exit__(self, *args):
+    def __exit__(self, exc_type: type[BaseException] | None = None, *args):
+        if exc_type is not None:
+            Context.block = None
+            Context.root_block = None
+            return
         super().fill_expected_parents()
         Context.block = self.parent
         # Configure the load events before root_block is reset
@@ -1392,9 +1403,8 @@ Received outputs:
         self.progress_tracking = any(block_fn.tracks_progress for block_fn in self.fns)
         self.exited = True
 
-    @class_or_instancemethod
     def load(
-        self_or_cls,  # noqa: N805
+        self: Blocks | None = None,
         fn: Callable | None = None,
         inputs: list[Component] | None = None,
         outputs: list[Component] | None = None,
@@ -1419,9 +1429,7 @@ Received outputs:
         For reverse compatibility reasons, this is both a class method and an instance
         method, the two of which, confusingly, do two completely different things.
 
-
         Class method: loads a demo from a Hugging Face Spaces repo and creates it locally and returns a block instance. Warning: this method will be deprecated. Use the equivalent `gradio.load()` instead.
-
 
         Instance method: adds event that runs as soon as the demo loads in the browser. Example usage below.
         Parameters:
@@ -1451,7 +1459,7 @@ Received outputs:
                 demo.load(get_time, inputs=None, outputs=dt)
             demo.launch()
         """
-        if isinstance(self_or_cls, type):
+        if self is None:
             warn_deprecation(
                 "gr.Blocks.load() will be deprecated. Use gr.load() instead."
             )
@@ -1465,7 +1473,7 @@ Received outputs:
         else:
             from gradio.events import Dependency
 
-            dep, dep_index = self_or_cls.set_event_trigger(
+            dep, dep_index = self.set_event_trigger(
                 event_name="load",
                 fn=fn,
                 inputs=inputs,
@@ -1482,7 +1490,7 @@ Received outputs:
                 every=every,
                 no_target=True,
             )
-            return Dependency(self_or_cls, dep, dep_index)
+            return Dependency(self, dep, dep_index)
 
     def clear(self):
         """Resets the layout of the Blocks object."""

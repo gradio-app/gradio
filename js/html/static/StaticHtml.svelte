@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import type { Gradio } from "@gradio/utils";
 	import HTML from "./HTML.svelte";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 	import { Block } from "@gradio/atoms";
 
 	export let label: string;
@@ -11,10 +11,11 @@
 	export let visible = true;
 	export let value = "";
 	export let loading_status: LoadingStatus;
+	export let gradio: Gradio<{
+		change: never;
+	}>;
 
-	const dispatch = createEventDispatcher<{ change: undefined }>();
-
-	$: label, dispatch("change");
+	$: label, gradio.dispatch("change");
 </script>
 
 <Block {visible} {elem_id} {elem_classes} container={false}>
@@ -26,7 +27,7 @@
 			{elem_id}
 			{elem_classes}
 			{visible}
-			on:change
+			on:change={() => gradio.dispatch("change")}
 		/>
 	</div>
 </Block>

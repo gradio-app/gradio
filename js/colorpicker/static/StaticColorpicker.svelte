@@ -1,10 +1,12 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
+	import type { Gradio } from "@gradio/utils";
 	import Colorpicker from "../shared";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
+	import exp from "constants";
 
 	export let label = "ColorPicker";
 	export let info: string | undefined = undefined;
@@ -19,6 +21,13 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let interactive = true;
+	export let gradio: Gradio<{
+		change: never;
+		input: never;
+		submit: never;
+		blur: never;
+		focus: never;
+	}>;
 </script>
 
 <Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
@@ -31,10 +40,10 @@
 		{info}
 		{show_label}
 		disabled={!interactive}
-		on:change
-		on:input
-		on:submit
-		on:blur
-		on:focus
+		on:change={() => gradio.dispatch("change")}
+		on:input={() => gradio.dispatch("input")}
+		on:submit={() => gradio.dispatch("submit")}
+		on:blur={() => gradio.dispatch("blur")}
+		on:focus={() => gradio.dispatch("focus")}
 	/>
 </Block>

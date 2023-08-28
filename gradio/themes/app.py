@@ -63,7 +63,7 @@ with gr.Blocks(theme=gr.themes.Default()) as demo:
             check = gr.Checkbox(label="Go")
         with gr.Column(variant="panel", scale=2):
             img = gr.Image(
-                "https://raw.githubusercontent.com/gradio-app/gradio/main/js/_website/src/assets/img/header-image.jpg",
+                "https://gradio-static-files.s3.us-west-2.amazonaws.com/header-image.jpg",
                 label="Image",
             ).style(height=320)
             with gr.Row():
@@ -74,7 +74,7 @@ with gr.Blocks(theme=gr.themes.Default()) as demo:
 
                 def go(*args):
                     time.sleep(3)
-                    return "https://raw.githubusercontent.com/gradio-app/gradio/main/js/_website/src/assets/img/header-image.jpg"
+                    return "https://gradio-static-files.s3.us-west-2.amazonaws.com/header-image.jpgjpg"
 
                 go_btn.click(go, [radio, drop, drop_2, check, name], img, api_name="go")
 

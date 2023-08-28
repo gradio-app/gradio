@@ -115,7 +115,7 @@ demo = gr.Interface(
         gr.Audio(label="Audio"),
         gr.Image(label="Image"),
         gr.Video(label="Video"),
-        gr.HighlightedText(label="HighlightedText").style(
+        gr.HighlightedText(label="HighlightedText", 
             color_map={"punc": "pink", "test 0": "blue"}
         ),
         gr.HighlightedText(label="HighlightedText", show_legend=True),

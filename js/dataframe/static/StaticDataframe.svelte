@@ -1,9 +1,10 @@
 <script lang="ts">
+	import { afterUpdate } from "svelte";
+	import type { Gradio, SelectData } from "@gradio/utils";
 	import { Block } from "@gradio/atoms";
 	import Table from "../shared";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
-	import { createEventDispatcher, afterUpdate } from "svelte";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	type Headers = string[];
 	type Data = (string | number)[][];
@@ -28,14 +29,24 @@
 	export let min_width: number | undefined = undefined;
 	export let root: string;
 
-	const dispatch = createEventDispatcher();
+	export let gradio: Gradio<{
+		change: never;
+		select: SelectData;
+		input: never;
+	}>;
+	export let latex_delimiters: {
+		left: string;
+		right: string;
+		display: boolean;
+	}[];
+	export let height: number | undefined = undefined;
 
 	export let loading_status: LoadingStatus;
 
 	function handle_change(): void {
-		dispatch("change", value);
+		gradio.dispatch("change");
 		if (!value_is_output) {
-			dispatch("input");
+			gradio.dispatch("input");
 		}
 	}
 	afterUpdate(() => {
@@ -70,8 +81,11 @@
 		on:change={({ detail }) => {
 			value = detail;
 		}}
-		on:select
+		on:select={(e) => gradio.dispatch("select", e.detail)}
 		{wrap}
 		{datatype}
+		{latex_delimiters}
+		editable={false}
+		{height}
 	/>
 </Block>

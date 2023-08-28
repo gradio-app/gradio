@@ -66,6 +66,10 @@
 	import Embed from "./Embed.svelte";
 	import type { ThemeMode } from "./components/types";
 	import { StatusTracker } from "@gradio/statustracker";
+	import { _ } from "svelte-i18n";
+	import { setupi18n } from "./i18n";
+
+	setupi18n();
 
 	export let autoscroll: boolean;
 	export let version: string;
@@ -94,8 +98,9 @@
 	let app_id: string | null = null;
 	let wrapper: HTMLDivElement;
 	let ready = false;
+	let render_complete = false;
 	let config: Config;
-	let loading_text = "Loading...";
+	let loading_text = $_("common.loading") + "...";
 	let active_theme_mode: ThemeMode;
 
 	async function mount_custom_css(
@@ -257,20 +262,17 @@
 		| "RUNTIME_ERROR"
 		| "PAUSED";
 
+	// todo @hannahblair: translate these messages
 	const discussion_message = {
 		readable_error: {
-			NO_APP_FILE: "there is no app file",
-			CONFIG_ERROR: "there is a config error",
-			BUILD_ERROR: "there is a build error",
-			RUNTIME_ERROR: "there is a runtime error",
-			PAUSED: "the space is paused"
+			NO_APP_FILE: $_("errors.no_app_file"),
+			CONFIG_ERROR: $_("errors.config_error"),
+			BUILD_ERROR: $_("errors.build_error"),
+			RUNTIME_ERROR: $_("errors.runtime_error"),
+			PAUSED: $_("errors.space_paused")
 		} as const,
 		title(error: error_types): string {
-			return encodeURIComponent(
-				`Space isn't working because ${
-					this.readable_error[error] || "an error"
-				}`
-			);
+			return encodeURIComponent($_("errors.space_not_working"));
 		},
 		description(error: error_types, site: string): string {
 			return encodeURIComponent(
@@ -284,6 +286,16 @@
 	onMount(async () => {
 		intersecting.register(_id, wrapper);
 	});
+
+	$: if (render_complete) {
+		wrapper.dispatchEvent(
+			new CustomEvent("render", {
+				bubbles: true,
+				cancelable: false,
+				composed: true
+			})
+		);
+	}
 </script>
 
 <Embed
@@ -306,6 +318,7 @@
 			translucent={true}
 			{loading_text}
 		>
+			<!-- todo: translate message text -->
 			<div class="error" slot="error">
 				<p><strong>{status?.message || ""}</strong></p>
 				{#if (status.status === "space_error" || status.status === "paused") && status.discussions_enabled}
@@ -322,7 +335,7 @@
 						> to let them know.
 					</p>
 				{:else}
-					<p>Please contact the author of the page to let them know.</p>
+					<p>{$_("errors.contact_page_author")}</p>
 				{/if}
 			</div>
 		</StatusTracker>
@@ -343,8 +356,10 @@
 			target={wrapper}
 			{autoscroll}
 			bind:ready
+			bind:render_complete
 			show_footer={!is_embed}
 			{app_mode}
+			{version}
 		/>
 	{/if}
 </Embed>

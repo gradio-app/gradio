@@ -23,18 +23,18 @@ def fake_gan():
 
 with gr.Blocks() as demo:
     with gr.Column(variant="panel"):
-        with gr.Row(variant="compact"):
+        with gr.Row():
             text = gr.Textbox(
                 label="Enter your prompt",
-                show_label=False,
                 max_lines=1,
                 placeholder="Enter your prompt",
-                container=False)
-            btn = gr.Button("Generate image", full_width=False)
+                container=False,
+            )
+            btn = gr.Button("Generate image", scale=0)
 
         gallery = gr.Gallery(
             label="Generated images", show_label=False, elem_id="gallery"
-        )
+        , columns=[2], rows=[2], object_fit="contain", height="auto")
 
     btn.click(fake_gan, None, gallery)
 

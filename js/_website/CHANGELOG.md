@@ -1,5 +1,44 @@
 # website
 
+## 0.2.2
+
+### Features
+
+- [#5284](https://github.com/gradio-app/gradio/pull/5284) [`5f25eb68`](https://github.com/gradio-app/gradio/commit/5f25eb6836f6a78ce6208b53495a01e1fc1a1d2f) - Minor bug fix sweep.  Thanks [@aliabid94](https://github.com/aliabid94)!/n  - Our use of __exit__ was catching errors and corrupting the traceback of any component that failed to instantiate (try running blocks_kitchen_sink off main for an example). Now the __exit__ exits immediately if there's been an exception, so the original exception can be printed cleanly/n  - HighlightedText was rendering weird, cleaned it up
+
+## 0.2.1
+
+### Fixes
+
+- [#5324](https://github.com/gradio-app/gradio/pull/5324) [`31996c99`](https://github.com/gradio-app/gradio/commit/31996c991d6bfca8cef975eb8e3c9f61a7aced19) - ensure login form has correct styles.  Thanks [@pngwn](https://github.com/pngwn)!
+
+## 0.2.0
+
+### Highlights
+
+#### Improve startup performance and markdown support ([#5279](https://github.com/gradio-app/gradio/pull/5279) [`fe057300`](https://github.com/gradio-app/gradio/commit/fe057300f0672c62dab9d9b4501054ac5d45a4ec))
+
+##### Improved markdown support
+
+We now have better support for markdown in `gr.Markdown` and `gr.Dataframe`. Including syntax highlighting and Github Flavoured Markdown. We also have more consistent markdown behaviour and styling.
+
+##### Various performance improvements
+
+These improvements will be particularly beneficial to large applications.
+
+- Rather than attaching events manually, they are now delegated, leading to a significant performance improvement and addressing a performance regression introduced in a recent version of Gradio. App startup for large applications is now around twice as fast.
+- Optimised the mounting of individual components, leading to a modest performance improvement during startup (~30%).
+- Corrected an issue that was causing markdown to re-render infinitely.
+- Ensured that the `gr.3DModel` does re-render prematurely.
+
+ Thanks [@pngwn](https://github.com/pngwn)!
+
+### Features
+
+- [#5298](https://github.com/gradio-app/gradio/pull/5298) [`cf167cd1`](https://github.com/gradio-app/gradio/commit/cf167cd1dd4acd9aee225ff1cb6fac0e849806ba) - Create event listener table for components on docs.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#5092](https://github.com/gradio-app/gradio/pull/5092) [`643442e1`](https://github.com/gradio-app/gradio/commit/643442e1a5e25fc0c89a15a38b6279b8955643ac) - generate docs json in ci, reimplement main vs release.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5186](https://github.com/gradio-app/gradio/pull/5186) [`24b66e1c`](https://github.com/gradio-app/gradio/commit/24b66e1cff0452bce71c71cea1b818913aeb8d51) - homepage demo update.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 0.1.0
 
 ### Features

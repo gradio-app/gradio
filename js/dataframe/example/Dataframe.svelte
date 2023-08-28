@@ -1,6 +1,6 @@
 <script lang="ts">
-	//@ts-ignore
 	import { csvParseRows, tsvParseRows } from "d3-dsv";
+	import { _ } from "svelte-i18n";
 
 	export let value: (string | number)[][] | string;
 	export let samples_dir: string;
@@ -34,9 +34,7 @@
 
 						loaded_value = tsvParseRows(small_df);
 					} else {
-						throw new Error(
-							"Incorrect format, only CSV and TSV files are supported"
-						);
+						throw new Error($_("dataframe.incorrect_format"));
 					}
 
 					loaded = true;

@@ -9,7 +9,11 @@ simple = pd.DataFrame(
 )
 
 with gr.Blocks() as demo:
-    gr.BarPlot(value=simple, x="item", y="inventory", title="Simple Bar Plot").style(
+    gr.BarPlot(
+        value=simple,
+        x="item",
+        y="inventory",
+        title="Simple Bar Plot",
         container=False,
     )
 

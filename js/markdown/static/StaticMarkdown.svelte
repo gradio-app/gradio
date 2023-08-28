@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import type { Gradio } from "@gradio/utils";
 	import Markdown from "./Markdown.svelte";
 
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 	import { Block } from "@gradio/atoms";
 
 	export let label: string;
@@ -13,10 +13,16 @@
 	export let value = "";
 	export let loading_status: LoadingStatus;
 	export let rtl = false;
+	export let gradio: Gradio<{
+		change: never;
+	}>;
+	export let latex_delimiters: {
+		left: string;
+		right: string;
+		display: boolean;
+	}[];
 
-	const dispatch = createEventDispatcher<{ change: undefined }>();
-
-	$: label, dispatch("change");
+	$: label, gradio.dispatch("change");
 </script>
 
 <Block {visible} {elem_id} {elem_classes} container={false}>
@@ -29,7 +35,8 @@
 			{elem_classes}
 			{visible}
 			{rtl}
-			on:change
+			on:change={() => gradio.dispatch("change")}
+			{latex_delimiters}
 		/>
 	</div>
 </Block>

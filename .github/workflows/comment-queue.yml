@@ -20,9 +20,6 @@ on:
       gh_token:
         required: true
 
-concurrency:
-  group: 1
-
 jobs:
   comment:
     concurrency:

@@ -1,11 +1,20 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
+	import type { Gradio, SelectData } from "@gradio/utils";
 	import TextBox from "../shared";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 
+	export let gradio: Gradio<{
+		change: string;
+		submit: never;
+		blur: never;
+		select: SelectData;
+		input: never;
+		focus: never;
+	}>;
 	export let label = "Textbox";
 	export let info: string | undefined = undefined;
 	export let elem_id = "";
@@ -56,12 +65,12 @@
 		{show_copy_button}
 		{autofocus}
 		{container}
-		on:change
-		on:input
-		on:submit
-		on:blur
-		on:select
-		on:focus
+		on:change={() => gradio.dispatch("change", value)}
+		on:input={() => gradio.dispatch("input")}
+		on:submit={() => gradio.dispatch("submit")}
+		on:blur={() => gradio.dispatch("blur")}
+		on:select={(e) => gradio.dispatch("select", e.detail)}
+		on:focus={() => gradio.dispatch("focus")}
 		disabled
 	/>
 </Block>

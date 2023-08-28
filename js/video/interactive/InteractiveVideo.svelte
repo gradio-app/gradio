@@ -1,7 +1,7 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import type { Gradio } from "@gradio/utils";
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
 	import { Block } from "@gradio/atoms";
@@ -9,7 +9,7 @@
 	import { UploadText } from "@gradio/atoms";
 
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
 
 	export let elem_id = "";
@@ -31,8 +31,18 @@
 	export let container = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let mode: "static" | "dynamic";
 	export let autoplay = false;
+	export let gradio: Gradio<{
+		change: never;
+		clear: never;
+		play: never;
+		pause: never;
+		upload: never;
+		stop: never;
+		end: never;
+		start_recording: never;
+		stop_recording: never;
+	}>;
 
 	let _video: FileData | null = null;
 	let _subtitle: FileData | null = null;
@@ -49,10 +59,6 @@
 
 	let dragging = false;
 
-	const dispatch = createEventDispatcher<{
-		change: undefined;
-	}>();
-
 	function handle_change({ detail }: CustomEvent<FileData | null>): void {
 		if (detail != null) {
 			value = {video: detail, subtitles: null} as {video: FileData, subtitles: FileData | null} | null;
@@ -64,7 +70,7 @@
 	$: {
 		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
 			old_value = value;
-			dispatch("change");
+			gradio.dispatch("change");
 		}
 	}
 
@@ -73,9 +79,7 @@
 
 <Block
 	{visible}
-	variant={mode === "dynamic" && value === null && source === "upload"
-		? "dashed"
-		: "solid"}
+	variant={value === null && source === "upload" ? "dashed" : "solid"}
 	border_mode={dragging ? "focus" : "base"}
 	padding={false}
 	{elem_id}
@@ -106,14 +110,14 @@
 		{include_audio}
 		{autoplay}
 		{root}
-		on:clear
-		on:play
-		on:pause
-		on:upload
-		on:stop
-		on:end
-		on:start_recording
-		on:stop_recording
+		on:clear={() => gradio.dispatch("clear")}
+		on:play={() => gradio.dispatch("play")}
+		on:pause={() => gradio.dispatch("pause")}
+		on:upload={() => gradio.dispatch("upload")}
+		on:stop={() => gradio.dispatch("stop")}
+		on:end={() => gradio.dispatch("end")}
+		on:start_recording={() => gradio.dispatch("start_recording")}
+		on:stop_recording={() => gradio.dispatch("stop_recording")}
 	>
 		<UploadText type="video" />
 	</Video>

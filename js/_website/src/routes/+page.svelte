@@ -128,8 +128,8 @@
 			to your project.
 		</p>
 		<p class="text-gray-600">
-			You can choose from a variety of interface types to interface your
-			function.
+			Seamlessly use any python library on your computer. If you can write a
+			python function, gradio can run it.
 		</p>
 	</div>
 	<div

@@ -12,8 +12,6 @@ with gr.Blocks() as demo:
         tooltip=["date", "price", "symbol"],
         height=300,
         width=300,
-        show_label=False,
-    ).style(
         container=False,
     )
 

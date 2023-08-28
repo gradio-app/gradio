@@ -4,7 +4,8 @@
 	import { createEventDispatcher } from "svelte";
 	import type { ShareData } from "@gradio/utils";
 	import { ShareError } from "@gradio/utils";
-	``;
+	import { _ } from "svelte-i18n";
+
 	const dispatch = createEventDispatcher<{
 		share: ShareData;
 		error: string;
@@ -17,7 +18,7 @@
 
 <IconButton
 	Icon={Community}
-	label="Share"
+	label={$_("common.share")}
 	{pending}
 	on:click={async () => {
 		try {

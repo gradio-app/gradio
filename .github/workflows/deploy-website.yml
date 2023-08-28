@@ -30,7 +30,7 @@ jobs:
   comment-deploy-start:
     uses: "./.github/workflows/comment-queue.yml"
     secrets:
-      gh_token: ${{ secrets.github_token }}
+      gh_token: ${{ secrets.gh_token }}
     with:
       pr_number: ${{ inputs.pr_number }}
       message: website~pending~null
@@ -47,9 +47,9 @@ jobs:
           always-install-pnpm: true
           skip_build: true
       - name: download artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
-          name: website-json-${{ inputs.pr_number }}}
+          name: website-json-${{ inputs.pr_number }}
           path: |
             ./js/_website/src/lib/json
       - name: echo artifact path
@@ -84,8 +84,7 @@ jobs:
       - name: Deploy Project Artifacts to Vercel
         if: github.event_name == 'push' && inputs.branch_name == 'main'
         shell: bash
-        run: echo "deploying production"
-        # run: echo "VERCEL_URL=$(vercel deploy --prebuilt --prod --token=${{ inputs.vercel_token }})" >> $GITHUB_ENV
+        run: echo "VERCEL_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.vercel_token }})" >> $GITHUB_ENV
       - name: echo vercel url
         shell: bash
         run: echo $VERCEL_URL #add to comment
@@ -106,4 +105,4 @@ jobs:
       gh_token: ${{ secrets.gh_token }}
     with:
       pr_number: ${{ inputs.pr_number }}
-      message: website~failure~https://github.com/${{github.action_repository}}/actions/runs/${{github.run_id}}/
+      message: website~failure~https://github.com/gradio-app/gradio/actions/runs/${{github.run_id}}/

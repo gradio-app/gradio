@@ -371,7 +371,7 @@ class TestCheckboxGroup:
             label="Check Your Inputs",
         )
         assert checkboxes_input.get_config() == {
-            "choices": ["a", "b", "c"],
+            "choices": [("a", "a"), ("b", "b"), ("c", "c")],
             "value": ["a", "c"],
             "name": "checkboxgroup",
             "show_label": True,
@@ -418,7 +418,7 @@ class TestRadio:
             choices=["a", "b", "c"], default="a", label="Pick Your One Input"
         )
         assert radio_input.get_config() == {
-            "choices": ["a", "b", "c"],
+            "choices": [("a", "a"), ("b", "b"), ("c", "c")],
             "value": None,
             "name": "radio",
             "show_label": True,
@@ -444,6 +444,16 @@ class TestRadio:
         radio_input = gr.Radio(["a", "b", "c"])
         iface = gr.Interface(lambda x: 2 * x, radio_input, "textbox")
         assert iface("c") == "cc"
+
+    def test_update(self):
+        update = gr.Radio.update(
+            choices=[("zeroth", ""), "first", "second"], label="ordinal"
+        )
+        assert update["choices"] == [
+            ("zeroth", ""),
+            ("first", "first"),
+            ("second", "second"),
+        ]
 
 
 class TestDropdown:
@@ -871,6 +881,7 @@ class TestFile:
             "root_url": None,
             "selectable": False,
             "custom_component": False,
+            "height": None,
         }
         assert file_input.preprocess(None) is None
         x_file["is_example"] = True
@@ -987,6 +998,8 @@ class TestDataframe:
             "root_url": None,
             "wrap": False,
             "custom_component": False,
+            "height": None,
+            "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
         }
         dataframe_input = gr.Dataframe()
         output = dataframe_input.preprocess(x_data)
@@ -1022,6 +1035,8 @@ class TestDataframe:
             "root_url": None,
             "wrap": False,
             "custom_component": False,
+            "height": None,
+            "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
         }
 
     def test_postprocess(self):
@@ -1085,7 +1100,7 @@ class TestDataframe:
                     0.2233,
                     84,
                     True,
-                    "<h1>Hello</h1>\n",
+                    "# Hello",
                 ],
                 [
                     pd.Timestamp("2021-01-02 00:00:00"),
@@ -1093,7 +1108,7 @@ class TestDataframe:
                     0.57281,
                     23,
                     False,
-                    "<h1>Goodbye</h1>\n",
+                    "# Goodbye",
                 ],
             ],
         }
@@ -1140,7 +1155,7 @@ class TestDataset:
             "hi",
             bus,
             "<i>Italics</i>",
-            "<p><em>Italics</em></p>\n",
+            "*Italics*",
         ]
 
         dataset = gr.Dataset(
@@ -1187,6 +1202,11 @@ class TestVideo:
         video_input = gr.Video()
         output1 = video_input.preprocess(x_video)
         assert isinstance(output1, str)
+        output2 = video_input.preprocess(x_video)
+        assert output1 == output2
+
+        video_input = gr.Video(include_audio=False)
+        output1 = video_input.preprocess(x_video)
         output2 = video_input.preprocess(x_video)
         assert output1 == output2
 
@@ -1790,6 +1810,7 @@ class TestChatbot:
             "rtl": False,
             "show_copy_button": False,
             "custom_component": False,
+            "avatar_images": (None, None),
         }
 
 
@@ -1824,9 +1845,9 @@ class TestJSON:
 
         def get_avg_age_per_gender(data):
             return {
-                "M": int(data[data["gender"] == "M"].mean()),
-                "F": int(data[data["gender"] == "F"].mean()),
-                "O": int(data[data["gender"] == "O"].mean()),
+                "M": int(data[data["gender"] == "M"]["age"].mean()),
+                "F": int(data[data["gender"] == "F"]["age"].mean()),
+                "O": int(data[data["gender"] == "O"]["age"].mean()),
             }
 
         iface = gr.Interface(
@@ -1889,21 +1910,16 @@ class TestHTML:
 class TestMarkdown:
     def test_component_functions(self):
         markdown_component = gr.Markdown("# Let's learn about $x$", label="Markdown")
-        assert markdown_component.get_config()["value"].startswith(
-            """<h1>Let’s learn about <span class="math inline"><span style=\'font-size: 0px\'>x</span><svg xmlns:xlink="http://www.w3.org/1999/xlink" height="0.9678125em" viewBox="0 0 11.6 19.35625" xmlns="http://www.w3.org/2000/svg" version="1.1">\n \n <defs>\n  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>\n </defs>\n <g id="figure_1">\n  <g id="patch_1">"""
-        )
+        assert markdown_component.get_config()["value"] == "# Let's learn about $x$"
 
     def test_in_interface(self):
         """
         Interface, process
         """
         iface = gr.Interface(lambda x: x, "text", "markdown")
-        input_data = "Here's an [image](https://gradio.app/images/gradio_logo.png)"
+        input_data = "    Here's an [image](https://gradio.app/images/gradio_logo.png)"
         output_data = iface(input_data)
-        assert (
-            output_data
-            == """<p>Here’s an <a href="https://gradio.app/images/gradio_logo.png" target="_blank">image</a></p>\n"""
-        )
+        assert output_data == input_data.strip()
 
 
 class TestModel3D:
@@ -2150,13 +2166,6 @@ class TestScatterPlot:
         assert config["encoding"]["x"]["field"] == "Horsepower"
         assert config["encoding"]["x"]["title"] == "Horse"
         assert config["encoding"]["y"]["field"] == "Miles_per_Gallon"
-        assert config["selection"] == {
-            "selector001": {
-                "bind": "scales",
-                "encodings": ["x", "y"],
-                "type": "interval",
-            }
-        }
         assert config["title"] == "Car Data"
         assert "height" not in config
         assert "width" not in config

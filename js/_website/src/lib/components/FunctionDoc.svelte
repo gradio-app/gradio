@@ -1,6 +1,5 @@
 <script lang="ts">
 	export let fn: any;
-	export let parent;
 	import anchor from "../assets/img/anchor.svg";
 
 	function handleAnchorClick(event: MouseEvent) {

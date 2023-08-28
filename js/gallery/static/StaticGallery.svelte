@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { Gradio, ShareData, SelectData } from "@gradio/utils";
 	import { Block } from "@gradio/atoms";
 	import Gallery from "./Gallery.svelte";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { FileData } from "@gradio/upload";
 
@@ -26,6 +27,11 @@
 		"cover";
 	export let show_share_button = false;
 	export let show_download_button = false;
+	export let gradio: Gradio<{
+		select: SelectData;
+		share: ShareData;
+		error: string;
+	}>;
 </script>
 
 <Block
@@ -42,9 +48,9 @@
 >
 	<StatusTracker {...loading_status} />
 	<Gallery
-		on:select
-		on:share
-		on:error
+		on:select={(e) => gradio.dispatch("select", e.detail)}
+		on:share={(e) => gradio.dispatch("share", e.detail)}
+		on:error={(e) => gradio.dispatch("error", e.detail)}
 		{label}
 		{value}
 		{show_label}

@@ -3,6 +3,7 @@
 	import { Edit, Clear } from "@gradio/icons";
 
 	import { createEventDispatcher } from "svelte";
+	import { _ } from "svelte-i18n";
 
 	export let editable = false;
 	export let absolute = true;
@@ -15,12 +16,16 @@
 	style:position={absolute ? "absolute" : "static"}
 >
 	{#if editable}
-		<IconButton Icon={Edit} label="Edit" on:click={() => dispatch("edit")} />
+		<IconButton
+			Icon={Edit}
+			label={$_("common.edit")}
+			on:click={() => dispatch("edit")}
+		/>
 	{/if}
 
 	<IconButton
 		Icon={Clear}
-		label="Clear"
+		label={$_("common.clear")}
 		on:click={(event) => {
 			dispatch("clear");
 			event.stopPropagation();

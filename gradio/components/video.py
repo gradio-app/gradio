@@ -233,6 +233,8 @@ class Video(
             return output_file_name
         elif not self.include_audio:
             output_file_name = str(file_name.with_name(f"muted_{file_name.name}"))
+            if Path(output_file_name).exists():
+                return output_file_name
             if wasm_utils.IS_WASM:
                 raise wasm_utils.WasmUnsupportedError(
                     "include_audio=False is not supported in the Wasm mode."

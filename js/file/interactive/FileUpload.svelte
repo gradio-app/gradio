@@ -15,6 +15,7 @@
 	export let file_types: string[] | null = null;
 	export let selectable = false;
 	export let root: string;
+	export let height: number | undefined = undefined;
 
 	async function handle_upload({
 		detail
@@ -65,7 +66,7 @@
 
 {#if value}
 	<ModifyUpload on:clear={handle_clear} absolute />
-	<FilePreview on:select {selectable} {value} />
+	<FilePreview on:select {selectable} {value} {height} />
 {:else}
 	<Upload
 		on:load={handle_upload}

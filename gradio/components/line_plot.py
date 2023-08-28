@@ -40,6 +40,8 @@ class LinePlot(Plot):
         tooltip: list[str] | str | None = None,
         x_title: str | None = None,
         y_title: str | None = None,
+        x_label_angle: float | None = None,
+        y_label_angle: float | None = None,
         color_legend_title: str | None = None,
         stroke_dash_legend_title: str | None = None,
         color_legend_position: Literal[
@@ -94,6 +96,8 @@ class LinePlot(Plot):
             tooltip: The column (or list of columns) to display on the tooltip when a user hovers a point on the plot.
             x_title: The title given to the x axis. By default, uses the value of the x parameter.
             y_title: The title given to the y axis. By default, uses the value of the y parameter.
+            x_label_angle: The angle for the x axis labels. Positive values are clockwise, and negative values are counter-clockwise.
+            y_label_angle: The angle for the y axis labels. Positive values are clockwise, and negative values are counter-clockwise.
             color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
             stroke_dash_legend_title: The title given to the stroke_dash legend. By default, uses the value of the stroke_dash parameter.
             color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
@@ -119,6 +123,8 @@ class LinePlot(Plot):
         self.title = title
         self.x_title = x_title
         self.y_title = y_title
+        self.x_label_angle = x_label_angle
+        self.y_label_angle = y_label_angle
         self.color_legend_title = color_legend_title
         self.stroke_dash_legend_title = stroke_dash_legend_title
         self.color_legend_position = color_legend_position
@@ -163,6 +169,8 @@ class LinePlot(Plot):
         tooltip: list[str] | str | None = None,
         x_title: str | None = None,
         y_title: str | None = None,
+        x_label_angle: float | None = None,
+        y_label_angle: float | None = None,
         color_legend_title: str | None = None,
         stroke_dash_legend_title: str | None = None,
         color_legend_position: Literal[
@@ -217,6 +225,8 @@ class LinePlot(Plot):
             tooltip: The column (or list of columns) to display on the tooltip when a user hovers a point on the plot.
             x_title: The title given to the x axis. By default, uses the value of the x parameter.
             y_title: The title given to the y axis. By default, uses the value of the y parameter.
+            x_label_angle:  The angle for the x axis labels. Positive values are clockwise, and negative values are counter-clockwise.
+            y_label_angle:  The angle for the y axis labels. Positive values are clockwise, and negative values are counter-clockwise.
             color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
             stroke_dash_legend_title: The title given to the stroke legend. By default, uses the value of stroke parameter.
             color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation
@@ -241,6 +251,8 @@ class LinePlot(Plot):
             tooltip,
             x_title,
             y_title,
+            x_label_angle,
+            y_label_angle,
             color_legend_title,
             stroke_dash_legend_title,
             color_legend_position,
@@ -292,6 +304,8 @@ class LinePlot(Plot):
         tooltip: list[str] | str | None = None,
         x_title: str | None = None,
         y_title: str | None = None,
+        x_label_angle: float | None = None,
+        y_label_angle: float | None = None,
         color_legend_title: str | None = None,
         stroke_dash_legend_title: str | None = None,
         color_legend_position: Literal[
@@ -331,11 +345,17 @@ class LinePlot(Plot):
                 x,  # type: ignore
                 title=x_title or x,  # type: ignore
                 scale=AltairPlot.create_scale(x_lim),  # type: ignore
+                axis=alt.Axis(labelAngle=x_label_angle)
+                if x_label_angle is not None
+                else alt.Axis(),
             ),
             "y": alt.Y(
                 y,  # type: ignore
                 title=y_title or y,  # type: ignore
                 scale=AltairPlot.create_scale(y_lim),  # type: ignore
+                axis=alt.Axis(labelAngle=y_label_angle)
+                if y_label_angle is not None
+                else alt.Axis(),
             ),
         }
         properties = {}
@@ -417,6 +437,8 @@ class LinePlot(Plot):
             tooltip=self.tooltip,
             x_title=self.x_title,
             y_title=self.y_title,
+            x_label_angle=self.x_label_angle,
+            y_label_angle=self.y_label_angle,
             color_legend_title=self.color_legend_title,  # type: ignore
             color_legend_position=self.color_legend_position,  # type: ignore
             stroke_dash_legend_title=self.stroke_dash_legend_title,

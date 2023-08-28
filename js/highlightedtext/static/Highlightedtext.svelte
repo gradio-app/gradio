@@ -257,7 +257,6 @@
 	.label {
 		transition: 150ms;
 		margin-top: 1px;
-		margin-right: calc(var(--size-1) * -1);
 		border-radius: var(--radius-xs);
 		padding: 1px 5px;
 		color: var(--body-text-color);

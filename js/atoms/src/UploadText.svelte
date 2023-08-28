@@ -4,18 +4,18 @@
 	export let type: "video" | "image" | "audio" | "file" | "csv" = "file";
 
 	const defs = {
-		image: "interface.drop_image",
-		video: "interface.drop_video",
-		audio: "interface.drop_audio",
-		file: "interface.drop_file",
-		csv: "interface.drop_csv"
+		image: "upload_text.drop_image",
+		video: "upload_text.drop_video",
+		audio: "upload_text.drop_audio",
+		file: "upload_text.drop_file",
+		csv: "upload_text.drop_csv"
 	};
 </script>
 
 <div class="wrap">
 	{$_(defs[type])}
-	<span class="or">- {$_("or")} -</span>
-	{$_("interface.click_to_upload")}
+	<span class="or">- {$_("common.or")} -</span>
+	{$_("upload_text.click_to_upload")}
 </div>
 
 <style>

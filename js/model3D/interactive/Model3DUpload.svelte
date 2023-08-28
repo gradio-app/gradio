@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, tick, afterUpdate, onMount } from "svelte";
+	import { createEventDispatcher, tick, onMount } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import type { FileData } from "@gradio/upload";
 	import { BlockLabel } from "@gradio/atoms";
@@ -11,17 +11,22 @@
 	export let show_label: boolean;
 	export let root: string;
 
+	let mounted = false;
+
 	onMount(() => {
 		if (value != null) {
 			addNewModel();
 		}
+		mounted = true;
 	});
 
-	afterUpdate(() => {
-		if (value != null && value.is_file) {
-			addNewModel();
-		}
+	$: ({ data, is_file, name } = value || {
+		data: undefined,
+		is_file: undefined,
+		name: undefined
 	});
+
+	$: canvas && mounted && data != null && is_file && addNewModel();
 
 	async function handle_upload({
 		detail
@@ -90,6 +95,7 @@
 			url = URL.createObjectURL(blob);
 		}
 
+		BABYLON.SceneLoader.ShowLoadingScreen = false;
 		BABYLON.SceneLoader.Append(
 			url,
 			"",
@@ -133,5 +139,6 @@
 		width: var(--size-full);
 		height: var(--size-full);
 		object-fit: contain;
+		overflow: hidden;
 	}
 </style>
