@@ -23,7 +23,7 @@
 	export let show_share_button = false;
 	export let rtl = false;
 	export let show_copy_button = false;
-	export let disable_html_sanitization = false;
+	export let sanitize_html = true;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -97,7 +97,7 @@
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
 			{avatar_images}
-			{disable_html_sanitization}
+			{sanitize_html}
 			{root_url}
 			{root}
 		/>
