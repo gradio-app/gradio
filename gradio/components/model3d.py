@@ -19,8 +19,6 @@ from gradio.events import (
 
 set_documentation_group("component")
 
-NumberOrNone = int | float | None
-
 
 @document()
 class Model3D(
