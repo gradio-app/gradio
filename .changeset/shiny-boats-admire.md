@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Model3d config camera rotation
+feat:Makes it possible to set the initial camera position for the `Model3D` component as a tuple of (alpha, beta, radius)
