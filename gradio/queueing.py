@@ -49,14 +49,12 @@ class Event:
 class Queue:
     def __init__(
         self,
-        app: routes.App,
         live_updates: bool,
         concurrency_count: int,
         update_intervals: float,
         max_size: int | None,
         blocks_dependencies: list,
     ):
-        self.app = app
         self.event_queue: deque[Event] = deque()
         self.events_pending_reconnection = []
         self.stopped = False
@@ -64,7 +62,7 @@ class Queue:
         self.update_intervals = update_intervals
         self.active_jobs: list[None | list[Event]] = [None] * concurrency_count
         self.delete_lock = asyncio.Lock()
-        self.server_path = None
+        self.server_app = None
         self.duration_history_total = 0
         self.duration_history_count = 0
         self.avg_process_time = 0
@@ -89,8 +87,8 @@ class Queue:
     def resume(self):
         self.stopped = False
 
-    def set_url(self, url: str):
-        self.server_path = url
+    def set_server_app(self, app: routes.App):
+        self.server_app = app
 
     def get_active_worker_count(self) -> int:
         count = 0
@@ -368,27 +366,28 @@ class Queue:
             ]
             body.batched = True
 
+        app = self.server_app
+        if app is None:
+            raise Exception("Server app has not been set.")
         api_name = "predict"
 
         fn_index_inferred = route_utils.infer_fn_index(
-            app=self.app, api_name=api_name, body=body
+            app=app, api_name=api_name, body=body
         )
 
         gr_request = route_utils.compile_gr_request(
-            app=self.app,
+            app=app,
             body=body,
             fn_index_inferred=fn_index_inferred,
             username=username,
             request=None,
         )
 
-        session_state, iterators = route_utils.restore_session_state(
-            app=self.app, body=body
-        )
+        session_state, iterators = route_utils.restore_session_state(app=app, body=body)
 
         try:
             output = await route_utils.call_process_api(
-                app=self.app,
+                app=app,
                 body=body,
                 gr_request=gr_request,
                 session_state=session_state,
@@ -396,7 +395,7 @@ class Queue:
                 fn_index_inferred=fn_index_inferred,
             )
         except BaseException as error:
-            show_error = self.app.get_blocks().show_error or isinstance(error, Error)
+            show_error = app.get_blocks().show_error or isinstance(error, Error)
             traceback.print_exc()
             raise Exception(str(error) if show_error else None) from error
 
@@ -534,10 +533,13 @@ class Queue:
 
     async def reset_iterators(self, session_hash: str, fn_index: int):
         # Do the same thing as the /reset route
-        if session_hash not in self.app.iterators:
+        app = self.server_app
+        if app is None:
+            raise Exception("Server app has not been set.")
+        if session_hash not in app.iterators:
             # Failure, but don't raise an error
             return
-        async with self.app.lock:
-            self.app.iterators[session_hash][fn_index] = None
-            self.app.iterators_to_reset[session_hash].add(fn_index)
+        async with app.lock:
+            app.iterators[session_hash][fn_index] = None
+            app.iterators_to_reset[session_hash].add(fn_index)
         return

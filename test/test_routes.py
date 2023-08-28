@@ -3,7 +3,6 @@ import json
 import os
 import tempfile
 from contextlib import closing
-from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
@@ -474,8 +473,7 @@ class TestAuthenticatedRoutes:
 
 class TestQueueRoutes:
     @pytest.mark.asyncio
-    @patch("gradio.routes.get_server_url_from_ws_url", return_value="foo_url")
-    async def test_queue_join_routes_sets_url_if_none_set(self, mock_get_url):
+    async def test_queue_join_routes_sets_app_if_none_set(self):
         io = Interface(lambda x: x, "text", "text").queue()
         io.launch(prevent_thread_lock=True)
         io._queue.server_path = None
@@ -490,24 +488,7 @@ class TestQueueRoutes:
                 if msg["msg"] == "send_hash":
                     await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
                 completed = msg["msg"] == "process_completed"
-        assert io._queue.server_path == "foo_url"
-
-    @pytest.mark.parametrize(
-        "ws_url,answer",
-        [
-            ("ws://127.0.0.1:7861/queue/join", "http://127.0.0.1:7861/"),
-            (
-                "ws://127.0.0.1:7861/gradio/gradio/gradio/queue/join",
-                "http://127.0.0.1:7861/gradio/gradio/gradio/",
-            ),
-            (
-                "wss://gradio-titanic-survival.hf.space/queue/join",
-                "https://gradio-titanic-survival.hf.space/",
-            ),
-        ],
-    )
-    def test_get_server_url_from_ws_url(self, ws_url, answer):
-        assert routes.get_server_url_from_ws_url(ws_url) == answer
+        assert io._queue.server_app == io.server_app
 
 
 class TestDevMode:
