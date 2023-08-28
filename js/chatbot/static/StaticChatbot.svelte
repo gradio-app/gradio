@@ -1,8 +1,9 @@
 <script lang="ts">
+	import type { Gradio, SelectData } from "@gradio/utils";
+
 	import ChatBot from "./ChatBot.svelte";
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import type { ThemeMode } from "js/app/src/components/types";
 	import { Chat } from "@gradio/icons";
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
@@ -19,7 +20,6 @@
 	export let root: string;
 	export let root_url: null | string;
 	export let selectable = false;
-	export let theme_mode: ThemeMode;
 	export let show_share_button = false;
 	export let rtl = false;
 	export let show_copy_button = false;
@@ -29,6 +29,12 @@
 		right: string;
 		display: boolean;
 	}[];
+	export let gradio: Gradio<{
+		change: typeof value;
+		select: SelectData;
+		share: ShareData;
+		error: string;
+	}>;
 	export let avatar_images: [string | null, string | null] = [null, null];
 
 	let _value: [string | FileData | null, string | FileData | null][];
@@ -81,20 +87,19 @@
 		<ChatBot
 			{selectable}
 			{show_share_button}
-			{theme_mode}
 			value={_value}
 			{latex_delimiters}
 			pending_message={loading_status?.status === "pending"}
 			{rtl}
 			{show_copy_button}
+			on:change={() => gradio.dispatch("change", value)}
+			on:select={(e) => gradio.dispatch("select", e.detail)}
+			on:share={(e) => gradio.dispatch("share", e.detail)}
+			on:error={(e) => gradio.dispatch("error", e.detail)}
 			{avatar_images}
 			{disable_html_sanitization}
 			{root_url}
 			{root}
-			on:change
-			on:select
-			on:share
-			on:error
 		/>
 	</div>
 </Block>

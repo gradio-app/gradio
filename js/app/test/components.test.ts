@@ -240,11 +240,9 @@ describe("all components should have the appropriate label when set via the `lab
 });
 
 describe("all components should hide their label when `show_label=false`", () => {
-	components
-		.filter(([name]) => name !== "Markdown" && name !== "HTML")
-		.forEach(([name, component, props]) => {
-			test.todo(name);
-		});
+	components.forEach(([name, component, props]) => {
+		test.todo(name);
+	});
 
 	["Button", "Code", "Image", "Plot"].forEach((name) => {
 		test.todo(name);
@@ -252,11 +250,9 @@ describe("all components should hide their label when `show_label=false`", () =>
 });
 
 describe("all components should show their label when `show_label=true`", () => {
-	components
-		.filter(([name]) => name !== "Markdown" && name !== "HTML")
-		.forEach(([name, component, props]) => {
-			test.todo(name);
-		});
+	components.forEach(([name, component, props]) => {
+		test.todo(name);
+	});
 
 	["Button", "Code", "Image", "Plot"].forEach((name) => {
 		test.todo(name);
@@ -264,11 +260,9 @@ describe("all components should show their label when `show_label=true`", () => 
 });
 
 describe("all components should hide their container when `container=false`", () => {
-	components
-		.filter(([name]) => name !== "Markdown" && name !== "HTML")
-		.forEach(([name, component, props]) => {
-			test.todo(name);
-		});
+	components.forEach(([name, component, props]) => {
+		test.todo(name);
+	});
 
 	["Button", "Code", "Image", "Plot"].forEach((name) => {
 		test.todo(name);
