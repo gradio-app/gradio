@@ -22,7 +22,6 @@ from asyncio import TimeoutError as AsyncTimeOutError
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
-from urllib.parse import urlparse
 
 import fastapi
 import httpx
@@ -496,9 +495,8 @@ class App(FastAPI):
             if app.auth is not None and token is None:
                 await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
                 return
-            if blocks._queue.server_path is None:
-                app_url = get_server_url_from_ws_url(str(websocket.url))
-                blocks._queue.set_url(app_url)
+            if blocks._queue.server_app is None:
+                blocks._queue.set_server_app(app)
             await websocket.accept()
             # In order to cancel jobs, we need the session_hash and fn_index
             # to create a unique id for each job
@@ -637,13 +635,6 @@ def get_types(cls_set: List[Type]):
     return docset, types
 
 
-def get_server_url_from_ws_url(ws_url: str):
-    ws_url_parsed = urlparse(ws_url)
-    scheme = "http" if ws_url_parsed.scheme == "ws" else "https"
-    port = f":{ws_url_parsed.port}" if ws_url_parsed.port else ""
-    return f"{scheme}://{ws_url_parsed.hostname}{port}{ws_url_parsed.path.replace('queue/join', '')}"
-
-
 set_documentation_group("routes")
 
 
@@ -652,7 +643,6 @@ def mount_gradio_app(
     app: fastapi.FastAPI,
     blocks: gradio.Blocks,
     path: str,
-    gradio_api_url: str | None = None,
     app_kwargs: dict[str, Any] | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
@@ -682,8 +672,6 @@ def mount_gradio_app(
     @app.on_event("startup")
     async def start_queue():
         if gradio_app.get_blocks().enable_queue:
-            if gradio_api_url:
-                gradio_app.get_blocks()._queue.set_url(gradio_api_url)
             gradio_app.get_blocks().startup_events()
 
     app.mount(path, gradio_app)

@@ -18,7 +18,6 @@ class AsyncMock(MagicMock):
 @pytest.fixture()
 def queue() -> Queue:
     queue_object = Queue(
-        app=None,
         live_updates=True,
         concurrency_count=1,
         update_intervals=1,
