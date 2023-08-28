@@ -28,7 +28,7 @@
 	}>;
 
 	// alpha, beta, radius
-	export let initial_camera_position: [
+	export let camera_position: [
 		number | null,
 		number | null,
 		number | null
@@ -58,7 +58,7 @@
 		{show_label}
 		{clearColor}
 		value={_value}
-		{initial_camera_position}
+		{camera_position}
 		on:change={({ detail }) => (value = detail)}
 		on:drag={({ detail }) => (dragging = detail)}
 		on:change={({ detail }) => gradio.dispatch("change", detail)}

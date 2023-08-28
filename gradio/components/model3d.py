@@ -38,7 +38,7 @@ class Model3D(
         value: str | Callable | None = None,
         *,
         clear_color: list[float] | None = None,
-        initial_camera_position: tuple[
+        camera_position: tuple[
             int | float | None, int | float | None, int | float | None
         ] = (
             None,
@@ -60,7 +60,7 @@ class Model3D(
         Parameters:
             value: path to (.obj, glb, or .gltf) file to show in model3D viewer. If callable, the function will be called whenever the app loads to set the initial value of the component.
             clear_color: background color of scene
-            initial_camera_position: initial camera position of scene, provided as a tuple of (alpha, beta, radius). Each value is optional.
+            camera_position: initial camera position of scene, provided as a tuple of (alpha, beta, radius). Each value is optional. If provided, alpha and beta should be in degrees from 0 to 360 reflecting the angular position along the longitudinal and latitudinal axes, respectively. Radius corresponds to the distance from the center of the object to the camera.
             label: component name in interface.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
@@ -72,7 +72,7 @@ class Model3D(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.clear_color = clear_color or [0, 0, 0, 0]
-        self.initial_camera_position = initial_camera_position
+        self.camera_position = camera_position
 
         IOComponent.__init__(
             self,
@@ -93,7 +93,7 @@ class Model3D(
         return {
             "clearColor": self.clear_color,
             "value": self.value,
-            "initial_camera_position": self.initial_camera_position,
+            "camera_position": self.camera_position,
             **IOComponent.get_config(self),
         }
 
@@ -106,7 +106,7 @@ class Model3D(
     @staticmethod
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        initial_camera_position: tuple[
+        camera_position: tuple[
             int | float | None, int | float | None, int | float | None
         ] | None = None,
         label: str | None = None,
@@ -117,7 +117,7 @@ class Model3D(
         visible: bool | None = None,
     ):
         updated_config = {
-            "initial_camera_position": initial_camera_position,
+            "camera_position": camera_position,
             "label": label,
             "show_label": show_label,
             "container": container,

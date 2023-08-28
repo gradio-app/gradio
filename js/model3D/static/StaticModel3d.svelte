@@ -24,7 +24,7 @@
 	export let min_width: number | undefined = undefined;
 
 	// alpha, beta, radius
-	export let initial_camera_position: [
+	export let camera_position: [
 		number | null,
 		number | null,
 		number | null
@@ -55,7 +55,7 @@
 			{clearColor}
 			{label}
 			{show_label}
-			{initial_camera_position}
+			{camera_position}
 		/>
 	{:else}
 		<!-- Not ideal but some bugs to work out before we can 
