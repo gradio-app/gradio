@@ -22,7 +22,7 @@ from gradio.data_classes import (
 )
 from gradio.exceptions import Error
 from gradio.helpers import TrackedIterable
-from gradio.utils import AsyncRequest, run_coro_in_background, set_task_name
+from gradio.utils import run_coro_in_background, set_task_name
 
 
 class Event:
@@ -538,13 +538,11 @@ class Queue:
             return None, False
 
     async def reset_iterators(self, session_hash: str, fn_index: int):
-        # TODO: Replace with a direct function call
-        await AsyncRequest(
-            method=AsyncRequest.Method.POST,
-            url=f"{self.server_path}reset",
-            json={
-                "session_hash": session_hash,
-                "fn_index": fn_index,
-            },
-            client=self.queue_client,
-        )
+        # Do the same thing as the /reset route
+        if session_hash not in self.app.iterators:
+            # Failure, but don't raise an error
+            return
+        async with self.app.lock:
+            self.app.iterators[session_hash][fn_index] = None
+            self.app.iterators_to_reset[session_hash].add(fn_index)
+        return
