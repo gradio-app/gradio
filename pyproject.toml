@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling", "hatch-requirements-txt", "hatch-fancy-pypi-readme>=22.5.0"]
+requires = ["hatchling", "hatch-requirements-txt", "hatch-fancy-pypi-readme>=22.5.0", "Jinja2<4.0"]
 build-backend = "hatchling.build"
 
 [project]
@@ -69,11 +69,13 @@ replacement = 'https://raw.githubusercontent.com/gradio-app/gradio/main/demo/\g<
 [tool.hatch.build]
 artifacts = [
   "/gradio/templates",
-  "/gradio/_frontend_code"
+  "/gradio/_frontend_code",
+  "*.pyi"
 ]
 
 [tool.hatch.build.hooks.custom]
 path = ".config/copy_frontend.py"
+require-runtime-dependencies = true
 
 
 [tool.hatch.build.targets.sdist]

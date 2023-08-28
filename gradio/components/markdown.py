@@ -47,6 +47,7 @@ class Markdown(Changeable, Component):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.rtl = rtl
+        self.latex_delimiters = latex_delimiters
         super().__init__(
             visible=visible,
             elem_id=elem_id,

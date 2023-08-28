@@ -8,6 +8,8 @@ if TYPE_CHECKING:
 
 from gradio.utils import get_cancel_function
 from gradio.deprecation import warn_deprecation
+from functools import wraps
+from gradio.data_classes import GradioModel, GradioRootModel
 
 
 
@@ -134,11 +136,23 @@ def event_listener(event_name: str,
     return _listener
 
 
+def serializes(f):
+    @wraps(f)
+    def serialize(*args, **kwds):
+        output = f(*args, **kwds)
+        if isinstance(output, (GradioRootModel, GradioModel)):
+            output = output.model_dump()
+        return output
+
+    return serialize
+
 class BlockMeta(ABCMeta):
     def __new__(cls, name, bases, attrs):
         if 'EVENTS' in attrs:
             events = attrs['EVENTS']
             for event in events:
                 attrs[event] = event_listener(event)
+        if "postprocess" in attrs:
+                attrs["postprocess"] = serializes(attrs["postprocess"])
 
         return super().__new__(cls, name, bases, attrs)
