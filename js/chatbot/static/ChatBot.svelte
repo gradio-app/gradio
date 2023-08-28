@@ -27,7 +27,7 @@
 	export let rtl = false;
 	export let show_copy_button = false;
 	export let avatar_images: [string | null, string | null] = [null, null];
-	export let bubble_full_width: true;
+	export let bubble_full_width = true;
 	export let root: string;
 	export let root_url: null | string;
 
