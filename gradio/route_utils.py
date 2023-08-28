@@ -1,6 +1,6 @@
 import json
 from copy import deepcopy
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 import fastapi
 from gradio_client.documentation import document, set_documentation_group
@@ -85,8 +85,8 @@ class Request:
 
     def __init__(
         self,
-        request: fastapi.Request | None = None,
-        username: str | None = None,
+        request: Union[fastapi.Request, None] = None,
+        username: Union[str, None] = None,
         **kwargs,
     ):
         """
@@ -189,7 +189,7 @@ def restore_session_state(app: "App", body: PredictBody):
 async def call_process_api(
     app: "App",
     body: PredictBody,
-    gr_request: Request | List[Request],
+    gr_request: Union[Request, List[Request]],
     session_state,
     iterators,
     fn_index_inferred,
