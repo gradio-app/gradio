@@ -2,15 +2,15 @@
 	import type { FileData } from "@gradio/upload";
 	import { BlockLabel, IconButton } from "@gradio/atoms";
 	import { File, Download } from "@gradio/icons";
+	import { _ } from "svelte-i18n";
+	import { onMount } from "svelte";
+	import * as BABYLON from "babylonjs";
+	import * as BABYLON_LOADERS from "babylonjs-loaders";
 
 	export let value: FileData | null;
 	export let clearColor: [number, number, number, number] = [0, 0, 0, 0];
 	export let label = "";
 	export let show_label: boolean;
-
-	import { onMount, afterUpdate } from "svelte";
-	import * as BABYLON from "babylonjs";
-	import * as BABYLON_LOADERS from "babylonjs-loaders";
 
 	BABYLON_LOADERS.OBJFileLoader.IMPORT_VERTEX_COLORS = true;
 
@@ -18,14 +18,24 @@
 	let scene: BABYLON.Scene;
 	let engine: BABYLON.Engine | null;
 
+	let mounted = false;
+
 	onMount(() => {
 		engine = new BABYLON.Engine(canvas, true);
 		window.addEventListener("resize", () => {
 			engine?.resize();
 		});
+		mounted = true;
 	});
 
-	afterUpdate(() => {
+	$: ({ data, name } = value || {
+		data: undefined,
+		name: undefined
+	});
+
+	$: canvas && mounted && data != null && name && dispose();
+
+	function dispose(): void {
 		if (scene && !scene.isDisposed) {
 			scene.dispose();
 			engine?.stopRenderLoop();
@@ -37,7 +47,7 @@
 			});
 		}
 		addNewModel();
-	});
+	}
 
 	function addNewModel(): void {
 		scene = new BABYLON.Scene(engine!);
@@ -61,6 +71,8 @@
 			url = URL.createObjectURL(blob);
 		}
 
+		BABYLON.SceneLoader.ShowLoadingScreen = false;
+
 		BABYLON.SceneLoader.Append(
 			"",
 			url,
@@ -75,7 +87,7 @@
 	}
 </script>
 
-<BlockLabel {show_label} Icon={File} label={label || "3D Model"} />
+<BlockLabel {show_label} Icon={File} label={label || $_("3D_model.3d_model")} />
 {#if value}
 	<div class="model3D">
 		<div class="download">
@@ -84,7 +96,7 @@
 				target={window.__is_colab__ ? "_blank" : null}
 				download={window.__is_colab__ ? null : value.orig_name || value.name}
 			>
-				<IconButton Icon={Download} label="Download" />
+				<IconButton Icon={Download} label={$_("common.download")} />
 			</a>
 		</div>
 
@@ -103,6 +115,7 @@
 		width: var(--size-full);
 		height: var(--size-full);
 		object-fit: contain;
+		overflow: hidden;
 	}
 	.download {
 		position: absolute;

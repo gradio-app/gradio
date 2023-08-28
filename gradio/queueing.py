@@ -339,13 +339,20 @@ class Queue:
         )
 
     def get_request_params(self, websocket: fastapi.WebSocket) -> dict[str, Any]:
-        return {
+        params = {
             "url": str(websocket.url),
             "headers": dict(websocket.headers),
             "query_params": dict(websocket.query_params),
             "path_params": dict(websocket.path_params),
             "client": {"host": websocket.client.host, "port": websocket.client.port},  # type: ignore
         }
+        try:
+            params[
+                "session"
+            ] = websocket.session  # forward OAuth information if available
+        except Exception:
+            pass
+        return params
 
     async def call_prediction(self, events: list[Event], batch: bool):
         body = events[0].data
@@ -394,6 +401,18 @@ class Queue:
                 fn_index_inferred=fn_index_inferred,
             )
         except BaseException as error:
+            # TODO:Share the following code block with routes.py
+            fn_index = body.fn_index
+            session_hash = getattr(body, "session_hash", None)
+            iterator = iterators.get(fn_index, None)
+            if iterator is not None:  # close off any streams that are still open
+                run_id = id(iterator)
+                pending_streams: dict[int, list] = (
+                    self.app.get_blocks().pending_streams[session_hash].get(run_id, {})
+                )
+                for stream in pending_streams.values():
+                    stream.append(None)
+
             show_error = self.app.get_blocks().show_error or isinstance(error, Error)
             traceback.print_exc()
             raise Exception(str(error) if show_error else None) from error

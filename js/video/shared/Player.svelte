@@ -67,7 +67,7 @@
 
 		const minutes = Math.floor(seconds / 60);
 		let _seconds: number | string = Math.floor(seconds % 60);
-		if (seconds < 10) _seconds = `0${_seconds}`;
+		if (_seconds < 10) _seconds = `0${_seconds}`;
 
 		return `${minutes}:${_seconds}`;
 	}

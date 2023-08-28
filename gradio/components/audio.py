@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Callable, Literal
 
 import numpy as np
+import requests
 from gradio_client import media_data
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
@@ -20,6 +21,7 @@ from gradio.events import (
     Playable,
     Recordable,
     Streamable,
+    StreamableOutput,
     Uploadable,
 )
 from gradio.interpretation import TokenInterpretable
@@ -34,6 +36,7 @@ class Audio(
     Playable,
     Recordable,
     Streamable,
+    StreamableOutput,
     Uploadable,
     IOComponent,
     FileSerializable,
@@ -42,7 +45,7 @@ class Audio(
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
     Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a 16-bit int array whose values range from -32768 to 32767), or as a {str} filepath, depending on `type`.
-    Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a float or int numpy array) or as a {str} or {pathlib.Path} filepath or URL to an audio file, which gets displayed
+    Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a float or int numpy array) or as a {str} or {pathlib.Path} filepath or URL to an audio file, or bytes for binary content (recommended for streaming)
     Examples-format: a {str} filepath to a local file that contains audio.
     Demos: main_note, generate_tone, reverse_audio
     Guides: real-time-speech-recognition
@@ -52,7 +55,7 @@ class Audio(
         self,
         value: str | Path | tuple[int, np.ndarray] | Callable | None = None,
         *,
-        source: Literal["upload", "microphone"] = "upload",
+        source: Literal["upload", "microphone"] | None = None,
         type: Literal["numpy", "filepath"] = "numpy",
         label: str | None = None,
         every: float | None = None,
@@ -69,6 +72,7 @@ class Audio(
         autoplay: bool = False,
         show_download_button=True,
         show_share_button: bool | None = None,
+        show_edit_button: bool | None = True,
         **kwargs,
     ):
         """
@@ -84,15 +88,17 @@ class Audio(
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: if True, will allow users to upload and edit a audio file; if False, can only be used to play audio. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
-            streaming: If set to True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
+            streaming: If set to True when used in a `live` interface as an input, will automatically stream webcam feed. When used set as an output, takes audio chunks yield from the backend and combines them into one streaming audio output.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             format: The file format to save audio files. Either 'wav' or 'mp3'. wav files are lossless but will tend to be larger files. mp3 files tend to be smaller. Default is wav. Applies both when this component is used as an input (when `type` is "format") and when this component is used as an output.
             autoplay: Whether to automatically play the audio when the component is used as an output. Note: browsers will not autoplay audio files if the user has not interacted with the page yet.
             show_download_button: If True, will show a download button in the corner of the component for saving audio. If False, icon does not appear.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
+            show_edit_button: If True, will show an edit icon in the corner of the component that allows user to edit the audio. If False, icon does not appear. Default is True.
         """
         valid_sources = ["upload", "microphone"]
+        source = source if source else ("microphone" if streaming else "upload")
         if source not in valid_sources:
             raise ValueError(
                 f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
@@ -105,7 +111,7 @@ class Audio(
             )
         self.type = type
         self.streaming = streaming
-        if streaming and source != "microphone":
+        if streaming and source == "upload":
             raise ValueError(
                 "Audio streaming only available if source is 'microphone'."
             )
@@ -117,6 +123,7 @@ class Audio(
             if show_share_button is None
             else show_share_button
         )
+        self.show_edit_button = show_edit_button
         IOComponent.__init__(
             self,
             label=label,
@@ -142,6 +149,7 @@ class Audio(
             "autoplay": self.autoplay,
             "show_download_button": self.show_download_button,
             "show_share_button": self.show_share_button,
+            "show_edit_button": self.show_edit_button,
             **IOComponent.get_config(self),
         }
 
@@ -165,6 +173,7 @@ class Audio(
         autoplay: bool | None = None,
         show_download_button: bool | None = None,
         show_share_button: bool | None = None,
+        show_edit_button: bool | None = None,
     ):
         return {
             "source": source,
@@ -179,6 +188,7 @@ class Audio(
             "autoplay": autoplay,
             "show_download_button": show_download_button,
             "show_share_button": show_share_button,
+            "show_edit_button": show_edit_button,
             "__type__": "update",
         }
 
@@ -318,8 +328,8 @@ class Audio(
         return masked_inputs
 
     def postprocess(
-        self, y: tuple[int, np.ndarray] | str | Path | None
-    ) -> str | dict | None:
+        self, y: tuple[int, np.ndarray] | str | Path | bytes | None
+    ) -> str | dict | bytes | None:
         """
         Parameters:
             y: audio data in either of the following formats: a tuple of (sample_rate, data), or a string filepath or URL to an audio file, or None.
@@ -328,17 +338,60 @@ class Audio(
         """
         if y is None:
             return None
-        if isinstance(y, str) and client_utils.is_http_url_like(y):
+        if isinstance(y, bytes):
+            if self.streaming:
+                return y
+            file_path = self.file_bytes_to_file(y, "audio")
+        elif isinstance(y, str) and client_utils.is_http_url_like(y):
             return {"name": y, "data": None, "is_file": True}
-        if isinstance(y, tuple):
+        elif isinstance(y, tuple):
             sample_rate, data = y
             file_path = self.audio_to_temp_file(
-                data, sample_rate, dir=self.DEFAULT_TEMP_DIR, format=self.format
+                data,
+                sample_rate,
+                format=self.format,
             )
             self.temp_files.add(file_path)
         else:
             file_path = self.make_temp_copy_if_needed(y)
-        return {"name": file_path, "data": None, "is_file": True}
+        return {
+            "name": file_path,
+            "data": None,
+            "is_file": True,
+            "orig_name": Path(file_path).name,
+        }
+
+    def stream_output(self, y, output_id: str, first_chunk: bool):
+        output_file = {
+            "name": output_id,
+            "is_stream": True,
+            "is_file": False,
+        }
+        if y is None:
+            return None, output_file
+        if isinstance(y, bytes):
+            return y, output_file
+        if client_utils.is_http_url_like(y["name"]):
+            response = requests.get(y["name"])
+            binary_data = response.content
+        else:
+            output_file["orig_name"] = y["orig_name"]
+            file_path = y["name"]
+            is_wav = file_path.endswith(".wav")
+            with open(file_path, "rb") as f:
+                binary_data = f.read()
+            if is_wav:
+                # strip length information from first chunk header, remove headers entirely from subsequent chunks
+                if first_chunk:
+                    binary_data = (
+                        binary_data[:4] + b"\xFF\xFF\xFF\xFF" + binary_data[8:]
+                    )
+                    binary_data = (
+                        binary_data[:40] + b"\xFF\xFF\xFF\xFF" + binary_data[44:]
+                    )
+                else:
+                    binary_data = binary_data[44:]
+        return binary_data, output_file
 
     def check_streamable(self):
         if self.source != "microphone":

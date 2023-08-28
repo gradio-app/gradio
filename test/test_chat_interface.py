@@ -15,7 +15,16 @@ def double(message, history):
     return message + " " + message
 
 
+async def async_greet(message, history):
+    return "hi, " + message
+
+
 def stream(message, history):
+    for i in range(len(message)):
+        yield message[: i + 1]
+
+
+async def async_stream(message, history):
     for i in range(len(message)):
         yield message[: i + 1]
 
@@ -68,7 +77,8 @@ class TestInit:
             )
 
     @pytest.mark.asyncio
-    async def test_example_caching(self):
+    async def test_example_caching(self, monkeypatch):
+        monkeypatch.setattr(helpers, "CACHED_FOLDER", tempfile.mkdtemp())
         chatbot = gr.ChatInterface(
             double, examples=["hello", "hi"], cache_examples=True
         )
@@ -78,10 +88,32 @@ class TestInit:
         assert prediction_hi[0][0] == ["hi", "hi hi"]
 
     @pytest.mark.asyncio
+    async def test_example_caching_async(self, monkeypatch):
+        monkeypatch.setattr(helpers, "CACHED_FOLDER", tempfile.mkdtemp())
+        chatbot = gr.ChatInterface(
+            async_greet, examples=["abubakar", "tom"], cache_examples=True
+        )
+        prediction_hello = await chatbot.examples_handler.load_from_cache(0)
+        prediction_hi = await chatbot.examples_handler.load_from_cache(1)
+        assert prediction_hello[0][0] == ["abubakar", "hi, abubakar"]
+        assert prediction_hi[0][0] == ["tom", "hi, tom"]
+
+    @pytest.mark.asyncio
     async def test_example_caching_with_streaming(self, monkeypatch):
         monkeypatch.setattr(helpers, "CACHED_FOLDER", tempfile.mkdtemp())
         chatbot = gr.ChatInterface(
             stream, examples=["hello", "hi"], cache_examples=True
+        )
+        prediction_hello = await chatbot.examples_handler.load_from_cache(0)
+        prediction_hi = await chatbot.examples_handler.load_from_cache(1)
+        assert prediction_hello[0][0] == ["hello", "hello"]
+        assert prediction_hi[0][0] == ["hi", "hi"]
+
+    @pytest.mark.asyncio
+    async def test_example_caching_with_streaming_async(self, monkeypatch):
+        monkeypatch.setattr(helpers, "CACHED_FOLDER", tempfile.mkdtemp())
+        chatbot = gr.ChatInterface(
+            async_stream, examples=["hello", "hi"], cache_examples=True
         )
         prediction_hello = await chatbot.examples_handler.load_from_cache(0)
         prediction_hi = await chatbot.examples_handler.load_from_cache(1)
@@ -138,11 +170,24 @@ class TestAPI:
             wait([job])
             assert job.outputs() == ["h", "he", "hel", "hell", "hello"]
 
+    def test_streaming_api_async(self, connect):
+        chatbot = gr.ChatInterface(async_stream).queue()
+        with connect(chatbot) as client:
+            job = client.submit("hello")
+            wait([job])
+            assert job.outputs() == ["h", "he", "hel", "hell", "hello"]
+
     def test_non_streaming_api(self, connect):
         chatbot = gr.ChatInterface(double)
         with connect(chatbot) as client:
             result = client.predict("hello")
             assert result == "hello hello"
+
+    def test_non_streaming_api_async(self, connect):
+        chatbot = gr.ChatInterface(async_greet)
+        with connect(chatbot) as client:
+            result = client.predict("gradio")
+            assert result == "hi, gradio"
 
     def test_streaming_api_with_additional_inputs(self, connect):
         chatbot = gr.ChatInterface(

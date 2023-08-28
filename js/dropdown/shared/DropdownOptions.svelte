@@ -42,7 +42,7 @@
 				let elements = listElement.querySelectorAll("li");
 				for (const element of Array.from(elements)) {
 					if (element.getAttribute("data-value") === value) {
-						listElement.scrollTo(0, (element as HTMLLIElement).offsetTop);
+						listElement?.scrollTo?.(0, (element as HTMLLIElement).offsetTop);
 						break;
 					}
 				}
@@ -95,6 +95,7 @@
 				class:dark:bg-gray-600={activeOption === choice}
 				data-value={choice}
 				aria-label={choice}
+				data-testid="dropdown-option"
 			>
 				<span class:hide={!_value.includes(choice)} class="inner-item">
 					✓

@@ -16,6 +16,7 @@ import os
 import posixpath
 import secrets
 import tempfile
+import time
 import traceback
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import defaultdict
@@ -49,6 +50,7 @@ from gradio import route_utils, utils, wasm_utils
 from gradio.context import Context
 from gradio.data_classes import PredictBody, ResetBody
 from gradio.exceptions import Error
+from gradio.oauth import attach_oauth
 from gradio.queueing import Estimation, Event
 from gradio.route_utils import Request  # noqa: F401
 from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
@@ -94,10 +96,6 @@ templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 templates.env.filters["toorjson"] = toorjson
 
 client = httpx.AsyncClient()
-
-###########
-# Auth
-###########
 
 
 class App(FastAPI):
@@ -242,6 +240,15 @@ class App(FastAPI):
                 raise HTTPException(status_code=400, detail="Incorrect credentials.")
 
         ###############
+        # OAuth Routes
+        ###############
+
+        # Define OAuth routes if the app expects it (i.e. a LoginButton is defined).
+        # It allows users to "Sign in with HuggingFace".
+        if app.blocks is not None and app.blocks.expects_oauth:
+            attach_oauth(app)
+
+        ###############
         # Main Routes
         ###############
 
@@ -381,6 +388,41 @@ class App(FastAPI):
                     return response
             return FileResponse(abs_path, headers={"Accept-Ranges": "bytes"})
 
+        @app.get(
+            "/stream/{session_hash}/{run}/{component_id}",
+            dependencies=[Depends(login_check)],
+        )
+        async def stream(
+            session_hash: str, run: int, component_id: int, request: fastapi.Request
+        ):
+            stream: list = (
+                app.get_blocks()
+                .pending_streams[session_hash]
+                .get(run, {})
+                .get(component_id, None)
+            )
+            if stream is None:
+                raise HTTPException(404, "Stream not found.")
+
+            def stream_wrapper():
+                check_stream_rate = 0.01
+                max_wait_time = 120  # maximum wait between yields - assume generator thread has crashed otherwise.
+                wait_time = 0
+                while True:
+                    if len(stream) == 0:
+                        if wait_time > max_wait_time:
+                            return
+                        wait_time += check_stream_rate
+                        time.sleep(check_stream_rate)
+                        continue
+                    wait_time = 0
+                    next_stream = stream.pop(0)
+                    if next_stream is None:
+                        return
+                    yield next_stream
+
+            return StreamingResponse(stream_wrapper())
+
         @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
         async def file_deprecated(path: str, request: fastapi.Request):
             return await file(path, request)
@@ -394,6 +436,7 @@ class App(FastAPI):
                 app.iterators[body.session_hash][body.fn_index] = None
                 app.iterators_to_reset[body.session_hash].add(body.fn_index)
             return {"success": True}
+
 
         # had to use '/run' endpoint for Colab compatibility, '/api' supported for backwards compatibility
         @app.post("/run/{api_name}", dependencies=[Depends(login_check)])
@@ -437,6 +480,17 @@ class App(FastAPI):
                     fn_index_inferred=fn_index_inferred,
                 )
             except BaseException as error:
+                fn_index = body.fn_index
+                session_hash = getattr(body, "session_hash", None)
+                iterator = iterators.get(fn_index, None)
+                if iterator is not None:  # close off any streams that are still open
+                    run_id = id(iterator)
+                    pending_streams: dict[int, list] = (
+                        app.get_blocks().pending_streams[session_hash].get(run_id, {})
+                    )
+                    for stream in pending_streams.values():
+                        stream.append(None)
+
                 show_error = app.get_blocks().show_error or isinstance(error, Error)
                 traceback.print_exc()
                 return JSONResponse(
