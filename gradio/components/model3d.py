@@ -49,7 +49,11 @@ class Model3D(
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        initial_camera_position: tuple[NumberOrNone, NumberOrNone, NumberOrNone] = (None, None, None),
+        initial_camera_position: tuple[NumberOrNone, NumberOrNone, NumberOrNone] = (
+            None,
+            None,
+            None,
+        ),
         **kwargs,
     ):
         """
