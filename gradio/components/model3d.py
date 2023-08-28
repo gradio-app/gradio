@@ -49,7 +49,7 @@ class Model3D(
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        initial_position: tuple[NumberOrNone, NumberOrNone, NumberOrNone] = (None, None, None),
+        initial_camera_position: tuple[NumberOrNone, NumberOrNone, NumberOrNone] = (None, None, None),
         **kwargs,
     ):
         """
@@ -67,7 +67,7 @@ class Model3D(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.clear_color = clear_color or [0, 0, 0, 0]
-        self._initial_position = initial_position
+        self._initial_camera_position = initial_camera_position
 
         IOComponent.__init__(
             self,
@@ -88,7 +88,7 @@ class Model3D(
         return {
             "clearColor": self.clear_color,
             "value": self.value,
-            "initial_position": self._initial_position,
+            "initial_camera_position": self._initial_camera_position,
             **IOComponent.get_config(self),
         }
 

@@ -11,7 +11,7 @@
 	export let show_label: boolean;
 
 	// alpha, beta, radius
-	export let initial_position: [number | null, number | null, number | null] = [null, null, null]
+	export let initial_camera_position: [number | null, number | null, number | null] = [null, null, null]
 
 	let mounted = false;
 
@@ -106,16 +106,16 @@
 				scene.createDefaultCamera(true, true, true);
 				var helperCamera = scene.activeCamera;
 
-				if (initial_position[0] !== null) {
-					helperCamera.alpha = (Math.PI * initial_position[0]) / 360;
+				if (initial_camera_position[0] !== null) {
+					helperCamera.alpha = (Math.PI * initial_camera_position[0]) / 360;
 				}
 
-				if (initial_position[1] !== null) {
-					helperCamera.beta = (Math.PI * initial_position[1]) / 360;
+				if (initial_camera_position[1] !== null) {
+					helperCamera.beta = (Math.PI * initial_camera_position[1]) / 360;
 				}
 
-				if (initial_position[2] !== null) {
-					helperCamera.radius = initial_position[2];
+				if (initial_camera_position[2] !== null) {
+					helperCamera.radius = initial_camera_position[2];
 				}
 			},
 			undefined,
