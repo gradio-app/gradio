@@ -2147,6 +2147,7 @@ class TestModel3D:
             "container": True,
             "min_width": 160,
             "scale": None,
+            "camera_position": (None, None, None),
         } == component.get_config()
 
         file = "test/test_files/Box.gltf"
