@@ -18,9 +18,8 @@ export async function load({ parent }) {
 	let objs = [
 		docs.building.row,
 		docs.building.column,
-		docs.building.group,
 		docs.building.tab,
-		docs.building.box,
+		docs.building.group,
 		docs.building.accordion
 	];
 
@@ -29,9 +28,9 @@ export async function load({ parent }) {
 		["Column", "column"],
 		["Tab", "tab"],
 		["Group", "group"],
-		["Box", "box"],
 		["Accordion", "accordion"]
 	];
+
 	let method_headers: string[][] = [];
 	const get_slug = make_slug_processor();
 

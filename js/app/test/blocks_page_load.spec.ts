@@ -9,3 +9,12 @@ test("renders the correct elements", async ({ page }) => {
 		"Welcome! This page has loaded for Frank"
 	);
 });
+
+test("renders the footer text", async ({ page }) => {
+	const footer = page.locator("footer");
+
+	await expect(footer).toBeVisible();
+	await expect(
+		footer.getByText("Use via API  · Built with Gradio ")
+	).toBeVisible();
+});

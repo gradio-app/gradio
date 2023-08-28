@@ -18,7 +18,6 @@
 	let routes = data.routes;
 	let py_client = data.py_client;
 
-
 	let headers: [string, string][];
 	let method_headers: [string, string][];
 	$: headers = data.headers;
@@ -401,15 +400,15 @@
 										Event Listeners
 										<a
 											href="#event-listeners"
-												class="invisible group-hover-visible"
-												on:click={handleAnchorClick}
-												><img class="anchor-img-small" src={anchor} /></a
-											>
-										</h4>
-										<div class="flex flex-col gap-8 pl-12">
-											<EventListeners fns={obj.fns} />
-											<div class="ml-12" />
-										</div>
+											class="invisible group-hover-visible"
+											on:click={handleAnchorClick}
+											><img class="anchor-img-small" src={anchor} /></a
+										>
+									</h4>
+									<div class="flex flex-col gap-8 pl-12">
+										<EventListeners fns={obj.fns} />
+										<div class="ml-12" />
+									</div>
 								</div>
 							{:else}
 								<div id="methods">
@@ -424,7 +423,7 @@
 									</h4>
 									<div class="flex flex-col gap-8 pl-12">
 										{#each obj.fns as fn}
-												<FunctionDoc {fn} />
+											<FunctionDoc {fn} />
 										{/each}
 										<div class="ml-12" />
 									</div>

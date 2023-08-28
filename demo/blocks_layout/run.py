@@ -13,7 +13,7 @@ with demo:
         gr.Radio(choices=["One", "Two"])
     with gr.Row():
         gr.Button("500", scale=0, min_width=500)
-        gr.Button("A").style(full_width=False)
+        gr.Button("A", scale=0)
         gr.Button("grow")
     with gr.Row():
         gr.Textbox()

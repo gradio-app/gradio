@@ -2,20 +2,33 @@
 
 <script lang="ts">
 	import type { Gradio, SelectData } from "@gradio/utils";
+	import { createEventDispatcher } from "svelte";
 
 	import TextBox from "../shared";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-
-	export let gradio: Gradio<{
+	const dispatch = createEventDispatcher<{
 		change: string;
 		submit: never;
 		blur: never;
 		select: SelectData;
 		input: never;
 		focus: never;
-	}>;
+	}>();
+
+	export let gradio:
+		| Gradio<{
+				change: string;
+				submit: never;
+				blur: never;
+				select: SelectData;
+				input: never;
+				focus: never;
+		  }>
+		| { dispatch: typeof dispatch } = {
+		dispatch
+	};
 	export let label = "Textbox";
 	export let info: string | undefined = undefined;
 	export let elem_id = "";
