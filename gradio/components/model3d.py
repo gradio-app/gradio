@@ -108,7 +108,8 @@ class Model3D(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         camera_position: tuple[
             int | float | None, int | float | None, int | float | None
-        ] | None = None,
+        ]
+        | None = None,
         label: str | None = None,
         show_label: bool | None = None,
         container: bool | None = None,
