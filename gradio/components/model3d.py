@@ -19,6 +19,8 @@ from gradio.events import (
 
 set_documentation_group("component")
 
+NumberOrNone = int | float | None
+
 
 @document()
 class Model3D(
@@ -70,6 +72,7 @@ class Model3D(
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            initial_camera_position: Tuple (alpha, beta, radius). Sets the starting longitudinal rotation (alpha), latitudinal rotation (beta) and distance to the 3D model being displayed (radius) for the camera. Set any value to None to use the default value.
         """
         self.clear_color = clear_color or [0, 0, 0, 0]
         self.camera_position = camera_position
