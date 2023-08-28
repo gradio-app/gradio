@@ -204,6 +204,7 @@ async def call_process_api(
 
     event_id = getattr(body, "event_id", None)
 
+    fn_index = body.fn_index
     session_hash = getattr(body, "session_hash", None)
     inputs = body.data
 
@@ -211,8 +212,8 @@ async def call_process_api(
     if batch_in_single_out:
         inputs = [inputs]
 
-    with utils.MatplotlibBackendMananger():
-        try:
+    try:
+        with utils.MatplotlibBackendMananger():
             output = await app.get_blocks().process_api(
                 fn_index=fn_index_inferred,
                 inputs=inputs,
@@ -223,25 +224,21 @@ async def call_process_api(
                 event_id=event_id,
                 event_data=event_data,
             )
-        except BaseException:
-            fn_index = body.fn_index
-            iterator = iterators.get(fn_index, None)
-            if iterator is not None:  # close off any streams that are still open
-                run_id = id(iterator)
-                pending_streams: dict[int, list] = (
-                    app.get_blocks().pending_streams[session_hash].get(run_id, {})
-                )
-                for stream in pending_streams.values():
-                    stream.append(None)
-            raise
-
-    if hasattr(body, "session_hash"):
         iterator = output.pop("iterator", None)
-        fn_index = body.fn_index
-        app.iterators[body.session_hash][fn_index] = iterator
-
-    if isinstance(output, Error):
-        raise output
+        if hasattr(body, "session_hash"):
+            app.iterators[body.session_hash][fn_index] = iterator
+        if isinstance(output, Error):
+            raise output
+    except BaseException:
+        iterator = iterators.get(fn_index, None)
+        if iterator is not None:  # close off any streams that are still open
+            run_id = id(iterator)
+            pending_streams: dict[int, list] = (
+                app.get_blocks().pending_streams[session_hash].get(run_id, {})
+            )
+            for stream in pending_streams.values():
+                stream.append(None)
+        raise
 
     if batch_in_single_out:
         output["data"] = output["data"][0]
