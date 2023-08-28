@@ -23,6 +23,7 @@ class Button(Clickable, IOComponent, StringSerializable):
     Postprocessing: expects a {str} to be returned from a function, which is set as the label of the button
     Demos: blocks_inputs, blocks_kinematics
     """
+    EVENTS = ["baz", "click"]
 
     def __init__(
         self,

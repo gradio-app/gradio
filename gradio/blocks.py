@@ -64,6 +64,7 @@ from gradio.utils import (
     get_cancel_function,
     get_continuous_fn,
 )
+from gradio.block_meta import BlockMeta
 
 try:
     import spaces  # type: ignore
@@ -89,7 +90,7 @@ BUILT_IN_THEMES: dict[str, Theme] = {
 }
 
 
-class Block:
+class Block(metaclass=BlockMeta):
     def __init__(
         self,
         *,
@@ -117,6 +118,10 @@ class Block:
         if render:
             self.render()
         check_deprecated_parameters(self.__class__.__name__, kwargs=kwargs)
+
+    @property
+    def events(self,) -> list[str]:
+        return getattr(self, "EVENTS", [])
 
     def render(self):
         """
@@ -315,7 +320,6 @@ class Block:
         }
 
     @staticmethod
-    @abstractmethod
     def update(**kwargs) -> dict:
         return {}
 
