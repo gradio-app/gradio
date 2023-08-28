@@ -610,7 +610,7 @@ def test_predict_route_is_blocked_if_api_open_false():
     result = client.post(
         "/api/predict", json={"fn_index": 0, "data": [5], "session_hash": "foo"}
     )
-    assert result.status_code == 401
+    assert result.status_code == 404
 
 
 def test_predict_route_not_blocked_if_queue_disabled():
@@ -630,7 +630,7 @@ def test_predict_route_not_blocked_if_queue_disabled():
     client = TestClient(app)
 
     result = client.post("/api/blocked", json={"data": [], "session_hash": "foo"})
-    assert result.status_code == 401
+    assert result.status_code == 404
     result = client.post(
         "/api/not_blocked", json={"data": ["freddy"], "session_hash": "foo"}
     )
