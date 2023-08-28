@@ -86,8 +86,10 @@ def _setup_config():
 def main():
     # default execution pattern to start the server and watch changes
     filename, path, watch_dirs, demo_name = _setup_config()
+    args = sys.argv[1:]
+    extra_args = args[1:] if len(args) == 1 or args[1].startswith("--") else args[2:]
     popen = subprocess.Popen(
-        ["python", path],
+        ["python", path] + extra_args,
         env=dict(
             os.environ,
             GRADIO_WATCH_DIRS=",".join(watch_dirs),
