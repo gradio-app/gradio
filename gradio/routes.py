@@ -643,6 +643,7 @@ def mount_gradio_app(
     app: fastapi.FastAPI,
     blocks: gradio.Blocks,
     path: str,
+    gradio_api_url: str | None = None,
     app_kwargs: dict[str, Any] | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
