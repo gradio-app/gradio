@@ -1210,8 +1210,6 @@ Received outputs:
                         block, components.Component
                     ), f"{block.__class__} Component with id {output_id} not a valid output component."
                     prediction_value = block.postprocess(prediction_value)
-                    if isinstance(prediction_value, (GradioRootModel, GradioModel)):
-                        prediction_value = prediction_value.model_dump()
                 output.append(prediction_value)
 
         return output

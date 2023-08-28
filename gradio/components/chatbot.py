@@ -246,7 +246,7 @@ class Chatbot(Changeable, Selectable, Component):
             List of lists representing the message and response. Each message and response will be a string of HTML, or a dictionary with media information. Or None if the message is not to be displayed.
         """
         if y is None:
-            return ChatbotData(conversation=[])
+            return ChatbotData([])
         processed_messages = []
         for message_pair in y:
             assert isinstance(

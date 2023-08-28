@@ -5,8 +5,6 @@ from gradio.components.base import (
     Component,
     Form,
     FormComponent,
-    StreamingInput,
-    StreamingOutput,
     _Keywords,
     component,
     get_component_instance,
@@ -46,7 +44,6 @@ from gradio.components.status_tracker import StatusTracker
 from gradio.components.textbox import Textbox
 from gradio.components.upload_button import UploadButton
 from gradio.components.video import Video
-from gradio.layouts import Column, Row
 
 Text = Textbox
 DataFrame = Dataframe
@@ -56,79 +53,20 @@ Highlight = HighlightedText
 Checkboxgroup = CheckboxGroup
 Json = JSON
 
-__all__ = [
-    "Audio",
-    "BarPlot",
-    "Button",
-    "Carousel",
-    "Chatbot",
-    "ClearButton",
-    "Component",
-    "component",
-    "get_component_instance",
-    "_Keywords",
-    "Checkbox",
-    "CheckboxGroup",
-    "Code",
-    "ColorPicker",
-    "Column",
-    "Dataframe",
-    "DataFrame",
-    "Dataset",
-    "DuplicateButton",
-    "Form",
-    "FormComponent",
-    "Gallery",
-    "HTML",
-    "Image",
-    "Component",
-    "Interpretation",
-    "JSON",
-    "Json",
-    "Label",
-    "LinePlot",
-    "LoginButton",
-    "LogoutButton",
-    "Markdown",
-    "Textbox",
-    "Dropdown",
-    "Model3D",
-    "File",
-    "HighlightedText",
-    "AnnotatedImage",
-    "CheckboxGroup",
-    "Text",
-    "Highlightedtext",
-    "Annotatedimage",
-    "Highlight",
-    "Checkboxgroup",
-    "Number",
-    "Plot",
-    "Radio",
-    "Row",
-    "ScatterPlot",
-    "Slider",
-    "State",
-    "Variable",
-    "StatusTracker",
-    "UploadButton",
-    "Video",
-    "StreamingInput",
-    "StreamingOutput",
-]
-
-
 def generate_stubs():
     from pathlib import Path
     from jinja2 import Template
     import importlib
     import inspect
+    from gradio.components.base import Component
 
     # todo support multiple classes per component
     for file in Path(__file__).parent.rglob("*.py"):
         if "__init__.py" in str(file):
             continue
-
+        
+        # pyi_dir = file.parent / "_stubs"
+        # pyi_dir.mkdir(exist_ok=True, parents=True)
         pyi_path = file.with_suffix(".pyi")
         if pyi_path.exists():
             continue
@@ -136,7 +74,7 @@ def generate_stubs():
 
         pyi_template = '''
 
-    {{ contents }}
+{{ contents }}
 
     {% for event in events %}
     def {{ event }}(self,
@@ -180,14 +118,68 @@ def generate_stubs():
         module = importlib.import_module(f"gradio.components.{file.stem}")
         for att in dir(module):
             att = getattr(module, att)
-            if inspect.isclass(att) and issubclass(att, IOComponent):
+            if inspect.isclass(att) and issubclass(att, Component):
                 if att.__name__ in ["IOComponent", "Carousel"]:
                     continue
                     # Write the rendered .pyi content to a file
-                comp = att()
-                if comp.events:
-                    rendered_pyi = template.render(events=comp.events, contents=file.read_text())
+
+                if hasattr(att, "EVENTS"):
+                    rendered_pyi = template.render(events=getattr(att, "EVENTS"), contents=inspect.getsource(att))
                     pyi_path.write_text(rendered_pyi)
 
 
-generate_stubs()
+__all__ = [
+    "Audio",
+    "BarPlot",
+    "Button",
+    "Carousel",
+    "Chatbot",
+    "ClearButton",
+    "Component",
+    "component",
+    "get_component_instance",
+    "_Keywords",
+    "Checkbox",
+    "CheckboxGroup",
+    "Code",
+    "ColorPicker",
+    "Dataframe",
+    "DataFrame",
+    "Dataset",
+    "DuplicateButton",
+    "Form",
+    "FormComponent",
+    "Gallery",
+    "HTML",
+    "Image",
+    "Interpretation",
+    "JSON",
+    "Json",
+    "Label",
+    "LinePlot",
+    "LoginButton",
+    "LogoutButton",
+    "Markdown",
+    "Textbox",
+    "Dropdown",
+    "Model3D",
+    "File",
+    "HighlightedText",
+    "AnnotatedImage",
+    "CheckboxGroup",
+    "Text",
+    "Highlightedtext",
+    "Annotatedimage",
+    "Highlight",
+    "Checkboxgroup",
+    "Number",
+    "Plot",
+    "Radio",
+    "ScatterPlot",
+    "Slider",
+    "State",
+    "Variable",
+    "StatusTracker",
+    "UploadButton",
+    "Video",
+]
