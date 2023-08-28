@@ -28,11 +28,11 @@
 	}>;
 
 	// alpha, beta, radius
-	export let camera_position: [
-		number | null,
-		number | null,
-		number | null
-	] = [null, null, null];
+	export let camera_position: [number | null, number | null, number | null] = [
+		null,
+		null,
+		null
+	];
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root, root_url);

@@ -11,11 +11,11 @@
 	export let show_label: boolean;
 
 	// alpha, beta, radius
-	export let camera_position: [
-		number | null,
-		number | null,
-		number | null
-	] = [null, null, null];
+	export let camera_position: [number | null, number | null, number | null] = [
+		null,
+		null,
+		null
+	];
 
 	let mounted = false;
 
