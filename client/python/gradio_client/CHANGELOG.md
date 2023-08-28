@@ -1,5 +1,37 @@
 # gradio_client
 
+## 0.5.0
+
+### Highlights
+
+#### Enable streaming audio in python client ([#5248](https://github.com/gradio-app/gradio/pull/5248) [`390624d8`](https://github.com/gradio-app/gradio/commit/390624d8ad2b1308a5bf8384435fd0db98d8e29e))
+
+The `gradio_client` now supports streaming file outputs 🌊
+
+No new syntax! Connect to a gradio demo that supports streaming file outputs and call `predict` or `submit` as you normally would.
+
+```python
+import gradio_client as grc
+client = grc.Client("gradio/stream_audio_out")
+
+# Get the entire generated audio as a local file
+client.predict("/Users/freddy/Pictures/bark_demo.mp4", api_name="/predict")
+
+job = client.submit("/Users/freddy/Pictures/bark_demo.mp4", api_name="/predict")
+
+# Get the entire generated audio as a local file
+job.result()
+
+# Each individual chunk
+job.outputs()
+```
+
+ Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
+### Fixes
+
+- [#5295](https://github.com/gradio-app/gradio/pull/5295) [`7b8fa8aa`](https://github.com/gradio-app/gradio/commit/7b8fa8aa58f95f5046b9add64b40368bd3f1b700) - Allow caching examples with streamed output.  Thanks [@aliabid94](https://github.com/aliabid94)!
+
 ## 0.4.0
 
 ### Highlights

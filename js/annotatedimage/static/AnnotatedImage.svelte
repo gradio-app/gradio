@@ -1,19 +1,19 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import type { Gradio, SelectData } from "@gradio/utils";
+
 	import { Block, BlockLabel, Empty } from "@gradio/atoms";
 	import { Image } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 	import { type FileData, normalise_file } from "@gradio/upload";
-	import type { SelectData } from "@gradio/utils";
-
+	import { _ } from "svelte-i18n";
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value: {image: FileData, annotations: {image: FileData, label: string}[] | []} | null = null;
 	let old_value: {image: FileData, annotations: {image: FileData, label: string}[] | []} | null = null;
 	let _value: {image: FileData, annotations: {image: FileData, label: string}[]} | null = null;
-	export let label = "Annotated Image";
+	export let label = $_("annotated_image.annotated_image");
 	export let show_label = true;
 	export let show_legend = true;
 	export let height: number | undefined;
@@ -26,16 +26,15 @@
 	export let root_url: string;
 	let active: string | null = null;
 	export let loading_status: LoadingStatus;
-
-	const dispatch = createEventDispatcher<{
+	export let gradio: Gradio<{
 		change: undefined;
 		select: SelectData;
-	}>();
+	}>;
 
 	$: {
 		if (value !== old_value) {
 			old_value = value;
-			dispatch("change");
+			gradio.dispatch("change");
 		}
 		if (value !== null) {
 			_value = {
@@ -55,6 +54,13 @@
 	function handle_mouseout(): void {
 		active = null;
 	}
+
+	function handle_click(i: number, value: string): void {
+		gradio.dispatch("select", {
+			value: value,
+			index: i
+		});
+	}
 </script>
 
 <Block
@@ -70,7 +76,7 @@
 	{min_width}
 >
 	<StatusTracker {...loading_status} />
-	<BlockLabel {show_label} Icon={Image} label={label || "Image"} />
+	<BlockLabel {show_label} Icon={Image} label={label || $_("image.image")} />
 
 	<div class="container">
 		{#if _value == null}
@@ -115,7 +121,7 @@
 							on:focus={() => handle_mouseover(ann.label)}
 							on:mouseout={() => handle_mouseout()}
 							on:blur={() => handle_mouseout()}
-							on:click={() => dispatch("select", { index: i, value: ann.label })}
+							on:click={() => handle_click(i, ann.label)}
 						>
 							{ann.label}
 						</div>

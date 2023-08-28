@@ -1,10 +1,12 @@
 <script lang="ts">
+	import type { Gradio } from "@gradio/utils";
 	import Number from "../shared";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
+	import { _ } from "svelte-i18n";
 
-	export let label = "Number";
+	export let label = $_("number.number");
 	export let info: string | undefined = undefined;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -19,6 +21,13 @@
 	export let loading_status: LoadingStatus;
 	export let value_is_output = false;
 	export let step: number | null = null;
+	export let gradio: Gradio<{
+		change: never;
+		input: never;
+		submit: never;
+		blur: never;
+		focus: never;
+	}>;
 </script>
 
 <Block
@@ -42,10 +51,10 @@
 		{maximum}
 		{step}
 		{container}
-		on:change
-		on:input
-		on:submit
-		on:blur
-		on:focus
+		on:change={() => gradio.dispatch("change")}
+		on:input={() => gradio.dispatch("input")}
+		on:submit={() => gradio.dispatch("submit")}
+		on:blur={() => gradio.dispatch("blur")}
+		on:focus={() => gradio.dispatch("focus")}
 	/>
 </Block>

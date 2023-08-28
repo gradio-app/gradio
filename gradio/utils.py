@@ -10,6 +10,7 @@ import json
 import json.decoder
 import os
 import pkgutil
+import pprint
 import random
 import re
 import time
@@ -35,9 +36,13 @@ import anyio
 import httpx
 import matplotlib
 import requests
+<<<<<<< HEAD
 from markdown_it import MarkdownIt
 from mdit_py_plugins.dollarmath.index import dollarmath_plugin
 from mdit_py_plugins.footnote.index import footnote_plugin
+=======
+from gradio_client.serializing import Serializable
+>>>>>>> main
 from pydantic import BaseModel, parse_obj_as
 from typing_extensions import ParamSpec
 
@@ -174,6 +179,7 @@ def assert_configs_are_equivalent_besides_ids(
     """
     config1 = copy.deepcopy(config1)
     config2 = copy.deepcopy(config2)
+    pp = pprint.PrettyPrinter(indent=2)
 
     for key in root_keys:
         assert config1[key] == config2[key], f"Configs have different: {key}"
@@ -189,7 +195,9 @@ def assert_configs_are_equivalent_besides_ids(
         c1.pop("id")
         c2 = copy.deepcopy(c2)
         c2.pop("id")
-        assert c1 == c2, f"{c1} does not match {c2}"
+        assert json.dumps(c1) == json.dumps(
+            c2
+        ), f"{pp.pprint(c1)} does not match {pp.pprint(c2)}"
 
     def same_children_recursive(children1, chidren2):
         for child1, child2 in zip(children1, chidren2):
@@ -954,31 +962,6 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path):
     except ValueError:
         return False
     return True
-
-
-def get_markdown_parser() -> MarkdownIt:
-    md = (
-        MarkdownIt(
-            "js-default",
-            {
-                "linkify": True,
-                "typographer": True,
-                "html": True,
-            },
-        )
-        .use(dollarmath_plugin, renderer=tex2svg, allow_digits=False)
-        .use(footnote_plugin)
-        .enable("table")
-    )
-
-    # Add target="_blank" to all links. Taken from MarkdownIt docs: https://github.com/executablebooks/markdown-it-py/blob/master/docs/architecture.md
-    def render_blank_link(self, tokens, idx, options, env):
-        tokens[idx].attrSet("target", "_blank")
-        return self.renderToken(tokens, idx, options, env)
-
-    md.add_render_rule("link_open", render_blank_link)
-
-    return md
 
 
 HTML_TAG_RE = re.compile("<.*?>")

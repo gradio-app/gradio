@@ -10,30 +10,46 @@ import {
 import { render, cleanup } from "@gradio/tootils";
 import { setupi18n } from "../src/i18n";
 
-import AnnotatedImage from "@gradio/annotatedimage";
-import Audio from "@gradio/audio";
-import Chatbot from "@gradio/chatbot";
-import Checkbox from "@gradio/checkbox";
-import CheckboxGroup from "@gradio/checkboxgroup";
-import ColorPicker from "@gradio/colorpicker";
-import DataFrame from "@gradio/dataframe";
-import Dropdown from "@gradio/dropdown";
-import File from "@gradio/file";
-import Gallery from "@gradio/gallery";
-import HTML from "@gradio/html";
-import HighlightedText from "@gradio/highlightedtext";
-import Json from "@gradio/json";
-import Label from "@gradio/label";
-import Markdown from "@gradio/markdown";
-import Model3D from "@gradio/model3d";
-import Number from "@gradio/number";
-import Radio from "@gradio/radio";
-import Slider from "@gradio/slider";
-import Textbox from "@gradio/textbox";
-import TimeSeries from "@gradio/timeseries";
-import UploadButton from "@gradio/uploadbutton";
-import Video from "@gradio/video";
-import { LoadingStatus } from "@gradio/statustracker/types";
+import StaticAnnotatedImage from "@gradio/annotatedimage/static";
+import StaticAudio from "@gradio/audio/static";
+import StaticChatbot from "@gradio/chatbot/static";
+import StaticCheckbox from "@gradio/checkbox/static";
+import StaticCheckboxGroup from "@gradio/checkboxgroup/static";
+import StaticColorPicker from "@gradio/colorpicker/static";
+import StaticDataframe from "@gradio/dataframe/static";
+import StaticDropdown from "@gradio/dropdown/static";
+import StaticFile from "@gradio/file/static";
+import StaticGallery from "@gradio/gallery/static";
+import StaticHTML from "@gradio/html/static";
+import StaticHighlightedText from "@gradio/highlightedtext/static";
+import StaticJson from "@gradio/json/static";
+import StaticLabel from "@gradio/label/static";
+import StaticMarkdown from "@gradio/markdown/static";
+import StaticModel3D from "@gradio/model3d/static";
+import StaticNumber from "@gradio/number/static";
+import StaticRadio from "@gradio/radio/static";
+import StaticSlider from "@gradio/slider/static";
+import StaticTextbox from "@gradio/textbox/static";
+import StaticTimeSeries from "@gradio/timeseries/static";
+import StaticUploadButton from "@gradio/uploadbutton/static";
+import StaticVideo from "@gradio/video/static";
+
+import InteractiveAudio from "@gradio/audio/interactive";
+import InteractiveCheckbox from "@gradio/checkbox/interactive";
+import InteractiveCheckboxGroup from "@gradio/checkboxgroup/interactive";
+import InteractiveColorPicker from "@gradio/colorpicker/interactive";
+import InteractiveDataframe from "@gradio/dataframe/interactive";
+import InteractiveDropdown from "@gradio/dropdown/interactive";
+import InteractiveFile from "@gradio/file/interactive";
+import InteractiveModel3D from "@gradio/model3d/interactive";
+import InteractiveNumber from "@gradio/number/interactive";
+import InteractiveRadio from "@gradio/radio/interactive";
+import InteractiveSlider from "@gradio/slider/interactive";
+import InteractiveTextbox from "@gradio/textbox/interactive";
+import InteractiveTimeSeries from "@gradio/timeseries/interactive";
+import InteractiveUploadButton from "@gradio/uploadbutton/interactive";
+import InteractiveVideo from "@gradio/video/interactive";
+import { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status: LoadingStatus = {
 	eta: 0,
@@ -47,38 +63,67 @@ const loading_status: LoadingStatus = {
 };
 
 const components = [
-	["AnnotatedImage", AnnotatedImage, { height: 100, width: 100, value: null }],
-	["Audio", Audio, {}],
-	// ["Button", Button, {}],
-	["Chatbot", Chatbot, {}],
-	["Checkbox", Checkbox, {}],
-	["CheckboxGroup", CheckboxGroup, { choices: ["a", "b", "c"] }],
-	// ["Code", Code, {}],
-	["ColorPicker", ColorPicker, {}],
 	[
-		"DataFrame",
-		DataFrame,
+		"StaticAnnotatedImage",
+		StaticAnnotatedImage,
+		{ height: 100, width: 100, value: null }
+	],
+	["InteractiveAudio", InteractiveAudio, {}],
+	["StaticAudio", StaticAudio, {}],
+
+	["StaticChatbot", StaticChatbot, {}],
+	["InteractiveCheckbox", InteractiveCheckbox, {}],
+	["StaticCheckbox", StaticCheckbox, {}],
+	[
+		"InteractiveCheckboxGroup",
+		InteractiveCheckboxGroup,
+		{ choices: ["a", "b", "c"] }
+	],
+	["StaticCheckboxGroup", StaticCheckboxGroup, { choices: ["a", "b", "c"] }],
+	["InteractiveColorPicker", InteractiveColorPicker, {}],
+	["StaticColorPicker", StaticColorPicker, {}],
+	[
+		"InteractiveDataFrame",
+		InteractiveDataframe,
 		{ value: [[1, 2, 3]], col_count: [3, "fixed"], row_count: [3, "fixed"] }
 	],
-	// ["Dataset", Dataset, {}],
-	["Dropdown", Dropdown, { choices: ["a", "b", "c"] }],
-	["File", File, {}],
-	["Gallery", Gallery, {}],
-	["HTML", HTML, {}],
-	["HighlightedText", HighlightedText, {}],
-	// ["Image",, {} Image],
-	["Json", Json, {}],
-	["Label", Label, {}],
-	["Markdown", Markdown, {}],
-	["Model3D", Model3D, {}],
-	["Number", Number, {}],
-	// ["Plot", Plot, {}],
-	["Radio", Radio, {}],
-	["Slider", Slider, {}],
-	["Textbox", Textbox, { container: false }],
-	["TimeSeries", TimeSeries, {}],
-	["UploadButton", UploadButton, {}],
-	["Video", Video, {}]
+	[
+		"StaticDataFrame",
+		StaticDataframe,
+		{ value: [[1, 2, 3]], col_count: [3, "fixed"], row_count: [3, "fixed"] }
+	],
+	["InteractiveDropdown", InteractiveDropdown, { choices: ["a", "b", "c"] }],
+	["StaticDropdown", StaticDropdown, { choices: ["a", "b", "c"] }],
+	["InteractiveFile", InteractiveFile, {}],
+	["StaticFile", StaticFile, {}],
+
+	["StaticGallery", StaticGallery, {}],
+
+	["StaticHTML", StaticHTML, {}],
+
+	["StaticHighlightedText", StaticHighlightedText, {}],
+
+	["StaticJson", StaticJson, {}],
+
+	["StaticLabel", StaticLabel, {}],
+
+	["StaticMarkdown", StaticMarkdown, {}],
+	["InteractiveModel3D", InteractiveModel3D, {}],
+	["StaticModel3D", StaticModel3D, {}],
+	["InteractiveNumber", InteractiveNumber, {}],
+	["StaticNumber", StaticNumber, {}],
+	["InteractiveRadio", InteractiveRadio, {}],
+	["StaticRadio", StaticRadio, {}],
+	["InteractiveSlider", InteractiveSlider, {}],
+	["StaticSlider", StaticSlider, {}],
+	["InteractiveTextbox", InteractiveTextbox, { container: false }],
+	["StaticTextbox", StaticTextbox, { container: false }],
+	["InteractiveTimeSeries", InteractiveTimeSeries, {}],
+	["StaticTimeSeries", StaticTimeSeries, {}],
+	["InteractiveUploadButton", InteractiveUploadButton, {}],
+	["StaticUploadButton", StaticUploadButton, {}],
+	["InteractiveVideo", InteractiveVideo, {}],
+	["StaticVideo", StaticVideo, {}]
 ] as const;
 
 describe("all components should apply provided class names", () => {
@@ -174,7 +219,7 @@ describe("all components should have the appropriate label when set via the `lab
 	});
 
 	components
-		.filter(([name]) => name !== "Markdown" && name !== "HTML")
+		.filter(([name]) => name !== "StaticMarkdown" && name !== "StaticHTML")
 		.forEach(([name, component, props]) => {
 			test(name, async () => {
 				const { getAllByText } = await render(component, {
@@ -195,11 +240,9 @@ describe("all components should have the appropriate label when set via the `lab
 });
 
 describe("all components should hide their label when `show_label=false`", () => {
-	components
-		.filter(([name]) => name !== "Markdown" && name !== "HTML")
-		.forEach(([name, component, props]) => {
-			test.todo(name);
-		});
+	components.forEach(([name, component, props]) => {
+		test.todo(name);
+	});
 
 	["Button", "Code", "Image", "Plot"].forEach((name) => {
 		test.todo(name);
@@ -207,11 +250,9 @@ describe("all components should hide their label when `show_label=false`", () =>
 });
 
 describe("all components should show their label when `show_label=true`", () => {
-	components
-		.filter(([name]) => name !== "Markdown" && name !== "HTML")
-		.forEach(([name, component, props]) => {
-			test.todo(name);
-		});
+	components.forEach(([name, component, props]) => {
+		test.todo(name);
+	});
 
 	["Button", "Code", "Image", "Plot"].forEach((name) => {
 		test.todo(name);
@@ -219,11 +260,9 @@ describe("all components should show their label when `show_label=true`", () => 
 });
 
 describe("all components should hide their container when `container=false`", () => {
-	components
-		.filter(([name]) => name !== "Markdown" && name !== "HTML")
-		.forEach(([name, component, props]) => {
-			test.todo(name);
-		});
+	components.forEach(([name, component, props]) => {
+		test.todo(name);
+	});
 
 	["Button", "Code", "Image", "Plot"].forEach((name) => {
 		test.todo(name);

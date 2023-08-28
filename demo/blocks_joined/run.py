@@ -26,25 +26,17 @@ with gr.Blocks(css=".container { max-width: 800px; margin: auto; }") as demo:
         "DALL·E mini is an AI model that generates images from any prompt you give!"
     )
     with gr.Group():
-        with gr.Box():
-            with gr.Row().style(equal_height=True):
-
-                text = gr.Textbox(
-                    label="Enter your prompt", show_label=False, max_lines=1
-                ).style(
-                    border=(True, False, True, True),
-                    rounded=(True, False, False, True),
-                    container=False,
-                )
-                btn = gr.Button("Run").style(
-                    margin=False,
-                    rounded=(False, True, True, False),
-                )
-        gallery = gr.Gallery(label="Generated images", show_label=False).style(
-            grid=(
-                1,
-                3,
-            ),
+        with gr.Row(equal_height=True):
+            text = gr.Textbox(
+                label="Enter your prompt",
+                max_lines=1,
+                container=False,
+            )
+            btn = gr.Button("Run", scale=0)
+        gallery = gr.Gallery(
+            label="Generated images",
+            show_label=False,
+            columns=(1, 3),
             height="auto",
         )
     btn.click(img, inputs=text, outputs=gallery)

@@ -1,9 +1,10 @@
 <script lang="ts">
+	import type { Gradio, SelectData } from "@gradio/utils";
 	import { Block } from "@gradio/atoms";
 	import Table from "../shared";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
-	import { createEventDispatcher, afterUpdate } from "svelte";
+	import type { LoadingStatus } from "@gradio/statustracker";
+	import { afterUpdate } from "svelte";
 
 	type Headers = string[];
 	type Data = (string | number)[][];
@@ -17,6 +18,13 @@
 		data: [["", "", ""]],
 		headers: ["1", "2", "3"]
 	};
+	export let latex_delimiters: {
+		left: string;
+		right: string;
+		display: boolean;
+	}[];
+	export let height: number | undefined = undefined;
+
 	let old_value: string = JSON.stringify(value);
 	export let value_is_output = false;
 	export let col_count: [number, "fixed" | "dynamic"];
@@ -28,14 +36,18 @@
 	export let min_width: number | undefined = undefined;
 	export let root: string;
 
-	const dispatch = createEventDispatcher();
+	export let gradio: Gradio<{
+		change: never;
+		select: SelectData;
+		input: never;
+	}>;
 
 	export let loading_status: LoadingStatus;
 
 	function handle_change(): void {
-		dispatch("change", value);
+		gradio.dispatch("change");
 		if (!value_is_output) {
-			dispatch("input");
+			gradio.dispatch("input");
 		}
 	}
 	afterUpdate(() => {
@@ -70,9 +82,11 @@
 		on:change={({ detail }) => {
 			value = detail;
 		}}
-		on:select
+		on:select={(e) => gradio.dispatch("select", e.detail)}
 		editable
 		{wrap}
 		{datatype}
+		{latex_delimiters}
+		{height}
 	/>
 </Block>

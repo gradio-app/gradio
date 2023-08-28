@@ -3,15 +3,20 @@
 	import { display_file_name, display_file_size } from "./utils";
 	import { createEventDispatcher } from "svelte";
 	import type { SelectData } from "@gradio/utils";
+	import { _ } from "svelte-i18n";
 
 	const dispatch = createEventDispatcher<{
 		select: SelectData;
 	}>();
 	export let value: FileData | FileData[];
 	export let selectable = false;
+	export let height: number | undefined = undefined;
 </script>
 
-<div class="file-preview-holder">
+<div
+	class="file-preview-holder"
+	style="max-height: {typeof height === undefined ? 'auto' : height + 'px'};"
+>
 	<table class="file-preview">
 		<tbody>
 			{#each Array.isArray(value) ? value : [value] as file, i}
@@ -28,10 +33,6 @@
 						{display_file_name(file)}
 					</td>
 
-					<td>
-						{display_file_size(file)}
-					</td>
-
 					<td class="download">
 						{#if file.data}
 							<a
@@ -41,10 +42,10 @@
 									? null
 									: file.orig_name || file.name}
 							>
-								Download
+								{@html display_file_size(file)}&nbsp;&#8675;
 							</a>
 						{:else}
-							Uploading...
+							{$_("file.uploading")}
 						{/if}
 					</td>
 				</tr>
@@ -64,11 +65,13 @@
 	}
 	.file-preview-holder {
 		overflow-x: auto;
+		overflow-y: auto;
 	}
 	.file-preview {
 		width: var(--size-full);
 		max-height: var(--size-60);
 		overflow-y: auto;
+		margin-top: var(--size-1);
 		color: var(--body-text-color);
 	}
 	.file {
@@ -97,5 +100,13 @@
 	}
 	.selectable {
 		cursor: pointer;
+	}
+
+	tbody > tr:nth-child(even) {
+		background: var(--block-background-fill);
+	}
+
+	tbody > tr:nth-child(odd) {
+		background: var(--table-odd-background-fill);
 	}
 </style>

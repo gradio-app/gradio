@@ -1,13 +1,13 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import type { Gradio, SelectData, ShareData } from "@gradio/utils";
 	import Image from "./Image.svelte";
 
 	import { Block } from "@gradio/atoms";
 	import { _ } from "svelte-i18n";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 	import { UploadText } from "@gradio/atoms";
 	import type { FileData } from "js/upload/src";
 
@@ -35,12 +35,19 @@
 	export let loading_status: LoadingStatus;
 	export let root: string;
 
-	const dispatch = createEventDispatcher<{
-		change: undefined;
+	export let gradio: Gradio<{
+		change: never;
 		error: string;
-	}>();
+		edit: never;
+		stream: never;
+		drag: never;
+		upload: never;
+		clear: never;
+		select: SelectData;
+		share: ShareData;
+	}>;
 
-	$: value, dispatch("change");
+	$: value, gradio.dispatch("change");
 	let dragging: boolean;
 	const FIXED_HEIGHT = 240;
 
@@ -73,17 +80,17 @@
 		{selectable}
 		{mask_opacity}
 		{root}
-		on:edit
-		on:clear
-		on:stream
+		on:edit={() => gradio.dispatch("edit")}
+		on:clear={() => gradio.dispatch("clear")}
+		on:stream={() => gradio.dispatch("stream")}
 		on:drag={({ detail }) => (dragging = detail)}
-		on:upload
-		on:select
-		on:share
+		on:upload={() => gradio.dispatch("upload")}
+		on:select={({ detail }) => gradio.dispatch("select", detail)}
+		on:share={({ detail }) => gradio.dispatch("share", detail)}
 		on:error={({ detail }) => {
 			loading_status = loading_status || {};
 			loading_status.status = "error";
-			dispatch("error", detail);
+			gradio.dispatch("error", detail);
 		}}
 		{label}
 		{show_label}

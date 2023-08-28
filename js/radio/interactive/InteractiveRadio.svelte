@@ -1,22 +1,29 @@
 <script lang="ts">
+	import type { Gradio, SelectData } from "@gradio/utils";
 	import Radio from "../shared";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
+	import { _ } from "svelte-i18n";
 
-	export let label = "Radio";
+	export let label = $_("radio.radio");
 	export let info: string | undefined = undefined;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: string | null = null;
+	export let value: string | number | null = null;
 	export let value_is_output = false;
-	export let choices: string[] = [];
+	export let choices: [string, number][] = [];
 	export let show_label: boolean;
 	export let container = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
+	export let gradio: Gradio<{
+		change: never;
+		select: SelectData;
+		input: never;
+	}>;
 </script>
 
 <Block
@@ -38,8 +45,8 @@
 		{elem_id}
 		{show_label}
 		{choices}
-		on:change
-		on:input
-		on:select
+		on:change={() => gradio.dispatch("change")}
+		on:input={() => gradio.dispatch("input")}
+		on:select={(e) => gradio.dispatch("select", e.detail)}
 	/>
 </Block>

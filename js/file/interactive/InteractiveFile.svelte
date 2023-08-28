@@ -1,7 +1,8 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
-	import { createEventDispatcher, getContext } from "svelte";
+	import type { Gradio, SelectData } from "@gradio/utils";
+	import { getContext } from "svelte";
 	import FileUpload from "./FileUpload.svelte";
 	import { blobToBase64 } from "@gradio/upload";
 	import type { FileData } from "@gradio/upload";
@@ -11,9 +12,10 @@
 	import { upload_files as default_upload_files } from "@gradio/client";
 
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
 	import { _ } from "svelte-i18n";
+	import type { S } from "@storybook/theming/dist/create-c2b2ce6d";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -21,7 +23,7 @@
 	export let value: null | FileData | FileData[];
 	let old_value: null | FileData | FileData[];
 
-	export let mode: "static" | "dynamic";
+	export let mode: "static" | "interactive";
 	export let root: string;
 	export let label: string;
 	export let show_label: boolean;
@@ -33,6 +35,14 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+	export let height: number | undefined = undefined;
+	export let gradio: Gradio<{
+		change: never;
+		error: string;
+		upload: never;
+		clear: never;
+		select: SelectData;
+	}>;
 
 	const upload_files =
 		getContext<typeof default_upload_files>("upload_files") ??
@@ -43,17 +53,11 @@
 	let dragging = false;
 	let pending_upload = false;
 
-	const dispatch = createEventDispatcher<{
-		change: undefined;
-		error: string;
-		upload: undefined;
-	}>();
-
 	$: {
 		if (JSON.stringify(_value) !== JSON.stringify(old_value)) {
 			old_value = _value;
 			if (_value === null) {
-				dispatch("change");
+				gradio.dispatch("change");
 				pending_upload = false;
 			} else if (
 				!(Array.isArray(_value) ? _value : [_value]).every(
@@ -61,8 +65,8 @@
 				)
 			) {
 				pending_upload = false;
-				dispatch("change");
-			} else if (mode === "dynamic") {
+				gradio.dispatch("change");
+			} else if (mode === "interactive") {
 				let files = (Array.isArray(_value) ? _value : [_value]).map(
 					(file_data) => file_data.blob!
 				);
@@ -95,8 +99,8 @@
 						);
 						old_value = _value = normalise_file(value, root, root_url);
 					}
-					dispatch("change");
-					dispatch("upload");
+					gradio.dispatch("change");
+					gradio.dispatch("upload");
 				});
 			}
 		}
@@ -105,7 +109,7 @@
 
 <Block
 	{visible}
-	variant={mode === "dynamic" && value === null ? "dashed" : "solid"}
+	variant={value === null ? "dashed" : "solid"}
 	border_mode={dragging ? "focus" : "base"}
 	padding={false}
 	{elem_id}
@@ -113,6 +117,8 @@
 	{container}
 	{scale}
 	{min_width}
+	{height}
+	allow_overflow={false}
 >
 	<StatusTracker
 		{...loading_status}
@@ -129,10 +135,11 @@
 		{file_types}
 		{selectable}
 		{root}
+		{height}
 		on:change={({ detail }) => (value = detail)}
 		on:drag={({ detail }) => (dragging = detail)}
-		on:clear
-		on:select
+		on:clear={() => gradio.dispatch("clear")}
+		on:select={({ detail }) => gradio.dispatch("select", detail)}
 	>
 		<UploadText type="file" />
 	</FileUpload>

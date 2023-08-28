@@ -126,6 +126,7 @@ class UploadButton(Clickable, Uploadable, Component):
         | list[str]
         | Literal[_Keywords.NO_VALUE]
         | None = _Keywords.NO_VALUE,
+        label: str | None = None,
         size: Literal["sm", "lg"] | None = None,
         variant: Literal["primary", "secondary", "stop"] | None = None,
         interactive: bool | None = None,
@@ -141,6 +142,7 @@ class UploadButton(Clickable, Uploadable, Component):
             "value": value,
             "scale": scale,
             "min_width": min_width,
+            "label": label,
             "__type__": "update",
         }
 
@@ -172,9 +174,7 @@ class UploadButton(Clickable, Uploadable, Component):
                     path = self.make_temp_copy_if_needed(file_name)
                 else:
                     data, _ = client_utils.decode_base64_to_binary(data)
-                    path = self.file_bytes_to_file(
-                        data, dir=self.DEFAULT_TEMP_DIR, file_name=file_name
-                    )
+                    path = self.file_bytes_to_file(data, file_name=file_name)
                     path = str(utils.abspath(path))
                     self.temp_files.add(path)
                 file = tempfile.NamedTemporaryFile(
