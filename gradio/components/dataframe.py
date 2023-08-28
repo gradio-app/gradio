@@ -47,9 +47,6 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         col_count: int | tuple[int, str] | None = None,
         datatype: str | list[str] = "str",
         type: Literal["pandas", "numpy", "array"] = "pandas",
-        max_rows: int | None = 20,
-        max_cols: int | None = None,
-        overflow_row_behaviour: Literal["paginate", "show_ends"] = "paginate",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | None = None,
         every: float | None = None,
@@ -62,20 +59,20 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         wrap: bool = False,
+        max_rows: int | None = 20,
+        max_cols: int | None = None,
+        overflow_row_behaviour: Literal["paginate", "show_ends"] = "paginate",
         **kwargs,
     ):
         """
         Parameters:
             value: Default value as a 2-dimensional list of values. If callable, the function will be called whenever the app loads to set the initial value of the component.
             headers: List of str header names. If None, no headers are shown.
-            row_count: Limit number of rows for input and decide whether user can create new rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
-            col_count: Limit number of columns for input and decide whether user can create new columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
+            row_count: If no value is provided, this parameter determines the number of rows in the dataframe as as well as whether user can add/delete rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic'. If an `int` is passed the rows default to 'dynamic' (i.e. user can change the number of rows)
+            col_count: If no value is provided, this parameter determines the number of columns in the dataframe as as well as whether user can add/delete columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic'. If an `int` is passed the columns default to 'dynamic' (i.e. user can change the number of columns)
             datatype: Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", "date", and "markdown".
             type: Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python array.
             label: component name in interface.
-            max_rows: Maximum number of rows to display at once. Set to None for infinite.
-            max_cols: Maximum number of columns to display at once. Set to None for infinite.
-            overflow_row_behaviour: If set to "paginate", will create pages for overflow rows. If set to "show_ends", will show initial and final rows and truncate middle rows.
             latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$", "right": "$", "display": False }]`, so only expressions enclosed in $ delimiters will be rendered as LaTeX, and in the same line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html). Only applies to columns whose datatype is "markdown".
             label: component name in interface.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
@@ -88,6 +85,9 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             wrap: if True text in table cells will wrap when appropriate, if False the table will scroll horizontally. Defaults to False.
+            max_rows: Deprecated. Has no effect.
+            max_cols: Deprecated. Has no effect.
+            overflow_row_behaviour: Deprecated. Has no effect.
         """
 
         self.wrap = wrap
