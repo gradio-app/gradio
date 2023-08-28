@@ -212,16 +212,28 @@ async def call_process_api(
         inputs = [inputs]
 
     with utils.MatplotlibBackendMananger():
-        output = await app.get_blocks().process_api(
-            fn_index=fn_index_inferred,
-            inputs=inputs,
-            request=gr_request,
-            state=session_state,
-            iterators=iterators,
-            session_hash=session_hash,
-            event_id=event_id,
-            event_data=event_data,
-        )
+        try:
+            output = await app.get_blocks().process_api(
+                fn_index=fn_index_inferred,
+                inputs=inputs,
+                request=gr_request,
+                state=session_state,
+                iterators=iterators,
+                session_hash=session_hash,
+                event_id=event_id,
+                event_data=event_data,
+            )
+        except BaseException:
+            fn_index = body.fn_index
+            iterator = iterators.get(fn_index, None)
+            if iterator is not None:  # close off any streams that are still open
+                run_id = id(iterator)
+                pending_streams: dict[int, list] = (
+                    app.get_blocks().pending_streams[session_hash].get(run_id, {})
+                )
+                for stream in pending_streams.values():
+                    stream.append(None)
+            raise
 
     if hasattr(body, "session_hash"):
         iterator = output.pop("iterator", None)
