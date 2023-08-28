@@ -31,7 +31,6 @@ set_documentation_group("component")
 
 @document()
 class Audio(
-    Changeable,
     Clearable,
     Playable,
     Recordable,
@@ -42,6 +41,7 @@ class Audio(
     FileSerializable,
     TokenInterpretable,
 ):
+    EVENTS = ["foo", "bar", "change"]
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
     Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a 16-bit int array whose values range from -32768 to 32767), or as a {str} filepath, depending on `type`.
