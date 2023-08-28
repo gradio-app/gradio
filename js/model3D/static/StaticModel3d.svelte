@@ -22,9 +22,9 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let alpha: number | null;
-	export let beta: number | null;
-	export let radius: number | null;
+
+	// alpha, beta, radius
+	export let initial_position: [number | null, number | null, number | null] = [null, null, null]
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root, root_url);
@@ -51,9 +51,7 @@
 			{clearColor}
 			{label}
 			{show_label}
-			{alpha}
-			{beta}
-			{radius}
+			initial_position={initial_position}
 		/>
 	{:else}
 		<!-- Not ideal but some bugs to work out before we can 

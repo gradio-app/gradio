@@ -19,6 +19,8 @@ from gradio.events import (
 
 set_documentation_group("component")
 
+NumberOrNone = int | float | None
+
 
 @document()
 class Model3D(
@@ -47,9 +49,7 @@ class Model3D(
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        alpha: int | float | None = None,
-        beta: int | float | None = None,
-        radius: int | float | None = None,
+        initial_position: tuple[NumberOrNone, NumberOrNone, NumberOrNone] = (None, None, None),
         **kwargs,
     ):
         """
@@ -67,9 +67,7 @@ class Model3D(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.clear_color = clear_color or [0, 0, 0, 0]
-        self._alpha = alpha
-        self._beta = beta
-        self._radius = radius
+        self._initial_position = initial_position
 
         IOComponent.__init__(
             self,
@@ -90,9 +88,7 @@ class Model3D(
         return {
             "clearColor": self.clear_color,
             "value": self.value,
-            "alpha": self._alpha,
-            "beta": self._beta,
-            "radius": self._radius,
+            "initial_position": self._initial_position,
             **IOComponent.get_config(self),
         }
 

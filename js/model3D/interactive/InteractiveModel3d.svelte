@@ -26,9 +26,9 @@
 		change: typeof value;
 		clear: never;
 	}>;
-	export let alpha: number | null;
-	export let beta: number | null;
-	export let radius: number | null;
+
+	// alpha, beta, radius
+	export let initial_position: [number | null, number | null, number | null] = [null, null, null]
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root, root_url);
@@ -54,9 +54,7 @@
 		{show_label}
 		{clearColor}
 		value={_value}
-		{alpha}
-		{beta}
-		{radius}
+		initial_position={initial_position}
 		on:change={({ detail }) => (value = detail)}
 		on:drag={({ detail }) => (dragging = detail)}
 		on:change={({ detail }) => gradio.dispatch("change", detail)}

@@ -9,9 +9,9 @@
 	export let clearColor: [number, number, number, number] = [0, 0, 0, 0];
 	export let label = "";
 	export let show_label: boolean;
-	export let alpha: number | null;
-	export let beta: number | null;
-	export let radius: number | null;
+
+	// alpha, beta, radius
+	export let initial_position: [number | null, number | null, number | null] = [null, null, null]
 
 	let mounted = false;
 
@@ -106,16 +106,16 @@
 				scene.createDefaultCamera(true, true, true);
 				var helperCamera = scene.activeCamera;
 
-				if (alpha != null) {
-					helperCamera.alpha = (Math.PI * alpha) / 360;
+				if (initial_position[0] !== null) {
+					helperCamera.alpha = (Math.PI * initial_position[0]) / 360;
 				}
 
-				if (beta != null) {
-					helperCamera.beta = (Math.PI * beta) / 360;
+				if (initial_position[1] !== null) {
+					helperCamera.beta = (Math.PI * initial_position[1]) / 360;
 				}
 
-				if (radius != null) {
-					helperCamera.radius = radius;
+				if (initial_position[2] !== null) {
+					helperCamera.radius = initial_position[2];
 				}
 			},
 			undefined,
