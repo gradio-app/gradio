@@ -434,7 +434,7 @@ class Queue:
             if response and response.get("is_generating", False):
                 old_response = response
                 old_err = err
-                while response.get("is_generating", False):
+                while response and response.get("is_generating", False):
                     old_response = response
                     old_err = err
                     open_ws = []
