@@ -227,6 +227,9 @@ class CheckboxGroup(
             return None
         elif not isinstance(input_data, list):
             input_data = [input_data]
+        for data in input_data:
+            if data not in [c[0] for c in self.choices]:
+                raise ValueError(f"Example {data} provided not a valid choice.")
         return [
             next((c[0] for c in self.choices if c[1] == data), None)
             for data in input_data

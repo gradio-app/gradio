@@ -9,6 +9,8 @@ css = (
 md = """# Dillinger
 ## _The Last Markdown Editor, Ever_
 
+This is some `inline code`, it is good.
+
 [![Build Status](https://travis-ci.org/joemccann/dillinger.svg?branch=master)](https://travis-ci.org/joemccann/dillinger)
 
 Dillinger is a cloud-enabled, mobile-ready, offline-storage compatible,
