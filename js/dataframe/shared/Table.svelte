@@ -8,6 +8,7 @@
 	import EditableCell from "./EditableCell.svelte";
 	import type { SelectData } from "@gradio/utils";
 	import { _ } from "svelte-i18n";
+	import type { splitAccessPath } from "vega";
 
 	type Datatype = "str" | "markdown" | "html" | "number" | "bool" | "date";
 
@@ -440,7 +441,17 @@
 		await tick();
 
 		edit_header(_id, true);
-	}
+	}	
+
+	async function delete_col(): Promise<void> {
+		if (col_count[1] !== "dynamic") return;
+		data = data.map(row => row.slice(0, -1));
+		_headers.pop();
+	}	
+
+	async function delete_row(): Promise<void> {
+		data = data.slice(0, -1);
+	}	
 
 	function handle_click_outside(event: Event): void {
 		if (typeof editing === "string" && els[editing]) {
@@ -641,7 +652,7 @@
 			{#if row_count[1] === "dynamic"}
 			<div>
 			<span class="button-wrap">
-				<BaseButton variant="secondary" size="sm" on:click={() => add_row()}>
+				<BaseButton variant="secondary" size="sm" on:click={delete_row}>
 					&#8673; {$_("dataframe.delete_row")}
 				</BaseButton>
 			</span>
@@ -655,7 +666,7 @@
 			{#if col_count[1] === "dynamic"}
 			<div>
 				<span class="button-wrap">
-				<BaseButton variant="secondary" size="sm" on:click={add_col}>
+				<BaseButton variant="secondary" size="sm" on:click={delete_col}>
 					&#8672; {$_("dataframe.delete_column")}
 				</BaseButton>
 			</span>
