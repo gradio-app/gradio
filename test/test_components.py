@@ -2018,6 +2018,7 @@ class TestChatbot:
             "rtl": False,
             "show_copy_button": False,
             "avatar_images": (None, None),
+            'bubble_full_width': True,
         }
 
 
