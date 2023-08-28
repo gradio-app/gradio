@@ -235,8 +235,13 @@ class App(FastAPI):
         async def notify_changes(websocket: WebSocket):
             await websocket.accept()
 
+            ping = asyncio.create_task(send_ping_periodically(websocket))
+            notify = asyncio.create_task(listen_for_changes(websocket))
+            tasks = {ping, notify}
+            ping.add_done_callback(tasks.remove)
+            notify.add_done_callback(tasks.remove)
             done, pending = await asyncio.wait(
-                [send_ping_periodically(websocket), listen_for_changes(websocket)],
+                [ping, notify],
                 return_when=asyncio.FIRST_COMPLETED,
             )
 

@@ -775,6 +775,12 @@ class Blocks(BlockContext):
             }
             analytics.initiated_analytics(data)
 
+    @property
+    def _is_running_in_reload_thread(self):
+        from gradio.reload import reload_thread
+
+        return getattr(reload_thread, "running_reload", False)
+
     @classmethod
     def from_config(
         cls,
@@ -1797,6 +1803,10 @@ Received outputs:
             demo = gr.Interface(reverse, "text", "text")
             demo.launch(share=True, auth=("username", "password"))
         """
+        if self._is_running_in_reload_thread:
+            # We have already launched the demo
+            return None, None, None  # type: ignore
+
         if not self.exited:
             self.__exit__()
 

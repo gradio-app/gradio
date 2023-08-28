@@ -10,10 +10,13 @@ import os
 import re
 import subprocess
 import sys
+import threading
 from pathlib import Path
 
 import gradio
 from gradio import utils
+
+reload_thread = threading.local()
 
 
 def _setup_config():
@@ -47,13 +50,6 @@ def _setup_config():
         print(
             f"\nWarning: Cannot statically find a gradio demo called {demo_name}. "
             "Reload work may fail."
-        )
-
-    if not re.search("""if __name__ == ["']__main__["']:""", app_text):
-        raise ValueError(
-            f"{original_path} does not "
-            "have an if __name__ == '__main__' clause. Please add one "
-            "and launch your demo there."
         )
 
     abs_original_path = utils.abspath(original_path)

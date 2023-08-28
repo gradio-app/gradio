@@ -141,6 +141,13 @@ def watchfn(reloader: SourceFileReloader):
     get_changes is taken from uvicorn's default file watcher.
     """
 
+    # The thread running watchfn will be the thread reloading
+    # the app. So we need to modify this thread_data attr here
+    # so that subsequent calls to reload don't launch the app
+    from gradio.reload import reload_thread
+
+    reload_thread.running_reload = True
+
     def get_changes() -> Path | None:
         for file in iter_py_files():
             try:
@@ -173,8 +180,17 @@ def watchfn(reloader: SourceFileReloader):
             # To simulate a fresh reload, delete all module references from sys.modules
             # for the modules in the package the change came from.
             dir_ = next(d for d in reload_dirs if is_in_or_equal(changed, d))
-            for k, v in list(sys.modules.items()):
+            modules = list(sys.modules)
+            for k in modules:
+                v = sys.modules[k]
                 sourcefile = getattr(v, "__file__", None)
+                # Do not reload `reload.py` to keep thread data
+                if (
+                    sourcefile
+                    and dir_ == Path(inspect.getfile(gradio)).parent
+                    and sourcefile.endswith("reload.py")
+                ):
+                    continue
                 if sourcefile and is_in_or_equal(sourcefile, dir_):
                     del sys.modules[k]
             try:
@@ -184,7 +200,7 @@ def watchfn(reloader: SourceFileReloader):
                 print(
                     f"Reloading {reloader.watch_file} failed with the following exception: "
                 )
-                traceback.print_exception(etype=None, value=e, tb=None)
+                traceback.print_exception(None, value=e, tb=None)
                 mtimes = {}
                 continue
 
