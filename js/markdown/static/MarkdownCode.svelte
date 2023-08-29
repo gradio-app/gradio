@@ -19,6 +19,7 @@
 
 	export let chatbot = true;
 	export let message: string;
+	export let sanitize_html = true;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -26,6 +27,7 @@
 	}[];
 
 	let el: HTMLSpanElement;
+	let html: string;
 
 	DOMPurify.addHook("afterSanitizeAttributes", function (node) {
 		if ("target" in node) {
@@ -36,9 +38,13 @@
 
 	$: el && html && render_html(message);
 
-	$: html =
-		message && message.trim() ? DOMPurify.sanitize(marked.parse(message)) : "";
-
+	$: if (message && message.trim()) {
+		html = sanitize_html
+			? DOMPurify.sanitize(marked.parse(message))
+			: marked.parse(message);
+	} else {
+		html = "";
+	}
 	async function render_html(value: string): Promise<void> {
 		if (latex_delimiters.length > 0) {
 			render_math_in_element(el, {
