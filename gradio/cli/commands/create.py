@@ -117,5 +117,12 @@ def _create(
     _create_backend(name, template)
 
 
+@app.command("develop")
+def dev():
+    # Pete adds code here to spin up local front-end 
+    # and backend servers in development mode
+    print("TODO")
+
+
 def main():
     app()
