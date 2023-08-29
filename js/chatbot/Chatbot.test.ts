@@ -36,6 +36,21 @@ describe("Chatbot", () => {
 		assert.exists(user);
 	});
 
+	test("renders none messages", async () => {
+		const { component, getAllByTestId } = await render(Chatbot, {
+			loading_status,
+			label: "chatbot",
+			value: [[null, null]],
+			root: "",
+			root_url: "",
+			latex_delimiters: [{ left: "$$", right: "$$", display: true }],
+			theme_mode: "dark"
+		});
+
+		expect(await component.getByTestId("bot").count()).toEqual(0);
+		expect(await component.getByTestId("user").count()).toEqual(0);
+	});
+
 	test("renders additional message as they are passed", async () => {
 		const { component, getAllByTestId } = await render(Chatbot, {
 			loading_status,
