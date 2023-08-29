@@ -587,10 +587,14 @@
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
 						>
 							<div class="cell-wrap">
-								<EditableCell {value} {latex_delimiters} header />
-								<!-- TODO: fix -->
-								<!-- svelte-ignore a11y-click-events-have-key-events -->
-								<!-- svelte-ignore a11y-no-static-element-interactions-->
+								<EditableCell
+									{value}
+									{latex_delimiters}
+									header
+									edit={false}
+									el={null}
+								/>
+
 								<div
 									class:sorted={sort_by === i}
 									class:des={sort_by === i && sort_direction === "des"}
@@ -620,6 +624,8 @@
 									{value}
 									{latex_delimiters}
 									datatype={Array.isArray(datatype) ? datatype[j] : datatype}
+									edit={false}
+									el={null}
 								/>
 							</div>
 						</td>

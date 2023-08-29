@@ -27,19 +27,18 @@
 	export let end = 0; // the index of the last visible item
 
 	// local state
-	let average_height;
+	let average_height: number;
 	let bottom = 0;
-	let contents;
+	let contents: HTMLTableSectionElement;
 	let head_height = 0;
 	let foot_height = 0;
-	let height_map = [];
-	let mounted;
-	let rows;
-	let thead;
+	let height_map: number[] = [];
+	let mounted: boolean;
+	let rows: HTMLCollectionOf<HTMLTableRowElement>;
 	let top = 0;
-	let viewport;
+	let viewport: HTMLTableElement;
 	let viewport_height = 0;
-	let visible;
+	let visible: { index: number; data: any[] }[] = [];
 
 	// whenever `items` changes, invalidate the current heightmap
 	$: if (mounted)
@@ -47,7 +46,10 @@
 			refresh_height_map(sortedItems, viewport_height)
 		);
 
-	async function refresh_height_map(items, viewport_height) {
+	async function refresh_height_map(
+		_items: typeof items,
+		viewport_height: number
+	): Promise<void> {
 		if (viewport_height === 0 || table_width === 0) {
 			return;
 		}
@@ -55,7 +57,7 @@
 		await tick(); // wait until the DOM is up to date
 		let contentHeight = top - (scrollTop - head_height) - 200;
 		let i = start;
-		while (contentHeight < viewport_height - head_height && i < items.length) {
+		while (contentHeight < viewport_height - head_height && i < _items.length) {
 			let row = rows[i - start];
 			if (!row) {
 				end = i + 1;
@@ -68,26 +70,23 @@
 		}
 
 		end = i;
-		const remaining = items.length - end;
+		const remaining = _items.length - end;
 		average_height = (top + contentHeight) / end;
 		bottom = remaining * average_height + foot_height;
-		height_map.length = items.length;
+		height_map.length = _items.length;
 		await scroll_to_index(0, { behavior: "auto" });
 	}
 	let t = 0;
 
-	function get_computed_px_amount(elem, property) {
-		// console.time(t);
-
+	function get_computed_px_amount(elem: HTMLElement, property: string): number {
 		const compStyle = getComputedStyle(elem);
 
 		let x = parseInt(compStyle.getPropertyValue(property));
-		// console.timeEnd(t);
 		return x;
 	}
 
-	async function handle_scroll() {
-		rows = contents.children;
+	async function handle_scroll(): Promise<void> {
+		rows = contents.children as HTMLCollectionOf<HTMLTableRowElement>;
 		const is_start_overflow = sortedItems.length < start;
 
 		const row_top_border = get_computed_px_amount(rows[1], "border-top-width");
@@ -155,7 +154,10 @@
 		// console.timeEnd(t);
 	}
 
-	export async function scroll_to_index(index, opts) {
+	export async function scroll_to_index(
+		index: number,
+		opts: ScrollToOptions
+	): Promise<void> {
 		const { scrollTop } = viewport;
 		const itemsDelta = index - start;
 		const _itemHeight = average_height;
@@ -163,7 +165,7 @@
 		const _opts = {
 			left: 0,
 			top: scrollTop + distance,
-			behavior: "smooth",
+			behavior: "smooth" as ScrollBehavior,
 			...opts
 		};
 		viewport.scrollTo(_opts);
@@ -197,9 +199,12 @@
 
 	function sort_data(
 		data: typeof items,
-		col: number,
-		dir: SortDirection
+		col?: number,
+		dir?: SortDirection
 	): typeof items {
+		if (!col || !dir) {
+			return data;
+		}
 		if (dir === "asc") {
 			return data.sort((a, b) => (a[col].value < b[col].value ? -1 : 1));
 		} else if (dir === "des") {
@@ -209,22 +214,7 @@
 		return data;
 	}
 
-	// function handle_sort(_items, col: number, direction: "asc" | "desc"): void {
-	// 	if (typeof col !== "number" || col !== col) {
-	// 		sort[1] = "asc";
-	// 		sort_by[0] = col;
-	// 	} else {
-	// 		if (sort_direction === "asc") {
-	// 			direction = "des";
-	// 		} else if (sort_direction === "des") {
-	// 			sort_direction = "asc";
-	// 		}
-	// 	}
-
-	// 	return sort_data(_items, col, sort_direction);
-	// }
-
-	function throttle(func, delay) {
+	function throttle(func: any, delay = 0): () => any {
 		let lastCall = 0;
 		return function (...args) {
 			const now = new Date().getTime();
@@ -232,6 +222,7 @@
 				return;
 			}
 			lastCall = now;
+			//@ts-ignore
 			return func.apply(this, args);
 		};
 	}
@@ -240,13 +231,13 @@
 
 	const sorted = (
 		_items: typeof items,
-		col: number,
-		direction: SortDirection
+		col?: number,
+		direction?: SortDirection
 	): typeof items => sort_data(_items, col, direction);
 
 	onMount(() => {
 		// triggger initial refresh for virtual
-		rows = contents.children;
+		rows = contents.children as HTMLCollectionOf<HTMLTableRowElement>;
 		mounted = true;
 		refresh_height_map(items, viewport_height);
 	});
@@ -261,7 +252,7 @@
 		on:scroll={throttle_scroll}
 		style="width:{table_width}px; height: {height}; --bw-svt-p-top: {top}px; --bw-svt-p-bottom: {bottom}px; --bw-svt-head-height: {head_height}px; --bw-svt-foot-height: {foot_height}px; --bw-svt-avg-row-height: {average_height}px"
 	>
-		<thead class="thead" bind:this={thead} bind:offsetHeight={head_height}>
+		<thead class="thead" bind:offsetHeight={head_height}>
 			<slot name="thead" />
 		</thead>
 		<tbody bind:this={contents} class="tbody">
