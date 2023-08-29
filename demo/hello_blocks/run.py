@@ -1,16 +1,14 @@
 import gradio as gr
-import time
 
-df = [[f"col: {i} -- row:{j}" for j in range(1, 11)] for i in range(1, 10000)]
-
-def run():
-    time.sleep(1)
-    return df
+def greet(name):
+    return "Hello " + name + "!"
 
 with gr.Blocks() as demo:
-    d = gr.DataFrame([[1, 2, 3], [1, 2, 3], [1, 2, 3], [1, 2, 3],], headers=list(range(1, 11)), interactive=True)
-    b = gr.Button('Run')
-    b.click(run, outputs=[d])
+    name = gr.Textbox(label="Name")
+    output = gr.Textbox(label="Output Box")
+    greet_btn = gr.Button("Greet")
+    greet_btn.click(fn=greet, inputs=name, outputs=output, api_name="greet")
+   
 
 if __name__ == "__main__":
     demo.launch()
