@@ -1,4 +1,5 @@
 import type { FileData } from "@gradio/upload";
+import * as BABYLON from "babylonjs";
 
 export const add_new_model = (
 	canvas: HTMLCanvasElement,

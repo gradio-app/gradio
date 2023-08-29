@@ -53,7 +53,9 @@
 				engine?.resize();
 			});
 		}
-		add_new_model(canvas, scene, engine, value, clear_color, camera_position);
+		if (engine !== null) {
+			add_new_model(canvas, scene, engine, value, clear_color, camera_position);
+		}
 	}
 </script>
 
