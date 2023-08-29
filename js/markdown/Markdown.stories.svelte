@@ -26,8 +26,8 @@
 
 <Story name="Simple inline Markdown" />
 
-<Story 
-	name="Multiline Markdown" 
+<Story
+	name="Multiline Markdown"
 	args={{
 		value: `
 This should
@@ -37,9 +37,8 @@ all be in one line.
 
 This should be
 
-in two separate lines.`,
+in two separate lines.`
 	}}
-
 />
 
 <Story name="Right aligned Markdown" args={{ rtl: true }} />
@@ -51,4 +50,3 @@ in two separate lines.`,
 		latex_delimiters: [{ left: "$", right: "$", display: false }]
 	}}
 />
-
