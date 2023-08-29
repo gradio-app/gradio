@@ -206,8 +206,6 @@
 				? "http://localhost:7860"
 				: host || space || src || location.origin;
 
-		// const api_url = "https://pngwn-open-llm-leaderboard.hf.space/";
-
 		app = await client(api_url, {
 			status_callback: handle_status,
 			normalise_files: false

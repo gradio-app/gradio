@@ -522,15 +522,15 @@
 	let dragging = false;
 
 	let t_width = 0;
-	let c_width: number[] = [];
-	let row_height = 0;
+
 	function get_max(
 		_d: { value: any; id: string }[][]
 	): { value: any; id: string }[] {
 		let max = _d[0].slice();
+		let min = _d[0].slice();
 		for (let i = 0; i < _d.length; i++) {
 			for (let j = 0; j < _d[i].length; j++) {
-				if (max[j].value.length < _d[i][j].value.length) {
+				if (`${max[j].value}`.length < `${_d[i][j].value}`.length) {
 					max[j] = _d[i][j];
 				}
 			}
@@ -541,16 +541,19 @@
 
 	$: max = get_max(data);
 
-	$: c_width[0] && set_cell_widths(c_width);
-
+	$: cells.length && set_cell_widths();
+	let cells: HTMLTableCellElement[] = [];
 	let parent: HTMLDivElement;
-	function set_cell_widths(widths: number[]): void {
+
+	function set_cell_widths(): void {
+		const widths = cells.map((el, i) => {
+			return el.clientWidth || 0;
+		});
+
 		if (widths.length === 0) return;
 		for (let i = 0; i < widths.length; i++) {
 			parent.style.setProperty(`--cell-width-${i}`, `${widths[i]}px`);
 		}
-
-		// set css property on parent
 	}
 </script>
 
@@ -609,9 +612,9 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr bind:clientHeight={row_height}>
+				<tr>
 					{#each max as { value, id }, j (id)}
-						<td tabindex="0" bind:clientWidth={c_width[j]}>
+						<td tabindex="0" bind:this={cells[j]}>
 							<div class:border-transparent={selected !== id} class="cell-wrap">
 								<EditableCell
 									{value}
@@ -636,7 +639,6 @@
 				items={data}
 				sort={[sort_by, sort_direction]}
 				table_width={t_width}
-				item_height={row_height}
 			>
 				{#if label && label.length !== 0}
 					<caption class="sr-only">{label}</caption>

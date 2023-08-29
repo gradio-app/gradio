@@ -21,7 +21,6 @@
 
 	// MARK: virtual stuff
 	export let height = "100%"; // the height of the viewport/table
-	export let item_height = undefined; // the height of each row
 
 	// read-only, but visible to consumers via bind:start resp. bind:end
 	export let start = 0; // the index of the first visible item
@@ -45,11 +44,11 @@
 	// whenever `items` changes, invalidate the current heightmap
 	$: if (mounted)
 		requestAnimationFrame(() =>
-			refresh_height_map(sortedItems, viewport_height, item_height)
+			refresh_height_map(sortedItems, viewport_height)
 		);
 
-	async function refresh_height_map(items, viewport_height, item_height) {
-		if (viewport_height === 0 || item_height === 0 || table_width === 0) {
+	async function refresh_height_map(items, viewport_height) {
+		if (viewport_height === 0 || table_width === 0) {
 			return;
 		}
 		const { scrollTop } = viewport;
@@ -63,8 +62,7 @@
 				await tick(); // render the newly visible row
 				row = rows[i - start];
 			}
-			const row_height = (height_map[i] =
-				item_height || row.getBoundingClientRect().height);
+			const row_height = (height_map[i] = row.getBoundingClientRect().height);
 			contentHeight += row_height;
 			i += 1;
 		}
@@ -104,8 +102,7 @@
 		let new_start = 0;
 		// acquire height map for currently visible rows
 		for (let v = 0; v < rows.length; v += 1) {
-			height_map[start + v] =
-				item_height || rows[v].getBoundingClientRect().height;
+			height_map[start + v] = rows[v].getBoundingClientRect().height;
 		}
 		let i = 0;
 		// start from top: thead, with its borders, plus the first border to afterwards neglect
@@ -161,7 +158,7 @@
 	export async function scroll_to_index(index, opts) {
 		const { scrollTop } = viewport;
 		const itemsDelta = index - start;
-		const _itemHeight = item_height || average_height;
+		const _itemHeight = average_height;
 		const distance = itemsDelta * _itemHeight;
 		const _opts = {
 			left: 0,
@@ -251,7 +248,7 @@
 		// triggger initial refresh for virtual
 		rows = contents.children;
 		mounted = true;
-		refresh_height_map(items, viewport_height, item_height);
+		refresh_height_map(items, viewport_height);
 	});
 </script>
 
