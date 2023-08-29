@@ -4,7 +4,7 @@
 	import type { FileData } from "@gradio/upload";
 	import { BlockLabel } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
-	import {add_new_model} from "../shared/utils"
+	import { add_new_model } from "../shared/utils";
 
 	export let value: null | FileData;
 	export let clear_color: [number, number, number, number] = [0, 0, 0, 0];
@@ -33,7 +33,11 @@
 		name: undefined
 	});
 
-	$: canvas && mounted && data != null && is_file && add_new_model(canvas, scene, engine, value, clear_color, camera_position);
+	$: canvas &&
+		mounted &&
+		data != null &&
+		is_file &&
+		add_new_model(canvas, scene, engine, value, clear_color, camera_position);
 
 	async function handle_upload({
 		detail

@@ -2,7 +2,7 @@
 	import type { FileData } from "@gradio/upload";
 	import { BlockLabel, IconButton } from "@gradio/atoms";
 	import { File, Download } from "@gradio/icons";
-	import {add_new_model} from "../shared/utils"
+	import { add_new_model } from "../shared/utils";
 	import { _ } from "svelte-i18n";
 	import { onMount } from "svelte";
 	import * as BABYLON from "babylonjs";
