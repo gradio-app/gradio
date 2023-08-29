@@ -47,8 +47,10 @@ describe("Chatbot", () => {
 			theme_mode: "dark"
 		});
 
-		expect(await getAllByTestId("bot").length).toEqual(0);
-		expect(await getAllByTestId("user").length).toEqual(0);
+		const user = getAllByTestId("user");
+		const bot = getAllByTestId("bot");
+		assert.equal(user[0].innerHTML, "");
+		assert.equal(bot[0].innerHTML, "");
 	});
 
 	test("renders additional message as they are passed", async () => {
