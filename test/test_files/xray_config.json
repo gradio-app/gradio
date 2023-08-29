@@ -2,7 +2,7 @@
   "version": "3.41.2",
   "mode": "blocks",
   "dev_mode": true,
-  "analytics_enabled": true,
+  "analytics_enabled": false,
   "components": [
     {
       "id": 1,
@@ -17,9 +17,9 @@
             "display": false
           }
         ],
+        "visible": true,
         "sanitize_html": true,
-        "name": "markdown",
-        "visible": true
+        "name": "markdown"
       },
       "serializer": "StringSerializable",
       "api_info": {
@@ -52,12 +52,14 @@
           ]
         ],
         "value": [],
+        "type": "value",
         "label": "Disease to Scan For",
         "show_label": true,
         "container": true,
         "min_width": 160,
+        "visible": true,
         "name": "checkboxgroup",
-        "visible": true
+        "selectable": false
       },
       "serializer": "ListStringSerializable",
       "api_info": {
@@ -82,7 +84,9 @@
       "id": 3,
       "type": "tabs",
       "props": {
-        "visible": true
+        "visible": true,
+        "name": "tabs",
+        "selectable": false
       }
     },
     {
@@ -90,17 +94,18 @@
       "type": "tabitem",
       "props": {
         "label": "X-ray",
-        "visible": true
+        "name": "tabitem",
+        "selectable": false
       }
     },
     {
       "id": 5,
       "type": "row",
       "props": {
-        "type": "row",
         "variant": "default",
+        "visible": true,
         "equal_height": true,
-        "visible": true
+        "name": "row"
       }
     },
     {
@@ -108,20 +113,22 @@
       "type": "image",
       "props": {
         "image_mode": "RGB",
+        "invert_colors": false,
         "source": "upload",
         "tool": "editor",
+        "type": "numpy",
+        "show_label": true,
+        "show_download_button": true,
+        "container": true,
+        "min_width": 160,
+        "visible": true,
         "streaming": false,
         "mirror_webcam": true,
         "brush_color": "#000000",
         "mask_opacity": 0.7,
-        "selectable": false,
         "show_share_button": false,
-        "show_download_button": true,
-        "show_label": true,
-        "container": true,
-        "min_width": 160,
         "name": "image",
-        "visible": true
+        "selectable": false
       },
       "serializer": "ImgSerializable",
       "api_info": {
@@ -143,8 +150,8 @@
         "show_label": true,
         "container": true,
         "min_width": 160,
-        "name": "json",
-        "visible": true
+        "visible": true,
+        "name": "json"
       },
       "serializer": "JSONSerializable",
       "api_info": {
@@ -168,9 +175,9 @@
       "props": {
         "value": "Run",
         "variant": "secondary",
+        "visible": true,
         "interactive": true,
-        "name": "button",
-        "visible": true
+        "name": "button"
       },
       "serializer": "StringSerializable",
       "api_info": {
@@ -189,17 +196,18 @@
       "type": "tabitem",
       "props": {
         "label": "CT Scan",
-        "visible": true
+        "name": "tabitem",
+        "selectable": false
       }
     },
     {
       "id": 10,
       "type": "row",
       "props": {
-        "type": "row",
         "variant": "default",
+        "visible": true,
         "equal_height": true,
-        "visible": true
+        "name": "row"
       }
     },
     {
@@ -207,20 +215,22 @@
       "type": "image",
       "props": {
         "image_mode": "RGB",
+        "invert_colors": false,
         "source": "upload",
         "tool": "editor",
+        "type": "numpy",
+        "show_label": true,
+        "show_download_button": true,
+        "container": true,
+        "min_width": 160,
+        "visible": true,
         "streaming": false,
         "mirror_webcam": true,
         "brush_color": "#000000",
         "mask_opacity": 0.7,
-        "selectable": false,
         "show_share_button": false,
-        "show_download_button": true,
-        "show_label": true,
-        "container": true,
-        "min_width": 160,
         "name": "image",
-        "visible": true
+        "selectable": false
       },
       "serializer": "ImgSerializable",
       "api_info": {
@@ -242,8 +252,8 @@
         "show_label": true,
         "container": true,
         "min_width": 160,
-        "name": "json",
-        "visible": true
+        "visible": true,
+        "name": "json"
       },
       "serializer": "JSONSerializable",
       "api_info": {
@@ -267,9 +277,9 @@
       "props": {
         "value": "Run",
         "variant": "secondary",
+        "visible": true,
         "interactive": true,
-        "name": "button",
-        "visible": true
+        "name": "button"
       },
       "serializer": "StringSerializable",
       "api_info": {
@@ -287,18 +297,19 @@
       "id": 14,
       "type": "textbox",
       "props": {
+        "value": "",
         "lines": 1,
         "max_lines": 20,
-        "value": "",
-        "type": "text",
-        "autofocus": false,
-        "show_copy_button": false,
-        "container": true,
-        "rtl": false,
         "show_label": true,
+        "container": true,
         "min_width": 160,
+        "visible": true,
+        "autofocus": false,
+        "type": "text",
+        "rtl": false,
+        "show_copy_button": false,
         "name": "textbox",
-        "visible": true
+        "selectable": false
       },
       "serializer": "StringSerializable",
       "api_info": {
@@ -316,20 +327,18 @@
       "id": 15,
       "type": "form",
       "props": {
-        "type": "form",
         "scale": 0,
         "min_width": 0,
-        "visible": true
+        "name": "form"
       }
     },
     {
       "id": 16,
       "type": "form",
       "props": {
-        "type": "form",
         "scale": 0,
         "min_width": 0,
-        "visible": true
+        "name": "form"
       }
     }
   ],
@@ -454,6 +463,31 @@
       ],
       "outputs": [
         12
+      ],
+      "backend_fn": true,
+      "js": null,
+      "queue": null,
+      "api_name": null,
+      "scroll_to_output": false,
+      "show_progress": "full",
+      "every": null,
+      "batch": false,
+      "max_batch_size": 4,
+      "cancels": [],
+      "types": {
+        "continuous": false,
+        "generator": false
+      },
+      "collects_event_data": false,
+      "trigger_after": null,
+      "trigger_only_on_success": false
+    },
+    {
+      "targets": [],
+      "trigger": "load",
+      "inputs": [],
+      "outputs": [
+        14
       ],
       "backend_fn": true,
       "js": null,

@@ -173,6 +173,8 @@ def assert_configs_are_equivalent_besides_ids(
     """
     config1 = copy.deepcopy(config1)
     config2 = copy.deepcopy(config2)
+    config1 = json.loads(json.dumps(config1)) # convert tuples to lists
+    config2 = json.loads(json.dumps(config2))
 
     for key in root_keys:
         assert config1[key] == config2[key], f"Configs have different: {key}"
