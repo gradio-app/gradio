@@ -9,11 +9,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio.components.base import Component, _Keywords
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.deprecation import warn_style_method_deprecation
-from gradio.events import (
-    Changeable,
-    EventListenerMethod,
-    Selectable,
-)
+from gradio.events import Events
 
 set_documentation_group("component")
 
@@ -28,7 +24,7 @@ class HighlightedTextData(GradioRootModel):
 
 
 @document()
-class HighlightedText(Changeable, Selectable, Component):
+class HighlightedText(Component):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
     Preprocessing: this component does *not* accept input.
@@ -39,6 +35,7 @@ class HighlightedText(Changeable, Selectable, Component):
     """
 
     data_model = HighlightedTextData
+    EVENTS = [Events.change, Events.select]
 
     def __init__(
         self,
@@ -80,12 +77,6 @@ class HighlightedText(Changeable, Selectable, Component):
         self.show_legend = show_legend
         self.combine_adjacent = combine_adjacent
         self.adjacent_separator = adjacent_separator
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user selects Highlighted text span.
-        Uses event data gradio.SelectData to carry `value` referring to selected [text, label] tuple, and `index` to refer to span index.
-        See EventData documentation on how to use this event data.
-        """
         super().__init__(
             label=label,
             every=every,

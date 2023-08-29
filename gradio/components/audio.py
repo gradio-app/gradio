@@ -13,35 +13,22 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio import processing_utils, utils
 from gradio.components.base import Component, StreamingInput, StreamingOutput, _Keywords
 from gradio.data_classes import FileData
-from gradio.events import (
-    Changeable,
-    Clearable,
-    Playable,
-    Recordable,
-    Streamable,
-    Uploadable,
-)
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 class AudioInputData(FileData):
-    crop_min: Optional[int] = None
-    crop_max: Optional[int] = None
+    crop_min: Optional[int] = 0
+    crop_max: Optional[int] = 100
 
 
 @document()
 class Audio(
     StreamingInput,
     StreamingOutput,
-    Clearable,
-    Playable,
-    Recordable,
-    Streamable,
-    Uploadable,
     Component,
 ):
-    EVENTS = ["foo", "bar", "change"]
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
     Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a 16-bit int array whose values range from -32768 to 32767), or as a {str} filepath, depending on `type`.
@@ -50,6 +37,19 @@ class Audio(
     Demos: main_note, generate_tone, reverse_audio
     Guides: real-time-speech-recognition
     """
+
+    EVENTS = [
+        Events.stream,
+        Events.change,
+        Events.clear,
+        Events.play,
+        Events.pause,
+        Events.stop,
+        Events.pause,
+        Events.start_recording,
+        Events.stop_recording,
+        Events.upload,
+    ]
 
     data_model = FileData
 

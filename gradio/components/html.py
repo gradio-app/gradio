@@ -7,13 +7,13 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import Component, _Keywords
-from gradio.events import Changeable
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class HTML(Changeable, Component):
+class HTML(Component):
     """
     Used to display arbitrary HTML output.
     Preprocessing: this component does *not* accept input.
@@ -22,6 +22,8 @@ class HTML(Changeable, Component):
     Demos: text_analysis
     Guides: key-features
     """
+
+    EVENTS = [Events.change]
 
     def __init__(
         self,

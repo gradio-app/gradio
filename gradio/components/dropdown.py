@@ -9,25 +9,13 @@ from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import Component, FormComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
-from gradio.events import (
-    Changeable,
-    EventListenerMethod,
-    Focusable,
-    Inputable,
-    Selectable,
-)
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class Dropdown(
-    Changeable,
-    Inputable,
-    Selectable,
-    Focusable,
-    FormComponent,
-):
+class Dropdown(FormComponent):
     """
     Creates a dropdown of choices from which entries can be selected.
     Preprocessing: passes the value of the selected dropdown entry as a {str} or its index as an {int} into the function, depending on `type`.
@@ -35,6 +23,8 @@ class Dropdown(
     Examples-format: a {str} representing the drop down value to select.
     Demos: sentence_builder, titanic_survival
     """
+
+    EVENTS = [Events.change, Events.input, Events.select, Events.focus]
 
     def __init__(
         self,
@@ -99,12 +89,6 @@ class Dropdown(
                 "Custom values are not supported when `multiselect` is True."
             )
         self.interpret_by_tokens = False
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user selects Dropdown option.
-        Uses event data gradio.SelectData to carry `value` referring to label of selected option, and `index` to refer to index.
-        See EventData documentation on how to use this event data.
-        """
         super().__init__(
             label=label,
             info=info,

@@ -12,7 +12,7 @@ import secrets
 import shutil
 import tempfile
 import urllib.request
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
@@ -27,8 +27,10 @@ from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
 from gradio.blocks import Block, BlockContext
+from gradio.component_meta import ComponentMeta
 from gradio.data_classes import GradioBaseModel
 from gradio.deprecation import warn_deprecation
+from gradio.events import EventListener
 from gradio.layouts import Form
 
 if TYPE_CHECKING:
@@ -48,7 +50,9 @@ class _Keywords(Enum):
     FINISHED_ITERATING = "FINISHED_ITERATING"  # Used to skip processing of a component's value (needed for generators + state)
 
 
-class ComponentBase(metaclass=ABCMeta):
+class ComponentBase(ABC, metaclass=ComponentMeta):
+    EVENTS: list[str | EventListener] = []
+
     @abstractmethod
     def preprocess(self, x: Any) -> Any:
         """
@@ -112,6 +116,12 @@ class ComponentBase(metaclass=ABCMeta):
     def skip_api(self):
         """Whether this component should be skipped from the api return value"""
 
+    @classmethod
+    def has_event(cls, event: str | EventListener) -> bool:
+        # names = [e if isinstance(e, str) else e.event_name for e in self.EVENTS]
+        # event = event if isinstance(event, str) else event.event_name
+        return event in cls.EVENTS
+
 
 class Component(ComponentBase, Block):
     """
@@ -136,6 +146,9 @@ class Component(ComponentBase, Block):
         every: float | None = None,
         **kwargs,
     ):
+        # This gets overriden when `select` is called
+
+        self.selectable = False
         if not hasattr(self, "data_model"):
             self.data_model: GradioBaseModel | None = None
         self.temp_files: set[str] = set()
@@ -462,6 +475,9 @@ class StreamingOutput(metaclass=abc.ABCMeta):
 
 
 class StreamingInput(metaclass=abc.ABCMeta):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
     @abc.abstractmethod
     def check_streamable(self):
         """Used to check if streaming is supported given the input."""

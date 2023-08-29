@@ -14,23 +14,25 @@ from gradio import processing_utils
 from gradio.components.base import Component, _Keywords
 from gradio.data_classes import GradioModel
 from gradio.deprecation import warn_style_method_deprecation
-from gradio.events import Changeable, Clearable
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 class PlotData(GradioModel):
-    type: Literal["altair", "bokeh", "plotly", "matplotlib"]
+    # TODO: fix literals
+    type: str  # Literal["altair", "bokeh", "plotly", "matplotlib"]
     plot: str
 
 
 class AltairPlotData(PlotData):
-    chart: Literal["bar", "line", "scatter"]
-    type: Literal["altair"] = "altair"
+    # TODO: fix literals
+    chart: str  # Literal["bar", "line", "scatter"]
+    type: str = "altair"  # Literal["altair"] = "altair"
 
 
 @document()
-class Plot(Changeable, Clearable, Component):
+class Plot(Component):
     """
     Used to display various kinds of plots (matplotlib, plotly, or bokeh are supported)
     Preprocessing: this component does *not* accept input.
@@ -41,6 +43,7 @@ class Plot(Changeable, Clearable, Component):
     """
 
     data_model = PlotData
+    EVENTS = [Events.change, Events.clear]
 
     def __init__(
         self,

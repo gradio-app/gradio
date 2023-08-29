@@ -15,7 +15,7 @@ from gradio import processing_utils, utils, wasm_utils
 from gradio.components.base import Component, _Keywords
 from gradio.data_classes import FileData, GradioModel
 from gradio.deprecation import warn_style_method_deprecation
-from gradio.events import Changeable, Clearable, Playable, Recordable, Uploadable
+from gradio.events import Events
 
 if not wasm_utils.IS_WASM:
     # TODO: Support ffmpeg on Wasm
@@ -25,19 +25,12 @@ set_documentation_group("component")
 
 
 class VideoData(GradioModel):
-    video: Optional[FileData] = None
+    video: FileData
     subtitles: Optional[FileData] = None
 
 
 @document()
-class Video(
-    Changeable,
-    Clearable,
-    Playable,
-    Recordable,
-    Uploadable,
-    Component,
-):
+class Video(Component):
     """
     Creates a video component that can be used to upload/record videos (as an input) or display videos (as an output).
     For the video to be playable in the browser it must have a compatible container and codec combination. Allowed
@@ -51,6 +44,16 @@ class Video(
     """
 
     data_model = VideoData
+    EVENTS = [
+        Events.change,
+        Events.clear,
+        Events.start_recording,
+        Events.stop_recording,
+        Events.stop,
+        Events.play,
+        Events.pause,
+        Events.end,
+    ]
 
     def __init__(
         self,
@@ -185,7 +188,7 @@ class Video(
             "__type__": "update",
         }
 
-    def preprocess(self, x: dict[str, FileData] | VideoData) -> str | None:
+    def preprocess(self, x: dict | VideoData) -> str | None:
         """
         Parameters:
             x: A tuple of (video file data, subtitle file data) or just video file data.
@@ -194,18 +197,22 @@ class Video(
         """
         if x is None:
             return None
-        video: FileData = FileData(**x) if isinstance(x, dict) else x
+        data: VideoData = VideoData(**x) if isinstance(x, dict) else x
 
-        if video.is_file:
-            assert video.name is not None, "Received file data without a file name."
-            if client_utils.is_http_url_like(video.name):
+        if data.video.is_file:
+            assert (
+                data.video.name is not None
+            ), "Received file data without a file name."
+            if client_utils.is_http_url_like(data.video.name):
                 fn = self.download_temp_copy_if_needed
             else:
                 fn = self.make_temp_copy_if_needed
-            file_name = Path(fn(video.name))
+            file_name = Path(fn(data.video.name))
         else:
-            assert video is not None, "Received empty file data."
-            file_name = Path(self.base64_to_temp_file_if_needed(video.data, video.name))
+            assert data.video is not None, "Received empty file data."
+            file_name = Path(
+                self.base64_to_temp_file_if_needed(data.video.data, data.video.name)
+            )
 
         uploaded_format = file_name.suffix.replace(".", "")
         needs_formatting = self.format is not None and uploaded_format != self.format

@@ -67,7 +67,10 @@ def _create_frontend(name: str, template: str):
                 return ignored
 
             shutil.copytree(
-                str(p / "_frontend_code" / template), frontend, dirs_exist_ok=True, ignore=ignore
+                str(p / "_frontend_code" / template),
+                frontend,
+                dirs_exist_ok=True,
+                ignore=ignore,
             )
 
     json.dump(package_json, open(str(frontend / "package.json"), "w"), indent=2)
@@ -94,7 +97,8 @@ def _create_backend(name: str, template: str):
     else:
         with importlib.resources.files("gradio") as p:
             shutil.copy(
-                str(p / "components"/ f"{template.lower()}.py"), str(backend / f"{name.lower()}.py")
+                str(p / "components" / f"{template.lower()}.py"),
+                str(backend / f"{name.lower()}.py"),
             )
         with open(str(backend / f"{name.lower()}.py")) as f:
             content = f.read()

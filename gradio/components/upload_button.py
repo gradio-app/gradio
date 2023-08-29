@@ -13,7 +13,7 @@ from gradio import utils
 from gradio.components.base import Component, _Keywords
 from gradio.data_classes import FileData, GradioRootModel
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
-from gradio.events import Clickable, Uploadable
+from gradio.events import Events
 
 set_documentation_group("component")
 
@@ -23,7 +23,7 @@ class ListFiles(GradioRootModel):
 
 
 @document()
-class UploadButton(Clickable, Uploadable, Component):
+class UploadButton(Component):
     """
     Used to create an upload button, when cicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
@@ -31,6 +31,8 @@ class UploadButton(Clickable, Uploadable, Component):
     Examples-format: a {str} path to a local file that populates the component.
     Demos: upload_button
     """
+
+    EVENTS = [Events.click, Events.upload]
 
     def __init__(
         self,

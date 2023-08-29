@@ -9,15 +9,13 @@ from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import Component, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
-from gradio.events import (
-    Changeable,
-)
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class JSON(Changeable, Component):
+class JSON(Component):
     """
     Used to display arbitrary JSON output prettily.
     Preprocessing: this component does *not* accept input.
@@ -25,6 +23,8 @@ class JSON(Changeable, Component):
 
     Demos: zip_to_json, blocks_xray
     """
+
+    EVENTS = [Events.change]
 
     def __init__(
         self,

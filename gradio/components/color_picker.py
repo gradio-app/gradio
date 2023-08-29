@@ -8,18 +8,13 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import Component, _Keywords
-from gradio.events import (
-    Changeable,
-    Focusable,
-    Inputable,
-    Submittable,
-)
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class ColorPicker(Changeable, Inputable, Submittable, Focusable, Component):
+class ColorPicker(Component):
     """
     Creates a color picker for user to select a color as string input.
     Preprocessing: passes selected color value as a {str} into the function.
@@ -27,6 +22,8 @@ class ColorPicker(Changeable, Inputable, Submittable, Focusable, Component):
     Examples-format: a {str} with a hexadecimal representation of a color, e.g. "#ff0000" for red.
     Demos: color_picker, color_generator
     """
+
+    EVENTS = [Events.change, Events.input, Events.submit, Events.focus]
 
     def __init__(
         self,

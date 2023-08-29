@@ -5,6 +5,8 @@ from gradio.components.base import (
     Component,
     Form,
     FormComponent,
+    StreamingInput,
+    StreamingOutput,
     _Keywords,
     component,
     get_component_instance,
@@ -53,24 +55,20 @@ Highlight = HighlightedText
 Checkboxgroup = CheckboxGroup
 Json = JSON
 
+
 def generate_stubs():
-    from pathlib import Path
-    from jinja2 import Template
     import importlib
     import inspect
+    from pathlib import Path
+
+    from jinja2 import Template
+
     from gradio.components.base import Component
 
     # todo support multiple classes per component
     for file in Path(__file__).parent.rglob("*.py"):
         if "__init__.py" in str(file):
             continue
-        
-        # pyi_dir = file.parent / "_stubs"
-        # pyi_dir.mkdir(exist_ok=True, parents=True)
-        pyi_path = file.with_suffix(".pyi")
-        if pyi_path.exists():
-            continue
-        
 
         pyi_template = '''
 
@@ -118,13 +116,19 @@ def generate_stubs():
         module = importlib.import_module(f"gradio.components.{file.stem}")
         for att in dir(module):
             att = getattr(module, att)
-            if inspect.isclass(att) and issubclass(att, Component):
-                if att.__name__ in ["IOComponent", "Carousel"]:
+            if inspect.isclass(att) and issubclass(att, Component) and att != Component:
+                if att.__name__ in ["Component", "FormComponent"]:
                     continue
                     # Write the rendered .pyi content to a file
 
                 if hasattr(att, "EVENTS"):
-                    rendered_pyi = template.render(events=getattr(att, "EVENTS"), contents=inspect.getsource(att))
+                    events = [
+                        e if isinstance(e, str) else e.event_name for e in att.EVENTS
+                    ]
+                    rendered_pyi = template.render(
+                        events=events, contents=inspect.getsource(att)
+                    )
+                    pyi_path = file.with_name(f"{att.__name__}.pyi")
                     pyi_path.write_text(rendered_pyi)
 
 
@@ -182,4 +186,6 @@ __all__ = [
     "StatusTracker",
     "UploadButton",
     "Video",
+    "StreamingInput",
+    "StreamingOutput",
 ]

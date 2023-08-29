@@ -22,7 +22,7 @@ from gradio.components import (
     Textbox,
     get_component_instance,
 )
-from gradio.events import Dependency, EventListenerMethod
+from gradio.events import Dependency
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.layouts import Accordion, Column, Group, Row
 from gradio.themes import ThemeClass as Theme
@@ -343,9 +343,7 @@ class ChatInterface(Blocks):
                 api_name=False,
             )
 
-    def _setup_stop_events(
-        self, event_trigger: EventListenerMethod, event_to_cancel: Dependency
-    ) -> None:
+    def _setup_stop_events(self, event_trigger, event_to_cancel: Dependency) -> None:
         if self.stop_btn and self.is_generator:
             if self.submit_btn:
                 event_trigger(

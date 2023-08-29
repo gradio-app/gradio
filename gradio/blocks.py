@@ -11,7 +11,6 @@ import threading
 import time
 import warnings
 import webbrowser
-from abc import abstractmethod
 from collections import defaultdict
 from pathlib import Path
 from types import ModuleType
@@ -36,14 +35,14 @@ from gradio import (
     wasm_utils,
 )
 from gradio.context import Context
-from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.deprecation import check_deprecated_parameters, warn_deprecation
+from gradio.events import EventData
 from gradio.exceptions import (
     DuplicateBlockError,
     InvalidApiNameError,
     InvalidBlockError,
 )
-from gradio.helpers import EventData, create_tracker, skip, special_args
+from gradio.helpers import create_tracker, skip, special_args
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
 from gradio.tunneling import (
@@ -63,7 +62,6 @@ from gradio.utils import (
     get_cancel_function,
     get_continuous_fn,
 )
-from gradio.block_meta import BlockMeta
 
 try:
     import spaces  # type: ignore
@@ -89,7 +87,7 @@ BUILT_IN_THEMES: dict[str, Theme] = {
 }
 
 
-class Block(metaclass=BlockMeta):
+class Block:
     def __init__(
         self,
         *,
@@ -121,9 +119,11 @@ class Block(metaclass=BlockMeta):
     @property
     def skip_api(self):
         return False
-    
+
     @property
-    def events(self,) -> list[str]:
+    def events(
+        self,
+    ) -> list[str]:
         return getattr(self, "EVENTS", [])
 
     def render(self):
@@ -1199,12 +1199,6 @@ Received outputs:
                         update_dict=prediction_value,
                         postprocess=block_fn.postprocess,
                     )
-                    if isinstance(
-                        prediction_value.get("value"), (GradioModel, GradioRootModel)
-                    ):
-                        prediction_value["value"] = prediction_value[
-                            "value"
-                        ].model_dump()
                 elif block_fn.postprocess:
                     assert isinstance(
                         block, components.Component
@@ -1229,7 +1223,7 @@ Received outputs:
 
         for i, output_id in enumerate(self.dependencies[fn_index]["outputs"]):
             block = self.blocks[output_id]
-            if isinstance(block, StreamableOutput) and block.streaming:
+            if isinstance(block, components.StreamingOutput) and block.streaming:
                 first_chunk = output_id not in stream_run
                 binary_data, output_data = block.stream_output(
                     data[i], f"{session_hash}/{run}/{output_id}", first_chunk

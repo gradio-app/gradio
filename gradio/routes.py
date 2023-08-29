@@ -51,8 +51,8 @@ import gradio.ranged_response as ranged_response
 from gradio import utils, wasm_utils
 from gradio.context import Context
 from gradio.data_classes import PredictBody, ResetBody
+from gradio.events import EventData
 from gradio.exceptions import Error
-from gradio.helpers import EventData
 from gradio.oauth import attach_oauth
 from gradio.queueing import Estimation, Event
 from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name

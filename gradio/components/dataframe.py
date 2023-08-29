@@ -8,19 +8,13 @@ import numpy as np
 import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio import utils
 from gradio.components import Component, _Keywords
 from gradio.data_classes import GradioModel
-from gradio.events import (
-    Changeable,
-    EventListenerMethod,
-    Inputable,
-    Selectable,
-)
+from gradio.events import Events
 
 
 class DataframeData(GradioModel):
-    headers: list[str]
+    headers: list[Union[str, int]]
     data: list[list[Union[str, int, bool]]]
 
 
@@ -28,7 +22,7 @@ set_documentation_group("component")
 
 
 @document()
-class Dataframe(Changeable, Inputable, Selectable, Component):
+class Dataframe(Component):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
@@ -36,6 +30,8 @@ class Dataframe(Changeable, Inputable, Selectable, Component):
     Examples-format: a {str} filepath to a csv with data, a pandas dataframe, or a list of lists (excluding headers) where each sublist is a row of data.
     Demos: filter_records, matrix_transpose, tax_calculator
     """
+
+    EVENTS = [Events.change, Events.input, Events.select]
 
     data_model = DataframeData
 
@@ -122,10 +118,12 @@ class Dataframe(Changeable, Inputable, Selectable, Component):
         column_dtypes = (
             [datatype] * self.col_count[0] if isinstance(datatype, str) else datatype
         )
-        self.empty_input = {"headers": ["a"],
-                            "data": [
+        self.empty_input = {
+            "headers": ["a"],
+            "data": [
                 [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
-        ]}
+            ],
+        }
 
         self.max_rows = max_rows
         self.max_cols = max_cols
@@ -134,13 +132,6 @@ class Dataframe(Changeable, Inputable, Selectable, Component):
             latex_delimiters = [{"left": "$", "right": "$", "display": False}]
         self.latex_delimiters = latex_delimiters
         self.height = height
-
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user selects cell within Dataframe.
-        Uses event data gradio.SelectData to carry `value` referring to value of selected cell, and `index` tuple to refer to index row and column.
-        See EventData documentation on how to use this event data.
-        """
         super().__init__(
             label=label,
             every=every,
@@ -200,7 +191,7 @@ class Dataframe(Changeable, Inputable, Selectable, Component):
             "__type__": "update",
         }
 
-    def preprocess(self, x: DataframeData):
+    def preprocess(self, x: dict):
         """
         Parameters:
             x: 2D array of str, numeric, or bool data
@@ -236,23 +227,13 @@ class Dataframe(Changeable, Inputable, Selectable, Component):
             return self.postprocess(self.empty_input)
         if isinstance(y, dict):
             return y
-        if isinstance(y, str):
-            dataframe = pd.read_csv(y)
+        if isinstance(y, (str, pd.DataFrame)):
+            if isinstance(y, str):
+                y = pd.read_csv(y)
             return DataframeData(
                 **{
-                    "headers": list(dataframe.columns),
-                    "data": Dataframe.__process_markdown(
-                        dataframe.to_dict(orient="split")["data"], self.datatype
-                    ),
-                }
-            )
-        if isinstance(y, pd.DataFrame):
-            return DataframeData(
-                **{
-                    "headers": list(y.columns),  # type: ignore
-                    "data": Dataframe.__process_markdown(
-                        y.to_dict(orient="split")["data"], self.datatype  # type: ignore
-                    ),
+                    "headers": list(y.columns),
+                    "data": y.to_dict(orient="split")["data"],
                 }
             )
         if isinstance(y, (np.ndarray, list)):

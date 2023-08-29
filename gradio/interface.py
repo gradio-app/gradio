@@ -27,7 +27,7 @@ from gradio.components import (
 )
 from gradio.data_classes import InterfaceTypes
 from gradio.deprecation import warn_deprecation
-from gradio.events import Changeable, Streamable, Submittable
+from gradio.events import Events
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_pipeline
@@ -625,7 +625,7 @@ class Interface(Blocks):
                 )
             else:
                 for component in self.input_components:
-                    if isinstance(component, Streamable) and component.streaming:
+                    if component.has_event(Events.stream) and component.streaming:
                         component.stream(
                             self.fn,
                             self.input_components,
@@ -635,7 +635,7 @@ class Interface(Blocks):
                             postprocess=not (self.api_mode),
                         )
                         continue
-                    if isinstance(component, Changeable):
+                    if component.has_event(Events.change):
                         component.change(
                             self.fn,
                             self.input_components,
@@ -652,7 +652,7 @@ class Interface(Blocks):
             triggers = [submit_btn.click] + [
                 component.submit
                 for component in self.input_components
-                if isinstance(component, Submittable)
+                if component.has_event(Events.submit)
             ]
             predict_events = []
 

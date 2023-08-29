@@ -8,15 +8,13 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import Component, _Keywords
-from gradio.events import (
-    Changeable,
-)
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class Markdown(Changeable, Component):
+class Markdown(Component):
     """
     Used to render arbitrary Markdown output. Can also render latex enclosed by dollar signs.
     Preprocessing: this component does *not* accept input.
@@ -25,6 +23,8 @@ class Markdown(Changeable, Component):
     Demos: blocks_hello, blocks_kinematics
     Guides: key-features
     """
+
+    EVENTS = [Events.change]
 
     def __init__(
         self,

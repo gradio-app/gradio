@@ -8,13 +8,13 @@ from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import Component, _Keywords
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
-from gradio.events import Clickable
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class Button(Clickable, Component):
+class Button(Component):
     """
     Used to create a button, that can be assigned arbitrary click() events. The label (value) of the button can be used as an input or set via the output of a function.
 
@@ -22,7 +22,8 @@ class Button(Clickable, Component):
     Postprocessing: expects a {str} to be returned from a function, which is set as the label of the button
     Demos: blocks_inputs, blocks_kinematics
     """
-    EVENTS = ["baz", "click"]
+
+    EVENTS = ["baz", Events.click, "bar"]
 
     def __init__(
         self,

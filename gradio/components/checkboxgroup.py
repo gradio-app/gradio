@@ -7,13 +7,13 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import Component, FormComponent, _Keywords
-from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class CheckboxGroup(Changeable, Inputable, Selectable, FormComponent):
+class CheckboxGroup(FormComponent):
     """
     Creates a set of checkboxes of which a subset can be checked.
     Preprocessing: passes the list of checked checkboxes as a {List[str | int | float]} or their indices as a {List[int]} into the function, depending on `type`.
@@ -21,6 +21,8 @@ class CheckboxGroup(Changeable, Inputable, Selectable, FormComponent):
     Examples-format: a {List[str | int | float]} representing the values to be checked.
     Demos: sentence_builder, titanic_survival
     """
+
+    EVENTS = [Events.change, Events.input, Events.select]
 
     def __init__(
         self,
@@ -69,12 +71,6 @@ class CheckboxGroup(Changeable, Inputable, Selectable, FormComponent):
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
             )
         self.type = type
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user selects or deselects within CheckboxGroup.
-        Uses event data gradio.SelectData to carry `value` referring to label of selected checkbox, `index` to refer to index, and `selected` to refer to state of checkbox.
-        See EventData documentation on how to use this event data.
-        """
         super().__init__(
             label=label,
             info=info,

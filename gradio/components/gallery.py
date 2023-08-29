@@ -12,10 +12,7 @@ from PIL import Image as _Image  # using _ to minimize namespace pollution
 from gradio import utils
 from gradio.components.base import Component, _Keywords
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
-from gradio.events import (
-    EventListenerMethod,
-    Selectable,
-)
+from gradio.events import Events
 
 set_documentation_group("component")
 
@@ -30,7 +27,7 @@ class GalleryData(GradioRootModel):
 
 
 @document()
-class Gallery(Selectable, Component):
+class Gallery(Component):
     """
     Used to display a list of images as a gallery that can be scrolled through.
     Preprocessing: this component does *not* accept input.
@@ -38,6 +35,8 @@ class Gallery(Selectable, Component):
 
     Demos: fake_gan
     """
+
+    EVENTS = [Events.select]
 
     data_model = GalleryData
 
@@ -100,12 +99,6 @@ class Gallery(Selectable, Component):
             if show_download_button is None
             else show_download_button
         )
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user selects image within Gallery.
-        Uses event data gradio.SelectData to carry `value` referring to caption of selected image, and `index` to refer to index.
-        See EventData documentation on how to use this event data.
-        """
         self.show_share_button = (
             (utils.get_space() is not None)
             if show_share_button is None
