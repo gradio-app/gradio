@@ -292,6 +292,7 @@
 		/* opacity: 0; */
 		position: relative;
 		overflow-y: scroll;
+		overflow-x: hidden;
 		-webkit-overflow-scrolling: touch;
 		max-height: 100vh;
 		box-sizing: border-box;

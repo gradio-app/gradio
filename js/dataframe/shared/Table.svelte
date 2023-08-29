@@ -541,17 +541,17 @@
 
 	$: max = get_max(data);
 
-	let dummy_table: HTMLTableElement | undefined;
-	let dummy_row: HTMLTableRowElement | undefined;
+	$: c_width[0] && set_cell_widths(c_width);
 
-	function get_dimensions() {
-		if (!dummy_table || !dummy_row) return;
-		t_width = dummy_table.clientWidth;
-		row_height = dummy_row.clientHeight;
-		c_width = Array.from(dummy_row.children).map((el) => el.clientWidth);
+	let parent: HTMLDivElement;
+	function set_cell_widths(widths: number[]): void {
+		if (widths.length === 0) return;
+		for (let i = 0; i < widths.length; i++) {
+			parent.style.setProperty(`--cell-width-${i}`, `${widths[i]}px`);
+		}
+
+		// set css property on parent
 	}
-
-	$: dummy_table && dummy_row && values && get_dimensions();
 </script>
 
 <svelte:window
@@ -566,12 +566,13 @@
 		</p>
 	{/if}
 	<div
+		bind:this={parent}
 		class="table-wrap"
 		class:dragging
 		class:no-wrap={!wrap}
 		style="max-height: {typeof height === undefined ? 'auto' : height + 'px'};"
 	>
-		<table bind:this={dummy_table}>
+		<table bind:clientWidth={t_width}>
 			{#if label && label.length !== 0}
 				<caption class="sr-only">{label}</caption>
 			{/if}
@@ -608,9 +609,9 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr bind:this={dummy_row}>
+				<tr bind:clientHeight={row_height}>
 					{#each max as { value, id }, j (id)}
-						<td tabindex="0">
+						<td tabindex="0" bind:clientWidth={c_width[j]}>
 							<div class:border-transparent={selected !== id} class="cell-wrap">
 								<EditableCell
 									{value}
@@ -646,7 +647,7 @@
 							bind:this={els[id].cell}
 							class:editing={header_edit === id}
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
-							style="width:{c_width[i]}px"
+							style="width: var(--cell-width-{i});"
 						>
 							<div class="cell-wrap">
 								<EditableCell
@@ -692,7 +693,7 @@
 							on:click={() => handle_cell_click(id)}
 							on:dblclick={() => start_edit(id)}
 							on:keydown={(e) => handle_keydown(e, index, j, id)}
-							style="width:{c_width[j]}px"
+							style="width: var(--cell-width-{j});"
 						>
 							<div class:border-transparent={selected !== id} class="cell-wrap">
 								<EditableCell
@@ -783,7 +784,7 @@
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--table-radius);
 		overflow-x: auto;
-		overflow-y: auto;
+		overflow-y: hidden;
 		height: 500px;
 	}
 
