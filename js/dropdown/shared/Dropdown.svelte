@@ -101,7 +101,11 @@
 		e.preventDefault();
 	}
 
+	let blurring = false;
+
 	function handle_blur(e: FocusEvent): void {
+		if (blurring) return;
+		blurring = true;
 		if (multiselect) {
 			inputValue = "";
 		} else if (!allow_custom_value) {
@@ -109,9 +113,17 @@
 		}
 		showOptions = false;
 		dispatch("blur");
+		setTimeout(() => {
+			blurring = false;
+		}, 100);
 	}
 
 	function handle_focus(e: FocusEvent): void {
+		if (blurring) {
+			// Remove focus triggered by blurring to the label.
+			let target = e.target as HTMLInputElement;
+			return target.blur();
+		}
 		dispatch("focus");
 		showOptions = true;
 		filtered = choices;
