@@ -5,4 +5,4 @@
 "gradio": minor
 ---
 
-feat:virtualise the dataframe
+feat:significantly improve the performance of `gr.Dataframe` for large datasets
