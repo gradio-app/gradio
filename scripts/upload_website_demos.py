@@ -10,7 +10,6 @@ import requests
 
 import huggingface_hub
 
-AUTH_TOKEN = os.getenv("AUTH_TOKEN")
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 VERSION_TXT = os.path.abspath(os.path.join(ROOT, "gradio", "version.txt"))
 DIR = os.path.dirname(__file__)
@@ -99,11 +98,12 @@ demos = [demo for demo in demos if demo not in DEMOS_TO_SKIP and os.path.isdir(o
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--WHEEL_URL", type=str, help="aws link to gradio wheel")
+    parser.add_argument("--AUTH_TOKEN", type=str, help="huggingface auth token")
     args = parser.parse_args()
     gradio_wheel_url = args.WHEEL_URL + f"gradio-{gradio_version}-py3-none-any.whl"
-    if AUTH_TOKEN is not None:
+    if args.AUTH_TOKEN is not None:
         hello_world_version = str(huggingface_hub.space_info("gradio/hello_world").cardData["sdk_version"])
         for demo in demos:
             if hello_world_version != gradio_version:
-                upload_demo_to_space(demo_name=demo, space_id="gradio/" + demo, hf_token=AUTH_TOKEN, gradio_version=gradio_version)
-            upload_demo_to_space(demo_name=demo, space_id="gradio/" + demo + "_main", hf_token=AUTH_TOKEN, gradio_version=gradio_version, gradio_wheel_url=gradio_wheel_url)
+                upload_demo_to_space(demo_name=demo, space_id="gradio/" + demo, hf_token=args.AUTH_TOKEN, gradio_version=gradio_version)
+            upload_demo_to_space(demo_name=demo, space_id="gradio/" + demo + "_main", hf_token=args.AUTH_TOKEN, gradio_version=gradio_version, gradio_wheel_url=gradio_wheel_url)
