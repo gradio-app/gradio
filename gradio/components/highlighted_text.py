@@ -1,5 +1,3 @@
-"""gr.HighlightedText() component."""
-
 from __future__ import annotations
 
 from typing import Callable, Literal
@@ -13,6 +11,8 @@ from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
     Changeable,
+    Clearable,
+    Editable,
     EventListenerMethod,
     Selectable,
 )
@@ -21,7 +21,7 @@ set_documentation_group("component")
 
 
 @document()
-class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
+class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable, Clearable, Editable):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
     Preprocessing:  expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels, if any. If no labels are provided, the text will be displayed as a single span.
@@ -49,6 +49,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        interactive: bool = False,
         **kwargs,
     ):
         """
@@ -66,6 +67,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            interactive: If True, the component will be editable, and allow user to select spans of text and label them.
 
         """
         self.color_map = color_map
@@ -90,6 +92,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
             elem_id=elem_id,
             elem_classes=elem_classes,
             value=value,
+            interactive=interactive,
             **kwargs,
         )
 
@@ -116,6 +119,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
         scale: int | None = None,
         min_width: int | None = None,
         visible: bool | None = None,
+        interactive: bool | None = None,
     ):
         updated_config = {
             "color_map": color_map,
@@ -127,6 +131,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
             "min_width": min_width,
             "visible": visible,
             "value": value,
+            "interactive": interactive,
             "__type__": "update",
         }
         return updated_config
