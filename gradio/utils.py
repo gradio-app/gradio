@@ -860,7 +860,7 @@ def concurrency_count_warning(queue: Callable[P, T]) -> Callable[P, T]:
             len(positional) >= 1 or "concurrency_count" in kwargs
         ):
             warnings.warn(
-                "Queue concurrency_count on ZeroGPU Spaces cannot be overriden "
+                "Queue concurrency_count on ZeroGPU Spaces cannot be overridden "
                 "and is always equal to Block's max_threads. "
                 "Consider setting max_threads value on the Block instead"
             )
