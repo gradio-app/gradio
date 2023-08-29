@@ -66,3 +66,10 @@
 		show_copy_button: true
 	}}
 />
+
+<Story
+	name="Chatbot with chat bubble full width disabled"
+	args={{
+		bubble_full_width: false
+	}}
+/>
