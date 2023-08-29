@@ -35,7 +35,8 @@
 				"Can you write a function in Python?",
 				"```py\ndef test():\n\tprint(x)\n```"
 			],
-			["Can you do math?", "$$1+1=2$$"]
+			["Can you do math?", "$$1+1=2$$"],
+			["Can you say nothing?", null]
 		]}
 	/>
 </Template>
