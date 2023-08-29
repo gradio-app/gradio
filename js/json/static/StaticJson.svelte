@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import type { Gradio } from "@gradio/utils";
 	import JSON from "./JSON.svelte";
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import { JSON as JSONIcon } from "@gradio/icons";
 
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
 
 	export let elem_id = "";
@@ -19,13 +19,14 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-
-	const dispatch = createEventDispatcher<{ change: undefined }>();
+	export let gradio: Gradio<{
+		change: never;
+	}>;
 
 	$: {
 		if (value !== old_value) {
 			old_value = value;
-			dispatch("change");
+			gradio.dispatch("change");
 		}
 	}
 </script>

@@ -1,11 +1,12 @@
 <script lang="ts">
+	import type { Gradio } from "@gradio/utils";
 	import Plot from "./Plot.svelte";
 
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import { Plot as PlotIcon } from "@gradio/icons";
 
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
 	import type { ThemeMode } from "js/app/src/components/types";
 
@@ -23,6 +24,9 @@
 	export let theme_mode: ThemeMode;
 	export let caption: string;
 	export let bokeh_version: string | null;
+	export let gradio: Gradio<{
+		change: never;
+	}>;
 </script>
 
 <Block
@@ -34,7 +38,14 @@
 	{scale}
 	{min_width}
 >
-	<BlockLabel {show_label} label={label || "Plot"} Icon={PlotIcon} />
+	<BlockLabel {show_label} label={label || $_("plot.plot")} Icon={PlotIcon} />
 	<StatusTracker {...loading_status} />
-	<Plot {value} {target} {theme_mode} {caption} {bokeh_version} on:change />
+	<Plot
+		{value}
+		{target}
+		{theme_mode}
+		{caption}
+		{bokeh_version}
+		on:change={() => gradio.dispatch("change")}
+	/>
 </Block>

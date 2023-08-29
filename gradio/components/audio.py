@@ -45,7 +45,7 @@ class Audio(
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
     Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a 16-bit int array whose values range from -32768 to 32767), or as a {str} filepath, depending on `type`.
-    Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a float or int numpy array) or as a {str} or {pathlib.Path} filepath or URL to an audio file, which gets displayed
+    Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a float or int numpy array) or as a {str} or {pathlib.Path} filepath or URL to an audio file, or bytes for binary content (recommended for streaming)
     Examples-format: a {str} filepath to a local file that contains audio.
     Demos: main_note, generate_tone, reverse_audio
     Guides: real-time-speech-recognition
@@ -328,8 +328,8 @@ class Audio(
         return masked_inputs
 
     def postprocess(
-        self, y: tuple[int, np.ndarray] | str | Path | None
-    ) -> str | dict | None:
+        self, y: tuple[int, np.ndarray] | str | Path | bytes | None
+    ) -> str | dict | bytes | None:
         """
         Parameters:
             y: audio data in either of the following formats: a tuple of (sample_rate, data), or a string filepath or URL to an audio file, or None.
@@ -338,38 +338,60 @@ class Audio(
         """
         if y is None:
             return None
-        if isinstance(y, str) and client_utils.is_http_url_like(y):
+        if isinstance(y, bytes):
+            if self.streaming:
+                return y
+            file_path = self.file_bytes_to_file(y, "audio")
+        elif isinstance(y, str) and client_utils.is_http_url_like(y):
             return {"name": y, "data": None, "is_file": True}
-        if isinstance(y, tuple):
+        elif isinstance(y, tuple):
             sample_rate, data = y
             file_path = self.audio_to_temp_file(
                 data,
                 sample_rate,
-                format="mp3" if self.streaming else self.format,
+                format=self.format,
             )
             self.temp_files.add(file_path)
         else:
-            if isinstance(y, Path):
-                y = str(y)
-            if self.streaming and not y.endswith(".mp3"):
-                sample_rate, data = processing_utils.audio_from_file(y)
-                file_path = self.audio_to_temp_file(data, sample_rate, format="mp3")
-                self.temp_files.add(file_path)
-            else:
-                file_path = self.make_temp_copy_if_needed(y)
-        return {"name": file_path, "data": None, "is_file": True}
+            file_path = self.make_temp_copy_if_needed(y)
+        return {
+            "name": file_path,
+            "data": None,
+            "is_file": True,
+            "orig_name": Path(file_path).name,
+        }
 
-    def stream_output(self, y):
+    def stream_output(self, y, output_id: str, first_chunk: bool):
+        output_file = {
+            "name": output_id,
+            "is_stream": True,
+            "is_file": False,
+        }
         if y is None:
-            return None
+            return None, output_file
+        if isinstance(y, bytes):
+            return y, output_file
         if client_utils.is_http_url_like(y["name"]):
             response = requests.get(y["name"])
-            bytes = response.content
+            binary_data = response.content
         else:
+            output_file["orig_name"] = y["orig_name"]
             file_path = y["name"]
+            is_wav = file_path.endswith(".wav")
             with open(file_path, "rb") as f:
-                bytes = f.read()
-        return bytes
+                binary_data = f.read()
+            if is_wav:
+                # strip length information from first chunk header, remove headers entirely from subsequent chunks
+                if first_chunk:
+                    binary_data = (
+                        binary_data[:4] + b"\xFF\xFF\xFF\xFF" + binary_data[8:]
+                    )
+                    binary_data = (
+                        binary_data[:40] + b"\xFF\xFF\xFF\xFF" + binary_data[44:]
+                    )
+                else:
+                    binary_data = binary_data[44:]
+        return binary_data, output_file
 
     def check_streamable(self):
         if self.source != "microphone":

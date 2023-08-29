@@ -55,6 +55,7 @@ class File(
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
+        height: int | float | None = None,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
@@ -73,6 +74,7 @@ class File(
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
+            height: The maximum height of the file component, in pixels. If more files are uploaded than can fit in the height, a scrollbar will appear.
             interactive: if True, will allow users to upload a file; if False, can only be used to display files. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -102,6 +104,7 @@ class File(
                 "The `file_types` parameter is ignored when `file_count` is 'directory'."
             )
         self.type = type
+        self.height = height
         self.select: EventListenerMethod
         """
         Event listener for when the user selects file from list.
@@ -130,6 +133,7 @@ class File(
             "file_types": self.file_types,
             "value": self.value,
             "selectable": self.selectable,
+            "height": self.height,
             **IOComponent.get_config(self),
         }
 
@@ -141,6 +145,7 @@ class File(
         container: bool | None = None,
         scale: int | None = None,
         min_width: int | None = None,
+        height: int | float | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
@@ -150,6 +155,7 @@ class File(
             "container": container,
             "scale": scale,
             "min_width": min_width,
+            "height": height,
             "interactive": interactive,
             "visible": visible,
             "value": value,
@@ -184,9 +190,7 @@ class File(
                     path = self.make_temp_copy_if_needed(file_name)
                 else:
                     data, _ = client_utils.decode_base64_to_binary(data)
-                    path = self.file_bytes_to_file(
-                        data, dir=self.DEFAULT_TEMP_DIR, file_name=file_name
-                    )
+                    path = self.file_bytes_to_file(data, file_name=file_name)
                     path = str(utils.abspath(path))
                     self.temp_files.add(path)
 

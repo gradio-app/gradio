@@ -13,7 +13,7 @@ from gradio.events import Changeable, Inputable
 set_documentation_group("component")
 
 
-@document("languages")
+@document()
 class Code(Changeable, Inputable, IOComponent, StringSerializable):
     """
     Creates a Code editor for entering, editing or viewing code.

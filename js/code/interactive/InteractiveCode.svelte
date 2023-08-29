@@ -1,17 +1,13 @@
 <script lang="ts">
-	import { createEventDispatcher, afterUpdate } from "svelte";
+	import type { Gradio } from "@gradio/utils";
+	import { afterUpdate } from "svelte";
 
-	import type { LoadingStatus } from "@gradio/statustracker/types";
-
+	import type { LoadingStatus } from "@gradio/statustracker";
+	import { _ } from "svelte-i18n";
 	import Code from "../shared";
 	import { StatusTracker } from "@gradio/statustracker";
-	import { Block, BlockLabel, Empty } from "@gradio/atoms";
+	import { Block, BlockLabel } from "@gradio/atoms";
 	import { Code as CodeIcon } from "@gradio/icons";
-
-	const dispatch = createEventDispatcher<{
-		change: typeof value;
-		input: undefined;
-	}>();
 
 	export let value = "";
 	export let value_is_output = false;
@@ -21,16 +17,20 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let label = "Code";
+	export let label = $_("code.code");
 	export let show_label = true;
 	export let loading_status: LoadingStatus;
+	export let gradio: Gradio<{
+		change: typeof value;
+		input: never;
+	}>;
 
 	let dark_mode = target.classList.contains("dark");
 
 	function handle_change(): void {
-		dispatch("change", value);
+		gradio.dispatch("change", value);
 		if (!value_is_output) {
-			dispatch("input");
+			gradio.dispatch("input");
 		}
 	}
 	afterUpdate(() => {

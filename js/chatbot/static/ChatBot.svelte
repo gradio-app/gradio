@@ -1,20 +1,14 @@
 <script lang="ts">
-	import { copy, format_chat_for_sharing } from "../utils";
-	import "katex/dist/katex.min.css";
+	import { format_chat_for_sharing } from "../utils";
+	import { copy } from "@gradio/utils";
+
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import { ShareButton } from "@gradio/atoms";
 	import type { SelectData } from "@gradio/utils";
-	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
-	import Markdown from "./MarkdownCode.svelte";
+	import { MarkdownCode as Markdown } from "@gradio/markdown/static";
+	import { get_fetchable_url_or_file } from "@gradio/upload";
 	import Copy from "./Copy.svelte";
-
-	const code_highlight_css = {
-		light: (): Promise<typeof import("prismjs/themes/prism.css")> =>
-			import("prismjs/themes/prism.css"),
-		dark: (): Promise<typeof import("prismjs/themes/prism.css")> =>
-			import("prismjs/themes/prism-dark.css")
-	};
 
 	export let value:
 		| [string | FileData | null, string | FileData | null][]
@@ -30,15 +24,13 @@
 	export let feedback: string[] | null = null;
 	export let selectable = false;
 	export let show_share_button = false;
-	export let theme_mode: ThemeMode;
 	export let rtl = false;
 	export let show_copy_button = false;
-
-	$: if (theme_mode == "dark") {
-		code_highlight_css.dark();
-	} else {
-		code_highlight_css.light();
-	}
+	export let avatar_images: [string | null, string | null] = [null, null];
+	export let sanitize_html = true;
+	export let bubble_full_width = true;
+	export let root: string;
+	export let root_url: null | string;
 
 	let div: HTMLDivElement;
 	let autoscroll: boolean;
@@ -104,75 +96,98 @@
 		{#if value !== null}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
-					<!-- TODO: fix-->
-					<!-- svelte-ignore a11y-no-static-element-interactions-->
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
 					<div
-						data-testid={j == 0 ? "user" : "bot"}
-						class:latest={i === value.length - 1}
-						class="message {j == 0 ? 'user' : 'bot'}"
+						class="message-row {j == 0 ? 'user-row' : 'bot-row'}"
 						class:hide={message === null}
-						class:selectable
-						on:click={() => handle_select(i, j, message)}
-						dir={rtl ? "rtl" : "ltr"}
 					>
-						{#if typeof message === "string"}
-							<Markdown {message} {latex_delimiters} on:load={scroll} />
-							{#if feedback && j == 1}
-								<div class="feedback">
-									{#each feedback as f}
-										<button>{f}</button>
-									{/each}
-								</div>
-							{/if}
-
-							{#if show_copy_button && message}
-								<div class="icon-button">
-									<Copy value={message} />
-								</div>
-							{/if}
-						{:else if message !== null && message.mime_type?.includes("audio")}
-							<audio
-								data-testid="chatbot-audio"
-								controls
-								preload="metadata"
-								src={message.data}
-								title={message.alt_text}
-								on:play
-								on:pause
-								on:ended
-							/>
-						{:else if message !== null && message.mime_type?.includes("video")}
-							<video
-								data-testid="chatbot-video"
-								controls
-								src={message.data}
-								title={message.alt_text}
-								preload="auto"
-								on:play
-								on:pause
-								on:ended
-							>
-								<track kind="captions" />
-							</video>
-						{:else if message !== null && message.mime_type?.includes("image")}
-							<img
-								data-testid="chatbot-image"
-								src={message.data}
-								alt={message.alt_text}
-							/>
-						{:else if message !== null && message.data !== null}
-							<a
-								data-testid="chatbot-file"
-								href={message.data}
-								target="_blank"
-								download={window.__is_colab__
-									? null
-									: message.orig_name || message.name}
-							>
-								{message.orig_name || message.name}
-							</a>
+						{#if avatar_images[j] !== null}
+							<div class="avatar-container">
+								<img
+									class="avatar-image"
+									src={get_fetchable_url_or_file(
+										avatar_images[j],
+										root,
+										root_url
+									)}
+									alt="avatar-{j == 0 ? 'user' : 'bot'}"
+								/>
+							</div>
 						{/if}
+						<!-- TODO: fix-->
+						<!-- svelte-ignore a11y-no-static-element-interactions-->
+						<!-- svelte-ignore a11y-click-events-have-key-events -->
+						<div
+							data-testid={j == 0 ? "user" : "bot"}
+							class:latest={i === value.length - 1}
+							class="message {j == 0 ? 'user' : 'bot'}"
+							class:message-fit={!bubble_full_width}
+							class:selectable
+							on:click={() => handle_select(i, j, message)}
+							dir={rtl ? "rtl" : "ltr"}
+						>
+							{#if typeof message === "string"}
+								<Markdown
+									{message}
+									{latex_delimiters}
+									{sanitize_html}
+									on:load={scroll}
+								/>
+								{#if feedback && j == 1}
+									<div class="feedback">
+										{#each feedback as f}
+											<button>{f}</button>
+										{/each}
+									</div>
+								{/if}
+
+								{#if show_copy_button && message}
+									<div class="icon-button">
+										<Copy value={message} />
+									</div>
+								{/if}
+							{:else if message !== null && message.mime_type?.includes("audio")}
+								<audio
+									data-testid="chatbot-audio"
+									controls
+									preload="metadata"
+									src={message.data}
+									title={message.alt_text}
+									on:play
+									on:pause
+									on:ended
+								/>
+							{:else if message !== null && message.mime_type?.includes("video")}
+								<video
+									data-testid="chatbot-video"
+									controls
+									src={message.data}
+									title={message.alt_text}
+									preload="auto"
+									on:play
+									on:pause
+									on:ended
+								>
+									<track kind="captions" />
+								</video>
+							{:else if message !== null && message.mime_type?.includes("image")}
+								<img
+									data-testid="chatbot-image"
+									src={message.data}
+									alt={message.alt_text}
+								/>
+							{:else if message !== null && message.data !== null}
+								<a
+									data-testid="chatbot-file"
+									href={message.data}
+									target="_blank"
+									download={window.__is_colab__
+										? null
+										: message.orig_name || message.name}
+								>
+									{message.orig_name || message.name}
+								</a>
+							{/if}
+						</div>
 					</div>
 				{/each}
 			{/each}
@@ -202,7 +217,7 @@
 		gap: var(--spacing-xxl);
 	}
 
-	.message-wrap > div :global(img) {
+	.message-wrap > div :not(.avatar-container) :global(img) {
 		border-radius: 13px;
 		max-width: 30vw;
 	}
@@ -222,11 +237,18 @@
 		border-radius: var(--radius-xxl);
 		background: var(--background-fill-secondary);
 		padding: var(--spacing-xxl);
+		padding-right: calc(var(--spacing-xxl) + var(--spacing-md));
 		width: calc(100% - var(--spacing-xxl));
 		color: var(--body-text-color);
 		font-size: var(--text-lg);
 		line-height: var(--line-lg);
 		overflow-wrap: break-word;
+	}
+	.message-fit {
+		width: fit-content !important;
+	}
+	.message-fit.user {
+		margin-left: auto;
 	}
 	.user {
 		align-self: flex-end;
@@ -234,15 +256,7 @@
 	}
 	.bot {
 		border-bottom-left-radius: 0;
-		padding-left: calc(2 * var(--spacing-xxl));
-	}
-	@media (max-width: 480px) {
-		.message {
-			width: auto;
-		}
-		.bot {
-			padding-left: var(--spacing-xxl);
-		}
+		padding-left: var(--spacing-xxl);
 	}
 
 	/* Colors */
@@ -255,6 +269,48 @@
 		border-color: var(--border-color-accent-subdued);
 		background-color: var(--color-accent-soft);
 	}
+	.message-row {
+		display: flex;
+		flex-direction: row;
+	}
+
+	@media (max-width: 480px) {
+		.user-row {
+			align-self: flex-end;
+		}
+
+		.bot-row {
+			align-self: flex-start;
+		}
+		.message {
+			width: auto;
+		}
+		.bot {
+			padding-left: var(--spacing-xxl);
+		}
+	}
+	.avatar-container {
+		align-self: flex-end;
+		position: relative;
+		justify-content: center;
+		width: 35px;
+		height: 35px;
+		bottom: 0;
+	}
+	.user-row > .avatar-container {
+		order: 2;
+		margin-left: 10px;
+	}
+	.bot-row > .avatar-container {
+		margin-right: 10px;
+	}
+	img.avatar-image {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		border-radius: 50%;
+	}
+
 	.feedback {
 		display: flex;
 		position: absolute;
@@ -330,32 +386,6 @@
 		display: none;
 	}
 
-	/* Code blocks */
-	.message-wrap :global(pre[class*="language-"]),
-	.message-wrap :global(pre) {
-		margin-top: var(--spacing-sm);
-		margin-bottom: var(--spacing-sm);
-		box-shadow: none;
-		border: none;
-		border-radius: var(--radius-md);
-		background-color: var(--chatbot-code-background-color);
-		padding: var(--spacing-xl) 10px;
-		direction: ltr;
-	}
-	.message-wrap :global(code) {
-		font-size: var(--text-md);
-	}
-
-	/* Tables */
-	.message-wrap :global(table),
-	.message-wrap :global(tr),
-	.message-wrap :global(td),
-	.message-wrap :global(th) {
-		margin-top: var(--spacing-sm);
-		margin-bottom: var(--spacing-sm);
-		padding: var(--spacing-xl);
-	}
-
 	.message-wrap .bot :global(table),
 	.message-wrap .bot :global(tr),
 	.message-wrap .bot :global(td),
@@ -383,7 +413,7 @@
 	}
 
 	/* Copy button */
-	.message-wrap :global(code > button) {
+	.message-wrap :global(div[class*="code_wrap"] > button) {
 		position: absolute;
 		top: var(--spacing-md);
 		right: var(--spacing-md);
@@ -392,8 +422,8 @@
 		border-bottom-left-radius: var(--radius-sm);
 		padding: 5px;
 		padding: var(--spacing-md);
-		width: 22px;
-		height: 22px;
+		width: 25px;
+		height: 25px;
 	}
 
 	.message-wrap :global(code > button > span) {

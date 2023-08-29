@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/json",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "./static/index.ts",
@@ -10,7 +10,8 @@
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
 		"@gradio/icons": "workspace:^",
-		"@gradio/statustracker": "workspace:^"
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/utils": "workspace:^"
 	},
 	"main_changeset": true,
 	"exports": {

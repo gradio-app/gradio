@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tick } from "svelte";
+	import { onMount, tick } from "svelte";
 	import { _ } from "svelte-i18n";
 	import type { client } from "@gradio/client";
 
@@ -10,16 +10,15 @@
 	import type {
 		ComponentMeta,
 		Dependency,
-		LayoutNode,
-		Documentation
+		LayoutNode
 	} from "./components/types";
 	import { setupi18n } from "./i18n";
-	import Render from "./Render.svelte";
 	import { ApiDocs } from "./api_docs/";
 	import type { ThemeMode } from "./components/types";
 	import { Toast } from "@gradio/statustracker";
 	import type { ToastMessage } from "@gradio/statustracker";
 	import type { ShareData } from "@gradio/utils";
+	import MountComponents from "./MountComponents.svelte";
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
@@ -42,6 +41,7 @@
 	export let theme_mode: ThemeMode;
 	export let app: Awaited<ReturnType<typeof client>>;
 	export let space_id: string | null;
+	export let version: string;
 
 	let loading_status = create_loading_status_store();
 
@@ -50,13 +50,11 @@
 	let rootNode: ComponentMeta = {
 		id: layout.id,
 		type: "column",
-		props: {},
+		props: { mode: "static" },
 		has_modes: false,
-		instance: {} as ComponentMeta["instance"],
-		component: {} as ComponentMeta["component"]
+		instance: null as unknown as ComponentMeta["instance"],
+		component: null as unknown as ComponentMeta["component"]
 	};
-
-	components.push(rootNode);
 
 	const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 	dependencies.forEach((d) => {
@@ -78,7 +76,7 @@
 	});
 
 	let params = new URLSearchParams(window.location.search);
-	let api_docs_visible = params.get("view") === "api";
+	let api_docs_visible = params.get("view") === "api" && show_api;
 	function set_api_docs_visible(visible: boolean): void {
 		api_docs_visible = visible;
 		let params = new URLSearchParams(window.location.search);
@@ -103,18 +101,7 @@
 		return false;
 	}
 
-	const dynamic_ids: Set<number> = new Set();
-	for (const comp of components) {
-		const { id, props } = comp;
-		const is_input = is_dep(id, "inputs", dependencies);
-		if (
-			is_input ||
-			(!is_dep(id, "outputs", dependencies) &&
-				has_no_default_value(props?.value))
-		) {
-			dynamic_ids.add(id);
-		}
-	}
+	let dynamic_ids: Set<number> = new Set();
 
 	function has_no_default_value(value: any): boolean {
 		return (
@@ -125,80 +112,191 @@
 		);
 	}
 
-	let instance_map = components.reduce(
-		(acc, next) => {
-			acc[next.id] = next;
-			return acc;
-		},
-		{} as { [id: number]: ComponentMeta }
-	);
+	let instance_map: { [id: number]: ComponentMeta };
 
 	type LoadedComponent = {
-		Component: ComponentMeta["component"];
-		modes?: string[];
-		document?: (arg0: Record<string, unknown>) => Documentation;
+		default: ComponentMeta["component"];
 	};
 
 	async function load_component<T extends ComponentMeta["type"]>(
-		name: T
+		name: T,
+		mode: ComponentMeta["props"]["mode"]
 	): Promise<{
 		name: T;
 		component: LoadedComponent;
 	}> {
 		try {
-			const c = await component_map[name]();
+			//@ts-ignore
+			const c = await component_map[name][mode]();
 			return {
 				name,
 				component: c as LoadedComponent
 			};
 		} catch (e) {
-			console.error(`failed to load: ${name}`);
-			console.error(e);
-			throw e;
+			if (mode === "interactive") {
+				try {
+					const c = await component_map[name]["static"]();
+					return {
+						name,
+						component: c as LoadedComponent
+					};
+				} catch (e) {
+					console.error(`failed to load: ${name}`);
+					console.error(e);
+					throw e;
+				}
+			} else {
+				console.error(`failed to load: ${name}`);
+				console.error(e);
+				throw e;
+			}
 		}
 	}
 
-	const component_set = new Set<
-		Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
-	>();
-	const _component_map = new Map<
-		ComponentMeta["type"],
+	let component_set = new Set<
 		Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
 	>();
 
-	async function walk_layout(node: LayoutNode): Promise<void> {
+	let _component_map = new Map<
+		`${ComponentMeta["type"]}_${ComponentMeta["props"]["mode"]}`,
+		Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
+	>();
+
+	async function walk_layout(
+		node: LayoutNode,
+		type_map: Map<number, ComponentMeta["props"]["mode"]>,
+		instance_map: { [id: number]: ComponentMeta },
+		component_map: Map<
+			`${ComponentMeta["type"]}_${ComponentMeta["props"]["mode"]}`,
+			Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
+		>
+	): Promise<void> {
+		ready = false;
 		let instance = instance_map[node.id];
-		const _component = (await _component_map.get(instance.type))!.component;
-		instance.component = _component.Component;
-		if (_component.document) {
-			instance.documentation = _component.document(instance.props);
-		}
-		if (_component.modes && _component.modes.length > 1) {
-			instance.has_modes = true;
-		}
+
+		const _component = (await component_map.get(
+			`${instance.type}_${type_map.get(node.id) || "static"}`
+		))!.component;
+		instance.component = _component.default;
 
 		if (node.children) {
 			instance.children = node.children.map((v) => instance_map[v.id]);
-			await Promise.all(node.children.map((v) => walk_layout(v)));
+			await Promise.all(
+				node.children.map((v) =>
+					walk_layout(v, type_map, instance_map, component_map)
+				)
+			);
 		}
 	}
 
-	components.forEach(async (c) => {
-		const _c = load_component(c.type);
-		component_set.add(_c);
-		_component_map.set(c.type, _c);
-	});
-
 	export let ready = false;
-	Promise.all(Array.from(component_set)).then(() => {
-		walk_layout(layout)
-			.then(async () => {
-				ready = true;
-			})
-			.catch((e) => {
-				console.error(e);
-			});
-	});
+	export let render_complete = false;
+
+	$: components, layout, prepare_components();
+
+	function prepare_components(): void {
+		loading_status = create_loading_status_store();
+
+		dependencies.forEach((v, i) => {
+			loading_status.register(i, v.inputs, v.outputs);
+		});
+
+		const _dynamic_ids = new Set<number>();
+		for (const comp of components) {
+			const { id, props } = comp;
+			const is_input = is_dep(id, "inputs", dependencies);
+			if (
+				is_input ||
+				(!is_dep(id, "outputs", dependencies) &&
+					has_no_default_value(props?.value))
+			) {
+				_dynamic_ids.add(id);
+			}
+		}
+
+		dynamic_ids = _dynamic_ids;
+
+		const _rootNode: typeof rootNode = {
+			id: layout.id,
+			type: "column",
+			props: { mode: "static" },
+			has_modes: false,
+			instance: null as unknown as ComponentMeta["instance"],
+			component: null as unknown as ComponentMeta["component"]
+		};
+		components.push(_rootNode);
+		const _component_set = new Set<
+			Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
+		>();
+		const __component_map = new Map<
+			`${ComponentMeta["type"]}_${ComponentMeta["props"]["mode"]}`,
+			Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
+		>();
+		const __type_for_id = new Map<number, ComponentMeta["props"]["mode"]>();
+		const _instance_map = components.reduce(
+			(acc, next) => {
+				acc[next.id] = next;
+				return acc;
+			},
+			{} as { [id: number]: ComponentMeta }
+		);
+		components.forEach((c) => {
+			if ((c.props as any).interactive === false) {
+				(c.props as any).mode = "static";
+			} else if ((c.props as any).interactive === true) {
+				(c.props as any).mode = "interactive";
+			} else if (dynamic_ids.has(c.id)) {
+				(c.props as any).mode = "interactive";
+			} else {
+				(c.props as any).mode = "static";
+			}
+			__type_for_id.set(c.id, c.props.mode);
+
+			const _c = load_component(c.type, c.props.mode);
+			_component_set.add(_c);
+			__component_map.set(`${c.type}_${c.props.mode}`, _c);
+		});
+
+		Promise.all(Array.from(_component_set)).then(() => {
+			walk_layout(layout, __type_for_id, _instance_map, __component_map)
+				.then(async () => {
+					ready = true;
+					component_set = _component_set;
+					_component_map = __component_map;
+					instance_map = _instance_map;
+					rootNode = _rootNode;
+				})
+				.catch((e) => {
+					console.error(e);
+				});
+		});
+	}
+
+	async function update_interactive_mode(
+		instance: ComponentMeta,
+		mode: "dynamic" | "interactive" | "static"
+	): Promise<void> {
+		let new_mode: "interactive" | "static" =
+			mode === "dynamic" ? "interactive" : mode;
+
+		if (instance.props.mode === new_mode) return;
+
+		instance.props.mode = new_mode;
+		const _c = load_component(instance.type, instance.props.mode);
+		component_set.add(_c);
+		_component_map.set(
+			`${instance.type}_${instance.props.mode}`,
+			_c as Promise<{
+				name: ComponentMeta["type"];
+				component: LoadedComponent;
+			}>
+		);
+
+		_c.then((c) => {
+			instance.component = c.component.default;
+			rootNode = rootNode;
+		});
+	}
 
 	function handle_update(data: any, fn_index: number): void {
 		const outputs = dependencies[fn_index].outputs;
@@ -214,6 +312,12 @@
 					if (update_key === "__type__") {
 						continue;
 					} else {
+						if (update_key === "mode") {
+							update_interactive_mode(
+								output,
+								update_value as "dynamic" | "static"
+							);
+						}
 						output.props[update_key] = update_value;
 					}
 				}
@@ -232,6 +336,7 @@
 		val: any
 	): void {
 		if (!obj?.props) {
+			// @ts-ignore
 			obj.props = {};
 		}
 		obj.props[prop] = val;
@@ -264,12 +369,9 @@
 
 	const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
-	const DUPLICATE_MESSAGE =
-		"There is a long queue of requests pending. Duplicate this Space to skip.";
-	const MOBILE_QUEUE_WARNING =
-		"On mobile, the connection can break if this tab is unfocused or the device sleeps, losing your position in queue.";
-	const MOBILE_RECONNECT_MESSAGE =
-		"Lost connection due to leaving page. Rejoining queue...";
+	const DUPLICATE_MESSAGE = $_("blocks.long_requests_queue");
+	const MOBILE_QUEUE_WARNING = $_("blocks.connection_can_break");
+	const MOBILE_RECONNECT_MESSAGE = $_("blocks.lost_connection");
 	const SHOW_DUPLICATE_MESSAGE_ON_ETA = 15;
 	const SHOW_MOBILE_QUEUE_WARNING_ON_ETA = 10;
 	const is_mobile_device =
@@ -439,8 +541,26 @@
 	const is_external_url = (link: string | null): boolean =>
 		!!(link && new URL(link, location.href).origin !== location.origin);
 
-	let attached_error_listeners: number[] = [];
-	let shareable_components: number[] = [];
+	$: target_map = dependencies.reduce(
+		(acc, dep, i) => {
+			let { targets, trigger } = dep;
+
+			targets.forEach((id) => {
+				if (!acc[id]) {
+					acc[id] = {};
+				}
+				if (acc[id]?.[trigger]) {
+					acc[id][trigger].push(i);
+				} else {
+					acc[id][trigger] = [i];
+				}
+			});
+
+			return acc;
+		},
+		{} as Record<number, Record<string, number[]>>
+	);
+
 	async function handle_mount(): Promise<void> {
 		await tick();
 
@@ -455,66 +575,32 @@
 				a[i].setAttribute("target", "_blank");
 		}
 
+		// handle load triggers
 		dependencies.forEach((dep, i) => {
-			let { targets, trigger, inputs, outputs } = dep;
-			const target_instances: [number, ComponentMeta][] = targets.map((t) => [
-				t,
-				instance_map[t]
-			]);
-
-			// page events
-			if (
-				targets.length === 0 &&
-				!handled_dependencies[i]?.includes(-1) &&
-				trigger === "load" &&
-				// check all input + output elements are on the page
-				outputs.every((v) => instance_map?.[v].instance) &&
-				inputs.every((v) => instance_map?.[v].instance)
-			) {
+			if (dep.targets.length === 0 && dep.trigger === "load") {
 				trigger_api_call(i);
-				handled_dependencies[i] = [-1];
 			}
-
-			// component events
-			target_instances
-				.filter((v) => !!v && !!v[1])
-				.forEach(([id, { instance }]: [number, ComponentMeta]) => {
-					if (handled_dependencies[i]?.includes(id) || !instance) return;
-					instance?.$on(trigger, (event_data: any) => {
-						trigger_api_call(i, event_data.detail);
-					});
-
-					if (!handled_dependencies[i]) handled_dependencies[i] = [];
-					handled_dependencies[i].push(id);
-				});
 		});
-		// share events
-		components.forEach((c) => {
-			if (
-				c.props.show_share_button &&
-				!shareable_components.includes(c.id) // only one share listener per component
-			) {
-				shareable_components.push(c.id);
-				c.instance.$on("share", (event_data) => {
-					const { title, description } = event_data.detail as ShareData;
-					trigger_share(title, description);
+
+		target.addEventListener("gradio", (e: Event) => {
+			if (!isCustomEvent(e)) throw new Error("not a custom event");
+
+			const { id, event, data } = e.detail;
+
+			if (event === "share") {
+				const { title, description } = data as ShareData;
+				trigger_share(title, description);
+			} else if (event === "error") {
+				messages = [new_message(data, -1, "error"), ...messages];
+			} else {
+				const deps = target_map[id]?.[event];
+				deps?.forEach((dep_id) => {
+					trigger_api_call(dep_id, data);
 				});
 			}
 		});
 
-		components.forEach((c) => {
-			if (!attached_error_listeners.includes(c.id)) {
-				if (c.instance) {
-					attached_error_listeners.push(c.id);
-					c.instance.$on("error", (event_data: any) => {
-						messages = [
-							new_message(event_data.detail, -1, "error"),
-							...messages
-						];
-					});
-				}
-			}
-		});
+		render_complete = true;
 	}
 
 	function handle_destroy(id: number): void {
@@ -524,10 +610,6 @@
 	}
 
 	$: set_status($loading_status);
-
-	dependencies.forEach((v, i) => {
-		loading_status.register(i, v.inputs, v.outputs);
-	});
 
 	function set_status(statuses: LoadingStatusCollection): void {
 		for (const id in statuses) {
@@ -542,6 +624,10 @@
 		for (const [id, pending_status] of inputs_to_update) {
 			set_prop(instance_map[id], "pending", pending_status === "pending");
 		}
+	}
+
+	function isCustomEvent(event: Event): event is CustomEvent {
+		return "detail" in event;
 	}
 </script>
 
@@ -569,12 +655,8 @@
 <div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
 	<div class="contain" style:flex-grow={app_mode ? "1" : "auto"}>
 		{#if ready}
-			<Render
-				has_modes={rootNode.has_modes}
-				component={rootNode.component}
-				id={rootNode.id}
-				props={rootNode.props}
-				children={rootNode.children}
+			<MountComponents
+				{rootNode}
 				{dynamic_ids}
 				{instance_map}
 				{root}
@@ -582,6 +664,7 @@
 				{theme_mode}
 				on:mount={handle_mount}
 				on:destroy={({ detail }) => handle_destroy(detail)}
+				{version}
 			/>
 		{/if}
 	</div>
@@ -595,7 +678,8 @@
 					}}
 					class="show-api"
 				>
-					Use via API <img src={api_logo} alt="" />
+					{$_("errors.use_via_api")}
+					<img src={api_logo} alt={$_("common.logo")} />
 				</button>
 				<div>·</div>
 			{/if}
@@ -605,8 +689,8 @@
 				target="_blank"
 				rel="noreferrer"
 			>
-				Built with Gradio
-				<img src={logo} alt="logo" />
+				{$_("common.built_with_gradio")}
+				<img src={logo} alt={$_("common.logo")} />
 			</a>
 		</footer>
 	{/if}

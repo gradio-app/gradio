@@ -1,7 +1,7 @@
 import { test, describe, assert, afterEach } from "vitest";
 import { cleanup, render } from "@gradio/tootils";
-import Chatbot from "./index.svelte";
-import type { LoadingStatus } from "@gradio/statustracker/types";
+import Chatbot from "./static";
+import type { LoadingStatus } from "@gradio/statustracker";
 import type { FileData } from "@gradio/upload";
 
 const loading_status: LoadingStatus = {
@@ -34,6 +34,23 @@ describe("Chatbot", () => {
 
 		assert.exists(bot);
 		assert.exists(user);
+	});
+
+	test("renders none messages", async () => {
+		const { getAllByTestId } = await render(Chatbot, {
+			loading_status,
+			label: "chatbot",
+			value: [[null, null]],
+			root: "",
+			root_url: "",
+			latex_delimiters: [{ left: "$$", right: "$$", display: true }],
+			theme_mode: "dark"
+		});
+
+		const user = getAllByTestId("user");
+		const bot = getAllByTestId("bot");
+		assert.equal(user[0].innerHTML, "");
+		assert.equal(bot[0].innerHTML, "");
 	});
 
 	test("renders additional message as they are passed", async () => {

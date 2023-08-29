@@ -18,10 +18,35 @@
 
 <Template let:args>
 	<Markdown
+		value="Here's some **bold** text. And some *italics* and some `code`"
+		latex_delimiters={[]}
 		{...args}
-		value="Here's some <strong>bold</strong> text. And some <em>italics</em> and some <code>code</code>"
 	/>
 </Template>
 
-<Story name="Simple inline Markdown with HTML" />
-<Story name="Right aligned Markdown with HTML" args={{ rtl: true }} />
+<Story name="Simple inline Markdown" />
+
+<Story
+	name="Multiline Markdown"
+	args={{
+		value: `
+This should
+all be in one line.
+
+---
+
+This should be
+
+in two separate lines.`
+	}}
+/>
+
+<Story name="Right aligned Markdown" args={{ rtl: true }} />
+
+<Story
+	name="Markdown with LaTeX"
+	args={{
+		value: "What is the solution of $y=x^2$?",
+		latex_delimiters: [{ left: "$", right: "$", display: false }]
+	}}
+/>
