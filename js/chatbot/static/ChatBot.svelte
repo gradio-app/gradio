@@ -5,7 +5,6 @@
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import { ShareButton } from "@gradio/atoms";
 	import type { SelectData } from "@gradio/utils";
-	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
 	import { MarkdownCode as Markdown } from "@gradio/markdown/static";
 	import { get_fetchable_url_or_file } from "@gradio/upload";
@@ -28,6 +27,8 @@
 	export let rtl = false;
 	export let show_copy_button = false;
 	export let avatar_images: [string | null, string | null] = [null, null];
+	export let sanitize_html = true;
+	export let bubble_full_width = true;
 	export let root: string;
 	export let root_url: null | string;
 
@@ -95,7 +96,10 @@
 		{#if value !== null}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
-					<div class="message-row {j == 0 ? 'user-row' : 'bot-row'}">
+					<div
+						class="message-row {j == 0 ? 'user-row' : 'bot-row'}"
+						class:hide={message === null}
+					>
 						{#if avatar_images[j] !== null}
 							<div class="avatar-container">
 								<img
@@ -116,13 +120,18 @@
 							data-testid={j == 0 ? "user" : "bot"}
 							class:latest={i === value.length - 1}
 							class="message {j == 0 ? 'user' : 'bot'}"
-							class:hide={message === null}
+							class:message-fit={!bubble_full_width}
 							class:selectable
 							on:click={() => handle_select(i, j, message)}
 							dir={rtl ? "rtl" : "ltr"}
 						>
 							{#if typeof message === "string"}
-								<Markdown {message} {latex_delimiters} on:load={scroll} />
+								<Markdown
+									{message}
+									{latex_delimiters}
+									{sanitize_html}
+									on:load={scroll}
+								/>
 								{#if feedback && j == 1}
 									<div class="feedback">
 										{#each feedback as f}
@@ -234,6 +243,12 @@
 		font-size: var(--text-lg);
 		line-height: var(--line-lg);
 		overflow-wrap: break-word;
+	}
+	.message-fit {
+		width: fit-content !important;
+	}
+	.message-fit.user {
+		margin-left: auto;
 	}
 	.user {
 		align-self: flex-end;
