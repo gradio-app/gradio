@@ -28,7 +28,7 @@
 
 	export let editable = true;
 	export let wrap = false;
-	export let height: number | undefined = undefined;
+	export let height: number | undefined;
 
 	let selected: false | string = false;
 
@@ -547,7 +547,7 @@
 
 	function set_cell_widths(): void {
 		const widths = cells.map((el, i) => {
-			return el.clientWidth || 0;
+			return el?.clientWidth || 0;
 		});
 
 		if (widths.length === 0) return;
@@ -555,6 +555,8 @@
 			parent.style.setProperty(`--cell-width-${i}`, `${widths[i]}px`);
 		}
 	}
+
+	let table_height: number = height || 500;
 </script>
 
 <svelte:window
@@ -573,7 +575,7 @@
 		class="table-wrap"
 		class:dragging
 		class:no-wrap={!wrap}
-		style="max-height: {typeof height === undefined ? 'auto' : height + 'px'};"
+		style="height:{table_height}px"
 	>
 		<table bind:clientWidth={t_width}>
 			{#if label && label.length !== 0}
@@ -645,6 +647,8 @@
 				items={data}
 				sort={[sort_by, sort_direction]}
 				table_width={t_width}
+				max_height={height || 300}
+				bind:actual_height={table_height}
 			>
 				{#if label && label.length !== 0}
 					<caption class="sr-only">{label}</caption>
@@ -793,7 +797,6 @@
 		border-radius: var(--table-radius);
 		overflow-x: auto;
 		overflow-y: hidden;
-		height: 500px;
 	}
 
 	.dragging {

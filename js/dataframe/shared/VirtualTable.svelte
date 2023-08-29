@@ -18,9 +18,11 @@
 		undefined
 	];
 	export let table_width: number;
+	export let max_height: number;
+	export let actual_height;
 
 	// MARK: virtual stuff
-	export let height = "100%"; // the height of the viewport/table
+	let height = "100%"; // the height of the viewport/table
 
 	// read-only, but visible to consumers via bind:start resp. bind:end
 	export let start = 0; // the index of the first visible item
@@ -46,6 +48,7 @@
 			refresh_height_map(sortedItems, viewport_height)
 		);
 
+	let content_height = 0;
 	async function refresh_height_map(
 		_items: typeof items,
 		viewport_height: number
@@ -55,9 +58,9 @@
 		}
 		const { scrollTop } = viewport;
 		await tick(); // wait until the DOM is up to date
-		let contentHeight = top - (scrollTop - head_height) - 200;
+		content_height = top - (scrollTop - head_height);
 		let i = start;
-		while (contentHeight < viewport_height - head_height && i < _items.length) {
+		while (content_height - 3 < max_height - head_height && i < _items.length) {
 			let row = rows[i - start];
 			if (!row) {
 				end = i + 1;
@@ -65,18 +68,27 @@
 				row = rows[i - start];
 			}
 			const row_height = (height_map[i] = row.getBoundingClientRect().height);
-			contentHeight += row_height;
+			content_height += row_height;
 			i += 1;
 		}
 
 		end = i;
 		const remaining = _items.length - end;
-		average_height = (top + contentHeight) / end;
+		average_height = (top + content_height) / end;
 		bottom = remaining * average_height + foot_height;
 		height_map.length = _items.length;
 		await scroll_to_index(0, { behavior: "auto" });
 	}
-	let t = 0;
+
+	$: {
+		if (!max_height) {
+			actual_height = content_height + 3;
+		} else if (content_height < max_height) {
+			actual_height = content_height + 3;
+		} else {
+			actual_height = max_height;
+		}
+	}
 
 	function get_computed_px_amount(elem: HTMLElement, property: string): number {
 		const compStyle = getComputedStyle(elem);
