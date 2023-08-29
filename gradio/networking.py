@@ -9,14 +9,17 @@ import socket
 import threading
 import time
 import warnings
+from functools import partial
 from typing import TYPE_CHECKING
 
 import requests
 import uvicorn
+from uvicorn.config import Config
 
 from gradio.exceptions import ServerFailedToStartError
 from gradio.routes import App
 from gradio.tunneling import Tunnel
+from gradio.utils import SourceFileReloader, watchfn
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio.blocks import Blocks
@@ -28,13 +31,34 @@ TRY_NUM_PORTS = int(os.getenv("GRADIO_NUM_PORTS", "100"))
 LOCALHOST_NAME = os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
 GRADIO_API_SERVER = "https://api.gradio.app/v2/tunnel-request"
 
+should_watch = bool(os.getenv("GRADIO_WATCH_DIRS", False))
+GRADIO_WATCH_DIRS = (
+    os.getenv("GRADIO_WATCH_DIRS", "").split(",") if should_watch else []
+)
+GRADIO_WATCH_FILE = os.getenv("GRADIO_WATCH_FILE", "app")
+GRADIO_WATCH_DEMO_NAME = os.getenv("GRADIO_WATCH_DEMO_NAME", "demo")
+
 
 class Server(uvicorn.Server):
+    def __init__(
+        self, config: Config, reloader: SourceFileReloader | None = None
+    ) -> None:
+        assert isinstance(config.app, App)
+        self.running_app = config.app
+        super().__init__(config)
+        self.reloader = reloader
+        if self.reloader:
+            self.event = threading.Event()
+            self.watch = partial(watchfn, self.reloader)
+
     def install_signal_handlers(self):
         pass
 
     def run_in_thread(self):
         self.thread = threading.Thread(target=self.run, daemon=True)
+        if self.reloader:
+            self.watch_thread = threading.Thread(target=self.watch, daemon=True)
+            self.watch_thread.start()
         self.thread.start()
         start = time.time()
         while not self.started:
@@ -46,6 +70,9 @@ class Server(uvicorn.Server):
 
     def close(self):
         self.should_exit = True
+        if self.reloader:
+            self.reloader.stop()
+            self.watch_thread.join()
         self.thread.join()
 
 
@@ -160,7 +187,19 @@ def start_server(
                 ssl_keyfile_password=ssl_keyfile_password,
                 ws_max_size=1024 * 1024 * 1024,  # Setting max websocket size to be 1 GB
             )
-            server = Server(config=config)
+            reloader = None
+            if GRADIO_WATCH_DIRS:
+                change_event = threading.Event()
+                app.change_event = change_event
+                reloader = SourceFileReloader(
+                    app=app,
+                    watch_dirs=GRADIO_WATCH_DIRS,
+                    watch_file=GRADIO_WATCH_FILE,
+                    demo_name=GRADIO_WATCH_DEMO_NAME,
+                    stop_event=threading.Event(),
+                    change_event=change_event,
+                )
+            server = Server(config=config, reloader=reloader)
             server.run_in_thread()
             break
         except (OSError, ServerFailedToStartError):
