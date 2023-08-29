@@ -19,8 +19,6 @@
 	];
 	export let table_width: number;
 
-	$: console.log("sort", sort);
-
 	// MARK: virtual stuff
 	export let height = "100%"; // the height of the viewport/table
 	export let item_height = undefined; // the height of each row
@@ -51,6 +49,9 @@
 		);
 
 	async function refresh_height_map(items, viewport_height, item_height) {
+		if (viewport_height === 0 || item_height === 0 || table_width === 0) {
+			return;
+		}
 		const { scrollTop } = viewport;
 		await tick(); // wait until the DOM is up to date
 		let contentHeight = top - (scrollTop - head_height) - 200;
@@ -67,6 +68,7 @@
 			contentHeight += row_height;
 			i += 1;
 		}
+
 		end = i;
 		const remaining = items.length - end;
 		average_height = (top + contentHeight) / end;
@@ -87,10 +89,6 @@
 	}
 
 	async function handle_scroll() {
-		// t++;
-		// console.time(t);
-
-		console.log("boo");
 		rows = contents.children;
 		const is_start_overflow = sortedItems.length < start;
 
@@ -128,19 +126,6 @@
 			i += 1;
 		}
 
-		// console.log(
-		//     'a',
-		//     i,
-		//     y,
-		//     top,
-		//     bottom,
-		//     scrollTop,
-		//     head_height,
-		//     average_height,
-		//     actual_border_collapsed_width,
-		//     row_heights,
-		//     height_map
-		// )
 		new_start = Math.max(0, new_start);
 		// loop items to find end
 		while (i < sortedItems.length) {
@@ -212,8 +197,6 @@
 
 	// 	return arr;
 	// };
-
-	$: console.log(items);
 
 	function sort_data(
 		data: typeof items,

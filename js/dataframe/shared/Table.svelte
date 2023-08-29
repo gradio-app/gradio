@@ -540,6 +540,18 @@
 	}
 
 	$: max = get_max(data);
+
+	let dummy_table: HTMLTableElement | undefined;
+	let dummy_row: HTMLTableRowElement | undefined;
+
+	function get_dimensions() {
+		if (!dummy_table || !dummy_row) return;
+		t_width = dummy_table.clientWidth;
+		row_height = dummy_row.clientHeight;
+		c_width = Array.from(dummy_row.children).map((el) => el.clientWidth);
+	}
+
+	$: dummy_table && dummy_row && values && get_dimensions();
 </script>
 
 <svelte:window
@@ -559,7 +571,7 @@
 		class:no-wrap={!wrap}
 		style="max-height: {typeof height === undefined ? 'auto' : height + 'px'};"
 	>
-		<table bind:clientWidth={t_width}>
+		<table bind:this={dummy_table}>
 			{#if label && label.length !== 0}
 				<caption class="sr-only">{label}</caption>
 			{/if}
@@ -596,9 +608,9 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr bind:clientHeight={row_height}>
+				<tr bind:this={dummy_row}>
 					{#each max as { value, id }, j (id)}
-						<td tabindex="0" bind:clientWidth={c_width[j]}>
+						<td tabindex="0">
 							<div class:border-transparent={selected !== id} class="cell-wrap">
 								<EditableCell
 									{value}

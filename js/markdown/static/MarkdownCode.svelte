@@ -23,7 +23,7 @@
 		left: string;
 		right: string;
 		display: boolean;
-	}[];
+	}[] = [];
 
 	let el: HTMLSpanElement;
 

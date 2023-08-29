@@ -201,10 +201,12 @@
 			active_theme_mode = handle_darkmode(wrapper);
 		}
 
-		const api_url =
-			BUILD_MODE === "dev"
-				? "http://localhost:7860"
-				: host || space || src || location.origin;
+		// const api_url =
+		// 	BUILD_MODE === "dev"
+		// 		? "http://localhost:7860"
+		// 		: host || space || src || location.origin;
+
+		const api_url = "https://huggingfaceh4-open-llm-leaderboard.hf.space/";
 
 		app = await client(api_url, {
 			status_callback: handle_status,
