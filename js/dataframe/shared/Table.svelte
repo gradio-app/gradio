@@ -541,7 +541,7 @@
 
 	$: max = get_max(data);
 
-	$: cells.length && set_cell_widths();
+	$: cells[0] && set_cell_widths();
 	let cells: HTMLTableCellElement[] = [];
 	let parent: HTMLDivElement;
 
