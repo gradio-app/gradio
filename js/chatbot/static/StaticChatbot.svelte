@@ -24,6 +24,7 @@
 	export let rtl = false;
 	export let show_copy_button = false;
 	export let sanitize_html = true;
+	export let bubble_full_width = true;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -98,6 +99,7 @@
 			on:error={(e) => gradio.dispatch("error", e.detail)}
 			{avatar_images}
 			{sanitize_html}
+			{bubble_full_width}
 			{root_url}
 			{root}
 		/>
