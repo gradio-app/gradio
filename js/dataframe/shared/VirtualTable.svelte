@@ -1,18 +1,10 @@
 <script lang="ts">
-	const CLASSNAME_TABLE = "tablesort"; // keep same for compatibility with https://github.com/mattiash/svelte-tablesort
-	const CLASSNAME_SORTABLE = "sortable";
-	const CLASSNAME_ASC = "ascending";
-	const CLASSNAME_DESC = "descending";
-
-	// import { compareNumbers, compareStrings, sortFunction } from "generator-sort";
 	import { onMount, tick } from "svelte";
 	import { _ } from "svelte-i18n";
 	type SortDirection = "asc" | "des";
 
-	// props
 	export let items: any[][] = [];
-	let className = "";
-	export { className as class };
+
 	export let sort: [number | undefined, SortDirection | undefined] = [
 		undefined,
 		undefined
@@ -20,15 +12,11 @@
 	export let table_width: number;
 	export let max_height: number;
 	export let actual_height;
+	export let start = 0;
+	export let end = 0;
 
-	// MARK: virtual stuff
-	let height = "100%"; // the height of the viewport/table
+	let height = "100%";
 
-	// read-only, but visible to consumers via bind:start resp. bind:end
-	export let start = 0; // the index of the first visible item
-	export let end = 0; // the index of the last visible item
-
-	// local state
 	let average_height: number;
 	let bottom = 0;
 	let contents: HTMLTableSectionElement;
@@ -42,7 +30,6 @@
 	let viewport_height = 0;
 	let visible: { index: number; data: any[] }[] = [];
 
-	// whenever `items` changes, invalidate the current heightmap
 	$: if (mounted)
 		requestAnimationFrame(() =>
 			refresh_height_map(sortedItems, viewport_height)
@@ -57,7 +44,7 @@
 			return;
 		}
 		const { scrollTop } = viewport;
-		await tick(); // wait until the DOM is up to date
+		await tick();
 		content_height = top - (scrollTop - head_height);
 		let i = start;
 		while (content_height - 3 < max_height - head_height && i < _items.length) {
@@ -127,7 +114,7 @@
 			if (y + row_height + actual_border_collapsed_width > scrollTop) {
 				// this is the last index still inside the viewport
 				new_start = i;
-				top = y - (head_height + row_top_border / 2); //+ rowBottomBorder - rowTopBorder
+				top = y - (head_height + row_top_border / 2);
 				break;
 			}
 			y += row_height;
@@ -135,7 +122,6 @@
 		}
 
 		new_start = Math.max(0, new_start);
-		// loop items to find end
 		while (i < sortedItems.length) {
 			const row_height = height_map[i] || average_height;
 			y += row_height;
@@ -156,14 +142,11 @@
 		while (i < sortedItems.length) {
 			i += 1;
 			height_map[i] = average_height;
-			// remaining_height += height_map[i] / remaining
 		}
-		// find the
 		bottom = remaining_height;
 		if (!isFinite(bottom)) {
 			bottom = 200000;
 		}
-		// console.timeEnd(t);
 	}
 
 	export async function scroll_to_index(
@@ -183,31 +166,11 @@
 		viewport.scrollTo(_opts);
 	}
 
-	// MARK: table sort stuff
-	let sortOrder = [[]];
-
 	$: sortedItems = sorted(items, sort[0], sort[1]);
 
 	$: visible = sortedItems.slice(start, end).map((data, i) => {
 		return { index: i + start, data };
 	});
-
-	// const sorted = function (arr, sortOrder) {
-	// 	arr.sort(
-	// 		sortFunction(function* (a, b) {
-	// 			for (let [fieldName, r] of sortOrder) {
-	// 				const reverse = r === 0 ? 1 : -1;
-	// 				if (typeof a[fieldName] === "number") {
-	// 					yield reverse * compareNumbers(a[fieldName], b[fieldName]);
-	// 				} else {
-	// 					yield reverse * compareStrings(a[fieldName], b[fieldName]);
-	// 				}
-	// 			}
-	// 		})
-	// 	);
-
-	// 	return arr;
-	// };
 
 	function sort_data(
 		data: typeof items,
@@ -248,7 +211,6 @@
 	): typeof items => sort_data(_items, col, direction);
 
 	onMount(() => {
-		// triggger initial refresh for virtual
 		rows = contents.children as HTMLCollectionOf<HTMLTableRowElement>;
 		mounted = true;
 		refresh_height_map(items, viewport_height);
@@ -257,8 +219,7 @@
 
 <svelte-virtual-table-viewport>
 	<table
-		class="{CLASSNAME_TABLE}
-      {className} table"
+		class="table"
 		bind:this={viewport}
 		bind:offsetHeight={viewport_height}
 		on:scroll={throttle_scroll}
@@ -311,12 +272,6 @@
 		table-layout: fixed;
 		width: 100%;
 		box-sizing: border-box;
-	}
-	table.require-border-collapse thead {
-		min-height: calc(var(--bw-svt-p-top));
-	}
-	table.require-border-collapse tfoot {
-		min-height: calc(var(--bw-svt-p-bottom));
 	}
 
 	table:not(.require-border-collapse) tbody {
