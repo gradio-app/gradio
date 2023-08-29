@@ -612,7 +612,7 @@ class Blocks(BlockContext):
         self.space_id = utils.get_space()
         self.favicon_path = None
         self.auth = None
-        self.dev_mode = True
+        self.dev_mode = bool(os.getenv("GRADIO_WATCH_DIRS", False))
         self.app_id = random.getrandbits(64)
         self.temp_file_sets = []
         self.title = title
@@ -645,6 +645,12 @@ class Blocks(BlockContext):
                 "version": GRADIO_VERSION,
             }
             analytics.initiated_analytics(data)
+
+    @property
+    def _is_running_in_reload_thread(self):
+        from gradio.reload import reload_thread
+
+        return getattr(reload_thread, "running_reload", False)
 
     @classmethod
     def from_config(
@@ -1334,6 +1340,7 @@ Received outputs:
         config = {
             "version": routes.VERSION,
             "mode": self.mode,
+            "app_id": self.app_id,
             "dev_mode": self.dev_mode,
             "analytics_enabled": self.analytics_enabled,
             "components": [],
@@ -1663,10 +1670,13 @@ Received outputs:
             demo = gr.Interface(reverse, "text", "text")
             demo.launch(share=True, auth=("username", "password"))
         """
+        if self._is_running_in_reload_thread:
+            # We have already launched the demo
+            return None, None, None  # type: ignore
+
         if not self.exited:
             self.__exit__()
 
-        self.dev_mode = False
         if (
             auth
             and not callable(auth)
@@ -1900,11 +1910,10 @@ Received outputs:
                 if self.share and self.share_url:
                     while not networking.url_ok(self.share_url):
                         time.sleep(0.25)
-                    display(
-                        HTML(
-                            f'<div><iframe src="{self.share_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
-                        )
+                    artifact = HTML(
+                        f'<div><iframe src="{self.share_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
                     )
+
                 elif self.is_colab:
                     # modified from /usr/local/lib/python3.7/dist-packages/google/colab/output/_util.py within Colab environment
                     code = """(async (port, path, width, height, cache, element) => {
@@ -1939,13 +1948,13 @@ Received outputs:
                         cache=json.dumps(False),
                     )
 
-                    display(Javascript(code))
+                    artifact = Javascript(code)
                 else:
-                    display(
-                        HTML(
-                            f'<div><iframe src="{self.local_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
-                        )
+                    artifact = HTML(
+                        f'<div><iframe src="{self.local_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
                     )
+                self.artifact = artifact
+                display(artifact)
             except ImportError:
                 pass
 

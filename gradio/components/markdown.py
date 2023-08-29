@@ -35,6 +35,7 @@ class Markdown(Component):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        sanitize_html: bool = True,
         **kwargs,
     ):
         """
@@ -45,9 +46,12 @@ class Markdown(Component):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            sanitize_html: If False, will disable HTML sanitization when converted from markdown. This is not recommended, as it can lead to security vulnerabilities.
         """
         self.rtl = rtl
         self.latex_delimiters = latex_delimiters
+        self.sanitize_html = sanitize_html
+
         super().__init__(
             visible=visible,
             elem_id=elem_id,
@@ -73,6 +77,7 @@ class Markdown(Component):
             "value": self.value,
             "rtl": self.rtl,
             "latex_delimiters": self.latex_delimiters,
+            "sanitize_html": self.sanitize_html,
             **Component.get_config(self),
         }
 
@@ -82,12 +87,14 @@ class Markdown(Component):
         visible: bool | None = None,
         rtl: bool | None = None,
         latex_delimiters: list[dict[str, str | bool]] | None = None,
+        sanitize_html: bool | None = None,
     ):
         updated_config = {
             "visible": visible,
             "value": value,
             "rtl": rtl,
             "latex_delimiters": latex_delimiters,
+            "sanitize_html": sanitize_html,
             "__type__": "update",
         }
         return updated_config

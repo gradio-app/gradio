@@ -29,6 +29,12 @@ class InvalidBlockError(ValueError):
     pass
 
 
+class ReloadError(ValueError):
+    """Raised when something goes wrong when reloading the gradio app."""
+
+    pass
+
+
 InvalidApiName = InvalidApiNameError  # backwards compatibility
 
 

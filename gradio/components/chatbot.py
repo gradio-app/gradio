@@ -63,6 +63,8 @@ class Chatbot(Component):
         show_share_button: bool | None = None,
         show_copy_button: bool = False,
         avatar_images: tuple[str | Path | None, str | Path | None] | None = None,
+        sanitize_html: bool = True,
+        bubble_full_width: bool = True,
         **kwargs,
     ):
         """
@@ -84,6 +86,8 @@ class Chatbot(Component):
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             show_copy_button: If True, will show a copy button for each chatbot message.
             avatar_images: Tuple of two avatar image paths or URLs for user and bot (in that order). Pass None for either the user or bot image to skip. Must be within the working directory of the Gradio app or an external URL.
+            sanitize_html: If False, will disable HTML sanitization for chatbot messages. This is not recommended, as it can lead to security vulnerabilities.
+            bubble_full_width: If False, the chat bubble will fit to the content of the message. If True (default), the chat bubble will be the full width of the component.
         """
         if color_map is not None:
             warn_deprecation("The 'color_map' parameter has been deprecated.")
@@ -104,6 +108,8 @@ class Chatbot(Component):
             else show_share_button
         )
         self.show_copy_button = show_copy_button
+        self.sanitize_html = sanitize_html
+        self.bubble_full_width = bubble_full_width
 
         super().__init__(
             label=label,
@@ -129,6 +135,8 @@ class Chatbot(Component):
             "rtl": self.rtl,
             "show_copy_button": self.show_copy_button,
             "avatar_images": self.avatar_images,
+            "sanitize_html": self.sanitize_html,
+            "bubble_full_width": self.bubble_full_width,
             **Component.get_config(self),
         }
 
@@ -149,6 +157,8 @@ class Chatbot(Component):
         show_share_button: bool | None = None,
         show_copy_button: bool | None = None,
         avatar_images: tuple[str | Path | None] | None = None,
+        sanitize_html: bool | None = None,
+        bubble_full_width: bool | None = None,
     ):
         updated_config = {
             "label": label,
@@ -164,6 +174,8 @@ class Chatbot(Component):
             "latex_delimiters": latex_delimiters,
             "show_copy_button": show_copy_button,
             "avatar_images": avatar_images,
+            "sanitize_html": sanitize_html,
+            "bubble_full_width": bubble_full_width,
             "__type__": "update",
         }
         return updated_config
