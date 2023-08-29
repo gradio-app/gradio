@@ -14,6 +14,7 @@ set_documentation_group("component")
 
 @document()
 class State(Component):
+    EVENTS = []
     """
     Special hidden component that stores session state across runs of the demo by the
     same user. The value of the State variable is cleared when the user refreshes the page.

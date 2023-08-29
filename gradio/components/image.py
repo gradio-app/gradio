@@ -16,31 +16,14 @@ from PIL import Image as _Image  # using _ to minimize namespace pollution
 from gradio import processing_utils, utils
 from gradio.components.base import Component, StreamingInput, _Keywords
 from gradio.data_classes import FileData
-from gradio.events import (
-    Changeable,
-    Clearable,
-    Editable,
-    EventListenerMethod,
-    Selectable,
-    Streamable,
-    Uploadable,
-)
+from gradio.events import Events
 
 set_documentation_group("component")
 _Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
 
 @document()
-class Image(
-    StreamingInput,
-    Editable,
-    Clearable,
-    Changeable,
-    Streamable,
-    Selectable,
-    Uploadable,
-    Component,
-):
+class Image(StreamingInput, Component):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
     Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch` AND source is one of `upload` or `webcam`. In these cases, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
@@ -50,6 +33,14 @@ class Image(
     Guides: image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, building-a-pictionary_app, create-your-own-friends-with-a-gan
     """
 
+    EVENTS = [
+        Events.edit,
+        Events.clear,
+        Events.change,
+        Events.stream,
+        Events.select,
+        Events.upload,
+    ]
     data_model = FileData
 
     def __init__(
@@ -143,12 +134,6 @@ class Image(
         self.show_download_button = show_download_button
         if streaming and source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user clicks on a pixel within the image.
-        Uses event data gradio.SelectData to carry `index` to refer to the [x, y] coordinates of the clicked pixel.
-        See EventData documentation on how to use this event data.
-        """
         self.show_share_button = (
             (utils.get_space() is not None)
             if show_share_button is None

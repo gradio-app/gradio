@@ -10,18 +10,13 @@ from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import Component, _Keywords
 from gradio.data_classes import FileData
-from gradio.events import (
-    Changeable,
-    Clearable,
-    Editable,
-    Uploadable,
-)
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class Model3D(Changeable, Uploadable, Editable, Clearable, Component):
+class Model3D(Component):
     """
     Component allows users to upload or view 3D Model files (.obj, .glb, or .gltf).
     Preprocessing: This component passes the uploaded file as a {str}filepath.
@@ -30,6 +25,8 @@ class Model3D(Changeable, Uploadable, Editable, Clearable, Component):
     Demos: model3D
     Guides: how-to-use-3D-model-component
     """
+
+    EVENTS = [Events.change, Events.upload, Events.edit, Events.clear]
 
     data_model = FileData
 

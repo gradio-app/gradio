@@ -11,10 +11,7 @@ from PIL import Image as _Image  # using _ to minimize namespace pollution
 from gradio import utils
 from gradio.components.base import Component, _Keywords
 from gradio.data_classes import FileData, GradioModel
-from gradio.events import (
-    EventListenerMethod,
-    Selectable,
-)
+from gradio.events import Events
 
 set_documentation_group("component")
 
@@ -32,7 +29,7 @@ class AnnotatedImageData(GradioModel):
 
 
 @document()
-class AnnotatedImage(Selectable, Component):
+class AnnotatedImage(Component):
     """
     Displays a base image and colored subsections on top of that image. Subsections can take the from of rectangles (e.g. object detection) or masks (e.g. image segmentation).
     Preprocessing: this component does *not* accept input.
@@ -40,6 +37,8 @@ class AnnotatedImage(Selectable, Component):
 
     Demos: image_segmentation
     """
+
+    EVENTS = [Events.select]
 
     data_model = AnnotatedImageData
 
@@ -87,12 +86,6 @@ class AnnotatedImage(Selectable, Component):
         self.height = height
         self.width = width
         self.color_map = color_map
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user selects Image subsection.
-        Uses event data gradio.SelectData to carry `value` referring to selected subsection label, and `index` to refer to subsection index.
-        See EventData documentation on how to use this event data.
-        """
         super().__init__(
             label=label,
             every=every,

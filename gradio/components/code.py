@@ -8,13 +8,13 @@ from typing import Any, Literal
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import Component, _Keywords
-from gradio.events import Changeable, Inputable
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document("languages")
-class Code(Changeable, Inputable, Component):
+class Code(Component):
     """
     Creates a Code editor for entering, editing or viewing code.
     Preprocessing: passes a {str} of code into the function.
@@ -35,6 +35,8 @@ class Code(Changeable, Inputable, Component):
         "r",
         None,
     ]
+
+    EVENTS = [Events.change, Events.input]
 
     def __init__(
         self,

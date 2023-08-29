@@ -85,7 +85,7 @@ class GradioBaseModel:
             )
         )
 
-    def from_json(cls, x):
+    def from_json(self, x):
         pass
 
 

@@ -11,19 +11,21 @@ from gradio.components.base import (
     _Keywords,
     get_component_instance,
 )
-from gradio.events import Clickable, Selectable
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class Dataset(Clickable, Selectable, Component):
+class Dataset(Component):
     """
     Used to create an output widget for showing datasets. Used to render the examples
     box.
     Preprocessing: passes the selected sample either as a {list} of data (if type="value") or as an {int} index (if type="index")
     Postprocessing: expects a {list} of {lists} corresponding to the dataset data.
     """
+
+    EVENTS = [Events.click, Events.select]
 
     def __init__(
         self,

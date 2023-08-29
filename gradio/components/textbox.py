@@ -11,27 +11,13 @@ from gradio.components.base import (
     FormComponent,
     _Keywords,
 )
-from gradio.events import (
-    Changeable,
-    EventListenerMethod,
-    Focusable,
-    Inputable,
-    Selectable,
-    Submittable,
-)
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class Textbox(
-    Changeable,
-    Inputable,
-    Selectable,
-    Submittable,
-    Focusable,
-    FormComponent,
-):
+class Textbox(FormComponent):
     """
     Creates a textarea for user to enter string input or display string output.
     Preprocessing: passes textarea value as a {str} into the function.
@@ -41,6 +27,8 @@ class Textbox(
     Demos: hello_world, diff_texts, sentence_builder
     Guides: creating-a-chatbot, real-time-speech-recognition
     """
+
+    EVENTS = [Events.change, Events.input, Events.select, Events.submit, Events.focus]
 
     def __init__(
         self,
@@ -101,12 +89,6 @@ class Textbox(
         self.placeholder = placeholder
         self.show_copy_button = show_copy_button
         self.autofocus = autofocus
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user selects text in the Textbox.
-        Uses event data gradio.SelectData to carry `value` referring to selected substring, and `index` tuple referring to selected range endpoints.
-        See EventData documentation on how to use this event data.
-        """
         super().__init__(
             label=label,
             info=info,

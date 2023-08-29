@@ -13,11 +13,7 @@ from gradio import utils
 from gradio.components.base import Component, _Keywords
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
-from gradio.events import (
-    Changeable,
-    EventListenerMethod,
-    Selectable,
-)
+from gradio.events import Events
 
 set_documentation_group("component")
 
@@ -32,7 +28,7 @@ class ChatbotData(GradioRootModel):
 
 
 @document()
-class Chatbot(Changeable, Selectable, Component):
+class Chatbot(Component):
     """
     Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, tables. Also supports audio/video/image files, which are displayed in the Chatbot, and other kinds of files which are displayed as links.
     Preprocessing: passes the messages in the Chatbot as a {List[List[str | None | Tuple]]}, i.e. a list of lists. The inner list has 2 elements: the user message and the response message. See `Postprocessing` for the format of these messages.
@@ -42,6 +38,7 @@ class Chatbot(Changeable, Selectable, Component):
     Guides: creating-a-chatbot
     """
 
+    EVENTS = [Events.change, Events.select]
     data_model = ChatbotData
 
     def __init__(
@@ -90,7 +87,6 @@ class Chatbot(Changeable, Selectable, Component):
         """
         if color_map is not None:
             warn_deprecation("The 'color_map' parameter has been deprecated.")
-        self.select: EventListenerMethod
         """
         Event listener for when the user selects message from Chatbot.
         Uses event data gradio.SelectData to carry `value` referring to text of selected message, and `index` tuple to refer to [message, participant] index.

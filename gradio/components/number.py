@@ -7,25 +7,14 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import Component, FormComponent, _Keywords
-from gradio.events import (
-    Changeable,
-    Focusable,
-    Inputable,
-    Submittable,
-)
+from gradio.events import Events
 from gradio.exceptions import Error
 
 set_documentation_group("component")
 
 
 @document()
-class Number(
-    Changeable,
-    Inputable,
-    Submittable,
-    Focusable,
-    FormComponent,
-):
+class Number(FormComponent):
     """
     Creates a numeric field for user to enter numbers as input or display numeric output.
     Preprocessing: passes field value as a {float} or {int} into the function, depending on `precision`.
@@ -34,6 +23,8 @@ class Number(
 
     Demos: tax_calculator, titanic_survival, blocks_simple_squares
     """
+
+    EVENTS = [Events.change, Events.input, Events.submit, Events.focus]
 
     def __init__(
         self,

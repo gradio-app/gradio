@@ -12,11 +12,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio.components.base import Component, _Keywords
 from gradio.data_classes import GradioModel
 from gradio.deprecation import warn_style_method_deprecation
-from gradio.events import (
-    Changeable,
-    EventListenerMethod,
-    Selectable,
-)
+from gradio.events import Events
 
 set_documentation_group("component")
 
@@ -32,7 +28,7 @@ class LabelData(GradioModel):
 
 
 @document()
-class Label(Changeable, Selectable, Component):
+class Label(Component):
     """
     Displays a classification label, along with confidence scores of top categories, if provided.
     Preprocessing: this component does *not* accept input.
@@ -44,6 +40,7 @@ class Label(Changeable, Selectable, Component):
 
     CONFIDENCES_KEY = "confidences"
     data_model = LabelData
+    EVENTS = [Events.change, Events.select]
 
     def __init__(
         self,
@@ -79,12 +76,6 @@ class Label(Changeable, Selectable, Component):
         """
         self.num_top_classes = num_top_classes
         self.color = color
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user selects a category from Label.
-        Uses event data gradio.SelectData to carry `value` referring to name of selected category, and `index` to refer to index.
-        See EventData documentation on how to use this event data.
-        """
         super().__init__(
             label=label,
             every=every,

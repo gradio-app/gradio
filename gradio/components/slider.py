@@ -9,13 +9,13 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import Component, FormComponent, _Keywords
-from gradio.events import Changeable, Inputable, Releaseable
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class Slider(Changeable, Inputable, Releaseable, FormComponent):
+class Slider(FormComponent):
     """
     Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
     Preprocessing: passes slider value as a {float} into the function.
@@ -25,6 +25,8 @@ class Slider(Changeable, Inputable, Releaseable, FormComponent):
     Demos: sentence_builder, slider_release, generate_tone, titanic_survival, interface_random_slider, blocks_random_slider
     Guides: create-your-own-friends-with-a-gan
     """
+
+    EVENTS = [Events.change, Events.input, Events.release]
 
     def __init__(
         self,

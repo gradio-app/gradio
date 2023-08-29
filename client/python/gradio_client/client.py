@@ -542,7 +542,7 @@ class Client:
 
     def download_file(
         self,
-        x: str | FileData | None,
+        x: str | None,
         save_dir: str | None = None,
         root_url: str | None = None,
         hf_token: str | None = None,

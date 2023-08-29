@@ -14,13 +14,7 @@ from gradio import utils
 from gradio.components.base import Component, _Keywords
 from gradio.data_classes import FileData, GradioRootModel
 from gradio.deprecation import warn_deprecation
-from gradio.events import (
-    Changeable,
-    Clearable,
-    EventListenerMethod,
-    Selectable,
-    Uploadable,
-)
+from gradio.events import Events
 
 set_documentation_group("component")
 
@@ -30,13 +24,7 @@ class ListFiles(GradioRootModel):
 
 
 @document()
-class File(
-    Changeable,
-    Selectable,
-    Clearable,
-    Uploadable,
-    Component,
-):
+class File(Component):
     """
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
     Preprocessing: passes the uploaded file as a {tempfile._TemporaryFileWrapper} or {List[tempfile._TemporaryFileWrapper]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
@@ -44,6 +32,8 @@ class File(
     Examples-format: a {str} path to a local file that populates the component.
     Demos: zip_to_json, zip_files
     """
+
+    EVENTS = [Events.change, Events.select, Events.clear, Events.upload]
 
     def __init__(
         self,
@@ -112,12 +102,6 @@ class File(
             )
         self.type = type
         self.height = height
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user selects file from list.
-        Uses event data gradio.SelectData to carry `value` referring to name of selected file, and `index` to refer to index.
-        See EventData documentation on how to use this event data.
-        """
         super().__init__(
             label=label,
             every=every,

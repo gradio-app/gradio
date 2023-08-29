@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from typing import Iterable, Optional, TypedDict
-from typing_extensions import NotRequired
+from typing import TypedDict
 
-from pydantic import BaseModel
+from typing_extensions import NotRequired
 
 
 class FileData(TypedDict):

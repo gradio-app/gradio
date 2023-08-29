@@ -4,6 +4,8 @@ from gradio.deprecation import warn_deprecation
 
 
 class StatusTracker(Component):
+    EVENTS = []
+
     def __init__(
         self,
         **kwargs,

@@ -1,10 +1,9 @@
 """gr.Carousel() component."""
 
 from gradio.components.base import Component
-from gradio.events import Changeable
 
 
-class Carousel(Changeable, Component):
+class Carousel(Component):
     """
     Deprecated Component
     """

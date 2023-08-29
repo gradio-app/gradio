@@ -26,11 +26,11 @@ from matplotlib import animation
 from gradio import components, oauth, processing_utils, routes, utils
 from gradio.context import Context
 from gradio.data_classes import GradioModel, GradioRootModel
+from gradio.events import EventData
 from gradio.exceptions import Error
 from gradio.flagging import CSVLogger
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
-    from gradio.blocks import Block
     from gradio.components import Component
 
 CACHED_FOLDER = "gradio_cached_examples"
@@ -415,7 +415,7 @@ class Examples:
 
 
 def merge_generated_values_into_output(
-    components: list[IOComponent], generated_values: list, output: list
+    components: list[Component], generated_values: list, output: list
 ):
     from gradio.events import StreamableOutput
 
@@ -1067,37 +1067,6 @@ def make_waveform(
 
     subprocess.check_call(ffmpeg_cmd)
     return output_mp4.name
-
-
-@document()
-class EventData:
-    """
-    When a subclass of EventData is added as a type hint to an argument of an event listener method, this object will be passed as that argument.
-    It contains information about the event that triggered the listener, such the target object, and other data related to the specific event that are attributes of the subclass.
-
-    Example:
-        table = gr.Dataframe([[1, 2, 3], [4, 5, 6]])
-        gallery = gr.Gallery([("cat.jpg", "Cat"), ("dog.jpg", "Dog")])
-        textbox = gr.Textbox("Hello World!")
-
-        statement = gr.Textbox()
-
-        def on_select(evt: gr.SelectData):  # SelectData is a subclass of EventData
-            return f"You selected {evt.value} at {evt.index} from {evt.target}"
-
-        table.select(on_select, None, statement)
-        gallery.select(on_select, None, statement)
-        textbox.select(on_select, None, statement)
-    Demos: gallery_selections, tictactoe
-    """
-
-    def __init__(self, target: Block | None, _data: Any):
-        """
-        Parameters:
-            target: The target object that triggered the event. Can be used to distinguish if multiple components are bound to the same listener.
-        """
-        self.target = target
-        self._data = _data
 
 
 def log_message(message: str, level: Literal["info", "warning"] = "info"):

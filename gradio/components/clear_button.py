@@ -8,7 +8,7 @@ from typing import Any, Literal
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components import Button, Component
-from gradio.data_classes import GradioRootModel, GradioModel
+from gradio.data_classes import GradioModel, GradioRootModel
 
 set_documentation_group("component")
 

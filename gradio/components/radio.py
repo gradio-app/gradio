@@ -7,13 +7,13 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import Component, FormComponent, _Keywords
-from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class Radio(Selectable, Changeable, Inputable, FormComponent):
+class Radio(FormComponent):
     """
     Creates a set of (string or numeric type) radio buttons of which only one can be selected.
     Preprocessing: passes the value of the selected radio button as a {str} or {int} or {float} or its index as an {int} into the function, depending on `type`.
@@ -22,6 +22,8 @@ class Radio(Selectable, Changeable, Inputable, FormComponent):
 
     Demos: sentence_builder, titanic_survival, blocks_essay
     """
+
+    EVENTS = [Events.select, Events.change, Events.input]
 
     def __init__(
         self,
@@ -70,12 +72,6 @@ class Radio(Selectable, Changeable, Inputable, FormComponent):
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
             )
         self.type = type
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user selects Radio option.
-        Uses event data gradio.SelectData to carry `value` referring to label of selected option, and `index` to refer to index.
-        See EventData documentation on how to use this event data.
-        """
         super().__init__(
             label=label,
             info=info,

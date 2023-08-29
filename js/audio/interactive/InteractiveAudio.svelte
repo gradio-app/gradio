@@ -84,6 +84,7 @@
 		}}
 		on:drag={({ detail }) => (dragging = detail)}
 		{name}
+		{root}
 		{source}
 		{pending}
 		{streaming}

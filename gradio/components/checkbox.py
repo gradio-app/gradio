@@ -7,13 +7,13 @@ from typing import Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import Component, FormComponent, _Keywords
-from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class Checkbox(Changeable, Inputable, Selectable, FormComponent):
+class Checkbox(FormComponent):
     """
     Creates a checkbox that can be set to `True` or `False`.
 
@@ -22,6 +22,8 @@ class Checkbox(Changeable, Inputable, Selectable, FormComponent):
     Examples-format: a {bool} representing whether the box is checked.
     Demos: sentence_builder, titanic_survival
     """
+
+    EVENTS = [Events.change, Events.input, Events.select]
 
     def __init__(
         self,
@@ -54,12 +56,6 @@ class Checkbox(Changeable, Inputable, Selectable, FormComponent):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
-        """
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user selects or deselects Checkbox.
-        Uses event data gradio.SelectData to carry `value` referring to label of checkbox, and `selected` to refer to state of checkbox.
-        See EventData documentation on how to use this event data.
         """
         super().__init__(
             label=label,
