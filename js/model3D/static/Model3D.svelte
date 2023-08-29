@@ -85,8 +85,12 @@
 			url,
 			scene,
 			() => {
+				// scene.createDefaultCamera(createArcRotateCamera, replace, attachCameraControls)
 				scene.createDefaultCamera(true, true, true);
-				var helperCamera = scene.activeCamera;
+				// scene.activeCamera has to be an ArcRotateCamera if the call succeeds,
+				// we assume it does
+				var helperCamera = scene.activeCamera! as BABYLON.ArcRotateCamera;
+
 				if (camera_position[0] !== null) {
 					helperCamera.alpha = (Math.PI * camera_position[0]) / 180;
 				}
