@@ -2034,6 +2034,8 @@ class TestChatbot:
             "show_copy_button": False,
             "latex_delimiters": [{"left": "$$", "right": "$$", "display": True}],
             "avatar_images": (None, None),
+            "sanitize_html": True,
+            "bubble_full_width": True,
         }
 
 

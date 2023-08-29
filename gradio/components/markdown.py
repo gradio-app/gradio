@@ -36,6 +36,7 @@ class Markdown(IOComponent, Changeable, StringSerializable):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        sanitize_html: bool = True,
         **kwargs,
     ):
         """
@@ -46,11 +47,13 @@ class Markdown(IOComponent, Changeable, StringSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            sanitize_html: If False, will disable HTML sanitization when converted from markdown. This is not recommended, as it can lead to security vulnerabilities.
         """
         self.rtl = rtl
         if latex_delimiters is None:
             latex_delimiters = [{"left": "$", "right": "$", "display": False}]
         self.latex_delimiters = latex_delimiters
+        self.sanitize_html = sanitize_html
 
         IOComponent.__init__(
             self,
@@ -79,12 +82,14 @@ class Markdown(IOComponent, Changeable, StringSerializable):
         visible: bool | None = None,
         rtl: bool | None = None,
         latex_delimiters: list[dict[str, str | bool]] | None = None,
+        sanitize_html: bool | None = None,
     ):
         updated_config = {
             "visible": visible,
             "value": value,
             "rtl": rtl,
             "latex_delimiters": latex_delimiters,
+            "sanitize_html": sanitize_html,
             "__type__": "update",
         }
         return updated_config

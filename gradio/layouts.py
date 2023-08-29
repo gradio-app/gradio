@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Literal
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.blocks import BlockContext
-from gradio.deprecation import warn_style_method_deprecation
+from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Changeable, Selectable
 
 if TYPE_CHECKING:
@@ -111,6 +111,11 @@ class Column(BlockContext):
             visible: If False, column will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        if scale != round(scale):
+            warn_deprecation(
+                f"'scale' value should be an integer. Using {scale} will cause issues."
+            )
+
         self.scale = scale
         self.min_width = min_width
         self.variant = variant
@@ -243,9 +248,9 @@ class Group(BlockContext):
         }
 
 
-@document()
 class Box(BlockContext):
     """
+    DEPRECATED.
     Box is a a layout element which places children in a box with rounded corners and
     some padding around them.
     Example:

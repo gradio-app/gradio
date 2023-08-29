@@ -412,10 +412,12 @@ class BlockContext(Block):
                 child.parent = pseudo_parent
         self.children = children
 
-    def __exit__(self, *args):
+    def __exit__(self, exc_type: type[BaseException] | None = None, *args):
+        Context.block = self.parent
+        if exc_type is not None:
+            return
         if getattr(self, "allow_expected_parents", True):
             self.fill_expected_parents()
-        Context.block = self.parent
 
     def postprocess(self, y):
         """
@@ -465,12 +467,6 @@ class BlockFunction:
 
     def __repr__(self):
         return str(self)
-
-
-class class_or_instancemethod(classmethod):  # noqa: N801
-    def __get__(self, instance, type_):
-        descr_get = super().__get__ if instance is None else self.__func__.__get__
-        return descr_get(instance, type_)
 
 
 def postprocess_update_dict(block: Block, update_dict: dict, postprocess: bool = True):
@@ -1572,7 +1568,11 @@ Received outputs:
         self.exited = False
         return self
 
-    def __exit__(self, *args):
+    def __exit__(self, exc_type: type[BaseException] | None = None, *args):
+        if exc_type is not None:
+            Context.block = None
+            Context.root_block = None
+            return
         super().fill_expected_parents()
         Context.block = self.parent
         # Configure the load events before root_block is reset
@@ -1586,9 +1586,8 @@ Received outputs:
         self.progress_tracking = any(block_fn.tracks_progress for block_fn in self.fns)
         self.exited = True
 
-    @class_or_instancemethod
     def load(
-        self_or_cls,  # noqa: N805
+        self: Blocks | None = None,
         fn: Callable | None = None,
         inputs: list[Component] | None = None,
         outputs: list[Component] | None = None,
@@ -1613,9 +1612,7 @@ Received outputs:
         For reverse compatibility reasons, this is both a class method and an instance
         method, the two of which, confusingly, do two completely different things.
 
-
         Class method: loads a demo from a Hugging Face Spaces repo and creates it locally and returns a block instance. Warning: this method will be deprecated. Use the equivalent `gradio.load()` instead.
-
 
         Instance method: adds event that runs as soon as the demo loads in the browser. Example usage below.
         Parameters:
@@ -1645,7 +1642,7 @@ Received outputs:
                 demo.load(get_time, inputs=None, outputs=dt)
             demo.launch()
         """
-        if isinstance(self_or_cls, type):
+        if self is None:
             warn_deprecation(
                 "gr.Blocks.load() will be deprecated. Use gr.load() instead."
             )
@@ -1659,7 +1656,7 @@ Received outputs:
         else:
             from gradio.events import Dependency
 
-            dep, dep_index = self_or_cls.set_event_trigger(
+            dep, dep_index = self.set_event_trigger(
                 event_name="load",
                 fn=fn,
                 inputs=inputs,
@@ -1676,7 +1673,7 @@ Received outputs:
                 every=every,
                 no_target=True,
             )
-            return Dependency(self_or_cls, dep, dep_index)
+            return Dependency(self, dep, dep_index)
 
     def clear(self):
         """Resets the layout of the Blocks object."""

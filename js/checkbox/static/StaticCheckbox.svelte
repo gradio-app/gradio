@@ -4,6 +4,7 @@
 	import { Block, Info } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
+	import type { SelectData } from "@gradio/utils";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -18,7 +19,7 @@
 	export let loading_status: LoadingStatus;
 	export let gradio: Gradio<{
 		change: never;
-		select: never;
+		select: SelectData;
 		input: never;
 	}>;
 </script>
@@ -35,7 +36,7 @@
 		bind:value_is_output
 		on:change={() => gradio.dispatch("change")}
 		on:input={() => gradio.dispatch("input")}
-		on:select={() => gradio.dispatch("select")}
+		on:select={(e) => gradio.dispatch("select", e.detail)}
 		disabled
 	/>
 </Block>
