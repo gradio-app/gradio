@@ -223,7 +223,7 @@
 		bind:this={viewport}
 		bind:offsetHeight={viewport_height}
 		on:scroll={throttle_scroll}
-		style="width:{table_width}px; height: {height}; --bw-svt-p-top: {top}px; --bw-svt-p-bottom: {bottom}px; --bw-svt-head-height: {head_height}px; --bw-svt-foot-height: {foot_height}px; --bw-svt-avg-row-height: {average_height}px"
+		style="height: {height}; --bw-svt-p-top: {top}px; --bw-svt-p-bottom: {bottom}px; --bw-svt-head-height: {head_height}px; --bw-svt-foot-height: {foot_height}px; --bw-svt-avg-row-height: {average_height}px"
 	>
 		<thead class="thead" bind:offsetHeight={head_height}>
 			<slot name="thead" />
@@ -242,18 +242,10 @@
 </svelte-virtual-table-viewport>
 
 <style type="text/css">
-	/* table {
-		transition: 150ms;
-		width: var(--size-full);
-		table-layout: auto;
-		overflow: hidden;
-	
-	} */
 	table {
-		/* opacity: 0; */
 		position: relative;
 		overflow-y: scroll;
-		overflow-x: hidden;
+		overflow-x: scroll;
 		-webkit-overflow-scrolling: touch;
 		max-height: 100vh;
 		box-sizing: border-box;
@@ -264,8 +256,10 @@
 		font-size: var(--input-text-size);
 		line-height: var(--line-md);
 		font-family: var(--font-mono);
-		/* table-layout: fixed; */
 		border-spacing: 0;
+		width: 100%;
+		scroll-padding-block-start: 37px;
+		scroll-snap-type: x proximity;
 	}
 	table :is(thead, tfoot, tbody) {
 		display: table;
@@ -274,7 +268,12 @@
 		box-sizing: border-box;
 	}
 
-	table:not(.require-border-collapse) tbody {
+	tbody {
+		overflow-x: scroll;
+		overflow-y: hidden;
+	}
+
+	table tbody {
 		padding-top: var(--bw-svt-p-top);
 		padding-bottom: var(--bw-svt-p-bottom);
 	}
@@ -284,17 +283,12 @@
 		border: 0px solid currentColor;
 	}
 
-	/** sortable styles */
-	thead :global(th.sortable) {
-		cursor: pointer;
-		user-select: none;
-		-moz-user-select: none;
-		-webkit-user-select: none;
-		-ms-user-select: none;
-	}
-
 	tbody > :global(tr:last-child) {
 		border: none;
+	}
+
+	table :global(td) {
+		scroll-snap-align: start;
 	}
 
 	tbody > :global(tr:nth-child(even)) {

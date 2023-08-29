@@ -353,8 +353,6 @@
 				sort_direction = "asc";
 			}
 		}
-
-		// sort(col, sort_direction);
 	}
 
 	let header_edit: string | false;
@@ -795,7 +793,7 @@
 		transition: 150ms;
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--table-radius);
-		overflow-x: auto;
+		overflow-x: hidden;
 		overflow-y: hidden;
 	}
 

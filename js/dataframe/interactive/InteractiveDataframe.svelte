@@ -69,7 +69,7 @@
 	{min_width}
 	allow_overflow={false}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker {...loading_status} border={true} />
 	<Table
 		{label}
 		{row_count}
