@@ -4,9 +4,10 @@
 	import type { FileData } from "@gradio/upload";
 	import { BlockLabel } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
+	import {add_new_model} from "../shared/utils"
 
 	export let value: null | FileData;
-	export let clearColor: [number, number, number, number] = [0, 0, 0, 0];
+	export let clear_color: [number, number, number, number] = [0, 0, 0, 0];
 	export let label = "";
 	export let show_label: boolean;
 
@@ -21,7 +22,7 @@
 
 	onMount(() => {
 		if (value != null) {
-			addNewModel();
+			add_new_model(canvas, scene, engine, value, clear_color, camera_position);
 		}
 		mounted = true;
 	});
@@ -32,7 +33,7 @@
 		name: undefined
 	});
 
-	$: canvas && mounted && data != null && is_file && addNewModel();
+	$: canvas && mounted && data != null && is_file && add_new_model(canvas, scene, engine, value, clear_color, camera_position);
 
 	async function handle_upload({
 		detail
@@ -40,7 +41,7 @@
 		value = detail;
 		await tick();
 		dispatch("change", value);
-		addNewModel();
+		add_new_model(canvas, scene, engine, value, clear_color, camera_position);
 	}
 
 	async function handle_clear(): Promise<void> {
@@ -69,65 +70,6 @@
 	let canvas: HTMLCanvasElement;
 	let scene: BABYLON.Scene;
 	let engine: BABYLON.Engine;
-
-	function addNewModel(): void {
-		if (scene && !scene.isDisposed && engine) {
-			scene.dispose();
-			engine.dispose();
-		}
-
-		engine = new BABYLON.Engine(canvas, true);
-		scene = new BABYLON.Scene(engine);
-		scene.createDefaultCameraOrLight();
-		scene.clearColor = scene.clearColor = new BABYLON.Color4(...clearColor);
-
-		engine.runRenderLoop(() => {
-			scene.render();
-		});
-
-		window.addEventListener("resize", () => {
-			engine.resize();
-		});
-
-		if (!value) return;
-
-		let url: string;
-		if (value.is_file) {
-			url = value.data;
-		} else {
-			let base64_model_content = value.data;
-			let raw_content = BABYLON.Tools.DecodeBase64(base64_model_content);
-			let blob = new Blob([raw_content]);
-			url = URL.createObjectURL(blob);
-		}
-
-		BABYLON.SceneLoader.ShowLoadingScreen = false;
-		BABYLON.SceneLoader.Append(
-			url,
-			"",
-			scene,
-			() => {
-				// scene.createDefaultCamera(createArcRotateCamera, replace, attachCameraControls)
-				scene.createDefaultCamera(true, true, true);
-				// scene.activeCamera has to be an ArcRotateCamera if the call succeeds,
-				// we assume it does
-				var helperCamera = scene.activeCamera! as BABYLON.ArcRotateCamera;
-
-				if (camera_position[0] !== null) {
-					helperCamera.alpha = (Math.PI * camera_position[0]) / 180;
-				}
-				if (camera_position[1] !== null) {
-					helperCamera.beta = (Math.PI * camera_position[1]) / 180;
-				}
-				if (camera_position[2] !== null) {
-					helperCamera.radius = camera_position[2];
-				}
-			},
-			undefined,
-			undefined,
-			"." + value.name.split(".")[1]
-		);
-	}
 
 	$: dispatch("drag", dragging);
 </script>

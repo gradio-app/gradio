@@ -15,7 +15,7 @@
 	export let value: null | FileData = null;
 	export let root: string;
 	export let root_url: null | string;
-	export let clearColor: [number, number, number, number];
+	export let clear_color: [number, number, number, number];
 	export let loading_status: LoadingStatus;
 	export let label: string;
 	export let show_label: boolean;
@@ -56,7 +56,7 @@
 	<Model3DUpload
 		{label}
 		{show_label}
-		{clearColor}
+		{clear_color}
 		value={_value}
 		{camera_position}
 		on:change={({ detail }) => (value = detail)}

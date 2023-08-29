@@ -15,7 +15,7 @@
 	export let value: null | FileData = null;
 	export let root: string;
 	export let root_url: null | string;
-	export let clearColor: [number, number, number, number];
+	export let clear_color: [number, number, number, number];
 	export let loading_status: LoadingStatus;
 	export let label: string;
 	export let show_label: boolean;
@@ -52,7 +52,7 @@
 	{#if value}
 		<Model3D
 			value={_value}
-			{clearColor}
+			{clear_color}
 			{label}
 			{show_label}
 			{camera_position}
