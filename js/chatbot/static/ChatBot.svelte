@@ -1,21 +1,14 @@
 <script lang="ts">
-	import { copy, format_chat_for_sharing } from "../utils";
-	import "katex/dist/katex.min.css";
+	import { format_chat_for_sharing } from "../utils";
+	import { copy } from "@gradio/utils";
+
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import { ShareButton } from "@gradio/atoms";
 	import type { SelectData } from "@gradio/utils";
-	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
-	import {get_fetchable_url_or_file} from "@gradio/upload";
-	import Markdown from "./MarkdownCode.svelte";
+	import { MarkdownCode as Markdown } from "@gradio/markdown/static";
+	import { get_fetchable_url_or_file } from "@gradio/upload";
 	import Copy from "./Copy.svelte";
-
-	const code_highlight_css = {
-		light: (): Promise<typeof import("prismjs/themes/prism.css")> =>
-			import("prismjs/themes/prism.css"),
-		dark: (): Promise<typeof import("prismjs/themes/prism.css")> =>
-			import("prismjs/themes/prism-dark.css")
-	};
 
 	export let value:
 		| [string | FileData | null, string | FileData | null][]
@@ -31,17 +24,13 @@
 	export let feedback: string[] | null = null;
 	export let selectable = false;
 	export let show_share_button = false;
-	export let theme_mode: ThemeMode;
 	export let rtl = false;
 	export let show_copy_button = false;
 	export let avatar_images: [string | null, string | null] = [null, null];
+	export let sanitize_html = true;
+	export let bubble_full_width = true;
 	export let root: string;
 	export let root_url: null | string;
-	$: if (theme_mode == "dark") {
-		code_highlight_css.dark();
-	} else {
-		code_highlight_css.light();
-	}
 
 	let div: HTMLDivElement;
 	let autoscroll: boolean;
@@ -107,13 +96,22 @@
 		{#if value !== null}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
-					<div class="message-row">
+					<div
+						class="message-row {j == 0 ? 'user-row' : 'bot-row'}"
+						class:hide={message === null}
+					>
 						{#if avatar_images[j] !== null}
-							<img
-								class="avatar-image-{j == 0 ? 'user' : 'bot'}"
-								src={get_fetchable_url_or_file(avatar_images[j], root, root_url)}
-								alt="avatar"
-							/>
+							<div class="avatar-container">
+								<img
+									class="avatar-image"
+									src={get_fetchable_url_or_file(
+										avatar_images[j],
+										root,
+										root_url
+									)}
+									alt="avatar-{j == 0 ? 'user' : 'bot'}"
+								/>
+							</div>
 						{/if}
 						<!-- TODO: fix-->
 						<!-- svelte-ignore a11y-no-static-element-interactions-->
@@ -122,13 +120,18 @@
 							data-testid={j == 0 ? "user" : "bot"}
 							class:latest={i === value.length - 1}
 							class="message {j == 0 ? 'user' : 'bot'}"
-							class:hide={message === null}
+							class:message-fit={!bubble_full_width}
 							class:selectable
 							on:click={() => handle_select(i, j, message)}
 							dir={rtl ? "rtl" : "ltr"}
 						>
 							{#if typeof message === "string"}
-								<Markdown {message} {latex_delimiters} on:load={scroll} />
+								<Markdown
+									{message}
+									{latex_delimiters}
+									{sanitize_html}
+									on:load={scroll}
+								/>
 								{#if feedback && j == 1}
 									<div class="feedback">
 										{#each feedback as f}
@@ -214,7 +217,7 @@
 		gap: var(--spacing-xxl);
 	}
 
-	.message-wrap > div :global(img) {
+	.message-wrap > div :not(.avatar-container) :global(img) {
 		border-radius: 13px;
 		max-width: 30vw;
 	}
@@ -241,21 +244,19 @@
 		line-height: var(--line-lg);
 		overflow-wrap: break-word;
 	}
+	.message-fit {
+		width: fit-content !important;
+	}
+	.message-fit.user {
+		margin-left: auto;
+	}
 	.user {
 		align-self: flex-end;
 		border-bottom-right-radius: 0;
 	}
 	.bot {
 		border-bottom-left-radius: 0;
-		padding-left: calc(2 * var(--spacing-xxl));
-	}
-	@media (max-width: 480px) {
-		.message {
-			width: auto;
-		}
-		.bot {
-			padding-left: var(--spacing-xxl);
-		}
+		padding-left: var(--spacing-xxl);
 	}
 
 	/* Colors */
@@ -272,22 +273,42 @@
 		display: flex;
 		flex-direction: row;
 	}
-	.avatar-image-user,
-	.avatar-image-bot {
+
+	@media (max-width: 480px) {
+		.user-row {
+			align-self: flex-end;
+		}
+
+		.bot-row {
+			align-self: flex-start;
+		}
+		.message {
+			width: auto;
+		}
+		.bot {
+			padding-left: var(--spacing-xxl);
+		}
+	}
+	.avatar-container {
 		align-self: flex-end;
 		position: relative;
 		justify-content: center;
-		max-width: 35px;
-		max-height: 35px;
-		border-radius: 50%;
-		bottom: 0px;
+		width: 35px;
+		height: 35px;
+		bottom: 0;
 	}
-	.avatar-image-user {
+	.user-row > .avatar-container {
 		order: 2;
 		margin-left: 10px;
 	}
-	.avatar-image-bot {
+	.bot-row > .avatar-container {
 		margin-right: 10px;
+	}
+	img.avatar-image {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		border-radius: 50%;
 	}
 
 	.feedback {
@@ -363,39 +384,6 @@
 
 	.hide {
 		display: none;
-	}
-
-	/* Code blocks */
-	.message-wrap :global(pre[class*="language-"]),
-	.message-wrap :global(pre) {
-		position: relative;
-		direction: ltr;
-		white-space: no-wrap;
-		overflow-x: auto;
-	}
-	.message-wrap :global(code) {
-		font-size: var(--text-md);
-	}
-
-	.message-wrap :global(div[class*="code_wrap"]) {
-		position: relative;
-		margin-top: var(--spacing-sm);
-		margin-bottom: var(--spacing-sm);
-		box-shadow: none;
-		border: none;
-		border-radius: var(--radius-md);
-		background-color: var(--chatbot-code-background-color);
-		padding: var(--spacing-xl) 10px;
-	}
-
-	/* Tables */
-	.message-wrap :global(table),
-	.message-wrap :global(tr),
-	.message-wrap :global(td),
-	.message-wrap :global(th) {
-		margin-top: var(--spacing-sm);
-		margin-bottom: var(--spacing-sm);
-		padding: var(--spacing-xl);
 	}
 
 	.message-wrap .bot :global(table),

@@ -35,7 +35,8 @@
 				"Can you write a function in Python?",
 				"```py\ndef test():\n\tprint(x)\n```"
 			],
-			["Can you do math?", "$$1+1=2$$"]
+			["Can you do math?", "$$1+1=2$$"],
+			["Can you say nothing?", null]
 		]}
 	/>
 </Template>
@@ -64,5 +65,12 @@
 		rtl: true,
 		latex_delimiters: [{ left: "$$", right: "$$", display: true }],
 		show_copy_button: true
+	}}
+/>
+
+<Story
+	name="Chatbot with chat bubble full width disabled"
+	args={{
+		bubble_full_width: false
 	}}
 />

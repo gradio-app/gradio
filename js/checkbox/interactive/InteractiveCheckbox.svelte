@@ -1,8 +1,10 @@
 <script lang="ts">
+	import type { Gradio } from "@gradio/utils";
 	import Checkbox from "../shared";
 	import { Block, Info } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
+	import type { SelectData } from "@gradio/utils";
 	import { _ } from "svelte-i18n";
 
 	export let elem_id = "";
@@ -16,6 +18,11 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
+	export let gradio: Gradio<{
+		change: never;
+		select: SelectData;
+		input: never;
+	}>;
 </script>
 
 <Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
@@ -28,8 +35,8 @@
 		{label}
 		bind:value
 		bind:value_is_output
-		on:change
-		on:input
-		on:select
+		on:change={() => gradio.dispatch("change")}
+		on:input={() => gradio.dispatch("input")}
+		on:select={(e) => gradio.dispatch("select", e.detail)}
 	/>
 </Block>

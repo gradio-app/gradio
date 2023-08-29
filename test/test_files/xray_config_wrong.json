@@ -1,5 +1,5 @@
 {
-  "version": "3.40.1",
+  "version": "3.41.2",
   "mode": "blocks",
   "dev_mode": true,
   "analytics_enabled": true,
@@ -17,6 +17,7 @@
             "display": false
           }
         ],
+        "sanitize_html": true,
         "name": "markdown",
         "visible": true
       },

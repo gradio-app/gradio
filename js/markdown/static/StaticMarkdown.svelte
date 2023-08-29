@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import type { Gradio } from "@gradio/utils";
 	import Markdown from "./Markdown.svelte";
 
 	import { StatusTracker } from "@gradio/statustracker";
@@ -13,15 +13,17 @@
 	export let value = "";
 	export let loading_status: LoadingStatus;
 	export let rtl = false;
+	export let sanitize_html = true;
+	export let gradio: Gradio<{
+		change: never;
+	}>;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
 		display: boolean;
 	}[];
 
-	const dispatch = createEventDispatcher<{ change: undefined }>();
-
-	$: label, dispatch("change");
+	$: label, gradio.dispatch("change");
 </script>
 
 <Block {visible} {elem_id} {elem_classes} container={false}>
@@ -34,8 +36,9 @@
 			{elem_classes}
 			{visible}
 			{rtl}
+			on:change={() => gradio.dispatch("change")}
 			{latex_delimiters}
-			on:change
+			{sanitize_html}
 		/>
 	</div>
 </Block>

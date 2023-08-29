@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { afterUpdate, createEventDispatcher, tick } from "svelte";
-	import { marked } from "marked";
-	import DOMPurify from "dompurify";
-	import render_math_in_element from "katex/dist/contrib/auto-render.js";
-	import "katex/dist/katex.min.css";
+	import { createEventDispatcher } from "svelte";
+	import { copy } from "@gradio/utils";
+
+	import MarkdownCode from "./MarkdownCode.svelte";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -11,8 +10,7 @@
 	export let value: string;
 	export let min_height = false;
 	export let rtl = false;
-
-	let div: HTMLDivElement;
+	export let sanitize_html = true;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
@@ -23,24 +21,6 @@
 		right: string;
 		display: boolean;
 	}[];
-
-	let mounted = false;
-
-	$: mounted &&
-		latex_delimiters.length > 0 &&
-		render_math_in_element(div, {
-			delimiters: latex_delimiters,
-			throwOnError: false
-		});
-
-	afterUpdate(() => {
-		tick().then(() => {
-			requestAnimationFrame(() => {
-				div.innerHTML = DOMPurify.sanitize(marked.parse(value));
-				mounted = true;
-			});
-		});
-	});
 </script>
 
 <div
@@ -50,8 +30,15 @@
 	class:hide={!visible}
 	data-testid="markdown"
 	dir={rtl ? "rtl" : "ltr"}
-	bind:this={div}
-></div>
+	use:copy
+>
+	<MarkdownCode
+		message={value}
+		{latex_delimiters}
+		{sanitize_html}
+		chatbot={false}
+	/>
+</div>
 
 <style>
 	div :global(.math.inline) {
