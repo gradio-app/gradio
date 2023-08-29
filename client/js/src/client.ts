@@ -1133,7 +1133,8 @@ async function resolve_config(
 	if (
 		typeof window !== "undefined" &&
 		window.gradio_config &&
-		location.origin !== "http://localhost:9876"
+		location.origin !== "http://localhost:9876" &&
+		!window.gradio_config.dev_mode
 	) {
 		const path = window.gradio_config.root;
 		const config = window.gradio_config;

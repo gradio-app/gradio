@@ -27,6 +27,8 @@
 		is_colab: boolean;
 		show_api: boolean;
 		stylesheets?: string[];
+		path: string;
+		app_id?: string;
 	}
 
 	let id = -1;
@@ -81,6 +83,7 @@
 	export let container: boolean;
 	export let info: boolean;
 	export let eager: boolean;
+	let websocket: WebSocket;
 
 	// These utilities are exported to be injectable for the Wasm version.
 	export let mount_css: typeof default_mount_css = default_mount_css;
@@ -102,6 +105,10 @@
 	let config: Config;
 	let loading_text = $_("common.loading") + "...";
 	let active_theme_mode: ThemeMode;
+
+	$: if (config?.app_id) {
+		app_id = config.app_id;
+	}
 
 	async function mount_custom_css(
 		target: HTMLElement,
@@ -125,18 +132,6 @@
 				);
 			})
 		);
-	}
-
-	async function reload_check(root: string): Promise<void> {
-		const result = await (await fetch(root + "/app_id")).text();
-
-		if (app_id === null) {
-			app_id = result;
-		} else if (app_id != result) {
-			location.reload();
-		}
-
-		setTimeout(() => reload_check(root), 250);
 	}
 
 	function handle_darkmode(target: HTMLDivElement): "light" | "dark" {
@@ -225,7 +220,22 @@
 		window.__is_colab__ = config.is_colab;
 
 		if (config.dev_mode) {
-			reload_check(config.root);
+			setTimeout(() => {
+				const { host } = new URL(api_url);
+				let url = new URL(`ws://${host}/dev/reload`);
+				websocket = new WebSocket(url);
+				websocket.onmessage = async function (event) {
+					if (event.data === "CHANGE") {
+						app = await client(api_url, {
+							status_callback: handle_status,
+							normalise_files: false
+						});
+						app.config.root = app.config.path;
+						config = app.config;
+						window.__gradio_space__ = config.space_id;
+					}
+				};
+			}, 200);
 		}
 	});
 

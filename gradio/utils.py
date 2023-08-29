@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import copy
 import functools
+import importlib
 import inspect
 import json
 import json.decoder
@@ -13,9 +14,12 @@ import pkgutil
 import pprint
 import random
 import re
+import threading
 import time
+import traceback
 import typing
 import warnings
+from abc import ABC, abstractmethod
 from contextlib import contextmanager
 from enum import Enum
 from io import BytesIO
@@ -27,6 +31,7 @@ from typing import (
     Any,
     Callable,
     Generator,
+    Iterator,
     Optional,
     TypeVar,
     Union,
@@ -47,6 +52,7 @@ from gradio.strings import en
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import Block, BlockContext, Blocks
     from gradio.components import Component
+    from gradio.routes import App
 
 JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 GRADIO_VERSION = (
@@ -55,6 +61,158 @@ GRADIO_VERSION = (
 
 P = ParamSpec("P")
 T = TypeVar("T")
+
+
+def safe_get_lock() -> asyncio.Lock:
+    """Get asyncio.Lock() without fear of getting an Exception.
+
+    Needed because in reload mode we import the Blocks object outside
+    the main thread.
+    """
+    try:
+        asyncio.get_event_loop()
+        return asyncio.Lock()
+    except RuntimeError:
+        return None  # type: ignore
+
+
+class BaseReloader(ABC):
+    @property
+    @abstractmethod
+    def running_app(self) -> App:
+        pass
+
+    def queue_changed(self, demo: Blocks):
+        return (
+            hasattr(self.running_app.blocks, "_queue") and not hasattr(demo, "_queue")
+        ) or (
+            not hasattr(self.running_app.blocks, "_queue") and hasattr(demo, "_queue")
+        )
+
+    def swap_blocks(self, demo: Blocks):
+        assert self.running_app.blocks
+        # Copy over the blocks to get new components and events but
+        # not a new queue
+        if hasattr(self.running_app.blocks, "_queue"):
+            self.running_app.blocks._queue.blocks_dependencies = demo.dependencies
+            demo._queue = self.running_app.blocks._queue
+        self.running_app.blocks = demo
+
+
+class SourceFileReloader(BaseReloader):
+    def __init__(
+        self,
+        app: App,
+        watch_dirs: list[str],
+        watch_file: str,
+        stop_event: threading.Event,
+        change_event: threading.Event,
+        demo_name: str = "demo",
+    ) -> None:
+        super().__init__()
+        self.app = app
+        self.watch_dirs = watch_dirs
+        self.watch_file = watch_file
+        self.stop_event = stop_event
+        self.change_event = change_event
+        self.demo_name = demo_name
+
+    @property
+    def running_app(self) -> App:
+        return self.app
+
+    def should_watch(self) -> bool:
+        return not self.stop_event.is_set()
+
+    def stop(self) -> None:
+        self.stop_event.set()
+
+    def alert_change(self):
+        self.change_event.set()
+
+    def swap_blocks(self, demo: Blocks):
+        super().swap_blocks(demo)
+        self.alert_change()
+
+
+def watchfn(reloader: SourceFileReloader):
+    """Watch python files in a given module.
+
+    get_changes is taken from uvicorn's default file watcher.
+    """
+
+    # The thread running watchfn will be the thread reloading
+    # the app. So we need to modify this thread_data attr here
+    # so that subsequent calls to reload don't launch the app
+    from gradio.reload import reload_thread
+
+    reload_thread.running_reload = True
+
+    def get_changes() -> Path | None:
+        for file in iter_py_files():
+            try:
+                mtime = file.stat().st_mtime
+            except OSError:  # pragma: nocover
+                continue
+
+            old_time = mtimes.get(file)
+            if old_time is None:
+                mtimes[file] = mtime
+                continue
+            elif mtime > old_time:
+                return file
+        return None
+
+    def iter_py_files() -> Iterator[Path]:
+        for reload_dir in reload_dirs:
+            for path in list(reload_dir.rglob("*.py")):
+                yield path.resolve()
+
+    module = None
+    reload_dirs = [Path(dir_) for dir_ in reloader.watch_dirs]
+    mtimes = {}
+    while reloader.should_watch():
+        import sys
+
+        changed = get_changes()
+        if changed:
+            print(f"Changes detected in: {changed}")
+            # To simulate a fresh reload, delete all module references from sys.modules
+            # for the modules in the package the change came from.
+            dir_ = next(d for d in reload_dirs if is_in_or_equal(changed, d))
+            modules = list(sys.modules)
+            for k in modules:
+                v = sys.modules[k]
+                sourcefile = getattr(v, "__file__", None)
+                # Do not reload `reload.py` to keep thread data
+                if (
+                    sourcefile
+                    and dir_ == Path(inspect.getfile(gradio)).parent
+                    and sourcefile.endswith("reload.py")
+                ):
+                    continue
+                if sourcefile and is_in_or_equal(sourcefile, dir_):
+                    del sys.modules[k]
+            try:
+                module = importlib.import_module(reloader.watch_file)
+                module = importlib.reload(module)
+            except Exception as e:
+                print(
+                    f"Reloading {reloader.watch_file} failed with the following exception: "
+                )
+                traceback.print_exception(None, value=e, tb=None)
+                mtimes = {}
+                continue
+
+            demo = getattr(module, reloader.demo_name)
+            if reloader.queue_changed(demo):
+                print(
+                    "Reloading failed. The new demo has a queue and the old one doesn't (or vice versa). "
+                    "Please launch your demo again"
+                )
+            else:
+                reloader.swap_blocks(demo)
+            mtimes = {}
 
 
 def colab_check() -> bool:
