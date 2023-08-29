@@ -21,8 +21,8 @@
 	</h4>
 	<p class="mb-4 text-lg text-gray-600">
 		The <span class="font-mono">{fns[0].parent.replace("gradio.", "")}</span>
-		component supports the following event listeners. Each event listener takes
-		the same parameters, which are listed in the
+		component supports the following event listeners. Each event listener takes the
+		same parameters, which are listed in the
 		<a href="#event-listeners-arguments" class="text-orange-500 font-light"
 			>Event Arguments</a
 		> table below.

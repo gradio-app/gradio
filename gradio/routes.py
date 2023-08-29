@@ -17,6 +17,7 @@ import os
 import posixpath
 import secrets
 import tempfile
+import threading
 import time
 import traceback
 from asyncio import TimeoutError as AsyncTimeOutError
@@ -112,12 +113,13 @@ class App(FastAPI):
         self.state_holder = {}
         self.iterators = defaultdict(dict)
         self.iterators_to_reset = defaultdict(set)
-        self.lock = asyncio.Lock()
+        self.lock = utils.safe_get_lock()
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
         self.uploaded_file_dir = os.environ.get("GRADIO_TEMP_DIR") or str(
             Path(tempfile.gettempdir()) / "gradio"
         )
+        self.change_event: None | threading.Event = None
         # Allow user to manually set `docs_url` and `redoc_url`
         # when instantiating an App; when they're not set, disable docs and redoc.
         kwargs.setdefault("docs_url", None)
@@ -215,6 +217,39 @@ class App(FastAPI):
         @app.get("/app_id/")
         def app_id(request: fastapi.Request) -> dict:
             return {"app_id": app.get_blocks().app_id}
+
+        async def send_ping_periodically(websocket: WebSocket):
+            while True:
+                await websocket.send_text("PING")
+                await asyncio.sleep(1)
+
+        async def listen_for_changes(websocket: WebSocket):
+            assert app.change_event
+            while True:
+                if app.change_event.is_set():
+                    await websocket.send_text("CHANGE")
+                    app.change_event.clear()
+                await asyncio.sleep(0.1)  # Short sleep to not make this a tight loop
+
+        @app.websocket("/dev/reload")
+        async def notify_changes(websocket: WebSocket):
+            await websocket.accept()
+
+            ping = asyncio.create_task(send_ping_periodically(websocket))
+            notify = asyncio.create_task(listen_for_changes(websocket))
+            tasks = {ping, notify}
+            ping.add_done_callback(tasks.remove)
+            notify.add_done_callback(tasks.remove)
+            done, pending = await asyncio.wait(
+                [ping, notify],
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+
+            for task in pending:
+                task.cancel()
+
+            if any(isinstance(task.exception(), Exception) for task in done):
+                await websocket.close()
 
         @app.post("/login")
         @app.post("/login/")
