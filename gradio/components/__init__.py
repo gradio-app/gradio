@@ -70,8 +70,9 @@ def generate_stubs():
         if "__init__.py" in str(file):
             continue
 
-        pyi_template = '''
+        pyi_path = file.with_suffix(".pyi")
 
+        pyi_template = '''
 {{ contents }}
 
     {% for event in events %}
@@ -114,6 +115,7 @@ def generate_stubs():
 
         template = Template(pyi_template)
         module = importlib.import_module(f"gradio.components.{file.stem}")
+        contents = ""
         for att in dir(module):
             att = getattr(module, att)
             if inspect.isclass(att) and issubclass(att, Component) and att != Component:
@@ -128,8 +130,9 @@ def generate_stubs():
                     rendered_pyi = template.render(
                         events=events, contents=inspect.getsource(att)
                     )
-                    pyi_path = file.with_name(f"{att.__name__}.pyi")
-                    pyi_path.write_text(rendered_pyi)
+                    contents += rendered_pyi
+        if contents:
+            pyi_path.write_text(contents)
 
 
 __all__ = [

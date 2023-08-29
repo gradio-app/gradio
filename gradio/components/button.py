@@ -23,7 +23,7 @@ class Button(Component):
     Demos: blocks_inputs, blocks_kinematics
     """
 
-    EVENTS = ["baz", Events.click, "bar"]
+    EVENTS = [Events.click]
 
     def __init__(
         self,
