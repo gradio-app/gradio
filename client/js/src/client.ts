@@ -394,6 +394,7 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 				if (typeof endpoint === "number") {
 					fn_index = endpoint;
 					api_info = api.unnamed_endpoints[fn_index];
+					console.log({ api_info, api, fn_index });
 				} else {
 					const trimmed_endpoint = endpoint.replace(/^\//, "");
 
