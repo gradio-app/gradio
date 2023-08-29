@@ -37,7 +37,7 @@ classifiers = [
 [project.scripts]
 gradio = "gradio.cli:cli"
 upload_theme = "gradio.themes.upload_theme:main"
-gradio_create = "gradio.cli:create_component"
+gradio_component = "gradio.cli:custom_component"
 
 [project.urls]
 Homepage = "https://github.com/gradio-app/gradio"
