@@ -2159,6 +2159,7 @@ class TestModel3D:
             "elem_classes": None,
             "root_url": None,
             "name": "model3d",
+            "camera_position": (None, None, None),
         }
 
         file = "test/test_files/Box.gltf"

@@ -9,6 +9,7 @@
 	"svelte.plugin.svelte.diagnostics.enable": false,
 	"prettier.configPath": ".config/.prettierrc.json",
 	"prettier.ignorePath": ".config/.prettierignore",
+	"python.analysis.typeCheckingMode": "basic",
 	"python.testing.pytestArgs": ["."],
 	"python.testing.unittestEnabled": false,
 	"python.testing.pytestEnabled": true,

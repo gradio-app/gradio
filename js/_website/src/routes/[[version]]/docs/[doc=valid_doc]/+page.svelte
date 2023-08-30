@@ -165,11 +165,13 @@
 						{#if mode === "components"}
 							<div class="embedded-component">
 								{#key obj.name}
+									{#if obj.name !== "State"}
 									<gradio-app
 										space={"gradio/" +
 											obj.name.toLowerCase() +
 											"_component_main"}
 									/>
+									{/if}
 								{/key}
 							</div>
 						{/if}
