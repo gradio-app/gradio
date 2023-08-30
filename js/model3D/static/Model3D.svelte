@@ -2,22 +2,29 @@
 	import type { FileData } from "@gradio/upload";
 	import { BlockLabel, IconButton } from "@gradio/atoms";
 	import { File, Download } from "@gradio/icons";
+	import { add_new_model } from "../shared/utils";
 	import { _ } from "svelte-i18n";
 	import { onMount } from "svelte";
 	import * as BABYLON from "babylonjs";
 	import * as BABYLON_LOADERS from "babylonjs-loaders";
 
 	export let value: FileData | null;
-	export let clearColor: [number, number, number, number] = [0, 0, 0, 0];
+	export let clear_color: [number, number, number, number] = [0, 0, 0, 0];
 	export let label = "";
 	export let show_label: boolean;
+
+	// alpha, beta, radius
+	export let camera_position: [number | null, number | null, number | null] = [
+		null,
+		null,
+		null
+	];
 
 	BABYLON_LOADERS.OBJFileLoader.IMPORT_VERTEX_COLORS = true;
 
 	let canvas: HTMLCanvasElement;
 	let scene: BABYLON.Scene;
 	let engine: BABYLON.Engine | null;
-
 	let mounted = false;
 
 	onMount(() => {
@@ -46,44 +53,9 @@
 				engine?.resize();
 			});
 		}
-		addNewModel();
-	}
-
-	function addNewModel(): void {
-		scene = new BABYLON.Scene(engine!);
-		scene.createDefaultCameraOrLight();
-
-		scene.clearColor = new BABYLON.Color4(...clearColor);
-
-		engine?.runRenderLoop(() => {
-			scene.render();
-		});
-
-		if (!value) return;
-
-		let url: string;
-		if (value.is_file) {
-			url = value.data;
-		} else {
-			let base64_model_content = value.data;
-			let raw_content = BABYLON.Tools.DecodeBase64(base64_model_content);
-			let blob = new Blob([raw_content]);
-			url = URL.createObjectURL(blob);
+		if (engine !== null) {
+			add_new_model(canvas, scene, engine, value, clear_color, camera_position);
 		}
-
-		BABYLON.SceneLoader.ShowLoadingScreen = false;
-
-		BABYLON.SceneLoader.Append(
-			"",
-			url,
-			scene,
-			() => {
-				scene.createDefaultCamera(true, true, true);
-			},
-			undefined,
-			undefined,
-			"." + value["name"].split(".")[1]
-		);
 	}
 </script>
 
