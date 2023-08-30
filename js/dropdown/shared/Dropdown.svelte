@@ -13,7 +13,7 @@
 	export let value_is_output = false;
 	export let multiselect = false;
 	export let max_choices: number;
-	export let choices: [string, string | number][];
+	export let choices: [string, string][];
 	export let disabled = false;
 	export let show_label: boolean;
 	export let container = true;
@@ -36,11 +36,14 @@
 		inputValue = value;
 	}
 
-	let old_choices: string[] = [];
-	let filtered: string[] = [];
-	let choice_names: string[];
+	let old_choices: [string, string][] = [];
+	let filtered: [string, string][] = [];
+	let choices_names: string[];
 	
-	$: choices_names = choices.map((c) => c[0]);
+	$: {
+		choices_names = choices.map((c) => c[0]);
+		choices_values = choices.map((c) => c[1]);
+	}
 
 	$: old_choices, inputValue, handle_filter();
 
@@ -134,6 +137,7 @@
 
 	function handleOptionMousedown(e: any): void {
 		const option = e.detail.target.dataset.value;
+		console.log(option);
 		if (allow_custom_value) {
 			inputValue = option;
 		}
