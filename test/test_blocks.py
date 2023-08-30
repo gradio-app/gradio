@@ -10,6 +10,7 @@ import tempfile
 import time
 import unittest.mock as mock
 import uuid
+import warnings
 from concurrent.futures import wait
 from contextlib import contextmanager
 from functools import partial
@@ -52,41 +53,41 @@ def captured_output():
 class TestBlocksMethods:
     maxDiff = None
 
-    # def test_set_share_is_false_by_default(self):
-    #     with gr.Blocks() as demo:
-    #         assert not demo.share
+    def test_set_share_is_false_by_default(self):
+        with gr.Blocks() as demo:
+            assert not demo.share
 
-    # @patch("gradio.networking.setup_tunnel")
-    # @patch("gradio.utils.colab_check")
-    # def test_set_share_in_colab(self, mock_colab_check, mock_setup_tunnel):
-    #     mock_colab_check.return_value = True
-    #     mock_setup_tunnel.return_value = "http://localhost:7860/"
-    #     with gr.Blocks() as demo:
-    #         # self.share is False when instantiating the class
-    #         assert not demo.share
-    #         # share default is False, if share is None in colab and no queueing
-    #         demo.launch(prevent_thread_lock=True)
-    #         assert not demo.share
-    #         demo.close()
-    #         # share becomes true, if share is None in colab with queueing
-    #         demo.queue()
-    #         demo.launch(prevent_thread_lock=True)
-    #         assert demo.share
-    #         demo.close()
+    @patch("gradio.networking.setup_tunnel")
+    @patch("gradio.utils.colab_check")
+    def test_set_share_in_colab(self, mock_colab_check, mock_setup_tunnel):
+        mock_colab_check.return_value = True
+        mock_setup_tunnel.return_value = "http://localhost:7860/"
+        with gr.Blocks() as demo:
+            # self.share is False when instantiating the class
+            assert not demo.share
+            # share default is False, if share is None in colab and no queueing
+            demo.launch(prevent_thread_lock=True)
+            assert not demo.share
+            demo.close()
+            # share becomes true, if share is None in colab with queueing
+            demo.queue()
+            demo.launch(prevent_thread_lock=True)
+            assert demo.share
+            demo.close()
 
-    # def test_default_enabled_deprecated(self):
-    #     io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
-    #     with pytest.warns(
-    #         UserWarning, match="The default_enabled parameter of queue has no effect"
-    #     ):
-    #         io.queue(default_enabled=True)
+    def test_default_enabled_deprecated(self):
+        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
+        with pytest.warns(
+            UserWarning, match="The default_enabled parameter of queue has no effect"
+        ):
+            io.queue(default_enabled=True)
 
-    #     io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
-    #     with warnings.catch_warnings(record=True) as record:
-    #         warnings.simplefilter("always")
-    #         io.queue()
-    #     for warning in record:
-    #         assert "default_enabled" not in str(warning.message)
+        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
+        with warnings.catch_warnings(record=True) as record:
+            warnings.simplefilter("always")
+            io.queue()
+        for warning in record:
+            assert "default_enabled" not in str(warning.message)
 
     def test_xray(self):
         def fake_func():
@@ -792,6 +793,103 @@ class TestBlocksPostprocessing:
             match=r"An event handler \(infer\) didn\'t receive enough output values \(needed: 3, received: 2\)\.\nWanted outputs:\n    \[number, number, number\]\nReceived outputs:\n    \[1, 2\]",
         ):
             demo.postprocess_data(fn_index=0, predictions=(1, 2), state=None)
+
+
+class TestStateHolder:
+    @pytest.mark.asyncio
+    async def test_state_stored_up_to_capacity(self):
+        with gr.Blocks() as demo:
+            num = gr.Number()
+            state = gr.State(value=0)
+
+            def run(x, s):
+                return s, s + 1
+
+            num.submit(
+                run,
+                inputs=[num, state],
+                outputs=[num, state],
+            )
+        app, _, _ = demo.launch(prevent_thread_lock=True, state_session_capacity=2)
+        client = TestClient(app)
+
+        session_1 = client.post(
+            "/api/predict/",
+            json={"data": [1, None], "session_hash": "1", "fn_index": 0},
+        )
+        assert session_1.json()["data"][0] == 0
+        session_2 = client.post(
+            "/api/predict/",
+            json={"data": [1, None], "session_hash": "2", "fn_index": 0},
+        )
+        assert session_2.json()["data"][0] == 0
+        session_1 = client.post(
+            "/api/predict/",
+            json={"data": [1, None], "session_hash": "1", "fn_index": 0},
+        )
+        assert session_1.json()["data"][0] == 1
+        session_2 = client.post(
+            "/api/predict/",
+            json={"data": [1, None], "session_hash": "2", "fn_index": 0},
+        )
+        assert session_2.json()["data"][0] == 1
+        session_3 = client.post(
+            "/api/predict/",
+            json={"data": [1, None], "session_hash": "3", "fn_index": 0},
+        )
+        assert session_3.json()["data"][0] == 0
+        session_2 = client.post(
+            "/api/predict/",
+            json={"data": [1, None], "session_hash": "2", "fn_index": 0},
+        )
+        assert session_2.json()["data"][0] == 2
+        session_1 = client.post(
+            "/api/predict/",
+            json={"data": [1, None], "session_hash": "1", "fn_index": 0},
+        )
+        assert (
+            session_1.json()["data"][0] == 0
+        )  # state was lost for session 1 when session 3 was added, since state_session_capacity=2
+
+    @pytest.mark.asyncio
+    async def test_updates_stored_up_to_capacity(self):
+        with gr.Blocks() as demo:
+            min = gr.Number()
+            num = gr.Number()
+
+            def run(min, num):
+                return min, gr.Number(value=num, minimum=min)
+
+            num.submit(
+                run,
+                inputs=[min, num],
+                outputs=[min, num],
+            )
+        app, _, _ = demo.launch(prevent_thread_lock=True, state_session_capacity=2)
+        client = TestClient(app)
+
+        session_1 = client.post(
+            "/api/predict/", json={"data": [5, 5], "session_hash": "1", "fn_index": 0}
+        )
+        assert session_1.json()["data"][0] == 5
+        session_1 = client.post(
+            "/api/predict/", json={"data": [2, 2], "session_hash": "1", "fn_index": 0}
+        )
+        assert "error" in session_1.json()  # error because min is 5 and num is 2
+        session_2 = client.post(
+            "/api/predict/", json={"data": [5, 5], "session_hash": "2", "fn_index": 0}
+        )
+        assert session_2.json()["data"][0] == 5
+        session_3 = client.post(
+            "/api/predict/", json={"data": [5, 5], "session_hash": "3", "fn_index": 0}
+        )
+        assert session_3.json()["data"][0] == 5
+        session_1 = client.post(
+            "/api/predict/", json={"data": [2, 2], "session_hash": "1", "fn_index": 0}
+        )
+        assert (
+            "error" not in session_1.json()
+        )  # no error because sesssion 1 block config was lost when session 3 was added
 
 
 class TestCallFunction:

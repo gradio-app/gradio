@@ -498,7 +498,7 @@ class App(FastAPI):
                 else:
                     iterators = app.iterators[session_hash]
             else:
-                session_state = SessionState()
+                session_state = SessionState(app.get_blocks())
                 iterators = {}
 
             event_id = getattr(body, "event_id", None)
