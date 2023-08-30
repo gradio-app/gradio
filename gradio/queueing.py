@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import json
 import time
 import traceback
 from asyncio import TimeoutError as AsyncTimeOutError
@@ -399,7 +400,18 @@ class Queue:
             traceback.print_exc()
             raise Exception(str(error) if show_error else None) from error
 
-        return output
+        # To emulate the HTTP response from the predict API,
+        # convert the output to a JSON response string.
+        # This is done by FastAPI automatically in the HTTP endpoint handlers,
+        # but we need to do it manually here.
+        response_class = app.router.default_response_class
+        http_response = response_class(
+            output
+        )  # Do the same as https://github.com/tiangolo/fastapi/blob/0.87.0/fastapi/routing.py#L264
+        # Also, decode the JSON string to a Python object, emulating the HTTP client behavior e.g. the `json()` method of `httpx`.
+        response_json = json.loads(http_response.body.decode())
+
+        return response_json
 
     async def process_events(self, events: list[Event], batch: bool) -> None:
         awake_events: list[Event] = []
