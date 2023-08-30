@@ -21,7 +21,6 @@ import time
 import traceback
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import defaultdict
-from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 from urllib.parse import urlparse
@@ -55,6 +54,7 @@ from gradio.exceptions import Error
 from gradio.helpers import EventData
 from gradio.oauth import attach_oauth
 from gradio.queueing import Estimation, Event
+from gradio.state_holder import SessionState, StateHolder
 from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
 
 mimetypes.init()
@@ -109,7 +109,7 @@ class App(FastAPI):
         self.tokens = {}
         self.auth = None
         self.blocks: gradio.Blocks | None = None
-        self.state_holder = {}
+        self.state_holder = StateHolder()
         self.iterators = defaultdict(dict)
         self.iterators_to_reset = defaultdict(set)
         self.lock = asyncio.Lock()
@@ -141,6 +141,7 @@ class App(FastAPI):
         self.favicon_path = blocks.favicon_path
         self.tokens = {}
         self.root_path = blocks.root_path
+        self.state_holder.set_blocks(blocks)
 
     def get_blocks(self) -> gradio.Blocks:
         if self.blocks is None:
@@ -450,12 +451,6 @@ class App(FastAPI):
             fn_index = body.fn_index
             session_hash = getattr(body, "session_hash", None)
             if session_hash is not None:
-                if session_hash not in app.state_holder:
-                    app.state_holder[session_hash] = {
-                        _id: deepcopy(getattr(block, "value", None))
-                        for _id, block in app.get_blocks().blocks.items()
-                        if getattr(block, "stateful", False)
-                    }
                 session_state = app.state_holder[session_hash]
                 # The should_reset set keeps track of the fn_indices
                 # that have been cancelled. When a job is cancelled,
@@ -468,7 +463,7 @@ class App(FastAPI):
                 else:
                     iterators = app.iterators[session_hash]
             else:
-                session_state = {}
+                session_state = SessionState()
                 iterators = {}
 
             event_id = getattr(body, "event_id", None)
@@ -481,7 +476,7 @@ class App(FastAPI):
                 body.event_data,
             )
             batch = dependency["batch"]
-            if not (body.batched) and batch:
+            if not body.batched and batch:
                 raw_input = [raw_input]
             try:
                 with utils.MatplotlibBackendMananger():
@@ -518,7 +513,7 @@ class App(FastAPI):
                     status_code=500,
                 )
 
-            if not (body.batched) and batch:
+            if not body.batched and batch:
                 output["data"] = output["data"][0]
             return output
 

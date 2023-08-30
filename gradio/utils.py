@@ -10,7 +10,6 @@ import json
 import json.decoder
 import os
 import pkgutil
-import pprint
 import random
 import re
 import time
@@ -173,7 +172,7 @@ def assert_configs_are_equivalent_besides_ids(
     """
     config1 = copy.deepcopy(config1)
     config2 = copy.deepcopy(config2)
-    config1 = json.loads(json.dumps(config1)) # convert tuples to lists
+    config1 = json.loads(json.dumps(config1))  # convert tuples to lists
     config2 = json.loads(json.dumps(config2))
 
     for key in root_keys:

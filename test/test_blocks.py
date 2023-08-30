@@ -10,7 +10,6 @@ import tempfile
 import time
 import unittest.mock as mock
 import uuid
-import warnings
 from concurrent.futures import wait
 from contextlib import contextmanager
 from functools import partial

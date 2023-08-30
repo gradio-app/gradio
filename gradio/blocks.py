@@ -46,6 +46,7 @@ from gradio.exceptions import (
     InvalidBlockError,
 )
 from gradio.helpers import EventData, create_tracker, skip, special_args
+from gradio.state_holder import SessionState
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
 from gradio.tunneling import (
@@ -141,6 +142,7 @@ class Block:
         self.parent: BlockContext | None = None
         self.is_rendered: bool = False
         self.update_config: dict
+        self.state_session_capacity = 10000
 
         if render:
             self.render()
@@ -1254,7 +1256,7 @@ Received inputs:
     [{received}]"""
             )
 
-    def preprocess_data(self, fn_index: int, inputs: list[Any], state: dict[int, Any]):
+    def preprocess_data(self, fn_index: int, inputs: list[Any], state: SessionState):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
@@ -1273,8 +1275,10 @@ Received inputs:
                     block, components.Component
                 ), f"{block.__class__} Component with id {input_id} not a valid input component."
                 if getattr(block, "stateful", False):
-                    processed_input.append(state.get(input_id))
+                    processed_input.append(state[input_id])
                 else:
+                    if input_id in state:
+                        block = state[input_id]
                     processed_input.append(block.preprocess(inputs[i]))
         else:
             processed_input = inputs
@@ -1317,7 +1321,7 @@ Received outputs:
             )
 
     def postprocess_data(
-        self, fn_index: int, predictions: list | dict, state: dict[int, Any]
+        self, fn_index: int, predictions: list | dict, state: SessionState
     ):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
@@ -1410,7 +1414,7 @@ Received outputs:
         self,
         fn_index: int,
         inputs: list[Any],
-        state: dict[int, Any],
+        state: SessionState,
         request: routes.Request | list[routes.Request] | None = None,
         iterators: dict[int, Any] | None = None,
         session_hash: str | None = None,
@@ -1494,6 +1498,19 @@ Received outputs:
                     session_hash=session_hash,
                     run=id(old_iterator) if was_generating else id(iterator),
                 )
+            for component_id, component_output in zip(
+                self.dependencies[fn_index]["outputs"], data
+            ):
+                if utils.is_update(component_output):
+                    block = (
+                        state[component_id]
+                        if component_id in state
+                        else copy.copy(self.blocks[component_id])
+                    )
+                    for k, v in component_output.items():
+                        if k not in ("value", "__type__"):
+                            setattr(block, k, v)
+                    state[component_id] = block
 
         block_fn.total_runtime += result["duration"]
         block_fn.total_runs += 1
@@ -1797,6 +1814,7 @@ Received outputs:
         root_path: str | None = None,
         _frontend: bool = True,
         app_kwargs: dict[str, Any] | None = None,
+        state_session_capacity: int = 10000,
     ) -> tuple[FastAPI, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -1831,6 +1849,7 @@ Received outputs:
             blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default.
             root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". Can be set by environment variable GRADIO_ROOT_PATH. Defaults to "".
             app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
+            state_session_capacity: The maximum number of sessions that can be stored in the state. If the number of sessions exceeds this number, the oldest sessions will be removed. This prevents memory leaks when using stateful components or updates. Defaults to 10000.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -1870,6 +1889,7 @@ Received outputs:
         self.width = width
         self.favicon_path = favicon_path
         self.ssl_verify = ssl_verify
+        self.state_session_capacity = state_session_capacity
         if root_path is None:
             self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         else:
