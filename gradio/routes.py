@@ -48,6 +48,7 @@ import gradio.ranged_response as ranged_response
 from gradio import route_utils, utils, wasm_utils
 from gradio.context import Context
 from gradio.data_classes import PredictBody, ResetBody
+from gradio.deprecation import warn_deprecation
 from gradio.exceptions import Error
 from gradio.oauth import attach_oauth
 from gradio.queueing import Estimation, Event
@@ -652,7 +653,7 @@ def mount_gradio_app(
         app: The parent FastAPI application.
         blocks: The blocks object we want to mount to the parent app.
         path: The path at which the gradio application will be mounted.
-        gradio_api_url: The full url at which the gradio app will run. This is only needed if deploying to Huggingface spaces of if the websocket endpoints of your deployed app are on a different network location than the gradio app. If deploying to spaces, set gradio_api_url to 'http://localhost:7860/'
+        gradio_api_url: Deprecated and has no effect.
         app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
     Example:
         from fastapi import FastAPI
@@ -669,6 +670,9 @@ def mount_gradio_app(
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()
     gradio_app = App.create_app(blocks, app_kwargs=app_kwargs)
+
+    if gradio_api_url is not None:
+        warn_deprecation("gradio_api_url is deprecated and has not effect.")
 
     @app.on_event("startup")
     async def start_queue():
