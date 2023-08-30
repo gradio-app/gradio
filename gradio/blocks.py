@@ -648,7 +648,7 @@ class Blocks(BlockContext):
 
     @property
     def _is_running_in_reload_thread(self):
-        from gradio.reload import reload_thread
+        from gradio.cli.commands.reload import reload_thread
 
         return getattr(reload_thread, "running_reload", False)
 

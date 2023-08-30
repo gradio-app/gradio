@@ -143,7 +143,7 @@ def watchfn(reloader: SourceFileReloader):
     # The thread running watchfn will be the thread reloading
     # the app. So we need to modify this thread_data attr here
     # so that subsequent calls to reload don't launch the app
-    from gradio.reload import reload_thread
+    from gradio.cli.commands.reload import reload_thread
 
     reload_thread.running_reload = True
 
