@@ -6,4 +6,4 @@
 "website": minor
 ---
 
-feat:Adds `height` and `zoom_speed` parameters to `Model3D` component
+feat:Adds `height` and `zoom_speed` parameters to `Model3D` component, as well as a button to reset the camera position
