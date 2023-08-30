@@ -96,7 +96,10 @@
 		{#if value !== null}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
-					<div class="message-row {j == 0 ? 'user-row' : 'bot-row'}">
+					<div
+						class="message-row {j == 0 ? 'user-row' : 'bot-row'}"
+						class:hide={message === null}
+					>
 						{#if avatar_images[j] !== null}
 							<div class="avatar-container">
 								<img
@@ -118,7 +121,6 @@
 							class:latest={i === value.length - 1}
 							class="message {j == 0 ? 'user' : 'bot'}"
 							class:message-fit={!bubble_full_width}
-							class:hide={message === null}
 							class:selectable
 							on:click={() => handle_select(i, j, message)}
 							dir={rtl ? "rtl" : "ltr"}
