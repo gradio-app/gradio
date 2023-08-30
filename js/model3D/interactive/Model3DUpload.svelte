@@ -118,6 +118,7 @@
 			absolute
 		/>
 		<canvas bind:this={canvas} />
+		
 	</div>
 {/if}
 
