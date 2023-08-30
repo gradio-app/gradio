@@ -9,7 +9,11 @@
 	export let undoable = false;
 	export let absolute = true;
 
-	const dispatch = createEventDispatcher<{ edit: never; clear: never }>();
+	const dispatch = createEventDispatcher<{
+		edit: never;
+		clear: never;
+		undo: never;
+	}>();
 </script>
 
 <div

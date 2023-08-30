@@ -72,7 +72,7 @@
 {#if value}
 	<div class="model3D">
 		<div class="buttons">
-			<IconButton Icon={Undo} label="Undo" on:click={() => dispose()}/>
+			<IconButton Icon={Undo} label="Undo" on:click={() => dispose()} />
 			<a
 				href={value.data}
 				target={window.__is_colab__ ? "_blank" : null}
