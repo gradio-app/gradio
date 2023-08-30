@@ -14,9 +14,6 @@ jobs:
       sha: ${{ steps.set-outputs.outputs.gh_sha }}
       gradio_version: ${{ steps.set-outputs.outputs.gradio_version }}
     runs-on: ubuntu-latest
-    if: >
-      github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.conclusion == 'success'
     steps:
     - uses: actions/checkout@v3
     - name: Install Python
@@ -51,6 +48,9 @@ jobs:
     - run: unzip all_demos.zip -d all_demos
     - run: cp -R all_demos/* demo/all_demos
     - name: Upload demo to spaces
+      if: >
+        github.event.workflow_run.event == 'pull_request' &&
+        github.event.workflow_run.conclusion == 'success'
       id: upload-demo
       run: |
         python scripts/upload_demo_to_space.py all_demos \
@@ -58,6 +58,14 @@ jobs:
         ${{ secrets.SPACES_DEPLOY_TOKEN }} \
         --gradio-version ${{ steps.set-outputs.outputs.gradio_version }} > url.txt
         echo "SPACE_URL=$(cat url.txt)" >> $GITHUB_OUTPUT
+    - name: Upload website demos 
+      if: >
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.conclusion == 'success'
+      run: |
+        python scripts/upload_website_demos.py --AUTH_TOKEN ${{ secrets.SPACES_DEPLOY_TOKEN }} \
+        --WHEEL_URL https://gradio-builds.s3.amazonaws.com/${{ steps.set-outputs.outputs.gh_sha }}/ \
+
   comment-spaces-success:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [deploy-current-pr]
