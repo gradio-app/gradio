@@ -24,7 +24,7 @@ class StateHolder:
             self.cache[key] = SessionState(self.blocks)
         self.update(key)
         return self.cache[key]
-    
+
     def __contains__(self, key: int):
         return key in self.cache
 
