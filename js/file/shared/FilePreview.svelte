@@ -133,7 +133,7 @@
 	}
 
 	tbody > tr:nth-child(even) {
-		background-color: var(--table-even-background-fill);
+		background-color: var(--block-background-fill);
 	}
 
 	tbody > tr:nth-child(odd) {
