@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from copy import deepcopy
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 import fastapi
 from gradio_client.documentation import document, set_documentation_group
@@ -85,8 +87,8 @@ class Request:
 
     def __init__(
         self,
-        request: Union[fastapi.Request, None] = None,
-        username: Union[str, None] = None,
+        request: fastapi.Request | None = None,
+        username: str | None = None,
         **kwargs,
     ):
         """
@@ -97,7 +99,7 @@ class Request:
         """
         self.request = request
         self.username = username
-        self.kwargs: Dict = kwargs
+        self.kwargs: dict = kwargs
 
     def dict_to_obj(self, d):
         if isinstance(d, dict):
@@ -122,7 +124,7 @@ class FnIndexInferError(Exception):
     pass
 
 
-def infer_fn_index(app: "App", api_name: str, body: PredictBody) -> int:
+def infer_fn_index(app: App, api_name: str, body: PredictBody) -> int:
     if body.fn_index is None:
         for i, fn in enumerate(app.get_blocks().dependencies):
             if fn["api_name"] == api_name:
@@ -134,7 +136,7 @@ def infer_fn_index(app: "App", api_name: str, body: PredictBody) -> int:
 
 
 def compile_gr_request(
-    app: "App",
+    app: App,
     body: PredictBody,
     fn_index_inferred: int,
     username: Optional[str],
@@ -158,7 +160,7 @@ def compile_gr_request(
     return gr_request
 
 
-def restore_session_state(app: "App", body: PredictBody):
+def restore_session_state(app: App, body: PredictBody):
     fn_index = body.fn_index
     session_hash = getattr(body, "session_hash", None)
     if session_hash is not None:
@@ -187,9 +189,9 @@ def restore_session_state(app: "App", body: PredictBody):
 
 
 async def call_process_api(
-    app: "App",
+    app: App,
     body: PredictBody,
-    gr_request: Union[Request, List[Request]],
+    gr_request: Union[Request, list[Request]],
     session_state,
     iterators,
     fn_index_inferred,
