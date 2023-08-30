@@ -31,6 +31,7 @@ export async function load({ params, url }) {
 	let routes = docs_json.docs.routes;
 	let py_client = docs_json.docs["py-client"];
 	let js_client = docs_json.js_client;
+	let on_main = params?.version === "main";
 
 	return {
 		docs,
@@ -38,6 +39,7 @@ export async function load({ params, url }) {
 		helpers,
 		routes,
 		py_client,
-		js_client
+		js_client,
+		on_main
 	};
 }

@@ -17,6 +17,7 @@
 	let helpers = data.helpers;
 	let routes = data.routes;
 	let py_client = data.py_client;
+	let on_main: boolean;
 
 	let headers: [string, string][];
 	let method_headers: [string, string][];
@@ -58,6 +59,7 @@
 
 	$: obj = data.obj;
 	$: mode = data.mode;
+	$: on_main = data.on_main;
 </script>
 
 <MetaTags
@@ -166,11 +168,12 @@
 							<div class="embedded-component">
 								{#key obj.name}
 									{#if obj.name !== "State"}
-									<gradio-app
-										space={"gradio/" +
-											obj.name.toLowerCase() +
-											"_component_main"}
-									/>
+											<gradio-app
+												space={"gradio/" +
+													obj.name.toLowerCase() +
+													"_component" +
+													(on_main ? "_main" : "")}
+											/>
 									{/if}
 								{/key}
 							</div>
@@ -210,7 +213,7 @@
 										<span class="text-gray-700"
 											>Format expected for examples:</span
 										>
-										{@html obj.examples_format}}
+										{@html obj.examples_format}
 									</p>
 								{/if}
 								{#if obj.events && obj.events.length > 0}
@@ -385,6 +388,7 @@
 															name={demo[0]}
 															code={demo[1]}
 															highlighted_code={demo[2]}
+															on_main={on_main}
 														/>
 													</div>
 												{/each}

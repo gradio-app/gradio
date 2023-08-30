@@ -14,7 +14,7 @@ const COLOR_SETS = [
 ];
 
 export async function load({ params, parent }) {
-	const { docs, components, helpers, py_client, routes } = await parent();
+	const { docs, components, helpers, py_client, routes, on_main } = await parent();
 
 	let name = params.doc;
 	let obj;
@@ -113,6 +113,7 @@ export async function load({ params, parent }) {
 		py_client,
 		COLOR_SETS,
 		headers,
-		method_headers
+		method_headers,
+		on_main
 	};
 }
