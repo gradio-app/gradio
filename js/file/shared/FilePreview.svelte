@@ -17,7 +17,6 @@
 	class="file-preview-holder"
 	style="max-height: {typeof height === undefined ? 'auto' : height + 'px'};"
 >
-	<div class="scroll-shadows"></div>
 	<table class="file-preview">
 		<tbody>
 			{#each Array.isArray(value) ? value : [value] as file, i}
@@ -64,9 +63,9 @@
 		width: 10%;
 		text-align: right;
 	}
-	.scroll-shadows {
-		position: absolute;
-		height: 100%;
+	.file-preview-holder {
+		overflow-x: auto;
+		overflow-y: auto;
 		
 		background:
 		/* Shadow covers */
@@ -90,12 +89,6 @@
 		
 		/* Opera doesn't support this in the shorthand */
 		background-attachment: local, local, scroll, scroll;
-
-	}
-	.file-preview-holder {
-		overflow-x: auto;
-		overflow-y: auto;
-		
 	}
 	.file-preview {
 		width: var(--size-full);
@@ -133,10 +126,10 @@
 	}
 
 	tbody > tr:nth-child(even) {
-		background-color: var(--block-background-fill);
+		background: var(--block-background-fill);
 	}
 
 	tbody > tr:nth-child(odd) {
-		background-color: var(--table-odd-background-fill);
+		background: var(--table-odd-background-fill);
 	}
 </style>
