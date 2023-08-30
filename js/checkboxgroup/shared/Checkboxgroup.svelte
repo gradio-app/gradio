@@ -6,7 +6,7 @@
 	export let value: (string | number)[] = [];
 	let old_value: (string | number)[] = value.slice();
 	export let value_is_output = false;
-	export let choices: [string, number][];
+	export let choices: [string, string | number][];
 	export let disabled = false;
 	export let label: string;
 	export let info: string | undefined = undefined;
