@@ -14,8 +14,6 @@
 	export let show_label: boolean;
 	export let zoom_speed = 1;
 
-	console.log(value);
-
 	// alpha, beta, radius
 	export let camera_position: [number | null, number | null, number | null] = [
 		null,
