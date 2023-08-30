@@ -6,7 +6,7 @@ import time
 import traceback
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import deque
-from typing import Any, Optional
+from typing import Any
 
 import fastapi
 from typing_extensions import Literal
