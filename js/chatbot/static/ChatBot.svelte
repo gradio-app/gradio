@@ -21,7 +21,7 @@
 		display: boolean;
 	}[];
 	export let pending_message = false;
-	export let feedback: string[] | null = null;
+	export let feedback: string[] | null = ["test1", "test2"];
 	export let selectable = false;
 	export let show_share_button = false;
 	export let rtl = false;
