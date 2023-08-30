@@ -75,8 +75,6 @@ artifacts = [
 
 [tool.hatch.build.hooks.custom]
 path = ".config/copy_frontend.py"
-require-runtime-dependencies = true
-
 
 [tool.hatch.build.targets.sdist]
 include = [
