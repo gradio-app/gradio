@@ -30,7 +30,7 @@
 	"dependencies": {
 		"@sindresorhus/slugify": "^2.2.0",
 		"@sveltejs/adapter-vercel": "^3.0.3",
-		"hast-util-to-string": "^2.0.0",
+		"hast-util-to-string": "^3.0.0",
 		"mdsvex": "^0.11.0",
 		"postcss": ">=8.3.3 <9.0.0"
 	}
