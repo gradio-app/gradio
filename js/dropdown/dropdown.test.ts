@@ -1,4 +1,4 @@
-import { test, describe, assert, afterEach } from "vitest";
+import { test, describe, assert, afterEach, vi } from "vitest";
 import { cleanup, fireEvent, render, get_text, wait } from "@gradio/tootils";
 import event from "@testing-library/user-event";
 import { setupi18n } from "../app/src/i18n";
@@ -18,7 +18,10 @@ const loading_status: LoadingStatus = {
 };
 
 describe("Dropdown", () => {
-	afterEach(() => cleanup());
+	afterEach(() => {
+		cleanup();
+		vi.useRealTimers();
+	});
 	beforeEach(() => {
 		setupi18n();
 	});
@@ -87,7 +90,55 @@ describe("Dropdown", () => {
 		expect(options[0]).toContainHTML("zebra");
 	});
 
+	test("blurring the textbox should cancel the filter", async () => {
+		const { getByLabelText, listen } = await render(Dropdown, {
+			show_label: true,
+			loading_status,
+			value: "default",
+			label: "Dropdown",
+			choices: ["default", "other"]
+		});
+
+		const item: HTMLInputElement = getByLabelText(
+			"Dropdown"
+		) as HTMLInputElement;
+		const change_event = listen("change");
+		const select_event = listen("select");
+
+		await item.focus();
+		await event.keyboard("other");
+		await item.blur();
+
+		assert.equal(item.value, "default");
+		assert.equal(change_event.callCount, 0);
+		assert.equal(select_event.callCount, 0);
+	});
+
+	test("focusing the label should toggle the options", async () => {
+		const { getByLabelText, listen } = await render(Dropdown, {
+			show_label: true,
+			loading_status,
+			value: "default",
+			label: "Dropdown",
+			choices: ["default", "other"]
+		});
+
+		const item: HTMLInputElement = getByLabelText(
+			"Dropdown"
+		) as HTMLInputElement;
+		const blur_event = listen("blur");
+		const focus_event = listen("focus");
+
+		await item.focus();
+		await item.blur();
+		await item.focus();
+
+		assert.equal(blur_event.callCount, 1);
+		assert.equal(focus_event.callCount, 1);
+	});
+
 	test("deselecting and reselcting a filtered dropdown should show all options again", async () => {
+		vi.useFakeTimers();
 		const { getByLabelText, getAllByTestId, debug } = await render(Dropdown, {
 			show_label: true,
 			loading_status,
@@ -108,6 +159,8 @@ describe("Dropdown", () => {
 		expect(options).toHaveLength(1);
 
 		await item.blur();
+		// Mock 100ms delay between interactions.
+		vi.runAllTimers();
 		await item.focus();
 		const options_new = getAllByTestId("dropdown-option");
 
