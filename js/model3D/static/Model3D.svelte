@@ -36,7 +36,6 @@
 			engine?.resize();
 		});
 		mounted = true;
-		console.log(engine)
 	});
 
 	$: ({ data, name } = value || {
