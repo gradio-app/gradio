@@ -31,13 +31,10 @@ classifiers = [
 
 [tool.hatch.build]
 artifacts = [
-  "/<<name>>/templates",
+  "/backend/<<name>>/templates",
   "*.pyi"
 ]
-
-# [tool.hatch.build.hooks.custom]
-# path = "backend/build/generate_interface_files.py"
-# require-runtime-dependencies = true
+packages = ["/backend/<<name>>"]
 
 [tool.hatch.metadata]
 allow-direct-references = true

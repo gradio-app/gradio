@@ -1,13 +1,19 @@
 """Create a custom component template"""
+import inspect
 import json
 import pathlib
 import shutil
+import subprocess
 import textwrap
-import inspect
-import gradio
+import time
+
 import typer
+from rich import print
+from rich.live import Live
+from rich.panel import Panel
 from typing_extensions import Annotated
-from gradio.components import generate_stubs
+
+import gradio
 
 package_json = {
     "name": "<component-name>",
@@ -54,6 +60,7 @@ def _create_frontend(name: str, template: str):
             _create_frontend_dir(name, dir)
     else:
         p = pathlib.Path(inspect.getfile(gradio)).parent
+
         def ignore(s, names):
             ignored = []
             for n in names:
@@ -77,39 +84,28 @@ def _create_frontend(name: str, template: str):
 
 
 def _create_backend(name: str, template: str):
-    backend = pathlib.Path(name.lower()) / name.lower()
-    backend.mkdir(exist_ok=True)
-    build_dir = backend / "build"
-    build_dir.mkdir(exist_ok=True)
+    backend = pathlib.Path(name.lower()) / "backend" / name.lower()
+    backend.mkdir(exist_ok=True, parents=True)
 
-    build_hook = pathlib.Path(__file__).parent / "files" / "generate_interface_files.py"
+    gitignore = pathlib.Path(__file__).parent / "files" / "gitignore"
+    gitignore_contents = gitignore.read_text()
+    gitignore_dest = pathlib.Path(name.lower()) / ".gitignore"
+    gitignore_dest.write_text(gitignore_contents)
 
-    shutil.copy(
-            str(build_hook),
-            str(build_dir / "generate_interface_files.py"),
-        )
-    
     pyproject = pathlib.Path(__file__).parent / "files" / "pyproject_.toml"
     pyproject_contents = pyproject.read_text()
-    pyproject_dest =  pathlib.Path(name.lower()) / "pyproject.toml"
+    pyproject_dest = pathlib.Path(name.lower()) / "pyproject.toml"
     pyproject_dest.write_text(pyproject_contents.replace("<<name>>", name.lower()))
 
-    shutil.copy(
-            str(build_hook),
-            str(build_dir / "generate_interface_files.py"),
-        )
-
     init = backend / "__init__.py"
-    init.touch(exist_ok=True)
-
-    init_contents = textwrap.dedent(f"""
+    init.write_text(
+        f"""
 from .{name.lower()} import {name}
 
-{inspect.getsource(generate_stubs)}
-    """)
+__all__ = ['{name}']
+"""
+    )
 
-    init.write_text(init_contents)
-    
     if not template:
         backend = backend / f"{name.lower()}.py"
         backend.write_text(
@@ -135,39 +131,110 @@ from .{name.lower()} import {name}
         source_pyi_file = p / "components" / f"{template.lower()}.pyi"
         pyi_file = backend / f"{name.lower()}.pyi"
         if source_pyi_file.exists():
-            shutil.copy(
-                str(source_pyi_file),
-                str(pyi_file)
-            )
+            shutil.copy(str(source_pyi_file), str(pyi_file))
 
         content = python_file.read_text()
         python_file.write_text(content.replace(f"class {template}", f"class {name}"))
+        if pyi_file.exists():
+            pyi_content = pyi_file.read_text()
+            pyi_file.write_text(
+                pyi_content.replace(f"class {template}", f"class {name}")
+            )
 
-        pyi_content = pyi_file.read_text()
-        pyi_file.write_text(pyi_content.replace(f"class {template}", f"class {name}"))
 
-
-@app.command("create")
+@app.command("create", help="Create a new component.")
 def _create(
-    name: str,
-    template: Annotated[str, typer.Option(help="Component to use as a template.")] = "",
+    name: Annotated[
+        str,
+        typer.Argument(
+            help="Name of the component. Preferably in camel case, i.e. MyTextBox."
+        ),
+    ],
+    template: Annotated[
+        str,
+        typer.Option(
+            help="Component to use as a template. Should use exact name of python class."
+        ),
+    ] = "",
+    install: Annotated[
+        bool,
+        typer.Option(
+            help="Whether to install the component in your current environment as a local install"
+        ),
+    ] = False,
 ):
     pathlib.Path(name.lower()).mkdir(exist_ok=True)
 
-    _create_frontend(name.lower(), template)
-    _create_backend(name, template)
+    all_lines = [
+        f":building_construction:  Creating component [orange3]{name}[/] in directory [orange3]{name.lower()}[/]"
+    ]
+    with Live(Panel("\n".join(all_lines)), refresh_per_second=5) as live:
+        if template:
+            all_lines.append(f":fax: Starting from template [orange3]{template}[/]")
+        else:
+            all_lines.append(":page_facing_up: Creating a new component")
+        time.sleep(0.2)
+        live.update(Panel("\n".join(all_lines)))
+        _create_frontend(name.lower(), template)
+        all_lines.append(":art: Created frontend code")
+        live.update(Panel("\n".join(all_lines)))
+        _create_backend(name, template)
+        time.sleep(0.2)
+        all_lines.append(":snake: Created backend code")
+        live.update(Panel("\n".join(all_lines)))
+        if install:
+            cmds = ["pip", "install", "-e", f"{name.lower()}"]
+            all_lines.append(
+                f":construction_worker: Installing... [grey37]({' '.join(cmds)})[/]"
+            )
+            live.update(Panel("\n".join(all_lines)))
+            pipe = subprocess.run(cmds, capture_output=True, text=True)
+            if pipe.returncode != 0:
+                all_lines.append(":red_square: Installation [bold][red]failed[/][/]")
+                all_lines.append(pipe.stderr)
+            else:
+                all_lines.append(":white_check_mark: Install succeeded!")
+            live.update(Panel("\n".join(all_lines)))
 
 
-@app.command("develop")
+@app.command("dev")
 def dev():
-    # Pete adds code here to spin up local front-end 
+    # Pete adds code here to spin up local front-end
     # and backend servers in development mode
-    print("TODO")
+    print("[bold red]TODO![/bold red]")
 
 
-@app.command("build")
-def build():
-    print("build")
+@app.command(
+    "build",
+    help="Build the component for distribution. Must be called from the component directory.",
+)
+def build(
+    build_frontend: Annotated[
+        bool, typer.Argument(help="Whether to build the frontend as well..")
+    ] = True
+):
+    name = pathlib.Path(".").resolve()
+    all_lines = [f":package: Building package in [orange3]{str(name.name)}[/]"]
+    with Live(Panel("\n".join(all_lines)), refresh_per_second=5) as live:
+        time.sleep(0.25)
+        if build_frontend:
+            all_lines.append(":art: Building frontend")
+        live.update(Panel("\n".join(all_lines)))
+        cmds = ["python", "-m", "build"]
+        pipe = subprocess.run(cmds, capture_output=True, text=True)
+        all_lines.append(
+            f":construction_worker: Building... [grey37]({' '.join(cmds)})[/]"
+        )
+        if pipe.returncode != 0:
+            all_lines.append(":red_square: Build failed!")
+            all_lines.append(pipe.stderr)
+        else:
+            all_lines.append(":white_check_mark: Build succeeded!")
+            all_lines.append(
+                f":ferris_wheel: Wheel located in [orange3]{str(name / 'dist')}[/]"
+            )
+        live.update(Panel("\n".join(all_lines)))
+        all_lines.append("")
 
 
 def main():

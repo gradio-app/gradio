@@ -19,12 +19,3 @@ class BuildHook(BuildHookInterface):
                                 str(pathlib.Path("gradio") / "_frontend_code" / entry.name),
                                 ignore=lambda d, names: ["node_modules"],
                                 dirs_exist_ok=True)
-        import sys
-        sys.path.insert(0, str(pathlib.Path("./client/python")))
-        sys.path.insert(0, str(pathlib.Path("./")))
-        try:
-            import gradio.components
-            gradio.components.generate_stubs()
-        finally:
-            sys.path.remove(str(pathlib.Path("./client/python")))
-            sys.path.remove(str(pathlib.Path("./")))
