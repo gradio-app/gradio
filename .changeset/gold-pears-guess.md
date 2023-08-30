@@ -1,5 +1,7 @@
 ---
+"@gradio/app": minor
 "@gradio/model3d": minor
+"@gradio/upload": minor
 "gradio": minor
 ---
 
