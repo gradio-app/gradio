@@ -60,6 +60,12 @@ export const add_new_model = (
 			if (camera_position[2] !== null) {
 				helperCamera.radius = camera_position[2];
 			}
+			helperCamera.wheelPrecision = 2500;
+			// Disable panning for ctrl + click and right click events and possible hack to fix zoom.
+			helperCamera.panningSensibility = 0;
+			// From: https://playground.babylonjs.com/#4U6TVQ#3
+			helperCamera.attachControl(false, false, -1);
+			helperCamera.pinchToPanMaxDistance = 0;
 		},
 		undefined,
 		undefined,
