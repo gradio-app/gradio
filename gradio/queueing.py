@@ -37,7 +37,7 @@ class Event:
         self._id = f"{self.session_hash}_{self.fn_index}"
         self.data: PredictBody | None = None
         self.lost_connection_time: float | None = None
-        self.username: Optional[str] = None
+        self.username: str | None = None
         self.progress: Progress | None = None
         self.progress_pending: bool = False
         self.log_messages: deque[LogMessage] = deque()
