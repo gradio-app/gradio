@@ -12,6 +12,9 @@
 	export let clear_color: [number, number, number, number] = [0, 0, 0, 0];
 	export let label = "";
 	export let show_label: boolean;
+	export let zoom_speed = 1;
+
+	console.log(value);
 
 	// alpha, beta, radius
 	export let camera_position: [number | null, number | null, number | null] = [
@@ -33,6 +36,7 @@
 			engine?.resize();
 		});
 		mounted = true;
+		console.log(engine)
 	});
 
 	$: ({ data, name } = value || {
@@ -54,7 +58,7 @@
 			});
 		}
 		if (engine !== null) {
-			add_new_model(canvas, scene, engine, value, clear_color, camera_position);
+			add_new_model(canvas, scene, engine, value, clear_color, camera_position, zoom_speed);
 		}
 	}
 </script>

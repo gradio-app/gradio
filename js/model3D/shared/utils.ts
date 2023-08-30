@@ -7,7 +7,8 @@ export const add_new_model = (
 	engine: BABYLON.Engine,
 	value: FileData | null,
 	clear_color: [number, number, number, number],
-	camera_position: [number | null, number | null, number | null]
+	camera_position: [number | null, number | null, number | null],
+	zoom_speed: number
 ): void => {
 	if (scene && !scene.isDisposed && engine) {
 		scene.dispose();
@@ -28,7 +29,6 @@ export const add_new_model = (
 	});
 
 	if (!value) return;
-
 	let url: string;
 	if (value.is_file) {
 		url = value.data;
@@ -59,12 +59,11 @@ export const add_new_model = (
 			if (camera_position[2] !== null) {
 				helperCamera.radius = camera_position[2];
 			}
-			// Disable panning for ctrl + click and right click events and possible hack to fix zoom.
-			// From: https://playground.babylonjs.com/#4U6TVQ#3
+			// Disable panning. Adapted from: https://playground.babylonjs.com/#4U6TVQ#3
 			helperCamera.panningSensibility = 0;
 			helperCamera.attachControl(false, false, -1);
 			helperCamera.pinchToPanMaxDistance = 0;
-			helperCamera.wheelPrecision = 2500;
+			helperCamera.wheelPrecision = 2500 / zoom_speed;
 		},
 		undefined,
 		undefined,
