@@ -12,6 +12,7 @@
 	export let visible = true;
 	export let value: [string, string | number][];
 	let old_value: [string, string | number][];
+	export let mode: "static" | "interactive";
 	export let show_legend: boolean;
 	export let color_map: Record<string, string> = {};
 	export let label = $_("highlighted_text.highlighted_text");
@@ -39,6 +40,7 @@
 </script>
 
 <Block
+	variant={mode === "interactive" ? "dashed" : "solid"}
 	test_id="highlighted-text"
 	{visible}
 	{elem_id}
