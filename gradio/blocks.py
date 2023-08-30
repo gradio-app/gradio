@@ -1414,7 +1414,7 @@ Received outputs:
         self,
         fn_index: int,
         inputs: list[Any],
-        state: SessionState,
+        state: SessionState | None = None,
         request: routes.Request | list[routes.Request] | None = None,
         iterators: dict[int, Any] | None = None,
         session_hash: str | None = None,
@@ -1437,6 +1437,7 @@ Received outputs:
         """
         block_fn = self.fns[fn_index]
         batch = self.dependencies[fn_index]["batch"]
+        state = state or SessionState()
 
         if batch:
             max_batch_size = self.dependencies[fn_index]["max_batch_size"]

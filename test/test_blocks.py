@@ -193,7 +193,9 @@ class TestBlocksMethods:
 
             btn.click(greet, {first, last}, greeting)
 
-        result = await demo.process_api(inputs=["huggy", "face"], fn_index=0, state={})
+        result = await demo.process_api(
+            inputs=["huggy", "face"], fn_index=0, state=None
+        )
         assert result["data"] == ["Hello huggy face"]
 
     @pytest.mark.asyncio
@@ -208,7 +210,7 @@ class TestBlocksMethods:
             button.click(wait, [text], [text])
 
             start = time.time()
-            result = await demo.process_api(inputs=[1], fn_index=0, state={})
+            result = await demo.process_api(inputs=[1], fn_index=0, state=None)
             end = time.time()
             difference = end - start
             assert difference >= 0.01
@@ -619,7 +621,7 @@ class TestBlocksPostprocessing:
             )
 
         output = demo.postprocess_data(
-            0, [gr.update(value=None) for _ in io_components], state={}
+            0, [gr.update(value=None) for _ in io_components], state=None
         )
         assert all(
             o["value"] == c.postprocess(None) for o, c in zip(output, io_components)
@@ -635,7 +637,7 @@ class TestBlocksPostprocessing:
                 outputs=text,
             )
 
-        output = demo.postprocess_data(0, gr.update(value="NO_VALUE"), state={})
+        output = demo.postprocess_data(0, gr.update(value="NO_VALUE"), state=None)
         assert output[0]["value"] == "NO_VALUE"
 
     def test_blocks_does_not_del_dict_keys_inplace(self):
@@ -648,7 +650,7 @@ class TestBlocksPostprocessing:
             checkbox = gr.Checkbox(value=True, label="Show image")
             checkbox.change(change_visibility, inputs=checkbox, outputs=im_list)
 
-        output = demo.postprocess_data(0, [gr.update(visible=False)] * 2, state={})
+        output = demo.postprocess_data(0, [gr.update(visible=False)] * 2, state=None)
         assert output == [
             {"visible": False, "__type__": "update"},
             {"visible": False, "__type__": "update"},
@@ -665,10 +667,12 @@ class TestBlocksPostprocessing:
 
             update.click(update_values, inputs=[num], outputs=[num2])
 
-        output = demo.postprocess_data(0, {num2: gr.Number.update(value=42)}, state={})
+        output = demo.postprocess_data(
+            0, {num2: gr.Number.update(value=42)}, state=None
+        )
         assert output[0]["value"] == 42
 
-        output = demo.postprocess_data(0, {num2: 23}, state={})
+        output = demo.postprocess_data(0, {num2: 23}, state=None)
         assert output[0] == 23
 
     @pytest.mark.asyncio
@@ -683,7 +687,7 @@ class TestBlocksPostprocessing:
             share_button = gr.Button("share", visible=False)
             run_button.click(infer, prompt, [image, share_button], postprocess=False)
 
-        output = await demo.process_api(0, ["test"], state={})
+        output = await demo.process_api(0, ["test"], state=None)
         assert output["data"][0] == media_data.BASE64_IMAGE
         assert output["data"][1] == {"__type__": "update", "visible": True}
 
@@ -700,7 +704,7 @@ class TestBlocksPostprocessing:
             run_button = gr.Button()
             run_button.click(infer, [prompt], [image], postprocess=False)
 
-        output = await demo.process_api(0, ["test"], state={})
+        output = await demo.process_api(0, ["test"], state=None)
         assert output["data"][0] == {
             "__type__": "update",
             "value": media_data.BASE64_IMAGE,
@@ -727,7 +731,7 @@ class TestBlocksPostprocessing:
             run.click(generic_update, None, [image, textbox])
 
         for fn_index in range(2):
-            output = await demo.process_api(fn_index, [], state={})
+            output = await demo.process_api(fn_index, [], state=None)
             assert output["data"][0] == {
                 "__type__": "update",
                 "mode": "dynamic",
@@ -744,7 +748,7 @@ class TestBlocksPostprocessing:
             ValueError,
             match=r'An event handler didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:\n    \[textbox, textbox\]\nReceived outputs:\n    \["test"\]',
         ):
-            demo.postprocess_data(fn_index=0, predictions=["test"], state={})
+            demo.postprocess_data(fn_index=0, predictions=["test"], state=None)
 
     def test_error_raised_if_num_outputs_mismatch_with_function_name(self):
         def infer(x):
@@ -759,7 +763,7 @@ class TestBlocksPostprocessing:
             ValueError,
             match=r'An event handler \(infer\) didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:\n    \[textbox, textbox\]\nReceived outputs:\n    \["test"\]',
         ):
-            demo.postprocess_data(fn_index=0, predictions=["test"], state={})
+            demo.postprocess_data(fn_index=0, predictions=["test"], state=None)
 
     def test_error_raised_if_num_outputs_mismatch_single_output(self):
         with gr.Blocks() as demo:
@@ -771,7 +775,7 @@ class TestBlocksPostprocessing:
             ValueError,
             match=r"An event handler didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:\n    \[number, number\]\nReceived outputs:\n    \[1\]",
         ):
-            demo.postprocess_data(fn_index=0, predictions=1, state={})
+            demo.postprocess_data(fn_index=0, predictions=1, state=None)
 
     def test_error_raised_if_num_outputs_mismatch_tuple_output(self):
         def infer(a, b):
@@ -787,7 +791,7 @@ class TestBlocksPostprocessing:
             ValueError,
             match=r"An event handler \(infer\) didn\'t receive enough output values \(needed: 3, received: 2\)\.\nWanted outputs:\n    \[number, number, number\]\nReceived outputs:\n    \[1, 2\]",
         ):
-            demo.postprocess_data(fn_index=0, predictions=(1, 2), state={})
+            demo.postprocess_data(fn_index=0, predictions=(1, 2), state=None)
 
 
 class TestCallFunction:
@@ -1025,7 +1029,7 @@ class TestBatchProcessing:
                 btn = gr.Button()
                 btn.click(batch_fn, inputs=text, outputs=text, batch=True)
 
-            await demo.process_api(0, [["Adam", "Yahya"]], state={})
+            await demo.process_api(0, [["Adam", "Yahya"]], state=None)
 
     @pytest.mark.asyncio
     async def test_exceeds_max_batch_size(self):
@@ -1044,7 +1048,7 @@ class TestBatchProcessing:
                     batch_fn, inputs=text, outputs=text, batch=True, max_batch_size=2
                 )
 
-            await demo.process_api(0, [["A", "B", "C"]], state={})
+            await demo.process_api(0, [["A", "B", "C"]], state=None)
 
     @pytest.mark.asyncio
     async def test_unequal_batch_sizes(self):
@@ -1062,7 +1066,7 @@ class TestBatchProcessing:
                 btn = gr.Button()
                 btn.click(batch_fn, inputs=[t1, t2], outputs=t1, batch=True)
 
-            await demo.process_api(0, [["A", "B", "C"], ["D", "E"]], state={})
+            await demo.process_api(0, [["A", "B", "C"], ["D", "E"]], state=None)
 
 
 class TestSpecificUpdate:
@@ -1169,7 +1173,7 @@ class TestSpecificUpdate:
                 outputs=[accordion],
             )
         result = await demo.process_api(
-            fn_index=0, inputs=[None], request=None, state={}
+            fn_index=0, inputs=[None], request=None, state=None
         )
         assert result["data"][0] == {
             "open": True,
@@ -1177,7 +1181,7 @@ class TestSpecificUpdate:
             "__type__": "update",
         }
         result = await demo.process_api(
-            fn_index=1, inputs=[None], request=None, state={}
+            fn_index=1, inputs=[None], request=None, state=None
         )
         assert result["data"][0] == {
             "open": False,

@@ -338,7 +338,6 @@ class Examples:
                         fn_index=fn_index,
                         inputs=processed_input,
                         request=None,
-                        state={},
                     )
                 output = prediction["data"]
                 if len(generated_values):
