@@ -21,17 +21,21 @@
 
 	let mounted = false;
 
+	function reset_scene(): void {
+		add_new_model(
+			canvas,
+			scene,
+			engine,
+			value,
+			clear_color,
+			camera_position,
+			zoom_speed
+		);
+	}
+
 	onMount(() => {
 		if (value != null) {
-			add_new_model(
-				canvas,
-				scene,
-				engine,
-				value,
-				clear_color,
-				camera_position,
-				zoom_speed
-			);
+			reset_scene();
 		}
 		mounted = true;
 	});
@@ -61,16 +65,8 @@
 	}: CustomEvent<FileData>): Promise<void> {
 		value = detail;
 		await tick();
+		reset_scene();
 		dispatch("change", value);
-		add_new_model(
-			canvas,
-			scene,
-			engine,
-			value,
-			clear_color,
-			camera_position,
-			zoom_speed
-		);
 	}
 
 	async function handle_clear(): Promise<void> {
@@ -81,6 +77,10 @@
 		value = null;
 		await tick();
 		dispatch("clear");
+	}
+
+	async function handle_undo(): Promise<void> {
+		reset_scene();
 	}
 
 	const dispatch = createEventDispatcher<{
@@ -111,7 +111,7 @@
 	</Upload>
 {:else}
 	<div class="input-model">
-		<ModifyUpload on:clear={handle_clear} absolute />
+		<ModifyUpload undoable=true on:clear={handle_clear} on:undo={handle_undo} absolute />
 		<canvas bind:this={canvas} />
 	</div>
 {/if}

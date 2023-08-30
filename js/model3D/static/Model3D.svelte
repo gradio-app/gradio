@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { FileData } from "@gradio/upload";
 	import { BlockLabel, IconButton } from "@gradio/atoms";
-	import { File, Download } from "@gradio/icons";
+	import { File, Download, Undo } from "@gradio/icons";
 	import { add_new_model } from "../shared/utils";
 	import { _ } from "svelte-i18n";
 	import { onMount } from "svelte";
@@ -71,7 +71,8 @@
 <BlockLabel {show_label} Icon={File} label={label || $_("3D_model.3d_model")} />
 {#if value}
 	<div class="model3D">
-		<div class="download">
+		<div class="buttons">
+			<IconButton Icon={Undo} label="Undo" on:click={() => dispose()}/>
 			<a
 				href={value.data}
 				target={window.__is_colab__ ? "_blank" : null}
@@ -98,9 +99,13 @@
 		object-fit: contain;
 		overflow: hidden;
 	}
-	.download {
+	.buttons {
+		display: flex;
 		position: absolute;
-		top: 6px;
-		right: 6px;
+		top: var(--size-2);
+		right: var(--size-2);
+		justify-content: flex-end;
+		gap: var(--spacing-sm);
+		z-index: var(--layer-5);
 	}
 </style>
