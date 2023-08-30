@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { createEventDispatcher } from "svelte";
 	import { MarkdownCode } from "@gradio/markdown";
 
 	export let edit: boolean;
@@ -17,7 +18,11 @@
 		display: boolean;
 	}[];
 
+	const dispatch = createEventDispatcher();
+
 	export let el: HTMLInputElement | null;
+
+	// $: value && dispatch("value_change", value);
 </script>
 
 {#if edit}

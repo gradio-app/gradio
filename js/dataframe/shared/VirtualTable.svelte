@@ -5,10 +5,6 @@
 
 	export let items: any[][] = [];
 
-	export let sort: [number | undefined, SortDirection | undefined] = [
-		undefined,
-		undefined
-	];
 	export let table_width: number;
 	export let max_height: number;
 	export let actual_height;
@@ -40,14 +36,17 @@
 		_items: typeof items,
 		viewport_height: number
 	): Promise<void> {
+		console.log("refresh_height_map");
 		if (viewport_height === 0 || table_width === 0) {
 			return;
 		}
 		const { scrollTop } = viewport;
+
 		await tick();
 		content_height = top - (scrollTop - head_height);
 		let i = start;
-		while (content_height - 3 < max_height - head_height && i < _items.length) {
+
+		while (content_height < max_height && i < _items.length) {
 			let row = rows[i - start];
 			if (!row) {
 				end = i + 1;
@@ -61,16 +60,18 @@
 
 		end = i;
 		const remaining = _items.length - end;
-		average_height = (top + content_height) / end;
-		bottom = remaining * average_height + foot_height;
+
+		average_height = (top + (content_height - head_height)) / end;
+
+		bottom = remaining * average_height;
 		height_map.length = _items.length;
-		await scroll_to_index(0, { behavior: "auto" });
+		await scroll_to_index(start, { behavior: "auto" });
 	}
 
 	$: {
 		if (!max_height) {
 			actual_height = content_height + 3;
-		} else if (content_height < max_height) {
+		} else if (content_height + head_height < max_height) {
 			actual_height = content_height + 3;
 		} else {
 			actual_height = max_height;
@@ -78,13 +79,18 @@
 	}
 
 	function get_computed_px_amount(elem: HTMLElement, property: string): number {
+		if (!elem) {
+			return 0;
+		}
 		const compStyle = getComputedStyle(elem);
 
 		let x = parseInt(compStyle.getPropertyValue(property));
 		return x;
 	}
 
-	async function handle_scroll(): Promise<void> {
+	async function handle_scroll(e: Event): Promise<void> {
+		const { scrollTop } = viewport;
+
 		rows = contents.children as HTMLCollectionOf<HTMLTableRowElement>;
 		const is_start_overflow = sortedItems.length < start;
 
@@ -96,7 +102,6 @@
 			await scroll_to_index(sortedItems.length - 1, { behavior: "auto" });
 		}
 
-		const { scrollTop } = viewport;
 		let new_start = 0;
 		// acquire height map for currently visible rows
 		for (let v = 0; v < rows.length; v += 1) {
@@ -136,7 +141,7 @@
 		if (end === 0) {
 			end = 10;
 		}
-		average_height = y / end;
+		average_height = (y - head_height) / end;
 		let remaining_height = remaining * average_height; // 0
 		// compute height map for remaining items
 		while (i < sortedItems.length) {
@@ -158,36 +163,20 @@
 		const _itemHeight = average_height;
 		const distance = itemsDelta * _itemHeight;
 		const _opts = {
-			left: 0,
 			top: scrollTop + distance,
 			behavior: "smooth" as ScrollBehavior,
 			...opts
 		};
+
+		await tick();
 		viewport.scrollTo(_opts);
 	}
 
-	$: sortedItems = sorted(items, sort[0], sort[1]);
+	$: sortedItems = items;
 
 	$: visible = sortedItems.slice(start, end).map((data, i) => {
 		return { index: i + start, data };
 	});
-
-	function sort_data(
-		data: typeof items,
-		col?: number,
-		dir?: SortDirection
-	): typeof items {
-		if (!col || !dir) {
-			return data;
-		}
-		if (dir === "asc") {
-			return data.sort((a, b) => (a[col].value < b[col].value ? -1 : 1));
-		} else if (dir === "des") {
-			return data.sort((a, b) => (a[col].value > b[col].value ? -1 : 1));
-		}
-
-		return data;
-	}
 
 	function throttle(func: any, delay = 0): () => any {
 		let lastCall = 0;
@@ -203,12 +192,6 @@
 	}
 
 	const throttle_scroll = throttle(handle_scroll, 16);
-
-	const sorted = (
-		_items: typeof items,
-		col?: number,
-		direction?: SortDirection
-	): typeof items => sort_data(_items, col, direction);
 
 	onMount(() => {
 		rows = contents.children as HTMLCollectionOf<HTMLTableRowElement>;
@@ -258,7 +241,6 @@
 		font-family: var(--font-mono);
 		border-spacing: 0;
 		width: 100%;
-		scroll-padding-block-start: 37px;
 		scroll-snap-type: x proximity;
 	}
 	table :is(thead, tfoot, tbody) {

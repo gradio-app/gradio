@@ -67,9 +67,14 @@
 		{ cell: null | HTMLTableCellElement; input: null | HTMLInputElement }
 	> = {};
 
+	let data_binding: Record<string, (typeof data)[0][0]> = {};
+
+	$: console.log(data_binding);
+
 	type Headers = { value: string; id: string }[];
 
 	function make_headers(_head: string[]): Headers {
+		console.log("make_headers");
 		let _h = _head || [];
 		if (col_count[1] === "fixed" && _h.length < col_count[0]) {
 			const fill = Array(col_count[0] - _h.length)
@@ -98,6 +103,7 @@
 		value: string | number;
 		id: string;
 	}[][] {
+		console.log("PROCESSING DATA");
 		const data_row_length = _values.length;
 		return Array(
 			row_count[1] === "fixed"
@@ -118,8 +124,10 @@
 					.fill(0)
 					.map((_, j) => {
 						const id = `${i}-${j}`;
-						els[id] = { input: null, cell: null };
-						return { value: _values?.[i]?.[j] ?? "", id };
+						els[id] = els[id] || { input: null, cell: null };
+						const obj = { value: _values?.[i]?.[j] ?? "", id };
+						data_binding[id] = obj;
+						return obj;
 					})
 			);
 	}
@@ -177,6 +185,9 @@
 	}
 
 	function get_current_indices(id: string): [number, number] {
+		console.log("get_current_indices");
+		console.log(id);
+		console.log(data);
 		return data.reduce(
 			(acc, arr, i) => {
 				const j = arr.reduce(
@@ -219,6 +230,8 @@
 				event.preventDefault();
 				is_data = data[i][j + 1];
 				selected = is_data ? is_data.id : selected;
+				console.log({ editing, selected, is_data, i, j, id });
+
 				break;
 			case "ArrowLeft":
 				if (editing) break;
@@ -255,6 +268,7 @@
 					selected = data[pos + 1][j].id;
 				} else {
 					if (editing === id) {
+						selected = id;
 						editing = false;
 					} else {
 						start_edit(id);
@@ -297,8 +311,6 @@
 				) {
 					start_edit(id, true);
 				}
-
-				break;
 		}
 	}
 
@@ -392,12 +404,16 @@
 		}
 	}
 
-	function add_row(index?: number): void {
+	let table: VirtualTable;
+	async function add_row(index?: number): Promise<void> {
+		console.log("add_row");
+		console.log(index);
 		if (row_count[1] !== "dynamic") return;
 		if (data.length === 0) {
 			values = [Array(headers.length).fill("")];
 			return;
 		}
+
 		data.splice(
 			index ? index + 1 : data.length,
 			0,
@@ -405,12 +421,23 @@
 				.fill(0)
 				.map((_, i) => {
 					const _id = `${data.length}-${i}`;
+
 					els[_id] = { cell: null, input: null };
 					return { id: _id, value: "" };
 				})
 		);
 
 		data = data;
+		console.log(data);
+		await tick();
+
+		requestAnimationFrame(() => {
+			const index = get_current_indices(`${data.length - 1}-0`)[0];
+			console.log(index);
+			table.scroll_to_index(index, {
+				behavior: "instant"
+			});
+		});
 	}
 
 	async function add_col(): Promise<void> {
@@ -555,6 +582,55 @@
 	}
 
 	let table_height: number = height || 500;
+
+	function sort_data(
+		_data: typeof data,
+		col?: number,
+		dir?: SortDirection
+	): void {
+		if (typeof col !== "number" || !dir) {
+			return;
+		}
+		if (dir === "asc") {
+			_data.sort((a, b) => (a[col].value < b[col].value ? -1 : 1));
+		} else if (dir === "des") {
+			_data.sort((a, b) => (a[col].value > b[col].value ? -1 : 1));
+		}
+
+		data = data;
+	}
+
+	$: sort_data(data, sort_by, sort_direction);
+
+	$: els, selected, log();
+
+	function log() {
+		setTimeout(() => {
+			console.log(selected, els);
+		}, 300);
+	}
+
+	let cell_parent = [];
+
+	// $: console.log(cell_parent);
+
+	function set_ids(node: HTMLTableRowElement, params: (typeof data)[0]) {
+		console.log(node, params);
+		for (let i = 0; i < params.length; i++) {
+			els[params[i].id].cell = node.children[i];
+		}
+		console.log("ASSIGNING NODES");
+		return {
+			update(params) {
+				for (let i = 0; i < params.length; i++) {
+					els[params[i].id].cell = node.children[i];
+				}
+				console.log("ASSIGNING NODES");
+			}
+		};
+	}
+
+	$: console.log(els);
 </script>
 
 <svelte:window
@@ -619,7 +695,7 @@
 				<tr>
 					{#each max as { value, id }, j (id)}
 						<td tabindex="0" bind:this={cells[j]}>
-							<div class:border-transparent={selected !== id} class="cell-wrap">
+							<div class="cell-wrap">
 								<EditableCell
 									{value}
 									{latex_delimiters}
@@ -642,11 +718,11 @@
 			bind:dragging
 		>
 			<VirtualTable
-				items={data}
-				sort={[sort_by, sort_direction]}
+				bind:items={data}
 				table_width={t_width}
-				max_height={height || 300}
+				max_height={height || 500}
 				bind:actual_height={table_height}
+				bind:this={table}
 			>
 				{#if label && label.length !== 0}
 					<caption class="sr-only">{label}</caption>
@@ -654,14 +730,13 @@
 				<tr slot="thead">
 					{#each _headers as { value, id }, i (id)}
 						<th
-							bind:this={els[id].cell}
 							class:editing={header_edit === id}
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
 							style="width: var(--cell-width-{i});"
 						>
 							<div class="cell-wrap">
 								<EditableCell
-									bind:value={_headers[i].value}
+									value={_headers[i].value}
 									bind:el={els[id].input}
 									{latex_delimiters}
 									edit={header_edit === id}
@@ -694,11 +769,16 @@
 					{/each}
 				</tr>
 
-				<tr slot="tbody" let:item let:index class:row_odd={index % 2 === 0}>
+				<tr
+					slot="tbody"
+					let:item
+					let:index
+					class:row_odd={index % 2 === 0}
+					use:set_ids={item}
+				>
 					{#each item as { value, id }, j (id)}
 						<td
 							tabindex="0"
-							bind:this={els[id].cell}
 							on:touchstart={() => start_edit(id)}
 							on:click={() => handle_cell_click(id)}
 							on:dblclick={() => start_edit(id)}
