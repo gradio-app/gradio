@@ -42,7 +42,7 @@ class JupyterReloader(BaseReloader):
     @property
     def running_app(self) -> App:
         assert self.running_demo.server
-        return self.running_demo.server.running_app
+        return self.running_demo.server.running_app # type: ignore
 
     @property
     def running_demo(self):
