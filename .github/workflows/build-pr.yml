@@ -1,6 +1,9 @@
 name: Build PR Artifacts
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
@@ -35,9 +38,13 @@ jobs:
     - name: Get PR Number
       id: get_pr_number
       run: |
-        python -c "import os;print(os.environ['GITHUB_REF'].split('/')[2])" > pr_number.txt
-        echo "PR_NUMBER=$(cat pr_number.txt)" >> $GITHUB_OUTPUT
         echo "GRADIO_VERSION=$(python -c 'import requests;print(requests.get("https://pypi.org/pypi/gradio/json").json()["info"]["version"])')" >> $GITHUB_OUTPUT
+        if ${{ github.event_name == 'pull_request' }}; then
+          python -c "import os;print(os.environ['GITHUB_REF'].split('/')[2])" > pr_number.txt
+          echo "PR_NUMBER=$(cat pr_number.txt)" >> $GITHUB_OUTPUT
+        else 
+          echo "PR_NUMBER='main'" >> $GITHUB_OUTPUT
+        fi
     - name: Build pr package
       run: |
         echo ${{ steps.get_pr_number.outputs.GRADIO_VERSION }} > gradio/version.txt
