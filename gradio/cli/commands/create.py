@@ -1,12 +1,13 @@
 """Create a custom component template"""
-import importlib.resources
 import json
 import pathlib
 import shutil
 import textwrap
-
+import inspect
+import gradio
 import typer
 from typing_extensions import Annotated
+from gradio.components import generate_stubs
 
 package_json = {
     "name": "<component-name>",
@@ -52,35 +53,63 @@ def _create_frontend(name: str, template: str):
             dir = frontend / dirname
             _create_frontend_dir(name, dir)
     else:
-        with importlib.resources.files("gradio") as p:
+        p = pathlib.Path(inspect.getfile(gradio)).parent
+        def ignore(s, names):
+            ignored = []
+            for n in names:
+                if (
+                    n.startswith("CHANGELOG")
+                    or n.startswith("README.md")
+                    or ".test." in n
+                    or ".stories." in n
+                ):
+                    ignored.append(n)
+            return ignored
 
-            def ignore(s, names):
-                ignored = []
-                for n in names:
-                    if (
-                        n.startswith("CHANGELOG")
-                        or n.startswith("README.md")
-                        or ".test." in n
-                        or ".stories." in n
-                    ):
-                        ignored.append(n)
-                return ignored
-
-            shutil.copytree(
-                str(p / "_frontend_code" / template),
-                frontend,
-                dirs_exist_ok=True,
-                ignore=ignore,
-            )
+        shutil.copytree(
+            str(p / "_frontend_code" / template),
+            frontend,
+            dirs_exist_ok=True,
+            ignore=ignore,
+        )
 
     json.dump(package_json, open(str(frontend / "package.json"), "w"), indent=2)
 
 
 def _create_backend(name: str, template: str):
-    backend = pathlib.Path(name.lower()) / "backend"
+    backend = pathlib.Path(name.lower()) / name.lower()
     backend.mkdir(exist_ok=True)
+    build_dir = backend / "build"
+    build_dir.mkdir(exist_ok=True)
+
+    build_hook = pathlib.Path(__file__).parent / "files" / "generate_interface_files.py"
+
+    shutil.copy(
+            str(build_hook),
+            str(build_dir / "generate_interface_files.py"),
+        )
+    
+    pyproject = pathlib.Path(__file__).parent / "files" / "pyproject_.toml"
+    pyproject_contents = pyproject.read_text()
+    pyproject_dest =  pathlib.Path(name.lower()) / "pyproject.toml"
+    pyproject_dest.write_text(pyproject_contents.replace("<<name>>", name.lower()))
+
+    shutil.copy(
+            str(build_hook),
+            str(build_dir / "generate_interface_files.py"),
+        )
+
     init = backend / "__init__.py"
     init.touch(exist_ok=True)
+
+    init_contents = textwrap.dedent(f"""
+from .{name.lower()} import {name}
+
+{inspect.getsource(generate_stubs)}
+    """)
+
+    init.write_text(init_contents)
+    
     if not template:
         backend = backend / f"{name.lower()}.py"
         backend.write_text(
@@ -88,22 +117,34 @@ def _create_backend(name: str, template: str):
                 f"""
             import gradio as gr
             
-            class {name}(gr.components.IOComponent):
+            class {name}(gr.components.Component):
                 pass
 
             """
             )
         )
     else:
-        with importlib.resources.files("gradio") as p:
+        p = pathlib.Path(inspect.getfile(gradio)).parent
+        python_file = backend / f"{name.lower()}.py"
+
+        shutil.copy(
+            str(p / "components" / f"{template.lower()}.py"),
+            str(python_file),
+        )
+
+        source_pyi_file = p / "components" / f"{template.lower()}.pyi"
+        pyi_file = backend / f"{name.lower()}.pyi"
+        if source_pyi_file.exists():
             shutil.copy(
-                str(p / "components" / f"{template.lower()}.py"),
-                str(backend / f"{name.lower()}.py"),
+                str(source_pyi_file),
+                str(pyi_file)
             )
-        with open(str(backend / f"{name.lower()}.py")) as f:
-            content = f.read()
-        with open(str(backend / f"{name.lower()}.py"), "w") as f:
-            f.write(content.replace(f"class {template}", f"class {name}"))
+
+        content = python_file.read_text()
+        python_file.write_text(content.replace(f"class {template}", f"class {name}"))
+
+        pyi_content = pyi_file.read_text()
+        pyi_file.write_text(pyi_content.replace(f"class {template}", f"class {name}"))
 
 
 @app.command("create")
@@ -122,6 +163,11 @@ def dev():
     # Pete adds code here to spin up local front-end 
     # and backend servers in development mode
     print("TODO")
+
+
+@app.command("build")
+def build():
+    print("build")
 
 
 def main():
