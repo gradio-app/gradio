@@ -23,7 +23,15 @@
 
 	onMount(() => {
 		if (value != null) {
-			add_new_model(canvas, scene, engine, value, clear_color, camera_position, zoom_speed);
+			add_new_model(
+				canvas,
+				scene,
+				engine,
+				value,
+				clear_color,
+				camera_position,
+				zoom_speed
+			);
 		}
 		mounted = true;
 	});
@@ -38,7 +46,15 @@
 		mounted &&
 		data != null &&
 		is_file &&
-		add_new_model(canvas, scene, engine, value, clear_color, camera_position, zoom_speed);
+		add_new_model(
+			canvas,
+			scene,
+			engine,
+			value,
+			clear_color,
+			camera_position,
+			zoom_speed
+		);
 
 	async function handle_upload({
 		detail
@@ -46,7 +62,15 @@
 		value = detail;
 		await tick();
 		dispatch("change", value);
-		add_new_model(canvas, scene, engine, value, clear_color, camera_position, zoom_speed);
+		add_new_model(
+			canvas,
+			scene,
+			engine,
+			value,
+			clear_color,
+			camera_position,
+			zoom_speed
+		);
 	}
 
 	async function handle_clear(): Promise<void> {
