@@ -17,6 +17,7 @@
 	class="file-preview-holder"
 	style="max-height: {typeof height === undefined ? 'auto' : height + 'px'};"
 >
+	<div class="scroll-shadows"></div>
 	<table class="file-preview">
 		<tbody>
 			{#each Array.isArray(value) ? value : [value] as file, i}
@@ -63,9 +64,38 @@
 		width: 10%;
 		text-align: right;
 	}
+	.scroll-shadows {
+		position: absolute;
+		height: 100%;
+		
+		background:
+		/* Shadow covers */
+		linear-gradient(white 30%, rgba(255,255,255,0)),
+		linear-gradient(rgba(255,255,255,0), white 70%) 0 100%,
+		
+		/* Shadows */
+		radial-gradient(50% 0, farthest-side, rgba(0,0,0,.2), rgba(0,0,0,0)),
+		radial-gradient(50% 100%,farthest-side, rgba(0,0,0,.2), rgba(0,0,0,0)) 0 100%;
+		background:
+			/* Shadow covers */
+			linear-gradient(white 30%, rgba(255,255,255,0)),
+			linear-gradient(rgba(255,255,255,0), white 70%) 0 100%,
+			
+			/* Shadows */
+			radial-gradient(farthest-side at 50% 0, rgba(0,0,0,.2), rgba(0,0,0,0)),
+			radial-gradient(farthest-side at 50% 100%, rgba(0,0,0,.2), rgba(0,0,0,0)) 0 100%;
+		background-repeat: no-repeat;
+		background-color: white;
+		background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
+		
+		/* Opera doesn't support this in the shorthand */
+		background-attachment: local, local, scroll, scroll;
+
+	}
 	.file-preview-holder {
 		overflow-x: auto;
 		overflow-y: auto;
+		
 	}
 	.file-preview {
 		width: var(--size-full);
@@ -103,10 +133,10 @@
 	}
 
 	tbody > tr:nth-child(even) {
-		background: var(--block-background-fill);
+		background-color: var(--table-even-background-fill);
 	}
 
 	tbody > tr:nth-child(odd) {
-		background: var(--table-odd-background-fill);
+		background-color: var(--table-odd-background-fill);
 	}
 </style>
