@@ -13,7 +13,7 @@
 	export let value_is_output = false;
 	export let multiselect = false;
 	export let max_choices: number;
-	export let choices: string[];
+	export let choices: [string, string | number][];
 	export let disabled = false;
 	export let show_label: boolean;
 	export let container = true;
@@ -38,6 +38,9 @@
 
 	let old_choices: string[] = [];
 	let filtered: string[] = [];
+	let choice_names: string[];
+	
+	$: choices_names = choices.map((c) => c[0]);
 
 	$: old_choices, inputValue, handle_filter();
 
@@ -75,8 +78,8 @@
 		if (!max_choices || value.length < max_choices) {
 			value.push(option);
 			dispatch("select", {
-				index: choices.indexOf(option),
-				value: option,
+				index: choices_names.indexOf(option),
+				value: choices[option][1],
 				selected: true
 			});
 		}
@@ -89,8 +92,8 @@
 			value = value.filter((v: string) => v !== option);
 		}
 		dispatch("select", {
-			index: choices.indexOf(option),
-			value: option,
+			index: choices_names.indexOf(option),
+			value: choices[option][1],
 			selected: false
 		});
 	}
@@ -126,7 +129,7 @@
 		}
 		dispatch("focus");
 		showOptions = true;
-		filtered = choices;
+		filtered = choices_names;
 	}
 
 	function handleOptionMousedown(e: any): void {
