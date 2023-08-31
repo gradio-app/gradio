@@ -32,6 +32,10 @@ $demo_blocks_hello
 
 Instead of being triggered by a click, the `welcome` function is triggered by typing in the Textbox `inp`. This is due to the `change()` event listener. Different Components support different event listeners. For example, the `Video` Component supports a `play()` event listener, triggered when a user presses play. See the [Docs](http://gradio.app/docs#components) for the event listeners for each Component.
 
+You can also attach event listeners using decorators - skip the `fn` argument and assign `inputs` and `outputs` directly:
+
+$code_blocks_hello_decorator
+
 ## Multiple Data Flows
 
 A Blocks app is not limited to a single data flow the way Interfaces are. Take a look at the demo below:
