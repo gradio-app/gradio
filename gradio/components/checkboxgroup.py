@@ -225,6 +225,8 @@ class CheckboxGroup(
     def as_example(self, input_data):
         if input_data is None:
             return None
+        elif not self.choices:
+            return input_data
         elif not isinstance(input_data, list):
             input_data = [input_data]
         for data in input_data:
