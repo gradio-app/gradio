@@ -4,7 +4,7 @@
 	import type { FileData } from "@gradio/upload";
 	import { BlockLabel } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
-	import { add_new_model } from "../shared/utils";
+	import { add_new_model, reset_camera_position } from "../shared/utils";
 
 	export let value: null | FileData;
 	export let clear_color: [number, number, number, number] = [0, 0, 0, 0];
@@ -20,9 +20,12 @@
 	];
 
 	let mounted = false;
+	let canvas: HTMLCanvasElement;
+	let scene: BABYLON.Scene;
+	let engine: BABYLON.Engine;
 
 	function reset_scene(): void {
-		add_new_model(
+		scene = add_new_model(
 			canvas,
 			scene,
 			engine,
@@ -46,19 +49,7 @@
 		name: undefined
 	});
 
-	$: canvas &&
-		mounted &&
-		data != null &&
-		is_file &&
-		add_new_model(
-			canvas,
-			scene,
-			engine,
-			value,
-			clear_color,
-			camera_position,
-			zoom_speed
-		);
+	$: canvas && mounted && data != null && is_file && reset_scene();
 
 	async function handle_upload({
 		detail
@@ -80,7 +71,7 @@
 	}
 
 	async function handle_undo(): Promise<void> {
-		reset_scene();
+		reset_camera_position(scene, camera_position, zoom_speed);
 	}
 
 	const dispatch = createEventDispatcher<{
@@ -95,10 +86,6 @@
 	import * as BABYLON_LOADERS from "babylonjs-loaders";
 
 	BABYLON_LOADERS.OBJFileLoader.IMPORT_VERTEX_COLORS = true;
-
-	let canvas: HTMLCanvasElement;
-	let scene: BABYLON.Scene;
-	let engine: BABYLON.Engine;
 
 	$: dispatch("drag", dragging);
 </script>
@@ -118,7 +105,6 @@
 			absolute
 		/>
 		<canvas bind:this={canvas} />
-		
 	</div>
 {/if}
 

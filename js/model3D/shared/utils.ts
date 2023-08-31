@@ -1,6 +1,29 @@
 import type { FileData } from "@gradio/upload";
 import * as BABYLON from "babylonjs";
 
+const create_camera = (
+	scene: BABYLON.Scene,
+	camera_position: [number | null, number | null, number | null],
+	zoom_speed: number
+): void => {
+	scene.createDefaultCamera(true, true, true);
+	var helperCamera = scene.activeCamera! as BABYLON.ArcRotateCamera;
+	if (camera_position[0] !== null) {
+		helperCamera.alpha = BABYLON.Tools.ToRadians(camera_position[0]);
+	}
+	if (camera_position[1] !== null) {
+		helperCamera.beta = BABYLON.Tools.ToRadians(camera_position[1]);
+	}
+	if (camera_position[2] !== null) {
+		helperCamera.radius = camera_position[2];
+	}
+	// Disable panning. Adapted from: https://playground.babylonjs.com/#4U6TVQ#3
+	helperCamera.panningSensibility = 0;
+	helperCamera.attachControl(false, false, -1);
+	helperCamera.pinchToPanMaxDistance = 0;
+	helperCamera.wheelPrecision = 2500 / zoom_speed;
+};
+
 export const add_new_model = (
 	canvas: HTMLCanvasElement,
 	scene: BABYLON.Scene,
@@ -9,7 +32,7 @@ export const add_new_model = (
 	clear_color: [number, number, number, number],
 	camera_position: [number | null, number | null, number | null],
 	zoom_speed: number
-): void => {
+): BABYLON.Scene => {
 	if (scene && !scene.isDisposed && engine) {
 		scene.dispose();
 		engine.dispose();
@@ -28,7 +51,7 @@ export const add_new_model = (
 		engine.resize();
 	});
 
-	if (!value) return;
+	if (!value) return scene;
 	let url: string;
 	if (value.is_file) {
 		url = value.data;
@@ -38,35 +61,24 @@ export const add_new_model = (
 		let blob = new Blob([raw_content]);
 		url = URL.createObjectURL(blob);
 	}
-
 	BABYLON.SceneLoader.ShowLoadingScreen = false;
 	BABYLON.SceneLoader.Append(
 		url,
 		"",
 		scene,
-		() => {
-			scene.createDefaultCamera(true, true, true);
-			// scene.activeCamera has to be an ArcRotateCamera if the call succeeds,
-			// we assume it does
-			var helperCamera = scene.activeCamera! as BABYLON.ArcRotateCamera;
-
-			if (camera_position[0] !== null) {
-				helperCamera.alpha = (Math.PI * camera_position[0]) / 180;
-			}
-			if (camera_position[1] !== null) {
-				helperCamera.beta = (Math.PI * camera_position[1]) / 180;
-			}
-			if (camera_position[2] !== null) {
-				helperCamera.radius = camera_position[2];
-			}
-			// Disable panning. Adapted from: https://playground.babylonjs.com/#4U6TVQ#3
-			helperCamera.panningSensibility = 0;
-			helperCamera.attachControl(false, false, -1);
-			helperCamera.pinchToPanMaxDistance = 0;
-			helperCamera.wheelPrecision = 2500 / zoom_speed;
-		},
+		() => create_camera(scene, camera_position, zoom_speed),
 		undefined,
 		undefined,
 		"." + value.name.split(".")[1]
 	);
+	return scene;
+};
+
+export const reset_camera_position = (
+	scene: BABYLON.Scene,
+	camera_position: [number | null, number | null, number | null],
+	zoom_speed: number
+): void => {
+	scene.removeCamera(scene.activeCamera!);
+	create_camera(scene, camera_position, zoom_speed);
 };
