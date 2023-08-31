@@ -3,6 +3,10 @@
 	import DOMPurify from "dompurify";
 	import render_math_in_element from "katex/dist/contrib/auto-render.js";
 	import "katex/dist/katex.min.css";
+	import {
+		beforeUpdate,
+		afterUpdate
+	} from 'svelte';
 
 	import { marked } from "./utils";
 	const dispatch = createEventDispatcher();
@@ -35,9 +39,6 @@
 			node.setAttribute("rel", "noopener noreferrer");
 		}
 	});
-
-	$: el && html && render_html(message);
-
 	$: if (message && message.trim()) {
 		html = sanitize_html
 			? DOMPurify.sanitize(marked.parse(message))
@@ -53,6 +54,7 @@
 			});
 		}
 	}
+	afterUpdate(() => render_html(message));
 </script>
 
 <span class:chatbot bind:this={el} class="md">
