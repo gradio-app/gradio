@@ -2150,6 +2150,8 @@ class TestModel3D:
             "min_width": 160,
             "scale": None,
             "camera_position": (None, None, None),
+            "height": None,
+            "zoom_speed": 1,
         } == component.get_config()
 
         file = "test/test_files/Box.gltf"
