@@ -27,36 +27,36 @@
 		focus: undefined;
 	}>();
 
-	let inputValue: string | undefined,
-		activeOption: string | null,
-		showOptions = false,
-		filterInput: HTMLElement;
+	let input_value: string | undefined;
+	let active_option: [string, string] | null;
+	let show_options = false;
+	let filter_input: HTMLElement;
+	let old_choices: [string, string][] = [];
+	let filtered_choices: [string, string][] = [];
+	let choices_names: string[];
+	let choices_values: string[];
 
 	$: if (typeof value === "string" || value === null) {
-		inputValue = value;
+		input_value = value;
 	}
 
-	let old_choices: [string, string][] = [];
-	let filtered: [string, string][] = [];
-	let choices_names: string[];
-	
 	$: {
 		choices_names = choices.map((c) => c[0]);
 		choices_values = choices.map((c) => c[1]);
 	}
 
-	$: old_choices, inputValue, handle_filter();
+	$: old_choices, input_value, handle_filter();
 
 	function handle_filter(): void {
-		if (choices !== old_choices || typeof inputValue === "string") {
+		if (choices !== old_choices || typeof input_value === "string") {
 			old_choices = choices;
-			filtered = choices.filter((o) =>
-				inputValue ? o.toLowerCase().includes(inputValue.toLowerCase()) : o
+			filtered_choices = choices.filter((o) =>
+				input_value ? o[0].toLowerCase().includes(input_value.toLowerCase()) : o
 			);
 		}
 	}
-	$: if (!activeOption || !filtered.includes(activeOption)) {
-		activeOption = filtered.length ? filtered[0] : null;
+	$: if (!active_option || !filtered_choices.includes(active_option)) {
+		active_option = filtered_choices.length ? filtered_choices[0] : null;
 	}
 
 	function handle_change(): void {
