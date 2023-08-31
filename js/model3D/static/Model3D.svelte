@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { FileData } from "@gradio/upload";
 	import { BlockLabel, IconButton } from "@gradio/atoms";
-	import { File, Download } from "@gradio/icons";
-	import { add_new_model } from "../shared/utils";
+	import { File, Download, Undo } from "@gradio/icons";
+	import { add_new_model, reset_camera_position } from "../shared/utils";
 	import { _ } from "svelte-i18n";
 	import { onMount } from "svelte";
 	import * as BABYLON from "babylonjs";
@@ -12,6 +12,7 @@
 	export let clear_color: [number, number, number, number] = [0, 0, 0, 0];
 	export let label = "";
 	export let show_label: boolean;
+	export let zoom_speed = 1;
 
 	// alpha, beta, radius
 	export let camera_position: [number | null, number | null, number | null] = [
@@ -54,15 +55,28 @@
 			});
 		}
 		if (engine !== null) {
-			add_new_model(canvas, scene, engine, value, clear_color, camera_position);
+			scene = add_new_model(
+				canvas,
+				scene,
+				engine,
+				value,
+				clear_color,
+				camera_position,
+				zoom_speed
+			);
 		}
+	}
+
+	function handle_undo(): void {
+		reset_camera_position(scene, camera_position, zoom_speed);
 	}
 </script>
 
 <BlockLabel {show_label} Icon={File} label={label || $_("3D_model.3d_model")} />
 {#if value}
 	<div class="model3D">
-		<div class="download">
+		<div class="buttons">
+			<IconButton Icon={Undo} label="Undo" on:click={() => handle_undo()} />
 			<a
 				href={value.data}
 				target={window.__is_colab__ ? "_blank" : null}
@@ -89,9 +103,13 @@
 		object-fit: contain;
 		overflow: hidden;
 	}
-	.download {
+	.buttons {
+		display: flex;
 		position: absolute;
-		top: 6px;
-		right: 6px;
+		top: var(--size-2);
+		right: var(--size-2);
+		justify-content: flex-end;
+		gap: var(--spacing-sm);
+		z-index: var(--layer-5);
 	}
 </style>

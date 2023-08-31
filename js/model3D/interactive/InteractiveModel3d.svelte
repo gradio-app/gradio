@@ -26,6 +26,8 @@
 		change: typeof value;
 		clear: never;
 	}>;
+	export let zoom_speed = 1;
+	export let height: number | undefined = undefined;
 
 	// alpha, beta, radius
 	export let camera_position: [number | null, number | null, number | null] = [
@@ -50,6 +52,7 @@
 	{container}
 	{scale}
 	{min_width}
+	{height}
 >
 	<StatusTracker {...loading_status} />
 
@@ -59,6 +62,7 @@
 		{clear_color}
 		value={_value}
 		{camera_position}
+		{zoom_speed}
 		on:change={({ detail }) => (value = detail)}
 		on:drag={({ detail }) => (dragging = detail)}
 		on:change={({ detail }) => gradio.dispatch("change", detail)}
