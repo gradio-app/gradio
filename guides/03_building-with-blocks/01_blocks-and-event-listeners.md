@@ -13,6 +13,10 @@ $demo_hello_blocks
 - Next come the Components. These are the same Components used in `Interface`. However, instead of being passed to some constructor, Components are automatically added to the Blocks as they are created within the `with` clause.
 - Finally, the `click()` event listener. Event listeners define the data flow within the app. In the example above, the listener ties the two Textboxes together. The Textbox `name` acts as the input and Textbox `output` acts as the output to the `greet` method. This dataflow is triggered when the Button `greet_btn` is clicked. Like an Interface, an event listener can take multiple inputs or outputs.
 
+You can also attach event listeners using decorators - skip the `fn` argument and assign `inputs` and `outputs` directly:
+
+$code_hello_blocks_decorator
+
 ## Event Listeners and Interactivity
 
 In the example above, you'll notice that you are able to edit Textbox `name`, but not Textbox `output`. This is because any Component that acts as an input to an event listener is made interactive. However, since Textbox `output` acts only as an output, Gradio determines that it should not be made interactive. You can override the default behavior and directly configure the interactivity of a Component with the boolean `interactive` keyword argument.
@@ -31,10 +35,6 @@ $code_blocks_hello
 $demo_blocks_hello
 
 Instead of being triggered by a click, the `welcome` function is triggered by typing in the Textbox `inp`. This is due to the `change()` event listener. Different Components support different event listeners. For example, the `Video` Component supports a `play()` event listener, triggered when a user presses play. See the [Docs](http://gradio.app/docs#components) for the event listeners for each Component.
-
-You can also attach event listeners using decorators - skip the `fn` argument and assign `inputs` and `outputs` directly:
-
-$code_blocks_hello_decorator
 
 ## Multiple Data Flows
 
