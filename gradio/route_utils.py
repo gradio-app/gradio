@@ -192,10 +192,10 @@ async def call_process_api(
     app: App,
     body: PredictBody,
     gr_request: Union[Request, list[Request]],
-    session_state,
-    iterators,
     fn_index_inferred,
 ):
+    session_state, iterators = restore_session_state(app=app, body=body)
+
     dependency = app.get_blocks().dependencies[fn_index_inferred]
 
     target = dependency["targets"][0] if len(dependency["targets"]) else None

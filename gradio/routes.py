@@ -503,15 +503,11 @@ class App(FastAPI):
                 request=request,
             )
 
-            session_state, iterators = route_utils.restore_session_state(app, body)
-
             try:
                 output = await route_utils.call_process_api(
                     app=app,
                     body=body,
                     gr_request=gr_request,
-                    session_state=session_state,
-                    iterators=iterators,
                     fn_index_inferred=fn_index_inferred,
                 )
             except BaseException as error:

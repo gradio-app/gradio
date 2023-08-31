@@ -384,15 +384,11 @@ class Queue:
             request=None,
         )
 
-        session_state, iterators = route_utils.restore_session_state(app=app, body=body)
-
         try:
             output = await route_utils.call_process_api(
                 app=app,
                 body=body,
                 gr_request=gr_request,
-                session_state=session_state,
-                iterators=iterators,
                 fn_index_inferred=fn_index_inferred,
             )
         except asyncio.CancelledError:
