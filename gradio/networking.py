@@ -43,7 +43,6 @@ class Server(uvicorn.Server):
     def __init__(
         self, config: Config, reloader: SourceFileReloader | None = None
     ) -> None:
-        assert isinstance(config.app, App)
         self.running_app = config.app
         super().__init__(config)
         self.reloader = reloader
