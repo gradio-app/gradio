@@ -7,12 +7,36 @@ GRADIO_DEMO_DIR = os.path.abspath(os.path.join(DIR, "../../../../../demo/"))
 def get_code_and_description(demo_name):
     with open(os.path.join(GRADIO_DEMO_DIR, demo_name, "run.py")) as f:
         code = f.read()
-    with open(os.path.join(GRADIO_DEMO_DIR, demo_name, "DESCRIPTION.md")) as f:
-        description = f.read()
+    description = ""
+    if os.path.exists(os.path.join(GRADIO_DEMO_DIR, demo_name, "DESCRIPTION.md")):
+        with open(os.path.join(GRADIO_DEMO_DIR, demo_name, "DESCRIPTION.md")) as f:
+            description = f.read()
     return code, description
 
 
 demos_by_category = [
+    {   
+        "category": "✨ Playground",
+        "demos": [
+            {
+                "name": "Hello World",
+                "dir": "hello_world"
+            },
+            {
+                "name": "Hello Blocks",
+                "dir": "blocks_hello"
+            },
+            {
+                "name": "Using the Dataframe",
+                "dir": "filter_records"
+            },
+            {
+                "name": "Event Listeners",
+                "dir": "blocks_essay"
+            }
+
+        ]
+    },
     {
         "category": "🖊️ Text & Natural Language Processing",
         "demos": [

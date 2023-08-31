@@ -5,9 +5,6 @@
 	export let code: string;
 	export let highlighted_code: string;
 
-	console.log(name);
-
-
 	let copied = false;
 	function copy(code: string) {
 		navigator.clipboard.writeText(code);
@@ -16,8 +13,8 @@
 	}
 	
 	let mounted = false;
-	let target;
-	let controller;
+	let controller: any;
+
 	onMount(() => {
 	mounted = true;
 	controller = createGradioApp({
@@ -34,12 +31,16 @@
 				controlPageTitle: false,
 				appMode: true
 			});
-	
 });
 $: if (mounted) {
 	controller.run_code(code);
 }
 </script>
+
+<svelte:head>
+	<script type="module" crossorigin src="/lite-dist/lite.js"></script>
+	<link rel="stylesheet" href="/lite-dist/lite.css" />
+</svelte:head>
 
 <div class="codeblock bg-gray-50 mx-auto p-3 my-3" id="{name}_code">
 	<a
@@ -58,7 +59,7 @@ $: if (mounted) {
 		{/if}
 	</button>
 	<div class="interactive-banner">
-		<p class="text-white">Interactive</p>
+			<p class="text-white">Interactive</p>
 	</div>
 	<pre class=" max-h-80 overflow-auto" bind:innerHTML={code} contenteditable="true">
 		<code class="code language-python"

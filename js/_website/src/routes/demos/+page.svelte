@@ -50,6 +50,19 @@
 	{#each data.demos_by_category as { category, demos } (category)}
 		<div class="category mb-8">
 			<h2 class="mb-4 text-2xl font-thin block">{category}</h2>
+			{#if category == "✨ Playground"}
+				<p class=" mb-4 text-lg font-light">
+				These demos are interactive - meaning you can change the code and the embedded demo will update automatically. 
+				Use this as a space to explore and play around with Gradio. This is made possible thanks to the 
+				<a
+				class="link text-black"
+				target="_blank"
+				href="https://www.npmjs.com/package/@gradio/lite">
+				Gradio Lite 
+				</a>
+				package.
+				</p>
+			{/if}
 			<div>
 				<div class="demo-window overflow-y-auto h-full w-full my-4">
 					<div
@@ -72,7 +85,7 @@
 								class:selected-demo-window={current_selection == i}
 								class="demo-content px-4"
 							>
-							{#if ["Hello World"].includes(demo.name)}
+							{#if category == "✨ Playground"}
 								<DemosLite
 									name={demo.dir}
 									code={demo.code}
