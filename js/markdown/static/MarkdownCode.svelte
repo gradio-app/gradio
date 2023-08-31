@@ -1,25 +1,10 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import { afterUpdate, createEventDispatcher } from "svelte";
 	import DOMPurify from "dompurify";
 	import render_math_in_element from "katex/dist/contrib/auto-render.js";
 	import "katex/dist/katex.min.css";
-	import {
-		beforeUpdate,
-		afterUpdate
-	} from 'svelte';
-
 	import { marked } from "./utils";
-	const dispatch = createEventDispatcher();
-
 	import "./prism.css";
-	// import "./prism-dark.css";
-
-	// const code_highlight_css = {
-	// 	light: (): Promise<typeof import("prismjs/themes/prism.css")> =>
-	// 		import("prismjs/themes/prism.css"),
-	// 	dark: (): Promise<typeof import("prismjs/themes/prism.css")> =>
-	// 		import("prismjs/themes/prism-dark.css")
-	// };
 
 	export let chatbot = true;
 	export let message: string;
