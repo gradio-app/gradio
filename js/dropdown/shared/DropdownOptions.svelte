@@ -2,8 +2,8 @@
 	import { fly } from "svelte/transition";
 	import { createEventDispatcher } from "svelte";
 	export let value: string | string[] | undefined = undefined;
-	export let filtered: string[];
-	export let showOptions = false;
+	export let filtered_choices: string[][];
+	export let show_options = false;
 	export let activeOption: string | null;
 	export let disabled = false;
 
@@ -25,7 +25,7 @@
 
 	let scroll_timeout: NodeJS.Timeout | null = null;
 	function scroll_listener(): void {
-		if (!showOptions) return;
+		if (!show_options) return;
 		if (scroll_timeout !== null) {
 			clearTimeout(scroll_timeout);
 		}
@@ -37,7 +37,7 @@
 	}
 
 	$: {
-		if (showOptions && refElement) {
+		if (show_options && refElement) {
 			if (listElement && typeof value === "string") {
 				let elements = listElement.querySelectorAll("li");
 				for (const element of Array.from(elements)) {
