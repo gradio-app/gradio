@@ -27,14 +27,14 @@
 		focus: undefined;
 	}>();
 
-	let input_text: string | undefined;
-	let active_option: [string, string] | null;
-	let show_options = false;
 	let filter_input: HTMLElement;
-	let old_choices: [string, string][] = [];
-	let filtered_choices: [string, string][] = [];
+	let input_text: string | undefined;
+	let show_options = false;
+	let filtered_indices: number[] = [];
+	let active_index: number | null;
 	let choices_names: string[];
 	let choices_values: string[];
+	let blurring = false;
 
 	$: {
 		choices_names = choices.map((c) => c[0]);
@@ -43,20 +43,8 @@
 
 	$: choices, input_text, handle_filter();
 
-	$: if (!active_option || !filtered_choices.includes(active_option)) {
-		active_option = filtered_choices.length ? filtered_choices[0] : null;
-	}
-
-	function handle_filter(): void {
-			filtered_choices = choices.filter((o) =>
-				input_text ? o[0].toLowerCase().includes(input_text.toLowerCase()) : o)
-	}
-
-	function handle_change(): void {
-		dispatch("change", value);
-		if (!value_is_output) {
-			dispatch("input");
-		}
+	$: if (!active_index || !filtered_indices.includes(active_index)) {
+		active_index = filtered_indices.length ? filtered_indices[0] : null;
 	}
 
 	$: {
@@ -66,26 +54,60 @@
 		}
 	}
 
-	function add(option: string): void {
+	// General handlers
+	function handle_filter(): void {
+		filtered_indices = [];
+		choices.forEach((o, index) => {
+			if (input_text ? o[0].toLowerCase().includes(input_text.toLowerCase()) : true) {
+				filtered_indices.push(index);
+			}
+		});
+	}
+
+	function handle_change(): void {
+		dispatch("change", value);
+		if (!value_is_output) {
+			dispatch("input");
+		}
+	}
+
+	function handle_blur(): void {
+		if (blurring) return;
+		blurring = true;
+		if (multiselect) {
+			input_text = "";
+		} else if (!allow_custom_value) {
+			input_text = choices_names[choices_values.indexOf(value as string)];
+		}
+		show_options = false;
+		dispatch("blur");
+		setTimeout(() => {
+			blurring = false;
+		}, 100);
+	}
+
+	// Handlers specifically for multiselect dropdown
+	function add(option_index: number): void {
 		value = value as string[];
 		if (!max_choices || value.length < max_choices) {
-			value.push(option);
+			value.push(choices_values[option_index]);
 			dispatch("select", {
-				index: choices_names.indexOf(option),
-				value: choices_values[option][1],
+				index: option_index,
+				value: choices_values[option_index],
 				selected: true
 			});
 		}
 		value = value;
 	}
 
-	function remove(option: string): void {
+	function remove(option_index: number): void {
+		const option_value = choices_values[option_index];
 		if (!disabled) {
 			value = value as string[];
-			value = value.filter((v: string) => v !== option);
+			value = value.filter((v: string) => v !== option_value);
 		}
 		dispatch("select", {
-			index: choices_names.indexOf(option),
+			index: option_index,
 			value: choices[option][1],
 			selected: false
 		});
@@ -93,25 +115,8 @@
 
 	function remove_all(e: any): void {
 		value = [];
-		input_value = "";
+		input_text = "";
 		e.preventDefault();
-	}
-
-	let blurring = false;
-
-	function handle_blur(e: FocusEvent): void {
-		if (blurring) return;
-		blurring = true;
-		if (multiselect) {
-			input_value = "";
-		} else if (!allow_custom_value) {
-			input_value = value as string | undefined;
-		}
-		show_options = false;
-		dispatch("blur");
-		setTimeout(() => {
-			blurring = false;
-		}, 100);
 	}
 
 	function handle_focus(e: FocusEvent): void {
@@ -122,7 +127,7 @@
 		}
 		dispatch("focus");
 		show_options = true;
-		filtered = choices_names;
+		filtered_indices = choices.map((_, i) => i);
 	}
 
 	function handleOptionMousedown(e: any): void {
@@ -138,7 +143,7 @@
 				if (value?.includes(option)) {
 					remove(option);
 				} else {
-					add(option);
+					add(option_index);
 				}
 				inputValue = "";
 			} else {
@@ -150,7 +155,7 @@
 					value: option,
 					selected: true
 				});
-				filterInput.blur();
+				filter_input.blur();
 			}
 		}
 	}
@@ -169,7 +174,7 @@
 				}
 				inputValue = activeOption;
 				showOptions = false;
-				filterInput.blur();
+				filter_input.blur();
 			} else if (multiselect && Array.isArray(value)) {
 				value.includes(activeOption) ? remove(activeOption) : add(activeOption);
 				inputValue = "";
@@ -243,7 +248,7 @@
 					{disabled}
 					autocomplete="off"
 					bind:value={inputValue}
-					bind:this={filterInput}
+					bind:this={filter_input}
 					on:keydown={handleKeydown}
 					on:keyup={() => {
 						if (allow_custom_value) {
