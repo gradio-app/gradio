@@ -2,9 +2,9 @@
 	import { fly } from "svelte/transition";
 	import { createEventDispatcher } from "svelte";
 	export let value: string | string[] | undefined = undefined;
-	export let filtered_choices: string[][];
+	export let filtered_choices: [string, string][];
 	export let show_options = false;
-	export let activeOption: string | null;
+	export let active_option: [string, string] | null;
 	export let disabled = false;
 
 	let distance_from_top: number;
@@ -70,7 +70,7 @@
 <svelte:window on:scroll={scroll_listener} bind:innerHeight />
 
 <div class="reference" bind:this={refElement} />
-{#if showOptions && !disabled}
+{#if show_options && !disabled}
 	<!-- TODO: fix-->
 	<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 	<ul
@@ -83,24 +83,26 @@
 		style:width={input_width + "px"}
 		bind:this={listElement}
 	>
-		{#each filtered as choice}
+		{#each filtered_choices as [name, choice_value], index}
 			<!-- TODO: fix-->
 			<!-- svelte-ignore a11y-no-noninteractive-element-to-interactive-role -->
 			<li
 				class="item"
 				role="button"
-				class:selected={_value.includes(choice)}
-				class:active={activeOption === choice}
-				class:bg-gray-100={activeOption === choice}
-				class:dark:bg-gray-600={activeOption === choice}
-				data-value={choice}
-				aria-label={choice}
+				class:selected={_value.includes(name)}
+				class:active={active_option !== null && active_option[0] === name}
+				class:bg-gray-100={active_option !== null && active_option[0] === name}
+				class:dark:bg-gray-600={active_option !== null && active_option[0] === name}
+				data-value={choice_value}
+				data-name={name}
+				data-index={index}
+				aria-label={name}
 				data-testid="dropdown-option"
 			>
-				<span class:hide={!_value.includes(choice)} class="inner-item">
+				<span class:hide={!_value.includes(name)} class="inner-item">
 					✓
 				</span>
-				{choice}
+				{name}
 			</li>
 		{/each}
 	</ul>

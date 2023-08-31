@@ -8,7 +8,7 @@
 
 	export let label: string;
 	export let info: string | undefined = undefined;
-	export let value: string | string[] | undefined;
+	export let value: number | number[] | undefined;
 	let old_value = Array.isArray(value) ? value.slice() : value;
 	export let value_is_output = false;
 	export let multiselect = false;
@@ -36,7 +36,7 @@
 	let choices_names: string[];
 	let choices_values: string[];
 
-	$: if (typeof value === "string" || value === null) {
+	$: if (typeof value === "number" || value === null) {
 		input_value = value;
 	}
 
@@ -82,7 +82,7 @@
 			value.push(option);
 			dispatch("select", {
 				index: choices_names.indexOf(option),
-				value: choices[option][1],
+				value: choices_values[option][1],
 				selected: true
 			});
 		}
@@ -103,7 +103,7 @@
 
 	function remove_all(e: any): void {
 		value = [];
-		inputValue = "";
+		input_value = "";
 		e.preventDefault();
 	}
 
@@ -113,11 +113,11 @@
 		if (blurring) return;
 		blurring = true;
 		if (multiselect) {
-			inputValue = "";
+			input_value = "";
 		} else if (!allow_custom_value) {
-			inputValue = value as string | undefined;
+			input_value = value as string | undefined;
 		}
-		showOptions = false;
+		show_options = false;
 		dispatch("blur");
 		setTimeout(() => {
 			blurring = false;
@@ -131,18 +131,19 @@
 			return target.blur();
 		}
 		dispatch("focus");
-		showOptions = true;
+		show_options = true;
 		filtered = choices_names;
 	}
 
 	function handleOptionMousedown(e: any): void {
-		const option = e.detail.target.dataset.value;
-		console.log(option);
+		const option_name = e.detail.target.dataset.name;
+		const option_index = e.detail.target.dataset.index;
+		// console.log(option);
 		if (allow_custom_value) {
-			inputValue = option;
+			input_value = option_name;
 		}
 
-		if (option !== undefined) {
+		if (option_name !== undefined) {
 			if (multiselect) {
 				if (value?.includes(option)) {
 					remove(option);
@@ -281,8 +282,8 @@
 		</div>
 		<DropdownOptions
 			bind:value
-			{showOptions}
-			{filtered}
+			{show_options}
+			{filtered_choices}
 			{activeOption}
 			{disabled}
 			on:change={handleOptionMousedown}
