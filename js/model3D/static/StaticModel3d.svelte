@@ -22,6 +22,8 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+	export let height: number | undefined = undefined;
+	export let zoom_speed = 1;
 
 	// alpha, beta, radius
 	export let camera_position: [number | null, number | null, number | null] = [
@@ -46,6 +48,7 @@
 	{container}
 	{scale}
 	{min_width}
+	{height}
 >
 	<StatusTracker {...loading_status} />
 
@@ -56,6 +59,7 @@
 			{label}
 			{show_label}
 			{camera_position}
+			{zoom_speed}
 		/>
 	{:else}
 		<!-- Not ideal but some bugs to work out before we can 
