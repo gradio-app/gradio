@@ -9,6 +9,7 @@
 	import { MarkdownCode as Markdown } from "@gradio/markdown/static";
 	import { get_fetchable_url_or_file } from "@gradio/upload";
 	import Copy from "./Copy.svelte";
+	import { Like, Dislike, Check } from "@gradio/icons";
 
 	export let value:
 		| [string | FileData | null, string | FileData | null][]
@@ -21,8 +22,8 @@
 		display: boolean;
 	}[];
 	export let pending_message = false;
-	export let feedback: string[] | null = ["test1", "test2"];
 	export let selectable = false;
+	export let likeable = false;
 	export let show_share_button = false;
 	export let rtl = false;
 	export let show_copy_button = false;
@@ -76,6 +77,19 @@
 		dispatch("select", {
 			index: [i, j],
 			value: message
+		});
+	}
+
+	function handle_like(
+		i: number,
+		j: number,
+		message: string | FileData | null,
+		liked: boolean
+	): void {
+		dispatch("like", {
+			index: [i, j],
+			value: message,
+			liked: liked
 		});
 	}
 </script>
@@ -132,11 +146,14 @@
 									{sanitize_html}
 									on:load={scroll}
 								/>
-								{#if feedback && j == 1}
-									<div class="feedback">
-										{#each feedback as f}
-											<button>{f}</button>
-										{/each}
+								{#if likeable && j == 1}
+									<div class="like">
+										<button on:click={() => handle_like(i, j, message, true)}
+											><Like /></button
+										>
+										<button on:click={() => handle_like(i, j, message, false)}
+											><Dislike /></button
+										>
 									</div>
 								{/if}
 
@@ -311,18 +328,18 @@
 		border-radius: 50%;
 	}
 
-	.feedback {
+	.like {
 		display: flex;
 		position: absolute;
-		top: var(--spacing-xl);
-		right: calc(var(--spacing-xxl) + var(--spacing-xl));
-		gap: var(--spacing-lg);
-		font-size: var(--text-sm);
+		height: var(--size-12);
+		width: var(--size-12);
+		bottom: 35px;
+		left: 65px;
 	}
-	.feedback button {
+	.like button {
 		color: var(--body-text-color-subdued);
 	}
-	.feedback button:hover {
+	.like button:hover {
 		color: var(--body-text-color);
 	}
 	.selectable {

@@ -20,6 +20,7 @@
 	export let root: string;
 	export let root_url: null | string;
 	export let selectable = false;
+	export let likeable = false;
 	export let show_share_button = false;
 	export let rtl = false;
 	export let show_copy_button = false;
@@ -87,6 +88,7 @@
 		{/if}
 		<ChatBot
 			{selectable}
+			{likeable}
 			{show_share_button}
 			value={_value}
 			{latex_delimiters}
@@ -95,6 +97,7 @@
 			{show_copy_button}
 			on:change={() => gradio.dispatch("change", value)}
 			on:select={(e) => gradio.dispatch("select", e.detail)}
+			on:like={(e) => gradio.dispatch("like", e.detail)}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
 			{avatar_images}
