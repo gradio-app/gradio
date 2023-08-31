@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Adding overscroll-x to Markdown
+fix:Adds horizontal scrolling to content that overflows in gr.Markdown
