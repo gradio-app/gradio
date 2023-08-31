@@ -8,7 +8,7 @@
 
 	export let label: string;
 	export let info: string | undefined = undefined;
-	export let value: number | number[] | undefined;
+	export let value: string | string[] | undefined;
 	let old_value = Array.isArray(value) ? value.slice() : value;
 	export let value_is_output = false;
 	export let multiselect = false;
@@ -27,7 +27,7 @@
 		focus: undefined;
 	}>();
 
-	let input_value: string | undefined;
+	let input_text: string | undefined;
 	let active_option: [string, string] | null;
 	let show_options = false;
 	let filter_input: HTMLElement;
@@ -36,27 +36,20 @@
 	let choices_names: string[];
 	let choices_values: string[];
 
-	$: if (typeof value === "number" || value === null) {
-		input_value = value;
-	}
-
 	$: {
 		choices_names = choices.map((c) => c[0]);
 		choices_values = choices.map((c) => c[1]);
 	}
 
-	$: old_choices, input_value, handle_filter();
+	$: choices, input_text, handle_filter();
 
-	function handle_filter(): void {
-		if (choices !== old_choices || typeof input_value === "string") {
-			old_choices = choices;
-			filtered_choices = choices.filter((o) =>
-				input_value ? o[0].toLowerCase().includes(input_value.toLowerCase()) : o
-			);
-		}
-	}
 	$: if (!active_option || !filtered_choices.includes(active_option)) {
 		active_option = filtered_choices.length ? filtered_choices[0] : null;
+	}
+
+	function handle_filter(): void {
+			filtered_choices = choices.filter((o) =>
+				input_text ? o[0].toLowerCase().includes(input_text.toLowerCase()) : o)
 	}
 
 	function handle_change(): void {
@@ -65,9 +58,6 @@
 			dispatch("input");
 		}
 	}
-	afterUpdate(() => {
-		value_is_output = false;
-	});
 
 	$: {
 		if (JSON.stringify(value) != JSON.stringify(old_value)) {
@@ -217,12 +207,9 @@
 		}
 	}
 
-	$: {
-		if (JSON.stringify(value) != JSON.stringify(old_value)) {
-			dispatch("change", value);
-			old_value = Array.isArray(value) ? value.slice() : value;
-		}
-	}
+	afterUpdate(() => {
+		value_is_output = false;
+	});
 </script>
 
 <label class:container>
