@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Quick fix for LaTeX in Markdown
+fix:Renders LaTeX that is added to the page in `gr.Markdown`, `gr.Chatbot`, and `gr.DataFrame`
