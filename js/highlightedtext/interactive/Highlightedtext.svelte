@@ -1,22 +1,26 @@
 <script lang="ts">
 	const browser = typeof document !== "undefined";
-	import { colors } from "@gradio/theme";
 	import { get_next_color } from "@gradio/utils";
 	import type { SelectData } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
+	import { correct_color_map } from "../utils";
 
 	export let value: [string, string | number | null][] = [];
 	export let show_legend = false;
 	export let color_map: Record<string, string> = {};
 	export let selectable = false;
 
-	let currentSelectedArrayIndex: number;
+	let labelToEdit: number | null = null;
+	let selectedArrayIndex: number;
+	let ctx: CanvasRenderingContext2D;
+	let _color_map: Record<string, { primary: string; secondary: string }> = {};
+	let active = "";
 
-	function handle_text_selected(
+	async function handle_text_selected(
 		currentSelectedArrayIndex: number,
 		startIndex: number,
 		endIndex: number
-	): void {
+	): Promise<void> {
 		if (currentSelectedArrayIndex !== -1) {
 			const before = value[currentSelectedArrayIndex][0].substring(
 				0,
@@ -31,7 +35,7 @@
 			value = [
 				...value.slice(0, currentSelectedArrayIndex),
 				[before, null],
-				[selected, "hello"],
+				[selected, "label"],
 				[after, null],
 				...value.slice(currentSelectedArrayIndex + 1),
 			];
@@ -39,13 +43,14 @@
 			value = value.filter((item) => item[0].trim() !== "");
 
 			dispatch("change", value);
+
+			labelToEdit = value.findIndex(
+				([text, label]) => text === selected && label === "label"
+			);
+
+			document.getElementById(`label-input-${labelToEdit}`)?.focus();
 		}
 	}
-
-	let ctx: CanvasRenderingContext2D;
-
-	let _color_map: Record<string, { primary: string; secondary: string }> = {};
-	let active = "";
 
 	const dispatch = createEventDispatcher<{
 		select: SelectData;
@@ -54,35 +59,6 @@
 
 	function splitTextByNewline(text: string): string[] {
 		return text.split("\n");
-	}
-
-	function correct_color_map(): void {
-		for (const col in color_map) {
-			const _c = color_map[col].trim();
-
-			if (_c in colors) {
-				_color_map[col] = colors[_c as keyof typeof colors];
-			} else {
-				_color_map[col] = {
-					primary: browser ? name_to_rgba(color_map[col], 1) : color_map[col],
-					secondary: browser
-						? name_to_rgba(color_map[col], 0.5)
-						: color_map[col],
-				};
-			}
-		}
-	}
-
-	function name_to_rgba(name: string, a: number): string {
-		if (!ctx) {
-			var canvas = document.createElement("canvas");
-			ctx = canvas.getContext("2d")!;
-		}
-		ctx.fillStyle = name;
-		ctx.fillRect(0, 0, 1, 1);
-		const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
-		ctx.clearRect(0, 0, 1, 1);
-		return `rgba(${r}, ${g}, ${b}, ${255 / a})`;
 	}
 
 	let mode: "categories" | "scores";
@@ -107,7 +83,7 @@
 			}
 		}
 
-		correct_color_map();
+		correct_color_map(color_map, _color_map, browser, ctx);
 	}
 
 	function handle_mouseover(label: string): void {
@@ -117,55 +93,34 @@
 		active = "";
 	}
 
-	function house_mouse_down(): void {
+	function handle_mouse_down(): void {
 		document.addEventListener("mouseup", handle_mouse_up);
 	}
 
 	function handle_mouse_up(): void {
 		const selection = window.getSelection();
-		console.log(selection);
-		console.log(value);
 
 		if (selection && selection.toString().trim() !== "") {
 			const textBeginningIndex = selection.getRangeAt(0).startOffset;
 			const textEndIndex = selection.getRangeAt(0).endOffset;
 
 			handle_text_selected(
-				currentSelectedArrayIndex,
+				selectedArrayIndex,
 				textBeginningIndex,
 				textEndIndex
 			);
-
-			document.removeEventListener("mouseup", handle_mouse_up);
 		}
+
+		document.removeEventListener("mouseup", handle_mouse_up);
 	}
 
-	function handle_mouse_over(
-		category: string | number | null,
-		i: number
-	): void {
-		if (category === null) {
-			currentSelectedArrayIndex = i;
-		} else {
-			currentSelectedArrayIndex = -1;
-		}
+	function handle_mouse_over(i: number): void {
+		selectedArrayIndex = i;
 	}
 </script>
 
-<!-- 
-	@todo victor: try reimplementing without flex (negative margins on container to avoid left margin on linebreak). 
-	If not possible hijack the copy execution like this:
-
-<svelte:window
-	on:copy|preventDefault={() => {
-		const selection =.getSelection()?.toString();
-		console.log(selection?.replaceAll("\n", " "));
-	}}
-/>
--->
-
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="container" on:mousedown={house_mouse_down}>
+<div class="container">
 	{#if mode === "categories"}
 		{#if show_legend}
 			<div
@@ -188,6 +143,7 @@
 				{/each}
 			</div>
 		{/if}
+
 		<div class="textfield">
 			{#each value as [text, category], i}
 				{#each splitTextByNewline(text) as line, j}
@@ -211,24 +167,71 @@
 									value: [text, category],
 								});
 							}}
-							on:mouseenter={() => handle_mouse_over(category, i)}
+							on:mouseenter={() => handle_mouse_over(i)}
 						>
 							<span
+								on:mousedown={handle_mouse_down}
 								class:no-label={!category || !_color_map[category]}
 								class="text">{line}</span
 							>
 							{#if !show_legend && category !== null}
 								&nbsp;
-								<span
-									class="label"
-									style:background-color={category === null ||
-									(active && active !== category)
-										? ""
-										: _color_map[category].primary}
-									on:mouseenter={() => handle_mouse_over(category, i)}
-								>
-									{category}
-								</span>
+								{#if labelToEdit === i}
+									<input
+										id={`label-input-${i}`}
+										type="text"
+										placeholder="label"
+										on:focus={(e) => (e.target.placeholder = "")}
+										value={category}
+										style:background-color={category === null ||
+										(active && active !== category)
+											? ""
+											: _color_map[category].primary}
+										style:width={category.toString().length + 3 + "ch"}
+										on:input={(e) => {
+											value = [
+												...value.slice(0, i),
+												// @ts-ignore
+												[text, e.target.value],
+												...value.slice(i + 1),
+											];
+										}}
+										on:blur={() => {
+											if (category === "") {
+												value = [
+													...value.slice(0, i),
+													[text, null],
+													...value.slice(i + 1),
+												];
+											}
+											labelToEdit = null;
+										}}
+										on:keydown={(e) => {
+											if (e.key === "Enter") {
+												labelToEdit = null;
+											}
+										}}
+									/>
+								{:else}
+									<span
+										on:mousedown={handle_mouse_down}
+										id={`label-tag-${i}`}
+										class="label"
+										style:background-color={category === null ||
+										(active && active !== category)
+											? ""
+											: _color_map[category].primary}
+										style:user-select="none"
+										on:mouseenter={() => {
+											handle_mouse_over(i);
+										}}
+										on:click={() => {
+											labelToEdit = i;
+										}}
+									>
+										{category}
+									</span>
+								{/if}
 							{/if}
 						</span>
 					{/if}
@@ -246,10 +249,14 @@
 				<span>+1</span>
 			</div>
 		{/if}
-		<div class="textfield" data-testid="highlighted-text:textfield">
+		<div
+			class="textfield"
+			data-testid="highlighted-text:textfield"
+			on:mousedown={handle_mouse_down}
+		>
 			{#each value as [text, _score], i}
 				{@const score = typeof _score === "string" ? parseInt(_score) : _score}
-				<span on:mouseenter={() => handle_mouse_over(_score, i)}>
+				<span on:mouseenter={() => handle_mouse_over(i)}>
 					<span
 						class="textspan score-text"
 						style={"background-color: rgba(" +
@@ -275,6 +282,8 @@
 	}
 	.hl + .hl {
 		margin-left: var(--size-1);
+		transition: background-color 0.3s;
+		user-select: none;
 	}
 
 	.textspan:last-child > .label {
@@ -333,7 +342,7 @@
 	.label {
 		transition: 150ms;
 		margin-top: 1px;
-		margin-right: calc(var(--size-1) * -1);
+		margin-right: calc(var(--size-1));
 		border-radius: var(--radius-xs);
 		padding: 1px 5px;
 		color: var(--body-text-color);
@@ -346,6 +355,24 @@
 	.text {
 		color: black;
 		white-space: pre-wrap;
+	}
+
+	.textspan.hl {
+		user-select: none;
+	}
+
+	input {
+		transition: 150ms;
+		margin-top: 1px;
+		margin-right: calc(var(--size-1));
+		border-radius: var(--radius-xs);
+		padding: 1px 5px;
+		color: black;
+		font-weight: var(--weight-bold);
+		font-size: var(--text-sm);
+		text-transform: uppercase;
+		line-height: 1;
+		color: white;
 	}
 
 	.score-text .text {
