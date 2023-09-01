@@ -1,3 +1,5 @@
+"""gr.HighlightedText() component."""
+
 from __future__ import annotations
 
 from typing import Callable, Literal
@@ -135,65 +137,6 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable, Cle
             "__type__": "update",
         }
         return updated_config
-    
-
-    def preprocess(
-        self, y: list[tuple[str, str | float | None]] | dict | None
-    ) -> list[tuple[str, str | float | None]] | None:
-        """
-        Parameters:
-            y: List of (word, category) tuples, or a dictionary of two keys: "text", and "entities", which itself is a list of dictionaries, each of which have the keys: "entity" (or "entity_group"), "start", and "end"
-        Returns:
-            List of (word, category) tuples
-        """
-        if y is None:
-            return None
-        if isinstance(y, dict):
-            try:
-                text = y["text"]
-                entities = y["entities"]
-            except KeyError as ke:
-                raise ValueError(
-                    "Expected a dictionary with keys 'text' and 'entities' "
-                    "for the value of the HighlightedText component."
-                ) from ke
-            if len(entities) == 0:
-                y = [(text, None)]
-            else:
-                list_format = []
-                index = 0
-                entities = sorted(entities, key=lambda x: x["start"])
-                for entity in entities:
-                    list_format.append((text[index : entity["start"]], None))
-                    entity_category = entity.get("entity") or entity.get("entity_group")
-                    list_format.append(
-                        (text[entity["start"] : entity["end"]], entity_category)
-                    )
-                    index = entity["end"]
-                list_format.append((text[index:], None))
-                y = list_format
-        if self.combine_adjacent:
-            output = []
-            running_text, running_category = None, None
-            for text, category in y:
-                if running_text is None:
-                    running_text = text
-                    running_category = category
-                elif category == running_category:
-                    running_text += self.adjacent_separator + text
-                elif not text:
-                    # Skip fully empty item, these get added in processing
-                    # of dictionaries.
-                    pass
-                else:
-                    output.append((running_text, running_category))
-                    running_text = text
-                    running_category = category
-            if running_text is not None:
-                output.append((running_text, running_category))
-            return output
-        else:
-            return y
     
     def postprocess(
         self, y: list[tuple[str, str | float | None]] | dict | None
