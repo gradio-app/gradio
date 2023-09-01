@@ -1,24 +1,14 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import { afterUpdate, createEventDispatcher } from "svelte";
 	import DOMPurify from "dompurify";
 	import render_math_in_element from "katex/dist/contrib/auto-render.js";
 	import "katex/dist/katex.min.css";
-
 	import { marked } from "./utils";
-	const dispatch = createEventDispatcher();
-
 	import "./prism.css";
-	// import "./prism-dark.css";
-
-	// const code_highlight_css = {
-	// 	light: (): Promise<typeof import("prismjs/themes/prism.css")> =>
-	// 		import("prismjs/themes/prism.css"),
-	// 	dark: (): Promise<typeof import("prismjs/themes/prism.css")> =>
-	// 		import("prismjs/themes/prism-dark.css")
-	// };
 
 	export let chatbot = true;
 	export let message: string;
+	export let sanitize_html = true;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -26,6 +16,7 @@
 	}[];
 
 	let el: HTMLSpanElement;
+	let html: string;
 
 	DOMPurify.addHook("afterSanitizeAttributes", function (node) {
 		if ("target" in node) {
@@ -33,12 +24,13 @@
 			node.setAttribute("rel", "noopener noreferrer");
 		}
 	});
-
-	$: el && html && render_html(message);
-
-	$: html =
-		message && message.trim() ? DOMPurify.sanitize(marked.parse(message)) : "";
-
+	$: if (message && message.trim()) {
+		html = sanitize_html
+			? DOMPurify.sanitize(marked.parse(message))
+			: marked.parse(message);
+	} else {
+		html = "";
+	}
 	async function render_html(value: string): Promise<void> {
 		if (latex_delimiters.length > 0) {
 			render_math_in_element(el, {
@@ -47,6 +39,7 @@
 			});
 		}
 	}
+	afterUpdate(() => render_html(message));
 </script>
 
 <span class:chatbot bind:this={el} class="md">

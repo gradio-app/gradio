@@ -25,7 +25,7 @@ with gr.Blocks(theme=base_theme) as demo:
     - Custom progress bar
     """
     )
-    toggle_dark = gr.Button("Toggle Dark").style(full_width=False)
+    toggle_dark = gr.Button("Toggle Dark", scale=0)
     toggle_dark.click(
         None,
         _js="""
@@ -112,8 +112,10 @@ with gr.Blocks(theme=base_theme) as demo:
             check = gr.Checkbox(label="Go")
         with gr.Column(variant="panel", scale=2):
             img = gr.Image(
-                "https://gradio.app/assets/img/header-image.jpg", label="Image"
-            ).style(height=320)
+                "https://picsum.photos/536/354",
+                label="Image",
+                height=320,
+            )
             with gr.Row():
                 go_btn = gr.Button("Go", label="Primary Button", variant="primary")
                 clear_btn = gr.Button(
@@ -133,10 +135,10 @@ with gr.Blocks(theme=base_theme) as demo:
                 clear_btn.click(clear, None, img)
 
             with gr.Row():
-                btn1 = gr.Button("Button 1").style(size="sm")
-                btn2 = gr.UploadButton().style(size="sm")
-                stop_btn = gr.Button("Stop", label="Stop Button", variant="stop").style(
-                    size="sm"
+                btn1 = gr.Button("Button 1", size="sm")
+                btn2 = gr.UploadButton(size="sm")
+                stop_btn = gr.Button(
+                    "Stop", label="Stop Button", variant="stop", size="sm"
                 )
 
             gr.Examples(
@@ -236,7 +238,7 @@ with gr.Blocks(theme=base_theme) as demo:
                     highlight,
                     chatbot,
                     gallery,
-                    tabs
+                    tabs,
                 ]
 
                 def select_data(evt: gr.SelectData):
@@ -258,7 +260,7 @@ with gr.Blocks(theme=base_theme) as demo:
     component_example_set = [
         (gr.Audio(render=False), join(KS_FILES, "cantina.wav")),
         (gr.Checkbox(render=False), True),
-        (gr.CheckboxGroup(render=False), ["A", "B"]),
+        (gr.CheckboxGroup(render=False, choices=["A", "B"]), ["A", "B"]),
         (gr.ColorPicker(render=False), "#FF0000"),
         (gr.Dataframe(render=False), [[1, 2, 3], [4, 5, 6]]),
         (gr.Dropdown(render=False), "A"),
@@ -284,4 +286,4 @@ with gr.Blocks(theme=base_theme) as demo:
 
 
 if __name__ == "__main__":
-    demo.launch(file_directories=[KS_FILES])
+    demo.launch(allowed_paths=[KS_FILES])

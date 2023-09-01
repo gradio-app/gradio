@@ -1,6 +1,6 @@
 # How to Use the 3D Model Component
 
-Related spaces: https://huggingface.co/spaces/dawood/Model3D, https://huggingface.co/spaces/radames/PIFu-Clothed-Human-Digitization, https://huggingface.co/spaces/radames/dpt-depth-estimation-3d-obj
+Related spaces: https://huggingface.co/spaces/gradio/Model3D, https://huggingface.co/spaces/gradio/PIFu-Clothed-Human-Digitization, https://huggingface.co/spaces/gradio/dpt-depth-estimation-3d-obj
 Tags: VISION, IMAGE
 
 ## Introduction
@@ -9,7 +9,7 @@ Tags: VISION, IMAGE
 
 This guide will show you how to build a demo for your 3D image model in a few lines of code; like the one below. Play around with 3D object by clicking around, dragging and zooming:
 
-<gradio-app space="dawood/Model3D"> </gradio-app>
+<gradio-app space="gradio/Model3D"> </gradio-app>
 
 ### Prerequisites
 
@@ -21,24 +21,28 @@ Let's take a look at how to create the minimal interface above. The prediction f
 
 ```python
 import gradio as gr
+import os
+
 
 def load_mesh(mesh_file_name):
     return mesh_file_name
 
+
 demo = gr.Interface(
     fn=load_mesh,
     inputs=gr.Model3D(),
-    outputs=gr.Model3D(clear_color=[0.0, 0.0, 0.0, 0.0],  label="3D Model"),
+    outputs=gr.Model3D(
+            clear_color=[0.0, 0.0, 0.0, 0.0],  label="3D Model"),
     examples=[
-        ["files/Bunny.obj"],
-        ["files/Duck.glb"],
-        ["files/Fox.gltf"],
-        ["files/face.obj"],
+        [os.path.join(os.path.dirname(__file__), "files/Bunny.obj")],
+        [os.path.join(os.path.dirname(__file__), "files/Duck.glb")],
+        [os.path.join(os.path.dirname(__file__), "files/Fox.gltf")],
+        [os.path.join(os.path.dirname(__file__), "files/face.obj")],
     ],
-    cache_examples=True,
 )
 
-demo.launch()
+if __name__ == "__main__":
+    demo.launch()
 ```
 
 Let's break down the code above:
@@ -55,18 +59,14 @@ Creating the Interface:
 - `examples`: list of 3D model files. The 3D model component can accept _.obj_, _.glb_, & _.gltf_ file types.
 - `cache_examples`: saves the predicted output for the examples, to save time on inference.
 
-## Exploring mode complex Model3D Demos:
+## Exploring a more complex Model3D Demo:
 
-Below is a demo that uses the DPT model to predict the depth of an image and then uses 3D Point Cloud to create a 3D object. Take a look at the [app.py](https://huggingface.co/spaces/radames/dpt-depth-estimation-3d-obj/blob/main/app.py) file for a peek into the code and the model prediction function.
-<gradio-app space="radames/dpt-depth-estimation-3d-obj"> </gradio-app>
-
-Below is a demo that uses the PIFu model to convert an image of a clothed human into a 3D digitized model. Take a look at the [spaces.py](https://huggingface.co/spaces/radames/PIFu-Clothed-Human-Digitization/blob/main/PIFu/spaces.py) file for a peek into the code and the model prediction function.
-
-<gradio-app space="radames/PIFu-Clothed-Human-Digitization"> </gradio-app>
+Below is a demo that uses the DPT model to predict the depth of an image and then uses 3D Point Cloud to create a 3D object. Take a look at the [app.py](https://huggingface.co/spaces/gradio/dpt-depth-estimation-3d-obj/blob/main/app.py) file for a peek into the code and the model prediction function.
+<gradio-app space="gradio/dpt-depth-estimation-3d-obj"> </gradio-app>
 
 ---
 
 And you're done! That's all the code you need to build an interface for your Model3D model. Here are some references that you may find useful:
 
 - Gradio's ["Getting Started" guide](https://gradio.app/getting_started/)
-- The first [3D Model Demo](https://huggingface.co/spaces/dawood/Model3D) and [complete code](https://huggingface.co/spaces/dawood/Model3D/tree/main) (on Hugging Face Spaces)
+- The first [3D Model Demo](https://huggingface.co/spaces/gradio/Model3D) and [complete code](https://huggingface.co/spaces/gradio/Model3D/tree/main) (on Hugging Face Spaces)

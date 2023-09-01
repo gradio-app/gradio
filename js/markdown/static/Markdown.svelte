@@ -10,6 +10,7 @@
 	export let value: string;
 	export let min_height = false;
 	export let rtl = false;
+	export let sanitize_html = true;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
@@ -31,7 +32,12 @@
 	dir={rtl ? "rtl" : "ltr"}
 	use:copy
 >
-	<MarkdownCode message={value} {latex_delimiters} chatbot={false} />
+	<MarkdownCode
+		message={value}
+		{latex_delimiters}
+		{sanitize_html}
+		chatbot={false}
+	/>
 </div>
 
 <style>
@@ -50,6 +56,7 @@
 
 	div {
 		max-width: 100%;
+		overflow-x: auto;
 	}
 
 	.min {
