@@ -13,8 +13,6 @@ from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
     Changeable,
-    Clearable,
-    Editable,
     EventListenerMethod,
     Selectable,
 )
@@ -23,7 +21,7 @@ set_documentation_group("component")
 
 
 @document()
-class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable, Clearable, Editable):
+class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
     Preprocessing:  expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels, if any. If no labels are provided, the text will be displayed as a single span.
