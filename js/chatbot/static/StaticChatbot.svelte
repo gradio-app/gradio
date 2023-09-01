@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Gradio, SelectData } from "@gradio/utils";
+	import type { Gradio, SelectData, LikeData } from "@gradio/utils";
 
 	import ChatBot from "./ChatBot.svelte";
 	import { Block, BlockLabel } from "@gradio/atoms";
@@ -36,6 +36,7 @@
 		select: SelectData;
 		share: ShareData;
 		error: string;
+		like: LikeData;
 	}>;
 	export let avatar_images: [string | null, string | null] = [null, null];
 

@@ -4,7 +4,7 @@
 
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import { ShareButton } from "@gradio/atoms";
-	import type { SelectData } from "@gradio/utils";
+	import type { SelectData, LikeData } from "@gradio/utils";
 	import type { FileData } from "@gradio/upload";
 	import { MarkdownCode as Markdown } from "@gradio/markdown/static";
 	import { get_fetchable_url_or_file } from "@gradio/upload";
@@ -39,6 +39,7 @@
 	const dispatch = createEventDispatcher<{
 		change: undefined;
 		select: SelectData;
+		like: LikeData;
 	}>();
 
 	beforeUpdate(() => {
@@ -256,7 +257,6 @@
 		border-radius: var(--radius-xxl);
 		background: var(--background-fill-secondary);
 		padding: var(--spacing-xxl);
-		padding-top: 0px;
 		padding-right: calc(var(--spacing-xxl) + var(--spacing-md));
 		width: calc(100% - var(--spacing-xxl));
 		color: var(--body-text-color);
@@ -343,9 +343,6 @@
 	}
 	.message-buttons-bot {
 		margin-right: -10px;
-	}
-	.icon-button {
-		order: -1;
 	}
 
 	.like {
