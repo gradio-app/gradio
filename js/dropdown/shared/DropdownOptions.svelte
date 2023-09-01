@@ -4,7 +4,6 @@
 	export let value: string | string[] | undefined = undefined;
 	export let choices: [string, string][];
 	export let filtered_indices: number[];
-	export let active_index: number | null;
 	export let show_options = false;
 	export let disabled = false;
 
@@ -90,15 +89,15 @@
 			<li
 				class="item"
 				role="button"
-				class:selected={_value.includes(choices[index][0])}
-				class:active={active_index !== null && active_index === index}
-				class:bg-gray-100={active_index !== null && active_index === index}
-				class:dark:bg-gray-600={active_index !== null && active_index === index}
+				class:selected={_value.includes(choices[index][1])}
+				class:active={_value.includes(choices[index][1])}
+				class:bg-gray-100={_value.includes(choices[index][1])}
+				class:dark:bg-gray-600={_value.includes(choices[index][1])}
 				data-index={index}
 				aria-label={choices[index][0]}
 				data-testid="dropdown-option"
 			>
-				<span class:hide={!_value.includes(choices[index][0])} class="inner-item">
+				<span class:hide={!_value.includes(choices[index][1])} class="inner-item">
 					✓
 				</span>
 				{choices[index][0]}

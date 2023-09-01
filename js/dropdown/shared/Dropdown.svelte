@@ -28,10 +28,9 @@
 	}>();
 
 	let filter_input: HTMLElement;
-	let input_text: string | undefined;
+	let input_text = "";
 	let show_options = false;
 	let filtered_indices: number[] = [];
-	let active_index: number | null;
 	let choices_names: string[];
 	let choices_values: string[];
 	let blurring = false;
@@ -43,8 +42,9 @@
 
 	$: choices, input_text, handle_filter();
 
-	$: if (!active_index || !filtered_indices.includes(active_index)) {
-		active_index = filtered_indices.length ? filtered_indices[0] : null;
+	if (choices.length > 0 && !multiselect && !value) {
+		input_text = choices[0][0];
+		value = choices[0][1];
 	}
 
 	$: {
@@ -92,29 +92,26 @@
 		const option_name = choices[option_index][0];
 		const option_value = choices[option_index][1];
 
-		if (allow_custom_value) {
-			input_text = option_name;
-		}
+		input_text = option_name;
 
-		if (option_name !== undefined) {
-			if (multiselect) {
-				if (value?.includes(option)) {
-					remove(option);
-				} else {
-					add(option_index);
-				}
-				input_text = "";
-			} else {
-				value = option;
-				input_text = option_name;
-				show_options = false;
-				dispatch("select", {
-					index: option_index,
-					value: option_value,
-					selected: true
-				});
-				filter_input.blur();
-			}
+		if (multiselect) {
+			// TODO
+			// if (value?.includes(option)) {
+			// 	remove(option);
+			// } else {
+			// 	add(option_index);
+			// }
+			// input_text = "";
+		} else {
+			value = option_value;
+			input_text = option_name;
+			show_options = false;
+			dispatch("select", {
+				index: option_index,
+				value: option_value,
+				selected: true
+			});
+			filter_input.blur();
 		}
 	}
 
@@ -159,8 +156,8 @@
 			return target.blur();
 		}
 		dispatch("focus");
-		show_options = true;
 		filtered_indices = choices.map((_, i) => i);
+		show_options = true;
 	}
 
 	// eslint-disable-next-line complexity
@@ -280,7 +277,6 @@
 			{show_options}
 			{choices}
 			{filtered_indices}
-			{active_index}
 			{disabled}
 			on:change={handle_option_selected}
 		/>
