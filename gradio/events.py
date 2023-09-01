@@ -95,7 +95,7 @@ class EventListenerMethod:
 
     def __call__(
         self,
-        fn: Callable | None | Literal["wrapper"] = "wrapper",
+        fn: Callable | None | Literal["decorator"] = "decorator",
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         outputs: Component | Sequence[Component] | None = None,
         api_name: str | None | Literal[False] = None,
@@ -128,7 +128,7 @@ class EventListenerMethod:
             cancels: A list of other events to cancel when this listener is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method. Functions that have not yet run (or generators that are iterating) will be cancelled, but functions that are currently running will be allowed to finish.
             every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
         """
-        if fn == "wrapper":
+        if fn == "decorator":
 
             def wrapper(func):
                 self.__call__(
