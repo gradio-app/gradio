@@ -140,7 +140,10 @@
 							on:click={() => handle_select(i, j, message)}
 							dir={rtl ? "rtl" : "ltr"}
 						>
-							<div class="message-buttons-{j == 0 ? 'user' : 'bot'}">
+							<div
+								class="message-buttons-{j == 0 ? 'user' : 'bot'}"
+								class:message-buttons-fit={!bubble_full_width}
+							>
 								{#if likeable && j == 1}
 									<div class="like">
 										<button on:click={() => handle_like(i, j, message, true)}
@@ -336,19 +339,23 @@
 		display: flex;
 		position: relative;
 		justify-content: flex-end;
-		margin-bottom: -10px;
-	}
-	.message-buttons-user {
-		margin-left: -10px;
 	}
 	.message-buttons-bot {
-		margin-right: -10px;
+		margin-right: 15px;
 	}
-
+	.message-buttons-fit {
+		margin-right: 0px;
+	}
+	.icon-button {
+		margin-top: -10px;
+		margin-bottom: -10px;
+	}
 	.like {
 		display: flex;
 		height: var(--size-8);
 		width: var(--size-8);
+		margin-top: -10px;
+		margin-bottom: -10px;
 	}
 	.like button {
 		color: var(--body-text-color-subdued);

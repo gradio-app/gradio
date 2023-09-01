@@ -347,6 +347,7 @@ class SelectData(EventData):
         True if the item was selected, False if deselected.
         """
 
+
 @document("*like", inherit=True)
 class Likeable(EventListener):
     def __init__(self):
