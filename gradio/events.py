@@ -346,3 +346,34 @@ class SelectData(EventData):
         """
         True if the item was selected, False if deselected.
         """
+
+
+@document("*like", inherit=True)
+class Likeable(EventListener):
+    def __init__(self):
+        self.likeable: bool = False
+        self.like = EventListenerMethod(
+            self, "like", callback=lambda: setattr(self, "likeable", True)
+        )
+        """
+        This listener is triggered when the user likes/dislikes from within the Component.
+        This event has EventData of type gradio.LikeData that carries information, accessible through LikeData.index and LikeData.value.
+        See EventData documentation on how to use this event data.
+        """
+
+
+class LikeData(EventData):
+    def __init__(self, target: Block | None, data: Any):
+        super().__init__(target, data)
+        self.index: int | tuple[int, int] = data["index"]
+        """
+        The index of the liked/disliked item. Is a tuple if the component is two dimensional.
+        """
+        self.value: Any = data["value"]
+        """
+        The value of the liked/disliked item.
+        """
+        self.liked: bool = data.get("liked", True)
+        """
+        True if the item was liked, False if disliked.
+        """

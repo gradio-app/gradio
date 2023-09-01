@@ -5,6 +5,12 @@ export interface SelectData {
 	selected?: boolean;
 }
 
+export interface LikeData {
+	index: number | [number, number];
+	value: any;
+	liked?: boolean;
+}
+
 export interface ShareData {
 	description: string;
 	title?: string;
