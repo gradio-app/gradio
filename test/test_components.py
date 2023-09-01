@@ -2015,6 +2015,7 @@ class TestChatbot:
             "root_url": None,
             "selectable": False,
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
+            'likeable': False,
             "rtl": False,
             "show_copy_button": False,
             "avatar_images": (None, None),
