@@ -2,9 +2,10 @@
 	import { fly } from "svelte/transition";
 	import { createEventDispatcher } from "svelte";
 	export let value: string | string[] | undefined = undefined;
-	export let filtered_choices: [string, string][];
+	export let choices: [string, string][];
+	export let filtered_indices: number[];
+	export let active_index: number | null;
 	export let show_options = false;
-	export let active_option: [string, string] | null;
 	export let disabled = false;
 
 	let distance_from_top: number;
@@ -83,26 +84,24 @@
 		style:width={input_width + "px"}
 		bind:this={listElement}
 	>
-		{#each filtered_choices as [name, choice_value], index}
+		{#each filtered_indices as index}
 			<!-- TODO: fix-->
 			<!-- svelte-ignore a11y-no-noninteractive-element-to-interactive-role -->
 			<li
 				class="item"
 				role="button"
-				class:selected={_value.includes(name)}
-				class:active={active_option !== null && active_option[0] === name}
-				class:bg-gray-100={active_option !== null && active_option[0] === name}
-				class:dark:bg-gray-600={active_option !== null && active_option[0] === name}
-				data-value={choice_value}
-				data-name={name}
+				class:selected={_value.includes(choices[index][0])}
+				class:active={active_index !== null && active_index === index}
+				class:bg-gray-100={active_index !== null && active_index === index}
+				class:dark:bg-gray-600={active_index !== null && active_index === index}
 				data-index={index}
-				aria-label={name}
+				aria-label={choices[index][0]}
 				data-testid="dropdown-option"
 			>
-				<span class:hide={!_value.includes(name)} class="inner-item">
+				<span class:hide={!_value.includes(choices[index][0])} class="inner-item">
 					✓
 				</span>
-				{name}
+				{choices[index][0]}
 			</li>
 		{/each}
 	</ul>

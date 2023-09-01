@@ -54,7 +54,8 @@
 		}
 	}
 
-	// General handlers
+	/* Handlers for both single-select and multi-select dropdowns */
+
 	function handle_filter(): void {
 		filtered_indices = [];
 		choices.forEach((o, index) => {
@@ -86,7 +87,39 @@
 		}, 100);
 	}
 
-	// Handlers specifically for multiselect dropdown
+	function handle_option_selected(e: any): void {
+		const option_index = e.detail.target.dataset.index;
+		const option_name = choices[option_index][0];
+		const option_value = choices[option_index][1];
+
+		if (allow_custom_value) {
+			input_text = option_name;
+		}
+
+		if (option_name !== undefined) {
+			if (multiselect) {
+				if (value?.includes(option)) {
+					remove(option);
+				} else {
+					add(option_index);
+				}
+				input_text = "";
+			} else {
+				value = option;
+				input_text = option_name;
+				show_options = false;
+				dispatch("select", {
+					index: option_index,
+					value: option_value,
+					selected: true
+				});
+				filter_input.blur();
+			}
+		}
+	}
+
+	/* Handlers specifically for multi-select dropdown */
+
 	function add(option_index: number): void {
 		value = value as string[];
 		if (!max_choices || value.length < max_choices) {
@@ -130,36 +163,6 @@
 		filtered_indices = choices.map((_, i) => i);
 	}
 
-	function handleOptionMousedown(e: any): void {
-		const option_name = e.detail.target.dataset.name;
-		const option_index = e.detail.target.dataset.index;
-		// console.log(option);
-		if (allow_custom_value) {
-			input_value = option_name;
-		}
-
-		if (option_name !== undefined) {
-			if (multiselect) {
-				if (value?.includes(option)) {
-					remove(option);
-				} else {
-					add(option_index);
-				}
-				inputValue = "";
-			} else {
-				value = option;
-				inputValue = option;
-				showOptions = false;
-				dispatch("select", {
-					index: choices.indexOf(option),
-					value: option,
-					selected: true
-				});
-				filter_input.blur();
-			}
-		}
-	}
-
 	// eslint-disable-next-line complexity
 	function handleKeydown(e: any): void {
 		if (e.key === "Enter" && activeOption != undefined) {
@@ -172,15 +175,15 @@
 						selected: true
 					});
 				}
-				inputValue = activeOption;
-				showOptions = false;
+				input_text = activeOption;
+				show_options = false;
 				filter_input.blur();
 			} else if (multiselect && Array.isArray(value)) {
 				value.includes(activeOption) ? remove(activeOption) : add(activeOption);
-				inputValue = "";
+				input_text = "";
 			}
 		} else {
-			showOptions = true;
+			show_options = true;
 			if (e.key === "ArrowUp" || e.key === "ArrowDown") {
 				if (activeOption === null) {
 					activeOption = filtered[0];
@@ -195,19 +198,19 @@
 						: filtered[calcIndex];
 				e.preventDefault();
 			} else if (e.key === "Escape") {
-				showOptions = false;
+				show_options = false;
 			} else if (e.key === "Backspace") {
 				if (
 					multiselect &&
-					(!inputValue || inputValue === "") &&
+					(!input_text || input_text === "") &&
 					Array.isArray(value) &&
 					value.length > 0
 				) {
 					remove(value[value.length - 1]);
-					inputValue = "";
+					input_text = "";
 				}
 			} else {
-				showOptions = true;
+				show_options = true;
 			}
 		}
 	}
@@ -221,7 +224,7 @@
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 	<div class="wrap">
-		<div class="wrap-inner" class:showOptions>
+		<div class="wrap-inner" class:show_options>
 			{#if multiselect && Array.isArray(value)}
 				{#each value as s}
 					<!-- TODO: fix -->
@@ -244,15 +247,15 @@
 			<div class="secondary-wrap">
 				<input
 					class="border-none"
-					class:subdued={value !== inputValue && !allow_custom_value}
+					class:subdued={value !== input_text && !allow_custom_value}
 					{disabled}
 					autocomplete="off"
-					bind:value={inputValue}
+					bind:value={input_text}
 					bind:this={filter_input}
 					on:keydown={handleKeydown}
 					on:keyup={() => {
 						if (allow_custom_value) {
-							value = inputValue;
+							value = input_text;
 						}
 					}}
 					on:blur={handle_blur}
@@ -275,10 +278,11 @@
 		<DropdownOptions
 			bind:value
 			{show_options}
-			{filtered_choices}
-			{activeOption}
+			{choices}
+			{filtered_indices}
+			{active_index}
 			{disabled}
-			on:change={handleOptionMousedown}
+			on:change={handle_option_selected}
 		/>
 	</div>
 </label>
