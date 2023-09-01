@@ -62,4 +62,3 @@ in two separate lines.`
 		latex_delimiters: [{ left: "$", right: "$", display: false }]
 	}}
 />
-
