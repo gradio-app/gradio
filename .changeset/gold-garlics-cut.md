@@ -5,4 +5,6 @@
 "gradio": minor
 ---
 
-feat:Like/Dislike Button for Chatbot
+highlight:
+
+#### Like/Dislike Button for Chatbot
