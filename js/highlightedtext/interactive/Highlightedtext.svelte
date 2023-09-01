@@ -2,7 +2,7 @@
 	const browser = typeof document !== "undefined";
 	import { get_next_color } from "@gradio/utils";
 	import type { SelectData } from "@gradio/utils";
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, tick } from "svelte";
 	import { correct_color_map } from "../utils";
 
 	export let value: [string, string | number | null][] = [];
@@ -47,6 +47,10 @@
 			labelToEdit = value.findIndex(
 				([text, label]) => text === selected && label === "label"
 			);
+
+			console.log(labelToEdit);
+
+			await tick();
 
 			document.getElementById(`label-input-${labelToEdit}`)?.focus();
 		}
