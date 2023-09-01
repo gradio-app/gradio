@@ -143,6 +143,7 @@
 							<div
 								class="message-buttons-{j == 0 ? 'user' : 'bot'}"
 								class:message-buttons-fit={!bubble_full_width}
+								class:hide={message === null}
 							>
 								{#if likeable && j == 1}
 									<div class="like">
