@@ -9,6 +9,7 @@
 	import type { SelectData } from "@gradio/utils";
 	import { _ } from "svelte-i18n";
 	import VirtualTable from "./VirtualTable.svelte";
+	import type { ActionReturn } from "svelte/action";
 
 	type Datatype = "str" | "markdown" | "html" | "number" | "bool" | "date";
 
@@ -36,10 +37,10 @@
 		if (values && !Array.isArray(values)) {
 			headers = values.headers;
 			values = values.data;
-			selected = false;
+			// selected = false;
 		} else if (values === null) {
 			values = [];
-			selected = false;
+			// selected = false;
 		}
 	}
 
@@ -54,10 +55,9 @@
 		data[row][col].value;
 	$: {
 		if (selected !== false) {
-			const loc = selected.split("-");
-			const row = parseInt(loc[0]);
-			const col = parseInt(loc[1]);
-			if (!isNaN(row) && !isNaN(col)) {
+			const [row, col] = get_current_indices(selected);
+
+			if (row > -1 && col > -1) {
 				dispatch("select", { index: [row, col], value: get_data_at(row, col) });
 			}
 		}
@@ -67,14 +67,9 @@
 		{ cell: null | HTMLTableCellElement; input: null | HTMLInputElement }
 	> = {};
 
-	let data_binding: Record<string, (typeof data)[0][0]> = {};
-
-	$: console.log(data_binding);
-
 	type Headers = { value: string; id: string }[];
 
 	function make_headers(_head: string[]): Headers {
-		console.log("make_headers");
 		let _h = _head || [];
 		if (col_count[1] === "fixed" && _h.length < col_count[0]) {
 			const fill = Array(col_count[0] - _h.length)
@@ -87,13 +82,13 @@
 			return Array(col_count[0])
 				.fill(0)
 				.map((_, i) => {
-					const _id = `h-${i}`;
+					const _id = get_id();
 					els[_id] = { cell: null, input: null };
 					return { id: _id, value: JSON.stringify(i + 1) };
 				});
 		}
 		return _h.map((h, i) => {
-			const _id = `h-${i}`;
+			const _id = get_id();
 			els[_id] = { cell: null, input: null };
 			return { id: _id, value: h ?? "" };
 		});
@@ -103,7 +98,6 @@
 		value: string | number;
 		id: string;
 	}[][] {
-		console.log("PROCESSING DATA");
 		const data_row_length = _values.length;
 		return Array(
 			row_count[1] === "fixed"
@@ -123,10 +117,9 @@
 				)
 					.fill(0)
 					.map((_, j) => {
-						const id = `${i}-${j}`;
+						const id = get_id();
 						els[id] = els[id] || { input: null, cell: null };
 						const obj = { value: _values?.[i]?.[j] ?? "", id };
-						data_binding[id] = obj;
 						return obj;
 					})
 			);
@@ -140,25 +133,49 @@
 			_headers = make_headers(headers);
 
 			old_headers = headers;
-			refresh_focus();
+			// refresh_focus();
 		}
 	}
-	$: if (!dequal(values, old_val)) {
-		data = process_data(values as (string | number)[][]);
-		old_val = values as (string | number)[][];
 
-		refresh_focus();
-	}
+	let current_selection_index: false | [number, number] = false;
 
-	async function refresh_focus(): Promise<void> {
-		if (typeof editing === "string") {
-			await tick();
-			els[editing as string]?.input?.focus();
-		} else if (typeof selected === "string") {
-			await tick();
-			els[selected as string]?.input?.focus();
+	$: {
+		// console.log("======");
+		// console.log("======");
+		// console.log({ is_same: dequal(values, old_val) });
+		// console.log("======");
+		// console.log("======");
+		if (!dequal(values, old_val)) {
+			// console.log({ current_selection_index });
+			data = process_data(values as (string | number)[][]);
+			old_val = values.slice() as (string | number)[][];
+
+			// refresh_focus();
+			selected =
+				current_selection_index !== false
+					? data[current_selection_index[0]][current_selection_index[1]].id
+					: false;
+			// console.log({ selected });
 		}
 	}
+
+	function save_selected() {
+		if (selected) {
+			return get_current_indices(selected);
+		}
+
+		return false;
+	}
+
+	// async function refresh_focus(): Promise<void> {
+	// 	if (typeof editing === "string") {
+	// 		await tick();
+	// 		els[editing as string]?.input?.focus();
+	// 	} else if (typeof selected === "string") {
+	// 		await tick();
+	// 		els[selected as string]?.input?.focus();
+	// 	}
+	// }
 
 	let data: { id: string; value: string | number }[][] = [[]];
 
@@ -185,10 +202,8 @@
 	}
 
 	function get_current_indices(id: string): [number, number] {
-		console.log("get_current_indices");
-		console.log(id);
-		console.log(data);
-		return data.reduce(
+		// console.log(id, data);
+		let x = data.reduce(
 			(acc, arr, i) => {
 				const j = arr.reduce(
 					(_acc, _data, k) => (id === _data.id ? k : _acc),
@@ -199,6 +214,8 @@
 			},
 			[-1, -1]
 		);
+		// console.log(x);
+		return x;
 	}
 
 	async function start_edit(id: string, clear?: boolean): Promise<void> {
@@ -223,6 +240,7 @@
 		id: string
 	): Promise<void> {
 		let is_data;
+		// console.log("KEYDOWN");
 
 		switch (event.key) {
 			case "ArrowRight":
@@ -230,7 +248,6 @@
 				event.preventDefault();
 				is_data = data[i][j + 1];
 				selected = is_data ? is_data.id : selected;
-				console.log({ editing, selected, is_data, i, j, id });
 
 				break;
 			case "ArrowLeft":
@@ -242,14 +259,21 @@
 			case "ArrowDown":
 				if (editing) break;
 				event.preventDefault();
+
 				is_data = data[i + 1];
 				selected = is_data ? is_data[j].id : selected;
 				break;
 			case "ArrowUp":
+				// console.log(editing, selected, { i, j, id }, data);
 				if (editing) break;
+
+				const [x, y] = get_current_indices(id);
+				// console.log({ x, y });
 				event.preventDefault();
 				is_data = data[i - 1];
+				// console.log(data[i - 1], is_data);
 				selected = is_data ? is_data[j].id : selected;
+				// console.log(selected);
 				break;
 			case "Escape":
 				if (!editable) break;
@@ -315,6 +339,7 @@
 	}
 
 	async function handle_cell_click(id: string): Promise<void> {
+		// console.log("handle_cell_click", id);
 		if (editing === id) return;
 		if (selected === id) return;
 		editing = false;
@@ -325,6 +350,7 @@
 		id: string | boolean,
 		type: "edit" | "select"
 	): Promise<void> {
+		// console.log(id, type);
 		if (type === "edit" && typeof id == "string") {
 			await tick();
 			els[id].input?.focus();
@@ -342,13 +368,15 @@
 
 		if (type === "select" && typeof id == "string") {
 			const { cell } = els[id];
+			// console.log(els);
+
 			await tick();
 			cell?.focus();
 		}
 	}
 
-	$: set_focus(editing, "edit");
-	$: set_focus(selected, "select");
+	// $: set_focus(editing, "edit");
+	// $: set_focus(selected, "select");
 
 	type SortDirection = "asc" | "des";
 	let sort_direction: SortDirection | undefined;
@@ -366,7 +394,7 @@
 			}
 		}
 	}
-
+	// $: console.log(JSON.parse(JSON.stringify(data)));
 	let header_edit: string | false;
 
 	function update_headers_data(): void {
@@ -404,51 +432,63 @@
 		}
 	}
 
-	let table: VirtualTable;
+	function get_id(): string {
+		return (
+			Date.now().toString(16) +
+			Math.floor(Math.random() * 0xffffff).toString(16)
+		);
+	}
+
 	async function add_row(index?: number): Promise<void> {
-		console.log("add_row");
-		console.log(index);
 		if (row_count[1] !== "dynamic") return;
 		if (data.length === 0) {
 			values = [Array(headers.length).fill("")];
 			return;
 		}
 
+		let ids: string[] = [];
 		data.splice(
 			index ? index + 1 : data.length,
 			0,
 			Array(data[0].length)
 				.fill(0)
 				.map((_, i) => {
-					const _id = `${data.length}-${i}`;
+					const _id = get_id();
+					ids.push(_id);
 
 					els[_id] = { cell: null, input: null };
 					return { id: _id, value: "" };
 				})
 		);
 
-		data = data;
-		console.log(data);
-		await tick();
+		selected = ids[0];
+		current_selection_index = save_selected();
 
-		requestAnimationFrame(() => {
-			const index = get_current_indices(`${data.length - 1}-0`)[0];
-			console.log(index);
-			table.scroll_to_index(index, {
-				behavior: "instant"
-			});
-		});
+		await tick();
+		// console.log(data.length);
+		data = data;
+
+		// console.log(
+		// 	"BOO",
+		// 	selected,
+		// 	index,
+		// 	ids,
+		// 	JSON.parse(JSON.stringify(data)),
+		// 	index ? index + 1 : data.length
+		// );
+
+		// handle_scroll();
 	}
 
 	async function add_col(): Promise<void> {
 		if (col_count[1] !== "dynamic") return;
 		for (let i = 0; i < data.length; i++) {
-			const _id = `${i}-${data[i].length}`;
+			const _id = get_id();
 			els[_id] = { cell: null, input: null };
 			data[i].push({ id: _id, value: "" });
 		}
 
-		const _id = `h-${_headers.length}`;
+		const _id = get_id();
 		els[_id] = { cell: null, input: null };
 		_headers.push({ id: _id, value: `Header ${_headers.length + 1}` });
 
@@ -583,54 +623,72 @@
 
 	let table_height: number = height || 500;
 
-	function sort_data(
+	async function sort_data(
 		_data: typeof data,
 		col?: number,
 		dir?: SortDirection
-	): void {
+	): Promise<void> {
 		if (typeof col !== "number" || !dir) {
 			return;
 		}
+
+		let d;
 		if (dir === "asc") {
-			_data.sort((a, b) => (a[col].value < b[col].value ? -1 : 1));
+			d = _data.slice().sort((a, b) => (a[col].value < b[col].value ? -1 : 1));
 		} else if (dir === "des") {
-			_data.sort((a, b) => (a[col].value > b[col].value ? -1 : 1));
+			d = _data.sort((a, b) => (a[col].value > b[col].value ? -1 : 1));
 		}
 
-		data = data;
+		data = d;
+
+		await tick();
 	}
 
 	$: sort_data(data, sort_by, sort_direction);
 
-	$: els, selected, log();
+	let table_el: HTMLTableElement;
 
-	function log() {
-		setTimeout(() => {
-			console.log(selected, els);
-		}, 300);
-	}
-
-	let cell_parent = [];
+	$: selected_index =
+		typeof selected === "string" ? get_current_indices(selected)[0] : false;
 
 	// $: console.log(cell_parent);
 
 	function set_ids(node: HTMLTableRowElement, params: (typeof data)[0]) {
-		console.log(node, params);
 		for (let i = 0; i < params.length; i++) {
 			els[params[i].id].cell = node.children[i];
 		}
-		console.log("ASSIGNING NODES");
+
 		return {
 			update(params) {
 				for (let i = 0; i < params.length; i++) {
 					els[params[i].id].cell = node.children[i];
 				}
-				console.log("ASSIGNING NODES");
 			}
 		};
 	}
 
-	$: console.log(els);
+	function focus_if_selected(
+		node: HTMLTableCellElement,
+		params: { selected: boolean; id: string }
+	): ActionReturn<{ selected: boolean; id: string }> {
+		const { selected: _selected, id } = params;
+		// console.log({ selected, _selected, id });
+		if (selected) {
+			node.focus();
+		}
+
+		return {
+			update(_selected: boolean) {
+				// console.log({ selected, _selected, id });
+
+				if (_selected) {
+					node.focus();
+				}
+			}
+		};
+	}
+
+	// $: console.log({ selected, selected_index });
 </script>
 
 <svelte:window
@@ -718,11 +776,12 @@
 			bind:dragging
 		>
 			<VirtualTable
+				selected={selected_index}
+				bind:viewport={table_el}
 				bind:items={data}
 				table_width={t_width}
 				max_height={height || 500}
 				bind:actual_height={table_height}
-				bind:this={table}
 			>
 				{#if label && label.length !== 0}
 					<caption class="sr-only">{label}</caption>
@@ -784,6 +843,7 @@
 							on:dblclick={() => start_edit(id)}
 							on:keydown={(e) => handle_keydown(e, index, j, id)}
 							style="width: var(--cell-width-{j});"
+							use:focus_if_selected={{ selected: id === selected, id }}
 						>
 							<div class:border-transparent={selected !== id} class="cell-wrap">
 								<EditableCell
@@ -888,7 +948,9 @@
 	table {
 		position: absolute;
 		opacity: 0;
-		transition: 150ms;
+		transition:
+			height,
+			opacity 150ms;
 		width: var(--size-full);
 		table-layout: auto;
 		/* overflow: hidden; */
@@ -914,6 +976,7 @@
 	tr {
 		border-bottom: 1px solid var(--border-color-primary);
 		text-align: left;
+		background: var(--table-even-background-fill);
 	}
 
 	tr > * + * {
