@@ -4,7 +4,9 @@
 
 highlight:Introduce decorator syntax for event listeners
 
-Added the ability to attach event listeners via decorators, e.g.
+#### Added the ability to attach event listeners via decorators
+
+e.g.
 
 ```python
 with gr.Blocks() as demo:
