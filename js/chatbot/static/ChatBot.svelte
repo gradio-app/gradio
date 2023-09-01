@@ -139,13 +139,7 @@
 							on:click={() => handle_select(i, j, message)}
 							dir={rtl ? "rtl" : "ltr"}
 						>
-							{#if typeof message === "string"}
-								<Markdown
-									{message}
-									{latex_delimiters}
-									{sanitize_html}
-									on:load={scroll}
-								/>
+							<div class="message-buttons-{j == 0 ? 'user' : 'bot'}">
 								{#if likeable && j == 1}
 									<div class="like">
 										<button on:click={() => handle_like(i, j, message, true)}
@@ -157,11 +151,19 @@
 									</div>
 								{/if}
 
-								{#if show_copy_button && message}
+								{#if show_copy_button && message && typeof message === "string"}
 									<div class="icon-button">
 										<Copy value={message} />
 									</div>
 								{/if}
+							</div>
+							{#if typeof message === "string"}
+								<Markdown
+									{message}
+									{latex_delimiters}
+									{sanitize_html}
+									on:load={scroll}
+								/>
 							{:else if message !== null && message.mime_type?.includes("audio")}
 								<audio
 									data-testid="chatbot-audio"
@@ -254,6 +256,7 @@
 		border-radius: var(--radius-xxl);
 		background: var(--background-fill-secondary);
 		padding: var(--spacing-xxl);
+		padding-top: 0px;
 		padding-right: calc(var(--spacing-xxl) + var(--spacing-md));
 		width: calc(100% - var(--spacing-xxl));
 		color: var(--body-text-color);
@@ -328,20 +331,36 @@
 		border-radius: 50%;
 	}
 
+	.message-buttons-user,
+	.message-buttons-bot {
+		display: flex;
+		position: relative;
+		justify-content: flex-end;
+		margin-bottom: -10px;
+	}
+	.message-buttons-user {
+		margin-left: -10px;
+	}
+	.message-buttons-bot {
+		margin-right: -10px;
+	}
+	.icon-button {
+		order: -1;
+	}
+
 	.like {
 		display: flex;
-		position: absolute;
-		height: var(--size-12);
-		width: var(--size-12);
-		bottom: 35px;
-		left: 65px;
+		height: var(--size-8);
+		width: var(--size-8);
 	}
 	.like button {
 		color: var(--body-text-color-subdued);
 	}
-	.like button:hover {
+	.like button:hover,
+	button:focus {
 		color: var(--body-text-color);
 	}
+
 	.selectable {
 		cursor: pointer;
 	}
@@ -466,11 +485,5 @@
 
 	.message-wrap :global(pre) {
 		position: relative;
-	}
-
-	.icon-button {
-		position: absolute;
-		top: 6px;
-		right: 6px;
 	}
 </style>
