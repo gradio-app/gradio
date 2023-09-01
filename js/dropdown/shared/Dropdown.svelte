@@ -33,6 +33,7 @@
 	let filtered_indices: number[] = [];
 	let choices_names: string[];
 	let choices_values: string[];
+	let active_index: number | null = null;
 	let blurring = false;
 
 	$: {
@@ -161,8 +162,8 @@
 	}
 
 	// eslint-disable-next-line complexity
-	function handleKeydown(e: any): void {
-		if (e.key === "Enter" && activeOption != undefined) {
+	function handle_key_down(e: any): void {
+		if (e.key === "Enter") {
 			if (!multiselect) {
 				if (value !== activeOption) {
 					value = activeOption;
@@ -244,12 +245,12 @@
 			<div class="secondary-wrap">
 				<input
 					class="border-none"
-					class:subdued={value !== input_text && !allow_custom_value}
+					class:subdued={!choices_names.includes(input_text) && !allow_custom_value}
 					{disabled}
 					autocomplete="off"
 					bind:value={input_text}
 					bind:this={filter_input}
-					on:keydown={handleKeydown}
+					on:keydown={handle_key_down}
 					on:keyup={() => {
 						if (allow_custom_value) {
 							value = input_text;
@@ -278,6 +279,7 @@
 			{choices}
 			{filtered_indices}
 			{disabled}
+			{active_index}
 			on:change={handle_option_selected}
 		/>
 	</div>
