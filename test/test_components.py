@@ -2160,6 +2160,8 @@ class TestModel3D:
             "root_url": None,
             "name": "model3d",
             "camera_position": (None, None, None),
+            "height": None,
+            "zoom_speed": 1,
         }
 
         file = "test/test_files/Box.gltf"

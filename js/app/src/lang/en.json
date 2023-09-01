@@ -40,7 +40,8 @@
 		"or": "or",
 		"remove": "Remove",
 		"share": "Share",
-		"submit": "Submit"
+		"submit": "Submit",
+		"undo": "Undo"
 	},
 	"dataframe": {
 		"incorrect_format": "Incorrect format, only CSV and TSV files are supported",
@@ -74,7 +75,6 @@
 		"remove_image": "Remove Image",
 		"select_brush_color": "Select brush color",
 		"start_drawing": "Start drawing",
-		"undo": "Undo",
 		"use_brush": "Use brush"
 	},
 	"label": {
