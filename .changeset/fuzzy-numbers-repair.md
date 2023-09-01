@@ -2,7 +2,7 @@
 "gradio": minor
 ---
 
-highlight:Introduce decorator syntax for event listeners
+highlight:
 
 #### Added the ability to attach event listeners via decorators
 
