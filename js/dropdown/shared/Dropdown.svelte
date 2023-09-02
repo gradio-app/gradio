@@ -1,9 +1,9 @@
 <script lang="ts">
 	import DropdownOptions from "./DropdownOptions.svelte";
-	import { createEventDispatcher, afterUpdate } from "svelte";
+	import {handle_filter, handle_change} from "./utils"
+	import { afterUpdate } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Remove, DropdownArrow } from "@gradio/icons";
-	import type { SelectData } from "@gradio/utils";
 	import { _ } from "svelte-i18n";
 
 	export let label: string;
@@ -11,21 +11,12 @@
 	export let value: string | string[] | undefined;
 	let old_value = Array.isArray(value) ? value.slice() : value;
 	export let value_is_output = false;
-	export let multiselect = false;
 	export let max_choices: number;
 	export let choices: [string, string][];
 	export let disabled = false;
 	export let show_label: boolean;
 	export let container = true;
 	export let allow_custom_value = false;
-
-	const dispatch = createEventDispatcher<{
-		change: string | string[] | undefined;
-		input: undefined;
-		select: SelectData;
-		blur: undefined;
-		focus: undefined;
-	}>();
 
 	let filter_input: HTMLElement;
 	let input_text = "";
@@ -36,42 +27,28 @@
 	let active_index: number | null = null;
 	let blurring = false;
 
-	$: {
-		choices_names = choices.map((c) => c[0]);
-		choices_values = choices.map((c) => c[1]);
-	}
+	/* Setup including setting the default value as the first choice */
 
-	$: choices, input_text, handle_filter();
-
-	if (choices.length > 0 && !multiselect && !value) {
+	if (choices.length > 0 && !value) {
 		input_text = choices[0][0];
 		value = choices[0][1];
 	}
 
 	$: {
+		choices_names = choices.map((c) => c[0]);
+		choices_values = choices.map((c) => c[1]);
+	}
+
+	$: filtered_indices = handle_filter(choices, input_text);
+
+	$: {
 		if (JSON.stringify(value) != JSON.stringify(old_value)) {
 			old_value = Array.isArray(value) ? value.slice() : value;
-			handle_change();
+			handle_change(value, value_is_output);
 		}
 	}
 
 	/* Handlers for both single-select and multi-select dropdowns */
-
-	function handle_filter(): void {
-		filtered_indices = [];
-		choices.forEach((o, index) => {
-			if (input_text ? o[0].toLowerCase().includes(input_text.toLowerCase()) : true) {
-				filtered_indices.push(index);
-			}
-		});
-	}
-
-	function handle_change(): void {
-		dispatch("change", value);
-		if (!value_is_output) {
-			dispatch("input");
-		}
-	}
 
 	function handle_blur(): void {
 		if (blurring) return;
@@ -88,33 +65,6 @@
 		}, 100);
 	}
 
-	function handle_option_selected(e: any): void {
-		const option_index = e.detail.target.dataset.index;
-		const option_name = choices[option_index][0];
-		const option_value = choices[option_index][1];
-
-		input_text = option_name;
-
-		if (multiselect) {
-			// TODO
-			// if (value?.includes(option)) {
-			// 	remove(option);
-			// } else {
-			// 	add(option_index);
-			// }
-			// input_text = "";
-		} else {
-			value = option_value;
-			input_text = option_name;
-			show_options = false;
-			dispatch("select", {
-				index: option_index,
-				value: option_value,
-				selected: true
-			});
-			filter_input.blur();
-		}
-	}
 
 	/* Handlers specifically for multi-select dropdown */
 
