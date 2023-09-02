@@ -27,30 +27,22 @@ export function handle_change(value: string | string[] | undefined, value_is_out
     }
 }
 
-function handle_option_selected(e: any, choices: [string, string][]): void {
-    const option_index = e.detail.target.dataset.index;
-    const option_name = choices[option_index][0];
-    const option_value = choices[option_index][1];
+export function dispatch_blur(): void {
+    dispatch("blur");
+}
 
-    input_text = option_name;
+export function dispatch_select(option_index: number, option_value: string): void {
+    dispatch("select", {
+        index: option_index,
+        value: option_value,
+        selected: true
+    });
+}
 
-    if (multiselect) {
-        // TODO
-        // if (value?.includes(option)) {
-        // 	remove(option);
-        // } else {
-        // 	add(option_index);
-        // }
-        // input_text = "";
-    } else {
-        value = option_value;
-        input_text = option_name;
-        show_options = false;
-        dispatch("select", {
-            index: option_index,
-            value: option_value,
-            selected: true
-        });
-        filter_input.blur();
-    }
+export function handle_key_down(): void {
+    // TODO: implement
+}
+
+export function handle_focus(): void {
+    // TODO: implement
 }
