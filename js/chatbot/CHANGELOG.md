@@ -1,5 +1,22 @@
 # @gradio/chatbot
 
+## 0.3.0
+
+### Highlights
+
+#### Like/Dislike Button for Chatbot ([#5391](https://github.com/gradio-app/gradio/pull/5391) [`abf1c57d`](https://github.com/gradio-app/gradio/commit/abf1c57d7d85de0df233ee3b38aeb38b638477db))
+
+ Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
+### Features
+
+- [#5334](https://github.com/gradio-app/gradio/pull/5334) [`c5bf9138`](https://github.com/gradio-app/gradio/commit/c5bf91385a632dc9f612499ee01166ac6ae509a9) - Add chat bubble width param.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
+### Fixes
+
+- [#5304](https://github.com/gradio-app/gradio/pull/5304) [`05892302`](https://github.com/gradio-app/gradio/commit/05892302fb8fe2557d57834970a2b65aea97355b) - Adds kwarg to disable html sanitization in `gr.Chatbot()`.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#5366](https://github.com/gradio-app/gradio/pull/5366) [`0cc7e2dc`](https://github.com/gradio-app/gradio/commit/0cc7e2dcf60e216e0a30e2f85a9879ce3cb2a1bd) - Hide avatar when message none.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.2.2
 
 ### Fixes

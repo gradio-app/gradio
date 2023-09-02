@@ -1,5 +1,49 @@
 # gradio
 
+## 3.42.0
+
+### Highlights
+
+#### Like/Dislike Button for Chatbot ([#5391](https://github.com/gradio-app/gradio/pull/5391) [`abf1c57d`](https://github.com/gradio-app/gradio/commit/abf1c57d7d85de0df233ee3b38aeb38b638477db))
+
+ Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
+#### Added the ability to attach event listeners via decorators ([#5395](https://github.com/gradio-app/gradio/pull/5395) [`55fed04f`](https://github.com/gradio-app/gradio/commit/55fed04f559becb9c24f22cc6292dc572d709886))
+
+e.g.
+
+```python
+with gr.Blocks() as demo:
+    name = gr.Textbox(label="Name")
+    output = gr.Textbox(label="Output Box")
+    greet_btn = gr.Button("Greet")
+
+    @greet_btn.click(inputs=name, outputs=output)
+    def greet(name):
+        return "Hello " + name + "!"
+```
+
+ Thanks [@aliabid94](https://github.com/aliabid94)!
+
+### Features
+
+- [#5334](https://github.com/gradio-app/gradio/pull/5334) [`c5bf9138`](https://github.com/gradio-app/gradio/commit/c5bf91385a632dc9f612499ee01166ac6ae509a9) - Add chat bubble width param.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#5267](https://github.com/gradio-app/gradio/pull/5267) [`119c8343`](https://github.com/gradio-app/gradio/commit/119c834331bfae60d4742c8f20e9cdecdd67e8c2) - Faster reload mode.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5373](https://github.com/gradio-app/gradio/pull/5373) [`79d8f9d8`](https://github.com/gradio-app/gradio/commit/79d8f9d891901683c5a1b7486efb44eab2478c96) - Adds `height` and `zoom_speed` parameters to `Model3D` component, as well as a button to reset the camera position.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#5370](https://github.com/gradio-app/gradio/pull/5370) [`61803c65`](https://github.com/gradio-app/gradio/commit/61803c6545e73fce47e8740bd46721ab9bb0ba5c) - chore(deps): update dependency extendable-media-recorder to v9.  Thanks [@renovate](https://github.com/apps/renovate)!
+- [#5266](https://github.com/gradio-app/gradio/pull/5266) [`4ccb9a86`](https://github.com/gradio-app/gradio/commit/4ccb9a86f194c6997f80a09880edc3c2b0554aab) - Makes it possible to set the initial camera position for the `Model3D` component as a tuple of (alpha, beta, radius).  Thanks [@mbahri](https://github.com/mbahri)!
+- [#5271](https://github.com/gradio-app/gradio/pull/5271) [`97c3c7b1`](https://github.com/gradio-app/gradio/commit/97c3c7b1730407f9e80566af9ecb4ca7cccf62ff) - Move scripts from old website to CI.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#5369](https://github.com/gradio-app/gradio/pull/5369) [`b8968898`](https://github.com/gradio-app/gradio/commit/b89688984fa9c6be0db06e392e6935a544620764) - Fix typo in utils.py.  Thanks [@eltociear](https://github.com/eltociear)!
+
+### Fixes
+
+- [#5304](https://github.com/gradio-app/gradio/pull/5304) [`05892302`](https://github.com/gradio-app/gradio/commit/05892302fb8fe2557d57834970a2b65aea97355b) - Adds kwarg to disable html sanitization in `gr.Chatbot()`.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#5366](https://github.com/gradio-app/gradio/pull/5366) [`0cc7e2dc`](https://github.com/gradio-app/gradio/commit/0cc7e2dcf60e216e0a30e2f85a9879ce3cb2a1bd) - Hide avatar when message none.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#5393](https://github.com/gradio-app/gradio/pull/5393) [`e4e7a431`](https://github.com/gradio-app/gradio/commit/e4e7a4319924aaf51dcb18d07d0c9953d4011074) - Renders LaTeX that is added to the page in `gr.Markdown`, `gr.Chatbot`, and `gr.DataFrame`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#5394](https://github.com/gradio-app/gradio/pull/5394) [`4d94ea0a`](https://github.com/gradio-app/gradio/commit/4d94ea0a0cf2103cda19f48398a5634f8341d04d) - Adds horizontal scrolling to content that overflows in gr.Markdown.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#5368](https://github.com/gradio-app/gradio/pull/5368) [`b27f7583`](https://github.com/gradio-app/gradio/commit/b27f7583254165b135bf1496a7d8c489a62ba96f) - Change markdown rendering to set breaks to false.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#5360](https://github.com/gradio-app/gradio/pull/5360) [`64666525`](https://github.com/gradio-app/gradio/commit/6466652583e3c620df995fb865ef3511a34cb676) - Cancel Dropdown Filter.  Thanks [@deckar01](https://github.com/deckar01)!
+
 ## 3.41.2
 
 ### Features
