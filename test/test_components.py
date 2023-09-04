@@ -2015,6 +2015,7 @@ class TestChatbot:
             "root_url": None,
             "selectable": False,
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
+            "likeable": False,
             "rtl": False,
             "show_copy_button": False,
             "avatar_images": (None, None),
@@ -2150,6 +2151,8 @@ class TestModel3D:
             "min_width": 160,
             "scale": None,
             "camera_position": (None, None, None),
+            "height": None,
+            "zoom_speed": 1,
         } == component.get_config()
 
         file = "test/test_files/Box.gltf"

@@ -1,5 +1,11 @@
 # @gradio/dropdown
 
+## 0.1.2
+
+### Fixes
+
+- [#5360](https://github.com/gradio-app/gradio/pull/5360) [`64666525`](https://github.com/gradio-app/gradio/commit/6466652583e3c620df995fb865ef3511a34cb676) - Cancel Dropdown Filter.  Thanks [@deckar01](https://github.com/deckar01)!
+
 ## 0.1.1
 
 ### Fixes

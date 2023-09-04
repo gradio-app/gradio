@@ -1,14 +1,19 @@
 <script lang="ts">
 	import { IconButton } from "@gradio/atoms";
-	import { Edit, Clear } from "@gradio/icons";
+	import { Edit, Clear, Undo } from "@gradio/icons";
 
 	import { createEventDispatcher } from "svelte";
 	import { _ } from "svelte-i18n";
 
 	export let editable = false;
+	export let undoable = false;
 	export let absolute = true;
 
-	const dispatch = createEventDispatcher<{ edit: never; clear: never }>();
+	const dispatch = createEventDispatcher<{
+		edit: never;
+		clear: never;
+		undo: never;
+	}>();
 </script>
 
 <div
@@ -20,6 +25,14 @@
 			Icon={Edit}
 			label={$_("common.edit")}
 			on:click={() => dispatch("edit")}
+		/>
+	{/if}
+
+	{#if undoable}
+		<IconButton
+			Icon={Undo}
+			label={$_("common.undo")}
+			on:click={() => dispatch("undo")}
 		/>
 	{/if}
 
