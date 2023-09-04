@@ -12,7 +12,7 @@
 		copied = true;
 		setTimeout(() => (copied = false), 2000);
 	}
-	$: on_main ;
+	$: on_main;
 </script>
 
 <div class="codeblock bg-gray-50 mx-auto p-3 my-3" id="{name}_code">
@@ -38,5 +38,9 @@
 </div>
 
 {#key name}
-	<gradio-app space={"gradio/" + name + (on_main ? "_main" : "")} />
+	{#if on_main}
+		<gradio-app space={"gradio/" + name + "_main"} />
+	{:else}
+		<gradio-app space={"gradio/" + name} />
+	{/if}
 {/key}
