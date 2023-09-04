@@ -5,50 +5,46 @@
 	import { createEventDispatcher, tick } from "svelte";
 	import { correct_color_map } from "../utils";
 
-	export let value: [string, string | number | null][] = [];
+	export let value: [string, string | number | null, symbol?][] = [];
 	export let show_legend = false;
 	export let color_map: Record<string, string> = {};
 	export let selectable = false;
 
 	let labelToEdit: number | null = null;
-	let selectedArrayIndex: number;
+	let selectedTextElementIndex: number;
 	let ctx: CanvasRenderingContext2D;
 	let _color_map: Record<string, { primary: string; secondary: string }> = {};
 	let active = "";
 
-	async function handle_text_selected(
-		currentSelectedArrayIndex: number,
+	async function handleTextSelected(
 		startIndex: number,
 		endIndex: number
 	): Promise<void> {
-		if (currentSelectedArrayIndex !== -1) {
-			const before = value[currentSelectedArrayIndex][0].substring(
-				0,
-				startIndex
-			);
-			const selected = value[currentSelectedArrayIndex][0].substring(
-				startIndex,
-				endIndex
-			);
-			const after = value[currentSelectedArrayIndex][0].substring(endIndex);
+		if (selectedTextElementIndex !== -1) {
+			const tempFlag = Symbol();
 
-			value = [
-				...value.slice(0, currentSelectedArrayIndex),
-				[before, null],
-				[selected, "label"],
-				[after, null],
-				...value.slice(currentSelectedArrayIndex + 1),
+			const str = value[selectedTextElementIndex][0];
+			const [before, selected, after] = [
+				str.substring(0, startIndex),
+				str.substring(startIndex, endIndex),
+				str.substring(endIndex),
 			];
 
+			value = [
+				...value.slice(0, selectedTextElementIndex),
+				[before, null],
+				[selected, "label", tempFlag],
+				[after, null],
+				...value.slice(selectedTextElementIndex + 1),
+			];
+
+			// remove elements with empty labels
 			value = value.filter((item) => item[0].trim() !== "");
 
-			dispatch("change", value);
+			labelToEdit = value.findIndex(([_, __, flag]) => flag === tempFlag);
+			value[labelToEdit].pop();
 
-			labelToEdit = value.findIndex(
-				([text, label]) => text === selected && label === "label"
-			);
-
-			console.log(labelToEdit);
+			handleValueChange();
 
 			await tick();
 
@@ -59,10 +55,22 @@
 	const dispatch = createEventDispatcher<{
 		select: SelectData;
 		change: typeof value;
+		input: never;
 	}>();
 
 	function splitTextByNewline(text: string): string[] {
 		return text.split("\n");
+	}
+
+	function removeHighlightedText(index: number): void {
+		if (index < 0 || index >= value.length) return;
+		value[index][1] = null;
+		handleValueChange();
+	}
+
+	function handleValueChange(): void {
+		dispatch("change", value);
+		dispatch("input");
 	}
 
 	let mode: "categories" | "scores";
@@ -97,33 +105,54 @@
 		active = "";
 	}
 
-	function handle_mouse_down(): void {
-		document.addEventListener("mouseup", handle_mouse_up);
+	function handle_mousedown(i: number): void {
+		selectedTextElementIndex = i;
+		document.addEventListener("mouseup", handle_mouseup);
 	}
 
-	function handle_mouse_up(): void {
+	function handle_mouseup(): void {
 		const selection = window.getSelection();
 
 		if (selection && selection.toString().trim() !== "") {
 			const textBeginningIndex = selection.getRangeAt(0).startOffset;
 			const textEndIndex = selection.getRangeAt(0).endOffset;
 
-			handle_text_selected(
-				selectedArrayIndex,
-				textBeginningIndex,
-				textEndIndex
-			);
+			handleTextSelected(textBeginningIndex, textEndIndex);
 		}
 
-		document.removeEventListener("mouseup", handle_mouse_up);
+		document.removeEventListener("mouseup", handle_mouseup);
 	}
 
-	function handle_mouse_over(i: number): void {
-		selectedArrayIndex = i;
+	function clearPlaceHolderOnFocus(e: FocusEvent): void {
+		let target = e.target as HTMLInputElement;
+		if (target && target.placeholder) target.placeholder = "";
+	}
+
+	function updateLabelValue(
+		e: Event,
+		elementIndex: number,
+		text: string
+	): void {
+		let target = e.target as HTMLInputElement;
+		value = [
+			...value.slice(0, elementIndex),
+			[text, target.value === "" ? null : target.value],
+			...value.slice(elementIndex + 1),
+		];
+	}
+
+	function handleSelect(
+		i: number,
+		text: string,
+		category: string | number | null
+	): void {
+		dispatch("select", {
+			index: i,
+			value: [text, category],
+		});
 	}
 </script>
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div class="container">
 	{#if mode === "categories"}
 		{#if show_legend}
@@ -132,9 +161,10 @@
 				data-testid="highlighted-text:category-legend"
 			>
 				{#each Object.entries(_color_map) as [category, color], i}
-					<!-- TODO: fix -->
-					<!-- svelte-ignore a11y-no-static-element-interactions -->
 					<div
+						role="button"
+						aria-roledescription="Categories of highlighted text. Hover to see text with this category highlighted."
+						tabindex="0"
 						on:mouseover={() => handle_mouseover(category)}
 						on:focus={() => handle_mouseover(category)}
 						on:mouseout={() => handle_mouseout()}
@@ -152,90 +182,89 @@
 			{#each value as [text, category], i}
 				{#each splitTextByNewline(text) as line, j}
 					{#if line.trim() !== ""}
-						<!-- TODO: fix -->
-						<!-- svelte-ignore a11y-no-static-element-interactions -->
-						<!-- svelte-ignore a11y-click-events-have-key-events-->
-						<span
-							class="textspan"
-							style:background-color={category === null ||
-							(active && active !== category)
-								? ""
-								: _color_map[category].secondary}
-							class:no-cat={category === null ||
-								(active && active !== category)}
-							class:hl={category !== null}
-							class:selectable
-							on:click={() => {
-								dispatch("select", {
-									index: i,
-									value: [text, category],
-								});
-							}}
-							on:mouseenter={() => handle_mouse_over(i)}
-						>
+						<span class="text-category-container">
 							<span
-								on:mousedown={handle_mouse_down}
-								class:no-label={!category || !_color_map[category]}
-								class="text">{line}</span
+								role="button"
+								tabindex="0"
+								class="textspan"
+								style:background-color={category === null ||
+								(active && active !== category)
+									? ""
+									: _color_map[category].secondary}
+								class:no-cat={category === null ||
+									(active && active !== category)}
+								class:hl={category !== null}
+								class:selectable
+								on:click={() => handleSelect(i, text, category)}
+								on:keydown={() => handleSelect(i, text, category)}
 							>
-							{#if !show_legend && category !== null}
-								&nbsp;
-								{#if labelToEdit === i}
-									<input
-										id={`label-input-${i}`}
-										type="text"
-										placeholder="label"
-										on:focus={(e) => (e.target.placeholder = "")}
-										value={category}
-										style:background-color={category === null ||
-										(active && active !== category)
-											? ""
-											: _color_map[category].primary}
-										style:width={category.toString().length + 3 + "ch"}
-										on:input={(e) => {
-											value = [
-												...value.slice(0, i),
-												// @ts-ignore
-												[text, e.target.value],
-												...value.slice(i + 1),
-											];
-										}}
-										on:blur={() => {
-											if (category === "") {
-												value = [
-													...value.slice(0, i),
-													[text, null],
-													...value.slice(i + 1),
-												];
-											}
-											labelToEdit = null;
-										}}
-										on:keydown={(e) => {
-											if (e.key === "Enter") {
+								<span
+									on:mousedown={() => handle_mousedown(i)}
+									class:no-label={category === null}
+									class="text"
+									role="button"
+									tabindex="0">{line}</span
+								>
+								{#if !show_legend && category !== null}
+									&nbsp;
+									{#if labelToEdit === i}
+										<!-- svelte-ignore a11y-autofocus -->
+										<!-- autofocus should not be disorienting for a screen reader users
+										as input is only rendered once a new label is created -->
+										<input
+											autofocus
+											id={`label-input-${i}`}
+											type="text"
+											on:focus={clearPlaceHolderOnFocus}
+											placeholder="label"
+											value={category}
+											style:background-color={category === null ||
+											(active && active !== category)
+												? ""
+												: _color_map[category].primary}
+											style:width={category.toString().length + 3 + "ch"}
+											on:input={(e) => updateLabelValue(e, i, text)}
+											on:blur={(e) => {
+												if (category === "") {
+													updateLabelValue(e, i, text);
+												}
 												labelToEdit = null;
-											}
-										}}
-									/>
-								{:else}
-									<span
-										on:mousedown={handle_mouse_down}
-										id={`label-tag-${i}`}
-										class="label"
-										style:background-color={category === null ||
-										(active && active !== category)
-											? ""
-											: _color_map[category].primary}
-										style:user-select="none"
-										on:mouseenter={() => {
-											handle_mouse_over(i);
-										}}
-										on:click={() => {
-											labelToEdit = i;
-										}}
-									>
-										{category}
-									</span>
+											}}
+											on:keydown={(e) => {
+												if (e.key === "Enter") {
+													labelToEdit = null;
+												}
+											}}
+										/>
+									{:else}
+										<span
+											id={`label-tag-${i}`}
+											class="label"
+											role="button"
+											tabindex="0"
+											style:background-color={category === null ||
+											(active && active !== category)
+												? ""
+												: _color_map[category].primary}
+											on:click={() => (labelToEdit = i)}
+											on:keydown={() => (labelToEdit = i)}
+										>
+											{category}
+										</span>
+									{/if}
 								{/if}
+							</span>
+							{#if category !== null}
+								<span
+									class="label-clear-button"
+									role="button"
+									on:click={() => removeHighlightedText(i)}
+									on:keydown={() => removeHighlightedText(i)}
+									aria-roledescription="Remove label from text"
+									tabindex="0"
+									on:mousedown={() => handle_mousedown(i)}
+									>×
+								</span>
 							{/if}
 						</span>
 					{/if}
@@ -253,24 +282,22 @@
 				<span>+1</span>
 			</div>
 		{/if}
-		<div
-			class="textfield"
-			data-testid="highlighted-text:textfield"
-			on:mousedown={handle_mouse_down}
-		>
+
+		<div class="textfield" data-testid="highlighted-text:textfield">
 			{#each value as [text, _score], i}
 				{@const score = typeof _score === "string" ? parseInt(_score) : _score}
-				<span on:mouseenter={() => handle_mouse_over(i)}>
-					<span
-						class="textspan score-text"
-						style={"background-color: rgba(" +
-							(score && score < 0
-								? "128, 90, 213," + -score
-								: "239, 68, 60," + score) +
-							")"}
-					>
-						<span class="text">{text}</span>
-					</span>
+				<span
+					role="button"
+					tabindex="0"
+					on:mousedown={() => handle_mousedown(i)}
+					class="textspan score-text"
+					style={"background-color: rgba(" +
+						(score && score < 0
+							? "128, 90, 213," + -score
+							: "239, 68, 60," + score) +
+						")"}
+				>
+					<span class="text">{text}</span>
 				</span>
 			{/each}
 		</div>
@@ -278,13 +305,38 @@
 </div>
 
 <style>
+	.label-clear-button {
+		display: none;
+	}
+
+	.text-category-container:hover .label-clear-button {
+		display: inline;
+		border-radius: var(--radius-xs);
+		padding-top: 2.5px;
+		padding-right: var(--size-1);
+		padding-bottom: 3.5px;
+		padding-left: var(--size-1);
+		color: black;
+		background-color: var(--background-fill-secondary);
+		user-select: none;
+		position: relative;
+		left: -3px;
+		border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+		color: var(--block-label-text-color);
+	}
+
+	.text-category-container:hover .textspan.hl {
+		border-radius: var(--radius-xs) 0 0 var(--radius-xs);
+	}
+
 	.container {
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-sm);
 		padding: var(--block-padding);
 	}
-	.hl + .hl {
+
+	.hl {
 		margin-left: var(--size-1);
 		transition: background-color 0.3s;
 		user-select: none;
@@ -341,12 +393,12 @@
 		padding-bottom: 3.5px;
 		padding-left: var(--size-1);
 		color: black;
+		cursor: text;
 	}
 
 	.label {
 		transition: 150ms;
 		margin-top: 1px;
-		margin-right: calc(var(--size-1));
 		border-radius: var(--radius-xs);
 		padding: 1px 5px;
 		color: var(--body-text-color);
@@ -354,6 +406,7 @@
 		font-weight: var(--weight-bold);
 		font-size: var(--text-sm);
 		text-transform: uppercase;
+		user-select: none;
 	}
 
 	.text {
@@ -398,5 +451,6 @@
 
 	.selectable {
 		cursor: text;
+		user-select: text;
 	}
 </style>

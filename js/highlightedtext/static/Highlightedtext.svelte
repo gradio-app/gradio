@@ -11,7 +11,6 @@
 	export let selectable = false;
 
 	let ctx: CanvasRenderingContext2D;
-
 	let _color_map: Record<string, { primary: string; secondary: string }> = {};
 	let active = "";
 

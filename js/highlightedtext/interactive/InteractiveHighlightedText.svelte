@@ -23,7 +23,7 @@
 	export let gradio: Gradio<{
 		select: SelectData;
 		change: typeof value;
-		edit: never;
+		input: never;
 	}>;
 
 	$: if (!color_map && Object.keys(color_map).length) {
@@ -31,13 +31,6 @@
 	}
 
 	export let loading_status: LoadingStatus;
-
-	$: {
-		if (value !== old_value) {
-			old_value = value;
-			gradio.dispatch("change");
-		}
-	}
 </script>
 
 <Block
@@ -65,6 +58,7 @@
 		<HighlightedText
 			bind:value
 			on:change={() => gradio.dispatch("change")}
+			on:input={() => gradio.dispatch("input")}
 			{selectable}
 			{show_legend}
 			{color_map}
