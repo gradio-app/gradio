@@ -2,7 +2,7 @@
 	const browser = typeof document !== "undefined";
 	import { get_next_color } from "@gradio/utils";
 	import type { SelectData } from "@gradio/utils";
-	import { createEventDispatcher, tick } from "svelte";
+	import { createEventDispatcher, tick, onMount } from "svelte";
 	import { correct_color_map } from "../utils";
 
 	export let value: [string, string | number | null, symbol?][] = [];
@@ -11,10 +11,21 @@
 	export let selectable = false;
 
 	let labelToEdit: number | null = null;
-	let selectedTextElementIndex: number;
+	let selectedTextElementIndex = -1;
 	let ctx: CanvasRenderingContext2D;
 	let _color_map: Record<string, { primary: string; secondary: string }> = {};
 	let active = "";
+	let selection: Selection | null;
+
+	onMount(() => {
+		window &&
+			window.addEventListener("mousedown", () => {
+				window.addEventListener("mouseup", () => {
+					selection = window.getSelection();
+					handleSelectionComplete();
+				});
+			});
+	});
 
 	async function handleTextSelected(
 		startIndex: number,
@@ -105,22 +116,21 @@
 		active = "";
 	}
 
-	function handle_mousedown(i: number): void {
-		selectedTextElementIndex = i;
-		document.addEventListener("mouseup", handle_mouseup);
+	async function handleKeydownSelection(event: KeyboardEvent): Promise<void> {
+		selection = window.getSelection();
+
+		if (event.key === "Enter") {
+			handleSelectionComplete();
+		}
 	}
 
-	function handle_mouseup(): void {
-		const selection = window.getSelection();
-
-		if (selection && selection.toString().trim() !== "") {
+	function handleSelectionComplete(): void {
+		if (selection && selection?.toString().trim() !== "") {
 			const textBeginningIndex = selection.getRangeAt(0).startOffset;
 			const textEndIndex = selection.getRangeAt(0).endOffset;
 
 			handleTextSelected(textBeginningIndex, textEndIndex);
 		}
-
-		document.removeEventListener("mouseup", handle_mouseup);
 	}
 
 	function clearPlaceHolderOnFocus(e: FocusEvent): void {
@@ -195,14 +205,28 @@
 									(active && active !== category)}
 								class:hl={category !== null}
 								class:selectable
-								on:click={() => handleSelect(i, text, category)}
-								on:keydown={() => handleSelect(i, text, category)}
+								on:click={() => {
+									if (category !== null) {
+										handleSelect(i, text, category);
+									}
+								}}
+								on:keydown={(e) => {
+									if (category !== null) {
+										handleSelect(i, text, category);
+									} else {
+										handleKeydownSelection(e);
+									}
+								}}
+								on:focus={() => (selectedTextElementIndex = i)}
+								on:mouseover={() => (selectedTextElementIndex = i)}
 							>
 								<span
-									on:mousedown={() => handle_mousedown(i)}
 									class:no-label={category === null}
 									class="text"
 									role="button"
+									on:keydown={(e) => handleKeydownSelection(e)}
+									on:focus={() => (selectedTextElementIndex = i)}
+									on:mouseover={() => (selectedTextElementIndex = i)}
 									tabindex="0">{line}</span
 								>
 								{#if !show_legend && category !== null}
@@ -223,11 +247,8 @@
 												? ""
 												: _color_map[category].primary}
 											style:width={category.toString().length + 3 + "ch"}
-											on:input={(e) => updateLabelValue(e, i, text)}
 											on:blur={(e) => {
-												if (category === "") {
-													updateLabelValue(e, i, text);
-												}
+												updateLabelValue(e, i, text);
 												labelToEdit = null;
 											}}
 											on:keydown={(e) => {
@@ -259,10 +280,13 @@
 									class="label-clear-button"
 									role="button"
 									on:click={() => removeHighlightedText(i)}
-									on:keydown={() => removeHighlightedText(i)}
+									on:keydown={(event) => {
+										if (event.key === "Enter") {
+											removeHighlightedText(i);
+										}
+									}}
 									aria-roledescription="Remove label from text"
 									tabindex="0"
-									on:mousedown={() => handle_mousedown(i)}
 									>×
 								</span>
 							{/if}
@@ -289,7 +313,9 @@
 				<span
 					role="button"
 					tabindex="0"
-					on:mousedown={() => handle_mousedown(i)}
+					on:keydown={(e) => handleKeydownSelection(e)}
+					on:mouseover={() => (selectedTextElementIndex = i)}
+					on:focus={() => (selectedTextElementIndex = i)}
 					class="textspan score-text"
 					style={"background-color: rgba(" +
 						(score && score < 0
@@ -309,7 +335,8 @@
 		display: none;
 	}
 
-	.text-category-container:hover .label-clear-button {
+	.text-category-container:hover .label-clear-button,
+	.text-category-container:focus-within .label-clear-button {
 		display: inline;
 		border-radius: var(--radius-xs);
 		padding-top: 2.5px;
@@ -325,7 +352,8 @@
 		color: var(--block-label-text-color);
 	}
 
-	.text-category-container:hover .textspan.hl {
+	.text-category-container:hover .textspan.hl,
+	.text-category-container:focus-within .textspan.hl {
 		border-radius: var(--radius-xs) 0 0 var(--radius-xs);
 	}
 
@@ -432,6 +460,10 @@
 		color: white;
 	}
 
+	input::placeholder {
+		color: rgba(1, 1, 1, 0.5);
+	}
+
 	.score-text .text {
 		color: var(--body-text-color);
 	}
@@ -447,6 +479,7 @@
 
 	.no-label {
 		color: var(--body-text-color);
+		user-select: text;
 	}
 
 	.selectable {
