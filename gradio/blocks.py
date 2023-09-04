@@ -377,10 +377,12 @@ class BlockContext(Block):
                 child.parent = pseudo_parent
         self.children = children
 
-    def __exit__(self, *args):
+    def __exit__(self, exc_type: type[BaseException] | None = None, *args):
+        Context.block = self.parent
+        if exc_type is not None:
+            return
         if getattr(self, "allow_expected_parents", True):
             self.fill_expected_parents()
-        Context.block = self.parent
 
     def postprocess(self, y):
         """
@@ -430,12 +432,6 @@ class BlockFunction:
 
     def __repr__(self):
         return str(self)
-
-
-class class_or_instancemethod(classmethod):  # noqa: N801
-    def __get__(self, instance, type_):
-        descr_get = super().__get__ if instance is None else self.__func__.__get__
-        return descr_get(instance, type_)
 
 
 def postprocess_update_dict(block: Block, update_dict: dict, postprocess: bool = True):
@@ -745,7 +741,7 @@ class Blocks(BlockContext):
         self.space_id = utils.get_space()
         self.favicon_path = None
         self.auth = None
-        self.dev_mode = True
+        self.dev_mode = bool(os.getenv("GRADIO_WATCH_DIRS", False))
         self.app_id = random.getrandbits(64)
         self.temp_file_sets = []
         self.title = title
@@ -778,6 +774,12 @@ class Blocks(BlockContext):
                 "version": GRADIO_VERSION,
             }
             analytics.initiated_analytics(data)
+
+    @property
+    def _is_running_in_reload_thread(self):
+        from gradio.reload import reload_thread
+
+        return getattr(reload_thread, "running_reload", False)
 
     @classmethod
     def from_config(
@@ -1469,6 +1471,7 @@ Received outputs:
         config = {
             "version": routes.VERSION,
             "mode": self.mode,
+            "app_id": self.app_id,
             "dev_mode": self.dev_mode,
             "analytics_enabled": self.analytics_enabled,
             "components": [],
@@ -1518,7 +1521,11 @@ Received outputs:
         self.exited = False
         return self
 
-    def __exit__(self, *args):
+    def __exit__(self, exc_type: type[BaseException] | None = None, *args):
+        if exc_type is not None:
+            Context.block = None
+            Context.root_block = None
+            return
         super().fill_expected_parents()
         Context.block = self.parent
         # Configure the load events before root_block is reset
@@ -1532,9 +1539,8 @@ Received outputs:
         self.progress_tracking = any(block_fn.tracks_progress for block_fn in self.fns)
         self.exited = True
 
-    @class_or_instancemethod
     def load(
-        self_or_cls,  # noqa: N805
+        self: Blocks | None = None,
         fn: Callable | None = None,
         inputs: list[Component] | None = None,
         outputs: list[Component] | None = None,
@@ -1559,9 +1565,7 @@ Received outputs:
         For reverse compatibility reasons, this is both a class method and an instance
         method, the two of which, confusingly, do two completely different things.
 
-
         Class method: loads a demo from a Hugging Face Spaces repo and creates it locally and returns a block instance. Warning: this method will be deprecated. Use the equivalent `gradio.load()` instead.
-
 
         Instance method: adds event that runs as soon as the demo loads in the browser. Example usage below.
         Parameters:
@@ -1591,7 +1595,7 @@ Received outputs:
                 demo.load(get_time, inputs=None, outputs=dt)
             demo.launch()
         """
-        if isinstance(self_or_cls, type):
+        if self is None:
             warn_deprecation(
                 "gr.Blocks.load() will be deprecated. Use gr.load() instead."
             )
@@ -1605,7 +1609,7 @@ Received outputs:
         else:
             from gradio.events import Dependency
 
-            dep, dep_index = self_or_cls.set_event_trigger(
+            dep, dep_index = self.set_event_trigger(
                 event_name="load",
                 fn=fn,
                 inputs=inputs,
@@ -1622,7 +1626,7 @@ Received outputs:
                 every=every,
                 no_target=True,
             )
-            return Dependency(self_or_cls, dep, dep_index)
+            return Dependency(self, dep, dep_index)
 
     def clear(self):
         """Resets the layout of the Blocks object."""
@@ -1799,10 +1803,13 @@ Received outputs:
             demo = gr.Interface(reverse, "text", "text")
             demo.launch(share=True, auth=("username", "password"))
         """
+        if self._is_running_in_reload_thread:
+            # We have already launched the demo
+            return None, None, None  # type: ignore
+
         if not self.exited:
             self.__exit__()
 
-        self.dev_mode = False
         if (
             auth
             and not callable(auth)
@@ -2036,11 +2043,10 @@ Received outputs:
                 if self.share and self.share_url:
                     while not networking.url_ok(self.share_url):
                         time.sleep(0.25)
-                    display(
-                        HTML(
-                            f'<div><iframe src="{self.share_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
-                        )
+                    artifact = HTML(
+                        f'<div><iframe src="{self.share_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
                     )
+
                 elif self.is_colab:
                     # modified from /usr/local/lib/python3.7/dist-packages/google/colab/output/_util.py within Colab environment
                     code = """(async (port, path, width, height, cache, element) => {
@@ -2075,13 +2081,13 @@ Received outputs:
                         cache=json.dumps(False),
                     )
 
-                    display(Javascript(code))
+                    artifact = Javascript(code)
                 else:
-                    display(
-                        HTML(
-                            f'<div><iframe src="{self.local_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
-                        )
+                    artifact = HTML(
+                        f'<div><iframe src="{self.local_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
                     )
+                self.artifact = artifact
+                display(artifact)
             except ImportError:
                 pass
 

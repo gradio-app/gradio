@@ -15,13 +15,22 @@
 	export let value: null | FileData = null;
 	export let root: string;
 	export let root_url: null | string;
-	export let clearColor: [number, number, number, number];
+	export let clear_color: [number, number, number, number];
 	export let loading_status: LoadingStatus;
 	export let label: string;
 	export let show_label: boolean;
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+	export let height: number | undefined = undefined;
+	export let zoom_speed = 1;
+
+	// alpha, beta, radius
+	export let camera_position: [number | null, number | null, number | null] = [
+		null,
+		null,
+		null
+	];
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root, root_url);
@@ -39,11 +48,19 @@
 	{container}
 	{scale}
 	{min_width}
+	{height}
 >
 	<StatusTracker {...loading_status} />
 
 	{#if value}
-		<Model3D value={_value} {clearColor} {label} {show_label} />
+		<Model3D
+			value={_value}
+			{clear_color}
+			{label}
+			{show_label}
+			{camera_position}
+			{zoom_speed}
+		/>
 	{:else}
 		<!-- Not ideal but some bugs to work out before we can 
 				 make this consistent with other components -->

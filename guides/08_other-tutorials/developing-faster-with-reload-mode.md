@@ -41,18 +41,16 @@ In the terminal, run `gradio run.py`. That's it!
 Now, you'll see that after you'll see something like this:
 
 ```bash
-Launching in *reload mode* on: http://127.0.0.1:7860 (Press CTRL+C to quit)
+Watching: '/Users/freddy/sources/gradio/gradio', '/Users/freddy/sources/gradio/demo/'
 
-Watching...
-
-WARNING:  The --reload flag should not be used in production on Windows.
+Running on local URL:  http://127.0.0.1:7860
 ```
 
 The important part here is the line that says `Watching...` What's happening here is that Gradio will be observing the directory where `run.py` file lives, and if the file changes, it will automatically rerun the file for you. So you can focus on writing your code, and your Gradio demo will refresh automatically 🥳
 
 ⚠️ Warning: the `gradio` command does not detect the parameters passed to the `launch()` methods because the `launch()` method is never called in reload mode. For example, setting `auth`, or `show_error` in `launch()` will not be reflected in the app.
 
-There is one important thing to keep in mind when using the reload mode: Gradio specifically looks for a Gradio Blocks/Interface demo called `demo` in your code. If you have named your demo something else, you will need to pass in the name of your demo's FastAPI app as the 2nd parameter in your code. For Gradio demos, the FastAPI app can be accessed using the `.app` attribute. So if your `run.py` file looked like this:
+There is one important thing to keep in mind when using the reload mode: Gradio specifically looks for a Gradio Blocks/Interface demo called `demo` in your code. If you have named your demo something else, you will need to pass in the name of your demo as the 2nd parameter in your code. So if your `run.py` file looked like this:
 
 ```python
 import gradio as gr
@@ -70,7 +68,7 @@ if __name__ == "__main__":
     my_demo.launch()
 ```
 
-Then you would launch it in reload mode like this: `gradio run.py my_demo.app`.
+Then you would launch it in reload mode like this: `gradio run.py my_demo`.
 
 🔥 If your application accepts command line arguments, you can pass them in as well. Here's an example:
 
@@ -112,26 +110,25 @@ Then, in the cell that you are developing your Gradio demo, simply write the mag
 
 import gradio as gr
 
-gr.Markdown("# Greetings from Gradio!")
-inp = gr.Textbox(placeholder="What is your name?")
-out = gr.Textbox()
+with gr.Blocks() as demo:
+    gr.Markdown(f"# Greetings {args.name}!")
+    inp = gr.Textbox()
+    out = gr.Textbox()
 
-inp.change(fn=lambda x: f"Welcome, {x}!",
-           inputs=inp,
-           outputs=out)
+    inp.change(fn=lambda x: x, inputs=inp, outputs=out)
 ```
 
 Notice that:
 
-- You do not need to put the boiler plate `with gr.Blocks() as demo:` and `demo.launch()` code — Gradio does that for you automatically!
+- You do not need to launch your demo — Gradio does that for you automatically!
 
-- Every time you rerun the cell, Gradio will re-launch your app on the same port and using the same underlying web server. This means you'll see your changes _much, much faster_ than if you were rerunning the cell normally.
+- Every time you rerun the cell, Gradio will re-render your app on the same port and using the same underlying web server. This means you'll see your changes _much, much faster_ than if you were rerunning the cell normally.
 
 Here's what it looks like in a jupyter notebook:
 
-![](https://i.ibb.co/nrszFws/Blocks.gif)
+![](https://gradio-builds.s3.amazonaws.com/demo-files/jupyter_reload.gif)
 
-🪄 This works in colab notebooks too! [Here's a colab notebook](https://colab.research.google.com/drive/1jUlX1w7JqckRHVE-nbDyMPyZ7fYD8488?authuser=1#scrollTo=zxHYjbCTTz_5) where you can see the Blocks magic in action. Try making some changes and re-running the cell with the Gradio code!
+🪄 This works in colab notebooks too! [Here's a colab notebook](https://colab.research.google.com/drive/1zAuWoiTIb3O2oitbtVb2_ekv1K6ggtC1?usp=sharing) where you can see the Blocks magic in action. Try making some changes and re-running the cell with the Gradio code!
 
 The Notebook Magic is now the author's preferred way of building Gradio demos. Regardless of how you write Python code, we hope either of these methods will give you a much better development experience using Gradio.
 
