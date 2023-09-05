@@ -1626,7 +1626,7 @@ Received outputs:
                 every=every,
                 no_target=True,
             )
-            return Dependency(self, dep, dep_index)
+            return Dependency(self, dep, dep_index, fn)
 
     def clear(self):
         """Resets the layout of the Blocks object."""

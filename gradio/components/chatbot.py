@@ -16,6 +16,7 @@ from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
     Changeable,
     EventListenerMethod,
+    Likeable,
     Selectable,
 )
 
@@ -23,7 +24,7 @@ set_documentation_group("component")
 
 
 @document()
-class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
+class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
     """
     Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, tables. Also supports audio/video/image files, which are displayed in the Chatbot, and other kinds of files which are displayed as links.
     Preprocessing: passes the messages in the Chatbot as a {List[List[str | None | Tuple]]}, i.e. a list of lists. The inner list has 2 elements: the user message and the response message. See `Postprocessing` for the format of these messages.
@@ -89,6 +90,12 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         Uses event data gradio.SelectData to carry `value` referring to text of selected message, and `index` tuple to refer to [message, participant] index.
         See EventData documentation on how to use this event data.
         """
+        self.like: EventListenerMethod
+        """
+        Event listener for when the user likes or dislikes a message from Chatbot.
+        Uses event data gradio.LikeData to carry `value` referring to text of selected message, `index` tuple to refer to [message, participant] index, and `liked` bool which is True if the item was liked, False if disliked.
+        See EventData documentation on how to use this event data.
+        """
         self.height = height
         self.rtl = rtl
         if latex_delimiters is None:
@@ -123,6 +130,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             "value": self.value,
             "latex_delimiters": self.latex_delimiters,
             "selectable": self.selectable,
+            "likeable": self.likeable,
             "height": self.height,
             "show_share_button": self.show_share_button,
             "rtl": self.rtl,
