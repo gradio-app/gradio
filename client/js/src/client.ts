@@ -269,6 +269,9 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 			async function config_success(_config: Config): Promise<client_return> {
 				config = _config;
 				api_map = map_names_to_ids(_config?.dependencies || []);
+				if (config.auth_required){
+					console.info(`Not fetching api since auth enabled.`)
+				}
 				try {
 					api = await view_api(config);
 				} catch (e) {
