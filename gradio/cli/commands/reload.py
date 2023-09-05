@@ -43,7 +43,7 @@ def _setup_config():
         f"{demo_name} = gr\\.Interface",
         f"{demo_name} = gr\\.ChatInterface",
         f"{demo_name} = gr\\.Series",
-        f"{demo_name} = gr\\.Paralles",
+        f"{demo_name} = gr\\.Parallel",
         f"{demo_name} = gr\\.TabbedInterface",
     ]
 

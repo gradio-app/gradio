@@ -219,8 +219,8 @@ def dev():
     with LivePanelDisplay() as live:
         live.update("[bold red]Launch front-end dev server here![/bold red]")
         live.update("")
-        live.update(f":recycle: [green]Launching[/] {pathlib.Path(path) / 'demo'/ 'app.py'} in reload mode")
-        proc = subprocess.Popen(['gradio', str(pathlib.Path(path) / 'demo' / 'app.py')], stdout=subprocess.PIPE)
+        live.update(f":recycle: [green]Launching[/] {name / 'demo'/ 'app.py'} in reload mode")
+        proc = subprocess.Popen(['gradio', str(name / 'demo' / 'app.py')], stdout=subprocess.PIPE)
         while True:
             text = proc.stdout.readline()
             text = (text
