@@ -72,6 +72,7 @@ class ChatInterface(Blocks):
         undo_btn: str | None | Button = "↩️ Undo",
         clear_btn: str | None | Button = "🗑️  Clear",
         autofocus: bool = True,
+        placeholder: str = "Type a message...",
     ):
         """
         Parameters:
@@ -150,7 +151,7 @@ class ChatInterface(Blocks):
                                 container=False,
                                 show_label=False,
                                 label="Message",
-                                placeholder="Type a message...",
+                                placeholder=placeholder,
                                 scale=7,
                                 autofocus=autofocus,
                             )
