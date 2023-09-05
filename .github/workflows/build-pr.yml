@@ -19,7 +19,7 @@ jobs:
   build_pr:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4
     - name: Install Python
       uses: actions/setup-python@v4
       with:
