@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Gradio, SelectData } from "@gradio/utils";
+	import type { Gradio, SelectData, LikeData } from "@gradio/utils";
 
 	import ChatBot from "./ChatBot.svelte";
 	import { Block, BlockLabel } from "@gradio/atoms";
@@ -20,6 +20,7 @@
 	export let root: string;
 	export let root_url: null | string;
 	export let selectable = false;
+	export let likeable = false;
 	export let show_share_button = false;
 	export let rtl = false;
 	export let show_copy_button = false;
@@ -35,6 +36,7 @@
 		select: SelectData;
 		share: ShareData;
 		error: string;
+		like: LikeData;
 	}>;
 	export let avatar_images: [string | null, string | null] = [null, null];
 
@@ -87,6 +89,7 @@
 		{/if}
 		<ChatBot
 			{selectable}
+			{likeable}
 			{show_share_button}
 			value={_value}
 			{latex_delimiters}
@@ -95,6 +98,7 @@
 			{show_copy_button}
 			on:change={() => gradio.dispatch("change", value)}
 			on:select={(e) => gradio.dispatch("select", e.detail)}
+			on:like={(e) => gradio.dispatch("like", e.detail)}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
 			{avatar_images}

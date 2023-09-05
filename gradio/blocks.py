@@ -1626,7 +1626,7 @@ Received outputs:
                 every=every,
                 no_target=True,
             )
-            return Dependency(self, dep, dep_index)
+            return Dependency(self, dep, dep_index, fn)
 
     def clear(self):
         """Resets the layout of the Blocks object."""
@@ -1934,7 +1934,7 @@ Received outputs:
                 )
 
             if self.enable_queue:
-                self._queue.set_url(self.local_url)
+                self._queue.set_server_app(self.server_app)
 
             if not wasm_utils.IS_WASM:
                 # Cannot run async functions in background other than app's scope.
