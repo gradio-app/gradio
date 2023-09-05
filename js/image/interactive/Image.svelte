@@ -344,9 +344,8 @@
 		<!-- TODO: fix -->
 		<!-- svelte-ignore a11y-click-events-have-key-events -->
 		<!-- svelte-ignore a11y-no-noninteractive-element-interactions-->
-
 		<img
-			src={value.data}
+			src={value_}
 			alt=""
 			class:selectable
 			class:webcam={source === "webcam" && mirror_webcam}
@@ -357,7 +356,7 @@
 			<img
 				bind:this={value_img}
 				class="absolute-img"
-				src={static_image || value?.image || value.data}
+				src={static_image || value_}
 				alt=""
 				on:load={handle_image_load}
 				class:webcam={source === "webcam" && mirror_webcam}
@@ -398,7 +397,7 @@
 		<!-- svelte-ignore a11y-no-noninteractive-element-interactions-->
 
 		<img
-			src={value.image || value.data}
+			src={value_.image || value_.data}
 			alt=""
 			class:webcam={source === "webcam" && mirror_webcam}
 			class:selectable

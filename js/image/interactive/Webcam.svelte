@@ -19,6 +19,7 @@
 					data: FileReader["result"];
 					name: string;
 					is_example?: boolean;
+					is_file: boolean;
 			  }
 			| string;
 		error: string;
@@ -81,7 +82,8 @@
 					dispatch("capture", {
 						data: e.target.result,
 						name: "sample." + mimeType.substring(6),
-						is_example: false
+						is_example: false,
+						is_file: false
 					});
 					dispatch("stop_recording");
 				}
