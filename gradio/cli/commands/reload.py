@@ -12,6 +12,7 @@ import subprocess
 import sys
 import threading
 from pathlib import Path
+from rich import print
 
 import gradio
 from gradio import utils
@@ -48,7 +49,7 @@ def _setup_config():
 
     if not any(re.search(p, app_text) for p in patterns):
         print(
-            f"\nWarning: Cannot statically find a gradio demo called {demo_name}. "
+            f"\n[bold red]Warning[/]: Cannot statically find a gradio demo called {demo_name}. "
             "Reload work may fail."
         )
 
@@ -75,6 +76,13 @@ def _setup_config():
         if message_change_count == 1:
             message += ","
         message += f" '{abs_parent}'"
+    
+    abs_parent = Path(".").resolve()
+    if str(abs_parent).strip():
+        watching_dirs.append(abs_parent)
+        if message_change_count == 1:
+            message += ","
+        message += f" '{abs_parent}'"
 
     print(message + "\n")
 
@@ -89,7 +97,7 @@ def main():
     args = sys.argv[1:]
     extra_args = args[1:] if len(args) == 1 or args[1].startswith("--") else args[2:]
     popen = subprocess.Popen(
-        ["python", path] + extra_args,
+        ["python", "-u", path] + extra_args,
         env=dict(
             os.environ,
             GRADIO_WATCH_DIRS=",".join(watch_dirs),

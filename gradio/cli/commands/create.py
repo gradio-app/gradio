@@ -5,7 +5,6 @@ import pathlib
 import shutil
 import subprocess
 import textwrap
-import time
 
 import typer
 from rich import print
@@ -95,6 +94,22 @@ def _create_backend(name: str, template: str):
     pyproject_contents = pyproject.read_text()
     pyproject_dest = pathlib.Path(name.lower()) / "pyproject.toml"
     pyproject_dest.write_text(pyproject_contents.replace("<<name>>", name.lower()))
+
+    demo_dir = pathlib.Path(name.lower()) / "demo"
+    demo_dir.mkdir(exist_ok=True, parents=True)
+
+    (demo_dir / "app.py").write_text(
+f"""
+import gradio as gr
+from {name.lower()} import {name}
+
+with gr.Blocks() as demo:
+    {name}()
+
+demo.launch()
+"""
+    )
+    (demo_dir / "__init__.py").touch()
 
     init = backend / "__init__.py"
     init.write_text(
@@ -191,11 +206,27 @@ def _create(
                 live.update(":white_check_mark: Install succeeded!")
 
 
-@app.command("dev")
+@app.command(
+    "dev",
+    help=("Launch the custom component demo in development mode. "
+         "Must be in the "))
 def dev():
-    # Pete adds code here to spin up local front-end
-    # and backend servers in development mode
-    print("[bold red]TODO![/bold red]")
+    name = pathlib.Path(".").resolve()
+    if not (name / "pyproject.toml").exists():
+        raise ValueError(f"Cannot find pyproject.toml file in {name}. Make sure "
+                         "you are in the top-level of your custom component directory.")
+
+    with LivePanelDisplay() as live:
+        live.update("[bold red]Launch front-end dev server here![/bold red]")
+        live.update("")
+        live.update(f":recycle: [green]Launching[/] {pathlib.Path(path) / 'demo'/ 'app.py'} in reload mode")
+        proc = subprocess.Popen(['gradio', str(pathlib.Path(path) / 'demo' / 'app.py')], stdout=subprocess.PIPE)
+        while True:
+            text = proc.stdout.readline()
+            text = (text
+                    .decode("utf-8").replace("Changes detected in:", "[orange3]Changed detected in:[/]")
+                    .replace("Watching:", "[orange3]Watching:[/]"))
+            live.update(text)
 
 
 @app.command(
@@ -203,17 +234,24 @@ def dev():
     help="Build the component for distribution. Must be called from the component directory.",
 )
 def build(
+    path: Annotated[
+        str,
+        typer.Argument(help="The directory of the custom component.")
+    ] = ".",
     build_frontend: Annotated[
-        bool, typer.Argument(help="Whether to build the frontend as well..")
+        bool, typer.Option(help="Whether to build the frontend as well.")
     ] = True
 ):
-    name = pathlib.Path(".").resolve()
+    name = pathlib.Path(path).resolve()
+    if not (name / "pyproject.toml").exists():
+        raise ValueError(f"Cannot find pyproject.toml file in {name}")
+    
     with LivePanelDisplay() as live:
         live.update(f":package: Building package in [orange3]{str(name.name)}[/]", add_sleep=0.2)
         if build_frontend:
             live.update(":art: Building frontend")
 
-        cmds = ["python", "-m", "build"]
+        cmds = ["python", "-m", "build", str(name)]
         live.update(
             f":construction_worker: Building... [grey37]({' '.join(cmds)})[/]"
         )
