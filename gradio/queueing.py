@@ -396,7 +396,7 @@ class Queue:
             # so we catch it here before the `BaseException` handler that prints the traceback.
             # Ref: https://github.com/gradio-app/gradio/pull/5165#discussion_r1310497840
             raise
-        except BaseException as error:
+        except Exception as error:
             show_error = app.get_blocks().show_error or isinstance(error, Error)
             traceback.print_exc()
             raise Exception(str(error) if show_error else None) from error
