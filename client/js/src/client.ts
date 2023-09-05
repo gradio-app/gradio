@@ -270,7 +270,6 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 				config = _config;
 				api_map = map_names_to_ids(_config?.dependencies || []);
 				if (config.auth_required) {
-					console.info("Not fetching api information");
 					return {
 						config,
 						...return_obj
