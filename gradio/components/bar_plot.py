@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Callable, Literal
 
 import altair as alt
@@ -203,6 +204,9 @@ class BarPlot(Plot):
             show_label: Whether the label should be displayed.
             visible: Whether the plot should be visible.
         """
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.BarPlot(...)` instead of `return gr.BarPlot.update(...)`."
+        )
         properties = [
             x,
             y,

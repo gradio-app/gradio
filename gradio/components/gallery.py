@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from pathlib import Path
 from typing import Any, Callable, Literal
 
@@ -135,6 +136,9 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         show_share_button: bool | None = None,
         show_download_button: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Gallery(...)` instead of `return gr.Gallery.update(...)`."
+        )
         updated_config = {
             "label": label,
             "show_label": show_label,

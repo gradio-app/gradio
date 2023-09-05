@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import warnings
 from typing import Callable, Literal
 
 import numpy as np
@@ -140,6 +141,9 @@ class Number(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Number(...)` instead of `return gr.Number.update(...)`."
+        )
         return {
             "label": label,
             "info": info,

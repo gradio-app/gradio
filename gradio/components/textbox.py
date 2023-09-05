@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Callable, Literal
 
 import numpy as np
@@ -155,6 +156,9 @@ class Textbox(
         show_copy_button: bool | None = None,
         autofocus: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Textbox(...)` instead of `return gr.Textbox.update(...)`."
+        )
         return {
             "lines": lines,
             "max_lines": max_lines,

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
@@ -85,6 +86,9 @@ class Button(Clickable, IOComponent, StringSerializable):
         scale: int | None = None,
         min_width: int | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Button(...)` instead of `return gr.Button.update(...)`."
+        )
         return {
             "variant": variant,
             "size": size,

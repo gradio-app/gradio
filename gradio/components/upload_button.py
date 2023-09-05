@@ -103,6 +103,9 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         scale: int | None = None,
         min_width: int | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.UploadButton(...)` instead of `return gr.UploadButton.update(...)`."
+        )
         return {
             "variant": variant,
             "interactive": interactive,

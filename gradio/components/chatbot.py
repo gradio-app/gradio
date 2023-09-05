@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+import warnings
 from pathlib import Path
 from typing import Callable, Literal
 
@@ -145,6 +146,9 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
         sanitize_html: bool | None = None,
         bubble_full_width: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Chatbot(...)` instead of `return gr.Chatbot.update(...)`."
+        )
         updated_config = {
             "label": label,
             "show_label": show_label,

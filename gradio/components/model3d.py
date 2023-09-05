@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from pathlib import Path
 from typing import Any, Callable, Literal
 
@@ -118,6 +119,9 @@ class Model3D(
         min_width: int | None = None,
         visible: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Model3D(...)` instead of `return gr.Model3D.update(...)`."
+        )
         updated_config = {
             "camera_position": camera_position,
             "clear_color": clear_color,

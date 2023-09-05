@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Literal
 
 import numpy as np
@@ -115,6 +116,9 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
         min_width: int | None = None,
         visible: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.AnnotatedImage(...)` instead of `return gr.AnnotatedImage.update(...)`."
+        )
         updated_config = {
             "show_legend": show_legend,
             "height": height,

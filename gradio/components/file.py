@@ -139,6 +139,9 @@ class File(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.File(...)` instead of `return gr.File.update(...)`."
+        )
         return {
             "label": label,
             "show_label": show_label,

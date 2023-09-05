@@ -13,7 +13,17 @@
 	export let visible = true;
 	export let value: string | number | null = null;
 	export let value_is_output = false;
-	export let choices: [string, number][] = [];
+	export let choices: [string, string | number][] | string[] | null;
+	let _choices: [string, string | number][];
+	$: {
+		if (choices === null) {
+			_choices = [];
+		} else if (choices.length > 0 && typeof choices[0] === "string") {
+			_choices = (choices as string[]).map((choice) => [choice, choice]);
+		} else if (choices.length > 0 && Array.isArray(choices[0])) {
+			_choices = choices as [string, string | number][];
+		}
+	}
 	export let show_label: boolean;
 	export let container = false;
 	export let scale: number | null = null;
@@ -44,7 +54,7 @@
 		{info}
 		{elem_id}
 		{show_label}
-		{choices}
+		choices={_choices}
 		on:change={() => gradio.dispatch("change")}
 		on:input={() => gradio.dispatch("input")}
 		on:select={(e) => gradio.dispatch("select", e.detail)}

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Any, Literal
 
 from gradio_client.documentation import document, set_documentation_group
@@ -97,6 +98,9 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
         scale: int | None = None,
         min_width: int | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Dataset(...)` instead of `return gr.Dataset.update(...)`."
+        )
         return {
             "samples": samples,
             "visible": visible,

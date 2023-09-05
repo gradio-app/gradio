@@ -190,6 +190,9 @@ class Image(
         mask_opacity: float | None = None,
         show_share_button: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Image(...)` instead of `return gr.Image.update(...)`."
+        )
         return {
             "height": height,
             "width": width,

@@ -162,6 +162,9 @@ class Dropdown(
         placeholder: str | None = None,
         visible: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Dropdown(...)` instead of `return gr.Dropdown.update(...)`."
+        )
         return {
             "choices": choices,
             "label": label,

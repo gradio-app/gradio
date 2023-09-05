@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import tempfile
+import warnings
 from pathlib import Path
 from typing import Any, Callable, Literal
 
@@ -163,6 +164,9 @@ class Audio(
         show_share_button: bool | None = None,
         show_edit_button: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Audio(...)` instead of `return gr.Audio.update(...)`."
+        )
         return {
             "source": source,
             "label": label,

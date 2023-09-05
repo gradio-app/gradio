@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import TYPE_CHECKING, Any, Callable, Literal
 
 import numpy as np
@@ -168,6 +169,9 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Dataframe(...)` instead of `return gr.Dataframe.update(...)`."
+        )
         return {
             "max_rows": max_rows,
             "max_cols": max_cols,
