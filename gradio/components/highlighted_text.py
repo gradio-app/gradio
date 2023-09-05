@@ -15,16 +15,17 @@ from gradio.events import (
     Changeable,
     EventListenerMethod,
     Selectable,
+    Inputable
 )
 
 set_documentation_group("component")
 
 
 @document()
-class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
+class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable, Inputable):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
-    Preprocessing:  expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels, if any. If no labels are provided, the text will be displayed as a single span.
+    Preprocessing: passes a list of tuples as a {List[Tuple[str, float | str | None]]]} into the function. If no labels are provided, the text will be displayed as a single span.
     Postprocessing: expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels, or a {Dict} with two keys: (1) "text" whose value is the complete text, and (2) "entities", which is a list of dictionaries, each of which have the keys: "entity" (consisting of the entity label, can alternatively be called "entity_group"), "start" (the character index where the label starts), and "end" (the character index where the label ends). Entities should not overlap.
 
     Demos: diff_texts, text_analysis

@@ -1,5 +1,7 @@
 import { colors } from "@gradio/theme";
 
+type HighlightValueType = [string, string | number | null, symbol?];
+
 export function name_to_rgba(
 	name: string,
 	a: number,
@@ -38,4 +40,29 @@ export function correct_color_map(
 			};
 		}
 	}
+}
+
+export function merge_adjacent_empty_elements(
+	arr: HighlightValueType[]
+): HighlightValueType[] {
+	let result: HighlightValueType[] = [];
+	let temp: string | null = null;
+
+	for (const [str, val] of arr) {
+		if (val === null) {
+			temp = temp ? temp + " " + str : str;
+		} else {
+			if (temp !== null) {
+				result.push([temp, null]);
+				temp = null;
+			}
+			result.push([str, val]);
+		}
+	}
+
+	if (temp !== null) {
+		result.push([temp, null]);
+	}
+
+	return result;
 }

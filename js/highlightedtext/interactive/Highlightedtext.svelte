@@ -3,35 +3,44 @@
 	import { get_next_color } from "@gradio/utils";
 	import type { SelectData } from "@gradio/utils";
 	import { createEventDispatcher, tick, onMount } from "svelte";
-	import { correct_color_map } from "../utils";
+	import { correct_color_map, merge_adjacent_empty_elements } from "../utils";
+	import LabelInput from "./LabelInput.svelte";
 
 	export let value: [string, string | number | null, symbol?][] = [];
 	export let show_legend = false;
 	export let color_map: Record<string, string> = {};
 	export let selectable = false;
 
-	let labelToEdit: number | null = null;
 	let selectedTextElementIndex = -1;
 	let ctx: CanvasRenderingContext2D;
 	let _color_map: Record<string, { primary: string; secondary: string }> = {};
 	let active = "";
 	let selection: Selection | null;
+	let labelToEdit: number | null = null;
 
 	onMount(() => {
-		window &&
-			window.addEventListener("mousedown", () => {
-				window.addEventListener("mouseup", () => {
-					selection = window.getSelection();
-					handleSelectionComplete();
-				});
-			});
+		const mouseUpHandler = (): void => {
+			selection = window.getSelection();
+			handleSelectionComplete();
+			window.removeEventListener("mouseup", mouseUpHandler);
+		};
+
+		window.addEventListener("mousedown", () => {
+			window.addEventListener("mouseup", mouseUpHandler);
+		});
 	});
 
 	async function handleTextSelected(
 		startIndex: number,
 		endIndex: number
 	): Promise<void> {
-		if (selectedTextElementIndex !== -1) {
+		if (
+			selection?.toString() &&
+			selectedTextElementIndex !== -1 &&
+			value[selectedTextElementIndex][0]
+				.toString()
+				.includes(selection.toString())
+		) {
 			const tempFlag = Symbol();
 
 			const str = value[selectedTextElementIndex][0];
@@ -44,21 +53,19 @@
 			value = [
 				...value.slice(0, selectedTextElementIndex),
 				[before, null],
-				[selected, "label", tempFlag],
+				[selected, "label", tempFlag], // add a temp flag to the new highlighted text element
 				[after, null],
 				...value.slice(selectedTextElementIndex + 1),
 			];
 
+			// store the index of the new highlighted text element and remove the flag
+			labelToEdit = value.findIndex(([_, __, flag]) => flag === tempFlag);
+			value[labelToEdit].pop();
 			// remove elements with empty labels
 			value = value.filter((item) => item[0].trim() !== "");
 
-			labelToEdit = value.findIndex(([_, __, flag]) => flag === tempFlag);
-			value[labelToEdit].pop();
-
 			handleValueChange();
-
 			await tick();
-
 			document.getElementById(`label-input-${labelToEdit}`)?.focus();
 		}
 	}
@@ -76,12 +83,17 @@
 	function removeHighlightedText(index: number): void {
 		if (index < 0 || index >= value.length) return;
 		value[index][1] = null;
+		value = merge_adjacent_empty_elements(value);
 		handleValueChange();
+		window.getSelection()?.empty();
 	}
 
 	function handleValueChange(): void {
 		dispatch("change", value);
-		dispatch("input");
+
+		// reset legend color maps
+		color_map = {};
+		_color_map = {};
 	}
 
 	let mode: "categories" | "scores";
@@ -128,27 +140,8 @@
 		if (selection && selection?.toString().trim() !== "") {
 			const textBeginningIndex = selection.getRangeAt(0).startOffset;
 			const textEndIndex = selection.getRangeAt(0).endOffset;
-
 			handleTextSelected(textBeginningIndex, textEndIndex);
 		}
-	}
-
-	function clearPlaceHolderOnFocus(e: FocusEvent): void {
-		let target = e.target as HTMLInputElement;
-		if (target && target.placeholder) target.placeholder = "";
-	}
-
-	function updateLabelValue(
-		e: Event,
-		elementIndex: number,
-		text: string
-	): void {
-		let target = e.target as HTMLInputElement;
-		value = [
-			...value.slice(0, elementIndex),
-			[text, target.value === "" ? null : target.value],
-			...value.slice(elementIndex + 1),
-		];
 	}
 
 	function handleSelect(
@@ -227,35 +220,23 @@
 									on:keydown={(e) => handleKeydownSelection(e)}
 									on:focus={() => (selectedTextElementIndex = i)}
 									on:mouseover={() => (selectedTextElementIndex = i)}
+									on:click={() => {
+										if (show_legend) labelToEdit = i;
+									}}
 									tabindex="0">{line}</span
 								>
 								{#if !show_legend && category !== null}
 									&nbsp;
 									{#if labelToEdit === i}
-										<!-- svelte-ignore a11y-autofocus -->
-										<!-- autofocus should not be disorienting for a screen reader users
-										as input is only rendered once a new label is created -->
-										<input
-											autofocus
-											id={`label-input-${i}`}
-											type="text"
-											on:focus={clearPlaceHolderOnFocus}
-											placeholder="label"
-											value={category}
-											style:background-color={category === null ||
-											(active && active !== category)
-												? ""
-												: _color_map[category].primary}
-											style:width={category.toString().length + 3 + "ch"}
-											on:blur={(e) => {
-												updateLabelValue(e, i, text);
-												labelToEdit = null;
-											}}
-											on:keydown={(e) => {
-												if (e.key === "Enter") {
-													labelToEdit = null;
-												}
-											}}
+										<LabelInput
+											bind:label={labelToEdit}
+											bind:value
+											{category}
+											{active}
+											{_color_map}
+											{i}
+											{text}
+											{handleValueChange}
 										/>
 									{:else}
 										<span
@@ -273,20 +254,31 @@
 											{category}
 										</span>
 									{/if}
+								{:else if category != null && show_legend && labelToEdit === i}
+									<LabelInput
+										bind:value
+										bind:label={labelToEdit}
+										{category}
+										{active}
+										{_color_map}
+										{i}
+										{text}
+										{handleValueChange}
+									/>
 								{/if}
 							</span>
 							{#if category !== null}
 								<span
 									class="label-clear-button"
 									role="button"
+									aria-roledescription="Remove label from text"
+									tabindex="0"
 									on:click={() => removeHighlightedText(i)}
 									on:keydown={(event) => {
 										if (event.key === "Enter") {
 											removeHighlightedText(i);
 										}
 									}}
-									aria-roledescription="Remove label from text"
-									tabindex="0"
 									>×
 								</span>
 							{/if}
@@ -444,24 +436,6 @@
 
 	.textspan.hl {
 		user-select: none;
-	}
-
-	input {
-		transition: 150ms;
-		margin-top: 1px;
-		margin-right: calc(var(--size-1));
-		border-radius: var(--radius-xs);
-		padding: 1px 5px;
-		color: black;
-		font-weight: var(--weight-bold);
-		font-size: var(--text-sm);
-		text-transform: uppercase;
-		line-height: 1;
-		color: white;
-	}
-
-	input::placeholder {
-		color: rgba(1, 1, 1, 0.5);
 	}
 
 	.score-text .text {
