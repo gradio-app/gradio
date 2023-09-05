@@ -1,10 +1,20 @@
 # @gradio/textbox
 
+## 0.1.3
+
+### Patch Changes
+
+- Updated dependencies [[`abf1c57d`](https://github.com/gradio-app/gradio/commit/abf1c57d7d85de0df233ee3b38aeb38b638477db)]:
+  - @gradio/icons@0.1.0
+  - @gradio/utils@0.1.0
+  - @gradio/atoms@0.1.1
+  - @gradio/statustracker@0.1.1
+
 ## 0.1.2
 
 ### Fixes
 
-- [#5324](https://github.com/gradio-app/gradio/pull/5324) [`31996c99`](https://github.com/gradio-app/gradio/commit/31996c991d6bfca8cef975eb8e3c9f61a7aced19) - ensure login form has correct styles.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5324](https://github.com/gradio-app/gradio/pull/5324) [`31996c99`](https://github.com/gradio-app/gradio/commit/31996c991d6bfca8cef975eb8e3c9f61a7aced19) - ensure login form has correct styles. Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 0.1.1
 
@@ -25,7 +35,7 @@ These improvements will be particularly beneficial to large applications.
 - Corrected an issue that was causing markdown to re-render infinitely.
 - Ensured that the `gr.3DModel` does re-render prematurely.
 
- Thanks [@pngwn](https://github.com/pngwn)!
+Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 0.1.0
 

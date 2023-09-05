@@ -522,6 +522,8 @@ class TestCheckboxGroup:
         cbox = gr.CheckboxGroup(choices=["a", "b"], value="c")
         assert cbox.get_config()["value"] == ["c"]
         assert cbox.postprocess("a") == ["a"]
+        with pytest.raises(ValueError):
+            gr.CheckboxGroup().as_example("a")
 
     def test_in_interface(self):
         """
@@ -2015,6 +2017,7 @@ class TestChatbot:
             "root_url": None,
             "selectable": False,
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
+            "likeable": False,
             "rtl": False,
             "show_copy_button": False,
             "avatar_images": (None, None),

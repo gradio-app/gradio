@@ -3,6 +3,7 @@ of the on-page-load event, which is defined in gr.Blocks().load()."""
 
 from __future__ import annotations
 
+from functools import wraps
 from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
 
 from gradio_client.documentation import document, set_documentation_group
@@ -44,8 +45,9 @@ class EventListener(Block):
 
 
 class Dependency(dict):
-    def __init__(self, trigger, key_vals, dep_index):
+    def __init__(self, trigger, key_vals, dep_index, fn):
         super().__init__(key_vals)
+        self.fn = fn
         self.trigger = trigger
         self.then = EventListenerMethod(
             self.trigger,
@@ -65,6 +67,9 @@ class Dependency(dict):
         """
         Triggered after directly preceding event is completed, if it was successful.
         """
+
+    def __call__(self, *args, **kwargs):
+        return self.fn(*args, **kwargs)
 
 
 class EventListenerMethod:
@@ -90,7 +95,7 @@ class EventListenerMethod:
 
     def __call__(
         self,
-        fn: Callable | None,
+        fn: Callable | None | Literal["decorator"] = "decorator",
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         outputs: Component | Sequence[Component] | None = None,
         api_name: str | None | Literal[False] = None,
@@ -123,6 +128,35 @@ class EventListenerMethod:
             cancels: A list of other events to cancel when this listener is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method. Functions that have not yet run (or generators that are iterating) will be cancelled, but functions that are currently running will be allowed to finish.
             every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
         """
+        if fn == "decorator":
+
+            def wrapper(func):
+                self.__call__(
+                    func,
+                    inputs,
+                    outputs,
+                    api_name,
+                    status_tracker,
+                    scroll_to_output,
+                    show_progress,
+                    queue,
+                    batch,
+                    max_batch_size,
+                    preprocess,
+                    postprocess,
+                    cancels,
+                    every,
+                    _js,
+                )
+
+                @wraps(func)
+                def inner(*args, **kwargs):
+                    return func(*args, **kwargs)
+
+                return inner
+
+            return Dependency(None, {}, None, wrapper)
+
         if status_tracker:
             warn_deprecation(
                 "The 'status_tracker' parameter has been deprecated and has no effect."
@@ -160,7 +194,7 @@ class EventListenerMethod:
         set_cancel_events(self.trigger, self.event_name, cancels)
         if self.callback:
             self.callback()
-        return Dependency(self.trigger, dep, dep_index)
+        return Dependency(self.trigger, dep, dep_index, fn)
 
 
 @document("*change", inherit=True)
@@ -345,4 +379,35 @@ class SelectData(EventData):
         self.selected: bool = data.get("selected", True)
         """
         True if the item was selected, False if deselected.
+        """
+
+
+@document("*like", inherit=True)
+class Likeable(EventListener):
+    def __init__(self):
+        self.likeable: bool = False
+        self.like = EventListenerMethod(
+            self, "like", callback=lambda: setattr(self, "likeable", True)
+        )
+        """
+        This listener is triggered when the user likes/dislikes from within the Component.
+        This event has EventData of type gradio.LikeData that carries information, accessible through LikeData.index and LikeData.value.
+        See EventData documentation on how to use this event data.
+        """
+
+
+class LikeData(EventData):
+    def __init__(self, target: Block | None, data: Any):
+        super().__init__(target, data)
+        self.index: int | tuple[int, int] = data["index"]
+        """
+        The index of the liked/disliked item. Is a tuple if the component is two dimensional.
+        """
+        self.value: Any = data["value"]
+        """
+        The value of the liked/disliked item.
+        """
+        self.liked: bool = data.get("liked", True)
+        """
+        True if the item was liked, False if disliked.
         """

@@ -1,5 +1,16 @@
 # website
 
+## 0.3.0
+
+### Features
+
+- [#5271](https://github.com/gradio-app/gradio/pull/5271) [`97c3c7b1`](https://github.com/gradio-app/gradio/commit/97c3c7b1730407f9e80566af9ecb4ca7cccf62ff) - Move scripts from old website to CI.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#5381](https://github.com/gradio-app/gradio/pull/5381) [`3d66e61d`](https://github.com/gradio-app/gradio/commit/3d66e61d641da8ca2a7d10c545c7dc0139697f00) - chore(deps): update dependency hast-util-to-string to v3.  Thanks [@renovate](https://github.com/apps/renovate)!
+
+### Fixes
+
+- [#5304](https://github.com/gradio-app/gradio/pull/5304) [`05892302`](https://github.com/gradio-app/gradio/commit/05892302fb8fe2557d57834970a2b65aea97355b) - Adds kwarg to disable html sanitization in `gr.Chatbot()`.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.2.2
 
 ### Features

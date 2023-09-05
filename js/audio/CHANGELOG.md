@@ -1,5 +1,11 @@
 # @gradio/audio
 
+## 0.3.1
+
+### Features
+
+- [#5370](https://github.com/gradio-app/gradio/pull/5370) [`61803c65`](https://github.com/gradio-app/gradio/commit/61803c6545e73fce47e8740bd46721ab9bb0ba5c) - chore(deps): update dependency extendable-media-recorder to v9.  Thanks [@renovate](https://github.com/apps/renovate)!
+
 ## 0.3.0
 
 ### Highlights
