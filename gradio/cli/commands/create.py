@@ -9,11 +9,10 @@ import time
 
 import typer
 from rich import print
-from rich.live import Live
-from rich.panel import Panel
 from typing_extensions import Annotated
 
 import gradio
+from gradio.cli.commands.display import LivePanelDisplay
 
 package_json = {
     "name": "<component-name>",
@@ -165,36 +164,31 @@ def _create(
 ):
     pathlib.Path(name.lower()).mkdir(exist_ok=True)
 
-    all_lines = [
-        f":building_construction:  Creating component [orange3]{name}[/] in directory [orange3]{name.lower()}[/]"
-    ]
-    with Live(Panel("\n".join(all_lines)), refresh_per_second=5) as live:
+    with LivePanelDisplay() as live:
+        live.update(f":building_construction:  Creating component [orange3]{name}[/] in directory [orange3]{name.lower()}[/]",
+                    add_sleep=0.2)
         if template:
-            all_lines.append(f":fax: Starting from template [orange3]{template}[/]")
+            live.update(f":fax: Starting from template [orange3]{template}[/]")
         else:
-            all_lines.append(":page_facing_up: Creating a new component")
-        time.sleep(0.2)
-        live.update(Panel("\n".join(all_lines)))
+            live.update(":page_facing_up: Creating a new component from scratch.")
+        
         _create_frontend(name.lower(), template)
-        all_lines.append(":art: Created frontend code")
-        live.update(Panel("\n".join(all_lines)))
+        live.update(":art: Created frontend code", add_sleep=0.2)
+        
         _create_backend(name, template)
-        time.sleep(0.2)
-        all_lines.append(":snake: Created backend code")
-        live.update(Panel("\n".join(all_lines)))
+        live.update(":snake: Created backend code", add_sleep=0.2)
+        
         if install:
             cmds = ["pip", "install", "-e", f"{name.lower()}"]
-            all_lines.append(
+            live.update(
                 f":construction_worker: Installing... [grey37]({' '.join(cmds)})[/]"
             )
-            live.update(Panel("\n".join(all_lines)))
             pipe = subprocess.run(cmds, capture_output=True, text=True)
             if pipe.returncode != 0:
-                all_lines.append(":red_square: Installation [bold][red]failed[/][/]")
-                all_lines.append(pipe.stderr)
+                live.update(":red_square: Installation [bold][red]failed[/][/]")
+                live.update(pipe.stderr)
             else:
-                all_lines.append(":white_check_mark: Install succeeded!")
-            live.update(Panel("\n".join(all_lines)))
+                live.update(":white_check_mark: Install succeeded!")
 
 
 @app.command("dev")
@@ -214,27 +208,24 @@ def build(
     ] = True
 ):
     name = pathlib.Path(".").resolve()
-    all_lines = [f":package: Building package in [orange3]{str(name.name)}[/]"]
-    with Live(Panel("\n".join(all_lines)), refresh_per_second=5) as live:
-        time.sleep(0.25)
+    with LivePanelDisplay() as live:
+        live.update(f":package: Building package in [orange3]{str(name.name)}[/]", add_sleep=0.2)
         if build_frontend:
-            all_lines.append(":art: Building frontend")
-        live.update(Panel("\n".join(all_lines)))
+            live.update(":art: Building frontend")
+
         cmds = ["python", "-m", "build"]
-        pipe = subprocess.run(cmds, capture_output=True, text=True)
-        all_lines.append(
+        live.update(
             f":construction_worker: Building... [grey37]({' '.join(cmds)})[/]"
         )
+        pipe = subprocess.run(cmds, capture_output=True, text=True)
         if pipe.returncode != 0:
-            all_lines.append(":red_square: Build failed!")
-            all_lines.append(pipe.stderr)
+            live.update(":red_square: Build failed!")
+            live.update(pipe.stderr)
         else:
-            all_lines.append(":white_check_mark: Build succeeded!")
-            all_lines.append(
+            live.update(":white_check_mark: Build succeeded!")
+            live.update(
                 f":ferris_wheel: Wheel located in [orange3]{str(name / 'dist')}[/]"
             )
-        live.update(Panel("\n".join(all_lines)))
-        all_lines.append("")
 
 
 def main():
