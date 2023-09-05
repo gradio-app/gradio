@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 0.3.0
+
+### Features
+
+- [#5267](https://github.com/gradio-app/gradio/pull/5267) [`119c8343`](https://github.com/gradio-app/gradio/commit/119c834331bfae60d4742c8f20e9cdecdd67e8c2) - Faster reload mode.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 0.2.1
 
 ### Features
