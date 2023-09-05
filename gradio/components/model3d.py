@@ -45,6 +45,8 @@ class Model3D(
             None,
             None,
         ),
+        zoom_speed: float = 1,
+        height: int | None = None,
         label: str | None = None,
         show_label: bool | None = None,
         every: float | None = None,
@@ -61,6 +63,8 @@ class Model3D(
             value: path to (.obj, glb, or .gltf) file to show in model3D viewer. If callable, the function will be called whenever the app loads to set the initial value of the component.
             clear_color: background color of scene, should be a tuple of 4 floats between 0 and 1 representing RGBA values.
             camera_position: initial camera position of scene, provided as a tuple of `(alpha, beta, radius)`. Each value is optional. If provided, `alpha` and `beta` should be in degrees reflecting the angular position along the longitudinal and latitudinal axes, respectively. Radius corresponds to the distance from the center of the object to the camera.
+            zoom_speed: the speed of zooming in and out of the scene when the cursor wheel is rotated or when screen is pinched on a mobile device. Should be a positive float, increase this value to make zooming faster, decrease to make it slower. Affects the wheelPrecision property of the camera.
+            height: height of the model3D component, in pixels.
             label: component name in interface.
             show_label: if True, will display label.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
@@ -73,6 +77,8 @@ class Model3D(
         """
         self.clear_color = clear_color or [0, 0, 0, 0]
         self.camera_position = camera_position
+        self.height = height
+        self.zoom_speed = zoom_speed
 
         IOComponent.__init__(
             self,
@@ -94,6 +100,8 @@ class Model3D(
             "clear_color": self.clear_color,
             "value": self.value,
             "camera_position": self.camera_position,
+            "height": self.height,
+            "zoom_speed": self.zoom_speed,
             **IOComponent.get_config(self),
         }
 
@@ -111,6 +119,8 @@ class Model3D(
         ]
         | None = None,
         clear_color: tuple[float, float, float, float] | None = None,
+        height: int | None = None,
+        zoom_speed: float | None = None,
         label: str | None = None,
         show_label: bool | None = None,
         container: bool | None = None,
@@ -121,6 +131,8 @@ class Model3D(
         updated_config = {
             "camera_position": camera_position,
             "clear_color": clear_color,
+            "height": height,
+            "zoom_speed": zoom_speed,
             "label": label,
             "show_label": show_label,
             "container": container,
