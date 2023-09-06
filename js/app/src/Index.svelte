@@ -196,8 +196,10 @@
 			active_theme_mode = handle_darkmode(wrapper);
 		}
 
+		const gradio_dev_mode = window.__GRADIO_DEV__;
+
 		const api_url =
-			BUILD_MODE === "dev"
+			BUILD_MODE === "dev" || gradio_dev_mode === "dev"
 				? "http://localhost:7860"
 				: host || space || src || location.origin;
 
