@@ -511,7 +511,7 @@ class TestCheckboxGroup:
             label="Check Your Inputs",
         )
         assert checkboxes_input.get_config() == {
-            "choices": [("a", "a"), ("b", "b"), ("c", "c")],
+            "choices": ["a", "b", "c"],
             "value": ["a", "c"],
             "name": "checkboxgroup",
             "show_label": True,
@@ -562,7 +562,7 @@ class TestRadio:
             choices=["a", "b", "c"], default="a", label="Pick Your One Input"
         )
         assert radio_input.get_config() == {
-            "choices": [("a", "a"), ("b", "b"), ("c", "c")],
+            "choices": ["a", "b", "c"],
             "value": None,
             "name": "radio",
             "show_label": True,

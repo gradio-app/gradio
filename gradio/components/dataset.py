@@ -65,28 +65,28 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
         self.container = container
         self.scale = scale
         self.min_width = min_width
-        self.components = [get_component_instance(c, render=False) for c in components]
+        self._components = [get_component_instance(c, render=False) for c in components]
 
         # Narrow type to IOComponent
         assert all(
-            isinstance(c, IOComponent) for c in self.components
+            isinstance(c, IOComponent) for c in self._components
         ), "All components in a `Dataset` must be subclasses of `IOComponent`"
-        self.components = [c for c in self.components if isinstance(c, IOComponent)]
-        for component in self.components:
+        self._components = [c for c in self._components if isinstance(c, IOComponent)]
+        for component in self._components:
             component.root_url = self.root_url
 
         self.samples = [[]] if samples is None else samples
         for example in self.samples:
-            for i, (component, ex) in enumerate(zip(self.components, example)):
+            for i, (component, ex) in enumerate(zip(self._components, example)):
                 example[i] = component.as_example(ex)
         self.type = type
         self.label = label
         if headers is not None:
             self.headers = headers
-        elif all(c.label is None for c in self.components):
+        elif all(c.label is None for c in self._components):
             self.headers = []
         else:
-            self.headers = [c.label or "" for c in self.components]
+            self.headers = [c.label or "" for c in self._components]
         self.samples_per_page = samples_per_page
 
     @staticmethod
@@ -110,6 +110,12 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
             "min_width": min_width,
             "__type__": "update",
         }
+    
+    def get_config(self):
+        config = super().get_config()
+        config["components"] = [component.get_block_name() for component in self._components]
+        return config
+
 
     def preprocess(self, x: Any) -> Any:
         """

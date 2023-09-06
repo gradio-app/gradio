@@ -71,11 +71,7 @@ class Radio(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.choices = (
-            [c if isinstance(c, tuple) else (str(c), c) for c in choices]
-            if choices
-            else []
-        )
+        self.choices = choices if choices else []
         valid_types = ["value", "index"]
         if type not in valid_types:
             raise ValueError(
@@ -107,9 +103,16 @@ class Radio(
         NeighborInterpretable.__init__(self)
 
     def example_inputs(self) -> dict[str, Any]:
+        choice = None
+        if len(self.choices):
+            if isinstance(self.choices[0], (str, int, float)):
+                choice = [self.choices[0]]
+            else:
+                choice = [self.choices[0][1]]
+
         return {
-            "raw": self.choices[0][1] if self.choices else None,
-            "serialized": self.choices[0][1] if self.choices else None,
+            "raw": choice,
+            "serialized": choice,
         }
 
     @staticmethod
@@ -164,14 +167,21 @@ class Radio(
             if x is None:
                 return None
             else:
-                return [value for _, value in self.choices].index(x)
+                if len(self.choices) and isinstance(self.choices[0], (str, int, float)):
+                    choices = self.choices
+                else:
+                    choices = [choice[0] for choice in self.choices]
+                return choices.index(x)
         else:
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
 
     def get_interpretation_neighbors(self, x):
-        choices = [value for _, value in self.choices]
+        if len(self.choices) and isinstance(self.choices[0], (str, int, float)):
+            choices = self.choices[:]
+        else:
+            choices = [value for _, value in self.choices]
         choices.remove(x)
         return choices, {}
 
@@ -182,7 +192,10 @@ class Radio(
         Returns:
             Each value represents the interpretation score corresponding to each choice.
         """
-        choices = [value for _, value in self.choices]
+        if len(self.choices) and isinstance(self.choices[0], (str, int, float)):
+            choices = self.choices
+        else:
+            choices = [value for _, value in self.choices]
         scores.insert(choices.index(x), None)
         return scores
 
@@ -204,4 +217,10 @@ class Radio(
         return self
 
     def as_example(self, input_data):
-        return next((c[0] for c in self.choices if c[1] == input_data), None)
+        if len(self.choices) and isinstance(self.choices[0], (str, int, float)):
+            choices = [(choice, choice) for choice in self.choices]
+        else:
+            choices = self.choices
+
+        match = next((c[0] for c in choices if c[1] == input_data), None)
+        return match
