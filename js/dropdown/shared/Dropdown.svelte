@@ -1,6 +1,6 @@
 <script lang="ts">
 	import DropdownOptions from "./DropdownOptions.svelte";
-	import {handle_filter, handle_change, handle_shared_key_events} from "./utils"
+	import {handle_filter, handle_change, handle_shared_keys} from "./utils"
 	import {createEventDispatcher} from "svelte";
 	import type { SelectData } from "@gradio/utils";
 	import { afterUpdate } from "svelte";
@@ -21,13 +21,16 @@
 
 	let filter_input: HTMLElement;
 
+	let show_options = false;
 	let choices_names: string[];
 	let choices_values: string[];
 	let input_text = "";
 	let filtered_indices: number[] = [];
-	let selected_index: number | null = null;
+
+	// All of these are indices with respect to the choices array
+	let old_selected_index: number;
+	let selected_index: number;
 	let active_index: number | null = null;
-	let show_options = false;
 
 	const dispatch = createEventDispatcher<{
 		change: string | string[] | undefined;
@@ -37,13 +40,23 @@
 		focus: undefined;
 	}>();
 
-	if (choices.length > 0 && !value) {
-		selected_index = 0;
+	$: {
+		if (selected_index !== old_selected_index) {
+			console.log("triggered"); // TODO (fix the fact that this gets triggered on load)
+			[input_text, value] = choices[selected_index];
+			old_selected_index = selected_index;
+			dispatch("select", {
+				index: selected_index,
+				value: choices_values[selected_index],
+				selected: true
+			});
+		}
 	}
 
 	$: {
-		if (selected_index !== null) {
-			[input_text, value] = choices[selected_index];
+		if (value != old_value) {
+			handle_change(dispatch, value, value_is_output);
+			old_value = value;
 		}
 	}
 	
@@ -53,29 +66,25 @@
 	}
 
 	$: filtered_indices = handle_filter(choices, input_text);
-
-	$: {
-		if (JSON.stringify(value) != JSON.stringify(old_value)) {
-			old_value = Array.isArray(value) ? value.slice() : value;
-			handle_change(dispatch, value, value_is_output);
-		}
+	
+	if (value) {
+		// We set old_selected_index first so the r
+		old_selected_index = choices.map((c) => c[1]).indexOf(value);
+		selected_index = choices.map((c) => c[1]).indexOf(value);
+	} else {
+		selected_index = 0;
 	}
 
 	function handle_option_selected(e: any): void {
 		selected_index = parseInt(e.detail.target.dataset.index);
 		show_options = false;		
-		dispatch("select", {
-			index: selected_index,
-			value: choices_values[selected_index],
-			selected: true
-		});
 		filter_input.blur();
 	}
 
 	function handle_focus(e: FocusEvent): void {
-		dispatch("focus");
 		filtered_indices = choices.map((_, i) => i);
 		show_options = true;
+		dispatch("focus");
 	}
 
 	function handle_blur(): void {
@@ -87,7 +96,14 @@
 	}
 
 	function handle_key_down(e: KeyboardEvent): void {
-		[show_options, active_index, selected_index] = handle_shared_key_events(e, active_index, selected_index, filtered_indices);
+		[show_options, active_index] = handle_shared_keys(e, active_index, filtered_indices);
+		if (e.key === "Enter") {
+			if (active_index !== null) {
+				selected_index = active_index;
+				show_options = false;
+				filter_input.blur();
+			}
+		}
 
 	}
 
