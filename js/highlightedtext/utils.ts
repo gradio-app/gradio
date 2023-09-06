@@ -1,6 +1,6 @@
 import { colors } from "@gradio/theme";
 
-type HighlightValueType = [string, string | number | null, symbol?];
+type HighlightValueType = [string, string | number | null];
 
 export function name_to_rgba(
 	name: string,
@@ -42,26 +42,31 @@ export function correct_color_map(
 	}
 }
 
-export function merge_adjacent_empty_elements(
-	arr: HighlightValueType[]
+export function merge_elements(
+	value: HighlightValueType[],
+	mergeMode: "empty" | "equal"
 ): HighlightValueType[] {
 	let result: HighlightValueType[] = [];
-	let temp: string | null = null;
+	let tempStr: string | null = null;
+	let tempVal: string | number | null = null;
 
-	for (const [str, val] of arr) {
-		if (val === null) {
-			temp = temp ? temp + " " + str : str;
+	for (const [str, val] of value) {
+		if (
+			(mergeMode === "empty" && val === null) ||
+			(mergeMode === "equal" && tempVal === val)
+		) {
+			tempStr = tempStr ? tempStr + " " + str : str;
 		} else {
-			if (temp !== null) {
-				result.push([temp, null]);
-				temp = null;
+			if (tempStr !== null) {
+				result.push([tempStr, tempVal as string | number]);
 			}
-			result.push([str, val]);
+			tempStr = str;
+			tempVal = val;
 		}
 	}
 
-	if (temp !== null) {
-		result.push([temp, null]);
+	if (tempStr !== null) {
+		result.push([tempStr, tempVal as string | number]);
 	}
 
 	return result;

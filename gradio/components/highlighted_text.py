@@ -94,6 +94,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable, Inp
             elem_classes=elem_classes,
             value=value,
             interactive=interactive,
+            combine_adjacent=combine_adjacent,
             **kwargs,
         )
 
@@ -103,6 +104,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable, Inp
             "show_legend": self.show_legend,
             "value": self.value,
             "selectable": self.selectable,
+            "combine_adjacent": self.combine_adjacent,
             **IOComponent.get_config(self),
         }
 
@@ -172,26 +174,6 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable, Inp
                     index = entity["end"]
                 list_format.append((text[index:], None))
                 y = list_format
-        if self.combine_adjacent:
-            output = []
-            running_text, running_category = None, None
-            for text, category in y:
-                if running_text is None:
-                    running_text = text
-                    running_category = category
-                elif category == running_category:
-                    running_text += self.adjacent_separator + text
-                elif not text:
-                    # Skip fully empty item, these get added in processing
-                    # of dictionaries.
-                    pass
-                else:
-                    output.append((running_text, running_category))
-                    running_text = text
-                    running_category = category
-            if running_text is not None:
-                output.append((running_text, running_category))
-            return output
         else:
             return y
 

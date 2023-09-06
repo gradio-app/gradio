@@ -6,11 +6,12 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
+	import { merge_elements } from "../utils";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: [string, string | number][];
+	export let value: [string, string | number | null][];
 	export let mode: "static" | "interactive";
 	export let show_legend: boolean;
 	export let color_map: Record<string, string> = {};
@@ -19,6 +20,7 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let selectable = false;
+	export let combine_adjacent = false;
 	export let gradio: Gradio<{
 		select: SelectData;
 		change: typeof value;
@@ -30,6 +32,10 @@
 	}
 
 	export let loading_status: LoadingStatus;
+
+	$: if (combine_adjacent) {
+		value = merge_elements(value, "equal");
+	}
 </script>
 
 <Block

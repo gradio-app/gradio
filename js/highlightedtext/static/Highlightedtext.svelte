@@ -5,7 +5,7 @@
 	import { createEventDispatcher } from "svelte";
 	import { correct_color_map } from "../utils";
 
-	export let value: [string, string | number][] = [];
+	export let value: [string, string | number | null][] = [];
 	export let show_legend = false;
 	export let color_map: Record<string, string> = {};
 	export let selectable = false;
@@ -114,8 +114,9 @@
 								});
 							}}
 						>
-							<span class:no-label={!_color_map[category]} class="text"
-								>{line}</span
+							<span
+								class:no-label={category && !_color_map[category]}
+								class="text">{line}</span
 							>
 							{#if !show_legend && category !== null}
 								&nbsp;
@@ -151,7 +152,9 @@
 				<span
 					class="textspan score-text"
 					style={"background-color: rgba(" +
-						(score < 0 ? "128, 90, 213," + -score : "239, 68, 60," + score) +
+						(score && score < 0
+							? "128, 90, 213," + -score
+							: "239, 68, 60," + score) +
 						")"}
 				>
 					<span class="text">{text}</span>

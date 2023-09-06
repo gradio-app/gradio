@@ -3,10 +3,10 @@
 	import { get_next_color } from "@gradio/utils";
 	import type { SelectData } from "@gradio/utils";
 	import { createEventDispatcher, tick, onMount } from "svelte";
-	import { correct_color_map, merge_adjacent_empty_elements } from "../utils";
+	import { correct_color_map, merge_elements } from "../utils";
 	import LabelInput from "./LabelInput.svelte";
 
-	export let value: [string, string | number | null, symbol?][] = [];
+	export let value: [string, string | number | null][] = [];
 	export let show_legend = false;
 	export let color_map: Record<string, string> = {};
 	export let selectable = false;
@@ -48,7 +48,7 @@
 				str.substring(endIndex),
 			];
 
-			value = [
+			let tempValue = [
 				...value.slice(0, activeElementIndex),
 				[before, null],
 				[selected, mode === "scores" ? 1 : "label", tempFlag], // add a temp flag to the new highlighted text element
@@ -57,13 +57,14 @@
 			];
 
 			// store the index of the new highlighted text element and remove the flag
-			labelToEdit = value.findIndex(([_, __, flag]) => flag === tempFlag);
-			value[labelToEdit].pop();
+			labelToEdit = tempValue.findIndex(([_, __, flag]) => flag === tempFlag);
+			tempValue[labelToEdit].pop();
 			// remove elements with empty labels
-			value = value.filter((item) => item[0].trim() !== "");
+			tempValue = value.filter((item) => item[0].trim() !== "");
+
+			value = tempValue as [string, string | number | null][];
 
 			handleValueChange();
-			await tick();
 			document.getElementById(`label-input-${labelToEdit}`)?.focus();
 		}
 	}
@@ -81,7 +82,7 @@
 	function removeHighlightedText(index: number): void {
 		if (index < 0 || index >= value.length) return;
 		value[index][1] = null;
-		value = merge_adjacent_empty_elements(value);
+		value = merge_elements(value, "equal");
 		handleValueChange();
 		window.getSelection()?.empty();
 	}
