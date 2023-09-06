@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { fly } from "svelte/transition";
 	import { createEventDispatcher } from "svelte";
-	export let value: string | string[] | undefined = undefined;
 	export let choices: [string, string][];
 	export let filtered_indices: number[];
 	export let show_options = false;
 	export let disabled = false;
+	export let selected_indices: number[] = [];
 	export let active_index: number | null = null;
 
 	let distance_from_top: number;
@@ -16,7 +16,7 @@
 	let listElement: HTMLUListElement;
 	let top: string | null, bottom: string | null, max_height: number;
 	let innerHeight: number;
-
+	
 	function calculate_window_distance(): void {
 		const { top: ref_top, bottom: ref_bottom } =
 			refElement.getBoundingClientRect();
@@ -65,7 +65,6 @@
 	}
 
 	const dispatch = createEventDispatcher();
-	$: _value = Array.isArray(value) ? value : [value];
 </script>
 
 <svelte:window on:scroll={scroll_listener} bind:innerHeight />
@@ -90,7 +89,7 @@
 			<li
 				class="item"
 				role="button"
-				class:selected={_value.includes(choices[index][1])}
+				class:selected={selected_indices.includes(index)}
 				class:active={index === active_index}
 				class:bg-gray-100={index === active_index}
 				class:dark:bg-gray-600={index === active_index}
@@ -98,7 +97,7 @@
 				aria-label={choices[index][0]}
 				data-testid="dropdown-option"
 			>
-				<span class:hide={!_value.includes(choices[index][1])} class="inner-item">
+				<span class:hide={!selected_indices.includes(index)} class="inner-item">
 					✓
 				</span>
 				{choices[index][0]}
