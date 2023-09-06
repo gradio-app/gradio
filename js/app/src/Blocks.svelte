@@ -194,6 +194,42 @@
 
 	$: components, layout, prepare_components();
 
+	async function load_custom_component<T extends ComponentMeta["type"]>(
+		name: T,
+		mode: ComponentMeta["props"]["mode"]
+	): Promise<{
+		name: T;
+		component: LoadedComponent;
+	}> {
+		const comps = "__ROOT_PATH__";
+		try {
+			//@ts-ignore
+			const c = await comps[name][mode]();
+			return {
+				name,
+				component: c as LoadedComponent
+			};
+		} catch (e) {
+			if (mode === "interactive") {
+				try {
+					const c = await comps[name]["static"]();
+					return {
+						name,
+						component: c as LoadedComponent
+					};
+				} catch (e) {
+					console.error(`failed to load: ${name}`);
+					console.error(e);
+					throw e;
+				}
+			} else {
+				console.error(`failed to load: ${name}`);
+				console.error(e);
+				throw e;
+			}
+		}
+	}
+
 	function prepare_components(): void {
 		loading_status = create_loading_status_store();
 
@@ -252,7 +288,11 @@
 			}
 			__type_for_id.set(c.id, c.props.mode);
 
-			const _c = load_component(c.type, c.props.mode);
+			// maybe load custom
+
+			const _c = c.props.custom_component
+				? load_custom_component(c.type, c.props.mode)
+				: load_component(c.type, c.props.mode);
 			_component_set.add(_c);
 			__component_map.set(`${c.type}_${c.props.mode}`, _c);
 		});
