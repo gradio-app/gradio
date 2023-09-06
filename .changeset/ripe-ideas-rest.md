@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:WIP: Allow interactive input in `gr.HighlightedText`
+feat:Allow interactive input in `gr.HighlightedText`
