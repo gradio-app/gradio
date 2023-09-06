@@ -55,7 +55,7 @@ export function merge_elements(
 			(mergeMode === "empty" && val === null) ||
 			(mergeMode === "equal" && tempVal === val)
 		) {
-			tempStr = tempStr ? tempStr + " " + str : str;
+			tempStr = tempStr ? tempStr + str : str;
 		} else {
 			if (tempStr !== null) {
 				result.push([tempStr, tempVal as string | number]);

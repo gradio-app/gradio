@@ -68,7 +68,10 @@ as input is only rendered once a new label is created -->
 		on:input={handleInput}
 		on:blur={(e) => updateLabelValue(e, indexOfLabel, text)}
 		on:keydown={(e) => {
-			if (e.key === "Enter") labelToEdit = -1;
+			if (e.key === "Enter") {
+				updateLabelValue(e, indexOfLabel, text);
+				labelToEdit = -1;
+			}
 		}}
 		on:focus={clearPlaceHolderOnFocus}
 	/>

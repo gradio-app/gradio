@@ -11,12 +11,7 @@ from gradio_client.serializing import (
 
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
-from gradio.events import (
-    Changeable,
-    EventListenerMethod,
-    Selectable,
-    Inputable
-)
+from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
 
 set_documentation_group("component")
 
@@ -138,7 +133,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable, Inp
             "__type__": "update",
         }
         return updated_config
-    
+
     def postprocess(
         self, y: list[tuple[str, str | float | None]] | dict | None
     ) -> list[tuple[str, str | float | None]] | None:
