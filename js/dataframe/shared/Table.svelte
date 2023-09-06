@@ -152,12 +152,8 @@
 
 	async function refresh_focus(): Promise<void> {
 		if (typeof editing === "string") {
-			await tick();
 			els[editing as string]?.input?.focus();
 		} else if (typeof selected === "string") {
-			await tick();
-			if (document.activeElement !== els[selected as string]?.cell)
-				els[selected as string]?.cell?.focus();
 		}
 	}
 
@@ -213,41 +209,48 @@
 		input?.focus();
 	}
 
+	let active_coords: [false | number, false | number] = [false, false];
+
+	function move_cursor(
+		key: "ArrowRight" | "ArrowLeft" | "ArrowDown" | "ArrowUp",
+		current_coords: [number, number]
+	) {
+		const dir = {
+			ArrowRight: [0, 1],
+			ArrowLeft: [0, -1],
+			ArrowDown: [1, 0],
+			ArrowUp: [-1, 0]
+		}[key];
+
+		const i = current_coords[0] + dir[0];
+		const j = current_coords[1] + dir[1];
+
+		const is_data = data[i]?.[j];
+		selected = is_data ? is_data.id : selected;
+		active_coords = is_data ? [i, j] : current_coords;
+	}
+
 	// eslint-disable-next-line complexity
 	async function handle_keydown(
 		event: KeyboardEvent,
-		i: number,
-		j: number,
 		id: string
 	): Promise<void> {
-		let is_data;
+		if (active_coords[0] === false || active_coords[1] === false) {
+			return;
+		}
+
+		const [i, j] = active_coords;
 
 		switch (event.key) {
 			case "ArrowRight":
-				if (editing) break;
-				event.preventDefault();
-				is_data = data[i][j + 1];
-				selected = is_data ? is_data.id : selected;
-
-				break;
 			case "ArrowLeft":
-				if (editing) break;
-				event.preventDefault();
-				is_data = data[i][j - 1];
-				selected = is_data ? is_data.id : selected;
-				break;
 			case "ArrowDown":
-				if (editing) break;
-				event.preventDefault();
-				is_data = data[i + 1];
-				selected = is_data ? is_data[j].id : selected;
-				break;
 			case "ArrowUp":
 				if (editing) break;
 				event.preventDefault();
-				is_data = data[i - 1];
-				selected = is_data ? is_data[j].id : selected;
+				move_cursor(event.key, [i, j]);
 				break;
+
 			case "Escape":
 				if (!editable) break;
 				event.preventDefault();
@@ -316,6 +319,7 @@
 		if (selected === id) return;
 		editing = false;
 		selected = id;
+		active_coords = get_current_indices(id);
 	}
 
 	async function set_focus(
@@ -325,22 +329,6 @@
 		if (type === "edit" && typeof id == "string") {
 			await tick();
 			els[id].input?.focus();
-		}
-
-		if (
-			type === "edit" &&
-			typeof id == "boolean" &&
-			typeof selected === "string"
-		) {
-			let cell = els[selected]?.cell;
-			await tick();
-			cell?.focus();
-		}
-
-		if (type === "select" && typeof id == "string") {
-			const { cell } = els[id];
-			await tick();
-			cell?.focus();
 		}
 	}
 
@@ -599,27 +587,15 @@
 	$: sort_data(data, sort_by, sort_direction);
 
 	function set_ids(node: HTMLTableRowElement, params: (typeof data)[0]) {
-		console.log(node, params);
 		for (let i = 0; i < params.length; i++) {
 			els[params[i].id].cell = node.children[i];
-			console.log(params[i].id, els);
 		}
 
-		tick().then(() => {
-			selected && els[selected]?.cell?.focus();
-		});
-
-		console.log("ASSIGNING NODES", selected);
 		return {
 			update(params) {
 				for (let i = 0; i < params.length; i++) {
 					els[params[i].id].cell = node.children[i];
 				}
-				console.log("ASSIGNING NODES");
-				tick().then(() => {
-					// console.log(selected);
-					selected && els[selected]?.cell?.focus();
-				});
 			}
 		};
 	}
@@ -779,8 +755,12 @@
 							on:dblclick={() => start_edit(id)}
 							on:keydown={(e) => handle_keydown(e, index, j, id)}
 							style="width: var(--cell-width-{j});"
+							class={`
+								${selected === id ? "focus" : ""}
+								${editing === id ? "focus" : ""}
+							`}
 						>
-							<div class:border-transparent={selected !== id} class="cell-wrap">
+							<div class="cell-wrap">
 								<EditableCell
 									bind:value={data[index][j].value}
 									bind:el={els[id].input}
@@ -935,8 +915,8 @@
 		border-top-right-radius: var(--table-radius);
 	}
 
-	th:focus-within,
-	td:focus-within {
+	th.focus,
+	td.focus {
 		--ring-color: var(--color-accent);
 	}
 
@@ -1007,7 +987,7 @@
 		background: var(--table-odd-background-fill);
 	}
 
-	.row_odd:focus {
+	.row_odd .focus {
 		background: var(--background-fill-primary);
 	}
 </style>
