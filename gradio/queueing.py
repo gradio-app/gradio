@@ -362,6 +362,7 @@ class Queue:
         data = events[0].data
         assert data is not None, "No event data"
         token = events[0].token
+        websocket = events[0].websocket
         data.event_id = events[0]._id if not batch else None
         try:
             data.request = self.get_request_params(events[0].websocket)
@@ -376,12 +377,16 @@ class Queue:
                 if event.data
             ]
             data.batched = True
+
+        cookies = dict(websocket.cookies)
+        if token is not None:
+            cookies["access-token"] = token
         response = await AsyncRequest(
             method=AsyncRequest.Method.POST,
             url=f"{self.server_path}api/predict",
             json=dict(data),
             headers={"Authorization": f"Bearer {self.access_token}"},
-            cookies={"access-token": token} if token is not None else None,
+            cookies=cookies,
             client=self.queue_client,
         )
         return response
@@ -480,7 +485,7 @@ class Queue:
                 # If the job finished successfully, this has no effect
                 # If the job is cancelled, this will enable future runs
                 # to start "from scratch"
-                await self.reset_iterators(event.session_hash, event.fn_index)
+                await self.reset_iterators(event)
 
     async def send_message(self, event, data: dict, timeout: float | int = 1) -> bool:
         try:
@@ -502,13 +507,14 @@ class Queue:
             await self.clean_event(event)
             return None, False
 
-    async def reset_iterators(self, session_hash: str, fn_index: int):
+    async def reset_iterators(self, event: Event):
         await AsyncRequest(
             method=AsyncRequest.Method.POST,
             url=f"{self.server_path}reset",
             json={
-                "session_hash": session_hash,
-                "fn_index": fn_index,
+                "session_hash": event.session_hash,
+                "fn_index": event.fn_index,
             },
+            cookies=dict(event.websocket.cookies),
             client=self.queue_client,
         )
