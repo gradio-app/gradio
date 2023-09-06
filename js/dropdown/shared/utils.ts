@@ -20,13 +20,11 @@ export function handle_change(dispatch: any, value: string | string[] | undefine
     }
 }
 
-export function handle_shared_key_events(e: KeyboardEvent, active_index: number | null, selected_index: number | null, filtered_indices: number[]): [boolean, number | null, number | null] {
-    let show_options: boolean;
+export function handle_shared_keys(e: KeyboardEvent, active_index: number | null, filtered_indices: number[]): [boolean, number | null] {
+    let show_options = true;
 
     if (e.key === "Escape") {
         show_options = false;
-    } else {
-        show_options = true;
     }
     if (e.key === "ArrowDown" || e.key === "ArrowUp") {
         if (filtered_indices.length >= 0) {
@@ -40,5 +38,5 @@ export function handle_shared_key_events(e: KeyboardEvent, active_index: number 
         }
     }
     
-    return [show_options, active_index, selected_index];
+    return [show_options, active_index];
 }
