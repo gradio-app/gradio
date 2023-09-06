@@ -630,7 +630,7 @@ def test_predict_route_not_blocked_if_routes_open():
     app, _, _ = demo.queue(api_open=True).launch(
         prevent_thread_lock=True, show_api=False
     )
-    assert demo.show_api
+    assert not demo.show_api
     client = TestClient(app)
 
     result = client.post(
