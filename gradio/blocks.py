@@ -1850,8 +1850,6 @@ Received outputs:
             self.queue()
 
         self.show_api = show_api
-        if self.enable_queue and not self.api_open:
-            self.show_api = False
 
         if file_directories is not None:
             warn_deprecation(
