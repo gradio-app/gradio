@@ -1,10 +1,13 @@
 import gradio as gr
 
-df = [[f"{i}-{j}" for j in range(0, 2)] for i in range(0, 50)]
+def greet(name):
+    return "Hello " + name + "!"
 
 with gr.Blocks() as demo:
-    gr.DataFrame(df, headers=list(range(1, 11)), interactive=True)
+    name = gr.Textbox(label="Name")
+    output = gr.Textbox(label="Output Box")
+    greet_btn = gr.Button("Greet")
+    greet_btn.click(fn=greet, inputs=name, outputs=output, api_name="greet")
 
 if __name__ == "__main__":
     demo.launch()
-

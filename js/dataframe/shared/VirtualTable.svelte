@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount, tick } from "svelte";
 	import { _ } from "svelte-i18n";
-	type SortDirection = "asc" | "des";
 
 	export let items: any[][] = [];
 
@@ -36,24 +35,23 @@
 		_items: typeof items,
 		viewport_height: number
 	): Promise<void> {
-		console.log("refresh_height_map");
 		if (viewport_height === 0 || table_width === 0) {
 			return;
 		}
 		const { scrollTop } = viewport;
 
-		await tick();
 		content_height = top - (scrollTop - head_height);
 		let i = start;
 
-		while (content_height < viewport_height && i < _items.length) {
+		while (content_height < max_height && i < _items.length) {
 			let row = rows[i - start];
 			if (!row) {
 				end = i + 1;
 				await tick(); // render the newly visible row
 				row = rows[i - start];
 			}
-			const row_height = (height_map[i] = row.getBoundingClientRect().height);
+			let _h = row.getBoundingClientRect().height;
+			const row_height = (height_map[i] = _h);
 			content_height += row_height;
 			i += 1;
 		}
@@ -61,11 +59,14 @@
 		end = i;
 		const remaining = _items.length - end;
 
-		average_height = (top + (content_height - head_height)) / end;
+		let filtered_height_map = height_map.filter((v) => typeof v === "number");
+		average_height =
+			filtered_height_map.reduce((a, b) => a + b, 0) /
+			filtered_height_map.length;
 
 		bottom = remaining * average_height;
 		height_map.length = _items.length;
-		console.log(content_height);
+
 		if (!max_height) {
 			actual_height = content_height;
 		} else if (content_height < max_height) {
@@ -73,35 +74,31 @@
 		} else {
 			actual_height = max_height;
 		}
-		console.log(actual_height);
 
-		if (typeof selected !== "number") {
-			await scroll_to_index(start, { behavior: "auto" });
-		}
+		await tick();
 	}
 
 	$: scroll_and_render(selected);
-	let scroll = true;
 	async function scroll_and_render(n: number | false): Promise<void> {
-		await tick();
-		const direction = typeof n !== "number" ? false : is_in_view(n);
-		console.log("scroll_and_render", n, direction);
+		requestAnimationFrame(async () => {
+			if (!n) return;
+			const direction = typeof n !== "number" ? false : is_in_view(n);
 
-		if (direction === "back") {
-			console.log("scroll_and_render", n);
-			await scroll_to_index(n, { behavior: "instant" });
-		}
+			if (direction === true) {
+				return;
+			}
+			if (direction === "back") {
+				await scroll_to_index(n, { behavior: "instant" });
+			}
 
-		await tick();
-
-		selected = false;
+			if (direction === "forwards") {
+				await scroll_to_index(n, { behavior: "instant" }, true);
+			}
+		});
 	}
 
-	function is_in_view(n: number): "back" | "forwards" | false {
-		if (!rows) {
-			return false;
-		}
-		const current = rows[n - start];
+	function is_in_view(n: number): "back" | "forwards" | true {
+		const current = rows && rows[n - start];
 		if (!current && n < start) {
 			return "back";
 		}
@@ -109,16 +106,7 @@
 			return "forwards";
 		}
 
-		console.log({
-			n,
-			start,
-			end,
-			rows,
-			current: Array.from(rows).slice()[n - start]
-		});
-
 		const { top, bottom } = current.getBoundingClientRect();
-		console.log(top, bottom, viewport_height);
 		if (top < 37) {
 			return "back";
 		}
@@ -126,7 +114,7 @@
 			return "forwards";
 		}
 
-		return false;
+		return true;
 	}
 
 	function get_computed_px_amount(elem: HTMLElement, property: string): number {
@@ -210,24 +198,20 @@
 		opts: ScrollToOptions,
 		align_end = false
 	): Promise<void> {
-		console.log("SCROLLINGTO INDEX");
-		// const { scrollTop } = viewport;
-		// const itemsDelta = index - start;
+		await tick();
+
 		const _itemHeight = average_height;
 
 		let distance = index * _itemHeight;
 		if (align_end) {
-			console.log({ DISTANCE: distance });
 			distance = distance - viewport_height + _itemHeight + head_height;
 		}
-		console.log({ distance, _itemHeight, index, start, viewport_height });
 		const _opts = {
 			top: distance,
 			behavior: "smooth" as ScrollBehavior,
 			...opts
 		};
 
-		await tick();
 		viewport.scrollTo(_opts);
 	}
 

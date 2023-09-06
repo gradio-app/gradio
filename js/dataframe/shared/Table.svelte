@@ -30,16 +30,14 @@
 	export let wrap = false;
 	export let height: number | undefined;
 
-	let selected: false | string = false;
+	let selected: false | [number, number] = false;
 
 	$: {
 		if (values && !Array.isArray(values)) {
 			headers = values.headers;
 			values = values.data;
-			selected = false;
 		} else if (values === null) {
 			values = [];
-			selected = false;
 		}
 	}
 
@@ -48,15 +46,13 @@
 		select: SelectData;
 	}>();
 
-	let editing: false | string = false;
+	let editing: false | [number, number] = false;
 
 	const get_data_at = (row: number, col: number): string | number =>
 		data[row][col].value;
 	$: {
 		if (selected !== false) {
-			const loc = selected.split("-");
-			const row = parseInt(loc[0]);
-			const col = parseInt(loc[1]);
+			const [row, col] = selected;
 			if (!isNaN(row) && !isNaN(col)) {
 				dispatch("select", { index: [row, col], value: get_data_at(row, col) });
 			}
@@ -69,12 +65,12 @@
 
 	let data_binding: Record<string, (typeof data)[0][0]> = {};
 
-	$: console.log(data_binding);
-
 	type Headers = { value: string; id: string }[];
 
+	function make_id(): string {
+		return Math.random().toString(36).substring(2, 15);
+	}
 	function make_headers(_head: string[]): Headers {
-		console.log("make_headers");
 		let _h = _head || [];
 		if (col_count[1] === "fixed" && _h.length < col_count[0]) {
 			const fill = Array(col_count[0] - _h.length)
@@ -87,13 +83,13 @@
 			return Array(col_count[0])
 				.fill(0)
 				.map((_, i) => {
-					const _id = `h-${i}`;
+					const _id = make_id();
 					els[_id] = { cell: null, input: null };
 					return { id: _id, value: JSON.stringify(i + 1) };
 				});
 		}
 		return _h.map((h, i) => {
-			const _id = `h-${i}`;
+			const _id = make_id();
 			els[_id] = { cell: null, input: null };
 			return { id: _id, value: h ?? "" };
 		});
@@ -103,7 +99,6 @@
 		value: string | number;
 		id: string;
 	}[][] {
-		console.log("PROCESSING DATA");
 		const data_row_length = _values.length;
 		return Array(
 			row_count[1] === "fixed"
@@ -123,7 +118,7 @@
 				)
 					.fill(0)
 					.map((_, j) => {
-						const id = `${i}-${j}`;
+						const id = make_id();
 						els[id] = els[id] || { input: null, cell: null };
 						const obj = { value: _values?.[i]?.[j] ?? "", id };
 						data_binding[id] = obj;
@@ -137,24 +132,18 @@
 
 	$: {
 		if (!dequal(headers, old_headers)) {
-			_headers = make_headers(headers);
-
-			old_headers = headers;
-			refresh_focus();
+			trigger_headers();
 		}
+	}
+
+	function trigger_headers(): void {
+		_headers = make_headers(headers);
+
+		old_headers = headers.slice();
 	}
 	$: if (!dequal(values, old_val)) {
 		data = process_data(values as (string | number)[][]);
 		old_val = values as (string | number)[][];
-
-		refresh_focus();
-	}
-
-	async function refresh_focus(): Promise<void> {
-		if (typeof editing === "string") {
-			els[editing as string]?.input?.focus();
-		} else if (typeof selected === "string") {
-		}
 	}
 
 	let data: { id: string; value: string | number }[][] = [[]];
@@ -195,26 +184,16 @@
 		);
 	}
 
-	async function start_edit(id: string, clear?: boolean): Promise<void> {
-		if (!editable || editing === id) return;
+	async function start_edit(i: number, j: number): Promise<void> {
+		if (!editable || dequal(editing, [i, j])) return;
 
-		if (clear) {
-			const [i, j] = get_current_indices(id);
-
-			data[i][j].value = "";
-		}
-		editing = id;
-		await tick();
-		const { input } = els[id];
-		input?.focus();
+		editing = [i, j];
 	}
-
-	let active_coords: [false | number, false | number] = [false, false];
 
 	function move_cursor(
 		key: "ArrowRight" | "ArrowLeft" | "ArrowDown" | "ArrowUp",
 		current_coords: [number, number]
-	) {
+	): void {
 		const dir = {
 			ArrowRight: [0, 1],
 			ArrowLeft: [0, -1],
@@ -225,21 +204,48 @@
 		const i = current_coords[0] + dir[0];
 		const j = current_coords[1] + dir[1];
 
-		const is_data = data[i]?.[j];
-		selected = is_data ? is_data.id : selected;
-		active_coords = is_data ? [i, j] : current_coords;
+		if (i < 0 && j <= 0) {
+			selected_header = j;
+			selected = false;
+		} else {
+			const is_data = data[i]?.[j];
+			selected = is_data ? [i, j] : selected;
+		}
 	}
 
+	let clear_on_focus = false;
 	// eslint-disable-next-line complexity
-	async function handle_keydown(
-		event: KeyboardEvent,
-		id: string
-	): Promise<void> {
-		if (active_coords[0] === false || active_coords[1] === false) {
+	async function handle_keydown(event: KeyboardEvent): Promise<void> {
+		if (selected_header !== false && header_edit === false) {
+			switch (event.key) {
+				case "ArrowDown":
+					selected = [0, selected_header];
+					selected_header = false;
+					return;
+				case "ArrowLeft":
+					selected_header =
+						selected_header > 0 ? selected_header - 1 : selected_header;
+					return;
+				case "ArrowRight":
+					selected_header =
+						selected_header < _headers.length - 1
+							? selected_header + 1
+							: selected_header;
+					return;
+				case "Escape":
+					event.preventDefault();
+					selected_header = false;
+					break;
+				case "Enter":
+					event.preventDefault();
+					break;
+			}
+		}
+		if (!selected) {
 			return;
 		}
 
-		const [i, j] = active_coords;
+		const [i, j] = selected;
 
 		switch (event.key) {
 			case "ArrowRight":
@@ -254,7 +260,6 @@
 			case "Escape":
 				if (!editable) break;
 				event.preventDefault();
-				selected = editing;
 				editing = false;
 				break;
 			case "Enter":
@@ -264,14 +269,15 @@
 				if (event.shiftKey) {
 					add_row(i);
 					await tick();
-					const [pos] = get_current_indices(id);
-					selected = data[pos + 1][j].id;
+
+					selected = [i + 1, j];
 				} else {
-					if (editing === id) {
-						selected = id;
+					if (dequal(editing, [i, j])) {
 						editing = false;
+						await tick();
+						selected = [i, j];
 					} else {
-						start_edit(id);
+						editing = [i, j];
 					}
 				}
 
@@ -296,44 +302,37 @@
 				let is_data_x = data[i][j + direction];
 				let is_data_y =
 					data?.[i + direction]?.[direction > 0 ? 0 : _headers.length - 1];
-				let _selected = is_data_x || is_data_y;
-				if (_selected) {
+
+				if (is_data_x || is_data_y) {
 					event.preventDefault();
-					selected = _selected ? _selected.id : selected;
+					selected = is_data_x
+						? [i, j + direction]
+						: [i + direction, direction > 0 ? 0 : _headers.length - 1];
 				}
 				editing = false;
 
 				break;
 			default:
 				if (
-					(!editing || (editing && editing !== id)) &&
+					(!editing || (editing && dequal(editing, [i, j]))) &&
 					event.key.length === 1
 				) {
-					start_edit(id, true);
+					clear_on_focus = true;
+					editing = [i, j];
 				}
 		}
 	}
 
-	async function handle_cell_click(id: string): Promise<void> {
-		if (editing === id) return;
-		if (selected === id) return;
+	async function handle_cell_click(i: number, j: number): Promise<void> {
+		if (dequal(editing, [i, j])) return;
+		if (dequal(selected, [i, j])) return;
+		header_edit = false;
+		selected_header = false;
 		editing = false;
-		selected = id;
-		active_coords = get_current_indices(id);
+		selected = [i, j];
+		await tick();
+		parent.focus();
 	}
-
-	async function set_focus(
-		id: string | boolean,
-		type: "edit" | "select"
-	): Promise<void> {
-		if (type === "edit" && typeof id == "string") {
-			await tick();
-			els[id].input?.focus();
-		}
-	}
-
-	$: set_focus(editing, "edit");
-	$: set_focus(selected, "select");
 
 	type SortDirection = "asc" | "des";
 	let sort_direction: SortDirection | undefined;
@@ -352,26 +351,16 @@
 		}
 	}
 
-	let header_edit: string | false;
+	let header_edit: number | false;
 
-	function update_headers_data(): void {
-		if (typeof selected === "string") {
-			const new_header = els[selected].input?.value;
-			if (_headers.find((i) => i.id === selected)) {
-				let obj = _headers.find((i) => i.id === selected);
-				if (new_header) obj!["value"] = new_header;
-			} else {
-				if (new_header) _headers.push({ id: selected, value: new_header });
-			}
-		}
-	}
-
-	async function edit_header(_id: string, select?: boolean): Promise<void> {
-		if (!editable || col_count[1] !== "dynamic" || editing === _id) return;
-		header_edit = _id;
-		await tick();
-		els[_id].input?.focus();
-		if (select) els[_id].input?.select();
+	let select_on_focus = false;
+	let selected_header: number | false = false;
+	async function edit_header(i: number, _select = false): Promise<void> {
+		if (!editable || col_count[1] !== "dynamic" || header_edit === i) return;
+		selected = false;
+		selected_header = i;
+		header_edit = i;
+		select_on_focus = _select;
 	}
 
 	function end_header_edit(event: KeyboardEvent): void {
@@ -382,17 +371,15 @@
 			case "Enter":
 			case "Tab":
 				event.preventDefault();
-				selected = header_edit;
+				selected = false;
+				selected_header = header_edit;
 				header_edit = false;
-				update_headers_data();
+				parent.focus();
 				break;
 		}
 	}
 
-	let table: VirtualTable;
 	async function add_row(index?: number): Promise<void> {
-		console.log("add_row");
-		console.log(index);
 		if (row_count[1] !== "dynamic") return;
 		if (data.length === 0) {
 			values = [Array(headers.length).fill("")];
@@ -405,7 +392,7 @@
 			Array(data[0].length)
 				.fill(0)
 				.map((_, i) => {
-					const _id = `${data.length}-${i}`;
+					const _id = make_id();
 
 					els[_id] = { cell: null, input: null };
 					return { id: _id, value: "" };
@@ -413,59 +400,34 @@
 		);
 
 		data = data;
-		console.log(data);
-		await tick();
-
-		requestAnimationFrame(() => {
-			const index = get_current_indices(`${data.length - 1}-0`)[0];
-			console.log(index);
-			table.scroll_to_index(index, {
-				behavior: "instant"
-			});
-		});
+		selected = [index ? index + 1 : data.length - 1, 0];
 	}
 
 	async function add_col(): Promise<void> {
 		if (col_count[1] !== "dynamic") return;
 		for (let i = 0; i < data.length; i++) {
-			const _id = `${i}-${data[i].length}`;
+			const _id = make_id();
 			els[_id] = { cell: null, input: null };
 			data[i].push({ id: _id, value: "" });
 		}
 
-		const _id = `h-${_headers.length}`;
-		els[_id] = { cell: null, input: null };
-		_headers.push({ id: _id, value: `Header ${_headers.length + 1}` });
+		headers.push(`Header ${headers.length + 1}`);
 
 		data = data;
-		_headers = _headers;
+		headers = headers;
 
 		await tick();
 
-		edit_header(_id, true);
+		requestAnimationFrame(() => {
+			edit_header(headers.length - 1, true);
+		});
 	}
 
 	function handle_click_outside(event: Event): void {
-		if (typeof editing === "string" && els[editing]) {
-			if (
-				els[editing].cell !== event.target &&
-				!els[editing].cell?.contains(event?.target as Node | null)
-			) {
-				editing = false;
-			}
-		}
+		editing = false;
 
-		if (typeof header_edit === "string" && els[header_edit]) {
-			if (
-				els[header_edit].cell !== event.target &&
-				!els[header_edit].cell?.contains(event.target as Node | null)
-			) {
-				selected = header_edit;
-				header_edit = false;
-				update_headers_data();
-				header_edit = false;
-			}
-		}
+		header_edit = false;
+		parent.focus();
 	}
 
 	function guess_delimitaor(
@@ -572,6 +534,7 @@
 		col?: number,
 		dir?: SortDirection
 	): void {
+		const id = selected ? data[selected[0]][selected[1]].id : null;
 		if (typeof col !== "number" || !dir) {
 			return;
 		}
@@ -582,25 +545,16 @@
 		}
 
 		data = data;
+
+		if (id) {
+			const [i, j] = get_current_indices(id);
+			selected = [i, j];
+		}
 	}
 
 	$: sort_data(data, sort_by, sort_direction);
 
-	function set_ids(node: HTMLTableRowElement, params: (typeof data)[0]) {
-		for (let i = 0; i < params.length; i++) {
-			els[params[i].id].cell = node.children[i];
-		}
-
-		return {
-			update(params) {
-				for (let i = 0; i < params.length; i++) {
-					els[params[i].id].cell = node.children[i];
-				}
-			}
-		};
-	}
-
-	$: selected_index = !!selected && get_current_indices(selected)[0];
+	$: selected_index = !!selected && selected[0];
 </script>
 
 <svelte:window
@@ -620,6 +574,9 @@
 		class:dragging
 		class:no-wrap={!wrap}
 		style="height:{table_height}px"
+		on:keydown={(e) => handle_keydown(e)}
+		role="grid"
+		tabindex="0"
 	>
 		<table bind:clientWidth={t_width}>
 			{#if label && label.length !== 0}
@@ -629,7 +586,7 @@
 				<tr>
 					{#each _headers as { value, id }, i (id)}
 						<th
-							class:editing={header_edit === id}
+							class:editing={header_edit === i}
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
 						>
 							<div class="cell-wrap">
@@ -664,7 +621,7 @@
 			<tbody>
 				<tr>
 					{#each max as { value, id }, j (id)}
-						<td tabindex="0" bind:this={cells[j]}>
+						<td tabindex="-1" bind:this={cells[j]}>
 							<div class="cell-wrap">
 								<EditableCell
 									{value}
@@ -692,7 +649,6 @@
 				table_width={t_width}
 				max_height={height || 500}
 				bind:actual_height={table_height}
-				bind:this={table}
 				selected={selected_index}
 			>
 				{#if label && label.length !== 0}
@@ -701,18 +657,19 @@
 				<tr slot="thead">
 					{#each _headers as { value, id }, i (id)}
 						<th
-							class:editing={header_edit === id}
+							class:focus={header_edit === i || selected_header === i}
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
 							style="width: var(--cell-width-{i});"
 						>
 							<div class="cell-wrap">
 								<EditableCell
-									value={_headers[i].value}
+									bind:value={_headers[i].value}
 									bind:el={els[id].input}
 									{latex_delimiters}
-									edit={header_edit === id}
+									edit={header_edit === i}
 									on:keydown={end_header_edit}
-									on:dblclick={() => edit_header(id)}
+									on:dblclick={() => edit_header(i)}
+									{select_on_focus}
 									header
 								/>
 
@@ -740,33 +697,26 @@
 					{/each}
 				</tr>
 
-				<tr
-					slot="tbody"
-					let:item
-					let:index
-					class:row_odd={index % 2 === 0}
-					use:set_ids={item}
-				>
+				<tr slot="tbody" let:item let:index class:row_odd={index % 2 === 0}>
 					{#each item as { value, id }, j (id)}
 						<td
 							tabindex="0"
-							on:touchstart={() => start_edit(id)}
-							on:click={() => handle_cell_click(id)}
-							on:dblclick={() => start_edit(id)}
-							on:keydown={(e) => handle_keydown(e, index, j, id)}
+							on:touchstart={() => start_edit(index, j)}
+							on:click={() => handle_cell_click(index, j)}
+							on:dblclick={() => start_edit(index, j)}
 							style="width: var(--cell-width-{j});"
-							class={`
-								${selected === id ? "focus" : ""}
-								${editing === id ? "focus" : ""}
-							`}
+							class:focus={dequal(selected, [index, j])}
 						>
 							<div class="cell-wrap">
 								<EditableCell
 									bind:value={data[index][j].value}
 									bind:el={els[id].input}
 									{latex_delimiters}
-									edit={editing === id}
+									edit={dequal(editing, [index, j])}
 									datatype={Array.isArray(datatype) ? datatype[j] : datatype}
+									on:focus={() => parent.focus()}
+									on:blur={() => parent.focus()}
+									{clear_on_focus}
 								/>
 							</div>
 						</td>
@@ -850,6 +800,11 @@
 		border-radius: var(--table-radius);
 		overflow-x: hidden;
 		overflow-y: hidden;
+	}
+
+	.table-wrap:focus-within {
+		outline: none;
+		background-color: none;
 	}
 
 	.dragging {
@@ -987,7 +942,7 @@
 		background: var(--table-odd-background-fill);
 	}
 
-	.row_odd .focus {
+	.row_odd.focus {
 		background: var(--background-fill-primary);
 	}
 </style>
