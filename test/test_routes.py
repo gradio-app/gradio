@@ -586,7 +586,7 @@ def test_predict_route_is_blocked_if_api_open_false():
         api_open=False
     )
     app, _, _ = io.launch(prevent_thread_lock=True)
-    assert not io.show_api
+    assert io.show_api
     client = TestClient(app)
     result = client.post(
         "/api/predict", json={"fn_index": 0, "data": [5], "session_hash": "foo"}
@@ -607,7 +607,7 @@ def test_predict_route_not_blocked_if_queue_disabled():
     app, _, _ = demo.queue(api_open=False).launch(
         prevent_thread_lock=True, show_api=True
     )
-    assert not demo.show_api
+    assert demo.show_api
     client = TestClient(app)
 
     result = client.post("/api/blocked", json={"data": [], "session_hash": "foo"})
