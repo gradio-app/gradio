@@ -821,17 +821,12 @@
 		transition: 150ms;
 		width: var(--size-full);
 		table-layout: auto;
-		/* overflow: hidden; */
 		color: var(--body-text-color);
 		font-size: var(--input-text-size);
 		line-height: var(--line-md);
 		font-family: var(--font-mono);
 		border-spacing: 0;
 	}
-
-	/* table.dragging {
-		opacity: 0.4;
-	} */
 
 	thead {
 		position: sticky;
