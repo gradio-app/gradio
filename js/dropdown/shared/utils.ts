@@ -1,14 +1,7 @@
-import {createEventDispatcher} from "svelte";
-import type { SelectData } from "@gradio/utils";
 
-const dispatch = createEventDispatcher<{
-    change: string | string[] | undefined;
-    input: undefined;
-    select: SelectData;
-    blur: undefined;
-    focus: undefined;
-}>();
-
+function positive_mod(n: number, m: number): number {
+    return ((n % m) + m) % m;
+}
 
 export function handle_filter(choices: [string, string][], input_text: string): number[] {
     let filtered_indices: number[] = [];
@@ -20,29 +13,32 @@ export function handle_filter(choices: [string, string][], input_text: string): 
     return filtered_indices;
 }
 
-export function handle_change(value: string | string[] | undefined, value_is_output: boolean): void {
+export function handle_change(dispatch: any, value: string | string[] | undefined, value_is_output: boolean): void {
     dispatch("change", value);
     if (!value_is_output) {
         dispatch("input");
     }
 }
 
-export function dispatch_blur(): void {
-    dispatch("blur");
-}
+export function handle_shared_key_events(e: KeyboardEvent, active_index: number | null, selected_index: number | null, filtered_indices: number[]): [boolean, number | null, number | null] {
+    let show_options: boolean;
 
-export function dispatch_select(option_index: number, option_value: string): void {
-    dispatch("select", {
-        index: option_index,
-        value: option_value,
-        selected: true
-    });
-}
-
-export function handle_key_down(): void {
-    // TODO: implement
-}
-
-export function handle_focus(): void {
-    // TODO: implement
+    if (e.key === "Escape") {
+        show_options = false;
+    } else {
+        show_options = true;
+    }
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        if (filtered_indices.length >= 0) {
+            if (active_index === null) {
+                active_index = filtered_indices[0];
+            } else {
+                const index_in_filtered = filtered_indices.indexOf(active_index);
+                const increment = e.key === "ArrowUp" ? -1 : 1;
+                active_index = filtered_indices[positive_mod((index_in_filtered + increment), filtered_indices.length)];
+            }
+        }
+    }
+    
+    return [show_options, active_index, selected_index];
 }

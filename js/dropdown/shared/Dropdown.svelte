@@ -1,9 +1,11 @@
 <script lang="ts">
 	import DropdownOptions from "./DropdownOptions.svelte";
-	import {handle_filter, handle_change, dispatch_blur, dispatch_select, handle_key_down, handle_focus} from "./utils"
+	import {handle_filter, handle_change, handle_shared_key_events} from "./utils"
+	import {createEventDispatcher} from "svelte";
+	import type { SelectData } from "@gradio/utils";
 	import { afterUpdate } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
-	import { Remove, DropdownArrow } from "@gradio/icons";
+	import { DropdownArrow } from "@gradio/icons";
 	import { _ } from "svelte-i18n";
 
 	export let label: string;
@@ -18,21 +20,33 @@
 	export let allow_custom_value = false;
 
 	let filter_input: HTMLElement;
-	let input_text = "";
-	let show_options = false;
-	let filtered_indices: number[] = [];
+
 	let choices_names: string[];
 	let choices_values: string[];
+	let input_text = "";
+	let filtered_indices: number[] = [];
+	let selected_index: number | null = null;
 	let active_index: number | null = null;
-	let blurring = false;
+	let show_options = false;
 
-	/* Setup including setting the default value as the first choice */
+	const dispatch = createEventDispatcher<{
+		change: string | string[] | undefined;
+		input: undefined;
+		select: SelectData;
+		blur: undefined;
+		focus: undefined;
+	}>();
 
 	if (choices.length > 0 && !value) {
-		input_text = choices[0][0];
-		value = choices[0][1];
+		selected_index = 0;
 	}
 
+	$: {
+		if (selected_index !== null) {
+			[input_text, value] = choices[selected_index];
+		}
+	}
+	
 	$: {
 		choices_names = choices.map((c) => c[0]);
 		choices_values = choices.map((c) => c[1]);
@@ -43,30 +57,38 @@
 	$: {
 		if (JSON.stringify(value) != JSON.stringify(old_value)) {
 			old_value = Array.isArray(value) ? value.slice() : value;
-			handle_change(value, value_is_output);
+			handle_change(dispatch, value, value_is_output);
 		}
 	}
 
-	function handle_option_selected(e: any, choices: [string, string][]): void {
-		const option_index = e.detail.target.dataset.index;
-		const [option_name, option_value] = choices[option_index];
-
-		input_text = option_name;
-		value = option_value;
-		show_options = false;
-		
-		dispatch_select(option_index, option_value);
+	function handle_option_selected(e: any): void {
+		selected_index = parseInt(e.detail.target.dataset.index);
+		show_options = false;		
+		dispatch("select", {
+			index: selected_index,
+			value: choices_values[selected_index],
+			selected: true
+		});
 		filter_input.blur();
 	}
 
+	function handle_focus(e: FocusEvent): void {
+		dispatch("focus");
+		filtered_indices = choices.map((_, i) => i);
+		show_options = true;
+	}
+
 	function handle_blur(): void {
-		if (blurring) return;
-		blurring = true;
 		if (!allow_custom_value) {
 			input_text = choices_names[choices_values.indexOf(value as string)];
 		}
 		show_options = false;
-		dispatch_blur();
+		dispatch("blur");
+	}
+
+	function handle_key_down(e: KeyboardEvent): void {
+		[show_options, active_index, selected_index] = handle_shared_key_events(e, active_index, selected_index, filtered_indices);
+
 	}
 
 	afterUpdate(() => {
@@ -100,11 +122,11 @@
 			</div>
 		</div>
 		<DropdownOptions
-			bind:value
 			{show_options}
 			{choices}
 			{filtered_indices}
 			{disabled}
+			selected_indices={selected_index === null ? [] : [selected_index] }
 			{active_index}
 			on:change={handle_option_selected}
 		/>
