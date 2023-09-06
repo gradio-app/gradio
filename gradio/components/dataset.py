@@ -110,12 +110,13 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
             "min_width": min_width,
             "__type__": "update",
         }
-    
+
     def get_config(self):
         config = super().get_config()
-        config["components"] = [component.get_block_name() for component in self._components]
+        config["components"] = [
+            component.get_block_name() for component in self._components
+        ]
         return config
-
 
     def preprocess(self, x: Any) -> Any:
         """

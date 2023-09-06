@@ -53,8 +53,8 @@ from gradio.deprecation import warn_deprecation
 from gradio.exceptions import Error
 from gradio.oauth import attach_oauth
 from gradio.queueing import Estimation, Event
-from gradio.state_holder import SessionState, StateHolder
 from gradio.route_utils import Request  # noqa: F401
+from gradio.state_holder import StateHolder
 from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
 
 mimetypes.init()
