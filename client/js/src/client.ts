@@ -269,6 +269,12 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 			async function config_success(_config: Config): Promise<client_return> {
 				config = _config;
 				api_map = map_names_to_ids(_config?.dependencies || []);
+				if (config.auth_required) {
+					return {
+						config,
+						...return_obj
+					};
+				}
 				try {
 					api = await view_api(config);
 				} catch (e) {
@@ -1133,7 +1139,8 @@ async function resolve_config(
 	if (
 		typeof window !== "undefined" &&
 		window.gradio_config &&
-		location.origin !== "http://localhost:9876"
+		location.origin !== "http://localhost:9876" &&
+		!window.gradio_config.dev_mode
 	) {
 		const path = window.gradio_config.root;
 		const config = window.gradio_config;

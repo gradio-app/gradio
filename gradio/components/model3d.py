@@ -37,10 +37,19 @@ class Model3D(
         self,
         value: str | Callable | None = None,
         *,
-        clear_color: list[float] | None = None,
+        clear_color: tuple[float, float, float, float] | None = None,
+        camera_position: tuple[
+            int | float | None, int | float | None, int | float | None
+        ] = (
+            None,
+            None,
+            None,
+        ),
+        zoom_speed: float = 1,
+        height: int | None = None,
         label: str | None = None,
-        every: float | None = None,
         show_label: bool | None = None,
+        every: float | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
@@ -52,10 +61,13 @@ class Model3D(
         """
         Parameters:
             value: path to (.obj, glb, or .gltf) file to show in model3D viewer. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            clear_color: background color of scene
+            clear_color: background color of scene, should be a tuple of 4 floats between 0 and 1 representing RGBA values.
+            camera_position: initial camera position of scene, provided as a tuple of `(alpha, beta, radius)`. Each value is optional. If provided, `alpha` and `beta` should be in degrees reflecting the angular position along the longitudinal and latitudinal axes, respectively. Radius corresponds to the distance from the center of the object to the camera.
+            zoom_speed: the speed of zooming in and out of the scene when the cursor wheel is rotated or when screen is pinched on a mobile device. Should be a positive float, increase this value to make zooming faster, decrease to make it slower. Affects the wheelPrecision property of the camera.
+            height: height of the model3D component, in pixels.
             label: component name in interface.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
@@ -64,6 +76,10 @@ class Model3D(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.clear_color = clear_color or [0, 0, 0, 0]
+        self.camera_position = camera_position
+        self.height = height
+        self.zoom_speed = zoom_speed
+
         IOComponent.__init__(
             self,
             label=label,
@@ -81,8 +97,11 @@ class Model3D(
 
     def get_config(self):
         return {
-            "clearColor": self.clear_color,
+            "clear_color": self.clear_color,
             "value": self.value,
+            "camera_position": self.camera_position,
+            "height": self.height,
+            "zoom_speed": self.zoom_speed,
             **IOComponent.get_config(self),
         }
 
@@ -95,6 +114,13 @@ class Model3D(
     @staticmethod
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        camera_position: tuple[
+            int | float | None, int | float | None, int | float | None
+        ]
+        | None = None,
+        clear_color: tuple[float, float, float, float] | None = None,
+        height: int | None = None,
+        zoom_speed: float | None = None,
         label: str | None = None,
         show_label: bool | None = None,
         container: bool | None = None,
@@ -103,6 +129,10 @@ class Model3D(
         visible: bool | None = None,
     ):
         updated_config = {
+            "camera_position": camera_position,
+            "clear_color": clear_color,
+            "height": height,
+            "zoom_speed": zoom_speed,
             "label": label,
             "show_label": show_label,
             "container": container,

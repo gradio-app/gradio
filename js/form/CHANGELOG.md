@@ -1,5 +1,14 @@
 # @gradio/form
 
+## 0.0.4
+
+### Patch Changes
+
+- Updated dependencies [[`abf1c57d`](https://github.com/gradio-app/gradio/commit/abf1c57d7d85de0df233ee3b38aeb38b638477db)]:
+  - @gradio/icons@0.1.0
+  - @gradio/utils@0.1.0
+  - @gradio/atoms@0.1.1
+
 ## 0.0.3
 
 ### Patch Changes

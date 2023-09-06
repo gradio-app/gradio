@@ -3,18 +3,20 @@
 Contains the functions that run when `gradio` is called from the command line. Specifically, allows
 
 $ gradio app.py, to run app.py in reload mode where any changes in the app.py file or Gradio library reloads the demo.
-$ gradio app.py my_demo.app, to use variable names other than "demo"
+$ gradio app.py my_demo, to use variable names other than "demo"
 """
 import inspect
 import os
+import re
+import subprocess
 import sys
+import threading
 from pathlib import Path
 
-from uvicorn import Config
-from uvicorn.supervisors import ChangeReload
-
 import gradio
-from gradio import networking, utils
+from gradio import utils
+
+reload_thread = threading.local()
 
 
 def _setup_config():
@@ -22,15 +24,34 @@ def _setup_config():
     if len(args) == 0:
         raise ValueError("No file specified.")
     if len(args) == 1 or args[1].startswith("--"):
-        demo_name = "demo.app"
+        demo_name = "demo"
     else:
         demo_name = args[1]
-        if "." not in demo_name:
+        if "." in demo_name:
+            demo_name = demo_name.split(".")[0]
             print(
-                "\nWARNING: As of Gradio 3.31, the parameter after the file path must be the name of the FastAPI app, not the Gradio demo. In most cases, this just means you should add '.app' after the name of your demo, e.g. 'demo' -> 'demo.app'."
+                "\nWARNING: As of Gradio 3.41.0, the parameter after the file path must be the name of the Gradio demo, not the FastAPI app. In most cases, this just means you should remove '.app' after the name of your demo, e.g. 'demo.app' -> 'demo'."
             )
 
     original_path = args[0]
+    app_text = Path(original_path).read_text()
+
+    patterns = [
+        f"with gr\\.Blocks\\(\\) as {demo_name}",
+        f"{demo_name} = gr\\.Blocks",
+        f"{demo_name} = gr\\.Interface",
+        f"{demo_name} = gr\\.ChatInterface",
+        f"{demo_name} = gr\\.Series",
+        f"{demo_name} = gr\\.Paralles",
+        f"{demo_name} = gr\\.TabbedInterface",
+    ]
+
+    if not any(re.search(p, app_text) for p in patterns):
+        print(
+            f"\nWarning: Cannot statically find a gradio demo called {demo_name}. "
+            "Reload work may fail."
+        )
+
     abs_original_path = utils.abspath(original_path)
     path = os.path.normpath(original_path)
     path = path.replace("/", ".")
@@ -39,15 +60,6 @@ def _setup_config():
 
     gradio_folder = Path(inspect.getfile(gradio)).parent
 
-    port = networking.get_first_available_port(
-        networking.INITIAL_PORT_VALUE,
-        networking.INITIAL_PORT_VALUE + networking.TRY_NUM_PORTS,
-    )
-    print(
-        f"\nLaunching in *reload mode* on: http://{networking.LOCALHOST_NAME}:{port} (Press CTRL+C to quit)\n"
-    )
-
-    gradio_app = f"{filename}:{demo_name}"
     message = "Watching:"
     message_change_count = 0
 
@@ -68,23 +80,24 @@ def _setup_config():
 
     # guaranty access to the module of an app
     sys.path.insert(0, os.getcwd())
-
-    # uvicorn.run blocks the execution (looping) which makes it hard to test
-    return Config(
-        gradio_app,
-        reload=True,
-        port=port,
-        log_level="warning",
-        reload_dirs=watching_dirs,
-    )
+    return filename, abs_original_path, [str(s) for s in watching_dirs], demo_name
 
 
 def main():
     # default execution pattern to start the server and watch changes
-    config = _setup_config()
-    server = networking.Server(config)
-    sock = config.bind_socket()
-    ChangeReload(config, target=server.run, sockets=[sock]).run()
+    filename, path, watch_dirs, demo_name = _setup_config()
+    args = sys.argv[1:]
+    extra_args = args[1:] if len(args) == 1 or args[1].startswith("--") else args[2:]
+    popen = subprocess.Popen(
+        ["python", path] + extra_args,
+        env=dict(
+            os.environ,
+            GRADIO_WATCH_DIRS=",".join(watch_dirs),
+            GRADIO_WATCH_FILE=filename,
+            GRADIO_WATCH_DEMO_NAME=demo_name,
+        ),
+    )
+    popen.wait()
 
 
 if __name__ == "__main__":

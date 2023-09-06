@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import copy
 import functools
+import importlib
 import inspect
 import json
 import json.decoder
@@ -13,11 +14,13 @@ import pkgutil
 import pprint
 import random
 import re
+import threading
 import time
+import traceback
 import typing
 import warnings
+from abc import ABC, abstractmethod
 from contextlib import contextmanager
-from enum import Enum
 from io import BytesIO
 from numbers import Number
 from pathlib import Path
@@ -26,18 +29,15 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Generator,
+    Iterator,
     Optional,
     TypeVar,
-    Union,
 )
 
 import anyio
-import httpx
 import matplotlib
 import requests
 from gradio_client.serializing import Serializable
-from pydantic import BaseModel, parse_obj_as
 from typing_extensions import ParamSpec
 
 import gradio
@@ -47,6 +47,7 @@ from gradio.strings import en
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import Block, BlockContext, Blocks
     from gradio.components import Component
+    from gradio.routes import App
 
 JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 GRADIO_VERSION = (
@@ -55,6 +56,158 @@ GRADIO_VERSION = (
 
 P = ParamSpec("P")
 T = TypeVar("T")
+
+
+def safe_get_lock() -> asyncio.Lock:
+    """Get asyncio.Lock() without fear of getting an Exception.
+
+    Needed because in reload mode we import the Blocks object outside
+    the main thread.
+    """
+    try:
+        asyncio.get_event_loop()
+        return asyncio.Lock()
+    except RuntimeError:
+        return None  # type: ignore
+
+
+class BaseReloader(ABC):
+    @property
+    @abstractmethod
+    def running_app(self) -> App:
+        pass
+
+    def queue_changed(self, demo: Blocks):
+        return (
+            hasattr(self.running_app.blocks, "_queue") and not hasattr(demo, "_queue")
+        ) or (
+            not hasattr(self.running_app.blocks, "_queue") and hasattr(demo, "_queue")
+        )
+
+    def swap_blocks(self, demo: Blocks):
+        assert self.running_app.blocks
+        # Copy over the blocks to get new components and events but
+        # not a new queue
+        if hasattr(self.running_app.blocks, "_queue"):
+            self.running_app.blocks._queue.blocks_dependencies = demo.dependencies
+            demo._queue = self.running_app.blocks._queue
+        self.running_app.blocks = demo
+
+
+class SourceFileReloader(BaseReloader):
+    def __init__(
+        self,
+        app: App,
+        watch_dirs: list[str],
+        watch_file: str,
+        stop_event: threading.Event,
+        change_event: threading.Event,
+        demo_name: str = "demo",
+    ) -> None:
+        super().__init__()
+        self.app = app
+        self.watch_dirs = watch_dirs
+        self.watch_file = watch_file
+        self.stop_event = stop_event
+        self.change_event = change_event
+        self.demo_name = demo_name
+
+    @property
+    def running_app(self) -> App:
+        return self.app
+
+    def should_watch(self) -> bool:
+        return not self.stop_event.is_set()
+
+    def stop(self) -> None:
+        self.stop_event.set()
+
+    def alert_change(self):
+        self.change_event.set()
+
+    def swap_blocks(self, demo: Blocks):
+        super().swap_blocks(demo)
+        self.alert_change()
+
+
+def watchfn(reloader: SourceFileReloader):
+    """Watch python files in a given module.
+
+    get_changes is taken from uvicorn's default file watcher.
+    """
+
+    # The thread running watchfn will be the thread reloading
+    # the app. So we need to modify this thread_data attr here
+    # so that subsequent calls to reload don't launch the app
+    from gradio.reload import reload_thread
+
+    reload_thread.running_reload = True
+
+    def get_changes() -> Path | None:
+        for file in iter_py_files():
+            try:
+                mtime = file.stat().st_mtime
+            except OSError:  # pragma: nocover
+                continue
+
+            old_time = mtimes.get(file)
+            if old_time is None:
+                mtimes[file] = mtime
+                continue
+            elif mtime > old_time:
+                return file
+        return None
+
+    def iter_py_files() -> Iterator[Path]:
+        for reload_dir in reload_dirs:
+            for path in list(reload_dir.rglob("*.py")):
+                yield path.resolve()
+
+    module = None
+    reload_dirs = [Path(dir_) for dir_ in reloader.watch_dirs]
+    mtimes = {}
+    while reloader.should_watch():
+        import sys
+
+        changed = get_changes()
+        if changed:
+            print(f"Changes detected in: {changed}")
+            # To simulate a fresh reload, delete all module references from sys.modules
+            # for the modules in the package the change came from.
+            dir_ = next(d for d in reload_dirs if is_in_or_equal(changed, d))
+            modules = list(sys.modules)
+            for k in modules:
+                v = sys.modules[k]
+                sourcefile = getattr(v, "__file__", None)
+                # Do not reload `reload.py` to keep thread data
+                if (
+                    sourcefile
+                    and dir_ == Path(inspect.getfile(gradio)).parent
+                    and sourcefile.endswith("reload.py")
+                ):
+                    continue
+                if sourcefile and is_in_or_equal(sourcefile, dir_):
+                    del sys.modules[k]
+            try:
+                module = importlib.import_module(reloader.watch_file)
+                module = importlib.reload(module)
+            except Exception as e:
+                print(
+                    f"Reloading {reloader.watch_file} failed with the following exception: "
+                )
+                traceback.print_exception(None, value=e, tb=None)
+                mtimes = {}
+                continue
+
+            demo = getattr(module, reloader.demo_name)
+            if reloader.queue_changed(demo):
+                print(
+                    "Reloading failed. The new demo has a queue and the old one doesn't (or vice versa). "
+                    "Please launch your demo again"
+                )
+            else:
+                reloader.swap_blocks(demo)
+            mtimes = {}
 
 
 def colab_check() -> bool:
@@ -348,225 +501,6 @@ class SyncToAsyncIterator:
 async def async_iteration(iterator):
     # anext not introduced until 3.10 :(
     return await iterator.__anext__()
-
-
-class AsyncRequest:
-    """
-    The AsyncRequest class is a low-level API that allow you to create asynchronous HTTP requests without a context manager.
-    Compared to making calls by using httpx directly, AsyncRequest offers several advantages:
-        (1) Includes response validation functionality both using validation models and functions.
-        (2) Exceptions are handled silently during the request call, which provides the ability to inspect each one
-        request call individually in the case where there are multiple asynchronous request calls and some of them fail.
-        (3) Provides HTTP request types with AsyncRequest.Method Enum class for ease of usage
-
-    AsyncRequest also offers some util functions such as has_exception, is_valid and status to inspect get detailed
-    information about executed request call.
-
-    The basic usage of AsyncRequest is as follows: create a AsyncRequest object with inputs(method, url etc.). Then use it
-    with the "await" statement, and then you can use util functions to do some post request checks depending on your use-case.
-    Finally, call the get_validated_data function to get the response data.
-
-    You can see example usages in test_utils.py.
-    """
-
-    client = httpx.AsyncClient()
-
-    class Method(str, Enum):
-        """
-        Method is an enumeration class that contains possible types of HTTP request methods.
-        """
-
-        ANY = "*"
-        CONNECT = "CONNECT"
-        HEAD = "HEAD"
-        GET = "GET"
-        DELETE = "DELETE"
-        OPTIONS = "OPTIONS"
-        PATCH = "PATCH"
-        POST = "POST"
-        PUT = "PUT"
-        TRACE = "TRACE"
-
-    def __init__(
-        self,
-        method: Method,
-        url: str,
-        *,
-        validation_model: type[BaseModel] | None = None,
-        validation_function: Union[Callable, None] = None,
-        exception_type: type[Exception] = Exception,
-        raise_for_status: bool = False,
-        client: httpx.AsyncClient | None = None,
-        **kwargs,
-    ):
-        """
-        Initialize the Request instance.
-        Args:
-            method(Request.Method) : method of the request
-            url(str): url of the request
-            *
-            validation_model(Type[BaseModel]): a pydantic validation class type to use in validation of the response
-            validation_function(Callable): a callable instance to use in validation of the response
-            exception_class(Type[Exception]): a exception type to throw with its type
-            raise_for_status(bool): a flag that determines to raise httpx.Request.raise_for_status() exceptions.
-        """
-        self._exception: Union[Exception, None] = None
-        self._status = None
-        self._raise_for_status = raise_for_status
-        self._validation_model = validation_model
-        self._validation_function = validation_function
-        self._exception_type = exception_type
-        self._validated_data = None
-        # Create request
-        self._request = self._create_request(method, url, **kwargs)
-        self.client_ = client or self.client
-
-    def __await__(self) -> Generator[None, Any, AsyncRequest]:
-        """
-        Wrap Request's __await__ magic function to create request calls which are executed in one line.
-        """
-        return self.__run().__await__()
-
-    async def __run(self) -> AsyncRequest:
-        """
-        Manage the request call lifecycle.
-        Execute the request by sending it through the client, then check its status.
-        Then parse the request into Json format. And then validate it using the provided validation methods.
-        If a problem occurs in this sequential process,
-        an exception will be raised within the corresponding method, and allowed to be examined.
-        Manage the request call lifecycle.
-
-        Returns:
-            Request
-        """
-        try:
-            # Send the request and get the response.
-            self._response: httpx.Response = await self.client_.send(self._request)
-            # Raise for _status
-            self._status = self._response.status_code
-            if self._raise_for_status:
-                self._response.raise_for_status()
-            # Parse client response data to JSON
-            self._json_response_data = self._response.json()
-            # Validate response data
-            self._validated_data = self._validate_response_data(
-                self._json_response_data
-            )
-        except Exception as exception:
-            # If there is an exception, store it to do further inspections.
-            self._exception = self._exception_type(exception)
-        return self
-
-    @staticmethod
-    def _create_request(method: Method, url: str, **kwargs) -> httpx.Request:
-        """
-        Create a request. This is a httpx request wrapper function.
-        Args:
-            method(Request.Method): request method type
-            url(str): target url of the request
-            **kwargs
-        Returns:
-            Request
-        """
-        request = httpx.Request(method, url, **kwargs)
-        return request
-
-    def _validate_response_data(self, response):
-        """
-        Validate response using given validation methods. If there is a validation method and response is not valid,
-        validation functions will raise an exception for them.
-        Args:
-            response(ResponseJson): response object
-        Returns:
-            ResponseJson: Validated Json object.
-        """
-
-        # We use raw response as a default value if there is no validation method or response is not valid.
-        validated_response = response
-
-        try:
-            # If a validation model is provided, validate response using the validation model.
-            if self._validation_model:
-                validated_response = self._validate_response_by_model(response)
-            # Then, If a validation function is provided, validate response using the validation function.
-            if self._validation_function:
-                validated_response = self._validate_response_by_validation_function(
-                    response
-                )
-        except Exception as exception:
-            # If one of the validation methods does not confirm, raised exception will be silently handled.
-            # We assign this exception to classes instance to do further inspections via is_valid function.
-            self._exception = exception
-
-        return validated_response
-
-    def _validate_response_by_model(self, response) -> BaseModel:
-        """
-        Validate response json using the validation model.
-        Args:
-            response(ResponseJson): response object
-        Returns:
-            ResponseJson: Validated Json object.
-        """
-        validated_data = BaseModel()
-        if self._validation_model:
-            validated_data = parse_obj_as(self._validation_model, response)
-        return validated_data
-
-    def _validate_response_by_validation_function(self, response):
-        """
-        Validate response json using the validation function.
-        Args:
-            response(ResponseJson): response object
-        Returns:
-            ResponseJson: Validated Json object.
-        """
-        validated_data = None
-
-        if self._validation_function:
-            validated_data = self._validation_function(response)
-
-        return validated_data
-
-    def is_valid(self, raise_exceptions: bool = False) -> bool:
-        """
-        Check response object's validity+. Raise exceptions if raise_exceptions flag is True.
-        Args:
-            raise_exceptions(bool) : a flag to raise exceptions in this check
-        Returns:
-            bool: validity of the data
-        """
-        if self.has_exception and self._exception:
-            if raise_exceptions:
-                raise self._exception
-            return False
-        else:
-            # If there is no exception, that means there is no validation error.
-            return True
-
-    def get_validated_data(self):
-        return self._validated_data
-
-    @property
-    def json(self):
-        return self._json_response_data
-
-    @property
-    def exception(self):
-        return self._exception
-
-    @property
-    def has_exception(self):
-        return self.exception is not None
-
-    @property
-    def raise_exceptions(self):
-        if self.has_exception and self._exception:
-            raise self._exception
-
-    @property
-    def status(self):
-        return self._status
 
 
 @contextmanager
