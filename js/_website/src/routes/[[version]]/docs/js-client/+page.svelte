@@ -28,7 +28,6 @@
 			{helpers}
 			{routes}
 			{py_client}
-			{on_main}
 		/>
 
 		<div class="flex flex-col w-full min-w-full lg:w-10/12 lg:min-w-0">

@@ -1,9 +1,11 @@
 import { redirect } from "@sveltejs/kit";
 import version from "$lib/json/version.json";
+import wheel from "$lib/json/wheel.json";
 export const prerender = true;
 
 const DOCS_BUCKET = "https://gradio-docs-json.s3.us-west-2.amazonaws.com";
 const VERSION = version.version;
+const WHEEL = wheel.wheel;
 
 async function load_release_docs(
 	version: string
@@ -32,6 +34,7 @@ export async function load({ params, url }) {
 	let py_client = docs_json.docs["py-client"];
 	let js_client = docs_json.js_client;
 	let on_main = params?.version === "main";
+	let wheel: string = WHEEL;
 
 	return {
 		docs,
@@ -40,6 +43,7 @@ export async function load({ params, url }) {
 		routes,
 		py_client,
 		js_client,
-		on_main
+		on_main,
+		wheel
 	};
 }

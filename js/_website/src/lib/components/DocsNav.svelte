@@ -1,7 +1,6 @@
 <script lang="ts">
 	// @ts-nocheck
 	import { clickOutside } from "./clickOutside.js";
-	import { wheel } from "$lib/json/wheel.json";
 
 	export let components: any;
 	export let helpers: any;
@@ -9,7 +8,6 @@
 	export let py_client: any;
 
 	export let current_nav_link = "";
-	export let on_main = false;
 
 	let show_nav = false;
 	let searchTerm = "";
@@ -42,7 +40,6 @@
 	}
 
 	import DropDown from "$lib/components/VersionDropdown.svelte";
-	$: on_main;
 </script>
 
 <svelte:window on:keydown={onKeyDown} />
@@ -106,15 +103,6 @@
 			autocomplete="off"
 		/>
 		<DropDown></DropDown>
-
-		{#if on_main}
-		<div class="bg-gray-100 border border-gray-200 text-gray-800 px-3 py-1 mt-4 mr-6 rounded-lg">
-			<p class="my-2 text-sm">
-			  Install Gradio from main:
-			</p>
-			  <pre class="language-bash"><code class="language-bash text-xs">pip install {wheel}</code></pre>
-		  </div>
-		{/if}
 	</div>
 
 	<a class="link px-4 my-2 block" href="./">Building Demos</a>
