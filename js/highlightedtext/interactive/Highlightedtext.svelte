@@ -48,7 +48,7 @@
 				str.substring(endIndex),
 			];
 
-			let tempValue = [
+			let tempValue: [string, string | number | null, symbol?][] = [
 				...value.slice(0, activeElementIndex),
 				[before, null],
 				[selected, mode === "scores" ? 1 : "label", tempFlag], // add a temp flag to the new highlighted text element
@@ -60,8 +60,8 @@
 			labelToEdit = tempValue.findIndex(([_, __, flag]) => flag === tempFlag);
 			tempValue[labelToEdit].pop();
 			// remove elements with empty labels
-			tempValue = value.filter((item) => item[0].trim() !== "");
 
+			tempValue = tempValue.filter((item) => item[0].trim() !== "");
 			value = tempValue as [string, string | number | null][];
 
 			handleValueChange();
