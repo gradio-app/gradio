@@ -11,7 +11,6 @@
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value: [string, string | number][];
-	let old_value: [string, string | number][];
 	export let mode: "static" | "interactive";
 	export let show_legend: boolean;
 	export let color_map: Record<string, string> = {};
@@ -58,7 +57,6 @@
 		<HighlightedText
 			bind:value
 			on:change={() => gradio.dispatch("change")}
-			on:input={() => gradio.dispatch("input")}
 			{selectable}
 			{show_legend}
 			{color_map}

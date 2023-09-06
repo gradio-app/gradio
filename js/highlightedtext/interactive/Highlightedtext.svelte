@@ -11,12 +11,12 @@
 	export let color_map: Record<string, string> = {};
 	export let selectable = false;
 
-	let selectedTextElementIndex = -1;
+	let activeElementIndex = -1;
 	let ctx: CanvasRenderingContext2D;
 	let _color_map: Record<string, { primary: string; secondary: string }> = {};
 	let active = "";
 	let selection: Selection | null;
-	let labelToEdit: number | null = null;
+	let labelToEdit = -1;
 
 	onMount(() => {
 		const mouseUpHandler = (): void => {
@@ -36,14 +36,12 @@
 	): Promise<void> {
 		if (
 			selection?.toString() &&
-			selectedTextElementIndex !== -1 &&
-			value[selectedTextElementIndex][0]
-				.toString()
-				.includes(selection.toString())
+			activeElementIndex !== -1 &&
+			value[activeElementIndex][0].toString().includes(selection.toString())
 		) {
 			const tempFlag = Symbol();
 
-			const str = value[selectedTextElementIndex][0];
+			const str = value[activeElementIndex][0];
 			const [before, selected, after] = [
 				str.substring(0, startIndex),
 				str.substring(startIndex, endIndex),
@@ -51,11 +49,11 @@
 			];
 
 			value = [
-				...value.slice(0, selectedTextElementIndex),
+				...value.slice(0, activeElementIndex),
 				[before, null],
-				[selected, "label", tempFlag], // add a temp flag to the new highlighted text element
+				[selected, mode === "scores" ? 1 : "label", tempFlag], // add a temp flag to the new highlighted text element
 				[after, null],
-				...value.slice(selectedTextElementIndex + 1),
+				...value.slice(activeElementIndex + 1),
 			];
 
 			// store the index of the new highlighted text element and remove the flag
@@ -90,10 +88,13 @@
 
 	function handleValueChange(): void {
 		dispatch("change", value);
+		labelToEdit = -1;
 
 		// reset legend color maps
-		color_map = {};
-		_color_map = {};
+		if (show_legend) {
+			color_map = {};
+			_color_map = {};
+		}
 	}
 
 	let mode: "categories" | "scores";
@@ -210,58 +211,44 @@
 										handleKeydownSelection(e);
 									}
 								}}
-								on:focus={() => (selectedTextElementIndex = i)}
-								on:mouseover={() => (selectedTextElementIndex = i)}
+								on:focus={() => (activeElementIndex = i)}
+								on:mouseover={() => (activeElementIndex = i)}
 							>
 								<span
 									class:no-label={category === null}
 									class="text"
 									role="button"
 									on:keydown={(e) => handleKeydownSelection(e)}
-									on:focus={() => (selectedTextElementIndex = i)}
-									on:mouseover={() => (selectedTextElementIndex = i)}
-									on:click={() => {
-										if (show_legend) labelToEdit = i;
-									}}
+									on:focus={() => (activeElementIndex = i)}
+									on:mouseover={() => (activeElementIndex = i)}
+									on:click={() => (labelToEdit = i)}
 									tabindex="0">{line}</span
 								>
-								{#if !show_legend && category !== null}
+								{#if !show_legend && category !== null && labelToEdit !== i}
+									<span
+										id={`label-tag-${i}`}
+										class="label"
+										role="button"
+										tabindex="0"
+										style:background-color={category === null ||
+										(active && active !== category)
+											? ""
+											: _color_map[category].primary}
+										on:click={() => (labelToEdit = i)}
+										on:keydown={() => (labelToEdit = i)}
+									>
+										{category}
+									</span>
+								{/if}
+								{#if labelToEdit === i && category !== null}
 									&nbsp;
-									{#if labelToEdit === i}
-										<LabelInput
-											bind:label={labelToEdit}
-											bind:value
-											{category}
-											{active}
-											{_color_map}
-											{i}
-											{text}
-											{handleValueChange}
-										/>
-									{:else}
-										<span
-											id={`label-tag-${i}`}
-											class="label"
-											role="button"
-											tabindex="0"
-											style:background-color={category === null ||
-											(active && active !== category)
-												? ""
-												: _color_map[category].primary}
-											on:click={() => (labelToEdit = i)}
-											on:keydown={() => (labelToEdit = i)}
-										>
-											{category}
-										</span>
-									{/if}
-								{:else if category != null && show_legend && labelToEdit === i}
 									<LabelInput
 										bind:value
-										bind:label={labelToEdit}
+										{labelToEdit}
 										{category}
 										{active}
 										{_color_map}
-										{i}
+										indexOfLabel={i}
 										{text}
 										{handleValueChange}
 									/>
@@ -302,20 +289,55 @@
 		<div class="textfield" data-testid="highlighted-text:textfield">
 			{#each value as [text, _score], i}
 				{@const score = typeof _score === "string" ? parseInt(_score) : _score}
-				<span
-					role="button"
-					tabindex="0"
-					on:keydown={(e) => handleKeydownSelection(e)}
-					on:mouseover={() => (selectedTextElementIndex = i)}
-					on:focus={() => (selectedTextElementIndex = i)}
-					class="textspan score-text"
-					style={"background-color: rgba(" +
-						(score && score < 0
-							? "128, 90, 213," + -score
-							: "239, 68, 60," + score) +
-						")"}
-				>
-					<span class="text">{text}</span>
+				<span class="score-text-container">
+					<span
+						class="textspan score-text"
+						role="button"
+						tabindex="0"
+						on:mouseover={() => (activeElementIndex = i)}
+						on:focus={() => (activeElementIndex = i)}
+						on:click={() => (labelToEdit = i)}
+						on:keydown={(e) => {
+							if (e.key === "Enter") {
+								labelToEdit = i;
+							}
+						}}
+						style={"background-color: rgba(" +
+							(score && score < 0
+								? "128, 90, 213," + -score
+								: "239, 68, 60," + score) +
+							")"}
+					>
+						<span class="text">{text}</span>
+						{#if _score && labelToEdit === i}
+							<LabelInput
+								bind:value
+								{labelToEdit}
+								{_color_map}
+								category={_score}
+								{active}
+								indexOfLabel={i}
+								{text}
+								{handleValueChange}
+								isScoresMode
+							/>
+						{/if}
+					</span>
+					{#if _score && activeElementIndex === i}
+						<span
+							class="label-clear-button"
+							role="button"
+							aria-roledescription="Remove label from text"
+							tabindex="0"
+							on:click={() => removeHighlightedText(i)}
+							on:keydown={(event) => {
+								if (event.key === "Enter") {
+									removeHighlightedText(i);
+								}
+							}}
+							>×
+						</span>
+					{/if}
 				</span>
 			{/each}
 		</div>
@@ -325,11 +347,6 @@
 <style>
 	.label-clear-button {
 		display: none;
-	}
-
-	.text-category-container:hover .label-clear-button,
-	.text-category-container:focus-within .label-clear-button {
-		display: inline;
 		border-radius: var(--radius-xs);
 		padding-top: 2.5px;
 		padding-right: var(--size-1);
@@ -344,8 +361,16 @@
 		color: var(--block-label-text-color);
 	}
 
+	.text-category-container:hover .label-clear-button,
+	.text-category-container:focus-within .label-clear-button,
+	.score-text-container:hover .label-clear-button,
+	.score-text-container:focus-within .label-clear-button {
+		display: inline;
+	}
+
 	.text-category-container:hover .textspan.hl,
-	.text-category-container:focus-within .textspan.hl {
+	.text-category-container:focus-within .textspan.hl,
+	.score-text:hover {
 		border-radius: var(--radius-xs) 0 0 var(--radius-xs);
 	}
 
@@ -438,13 +463,12 @@
 		user-select: none;
 	}
 
-	.score-text .text {
-		color: var(--body-text-color);
+	.score-text-container {
+		margin-right: var(--size-1);
 	}
 
-	.score-text {
-		margin-right: var(--size-1);
-		padding: var(--size-1);
+	.score-text .text {
+		color: var(--body-text-color);
 	}
 
 	.no-cat {

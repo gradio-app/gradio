@@ -2,13 +2,14 @@
 	type HighlightedTextType = [string, string | number | null, symbol?];
 
 	export let value: HighlightedTextType[];
-	export let category: string | number;
+	export let category: string | number | null;
 	export let active: string;
-	export let _color_map: Record<string, { primary: string; secondary: string }>;
-	export let label: number | null;
-	export let i: number;
+	export let labelToEdit: number;
+	export let indexOfLabel: number;
 	export let text: string;
 	export let handleValueChange: () => void;
+	export let isScoresMode = false;
+	export let _color_map: Record<string, { primary: string; secondary: string }>;
 
 	let _input_value = category;
 
@@ -27,7 +28,14 @@
 		let target = e.target as HTMLInputElement;
 		value = [
 			...value.slice(0, elementIndex),
-			[text, target.value === "" ? null : target.value],
+			[
+				text,
+				target.value === ""
+					? null
+					: isScoresMode
+					? Number(target.value)
+					: target.value,
+			],
 			...value.slice(elementIndex + 1),
 		];
 
@@ -43,29 +51,43 @@
 <!-- svelte-ignore a11y-autofocus -->
 <!-- autofocus should not be disorienting for a screen reader users
 as input is only rendered once a new label is created -->
-<input
-	class="label-input"
-	autofocus
-	id={`label-input-${i}`}
-	type="text"
-	placeholder="label"
-	value={category}
-	style:background-color={category === null || (active && active !== category)
-		? ""
-		: _color_map[category].primary}
-	style:width={_input_value.toString().length + 3 + "ch"}
-	on:input={handleInput}
-	on:blur={(e) => {
-		updateLabelValue(e, i, text);
-		label = null;
-	}}
-	on:keydown={(e) => {
-		if (e.key === "Enter") {
-			label = null;
-		}
-	}}
-	on:focus={clearPlaceHolderOnFocus}
-/>
+{#if !isScoresMode}
+	<input
+		class="label-input"
+		autofocus
+		id={`label-input-${indexOfLabel}`}
+		type="text"
+		placeholder="label"
+		value={category}
+		style:background-color={category === null || (active && active !== category)
+			? ""
+			: _color_map[category].primary}
+		style:width={_input_value
+			? _input_value.toString()?.length + 4 + "ch"
+			: "8ch"}
+		on:input={handleInput}
+		on:blur={(e) => updateLabelValue(e, indexOfLabel, text)}
+		on:keydown={(e) => {
+			if (e.key === "Enter") labelToEdit = -1;
+		}}
+		on:focus={clearPlaceHolderOnFocus}
+	/>
+{:else}
+	<input
+		class="label-input"
+		autofocus
+		type="number"
+		style={"background-color: rgba(" +
+			(typeof category === "number" && category < 0
+				? "128, 90, 213," + -category
+				: "239, 68, 60," + category) +
+			")"}
+		value={category}
+		style:width="7ch"
+		on:input={handleInput}
+		on:blur={(e) => updateLabelValue(e, indexOfLabel, text)}
+	/>
+{/if}
 
 <style>
 	.label-input {
