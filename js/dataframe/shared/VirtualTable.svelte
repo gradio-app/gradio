@@ -103,11 +103,14 @@
 			return "forwards";
 		}
 
+		const { top: viewport_top } = viewport.getBoundingClientRect();
 		const { top, bottom } = current.getBoundingClientRect();
-		if (top < 37) {
+
+		if (top - viewport_top < 37) {
 			return "back";
 		}
-		if (bottom > viewport_height) {
+
+		if (bottom - viewport_top > viewport_height) {
 			return "forwards";
 		}
 
