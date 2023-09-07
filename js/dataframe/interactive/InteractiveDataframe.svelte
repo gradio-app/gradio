@@ -5,6 +5,7 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { afterUpdate } from "svelte";
+	import { _ } from "svelte-i18n";
 
 	type Headers = string[];
 	type Data = (string | number)[][];
@@ -56,6 +57,18 @@
 			old_value = JSON.stringify(value);
 			handle_change();
 		}
+	}
+
+	if (
+		(Array.isArray(value) && value?.[0]?.length === 0) ||
+		value.data?.[0]?.length === 0
+	) {
+		value = {
+			data: [Array(col_count?.[0] || 3).fill("")],
+			headers: Array(col_count?.[0] || 3)
+				.fill("")
+				.map((_, i) => `${i + 1}`)
+		};
 	}
 </script>
 

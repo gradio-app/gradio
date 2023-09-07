@@ -44,7 +44,10 @@
 				await tick(); // render the newly visible row
 				row = rows[i - start];
 			}
-			let _h = row.getBoundingClientRect().height;
+			let _h = row?.getBoundingClientRect().height;
+			if (!_h) {
+				_h = average_height;
+			}
 			const row_height = (height_map[i] = _h);
 			content_height += row_height;
 			i += 1;
@@ -234,11 +237,13 @@
 			<slot name="thead" />
 		</thead>
 		<tbody bind:this={contents} class="tbody">
-			{#each visible as item (item.data[0].id)}
-				<slot name="tbody" item={item.data} index={item.index}>
-					Missing Table Row
-				</slot>
-			{/each}
+			{#if visible.length && visible[0].data.length}
+				{#each visible as item (item.data[0].id)}
+					<slot name="tbody" item={item.data} index={item.index}>
+						Missing Table Row
+					</slot>
+				{/each}
+			{/if}
 		</tbody>
 		<tfoot class="tfoot" bind:offsetHeight={foot_height}>
 			<slot name="tfoot" />

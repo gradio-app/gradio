@@ -29,7 +29,6 @@
 	export let editable = true;
 	export let wrap = false;
 	export let height: number | undefined;
-
 	let selected: false | [number, number] = false;
 
 	$: {
@@ -49,7 +48,7 @@
 	let editing: false | [number, number] = false;
 
 	const get_data_at = (row: number, col: number): string | number =>
-		data[row][col].value;
+		data?.[row]?.[col]?.value;
 	$: {
 		if (selected !== false) {
 			const [row, col] = selected;
@@ -313,6 +312,7 @@
 
 				break;
 			default:
+				if (!editable) break;
 				if (
 					(!editing || (editing && dequal(editing, [i, j]))) &&
 					event.key.length === 1
@@ -536,7 +536,7 @@
 		col?: number,
 		dir?: SortDirection
 	): void {
-		const id = selected ? data[selected[0]][selected[1]].id : null;
+		const id = selected ? data[selected[0]][selected[1]]?.id : null;
 		if (typeof col !== "number" || !dir) {
 			return;
 		}
