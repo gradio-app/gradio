@@ -29,12 +29,6 @@
 		blur: never;
 		focus: never;
 	}>;
-
-	if (multiselect && !value) {
-		value = [];
-	} else if (!value) {
-		value = "";
-	}
 </script>
 
 <Block
@@ -70,7 +64,6 @@
 			bind:value
 			bind:value_is_output
 			{choices}
-			{max_choices}
 			{label}
 			{info}
 			{show_label}

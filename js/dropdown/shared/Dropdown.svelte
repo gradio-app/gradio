@@ -10,8 +10,8 @@
 
 	export let label: string;
 	export let info: string | undefined = undefined;
-	export let value: string | undefined;
-	let old_value = Array.isArray(value) ? value.slice() : value;
+	export let value: string | string[] | undefined;
+	let old_value: string | string[] | undefined;
 	export let value_is_output = false;
 	export let choices: [string, string][];
 	export let disabled = false;
@@ -26,23 +26,39 @@
 	let choices_values: string[];
 	let input_text = "";
 	let filtered_indices: number[] = [];
+	let initialized = false;
 
 	// All of these are indices with respect to the choices array
 	let old_selected_index: number;
-	let selected_index: number;
+	// selected_index is null if allow_custom_value is true and the input_text is not in choices_names
+	let selected_index: number | null = null;
 	let active_index: number | null = null;
 
 	const dispatch = createEventDispatcher<{
-		change: string | string[] | undefined;
+		change: string | undefined;
 		input: undefined;
 		select: SelectData;
 		blur: undefined;
 		focus: undefined;
 	}>();
 
+	if (value) {
+		old_selected_index = choices.map((c) => c[1]).indexOf(value as string);
+		selected_index = old_selected_index;
+		if (selected_index === -1) {
+			selected_index = null;
+		} else {
+			[input_text, old_value] = choices[selected_index];
+		}
+	} else {
+		old_selected_index = 0;
+		selected_index = 0;
+		[input_text, value] = choices[selected_index];
+		old_value = value;
+	}
+
 	$: {
-		if (selected_index !== old_selected_index) {
-			console.log("triggered"); // TODO (fix the fact that this gets triggered on load)
+		if (selected_index !== old_selected_index && selected_index !== null && initialized) {
 			[input_text, value] = choices[selected_index];
 			old_selected_index = selected_index;
 			dispatch("select", {
@@ -67,13 +83,6 @@
 
 	$: filtered_indices = handle_filter(choices, input_text);
 	
-	if (value) {
-		// We set old_selected_index first so the r
-		old_selected_index = choices.map((c) => c[1]).indexOf(value);
-		selected_index = choices.map((c) => c[1]).indexOf(value);
-	} else {
-		selected_index = 0;
-	}
 
 	function handle_option_selected(e: any): void {
 		selected_index = parseInt(e.detail.target.dataset.index);
@@ -109,6 +118,7 @@
 
 	afterUpdate(() => {
 		value_is_output = false;
+		initialized = true;
 	});
 </script>
 
