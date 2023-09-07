@@ -5,6 +5,8 @@ Contains the functions that run when `gradio` is called from the command line. S
 $ gradio app.py, to run app.py in reload mode where any changes in the app.py file or Gradio library reloads the demo.
 $ gradio app.py my_demo, to use variable names other than "demo"
 """
+from __future__ import annotations
+
 import inspect
 import os
 import re
@@ -12,6 +14,9 @@ import subprocess
 import sys
 import threading
 from pathlib import Path
+from typing import Optional
+
+import typer
 from rich import print
 
 import gradio
@@ -20,21 +25,12 @@ from gradio import utils
 reload_thread = threading.local()
 
 
-def _setup_config():
-    args = sys.argv[1:]
-    if len(args) == 0:
-        raise ValueError("No file specified.")
-    if len(args) == 1 or args[1].startswith("--"):
-        demo_name = "demo"
-    else:
-        demo_name = args[1]
-        if "." in demo_name:
-            demo_name = demo_name.split(".")[0]
-            print(
-                "\nWARNING: As of Gradio 3.41.0, the parameter after the file path must be the name of the Gradio demo, not the FastAPI app. In most cases, this just means you should remove '.app' after the name of your demo, e.g. 'demo.app' -> 'demo'."
-            )
-
-    original_path = args[0]
+def _setup_config(
+    demo_path: Path,
+    demo_name: str = "demo",
+    additional_watch_dirs: list[str] | None = None,
+):
+    original_path = demo_path
     app_text = Path(original_path).read_text()
 
     patterns = [
@@ -54,10 +50,7 @@ def _setup_config():
         )
 
     abs_original_path = utils.abspath(original_path)
-    path = os.path.normpath(original_path)
-    path = path.replace("/", ".")
-    path = path.replace("\\", ".")
-    filename = os.path.splitext(path)[0]
+    filename = Path(original_path).stem
 
     gradio_folder = Path(inspect.getfile(gradio)).parent
 
@@ -76,13 +69,19 @@ def _setup_config():
         if message_change_count == 1:
             message += ","
         message += f" '{abs_parent}'"
-    
+
     abs_parent = Path(".").resolve()
     if str(abs_parent).strip():
         watching_dirs.append(abs_parent)
         if message_change_count == 1:
             message += ","
         message += f" '{abs_parent}'"
+
+    for wd in additional_watch_dirs or []:
+        watching_dirs.append(wd)
+        if message_change_count == 1:
+            message += ","
+        message += f" '{wd}'"
 
     print(message + "\n")
 
@@ -91,13 +90,16 @@ def _setup_config():
     return filename, abs_original_path, [str(s) for s in watching_dirs], demo_name
 
 
-def main():
+def main(
+    demo_path: Path, demo_name: str = "demo", watch_dirs: Optional[list[str]] = None
+):
     # default execution pattern to start the server and watch changes
-    filename, path, watch_dirs, demo_name = _setup_config()
-    args = sys.argv[1:]
-    extra_args = args[1:] if len(args) == 1 or args[1].startswith("--") else args[2:]
+    filename, path, watch_dirs, demo_name = _setup_config(
+        demo_path, demo_name, watch_dirs
+    )
+    # extra_args = args[1:] if len(args) == 1 or args[1].startswith("--") else args[2:]
     popen = subprocess.Popen(
-        ["python", "-u", path] + extra_args,
+        ["python", "-u", path],
         env=dict(
             os.environ,
             GRADIO_WATCH_DIRS=",".join(watch_dirs),
@@ -109,4 +111,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    typer.run(main)
