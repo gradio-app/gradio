@@ -1778,7 +1778,7 @@ Received outputs:
             ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
             ssl_verify: If False, skips certificate validation which allows self-signed certificates to be used.
             quiet: If True, suppresses most print statements.
-            show_api: If True, shows the api docs in the footer of the app. Default True.             show_api: If True, shows the api docs in the footer of the app. Default True. If the queue is enabled and api_open=True, then api docs are not shown, independent of the value of show_api.
+            show_api: If True, shows the api docs in the footer of the app. Default True.
             file_directories: This parameter has been renamed to `allowed_paths`. It will be removed in a future version.
             allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve (in addition to the directory containing the gradio python file). Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app.
             blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default.
