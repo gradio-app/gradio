@@ -170,12 +170,12 @@ def watchfn(reloader: SourceFileReloader):
     module = None
     reload_dirs = [Path(dir_) for dir_ in reloader.watch_dirs]
     import sys
+
     for dir_ in reload_dirs:
         sys.path.insert(0, str(dir_))
 
     mtimes = {}
     while reloader.should_watch():
-
         changed = get_changes()
         if changed:
             print(f"Changes detected in: {changed}")

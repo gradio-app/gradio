@@ -5,8 +5,6 @@ from gradio_client.cli import deploy_discord  # type: ignore
 
 from .commands import deploy, print_environment_info, reload
 
-app = typer.Typer()
-
 
 def cli():
     args = sys.argv[1:]
@@ -19,4 +17,4 @@ def cli():
     elif args[0] == "deploy-discord":
         deploy_discord.main()
     else:
-        reload()
+        typer.run(reload)
