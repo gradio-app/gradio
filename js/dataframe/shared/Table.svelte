@@ -420,6 +420,8 @@
 
 		requestAnimationFrame(() => {
 			edit_header(headers.length - 1, true);
+			const new_w = parent.querySelectorAll("tbody")[1].offsetWidth;
+			parent.querySelectorAll("table")[1].scrollTo({ left: new_w });
 		});
 	}
 
@@ -560,6 +562,7 @@
 <svelte:window
 	on:click={handle_click_outside}
 	on:touchstart={handle_click_outside}
+	on:resize={() => set_cell_widths()}
 />
 
 <div class:label={label && label.length !== 0} use:copy>
@@ -715,7 +718,7 @@
 									edit={dequal(editing, [index, j])}
 									datatype={Array.isArray(datatype) ? datatype[j] : datatype}
 									on:focus={() => parent.focus()}
-									on:blur={() => parent.focus()}
+									on:blur={() => ((clear_on_focus = false), parent.focus())}
 									{clear_on_focus}
 								/>
 							</div>
@@ -798,8 +801,7 @@
 		transition: 150ms;
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--table-radius);
-		overflow-x: hidden;
-		overflow-y: hidden;
+		overflow: hidden;
 	}
 
 	.table-wrap:focus-within {

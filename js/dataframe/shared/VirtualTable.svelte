@@ -25,16 +25,10 @@
 	let viewport_height = 0;
 	let visible: { index: number; data: any[] }[] = [];
 
-	$: if (mounted)
-		requestAnimationFrame(() =>
-			refresh_height_map(sortedItems, viewport_height)
-		);
+	$: if (mounted) requestAnimationFrame(() => refresh_height_map(sortedItems));
 
 	let content_height = 0;
-	async function refresh_height_map(
-		_items: typeof items,
-		viewport_height: number
-	): Promise<void> {
+	async function refresh_height_map(_items: typeof items): Promise<void> {
 		if (viewport_height === 0 || table_width === 0) {
 			return;
 		}
@@ -67,10 +61,11 @@
 		bottom = remaining * average_height;
 		height_map.length = _items.length;
 
+		await tick();
 		if (!max_height) {
-			actual_height = content_height;
+			actual_height = content_height + 1;
 		} else if (content_height < max_height) {
-			actual_height = content_height;
+			actual_height = content_height + 2;
 		} else {
 			actual_height = max_height;
 		}
@@ -81,9 +76,8 @@
 	$: scroll_and_render(selected);
 	async function scroll_and_render(n: number | false): Promise<void> {
 		requestAnimationFrame(async () => {
-			if (!n) return;
+			if (typeof n !== "number") return;
 			const direction = typeof n !== "number" ? false : is_in_view(n);
-
 			if (direction === true) {
 				return;
 			}
@@ -224,7 +218,7 @@
 	onMount(() => {
 		rows = contents.children as HTMLCollectionOf<HTMLTableRowElement>;
 		mounted = true;
-		refresh_height_map(items, viewport_height);
+		refresh_height_map(items);
 	});
 </script>
 
