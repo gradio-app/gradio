@@ -1,6 +1,6 @@
 ---
-"@gradio/dataframe": minor
-"gradio": minor
+"@gradio/dataframe": patch
+"gradio": patch
 ---
 
-feat:ensure dataframe doesn't scroll unless needed
+fix:ensure dataframe doesn't scroll unless needed
