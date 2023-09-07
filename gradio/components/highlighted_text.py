@@ -89,7 +89,6 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable, Inp
             elem_classes=elem_classes,
             value=value,
             interactive=interactive,
-            combine_adjacent=combine_adjacent,
             **kwargs,
         )
 

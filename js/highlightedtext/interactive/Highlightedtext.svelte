@@ -295,6 +295,8 @@
 						class="textspan score-text"
 						role="button"
 						tabindex="0"
+						class:no-cat={_score === null || (active && active !== _score)}
+						class:hl={_score !== null}
 						on:mouseover={() => (activeElementIndex = i)}
 						on:focus={() => (activeElementIndex = i)}
 						on:click={() => (labelToEdit = i)}

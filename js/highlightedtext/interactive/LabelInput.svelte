@@ -80,6 +80,7 @@ as input is only rendered once a new label is created -->
 		class="label-input"
 		autofocus
 		type="number"
+		step="0.1"
 		style={"background-color: rgba(" +
 			(typeof category === "number" && category < 0
 				? "128, 90, 213," + -category
@@ -89,6 +90,12 @@ as input is only rendered once a new label is created -->
 		style:width="7ch"
 		on:input={handleInput}
 		on:blur={(e) => updateLabelValue(e, indexOfLabel, text)}
+		on:keydown={(e) => {
+			if (e.key === "Enter") {
+				updateLabelValue(e, indexOfLabel, text);
+				labelToEdit = -1;
+			}
+		}}
 	/>
 {/if}
 
