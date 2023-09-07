@@ -1,6 +1,6 @@
 ---
-"@gradio/app": minor
-"gradio": minor
+"@gradio/app": patch
+"gradio": patch
 ---
 
-feat:ensure iframe is correct size on spaces
+fix:ensure iframe is correct size on spaces
