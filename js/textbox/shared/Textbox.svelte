@@ -1,5 +1,10 @@
 <script lang="ts">
-	import { afterUpdate, createEventDispatcher, tick } from "svelte";
+	import {
+		beforeUpdate,
+		afterUpdate,
+		createEventDispatcher,
+		tick
+	} from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Copy, Check } from "@gradio/icons";
 	import { fade } from "svelte/transition";
@@ -25,6 +30,7 @@
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
 	let timer: NodeJS.Timeout;
+	let autoscroll: boolean;
 
 	$: value, el && lines !== max_lines && resize({ target: el });
 
@@ -39,6 +45,16 @@
 		focus: undefined;
 	}>();
 
+	beforeUpdate(() => {
+		autoscroll = el && el.offsetHeight + el.scrollTop > el.scrollHeight - 100;
+	});
+
+	const scroll = (): void => {
+		if (autoscroll) {
+			el.scrollTo(0, el.scrollHeight);
+		}
+	};
+
 	function handle_change(): void {
 		dispatch("change", value);
 		if (!value_is_output) {
@@ -46,6 +62,9 @@
 		}
 	}
 	afterUpdate(() => {
+		if (autoscroll) {
+			scroll();
+		}
 		value_is_output = false;
 	});
 	$: value, handle_change();
