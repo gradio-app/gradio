@@ -31,4 +31,5 @@ demo = gr.Interface(
     description="Here's a sample toy calculator. Allows you to calculate things like $2+2=4$",
 )
 
-demo.launch(share=True)
+if __name__ == "__main__":
+    demo.launch()

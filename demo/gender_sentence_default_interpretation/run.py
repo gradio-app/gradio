@@ -16,7 +16,6 @@ demo = gr.Interface(
     fn=gender_of_sentence,
     inputs=gr.Textbox(value="She went to his house to get her keys."),
     outputs="label",
-    interpretation="default",
 )
 
 if __name__ == "__main__":
