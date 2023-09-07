@@ -1,12 +1,11 @@
 <script lang="ts">
-	import DropdownOptions from "./DropdownOptions.svelte";
-	import {handle_filter, handle_change, handle_shared_keys} from "./utils"
-	import {createEventDispatcher} from "svelte";
+	import {afterUpdate, createEventDispatcher} from "svelte";
+	import { _ } from "svelte-i18n";
 	import type { SelectData } from "@gradio/utils";
-	import { afterUpdate } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import { DropdownArrow } from "@gradio/icons";
-	import { _ } from "svelte-i18n";
+	import DropdownOptions from "./DropdownOptions.svelte";
+	import {handle_filter, handle_change, handle_shared_keys} from "./utils"
 
 	export let label: string;
 	export let info: string | undefined = undefined;

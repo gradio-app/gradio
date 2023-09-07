@@ -1,10 +1,11 @@
 <script lang="ts">
-	import DropdownOptions from "./DropdownOptions.svelte";
-	import { createEventDispatcher, afterUpdate } from "svelte";
+	import { afterUpdate, createEventDispatcher } from "svelte";
+	import { _ } from "svelte-i18n";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Remove, DropdownArrow } from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
-	import { _ } from "svelte-i18n";
+	import DropdownOptions from "./DropdownOptions.svelte";
+	import {handle_filter, handle_change, handle_shared_keys} from "./utils"
 
 	export let label: string;
 	export let info: string | undefined = undefined;
@@ -55,22 +56,6 @@
 	}
 
 	/* Handlers for both single-select and multi-select dropdowns */
-
-	function handle_filter(): void {
-		filtered_indices = [];
-		choices.forEach((o, index) => {
-			if (input_text ? o[0].toLowerCase().includes(input_text.toLowerCase()) : true) {
-				filtered_indices.push(index);
-			}
-		});
-	}
-
-	function handle_change(): void {
-		dispatch("change", value);
-		if (!value_is_output) {
-			dispatch("input");
-		}
-	}
 
 	function handle_blur(): void {
 		if (blurring) return;
