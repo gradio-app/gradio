@@ -1,10 +1,17 @@
 # @gradio/upload
 
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/atoms@0.1.2
+
 ## 0.2.0
 
 ### Features
 
-- [#5373](https://github.com/gradio-app/gradio/pull/5373) [`79d8f9d8`](https://github.com/gradio-app/gradio/commit/79d8f9d891901683c5a1b7486efb44eab2478c96) - Adds `height` and `zoom_speed` parameters to `Model3D` component, as well as a button to reset the camera position.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#5373](https://github.com/gradio-app/gradio/pull/5373) [`79d8f9d8`](https://github.com/gradio-app/gradio/commit/79d8f9d891901683c5a1b7486efb44eab2478c96) - Adds `height` and `zoom_speed` parameters to `Model3D` component, as well as a button to reset the camera position. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 0.1.0
 
@@ -25,15 +32,15 @@ These improvements will be particularly beneficial to large applications.
 - Corrected an issue that was causing markdown to re-render infinitely.
 - Ensured that the `gr.3DModel` does re-render prematurely.
 
- Thanks [@pngwn](https://github.com/pngwn)!
+Thanks [@pngwn](https://github.com/pngwn)!
 
 ### Features
 
-- [#5216](https://github.com/gradio-app/gradio/pull/5216) [`4b58ea6d`](https://github.com/gradio-app/gradio/commit/4b58ea6d98e7a43b3f30d8a4cb6f379bc2eca6a8) - Update i18n tokens and locale files.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#5216](https://github.com/gradio-app/gradio/pull/5216) [`4b58ea6d`](https://github.com/gradio-app/gradio/commit/4b58ea6d98e7a43b3f30d8a4cb6f379bc2eca6a8) - Update i18n tokens and locale files. Thanks [@hannahblair](https://github.com/hannahblair)!
 
 ### Fixes
 
-- [#5285](https://github.com/gradio-app/gradio/pull/5285) [`cdfd4217`](https://github.com/gradio-app/gradio/commit/cdfd42174a9c777eaee9c1209bf8e90d8c7791f2) - Tweaks to `icon` parameter in `gr.Button()`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#5285](https://github.com/gradio-app/gradio/pull/5285) [`cdfd4217`](https://github.com/gradio-app/gradio/commit/cdfd42174a9c777eaee9c1209bf8e90d8c7791f2) - Tweaks to `icon` parameter in `gr.Button()`. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 0.0.3
 
@@ -55,15 +62,15 @@ def stream_audio(audio_file):
     audio = AudioSegment.from_mp3(audio_file)
     i = 0
     chunk_size = 3000
-    
+
     while chunk_size*i < len(audio):
         chunk = audio[chunk_size*i:chunk_size*(i+1)]
         i += 1
         if chunk:
             file = f"/tmp/{i}.mp3"
-            chunk.export(file, format="mp3")            
+            chunk.export(file, format="mp3")
             yield file
-        
+
 demo = gr.Interface(
     fn=stream_audio,
     inputs=gr.Audio(type="filepath", label="Audio file to stream"),
@@ -73,7 +80,7 @@ demo = gr.Interface(
 demo.queue().launch()
 ```
 
-From the backend, streamed outputs are served from the `/stream/` endpoint instead of the `/file/` endpoint. Currently just used to serve audio streaming output.  The output JSON will have `is_stream`: `true`, instead of `is_file`: `true` in the file data object. Thanks [@aliabid94](https://github.com/aliabid94)!
+From the backend, streamed outputs are served from the `/stream/` endpoint instead of the `/file/` endpoint. Currently just used to serve audio streaming output. The output JSON will have `is_stream`: `true`, instead of `is_file`: `true` in the file data object. Thanks [@aliabid94](https://github.com/aliabid94)!
 
 ## 0.0.2
 

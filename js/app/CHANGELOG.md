@@ -1,11 +1,56 @@
 # @gradio/app
 
+## 1.4.1
+
+### Patch Changes
+
+- Updated dependencies [[`afac0006`](https://github.com/gradio-app/gradio/commit/afac0006337ce2840cf497cd65691f2f60ee5912), [`d14d63e3`](https://github.com/gradio-app/gradio/commit/d14d63e30c4af3f9c2a664fd11b0a01943a8300c), [`26fef8c7`](https://github.com/gradio-app/gradio/commit/26fef8c7f85a006c7e25cdbed1792df19c512d02)]:
+  - @gradio/dataframe@0.2.0
+  - @gradio/markdown@0.2.0
+  - @gradio/statustracker@0.2.0
+  - @gradio/theme@0.1.0
+  - @gradio/textbox@0.2.0
+  - @gradio/client@0.3.1
+  - @gradio/chatbot@0.3.1
+  - @gradio/accordion@0.0.4
+  - @gradio/annotatedimage@0.1.2
+  - @gradio/audio@0.3.2
+  - @gradio/checkbox@0.1.3
+  - @gradio/checkboxgroup@0.1.2
+  - @gradio/code@0.1.2
+  - @gradio/colorpicker@0.1.2
+  - @gradio/dropdown@0.1.3
+  - @gradio/file@0.1.2
+  - @gradio/gallery@0.3.2
+  - @gradio/highlightedtext@0.2.3
+  - @gradio/html@0.0.4
+  - @gradio/image@0.2.2
+  - @gradio/json@0.0.5
+  - @gradio/label@0.1.2
+  - @gradio/model3d@0.2.1
+  - @gradio/number@0.2.2
+  - @gradio/plot@0.1.2
+  - @gradio/radio@0.1.2
+  - @gradio/slider@0.1.2
+  - @gradio/timeseries@0.0.5
+  - @gradio/video@0.0.6
+  - @gradio/utils@0.1.1
+  - @gradio/uploadbutton@0.0.5
+  - @gradio/row@0.0.1
+  - @gradio/atoms@0.1.2
+  - @gradio/button@0.1.3
+  - @gradio/form@0.0.5
+  - @gradio/tabitem@0.0.4
+  - @gradio/tabs@0.0.5
+  - @gradio/box@0.0.4
+  - @gradio/upload@0.2.1
+
 ## 1.4.0
 
 ### Features
 
-- [#5267](https://github.com/gradio-app/gradio/pull/5267) [`119c8343`](https://github.com/gradio-app/gradio/commit/119c834331bfae60d4742c8f20e9cdecdd67e8c2) - Faster reload mode.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
-- [#5373](https://github.com/gradio-app/gradio/pull/5373) [`79d8f9d8`](https://github.com/gradio-app/gradio/commit/79d8f9d891901683c5a1b7486efb44eab2478c96) - Adds `height` and `zoom_speed` parameters to `Model3D` component, as well as a button to reset the camera position.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#5267](https://github.com/gradio-app/gradio/pull/5267) [`119c8343`](https://github.com/gradio-app/gradio/commit/119c834331bfae60d4742c8f20e9cdecdd67e8c2) - Faster reload mode. Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5373](https://github.com/gradio-app/gradio/pull/5373) [`79d8f9d8`](https://github.com/gradio-app/gradio/commit/79d8f9d891901683c5a1b7486efb44eab2478c96) - Adds `height` and `zoom_speed` parameters to `Model3D` component, as well as a button to reset the camera position. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 1.3.2
 
