@@ -20,6 +20,7 @@
 	class="gradio-container gradio-container-{version}"
 	style:min-height={loaded ? "initial" : initial_height}
 	style:flex-grow={!display ? "1" : "auto"}
+	data-iframe-height
 >
 	<div class="main">
 		<slot />
