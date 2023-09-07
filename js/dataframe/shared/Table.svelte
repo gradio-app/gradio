@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, tick } from "svelte";
+	import { createEventDispatcher, tick, onMount } from "svelte";
 	import { dsvFormat } from "d3-dsv";
 	import { dequal } from "dequal/lite";
 	import { copy } from "@gradio/utils";
@@ -557,6 +557,26 @@
 	$: sort_data(data, sort_by, sort_direction);
 
 	$: selected_index = !!selected && selected[0];
+
+	let is_visible = false;
+	onMount(() => {
+		const observer = new IntersectionObserver((entries, observer) => {
+			entries.forEach((entry) => {
+				if (entry.isIntersecting && !is_visible) {
+					set_cell_widths();
+					data = data;
+				}
+
+				is_visible = entry.isIntersecting;
+			});
+		});
+
+		observer.observe(parent);
+
+		return () => {
+			observer.disconnect();
+		};
+	});
 </script>
 
 <svelte:window
