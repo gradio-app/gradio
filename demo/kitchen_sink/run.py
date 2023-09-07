@@ -81,7 +81,6 @@ def fn(
         os.path.join(os.path.dirname(__file__), "files/titanic.csv"),
         df1,  # Dataframe
         np.random.randint(0, 10, (4, 4)),  # Dataframe
-        df2,  # Timeseries
     )
 
 
@@ -107,7 +106,6 @@ demo = gr.Interface(
         gr.Audio(label="Microphone", source="microphone"),
         gr.File(label="File"),
         gr.Dataframe(label="Dataframe", headers=["Name", "Age", "Gender"]),
-        gr.Timeseries(x="time", y=["price", "value"], colors=["pink", "purple"]),
     ],
     outputs=[
         gr.Textbox(label="Textbox"),
@@ -124,7 +122,6 @@ demo = gr.Interface(
         gr.File(label="File"),
         gr.Dataframe(label="Dataframe"),
         gr.Dataframe(label="Numpy"),
-        gr.Timeseries(x="time", y=["price", "value"], label="Timeseries"),
     ],
     examples=[
         [

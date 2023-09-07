@@ -116,7 +116,6 @@ components = [
     gr.Dataframe(
         value=lambda: pd.DataFrame({"random_number_rows": range(5)}, columns=["one", "two", "three"])
     ),
-    gr.Timeseries(value=lambda: os.path.join(file_dir, "time.csv")),
     gr.ColorPicker(value=lambda: random.choice(["#000000", "#ff0000", "#0000FF"])),
     gr.Label(value=lambda: random.choice(["Pedestrian", "Car", "Cyclist"])),
     gr.HighlightedText(

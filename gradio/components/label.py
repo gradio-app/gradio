@@ -24,7 +24,7 @@ class LabelConfidence(GradioModel):
 
 class LabelData(GradioModel):
     label: str
-    confidences: list[LabelConfidence] = None
+    confidences: Optional[list[LabelConfidence]] = None
 
 
 @document()
@@ -99,7 +99,7 @@ class Label(Component):
             **Component.get_config(self),
         }
 
-    def postprocess(self, y: dict[str, float] | str | float | None) -> dict | None:
+    def postprocess(self, y: dict[str, float] | str | float | None) -> LabelData | dict | None:
         """
         Parameters:
             y: a dictionary mapping labels to confidence value, or just a string/numerical label by itself
@@ -111,7 +111,7 @@ class Label(Component):
         if isinstance(y, str) and y.endswith(".json") and Path(y).exists():
             return LabelData(**json.load(open(y)))
         if isinstance(y, (str, float, int)):
-            return LabelData({"label": str(y)})
+            return LabelData(label=str(y))
         if isinstance(y, dict):
             if "confidences" in y and isinstance(y["confidences"], dict):
                 y = y["confidences"]
