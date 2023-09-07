@@ -28,10 +28,10 @@
 	let initialized = false;
 
 	// All of these are indices with respect to the choices array
-	let old_selected_index: number;
+	let active_index: number | null = null;
 	// selected_index is null if allow_custom_value is true and the input_text is not in choices_names
 	let selected_index: number | null = null;
-	let active_index: number | null = null;
+	let old_selected_index: number | null;
 
 	const dispatch = createEventDispatcher<{
 		change: string | undefined;
@@ -40,7 +40,8 @@
 		blur: undefined;
 		focus: undefined;
 	}>();
-
+	
+	// Setting the initial value of the dropdown
 	if (value) {
 		old_selected_index = choices.map((c) => c[1]).indexOf(value as string);
 		selected_index = old_selected_index;
@@ -49,7 +50,7 @@
 		} else {
 			[input_text, old_value] = choices[selected_index];
 		}
-	} else {
+	} else if (choices.length > 0) {
 		old_selected_index = 0;
 		selected_index = 0;
 		[input_text, value] = choices[selected_index];
