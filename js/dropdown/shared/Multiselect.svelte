@@ -10,7 +10,7 @@
 	export let label: string;
 	export let info: string | undefined = undefined;
 	export let value: string | string[] | undefined;
-	let old_value = Array.isArray(value) ? value.slice() : value;
+	let old_value: string | string[] | undefined;
 	export let value_is_output = false;
 	export let max_choices: number;
 	export let choices: [string, string][];
@@ -18,6 +18,18 @@
 	export let show_label: boolean;
 	export let container = true;
 	export let allow_custom_value = false;
+
+	let filter_input: HTMLElement;
+	let input_text = "";
+	let show_options = false;
+	let choices_names: string[];
+	let choices_values: string[];
+
+	// All of these are indices with respect to the choices array
+	let active_index: number | null = null;
+	// selected_index is null if allow_custom_value is true and the input_text is not in choices_names
+	let selected_indices: number[] | null = null;
+	let old_selected_indices: number[] | null;
 
 	const dispatch = createEventDispatcher<{
 		change: string | string[] | undefined;
@@ -27,14 +39,22 @@
 		focus: undefined;
 	}>();
 
-	let filter_input: HTMLElement;
-	let input_text = "";
-	let show_options = false;
-	let filtered_indices: number[] = [];
-	let choices_names: string[];
-	let choices_values: string[];
-	let active_index: number | null = null;
-	let blurring = false;
+	// Setting the initial value of the dropdown
+	if (value) {
+		old_selected_indices = choices.map((c) => c[1]).indexOf(value as string);
+		selected_index = old_selected_index;
+		if (selected_index === -1) {
+			selected_index = null;
+		} else {
+			[input_text, old_value] = choices[selected_index];
+		}
+	} else if (choices.length > 0) {
+		old_selected_index = 0;
+		selected_index = 0;
+		[input_text, value] = choices[selected_index];
+		old_value = value;
+	}
+
 
 	$: {
 		choices_names = choices.map((c) => c[0]);
@@ -42,6 +62,7 @@
 	}
 
 	$: choices, input_text, handle_filter();
+	
 
 	if (choices.length > 0 && !multiselect && !value) {
 		input_text = choices[0][0];
@@ -207,7 +228,7 @@
 
 	<div class="wrap">
 		<div class="wrap-inner" class:show_options>
-			{#if multiselect && Array.isArray(value)}
+			{#if Array.isArray(value)}
 				{#each value as s}
 					<!-- TODO: fix -->
 					<!-- svelte-ignore a11y-click-events-have-key-events -->
