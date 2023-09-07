@@ -56,6 +56,18 @@
 			handle_change();
 		}
 	}
+
+	if (
+		(Array.isArray(value) && value?.[0]?.length === 0) ||
+		value.data?.[0]?.length === 0
+	) {
+		value = {
+			data: [Array(col_count?.[0] || 3).fill("")],
+			headers: Array(col_count?.[0] || 3)
+				.fill("")
+				.map((_, i) => `${i + 1}`)
+		};
+	}
 </script>
 
 <Block
@@ -68,7 +80,7 @@
 	{min_width}
 	allow_overflow={false}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker {...loading_status} border={true} />
 	<Table
 		{label}
 		{row_count}
