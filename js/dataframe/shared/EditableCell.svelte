@@ -55,7 +55,13 @@
 	/>
 {/if}
 
-<span on:dblclick tabindex="-1" role="button" class:edit on:focus>
+<span
+	on:dblclick
+	tabindex="-1"
+	role="button"
+	class:edit
+	on:focus|preventDefault
+>
 	{#if datatype === "html"}
 		{@html value}
 	{:else if datatype === "markdown"}
