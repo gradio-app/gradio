@@ -1,5 +1,11 @@
 # @gradio/markdown
 
+## 0.2.0
+
+### Features
+
+- [#5342](https://github.com/gradio-app/gradio/pull/5342) [`afac0006`](https://github.com/gradio-app/gradio/commit/afac0006337ce2840cf497cd65691f2f60ee5912) - significantly improve the performance of `gr.Dataframe` for large datasets.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.1.2
 
 ### Fixes
