@@ -30,6 +30,7 @@
 	let active_index: number | null = null;
 	// selected_index consists of indices from choices or strings if allow_custom_value is true and user types in a custom value
 	let selected_indices: (number | string)[] = [];
+	let old_selected_index: (number | string)[] = [];
 
 	const dispatch = createEventDispatcher<{
 		change: string | string[] | undefined;
@@ -66,9 +67,12 @@
 	}
 
 	$: {
-		value = selected_indices.map((index) =>
-			typeof index === "number" ? choices_values[index] : index
-		);
+		if (JSON.stringify(selected_indices) != JSON.stringify(old_selected_index)) {
+			value = selected_indices.map((index) =>
+				typeof index === "number" ? choices_values[index] : index
+			);
+			old_selected_index = selected_indices.slice();
+		}
 	}
 
 	function handle_blur(): void {
@@ -157,6 +161,7 @@
 	}
 
 	function set_selected_indices(): void {
+		// console.log(value);
 		if (value === undefined) {
 			selected_indices = [];
 		} else if (Array.isArray(value)) {
@@ -175,6 +180,8 @@
 				.filter((val): val is string | number => val !== undefined);
 		}
 	}
+
+	$: value, set_selected_indices();
 
 	afterUpdate(() => {
 		value_is_output = false;
@@ -200,7 +207,6 @@
 					</span>
 					{#if !disabled}
 						<div
-							class:hidden={disabled}
 							class="token-remove"
 							title={$_("common.remove") + " " + s}
 						>
@@ -225,14 +231,16 @@
 				<!-- TODO: fix -->
 				<!-- svelte-ignore a11y-click-events-have-key-events -->
 				<!-- svelte-ignore a11y-no-static-element-interactions-->
-				<div
-					class="token-remove remove-all"
-					title={$_("common.clear")}
-					on:click={remove_all}
-				>
-					<Remove />
-				</div>
+				{#if !disabled}
+					<div
+						class="token-remove remove-all"
+						title={$_("common.clear")}
+						on:click={remove_all}
+					>
+						<Remove />
+					</div>					
 				<DropdownArrow />
+				{/if}
 			</div>
 		</div>
 		<DropdownOptions
@@ -348,5 +356,9 @@
 	}
 	.subdued {
 		color: var(--body-text-color-subdued);
+	}
+
+	.hide {
+		display: none;
 	}
 </style>
