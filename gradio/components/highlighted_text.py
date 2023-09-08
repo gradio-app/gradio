@@ -45,7 +45,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        interactive: bool = False,
+        interactive: bool | None = None,
         **kwargs,
     ):
         """
