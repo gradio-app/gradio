@@ -170,7 +170,9 @@
 					on:blur={handle_blur}
 					on:focus={handle_focus}
 				/>
-				<DropdownArrow />
+				{#if !disabled}
+					<DropdownArrow />
+				{/if}
 			</div>
 		</div>
 		<DropdownOptions
