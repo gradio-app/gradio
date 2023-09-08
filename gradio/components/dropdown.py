@@ -41,7 +41,7 @@ class Dropdown(
 
     def __init__(
         self,
-        choices: list[str] | None = None,
+        choices: list[str | tuple[str | str]] | None = None,
         *,
         value: str | list[str] | Callable | None = None,
         type: Literal["value", "index"] = "value",
