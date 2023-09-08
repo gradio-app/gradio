@@ -9,8 +9,8 @@
 
 	export let label: string;
 	export let info: string | undefined = undefined;
-	export let value: string | string[] | undefined;
-	let old_value: string | string[] | undefined;
+	export let value: string | string[] | undefined = [];
+	let old_value: string | string[] | undefined = [];
 	export let value_is_output = false;
 	export let max_choices: number;
 	export let choices: [string, string][];
@@ -28,8 +28,8 @@
 	// All of these are indices with respect to the choices array
 	let active_index: number | null = null;
 	// selected_index is null if allow_custom_value is true and the input_text is not in choices_names
-	let selected_indices: number[] | null = null;
-	let old_selected_indices: number[] | null;
+	let selected_indices: number[] = [];
+	let old_selected_indices: number[] = [];
 
 	const dispatch = createEventDispatcher<{
 		change: string | string[] | undefined;
@@ -39,114 +39,48 @@
 		focus: undefined;
 	}>();
 
-	// Setting the initial value of the dropdown
-	if (value) {
-		old_selected_indices = choices.map((c) => c[1]).indexOf(value as string);
-		selected_index = old_selected_index;
-		if (selected_index === -1) {
-			selected_index = null;
-		} else {
-			[input_text, old_value] = choices[selected_index];
-		}
-	} else if (choices.length > 0) {
-		old_selected_index = 0;
-		selected_index = 0;
-		[input_text, value] = choices[selected_index];
-		old_value = value;
+	// Setting the initial value of the multiselect dropdown
+	if (Array.isArray(value)) {
+		value.forEach(element => {
+			const index = choices.map((c) => c[1]).indexOf(element);
+			if (index !== -1) {
+				selected_indices.push(index);
+			}
+		});
+		old_selected_indices = selected_indices;
 	}
-
 
 	$: {
 		choices_names = choices.map((c) => c[0]);
 		choices_values = choices.map((c) => c[1]);
 	}
 
-	$: choices, input_text, handle_filter();
+	$: choices, input_text, handle_filter(choices, input_text);
 	
-
-	if (choices.length > 0 && !multiselect && !value) {
-		input_text = choices[0][0];
-		value = choices[0][1];
-	}
 
 	$: {
 		if (JSON.stringify(value) != JSON.stringify(old_value)) {
 			old_value = Array.isArray(value) ? value.slice() : value;
-			handle_change();
+			handle_change(dispatch, value, value_is_output);
 		}
 	}
 
 	/* Handlers for both single-select and multi-select dropdowns */
 
 	function handle_blur(): void {
-		if (blurring) return;
-		blurring = true;
-		if (multiselect) {
-			input_text = "";
-		} else if (!allow_custom_value) {
-			input_text = choices_names[choices_values.indexOf(value as string)];
-		}
 		show_options = false;
 		dispatch("blur");
-		setTimeout(() => {
-			blurring = false;
-		}, 100);
 	}
 
 	function handle_option_selected(e: any): void {
-		const option_index = e.detail.target.dataset.index;
-		const option_name = choices[option_index][0];
-		const option_value = choices[option_index][1];
-
-		input_text = option_name;
-
-		if (multiselect) {
-			// TODO
-			// if (value?.includes(option)) {
-			// 	remove(option);
-			// } else {
-			// 	add(option_index);
-			// }
-			// input_text = "";
-		} else {
-			value = option_value;
-			input_text = option_name;
-			show_options = false;
-			dispatch("select", {
-				index: option_index,
-				value: option_value,
-				selected: true
-			});
-			filter_input.blur();
+		const option_index = parseInt(e.detail.target.dataset.index);
+		if (selected_indices.includes(option_index)) {
+			selected_indices = selected_indices.filter((v: number) => v !== option_index);
+		} else if (max_choices === undefined || selected_indices.length < max_choices) {
+			selected_indices.push(option_index);
 		}
-	}
-
-	/* Handlers specifically for multi-select dropdown */
-
-	function add(option_index: number): void {
-		value = value as string[];
-		if (!max_choices || value.length < max_choices) {
-			value.push(choices_values[option_index]);
-			dispatch("select", {
-				index: option_index,
-				value: choices_values[option_index],
-				selected: true
-			});
-		}
-		value = value;
-	}
-
-	function remove(option_index: number): void {
-		const option_value = choices_values[option_index];
-		if (!disabled) {
-			value = value as string[];
-			value = value.filter((v: string) => v !== option_value);
-		}
-		dispatch("select", {
-			index: option_index,
-			value: choices[option][1],
-			selected: false
-		});
+		show_options = false;		
+		filter_input.blur();
 	}
 
 	function remove_all(e: any): void {
