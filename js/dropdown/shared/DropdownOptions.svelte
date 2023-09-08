@@ -5,7 +5,7 @@
 	export let filtered_indices: number[];
 	export let show_options = false;
 	export let disabled = false;
-	export let selected_indices: number[] = [];
+	export let selected_indices: (string | number)[] = [];
 	export let active_index: number | null = null;
 
 	let distance_from_top: number;
@@ -39,10 +39,13 @@
 
 	$: {
 		if (show_options && refElement) {
-			if (listElement && typeof value === "string") {
+			if (listElement && selected_indices.length > 0) {
 				let elements = listElement.querySelectorAll("li");
 				for (const element of Array.from(elements)) {
-					if (element.getAttribute("data-value") === value) {
+					if (
+						element.getAttribute("data-index") ===
+						selected_indices[0].toString()
+					) {
 						listElement?.scrollTo?.(0, (element as HTMLLIElement).offsetTop);
 						break;
 					}
