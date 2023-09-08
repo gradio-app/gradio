@@ -26,10 +26,10 @@
 	let choices_values: string[];
 
 	// All of these are indices with respect to the choices array
+	let filtered_indices: number[] = [];
 	let active_index: number | null = null;
 	// selected_index is null if allow_custom_value is true and the input_text is not in choices_names
 	let selected_indices: number[] = [];
-	let old_selected_indices: number[] = [];
 
 	const dispatch = createEventDispatcher<{
 		change: string | string[] | undefined;
@@ -47,16 +47,14 @@
 				selected_indices.push(index);
 			}
 		});
-		old_selected_indices = selected_indices;
 	}
 
 	$: {
 		choices_names = choices.map((c) => c[0]);
 		choices_values = choices.map((c) => c[1]);
 	}
-
-	$: choices, input_text, handle_filter(choices, input_text);
 	
+	$: filtered_indices = handle_filter(choices, input_text);
 
 	$: {
 		if (JSON.stringify(value) != JSON.stringify(old_value)) {
@@ -65,89 +63,69 @@
 		}
 	}
 
-	/* Handlers for both single-select and multi-select dropdowns */
+	$: {
+		value = selected_indices.map((i) => choices_values[i]);
+	}
 
 	function handle_blur(): void {
 		show_options = false;
 		dispatch("blur");
 	}
 
+	function remove(option_index: number): void {
+		selected_indices = selected_indices.filter((v: number) => v !== option_index);
+		dispatch("select", {
+			index: option_index,
+			value: choices_values[option_index],
+			selected: false
+		});
+	}
+
 	function handle_option_selected(e: any): void {
 		const option_index = parseInt(e.detail.target.dataset.index);
+		add_or_remove_index(option_index);
+	}
+	
+	function add_or_remove_index(option_index: number): void {
 		if (selected_indices.includes(option_index)) {
-			selected_indices = selected_indices.filter((v: number) => v !== option_index);
+			remove(option_index);
 		} else if (max_choices === undefined || selected_indices.length < max_choices) {
-			selected_indices.push(option_index);
+			selected_indices = [...selected_indices, option_index];
+			dispatch("select", {
+				index: option_index,
+				value: choices_values[option_index],
+				selected: true
+			});
 		}
-		show_options = false;		
-		filter_input.blur();
+		input_text = "";
+		if (selected_indices.length === max_choices) {
+			show_options = false;
+			filter_input.blur();
+		}
 	}
 
 	function remove_all(e: any): void {
-		value = [];
+		selected_indices = [];
 		input_text = "";
 		e.preventDefault();
 	}
 
 	function handle_focus(e: FocusEvent): void {
-		if (blurring) {
-			// Remove focus triggered by blurring to the label.
-			let target = e.target as HTMLInputElement;
-			return target.blur();
-		}
-		dispatch("focus");
 		filtered_indices = choices.map((_, i) => i);
 		show_options = true;
+		dispatch("focus");
 	}
 
-	// eslint-disable-next-line complexity
-	function handle_key_down(e: any): void {
+	function handle_key_down(e: KeyboardEvent): void {
+		[show_options, active_index] = handle_shared_keys(e, active_index, filtered_indices);
 		if (e.key === "Enter") {
-			if (!multiselect) {
-				if (value !== activeOption) {
-					value = activeOption;
-					dispatch("select", {
-						index: choices.indexOf(value),
-						value: value,
-						selected: true
-					});
-				}
-				input_text = activeOption;
-				show_options = false;
-				filter_input.blur();
-			} else if (multiselect && Array.isArray(value)) {
-				value.includes(activeOption) ? remove(activeOption) : add(activeOption);
-				input_text = "";
+			if (active_index !== null) {
+				add_or_remove_index(active_index);
 			}
-		} else {
-			show_options = true;
-			if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-				if (activeOption === null) {
-					activeOption = filtered[0];
-				}
-				const increment = e.key === "ArrowUp" ? -1 : 1;
-				const calcIndex = filtered.indexOf(activeOption) + increment;
-				activeOption =
-					calcIndex < 0
-						? filtered[filtered.length - 1]
-						: calcIndex === filtered.length
-						? filtered[0]
-						: filtered[calcIndex];
-				e.preventDefault();
-			} else if (e.key === "Escape") {
-				show_options = false;
-			} else if (e.key === "Backspace") {
-				if (
-					multiselect &&
-					(!input_text || input_text === "") &&
-					Array.isArray(value) &&
-					value.length > 0
-				) {
-					remove(value[value.length - 1]);
-					input_text = "";
-				}
-			} else {
-				show_options = true;
+		}
+		if (e.key === "Backspace" && input_text === "") {
+			if (selected_indices.length > 0) {
+				remove(selected_indices[selected_indices.length - 1]);
 			}
 		}
 	}
@@ -163,11 +141,11 @@
 	<div class="wrap">
 		<div class="wrap-inner" class:show_options>
 			{#if Array.isArray(value)}
-				{#each value as s}
+				{#each value as s, index}
 					<!-- TODO: fix -->
 					<!-- svelte-ignore a11y-click-events-have-key-events -->
 					<!-- svelte-ignore a11y-no-static-element-interactions-->
-					<div on:click|preventDefault={() => remove(s)} class="token">
+					<div on:click|preventDefault={() => remove(selected_indices[index])} class="token">
 						<span>{s}</span>
 						{#if !disabled}
 							<div
@@ -202,7 +180,6 @@
 				<!-- svelte-ignore a11y-click-events-have-key-events -->
 				<!-- svelte-ignore a11y-no-static-element-interactions-->
 				<div
-					class:hide={!multiselect || !value?.length || disabled}
 					class="token-remove remove-all"
 					title={$_("common.clear")}
 					on:click={remove_all}
@@ -213,11 +190,11 @@
 			</div>
 		</div>
 		<DropdownOptions
-			bind:value
 			{show_options}
 			{choices}
 			{filtered_indices}
 			{disabled}
+			{selected_indices}
 			{active_index}
 			on:change={handle_option_selected}
 		/>
@@ -323,11 +300,6 @@
 		width: 20px;
 		height: 20px;
 	}
-
-	.hide {
-		display: none;
-	}
-
 	.subdued {
 		color: var(--body-text-color-subdued);
 	}

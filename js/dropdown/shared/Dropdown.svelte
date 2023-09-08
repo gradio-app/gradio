@@ -24,10 +24,10 @@
 	let choices_names: string[];
 	let choices_values: string[];
 	let input_text = "";
-	let filtered_indices: number[] = [];
 	let initialized = false;
 
 	// All of these are indices with respect to the choices array
+	let filtered_indices: number[] = [];
 	let active_index: number | null = null;
 	// selected_index is null if allow_custom_value is true and the input_text is not in choices_names
 	let selected_index: number | null = null;
@@ -113,7 +113,6 @@
 				filter_input.blur();
 			}
 		}
-
 	}
 
 	afterUpdate(() => {
