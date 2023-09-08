@@ -111,6 +111,15 @@
 				selected_index = active_index;
 				show_options = false;
 				filter_input.blur();
+			} else if (choices_names.includes(input_text)) {
+				selected_index = choices_names.indexOf(input_text);
+				show_options = false;
+				filter_input.blur();
+			} else if (allow_custom_value) {
+				value = input_text;
+				selected_index = null;
+				show_options = false;
+				filter_input.blur();
 			}
 		}
 	}
