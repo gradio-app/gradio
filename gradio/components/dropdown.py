@@ -41,7 +41,7 @@ class Dropdown(
 
     def __init__(
         self,
-        choices: list[str | tuple[str | str]] | None = None,
+        choices: list[str | tuple[str, str]] | None = None,
         *,
         value: str | list[str] | Callable | None = None,
         type: Literal["value", "index"] = "value",
@@ -162,7 +162,7 @@ class Dropdown(
     @staticmethod
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        choices: str | list[str] | None = None,
+        choices: str | list[str | tuple[str, str]] | None = None,
         label: str | None = None,
         info: str | None = None,
         show_label: bool | None = None,
@@ -203,10 +203,10 @@ class Dropdown(
             if x is None:
                 return None
             elif self.multiselect:
-                return [self.choices.index(c) for c in x]
+                return [[value for _, value in self.choices].index(choice) for choice in x]
             else:
                 if isinstance(x, str):
-                    return self.choices.index(x) if x in self.choices else None
+                    return [value for _, value in self.choices].index(x) if x in self.choices else None
         else:
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
@@ -241,3 +241,6 @@ class Dropdown(
         if container is not None:
             self.container = container
         return self
+
+    def as_example(self, input_data):
+        return next((c[0] for c in self.choices if c[1] == input_data), None)
