@@ -26,7 +26,6 @@
 	let choices_values: string[];
 
 	// All of these are indices with respect to the choices array
-	let old_filtered_indices: number[] = [];
 	let filtered_indices: number[] = [];
 	let active_index: number | null = null;
 	// selected_index consists of indices from choices or strings if allow_custom_value is true and user types in a custom value
@@ -62,8 +61,8 @@
 
 	$: {
 		if (JSON.stringify(value) != JSON.stringify(old_value)) {
-			old_value = Array.isArray(value) ? value.slice() : value;
 			handle_change(dispatch, value, value_is_output);
+			old_value = Array.isArray(value) ? value.slice() : value;
 		}
 	}
 
@@ -148,6 +147,26 @@
 		}
 	}
 
+	function set_selected_indices(): void {
+		if (value === undefined) {
+			selected_indices = [];
+		} else if (Array.isArray(value)) {
+			selected_indices = value
+				.map((v) => {
+					const index = choices_values.indexOf(v);
+					if (index !== -1) {
+						return index;
+					}
+					if (allow_custom_value) {
+						return v;
+					}
+					// Instead of returning null, skip this iteration
+					return undefined;
+				})
+				.filter((val): val is string | number => val !== undefined);
+		}
+	}
+	
 	afterUpdate(() => {
 		value_is_output = false;
 	});

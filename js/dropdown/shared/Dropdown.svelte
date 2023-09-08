@@ -46,7 +46,9 @@
 		old_selected_index = choices.map((c) => c[1]).indexOf(value as string);
 		selected_index = old_selected_index;
 		if (selected_index === -1) {
+			old_value = value;
 			selected_index = null;
+			input_text = "";
 		} else {
 			[input_text, old_value] = choices[selected_index];
 		}
@@ -71,6 +73,7 @@
 
 	$: {
 		if (value != old_value) {
+			set_input_text();
 			handle_change(dispatch, value, value_is_output);
 			old_value = value;
 		}
@@ -83,6 +86,17 @@
 
 	$: filtered_indices = handle_filter(choices, input_text);
 	
+	function set_input_text(): void {
+		if (value === undefined) {
+			input_text = "";
+		} else if (choices_values.includes(value as string)) {
+			input_text = choices_names[choices_values.indexOf(value as string)];
+		} else if (allow_custom_value) {
+			input_text = value as string;
+		} else {
+			input_text = "";
+		}
+	}
 
 	function handle_option_selected(e: any): void {
 		selected_index = parseInt(e.detail.target.dataset.index);
@@ -144,11 +158,6 @@
 					bind:value={input_text}
 					bind:this={filter_input}
 					on:keydown={handle_key_down}
-					on:keyup={() => {
-						if (allow_custom_value) {
-							value = input_text;
-						}
-					}}
 					on:blur={handle_blur}
 					on:focus={handle_focus}
 				/>
