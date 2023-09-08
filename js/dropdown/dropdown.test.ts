@@ -91,7 +91,7 @@ describe("Dropdown", () => {
 		const options = getAllByTestId("dropdown-option");
 
 		expect(options).toHaveLength(2);
-		
+
 		item.value = "";
 		await event.keyboard("z");
 		const options_new = getAllByTestId("dropdown-option");
@@ -194,7 +194,7 @@ describe("Dropdown", () => {
 			{
 				show_label: true,
 				loading_status,
-				value: "apple",
+				value: "",
 				label: "Dropdown",
 				choices: [
 					["apple", "apple"],
@@ -224,7 +224,6 @@ describe("Dropdown", () => {
 		});
 
 		const options_new = getAllByTestId("dropdown-option");
-
 		expect(options_new).toHaveLength(3);
 	});
 });

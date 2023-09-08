@@ -238,7 +238,7 @@
 				<!-- TODO: fix -->
 				<!-- svelte-ignore a11y-click-events-have-key-events -->
 				<!-- svelte-ignore a11y-no-static-element-interactions-->
-				{#if !disabled }
+				{#if !disabled}
 					{#if selected_indices.length > 0}
 						<div
 							class="token-remove remove-all"
