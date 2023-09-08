@@ -67,7 +67,9 @@
 	}
 
 	$: {
-		if (JSON.stringify(selected_indices) != JSON.stringify(old_selected_index)) {
+		if (
+			JSON.stringify(selected_indices) != JSON.stringify(old_selected_index)
+		) {
 			value = selected_indices.map((index) =>
 				typeof index === "number" ? choices_values[index] : index
 			);
@@ -206,10 +208,7 @@
 						{/if}
 					</span>
 					{#if !disabled}
-						<div
-							class="token-remove"
-							title={$_("common.remove") + " " + s}
-						>
+						<div class="token-remove" title={$_("common.remove") + " " + s}>
 							<Remove />
 						</div>
 					{/if}
@@ -238,8 +237,8 @@
 						on:click={remove_all}
 					>
 						<Remove />
-					</div>					
-				<DropdownArrow />
+					</div>
+					<DropdownArrow />
 				{/if}
 			</div>
 		</div>
@@ -356,9 +355,5 @@
 	}
 	.subdued {
 		color: var(--body-text-color-subdued);
-	}
-
-	.hide {
-		display: none;
 	}
 </style>
