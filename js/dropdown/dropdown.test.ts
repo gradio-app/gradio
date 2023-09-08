@@ -45,7 +45,7 @@ describe("Dropdown", () => {
 	});
 
 	test("selecting the textbox should show the options", async () => {
-		const { getByLabelText, getAllByTestId, debug } = await render(Dropdown, {
+		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
 			show_label: true,
 			loading_status,
 			max_choices: 10,
@@ -71,7 +71,7 @@ describe("Dropdown", () => {
 	});
 
 	test("editing the textbox value should filter the options", async () => {
-		const { getByLabelText, getAllByTestId, debug } = await render(Dropdown, {
+		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
 			show_label: true,
 			loading_status,
 			max_choices: 10,
@@ -91,7 +91,8 @@ describe("Dropdown", () => {
 		const options = getAllByTestId("dropdown-option");
 
 		expect(options).toHaveLength(2);
-
+		
+		item.value = "";
 		await event.keyboard("z");
 		const options_new = getAllByTestId("dropdown-option");
 
@@ -154,7 +155,7 @@ describe("Dropdown", () => {
 
 	test("deselecting and reselcting a filtered dropdown should show all options again", async () => {
 		vi.useFakeTimers();
-		const { getByLabelText, getAllByTestId, debug } = await render(Dropdown, {
+		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
 			show_label: true,
 			loading_status,
 			max_choices: 10,
@@ -172,6 +173,7 @@ describe("Dropdown", () => {
 		) as HTMLInputElement;
 
 		await item.focus();
+		item.value = "";
 		await event.keyboard("z");
 		const options = getAllByTestId("dropdown-option");
 
@@ -207,6 +209,7 @@ describe("Dropdown", () => {
 		) as HTMLInputElement;
 
 		await item.focus();
+		item.value = "";
 
 		const options = getAllByTestId("dropdown-option");
 

@@ -14,6 +14,7 @@
 	export let value_is_output = false;
 	export let max_choices: number | null = null;
 	export let choices: [string, string][];
+	let old_choices: [string, string][];
 	export let disabled = false;
 	export let show_label: boolean;
 	export let container = true;
@@ -21,6 +22,7 @@
 
 	let filter_input: HTMLElement;
 	let input_text = "";
+	let old_input_text = "";
 	let show_options = false;
 	let choices_names: string[];
 	let choices_values: string[];
@@ -57,7 +59,13 @@
 		choices_values = choices.map((c) => c[1]);
 	}
 
-	$: filtered_indices = handle_filter(choices, input_text);
+	$: {
+		if (choices !== old_choices || input_text !== old_input_text) {
+			filtered_indices = handle_filter(choices, input_text);
+			old_choices = choices;
+			old_input_text = input_text;
+		}
+	}
 
 	$: {
 		if (JSON.stringify(value) != JSON.stringify(old_value)) {
