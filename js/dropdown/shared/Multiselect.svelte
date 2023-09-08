@@ -230,14 +230,16 @@
 				<!-- TODO: fix -->
 				<!-- svelte-ignore a11y-click-events-have-key-events -->
 				<!-- svelte-ignore a11y-no-static-element-interactions-->
-				{#if !disabled}
-					<div
-						class="token-remove remove-all"
-						title={$_("common.clear")}
-						on:click={remove_all}
-					>
-						<Remove />
-					</div>
+				{#if !disabled }
+					{#if selected_indices.length > 0}
+						<div
+							class="token-remove remove-all"
+							title={$_("common.clear")}
+							on:click={remove_all}
+						>
+							<Remove />
+						</div>
+					{/if}
 					<DropdownArrow />
 				{/if}
 			</div>

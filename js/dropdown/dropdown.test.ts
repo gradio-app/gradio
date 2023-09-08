@@ -53,7 +53,7 @@ describe("Dropdown", () => {
 			label: "Dropdown",
 			choices: [
 				["choice", "choice"],
-				["choice2", "choice2"]
+				["name2", "choice2"]
 			]
 		});
 
@@ -67,7 +67,7 @@ describe("Dropdown", () => {
 
 		expect(options).toHaveLength(2);
 		expect(options[0]).toContainHTML("choice");
-		expect(options[1]).toContainHTML("choice2");
+		expect(options[1]).toContainHTML("name2");
 	});
 
 	test("editing the textbox value should filter the options", async () => {
@@ -95,8 +95,8 @@ describe("Dropdown", () => {
 		await event.keyboard("z");
 		const options_new = getAllByTestId("dropdown-option");
 
-		// expect(options_new).toHaveLength(1);
-		// expect(options[0]).toContainHTML("zebra");
+		expect(options_new).toHaveLength(1);
+		expect(options[0]).toContainHTML("zebra");
 	});
 
 	test("blurring the textbox should cancel the filter", async () => {
