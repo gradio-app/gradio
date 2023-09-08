@@ -24,7 +24,11 @@
 	name="Single-select"
 	args={{
 		value: "swim",
-		choices: [["run", "run"], ["swim", "swim"], ["jump", "jump"]],
+		choices: [
+			["run", "run"],
+			["swim", "swim"],
+			["jump", "jump"]
+		],
 		label: "Single-select Dropdown"
 	}}
 />
@@ -32,7 +36,11 @@
 	name="Single-select Static"
 	args={{
 		value: "swim",
-		choices: [["run", "run"], ["swim", "swim"], ["jump", "jump"]],
+		choices: [
+			["run", "run"],
+			["swim", "swim"],
+			["jump", "jump"]
+		],
 		disabled: true,
 		label: "Single-select Dropdown"
 	}}
