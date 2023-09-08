@@ -24,8 +24,7 @@
 	name="Single-select"
 	args={{
 		value: "swim",
-		choices: ["run", "swim", "jump"],
-		multiselect: false,
+		choices: [["run", "run"], ["swim", "swim"], ["jump", "jump"]],
 		label: "Single-select Dropdown"
 	}}
 />
@@ -33,28 +32,8 @@
 	name="Single-select Static"
 	args={{
 		value: "swim",
-		choices: ["run", "swim", "jump"],
-		multiselect: false,
+		choices: [["run", "run"], ["swim", "swim"], ["jump", "jump"]],
 		disabled: true,
 		label: "Single-select Dropdown"
-	}}
-/>
-<Story
-	name="Multiselect"
-	args={{
-		value: ["swim", "run"],
-		choices: ["run", "swim", "jump"],
-		label: "Multiselect Dropdown",
-		multiselect: true
-	}}
-/>
-<Story
-	name="Multiselect Static"
-	args={{
-		value: ["swim", "run"],
-		choices: ["run", "swim", "jump"],
-		label: "Multiselect Dropdown",
-		multiselect: true,
-		disabled: true
 	}}
 />
