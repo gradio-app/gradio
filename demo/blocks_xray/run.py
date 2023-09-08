@@ -22,7 +22,7 @@ With this model you can lorem ipsum
     gr.DuplicateButton()
     disease = gr.CheckboxGroup(
         info="Select the diseases you want to scan for.",
-        choices=["Covid", "Malaria", "Lung Cancer"], label="Disease to Scan For"
+        choices=[["Covid", "Covid"], ["Malaria", "Malaria"], ["Lung Cancer", "Lung Cancer"]], label="Disease to Scan For"
     )
     slider = gr.Slider(0, 100)
 

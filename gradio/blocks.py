@@ -100,19 +100,18 @@ def in_event_listener():
 def updateable(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
+        fn_args = inspect.getfullargspec(fn).args
+        self = args[0]
+        for i, arg in enumerate(args):
+            if i == 0 or i >= len(fn_args):  #  skip self, *args
+                continue
+            arg_name = fn_args[i]
+            kwargs[arg_name] = arg
+        self.constructor_args = kwargs
         if in_event_listener():
-            fn_args = inspect.getfullargspec(fn).args
-            self = args[0]
-            for i, arg in enumerate(args):
-                if i == 0:  #  skip self
-                    continue
-                arg_name = fn_args[i]
-                kwargs[arg_name] = arg
-            kwargs["__type__"] = "update"
-            self.update_config = kwargs
             return None
         else:
-            return fn(*args, **kwargs)
+            return fn(self, **kwargs)
 
     return wrapper
 
@@ -141,7 +140,7 @@ class Block:
         self._skip_init_processing = _skip_init_processing
         self.parent: BlockContext | None = None
         self.is_rendered: bool = False
-        self.update_config: dict
+        self.constructor_args: dict
         self.state_session_capacity = 10000
 
         if render:
@@ -1371,7 +1370,8 @@ Received outputs:
             else:
                 prediction_value = predictions[i]
                 if isinstance(prediction_value, Block):
-                    prediction_value = prediction_value.update_config
+                    prediction_value = prediction_value.constructor_args
+                    prediction_value["__type__"] = "update"
                 if utils.is_update(prediction_value):
                     assert isinstance(prediction_value, dict)
                     prediction_value = postprocess_update_dict(
@@ -1509,15 +1509,14 @@ Received outputs:
                 self.dependencies[fn_index]["outputs"], data
             ):
                 if utils.is_update(component_output):
-                    block = (
-                        state[component_id]
-                        if component_id in state
-                        else copy.copy(self.blocks[component_id])
-                    )
-                    for k, v in component_output.items():
-                        if k not in ("value", "__type__"):
-                            setattr(block, k, v)
-                    state[component_id] = block
+                    if component_id in state:
+                        args = state[component_id].constructor_args.copy()
+                    else:
+                        args = self.blocks[component_id].constructor_args.copy()
+                    args.update(component_output)
+                    args.pop("value", None)
+                    args.pop("__type__")
+                    state[component_id] = self.blocks[component_id].__class__(**args)
 
         block_fn.total_runtime += result["duration"]
         block_fn.total_runs += 1

@@ -70,7 +70,11 @@ class CheckboxGroup(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.choices = choices if choices else []
+        self.choices = (
+            [c if isinstance(c, tuple) else (str(c), c) for c in choices]
+            if choices
+            else []
+        )
         valid_types = ["value", "index"]
         if type not in valid_types:
             raise ValueError(
@@ -102,16 +106,9 @@ class CheckboxGroup(
         NeighborInterpretable.__init__(self)
 
     def example_inputs(self) -> dict[str, Any]:
-        choice = None
-        if len(self.choices):
-            if isinstance(self.choices[0], (str, int, float)):
-                choice = [self.choices[0]]
-            else:
-                choice = [self.choices[0][1]]
-
         return {
-            "raw": choice,
-            "serialized": choice,
+            "raw": [self.choices[0][1]] if self.choices else None,
+            "serialized": [self.choices[0][1]] if self.choices else None,
         }
 
     @staticmethod
@@ -162,11 +159,7 @@ class CheckboxGroup(
         if self.type == "value":
             return x
         elif self.type == "index":
-            if len(self.choices) and isinstance(self.choices[0], (str, int, float)):
-                choices = self.choices
-            else:
-                choices = [choice[0] for choice in self.choices]
-            return choices.index(x)
+            return [[value for _, value in self.choices].index(choice) for choice in x]
         else:
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
@@ -188,13 +181,8 @@ class CheckboxGroup(
         return y
 
     def get_interpretation_neighbors(self, x):
-        if len(self.choices) and isinstance(self.choices[0], (str, int, float)):
-            choices = self.choices
-        else:
-            choices = [value for _, value in self.choices]
-
         leave_one_out_sets = []
-        for choice in choices:
+        for choice in [value for _, value in self.choices]:
             leave_one_out_set = list(x)
             if choice in leave_one_out_set:
                 leave_one_out_set.remove(choice)
@@ -208,13 +196,8 @@ class CheckboxGroup(
         Returns:
             For each tuple in the list, the first value represents the interpretation score if the input is False, and the second if the input is True.
         """
-        if len(self.choices) and isinstance(self.choices[0], (str, int, float)):
-            choices = self.choices
-        else:
-            choices = [value for _, value in self.choices]
-
         final_scores = []
-        for choice, score in zip(choices, scores):
+        for choice, score in zip([value for _, value in self.choices], scores):
             score_set = [score, None] if choice in x else [None, score]
             final_scores.append(score_set)
         return final_scores
@@ -237,17 +220,14 @@ class CheckboxGroup(
         return self
 
     def as_example(self, input_data):
-        if len(self.choices) and isinstance(self.choices[0], (str, int, float)):
-            choices = [(choice, choice) for choice in self.choices]
-        else:
-            choices = self.choices
-
-        example = []
+        if input_data is None:
+            return None
+        elif not isinstance(input_data, list):
+            input_data = [input_data]
         for data in input_data:
-            match = next((c[0] for c in choices if c[1] == data), None)
-            if match is None:
-                raise ValueError(
-                    f"Input data {input_data} is not a valid choice from {choices}."
-                )
-            example.append(match)
-        return example
+            if data not in [c[0] for c in self.choices]:
+                raise ValueError(f"Example {data} provided not a valid choice.")
+        return [
+            next((c[0] for c in self.choices if c[1] == data), None)
+            for data in input_data
+        ]

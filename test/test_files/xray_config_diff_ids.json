@@ -37,7 +37,11 @@
 			"id": 102,
 			"type": "checkboxgroup",
 			"props": {
-				"choices": ["Covid", "Malaria", "Lung Cancer"],
+				"choices": [
+					["Covid", "Covid"],
+					["Malaria", "Malaria"],
+					["Lung Cancer", "Lung Cancer"]
+				],
 				"value": [],
 				"type": "value",
 				"label": "Disease to Scan For",
