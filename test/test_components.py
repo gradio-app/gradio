@@ -607,7 +607,10 @@ class TestDropdown:
 
         dropdown_input_multiselect = gr.Dropdown(["a", "b", ("c", "c full")])
         assert dropdown_input_multiselect.preprocess(["a", "c full"]) == ["a", "c full"]
-        assert dropdown_input_multiselect.postprocess(["a", "c full"]) == ["a", "c full"]
+        assert dropdown_input_multiselect.postprocess(["a", "c full"]) == [
+            "a",
+            "c full",
+        ]
         assert dropdown_input_multiselect.serialize(["a", "c full"]) == ["a", "c full"]
         dropdown_input_multiselect = gr.Dropdown(
             value=["a", "c"],
