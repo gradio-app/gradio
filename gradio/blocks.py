@@ -1516,6 +1516,7 @@ Received outputs:
                     args.update(component_output)
                     args.pop("value", None)
                     args.pop("__type__")
+                    args["render"] = False
                     state[component_id] = self.blocks[component_id].__class__(**args)
 
         block_fn.total_runtime += result["duration"]
