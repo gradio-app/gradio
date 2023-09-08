@@ -39,7 +39,7 @@ jobs:
       build_url: ${{ steps.publish-chromatic.outputs.buildUrl }}
     if: ${{ github.repository == 'gradio-app/gradio' && !contains(needs.get-current-pr.outputs.pr_labels, 'no-visual-update') }}
     steps:
-      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4
+      - uses: actions/checkout@v3
         with:
             fetch-depth: 0
       - name: install dependencies

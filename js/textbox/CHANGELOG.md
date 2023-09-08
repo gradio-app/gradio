@@ -1,5 +1,11 @@
 # @gradio/textbox
 
+## 0.2.0
+
+### Features
+
+- [#5417](https://github.com/gradio-app/gradio/pull/5417) [`d14d63e3`](https://github.com/gradio-app/gradio/commit/d14d63e30c4af3f9c2a664fd11b0a01943a8300c) - Auto scroll to bottom of textbox.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.1.3
 
 ### Patch Changes
