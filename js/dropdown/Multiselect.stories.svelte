@@ -23,15 +23,23 @@
 	name="Multiselect"
 	args={{
 		value: ["swim", "run"],
-		choices: [["run", "run"], ["swim", "swim"], ["jump", "jump"]],
-		label: "Multiselect Dropdown",
+		choices: [
+			["run", "run"],
+			["swim", "swim"],
+			["jump", "jump"]
+		],
+		label: "Multiselect Dropdown"
 	}}
 />
 <Story
 	name="Multiselect Static"
 	args={{
 		value: ["swim", "run"],
-		choices: [["run", "run"], ["swim", "swim"], ["jump", "jump"]],
+		choices: [
+			["run", "run"],
+			["swim", "swim"],
+			["jump", "jump"]
+		],
 		label: "Multiselect Dropdown",
 		disabled: true
 	}}

@@ -32,7 +32,10 @@ describe("Dropdown", () => {
 			max_choices: null,
 			value: "choice",
 			label: "Dropdown",
-			choices: [["choice", "choice"], ["choice2", "choice2"]]
+			choices: [
+				["choice", "choice"],
+				["choice2", "choice2"]
+			]
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -48,7 +51,10 @@ describe("Dropdown", () => {
 			max_choices: 10,
 			value: "choice",
 			label: "Dropdown",
-			choices: [["choice", "choice"], ["choice2", "choice2"]]
+			choices: [
+				["choice", "choice"],
+				["choice2", "choice2"]
+			]
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -71,7 +77,10 @@ describe("Dropdown", () => {
 			max_choices: 10,
 			value: "",
 			label: "Dropdown",
-			choices: [["apple", "apple"], ["zebra", "zebra"]]
+			choices: [
+				["apple", "apple"],
+				["zebra", "zebra"]
+			]
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -97,7 +106,10 @@ describe("Dropdown", () => {
 			value: "default",
 			label: "Dropdown",
 			max_choices: undefined,
-			choices: [["default", "default"], ["other", "other"]]
+			choices: [
+				["default", "default"],
+				["other", "other"]
+			]
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -121,7 +133,10 @@ describe("Dropdown", () => {
 			loading_status,
 			value: "default",
 			label: "Dropdown",
-			choices: [["default", "default"], ["other", "other"]]
+			choices: [
+				["default", "default"],
+				["other", "other"]
+			]
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -145,7 +160,11 @@ describe("Dropdown", () => {
 			max_choices: 10,
 			value: "",
 			label: "Dropdown",
-			choices: [["apple", "apple"], ["zebra", "zebra"], ["pony", "pony"]]
+			choices: [
+				["apple", "apple"],
+				["zebra", "zebra"],
+				["pony", "pony"]
+			]
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -175,7 +194,11 @@ describe("Dropdown", () => {
 				loading_status,
 				value: "apple",
 				label: "Dropdown",
-				choices: [["apple", "apple"], ["zebra", "zebra"], ["pony", "pony"]]
+				choices: [
+					["apple", "apple"],
+					["zebra", "zebra"],
+					["pony", "pony"]
+				]
 			}
 		);
 
@@ -189,7 +212,13 @@ describe("Dropdown", () => {
 
 		expect(options).toHaveLength(3);
 
-		await component.$set({ choices: [["apple", "apple"], ["zebra", "zebra"], ["pony", "pony"]] });
+		await component.$set({
+			choices: [
+				["apple", "apple"],
+				["zebra", "zebra"],
+				["pony", "pony"]
+			]
+		});
 
 		const options_new = getAllByTestId("dropdown-option");
 
