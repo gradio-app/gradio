@@ -209,19 +209,21 @@ describe("Dropdown", () => {
 		) as HTMLInputElement;
 
 		await item.focus();
-		item.value = "";
 
 		const options = getAllByTestId("dropdown-option");
 
 		expect(options).toHaveLength(3);
 
 		await component.$set({
+			value: "",
 			choices: [
 				["apple", "apple"],
 				["zebra", "zebra"],
 				["pony", "pony"]
 			]
 		});
+
+		await item.focus();
 
 		const options_new = getAllByTestId("dropdown-option");
 		expect(options_new).toHaveLength(3);
