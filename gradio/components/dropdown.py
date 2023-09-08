@@ -203,10 +203,16 @@ class Dropdown(
             if x is None:
                 return None
             elif self.multiselect:
-                return [[value for _, value in self.choices].index(choice) for choice in x]
+                return [
+                    [value for _, value in self.choices].index(choice) for choice in x
+                ]
             else:
                 if isinstance(x, str):
-                    return [value for _, value in self.choices].index(x) if x in self.choices else None
+                    return (
+                        [value for _, value in self.choices].index(x)
+                        if x in self.choices
+                        else None
+                    )
         else:
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
