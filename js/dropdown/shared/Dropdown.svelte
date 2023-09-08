@@ -1,11 +1,11 @@
 <script lang="ts">
-	import {afterUpdate, createEventDispatcher} from "svelte";
+	import { afterUpdate, createEventDispatcher } from "svelte";
 	import { _ } from "svelte-i18n";
 	import type { SelectData } from "@gradio/utils";
 	import { BlockTitle } from "@gradio/atoms";
 	import { DropdownArrow } from "@gradio/icons";
 	import DropdownOptions from "./DropdownOptions.svelte";
-	import {handle_filter, handle_change, handle_shared_keys} from "./utils"
+	import { handle_filter, handle_change, handle_shared_keys } from "./utils";
 
 	export let label: string;
 	export let info: string | undefined = undefined;
@@ -40,7 +40,7 @@
 		blur: undefined;
 		focus: undefined;
 	}>();
-	
+
 	// Setting the initial value of the dropdown
 	if (value) {
 		old_selected_index = choices.map((c) => c[1]).indexOf(value as string);
@@ -60,7 +60,11 @@
 	}
 
 	$: {
-		if (selected_index !== old_selected_index && selected_index !== null && initialized) {
+		if (
+			selected_index !== old_selected_index &&
+			selected_index !== null &&
+			initialized
+		) {
 			[input_text, value] = choices[selected_index];
 			old_selected_index = selected_index;
 			dispatch("select", {
@@ -78,14 +82,14 @@
 			old_value = value;
 		}
 	}
-	
+
 	$: {
 		choices_names = choices.map((c) => c[0]);
 		choices_values = choices.map((c) => c[1]);
 	}
 
 	$: filtered_indices = handle_filter(choices, input_text);
-	
+
 	function set_input_text(): void {
 		if (value === undefined) {
 			input_text = "";
@@ -100,7 +104,7 @@
 
 	function handle_option_selected(e: any): void {
 		selected_index = parseInt(e.detail.target.dataset.index);
-		show_options = false;		
+		show_options = false;
 		filter_input.blur();
 	}
 
@@ -119,7 +123,11 @@
 	}
 
 	function handle_key_down(e: KeyboardEvent): void {
-		[show_options, active_index] = handle_shared_keys(e, active_index, filtered_indices);
+		[show_options, active_index] = handle_shared_keys(
+			e,
+			active_index,
+			filtered_indices
+		);
 		if (e.key === "Enter") {
 			if (active_index !== null) {
 				selected_index = active_index;
@@ -152,7 +160,8 @@
 			<div class="secondary-wrap">
 				<input
 					class="border-none"
-					class:subdued={!choices_names.includes(input_text) && !allow_custom_value}
+					class:subdued={!choices_names.includes(input_text) &&
+						!allow_custom_value}
 					{disabled}
 					autocomplete="off"
 					bind:value={input_text}
@@ -169,7 +178,7 @@
 			{choices}
 			{filtered_indices}
 			{disabled}
-			selected_indices={selected_index === null ? [] : [selected_index] }
+			selected_indices={selected_index === null ? [] : [selected_index]}
 			{active_index}
 			on:change={handle_option_selected}
 		/>

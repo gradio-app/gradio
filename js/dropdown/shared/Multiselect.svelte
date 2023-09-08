@@ -5,7 +5,7 @@
 	import { Remove, DropdownArrow } from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
 	import DropdownOptions from "./DropdownOptions.svelte";
-	import {handle_filter, handle_change, handle_shared_keys} from "./utils"
+	import { handle_filter, handle_change, handle_shared_keys } from "./utils";
 
 	export let label: string;
 	export let info: string | undefined = undefined;
@@ -41,7 +41,7 @@
 
 	// Setting the initial value of the multiselect dropdown
 	if (Array.isArray(value)) {
-		value.forEach(element => {
+		value.forEach((element) => {
 			const index = choices.map((c) => c[1]).indexOf(element);
 			if (index !== -1) {
 				selected_indices.push(index);
@@ -55,9 +55,8 @@
 		choices_names = choices.map((c) => c[0]);
 		choices_values = choices.map((c) => c[1]);
 	}
-	
-	$: filtered_indices = handle_filter(choices, input_text);
 
+	$: filtered_indices = handle_filter(choices, input_text);
 
 	$: {
 		if (JSON.stringify(value) != JSON.stringify(old_value)) {
@@ -67,8 +66,8 @@
 	}
 
 	$: {
-		value = selected_indices.map(
-			(index) => (typeof index === "number" ? choices_values[index] : index)
+		value = selected_indices.map((index) =>
+			typeof index === "number" ? choices_values[index] : index
 		);
 	}
 
@@ -83,20 +82,26 @@
 	function remove(option_index: number | string): void {
 		selected_indices = selected_indices.filter((v) => v !== option_index);
 		dispatch("select", {
-			index: typeof option_index === 'number' ? option_index : -1,
-			value: typeof option_index === 'number' ? choices_values[option_index] : option_index,
+			index: typeof option_index === "number" ? option_index : -1,
+			value:
+				typeof option_index === "number"
+					? choices_values[option_index]
+					: option_index,
 			selected: false
 		});
 	}
 
-	function add(option_index: number | string) : void {
+	function add(option_index: number | string): void {
 		if (max_choices === undefined || selected_indices.length < max_choices) {
 			selected_indices = [...selected_indices, option_index];
 			dispatch("select", {
-				index: typeof option_index === 'number' ? option_index : -1,
-				value: typeof option_index === 'number' ? choices_values[option_index] : option_index,
+				index: typeof option_index === "number" ? option_index : -1,
+				value:
+					typeof option_index === "number"
+						? choices_values[option_index]
+						: option_index,
 				selected: true
-			})
+			});
 		}
 		if (selected_indices.length === max_choices) {
 			show_options = false;
@@ -108,7 +113,7 @@
 		const option_index = parseInt(e.detail.target.dataset.index);
 		add_or_remove_index(option_index);
 	}
-	
+
 	function add_or_remove_index(option_index: number): void {
 		if (selected_indices.includes(option_index)) {
 			remove(option_index);
@@ -131,7 +136,11 @@
 	}
 
 	function handle_key_down(e: KeyboardEvent): void {
-		[show_options, active_index] = handle_shared_keys(e, active_index, filtered_indices);
+		[show_options, active_index] = handle_shared_keys(
+			e,
+			active_index,
+			filtered_indices
+		);
 		if (e.key === "Enter") {
 			if (active_index !== null) {
 				add_or_remove_index(active_index);
@@ -166,7 +175,7 @@
 				.filter((val): val is string | number => val !== undefined);
 		}
 	}
-	
+
 	afterUpdate(() => {
 		value_is_output = false;
 	});
@@ -203,7 +212,8 @@
 			<div class="secondary-wrap">
 				<input
 					class="border-none"
-					class:subdued={!choices_names.includes(input_text) && !allow_custom_value}
+					class:subdued={!choices_names.includes(input_text) &&
+						!allow_custom_value}
 					{disabled}
 					autocomplete="off"
 					bind:value={input_text}
