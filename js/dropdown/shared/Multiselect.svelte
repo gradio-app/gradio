@@ -12,7 +12,7 @@
 	export let value: string | string[] | undefined = [];
 	let old_value: string | string[] | undefined = [];
 	export let value_is_output = false;
-	export let max_choices: number;
+	export let max_choices: number | null = null;
 	export let choices: [string, string][];
 	export let disabled = false;
 	export let show_label: boolean;
@@ -98,7 +98,7 @@
 	}
 
 	function add(option_index: number | string): void {
-		if (max_choices === undefined || selected_indices.length < max_choices) {
+		if (max_choices === null || selected_indices.length < max_choices) {
 			selected_indices = [...selected_indices, option_index];
 			dispatch("select", {
 				index: typeof option_index === "number" ? option_index : -1,

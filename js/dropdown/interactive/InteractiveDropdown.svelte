@@ -14,7 +14,7 @@
 	export let value: string | string[];
 	export let value_is_output = false;
 	export let multiselect = false;
-	export let max_choices: number;
+	export let max_choices: number | null = null;
 	export let choices: [string, string][];
 	export let show_label: boolean;
 	export let container = true;
