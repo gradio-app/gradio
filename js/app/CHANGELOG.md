@@ -1,10 +1,17 @@
 # @gradio/app
 
+## 1.4.3
+
+### Patch Changes
+
+- Updated dependencies [[`6e381c4f`](https://github.com/gradio-app/gradio/commit/6e381c4f146cc8177a4e2b8e39f914f09cd7ff0c)]:
+  - @gradio/dataframe@0.2.2
+
 ## 1.4.2
 
 ### Fixes
 
-- [#5447](https://github.com/gradio-app/gradio/pull/5447) [`7a4a89e5`](https://github.com/gradio-app/gradio/commit/7a4a89e5ca1dedb39e5366867501584b0c636bbb) - ensure iframe is correct size on spaces.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5447](https://github.com/gradio-app/gradio/pull/5447) [`7a4a89e5`](https://github.com/gradio-app/gradio/commit/7a4a89e5ca1dedb39e5366867501584b0c636bbb) - ensure iframe is correct size on spaces. Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 1.4.1
 
