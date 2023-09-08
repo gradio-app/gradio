@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { afterUpdate, createEventDispatcher } from "svelte";
-	import { _ } from "svelte-i18n";
+	import { _, number } from "svelte-i18n";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Remove, DropdownArrow } from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
@@ -28,8 +28,8 @@
 	// All of these are indices with respect to the choices array
 	let filtered_indices: number[] = [];
 	let active_index: number | null = null;
-	// selected_index is null if allow_custom_value is true and the input_text is not in choices_names
-	let selected_indices: number[] = [];
+	// selected_index consists of indices from choices or strings if allow_custom_value is true and user types in a custom value
+	let selected_indices: (number | string)[] = [];
 
 	const dispatch = createEventDispatcher<{
 		change: string | string[] | undefined;
@@ -45,6 +45,8 @@
 			const index = choices.map((c) => c[1]).indexOf(element);
 			if (index !== -1) {
 				selected_indices.push(index);
+			} else {
+				selected_indices.push(element);
 			}
 		});
 	}
@@ -64,7 +66,9 @@
 	}
 
 	$: {
-		value = selected_indices.map((i) => choices_values[i]);
+		value = selected_indices.map(
+			(index) => (typeof index === "number" ? choices_values[index] : index)
+		);
 	}
 
 	function handle_blur(): void {
@@ -72,11 +76,11 @@
 		dispatch("blur");
 	}
 
-	function remove(option_index: number): void {
-		selected_indices = selected_indices.filter((v: number) => v !== option_index);
+	function remove(option_index: number | string): void {
+		selected_indices = selected_indices.filter((v) => v !== option_index);
 		dispatch("select", {
-			index: option_index,
-			value: choices_values[option_index],
+			index: typeof option_index === 'number' ? option_index : -1,
+			value: typeof option_index === 'number' ? choices_values[option_index] : option_index,
 			selected: false
 		});
 	}
@@ -121,12 +125,16 @@
 		if (e.key === "Enter") {
 			if (active_index !== null) {
 				add_or_remove_index(active_index);
+			} else {
+				if (allow_custom_value) {
+					// TODO: fix max length with custom value
+					selected_indices = [...selected_indices, input_text];
+				}
+				input_text = "";
 			}
 		}
 		if (e.key === "Backspace" && input_text === "") {
-			if (selected_indices.length > 0) {
-				remove(selected_indices[selected_indices.length - 1]);
-			}
+			selected_indices = [...selected_indices.slice(0, -1)];
 		}
 	}
 
@@ -168,11 +176,6 @@
 					bind:value={input_text}
 					bind:this={filter_input}
 					on:keydown={handle_key_down}
-					on:keyup={() => {
-						if (allow_custom_value) {
-							value = input_text;
-						}
-					}}
 					on:blur={handle_blur}
 					on:focus={handle_focus}
 				/>

@@ -101,10 +101,6 @@ class Dropdown(
             )
         self.max_choices = max_choices
         self.allow_custom_value = allow_custom_value
-        if multiselect and allow_custom_value:
-            raise ValueError(
-                "Custom values are not supported when `multiselect` is True."
-            )
         self.interpret_by_tokens = False
         self.select: EventListenerMethod
         """
