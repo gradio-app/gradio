@@ -380,6 +380,8 @@
 	}
 
 	async function add_row(index?: number): Promise<void> {
+		parent.focus();
+
 		if (row_count[1] !== "dynamic") return;
 		if (data.length === 0) {
 			values = [Array(headers.length).fill("")];
@@ -404,6 +406,7 @@
 	}
 
 	async function add_col(): Promise<void> {
+		parent.focus();
 		if (col_count[1] !== "dynamic") return;
 		for (let i = 0; i < data.length; i++) {
 			const _id = make_id();
@@ -426,10 +429,16 @@
 	}
 
 	function handle_click_outside(event: Event): void {
-		editing = false;
+		event.stopImmediatePropagation();
+		const [trigger] = event.composedPath() as HTMLElement[];
+		if (parent.contains(trigger)) {
+			return;
+		}
 
+		editing = false;
 		header_edit = false;
-		parent.focus();
+		selected_header = false;
+		selected = false;
 	}
 
 	function guess_delimitaor(
@@ -737,7 +746,6 @@
 									{latex_delimiters}
 									edit={dequal(editing, [index, j])}
 									datatype={Array.isArray(datatype) ? datatype[j] : datatype}
-									on:focus={() => parent.focus()}
 									on:blur={() => ((clear_on_focus = false), parent.focus())}
 									{clear_on_focus}
 								/>
@@ -752,7 +760,11 @@
 		<div class="controls-wrap">
 			{#if row_count[1] === "dynamic"}
 				<span class="button-wrap">
-					<BaseButton variant="secondary" size="sm" on:click={() => add_row()}>
+					<BaseButton
+						variant="secondary"
+						size="sm"
+						on:click={(e) => (e.stopPropagation(), add_row())}
+					>
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
 							xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -774,7 +786,11 @@
 			{/if}
 			{#if col_count[1] === "dynamic"}
 				<span class="button-wrap">
-					<BaseButton variant="secondary" size="sm" on:click={add_col}>
+					<BaseButton
+						variant="secondary"
+						size="sm"
+						on:click={(e) => (e.stopPropagation(), add_col())}
+					>
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
 							xmlns:xlink="http://www.w3.org/1999/xlink"
