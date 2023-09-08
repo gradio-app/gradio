@@ -1,5 +1,11 @@
 # gradio
 
+## 3.43.2
+
+### Fixes
+
+- [#5456](https://github.com/gradio-app/gradio/pull/5456) [`6e381c4f`](https://github.com/gradio-app/gradio/commit/6e381c4f146cc8177a4e2b8e39f914f09cd7ff0c) - ensure dataframe doesn't steal focus.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 3.43.1
 
 ### Fixes
