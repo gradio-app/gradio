@@ -171,7 +171,6 @@
 	}
 
 	function set_selected_indices(): void {
-		// console.log(value);
 		if (value === undefined) {
 			selected_indices = [];
 		} else if (Array.isArray(value)) {
