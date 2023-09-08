@@ -5,4 +5,4 @@
 "gradio": minor
 ---
 
-feat:WIP: Allowing the `gr.Dropdown` to have separate names and values
+feat:Allows the `gr.Dropdown` to have separate names and values, as well as enables `allow_custom_value` for multiselect dropdown
