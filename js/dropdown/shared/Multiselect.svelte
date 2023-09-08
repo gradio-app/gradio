@@ -26,6 +26,7 @@
 	let choices_values: string[];
 
 	// All of these are indices with respect to the choices array
+	let old_filtered_indices: number[] = [];
 	let filtered_indices: number[] = [];
 	let active_index: number | null = null;
 	// selected_index consists of indices from choices or strings if allow_custom_value is true and user types in a custom value
@@ -58,6 +59,7 @@
 	
 	$: filtered_indices = handle_filter(choices, input_text);
 
+
 	$: {
 		if (JSON.stringify(value) != JSON.stringify(old_value)) {
 			old_value = Array.isArray(value) ? value.slice() : value;
@@ -72,6 +74,9 @@
 	}
 
 	function handle_blur(): void {
+		if (!allow_custom_value) {
+			input_text = "";
+		}
 		show_options = false;
 		dispatch("blur");
 	}
@@ -85,6 +90,21 @@
 		});
 	}
 
+	function add(option_index: number | string) : void {
+		if (max_choices === undefined || selected_indices.length < max_choices) {
+			selected_indices = [...selected_indices, option_index];
+			dispatch("select", {
+				index: typeof option_index === 'number' ? option_index : -1,
+				value: typeof option_index === 'number' ? choices_values[option_index] : option_index,
+				selected: true
+			})
+		}
+		if (selected_indices.length === max_choices) {
+			show_options = false;
+			filter_input.blur();
+		}
+	}
+
 	function handle_option_selected(e: any): void {
 		const option_index = parseInt(e.detail.target.dataset.index);
 		add_or_remove_index(option_index);
@@ -93,19 +113,10 @@
 	function add_or_remove_index(option_index: number): void {
 		if (selected_indices.includes(option_index)) {
 			remove(option_index);
-		} else if (max_choices === undefined || selected_indices.length < max_choices) {
-			selected_indices = [...selected_indices, option_index];
-			dispatch("select", {
-				index: option_index,
-				value: choices_values[option_index],
-				selected: true
-			});
+		} else {
+			add(option_index);
 		}
 		input_text = "";
-		if (selected_indices.length === max_choices) {
-			show_options = false;
-			filter_input.blur();
-		}
 	}
 
 	function remove_all(e: any): void {
@@ -127,10 +138,9 @@
 				add_or_remove_index(active_index);
 			} else {
 				if (allow_custom_value) {
-					// TODO: fix max length with custom value
-					selected_indices = [...selected_indices, input_text];
+					add(input_text);
+					input_text = "";
 				}
-				input_text = "";
 			}
 		}
 		if (e.key === "Backspace" && input_text === "") {
@@ -148,25 +158,29 @@
 
 	<div class="wrap">
 		<div class="wrap-inner" class:show_options>
-			{#if Array.isArray(value)}
-				{#each value as s, index}
-					<!-- TODO: fix -->
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<!-- svelte-ignore a11y-no-static-element-interactions-->
-					<div on:click|preventDefault={() => remove(selected_indices[index])} class="token">
-						<span>{s}</span>
-						{#if !disabled}
-							<div
-								class:hidden={disabled}
-								class="token-remove"
-								title={$_("common.remove") + " " + s}
-							>
-								<Remove />
-							</div>
+			{#each selected_indices as s}
+				<!-- TODO: fix -->
+				<!-- svelte-ignore a11y-click-events-have-key-events -->
+				<!-- svelte-ignore a11y-no-static-element-interactions-->
+				<div on:click|preventDefault={() => remove(s)} class="token">
+					<span>
+						{#if typeof s === "number"}
+							{choices_names[s]}
+						{:else}
+							{s}
 						{/if}
-					</div>
-				{/each}
-			{/if}
+					</span>
+					{#if !disabled}
+						<div
+							class:hidden={disabled}
+							class="token-remove"
+							title={$_("common.remove") + " " + s}
+						>
+							<Remove />
+						</div>
+					{/if}
+				</div>
+			{/each}
 			<div class="secondary-wrap">
 				<input
 					class="border-none"
