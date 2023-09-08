@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 0.3.1
+
+### Fixes
+
+- [#5412](https://github.com/gradio-app/gradio/pull/5412) [`26fef8c7`](https://github.com/gradio-app/gradio/commit/26fef8c7f85a006c7e25cdbed1792df19c512d02) - Skip view_api request in js client when auth enabled.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 0.3.0
 
 ### Features

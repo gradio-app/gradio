@@ -69,6 +69,7 @@ class BarPlot(Plot):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        sort: Literal["x", "y", "-x", "-y"] | None = None,
     ):
         """
         Parameters:
@@ -98,6 +99,7 @@ class BarPlot(Plot):
             visible: Whether the plot should be visible.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            sort: Specifies the sorting axis as either "x", "y", "-x" or "-y". If None, no sorting is applied.
         """
         self.x = x
         self.y = y
@@ -119,6 +121,7 @@ class BarPlot(Plot):
         self.interactive_chart = interactive
         self.width = width
         self.height = height
+        self.sort = sort
         super().__init__(
             value=value,
             label=label,
@@ -174,6 +177,7 @@ class BarPlot(Plot):
         scale: int | None = None,
         min_width: int | None = None,
         visible: bool | None = None,
+        sort: Literal["x", "y", "-x", "-y"] | None = None,
     ):
         """Update an existing BarPlot component.
 
@@ -203,6 +207,7 @@ class BarPlot(Plot):
             label: The (optional) label to display on the top left corner of the plot.
             show_label: Whether the label should be displayed.
             visible: Whether the plot should be visible.
+            sort: Specifies the sorting axis as either "x", "y", "-x" or "-y". If None, no sorting is applied.
         """
         warnings.warn(
             "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.BarPlot(...)` instead of `return gr.BarPlot.update(...)`."
@@ -226,6 +231,7 @@ class BarPlot(Plot):
             width,
             y_lim,
             interactive,
+            sort,
         ]
         if any(properties):
             if not isinstance(value, pd.DataFrame):
@@ -288,6 +294,7 @@ class BarPlot(Plot):
         width: int | None = None,
         y_lim: list[int] | None = None,
         interactive: bool | None = True,
+        sort: Literal["x", "y", "-x", "-y"] | None = None,
     ):
         """Helper for creating the bar plot."""
         interactive = True if interactive is None else interactive
@@ -321,6 +328,7 @@ class BarPlot(Plot):
                 axis=alt.Axis(labelAngle=x_label_angle)
                 if x_label_angle is not None
                 else alt.Axis(),
+                sort=sort if vertical and sort is not None else None,
             ),
             y=alt.Y(
                 y,  # type: ignore
@@ -329,6 +337,7 @@ class BarPlot(Plot):
                 axis=alt.Axis(labelAngle=x_label_angle)
                 if x_label_angle is not None
                 else alt.Axis(),
+                sort=sort if not vertical and sort is not None else None,
             ),
             **orientation,
         )
@@ -392,6 +401,7 @@ class BarPlot(Plot):
             interactive=self.interactive_chart,
             height=self.height,
             width=self.width,
+            sort=self.sort,  # type: ignore
         )
 
         return {"type": "altair", "plot": chart.to_json(), "chart": "bar"}
