@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Gradio, SelectData } from "@gradio/utils";
-	import {Dropdown, Multiselect} from "../shared";
+	import { Dropdown, Multiselect } from "../shared";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
@@ -76,5 +76,4 @@
 			on:focus={() => gradio.dispatch("focus")}
 		/>
 	{/if}
-
 </Block>

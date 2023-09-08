@@ -40,7 +40,7 @@
 	{min_width}
 >
 	<StatusTracker {...loading_status} />
-	
+
 	{#if multiselect}
 		<Multiselect
 			bind:value

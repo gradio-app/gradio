@@ -16,7 +16,7 @@
 	let listElement: HTMLUListElement;
 	let top: string | null, bottom: string | null, max_height: number;
 	let innerHeight: number;
-	
+
 	function calculate_window_distance(): void {
 		const { top: ref_top, bottom: ref_bottom } =
 			refElement.getBoundingClientRect();
