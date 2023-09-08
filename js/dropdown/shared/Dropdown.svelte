@@ -13,6 +13,7 @@
 	let old_value: string | string[] | undefined;
 	export let value_is_output = false;
 	export let choices: [string, string][];
+	let old_choices: [string, string][];
 	export let disabled = false;
 	export let show_label: boolean;
 	export let container = true;
@@ -24,6 +25,7 @@
 	let choices_names: string[];
 	let choices_values: string[];
 	let input_text = "";
+	let old_input_text = "";
 	let initialized = false;
 
 	// All of these are indices with respect to the choices array
@@ -48,15 +50,16 @@
 		if (selected_index === -1) {
 			old_value = value;
 			selected_index = null;
-			input_text = "";
 		} else {
 			[input_text, old_value] = choices[selected_index];
+			old_input_text = input_text;
 		}
 	} else if (choices.length > 0) {
 		old_selected_index = 0;
 		selected_index = 0;
 		[input_text, value] = choices[selected_index];
 		old_value = value;
+		old_input_text = input_text;
 	}
 
 	$: {
@@ -88,7 +91,13 @@
 		choices_values = choices.map((c) => c[1]);
 	}
 
-	$: filtered_indices = handle_filter(choices, input_text);
+	$: {
+		if (choices !== old_choices || input_text !== old_input_text) {
+			filtered_indices = handle_filter(choices, input_text);
+			old_choices = choices;
+			old_input_text = input_text;
+		}
+	}
 
 	function set_input_text(): void {
 		if (value === undefined) {
