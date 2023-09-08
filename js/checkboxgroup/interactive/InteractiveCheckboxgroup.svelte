@@ -11,17 +11,7 @@
 	export let visible = true;
 	export let value: (string | number)[] = [];
 	export let value_is_output = false;
-	export let choices: [string, string | number][] | string[] | null;
-	let _choices: [string, string | number][];
-	$: {
-		if (choices === null) {
-			_choices = [];
-		} else if (choices.length > 0 && typeof choices[0] === "string") {
-			_choices = (choices as string[]).map((choice) => [choice, choice]);
-		} else if (choices.length > 0 && Array.isArray(choices[0])) {
-			_choices = choices as [string, string | number][];
-		}
-	}
+	export let choices: [string, number][];
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
@@ -51,7 +41,7 @@
 	<CheckboxGroup
 		bind:value
 		bind:value_is_output
-		choices={_choices}
+		{choices}
 		{label}
 		{info}
 		{show_label}

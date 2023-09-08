@@ -1,11 +1,5 @@
 # website
 
-## 0.4.0
-
-### Features
-
-- [#5423](https://github.com/gradio-app/gradio/pull/5423) [`bb31cd7d`](https://github.com/gradio-app/gradio/commit/bb31cd7dd0dc60c18b2b21269512775f3784ef01) - Remove stable diffusion demo from landing page.  Thanks [@aliabd](https://github.com/aliabd)!
-
 ## 0.3.0
 
 ### Features
