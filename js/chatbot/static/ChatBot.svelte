@@ -96,7 +96,7 @@
 </script>
 
 {#if show_share_button && value !== null && value.length > 0}
-	<div class="icon-button">
+	<div class="share-button">
 		<ShareButton
 			on:error
 			on:share
@@ -157,7 +157,7 @@
 								{/if}
 
 								{#if show_copy_button && message && typeof message === "string"}
-									<div class="icon-button">
+									<div class="copy-button">
 										<Copy value={message} />
 									</div>
 								{/if}
@@ -347,9 +347,14 @@
 	.message-buttons-fit {
 		margin-right: 0px;
 	}
-	.icon-button {
+	.copy-button {
 		margin-top: -10px;
 		margin-bottom: -10px;
+	}
+	.share-button {
+		position: absolute;
+		top: 6px;
+		right: 6px;
 	}
 	.like {
 		display: flex;
