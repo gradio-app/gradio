@@ -64,6 +64,7 @@
 			filtered_indices = handle_filter(choices, input_text);
 			old_choices = choices;
 			old_input_text = input_text;
+			active_index = filtered_indices[0];
 		}
 	}
 
@@ -93,7 +94,7 @@
 		dispatch("blur");
 	}
 
-	function remove(option_index: number | string): void {
+	function remove_selected_choice(option_index: number | string): void {
 		selected_indices = selected_indices.filter((v) => v !== option_index);
 		dispatch("select", {
 			index: typeof option_index === "number" ? option_index : -1,
@@ -105,7 +106,7 @@
 		});
 	}
 
-	function add(option_index: number | string): void {
+	function add_selected_choice(option_index: number | string): void {
 		if (max_choices === null || selected_indices.length < max_choices) {
 			selected_indices = [...selected_indices, option_index];
 			dispatch("select", {
@@ -130,9 +131,9 @@
 
 	function add_or_remove_index(option_index: number): void {
 		if (selected_indices.includes(option_index)) {
-			remove(option_index);
+			remove_selected_choice(option_index);
 		} else {
-			add(option_index);
+			add_selected_choice(option_index);
 		}
 		input_text = "";
 	}
@@ -145,7 +146,9 @@
 
 	function handle_focus(e: FocusEvent): void {
 		filtered_indices = choices.map((_, i) => i);
-		show_options = true;
+		if (max_choices === null || selected_indices.length < max_choices) {
+			show_options = true;
+		}
 		dispatch("focus");
 	}
 
@@ -160,13 +163,16 @@
 				add_or_remove_index(active_index);
 			} else {
 				if (allow_custom_value) {
-					add(input_text);
+					add_selected_choice(input_text);
 					input_text = "";
 				}
 			}
 		}
 		if (e.key === "Backspace" && input_text === "") {
 			selected_indices = [...selected_indices.slice(0, -1)];
+		}
+		if (selected_indices.length === max_choices) {
+			show_options = false;
 		}
 	}
 
@@ -206,7 +212,7 @@
 				<!-- TODO: fix -->
 				<!-- svelte-ignore a11y-click-events-have-key-events -->
 				<!-- svelte-ignore a11y-no-static-element-interactions-->
-				<div on:click|preventDefault={() => remove(s)} class="token">
+				<div on:click|preventDefault={() => remove_selected_choice(s)} class="token">
 					<span>
 						{#if typeof s === "number"}
 							{choices_names[s]}
@@ -225,7 +231,7 @@
 				<input
 					class="border-none"
 					class:subdued={!choices_names.includes(input_text) &&
-						!allow_custom_value}
+						!allow_custom_value || selected_indices.length === max_choices}
 					{disabled}
 					autocomplete="off"
 					bind:value={input_text}
