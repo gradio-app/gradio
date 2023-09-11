@@ -70,7 +70,7 @@ class BarPlot(Plot):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         sort: Literal["x", "y", "-x", "-y"] | None = None,
-        **kwargs
+        **kwargs,
     ):
         """
         Parameters:
