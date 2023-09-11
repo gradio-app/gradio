@@ -522,6 +522,8 @@ class TestCheckboxGroup:
         cbox = gr.CheckboxGroup(choices=["a", "b"], value="c")
         assert cbox.get_config()["value"] == ["c"]
         assert cbox.postprocess("a") == ["a"]
+        with pytest.raises(ValueError):
+            gr.CheckboxGroup().as_example("a")
 
     def test_in_interface(self):
         """
@@ -2736,11 +2738,13 @@ class TestBarPlot:
             tooltip=["a", "b"],
             title="Made Up Bar Plot",
             x_title="Variable A",
+            sort="x",
         )
         output = plot.postprocess(simple)
         assert sorted(output.keys()) == ["chart", "plot", "type"]
         assert output["chart"] == "bar"
         config = json.loads(output["plot"])
+        assert config["encoding"]["x"]["sort"] == "x"
         assert config["encoding"]["x"]["field"] == "a"
         assert config["encoding"]["x"]["title"] == "Variable A"
         assert config["encoding"]["y"]["field"] == "b"
