@@ -1,5 +1,32 @@
 # gradio
 
+## 3.43.2
+
+### Fixes
+
+- [#5456](https://github.com/gradio-app/gradio/pull/5456) [`6e381c4f`](https://github.com/gradio-app/gradio/commit/6e381c4f146cc8177a4e2b8e39f914f09cd7ff0c) - ensure dataframe doesn't steal focus.  Thanks [@pngwn](https://github.com/pngwn)!
+
+## 3.43.1
+
+### Fixes
+
+- [#5445](https://github.com/gradio-app/gradio/pull/5445) [`67bb7bcb`](https://github.com/gradio-app/gradio/commit/67bb7bcb6a95b7a00a8bdf612cf147850d919a44) - ensure dataframe doesn't scroll unless needed.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5447](https://github.com/gradio-app/gradio/pull/5447) [`7a4a89e5`](https://github.com/gradio-app/gradio/commit/7a4a89e5ca1dedb39e5366867501584b0c636bbb) - ensure iframe is correct size on spaces.  Thanks [@pngwn](https://github.com/pngwn)!
+
+## 3.43.0
+
+### Features
+
+- [#5165](https://github.com/gradio-app/gradio/pull/5165) [`c77f05ab`](https://github.com/gradio-app/gradio/commit/c77f05abb65b2828c9c19af4ec0a0c09412f9f6a) - Fix the Queue to call API endpoints without internal HTTP routing.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#5427](https://github.com/gradio-app/gradio/pull/5427) [`aad7acd7`](https://github.com/gradio-app/gradio/commit/aad7acd7128dca05b227ecbba06db9f94d65b088) - Add sort to bar plot.  Thanks [@Chaitanya134](https://github.com/Chaitanya134)!
+- [#5342](https://github.com/gradio-app/gradio/pull/5342) [`afac0006`](https://github.com/gradio-app/gradio/commit/afac0006337ce2840cf497cd65691f2f60ee5912) - significantly improve the performance of `gr.Dataframe` for large datasets.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5417](https://github.com/gradio-app/gradio/pull/5417) [`d14d63e3`](https://github.com/gradio-app/gradio/commit/d14d63e30c4af3f9c2a664fd11b0a01943a8300c) - Auto scroll to bottom of textbox.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
+### Fixes
+
+- [#5412](https://github.com/gradio-app/gradio/pull/5412) [`26fef8c7`](https://github.com/gradio-app/gradio/commit/26fef8c7f85a006c7e25cdbed1792df19c512d02) - Skip view_api request in js client when auth enabled.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5436](https://github.com/gradio-app/gradio/pull/5436) [`7ab4b70f`](https://github.com/gradio-app/gradio/commit/7ab4b70f6821afb4e85cef225d1235c19df8ebbf) - api_open does not take precedence over show_api.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 3.42.0
 
 ### Highlights
