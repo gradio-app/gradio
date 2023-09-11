@@ -26,11 +26,12 @@
 	export let rtl = false;
 	export let autofocus = false;
 	export let text_align: "left" | "right" | undefined = undefined;
+	export let autoscroll = true;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
 	let timer: NodeJS.Timeout;
-	let autoscroll: boolean;
+	let can_scroll: boolean;
 
 	$: value, el && lines !== max_lines && resize({ target: el });
 
@@ -46,11 +47,11 @@
 	}>();
 
 	beforeUpdate(() => {
-		autoscroll = el && el.offsetHeight + el.scrollTop > el.scrollHeight - 100;
+		can_scroll = el && el.offsetHeight + el.scrollTop > el.scrollHeight - 100;
 	});
 
 	const scroll = (): void => {
-		if (autoscroll) {
+		if (can_scroll && autoscroll) {
 			el.scrollTo(0, el.scrollHeight);
 		}
 	};
@@ -62,7 +63,7 @@
 		}
 	}
 	afterUpdate(() => {
-		if (autoscroll) {
+		if (can_scroll) {
 			scroll();
 		}
 		value_is_output = false;
