@@ -1,2 +1,0 @@
-import{W as d,I as l}from"./InteractiveImage-5fee324b.js";import"../../../node/dev/svelte-internal.js";import"./index-09ad131b.js";import"./Button-70427016.js";import"./BlockLabel-facb91af.js";import"./Image-70764d4a.js";import"./utils-90f3612b.js";import"./IconButton-b7cab4d0.js";import"./ModifyUpload-1a195fc2.js";import"./Undo-059ed206.js";import"./Upload-c27a3fdf.js";import"./UploadText-4a361f4c.js";export{d as Webcam,l as default};
-//# sourceMappingURL=index-ee262c43.js.map
