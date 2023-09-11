@@ -13,8 +13,8 @@
 	let old_value: string | string[] | undefined = [];
 	export let value_is_output = false;
 	export let max_choices: number | null = null;
-	export let choices: [string, string][];
-	let old_choices: [string, string][];
+	export let choices: [string, string | number][];
+	let old_choices: [string, string | number][];
 	export let disabled = false;
 	export let show_label: boolean;
 	export let container = true;
