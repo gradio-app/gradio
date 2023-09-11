@@ -3,7 +3,7 @@ function positive_mod(n: number, m: number): number {
 }
 
 export function handle_filter(
-	choices: [string, string][],
+	choices: [string, string | number][],
 	input_text: string
 ): number[] {
 	return choices.reduce((filtered_indices, o, index) => {
@@ -18,7 +18,7 @@ export function handle_filter(
 
 export function handle_change(
 	dispatch: any,
-	value: string | string[] | undefined,
+	value: string | number | (string | number)[] | undefined,
 	value_is_output: boolean
 ): void {
 	dispatch("change", value);

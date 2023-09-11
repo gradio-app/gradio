@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { fly } from "svelte/transition";
 	import { createEventDispatcher } from "svelte";
-	export let choices: [string, string][];
+	export let choices: [string, string | number][];
 	export let filtered_indices: number[];
 	export let show_options = false;
 	export let disabled = false;
