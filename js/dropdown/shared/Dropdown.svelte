@@ -117,6 +117,7 @@
 	function handle_option_selected(e: any): void {
 		selected_index = parseInt(e.detail.target.dataset.index);
 		show_options = false;
+		active_index = null;
 		filter_input.blur();
 	}
 
@@ -131,6 +132,7 @@
 			input_text = choices_names[choices_values.indexOf(value as string)];
 		}
 		show_options = false;
+		active_index = null;
 		dispatch("blur");
 	}
 
@@ -145,14 +147,17 @@
 				selected_index = active_index;
 				show_options = false;
 				filter_input.blur();
+				active_index = null;
 			} else if (choices_names.includes(input_text)) {
 				selected_index = choices_names.indexOf(input_text);
 				show_options = false;
+				active_index = null;
 				filter_input.blur();
 			} else if (allow_custom_value) {
 				value = input_text;
 				selected_index = null;
 				show_options = false;
+				active_index = null;
 				filter_input.blur();
 			}
 		}
