@@ -391,11 +391,6 @@ class Queue:
                 gr_request=gr_request,
                 fn_index_inferred=fn_index_inferred,
             )
-        except asyncio.CancelledError:
-            # `asyncio.CancelledError` can be raised in a normal case and we don't want to show it to the user,
-            # so we catch it here before the `BaseException` handler that prints the traceback.
-            # Ref: https://github.com/gradio-app/gradio/pull/5165#discussion_r1310497840
-            raise
         except Exception as error:
             show_error = app.get_blocks().show_error or isinstance(error, Error)
             traceback.print_exc()
