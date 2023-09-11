@@ -15,6 +15,7 @@ __tmp/*
 gradio/templates/*
 gradio/node/*
 _frontend_code/*
+js/gradio-preview/test/*
 
 # Secrets
 .env
