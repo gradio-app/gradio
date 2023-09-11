@@ -218,11 +218,18 @@ class Dropdown(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
 
+    def _warn_if_invalid_choice(self, y):
+        if y is None or self.allow_custom_value:
+            return
+        warnings.warn(
+            f"The value passed into gr.Dropdown() is not in the list of choices. Please update the list of choices to include: {y} or set allow_custom_value=True."
+        )
+
     def postprocess(self, y):
-        if y is not None and y not in self.choices and not self.allow_custom_value:
-            warnings.warn(
-                f"The value passed into gr.Dropdown() is not in the list of choices. Please update the list of choices to include: {y} or set allow_custom_value=True."
-            )
+        if self.multiselect:
+            [self._warn_if_invalid_choice(_y) for _y in y]
+        else:
+            self._warn_if_invalid_choice(y)
         return y
 
     def set_interpret_parameters(self):
