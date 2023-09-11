@@ -10,7 +10,7 @@ class BuildHook(BuildHookInterface):
 
     def initialize(self, version: str, build_data: dict[str, Any]) -> None:
 
-        NOT_COMPONENT = ["app", "atoms", "node_modules", "playwright-report", "wasm", "workbench", "utils", "tooltip", "tooltils"]
+        NOT_COMPONENT = ["app", "node_modules", "storybook", "playwright-report", "wasm", "workbench", "tooltip", "tooltils"]
         for entry in pathlib.Path("js").iterdir():
             if (entry.is_dir() and
                 not str(entry.name).startswith("_") and 
