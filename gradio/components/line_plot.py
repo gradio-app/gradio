@@ -82,6 +82,7 @@ class LinePlot(Plot):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        **kwargs
     ):
         """
         Parameters:
@@ -146,6 +147,7 @@ class LinePlot(Plot):
             elem_id=elem_id,
             elem_classes=elem_classes,
             every=every,
+            **kwargs
         )
 
     def get_block_name(self) -> str:

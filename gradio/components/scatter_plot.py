@@ -97,6 +97,7 @@ class ScatterPlot(Plot):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        **kwargs
     ):
         """
         Parameters:
@@ -165,6 +166,7 @@ class ScatterPlot(Plot):
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            **kwargs
         )
 
     def get_block_name(self) -> str:
