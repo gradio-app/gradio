@@ -66,6 +66,7 @@ jobs:
       run: |
         python scripts/upload_website_demos.py --AUTH_TOKEN ${{ secrets.SPACES_DEPLOY_TOKEN }} \
         --WHEEL_URL https://gradio-builds.s3.amazonaws.com/${{ steps.set-outputs.outputs.gh_sha }}/ \
+        --GRADIO_VERSION ${{ steps.set-outputs.outputs.gradio_version }}
 
   comment-spaces-success:
     uses: "./.github/workflows/comment-queue.yml"
