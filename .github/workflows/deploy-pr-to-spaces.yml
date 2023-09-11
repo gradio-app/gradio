@@ -59,6 +59,7 @@ jobs:
         --gradio-version ${{ steps.set-outputs.outputs.gradio_version }} > url.txt
         echo "SPACE_URL=$(cat url.txt)" >> $GITHUB_OUTPUT
     - name: Upload website demos 
+      needs: [Changesets]
       if: >
         github.event.workflow_run.event == 'push' &&
         github.event.workflow_run.conclusion == 'success'
