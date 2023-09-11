@@ -22,7 +22,8 @@ export default [
 		input: "src/index.ts",
 		output: {
 			dir: "../../gradio/node/dev/files",
-			format: "esm"
+			format: "esm",
+			minifyInternalExports: false
 		},
 		plugins: [
 			ts(),
@@ -118,9 +119,21 @@ export default [
 					if (id === "svelte/internal") {
 						return "./svelte-internal.js";
 					}
+
+					if (id === "svelte/action") {
+						return "./svelte-action.js";
+					}
 				}
 			}
 		]
+	},
+	{
+		input: "src/svelte-action.ts",
+		output: {
+			file: "../../gradio/node/dev/svelte-action.js",
+			format: "esm"
+		},
+		plugins: [node(), json(), cjs(), ts()]
 	},
 	{
 		input: "src/svelte-internal.ts",

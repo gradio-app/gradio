@@ -20,6 +20,8 @@
 		"vite": "^4.4.9"
 	},
 	"dependencies": {
+		"@originjs/vite-plugin-commonjs": "^1.0.3",
+		"@rollup/plugin-sucrase": "^5.0.1",
 		"@sveltejs/vite-plugin-svelte": "^2.4.2",
 		"coffeescript": "^2.7.0",
 		"css-tree": "2.3.1",
@@ -29,7 +31,9 @@
 		"rollup-plugin-ignore": "^1.0.10",
 		"sass": "^1.66.1",
 		"stylus": "^0.60.0",
+		"sucrase": "^3.34.0",
 		"sugarss": "^4.0.1",
-		"svelte": "^4.2.0"
+		"svelte": "^4.2.0",
+		"yootils": "^0.3.1"
 	}
 }

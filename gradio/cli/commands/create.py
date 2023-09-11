@@ -34,6 +34,7 @@ package_json = {
         "@gradio/atoms": "workspace:^",
         "@gradio/statustracker": "workspace:^",
         "@gradio/utils": "workspace:^",
+        "@gradio/icons": "workspace:^",
     },
 }
 
@@ -182,6 +183,10 @@ def _create(
             help="Whether to install the component in your current environment as a local install"
         ),
     ] = False,
+    npm_install: Annotated[
+        str,
+        typer.Option(help="NPM install command to use. Default is 'npm install'."),
+    ] = "npm install",
 ):
     if not directory:
         directory = pathlib.Path(name.lower())
@@ -207,14 +212,31 @@ def _create(
         if install:
             cmds = ["pip", "install", "-e", f"{str(directory)}"]
             live.update(
-                f":construction_worker: Installing... [grey37]({' '.join(cmds)})[/]"
+                f":construction_worker: Installing python... [grey37]({' '.join(cmds)})[/]"
             )
             pipe = subprocess.run(cmds, capture_output=True, text=True)
+
             if pipe.returncode != 0:
-                live.update(":red_square: Installation [bold][red]failed[/][/]")
+                live.update(":red_square: Python installation [bold][red]failed[/][/]")
                 live.update(pipe.stderr)
             else:
-                live.update(":white_check_mark: Install succeeded!")
+                live.update(":white_check_mark: Python install succeeded!")
+
+            live.update(
+                f":construction_worker: Installing javascript... [grey37]({npm_install})[/]"
+            )
+            pipe = subprocess.run(npm_install.split(), capture_output=True, text=True)
+            if pipe.returncode != 0:
+                live.update(":red_square: NPM install [bold][red]failed[/][/]")
+                live.update(pipe.stderr)
+            else:
+                live.update(":white_check_mark: NPM install succeeded!")
+
+
+gradio_template_path = pathlib.Path(gradio.__file__).parent / "templates" / "dev"
+gradio_node_path = (
+    pathlib.Path(gradio.__file__).parent / "node" / "dev" / "files" / "index.js"
+)
 
 
 @app.command(
@@ -242,11 +264,23 @@ def dev(
             f"Cannot find pyproject.toml file in {component_directory}. Make sure "
             f"{component_directory} parameter points to a valid python package."
         )
+    print(gradio_template_path)
+    print(gradio_node_path)
 
     with LivePanelDisplay() as live:
         live.update(f":recycle: [green]Launching[/] {app} in reload mode")
+
         proc = subprocess.Popen(
-            ["gradio", str(app), "--watch-dirs", component_directory],
+            [
+                "node",
+                gradio_node_path,
+                "--component-directory",
+                component_directory,
+                "--root",
+                gradio_template_path,
+                "--app",
+                str(app),
+            ],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
         )

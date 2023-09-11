@@ -76,7 +76,7 @@ class NewText(FormComponent):
             type: The type of textbox. One of: 'text', 'password', 'email', Default is 'text'.
             text_align: How to align the text in the textbox, can be: "left", "right", or None (default). If None, the alignment is left if `rtl` is False, or right if `rtl` is True. Can only be changed if `type` is "text".
             rtl: If True and `type` is "text", sets the direction of the text to right-to-left (cursor appears on the left of the text). Default is False, which renders cursor on the right.
-            sadshow_copy_button: If True, includes a copy button to copy the text in the textbox. Only applies if show_label is True.
+            show_copy_button: If True, includes a copy button to copy the text in the textbox. Only applies if show_label is True.
         """
         if type not in ["text", "password", "email"]:
             raise ValueError('`type` must be one of "text", "password", or "email".')
@@ -90,7 +90,7 @@ class NewText(FormComponent):
         self.show_copy_button = show_copy_button
         self.autofocus = autofocus
         super().__init__(
-            label=label,
+            label="BOOOOOOOOO",
             info=info,
             every=every,
             show_label=show_label,
@@ -180,7 +180,7 @@ class NewText(FormComponent):
         Parameters:
             y: function output to postprocess.
         Returns:
-            textasd
+            text
         """
         return None if y is None else str(y)
 

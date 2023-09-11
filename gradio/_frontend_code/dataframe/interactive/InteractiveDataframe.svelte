@@ -1,0 +1,92 @@
+<script lang="ts">
+	import type { Gradio, SelectData } from "@gradio/utils";
+	import { Block } from "@gradio/atoms";
+	import Table from "../shared";
+	import { StatusTracker } from "@gradio/statustracker";
+	import type { LoadingStatus } from "@gradio/statustracker";
+	import { afterUpdate } from "svelte";
+
+	type Headers = string[];
+	type Data = (string | number)[][];
+	type Datatype = "str" | "markdown" | "html" | "number" | "bool" | "date";
+
+	export let headers: Headers = [];
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
+	export let value: { data: Data; headers: Headers } = {
+		data: [["", "", ""]],
+		headers: ["1", "2", "3"]
+	};
+	export let latex_delimiters: {
+		left: string;
+		right: string;
+		display: boolean;
+	}[];
+	export let height: number | undefined = undefined;
+
+	let old_value: string = JSON.stringify(value);
+	export let value_is_output = false;
+	export let col_count: [number, "fixed" | "dynamic"];
+	export let row_count: [number, "fixed" | "dynamic"];
+	export let label: string | null = null;
+	export let wrap: boolean;
+	export let datatype: Datatype | Datatype[];
+	export let scale: number | null = null;
+	export let min_width: number | undefined = undefined;
+	export let root: string;
+
+	export let gradio: Gradio<{
+		change: never;
+		select: SelectData;
+		input: never;
+	}>;
+
+	export let loading_status: LoadingStatus;
+
+	function handle_change(): void {
+		gradio.dispatch("change");
+		if (!value_is_output) {
+			gradio.dispatch("input");
+		}
+	}
+	afterUpdate(() => {
+		value_is_output = false;
+	});
+	$: {
+		if (JSON.stringify(value) !== old_value) {
+			old_value = JSON.stringify(value);
+			handle_change();
+		}
+	}
+</script>
+
+<Block
+	{visible}
+	padding={false}
+	{elem_id}
+	{elem_classes}
+	container={false}
+	{scale}
+	{min_width}
+	allow_overflow={false}
+>
+	<StatusTracker {...loading_status} />
+	<Table
+		{label}
+		{row_count}
+		{col_count}
+		{root}
+		values={value}
+		{headers}
+		on:change={({ detail }) => {
+			value = detail;
+		}}
+		on:select={(e) => gradio.dispatch("select", e.detail)}
+		editable
+		{wrap}
+		{datatype}
+		{latex_delimiters}
+		{height}
+	/>
+</Block>
