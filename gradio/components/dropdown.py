@@ -219,13 +219,15 @@ class Dropdown(
             )
 
     def _warn_if_invalid_choice(self, y):
-        if y is None or self.allow_custom_value:
+        if self.allow_custom_value or y in [value for _, value in self.choices]:
             return
         warnings.warn(
             f"The value passed into gr.Dropdown() is not in the list of choices. Please update the list of choices to include: {y} or set allow_custom_value=True."
         )
 
     def postprocess(self, y):
+        if y is None:
+            return None
         if self.multiselect:
             [self._warn_if_invalid_choice(_y) for _y in y]
         else:

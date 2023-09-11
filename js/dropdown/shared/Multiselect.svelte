@@ -64,7 +64,9 @@
 			filtered_indices = handle_filter(choices, input_text);
 			old_choices = choices;
 			old_input_text = input_text;
-			active_index = filtered_indices[0];
+			if (!allow_custom_value) {
+				active_index = filtered_indices[0];
+			}
 		}
 	}
 
