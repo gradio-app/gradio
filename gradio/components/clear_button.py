@@ -32,6 +32,7 @@ class ClearButton(Button):
         icon: str | None = None,
         link: str | None = None,
         visible: bool = True,
+        render: bool = True,
         interactive: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,

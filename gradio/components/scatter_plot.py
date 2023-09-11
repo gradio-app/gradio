@@ -95,6 +95,7 @@ class ScatterPlot(Plot):
         scale: int | None = None,
         min_width: int = 160,
         visible: bool = True,
+        render: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
     ):
@@ -156,6 +157,7 @@ class ScatterPlot(Plot):
         self.y_lim = y_lim
         super().__init__(
             value=value,
+            render=render,
             label=label,
             every=every,
             show_label=show_label,

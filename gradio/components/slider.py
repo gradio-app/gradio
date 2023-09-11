@@ -55,6 +55,7 @@ class Slider(
         min_width: int = 160,
         interactive: bool | None = None,
         visible: bool = True,
+        render: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         randomize: bool = False,
@@ -75,6 +76,7 @@ class Slider(
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: if True, slider will be adjustable; if False, adjusting will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
+            render: If False, component will not be added to Blocks.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             randomize: If True, the value of the slider when the app loads is taken uniformly at random from the range given by the minimum and maximum.
@@ -103,6 +105,7 @@ class Slider(
             elem_id=elem_id,
             elem_classes=elem_classes,
             value=value,
+            render=render,
             **kwargs,
         )
         NeighborInterpretable.__init__(self)

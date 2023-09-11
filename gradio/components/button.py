@@ -34,6 +34,7 @@ class Button(Clickable, IOComponent, StringSerializable):
         icon: str | None = None,
         link: str | None = None,
         visible: bool = True,
+        render: bool = True,
         interactive: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
@@ -49,6 +50,7 @@ class Button(Clickable, IOComponent, StringSerializable):
             icon: URL or path to the icon file to display within the button. If None, no icon will be displayed. Must be within the working directory of the Gradio app or an external URL.
             link: URL to open when the button is clicked. If None, no link will be used.
             visible: If False, component will be hidden.
+            render: If False, component will not be added to Blocks.
             interactive: If False, the Button will be in a disabled state.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -61,6 +63,7 @@ class Button(Clickable, IOComponent, StringSerializable):
             elem_id=elem_id,
             elem_classes=elem_classes,
             value=value,
+            render=render,
             interactive=interactive,
             scale=scale,
             min_width=min_width,

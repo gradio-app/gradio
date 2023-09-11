@@ -66,6 +66,7 @@ class Audio(
         min_width: int = 160,
         interactive: bool | None = None,
         visible: bool = True,
+        render: bool = True,
         streaming: bool = False,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
@@ -89,6 +90,7 @@ class Audio(
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: if True, will allow users to upload and edit a audio file; if False, can only be used to play audio. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
+            render: If False, component will not be added to Blocks.
             streaming: If set to True when used in a `live` interface as an input, will automatically stream webcam feed. When used set as an output, takes audio chunks yield from the backend and combines them into one streaming audio output.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -138,6 +140,7 @@ class Audio(
             elem_id=elem_id,
             elem_classes=elem_classes,
             value=value,
+            render=render,
             **kwargs,
         )
         TokenInterpretable.__init__(self)

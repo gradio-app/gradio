@@ -33,6 +33,7 @@ class HTML(Changeable, IOComponent, StringSerializable):
         every: float | None = None,
         show_label: bool | None = None,
         visible: bool = True,
+        render: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         **kwargs,
@@ -44,6 +45,7 @@ class HTML(Changeable, IOComponent, StringSerializable):
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
+            render: If False, component will not be added to Blocks.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
@@ -56,6 +58,7 @@ class HTML(Changeable, IOComponent, StringSerializable):
             elem_id=elem_id,
             elem_classes=elem_classes,
             value=value,
+            render=render,
             **kwargs,
         )
 

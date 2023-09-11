@@ -45,6 +45,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         scale: int | None = None,
         min_width: int = 160,
         visible: bool = True,
+        render: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         columns: int | tuple | None = 2,
@@ -68,6 +69,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             visible: If False, component will be hidden.
+            render: If False, component will not be added to Blocks.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             columns: Represents the number of images that should be shown in one row, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
@@ -114,6 +116,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             elem_id=elem_id,
             elem_classes=elem_classes,
             value=value,
+            render=render,
             **kwargs,
         )
 

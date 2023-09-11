@@ -48,6 +48,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
         scale: int | None = None,
         min_width: int = 160,
         visible: bool = True,
+        render: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         **kwargs,
@@ -65,6 +66,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             visible: If False, component will be hidden.
+            render: If False, component will not be added to Blocks.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
@@ -90,6 +92,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
             elem_id=elem_id,
             elem_classes=elem_classes,
             value=value,
+            render=render,
             **kwargs,
         )
 

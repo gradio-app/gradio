@@ -35,6 +35,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         *,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         visible: bool = True,
+        render: bool = True,
         size: Literal["sm", "lg"] | None = None,
         scale: int | None = None,
         min_width: int | None = None,
@@ -52,6 +53,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             value: File or list of files to upload by default.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             visible: If False, component will be hidden.
+            render: If False, component will not be added to Blocks.
             size: Size of the button. Can be "sm" or "lg".
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
@@ -83,6 +85,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             elem_id=elem_id,
             elem_classes=elem_classes,
             value=value,
+            render=render,
             scale=scale,
             min_width=min_width,
             interactive=interactive,

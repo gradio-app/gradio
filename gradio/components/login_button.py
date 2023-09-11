@@ -31,6 +31,7 @@ class LoginButton(Button):
         | None = "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
         link: str | None = None,
         visible: bool = True,
+        render: bool = True,
         interactive: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
