@@ -353,7 +353,7 @@
 	}
 	.share-button {
 		position: absolute;
-		top: 6px;
+		top: 4px;
 		right: 6px;
 	}
 	.like {
