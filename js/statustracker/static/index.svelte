@@ -66,6 +66,7 @@
 	export let loading_text = "Loading...";
 	export let absolute = true;
 	export let translucent = false;
+	export let border = false;
 
 	let el: HTMLDivElement;
 
@@ -190,6 +191,7 @@
 		translucent ||
 		show_progress === "minimal"}
 	class:generating={status === "generating"}
+	class:border
 	style:position={absolute ? "absolute" : "static"}
 	style:padding={absolute ? "0" : "var(--size-8) 0"}
 	bind:this={el}
@@ -412,5 +414,9 @@
 
 	.minimal .progress-text {
 		background: var(--block-background-fill);
+	}
+
+	.border {
+		border: 1px solid var(--border-color-primary);
 	}
 </style>

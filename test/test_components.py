@@ -2739,11 +2739,13 @@ class TestBarPlot:
             tooltip=["a", "b"],
             title="Made Up Bar Plot",
             x_title="Variable A",
+            sort="x",
         )
         output = plot.postprocess(simple)
         assert sorted(output.keys()) == ["chart", "plot", "type"]
         assert output["chart"] == "bar"
         config = json.loads(output["plot"])
+        assert config["encoding"]["x"]["sort"] == "x"
         assert config["encoding"]["x"]["field"] == "a"
         assert config["encoding"]["x"]["title"] == "Variable A"
         assert config["encoding"]["y"]["field"] == "b"
