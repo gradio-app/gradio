@@ -93,6 +93,7 @@
 			input_text = "";
 		}
 		show_options = false;
+		active_index = null;
 		dispatch("blur");
 	}
 
@@ -122,6 +123,7 @@
 		}
 		if (selected_indices.length === max_choices) {
 			show_options = false;
+			active_index = null;
 			filter_input.blur();
 		}
 	}
@@ -175,6 +177,7 @@
 		}
 		if (selected_indices.length === max_choices) {
 			show_options = false;
+			active_index = null;
 		}
 	}
 
