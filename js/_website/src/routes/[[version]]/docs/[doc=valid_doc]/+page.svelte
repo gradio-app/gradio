@@ -119,6 +119,9 @@
 						{/if}
 					</button>
 						<pre class="language-bash" style="padding-right: 25px;"><code class="language-bash text-xs">pip install {wheel}</code></pre>
+					<p class="float-right text-sm">
+						*Note: Setting <code style="font-size: 0.85rem">share=True</code> in <code style="font-size: 0.85rem">launch()</code> will not work. 
+					</p>
 					</div>
 			{/if}
 
