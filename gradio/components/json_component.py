@@ -124,7 +124,6 @@ class JSON(Component):
         if container is not None:
             self.container = container
         return self
-    
+
     def api_info(self) -> dict[str, list[str]]:
-        return {"type": {},
-		        "description": "any valid json"}
+        return {"type": {}, "description": "any valid json"}

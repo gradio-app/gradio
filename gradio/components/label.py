@@ -99,7 +99,9 @@ class Label(Component):
             **Component.get_config(self),
         }
 
-    def postprocess(self, y: dict[str, float] | str | float | None) -> LabelData | dict | None:
+    def postprocess(
+        self, y: dict[str, float] | str | float | None
+    ) -> LabelData | dict | None:
         """
         Parameters:
             y: a dictionary mapping labels to confidence value, or just a string/numerical label by itself

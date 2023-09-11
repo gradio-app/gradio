@@ -3,10 +3,10 @@ of the on-page-load event, which is defined in gr.Blocks().load()."""
 
 from __future__ import annotations
 
+from functools import partial
 from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
 
 from gradio_client.documentation import document
-from functools import partial
 
 if TYPE_CHECKING:
     from gradio.blocks import Block, Component
@@ -37,11 +37,14 @@ class Dependency(dict):
     def __init__(self, trigger: Block, key_vals, dep_index):
         super().__init__(key_vals)
         self.trigger = trigger
-        self.then = partial(EventListener(
-            "then",
-            trigger_after=dep_index,
-            trigger_only_on_success=False,
-        ).listener, trigger)
+        self.then = partial(
+            EventListener(
+                "then",
+                trigger_after=dep_index,
+                trigger_only_on_success=False,
+            ).listener,
+            trigger,
+        )
         """
         Triggered after directly preceding event is completed, regardless of success or failure.
         """
@@ -176,12 +179,8 @@ class EventListener(str):
                 warn_deprecation(
                     "The `stop` event on Video and Audio has been deprecated and will be remove in a future version. Use `ended` instead."
                 )
-            try:
-                if "stream" in block.events:
-                    block.check_streamable()
-            except:
-                breakpoint()
-                2 + 2
+            if "stream" in block.events:
+                block.check_streamable()
             if isinstance(show_progress, bool):
                 show_progress = "full" if show_progress else "hidden"
 

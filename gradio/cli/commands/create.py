@@ -1,5 +1,6 @@
 """Create a custom component template"""
 
+import copy
 import inspect
 import json
 import pathlib
@@ -13,8 +14,9 @@ from typing_extensions import Annotated
 
 import gradio
 from gradio.cli.commands.display import LivePanelDisplay
+from gradio.utils import set_directory
 
-package_json = {
+PACKAGE_JSON = {
     "name": "<component-name>",
     "version": "0.0.1",
     "description": "Custom Component",
@@ -30,12 +32,6 @@ package_json = {
         "./static": "./static/index.ts",
         "./example": "./example/index.ts",
     },
-    "dependencies": {
-        "@gradio/atoms": "workspace:^",
-        "@gradio/statustracker": "workspace:^",
-        "@gradio/utils": "workspace:^",
-        "@gradio/icons": "workspace:^",
-    },
 }
 
 app = typer.Typer()
@@ -47,9 +43,14 @@ def _create_frontend_dir(name: str, dir: pathlib.Path):
     (dir / "index.ts").write_text(f'export {{ default }} from "./{name}.svelte";')
 
 
-def _create_frontend(name: str, template: str, directory: pathlib.Path):
-    package_json["name"] = name
+def get_js_dependency_version(name: str, local_js_dir: pathlib.Path) -> str:
+    package_json = json.load(
+        open(str(local_js_dir / name.split("/")[1] / "package.json"))
+    )
+    return package_json["version"]
 
+
+def _create_frontend(name: str, template: str, directory: pathlib.Path):
     frontend = directory / "frontend"
     frontend.mkdir(exist_ok=True)
 
@@ -57,6 +58,10 @@ def _create_frontend(name: str, template: str, directory: pathlib.Path):
         for dirname in ["example", "interactive", "shared", "static"]:
             dir = frontend / dirname
             _create_frontend_dir(name, dir)
+        package_json = copy.copy(PACKAGE_JSON)
+        package_json["name"] = name
+        json.dump(package_json, open(str(frontend / "package.json"), "w"), indent=2)
+
     else:
         p = pathlib.Path(inspect.getfile(gradio)).parent
 
@@ -68,6 +73,7 @@ def _create_frontend(name: str, template: str, directory: pathlib.Path):
                     or n.startswith("README.md")
                     or ".test." in n
                     or ".stories." in n
+                    or ".spec." in n
                 ):
                     ignored.append(n)
             return ignored
@@ -78,8 +84,15 @@ def _create_frontend(name: str, template: str, directory: pathlib.Path):
             dirs_exist_ok=True,
             ignore=ignore,
         )
+        source_package_json = json.load(open(str(frontend / "package.json")))
+        for dep in source_package_json.get("dependencies", []):
+            source_package_json["dependencies"][dep] = get_js_dependency_version(
+                dep, p / "_frontend_code"
+            )
 
-    json.dump(package_json, open(str(frontend / "package.json"), "w"), indent=2)
+        json.dump(
+            source_package_json, open(str(frontend / "package.json"), "w"), indent=2
+        )
 
 
 def _create_backend(name: str, template: str, directory: pathlib.Path):
@@ -225,12 +238,15 @@ def _create(
             live.update(
                 f":construction_worker: Installing javascript... [grey37]({npm_install})[/]"
             )
-            pipe = subprocess.run(npm_install.split(), capture_output=True, text=True)
-            if pipe.returncode != 0:
-                live.update(":red_square: NPM install [bold][red]failed[/][/]")
-                live.update(pipe.stderr)
-            else:
-                live.update(":white_check_mark: NPM install succeeded!")
+            with set_directory(directory / "frontend"):
+                pipe = subprocess.run(
+                    npm_install.split(), capture_output=True, text=True
+                )
+                if pipe.returncode != 0:
+                    live.update(":red_square: NPM install [bold][red]failed[/][/]")
+                    live.update(pipe.stderr)
+                else:
+                    live.update(":white_check_mark: NPM install succeeded!")
 
 
 gradio_template_path = pathlib.Path(gradio.__file__).parent / "templates" / "dev"
