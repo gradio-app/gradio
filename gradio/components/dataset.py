@@ -38,7 +38,6 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
         type: Literal["values", "index"] = "values",
         samples_per_page: int = 10,
         visible: bool = True,
-        render: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         container: bool = True,
@@ -54,7 +53,6 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
             type: 'values' if clicking on a sample should pass the value of the sample, or "index" if it should pass the index of the sample
             samples_per_page: how many examples to show per page.
             visible: If False, component will be hidden.
-            render: If False, component will not be added to Blocks.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             container: If True, will place the component in a container - providing some extra padding around the border.

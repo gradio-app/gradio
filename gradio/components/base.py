@@ -130,7 +130,6 @@ class IOComponent(Component):
         min_width: int | None = None,
         interactive: bool | None = None,
         visible: bool = True,
-        render: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         load_fn: Callable | None = None,
@@ -143,12 +142,7 @@ class IOComponent(Component):
         )
 
         Component.__init__(
-            self,
-            elem_id=elem_id,
-            elem_classes=elem_classes,
-            visible=visible,
-            render=render,
-            **kwargs,
+            self, elem_id=elem_id, elem_classes=elem_classes, visible=visible, **kwargs
         )
 
         self.label = label

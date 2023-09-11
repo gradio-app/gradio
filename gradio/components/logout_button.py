@@ -29,7 +29,6 @@ class LogoutButton(Button):
         # Link to logout page (which will delete the session cookie and redirect to landing page).
         link: str | None = "/logout",
         visible: bool = True,
-        render: bool = True,
         interactive: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,

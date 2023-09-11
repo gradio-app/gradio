@@ -44,7 +44,6 @@ class ColorPicker(
         min_width: int = 160,
         interactive: bool | None = None,
         visible: bool = True,
-        render: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         **kwargs,
@@ -61,7 +60,6 @@ class ColorPicker(
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: if True, will be rendered as an editable color picker; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
-            render: If False, component will not be added to Blocks.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
@@ -79,7 +77,6 @@ class ColorPicker(
             elem_id=elem_id,
             elem_classes=elem_classes,
             value=value,
-            render=render,
             **kwargs,
         )
 

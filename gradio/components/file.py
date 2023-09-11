@@ -58,7 +58,6 @@ class File(
         height: int | float | None = None,
         interactive: bool | None = None,
         visible: bool = True,
-        render: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         **kwargs,
@@ -78,7 +77,6 @@ class File(
             height: The maximum height of the file component, in pixels. If more files are uploaded than can fit in the height, a scrollbar will appear.
             interactive: if True, will allow users to upload a file; if False, can only be used to display files. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
-            render: If False, component will not be added to Blocks.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
@@ -126,7 +124,6 @@ class File(
             elem_id=elem_id,
             elem_classes=elem_classes,
             value=value,
-            render=render,
             **kwargs,
         )
 

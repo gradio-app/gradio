@@ -27,7 +27,6 @@ class Interpretation(Component, SimpleSerializable):
         component: Component,
         *,
         visible: bool = True,
-        render: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         **kwargs,

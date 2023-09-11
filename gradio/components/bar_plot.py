@@ -67,7 +67,6 @@ class BarPlot(Plot):
         min_width: int = 160,
         every: float | None = None,
         visible: bool = True,
-        render: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         sort: Literal["x", "y", "-x", "-y"] | None = None,
@@ -125,7 +124,6 @@ class BarPlot(Plot):
         self.sort = sort
         super().__init__(
             value=value,
-            render=render,
             label=label,
             show_label=show_label,
             container=container,
