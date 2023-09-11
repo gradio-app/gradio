@@ -41,9 +41,9 @@ class Dropdown(
 
     def __init__(
         self,
-        choices: list[str | tuple[str, str]] | None = None,
+        choices: list[str | int | float | tuple[str, str | int | float]] | None = None,
         *,
-        value: str | list[str] | Callable | None = None,
+        value: str | int | float | list[str | int | float] | Callable | None = None,
         type: Literal["value", "index"] = "value",
         multiselect: bool | None = None,
         allow_custom_value: bool = False,
@@ -217,6 +217,11 @@ class Dropdown(
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
+
+    def postprocess(self, y):
+        if y is not None and y not in self.choices and not self.allow_custom_value:
+            warnings.warn(f"The value passed into gr.Dropdown() is not in the list of choices. Please update the list of choices to include: {y} or set allow_custom_value=True.")
+        return y
 
     def set_interpret_parameters(self):
         """
