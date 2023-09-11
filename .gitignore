@@ -14,7 +14,7 @@ __tmp/*
 # JS build
 gradio/templates/*
 gradio/node/*
-_frontend_code/*
+gradio/_frontend_code/*
 js/gradio-preview/test/*
 
 # Secrets
