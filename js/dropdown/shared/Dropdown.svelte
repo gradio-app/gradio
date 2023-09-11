@@ -9,8 +9,8 @@
 
 	export let label: string;
 	export let info: string | undefined = undefined;
-	export let value: string | string[] | undefined;
-	let old_value: string | string[] | undefined;
+	export let value: string | number | (string | number)[] | undefined = [];
+	let old_value: string | number | (string | number)[] | undefined = [];
 	export let value_is_output = false;
 	export let choices: [string, string | number][];
 	let old_choices: [string, string | number][];
@@ -23,7 +23,7 @@
 
 	let show_options = false;
 	let choices_names: string[];
-	let choices_values: string[];
+	let choices_values: (string | number)[];
 	let input_text = "";
 	let old_input_text = "";
 	let initialized = false;
