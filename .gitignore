@@ -13,6 +13,7 @@ __tmp/*
 
 # JS build
 gradio/templates/*
+gradio/node/*
 
 # Secrets
 .env
