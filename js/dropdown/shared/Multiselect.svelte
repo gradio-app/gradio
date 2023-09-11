@@ -212,7 +212,10 @@
 				<!-- TODO: fix -->
 				<!-- svelte-ignore a11y-click-events-have-key-events -->
 				<!-- svelte-ignore a11y-no-static-element-interactions-->
-				<div on:click|preventDefault={() => remove_selected_choice(s)} class="token">
+				<div
+					on:click|preventDefault={() => remove_selected_choice(s)}
+					class="token"
+				>
 					<span>
 						{#if typeof s === "number"}
 							{choices_names[s]}
@@ -230,8 +233,9 @@
 			<div class="secondary-wrap">
 				<input
 					class="border-none"
-					class:subdued={!choices_names.includes(input_text) &&
-						!allow_custom_value || selected_indices.length === max_choices}
+					class:subdued={(!choices_names.includes(input_text) &&
+						!allow_custom_value) ||
+						selected_indices.length === max_choices}
 					{disabled}
 					autocomplete="off"
 					bind:value={input_text}
