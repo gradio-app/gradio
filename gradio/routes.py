@@ -167,7 +167,11 @@ class App(FastAPI):
         blocks: gradio.Blocks, app_kwargs: Dict[str, Any] | None = None
     ) -> App:
         app_kwargs = app_kwargs or {}
-        if not wasm_utils.IS_WASM:
+        if wasm_utils.IS_WASM:
+            # `orjson` does not work in WASM, so we use the default JSONResponse.
+            # TODO: However, `orjson` is needed for some components to work such as Plotly, so we need to find a way to make it work.
+            app_kwargs.setdefault("default_response_class", JSONResponse)
+        else:
             app_kwargs.setdefault("default_response_class", ORJSONResponse)
         app = App(**app_kwargs)
         app.configure_app(blocks)
