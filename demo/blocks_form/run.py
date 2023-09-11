@@ -14,9 +14,9 @@ with gr.Blocks() as demo:
 
     def submit(name, age, symptoms):
         if len(name) == 0:
-            return {error_box: gr.2date(value="Enter name", visible=True)}
+            return {error_box: gr.Textbox(value="Enter name", visible=True)}
         return {
-            output_col: gr.2date(visible=True),
+            output_col: gr.Column(visible=True),
             diagnosis_box: "covid" if "Cough" in symptoms else "flu",
             patient_summary_box: f"{name}, {age} y/o",
         }

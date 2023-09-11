@@ -5,7 +5,7 @@ import time
 def add_to_stream(audio, instream):
     time.sleep(1)
     if audio is None:
-        return gr.2date(), instream
+        return gr.Audio(), instream
     if instream is None:
         ret = audio
     else:
