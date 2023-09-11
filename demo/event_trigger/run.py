@@ -17,7 +17,7 @@ def alert_change(component, value):
 
 
 def change_interactive(state):
-    return gr.update(interactive=not state), not state
+    return gr.2date(interactive=not state), not state
 
 
 with gr.Blocks() as demo:

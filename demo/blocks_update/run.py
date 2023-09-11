@@ -24,20 +24,20 @@ with gr.Blocks() as demo:
     }
 
     def filter_species(species):
-        return gr.Dropdown.update(
+        return gr.Dropdown(
             choices=species_map[species], value=species_map[species][1]
-        ), gr.update(visible=True)
+        ), gr.2date(visible=True)
 
     species.change(filter_species, species, [animal, details_col])
 
     def filter_weight(animal):
         if animal in ("Elephant", "Shark", "Giraffe"):
-            return gr.update(maximum=100)
+            return gr.2date(maximum=100)
         else:
-            return gr.update(maximum=20)
+            return gr.2date(maximum=20)
 
     animal.change(filter_weight, animal, weight)
-    weight.change(lambda w: gr.update(lines=int(w / 10) + 1), weight, details)
+    weight.change(lambda w: gr.2date(lines=int(w / 10) + 1), weight, details)
 
     generate_btn.click(lambda x: x, details, output)
 

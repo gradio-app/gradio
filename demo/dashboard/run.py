@@ -10,29 +10,29 @@ LIBRARIES = ["accelerate", "datasets", "diffusers", "evaluate", "gradio", "hub_d
 
 def create_pip_plot(libraries, pip_choices):
     if "Pip" not in pip_choices:
-        return gr.update(visible=False)
+        return gr.2date(visible=False)
     output = retrieve_pip_installs(libraries, "Cumulated" in pip_choices)
     df = pd.DataFrame(output).melt(id_vars="day")
     plot = px.line(df, x="day", y="value", color="variable",
                    title="Pip installs")
     plot.update_layout(legend=dict(x=0.5, y=0.99),  title_x=0.5, legend_title_text="")
-    return gr.update(value=plot, visible=True)
+    return gr.2date(value=plot, visible=True)
 
 
 def create_star_plot(libraries, star_choices):
     if "Stars" not in star_choices:
-        return gr.update(visible=False)
+        return gr.2date(visible=False)
     output = retrieve_stars(libraries, "Week over Week" in star_choices)
     df = pd.DataFrame(output).melt(id_vars="day")
     plot = px.line(df, x="day", y="value", color="variable",
                    title="Number of stargazers")
     plot.update_layout(legend=dict(x=0.5, y=0.99),  title_x=0.5, legend_title_text="")
-    return gr.update(value=plot, visible=True)
+    return gr.2date(value=plot, visible=True)
 
 
 def create_issue_plot(libraries, issue_choices):
     if "Issue" not in issue_choices:
-        return gr.update(visible=False)
+        return gr.2date(visible=False)
     output = retrieve_issues(libraries,
                              exclude_org_members="Exclude org members" in issue_choices,
                              week_over_week="Week over Week" in issue_choices)
@@ -41,7 +41,7 @@ def create_issue_plot(libraries, issue_choices):
                    title="Cumulated number of issues, PRs, and comments",
                    )
     plot.update_layout(legend=dict(x=0.5, y=0.99),  title_x=0.5, legend_title_text="")
-    return gr.update(value=plot, visible=True)
+    return gr.2date(value=plot, visible=True)
 
 
 with gr.Blocks() as demo:
