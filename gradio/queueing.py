@@ -406,7 +406,11 @@ class Queue:
         # This is done by FastAPI automatically in the HTTP endpoint handlers,
         # but we need to do it manually here.
         response_class = app.router.default_response_class
-        http_response = response_class(
+        if isinstance(response_class, fastapi.datastructures.DefaultPlaceholder):
+            actual_response_class = response_class.value
+        else:
+            actual_response_class = response_class
+        http_response = actual_response_class(
             output
         )  # Do the same as https://github.com/tiangolo/fastapi/blob/0.87.0/fastapi/routing.py#L264
         # Also, decode the JSON string to a Python object, emulating the HTTP client behavior e.g. the `json()` method of `httpx`.
