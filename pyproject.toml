@@ -73,7 +73,7 @@ artifacts = [
   "*.pyi"
 ]
 
-[tool.hatch.build.hooks.custom]
+[tool.hatch.build.targets.wheel.hooks.custom]
 path = ".config/copy_frontend.py"
 
 [tool.hatch.build.targets.sdist]
@@ -83,6 +83,8 @@ include = [
   "/README.md",
   "/requirements.txt",
   "/requirements-oauth.txt",
+  "/.config/copy_frontend.py",
+  "/js"
 ]
 
 [tool.pyright]
