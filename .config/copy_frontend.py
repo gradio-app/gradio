@@ -9,9 +9,8 @@ from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 class BuildHook(BuildHookInterface):
 
     def initialize(self, version: str, build_data: dict[str, Any]) -> None:
-
         NOT_COMPONENT = ["app", "node_modules", "storybook", "playwright-report", "wasm", "workbench", "tooltip", "tooltils"]
-        for entry in pathlib.Path("js").iterdir():
+        for entry in (pathlib.Path(self.root) / "js").iterdir():
             if (entry.is_dir() and
                 not str(entry.name).startswith("_") and 
                 not str(entry.name) in NOT_COMPONENT):
