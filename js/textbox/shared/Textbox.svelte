@@ -63,7 +63,7 @@
 		}
 	}
 	afterUpdate(() => {
-		if (can_scroll) {
+		if (can_scroll && autoscroll) {
 			scroll();
 		}
 		value_is_output = false;
