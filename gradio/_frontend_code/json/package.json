@@ -1,0 +1,24 @@
+{
+	"name": "@gradio/json",
+	"version": "0.0.3",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"main": "./static/index.ts",
+	"author": "",
+	"license": "ISC",
+	"private": true,
+	"dependencies": {
+		"@gradio/atoms": "workspace:^",
+		"@gradio/icons": "workspace:^",
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/utils": "workspace:^"
+	},
+	"main_changeset": true,
+	"exports": {
+		".": "./static/index.ts",
+		"./package.json": "./package.json",
+		"./interactive": "./interactive/index.ts",
+		"./static": "./static/index.ts",
+		"./example": "./example/index.ts"
+	}
+}
