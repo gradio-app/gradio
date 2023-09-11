@@ -11,7 +11,7 @@ from gradio_client.serializing import (
 
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
-from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
+from gradio.events import Changeable, EventListenerMethod, Selectable
 
 set_documentation_group("component")
 
