@@ -220,7 +220,9 @@ class Dropdown(
 
     def postprocess(self, y):
         if y is not None and y not in self.choices and not self.allow_custom_value:
-            warnings.warn(f"The value passed into gr.Dropdown() is not in the list of choices. Please update the list of choices to include: {y} or set allow_custom_value=True.")
+            warnings.warn(
+                f"The value passed into gr.Dropdown() is not in the list of choices. Please update the list of choices to include: {y} or set allow_custom_value=True."
+            )
         return y
 
     def set_interpret_parameters(self):
