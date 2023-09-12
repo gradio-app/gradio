@@ -382,7 +382,9 @@ def component(cls_name: str) -> Component:
     return obj
 
 
-def get_component_instance(comp: str | dict | Component, render: bool = True) -> Component:
+def get_component_instance(
+    comp: str | dict | Component, render: bool = True
+) -> Component:
     if isinstance(comp, str):
         component_obj = component(comp)
         if not render:
