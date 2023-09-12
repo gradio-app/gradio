@@ -332,6 +332,7 @@
 			queue_size={null}
 			translucent={true}
 			{loading_text}
+			i18n={$_}
 		>
 			<!-- todo: translate message text -->
 			<div class="error" slot="error">

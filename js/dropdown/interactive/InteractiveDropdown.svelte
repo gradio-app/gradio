@@ -4,9 +4,8 @@
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { _ } from "svelte-i18n";
 
-	export let label = $_("dropdown.dropdown");
+	export let label = gradio.i18n("dropdown.dropdown");
 	export let info: string | undefined = undefined;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -46,7 +45,7 @@
 	{scale}
 	{min_width}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker i18n={gradio.i18n} {...loading_status} />
 
 	<Dropdown
 		bind:value
@@ -64,5 +63,6 @@
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 		on:blur={() => gradio.dispatch("blur")}
 		on:focus={() => gradio.dispatch("focus")}
+		i18n={gradio.i18n}
 	/>
 </Block>

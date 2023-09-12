@@ -9,12 +9,20 @@
 	import { MarkdownCode as Markdown } from "@gradio/markdown/static";
 	import { get_fetchable_url_or_file } from "@gradio/upload";
 	import Copy from "./Copy.svelte";
+	import type { I18nFormatter } from "js/app/src/gradio_helper";
 
 	export let value:
-		| [string | {file: FileData, alt_text: string | null } | null, string | {file: FileData, alt_text: string | null } | null][]
+		| [
+				string | { file: FileData; alt_text: string | null } | null,
+				string | { file: FileData; alt_text: string | null } | null
+		  ][]
 		| null;
-	let old_value: [string | {file: FileData, alt_text: string | null } | null, string | {file: FileData, alt_text: string | null } | null][] | null =
-		null;
+	let old_value:
+		| [
+				string | { file: FileData; alt_text: string | null } | null,
+				string | { file: FileData; alt_text: string | null } | null
+		  ][]
+		| null = null;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -31,6 +39,7 @@
 	export let bubble_full_width = true;
 	export let root: string;
 	export let root_url: null | string;
+	export let i18n: I18nFormatter;
 
 	let div: HTMLDivElement;
 	let autoscroll: boolean;
@@ -71,7 +80,7 @@
 	function handle_select(
 		i: number,
 		j: number,
-		message: string | {file: FileData, alt_text: string | null } | null
+		message: string | { file: FileData; alt_text: string | null } | null
 	): void {
 		dispatch("select", {
 			index: [i, j],
@@ -83,6 +92,7 @@
 {#if show_share_button && value !== null && value.length > 0}
 	<div class="icon-button">
 		<ShareButton
+			{i18n}
 			on:error
 			on:share
 			formatter={format_chat_for_sharing}

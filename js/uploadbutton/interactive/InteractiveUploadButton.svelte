@@ -5,7 +5,6 @@
 	import UploadButton from "../shared";
 	import { upload_files as default_upload_files } from "@gradio/client";
 	import { blobToBase64 } from "@gradio/upload";
-	import { _ } from "svelte-i18n";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -77,5 +76,5 @@
 	on:click={() => gradio.dispatch("click")}
 	on:load={handle_upload}
 >
-	{$_(label)}
+	{gradio.i18n(label)}
 </UploadButton>

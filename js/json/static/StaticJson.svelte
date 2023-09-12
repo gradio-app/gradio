@@ -6,7 +6,6 @@
 
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { _ } from "svelte-i18n";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -51,7 +50,7 @@
 		/>
 	{/if}
 
-	<StatusTracker {...loading_status} />
+	<StatusTracker i18n={gradio.i18n} {...loading_status} />
 
 	<JSON {value} />
 </Block>

@@ -7,7 +7,7 @@
 
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { _ } from "svelte-i18n";
+	import type { Gradio } from "@gradio/utils";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -22,6 +22,7 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+	export let gradio: Gradio;
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root, root_url);
@@ -40,10 +41,16 @@
 	{scale}
 	{min_width}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker i18n={gradio.i18n} {...loading_status} />
 
 	{#if value}
-		<Model3D value={_value} {clearColor} {label} {show_label} />
+		<Model3D
+			value={_value}
+			{clearColor}
+			{label}
+			{show_label}
+			i18n={gradio.i18n}
+		/>
 	{:else}
 		<!-- Not ideal but some bugs to work out before we can 
 				 make this consistent with other components -->

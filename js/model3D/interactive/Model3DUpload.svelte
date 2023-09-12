@@ -10,6 +10,7 @@
 	export let label = "";
 	export let show_label: boolean;
 	export let root: string;
+	export let i18n: I18nFormatter;
 
 	let mounted = false;
 
@@ -57,6 +58,7 @@
 
 	import * as BABYLON from "babylonjs";
 	import * as BABYLON_LOADERS from "babylonjs-loaders";
+	import type { I18nFormatter } from "js/utils/src";
 
 	BABYLON_LOADERS.OBJFileLoader.IMPORT_VERTEX_COLORS = true;
 
@@ -115,12 +117,17 @@
 <BlockLabel {show_label} Icon={File} label={label || "3D Model"} />
 
 {#if value === null}
-	<Upload on:load={handle_upload} {root} filetype=".obj, .gltf, .glb" bind:dragging>
+	<Upload
+		on:load={handle_upload}
+		{root}
+		filetype=".obj, .gltf, .glb"
+		bind:dragging
+	>
 		<slot />
 	</Upload>
 {:else}
 	<div class="input-model">
-		<ModifyUpload on:clear={handle_clear} absolute />
+		<ModifyUpload {i18n} on:clear={handle_clear} absolute />
 		<canvas bind:this={canvas} />
 	</div>
 {/if}

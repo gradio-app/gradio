@@ -4,9 +4,13 @@
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { _ } from "svelte-i18n";
 
-	export let label = $_("radio.radio");
+	export let gradio: Gradio<{
+		change: never;
+		select: SelectData;
+		input: never;
+	}>;
+	export let label = gradio.i18n("radio.radio");
 	export let info: string | undefined = undefined;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -19,11 +23,6 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
-	export let gradio: Gradio<{
-		change: never;
-		select: SelectData;
-		input: never;
-	}>;
 </script>
 
 <Block
@@ -35,7 +34,7 @@
 	{scale}
 	{min_width}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker i18n={gradio.i18n} {...loading_status} />
 
 	<Radio
 		bind:value

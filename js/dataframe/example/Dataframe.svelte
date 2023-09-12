@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { csvParseRows, tsvParseRows } from "d3-dsv";
-	import { _ } from "svelte-i18n";
+	import type { Gradio } from "@gradio/utils";
 
+	export let gradio: Gradio;
 	export let value: (string | number)[][] | string;
 	export let samples_dir: string;
 	export let type: "gallery" | "table";
@@ -34,7 +35,7 @@
 
 						loaded_value = tsvParseRows(small_df);
 					} else {
-						throw new Error($_("dataframe.incorrect_format"));
+						throw new Error(gradio.i18n("dataframe.incorrect_format"));
 					}
 
 					loaded = true;

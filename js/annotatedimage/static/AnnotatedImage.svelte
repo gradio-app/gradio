@@ -6,14 +6,27 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { type FileData, normalise_file } from "@gradio/upload";
-	import { _ } from "svelte-i18n";
+
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: {image: FileData, annotations: {image: FileData, label: string}[] | []} | null = null;
-	let old_value: {image: FileData, annotations: {image: FileData, label: string}[] | []} | null = null;
-	let _value: {image: FileData, annotations: {image: FileData, label: string}[]} | null = null;
-	export let label = $_("annotated_image.annotated_image");
+	export let value: {
+		image: FileData;
+		annotations: { image: FileData; label: string }[] | [];
+	} | null = null;
+	let old_value: {
+		image: FileData;
+		annotations: { image: FileData; label: string }[] | [];
+	} | null = null;
+	let _value: {
+		image: FileData;
+		annotations: { image: FileData; label: string }[];
+	} | null = null;
+	export let gradio: Gradio<{
+		change: undefined;
+		select: SelectData;
+	}>;
+	export let label = gradio.i18n("annotated_image.annotated_image");
 	export let show_label = true;
 	export let show_legend = true;
 	export let height: number | undefined;
@@ -26,10 +39,6 @@
 	export let root_url: string;
 	let active: string | null = null;
 	export let loading_status: LoadingStatus;
-	export let gradio: Gradio<{
-		change: undefined;
-		select: SelectData;
-	}>;
 
 	$: {
 		if (value !== old_value) {
@@ -38,11 +47,11 @@
 		}
 		if (value !== null) {
 			_value = {
-					image: normalise_file(value.image, root, root_url) as FileData,
-					annotations: value.annotations.map((ann) => ({
-						 image: normalise_file(ann.image, root, root_url) as FileData,
-						 label: ann.label})
-					)
+				image: normalise_file(value.image, root, root_url) as FileData,
+				annotations: value.annotations.map((ann) => ({
+					image: normalise_file(ann.image, root, root_url) as FileData,
+					label: ann.label
+				}))
 			};
 		} else {
 			_value = null;
@@ -75,8 +84,12 @@
 	{scale}
 	{min_width}
 >
-	<StatusTracker {...loading_status} />
-	<BlockLabel {show_label} Icon={Image} label={label || $_("image.image")} />
+	<StatusTracker i18n={gradio.i18n} {...loading_status} />
+	<BlockLabel
+		{show_label}
+		Icon={Image}
+		label={label || gradio.i18n("image.image")}
+	/>
 
 	<div class="container">
 		{#if _value == null}
@@ -89,7 +102,7 @@
 					class:fit-height={height}
 					src={_value ? _value.image.data : null}
 				/>
-				{#each _value ? _value?.annotations : []  as ann, i}
+				{#each _value ? _value?.annotations : [] as ann, i}
 					<!-- svelte-ignore a11y-missing-attribute -->
 					<img
 						class="mask fit-height"

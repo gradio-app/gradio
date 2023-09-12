@@ -16,12 +16,13 @@ const version = version_raw.replace(/\./g, "-");
 
 const client_version_path = resolve(
 	__dirname,
-	"../../client/python/gradio_client/version.txt"
+	"../../client/python/gradio_client/package.json"
 );
-const client_version_raw = readFileSync(client_version_path, {
-	encoding: "utf-8"
-}).trim();
-const client_version = client_version_raw.replace(/\./g, "-");
+const client_version_raw = JSON.parse(
+	readFileSync(client_version_path, {
+		encoding: "utf-8"
+	})
+).version;
 
 import {
 	inject_ejs,
@@ -48,6 +49,8 @@ export default defineConfig(({ mode }) => {
 		mode === "production:lite";
 	const is_cdn = mode === "production:cdn" || mode === "production:website";
 	const is_lite = mode.endsWith(":lite");
+
+	console.log({ mode });
 
 	return {
 		base: is_cdn ? CDN_URL : "./",
@@ -153,7 +156,7 @@ export default defineConfig(({ mode }) => {
 				cdn_url: CDN_URL
 			}),
 			generate_cdn_entry({ enable: is_cdn, cdn_url: CDN_URL }),
-			generate_dev_entry({ enable: !is_cdn }),
+			generate_dev_entry({ enable: mode === "dev:custom" }),
 			handle_ce_css()
 		],
 		test: {
@@ -163,6 +166,7 @@ export default defineConfig(({ mode }) => {
 				TEST_MODE === "node"
 					? ["**/*.node-test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"]
 					: ["**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+			exclude: ["**/node_modules/**", "**/gradio/gradio/**"],
 			globals: true
 		},
 		resolve: {

@@ -70,7 +70,7 @@
 	{min_width}
 	allow_overflow={false}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker i18n={gradio.i18n} {...loading_status} />
 	<Table
 		{root}
 		{label}
@@ -87,5 +87,6 @@
 		{latex_delimiters}
 		editable={false}
 		{height}
+		i18n={gradio.i18n}
 	/>
 </Block>

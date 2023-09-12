@@ -7,7 +7,6 @@
 
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { _ } from "svelte-i18n";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -44,7 +43,7 @@
 	{scale}
 	{min_width}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker i18n={gradio.i18n} {...loading_status} />
 
 	<Model3DUpload
 		{label}
@@ -56,7 +55,8 @@
 		on:drag={({ detail }) => (dragging = detail)}
 		on:change={({ detail }) => gradio.dispatch("change", detail)}
 		on:clear={() => gradio.dispatch("clear")}
+		i18n={gradio.i18n}
 	>
-		<UploadText type="file" />
+		<UploadText i18n={gradio.i18n} type="file" />
 	</Model3DUpload>
 </Block>

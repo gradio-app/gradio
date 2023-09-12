@@ -11,11 +11,17 @@
 	import Webcam from "./Webcam.svelte";
 	import ModifySketch from "./ModifySketch.svelte";
 	import SketchSettings from "./SketchSettings.svelte";
-	import { Upload, ModifyUpload, type FileData, normalise_file } from "@gradio/upload";
+	import {
+		Upload,
+		ModifyUpload,
+		type FileData,
+		normalise_file
+	} from "@gradio/upload";
 
 	export let value:
 		| null
-		| { image: string | null; mask: string | null } | FileData;
+		| { image: string | null; mask: string | null }
+		| FileData;
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
 
@@ -106,13 +112,12 @@
 
 	let value_: null | FileData = null;
 
-	$: if(value !== value_){
-		value_ = value
+	$: if (value !== value_) {
+		value_ = value;
 		normalise_file(value_, root, null);
-	};
+	}
 
 	$: console.log(value_);
-
 
 	function handle_image_load(event: Event): void {
 		const element = event.currentTarget as HTMLImageElement;
@@ -211,15 +216,23 @@
 			on:load={handle_upload}
 			include_file_metadata={false}
 			disable_click={!!value}
-			root={root}
+			{root}
 		>
 			{#if (value === null && !static_image) || streaming}
 				<slot />
 			{:else if tool === "select"}
-				<Cropper bind:this={cropper} image={value_.data} on:crop={handle_save} />
-				<ModifyUpload on:clear={(e) => (handle_clear(e), (tool = "editor"))} />
+				<Cropper
+					bind:this={cropper}
+					image={value_.data}
+					on:crop={handle_save}
+				/>
+				<ModifyUpload
+					i18n={gradio.i18n}
+					on:clear={(e) => (handle_clear(e), (tool = "editor"))}
+				/>
 			{:else if tool === "editor"}
 				<ModifyUpload
+					i18n={gradio.i18n}
 					on:edit={() => (tool = "select")}
 					on:clear={handle_clear}
 					editable
@@ -333,9 +346,13 @@
 		{/if}
 	{:else if tool === "select"}
 		<Cropper bind:this={cropper} image={value.data} on:crop={handle_save} />
-		<ModifyUpload on:clear={(e) => (handle_clear(e), (tool = "editor"))} />
+		<ModifyUpload
+			i18n={gradio.i18n}
+			on:clear={(e) => (handle_clear(e), (tool = "editor"))}
+		/>
 	{:else if tool === "editor"}
 		<ModifyUpload
+			i18n={gradio.i18n}
 			on:edit={() => (tool = "select")}
 			on:clear={handle_clear}
 			editable

@@ -9,13 +9,13 @@
 
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { _ } from "svelte-i18n";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: {video: FileData, subtitles: FileData | null} | null = null;
-	let old_value: {video: FileData, subtitles: FileData | null} | null = null;
+	export let value: { video: FileData; subtitles: FileData | null } | null =
+		null;
+	let old_value: { video: FileData; subtitles: FileData | null } | null = null;
 
 	export let label: string;
 	export let source: "upload" | "webcam";
@@ -82,7 +82,7 @@
 	{min_width}
 	allow_overflow={false}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker i18n={gradio.i18n} {...loading_status} />
 
 	<StaticVideo
 		value={_video}

@@ -9,14 +9,12 @@
 		default_upload_files;
 
 	export let filetype: string | null = null;
-	export let include_file_metadata = true;
 	export let dragging = false;
 	export let boundedheight = true;
 	export let center = true;
 	export let flex = true;
 	export let file_count = "single";
 	export let disable_click = false;
-	export let parse_to_data_url = true;
 	export let root: string;
 
 	let hidden_upload: HTMLInputElement;

@@ -5,8 +5,11 @@
 	import { Block, BlockLabel, Empty } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { _ } from "svelte-i18n";
 
+	export let gradio: Gradio<{
+		change: never;
+		select: SelectData;
+	}>;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -15,17 +18,13 @@
 		label?: string;
 		confidences?: { label: string; confidence: number }[];
 	} = {};
-	export let label = $_("label.label");
+	export let label = gradio.i18n("label.label");
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let show_label = true;
 	export let selectable = false;
-	export let gradio: Gradio<{
-		change: never;
-		select: SelectData;
-	}>;
 
 	$: ({ confidences, label: _label } = value);
 	$: _label, confidences, gradio.dispatch("change");
@@ -41,7 +40,7 @@
 	{min_width}
 	padding={false}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker i18n={gradio.i18n} {...loading_status} />
 	{#if show_label}
 		<BlockLabel Icon={LabelIcon} {label} disable={container === false} />
 	{/if}

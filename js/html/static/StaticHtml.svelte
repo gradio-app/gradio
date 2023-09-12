@@ -19,7 +19,7 @@
 </script>
 
 <Block {visible} {elem_id} {elem_classes} container={false}>
-	<StatusTracker {...loading_status} variant="center" />
+	<StatusTracker i18n={gradio.i18n} {...loading_status} variant="center" />
 	<div class:pending={loading_status?.status === "pending"}>
 		<HTML
 			min_height={loading_status && loading_status?.status !== "complete"}

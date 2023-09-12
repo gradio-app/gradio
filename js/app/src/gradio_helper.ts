@@ -1,10 +1,14 @@
-// import { _ } from "svelte-i18n";
+import { format } from "svelte-i18n";
+import { get } from "svelte/store";
 
-export class Gradio<T extends Record<string, any>> {
+const x = get(format);
+
+export type I18nFormatter = typeof x;
+export class Gradio<T extends Record<string, any> = Record<string, any>> {
 	#id: number;
 	theme: string;
 	version: string;
-	// i18n: typeof _;
+	i18n: typeof x;
 	#el: HTMLElement;
 	root: string;
 
@@ -19,7 +23,7 @@ export class Gradio<T extends Record<string, any>> {
 		this.theme = theme;
 		this.version = version;
 		this.#el = el;
-		// this.i18n = _;
+		this.i18n = get(format);
 		this.root = root;
 	}
 
