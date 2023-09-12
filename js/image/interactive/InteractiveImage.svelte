@@ -5,7 +5,7 @@
 	import Image from "./Image.svelte";
 
 	import { Block } from "@gradio/atoms";
-	import { _ } from "svelte-i18n";
+
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { UploadText } from "@gradio/atoms";
@@ -68,7 +68,7 @@
 	{scale}
 	{min_width}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker i18n={gradio.i18n} {...loading_status} />
 
 	<Image
 		{brush_radius}
@@ -98,6 +98,6 @@
 		{streaming}
 		{mirror_webcam}
 	>
-		<UploadText type="image" />
+		<UploadText i18n={gradio.i18n} type="image" />
 	</Image>
 </Block>

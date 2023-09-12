@@ -6,6 +6,7 @@
 	import { File } from "@gradio/icons";
 
 	import { FilePreview } from "../shared";
+	import type { I18nFormatter } from "js/utils/src";
 
 	export let value: null | FileData | FileData[];
 
@@ -16,6 +17,7 @@
 	export let selectable = false;
 	export let root: string;
 	export let height: number | undefined = undefined;
+	export let i18n: I18nFormatter;
 
 	async function handle_upload({
 		detail
@@ -65,13 +67,12 @@
 />
 
 {#if value}
-	<ModifyUpload on:clear={handle_clear} absolute />
-	<FilePreview on:select {selectable} {value} {height} />
+	<ModifyUpload {i18n} on:clear={handle_clear} absolute />
+	<FilePreview {i18n} on:select {selectable} {value} {height} />
 {:else}
 	<Upload
 		on:load={handle_upload}
 		filetype={accept_file_types}
-		parse_to_data_url={false}
 		{file_count}
 		{root}
 		bind:dragging

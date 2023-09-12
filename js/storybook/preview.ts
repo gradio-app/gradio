@@ -1,7 +1,7 @@
 import type { Preview } from "@storybook/svelte";
 import "./theme.css";
 import { setupi18n } from "../app/src/i18n";
-import { Gradio } from "../app/src/gradio_helper";
+import { Gradio } from "@gradio/utils";
 setupi18n();
 
 const preview: Preview = {

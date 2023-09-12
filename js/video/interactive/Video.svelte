@@ -74,7 +74,7 @@
 		/>
 	{/if}
 {:else}
-	<ModifyUpload on:clear={handle_clear} />
+	<ModifyUpload i18n={gradio.i18n} on:clear={handle_clear} />
 	{#if playable()}
 		{#key value?.data}
 			<Player
