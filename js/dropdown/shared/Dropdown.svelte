@@ -3,8 +3,7 @@
 	import { createEventDispatcher, afterUpdate } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Remove, DropdownArrow } from "@gradio/icons";
-	import type { SelectData } from "@gradio/utils";
-	import { _ } from "svelte-i18n";
+	import type { I18nFormatter, SelectData } from "@gradio/utils";
 
 	export let label: string;
 	export let info: string | undefined = undefined;
@@ -18,6 +17,7 @@
 	export let show_label: boolean;
 	export let container = true;
 	export let allow_custom_value = false;
+	export let i18n: I18nFormatter;
 
 	const dispatch = createEventDispatcher<{
 		change: string | string[] | undefined;
@@ -228,7 +228,7 @@
 							<div
 								class:hidden={disabled}
 								class="token-remove"
-								title={$_("common.remove") + " " + s}
+								title={i18n("common.remove") + " " + s}
 							>
 								<Remove />
 							</div>
@@ -259,7 +259,7 @@
 				<div
 					class:hide={!multiselect || !value?.length || disabled}
 					class="token-remove remove-all"
-					title={$_("common.clear")}
+					title={i18n("common.clear")}
 					on:click={remove_all}
 				>
 					<Remove />

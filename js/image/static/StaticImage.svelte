@@ -5,7 +5,7 @@
 	import StaticImage from "./ImagePreview.svelte";
 
 	import { Block } from "@gradio/atoms";
-	import { _ } from "svelte-i18n";
+
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { FileData } from "js/upload/src";
 	import type { LoadingStatus } from "@gradio/statustracker";
@@ -55,7 +55,7 @@
 	{scale}
 	{min_width}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker i18n={gradio.i18n} {...loading_status} />
 	<StaticImage
 		on:select={({ detail }) => gradio.dispatch("select", detail)}
 		on:share={({ detail }) => gradio.dispatch("share", detail)}

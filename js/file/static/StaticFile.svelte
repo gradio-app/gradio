@@ -14,8 +14,6 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 
-	import { _ } from "svelte-i18n";
-
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -118,6 +116,7 @@
 	allow_overflow={false}
 >
 	<StatusTracker
+		i18n={gradio.i18n}
 		{...loading_status}
 		status={pending_upload
 			? "generating"
@@ -131,5 +130,6 @@
 		{label}
 		{show_label}
 		{height}
+		i18n={gradio.i18n}
 	/>
 </Block>

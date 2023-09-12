@@ -169,7 +169,7 @@ function generate_imports(component_dir: string): string {
 			interactive: join(component.dir, "interactive"),
 			static: join(component.dir, "static")
 		};
-		return `${acc}${component.package_name}: {
+		return `${acc}"${component.package_name}": {
 			interactive: () => import("${x.interactive}"),
 			static: () => import("${x.static}")
 			},\n`;

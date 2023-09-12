@@ -2,15 +2,17 @@
 	import type { FileData } from "@gradio/upload";
 	import { BlockLabel, IconButton } from "@gradio/atoms";
 	import { File, Download } from "@gradio/icons";
-	import { _ } from "svelte-i18n";
+
 	import { onMount } from "svelte";
 	import * as BABYLON from "babylonjs";
 	import * as BABYLON_LOADERS from "babylonjs-loaders";
+	import type { I18nFormatter } from "js/utils/src";
 
 	export let value: FileData | null;
 	export let clearColor: [number, number, number, number] = [0, 0, 0, 0];
 	export let label = "";
 	export let show_label: boolean;
+	export let i18n: I18nFormatter;
 
 	BABYLON_LOADERS.OBJFileLoader.IMPORT_VERTEX_COLORS = true;
 
@@ -87,7 +89,11 @@
 	}
 </script>
 
-<BlockLabel {show_label} Icon={File} label={label || $_("3D_model.3d_model")} />
+<BlockLabel
+	{show_label}
+	Icon={File}
+	label={label || i18n("3D_model.3d_model")}
+/>
 {#if value}
 	<div class="model3D">
 		<div class="download">
@@ -96,7 +102,7 @@
 				target={window.__is_colab__ ? "_blank" : null}
 				download={window.__is_colab__ ? null : value.orig_name || value.name}
 			>
-				<IconButton Icon={Download} label={$_("common.download")} />
+				<IconButton Icon={Download} label={i18n("common.download")} />
 			</a>
 		</div>
 

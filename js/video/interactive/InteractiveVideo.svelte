@@ -10,13 +10,13 @@
 
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { _ } from "svelte-i18n";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: {video: FileData, subtitles: FileData | null} | null = null;
-	let old_value: {video: FileData, subtitles: FileData | null} | null = null;
+	export let value: { video: FileData; subtitles: FileData | null } | null =
+		null;
+	let old_value: { video: FileData; subtitles: FileData | null } | null = null;
 
 	export let label: string;
 	export let source: "upload" | "webcam";
@@ -61,7 +61,10 @@
 
 	function handle_change({ detail }: CustomEvent<FileData | null>): void {
 		if (detail != null) {
-			value = {video: detail, subtitles: null} as {video: FileData, subtitles: FileData | null} | null;
+			value = { video: detail, subtitles: null } as {
+				video: FileData;
+				subtitles: FileData | null;
+			} | null;
 		} else {
 			value = null;
 		}
@@ -91,7 +94,7 @@
 	{min_width}
 	allow_overflow={false}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker i18n={gradio.i18n} {...loading_status} />
 
 	<Video
 		value={_video}
@@ -119,6 +122,6 @@
 		on:start_recording={() => gradio.dispatch("start_recording")}
 		on:stop_recording={() => gradio.dispatch("stop_recording")}
 	>
-		<UploadText type="video" />
+		<UploadText i18n={gradio.i18n} type="video" />
 	</Video>
 </Block>

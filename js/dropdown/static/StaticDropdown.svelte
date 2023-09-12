@@ -45,7 +45,7 @@
 	{scale}
 	{min_width}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker i18n={gradio.i18n} {...loading_status} />
 
 	<Dropdown
 		bind:value
@@ -63,6 +63,7 @@
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 		on:blur={() => gradio.dispatch("blur")}
 		on:focus={() => gradio.dispatch("focus")}
+		i18n={gradio.i18n}
 		disabled
 	/>
 </Block>

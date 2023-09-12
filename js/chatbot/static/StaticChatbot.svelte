@@ -12,7 +12,10 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: [string | {file: FileData, alt_text: string | null } | null, string | {file: FileData, alt_text: string | null } | null][] = [];
+	export let value: [
+		string | { file: FileData; alt_text: string | null } | null,
+		string | { file: FileData; alt_text: string | null } | null
+	][] = [];
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let label: string;
@@ -38,22 +41,29 @@
 	}>;
 	export let avatar_images: [string | null, string | null] = [null, null];
 
-	let _value: [string | {file: FileData, alt_text: string | null } | null, string | {file: FileData, alt_text: string | null } | null][];
+	let _value: [
+		string | { file: FileData; alt_text: string | null } | null,
+		string | { file: FileData; alt_text: string | null } | null
+	][];
 
 	const redirect_src_url = (src: string): string =>
 		src.replace('src="/file', `src="${root}file`);
 
-	function normalize_messages(message: {file: FileData, alt_text: string | null } | null ): {file: FileData, alt_text: string | null } | null {
-		if (message === null){
+	function normalize_messages(
+		message: { file: FileData; alt_text: string | null } | null
+	): { file: FileData; alt_text: string | null } | null {
+		if (message === null) {
 			return message;
 		}
-		return {file: normalise_file(message?.file, root, root_url) as FileData, alt_text: message?.alt_text}
-		
+		return {
+			file: normalise_file(message?.file, root, root_url) as FileData,
+			alt_text: message?.alt_text
+		};
 	}
 
 	$: _value = value
 		? value.map(([user_msg, bot_msg]) => [
-				(typeof user_msg === "string")
+				typeof user_msg === "string"
 					? redirect_src_url(user_msg)
 					: normalize_messages(user_msg),
 				typeof bot_msg === "string"
@@ -78,6 +88,7 @@
 >
 	{#if loading_status}
 		<StatusTracker
+			i18n={gradio.i18n}
 			{...loading_status}
 			show_progress={loading_status.show_progress === "hidden"
 				? "hidden"
@@ -94,6 +105,7 @@
 			/>
 		{/if}
 		<ChatBot
+			i18n={gradio.i18n}
 			{selectable}
 			{show_share_button}
 			value={_value}

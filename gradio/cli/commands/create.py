@@ -89,6 +89,7 @@ def _create_frontend(name: str, template: str, directory: pathlib.Path):
             ignore=ignore,
         )
         source_package_json = json.load(open(str(frontend / "package.json")))
+        source_package_json['name'] = name.lower()
         for dep in source_package_json.get("dependencies", []):
             source_package_json["dependencies"][dep] = get_js_dependency_version(
                 dep, p / "_frontend_code"

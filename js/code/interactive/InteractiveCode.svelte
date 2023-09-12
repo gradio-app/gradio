@@ -3,12 +3,16 @@
 	import { afterUpdate } from "svelte";
 
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { _ } from "svelte-i18n";
+
 	import Code from "../shared";
 	import { StatusTracker } from "@gradio/statustracker";
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import { Code as CodeIcon } from "@gradio/icons";
 
+	export let gradio: Gradio<{
+		change: typeof value;
+		input: never;
+	}>;
 	export let value = "";
 	export let value_is_output = false;
 	export let language = "";
@@ -17,13 +21,9 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let label = $_("code.code");
+	export let label = gradio.i18n("code.code");
 	export let show_label = true;
 	export let loading_status: LoadingStatus;
-	export let gradio: Gradio<{
-		change: typeof value;
-		input: never;
-	}>;
 
 	let dark_mode = target.classList.contains("dark");
 
@@ -40,7 +40,7 @@
 </script>
 
 <Block variant={"solid"} padding={false} {elem_id} {elem_classes} {visible}>
-	<StatusTracker {...loading_status} />
+	<StatusTracker i18n={gradio.i18n} {...loading_status} />
 
 	<BlockLabel Icon={CodeIcon} {show_label} {label} float={false} />
 
