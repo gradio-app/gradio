@@ -381,6 +381,12 @@ class TestRoutes:
         response = test_client.get(r"/file=gradio")
         assert response.status_code == 403
 
+    def test_do_not_expose_existence_of_files_outside_working_directory(
+        self, test_client
+    ):
+        response = test_client.get(r"/file=../fake-file-that-does-not-exist.js")
+        assert response.status_code == 403  # not a 404
+
     def test_mount_gradio_app_raises_error_if_event_queued_but_queue_disabled(self):
         with gr.Blocks() as demo:
             with gr.Row():
