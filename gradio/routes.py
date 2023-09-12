@@ -405,7 +405,7 @@ class App(FastAPI):
 
             if not (in_app_dir or created_by_app or in_allowlist or was_uploaded):
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
-            
+
             if not abs_path.exists():
                 raise HTTPException(404, f"File not found: {path_or_url}.")
 
