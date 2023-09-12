@@ -59,8 +59,8 @@
 			// store the index of the new highlighted text element and remove the flag
 			labelToEdit = tempValue.findIndex(([_, __, flag]) => flag === tempFlag);
 			tempValue[labelToEdit].pop();
-			// remove elements with empty labels
 
+			// remove elements with empty labels
 			tempValue = tempValue.filter((item) => item[0].trim() !== "");
 			value = tempValue as [string, string | number | null][];
 
@@ -188,7 +188,7 @@
 		<div class="textfield">
 			{#each value as [text, category], i}
 				{#each splitTextByNewline(text) as line, j}
-					{#if line.trim() !== "" && category && _color_map[category]}
+					{#if line.trim() !== ""}
 						<span class="text-category-container">
 							<span
 								role="button"
@@ -197,7 +197,9 @@
 								style:background-color={category === null ||
 								(active && active !== category)
 									? ""
-									: _color_map[category].secondary}
+									: category && _color_map[category]
+									? _color_map[category].secondary
+									: ""}
 								class:no-cat={category === null ||
 									(active && active !== category)}
 								class:hl={category !== null}
