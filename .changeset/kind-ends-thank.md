@@ -1,6 +1,6 @@
 ---
-"@gradio/dropdown": patch
-"gradio": patch
+"@gradio/dropdown": minor
+"gradio": minor
 ---
 
-fix:Adds a `filterable` parameter to `gr.Dropdown` that controls whether user can type to filter choices
+feat:Adds a `filterable` parameter to `gr.Dropdown` that controls whether user can type to filter choices
