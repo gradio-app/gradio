@@ -17,7 +17,6 @@ describe("i18n", () => {
 			const BCP47_REGEX = /^.{2}-.{2}$/;
 
 			if (BCP47_REGEX.test(code)) {
-				console.log(code);
 				assert.ok(BCP47.includes(code));
 			} else {
 				assert.exists(languagesByAnyCode[code]);
