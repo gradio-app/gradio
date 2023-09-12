@@ -42,8 +42,8 @@ upload_theme = "gradio.themes.upload_theme:main"
 Homepage = "https://github.com/gradio-app/gradio"
 
 [tool.hatch.version]
-path = "gradio/version.txt"
-pattern = "(?P<version>.+)"
+path = "gradio/package.json"
+pattern = ".*\"version\":\\s*\"([^\"]+)\""
 
 [tool.hatch.metadata.hooks.requirements_txt]
 filename = "requirements.txt"
