@@ -64,7 +64,7 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
         self.container = container
         self.scale = scale
         self.min_width = min_width
-        self.components = [get_component_instance(c, render=False) for c in components]
+        self.components = [get_component_instance(c) for c in components]
 
         # Narrow type to IOComponent
         assert all(
