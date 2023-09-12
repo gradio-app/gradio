@@ -25,6 +25,9 @@ PACKAGE_JSON = {
     "author": "",
     "license": "ISC",
     "private": True,
+    "dependencies": {
+        "@zerodevx/svelte-json-view": "^1.0",
+    },
     "exports": {
         ".": "./index.svelte",
         "./package.json": "./package.json",
@@ -39,7 +42,8 @@ app = typer.Typer()
 
 def _create_frontend_dir(name: str, dir: pathlib.Path):
     dir.mkdir(exist_ok=True)
-    (dir / f"{name}.svelte").write_text("")
+    svelte = pathlib.Path(pathlib.Path(__file__).parent / "files"/ "NoTemplateComponent.svelte").read_text()
+    (dir / f"{name}.svelte").write_text(svelte)
     (dir / "index.ts").write_text(f'export {{ default }} from "./{name}.svelte";')
 
 
@@ -137,17 +141,8 @@ __all__ = ['{name}']
 
     if not template:
         backend = backend / f"{name.lower()}.py"
-        backend.write_text(
-            textwrap.dedent(
-                f"""
-            import gradio as gr
-            
-            class {name}(gr.components.Component):
-                pass
-
-            """
-            )
-        )
+        no_template = (pathlib.Path(__file__).parent / "files" / "NoTemplateComponent.py").read_text().replace("<<name>>", name)
+        backend.write_text(no_template)
     else:
         p = pathlib.Path(inspect.getfile(gradio)).parent
         python_file = backend / f"{name.lower()}.py"
