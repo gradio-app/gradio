@@ -109,7 +109,7 @@ export async function create_server({
 
 	await server.listen();
 
-	server.printUrls();
+	console.log(`[orange3]Frontend Server[/] (Go here): ${server.resolvedUrls?.local}`);
 }
 
 import * as fs from "fs";
