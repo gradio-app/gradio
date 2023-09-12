@@ -36,6 +36,22 @@
 	let selected_index: number | null = null;
 	let old_selected_index: number | null;
 
+	let filter_input: HTMLElement;
+
+	let show_options = false;
+	let choices_names: string[];
+	let choices_values: (string | number)[];
+	let input_text = "";
+	let old_input_text = "";
+	let initialized = false;
+
+	// All of these are indices with respect to the choices array
+	let filtered_indices: number[] = [];
+	let active_index: number | null = null;
+	// selected_index is null if allow_custom_value is true and the input_text is not in choices_names
+	let selected_index: number | null = null;
+	let old_selected_index: number | null;
+
 	const dispatch = createEventDispatcher<{
 		change: string | undefined;
 		input: undefined;

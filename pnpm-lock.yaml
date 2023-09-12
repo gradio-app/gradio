@@ -204,6 +204,9 @@ importers:
       storybook:
         specifier: ^7.0.23
         version: 7.0.23
+      wikidata-lang:
+        specifier: ^4.1.2
+        version: 4.1.2
 
   client/js:
     dependencies:
@@ -15456,6 +15459,10 @@ packages:
     resolution: {integrity: sha512-eDMORYaPNZ4sQIuuYPDHdQvf4gyCF9rEEV/yPxGfwPkRodwEgiMUUXTx/dex+Me0wxx53S+NgUHaP7y3MGlDmg==}
     dependencies:
       string-width: 4.2.3
+
+  /wikidata-lang@4.1.2:
+    resolution: {integrity: sha512-Nw+loOQQO02cVZQCAFCaE5IWdPakX9zXLr4Pjv0GA81OyI+TPWC6iLy/0cORL6YbYde19MbRVITIHiKRv1HmFA==}
+    dev: true
 
   /word-wrap@1.2.3:
     resolution: {integrity: sha512-Hz/mrNwitNRh/HUAtM/VT/5VH+ygD6DV7mYKZAtHOrbs8U7lvPS6xf7EJKMF0uW1KJCl0H701g3ZGus+muE5vQ==}
