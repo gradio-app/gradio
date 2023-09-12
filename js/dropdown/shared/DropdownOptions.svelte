@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { fly } from "svelte/transition";
 	import { createEventDispatcher } from "svelte";
-	export let value: string | string[] | undefined = undefined;
-	export let filtered: string[];
-	export let showOptions = false;
-	export let activeOption: string | null;
+	export let choices: [string, string | number][];
+	export let filtered_indices: number[];
+	export let show_options = false;
 	export let disabled = false;
+	export let selected_indices: (string | number)[] = [];
+	export let active_index: number | null = null;
 
 	let distance_from_top: number;
 	let distance_from_bottom: number;
@@ -25,7 +26,7 @@
 
 	let scroll_timeout: NodeJS.Timeout | null = null;
 	function scroll_listener(): void {
-		if (!showOptions) return;
+		if (!show_options) return;
 		if (scroll_timeout !== null) {
 			clearTimeout(scroll_timeout);
 		}
@@ -37,11 +38,14 @@
 	}
 
 	$: {
-		if (showOptions && refElement) {
-			if (listElement && typeof value === "string") {
+		if (show_options && refElement) {
+			if (listElement && selected_indices.length > 0) {
 				let elements = listElement.querySelectorAll("li");
 				for (const element of Array.from(elements)) {
-					if (element.getAttribute("data-value") === value) {
+					if (
+						element.getAttribute("data-index") ===
+						selected_indices[0].toString()
+					) {
 						listElement?.scrollTo?.(0, (element as HTMLLIElement).offsetTop);
 						break;
 					}
@@ -64,13 +68,12 @@
 	}
 
 	const dispatch = createEventDispatcher();
-	$: _value = Array.isArray(value) ? value : [value];
 </script>
 
 <svelte:window on:scroll={scroll_listener} bind:innerHeight />
 
 <div class="reference" bind:this={refElement} />
-{#if showOptions && !disabled}
+{#if show_options && !disabled}
 	<!-- TODO: fix-->
 	<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 	<ul
@@ -83,24 +86,24 @@
 		style:width={input_width + "px"}
 		bind:this={listElement}
 	>
-		{#each filtered as choice}
+		{#each filtered_indices as index}
 			<!-- TODO: fix-->
 			<!-- svelte-ignore a11y-no-noninteractive-element-to-interactive-role -->
 			<li
 				class="item"
 				role="button"
-				class:selected={_value.includes(choice)}
-				class:active={activeOption === choice}
-				class:bg-gray-100={activeOption === choice}
-				class:dark:bg-gray-600={activeOption === choice}
-				data-value={choice}
-				aria-label={choice}
+				class:selected={selected_indices.includes(index)}
+				class:active={index === active_index}
+				class:bg-gray-100={index === active_index}
+				class:dark:bg-gray-600={index === active_index}
+				data-index={index}
+				aria-label={choices[index][0]}
 				data-testid="dropdown-option"
 			>
-				<span class:hide={!_value.includes(choice)} class="inner-item">
+				<span class:hide={!selected_indices.includes(index)} class="inner-item">
 					✓
 				</span>
-				{choice}
+				{choices[index][0]}
 			</li>
 		{/each}
 	</ul>

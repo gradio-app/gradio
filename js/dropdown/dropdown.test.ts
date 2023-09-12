@@ -29,10 +29,13 @@ describe("Dropdown", () => {
 		const { getByLabelText } = await render(Dropdown, {
 			show_label: true,
 			loading_status,
-			max_choices: 10,
+			max_choices: null,
 			value: "choice",
 			label: "Dropdown",
-			choices: ["choice", "choice2"]
+			choices: [
+				["choice", "choice"],
+				["choice2", "choice2"]
+			]
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -42,13 +45,16 @@ describe("Dropdown", () => {
 	});
 
 	test("selecting the textbox should show the options", async () => {
-		const { getByLabelText, getAllByTestId, debug } = await render(Dropdown, {
+		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
 			show_label: true,
 			loading_status,
 			max_choices: 10,
 			value: "choice",
 			label: "Dropdown",
-			choices: ["choice", "choice2"]
+			choices: [
+				["choice", "choice"],
+				["name2", "choice2"]
+			]
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -61,17 +67,20 @@ describe("Dropdown", () => {
 
 		expect(options).toHaveLength(2);
 		expect(options[0]).toContainHTML("choice");
-		expect(options[1]).toContainHTML("choice2");
+		expect(options[1]).toContainHTML("name2");
 	});
 
 	test("editing the textbox value should filter the options", async () => {
-		const { getByLabelText, getAllByTestId, debug } = await render(Dropdown, {
+		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
 			show_label: true,
 			loading_status,
 			max_choices: 10,
 			value: "",
 			label: "Dropdown",
-			choices: ["apple", "zebra"]
+			choices: [
+				["apple", "apple"],
+				["zebra", "zebra"]
+			]
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -83,6 +92,7 @@ describe("Dropdown", () => {
 
 		expect(options).toHaveLength(2);
 
+		item.value = "";
 		await event.keyboard("z");
 		const options_new = getAllByTestId("dropdown-option");
 
@@ -96,7 +106,11 @@ describe("Dropdown", () => {
 			loading_status,
 			value: "default",
 			label: "Dropdown",
-			choices: ["default", "other"]
+			max_choices: undefined,
+			choices: [
+				["default", "default"],
+				["other", "other"]
+			]
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -120,7 +134,10 @@ describe("Dropdown", () => {
 			loading_status,
 			value: "default",
 			label: "Dropdown",
-			choices: ["default", "other"]
+			choices: [
+				["default", "default"],
+				["other", "other"]
+			]
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -131,7 +148,6 @@ describe("Dropdown", () => {
 
 		await item.focus();
 		await item.blur();
-		await item.focus();
 
 		assert.equal(blur_event.callCount, 1);
 		assert.equal(focus_event.callCount, 1);
@@ -139,13 +155,17 @@ describe("Dropdown", () => {
 
 	test("deselecting and reselcting a filtered dropdown should show all options again", async () => {
 		vi.useFakeTimers();
-		const { getByLabelText, getAllByTestId, debug } = await render(Dropdown, {
+		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
 			show_label: true,
 			loading_status,
 			max_choices: 10,
 			value: "",
 			label: "Dropdown",
-			choices: ["apple", "zebra", "pony"]
+			choices: [
+				["apple", "apple"],
+				["zebra", "zebra"],
+				["pony", "pony"]
+			]
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -153,6 +173,7 @@ describe("Dropdown", () => {
 		) as HTMLInputElement;
 
 		await item.focus();
+		item.value = "";
 		await event.keyboard("z");
 		const options = getAllByTestId("dropdown-option");
 
@@ -173,10 +194,13 @@ describe("Dropdown", () => {
 			{
 				show_label: true,
 				loading_status,
-				max_choices: 10,
-				value: "zebra",
+				value: "",
 				label: "Dropdown",
-				choices: ["apple", "zebra", "pony"]
+				choices: [
+					["apple", "apple"],
+					["zebra", "zebra"],
+					["pony", "pony"]
+				]
 			}
 		);
 
@@ -190,10 +214,18 @@ describe("Dropdown", () => {
 
 		expect(options).toHaveLength(3);
 
-		await component.$set({ choices: ["apple", "zebra", "pony"] });
+		await component.$set({
+			value: "",
+			choices: [
+				["apple", "apple"],
+				["zebra", "zebra"],
+				["pony", "pony"]
+			]
+		});
+
+		await item.focus();
 
 		const options_new = getAllByTestId("dropdown-option");
-
 		expect(options_new).toHaveLength(3);
 	});
 });
