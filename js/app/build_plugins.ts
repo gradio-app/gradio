@@ -94,14 +94,14 @@ export function generate_dev_entry({ enable }: { enable: boolean }): Plugin {
 		enforce: "pre",
 		name: "generate-dev-entry",
 		resolveId(id, importer) {
+			if (!enable) return;
 			if (
 				!id.includes(".svelte") &&
 				(importer?.includes("svelte") || id.includes("svelte"))
 			)
-				console.log({ id, importer });
-			if (id === "svelte") {
-				return "../../../node/dev/svelte-internal.js";
-			}
+				if (id === "svelte") {
+					return "../../../node/dev/svelte-internal.js";
+				}
 
 			if (id === "svelte/internal") {
 				return "../../../node/dev/svelte-internal.js";
