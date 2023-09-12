@@ -382,10 +382,10 @@ def component(cls_name: str) -> Component:
     return obj
 
 
-def get_component_instance(comp: str | dict | Component, render=True) -> Component:
+def get_component_instance(comp: str | dict | Component, render: bool = True) -> Component:
     if isinstance(comp, str):
         component_obj = component(comp)
-        if not (render):
+        if not render:
             component_obj.unrender()
         return component_obj
     elif isinstance(comp, dict):
@@ -394,10 +394,12 @@ def get_component_instance(comp: str | dict | Component, render=True) -> Compone
         component_obj = component_cls(**comp)
         if isinstance(component_obj, BlockContext):
             raise ValueError(f"Invalid component: {name}")
-        if not (render):
+        if not render:
             component_obj.unrender()
         return component_obj
     elif isinstance(comp, Component):
+        if not render:
+            comp.unrender()
         return comp
     else:
         raise ValueError(
