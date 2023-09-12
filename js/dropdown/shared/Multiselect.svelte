@@ -382,7 +382,6 @@
 	.subdued {
 		color: var(--body-text-color-subdued);
 	}
-
 	input[readonly] {
 		cursor: pointer;
 	}
