@@ -41,9 +41,9 @@ class Dropdown(
 
     def __init__(
         self,
-        choices: list[str] | None = None,
+        choices: list[str | int | float | tuple[str, str | int | float]] | None = None,
         *,
-        value: str | list[str] | Callable | None = None,
+        value: str | int | float | list[str | int | float] | Callable | None = None,
         type: Literal["value", "index"] = "value",
         multiselect: bool | None = None,
         allow_custom_value: bool = False,
@@ -63,7 +63,7 @@ class Dropdown(
     ):
         """
         Parameters:
-            choices: list of options to select from.
+            choices: A list of string options to choose from. An option can also be a tuple of the form (name, value), where name is the displayed name of the dropdown choice and value is the value to be passed to the function, or returned by the function.
             value: default value(s) selected in dropdown. If None, no value is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
             multiselect: if True, multiple choices can be selected.
@@ -81,7 +81,11 @@ class Dropdown(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.choices = [str(choice) for choice in choices] if choices else []
+        self.choices = (
+            [c if isinstance(c, tuple) else (str(c), c) for c in choices]
+            if choices
+            else []
+        )
         valid_types = ["value", "index"]
         if type not in valid_types:
             raise ValueError(
@@ -97,10 +101,6 @@ class Dropdown(
             )
         self.max_choices = max_choices
         self.allow_custom_value = allow_custom_value
-        if multiselect and allow_custom_value:
-            raise ValueError(
-                "Custom values are not supported when `multiselect` is True."
-            )
         self.interpret_by_tokens = False
         self.select: EventListenerMethod
         """
@@ -162,7 +162,7 @@ class Dropdown(
     @staticmethod
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        choices: str | list[str] | None = None,
+        choices: str | list[str | tuple[str, str]] | None = None,
         label: str | None = None,
         info: str | None = None,
         show_label: bool | None = None,
@@ -203,14 +203,36 @@ class Dropdown(
             if x is None:
                 return None
             elif self.multiselect:
-                return [self.choices.index(c) for c in x]
+                return [
+                    [value for _, value in self.choices].index(choice) for choice in x
+                ]
             else:
                 if isinstance(x, str):
-                    return self.choices.index(x) if x in self.choices else None
+                    return (
+                        [value for _, value in self.choices].index(x)
+                        if x in self.choices
+                        else None
+                    )
         else:
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
+
+    def _warn_if_invalid_choice(self, y):
+        if self.allow_custom_value or y in [value for _, value in self.choices]:
+            return
+        warnings.warn(
+            f"The value passed into gr.Dropdown() is not in the list of choices. Please update the list of choices to include: {y} or set allow_custom_value=True."
+        )
+
+    def postprocess(self, y):
+        if y is None:
+            return None
+        if self.multiselect:
+            [self._warn_if_invalid_choice(_y) for _y in y]
+        else:
+            self._warn_if_invalid_choice(y)
+        return y
 
     def set_interpret_parameters(self):
         """
@@ -241,3 +263,6 @@ class Dropdown(
         if container is not None:
             self.container = container
         return self
+
+    def as_example(self, input_data):
+        return next((c[0] for c in self.choices if c[1] == input_data), None)

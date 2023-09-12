@@ -185,6 +185,10 @@ class TestInterface:
             (d for d in io.config["dependencies"] if d["api_name"] == "echo"), None
         )
 
+    def test_interface_in_blocks_does_not_error(self):
+        with Blocks():
+            Interface(fn=lambda x: x, inputs=Textbox(), outputs=Image())
+
 
 class TestTabbedInterface:
     def test_tabbed_interface_config_matches_manual_tab(self):
