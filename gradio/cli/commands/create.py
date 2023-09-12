@@ -6,10 +6,10 @@ import json
 import pathlib
 import shutil
 import subprocess
-import textwrap
 from typing import Optional
 
 import typer
+from rich import print
 from typing_extensions import Annotated
 
 import gradio
@@ -42,7 +42,9 @@ app = typer.Typer()
 
 def _create_frontend_dir(name: str, dir: pathlib.Path):
     dir.mkdir(exist_ok=True)
-    svelte = pathlib.Path(pathlib.Path(__file__).parent / "files"/ "NoTemplateComponent.svelte").read_text()
+    svelte = pathlib.Path(
+        pathlib.Path(__file__).parent / "files" / "NoTemplateComponent.svelte"
+    ).read_text()
     (dir / f"{name}.svelte").write_text(svelte)
     (dir / "index.ts").write_text(f'export {{ default }} from "./{name}.svelte";')
 
@@ -89,7 +91,7 @@ def _create_frontend(name: str, template: str, directory: pathlib.Path):
             ignore=ignore,
         )
         source_package_json = json.load(open(str(frontend / "package.json")))
-        source_package_json['name'] = name.lower()
+        source_package_json["name"] = name.lower()
         for dep in source_package_json.get("dependencies", []):
             source_package_json["dependencies"][dep] = get_js_dependency_version(
                 dep, p / "_frontend_code"
@@ -141,7 +143,11 @@ __all__ = ['{name}']
 
     if not template:
         backend = backend / f"{name.lower()}.py"
-        no_template = (pathlib.Path(__file__).parent / "files" / "NoTemplateComponent.py").read_text().replace("<<name>>", name)
+        no_template = (
+            (pathlib.Path(__file__).parent / "files" / "NoTemplateComponent.py")
+            .read_text()
+            .replace("<<name>>", name)
+        )
         backend.write_text(no_template)
     else:
         p = pathlib.Path(inspect.getfile(gradio)).parent
@@ -276,34 +282,31 @@ def dev(
             f"Cannot find pyproject.toml file in {component_directory}. Make sure "
             f"{component_directory} parameter points to a valid python package."
         )
-    print(gradio_template_path)
-    print(gradio_node_path)
 
-    with LivePanelDisplay() as live:
-        live.update(f":recycle: [green]Launching[/] {app} in reload mode")
+    print(f":recycle: [green]Launching[/] {app} in reload mode")
 
-        proc = subprocess.Popen(
-            [
-                "node",
-                gradio_node_path,
-                "--component-directory",
-                component_directory,
-                "--root",
-                gradio_template_path,
-                "--app",
-                str(app),
-            ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
+    proc = subprocess.Popen(
+        [
+            "node",
+            gradio_node_path,
+            "--component-directory",
+            component_directory,
+            "--root",
+            gradio_template_path,
+            "--app",
+            str(app),
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    while True:
+        text = proc.stdout.readline()
+        text = (
+            text.decode("utf-8")
+            .replace("Changes detected in:", "[orange3]Changed detected in:[/]")
+            .replace("Watching:", "[orange3]Watching:[/]")
         )
-        while True:
-            text = proc.stdout.readline()
-            text = (
-                text.decode("utf-8")
-                .replace("Changes detected in:", "[orange3]Changed detected in:[/]")
-                .replace("Watching:", "[orange3]Watching:[/]")
-            )
-            live.update(text)
+        print(text)
 
 
 @app.command(
