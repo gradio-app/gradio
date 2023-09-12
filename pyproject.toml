@@ -70,7 +70,8 @@ replacement = 'https://raw.githubusercontent.com/gradio-app/gradio/main/demo/\g<
 artifacts = [
   "/gradio/templates",
   "/gradio/_frontend_code",
-  "*.pyi"
+  "*.pyi",
+  "/gradio/node"
 ]
 
 [tool.hatch.build.targets.wheel.hooks.custom]
