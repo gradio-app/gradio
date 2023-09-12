@@ -2,7 +2,7 @@
 	const browser = typeof document !== "undefined";
 	import { get_next_color } from "@gradio/utils";
 	import type { SelectData } from "@gradio/utils";
-	import { createEventDispatcher, tick, onMount } from "svelte";
+	import { createEventDispatcher, onMount } from "svelte";
 	import { correct_color_map, merge_elements } from "../utils";
 	import LabelInput from "./LabelInput.svelte";
 
@@ -165,28 +165,30 @@
 				class="category-legend"
 				data-testid="highlighted-text:category-legend"
 			>
-				{#each Object.entries(_color_map) as [category, color], i}
-					<div
-						role="button"
-						aria-roledescription="Categories of highlighted text. Hover to see text with this category highlighted."
-						tabindex="0"
-						on:mouseover={() => handle_mouseover(category)}
-						on:focus={() => handle_mouseover(category)}
-						on:mouseout={() => handle_mouseout()}
-						on:blur={() => handle_mouseout()}
-						class="category-label"
-						style={"background-color:" + color.secondary}
-					>
-						{category}
-					</div>
-				{/each}
+				{#if _color_map}
+					{#each Object.entries(_color_map) as [category, color], i}
+						<div
+							role="button"
+							aria-roledescription="Categories of highlighted text. Hover to see text with this category highlighted."
+							tabindex="0"
+							on:mouseover={() => handle_mouseover(category)}
+							on:focus={() => handle_mouseover(category)}
+							on:mouseout={() => handle_mouseout()}
+							on:blur={() => handle_mouseout()}
+							class="category-label"
+							style={"background-color:" + color.secondary}
+						>
+							{category}
+						</div>
+					{/each}
+				{/if}
 			</div>
 		{/if}
 
 		<div class="textfield">
 			{#each value as [text, category], i}
 				{#each splitTextByNewline(text) as line, j}
-					{#if line.trim() !== ""}
+					{#if line.trim() !== "" && category && _color_map[category]}
 						<span class="text-category-container">
 							<span
 								role="button"
@@ -207,6 +209,7 @@
 								}}
 								on:keydown={(e) => {
 									if (category !== null) {
+										labelToEdit = i;
 										handleSelect(i, text, category);
 									} else {
 										handleKeydownSelection(e);
