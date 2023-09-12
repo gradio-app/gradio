@@ -19,6 +19,7 @@
 	export let show_label: boolean;
 	export let container = true;
 	export let allow_custom_value = false;
+	export let filterable = true;
 
 	let filter_input: HTMLElement;
 	let input_text = "";
@@ -248,6 +249,7 @@
 					on:keydown={handle_key_down}
 					on:blur={handle_blur}
 					on:focus={handle_focus}
+					readonly={!filterable}
 				/>
 				<!-- TODO: fix -->
 				<!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -379,5 +381,9 @@
 	}
 	.subdued {
 		color: var(--body-text-color-subdued);
+	}
+
+	input[readonly] {
+     	cursor: pointer;
 	}
 </style>
