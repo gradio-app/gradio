@@ -1,15 +1,14 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import Dropdown from "./shared/Dropdown.svelte";
+	import Multiselect from "./shared/Multiselect.svelte";
 </script>
 
 <Meta
-	title="Components/Dropdown"
-	component={Dropdown}
+	title="Components/Multiselect"
+	component={Multiselect}
 	argTypes={{
 		multiselect: {
 			control: [true, false],
-			description: "Whether to autoplay the video on load",
 			name: "multiselect",
 			value: false
 		}
@@ -17,31 +16,31 @@
 />
 
 <Template let:args>
-	<Dropdown {...args} />
+	<Multiselect {...args} />
 </Template>
 
 <Story
-	name="Single-select"
+	name="Multiselect"
 	args={{
-		value: "swim",
+		value: ["swim", "run"],
 		choices: [
 			["run", "run"],
 			["swim", "swim"],
 			["jump", "jump"]
 		],
-		label: "Single-select Dropdown"
+		label: "Multiselect Dropdown"
 	}}
 />
 <Story
-	name="Single-select Static"
+	name="Multiselect Static"
 	args={{
-		value: "swim",
+		value: ["swim", "run"],
 		choices: [
 			["run", "run"],
 			["swim", "swim"],
 			["jump", "jump"]
 		],
-		disabled: true,
-		label: "Single-select Dropdown"
+		label: "Multiselect Dropdown",
+		disabled: true
 	}}
 />
