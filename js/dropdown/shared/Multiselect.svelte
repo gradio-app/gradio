@@ -384,6 +384,6 @@
 	}
 
 	input[readonly] {
-     	cursor: pointer;
+		cursor: pointer;
 	}
 </style>
