@@ -305,7 +305,12 @@ def dev(
             text.decode("utf-8")
             .replace("Changes detected in:", "[orange3]Changed detected in:[/]")
             .replace("Watching:", "[orange3]Watching:[/]")
+            .replace("Running on local URL", "[orange3]Backend Server[/]")
         )
+        if "[orange3]Watching:[/]" in text:
+            text += f"'{str(component_directory / 'frontend')}',"
+        if "To create a public link" in text:
+            continue
         print(text)
 
 
