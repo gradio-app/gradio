@@ -48,6 +48,7 @@ class Dropdown(
         multiselect: bool | None = None,
         allow_custom_value: bool = False,
         max_choices: int | None = None,
+        filterable: bool = True,
         label: str | None = None,
         info: str | None = None,
         every: float | None = None,
@@ -69,6 +70,7 @@ class Dropdown(
             multiselect: if True, multiple choices can be selected.
             allow_custom_value: If True, allows user to enter a custom value that is not in the list of choices. Only applies if `multiselect` is False.
             max_choices: maximum number of choices that can be selected. If None, no limit is enforced.
+            filterable: If True, user will be able to type into the dropdown and filter the choices by typing. 
             label: component name in interface.
             info: additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
@@ -102,6 +104,7 @@ class Dropdown(
         self.max_choices = max_choices
         self.allow_custom_value = allow_custom_value
         self.interpret_by_tokens = False
+        self.filterable = filterable
         self.select: EventListenerMethod
         """
         Event listener for when the user selects Dropdown option.
@@ -156,6 +159,7 @@ class Dropdown(
             "max_choices": self.max_choices,
             "allow_custom_value": self.allow_custom_value,
             "container": self.container,
+            "filterable": self.filterable,
             **IOComponent.get_config(self),
         }
 
@@ -166,6 +170,7 @@ class Dropdown(
         label: str | None = None,
         info: str | None = None,
         show_label: bool | None = None,
+        filterable: bool | None = None,
         container: bool | None = None,
         scale: int | None = None,
         min_width: int | None = None,
@@ -185,6 +190,7 @@ class Dropdown(
             "value": value,
             "interactive": interactive,
             "placeholder": placeholder,
+            "filterable": filterable,
             "__type__": "update",
         }
 
