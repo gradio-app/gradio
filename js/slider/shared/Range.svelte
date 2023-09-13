@@ -16,7 +16,6 @@
 	export let info: string | undefined = undefined;
 	export let show_label: boolean;
 
-	let default_value = value;
 	const id = `range_id_${_id++}`;
 	const dispatch = createEventDispatcher<{
 		change: number;
