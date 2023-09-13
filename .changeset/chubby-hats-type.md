@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-feat:Fix docstring of dropdown
+fix:Fix docstring of dropdown
