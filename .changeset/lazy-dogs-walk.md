@@ -1,6 +1,6 @@
 ---
-"@gradio/dropdown": minor
-"gradio": minor
+"@gradio/dropdown": patch
+"gradio": patch
 ---
 
-feat:Ensure input value saves on dropdown blur
+fix:Ensure input value saves on dropdown blur
