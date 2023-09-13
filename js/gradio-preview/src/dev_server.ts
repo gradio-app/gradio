@@ -81,6 +81,10 @@ export async function create_server({
 				},
 				prebundleSvelteLibraries: false,
 				hot: true,
+				compilerOptions: {
+					discloseVersion: false,
+					dev: true
+				},
 				preprocess: [
 					{
 						script: ({ attributes, filename, content }) => {
