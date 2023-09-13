@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { ChildProcess, spawn } from "node:child_process";
 import { create_server } from "./dev_server";
 
 const args = process.argv.slice(2);
@@ -19,7 +19,6 @@ function parse_args(args: string[]): Record<string, string> {
 }
 
 const parsed_args = parse_args(args);
-console.log({ parsed_args });
 
 async function run(): Promise<void> {
 	const [backend_port, frontend_port] = await find_free_ports(7860, 8860);
@@ -31,7 +30,6 @@ async function run(): Promise<void> {
 		...parsed_args
 	};
 	process.env.GRADIO_BACKEND_PORT = backend_port.toString();
-	const server = create_server({ ...options });
 
 	const _process = spawn(
 		`gradio`,
@@ -50,8 +48,12 @@ async function run(): Promise<void> {
 
 	_process.stdout.setEncoding("utf8");
 
-	function std_out(data) {
+	function std_out(data: Buffer): void {
 		const _data = data.toString();
+
+		if (_data.includes("Running on")) {
+			const server = create_server({ ...options });
+		}
 
 		process.stdout.write(_data);
 	}
@@ -63,7 +65,7 @@ async function run(): Promise<void> {
 	_process.on("disconnect", () => kill_process(_process));
 }
 
-function kill_process(process) {
+function kill_process(process: ChildProcess): void {
 	process.kill("SIGKILL");
 }
 
@@ -102,6 +104,7 @@ export function is_free_port(port: number): Promise<boolean> {
 		});
 		sock.once("error", (e) => {
 			sock.destroy();
+			//@ts-ignore
 			if (e.code === "ECONNREFUSED") {
 				accept(true);
 			} else {

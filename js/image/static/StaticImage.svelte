@@ -67,5 +67,6 @@
 		{show_download_button}
 		{selectable}
 		{show_share_button}
+		i18n={gradio.i18n}
 	/>
 </Block>

@@ -48,12 +48,13 @@ class Dependency(dict):
         """
         Triggered after directly preceding event is completed, regardless of success or failure.
         """
-        self.success = partial(EventListener(
-            "success",
-            trigger_after=dep_index,
-            trigger_only_on_success=True,
-        ).listener, 
-            trigger
+        self.success = partial(
+            EventListener(
+                "success",
+                trigger_after=dep_index,
+                trigger_only_on_success=True,
+            ).listener,
+            trigger,
         )
         """
         Triggered after directly preceding event is completed, if it was successful.

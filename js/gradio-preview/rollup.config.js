@@ -4,7 +4,6 @@ import cjs from "@rollup/plugin-commonjs";
 import { cpSync, writeFileSync, rmdirSync, existsSync } from "fs";
 import { join } from "path";
 import json from "@rollup/plugin-json";
-import ignore from "rollup-plugin-ignore";
 
 import { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -16,7 +15,7 @@ const require = createRequire(import.meta.url);
 const esbuild_binary_path = require.resolve("esbuild");
 const vite_client = require.resolve("vite/dist/client/client.mjs");
 const hmr = require.resolve("svelte-hmr");
-
+console.log(__dirname);
 export default [
 	{
 		input: "src/index.ts",
@@ -59,6 +58,10 @@ export default [
 					if (id === "svelte/internal") {
 						return "../svelte-internal.js";
 					}
+
+					if (id === "svelte/internal/disclose-version") {
+						return "../svelte-disclose.js";
+					}
 				},
 
 				transform(code, id) {
@@ -73,6 +76,14 @@ export default [
 					cpSync(join(vite_client, ".."), "../../gradio/node/dist/client", {
 						recursive: true
 					});
+
+					cpSync(
+						join(__dirname, "node_modules", "svelte"),
+						"../../gradio/node/dev/node_modules/svelte",
+						{
+							recursive: true
+						}
+					);
 
 					cpSync(
 						join(hmr, "../runtime"),
@@ -123,6 +134,10 @@ export default [
 					if (id === "svelte/action") {
 						return "./svelte-action.js";
 					}
+
+					if (id === "svelte/internal/disclose-version") {
+						return "./svelte-disclose.js";
+					}
 				}
 			}
 		]
@@ -139,6 +154,14 @@ export default [
 		input: "src/svelte-internal.ts",
 		output: {
 			file: "../../gradio/node/dev/svelte-internal.js",
+			format: "esm"
+		},
+		plugins: [node(), json(), cjs(), ts()]
+	},
+	{
+		input: "src/svelte-disclose.ts",
+		output: {
+			file: "../../gradio/node/dev/svelte-disclose.js",
 			format: "esm"
 		},
 		plugins: [node(), json(), cjs(), ts()]

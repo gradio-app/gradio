@@ -97,5 +97,6 @@
 		on:end={() => gradio.dispatch("end")}
 		on:share={({ detail }) => gradio.dispatch("share", detail)}
 		on:error={({ detail }) => gradio.dispatch("error", detail)}
+		i18n={gradio.i18n}
 	/>
 </Block>

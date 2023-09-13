@@ -50,7 +50,7 @@
 	import { app_state } from "../../app/src/stores";
 	import Loader from "./Loader.svelte";
 	import type { LoadingStatus } from "./types";
-	import type { I18nFormatter } from "../@gradio/utils";
+	import type { I18nFormatter } from "@gradio/utils";
 
 	export let i18n: I18nFormatter;
 	export let eta: number | null = null;

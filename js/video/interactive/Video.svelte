@@ -5,10 +5,10 @@
 	import { BlockLabel } from "@gradio/atoms";
 	import { Webcam } from "@gradio/image/interactive";
 	import { Video } from "@gradio/icons";
-	import { normalise_file } from "@gradio/upload";
 
 	import { prettyBytes, playable } from "../shared/utils";
 	import Player from "../shared/Player.svelte";
+	import type { I18nFormatter } from "@gradio/utils";
 
 	export let value: FileData | null = null;
 	export let subtitle: FileData | null = null;
@@ -19,6 +19,7 @@
 	export let include_audio: boolean;
 	export let autoplay: boolean;
 	export let root: string;
+	export let i18n: I18nFormatter;
 
 	const dispatch = createEventDispatcher<{
 		change: any;
@@ -71,10 +72,11 @@
 			on:capture={({ detail }) => dispatch("change", detail)}
 			on:start_recording
 			on:stop_recording
+			{i18n}
 		/>
 	{/if}
 {:else}
-	<ModifyUpload i18n={gradio.i18n} on:clear={handle_clear} />
+	<ModifyUpload {i18n} on:clear={handle_clear} />
 	{#if playable()}
 		{#key value?.data}
 			<Player

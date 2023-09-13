@@ -24,7 +24,8 @@
 		select: SelectData;
 		input: never;
 		focus: never;
-	}>;
+	}> = { dispatch, i18n: (s: string) => s };
+
 	export let label = "Textbox";
 	export let info: string | undefined = undefined;
 	export let elem_id = "";

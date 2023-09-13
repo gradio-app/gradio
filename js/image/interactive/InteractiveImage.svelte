@@ -97,6 +97,7 @@
 		{pending}
 		{streaming}
 		{mirror_webcam}
+		i18n={gradio.i18n}
 	>
 		<UploadText i18n={gradio.i18n} type="image" />
 	</Image>

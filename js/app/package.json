@@ -39,6 +39,7 @@
 		"@gradio/column": "workspace:^",
 		"@gradio/dataframe": "workspace:^",
 		"@gradio/dropdown": "workspace:^",
+		"@gradio/fallback": "workspace:^",
 		"@gradio/file": "workspace:^",
 		"@gradio/form": "workspace:^",
 		"@gradio/gallery": "workspace:^",

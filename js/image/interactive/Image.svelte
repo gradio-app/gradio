@@ -3,7 +3,7 @@
 	import { createEventDispatcher, tick, onMount } from "svelte";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Image, Sketch as SketchIcon } from "@gradio/icons";
-	import type { SelectData } from "@gradio/utils";
+	import type { SelectData, I18nFormatter } from "@gradio/utils";
 	import { get_coordinates_of_clicked_image } from "../shared/utils";
 
 	import Cropper from "./Cropper.svelte";
@@ -36,6 +36,7 @@
 	export let mask_opacity;
 	export let selectable = false;
 	export let root: string;
+	export let i18n: I18nFormatter;
 
 	let sketch: Sketch;
 	let cropper: Cropper;
@@ -116,8 +117,6 @@
 		value_ = value;
 		normalise_file(value_, root, null);
 	}
-
-	$: console.log(value_);
 
 	function handle_image_load(event: Event): void {
 		const element = event.currentTarget as HTMLImageElement;
@@ -227,12 +226,12 @@
 					on:crop={handle_save}
 				/>
 				<ModifyUpload
-					i18n={gradio.i18n}
+					{i18n}
 					on:clear={(e) => (handle_clear(e), (tool = "editor"))}
 				/>
 			{:else if tool === "editor"}
 				<ModifyUpload
-					i18n={gradio.i18n}
+					{i18n}
 					on:edit={() => (tool = "select")}
 					on:clear={handle_clear}
 					editable
@@ -347,12 +346,12 @@
 	{:else if tool === "select"}
 		<Cropper bind:this={cropper} image={value.data} on:crop={handle_save} />
 		<ModifyUpload
-			i18n={gradio.i18n}
+			{i18n}
 			on:clear={(e) => (handle_clear(e), (tool = "editor"))}
 		/>
 	{:else if tool === "editor"}
 		<ModifyUpload
-			i18n={gradio.i18n}
+			{i18n}
 			on:edit={() => (tool = "select")}
 			on:clear={handle_clear}
 			editable
