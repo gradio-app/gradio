@@ -12,7 +12,6 @@
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value: [string, string | number | null][];
-	let old_value: [string, string | number | null][];
 	export let mode: "static" | "interactive";
 	export let show_legend: boolean;
 	export let color_map: Record<string, string> = {};
@@ -24,7 +23,8 @@
 	export let combine_adjacent = false;
 	export let gradio: Gradio<{
 		select: SelectData;
-		change: never;
+		change: typeof value;
+		input: never;
 	}>;
 
 	$: if (!color_map && Object.keys(color_map).length) {
@@ -32,13 +32,6 @@
 	}
 
 	export let loading_status: LoadingStatus;
-
-	$: {
-		if (value !== old_value) {
-			old_value = value;
-			gradio.dispatch("change");
-		}
-	}
 
 	$: if (combine_adjacent) {
 		value = merge_elements(value, "equal");
@@ -68,9 +61,9 @@
 
 	{#if value}
 		<HighlightedText
-			on:select={({ detail }) => gradio.dispatch("select", detail)}
+			bind:value
+			on:change={() => gradio.dispatch("change")}
 			{selectable}
-			{value}
 			{show_legend}
 			{color_map}
 		/>
