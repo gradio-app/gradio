@@ -133,7 +133,6 @@
 			input_text = choices_names[choices_values.indexOf(value as string)];
 		}
 		value = input_text;
-		selected_index = null;
 		show_options = false;
 		active_index = null;
 		dispatch("blur");
