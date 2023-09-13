@@ -66,6 +66,43 @@ export async function create_server({
 		plugins: [
 			//@ts-ignore
 			viteCommonjs(),
+			{
+				name: "gradio",
+				enforce: "pre",
+				resolveId(importee, importer) {
+					if (importee === "svelte") {
+						return join(NODE_DIR, "svelte-internal.js");
+					}
+
+					if (importee === "svelte/internal") {
+						return join(NODE_DIR, "svelte-internal.js");
+					}
+
+					if (importee === "svelte/action") {
+						return join(NODE_DIR, "svelte-action.js");
+					}
+
+					if (importee === "svelte/internal/disclose-version") {
+						console.log("================================");
+						console.log("HELLO DISCLOSE VERSION!!!!!!!!!!!!");
+						console.log({ importer });
+						console.log("================================");
+						return join(NODE_DIR, "svelte-action.js");
+					}
+				},
+				transform(code) {
+					if (code.includes("__ROOT_PATH__")) {
+						return code.replace(`"__ROOT_PATH__"`, imports);
+					}
+				},
+				transformIndexHtml(html) {
+					return html.replace(
+						`window.__GRADIO_DEV__ = "dev"`,
+						`window.__GRADIO_DEV__ = "dev";
+						window.__GRADIO__SERVER_PORT__ = ${backend_port};`
+					);
+				}
+			},
 			//@ts-ignore
 			svelte({
 				onwarn(warning, handler) {
@@ -82,8 +119,7 @@ export async function create_server({
 				prebundleSvelteLibraries: false,
 				hot: true,
 				compilerOptions: {
-					discloseVersion: false,
-					dev: true
+					discloseVersion: false
 				},
 				preprocess: [
 					{
@@ -102,37 +138,7 @@ export async function create_server({
 						}
 					}
 				]
-			}),
-
-			{
-				name: "gradio",
-				enforce: "pre",
-				resolveId(importee, importer) {
-					if (importee === "svelte") {
-						return join(NODE_DIR, "svelte-internal.js");
-					}
-
-					if (importee === "svelte/internal") {
-						return join(NODE_DIR, "svelte-internal.js");
-					}
-
-					if (importee === "svelte/action") {
-						return join(NODE_DIR, "svelte-action.js");
-					}
-				},
-				transform(code) {
-					if (code.includes("__ROOT_PATH__")) {
-						return code.replace(`"__ROOT_PATH__"`, imports);
-					}
-				},
-				transformIndexHtml(html) {
-					return html.replace(
-						`window.__GRADIO_DEV__ = "dev"`,
-						`window.__GRADIO_DEV__ = "dev";
-						window.__GRADIO__SERVER_PORT__ = ${backend_port};`
-					);
-				}
-			}
+			})
 		]
 	});
 
