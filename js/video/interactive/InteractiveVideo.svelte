@@ -76,8 +76,6 @@
 			gradio.dispatch("change");
 		}
 	}
-
-	$: console.log(_video);
 </script>
 
 <Block

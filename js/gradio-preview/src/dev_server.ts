@@ -1,13 +1,10 @@
 import { fileURLToPath } from "url";
 import { createServer, build, createLogger } from "vite";
-import { readdirSync, existsSync, readFileSync } from "fs";
 import { join } from "path";
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { transform } from "sucrase";
 import { viteCommonjs } from "@originjs/vite-plugin-commonjs";
-import { read } from "vega";
-// import { typescript } from "svelte-preprocess";
 
 const vite_messages_to_ignore = [
 	"Default and named imports from CSS files are deprecated."
@@ -39,7 +36,6 @@ export async function create_server({
 }: ServerOptions): Promise<void> {
 	process.env.gradio_mode = "dev";
 	const imports = generate_imports(component_dir);
-	console.log(imports);
 
 	const NODE_DIR = join(root_dir, "..", "..", "node", "dev");
 	const server = await createServer({
@@ -81,7 +77,7 @@ export async function create_server({
 						return;
 					}
 
-					handler(warning);
+					handler!(warning);
 				},
 				prebundleSvelteLibraries: false,
 				hot: true,
@@ -138,7 +134,7 @@ export async function create_server({
 
 	await server.listen();
 
-	console.log(
+	console.info(
 		`[orange3]Frontend Server[/] (Go here): ${server.resolvedUrls?.local}`
 	);
 }
@@ -150,7 +146,7 @@ function find_frontend_folders(
 	start_path: string
 ): { dir: string; package_name: string }[] {
 	if (!fs.existsSync(start_path)) {
-		console.log("No directory found at:", start_path);
+		console.warn("No directory found at:", start_path);
 		return [];
 	}
 

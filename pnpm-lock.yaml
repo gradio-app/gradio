@@ -409,6 +409,9 @@ importers:
       '@gradio/dropdown':
         specifier: workspace:^
         version: link:../dropdown
+      '@gradio/fallback':
+        specifier: workspace:^
+        version: link:../fallback
       '@gradio/file':
         specifier: workspace:^
         version: link:../file
@@ -768,6 +771,21 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+
+  js/fallback:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+      '@zerodevx/svelte-json-view':
+        specifier: ^1.0.7
+        version: 1.0.7(svelte@4.2.0)
 
   js/file:
     dependencies:
@@ -7485,6 +7503,14 @@ packages:
       esbuild: 0.17.14
       tslib: 2.6.1
     dev: true
+
+  /@zerodevx/svelte-json-view@1.0.7(svelte@4.2.0):
+    resolution: {integrity: sha512-yW0MV+9BCKOwzt3h86y3xDqYdI5st+Rxk+L5pa0Utq7nlPD+VvxyhL7R1gJoLxQvWwjyAvY/fyUCFTdwDyI14w==}
+    peerDependencies:
+      svelte: ^3.57.0 || ^4.0.0
+    dependencies:
+      svelte: 4.2.0
+    dev: false
 
   /@zxing/text-encoding@0.9.0:
     resolution: {integrity: sha512-U/4aVJ2mxI0aDNI8Uq0wEhMgY+u4CNtEb0om3+y3+niDAsoTCOB33UF0sxpzqzdqXLqmvc+vZyAt4O8pPdfkwA==}

@@ -1,10 +1,16 @@
 <script lang="ts">
 	import { Block } from "@gradio/atoms";
 	import type { SvelteComponent, ComponentType } from "svelte";
-	import { component_map } from "./directory";
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import { get_fetchable_url_or_file } from "@gradio/upload";
-	export let components: (keyof typeof component_map)[];
+	export let components: string[];
+	export let component_map: Map<
+		string,
+		Promise<{
+			name: string;
+			component: { default: ComponentType<SvelteComponent> };
+		}>
+	>;
 	export let label = "Examples";
 	export let headers: string[];
 	export let samples: any[][];
@@ -66,12 +72,29 @@
 		}
 	}
 
-	$: component_meta = selected_samples.map((sample_row) =>
-		sample_row.map((sample_cell, j) => ({
-			value: sample_cell,
-			component: component_map[components[j]] as ComponentType<SvelteComponent>
-		}))
-	);
+	let component_meta: {
+		value: any;
+		component: ComponentType<SvelteComponent>;
+	}[][] = [];
+
+	async function get_component_meta(selected_samples: any[][]): Promise<void> {
+		component_meta = await Promise.all(
+			selected_samples.map(
+				async (sample_row) =>
+					await Promise.all(
+						sample_row.map(async (sample_cell, j) => {
+							return {
+								value: sample_cell,
+								component: (await component_map.get(components[j]))?.component
+									?.default as ComponentType<SvelteComponent>
+							};
+						})
+					)
+			)
+		);
+	}
+
+	$: get_component_meta(selected_samples);
 </script>
 
 <Block
@@ -115,7 +138,7 @@
 					on:mouseenter={() => handle_mouseenter(i)}
 					on:mouseleave={() => handle_mouseleave()}
 				>
-					{#if Object.keys(component_map).includes(components[0]) && component_map[components[0]]}
+					{#if Object.keys(component_map).includes(components[0]) && component_map.get(components[0])}
 						<svelte:component
 							this={component_meta[0][0].component}
 							value={sample_row[0]}
@@ -153,7 +176,7 @@
 						>
 							{#each sample_row as { value, component }, j}
 								{@const component_name = components[j]}
-								{#if component_name !== undefined && component_map[component_name] !== undefined}
+								{#if component_name !== undefined && component_map.get(component_name) !== undefined}
 									<td
 										style="max-width: {component_name === 'textbox'
 											? '35ch'
