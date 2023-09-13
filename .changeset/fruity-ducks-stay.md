@@ -1,7 +1,7 @@
 ---
-"@gradio/gallery": minor
-"@gradio/image": minor
-"gradio": minor
+"@gradio/gallery": patch
+"@gradio/image": patch
+"gradio": patch
 ---
 
-feat:Lazy load all images
+fix:Lazy load all images
