@@ -1,5 +1,5 @@
 import { test, describe, assert, afterEach, vi } from "vitest";
-import { cleanup, fireEvent, render, get_text, wait } from "@gradio/tootils";
+import { cleanup, render } from "@gradio/tootils";
 import event from "@testing-library/user-event";
 import { setupi18n } from "../app/src/i18n";
 
@@ -35,7 +35,8 @@ describe("Dropdown", () => {
 			choices: [
 				["choice", "choice"],
 				["choice2", "choice2"]
-			]
+			],
+			filterable: false
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -54,7 +55,8 @@ describe("Dropdown", () => {
 			choices: [
 				["choice", "choice"],
 				["name2", "choice2"]
-			]
+			],
+			filterable: true
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -80,7 +82,8 @@ describe("Dropdown", () => {
 			choices: [
 				["apple", "apple"],
 				["zebra", "zebra"]
-			]
+			],
+			filterable: true
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -110,7 +113,8 @@ describe("Dropdown", () => {
 			choices: [
 				["default", "default"],
 				["other", "other"]
-			]
+			],
+			filterable: false
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -119,13 +123,36 @@ describe("Dropdown", () => {
 		const change_event = listen("change");
 		const select_event = listen("select");
 
-		await item.focus();
+		item.focus();
 		await event.keyboard("other");
+	});
+
+	test("blurring the textbox should save the input value", async () => {
+		const { getByLabelText, listen } = await render(Dropdown, {
+			show_label: true,
+			loading_status,
+			value: "default",
+			label: "Dropdown",
+			max_choices: undefined,
+			allow_custom_value: true,
+			choices: [
+				["dwight", "dwight"],
+				["michael", "michael"]
+			],
+			filterable: true
+		});
+
+		const item: HTMLInputElement = getByLabelText(
+			"Dropdown"
+		) as HTMLInputElement;
+		const change_event = listen("change");
+
+		item.focus();
+		await event.keyboard("kevin");
 		await item.blur();
 
-		assert.equal(item.value, "default");
-		assert.equal(change_event.callCount, 0);
-		assert.equal(select_event.callCount, 0);
+		assert.equal(item.value, "kevin");
+		assert.equal(change_event.callCount, 1);
 	});
 
 	test("focusing the label should toggle the options", async () => {
@@ -137,7 +164,8 @@ describe("Dropdown", () => {
 			choices: [
 				["default", "default"],
 				["other", "other"]
-			]
+			],
+			filterable: true
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -146,8 +174,8 @@ describe("Dropdown", () => {
 		const blur_event = listen("blur");
 		const focus_event = listen("focus");
 
-		await item.focus();
-		await item.blur();
+		item.focus();
+		item.blur();
 
 		assert.equal(blur_event.callCount, 1);
 		assert.equal(focus_event.callCount, 1);
@@ -165,14 +193,15 @@ describe("Dropdown", () => {
 				["apple", "apple"],
 				["zebra", "zebra"],
 				["pony", "pony"]
-			]
+			],
+			filterable: true
 		});
 
 		const item: HTMLInputElement = getByLabelText(
 			"Dropdown"
 		) as HTMLInputElement;
 
-		await item.focus();
+		item.focus();
 		item.value = "";
 		await event.keyboard("z");
 		const options = getAllByTestId("dropdown-option");
@@ -200,7 +229,8 @@ describe("Dropdown", () => {
 					["apple", "apple"],
 					["zebra", "zebra"],
 					["pony", "pony"]
-				]
+				],
+				filterable: true
 			}
 		);
 
@@ -214,7 +244,7 @@ describe("Dropdown", () => {
 
 		expect(options).toHaveLength(3);
 
-		await component.$set({
+		component.$set({
 			value: "",
 			choices: [
 				["apple", "apple"],
@@ -223,7 +253,7 @@ describe("Dropdown", () => {
 			]
 		});
 
-		await item.focus();
+		item.focus();
 
 		const options_new = getAllByTestId("dropdown-option");
 		expect(options_new).toHaveLength(3);
