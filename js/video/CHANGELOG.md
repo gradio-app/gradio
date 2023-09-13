@@ -1,5 +1,23 @@
 # @gradio/video
 
+## 0.0.7
+
+### Patch Changes
+
+- Updated dependencies [[`dc86e4a7`](https://github.com/gradio-app/gradio/commit/dc86e4a7e1c40b910c74558e6f88fddf9b3292bc)]:
+  - @gradio/image@0.2.3
+
+## 0.0.6
+
+### Patch Changes
+
+- Updated dependencies [[`afac0006`](https://github.com/gradio-app/gradio/commit/afac0006337ce2840cf497cd65691f2f60ee5912)]:
+  - @gradio/statustracker@0.2.0
+  - @gradio/image@0.2.2
+  - @gradio/utils@0.1.1
+  - @gradio/atoms@0.1.2
+  - @gradio/upload@0.2.1
+
 ## 0.0.5
 
 ### Patch Changes

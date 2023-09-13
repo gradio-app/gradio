@@ -2,15 +2,17 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import json
 import time
+import traceback
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import deque
 from typing import Any
 
 import fastapi
-import httpx
 from typing_extensions import Literal
 
+from gradio import route_utils, routes
 from gradio.data_classes import (
     Estimation,
     LogMessage,
@@ -18,13 +20,9 @@ from gradio.data_classes import (
     Progress,
     ProgressUnit,
 )
+from gradio.exceptions import Error
 from gradio.helpers import TrackedIterable
-from gradio.utils import (
-    AsyncRequest,
-    run_coro_in_background,
-    safe_get_lock,
-    set_task_name,
-)
+from gradio.utils import run_coro_in_background, safe_get_lock, set_task_name
 
 
 class Event:
@@ -40,7 +38,7 @@ class Event:
         self._id = f"{self.session_hash}_{self.fn_index}"
         self.data: PredictBody | None = None
         self.lost_connection_time: float | None = None
-        self.token: str | None = None
+        self.username: str | None = None
         self.progress: Progress | None = None
         self.progress_pending: bool = False
         self.log_messages: deque[LogMessage] = deque()
@@ -65,7 +63,7 @@ class Queue:
         self.update_intervals = update_intervals
         self.active_jobs: list[None | list[Event]] = [None] * concurrency_count
         self.delete_lock = safe_get_lock()
-        self.server_path = None
+        self.server_app = None
         self.duration_history_total = 0
         self.duration_history_count = 0
         self.avg_process_time = 0
@@ -76,14 +74,9 @@ class Queue:
         self.progress_update_sleep_when_free = 0.1
         self.max_size = max_size
         self.blocks_dependencies = blocks_dependencies
-        self.access_token = ""
-        self.queue_client = None
         self.continuous_tasks: list[Event] = []
 
     async def start(self, ssl_verify=True):
-        # So that the client is attached to the running event loop
-        self.queue_client = httpx.AsyncClient(verify=ssl_verify)
-
         run_coro_in_background(self.start_processing)
         run_coro_in_background(self.start_log_and_progress_updates)
         if not self.live_updates:
@@ -95,11 +88,8 @@ class Queue:
     def resume(self):
         self.stopped = False
 
-    def set_url(self, url: str):
-        self.server_path = url
-
-    def set_access_token(self, token: str):
-        self.access_token = token
+    def set_server_app(self, app: routes.App):
+        self.server_app = app
 
     def get_active_worker_count(self) -> int:
         count = 0
@@ -359,32 +349,69 @@ class Queue:
         return params
 
     async def call_prediction(self, events: list[Event], batch: bool):
-        data = events[0].data
-        assert data is not None, "No event data"
-        token = events[0].token
-        data.event_id = events[0]._id if not batch else None
+        body = events[0].data
+        assert body is not None, "No event data"
+        username = events[0].username
+        body.event_id = events[0]._id if not batch else None
         try:
-            data.request = self.get_request_params(events[0].websocket)
+            body.request = self.get_request_params(events[0].websocket)
         except ValueError:
             pass
 
         if batch:
-            data.data = list(zip(*[event.data.data for event in events if event.data]))
-            data.request = [
+            body.data = list(zip(*[event.data.data for event in events if event.data]))
+            body.request = [
                 self.get_request_params(event.websocket)
                 for event in events
                 if event.data
             ]
-            data.batched = True
-        response = await AsyncRequest(
-            method=AsyncRequest.Method.POST,
-            url=f"{self.server_path}api/predict",
-            json=dict(data),
-            headers={"Authorization": f"Bearer {self.access_token}"},
-            cookies={"access-token": token} if token is not None else None,
-            client=self.queue_client,
+            body.batched = True
+
+        app = self.server_app
+        if app is None:
+            raise Exception("Server app has not been set.")
+        api_name = "predict"
+
+        fn_index_inferred = route_utils.infer_fn_index(
+            app=app, api_name=api_name, body=body
         )
-        return response
+
+        gr_request = route_utils.compile_gr_request(
+            app=app,
+            body=body,
+            fn_index_inferred=fn_index_inferred,
+            username=username,
+            request=None,
+        )
+
+        try:
+            output = await route_utils.call_process_api(
+                app=app,
+                body=body,
+                gr_request=gr_request,
+                fn_index_inferred=fn_index_inferred,
+            )
+        except Exception as error:
+            show_error = app.get_blocks().show_error or isinstance(error, Error)
+            traceback.print_exc()
+            raise Exception(str(error) if show_error else None) from error
+
+        # To emulate the HTTP response from the predict API,
+        # convert the output to a JSON response string.
+        # This is done by FastAPI automatically in the HTTP endpoint handlers,
+        # but we need to do it manually here.
+        response_class = app.router.default_response_class
+        if isinstance(response_class, fastapi.datastructures.DefaultPlaceholder):
+            actual_response_class = response_class.value
+        else:
+            actual_response_class = response_class
+        http_response = actual_response_class(
+            output
+        )  # Do the same as https://github.com/tiangolo/fastapi/blob/0.87.0/fastapi/routing.py#L264
+        # Also, decode the JSON string to a Python object, emulating the HTTP client behavior e.g. the `json()` method of `httpx`.
+        response_json = json.loads(http_response.body.decode())
+
+        return response_json
 
     async def process_events(self, events: list[Event], batch: bool) -> None:
         awake_events: list[Event] = []
@@ -400,29 +427,35 @@ class Queue:
             if not awake_events:
                 return
             begin_time = time.time()
-            response = await self.call_prediction(awake_events, batch)
-            if response.has_exception:
+            try:
+                response = await self.call_prediction(awake_events, batch)
+                err = None
+            except Exception as e:
+                response = None
+                err = e
                 for event in awake_events:
                     await self.send_message(
                         event,
                         {
                             "msg": "process_completed",
-                            "output": {"error": str(response.exception)},
+                            "output": {"error": str(e)},
                             "success": False,
                         },
                     )
-            elif response.json.get("is_generating", False):
+            if response and response.get("is_generating", False):
                 old_response = response
-                while response.json.get("is_generating", False):
+                old_err = err
+                while response and response.get("is_generating", False):
                     old_response = response
+                    old_err = err
                     open_ws = []
                     for event in awake_events:
                         open = await self.send_message(
                             event,
                             {
                                 "msg": "process_generating",
-                                "output": old_response.json,
-                                "success": old_response.status == 200,
+                                "output": old_response,
+                                "success": old_response is not None,
                             },
                         )
                         open_ws.append(open)
@@ -431,26 +464,34 @@ class Queue:
                     ]
                     if not awake_events:
                         return
-                    response = await self.call_prediction(awake_events, batch)
+                    try:
+                        response = await self.call_prediction(awake_events, batch)
+                        err = None
+                    except Exception as e:
+                        response = None
+                        err = e
                 for event in awake_events:
-                    if response.status != 200:
-                        relevant_response = response
+                    if response is None:
+                        relevant_response = err
                     else:
-                        relevant_response = old_response
+                        relevant_response = old_response or old_err
                     await self.send_log_updates_for_event(event)
                     await self.send_message(
                         event,
                         {
                             "msg": "process_completed",
-                            "output": relevant_response.json,
-                            "success": relevant_response.status == 200,
+                            "output": {"error": str(relevant_response)}
+                            if isinstance(relevant_response, Exception)
+                            else relevant_response,
+                            "success": relevant_response
+                            and not isinstance(relevant_response, Exception),
                         },
                     )
-            else:
-                output = copy.deepcopy(response.json)
+            elif response:
+                output = copy.deepcopy(response)
                 for e, event in enumerate(awake_events):
                     if batch and "data" in output:
-                        output["data"] = list(zip(*response.json.get("data")))[e]
+                        output["data"] = list(zip(*response.get("data")))[e]
                     await self.send_log_updates_for_event(
                         event
                     )  # clean out pending log updates first
@@ -459,11 +500,11 @@ class Queue:
                         {
                             "msg": "process_completed",
                             "output": output,
-                            "success": response.status == 200,
+                            "success": response is not None,
                         },
                     )
             end_time = time.time()
-            if response.status == 200:
+            if response is not None:
                 self.update_estimation(end_time - begin_time)
         except Exception as e:
             print(e)
@@ -503,12 +544,14 @@ class Queue:
             return None, False
 
     async def reset_iterators(self, session_hash: str, fn_index: int):
-        await AsyncRequest(
-            method=AsyncRequest.Method.POST,
-            url=f"{self.server_path}reset",
-            json={
-                "session_hash": session_hash,
-                "fn_index": fn_index,
-            },
-            client=self.queue_client,
-        )
+        # Do the same thing as the /reset route
+        app = self.server_app
+        if app is None:
+            raise Exception("Server app has not been set.")
+        if session_hash not in app.iterators:
+            # Failure, but don't raise an error
+            return
+        async with app.lock:
+            app.iterators[session_hash][fn_index] = None
+            app.iterators_to_reset[session_hash].add(fn_index)
+        return

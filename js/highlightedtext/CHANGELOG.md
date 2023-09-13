@@ -1,5 +1,21 @@
 # @gradio/highlightedtext
 
+## 0.3.0
+
+### Features
+
+- [#5400](https://github.com/gradio-app/gradio/pull/5400) [`d112e261`](https://github.com/gradio-app/gradio/commit/d112e2611b0fc79ecedfaed367571f3157211387) - Allow interactive input in `gr.HighlightedText`.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
+## 0.2.3
+
+### Patch Changes
+
+- Updated dependencies [[`afac0006`](https://github.com/gradio-app/gradio/commit/afac0006337ce2840cf497cd65691f2f60ee5912)]:
+  - @gradio/statustracker@0.2.0
+  - @gradio/theme@0.1.0
+  - @gradio/utils@0.1.1
+  - @gradio/atoms@0.1.2
+
 ## 0.2.2
 
 ### Patch Changes
