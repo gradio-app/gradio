@@ -11,7 +11,8 @@
 		"@gradio/atoms": "workspace:^",
 		"@gradio/icons": "workspace:^",
 		"@gradio/client": "workspace:^",
-		"@gradio/upload": "workspace:^"
+		"@gradio/upload": "workspace:^",
+		"@gradio/utils": "workspace:^"
 	},
 	"main_changeset": true
 }

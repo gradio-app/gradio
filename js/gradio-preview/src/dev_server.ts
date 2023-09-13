@@ -1,13 +1,25 @@
 import { fileURLToPath } from "url";
-import { createServer, build } from "vite";
-import { readdirSync, existsSync, readFileSync } from "fs";
+import { createServer, build, createLogger } from "vite";
 import { join } from "path";
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { transform } from "sucrase";
 import { viteCommonjs } from "@originjs/vite-plugin-commonjs";
-import { read } from "vega";
-// import { typescript } from "svelte-preprocess";
+
+const vite_messages_to_ignore = [
+	"Default and named imports from CSS files are deprecated."
+];
+const svelte_codes_to_ignore: Record<string, string> = {
+	"reactive-component": "Icon"
+};
+
+const logger = createLogger();
+const originalWarning = logger.warn;
+logger.warn = (msg, options) => {
+	if (vite_messages_to_ignore.some((m) => msg.includes(m))) return;
+
+	originalWarning(msg, options);
+};
 
 interface ServerOptions {
 	component_dir: string;
@@ -24,11 +36,11 @@ export async function create_server({
 }: ServerOptions): Promise<void> {
 	process.env.gradio_mode = "dev";
 	const imports = generate_imports(component_dir);
-	console.log(imports);
 
 	const NODE_DIR = join(root_dir, "..", "..", "node", "dev");
 	const server = await createServer({
 		// any valid user config options, plus `mode` and `configFile`
+		customLogger: logger,
 		mode: "development",
 		configFile: false,
 		root: root_dir,
@@ -52,10 +64,63 @@ export async function create_server({
 			}
 		},
 		plugins: [
+			//@ts-ignore
 			viteCommonjs(),
+			{
+				name: "gradio",
+				enforce: "pre",
+				resolveId(importee, importer) {
+					if (importee === "svelte") {
+						return join(NODE_DIR, "svelte-internal.js");
+					}
+
+					if (importee === "svelte/internal") {
+						return join(NODE_DIR, "svelte-internal.js");
+					}
+
+					if (importee === "svelte/action") {
+						return join(NODE_DIR, "svelte-action.js");
+					}
+
+					if (importee === "svelte/internal/disclose-version") {
+						console.log("================================");
+						console.log("HELLO DISCLOSE VERSION!!!!!!!!!!!!");
+						console.log({ importer });
+						console.log("================================");
+						return join(NODE_DIR, "svelte-action.js");
+					}
+				},
+				transform(code) {
+					if (code.includes("__ROOT_PATH__")) {
+						return code.replace(`"__ROOT_PATH__"`, imports);
+					}
+				},
+				transformIndexHtml(html) {
+					return html.replace(
+						`window.__GRADIO_DEV__ = "dev"`,
+						`window.__GRADIO_DEV__ = "dev";
+						window.__GRADIO__SERVER_PORT__ = ${backend_port};`
+					);
+				}
+			},
+			//@ts-ignore
 			svelte({
+				onwarn(warning, handler) {
+					if (
+						svelte_codes_to_ignore.hasOwnProperty(warning.code) &&
+						svelte_codes_to_ignore[warning.code] &&
+						warning.message.includes(svelte_codes_to_ignore[warning.code])
+					) {
+						return;
+					}
+
+					handler!(warning);
+				},
 				prebundleSvelteLibraries: false,
 				hot: true,
+				compilerOptions: {
+					discloseVersion: false
+				},
 				preprocess: [
 					{
 						script: ({ attributes, filename, content }) => {
@@ -73,43 +138,15 @@ export async function create_server({
 						}
 					}
 				]
-			}),
-
-			{
-				name: "gradio",
-				enforce: "pre",
-				resolveId(importee, importer) {
-					if (importee === "svelte") {
-						return join(NODE_DIR, "svelte-internal.js");
-					}
-
-					if (importee === "svelte/internal") {
-						return join(NODE_DIR, "svelte-internal.js");
-					}
-
-					if (importee === "svelte/action") {
-						return join(NODE_DIR, "svelte-action.js");
-					}
-				},
-				transform(code) {
-					if (code.includes("__ROOT_PATH__")) {
-						return code.replace(`"__ROOT_PATH__"`, imports);
-					}
-
-					if (code.includes("__GRADIO__SERVER_PORT__")) {
-						return code.replace(
-							`"__GRADIO__SERVER_PORT__"`,
-							backend_port.toString()
-						);
-					}
-				}
-			}
+			})
 		]
 	});
 
 	await server.listen();
 
-	console.log(`[orange3]Frontend Server[/] (Go here): ${server.resolvedUrls?.local}`);
+	console.info(
+		`[orange3]Frontend Server[/] (Go here): ${server.resolvedUrls?.local}`
+	);
 }
 
 import * as fs from "fs";
@@ -119,7 +156,7 @@ function find_frontend_folders(
 	start_path: string
 ): { dir: string; package_name: string }[] {
 	if (!fs.existsSync(start_path)) {
-		console.log("No directory found at:", start_path);
+		console.warn("No directory found at:", start_path);
 		return [];
 	}
 
@@ -167,11 +204,13 @@ function generate_imports(component_dir: string): string {
 	const imports = components.reduce((acc, component) => {
 		const x = {
 			interactive: join(component.dir, "interactive"),
-			static: join(component.dir, "static")
+			static: join(component.dir, "static"),
+			example: join(component.dir, "example")
 		};
 		return `${acc}"${component.package_name}": {
 			interactive: () => import("${x.interactive}"),
-			static: () => import("${x.static}")
+			static: () => import("${x.static}"),
+			example: () => import("${x.example}")
 			},\n`;
 	}, "");
 

@@ -246,7 +246,7 @@ class File(Component):
                 "data": None,
                 "is_file": True,
             }
-            return FileData(value=d)
+            return FileData(**d)
 
     def as_example(self, input_data: str | list | None) -> str:
         if input_data is None:

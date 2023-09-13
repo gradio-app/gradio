@@ -106,6 +106,10 @@ export function generate_dev_entry({ enable }: { enable: boolean }): Plugin {
 			if (id === "svelte/internal") {
 				return "../../../node/dev/svelte-internal.js";
 			}
+
+			if (id === "svelte/internal/disclose-version") {
+				return "../../../node/dev/svelte-disclose.js";
+			}
 		},
 		writeBundle(config, bundle) {
 			if (!enable) return;

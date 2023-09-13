@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { IconButton } from "@gradio/atoms";
 	import { Edit, Clear } from "@gradio/icons";
-	import type { I18nFormatter } from "../@gradio/utils";
+	import type { I18nFormatter } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
 
 	export let editable = false;

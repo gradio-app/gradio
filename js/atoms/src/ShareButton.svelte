@@ -4,7 +4,7 @@
 	import { createEventDispatcher } from "svelte";
 	import type { ShareData } from "@gradio/utils";
 	import { ShareError } from "@gradio/utils";
-	import type { I18nFormatter } from "../@gradio/utils";
+	import type { I18nFormatter } from "@gradio/utils";
 
 	const dispatch = createEventDispatcher<{
 		share: ShareData;
