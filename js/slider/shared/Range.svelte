@@ -47,19 +47,25 @@
 	var numberInputs = null;
 	function setSlider(): void {
 		rangeInputs = document.querySelectorAll('input[type="range"]');
-		numberInputs = document.querySelectorAll('input[type="number"]')
+		numberInputs = document.querySelectorAll('input[type="number"]');
 		setSliderRange();
-		rangeInputs.forEach(rangeInput => {
-			rangeInput.addEventListener('input', setSliderRange);
+		rangeInputs.forEach((rangeInput) => {
+			rangeInput.addEventListener("input", setSliderRange);
 		});
-		numberInputs.forEach(numberInput => {
-			numberInput.addEventListener('input', setSliderRange);
-		})
+		numberInputs.forEach((numberInput) => {
+			numberInput.addEventListener("input", setSliderRange);
+		});
 	}
 	function setSliderRange(): void {
-		var range = document.querySelectorAll<HTMLInputElement>('input[type="range"]');
-		range.forEach(range => {
-			range.style.backgroundSize = (parseInt(range.value) - parseInt(range.min)) / (parseInt(range.max) - parseInt(range.min)) * 100 + '% 100%';
+		var range = document.querySelectorAll<HTMLInputElement>(
+			'input[type="range"]'
+		);
+		range.forEach((range) => {
+			range.style.backgroundSize =
+				((parseInt(range.value) - parseInt(range.min)) /
+					(parseInt(range.max) - parseInt(range.min))) *
+					100 +
+				"% 100%";
 		});
 	}
 </script>
@@ -152,9 +158,9 @@
 		background-image: linear-gradient(var(--slider-color), var(--slider-color));
 		background-size: 0% 100%;
 		background-repeat: no-repeat;
- 	}
+	}
 
-	 input[type=range]::-webkit-slider-thumb {
+	input[type="range"]::-webkit-slider-thumb {
 		-webkit-appearance: none;
 		box-shadow: var(--input-shadow);
 		border: solid 0.5px #ddd;
@@ -164,19 +170,18 @@
 		background-color: white;
 		cursor: pointer;
 		margin-top: -7px;
-		transition: background-color .1s ease;
+		transition: background-color 0.1s ease;
 	}
 
- 	input[type="range"]::-webkit-slider-thumb:hover {
-     	background: var(--neutral-50);
- 	}
+	input[type="range"]::-webkit-slider-thumb:hover {
+		background: var(--neutral-50);
+	}
 
- 	input[type=range]::-webkit-slider-runnable-track {
+	input[type="range"]::-webkit-slider-runnable-track {
 		-webkit-appearance: none;
 		box-shadow: none;
 		border: none;
 		background: transparent;
 		height: 100%;
- 	}
-
+	}
 </style>
