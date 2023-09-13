@@ -1,6 +1,5 @@
 """Create a custom component template"""
 
-import copy
 import inspect
 import json
 import pathlib
@@ -14,28 +13,9 @@ from typing_extensions import Annotated
 
 import gradio
 from gradio.cli.commands.display import LivePanelDisplay
-from gradio.utils import set_directory
+from gradio.utils import is_in_or_equal, set_directory
 
-PACKAGE_JSON = {
-    "name": "<component-name>",
-    "version": "0.0.1",
-    "description": "Custom Component",
-    "type": "module",
-    "main": "./index.svelte",
-    "author": "",
-    "license": "ISC",
-    "private": True,
-    "dependencies": {
-        "@zerodevx/svelte-json-view": "^1.0",
-    },
-    "exports": {
-        ".": "./index.svelte",
-        "./package.json": "./package.json",
-        "./interactive": "./interactive/index.ts",
-        "./static": "./static/index.ts",
-        "./example": "./example/index.ts",
-    },
-}
+IN_TEST_DIR = is_in_or_equal("gradio/js/gradio-preview/test", pathlib.Path().cwd())
 
 app = typer.Typer()
 
@@ -61,50 +41,39 @@ def _create_frontend(name: str, template: str, directory: pathlib.Path):
     frontend.mkdir(exist_ok=True)
 
     if not template:
-        for dirname in ["example", "interactive", "shared", "static"]:
-            dir = frontend / dirname
-            _create_frontend_dir(name, dir)
-        package_json = copy.copy(PACKAGE_JSON)
-        package_json["name"] = name
-        json.dump(package_json, open(str(frontend / "package.json"), "w"), indent=2)
+        template = "fallback"
 
-    else:
-        p = pathlib.Path(inspect.getfile(gradio)).parent
+    p = pathlib.Path(inspect.getfile(gradio)).parent
 
-        def ignore(s, names):
-            ignored = []
-            for n in names:
-                if (
-                    n.startswith("CHANGELOG")
-                    or n.startswith("README.md")
-                    or ".test." in n
-                    or ".stories." in n
-                    or ".spec." in n
-                ):
-                    ignored.append(n)
-            return ignored
-
-        shutil.copytree(
-            str(p / "_frontend_code" / template),
-            frontend,
-            dirs_exist_ok=True,
-            ignore=ignore,
-        )
-        source_package_json = json.load(open(str(frontend / "package.json")))
-        source_package_json["name"] = name.lower()
-        for dep in source_package_json.get("dependencies", []):
-            # if curent working directory is the gradio repo, use the local version of the dependency
+    def ignore(s, names):
+        ignored = []
+        for n in names:
             if (
-                "gradio/js/gradio-preview/test" not in pathlib.Path.cwd().as_posix()
-                and dep.startswith("@gradio/")
+                n.startswith("CHANGELOG")
+                or n.startswith("README.md")
+                or ".test." in n
+                or ".stories." in n
+                or ".spec." in n
             ):
-                source_package_json["dependencies"][dep] = get_js_dependency_version(
-                    dep, p / "_frontend_code"
-                )
+                ignored.append(n)
+        return ignored
 
-        json.dump(
-            source_package_json, open(str(frontend / "package.json"), "w"), indent=2
-        )
+    shutil.copytree(
+        str(p / "_frontend_code" / template),
+        frontend,
+        dirs_exist_ok=True,
+        ignore=ignore,
+    )
+    source_package_json = json.load(open(str(frontend / "package.json")))
+    source_package_json["name"] = name.lower()
+    for dep in source_package_json.get("dependencies", []):
+        # if curent working directory is the gradio repo, use the local version of the dependency
+        if IN_TEST_DIR and dep.startswith("@gradio/"):
+            source_package_json["dependencies"][dep] = get_js_dependency_version(
+                dep, p / "_frontend_code"
+            )
+
+    json.dump(source_package_json, open(str(frontend / "package.json"), "w"), indent=2)
 
 
 def _create_backend(name: str, template: str, directory: pathlib.Path):
@@ -153,7 +122,7 @@ __all__ = ['{name}']
         no_template = (
             (pathlib.Path(__file__).parent / "files" / "NoTemplateComponent.py")
             .read_text()
-            .replace("<<name>>", name)
+            .replace("NAME", name)
         )
         backend.write_text(no_template)
     else:
@@ -214,6 +183,9 @@ def _create(
         directory = pathlib.Path(name.lower())
 
     directory.mkdir(exist_ok=True)
+
+    if IN_TEST_DIR:
+        npm_install = "pnpm i --ignore-scripts"
 
     with LivePanelDisplay() as live:
         live.update(

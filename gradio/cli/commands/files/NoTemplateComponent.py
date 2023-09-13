@@ -1,6 +1,6 @@
 import gradio as gr
 
-class <<name>>(gr.components.Component):
+class NAME(gr.components.Component):
     
     def preprocess(self, x):
         return x
