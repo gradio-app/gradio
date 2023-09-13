@@ -106,7 +106,7 @@ class TestTextbox:
             "rtl": False,
             "text_align": None,
             "autofocus": False,
-            'autoscroll': True,
+            "autoscroll": True,
         }
 
     @pytest.mark.asyncio
@@ -636,6 +636,7 @@ class TestDropdown:
             "interactive": None,
             "root_url": None,
             "multiselect": True,
+            "filterable": True,
             "max_choices": 2,
         }
         with pytest.raises(ValueError):

@@ -16,6 +16,7 @@
 	export let max_choices: number | null = null;
 	export let choices: [string, string | number][];
 	export let show_label: boolean;
+	export let filterable: boolean;
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
@@ -51,6 +52,7 @@
 			{info}
 			{show_label}
 			{allow_custom_value}
+			{filterable}
 			{container}
 			on:change={() => gradio.dispatch("change")}
 			on:input={() => gradio.dispatch("input")}
@@ -67,6 +69,7 @@
 			{label}
 			{info}
 			{show_label}
+			{filterable}
 			{allow_custom_value}
 			{container}
 			on:change={() => gradio.dispatch("change")}
