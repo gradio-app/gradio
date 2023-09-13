@@ -68,7 +68,7 @@ class Dropdown(
             value: default value(s) selected in dropdown. If None, no value is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
             multiselect: if True, multiple choices can be selected.
-            allow_custom_value: If True, allows user to enter a custom value that is not in the list of choices. Only applies if `multiselect` is False.
+            allow_custom_value: If True, allows user to enter a custom value that is not in the list of choices.
             max_choices: maximum number of choices that can be selected. If None, no limit is enforced.
             filterable: If True, user will be able to type into the dropdown and filter the choices by typing. Can only be set to False if `allow_custom_value` is False.
             label: component name in interface.
