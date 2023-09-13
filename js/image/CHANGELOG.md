@@ -1,5 +1,11 @@
 # @gradio/image
 
+## 0.2.3
+
+### Fixes
+
+- [#5528](https://github.com/gradio-app/gradio/pull/5528) [`dc86e4a7`](https://github.com/gradio-app/gradio/commit/dc86e4a7e1c40b910c74558e6f88fddf9b3292bc) - Lazy load all images.  Thanks [@aliabid94](https://github.com/aliabid94)!
+
 ## 0.2.2
 
 ### Patch Changes
