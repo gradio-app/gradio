@@ -1,5 +1,13 @@
 # @gradio/app
 
+## 1.5.0
+
+### Features
+
+- [#5505](https://github.com/gradio-app/gradio/pull/5505) [`9ee20f49`](https://github.com/gradio-app/gradio/commit/9ee20f499f62c1fe5af6b8f84918b3a334eb1c8d) - Validate i18n file names with ISO-639x.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#5475](https://github.com/gradio-app/gradio/pull/5475) [`c60b89b0`](https://github.com/gradio-app/gradio/commit/c60b89b0a54758a27277f0a6aa20d0653647c7c8) - Adding Central Kurdish.  Thanks [@Hrazhan](https://github.com/Hrazhan)!
+- [#5400](https://github.com/gradio-app/gradio/pull/5400) [`d112e261`](https://github.com/gradio-app/gradio/commit/d112e2611b0fc79ecedfaed367571f3157211387) - Allow interactive input in `gr.HighlightedText`.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 1.4.3
 
 ### Patch Changes
