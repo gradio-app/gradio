@@ -1,5 +1,5 @@
 import { test, describe, assert, afterEach, vi } from "vitest";
-import { cleanup, fireEvent, render, get_text, wait } from "@gradio/tootils";
+import { cleanup, render } from "@gradio/tootils";
 import event from "@testing-library/user-event";
 import { setupi18n } from "../app/src/i18n";
 
