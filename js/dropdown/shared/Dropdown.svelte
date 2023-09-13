@@ -18,6 +18,7 @@
 	export let show_label: boolean;
 	export let container = true;
 	export let allow_custom_value = false;
+	export let filterable = true;
 
 	let filter_input: HTMLElement;
 
@@ -186,6 +187,7 @@
 					on:keydown={handle_key_down}
 					on:blur={handle_blur}
 					on:focus={handle_focus}
+					readonly={!filterable}
 				/>
 				{#if !disabled}
 					<DropdownArrow />
@@ -263,5 +265,9 @@
 
 	.subdued {
 		color: var(--body-text-color-subdued);
+	}
+
+	input[readonly] {
+		cursor: pointer;
 	}
 </style>
