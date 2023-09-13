@@ -196,14 +196,15 @@
 			active_theme_mode = handle_darkmode(wrapper);
 		}
 
+		//@ts-ignore
 		const gradio_dev_mode = window.__GRADIO_DEV__;
 		const server_port = "__GRADIO__SERVER_PORT__";
 
-		console.log({ gradio_dev_mode, server_port });
-
 		const api_url =
 			BUILD_MODE === "dev" || gradio_dev_mode === "dev"
-				? "http://localhost:7860"
+				? `http://localhost:${
+						typeof server_port === "number" ? server_port : 7860
+				  }`
 				: host || space || src || location.origin;
 
 		app = await client(api_url, {

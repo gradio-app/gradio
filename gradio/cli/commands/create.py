@@ -93,9 +93,14 @@ def _create_frontend(name: str, template: str, directory: pathlib.Path):
         source_package_json = json.load(open(str(frontend / "package.json")))
         source_package_json["name"] = name.lower()
         for dep in source_package_json.get("dependencies", []):
-            source_package_json["dependencies"][dep] = get_js_dependency_version(
-                dep, p / "_frontend_code"
-            )
+            # if curent working directory is the gradio repo, use the local version of the dependency
+            if (
+                "gradio/js/gradio-preview/test" not in pathlib.Path.cwd().as_posix()
+                and dep.startswith("@gradio/")
+            ):
+                source_package_json["dependencies"][dep] = get_js_dependency_version(
+                    dep, p / "_frontend_code"
+                )
 
         json.dump(
             source_package_json, open(str(frontend / "package.json"), "w"), indent=2
@@ -125,7 +130,9 @@ import gradio as gr
 from {name.lower()} import {name}
 
 with gr.Blocks() as demo:
-    {name}()
+    {name}(interactive=True)
+    {name}(interactive=False)
+    
 
 demo.launch()
 """
@@ -246,6 +253,7 @@ def _create(
                 )
                 if pipe.returncode != 0:
                     live.update(":red_square: NPM install [bold][red]failed[/][/]")
+                    live.update(pipe.stdout)
                     live.update(pipe.stderr)
                 else:
                     live.update(":white_check_mark: NPM install succeeded!")

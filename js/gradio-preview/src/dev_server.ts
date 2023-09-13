@@ -1,5 +1,5 @@
 import { fileURLToPath } from "url";
-import { createServer, build } from "vite";
+import { createServer, build, createLogger } from "vite";
 import { readdirSync, existsSync, readFileSync } from "fs";
 import { join } from "path";
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
@@ -8,6 +8,21 @@ import { transform } from "sucrase";
 import { viteCommonjs } from "@originjs/vite-plugin-commonjs";
 import { read } from "vega";
 // import { typescript } from "svelte-preprocess";
+
+const vite_messages_to_ignore = [
+	"Default and named imports from CSS files are deprecated."
+];
+const svelte_codes_to_ignore: Record<string, string> = {
+	"reactive-component": "Icon"
+};
+
+const logger = createLogger();
+const originalWarning = logger.warn;
+logger.warn = (msg, options) => {
+	if (vite_messages_to_ignore.some((m) => msg.includes(m))) return;
+
+	originalWarning(msg, options);
+};
 
 interface ServerOptions {
 	component_dir: string;
@@ -29,6 +44,7 @@ export async function create_server({
 	const NODE_DIR = join(root_dir, "..", "..", "node", "dev");
 	const server = await createServer({
 		// any valid user config options, plus `mode` and `configFile`
+		customLogger: logger,
 		mode: "development",
 		configFile: false,
 		root: root_dir,
@@ -52,8 +68,21 @@ export async function create_server({
 			}
 		},
 		plugins: [
+			//@ts-ignore
 			viteCommonjs(),
+			//@ts-ignore
 			svelte({
+				onwarn(warning, handler) {
+					if (
+						svelte_codes_to_ignore.hasOwnProperty(warning.code) &&
+						svelte_codes_to_ignore[warning.code] &&
+						warning.message.includes(svelte_codes_to_ignore[warning.code])
+					) {
+						return;
+					}
+
+					handler(warning);
+				},
 				prebundleSvelteLibraries: false,
 				hot: true,
 				preprocess: [
@@ -109,7 +138,9 @@ export async function create_server({
 
 	await server.listen();
 
-	console.log(`[orange3]Frontend Server[/] (Go here): ${server.resolvedUrls?.local}`);
+	console.log(
+		`[orange3]Frontend Server[/] (Go here): ${server.resolvedUrls?.local}`
+	);
 }
 
 import * as fs from "fs";
