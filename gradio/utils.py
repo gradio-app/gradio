@@ -10,7 +10,6 @@ import inspect
 import json
 import json.decoder
 import os
-import pkgutil
 import pprint
 import random
 import re
@@ -50,9 +49,20 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.routes import App
 
 JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
-GRADIO_VERSION = (
-    (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
-)
+GRADIO_VERSION = ()
+try:
+    with open("package.json") as package_json_file:
+        package_data = json.load(package_json_file)
+        version = package_data.get("version")
+        if version:
+            GRADIO_VERSION = tuple(version)
+        else:
+            print("Version not found in package.json")
+except FileNotFoundError:
+    print("package.json file not found")
+except json.JSONDecodeError as e:
+    print(f"Error parsing package.json: {e}")
+
 
 P = ParamSpec("P")
 T = TypeVar("T")

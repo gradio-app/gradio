@@ -39,7 +39,7 @@ Homepage = "https://github.com/gradio-app/gradio"
 
 [tool.hatch.version]
 path = "gradio_client/package.json"
-pattern = ".*\"version\":\\s*\"([^\"]+)\""
+pattern = ".*\"version\":\\s*\"(?P<version>[^\"]+)\""
 
 [tool.hatch.metadata.hooks.requirements_txt]
 filename = "requirements.txt"

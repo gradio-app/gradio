@@ -11,6 +11,7 @@ if sys.version_info >= (3, 9):
 else:
     from importlib_resources import files
 import inspect
+import json
 import mimetypes
 import os
 import posixpath
@@ -61,7 +62,19 @@ mimetypes.init()
 STATIC_TEMPLATE_LIB = files("gradio").joinpath("templates").as_posix()  # type: ignore
 STATIC_PATH_LIB = files("gradio").joinpath("templates", "frontend", "static").as_posix()  # type: ignore
 BUILD_PATH_LIB = files("gradio").joinpath("templates", "frontend", "assets").as_posix()  # type: ignore
-VERSION = files("gradio").joinpath("version.txt").read_text()
+VERSION = ""
+try:
+    with open("package.json") as package_json_file:
+        package_data = json.load(package_json_file)
+        version = package_data.get("version")
+        if version:
+            VERSION = tuple(version)
+        else:
+            print("Version not found in package.json")
+except FileNotFoundError:
+    print("package.json file not found")
+except json.JSONDecodeError as e:
+    print(f"Error parsing package.json: {e}")
 
 
 class ORJSONResponse(JSONResponse):
