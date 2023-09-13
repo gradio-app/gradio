@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
@@ -115,6 +116,12 @@ class JSON(Component):
 
     def example_inputs(self) -> Any:
         return {"foo": "bar"}
+
+    def flag(self, x: Any, flag_dir: str | Path = "") -> str:
+        return json.dumps(x)
+
+    def read_from_flag(self, x: Any, flag_dir: str | Path | None = None):
+        return json.loads(x)
 
     def style(self, *, container: bool | None = None, **kwargs):
         """

@@ -29,7 +29,6 @@ def fn(
     audio2,
     file,
     df1,
-    df2,
 ):
     return (
         (text1 if single_checkbox else text2)
@@ -149,14 +148,13 @@ demo = gr.Interface(
             os.path.join(os.path.dirname(__file__), "files/cantina.wav"),
             os.path.join(os.path.dirname(__file__), "files/titanic.csv"),
             [[1, 2, 3, 4], [4, 5, 6, 7], [8, 9, 1, 2], [3, 4, 5, 6]],
-            os.path.join(os.path.dirname(__file__), "files/time.csv"),
         ]
     ]
     * 3,
     title="Kitchen Sink",
     description="Try out all the components!",
     article="Learn more about [Gradio](http://gradio.app)",
-    # cache_examples=True,
+    cache_examples=True,
 )
 
 if __name__ == "__main__":
