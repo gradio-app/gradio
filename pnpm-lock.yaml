@@ -953,6 +953,21 @@ importers:
         specifier: workspace:^
         version: link:../../../../utils
 
+  js/gradio-preview/test/newtext/frontend:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../../../../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../../../../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../../../../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../../../../utils
+
   js/group: {}
 
   js/highlightedtext:
@@ -1198,6 +1213,9 @@ importers:
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
 
   js/tabitem:
     dependencies:
@@ -1236,7 +1254,11 @@ importers:
 
   js/tooltip: {}
 
-  js/tootils: {}
+  js/tootils:
+    dependencies:
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
 
   js/upload:
     dependencies:
@@ -1252,6 +1274,9 @@ importers:
       '@gradio/upload':
         specifier: workspace:^
         version: 'link:'
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
 
   js/uploadbutton:
     dependencies:

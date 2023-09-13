@@ -5,6 +5,13 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 
+	export let gradio: Gradio<{
+		change: never;
+		input: never;
+		select: SelectData;
+		blur: never;
+		focus: never;
+	}>;
 	export let label = gradio.i18n("dropdown.dropdown");
 	export let info: string | undefined = undefined;
 	export let elem_id = "";
@@ -21,13 +28,6 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let allow_custom_value = false;
-	export let gradio: Gradio<{
-		change: never;
-		input: never;
-		select: SelectData;
-		blur: never;
-		focus: never;
-	}>;
 
 	if (multiselect && !value) {
 		value = [];

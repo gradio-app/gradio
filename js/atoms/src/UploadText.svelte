@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { I18nFormatter } from "../@gradio/utils";
+	import type { I18nFormatter } from "@gradio/utils";
 
 	export let type: "video" | "image" | "audio" | "file" | "csv" = "file";
 	export let i18n: I18nFormatter;

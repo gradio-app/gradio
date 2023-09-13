@@ -95,6 +95,12 @@
 	}
 
 	$: get_component_meta(selected_samples);
+	$: console.log({
+		component_meta,
+		selected_samples,
+		components,
+		component_map
+	});
 </script>
 
 <Block
@@ -138,7 +144,7 @@
 					on:mouseenter={() => handle_mouseenter(i)}
 					on:mouseleave={() => handle_mouseleave()}
 				>
-					{#if Object.keys(component_map).includes(components[0]) && component_map.get(components[0])}
+					{#if component_meta.length && component_map.get(components[0])}
 						<svelte:component
 							this={component_meta[0][0].component}
 							value={sample_row[0]}
