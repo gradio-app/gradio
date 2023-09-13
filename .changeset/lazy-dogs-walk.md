@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:save input on dropdown blur
+feat:Ensure input value saves on dropdown blur
