@@ -1834,7 +1834,7 @@ class TestHighlightedText:
             "elem_classes": None,
             "visible": True,
             "value": None,
-            "interactive": False,
+            "interactive": None,
             "root_url": None,
             "selectable": False,
             "combine_adjacent": False,
