@@ -94,13 +94,9 @@
 			input_text = "";
 		}
 
-		if (active_index !== null) {
-			add_or_remove_index(active_index);
-		} else {
-			if (allow_custom_value) {
-				add_selected_choice(input_text);
-				input_text = "";
-			}
+		if (allow_custom_value && input_text !== "") {
+			add_selected_choice(input_text);
+			input_text = "";
 		}
 
 		show_options = false;
