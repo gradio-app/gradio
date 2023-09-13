@@ -70,7 +70,7 @@ class Dropdown(
             multiselect: if True, multiple choices can be selected.
             allow_custom_value: If True, allows user to enter a custom value that is not in the list of choices. Only applies if `multiselect` is False.
             max_choices: maximum number of choices that can be selected. If None, no limit is enforced.
-            filterable: If True, user will be able to type into the dropdown and filter the choices by typing.
+            filterable: If True, user will be able to type into the dropdown and filter the choices by typing. Can only be set to False if `allow_custom_value` is False.
             label: component name in interface.
             info: additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
@@ -100,6 +100,11 @@ class Dropdown(
         if not multiselect and max_choices is not None:
             warnings.warn(
                 "The `max_choices` parameter is ignored when `multiselect` is False."
+            )
+        if not filterable and allow_custom_value:
+            filterable = True
+            warnings.warn(
+                "The `filterable` parameter cannot be set to False when `allow_custom_value` is True. Setting `filterable` to True."
             )
         self.max_choices = max_choices
         self.allow_custom_value = allow_custom_value
