@@ -120,13 +120,13 @@ export async function create_server({
 					if (code.includes("__ROOT_PATH__")) {
 						return code.replace(`"__ROOT_PATH__"`, imports);
 					}
-
-					if (code.includes("__GRADIO__SERVER_PORT__")) {
-						return code.replace(
-							`"__GRADIO__SERVER_PORT__"`,
-							backend_port.toString()
-						);
-					}
+				},
+				transformIndexHtml(html) {
+					return html.replace(
+						`window.__GRADIO_DEV__ = "dev"`,
+						`window.__GRADIO_DEV__ = "dev";
+						window.__GRADIO__SERVER_PORT__ = ${backend_port};`
+					);
 				}
 			}
 		]
@@ -194,11 +194,13 @@ function generate_imports(component_dir: string): string {
 	const imports = components.reduce((acc, component) => {
 		const x = {
 			interactive: join(component.dir, "interactive"),
-			static: join(component.dir, "static")
+			static: join(component.dir, "static"),
+			example: join(component.dir, "example")
 		};
 		return `${acc}"${component.package_name}": {
 			interactive: () => import("${x.interactive}"),
-			static: () => import("${x.static}")
+			static: () => import("${x.static}"),
+			example: () => import("${x.example}")
 			},\n`;
 	}, "");
 

@@ -198,7 +198,8 @@
 
 		//@ts-ignore
 		const gradio_dev_mode = window.__GRADIO_DEV__;
-		const server_port = "__GRADIO__SERVER_PORT__";
+		//@ts-ignore
+		const server_port = window.__GRADIO__SERVER_PORT__;
 
 		const api_url =
 			BUILD_MODE === "dev" || gradio_dev_mode === "dev"
