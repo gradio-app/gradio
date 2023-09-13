@@ -1,285 +1,207 @@
 <script lang="ts">
-	import DropdownOptions from "./DropdownOptions.svelte";
-	import { createEventDispatcher, afterUpdate } from "svelte";
-	import { BlockTitle } from "@gradio/atoms";
-	import { Remove, DropdownArrow } from "@gradio/icons";
-	import type { SelectData } from "@gradio/utils";
+	import { afterUpdate, createEventDispatcher } from "svelte";
 	import { _ } from "svelte-i18n";
+	import type { SelectData } from "@gradio/utils";
+	import { BlockTitle } from "@gradio/atoms";
+	import { DropdownArrow } from "@gradio/icons";
+	import DropdownOptions from "./DropdownOptions.svelte";
+	import { handle_filter, handle_change, handle_shared_keys } from "./utils";
 
 	export let label: string;
 	export let info: string | undefined = undefined;
-	export let value: string | string[] | undefined;
-	let old_value = Array.isArray(value) ? value.slice() : value;
+	export let value: string | number | (string | number)[] | undefined = [];
+	let old_value: string | number | (string | number)[] | undefined = [];
 	export let value_is_output = false;
-	export let multiselect = false;
-	export let max_choices: number;
-	export let choices: string[];
+	export let choices: [string, string | number][];
+	let old_choices: [string, string | number][];
 	export let disabled = false;
 	export let show_label: boolean;
 	export let container = true;
 	export let allow_custom_value = false;
+	export let filterable = true;
+
+	let filter_input: HTMLElement;
+
+	let show_options = false;
+	let choices_names: string[];
+	let choices_values: (string | number)[];
+	let input_text = "";
+	let old_input_text = "";
+	let initialized = false;
+
+	// All of these are indices with respect to the choices array
+	let filtered_indices: number[] = [];
+	let active_index: number | null = null;
+	// selected_index is null if allow_custom_value is true and the input_text is not in choices_names
+	let selected_index: number | null = null;
+	let old_selected_index: number | null;
 
 	const dispatch = createEventDispatcher<{
-		change: string | string[] | undefined;
+		change: string | undefined;
 		input: undefined;
 		select: SelectData;
 		blur: undefined;
 		focus: undefined;
 	}>();
 
-	let inputValue: string | undefined,
-		activeOption: string | null,
-		showOptions = false,
-		filterInput: HTMLElement;
-
-	$: if (typeof value === "string" || value === null) {
-		inputValue = value;
-	}
-
-	let old_choices: string[] = [];
-	let filtered: string[] = [];
-
-	$: old_choices, inputValue, handle_filter();
-
-	function handle_filter(): void {
-		if (choices !== old_choices || typeof inputValue === "string") {
-			old_choices = choices;
-			filtered = choices.filter((o) =>
-				inputValue ? o.toLowerCase().includes(inputValue.toLowerCase()) : o
-			);
+	// Setting the initial value of the dropdown
+	if (value) {
+		old_selected_index = choices.map((c) => c[1]).indexOf(value as string);
+		selected_index = old_selected_index;
+		if (selected_index === -1) {
+			old_value = value;
+			selected_index = null;
+		} else {
+			[input_text, old_value] = choices[selected_index];
+			old_input_text = input_text;
 		}
+	} else if (choices.length > 0) {
+		old_selected_index = 0;
+		selected_index = 0;
+		[input_text, value] = choices[selected_index];
+		old_value = value;
+		old_input_text = input_text;
 	}
-	$: if (!activeOption || !filtered.includes(activeOption)) {
-		activeOption = filtered.length ? filtered[0] : null;
-	}
-
-	function handle_change(): void {
-		dispatch("change", value);
-		if (!value_is_output) {
-			dispatch("input");
-		}
-	}
-	afterUpdate(() => {
-		value_is_output = false;
-	});
 
 	$: {
-		if (JSON.stringify(value) != JSON.stringify(old_value)) {
-			old_value = Array.isArray(value) ? value.slice() : value;
-			handle_change();
-		}
-	}
-
-	function add(option: string): void {
-		value = value as string[];
-		if (!max_choices || value.length < max_choices) {
-			value.push(option);
+		if (
+			selected_index !== old_selected_index &&
+			selected_index !== null &&
+			initialized
+		) {
+			[input_text, value] = choices[selected_index];
+			old_selected_index = selected_index;
 			dispatch("select", {
-				index: choices.indexOf(option),
-				value: option,
+				index: selected_index,
+				value: choices_values[selected_index],
 				selected: true,
 			});
 		}
-		value = value;
 	}
 
-	function remove(option: string): void {
-		if (!disabled) {
-			value = value as string[];
-			value = value.filter((v: string) => v !== option);
-		}
-		dispatch("select", {
-			index: choices.indexOf(option),
-			value: option,
-			selected: false,
-		});
-	}
-
-	function remove_all(e: any): void {
-		value = [];
-		inputValue = "";
-		e.preventDefault();
-	}
-
-	let blurring = false;
-
-	function handle_blur(e: FocusEvent): void {
-		if (blurring) return;
-		blurring = true;
-		if (multiselect) {
-			inputValue = "";
-		} else if (!allow_custom_value) {
-			inputValue = value as string | undefined;
-		}
-		showOptions = false;
-		dispatch("blur");
-		setTimeout(() => {
-			blurring = false;
-		}, 100);
-	}
-
-	function handle_focus(e: FocusEvent): void {
-		if (blurring) {
-			// Remove focus triggered by blurring to the label.
-			let target = e.target as HTMLInputElement;
-			return target.blur();
-		}
-		dispatch("focus");
-		showOptions = true;
-		filtered = choices;
-	}
-
-	function handleOptionMousedown(e: any): void {
-		const option = e.detail.target.dataset.value;
-		if (allow_custom_value) {
-			inputValue = option;
-		}
-
-		if (option !== undefined) {
-			if (multiselect) {
-				if (value?.includes(option)) {
-					remove(option);
-				} else {
-					add(option);
-				}
-				inputValue = "";
-			} else {
-				value = option;
-				inputValue = option;
-				showOptions = false;
-				dispatch("select", {
-					index: choices.indexOf(option),
-					value: option,
-					selected: true,
-				});
-				filterInput.blur();
-			}
-		}
-	}
-
-	// eslint-disable-next-line complexity
-	function handleKeydown(e: any): void {
-		if (e.key === "Enter" && activeOption != undefined) {
-			if (!multiselect) {
-				if (value !== activeOption) {
-					value = activeOption;
-					dispatch("select", {
-						index: choices.indexOf(value),
-						value: value,
-						selected: true,
-					});
-				}
-				inputValue = activeOption;
-				showOptions = false;
-				filterInput.blur();
-			} else if (multiselect && Array.isArray(value)) {
-				value.includes(activeOption) ? remove(activeOption) : add(activeOption);
-				inputValue = "";
-			}
-		} else {
-			showOptions = true;
-			if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-				if (activeOption === null) {
-					activeOption = filtered[0];
-				}
-				const increment = e.key === "ArrowUp" ? -1 : 1;
-				const calcIndex = filtered.indexOf(activeOption) + increment;
-				activeOption =
-					calcIndex < 0
-						? filtered[filtered.length - 1]
-						: calcIndex === filtered.length
-						? filtered[0]
-						: filtered[calcIndex];
-				e.preventDefault();
-			} else if (e.key === "Escape") {
-				showOptions = false;
-			} else if (e.key === "Backspace") {
-				if (
-					multiselect &&
-					(!inputValue || inputValue === "") &&
-					Array.isArray(value) &&
-					value.length > 0
-				) {
-					remove(value[value.length - 1]);
-					inputValue = "";
-				}
-			} else {
-				showOptions = true;
-			}
+	$: {
+		if (value != old_value) {
+			set_input_text();
+			handle_change(dispatch, value, value_is_output);
+			old_value = value;
 		}
 	}
 
 	$: {
-		if (JSON.stringify(value) != JSON.stringify(old_value)) {
-			dispatch("change", value);
-			old_value = Array.isArray(value) ? value.slice() : value;
+		choices_names = choices.map((c) => c[0]);
+		choices_values = choices.map((c) => c[1]);
+	}
+
+	$: {
+		if (choices !== old_choices || input_text !== old_input_text) {
+			filtered_indices = handle_filter(choices, input_text);
+			old_choices = choices;
+			old_input_text = input_text;
+			if (!allow_custom_value) {
+				active_index = filtered_indices[0];
+			}
 		}
 	}
+
+	function set_input_text(): void {
+		if (value === undefined) {
+			input_text = "";
+		} else if (choices_values.includes(value as string)) {
+			input_text = choices_names[choices_values.indexOf(value as string)];
+		} else if (allow_custom_value) {
+			input_text = value as string;
+		} else {
+			input_text = "";
+		}
+	}
+
+	function handle_option_selected(e: any): void {
+		selected_index = parseInt(e.detail.target.dataset.index);
+		show_options = false;
+		active_index = null;
+		filter_input.blur();
+	}
+
+	function handle_focus(e: FocusEvent): void {
+		filtered_indices = choices.map((_, i) => i);
+		show_options = true;
+		dispatch("focus");
+	}
+
+	function handle_blur(): void {
+		if (!allow_custom_value) {
+			input_text = choices_names[choices_values.indexOf(value as string)];
+		}
+		show_options = false;
+		active_index = null;
+		dispatch("blur");
+	}
+
+	function handle_key_down(e: KeyboardEvent): void {
+		[show_options, active_index] = handle_shared_keys(
+			e,
+			active_index,
+			filtered_indices
+		);
+		if (e.key === "Enter") {
+			if (active_index !== null) {
+				selected_index = active_index;
+				show_options = false;
+				filter_input.blur();
+				active_index = null;
+			} else if (choices_names.includes(input_text)) {
+				selected_index = choices_names.indexOf(input_text);
+				show_options = false;
+				active_index = null;
+				filter_input.blur();
+			} else if (allow_custom_value) {
+				value = input_text;
+				selected_index = null;
+				show_options = false;
+				active_index = null;
+				filter_input.blur();
+			}
+		}
+	}
+
+	afterUpdate(() => {
+		value_is_output = false;
+		initialized = true;
+	});
 </script>
 
 <label class:container>
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 	<div class="wrap">
-		<div class="wrap-inner" class:showOptions>
-			{#if multiselect && Array.isArray(value)}
-				{#each value as s}
-					<!-- TODO: fix -->
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<!-- svelte-ignore a11y-no-static-element-interactions-->
-					<div on:click|preventDefault={() => remove(s)} class="token">
-						<span>{s}</span>
-						{#if !disabled}
-							<div
-								class:hidden={disabled}
-								class="token-remove"
-								title={$_("common.remove") + " " + s}
-							>
-								<Remove />
-							</div>
-						{/if}
-					</div>
-				{/each}
-			{/if}
+		<div class="wrap-inner" class:show_options>
 			<div class="secondary-wrap">
 				<input
 					class="border-none"
-					class:subdued={value !== inputValue && !allow_custom_value}
+					class:subdued={!choices_names.includes(input_text) &&
+						!allow_custom_value}
 					{disabled}
 					autocomplete="off"
-					bind:value={inputValue}
-					bind:this={filterInput}
-					on:keydown={handleKeydown}
-					on:blur={handleKeydown}
-					on:keyup={() => {
-						if (allow_custom_value) {
-							value = inputValue;
-						}
-					}}
+					bind:value={input_text}
+					bind:this={filter_input}
+					on:keydown={handle_key_down}
 					on:blur={handle_blur}
 					on:focus={handle_focus}
+					readonly={!filterable}
 				/>
-				<!-- TODO: fix -->
-				<!-- svelte-ignore a11y-click-events-have-key-events -->
-				<!-- svelte-ignore a11y-no-static-element-interactions-->
-				<div
-					class:hide={!multiselect || !value?.length || disabled}
-					class="token-remove remove-all"
-					title={$_("common.clear")}
-					on:click={remove_all}
-				>
-					<Remove />
-				</div>
-				<DropdownArrow />
+				{#if !disabled}
+					<DropdownArrow />
+				{/if}
 			</div>
 		</div>
 		<DropdownOptions
-			bind:value
-			{showOptions}
-			{filtered}
-			{activeOption}
+			{show_options}
+			{choices}
+			{filtered_indices}
 			{disabled}
-			on:change={handleOptionMousedown}
+			selected_indices={selected_index === null ? [] : [selected_index]}
+			{active_index}
+			on:change={handle_option_selected}
 		/>
 	</div>
 </label>
@@ -289,7 +211,6 @@
 	label:not(.container) .wrap,
 	label:not(.container) .wrap-inner,
 	label:not(.container) .secondary-wrap,
-	label:not(.container) .token,
 	label:not(.container) input {
 		height: 100%;
 	}
@@ -317,42 +238,6 @@
 		gap: var(--checkbox-label-gap);
 		padding: var(--checkbox-label-padding);
 	}
-
-	.token {
-		display: flex;
-		align-items: center;
-		transition: var(--button-transition);
-		cursor: pointer;
-		box-shadow: var(--checkbox-label-shadow);
-		border: var(--checkbox-label-border-width) solid
-			var(--checkbox-label-border-color);
-		border-radius: var(--button-small-radius);
-		background: var(--checkbox-label-background-fill);
-		padding: var(--checkbox-label-padding);
-		color: var(--checkbox-label-text-color);
-		font-weight: var(--checkbox-label-text-weight);
-		font-size: var(--checkbox-label-text-size);
-		line-height: var(--line-md);
-	}
-
-	.token > * + * {
-		margin-left: var(--size-2);
-	}
-
-	.token-remove {
-		fill: var(--body-text-color);
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		cursor: pointer;
-		border: var(--checkbox-border-width) solid var(--border-color-primary);
-		border-radius: var(--radius-full);
-		background: var(--background-fill-primary);
-		padding: var(--size-0-5);
-		width: 18px;
-		height: 18px;
-	}
-
 	.secondary-wrap {
 		display: flex;
 		flex: 1 1 0%;
@@ -378,17 +263,11 @@
 		cursor: not-allowed;
 	}
 
-	.remove-all {
-		margin-left: var(--size-1);
-		width: 20px;
-		height: 20px;
-	}
-
-	.hide {
-		display: none;
-	}
-
 	.subdued {
 		color: var(--body-text-color-subdued);
+	}
+
+	input[readonly] {
+		cursor: pointer;
 	}
 </style>
