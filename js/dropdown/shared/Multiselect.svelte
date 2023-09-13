@@ -93,6 +93,12 @@
 		if (!allow_custom_value) {
 			input_text = "";
 		}
+
+		if (allow_custom_value && input_text !== "") {
+			add_selected_choice(input_text);
+			input_text = "";
+		}
+
 		show_options = false;
 		active_index = null;
 		dispatch("blur");
@@ -106,7 +112,7 @@
 				typeof option_index === "number"
 					? choices_values[option_index]
 					: option_index,
-			selected: false
+			selected: false,
 		});
 	}
 
@@ -119,7 +125,7 @@
 					typeof option_index === "number"
 						? choices_values[option_index]
 						: option_index,
-				selected: true
+				selected: true,
 			});
 		}
 		if (selected_indices.length === max_choices) {

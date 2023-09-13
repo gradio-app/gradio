@@ -74,7 +74,7 @@
 			dispatch("select", {
 				index: selected_index,
 				value: choices_values[selected_index],
-				selected: true
+				selected: true,
 			});
 		}
 	}
@@ -132,6 +132,7 @@
 		if (!allow_custom_value) {
 			input_text = choices_names[choices_values.indexOf(value as string)];
 		}
+		value = input_text;
 		show_options = false;
 		active_index = null;
 		dispatch("blur");
