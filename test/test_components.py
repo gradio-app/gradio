@@ -106,6 +106,7 @@ class TestTextbox:
             "rtl": False,
             "text_align": None,
             "autofocus": False,
+            'autoscroll': True,
         }
 
     @pytest.mark.asyncio
