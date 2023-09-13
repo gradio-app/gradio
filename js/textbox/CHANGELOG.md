@@ -1,5 +1,11 @@
 # @gradio/textbox
 
+## 0.3.0
+
+### Features
+
+- [#5488](https://github.com/gradio-app/gradio/pull/5488) [`8909e42a`](https://github.com/gradio-app/gradio/commit/8909e42a7c6272358ad413588d27a5124d151205) - Adds `autoscroll` param to `gr.Textbox()`.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.2.0
 
 ### Features

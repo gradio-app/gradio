@@ -1,5 +1,11 @@
 # @gradio/checkboxgroup
 
+## 0.2.0
+
+### Features
+
+- [#5384](https://github.com/gradio-app/gradio/pull/5384) [`ddc02268`](https://github.com/gradio-app/gradio/commit/ddc02268f731bd2ed04b7a5854accf3383f9a0da) - Allows the `gr.Dropdown` to have separate names and values, as well as enables `allow_custom_value` for multiselect dropdown.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.1.2
 
 ### Patch Changes

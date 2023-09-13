@@ -1,5 +1,11 @@
 # @gradio/audio
 
+## 0.3.3
+
+### Fixes
+
+- [#5459](https://github.com/gradio-app/gradio/pull/5459) [`bd2fda77`](https://github.com/gradio-app/gradio/commit/bd2fda77fc98d815f4fb670f535af453ebee9b80) - Dispatch `stop_recording` event in Audio.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.3.2
 
 ### Patch Changes
