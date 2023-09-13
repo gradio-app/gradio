@@ -1838,6 +1838,7 @@ class TestHighlightedText:
             "interactive": None,
             "root_url": None,
             "selectable": False,
+            "combine_adjacent": False,
         }
 
     def test_in_interface(self):
