@@ -32,6 +32,7 @@
 	}
 	afterUpdate(() => {
 		value_is_output = false;
+		setSlider();
 	});
 	$: value, handle_change();
 
@@ -41,6 +42,26 @@
 	function clamp(): void {
 		dispatch("release", value);
 		value = Math.min(Math.max(value, minimum), maximum);
+	}
+
+	var rangeInputs = null;
+	var numberInputs = null;
+	function setSlider(): void {
+		rangeInputs = document.querySelectorAll('input[type="range"]');
+		numberInputs = document.querySelectorAll('input[type="number"]')
+		setSliderRange();
+		rangeInputs.forEach(rangeInput => {
+			rangeInput.addEventListener('input', setSliderRange);
+		});
+		numberInputs.forEach(numberInput => {
+			numberInput.addEventListener('input', setSliderRange);
+		})
+	}
+	function setSliderRange(): void {
+		var range = document.querySelectorAll<HTMLInputElement>('input[type="range"]');
+		range.forEach(range => {
+			range.style.backgroundSize = (parseInt(range.value) - parseInt(range.min)) / (parseInt(range.max) - parseInt(range.min)) * 100 + '% 100%';
+		});
 	}
 </script>
 
@@ -74,13 +95,8 @@
 	{step}
 	{disabled}
 	on:pointerup={handle_release}
-	list="markers-{id}"
 />
-{#if default_value !== 0}
-	<datalist id="markers-{id}">
-		<option value="{default_value}"></option>
-	</datalist>
-{/if}
+
 <style>
 	.wrap {
 		display: flex;
@@ -122,71 +138,46 @@
 		color: var(--input-placeholder-color);
 	}
 
-	/* input[type="range"] {
-		width: 100%;
-		accent-color: var(--slider-color);
-	} */
-
 	input[disabled] {
 		cursor: not-allowed;
 	}
 
-
-
 	input[type="range"] {
-    -webkit-appearance: none;
-    /* height: 4px; */
-	overflow: hidden;
-    background: gray;
-    border-radius: 5px;
-    background-image: linear-gradient(var(--primary-500),var(--primary-500));
-    background-size: 0% 100%;
-    background-repeat: no-repeat;
-}
-input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    height: 20px;
-    width: 20px;
-    border-radius: 50%;
-    border: solid 0.5px #ddd;
-    background-color: white;
-    cursor: ew-resize;
-    box-shadow: var(--input-shadow);
-    transition: background-color .1s ease;
-}
-input[type="range"]::-webkit-slider-thumb:hover {
-    background: var(--neutral-50);
-}
-input[type=range]::-webkit-slider-runnable-track {
-    -webkit-appearance: none;
-    box-shadow: none;
-    border: none;
-	color: #13bba4;
-}
+		-webkit-appearance: none;
+		appearance: none;
+		width: 100%;
+		accent-color: var(--slider-color);
+		height: 4px;
+		background: white;
+		border-radius: 5px;
+		background-image: linear-gradient(var(--slider-color), var(--slider-color));
+		background-size: 0% 100%;
+		background-repeat: no-repeat;
+ 	}
 
-	/******** Firefox styles ********/
-	/* slider track */
-	input[type="range"]::-moz-range-track {
-		background-color: #053a5f;
-		border-radius: 0.5rem;
-		height: 0.5rem;
+	 input[type=range]::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		box-shadow: var(--input-shadow);
+		border: solid 0.5px #ddd;
+		height: 20px;
+		width: 20px;
+		border-radius: 50%;
+		background-color: white;
+		cursor: pointer;
+		margin-top: -7px;
+		transition: background-color .1s ease;
 	}
 
-	/* slider thumb */
-	input[type="range"]::-moz-range-thumb {
-		border: none; /*Removes extra border that FF applies*/
-		border-radius: 0; /*Removes default border-radius that FF applies*/
+ 	input[type="range"]::-webkit-slider-thumb:hover {
+     	background: var(--neutral-50);
+ 	}
 
-		/*custom styles*/
-		background-color: #5cd5eb;
-		height: 2rem;
-		width: 1rem;
-	}
-
-	input[type="range"]:focus::-moz-range-thumb {
-		border: 1px solid #053a5f;
-		outline: 3px solid #053a5f;
-		outline-offset: 0.125rem; 
-	}
+ 	input[type=range]::-webkit-slider-runnable-track {
+		-webkit-appearance: none;
+		box-shadow: none;
+		border: none;
+		background: transparent;
+		height: 100%;
+ 	}
 
 </style>
