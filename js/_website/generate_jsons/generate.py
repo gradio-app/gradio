@@ -1,5 +1,6 @@
 import json
 import os
+from subprocess import run
 
 from src import changelog, demos, docs, guides
 
@@ -10,11 +11,18 @@ def make_dir(root, path):
     return os.path.abspath(os.path.join(root, path))
 
 def get_latest_release():
-    with open(make_dir(WEBSITE_DIR, "src/lib/json/version.json"), "w+") as j:
-        with open(make_dir(GRADIO_DIR, "package.json")) as f:
+    with open(make_dir(GRADIO_DIR, "package.json")) as f:
+        version = json.load(f)["version"]
+        with open(make_dir(WEBSITE_DIR, "src/lib/json/version.json"), "w+") as j:
             json.dump({
-                "version": json.load(f)["version"]
+                "version": version
                 }, j)
+        with open(make_dir(WEBSITE_DIR, "src/lib/json/wheel.json"), "w+") as j:
+            sha = run(["git", "log", "-1", "--format='%H'"], capture_output=True).stdout.decode("utf-8").strip("'\n")
+            json.dump({
+                        "wheel": f"https://gradio-builds.s3.amazonaws.com/{sha}/gradio-{version}-py3-none-any.whl"
+                        }, j)
+
             
 def create_dir_if_not_exists(path):
     if not os.path.exists(path):

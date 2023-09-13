@@ -1,5 +1,11 @@
 # @gradio/chatbot
 
+## 0.3.2
+
+### Fixes
+
+- [#5470](https://github.com/gradio-app/gradio/pull/5470) [`a4e010a9`](https://github.com/gradio-app/gradio/commit/a4e010a96f1d8a52b3ac645e03fe472b9c3cbbb1) - Fix share button position.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.3.1
 
 ### Patch Changes

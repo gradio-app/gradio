@@ -21,7 +21,7 @@
 		},
 		grid_cols: {
 			options: [1, 2, 3, 4],
-			description: "The number of colums to show in grid",
+			description: "The number of columns to show in grid",
 			control: { type: "select" },
 			defaultValue: 2
 		},
