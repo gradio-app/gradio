@@ -650,11 +650,20 @@ class TestDropdown:
         """
         Interface, process
         """
-        checkboxes_input = gr.CheckboxGroup(["a", "b", "c"])
-        iface = gr.Interface(lambda x: "|".join(x), checkboxes_input, "textbox")
+        dropdown_input = gr.Dropdown(["a", "b", "c"])
+        iface = gr.Interface(lambda x: "|".join(x), dropdown_input, "textbox")
         assert iface(["a", "c"]) == "a|c"
         assert iface([]) == ""
-        _ = gr.CheckboxGroup(["a", "b", "c"], type="index")
+
+    def test_update(self):
+        update = gr.Dropdown.update(
+            choices=[("zeroth", ""), "first", "second"], label="ordinal"
+        )
+        assert update["choices"] == [
+            ("zeroth", ""),
+            ("first", "first"),
+            ("second", "second"),
+        ]
 
 
 class TestImage:
