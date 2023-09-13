@@ -1,50 +1,21 @@
 <script lang="ts">
 	const browser = typeof document !== "undefined";
-	import { colors } from "@gradio/theme";
 	import { get_next_color } from "@gradio/utils";
 	import type { SelectData } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
+	import { correct_color_map } from "../utils";
 
-	export let value: [string, string | number][] = [];
+	export let value: [string, string | number | null][] = [];
 	export let show_legend = false;
 	export let color_map: Record<string, string> = {};
 	export let selectable = false;
 
 	let ctx: CanvasRenderingContext2D;
-
 	let _color_map: Record<string, { primary: string; secondary: string }> = {};
 	let active = "";
 
 	function splitTextByNewline(text: string): string[] {
 		return text.split("\n");
-	}
-
-	function correct_color_map(): void {
-		for (const col in color_map) {
-			const _c = color_map[col].trim();
-			if (_c in colors) {
-				_color_map[col] = colors[_c as keyof typeof colors];
-			} else {
-				_color_map[col] = {
-					primary: browser ? name_to_rgba(color_map[col], 1) : color_map[col],
-					secondary: browser
-						? name_to_rgba(color_map[col], 0.5)
-						: color_map[col]
-				};
-			}
-		}
-	}
-
-	function name_to_rgba(name: string, a: number): string {
-		if (!ctx) {
-			var canvas = document.createElement("canvas");
-			ctx = canvas.getContext("2d")!;
-		}
-		ctx.fillStyle = name;
-		ctx.fillRect(0, 0, 1, 1);
-		const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
-		ctx.clearRect(0, 0, 1, 1);
-		return `rgba(${r}, ${g}, ${b}, ${255 / a})`;
 	}
 
 	const dispatch = createEventDispatcher<{
@@ -73,7 +44,7 @@
 			}
 		}
 
-		correct_color_map();
+		correct_color_map(color_map, _color_map, browser, ctx);
 	}
 
 	function handle_mouseover(label: string): void {
@@ -139,12 +110,13 @@
 							on:click={() => {
 								dispatch("select", {
 									index: i,
-									value: [text, category]
+									value: [text, category],
 								});
 							}}
 						>
-							<span class:no-label={!_color_map[category]} class="text"
-								>{line}</span
+							<span
+								class:no-label={category && !_color_map[category]}
+								class="text">{line}</span
 							>
 							{#if !show_legend && category !== null}
 								&nbsp;
@@ -180,7 +152,9 @@
 				<span
 					class="textspan score-text"
 					style={"background-color: rgba(" +
-						(score < 0 ? "128, 90, 213," + -score : "239, 68, 60," + score) +
+						(score && score < 0
+							? "128, 90, 213," + -score
+							: "239, 68, 60," + score) +
 						")"}
 				>
 					<span class="text">{text}</span>

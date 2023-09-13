@@ -1,11 +1,12 @@
 {
-	"version": "3.41.2",
+	"version": "3.44.1",
 	"mode": "blocks",
-	"dev_mode": true,
+	"app_id": 3299865391549106311,
+	"dev_mode": false,
 	"analytics_enabled": false,
 	"components": [
 		{
-			"id": 1,
+			"id": 31,
 			"type": "markdown",
 			"props": {
 				"value": "# Detect Disease From Scan\nWith this model you can lorem ipsum\n- ipsum 1\n- ipsum 2",
@@ -34,13 +35,22 @@
 			}
 		},
 		{
-			"id": 2,
+			"id": 32,
 			"type": "checkboxgroup",
 			"props": {
 				"choices": [
-					["Covid", "Covid"],
-					["Malaria", "Malaria"],
-					["Lung Cancer", "Lung Cancer"]
+					[
+						"Covid",
+						"Covid"
+					],
+					[
+						"Malaria",
+						"Malaria"
+					],
+					[
+						"Lung Cancer",
+						"Lung Cancer"
+					]
 				],
 				"value": [],
 				"type": "value",
@@ -63,12 +73,16 @@
 				"serialized_info": false
 			},
 			"example_inputs": {
-				"raw": ["Covid"],
-				"serialized": ["Covid"]
+				"raw": [
+					"Covid"
+				],
+				"serialized": [
+					"Covid"
+				]
 			}
 		},
 		{
-			"id": 3,
+			"id": 33,
 			"type": "tabs",
 			"props": {
 				"visible": true,
@@ -77,7 +91,7 @@
 			}
 		},
 		{
-			"id": 4,
+			"id": 34,
 			"type": "tabitem",
 			"props": {
 				"label": "X-ray",
@@ -86,7 +100,7 @@
 			}
 		},
 		{
-			"id": 5,
+			"id": 35,
 			"type": "row",
 			"props": {
 				"variant": "default",
@@ -96,7 +110,7 @@
 			}
 		},
 		{
-			"id": 6,
+			"id": 36,
 			"type": "image",
 			"props": {
 				"image_mode": "RGB",
@@ -131,7 +145,7 @@
 			}
 		},
 		{
-			"id": 7,
+			"id": 37,
 			"type": "json",
 			"props": {
 				"show_label": true,
@@ -157,7 +171,7 @@
 			}
 		},
 		{
-			"id": 8,
+			"id": 38,
 			"type": "button",
 			"props": {
 				"value": "Run",
@@ -179,7 +193,7 @@
 			}
 		},
 		{
-			"id": 9,
+			"id": 39,
 			"type": "tabitem",
 			"props": {
 				"label": "CT Scan",
@@ -188,7 +202,7 @@
 			}
 		},
 		{
-			"id": 10,
+			"id": 40,
 			"type": "row",
 			"props": {
 				"variant": "default",
@@ -198,7 +212,7 @@
 			}
 		},
 		{
-			"id": 11,
+			"id": 41,
 			"type": "image",
 			"props": {
 				"image_mode": "RGB",
@@ -233,7 +247,7 @@
 			}
 		},
 		{
-			"id": 12,
+			"id": 42,
 			"type": "json",
 			"props": {
 				"show_label": true,
@@ -259,7 +273,7 @@
 			}
 		},
 		{
-			"id": 13,
+			"id": 43,
 			"type": "button",
 			"props": {
 				"value": "Run",
@@ -281,7 +295,7 @@
 			}
 		},
 		{
-			"id": 14,
+			"id": 44,
 			"type": "textbox",
 			"props": {
 				"value": "",
@@ -292,6 +306,7 @@
 				"min_width": 160,
 				"visible": true,
 				"autofocus": false,
+				"autoscroll": true,
 				"type": "text",
 				"rtl": false,
 				"show_copy_button": false,
@@ -311,7 +326,7 @@
 			}
 		},
 		{
-			"id": 15,
+			"id": 45,
 			"type": "form",
 			"props": {
 				"scale": 0,
@@ -320,7 +335,7 @@
 			}
 		},
 		{
-			"id": 16,
+			"id": 46,
 			"type": "form",
 			"props": {
 				"scale": 0,
@@ -342,67 +357,67 @@
 	],
 	"theme": "default",
 	"layout": {
-		"id": 0,
+		"id": 30,
 		"children": [
 			{
-				"id": 1
+				"id": 31
 			},
 			{
-				"id": 15,
+				"id": 45,
 				"children": [
 					{
-						"id": 2
+						"id": 32
 					}
 				]
 			},
 			{
-				"id": 3,
+				"id": 33,
 				"children": [
 					{
-						"id": 4,
+						"id": 34,
 						"children": [
 							{
-								"id": 5,
+								"id": 35,
 								"children": [
 									{
-										"id": 6
+										"id": 36
 									},
 									{
-										"id": 7
+										"id": 37
 									}
 								]
 							},
 							{
-								"id": 8
+								"id": 38
 							}
 						]
 					},
 					{
-						"id": 9,
+						"id": 39,
 						"children": [
 							{
-								"id": 10,
+								"id": 40,
 								"children": [
 									{
-										"id": 11
+										"id": 41
 									},
 									{
-										"id": 12
+										"id": 42
 									}
 								]
 							},
 							{
-								"id": 13
+								"id": 43
 							}
 						]
 					}
 				]
 			},
 			{
-				"id": 16,
+				"id": 46,
 				"children": [
 					{
-						"id": 14
+						"id": 44
 					}
 				]
 			}
@@ -410,10 +425,17 @@
 	},
 	"dependencies": [
 		{
-			"targets": [8],
+			"targets": [
+				38
+			],
 			"trigger": "click",
-			"inputs": [2, 6],
-			"outputs": [7],
+			"inputs": [
+				32,
+				36
+			],
+			"outputs": [
+				37
+			],
 			"backend_fn": true,
 			"js": null,
 			"queue": null,
@@ -433,10 +455,17 @@
 			"trigger_only_on_success": false
 		},
 		{
-			"targets": [13],
+			"targets": [
+				43
+			],
 			"trigger": "click",
-			"inputs": [2, 11],
-			"outputs": [12],
+			"inputs": [
+				32,
+				41
+			],
+			"outputs": [
+				42
+			],
 			"backend_fn": true,
 			"js": null,
 			"queue": null,
@@ -459,7 +488,9 @@
 			"targets": [],
 			"trigger": "load",
 			"inputs": [],
-			"outputs": [14],
+			"outputs": [
+				44
+			],
 			"backend_fn": true,
 			"js": null,
 			"queue": null,

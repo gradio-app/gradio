@@ -108,6 +108,7 @@ class TestTextbox:
             "autofocus": False,
             "selectable": False,
             "info": None,
+            "autoscroll": True,
         }
 
     @pytest.mark.asyncio
@@ -614,24 +615,29 @@ class TestDropdown:
         """
         Preprocess, postprocess, serialize, get_config
         """
-        dropdown_input = gr.Dropdown(["a", "b", "c"], multiselect=True)
+        dropdown_input = gr.Dropdown(["a", "b", ("c", "c full")], multiselect=True)
         assert dropdown_input.preprocess("a") == "a"
         assert dropdown_input.postprocess("a") == "a"
+        assert dropdown_input.preprocess("c full") == "c full"
+        assert dropdown_input.postprocess("c full") == "c full"
 
-        dropdown_input_multiselect = gr.Dropdown(["a", "b", "c"])
-        assert dropdown_input_multiselect.preprocess(["a", "c"]) == ["a", "c"]
-        assert dropdown_input_multiselect.postprocess(["a", "c"]) == ["a", "c"]
-        assert dropdown_input_multiselect.serialize(["a", "c"], True) == ["a", "c"]
+        dropdown_input_multiselect = gr.Dropdown(["a", "b", ("c", "c full")])
+        assert dropdown_input_multiselect.preprocess(["a", "c full"]) == ["a", "c full"]
+        assert dropdown_input_multiselect.postprocess(["a", "c full"]) == [
+            "a",
+            "c full",
+        ]
+        assert dropdown_input_multiselect.serialize(["a", "c full"]) == ["a", "c full"]
         dropdown_input_multiselect = gr.Dropdown(
             value=["a", "c"],
-            choices=["a", "b", "c"],
+            choices=["a", "b", ("c", "c full")],
             label="Select Your Inputs",
             multiselect=True,
             max_choices=2,
         )
         assert dropdown_input_multiselect.get_config() == {
             "allow_custom_value": False,
-            "choices": ["a", "b", "c"],
+            "choices": [("a", "a"), ("b", "b"), ("c", "c full")],
             "value": ["a", "c"],
             "name": "dropdown",
             "show_label": True,
@@ -645,6 +651,7 @@ class TestDropdown:
             "interactive": None,
             "root_url": None,
             "multiselect": True,
+            "filterable": True,
             "max_choices": 2,
             "selectable": False,
             "type": "value",
@@ -661,11 +668,20 @@ class TestDropdown:
         """
         Interface, process
         """
-        checkboxes_input = gr.CheckboxGroup(["a", "b", "c"])
-        iface = gr.Interface(lambda x: "|".join(x), checkboxes_input, "textbox")
+        dropdown_input = gr.Dropdown(["a", "b", "c"])
+        iface = gr.Interface(lambda x: "|".join(x), dropdown_input, "textbox")
         assert iface(["a", "c"]) == "a|c"
         assert iface([]) == ""
-        _ = gr.CheckboxGroup(["a", "b", "c"], type="index")
+
+    def test_update(self):
+        update = gr.Dropdown.update(
+            choices=[("zeroth", ""), "first", "second"], label="ordinal"
+        )
+        assert update["choices"] == [
+            ("zeroth", ""),
+            ("first", "first"),
+            ("second", "second"),
+        ]
 
 
 class TestImage:
@@ -1849,6 +1865,7 @@ class TestHighlightedText:
             "selectable": False,
             "combine_adjacent": False,
             "adjacent_separator": "",
+            "interactive": None,
         }
 
     def test_in_interface(self):

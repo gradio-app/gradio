@@ -140,6 +140,7 @@ class TestBlocksMethods:
         with open(xray_config_file) as fp:
             xray_config = json.load(fp)
 
+        print(json.dumps(config))
         assert assert_configs_are_equivalent_besides_ids(xray_config, config)
         assert config["show_api"] is True
         _ = demo.launch(prevent_thread_lock=True, show_api=False)
@@ -1194,6 +1195,7 @@ class TestSpecificUpdate:
             "show_copy_button": None,
             "rtl": None,
             "text_align": None,
+            "autoscroll": None,
             "__type__": "update",
         }
 
@@ -1218,6 +1220,7 @@ class TestSpecificUpdate:
             "show_copy_button": None,
             "rtl": None,
             "text_align": None,
+            "autoscroll": None,
             "__type__": "update",
         }
 
