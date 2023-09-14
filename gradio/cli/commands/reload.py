@@ -78,10 +78,12 @@ def _setup_config(
         message += f" '{abs_parent}'"
 
     for wd in additional_watch_dirs or []:
-        watching_dirs.append(wd)
-        if message_change_count == 1:
-            message += ","
-        message += f" '{wd}'"
+        if Path(wd) not in watching_dirs:
+            watching_dirs.append(wd)
+
+            if message_change_count == 1:
+                message += ","
+            message += f" '{wd}'"
 
     print(message + "\n")
 

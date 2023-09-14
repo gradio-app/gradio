@@ -38,6 +38,7 @@ export async function create_server({
 	const imports = generate_imports(component_dir);
 
 	const NODE_DIR = join(root_dir, "..", "..", "node", "dev");
+
 	const server = await createServer({
 		// any valid user config options, plus `mode` and `configFile`
 		customLogger: logger,
@@ -70,24 +71,18 @@ export async function create_server({
 				name: "gradio",
 				enforce: "pre",
 				resolveId(importee, importer) {
+					if (importee === "svelte/internal/disclose-version") {
+						return join(NODE_DIR, "svelte-action.js");
+					}
+
+					if (importee.startsWith("svelte/")) {
+						return join(
+							NODE_DIR,
+							importee.replace("svelte/", "svelte-") + ".js"
+						);
+					}
 					if (importee === "svelte") {
 						return join(NODE_DIR, "svelte-internal.js");
-					}
-
-					if (importee === "svelte/internal") {
-						return join(NODE_DIR, "svelte-internal.js");
-					}
-
-					if (importee === "svelte/action") {
-						return join(NODE_DIR, "svelte-action.js");
-					}
-
-					if (importee === "svelte/internal/disclose-version") {
-						console.log("================================");
-						console.log("HELLO DISCLOSE VERSION!!!!!!!!!!!!");
-						console.log({ importer });
-						console.log("================================");
-						return join(NODE_DIR, "svelte-action.js");
 					}
 				},
 				transform(code) {
