@@ -7,6 +7,8 @@ import shutil
 import tempfile
 import textwrap
 import requests
+import time
+import sys
 
 import huggingface_hub
 
@@ -91,6 +93,14 @@ demos = os.listdir(GRADIO_DEMO_DIR)
 
 demos = [demo for demo in demos if demo not in DEMOS_TO_SKIP and os.path.isdir(os.path.join(GRADIO_DEMO_DIR, demo)) and  os.path.exists(os.path.join(GRADIO_DEMO_DIR, demo, "run.py"))]
 
+def version_exists(version: str):
+    """Checks if the given version of gradio has been uploaded to pypi"""
+    for _ in range(600):
+        if requests.get("https://pypi.org/pypi/gradio/json").json()["info"]["version"] == version:
+            return True
+        time.sleep(1)
+    return False
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--WHEEL_URL", type=str, help="aws link to gradio wheel")
@@ -98,6 +108,10 @@ if __name__ == "__main__":
     parser.add_argument("--GRADIO_VERSION", type=str, help="gradio version")
     args = parser.parse_args()
     gradio_wheel_url = args.WHEEL_URL + f"gradio-{args.GRADIO_VERSION}-py3-none-any.whl"
+    if not version_exists(args.GRADIO_VERSION):
+        print(f"Version {args.GRADIO_VERSION} does not exist on pypi")
+        sys.exit(1)
+
     if args.AUTH_TOKEN is not None:
         hello_world_version = str(huggingface_hub.space_info("gradio/hello_world").cardData["sdk_version"])
         for demo in demos:
