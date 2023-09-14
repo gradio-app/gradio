@@ -205,8 +205,8 @@ class Dropdown(
         }
 
     def preprocess(
-        self, x: str | list[str]
-    ) -> str | int | list[str] | list[int] | None:
+        self, x: str | int | float | list[str | int | float] | None
+    ) -> str | int | float | list[str | int | float] | list[int | None] | None:
         """
         Parameters:
             x: selected choice(s)
@@ -216,19 +216,17 @@ class Dropdown(
         if self.type == "value":
             return x
         elif self.type == "index":
+            choice_values = [value for _, value in self.choices]
             if x is None:
                 return None
             elif self.multiselect:
+                assert isinstance(x, list)
                 return [
-                    [value for _, value in self.choices].index(choice) for choice in x
+                    choice_values.index(choice) if choice in choice_values else None
+                    for choice in x
                 ]
             else:
-                if isinstance(x, str):
-                    return (
-                        [value for _, value in self.choices].index(x)
-                        if x in self.choices
-                        else None
-                    )
+                return choice_values.index(x) if x in choice_values else None
         else:
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
