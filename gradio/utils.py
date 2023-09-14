@@ -37,6 +37,7 @@ import anyio
 import matplotlib
 import requests
 from gradio_client.serializing import Serializable
+from gradio_client.utils import get_package_version
 from typing_extensions import ParamSpec
 
 import gradio
@@ -49,19 +50,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.routes import App
 
 JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
-GRADIO_VERSION = ()
-try:
-    with open("package.json") as package_json_file:
-        package_data = json.load(package_json_file)
-        version = package_data.get("version")
-        if version:
-            GRADIO_VERSION = tuple(version)
-        else:
-            print("Version not found in package.json")
-except FileNotFoundError:
-    print("package.json file not found")
-except json.JSONDecodeError as e:
-    print(f"Error parsing package.json: {e}")
+GRADIO_VERSION = get_package_version()
 
 
 P = ParamSpec("P")

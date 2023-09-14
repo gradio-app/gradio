@@ -11,7 +11,6 @@ if sys.version_info >= (3, 9):
 else:
     from importlib_resources import files
 import inspect
-import json
 import mimetypes
 import os
 import posixpath
@@ -40,6 +39,7 @@ from fastapi.responses import (
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from gradio_client.documentation import document, set_documentation_group
+from gradio_client.utils import get_package_version
 from jinja2.exceptions import TemplateNotFound
 from starlette.background import BackgroundTask
 from starlette.responses import RedirectResponse, StreamingResponse
@@ -62,19 +62,7 @@ mimetypes.init()
 STATIC_TEMPLATE_LIB = files("gradio").joinpath("templates").as_posix()  # type: ignore
 STATIC_PATH_LIB = files("gradio").joinpath("templates", "frontend", "static").as_posix()  # type: ignore
 BUILD_PATH_LIB = files("gradio").joinpath("templates", "frontend", "assets").as_posix()  # type: ignore
-VERSION = ""
-try:
-    with open("package.json") as package_json_file:
-        package_data = json.load(package_json_file)
-        version = package_data.get("version")
-        if version:
-            VERSION = tuple(version)
-        else:
-            print("Version not found in package.json")
-except FileNotFoundError:
-    print("package.json file not found")
-except json.JSONDecodeError as e:
-    print(f"Error parsing package.json: {e}")
+VERSION = get_package_version()
 
 
 class ORJSONResponse(JSONResponse):

@@ -5,6 +5,7 @@ import base64
 import json
 import mimetypes
 import os
+import pkgutil
 import secrets
 import shutil
 import tempfile
@@ -57,21 +58,20 @@ INVALID_RUNTIME = [
     SpaceStage.PAUSED,
 ]
 
-# __version__ = (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
-__version__ = ""
 
-try:
-    with open("package.json") as package_json_file:
-        package_data = json.load(package_json_file)
-        version = package_data.get("version")
-        if version:
-            __version__ = version
-        else:
-            print("Version not found in package.json")
-except FileNotFoundError:
-    print("package.json file not found")
-except json.JSONDecodeError as e:
-    print(f"Error parsing package.json: {e}")
+def get_package_version():
+    try:
+        package_json_data = (
+            pkgutil.get_data(__name__, "package.json").decode("utf-8").strip()
+        )
+        package_data = json.loads(package_json_data)
+        version = package_data.get("version", "")
+        return version
+    except Exception:
+        return ""
+
+
+__version__ = get_package_version()
 
 
 class TooManyRequestsError(Exception):

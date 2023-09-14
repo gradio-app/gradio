@@ -1,5 +1,7 @@
 import json
 
+from gradio_client.utils import get_package_version
+
 import gradio.components as components
 import gradio.inputs as inputs
 import gradio.outputs as outputs
@@ -104,17 +106,4 @@ from gradio.templates import (
 )
 from gradio.themes import Base as Theme
 
-current_pkg_version = ()
-try:
-    with open("package.json") as package_json_file:
-        package_data = json.load(package_json_file)
-        version = package_data.get("version")
-        if version:
-            current_pkg_version = tuple(version)
-        else:
-            print("Version not found in package.json")
-except FileNotFoundError:
-    print("package.json file not found")
-except json.JSONDecodeError as e:
-    print(f"Error parsing package.json: {e}")
-__version__ = current_pkg_version
+current_pkg_version = get_package_version()
