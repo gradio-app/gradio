@@ -69,7 +69,7 @@
 	$: component_meta = selected_samples.map((sample_row) =>
 		sample_row.map((sample_cell, j) => ({
 			value: sample_cell,
-			component: component_map[components[j]] as ComponentType<SvelteComponent>
+			component: component_map[components[j]] as ComponentType<SvelteComponent>,
 		}))
 	);
 </script>
@@ -129,7 +129,7 @@
 			{/each}
 		</div>
 	{:else}
-		<div class="table-wrap">
+		<div class="table-wrap" tabindex="0" role="grid">
 			<table>
 				<thead>
 					<tr class="tr-head">

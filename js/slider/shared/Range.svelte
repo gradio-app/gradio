@@ -58,6 +58,7 @@
 			{step}
 			{disabled}
 			on:pointerup={handle_release}
+			aria-label="number input"
 		/>
 	</div>
 </div>
@@ -72,6 +73,7 @@
 	{step}
 	{disabled}
 	on:pointerup={handle_release}
+	aria-label="range slider"
 />
 
 <style>
