@@ -128,7 +128,10 @@
 	<!-- need to suppress for video streaming https://github.com/sveltejs/svelte/issues/5967 -->
 	<video bind:this={video_source} class:flip={mirror_webcam} />
 	{#if !streaming}
-		<button on:click={mode === "image" ? take_picture : take_recording}>
+		<button
+			on:click={mode === "image" ? take_picture : take_recording}
+			aria-label={mode === "image" ? "capture photo" : "start recording"}
+		>
 			{#if mode === "video"}
 				{#if recording}
 					<div class="icon" title="stop recording">
