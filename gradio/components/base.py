@@ -356,7 +356,7 @@ class Component(ComponentBase, Block):
         }
         if self.info:
             config["info"] = self.info
-        config["custom_component"] = not self.__module__.startswith("gradio.components")
+        config["custom_component"] = not self.__module__.startswith("gradio")
         return config
 
     @property
