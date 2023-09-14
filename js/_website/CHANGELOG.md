@@ -1,5 +1,11 @@
 # website
 
+## 0.6.0
+
+### Features
+
+- [#5565](https://github.com/gradio-app/gradio/pull/5565) [`f0514fc49`](https://github.com/gradio-app/gradio/commit/f0514fc49ea04ba01dce748238e1fd16f9cb5d8b) - Route docs and guide urls correctly.  Thanks [@aliabd](https://github.com/aliabd)!
+
 ## 0.5.0
 
 ### Features
