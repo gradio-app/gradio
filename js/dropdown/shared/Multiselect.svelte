@@ -106,7 +106,7 @@
 				typeof option_index === "number"
 					? choices_values[option_index]
 					: option_index,
-			selected: false
+			selected: false,
 		});
 	}
 
@@ -119,7 +119,7 @@
 					typeof option_index === "number"
 						? choices_values[option_index]
 						: option_index,
-				selected: true
+				selected: true,
 			});
 		}
 		if (selected_indices.length === max_choices) {
@@ -215,13 +215,7 @@
 	<div class="wrap">
 		<div class="wrap-inner" class:show_options>
 			{#each selected_indices as s}
-				<!-- TODO: fix -->
-				<!-- svelte-ignore a11y-click-events-have-key-events -->
-				<!-- svelte-ignore a11y-no-static-element-interactions-->
-				<div
-					on:click|preventDefault={() => remove_selected_choice(s)}
-					class="token"
-				>
+				<div class="token">
 					<span>
 						{#if typeof s === "number"}
 							{choices_names[s]}
@@ -230,7 +224,18 @@
 						{/if}
 					</span>
 					{#if !disabled}
-						<div class="token-remove" title={$_("common.remove") + " " + s}>
+						<div
+							class="token-remove"
+							on:click|preventDefault={() => remove_selected_choice(s)}
+							on:keydown|preventDefault={(event) => {
+								if (event.key === "Enter") {
+									remove_selected_choice(s);
+								}
+							}}
+							role="button"
+							tabindex="0"
+							title={$_("common.remove") + " " + s}
+						>
 							<Remove />
 						</div>
 					{/if}
@@ -251,15 +256,20 @@
 					on:focus={handle_focus}
 					readonly={!filterable}
 				/>
-				<!-- TODO: fix -->
-				<!-- svelte-ignore a11y-click-events-have-key-events -->
-				<!-- svelte-ignore a11y-no-static-element-interactions-->
+
 				{#if !disabled}
 					{#if selected_indices.length > 0}
 						<div
+							role="button"
+							tabindex="0"
 							class="token-remove remove-all"
 							title={$_("common.clear")}
 							on:click={remove_all}
+							on:keydown={(event) => {
+								if (event.key === "Enter") {
+									remove_all(event);
+								}
+							}}
 						>
 							<Remove />
 						</div>
