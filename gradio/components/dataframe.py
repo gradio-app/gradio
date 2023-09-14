@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Literal
+from typing import TYPE_CHECKING, Callable, Literal
 
 import numpy as np
 import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
+from pandas.io.formats.style import Styler
+from typing_extensions import NotRequired
 
 from gradio.components.base import IOComponent, _Keywords
 from gradio.events import (
@@ -23,6 +25,7 @@ if TYPE_CHECKING:
     class DataframeData(TypedDict):
         headers: list[str]
         data: list[list[str | int | bool]]
+        metadata: NotRequired[dict[str, list[list]]]
 
 
 set_documentation_group("component")
@@ -32,15 +35,15 @@ set_documentation_group("component")
 class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
-    Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
-    Postprocessing: expects a {pandas.DataFrame}, {numpy.array}, {List[List]}, {List}, a {Dict} with keys `data` (and optionally `headers`), or {str} path to a csv, which is rendered in the spreadsheet.
+    Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, or {List[List]} depending on `type`
+    Postprocessing: expects a {pandas.DataFrame}, {pandas.Styler}, {numpy.array}, {List[List]}, {List}, a {Dict} with keys `data` (and optionally `headers`), or {str} path to a csv, which is rendered in the spreadsheet.
     Examples-format: a {str} filepath to a csv with data, a pandas dataframe, or a list of lists (excluding headers) where each sublist is a row of data.
     Demos: filter_records, matrix_transpose, tax_calculator
     """
 
     def __init__(
         self,
-        value: list[list[Any]] | Callable | None = None,
+        value: pd.DataFrame | Styler | np.ndarray | list | list[list] | dict | str | Callable | None = None,
         *,
         headers: list[str] | None = None,
         row_count: int | tuple[int, str] = (1, "dynamic"),
@@ -71,7 +74,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             row_count: Limit number of rows for input and decide whether user can create new rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
             col_count: Limit number of columns for input and decide whether user can create new columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
             datatype: Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", "date", and "markdown".
-            type: Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python array.
+            type: Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python list of lists.
             label: component name in interface.
             max_rows: Maximum number of rows to display at once. Set to None for infinite.
             max_cols: Maximum number of columns to display at once. Set to None for infinite.
@@ -172,7 +175,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
 
     @staticmethod
     def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        value: pd.DataFrame | Styler | np.ndarray | list | list[list] | dict | str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         max_rows: int | None = None,
         max_cols: str | None = None,
         label: str | None = None,
@@ -199,7 +202,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             "__type__": "update",
         }
 
-    def preprocess(self, x: DataframeData):
+    def preprocess(self, x: DataframeData) -> pd.DataFrame | np.ndarray | list:
         """
         Parameters:
             x: 2D array of str, numeric, or bool data
@@ -223,8 +226,8 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             )
 
     def postprocess(
-        self, y: str | pd.DataFrame | np.ndarray | list[list[str | float]] | dict
-    ) -> dict:
+        self, y: pd.DataFrame | Styler | np.ndarray | list | list[list] | dict | str | None
+    ) -> DataframeData:
         """
         Parameters:
             y: dataframe in given format
@@ -234,6 +237,8 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         if y is None:
             return self.postprocess(self.empty_input)
         if isinstance(y, dict):
+            assert "data" in y, "if a dictionary is provided, it must have a key 'data'"
+            assert "headers" in y, "if a dictionary is provided, it must have a key 'data'"
             return y
         if isinstance(y, (str, pd.DataFrame)):
             if isinstance(y, str):
