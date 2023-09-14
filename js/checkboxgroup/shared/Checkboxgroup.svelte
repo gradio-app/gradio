@@ -58,8 +58,18 @@
 					dispatch("select", {
 						index: i,
 						value: choice[1],
-						selected: evt.currentTarget.checked
+						selected: evt.currentTarget.checked,
 					})}
+				on:keydown={(event) => {
+					if (event.key === "Enter") {
+						toggleChoice(choice[1]);
+						dispatch("select", {
+							index: i,
+							value: choice[1],
+							selected: !value.includes(choice[1]),
+						});
+					}
+				}}
 				checked={value.includes(choice[1])}
 				type="checkbox"
 				name="test"
@@ -125,14 +135,19 @@
 		background-color: var(--checkbox-background-color-selected);
 	}
 
+	input:checked:focus {
+		border-color: var(--checkbox-border-color-focus);
+		background-image: var(--checkbox-check);
+		background-color: var(--checkbox-background-color-selected);
+	}
+
 	input:hover {
 		border-color: var(--checkbox-border-color-hover);
 		background-color: var(--checkbox-background-color-hover);
 	}
 
-	input:focus {
+	input:not(:checked):focus {
 		border-color: var(--checkbox-border-color-focus);
-		background-color: var(--checkbox-background-color-focus);
 	}
 
 	input[disabled],
