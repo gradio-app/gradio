@@ -17,7 +17,7 @@ from gradio.utils import is_in_or_equal, set_directory
 
 IN_TEST_DIR = is_in_or_equal("gradio/js/gradio-preview/test", pathlib.Path().cwd())
 
-app = typer.Typer()
+app = typer.Typer(name="component", help="Create Custom Components")
 
 
 def _create_frontend_dir(name: str, dir: pathlib.Path):

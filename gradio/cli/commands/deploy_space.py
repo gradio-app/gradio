@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-import argparse
 import os
 import re
+from typing import Annotated, Optional
+import typer
 
 import huggingface_hub
 
 import gradio as gr
+from gradio.cli.commands.apps import app
 
 repo_directory = os.getcwd()
 readme_file = os.path.join(repo_directory, "README.md")
@@ -115,17 +117,16 @@ def format_title(title: str):
     return title
 
 
-def deploy():
+@app.command("deploy", help="Deploy to HuggingFace Spaces.")
+def deploy(
+    bar: Annotated[str, typer.Argument(help="BARRR")],
+    title: Annotated[Optional[str], typer.Option(help="Spaces app title.")] = None,
+    app_file: Annotated[Optional[str], typer.Option(help="File containing the Gradio app")] = None
+):
     if (
         os.getenv("SYSTEM") == "spaces"
     ):  # in case a repo with this function is uploaded to spaces
         return
-    parser = argparse.ArgumentParser(description="Deploy to Spaces")
-    parser.add_argument("deploy")
-    parser.add_argument("--title", type=str, help="Spaces app title")
-    parser.add_argument("--app-file", type=str, help="File containing the Gradio app")
-
-    args = parser.parse_args()
 
     hf_api = huggingface_hub.HfApi()
     whoami = None
@@ -153,8 +154,8 @@ def deploy():
             f"Creating new Spaces Repo in '{repo_directory}'. Collecting metadata, press Enter to accept default value."
         )
         configuration = add_configuration_to_readme(
-            args.title,
-            args.app_file,
+            title,
+            app_file,
         )
 
     space_id = huggingface_hub.create_repo(
