@@ -382,24 +382,31 @@ def component(cls_name: str) -> Component:
     return obj
 
 
-def get_component_instance(comp: str | dict | Component, render=True) -> Component:
+def get_component_instance(
+    comp: str | dict | Component, render: bool | None = None
+) -> Component:
+    """
+    Returns a component instance from a string, dict, or Component object.
+    Parameters:
+        comp: the component to instantiate. If a string, must be the name of a component, e.g. "dropdown". If a dict, must have a "name" key, e.g. {"name": "dropdown", "choices": ["a", "b"]}. If a Component object, will be returned as is.
+        render: whether to render the component. If True, renders the component (if not already rendered). If False, *unrenders* the component (if already rendered) -- this is useful when constructing an Interface or ChatInterface inside of a Blocks. If None, does not render or unrender the component.
+    """
     if isinstance(comp, str):
         component_obj = component(comp)
-        if not (render):
-            component_obj.unrender()
-        return component_obj
     elif isinstance(comp, dict):
         name = comp.pop("name")
         component_cls = utils.component_or_layout_class(name)
         component_obj = component_cls(**comp)
         if isinstance(component_obj, BlockContext):
             raise ValueError(f"Invalid component: {name}")
-        if not (render):
-            component_obj.unrender()
-        return component_obj
     elif isinstance(comp, Component):
-        return comp
+        component_obj = comp
     else:
         raise ValueError(
             f"Component must provided as a `str` or `dict` or `Component` but is {comp}"
         )
+    if render and not component_obj.is_rendered:
+        component_obj.render()
+    elif render is False and component_obj.is_rendered:
+        component_obj.unrender()
+    return component_obj

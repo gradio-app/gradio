@@ -207,6 +207,7 @@
 				style="height: calc(100% - {_value[selected_image][1]
 					? '80px'
 					: '60px'})"
+				loading="lazy"
 			/>
 			{#if _value[selected_image][1]}
 				<div class="caption">
@@ -229,6 +230,7 @@
 							src={image[0].data}
 							title={image[1] || null}
 							alt={image[1] || null}
+							loading="lazy"
 						/>
 					</button>
 				{/each}
@@ -265,6 +267,7 @@
 					<img
 						alt={caption || ""}
 						src={typeof image === "string" ? image : image.data}
+						loading="lazy"
 					/>
 					{#if caption}
 						<div class="caption-label">
