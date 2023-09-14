@@ -74,7 +74,7 @@
 			dispatch("select", {
 				index: selected_index,
 				value: choices_values[selected_index],
-				selected: true,
+				selected: true
 			});
 		}
 	}
