@@ -15,6 +15,8 @@
 	export let label: string;
 	export let info: string | undefined = undefined;
 	export let show_label: boolean;
+	let rangeInput: HTMLInputElement;
+	let numberInput: HTMLInputElement;
 
 	const id = `range_id_${_id++}`;
 	const dispatch = createEventDispatcher<{
@@ -43,30 +45,17 @@
 		value = Math.min(Math.max(value, minimum), maximum);
 	}
 
-	var rangeInputs = null;
-	var numberInputs = null;
 	function setSlider(): void {
-		rangeInputs = document.querySelectorAll('input[type="range"]');
-		numberInputs = document.querySelectorAll('input[type="number"]');
 		setSliderRange();
-		rangeInputs.forEach((rangeInput) => {
-			rangeInput.addEventListener("input", setSliderRange);
-		});
-		numberInputs.forEach((numberInput) => {
-			numberInput.addEventListener("input", setSliderRange);
-		});
+		rangeInput.addEventListener("input", setSliderRange);
+		numberInput.addEventListener("input", setSliderRange);
 	}
 	function setSliderRange(): void {
-		var range = document.querySelectorAll<HTMLInputElement>(
-			'input[type="range"]'
-		);
-		range.forEach((range) => {
-			range.style.backgroundSize =
-				((parseInt(range.value) - parseInt(range.min)) /
-					(parseInt(range.max) - parseInt(range.min))) *
+		rangeInput.style.backgroundSize =
+				((parseInt(rangeInput.value) - parseInt(rangeInput.min)) /
+					(parseInt(rangeInput.max) - parseInt(rangeInput.min))) *
 					100 +
 				"% 100%";
-		});
 	}
 </script>
 
@@ -80,6 +69,7 @@
 			data-testid="number-input"
 			type="number"
 			bind:value
+			bind:this={numberInput}
 			min={minimum}
 			max={maximum}
 			on:blur={clamp}
@@ -95,6 +85,7 @@
 	{id}
 	name="cowbell"
 	bind:value
+	bind:this={rangeInput}
 	min={minimum}
 	max={maximum}
 	{step}
