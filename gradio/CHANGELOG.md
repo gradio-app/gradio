@@ -1,5 +1,12 @@
 # gradio
 
+## 3.44.2
+
+### Fixes
+
+- [#5537](https://github.com/gradio-app/gradio/pull/5537) [`301c7878`](https://github.com/gradio-app/gradio/commit/301c7878217f9fc531c0f28330b394f02955811b) - allow gr.Image() examples to take urls.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#5544](https://github.com/gradio-app/gradio/pull/5544) [`a0cc9ac9`](https://github.com/gradio-app/gradio/commit/a0cc9ac931554e06dcb091158c9b9ac0cc580b6c) - Fixes dropdown breaking if a user types in invalid value and presses enter.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 3.44.1
 
 ### Fixes
