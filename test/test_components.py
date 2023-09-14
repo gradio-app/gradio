@@ -787,6 +787,11 @@ class TestImage:
             lambda x: np.sum(x), image_input, "number", interpretation="default"
         )
 
+    def test_as_example(self):
+        # test that URLs are not converted to an absolute path
+        url = "https://gradio-static-files.s3.us-west-2.amazonaws.com/header-image.jpg"
+        assert gr.Image().as_example(url) == url
+
     def test_in_interface_as_output(self):
         """
         Interface, process

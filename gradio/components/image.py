@@ -48,7 +48,7 @@ class Image(
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
     Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch` AND source is one of `upload` or `webcam`. In these cases, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} or {pathlib.Path} filepath to an image and displays the image.
-    Examples-format: a {str} filepath to a local file that contains the image.
+    Examples-format: a {str} local filepath or URL to an image.
     Demos: image_mod, image_mod_default_image
     Guides: image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, building-a-pictionary_app, create-your-own-friends-with-a-gan
     """
@@ -415,11 +415,11 @@ class Image(
         if self.source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")
 
-    def as_example(self, input_data: str | None) -> str:
+    def as_example(self, input_data: str | Path | None) -> str:
         if input_data is None:
             return ""
-        elif (
-            self.root_url
-        ):  # If an externally hosted image, don't convert to absolute path
+        input_data = str(input_data)
+        # If an externally hosted image or a URL, don't convert to absolute path
+        if self.root_url or client_utils.is_http_url_like(input_data):
             return input_data
         return str(utils.abspath(input_data))
