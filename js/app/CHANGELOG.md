@@ -1,5 +1,12 @@
 # @gradio/app
 
+## 1.5.2
+
+### Patch Changes
+
+- Updated dependencies [[`a0cc9ac9`](https://github.com/gradio-app/gradio/commit/a0cc9ac931554e06dcb091158c9b9ac0cc580b6c)]:
+  - @gradio/dropdown@0.2.2
+
 ## 1.5.1
 
 ### Patch Changes
