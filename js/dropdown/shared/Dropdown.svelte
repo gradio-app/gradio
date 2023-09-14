@@ -97,7 +97,7 @@
 			filtered_indices = handle_filter(choices, input_text);
 			old_choices = choices;
 			old_input_text = input_text;
-			if (!allow_custom_value) {
+			if (!allow_custom_value && filtered_indices.length > 0) {
 				active_index = filtered_indices[0];
 			}
 		}
