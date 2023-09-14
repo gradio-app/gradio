@@ -6,6 +6,7 @@
 	import anchor from "$lib/assets/img/anchor.svg";
 	import { onDestroy } from "svelte";
 	import { page } from "$app/stores";
+	import { svgCopy, svgCheck } from "$lib/assets/copy.js";
 
 	export let data: any;
 
@@ -50,6 +51,18 @@
 			header_targets[target]?.classList.remove("current-nav-link");
 		}
 	}
+
+	let on_main: boolean;
+	let wheel: string = data.wheel;
+
+	let copied = false;
+	function copy(code: string) {
+		navigator.clipboard.writeText(code);
+		copied = true;
+		setTimeout(() => (copied = false), 2000);
+	}
+
+	$: on_main = data.on_main;
 </script>
 
 <MetaTags
@@ -86,6 +99,25 @@
 					See the <a class="link" href="/changelog">Release History</a>
 				</p>
 			</div>
+			
+			{#if on_main}
+				<div class="codeblock bg-gray-100 border border-gray-200 text-gray-800 px-3 py-1 mt-4  rounded-lg lg:ml-10">
+					<p class="my-2">
+						To install Gradio from main, run the following command:
+					</p>
+					<button class="clipboard-button" type="button" on:click={() => copy("pip install " + wheel)}>
+						{#if !copied}
+							{@html svgCopy}
+						{:else}
+							{@html svgCheck}
+						{/if}
+					</button>
+						<pre class="language-bash" style="padding-right: 25px;"><code class="language-bash text-xs">pip install {wheel}</code></pre>
+						<p class="float-right text-sm">
+							*Note: Setting <code style="font-size: 0.85rem">share=True</code> in <code style="font-size: 0.85rem">launch()</code> will not work. 
+						</p>
+					</div>
+			{/if}
 
 			<div class="flex justify-between mt-4 lg:ml-10">
 				<a
@@ -422,6 +454,7 @@
 																name={demo[0]}
 																code={demo[1]}
 																highlighted_code={demo[2]}
+																on_main={on_main}
 															/>
 														</div>
 													{/each}
