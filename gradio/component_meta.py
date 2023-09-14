@@ -71,15 +71,20 @@ def create_pyi(class_code: str, events: list[EventListener | str]):
     return template.render(events=events, contents=class_code)
 
 
-def extract_class_source_code(code: str, class_name: str) -> str | None:
+def extract_class_source_code(
+    code: str, class_name: str
+) -> tuple[str, int] | tuple[None, None]:
     class_start_line = code.find(f"class {class_name}")
     if class_start_line == -1:
-        return None
+        return None, None
 
     class_ast = ast.parse(code)
     for node in ast.walk(class_ast):
         if isinstance(node, ast.ClassDef) and node.name == class_name:
-            return ast.get_source_segment(code, node)
+            segment = ast.get_source_segment(code, node)
+            assert segment
+            return segment, node.lineno
+    return None, None
 
 
 def create_or_modify_pyi(
@@ -89,15 +94,28 @@ def create_or_modify_pyi(
 
     source_code = source_file.read_text()
 
-    current_impl = extract_class_source_code(source_code, class_name)
+    current_impl, lineno = extract_class_source_code(source_code, class_name)
 
     assert current_impl
+    assert lineno
     new_interface = create_pyi(current_impl, events)
 
     pyi_file = source_file.with_suffix(".pyi")
     if not pyi_file.exists():
-        pyi_file.write_text(source_code)
-    current_interface = extract_class_source_code(pyi_file.read_text(), class_name)
+        last_empty_line_before_class = -1
+        lines = source_code.splitlines()
+        for i, line in enumerate(lines):
+            if line in ["", " "]:
+                last_empty_line_before_class = i
+            if i >= lineno:
+                break
+        lines = (
+            lines[:last_empty_line_before_class]
+            + ["from gradio.events import Dependency"]
+            + lines[last_empty_line_before_class:]
+        )
+        pyi_file.write_text("\n".join(lines))
+    current_interface, _ = extract_class_source_code(pyi_file.read_text(), class_name)
     if not current_interface:
         with open(str(pyi_file), mode="a") as f:
             f.write(new_interface)

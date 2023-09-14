@@ -17,7 +17,7 @@ const require = createRequire(import.meta.url);
 const esbuild_binary_path = require.resolve("esbuild");
 const vite_client = require.resolve("vite/dist/client/client.mjs");
 const hmr = require.resolve("svelte-hmr");
-
+console.log(__dirname);
 export default [
 	{
 		input: "src/index.ts",
@@ -137,6 +137,10 @@ export default [
 					}
 					if (id === "svelte") {
 						return "./svelte-internal.js";
+					}
+
+					if (id === "svelte/internal/disclose-version") {
+						return "./svelte-disclose.js";
 					}
 				}
 			}

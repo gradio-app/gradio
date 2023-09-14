@@ -1,13 +1,13 @@
 import gradio as gr
 
-class <<name>>(gr.components.Component):
-    
+
+class NAME(gr.components.Component):
     def preprocess(self, x):
         return x
-    
+
     def postprocess(self, x):
         return x
-    
+
     def get_config(self):
         return {
             "value": self.value,
@@ -15,7 +15,7 @@ class <<name>>(gr.components.Component):
         }
 
     def example_inputs(self):
-        return {'foo': 'bar'}
+        return {"foo": "bar"}
 
     def api_info(self):
-        return {'type': {}, 'description': 'any valid json'}
+        return {"type": {}, "description": "any valid json"}
