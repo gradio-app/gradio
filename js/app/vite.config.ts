@@ -50,8 +50,6 @@ export default defineConfig(({ mode }) => {
 	const is_cdn = mode === "production:cdn" || mode === "production:website";
 	const is_lite = mode.endsWith(":lite");
 
-	console.log({ mode });
-
 	return {
 		base: is_cdn ? CDN_URL : "./",
 

@@ -35,8 +35,6 @@
 	}>();
 
 	function handle_load({ detail }: CustomEvent<FileData | null>): void {
-		console.log("in handle_load");
-		console.log(detail);
 		value = detail;
 		dispatch("change", detail);
 		dispatch("upload", detail!);

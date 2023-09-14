@@ -95,12 +95,6 @@
 	}
 
 	$: get_component_meta(selected_samples);
-	$: console.log({
-		component_meta,
-		selected_samples,
-		components,
-		component_map
-	});
 </script>
 
 <Block
