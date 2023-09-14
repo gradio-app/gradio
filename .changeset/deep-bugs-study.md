@@ -1,6 +1,5 @@
 ---
 "@gradio/app": patch
-"@gradio/cdn-test": patch
 "gradio": patch
 ---
 
