@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import ts from "@rollup/plugin-typescript";
 import node from "@rollup/plugin-node-resolve";
 import cjs from "@rollup/plugin-commonjs";
@@ -15,7 +17,7 @@ const require = createRequire(import.meta.url);
 const esbuild_binary_path = require.resolve("esbuild");
 const vite_client = require.resolve("vite/dist/client/client.mjs");
 const hmr = require.resolve("svelte-hmr");
-console.log(__dirname);
+
 export default [
 	{
 		input: "src/index.ts",
@@ -126,17 +128,15 @@ export default [
 			ts(),
 			{
 				resolveId(id) {
-					console.log(id);
-					if (id === "svelte/internal") {
-						return "./svelte-internal.js";
-					}
-
-					if (id === "svelte/action") {
-						return "./svelte-action.js";
-					}
-
 					if (id === "svelte/internal/disclose-version") {
 						return "./svelte-disclose.js";
+					}
+
+					if (id.startsWith("svelte/")) {
+						return id.replace("svelte/", "./svelte-") + ".js";
+					}
+					if (id === "svelte") {
+						return "./svelte-internal.js";
 					}
 				}
 			}
@@ -154,6 +154,38 @@ export default [
 		input: "src/svelte-internal.ts",
 		output: {
 			file: "../../gradio/node/dev/svelte-internal.js",
+			format: "esm"
+		},
+		plugins: [node(), json(), cjs(), ts()]
+	},
+	{
+		input: "src/svelte-animate.ts",
+		output: {
+			file: "../../gradio/node/dev/svelte-animate.js",
+			format: "esm"
+		},
+		plugins: [node(), json(), cjs(), ts()]
+	},
+	{
+		input: "src/svelte-motion.ts",
+		output: {
+			file: "../../gradio/node/dev/svelte-motion.js",
+			format: "esm"
+		},
+		plugins: [node(), json(), cjs(), ts()]
+	},
+	{
+		input: "src/svelte-store.ts",
+		output: {
+			file: "../../gradio/node/dev/svelte-store.js",
+			format: "esm"
+		},
+		plugins: [node(), json(), cjs(), ts()]
+	},
+	{
+		input: "src/svelte-transition.ts",
+		output: {
+			file: "../../gradio/node/dev/svelte-transition.js",
 			format: "esm"
 		},
 		plugins: [node(), json(), cjs(), ts()]

@@ -291,7 +291,7 @@ def dev(
             f"{component_directory} parameter points to a valid python package."
         )
 
-    print(f":recycle: [green]Launching[/] {app} in reload mode")
+    print(f":recycle: [green]Launching[/] {app} in reload mode\n")
 
     proc = subprocess.Popen(
         [
@@ -316,7 +316,7 @@ def dev(
             .replace("Running on local URL", "[orange3]Backend Server[/]")
         )
         if "[orange3]Watching:[/]" in text:
-            text += f"'{str(component_directory / 'frontend')}',"
+            text += f"'{str(component_directory / 'frontend').strip()}',"
         if "To create a public link" in text:
             continue
         print(text)
