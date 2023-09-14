@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Fix preprocess for components when type='index'
+fix: preprocess for components when type='index'

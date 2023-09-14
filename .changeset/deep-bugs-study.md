@@ -1,7 +1,7 @@
 ---
-"@gradio/app": minor
-"@gradio/cdn-test": minor
-"gradio": minor
+"@gradio/app": patch
+"@gradio/cdn-test": patch
+"gradio": patch
 ---
 
-feat:chore(deps): update dependency iframe-resizer to v4.3.7
+fix:chore(deps): update dependency iframe-resizer to v4.3.7

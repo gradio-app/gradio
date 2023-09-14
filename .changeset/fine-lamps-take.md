@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Modify Image examples docstring
+fix: Modify Image examples docstring
