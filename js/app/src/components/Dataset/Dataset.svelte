@@ -129,8 +129,8 @@
 			{/each}
 		</div>
 	{:else}
-		<div class="table-wrap" tabindex="0" role="grid">
-			<table>
+		<div class="table-wrap">
+			<table tabindex="0" role="grid">
 				<thead>
 					<tr class="tr-head">
 						{#each headers as header}
