@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -1221,8 +1221,8 @@ importers:
         version: 1.0.1
     devDependencies:
       pyodide:
-        specifier: ^0.23.2
-        version: 0.23.2
+        specifier: ^0.24.0
+        version: 0.24.0
 
 packages:
 
@@ -6401,7 +6401,7 @@ packages:
     peerDependencies:
       '@sveltejs/kit': ^1.0.0
     dependencies:
-      '@sveltejs/kit': 1.16.3(svelte@3.59.2)(vite@4.3.9)
+      '@sveltejs/kit': 1.16.3(svelte@3.57.0)(vite@4.3.5)
       import-meta-resolve: 3.0.0
     dev: true
 
@@ -12703,15 +12703,13 @@ packages:
       - utf-8-validate
     dev: true
 
-  /pyodide@0.23.2:
-    resolution: {integrity: sha512-GK4YDZVgzfAXK/7X0IiCI+142k0Ah/HwYTzDHtG8zC47dflWYuPozeFbOngShuL1M9Un5sCmHFqiH3boxJv0pQ==}
+  /pyodide@0.24.0:
+    resolution: {integrity: sha512-k2TzIbAYQ/ucme0LYv4KmxKDR15m68/3pvPKmUVtdpzn6K9Qt1NLHeZI1RErWJE6PtlQI8UA0Q21wrtu3XPUMg==}
     dependencies:
       base-64: 1.0.0
-      node-fetch: 2.6.7
       ws: 8.13.0(bufferutil@4.0.7)
     transitivePeerDependencies:
       - bufferutil
-      - encoding
       - utf-8-validate
     dev: true
 
