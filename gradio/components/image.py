@@ -285,7 +285,7 @@ class Image(StreamingInput, Component):
 
     def postprocess(
         self, y: np.ndarray | _Image.Image | str | Path | None
-    ) -> str | None:
+    ) -> FileData | str | None:
         """
         Parameters:
             y: image as a numpy array, PIL Image, string/Path filepath, or string URL

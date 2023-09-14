@@ -60,7 +60,6 @@ demo = gr.Interface(
             )
         ),
         gr.State(value=lambda: random.choice(string.ascii_lowercase)),
-        gr.Button(value=lambda: random.choice(["Run", "Go", "predict"])),
         gr.ColorPicker(value=lambda: random.choice(["#000000", "#ff0000", "#0000FF"])),
         gr.Label(value=lambda: random.choice(["Pedestrian", "Car", "Cyclist"])),
         gr.HighlightedText(

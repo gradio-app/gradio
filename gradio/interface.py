@@ -139,7 +139,7 @@ class Interface(Blocks):
         allow_flagging: str | None = None,
         flagging_options: list[str] | list[tuple[str, str]] | None = None,
         flagging_dir: str = "flagged",
-        flagging_callback: FlaggingCallback = CSVLogger(),
+        flagging_callback: FlaggingCallback | None = None,
         analytics_enabled: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
@@ -356,8 +356,11 @@ class Interface(Blocks):
                 "flagging_options must be a list of strings or list of (string, string) tuples."
             )
 
+        if not flagging_callback:
+            flagging_callback = CSVLogger()
         self.flagging_callback = flagging_callback
         self.flagging_dir = flagging_dir
+
         self.batch = batch
         self.max_batch_size = max_batch_size
         self.allow_duplication = allow_duplication
