@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:allow gr.Image() examples to take urls
+fix:allow gr.Image() examples to take urls
