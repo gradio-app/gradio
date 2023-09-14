@@ -435,8 +435,7 @@ class Image(
     def as_example(self, input_data: str | None) -> str:
         if input_data is None:
             return ""
-        elif (
-            self.root_url
-        ):  # If an externally hosted image, don't convert to absolute path
+        # If an externally hosted image or a URL, don't convert to absolute path
+        elif self.root_url or client_utils.is_http_url_like(input_data):
             return input_data
         return str(utils.abspath(input_data))
