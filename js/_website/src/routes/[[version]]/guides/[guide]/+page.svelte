@@ -2,6 +2,7 @@
 	import space_logo from "$lib/assets/img/spaces-logo.svg";
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import { page } from "$app/stores";
+	import DropDown from "$lib/components/VersionDropdown.svelte";
 
 	export let data: {
 		guide: any;
@@ -66,13 +67,15 @@
 	canonical={$page.url.pathname}
 	description="A Step-by-Step Gradio Tutorial"
 />
-
 <div class="container mx-auto px-4 flex gap-4 relative">
 	<div
 		bind:this={sidebar}
 		class="side-navigation h-screen leading-relaxed sticky top-0 text-md overflow-y-auto overflow-x-hidden hidden lg:block rounded-t-xl bg-gradient-to-r from-white to-gray-50"
 		style="min-width: 18%"
-	>
+	>	
+	<div class="sticky top-0 pr-2 float-right">
+		<DropDown></DropDown>
+	</div>
 		{#each guide_names as guides, i}
 			<div
 				class="category-link my-2 font-semibold px-4 pt-2 text-ellipsis block"

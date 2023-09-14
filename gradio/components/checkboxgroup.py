@@ -149,7 +149,9 @@ class CheckboxGroup(
             "__type__": "update",
         }
 
-    def preprocess(self, x: list[str | int | float]) -> list[str | int | float]:
+    def preprocess(
+        self, x: list[str | int | float]
+    ) -> list[str | int | float] | list[int | None]:
         """
         Parameters:
             x: list of selected choices
@@ -159,7 +161,11 @@ class CheckboxGroup(
         if self.type == "value":
             return x
         elif self.type == "index":
-            return [[value for _, value in self.choices].index(choice) for choice in x]
+            choice_values = [value for _, value in self.choices]
+            return [
+                choice_values.index(choice) if choice in choice_values else None
+                for choice in x
+            ]
         else:
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
