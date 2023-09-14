@@ -259,7 +259,7 @@ describe("Dropdown", () => {
 		expect(options_new).toHaveLength(3);
 	});
 
-	test("setting an invalid value when allow_custom_choice is false should revert to the first valid choice", async () => {
+	test("setting a custom value when allow_custom_choice is false should revert to the first valid choice", async () => {
 		const { getByLabelText, getAllByTestId, component } = await render(
 			Dropdown,
 			{
@@ -288,7 +288,7 @@ describe("Dropdown", () => {
 		expect(item.value).toBe("apple");
 	});
 
-	test("setting an invalid value when allow_custom_choice is true should keep the value", async () => {
+	test("setting a custom value when allow_custom_choice is true should keep the value", async () => {
 		const { getByLabelText, getAllByTestId, component } = await render(
 			Dropdown,
 			{
