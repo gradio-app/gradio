@@ -1,5 +1,31 @@
 # @gradio/app
 
+## 1.5.2
+
+### Patch Changes
+
+- Updated dependencies [[`a0cc9ac9`](https://github.com/gradio-app/gradio/commit/a0cc9ac931554e06dcb091158c9b9ac0cc580b6c)]:
+  - @gradio/dropdown@0.2.2
+
+## 1.5.1
+
+### Patch Changes
+
+- Updated dependencies [[`dc86e4a7`](https://github.com/gradio-app/gradio/commit/dc86e4a7e1c40b910c74558e6f88fddf9b3292bc), [`21f1db40`](https://github.com/gradio-app/gradio/commit/21f1db40de6d1717eba97a550e11422a457ba7e9)]:
+  - @gradio/gallery@0.3.3
+  - @gradio/image@0.2.3
+  - @gradio/dropdown@0.2.1
+  - @gradio/row@0.0.1
+  - @gradio/video@0.0.7
+
+## 1.5.0
+
+### Features
+
+- [#5505](https://github.com/gradio-app/gradio/pull/5505) [`9ee20f49`](https://github.com/gradio-app/gradio/commit/9ee20f499f62c1fe5af6b8f84918b3a334eb1c8d) - Validate i18n file names with ISO-639x. Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#5475](https://github.com/gradio-app/gradio/pull/5475) [`c60b89b0`](https://github.com/gradio-app/gradio/commit/c60b89b0a54758a27277f0a6aa20d0653647c7c8) - Adding Central Kurdish. Thanks [@Hrazhan](https://github.com/Hrazhan)!
+- [#5400](https://github.com/gradio-app/gradio/pull/5400) [`d112e261`](https://github.com/gradio-app/gradio/commit/d112e2611b0fc79ecedfaed367571f3157211387) - Allow interactive input in `gr.HighlightedText`. Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 1.4.3
 
 ### Patch Changes
