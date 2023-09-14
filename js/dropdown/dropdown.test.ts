@@ -258,4 +258,62 @@ describe("Dropdown", () => {
 		const options_new = getAllByTestId("dropdown-option");
 		expect(options_new).toHaveLength(3);
 	});
+
+	test("setting a custom value when allow_custom_choice is false should revert to the first valid choice", async () => {
+		const { getByLabelText, getAllByTestId, component } = await render(
+			Dropdown,
+			{
+				show_label: true,
+				loading_status,
+				value: "",
+				allow_custom_value: false,
+				label: "Dropdown",
+				choices: [
+					["apple", "apple"],
+					["zebra", "zebra"],
+					["pony", "pony"]
+				],
+				filterable: true
+			}
+		);
+
+		const item: HTMLInputElement = getByLabelText(
+			"Dropdown"
+		) as HTMLInputElement;
+
+		await item.focus();
+		await event.keyboard("pie");
+		expect(item.value).toBe("applepie");
+		await item.blur();
+		expect(item.value).toBe("apple");
+	});
+
+	test("setting a custom value when allow_custom_choice is true should keep the value", async () => {
+		const { getByLabelText, getAllByTestId, component } = await render(
+			Dropdown,
+			{
+				show_label: true,
+				loading_status,
+				value: "",
+				allow_custom_value: true,
+				label: "Dropdown",
+				choices: [
+					["apple", "apple"],
+					["zebra", "zebra"],
+					["pony", "pony"]
+				],
+				filterable: true
+			}
+		);
+
+		const item: HTMLInputElement = getByLabelText(
+			"Dropdown"
+		) as HTMLInputElement;
+
+		await item.focus();
+		await event.keyboard("pie");
+		expect(item.value).toBe("applepie");
+		await item.blur();
+		expect(item.value).toBe("applepie");
+	});
 });
