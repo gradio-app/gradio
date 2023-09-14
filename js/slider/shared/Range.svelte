@@ -52,10 +52,10 @@
 	}
 	function setSliderRange(): void {
 		rangeInput.style.backgroundSize =
-				((parseInt(rangeInput.value) - parseInt(rangeInput.min)) /
-					(parseInt(rangeInput.max) - parseInt(rangeInput.min))) *
-					100 +
-				"% 100%";
+			((Number(rangeInput.value) - Number(rangeInput.min)) /
+				(Number(rangeInput.max) - Number(rangeInput.min))) *
+				100 +
+			"% 100%";
 	}
 </script>
 
@@ -144,7 +144,7 @@
 		width: 100%;
 		accent-color: var(--slider-color);
 		height: 4px;
-		background: white;
+		background: var(--neutral-200);
 		border-radius: 5px;
 		background-image: linear-gradient(var(--slider-color), var(--slider-color));
 		background-size: 0% 100%;
