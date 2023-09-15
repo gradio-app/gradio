@@ -543,9 +543,7 @@
 
 	$: target_map = dependencies.reduce(
 		(acc, dep, i) => {
-			let { targets, trigger } = dep;
-
-			targets.forEach((id) => {
+			dep.targets.forEach(([id, trigger]) => {
 				if (!acc[id]) {
 					acc[id] = {};
 				}
