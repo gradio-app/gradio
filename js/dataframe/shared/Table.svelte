@@ -555,9 +555,13 @@
 
 		// Sort indices based on `_data`
 		if (dir === "asc") {
-			indices.sort((i, j) => (_data[i][col].value < _data[j][col].value ? -1 : 1));
+			indices.sort((i, j) =>
+				_data[i][col].value < _data[j][col].value ? -1 : 1
+			);
 		} else if (dir === "des") {
-			indices.sort((i, j) => (_data[i][col].value > _data[j][col].value ? -1 : 1));
+			indices.sort((i, j) =>
+				_data[i][col].value > _data[j][col].value ? -1 : 1
+			);
 		}
 
 		// Create temporary copies to assist with the in-place sort
