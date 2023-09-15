@@ -82,7 +82,6 @@ ${current_changelog.replace(`# ${pkg_name}`, "").trim()}
 		});
 
 		if (python) {
-			writeFileSync(join(dirs[0], "version.txt"), version);
 			bump_local_dependents(pkg_name, version);
 		}
 	}
