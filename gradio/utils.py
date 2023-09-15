@@ -10,6 +10,7 @@ import inspect
 import json
 import json.decoder
 import os
+import pkgutil
 import pprint
 import random
 import re
@@ -54,7 +55,7 @@ P = ParamSpec("P")
 T = TypeVar("T")
 
 
-def get_package_version():
+def get_package_version() -> str:
     try:
         package_json_data = (
             pkgutil.get_data(__name__, "package.json").decode("utf-8").strip()

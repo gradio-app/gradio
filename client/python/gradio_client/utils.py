@@ -59,7 +59,7 @@ INVALID_RUNTIME = [
 ]
 
 
-def get_package_version():
+def get_package_version() -> str:
     try:
         package_json_data = (
             pkgutil.get_data(__name__, "package.json").decode("utf-8").strip()
