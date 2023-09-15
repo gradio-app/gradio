@@ -1,7 +1,5 @@
 import json
 
-from gradio_client.utils import get_package_version
-
 import gradio.components as components
 import gradio.inputs as inputs
 import gradio.outputs as outputs
@@ -105,5 +103,6 @@ from gradio.templates import (
     Webcam,
 )
 from gradio.themes import Base as Theme
+from gradio.utils import get_package_version
 
 __version__ = get_package_version()
