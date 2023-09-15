@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable, Literal
+from dataclasses import asdict, dataclass
+from typing import Callable, Literal
 
 import numpy as np
 import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 from pandas.io.formats.style import Styler
-from typing_extensions import NotRequired
 
 from gradio.components.base import IOComponent, _Keywords
 from gradio.events import (
@@ -19,16 +19,17 @@ from gradio.events import (
     Selectable,
 )
 
-if TYPE_CHECKING:
-    from typing import TypedDict
-
-    class DataframeData(TypedDict):
-        headers: list[str]
-        data: list[list[str | int | bool]]
-        metadata: NotRequired[dict[str, list[list]]]
-
-
 set_documentation_group("component")
+
+
+@dataclass
+class DataframeData():
+    """
+    This is a dataclass to represent all the data that is sent to or received from the frontend.
+    """
+    data: list[list[str | int | bool]]
+    headers: list[str] | list[int] | None = None
+    metadata: dict[str, list[list]] | None = None
 
 
 @document()
@@ -43,7 +44,15 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
 
     def __init__(
         self,
-        value: pd.DataFrame | Styler | np.ndarray | list | list[list] | dict | str | Callable | None = None,
+        value: pd.DataFrame
+        | Styler
+        | np.ndarray
+        | list
+        | list[list]
+        | dict
+        | str
+        | Callable
+        | None = None,
         *,
         headers: list[str] | None = None,
         row_count: int | tuple[int, str] = (1, "dynamic"),
@@ -69,7 +78,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
     ):
         """
         Parameters:
-            value: Default value as a 2-dimensional list of values. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: Default value to display in the DataFrame. If a Styler is provided, it will be used to set the displayed value in the DataFrame (e.g. to set precision of numbers). If a Callable function is provided, the function will be called whenever the app loads to set the initial value of the component.
             headers: List of str header names. If None, no headers are shown.
             row_count: Limit number of rows for input and decide whether user can create new rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
             col_count: Limit number of columns for input and decide whether user can create new columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
@@ -175,7 +184,15 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
 
     @staticmethod
     def update(
-        value: pd.DataFrame | Styler | np.ndarray | list | list[list] | dict | str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        value: pd.DataFrame
+        | Styler
+        | np.ndarray
+        | list
+        | list[list]
+        | dict
+        | str
+        | Literal[_Keywords.NO_VALUE]
+        | None = _Keywords.NO_VALUE,
         max_rows: int | None = None,
         max_cols: str | None = None,
         label: str | None = None,
@@ -202,22 +219,23 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             "__type__": "update",
         }
 
-    def preprocess(self, x: DataframeData) -> pd.DataFrame | np.ndarray | list:
+    def preprocess(self, x: dict) -> pd.DataFrame | np.ndarray | list:
         """
         Parameters:
-            x: 2D array of str, numeric, or bool data
+            x: Dictionary equivalent of DataframeData containing `headers`, `data`, and optionally `metadata` keys
         Returns:
-            Dataframe in requested format
+            The Dataframe data in requested format
         """
+        value = DataframeData(**x)
         if self.type == "pandas":
-            if x.get("headers") is not None:
-                return pd.DataFrame(x["data"], columns=x.get("headers"))
+            if value.headers is not None:
+                return pd.DataFrame(value.data, columns=value.headers)
             else:
-                return pd.DataFrame(x["data"])
+                return pd.DataFrame(value.data)
         if self.type == "numpy":
-            return np.array(x["data"])
+            return np.array(value.data)
         elif self.type == "array":
-            return x["data"]
+            return value.data
         else:
             raise ValueError(
                 "Unknown type: "
@@ -226,8 +244,16 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             )
 
     def postprocess(
-        self, y: pd.DataFrame | Styler | np.ndarray | list | list[list] | dict | str | None
-    ) -> DataframeData:
+        self,
+        y: pd.DataFrame
+        | Styler
+        | np.ndarray
+        | list
+        | list[list]
+        | dict
+        | str
+        | None,
+    ) -> dict:
         """
         Parameters:
             y: dataframe in given format
@@ -237,17 +263,22 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         if y is None:
             return self.postprocess(self.empty_input)
         if isinstance(y, dict):
-            assert "data" in y, "if a dictionary is provided, it must have a key 'data'"
-            assert "headers" in y, "if a dictionary is provided, it must have a key 'data'"
-            return y
-        if isinstance(y, (str, pd.DataFrame)):
+            value = DataframeData(**y)
+        elif isinstance(y, Styler):
+            df: pd.DataFrame = y.data  # type: ignore
+            value = DataframeData(
+                headers = list(df.columns),
+                data = df.to_dict(orient="split")["data"],
+                metadata = self.__extract_metadata(y),
+            )
+        elif isinstance(y, (str, pd.DataFrame)):
             if isinstance(y, str):
                 y = pd.read_csv(y)
-            return {
-                "headers": list(y.columns),  # type: ignore
-                "data": y.to_dict(orient="split")["data"],  # type: ignore
-            }
-        if isinstance(y, (np.ndarray, list)):
+            value = DataframeData(
+                    headers=list(y.columns),
+                    data=y.to_dict(orient="split")["data"],
+            )
+        elif isinstance(y, (np.ndarray, list)):
             if len(y) == 0:
                 return self.postprocess([[]])
             if isinstance(y, np.ndarray):
@@ -255,7 +286,6 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             assert isinstance(y, list), "output cannot be converted to list"
 
             _headers = self.headers
-
             if len(self.headers) < len(y[0]):
                 _headers = [
                     *self.headers,
@@ -264,11 +294,27 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             elif len(self.headers) > len(y[0]):
                 _headers = self.headers[: len(y[0])]
 
-            return {
-                "headers": _headers,
-                "data": y,
-            }
-        raise ValueError("Cannot process value as a Dataframe")
+            value = DataframeData(
+                headers=_headers,
+                data=y,
+            )
+        else:
+            raise ValueError(f"Cannot process value as a Dataframe: {y}")
+        return asdict(value)
+
+    @staticmethod
+    def __extract_metadata(df: Styler) -> dict[str, list[list]]:
+        metadata = {"display_value": []}
+        style_data = df._compute()._translate(None, None)  # type: ignore
+        for i in range(len(style_data["body"])):
+            metadata["display_value"].append([])
+            for j in range(len(style_data["body"][i])):
+                cell_type = style_data["body"][i][j]["type"]
+                if cell_type != "td":
+                    continue
+                display_value = style_data["body"][i][j]["display_value"]
+                metadata["display_value"][i].append(display_value)
+        return metadata
 
     @staticmethod
     def __process_counts(count, default=3) -> tuple[int, str]:
