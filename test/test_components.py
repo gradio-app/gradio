@@ -106,6 +106,7 @@ class TestTextbox:
             "rtl": False,
             "text_align": None,
             "autofocus": False,
+            "autoscroll": True,
         }
 
     @pytest.mark.asyncio
@@ -495,7 +496,13 @@ class TestCheckboxGroup:
         checkboxes_input = gr.CheckboxGroup(["a", "b", "c"])
         assert checkboxes_input.preprocess(["a", "c"]) == ["a", "c"]
         assert checkboxes_input.postprocess(["a", "c"]) == ["a", "c"]
-        assert checkboxes_input.serialize(["a", "c"], True) == ["a", "c"]
+        assert checkboxes_input.serialize(["a", "c"]) == ["a", "c"]
+
+        checkboxes_input = gr.CheckboxGroup(["a", "b"], type="index")
+        assert checkboxes_input.preprocess(["a"]) == [0]
+        assert checkboxes_input.preprocess(["a", "b"]) == [0, 1]
+        assert checkboxes_input.preprocess(["a", "b", "c"]) == [0, 1, None]
+
         checkboxes_input = gr.CheckboxGroup(
             value=["a", "c"],
             choices=["a", "b", "c"],
@@ -564,6 +571,12 @@ class TestRadio:
             "interactive": None,
             "root_url": None,
         }
+
+        radio = gr.Radio(choices=["a", "b"], type="index")
+        assert radio.preprocess("a") == 0
+        assert radio.preprocess("b") == 1
+        assert radio.preprocess("c") is None
+
         with pytest.raises(ValueError):
             gr.Radio(["a", "b"], type="unknown")
 
@@ -599,24 +612,39 @@ class TestDropdown:
         """
         Preprocess, postprocess, serialize, get_config
         """
-        dropdown_input = gr.Dropdown(["a", "b", "c"], multiselect=True)
+        dropdown_input = gr.Dropdown(["a", "b", ("c", "c full")], multiselect=True)
         assert dropdown_input.preprocess("a") == "a"
         assert dropdown_input.postprocess("a") == "a"
+        assert dropdown_input.preprocess("c full") == "c full"
+        assert dropdown_input.postprocess("c full") == "c full"
 
-        dropdown_input_multiselect = gr.Dropdown(["a", "b", "c"])
-        assert dropdown_input_multiselect.preprocess(["a", "c"]) == ["a", "c"]
-        assert dropdown_input_multiselect.postprocess(["a", "c"]) == ["a", "c"]
-        assert dropdown_input_multiselect.serialize(["a", "c"], True) == ["a", "c"]
+        dropdown = gr.Dropdown(choices=["a", "b"], type="index")
+        assert dropdown.preprocess("a") == 0
+        assert dropdown.preprocess("b") == 1
+        assert dropdown.preprocess("c") is None
+
+        dropdown = gr.Dropdown(choices=["a", "b"], type="index", multiselect=True)
+        assert dropdown.preprocess(["a"]) == [0]
+        assert dropdown.preprocess(["a", "b"]) == [0, 1]
+        assert dropdown.preprocess(["a", "b", "c"]) == [0, 1, None]
+
+        dropdown_input_multiselect = gr.Dropdown(["a", "b", ("c", "c full")])
+        assert dropdown_input_multiselect.preprocess(["a", "c full"]) == ["a", "c full"]
+        assert dropdown_input_multiselect.postprocess(["a", "c full"]) == [
+            "a",
+            "c full",
+        ]
+        assert dropdown_input_multiselect.serialize(["a", "c full"]) == ["a", "c full"]
         dropdown_input_multiselect = gr.Dropdown(
             value=["a", "c"],
-            choices=["a", "b", "c"],
+            choices=["a", "b", ("c", "c full")],
             label="Select Your Inputs",
             multiselect=True,
             max_choices=2,
         )
         assert dropdown_input_multiselect.get_config() == {
             "allow_custom_value": False,
-            "choices": ["a", "b", "c"],
+            "choices": [("a", "a"), ("b", "b"), ("c", "c full")],
             "value": ["a", "c"],
             "name": "dropdown",
             "show_label": True,
@@ -630,6 +658,7 @@ class TestDropdown:
             "interactive": None,
             "root_url": None,
             "multiselect": True,
+            "filterable": True,
             "max_choices": 2,
         }
         with pytest.raises(ValueError):
@@ -643,11 +672,20 @@ class TestDropdown:
         """
         Interface, process
         """
-        checkboxes_input = gr.CheckboxGroup(["a", "b", "c"])
-        iface = gr.Interface(lambda x: "|".join(x), checkboxes_input, "textbox")
+        dropdown_input = gr.Dropdown(["a", "b", "c"])
+        iface = gr.Interface(lambda x: "|".join(x), dropdown_input, "textbox")
         assert iface(["a", "c"]) == "a|c"
         assert iface([]) == ""
-        _ = gr.CheckboxGroup(["a", "b", "c"], type="index")
+
+    def test_update(self):
+        update = gr.Dropdown.update(
+            choices=[("zeroth", ""), "first", "second"], label="ordinal"
+        )
+        assert update["choices"] == [
+            ("zeroth", ""),
+            ("first", "first"),
+            ("second", "second"),
+        ]
 
 
 class TestImage:
@@ -750,6 +788,11 @@ class TestImage:
         iface = gr.Interface(
             lambda x: np.sum(x), image_input, "number", interpretation="default"
         )
+
+    def test_as_example(self):
+        # test that URLs are not converted to an absolute path
+        url = "https://gradio-static-files.s3.us-west-2.amazonaws.com/header-image.jpg"
+        assert gr.Image().as_example(url) == url
 
     def test_in_interface_as_output(self):
         """
@@ -1831,6 +1874,7 @@ class TestHighlightedText:
             "interactive": None,
             "root_url": None,
             "selectable": False,
+            "combine_adjacent": False,
         }
 
     def test_in_interface(self):
