@@ -16,7 +16,7 @@
 	export let headers: Headers = [];
 	export let values:
 		| (string | number)[][]
-		| { data: Data; headers: Headers, metadata: Metadata } = [[]];
+		| { data: Data; headers: Headers; metadata: Metadata } = [[]];
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
 	export let latex_delimiters: {

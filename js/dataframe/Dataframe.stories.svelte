@@ -54,14 +54,18 @@
 <Story
 	name="Dataframe with different precisions"
 	args={{
-		values: {"data": [
-			[1.24, 1.24, 1.24],
-			[1.21, 1.21, 1.21],
-		],
-		"metadata": {"display_value": [
-			["1", "1.2", "1.24"],
-			["1", "1.2", "1.21"],
-		]}},
+		values: {
+			data: [
+				[1.24, 1.24, 1.24],
+				[1.21, 1.21, 1.21]
+			],
+			metadata: {
+				display_value: [
+					["1", "1.2", "1.24"],
+					["1", "1.2", "1.21"]
+				]
+			}
+		},
 		headers: ["Precision=0", "Precision=1", "Precision=2"],
 		label: "Animals",
 		col_count: [3, "dynamic"],

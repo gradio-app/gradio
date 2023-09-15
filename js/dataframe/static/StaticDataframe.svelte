@@ -10,7 +10,7 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: { data: Data; headers: Headers, metadata: Metadata } = {
+	export let value: { data: Data; headers: Headers; metadata: Metadata } = {
 		data: [["", "", ""]],
 		headers: ["1", "2", "3"],
 		metadata: null
