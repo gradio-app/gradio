@@ -75,5 +75,8 @@
 	"msw": {
 		"workerDirectory": "public"
 	},
-	"main_changeset": true
+	"main_changeset": true,
+	"devDependencies": {
+		"vite-plugin-static-copy": "^0.17.0"
+	}
 }

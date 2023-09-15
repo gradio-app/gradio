@@ -8,6 +8,7 @@ import global_data from "@csstools/postcss-global-data";
 import prefixer from "postcss-prefix-selector";
 import { readFileSync } from "fs";
 import { resolve } from "path";
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 const version_path = resolve(__dirname, "../../gradio/version.txt");
 const theme_token_path = resolve(__dirname, "../theme/src/tokens.css");
@@ -142,7 +143,15 @@ export default defineConfig(({ mode }) => {
 				cdn_url: CDN_URL
 			}),
 			generate_cdn_entry({ enable: is_cdn, cdn_url: CDN_URL }),
-			handle_ce_css()
+			handle_ce_css(),
+			is_lite && viteStaticCopy({
+				targets: [
+					{
+						src: resolve(__dirname, "../wasm/dist/sw.js"),
+						dest: "."
+					}
+				]
+			})
 		],
 		test: {
 			setupFiles: [resolve(__dirname, "../../.config/setup_vite_tests.ts")],

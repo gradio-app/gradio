@@ -101,5 +101,5 @@
 		"skipLibCheck": true /* Skip type checking all .d.ts files. */
 	},
 	"include": ["src/**/*"],
-	"exclude": ["src/webworker/**/*"] // The worker code is bundled by Vite separately. See its config file.
+	"exclude": ["src/webworker/**/*", "src/sw.ts"] // The worker code is bundled by Vite separately. See its config file.
 }

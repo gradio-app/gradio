@@ -1,5 +1,5 @@
 import "@gradio/theme";
-import { WorkerProxy, type WorkerProxyOptions } from "@gradio/wasm";
+import { WorkerProxy, type WorkerProxyOptions, setupGradioLiteServiceWorker } from "@gradio/wasm";
 import { api_factory } from "@gradio/client";
 import { wasm_proxied_fetch } from "./fetch";
 import { wasm_proxied_mount_css, mount_prebuilt_css } from "./css";
@@ -73,6 +73,8 @@ export function create(options: Options): GradioAppController {
 		files: options.files ?? {},
 		requirements: options.requirements ?? []
 	});
+
+	setupGradioLiteServiceWorker(worker_proxy);
 
 	// Internally, the execution of `runPythonCode()` or `runPythonFile()` is queued
 	// and its promise will be resolved after the Pyodide is loaded and the worker initialization is done

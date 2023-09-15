@@ -15,10 +15,12 @@
 	"scripts": {
 		"dev:client": "tsc -w --incremental",
 		"dev:worker": "vite build --config vite.worker.config.js --watch --emptyOutDir=false",
+		"dev:sw": "vite build --config vite.sw.config.js --watch --emptyOutDir=false",
 		"dev": "run-p dev:*",
 		"build:client": "tsc",
 		"build:worker": "vite build --config vite.worker.config.js",
-		"build": "run-s build:worker build:client"
+		"build:sw": "vite build --config vite.sw.config.js --emptyOutDir=false",
+		"build": "run-s build:worker build:sw build:client"
 	},
 	"devDependencies": {
 		"pyodide": "^0.24.0"
