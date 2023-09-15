@@ -5,6 +5,8 @@
 "@gradio/dropdown": minor
 "@gradio/image": minor
 "@gradio/number": minor
+"@gradio/plot": minor
+"@gradio/radio": minor
 "@gradio/slider": minor
 "@gradio/upload": minor
 "gradio": minor
