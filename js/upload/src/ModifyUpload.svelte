@@ -32,7 +32,7 @@
 	{#if undoable}
 		<IconButton
 			Icon={Undo}
-			label={$_("common.undo")}
+			label={i18n("common.undo")}
 			on:click={() => dispatch("undo")}
 		/>
 	{/if}

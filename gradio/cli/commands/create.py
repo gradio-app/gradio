@@ -68,7 +68,7 @@ def _create_frontend(name: str, template: str, directory: pathlib.Path):
     source_package_json["name"] = name.lower()
     for dep in source_package_json.get("dependencies", []):
         # if curent working directory is the gradio repo, use the local version of the dependency
-        if IN_TEST_DIR and dep.startswith("@gradio/"):
+        if not IN_TEST_DIR and dep.startswith("@gradio/"):
             source_package_json["dependencies"][dep] = get_js_dependency_version(
                 dep, p / "_frontend_code"
             )

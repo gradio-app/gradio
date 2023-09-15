@@ -914,6 +914,21 @@ importers:
         specifier: ^4.4.9
         version: 4.4.9(@types/node@20.3.1)(less@4.1.3)(lightningcss@1.21.7)(sass@1.66.1)(stylus@0.60.0)(sugarss@4.0.1)
 
+  js/gradio-preview/test/newcomp/frontend:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../../../../atoms
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../../../../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../../../../utils
+      '@zerodevx/svelte-json-view':
+        specifier: ^1.0.7
+        version: 1.0.7(svelte@4.2.0)
+
   js/gradio-preview/test/newtextbox/frontend:
     dependencies:
       '@gradio/atoms':
