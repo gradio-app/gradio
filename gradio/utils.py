@@ -37,7 +37,6 @@ import anyio
 import matplotlib
 import requests
 from gradio_client.serializing import Serializable
-from gradio_client.utils import get_package_version
 from typing_extensions import ParamSpec
 
 import gradio
@@ -50,11 +49,21 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.routes import App
 
 JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
-GRADIO_VERSION = get_package_version()
-
 
 P = ParamSpec("P")
 T = TypeVar("T")
+
+
+def get_package_version():
+    try:
+        package_json_data = (
+            pkgutil.get_data(__name__, "package.json").decode("utf-8").strip()
+        )
+        package_data = json.loads(package_json_data)
+        version = package_data.get("version", "")
+        return version
+    except Exception:
+        return ""
 
 
 def safe_get_lock() -> asyncio.Lock:

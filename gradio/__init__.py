@@ -106,4 +106,4 @@ from gradio.templates import (
 )
 from gradio.themes import Base as Theme
 
-current_pkg_version = get_package_version()
+__version__ = get_package_version()

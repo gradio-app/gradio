@@ -16,7 +16,7 @@ import requests
 import gradio
 from gradio import wasm_utils
 from gradio.context import Context
-from gradio.utils import GRADIO_VERSION
+from gradio.utils import get_package_version
 
 # For testability, we import the pyfetch function into this module scope and define a fallback coroutine object to be patched in tests.
 try:
@@ -197,7 +197,7 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
             str(blocks.blocks[y]) for y in x["outputs"] if y in blocks.blocks
         ]
     additional_data = {
-        "version": GRADIO_VERSION,
+        "version": get_package_version(),
         "is_kaggle": blocks.is_kaggle,
         "is_sagemaker": blocks.is_sagemaker,
         "using_auth": blocks.auth is not None,
