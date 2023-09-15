@@ -404,7 +404,6 @@ class Component(ComponentBase, Block):
         """
         if self.data_model:
             x = self.data_model.from_json(x)
-            assert isinstance(x, GradioDataModel)
             return x.copy_to_dir(flag_dir).model_dump_json()
         return x
 

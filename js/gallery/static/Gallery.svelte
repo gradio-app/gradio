@@ -227,16 +227,10 @@
 						class:selected={selected_image === i}
 					>
 						<img
-<<<<<<< HEAD
 							src={image.image.data}
 							title={image.caption || null}
 							alt={image.caption || null}
-=======
-							src={image[0].data}
-							title={image[1] || null}
-							alt={image[1] || null}
 							loading="lazy"
->>>>>>> v4
 						/>
 					</button>
 				{/each}
@@ -272,16 +266,11 @@
 					on:click={() => (selected_image = i)}
 				>
 					<img
-<<<<<<< HEAD
 						alt={entry.caption || ""}
 						src={typeof entry.image === "string"
 							? entry.image
 							: entry.image.data}
-=======
-						alt={caption || ""}
-						src={typeof image === "string" ? image : image.data}
 						loading="lazy"
->>>>>>> v4
 					/>
 					{#if entry.caption}
 						<div class="caption-label">

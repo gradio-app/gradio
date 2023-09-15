@@ -71,8 +71,8 @@ class LogMessage(BaseModel):
 class GradioBaseModel:
     def copy_to_dir(self, dir: str | pathlib.Path) -> "GradioDataModel":
         assert isinstance(self, (BaseModel, RootModel))
-        if isinstance(dir, pathlib.Path):
-            dir = str(dir)
+        if isinstance(dir, str):
+            dir = pathlib.Path(dir)
 
         # TODO: Making sure path is unique should be done in caller
         def unique_copy(obj: dict):
