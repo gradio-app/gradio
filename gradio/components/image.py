@@ -316,12 +316,12 @@ class Image(StreamingInput, Component):
         if self.source != "webcam" and self.streaming:
             raise ValueError("Image streaming only available if source is 'webcam'.")
 
-    def as_example(self, input_data: str | None) -> str:
+    def as_example(self, input_data: str | Path | None) -> str:
         if input_data is None:
             return ""
-        elif (
-            self.root_url
-        ):  # If an externally hosted image, don't convert to absolute path
+        input_data = str(input_data)
+        # If an externally hosted image or a URL, don't convert to absolute path
+        if self.root_url or client_utils.is_http_url_like(input_data):
             return input_data
         return str(utils.abspath(input_data))
 

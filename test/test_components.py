@@ -77,6 +77,7 @@ class TestTextbox:
             "text_align": None,
             "autofocus": False,
             "custom_component": False,
+            "autoscroll": True,
         }
 
     @pytest.mark.asyncio
@@ -392,6 +393,8 @@ class TestCheckboxGroup:
         cbox = gr.CheckboxGroup(choices=["a", "b"], value="c")
         assert cbox.get_config()["value"] == ["c"]
         assert cbox.postprocess("a") == ["a"]
+        with pytest.raises(ValueError):
+            gr.CheckboxGroup().as_example("a")
 
     def test_in_interface(self):
         """
@@ -461,24 +464,29 @@ class TestDropdown:
         """
         Preprocess, postprocess, serialize, get_config
         """
-        dropdown_input = gr.Dropdown(["a", "b", "c"], multiselect=True)
+        dropdown_input = gr.Dropdown(["a", "b", ("c", "c full")], multiselect=True)
         assert dropdown_input.preprocess("a") == "a"
         assert dropdown_input.postprocess("a") == "a"
+        assert dropdown_input.preprocess("c full") == "c full"
+        assert dropdown_input.postprocess("c full") == "c full"
 
-        dropdown_input_multiselect = gr.Dropdown(["a", "b", "c"])
-        assert dropdown_input_multiselect.preprocess(["a", "c"]) == ["a", "c"]
-        assert dropdown_input_multiselect.postprocess(["a", "c"]) == ["a", "c"]
-        assert dropdown_input_multiselect.serialize(["a", "c"], True) == ["a", "c"]
+        dropdown_input_multiselect = gr.Dropdown(["a", "b", ("c", "c full")])
+        assert dropdown_input_multiselect.preprocess(["a", "c full"]) == ["a", "c full"]
+        assert dropdown_input_multiselect.postprocess(["a", "c full"]) == [
+            "a",
+            "c full",
+        ]
+        assert dropdown_input_multiselect.serialize(["a", "c full"]) == ["a", "c full"]
         dropdown_input_multiselect = gr.Dropdown(
             value=["a", "c"],
-            choices=["a", "b", "c"],
+            choices=["a", "b", ("c", "c full")],
             label="Select Your Inputs",
             multiselect=True,
             max_choices=2,
         )
         assert dropdown_input_multiselect.get_config() == {
             "allow_custom_value": False,
-            "choices": ["a", "b", "c"],
+            "choices": [("a", "a"), ("b", "b"), ("c", "c full")],
             "value": ["a", "c"],
             "name": "dropdown",
             "show_label": True,
@@ -492,6 +500,7 @@ class TestDropdown:
             "interactive": None,
             "root_url": None,
             "multiselect": True,
+            "filterable": True,
             "max_choices": 2,
             "custom_component": False,
         }
@@ -506,11 +515,20 @@ class TestDropdown:
         """
         Interface, process
         """
-        checkboxes_input = gr.CheckboxGroup(["a", "b", "c"])
-        iface = gr.Interface(lambda x: "|".join(x), checkboxes_input, "textbox")
+        dropdown_input = gr.Dropdown(["a", "b", "c"])
+        iface = gr.Interface(lambda x: "|".join(x), dropdown_input, "textbox")
         assert iface(["a", "c"]) == "a|c"
         assert iface([]) == ""
-        _ = gr.CheckboxGroup(["a", "b", "c"], type="index")
+
+    def test_update(self):
+        update = gr.Dropdown.update(
+            choices=[("zeroth", ""), "first", "second"], label="ordinal"
+        )
+        assert update["choices"] == [
+            ("zeroth", ""),
+            ("first", "first"),
+            ("second", "second"),
+        ]
 
 
 class TestImage:
@@ -614,6 +632,11 @@ class TestImage:
         iface = gr.Interface(
             lambda x: np.sum(x), image_input, "number", interpretation="default"
         )
+
+    def test_as_example(self):
+        # test that URLs are not converted to an absolute path
+        url = "https://gradio-static-files.s3.us-west-2.amazonaws.com/header-image.jpg"
+        assert gr.Image().as_example(url) == url
 
     def test_in_interface_as_output(self):
         """
@@ -1620,6 +1643,7 @@ class TestHighlightedText:
             "root_url": None,
             "selectable": False,
             "custom_component": False,
+            "combine_adjacent": False,
         }
 
     def test_in_interface(self):
@@ -1807,6 +1831,7 @@ class TestChatbot:
             "root_url": None,
             "selectable": False,
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
+            "likeable": False,
             "rtl": False,
             "show_copy_button": False,
             "custom_component": False,
@@ -1931,7 +1956,7 @@ class TestModel3D:
         """
         component = gr.components.Model3D(None, label="Model")
         assert {
-            "clearColor": [0, 0, 0, 0],
+            "clear_color": [0, 0, 0, 0],
             "value": None,
             "label": "Model",
             "show_label": True,
@@ -1945,6 +1970,9 @@ class TestModel3D:
             "min_width": 160,
             "scale": None,
             "custom_component": False,
+            "camera_position": (None, None, None),
+            "height": None,
+            "zoom_speed": 1,
         } == component.get_config()
 
         file = "test/test_files/Box.gltf"
@@ -2515,11 +2543,13 @@ class TestBarPlot:
             tooltip=["a", "b"],
             title="Made Up Bar Plot",
             x_title="Variable A",
+            sort="x",
         )
         output = plot.postprocess(simple)
         assert sorted(output.keys()) == ["chart", "plot", "type"]
         assert output["chart"] == "bar"
         config = json.loads(output["plot"])
+        assert config["encoding"]["x"]["sort"] == "x"
         assert config["encoding"]["x"]["field"] == "a"
         assert config["encoding"]["x"]["title"] == "Variable A"
         assert config["encoding"]["y"]["field"] == "b"

@@ -195,11 +195,9 @@ If allows to add a _"Sign in with Hugging Face"_ button to your demo. Check out 
 for a live demo.
 
 To enable OAuth, you must set `hf_oauth: true` as a Space metadata in your README.md file. This will register your Space
-as an OAuth application on Hugging Face. You also need to include `itsdangerous` and `authlib` in a separate
-`requirements.txt` file. Next, you can use `gr.LoginButton` and `gr.LogoutButton` to add login and logout buttons to
-your Gradio app. Once a user is logged in with their HF account, you can retrieve their profile. To do so, you only
-have to add a parameter of type `gr.OAuthProfile` to any Gradio function. The user profile will be automatically
-injected as a parameter value.
+as an OAuth application on Hugging Face. Next, you can use `gr.LoginButton` and `gr.LogoutButton` to add login and logout buttons to
+your Gradio app. Once a user is logged in with their HF account, you can retrieve their profile by adding a parameter of type
+`gr.OAuthProfile` to any Gradio function. The user profile will be automatically injected as a parameter value.
 
 Here is a short example:
 
@@ -277,7 +275,7 @@ Gradio DOES NOT ALLOW access to:
 
 - **Dotfiles** (any files whose name begins with `'.'`) or any files that are contained in any directory whose name begins with `'.'`
 
-- **Files that you explicitly allow via the `blocked_paths` parameter in `launch()`**. You can pass in a list of additional directories or exact filepaths to the `blocked_paths` parameter in `launch()`. This parameter takes precedence over the files that Gradio exposes by default or by the `allowed_paths`.
+- **Files that you explicitly block via the `blocked_paths` parameter in `launch()`**. You can pass in a list of additional directories or exact filepaths to the `blocked_paths` parameter in `launch()`. This parameter takes precedence over the files that Gradio exposes by default or by the `allowed_paths`.
 
 - **Any other paths on the host machine**. Users should NOT be able to access other arbitrary paths on the host.
 

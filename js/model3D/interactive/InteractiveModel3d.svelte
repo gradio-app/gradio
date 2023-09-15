@@ -14,7 +14,7 @@
 	export let value: null | FileData = null;
 	export let root: string;
 	export let root_url: null | string;
-	export let clearColor: [number, number, number, number];
+	export let clear_color: [number, number, number, number];
 	export let loading_status: LoadingStatus;
 	export let label: string;
 	export let show_label: boolean;
@@ -25,6 +25,15 @@
 		change: typeof value;
 		clear: never;
 	}>;
+	export let zoom_speed = 1;
+	export let height: number | undefined = undefined;
+
+	// alpha, beta, radius
+	export let camera_position: [number | null, number | null, number | null] = [
+		null,
+		null,
+		null
+	];
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root, root_url);
@@ -42,15 +51,18 @@
 	{container}
 	{scale}
 	{min_width}
+	{height}
 >
 	<StatusTracker i18n={gradio.i18n} {...loading_status} />
 
 	<Model3DUpload
 		{label}
 		{show_label}
-		{clearColor}
 		{root}
+		{clear_color}
 		value={_value}
+		{camera_position}
+		{zoom_speed}
 		on:change={({ detail }) => (value = detail)}
 		on:drag={({ detail }) => (dragging = detail)}
 		on:change={({ detail }) => gradio.dispatch("change", detail)}

@@ -28,7 +28,7 @@ from PIL import Image as _Image  # using _ to minimize namespace pollution
 from gradio import processing_utils, utils
 from gradio.blocks import Block, BlockContext
 from gradio.component_meta import ComponentMeta
-from gradio.data_classes import GradioBaseModel
+from gradio.data_classes import GradioDataModel
 from gradio.deprecation import warn_deprecation
 from gradio.events import EventListener
 from gradio.layouts import Form
@@ -94,7 +94,7 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
         pass
 
     @abstractmethod
-    def flag(self, x: Any | GradioBaseModel, flag_dir: str | Path = "") -> str:
+    def flag(self, x: Any | GradioDataModel, flag_dir: str | Path = "") -> str:
         """
         Write the component's value to a format that can be stored in a csv or jsonl format for flagging.
         """
@@ -105,7 +105,7 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
         self,
         x: Any,
         flag_dir: str | Path | None = None,
-    ) -> GradioBaseModel | Any:
+    ) -> GradioDataModel | Any:
         """
         Convert the data from the csv or jsonl file into the component state.
         """
@@ -150,7 +150,7 @@ class Component(ComponentBase, Block):
 
         self.selectable = False
         if not hasattr(self, "data_model"):
-            self.data_model: GradioBaseModel | None = None
+            self.data_model: GradioDataModel | None = None
         self.temp_files: set[str] = set()
         self.DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
             Path(tempfile.gettempdir()) / "gradio"
@@ -392,7 +392,7 @@ class Component(ComponentBase, Block):
         The typing information for this component as a dictionary whose values are a list of 2 strings: [Python type, language-agnostic description].
         Keys of the dictionary are: raw_input, raw_output, serialized_input, serialized_output
         """
-        if self.data_model:
+        if self.data_model is not None:
             return self.data_model.model_json_schema()
         raise NotImplementedError(
             f"The api_info method has not been implemented for {self.get_block_name()}"
@@ -404,7 +404,7 @@ class Component(ComponentBase, Block):
         """
         if self.data_model:
             x = self.data_model.from_json(x)
-            assert isinstance(x, GradioBaseModel)
+            assert isinstance(x, GradioDataModel)
             return x.copy_to_dir(flag_dir).model_dump_json()
         return x
 
@@ -438,30 +438,40 @@ def component(cls_name: str) -> Component:
     obj = utils.component_or_layout_class(cls_name)()
     if isinstance(obj, BlockContext):
         raise ValueError(f"Invalid component: {obj.__class__}")
+    assert isinstance(obj, Component)
     return obj
 
 
-def get_component_instance(comp: str | dict | Component, render=True) -> Component:
+def get_component_instance(
+    comp: str | dict | Component, render: bool | None = None
+) -> Component:
+    """
+    Returns a component instance from a string, dict, or Component object.
+    Parameters:
+        comp: the component to instantiate. If a string, must be the name of a component, e.g. "dropdown". If a dict, must have a "name" key, e.g. {"name": "dropdown", "choices": ["a", "b"]}. If a Component object, will be returned as is.
+        render: whether to render the component. If True, renders the component (if not already rendered). If False, *unrenders* the component (if already rendered) -- this is useful when constructing an Interface or ChatInterface inside of a Blocks. If None, does not render or unrender the component.
+    """
     if isinstance(comp, str):
         component_obj = component(comp)
-        if not (render):
-            component_obj.unrender()
-        return component_obj
     elif isinstance(comp, dict):
         name = comp.pop("name")
         component_cls = utils.component_or_layout_class(name)
         component_obj = component_cls(**comp)
         if isinstance(component_obj, BlockContext):
             raise ValueError(f"Invalid component: {name}")
-        if not (render):
-            component_obj.unrender()
-        return component_obj
     elif isinstance(comp, Component):
-        return comp
+        component_obj = comp
     else:
         raise ValueError(
             f"Component must provided as a `str` or `dict` or `Component` but is {comp}"
         )
+
+    if render and not component_obj.is_rendered:
+        component_obj.render()
+    elif render is False and component_obj.is_rendered:
+        component_obj.unrender()
+    assert isinstance(component_obj, Component)
+    return component_obj
 
 
 class StreamingOutput(metaclass=abc.ABCMeta):

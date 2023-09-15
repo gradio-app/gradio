@@ -184,7 +184,7 @@ class Gallery(Component):
             list of string file paths to images in temp directory
         """
         if y is None:
-            return []
+            return GalleryData(root=[])
         output = []
         for img in y:
             caption = None
@@ -225,7 +225,7 @@ class Gallery(Component):
                     }
                 )
 
-        return GalleryData(output)
+        return GalleryData(root=output)
 
     def preprocess(self, x: Any) -> Any:
         return x

@@ -1,14 +1,16 @@
 """Pydantic data models and other dataclasses. This is the only file that uses Optional[]
 typing syntax instead of | None syntax to work with pydantic"""
+from __future__ import annotations
 import pathlib
 import secrets
 import shutil
 from enum import Enum, auto
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, NewType
 
 from gradio_client.utils import traverse
 from pydantic import BaseModel, RootModel
 from typing_extensions import Literal
+from abc import abstractmethod
 
 
 class PredictBody(BaseModel):
@@ -67,8 +69,10 @@ class LogMessage(BaseModel):
 
 
 class GradioBaseModel:
-    def copy_to_dir(self, dir: str) -> "GradioBaseModel":
+    def copy_to_dir(self, dir: str | pathlib.Path) -> "GradioDataModel":
         assert isinstance(self, (BaseModel, RootModel))
+        if isinstance(dir, pathlib.Path):
+            dir = str(dir)
 
         # TODO: Making sure path is unique should be done in caller
         def unique_copy(obj: dict):
@@ -99,6 +103,9 @@ class GradioRootModel(GradioBaseModel, RootModel):
     @classmethod
     def from_json(cls, x) -> "GradioRootModel":
         return cls(x)
+
+
+GradioDataModel = Union[GradioModel, GradioRootModel]
 
 
 class FileData(GradioModel):

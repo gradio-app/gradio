@@ -1,11 +1,12 @@
 <script lang="ts">
-	import type { Gradio, SelectData } from "@gradio/utils";
+	import type { Gradio, SelectData, I18nFormatter } from "@gradio/utils";
 	import HighlightedText from "./Highlightedtext.svelte";
 	import { Block, BlockLabel, Empty } from "@gradio/atoms";
 	import { TextHighlight } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-
+	import { merge_elements } from "../utils";
+	
 	export let gradio: Gradio<{
 		select: SelectData;
 		change: never;
@@ -24,6 +25,9 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let selectable = false;
+	export let combine_adjacent = false;
+	export let mode: "static" | "interactive";
+
 
 	$: if (!color_map && Object.keys(color_map).length) {
 		color_map = color_map;
@@ -37,9 +41,14 @@
 			gradio.dispatch("change");
 		}
 	}
+
+	$: if (combine_adjacent) {
+		value = merge_elements(value, "equal");
+	}
 </script>
 
 <Block
+	variant={mode === "interactive" ? "dashed" : "solid"}
 	test_id="highlighted-text"
 	{visible}
 	{elem_id}

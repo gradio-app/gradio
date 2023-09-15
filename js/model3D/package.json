@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/model3d",
-	"version": "0.1.0",
+	"version": "0.2.1",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "./index.svelte",
@@ -13,6 +13,7 @@
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",
+		"@types/babylon": "^6.16.6",
 		"babylonjs": "^4.2.1",
 		"babylonjs-loaders": "^4.2.1"
 	},

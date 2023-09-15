@@ -96,6 +96,7 @@ class Chatbot(Component):
         Uses event data gradio.SelectData to carry `value` referring to text of selected message, and `index` tuple to refer to [message, participant] index.
         See EventData documentation on how to use this event data.
         """
+        self.likeable = False
         self.height = height
         self.rtl = rtl
         if latex_delimiters is None:
@@ -130,6 +131,7 @@ class Chatbot(Component):
             "value": self.value,
             "latex_delimiters": self.latex_delimiters,
             "selectable": self.selectable,
+            "likeable": self.likeable,
             "height": self.height,
             "show_share_button": self.show_share_button,
             "rtl": self.rtl,
@@ -254,7 +256,7 @@ class Chatbot(Component):
             List of lists representing the message and response. Each message and response will be a string of HTML, or a dictionary with media information. Or None if the message is not to be displayed.
         """
         if y is None:
-            return ChatbotData([])
+            return ChatbotData(root=[])
         processed_messages = []
         for message_pair in y:
             assert isinstance(
@@ -269,7 +271,7 @@ class Chatbot(Component):
                     self._postprocess_chat_messages(message_pair[1]),
                 ]
             )
-        return ChatbotData(processed_messages)
+        return ChatbotData(root=processed_messages)
 
     def style(self, height: int | None = None, **kwargs):
         """

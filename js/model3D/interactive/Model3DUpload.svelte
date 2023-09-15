@@ -4,19 +4,43 @@
 	import type { FileData } from "@gradio/upload";
 	import { BlockLabel } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
+	import { add_new_model, reset_camera_position } from "../shared/utils";
 
 	export let value: null | FileData;
-	export let clearColor: [number, number, number, number] = [0, 0, 0, 0];
+	export let clear_color: [number, number, number, number] = [0, 0, 0, 0];
 	export let label = "";
 	export let show_label: boolean;
 	export let root: string;
 	export let i18n: I18nFormatter;
+	export let zoom_speed = 1;
+
+	// alpha, beta, radius
+	export let camera_position: [number | null, number | null, number | null] = [
+		null,
+		null,
+		null
+	];
 
 	let mounted = false;
+	let canvas: HTMLCanvasElement;
+	let scene: BABYLON.Scene;
+	let engine: BABYLON.Engine;
+
+	function reset_scene(): void {
+		scene = add_new_model(
+			canvas,
+			scene,
+			engine,
+			value,
+			clear_color,
+			camera_position,
+			zoom_speed
+		);
+	}
 
 	onMount(() => {
 		if (value != null) {
-			addNewModel();
+			reset_scene();
 		}
 		mounted = true;
 	});
@@ -27,15 +51,15 @@
 		name: undefined
 	});
 
-	$: canvas && mounted && data != null && is_file && addNewModel();
+	$: canvas && mounted && data != null && is_file && reset_scene();
 
 	async function handle_upload({
 		detail
 	}: CustomEvent<FileData>): Promise<void> {
 		value = detail;
 		await tick();
+		reset_scene();
 		dispatch("change", value);
-		addNewModel();
 	}
 
 	async function handle_clear(): Promise<void> {
@@ -46,6 +70,10 @@
 		value = null;
 		await tick();
 		dispatch("clear");
+	}
+
+	async function handle_undo(): Promise<void> {
+		reset_camera_position(scene, camera_position, zoom_speed);
 	}
 
 	const dispatch = createEventDispatcher<{
@@ -61,55 +89,6 @@
 	import type { I18nFormatter } from "js/utils/src";
 
 	BABYLON_LOADERS.OBJFileLoader.IMPORT_VERTEX_COLORS = true;
-
-	let canvas: HTMLCanvasElement;
-	let scene: BABYLON.Scene;
-	let engine: BABYLON.Engine;
-
-	function addNewModel(): void {
-		if (scene && !scene.isDisposed && engine) {
-			scene.dispose();
-			engine.dispose();
-		}
-
-		engine = new BABYLON.Engine(canvas, true);
-		scene = new BABYLON.Scene(engine);
-		scene.createDefaultCameraOrLight();
-		scene.clearColor = scene.clearColor = new BABYLON.Color4(...clearColor);
-
-		engine.runRenderLoop(() => {
-			scene.render();
-		});
-
-		window.addEventListener("resize", () => {
-			engine.resize();
-		});
-
-		if (!value) return;
-
-		let url: string;
-		if (value.is_file) {
-			url = value.data;
-		} else {
-			let base64_model_content = value.data;
-			let raw_content = BABYLON.Tools.DecodeBase64(base64_model_content);
-			let blob = new Blob([raw_content]);
-			url = URL.createObjectURL(blob);
-		}
-
-		BABYLON.SceneLoader.ShowLoadingScreen = false;
-		BABYLON.SceneLoader.Append(
-			url,
-			"",
-			scene,
-			() => {
-				scene.createDefaultCamera(true, true, true);
-			},
-			undefined,
-			undefined,
-			"." + value.name.split(".")[1]
-		);
-	}
 
 	$: dispatch("drag", dragging);
 </script>
@@ -127,7 +106,13 @@
 	</Upload>
 {:else}
 	<div class="input-model">
-		<ModifyUpload {i18n} on:clear={handle_clear} absolute />
+		<ModifyUpload
+			undoable
+			on:clear={handle_clear}
+			{i18n}
+			on:undo={handle_undo}
+			absolute
+		/>
 		<canvas bind:this={canvas} />
 	</div>
 {/if}
@@ -139,7 +124,7 @@
 		justify-content: center;
 		align-items: center;
 		width: var(--size-full);
-		height: var(--size-64);
+		height: var(--size-full);
 	}
 
 	canvas {

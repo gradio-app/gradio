@@ -55,7 +55,7 @@
 	function get_modules(): void {
 		module_promises = [
 			import("extendable-media-recorder"),
-			import("extendable-media-recorder-wav-encoder")
+			import("extendable-media-recorder-wav-encoder"),
 		];
 	}
 
@@ -95,7 +95,7 @@
 		let _audio_blob = new Blob(blobs, { type: "audio/wav" });
 		value = {
 			data: await blob_to_data_url(_audio_blob),
-			name: "audio.wav"
+			name: "audio.wav",
 		};
 		dispatch(event, value);
 	};
@@ -190,6 +190,7 @@
 		recorder.stop();
 		if (streaming) {
 			recording = false;
+			dispatch("stop_recording");
 			if (pending) {
 				submit_pending_stream_on_pending_end = true;
 			}
@@ -204,7 +205,7 @@
 	}
 
 	function handle_change({
-		detail: { values }
+		detail: { values },
 	}: {
 		detail: { values: [number, number] };
 	}): void {
@@ -214,14 +215,14 @@
 			data: value.data,
 			name,
 			crop_min: values[0],
-			crop_max: values[1]
+			crop_max: values[1],
 		});
 
 		dispatch("edit");
 	}
 
 	function handle_load({
-		detail
+		detail,
 	}: {
 		detail: {
 			data: string;

@@ -4,12 +4,13 @@
 
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import { ShareButton } from "@gradio/atoms";
-	import type { SelectData } from "@gradio/utils";
+	import type { SelectData, LikeData } from "@gradio/utils";
 	import type { FileData } from "@gradio/upload";
 	import { MarkdownCode as Markdown } from "@gradio/markdown/static";
 	import { get_fetchable_url_or_file } from "@gradio/upload";
 	import Copy from "./Copy.svelte";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
+	import { Like, Dislike, Check } from "@gradio/icons";
 
 	export let value:
 		| [
@@ -29,8 +30,8 @@
 		display: boolean;
 	}[];
 	export let pending_message = false;
-	export let feedback: string[] | null = null;
 	export let selectable = false;
+	export let likeable = false;
 	export let show_share_button = false;
 	export let rtl = false;
 	export let show_copy_button = false;
@@ -47,6 +48,7 @@
 	const dispatch = createEventDispatcher<{
 		change: undefined;
 		select: SelectData;
+		like: LikeData;
 	}>();
 
 	beforeUpdate(() => {
@@ -87,10 +89,23 @@
 			value: message
 		});
 	}
+
+	function handle_like(
+		i: number,
+		j: number,
+		message: string | { file: FileData; alt_text: string | null } | null,
+		liked: boolean
+	): void {
+		dispatch("like", {
+			index: [i, j],
+			value: message,
+			liked: liked
+		});
+	}
 </script>
 
 {#if show_share_button && value !== null && value.length > 0}
-	<div class="icon-button">
+	<div class="share-button">
 		<ShareButton
 			{i18n}
 			on:error
@@ -135,6 +150,28 @@
 							on:click={() => handle_select(i, j, message)}
 							dir={rtl ? "rtl" : "ltr"}
 						>
+							<div
+								class="message-buttons-{j == 0 ? 'user' : 'bot'}"
+								class:message-buttons-fit={!bubble_full_width}
+								class:hide={message === null}
+							>
+								{#if likeable && j == 1}
+									<div class="like">
+										<button on:click={() => handle_like(i, j, message, true)}
+											><Like /></button
+										>
+										<button on:click={() => handle_like(i, j, message, false)}
+											><Dislike /></button
+										>
+									</div>
+								{/if}
+
+								{#if show_copy_button && message && typeof message === "string"}
+									<div class="copy-button">
+										<Copy value={message} />
+									</div>
+								{/if}
+							</div>
 							{#if typeof message === "string"}
 								<Markdown
 									{message}
@@ -142,19 +179,6 @@
 									{sanitize_html}
 									on:load={scroll}
 								/>
-								{#if feedback && j == 1}
-									<div class="feedback">
-										{#each feedback as f}
-											<button>{f}</button>
-										{/each}
-									</div>
-								{/if}
-
-								{#if show_copy_button && message}
-									<div class="icon-button">
-										<Copy value={message} />
-									</div>
-								{/if}
 							{:else if message !== null && message.file.mime_type?.includes("audio")}
 								<audio
 									data-testid="chatbot-audio"
@@ -321,20 +345,42 @@
 		border-radius: 50%;
 	}
 
-	.feedback {
+	.message-buttons-user,
+	.message-buttons-bot {
 		display: flex;
-		position: absolute;
-		top: var(--spacing-xl);
-		right: calc(var(--spacing-xxl) + var(--spacing-xl));
-		gap: var(--spacing-lg);
-		font-size: var(--text-sm);
+		position: relative;
+		justify-content: flex-end;
 	}
-	.feedback button {
+	.message-buttons-bot {
+		margin-right: 15px;
+	}
+	.message-buttons-fit {
+		margin-right: 0px;
+	}
+	.copy-button {
+		margin-top: -10px;
+		margin-bottom: -10px;
+	}
+	.share-button {
+		position: absolute;
+		top: 4px;
+		right: 6px;
+	}
+	.like {
+		display: flex;
+		height: var(--size-8);
+		width: var(--size-8);
+		margin-top: -10px;
+		margin-bottom: -10px;
+	}
+	.like button {
 		color: var(--body-text-color-subdued);
 	}
-	.feedback button:hover {
+	.like button:hover,
+	button:focus {
 		color: var(--body-text-color);
 	}
+
 	.selectable {
 		cursor: pointer;
 	}
@@ -459,11 +505,5 @@
 
 	.message-wrap :global(pre) {
 		position: relative;
-	}
-
-	.icon-button {
-		position: absolute;
-		top: 6px;
-		right: 6px;
 	}
 </style>

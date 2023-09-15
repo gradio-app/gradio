@@ -49,8 +49,8 @@ describe("Chatbot", () => {
 
 		const user = getAllByTestId("user");
 		const bot = getAllByTestId("bot");
-		assert.equal(user[0].innerHTML, "");
-		assert.equal(bot[0].innerHTML, "");
+		assert.isFalse(user[0].innerHTML.includes("span"));
+		assert.isFalse(bot[0].innerHTML.includes("span"));
 	});
 
 	test("renders additional message as they are passed", async () => {

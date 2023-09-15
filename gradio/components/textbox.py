@@ -48,6 +48,7 @@ class Textbox(FormComponent):
         visible: bool = True,
         elem_id: str | None = None,
         autofocus: bool = False,
+        autoscroll: bool = True,
         elem_classes: list[str] | str | None = None,
         type: Literal["text", "password", "email"] = "text",
         text_align: Literal["left", "right"] | None = None,
@@ -77,6 +78,7 @@ class Textbox(FormComponent):
             text_align: How to align the text in the textbox, can be: "left", "right", or None (default). If None, the alignment is left if `rtl` is False, or right if `rtl` is True. Can only be changed if `type` is "text".
             rtl: If True and `type` is "text", sets the direction of the text to right-to-left (cursor appears on the left of the text). Default is False, which renders cursor on the right.
             show_copy_button: If True, includes a copy button to copy the text in the textbox. Only applies if show_label is True.
+            autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes.
         """
         if type not in ["text", "password", "email"]:
             raise ValueError('`type` must be one of "text", "password", or "email".')
@@ -89,6 +91,7 @@ class Textbox(FormComponent):
         self.placeholder = placeholder
         self.show_copy_button = show_copy_button
         self.autofocus = autofocus
+        self.autoscroll = autoscroll
         super().__init__(
             label=label,
             info=info,
@@ -120,6 +123,7 @@ class Textbox(FormComponent):
             "container": self.container,
             "text_align": self.text_align,
             "rtl": self.rtl,
+            "autoscroll": self.autoscroll,
             **Component.get_config(self),
         }
 
@@ -142,6 +146,7 @@ class Textbox(FormComponent):
         rtl: bool | None = None,
         show_copy_button: bool | None = None,
         autofocus: bool | None = None,
+        autoscroll: bool | None = None,
     ):
         return {
             "lines": lines,
@@ -161,6 +166,7 @@ class Textbox(FormComponent):
             "autofocus": autofocus,
             "text_align": text_align,
             "rtl": rtl,
+            "autoscroll": autoscroll,
             "__type__": "update",
         }
 
@@ -184,7 +190,7 @@ class Textbox(FormComponent):
         """
         return None if y is None else str(y)
 
-    def api_info(self) -> dict[str, list[str]]:
+    def api_info(self) -> dict[str, Any]:
         return {"type": "string"}
 
     def example_inputs(self) -> Any:

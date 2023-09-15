@@ -1,5 +1,21 @@
 # @gradio/tabitem
 
+## 0.0.4
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/utils@0.1.1
+  - @gradio/tabs@0.0.5
+
+## 0.0.3
+
+### Patch Changes
+
+- Updated dependencies [[`abf1c57d`](https://github.com/gradio-app/gradio/commit/abf1c57d7d85de0df233ee3b38aeb38b638477db)]:
+  - @gradio/utils@0.1.0
+  - @gradio/tabs@0.0.4
+
 ## 0.0.2
 
 ### Highlights
@@ -19,4 +35,4 @@ These improvements will be particularly beneficial to large applications.
 - Corrected an issue that was causing markdown to re-render infinitely.
 - Ensured that the `gr.3DModel` does re-render prematurely.
 
- Thanks [@pngwn](https://github.com/pngwn)!
+Thanks [@pngwn](https://github.com/pngwn)!

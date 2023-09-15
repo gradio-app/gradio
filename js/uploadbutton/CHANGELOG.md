@@ -1,5 +1,25 @@
 # @gradio/uploadbutton
 
+## 0.0.5
+
+### Patch Changes
+
+- Updated dependencies [[`26fef8c7`](https://github.com/gradio-app/gradio/commit/26fef8c7f85a006c7e25cdbed1792df19c512d02)]:
+  - @gradio/client@0.3.1
+  - @gradio/utils@0.1.1
+  - @gradio/button@0.1.3
+  - @gradio/upload@0.2.1
+
+## 0.0.4
+
+### Patch Changes
+
+- Updated dependencies [[`119c8343`](https://github.com/gradio-app/gradio/commit/119c834331bfae60d4742c8f20e9cdecdd67e8c2), [`abf1c57d`](https://github.com/gradio-app/gradio/commit/abf1c57d7d85de0df233ee3b38aeb38b638477db), [`79d8f9d8`](https://github.com/gradio-app/gradio/commit/79d8f9d891901683c5a1b7486efb44eab2478c96)]:
+  - @gradio/client@0.3.0
+  - @gradio/utils@0.1.0
+  - @gradio/upload@0.2.0
+  - @gradio/button@0.1.2
+
 ## 0.0.3
 
 ### Highlights
@@ -19,7 +39,7 @@ These improvements will be particularly beneficial to large applications.
 - Corrected an issue that was causing markdown to re-render infinitely.
 - Ensured that the `gr.3DModel` does re-render prematurely.
 
- Thanks [@pngwn](https://github.com/pngwn)!
+Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 0.0.2
 

@@ -1,7 +1,8 @@
 {
-  "version": "3.41.2",
+  "version": "3.43.2",
   "mode": "blocks",
-  "dev_mode": true,
+  "app_id": 17216565833834664150,
+  "dev_mode": false,
   "analytics_enabled": true,
   "components": [
     {
@@ -295,6 +296,7 @@
         "show_copy_button": false,
         "container": true,
         "rtl": false,
+        "autoscroll": true,
         "show_label": true,
         "min_width": 160,
         "name": "textbox",
@@ -344,6 +346,7 @@
         "show_copy_button": false,
         "container": true,
         "rtl": false,
+        "autoscroll": true,
         "show_label": true,
         "min_width": 160,
         "name": "textbox",

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { Gradio, SelectData } from "@gradio/utils";
-	import Dropdown from "../shared";
+	import type { Gradio, SelectData, I18nFormatter } from "@gradio/utils";
+	import { Dropdown, Multiselect } from "../shared";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
@@ -20,20 +20,16 @@
 	export let value: string | string[];
 	export let value_is_output = false;
 	export let multiselect = false;
-	export let max_choices: number;
-	export let choices: string[];
+	export let max_choices: number | null = null;
+	export let choices: [string, string | number][];
 	export let show_label: boolean;
+	export let filterable: boolean;
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let allow_custom_value = false;
-
-	if (multiselect && !value) {
-		value = [];
-	} else if (!value) {
-		value = "";
-	}
+	export let i18n: I18nFormatter;
 </script>
 
 <Block
@@ -47,22 +43,41 @@
 >
 	<StatusTracker i18n={gradio.i18n} {...loading_status} />
 
-	<Dropdown
-		bind:value
-		bind:value_is_output
-		{choices}
-		{multiselect}
-		{max_choices}
-		{label}
-		{info}
-		{show_label}
-		{allow_custom_value}
-		{container}
-		on:change={() => gradio.dispatch("change")}
-		on:input={() => gradio.dispatch("input")}
-		on:select={(e) => gradio.dispatch("select", e.detail)}
-		on:blur={() => gradio.dispatch("blur")}
-		on:focus={() => gradio.dispatch("focus")}
-		i18n={gradio.i18n}
-	/>
+	{#if multiselect}
+		<Multiselect
+			bind:value
+			bind:value_is_output
+			{choices}
+			{max_choices}
+			{label}
+			{info}
+			{show_label}
+			{allow_custom_value}
+			{container}
+			{filterable}
+			on:change={() => gradio.dispatch("change")}
+			on:input={() => gradio.dispatch("input")}
+			on:select={(e) => gradio.dispatch("select", e.detail)}
+			on:blur={() => gradio.dispatch("blur")}
+			on:focus={() => gradio.dispatch("focus")}
+		/>
+	{:else}
+		<Dropdown
+			bind:value
+			bind:value_is_output
+			{choices}
+			{label}
+			{info}
+			{show_label}
+			{allow_custom_value}
+			{container}
+			{filterable}
+			on:change={() => gradio.dispatch("change")}
+			on:input={() => gradio.dispatch("input")}
+			on:select={(e) => gradio.dispatch("select", e.detail)}
+			on:blur={() => gradio.dispatch("blur")}
+			on:focus={() => gradio.dispatch("focus")}
+			{i18n}
+		/>
+	{/if}
 </Block>

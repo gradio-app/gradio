@@ -1086,6 +1086,7 @@ class TestSpecificUpdate:
             "show_copy_button": None,
             "rtl": None,
             "text_align": None,
+            "autoscroll": None,
             "__type__": "update",
         }
 
@@ -1110,6 +1111,7 @@ class TestSpecificUpdate:
             "show_copy_button": None,
             "rtl": None,
             "text_align": None,
+            "autoscroll": None,
             "__type__": "update",
         }
 

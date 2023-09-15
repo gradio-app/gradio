@@ -3,7 +3,7 @@ of the on-page-load event, which is defined in gr.Blocks().load()."""
 
 from __future__ import annotations
 
-from functools import partial
+from functools import partial, wraps
 from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
 
 from gradio_client.documentation import document
@@ -34,8 +34,9 @@ def set_cancel_events(
 
 
 class Dependency(dict):
-    def __init__(self, trigger: Block, key_vals, dep_index):
+    def __init__(self, trigger: Block, key_vals, dep_index, fn):
         super().__init__(key_vals)
+        self.fn = fn
         self.trigger = trigger
         self.then = partial(
             EventListener(
@@ -59,6 +60,9 @@ class Dependency(dict):
         """
         Triggered after directly preceding event is completed, if it was successful.
         """
+
+    def __call__(self, *args, **kwargs):
+        return self.fn(*args, **kwargs)
 
 
 @document()
@@ -174,6 +178,37 @@ class EventListener(str):
                 cancels: A list of other events to cancel when this listener is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method. Functions that have not yet run (or generators that are iterating) will be cancelled, but functions that are currently running will be allowed to finish.
                 every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
             """
+
+            if fn == "decorator":
+                def wrapper(func):
+                    event_trigger(
+                        block,
+                        func,
+                        inputs,
+                        outputs,
+                        api_name,
+                        status_tracker,
+                        scroll_to_output,
+                        show_progress,
+                        queue,
+                        batch,
+                        max_batch_size,
+                        preprocess,
+                        postprocess,
+                        cancels,
+                        every,
+                        _js,
+                    )
+
+                    @wraps(func)
+                    def inner(*args, **kwargs):
+                        return func(*args, **kwargs)
+
+                    return inner
+
+                return Dependency(None, {}, None, wrapper)
+
+
             if status_tracker:
                 warn_deprecation(
                     "The 'status_tracker' parameter has been deprecated and has no effect."
@@ -210,7 +245,7 @@ class EventListener(str):
             set_cancel_events(block, _event_name, cancels)
             if _callback:
                 _callback(block)
-            return Dependency(block, dep, dep_index)
+            return Dependency(block, dep, dep_index, fn)
 
         return event_trigger
 
@@ -240,3 +275,24 @@ class Events:
         show_progress="hidden",
         callback=lambda block: setattr(block, "streaming", True),
     )
+    like = EventListener(
+        "like",
+        callback=lambda block: setattr(block, "likeable", True)
+    )
+
+
+class LikeData(EventData):
+    def __init__(self, target: Block | None, data: Any):
+        super().__init__(target, data)
+        self.index: int | tuple[int, int] = data["index"]
+        """
+        The index of the liked/disliked item. Is a tuple if the component is two dimensional.
+        """
+        self.value: Any = data["value"]
+        """
+        The value of the liked/disliked item.
+        """
+        self.liked: bool = data.get("liked", True)
+        """
+        True if the item was liked, False if disliked.
+        """

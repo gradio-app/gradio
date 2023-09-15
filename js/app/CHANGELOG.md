@@ -1,5 +1,96 @@
 # @gradio/app
 
+## 1.5.2
+
+### Patch Changes
+
+- Updated dependencies [[`a0cc9ac9`](https://github.com/gradio-app/gradio/commit/a0cc9ac931554e06dcb091158c9b9ac0cc580b6c)]:
+  - @gradio/dropdown@0.2.2
+
+## 1.5.1
+
+### Patch Changes
+
+- Updated dependencies [[`dc86e4a7`](https://github.com/gradio-app/gradio/commit/dc86e4a7e1c40b910c74558e6f88fddf9b3292bc), [`21f1db40`](https://github.com/gradio-app/gradio/commit/21f1db40de6d1717eba97a550e11422a457ba7e9)]:
+  - @gradio/gallery@0.3.3
+  - @gradio/image@0.2.3
+  - @gradio/dropdown@0.2.1
+  - @gradio/row@0.0.1
+  - @gradio/video@0.0.7
+
+## 1.5.0
+
+### Features
+
+- [#5505](https://github.com/gradio-app/gradio/pull/5505) [`9ee20f49`](https://github.com/gradio-app/gradio/commit/9ee20f499f62c1fe5af6b8f84918b3a334eb1c8d) - Validate i18n file names with ISO-639x. Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#5475](https://github.com/gradio-app/gradio/pull/5475) [`c60b89b0`](https://github.com/gradio-app/gradio/commit/c60b89b0a54758a27277f0a6aa20d0653647c7c8) - Adding Central Kurdish. Thanks [@Hrazhan](https://github.com/Hrazhan)!
+- [#5400](https://github.com/gradio-app/gradio/pull/5400) [`d112e261`](https://github.com/gradio-app/gradio/commit/d112e2611b0fc79ecedfaed367571f3157211387) - Allow interactive input in `gr.HighlightedText`. Thanks [@hannahblair](https://github.com/hannahblair)!
+
+## 1.4.3
+
+### Patch Changes
+
+- Updated dependencies [[`6e381c4f`](https://github.com/gradio-app/gradio/commit/6e381c4f146cc8177a4e2b8e39f914f09cd7ff0c)]:
+  - @gradio/dataframe@0.2.2
+
+## 1.4.2
+
+### Fixes
+
+- [#5447](https://github.com/gradio-app/gradio/pull/5447) [`7a4a89e5`](https://github.com/gradio-app/gradio/commit/7a4a89e5ca1dedb39e5366867501584b0c636bbb) - ensure iframe is correct size on spaces. Thanks [@pngwn](https://github.com/pngwn)!
+
+## 1.4.1
+
+### Patch Changes
+
+- Updated dependencies [[`afac0006`](https://github.com/gradio-app/gradio/commit/afac0006337ce2840cf497cd65691f2f60ee5912), [`d14d63e3`](https://github.com/gradio-app/gradio/commit/d14d63e30c4af3f9c2a664fd11b0a01943a8300c), [`26fef8c7`](https://github.com/gradio-app/gradio/commit/26fef8c7f85a006c7e25cdbed1792df19c512d02)]:
+  - @gradio/dataframe@0.2.0
+  - @gradio/markdown@0.2.0
+  - @gradio/statustracker@0.2.0
+  - @gradio/theme@0.1.0
+  - @gradio/textbox@0.2.0
+  - @gradio/client@0.3.1
+  - @gradio/chatbot@0.3.1
+  - @gradio/accordion@0.0.4
+  - @gradio/annotatedimage@0.1.2
+  - @gradio/audio@0.3.2
+  - @gradio/checkbox@0.1.3
+  - @gradio/checkboxgroup@0.1.2
+  - @gradio/code@0.1.2
+  - @gradio/colorpicker@0.1.2
+  - @gradio/dropdown@0.1.3
+  - @gradio/file@0.1.2
+  - @gradio/gallery@0.3.2
+  - @gradio/highlightedtext@0.2.3
+  - @gradio/html@0.0.4
+  - @gradio/image@0.2.2
+  - @gradio/json@0.0.5
+  - @gradio/label@0.1.2
+  - @gradio/model3d@0.2.1
+  - @gradio/number@0.2.2
+  - @gradio/plot@0.1.2
+  - @gradio/radio@0.1.2
+  - @gradio/slider@0.1.2
+  - @gradio/timeseries@0.0.5
+  - @gradio/video@0.0.6
+  - @gradio/utils@0.1.1
+  - @gradio/uploadbutton@0.0.5
+  - @gradio/row@0.0.1
+  - @gradio/atoms@0.1.2
+  - @gradio/button@0.1.3
+  - @gradio/form@0.0.5
+  - @gradio/tabitem@0.0.4
+  - @gradio/tabs@0.0.5
+  - @gradio/box@0.0.4
+  - @gradio/upload@0.2.1
+
+## 1.4.0
+
+### Features
+
+- [#5267](https://github.com/gradio-app/gradio/pull/5267) [`119c8343`](https://github.com/gradio-app/gradio/commit/119c834331bfae60d4742c8f20e9cdecdd67e8c2) - Faster reload mode. Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5373](https://github.com/gradio-app/gradio/pull/5373) [`79d8f9d8`](https://github.com/gradio-app/gradio/commit/79d8f9d891901683c5a1b7486efb44eab2478c96) - Adds `height` and `zoom_speed` parameters to `Model3D` component, as well as a button to reset the camera position. Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 1.3.2
 
 ### Patch Changes

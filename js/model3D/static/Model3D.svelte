@@ -1,25 +1,32 @@
 <script lang="ts">
 	import type { FileData } from "@gradio/upload";
 	import { BlockLabel, IconButton } from "@gradio/atoms";
-	import { File, Download } from "@gradio/icons";
-
+	import { File, Download, Undo } from "@gradio/icons";
+	import { add_new_model, reset_camera_position } from "../shared/utils";
 	import { onMount } from "svelte";
 	import * as BABYLON from "babylonjs";
 	import * as BABYLON_LOADERS from "babylonjs-loaders";
 	import type { I18nFormatter } from "js/utils/src";
 
 	export let value: FileData | null;
-	export let clearColor: [number, number, number, number] = [0, 0, 0, 0];
+	export let clear_color: [number, number, number, number] = [0, 0, 0, 0];
 	export let label = "";
 	export let show_label: boolean;
 	export let i18n: I18nFormatter;
+	export let zoom_speed = 1;
+
+	// alpha, beta, radius
+	export let camera_position: [number | null, number | null, number | null] = [
+		null,
+		null,
+		null
+	];
 
 	BABYLON_LOADERS.OBJFileLoader.IMPORT_VERTEX_COLORS = true;
 
 	let canvas: HTMLCanvasElement;
 	let scene: BABYLON.Scene;
 	let engine: BABYLON.Engine | null;
-
 	let mounted = false;
 
 	onMount(() => {
@@ -48,44 +55,21 @@
 				engine?.resize();
 			});
 		}
-		addNewModel();
+		if (engine !== null) {
+			scene = add_new_model(
+				canvas,
+				scene,
+				engine,
+				value,
+				clear_color,
+				camera_position,
+				zoom_speed
+			);
+		}
 	}
 
-	function addNewModel(): void {
-		scene = new BABYLON.Scene(engine!);
-		scene.createDefaultCameraOrLight();
-
-		scene.clearColor = new BABYLON.Color4(...clearColor);
-
-		engine?.runRenderLoop(() => {
-			scene.render();
-		});
-
-		if (!value) return;
-
-		let url: string;
-		if (value.is_file) {
-			url = value.data;
-		} else {
-			let base64_model_content = value.data;
-			let raw_content = BABYLON.Tools.DecodeBase64(base64_model_content);
-			let blob = new Blob([raw_content]);
-			url = URL.createObjectURL(blob);
-		}
-
-		BABYLON.SceneLoader.ShowLoadingScreen = false;
-
-		BABYLON.SceneLoader.Append(
-			"",
-			url,
-			scene,
-			() => {
-				scene.createDefaultCamera(true, true, true);
-			},
-			undefined,
-			undefined,
-			"." + value["name"].split(".")[1]
-		);
+	function handle_undo(): void {
+		reset_camera_position(scene, camera_position, zoom_speed);
 	}
 </script>
 
@@ -96,7 +80,8 @@
 />
 {#if value}
 	<div class="model3D">
-		<div class="download">
+		<div class="buttons">
+			<IconButton Icon={Undo} label="Undo" on:click={() => handle_undo()} />
 			<a
 				href={value.data}
 				target={window.__is_colab__ ? "_blank" : null}
@@ -123,9 +108,13 @@
 		object-fit: contain;
 		overflow: hidden;
 	}
-	.download {
+	.buttons {
+		display: flex;
 		position: absolute;
-		top: 6px;
-		right: 6px;
+		top: var(--size-2);
+		right: var(--size-2);
+		justify-content: flex-end;
+		gap: var(--spacing-sm);
+		z-index: var(--layer-5);
 	}
 </style>

@@ -1,12 +1,11 @@
 {
 	"name": "@gradio/upload",
-	"version": "0.1.0",
+	"version": "0.2.1",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "src/index.ts",
 	"author": "",
 	"license": "ISC",
-	"private": true,
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
 		"@gradio/icons": "workspace:^",

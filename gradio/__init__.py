@@ -56,7 +56,7 @@ from gradio.components import (
     Video,
     component,
 )
-from gradio.events import EventData, SelectData
+from gradio.events import LikeData, SelectData, EventData
 from gradio.exceptions import Error
 from gradio.external import load
 from gradio.flagging import (

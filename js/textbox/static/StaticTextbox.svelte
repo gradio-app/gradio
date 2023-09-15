@@ -35,6 +35,7 @@
 	export let rtl = false;
 	export let text_align: "left" | "right" | undefined = undefined;
 	export let autofocus = false;
+	export let autoscroll = true;
 </script>
 
 <Block
@@ -65,6 +66,7 @@
 		{show_copy_button}
 		{autofocus}
 		{container}
+		{autoscroll}
 		on:change={() => gradio.dispatch("change", value)}
 		on:input={() => gradio.dispatch("input")}
 		on:submit={() => gradio.dispatch("submit")}
