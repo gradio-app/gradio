@@ -20,7 +20,7 @@ class HighlightedToken(GradioModel):
 
 
 class HighlightedTextData(GradioRootModel):
-    root: list[tuple[str, Union[float, str, None]]]
+    root: list[HighlightedToken]
 
 
 @document()
@@ -194,11 +194,11 @@ class HighlightedText(Component):
             if running_text is not None:
                 output.append((running_text, running_category))
             return HighlightedTextData(
-                root=output#HighlightedToken(token=o[0], class_or_confidence=o[1]) for o in output]
+                root=[HighlightedToken(token=o[0], class_or_confidence=o[1]) for o in output]
             )
         else:
             return HighlightedTextData(
-                root=y#HighlightedToken(token=o[0], class_or_confidence=o[1]) for o in y]
+                root=[HighlightedToken(token=o[0], class_or_confidence=o[1]) for o in y]
             )
 
     def preprocess(self, x: Any) -> Any:
