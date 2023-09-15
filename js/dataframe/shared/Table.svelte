@@ -9,7 +9,7 @@
 	import type { SelectData } from "@gradio/utils";
 	import { _ } from "svelte-i18n";
 	import VirtualTable from "./VirtualTable.svelte";
-	import type { Headers, Data, Metadata, Datatype } from "../shared/utils.ts";
+	import type { Headers, Data, Metadata, Datatype } from "../shared/utils";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -29,7 +29,8 @@
 	export let wrap = false;
 	export let height: number | undefined;
 	let selected: false | [number, number] = false;
-	let display_value: string[][] | null = values.metadata?.display_value;
+
+	let display_value: string[][] | null = Array.isArray(values) ? null : values.metadata?.display_value;
 
 	$: {
 		if (values && !Array.isArray(values)) {
@@ -69,7 +70,7 @@
 	function make_id(): string {
 		return Math.random().toString(36).substring(2, 15);
 	}
-	function make_headers(_head: string[]): Headers {
+	function make_headers(_head: Headers): Headers {
 		let _h = _head || [];
 		if (col_count[1] === "fixed" && _h.length < col_count[0]) {
 			const fill = Array(col_count[0] - _h.length)
