@@ -39,7 +39,6 @@ from fastapi.responses import (
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.utils import get_package_version
 from jinja2.exceptions import TemplateNotFound
 from starlette.background import BackgroundTask
 from starlette.responses import RedirectResponse, StreamingResponse
@@ -55,7 +54,7 @@ from gradio.exceptions import Error
 from gradio.oauth import attach_oauth
 from gradio.queueing import Estimation, Event
 from gradio.route_utils import Request  # noqa: F401
-from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
+from gradio.utils import cancel_tasks, get_package_version, run_coro_in_background, set_task_name
 
 mimetypes.init()
 
