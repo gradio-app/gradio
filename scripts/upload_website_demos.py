@@ -1,23 +1,22 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import pathlib
 import shutil
 import tempfile
 import textwrap
-import requests
 
 import huggingface_hub
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-VERSION_TXT = os.path.abspath(os.path.join(ROOT, "gradio", "version.txt"))
+VERSION_FILE = os.path.abspath(os.path.join(ROOT, "gradio", "package.json"))
 DIR = os.path.dirname(__file__)
 GRADIO_DEMO_DIR = os.path.abspath(os.path.join(ROOT, "demo"))
 
-with open(VERSION_TXT) as f:
-    gradio_version=f.read()
-gradio_version = gradio_version.strip()
+with open(VERSION_FILE) as f:
+    version = json.load(f)["version"]
 
 # Reasoning:
 # 1. all_demos includes all demos and is for testing PRs

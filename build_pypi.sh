@@ -3,9 +3,10 @@ set -e
 
 cd "$(dirname ${0})"
 
-# You should update the version in version.txt before running this script
-new_version="$(cat gradio/version.txt)"
-GRADIO_VERSION=$new_version
+# You should update the version in package.json before running this script
+FILE="gradio/package.json"
+new_version=$(python -c "import json; f = open('$FILE', 'r'); data = json.load(f); print(data['version']); f.close();")
+GRADIO_VERSION = $new_version
 
 rm -rf gradio/templates/frontend
 rm -rf gradio/templates/cdn

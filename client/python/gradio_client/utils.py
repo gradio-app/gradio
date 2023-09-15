@@ -58,7 +58,20 @@ INVALID_RUNTIME = [
     SpaceStage.PAUSED,
 ]
 
-__version__ = (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
+
+def get_package_version() -> str:
+    try:
+        package_json_data = (
+            pkgutil.get_data(__name__, "package.json").decode("utf-8").strip()  # type: ignore
+        )
+        package_data = json.loads(package_json_data)
+        version = package_data.get("version", "")
+        return version
+    except Exception:
+        return ""
+
+
+__version__ = get_package_version()
 
 
 class TooManyRequestsError(Exception):

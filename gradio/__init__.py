@@ -1,4 +1,4 @@
-import pkgutil
+import json
 
 import gradio.components as components
 import gradio.inputs as inputs
@@ -103,8 +103,6 @@ from gradio.templates import (
     Webcam,
 )
 from gradio.themes import Base as Theme
+from gradio.utils import get_package_version
 
-current_pkg_version = (
-    (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
-)
-__version__ = current_pkg_version
+__version__ = get_package_version()

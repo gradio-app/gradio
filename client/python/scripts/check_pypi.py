@@ -3,8 +3,9 @@ import sys
 import urllib.request
 from pathlib import Path
 
-version_file = Path(__file__).parent.parent / "gradio_client" / "version.txt"
-version = version_file.read_text(encoding="utf8").strip()
+version_file = Path(__file__).parent.parent / "gradio_client" / "package.json"
+with version_file.open() as f:
+    version = json.load(f)["version"]
 
 with urllib.request.urlopen("https://pypi.org/pypi/gradio_client/json") as url:
     releases = json.load(url)["releases"]
