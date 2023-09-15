@@ -65,7 +65,9 @@
 			data: [Array(col_count?.[0] || 3).fill("")],
 			headers: Array(col_count?.[0] || 3)
 				.fill("")
-				.map((_, i) => `${i + 1}`)
+				.map((_, i) => `${i + 1}`),
+
+			metadata: null
 		};
 	}
 </script>

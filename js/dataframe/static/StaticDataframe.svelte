@@ -5,7 +5,7 @@
 	import Table from "../shared";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import type { Headers, Data, Metadata, Datatype } from "../shared/utils.ts";
+	import type { Headers, Data, Metadata, Datatype } from "../shared/utils";
 	export let headers: Headers = [];
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -61,7 +61,8 @@
 			data: [Array(col_count?.[0] || 3).fill("")],
 			headers: Array(col_count?.[0] || 3)
 				.fill("")
-				.map((_, i) => `${i + 1}`)
+				.map((_, i) => `${i + 1}`),
+			metadata: null
 		};
 	}
 </script>

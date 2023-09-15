@@ -42,7 +42,7 @@
 	}
 
 	const dispatch = createEventDispatcher<{
-		change: { data: (string | number)[][]; headers: string[] };
+		change: { data: (string | number)[][]; headers: string[], metadata: Metadata };
 		select: SelectData;
 	}>();
 
@@ -151,7 +151,8 @@
 	$: _headers &&
 		dispatch("change", {
 			data: data.map((r) => r.map(({ value }) => value)),
-			headers: _headers.map((h) => h.value)
+			headers: _headers.map((h) => h.value),
+			metadata: {"display_value": display_value}
 		});
 
 	function get_sort_status(
