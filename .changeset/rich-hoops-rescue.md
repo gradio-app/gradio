@@ -1,5 +1,8 @@
 ---
+"@gradio/accordion": minor
+"@gradio/annotatedimage": minor
 "@gradio/app": minor
+"@gradio/button": minor
 "@gradio/checkbox": minor
 "@gradio/checkboxgroup": minor
 "@gradio/dropdown": minor
