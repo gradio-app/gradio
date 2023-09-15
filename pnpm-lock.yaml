@@ -193,8 +193,8 @@ importers:
         specifier: ^7.0.23
         version: 7.0.23(react-dom@18.2.0)(react@18.2.0)
       chromatic:
-        specifier: ^6.19.9
-        version: 6.19.9
+        specifier: ^7.0.0
+        version: 7.0.0
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -204,6 +204,9 @@ importers:
       storybook:
         specifier: ^7.0.23
         version: 7.0.23
+      wikidata-lang:
+        specifier: ^4.1.2
+        version: 4.1.2
 
   client/js:
     dependencies:
@@ -280,8 +283,8 @@ importers:
         specifier: ^3.0.3
         version: 3.0.3(@sveltejs/kit@1.16.3)
       hast-util-to-string:
-        specifier: ^2.0.0
-        version: 2.0.0
+        specifier: ^3.0.0
+        version: 3.0.0
       mdsvex:
         specifier: ^0.11.0
         version: 0.11.0(svelte@3.59.2)
@@ -911,34 +914,7 @@ importers:
         specifier: ^4.4.9
         version: 4.4.9(@types/node@20.3.1)(less@4.1.3)(lightningcss@1.21.7)(sass@1.66.1)(stylus@0.60.0)(sugarss@4.0.1)
 
-  js/gradio-preview/test/imageslider/frontend:
-    dependencies:
-      '@gradio/atoms':
-        specifier: workspace:^
-        version: link:../../../../atoms
-      '@gradio/icons':
-        specifier: workspace:^
-        version: link:../../../../icons
-      '@gradio/statustracker':
-        specifier: workspace:^
-        version: link:../../../../statustracker
-      '@gradio/upload':
-        specifier: workspace:^
-        version: link:../../../../upload
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../../../../utils
-      cropperjs:
-        specifier: ^1.5.12
-        version: 1.5.12
-      lazy-brush:
-        specifier: ^1.0.1
-        version: 1.0.1
-      resize-observer-polyfill:
-        specifier: ^1.5.1
-        version: 1.5.1
-
-  js/gradio-preview/test/newnewtext/frontend:
+  js/gradio-preview/test/newtextbox/frontend:
     dependencies:
       '@gradio/atoms':
         specifier: workspace:^
@@ -952,12 +928,6 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../../../../utils
-
-  js/gradio-preview/test/newtext/frontend:
-    dependencies:
-      '@zerodevx/svelte-json-view':
-        specifier: ^1.0
-        version: 1.0.7(svelte@4.2.0)
 
   js/group: {}
 
@@ -1109,6 +1079,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      '@types/babylon':
+        specifier: ^6.16.6
+        version: 6.16.6
       babylonjs:
         specifier: ^4.2.1
         version: 4.2.2
@@ -1321,8 +1294,8 @@ importers:
         version: 1.0.1
     devDependencies:
       pyodide:
-        specifier: ^0.23.2
-        version: 0.23.2
+        specifier: ^0.24.0
+        version: 0.24.0
 
 packages:
 
@@ -6839,6 +6812,10 @@ packages:
   /@types/aria-query@5.0.1:
     resolution: {integrity: sha512-XTIieEY+gvJ39ChLcB4If5zHtPxt3Syj5rgZR+e1ctpmK8NjPf0zFqsz4JpLJT0xla9GFDKjy8Cpu331nrmE1Q==}
 
+  /@types/babel-types@7.0.12:
+    resolution: {integrity: sha512-HKFKGgwbKpfvjPuEKveybTYHUTSsbBRS72aLI7Gp1X/egZlgtXzmvCqBrmoFdbsh7U7CsLYFmULNIt7nmS89xw==}
+    dev: false
+
   /@types/babel__core@7.20.1:
     resolution: {integrity: sha512-aACu/U/omhdk15O4Nfb+fHgH/z3QsfQzpnvRZhYhThms83ZnAOZz7zZAWO7mn2yyNQaA4xTO8GLK3uqFU4bYYw==}
     dependencies:
@@ -6867,6 +6844,12 @@ packages:
     dependencies:
       '@babel/types': 7.22.5
     dev: true
+
+  /@types/babylon@6.16.6:
+    resolution: {integrity: sha512-G4yqdVlhr6YhzLXFKy5F7HtRBU8Y23+iWy7UKthMq/OSQnL1hbsoeXESQ2LY8zEDlknipDG3nRGhUC9tkwvy/w==}
+    dependencies:
+      '@types/babel-types': 7.0.12
+    dev: false
 
   /@types/body-parser@1.19.2:
     resolution: {integrity: sha512-ALYone6pm6QmwZoAgeyNksccT9Q4AWZQ6PvfwR37GT6r6FWUPguq6sUmNGSMV2Wr761oQoBxwGGa6DR5o1DC9g==}
@@ -6986,8 +6969,8 @@ packages:
       '@types/node': 20.3.2
     dev: true
 
-  /@types/hast@2.3.4:
-    resolution: {integrity: sha512-wLEm0QvaoawEDoTRwzTXp4b4jpwiJDvR5KMnFnVodm3scufTlBOWRD6N1OBf9TZMhjlNsSfcO5V+7AF4+Vy+9g==}
+  /@types/hast@3.0.0:
+    resolution: {integrity: sha512-SoytUJRuf68HXYqcXicQIhCrLQjqeYU2anikr4G3p3Iz+OZO5QDQpDj++gv+RenHsnUBwNZ2dumBArF8VLSk2Q==}
     dependencies:
       '@types/unist': 2.0.6
     dev: false
@@ -8297,8 +8280,8 @@ packages:
     resolution: {integrity: sha512-bIomtDF5KGpdogkLd9VspvFzk9KfpyyGlS8YFVZl7TGPBHL5snIOnxeshwVgPteQ9b4Eydl+pVbIyE1DcvCWgQ==}
     engines: {node: '>=10'}
 
-  /chromatic@6.19.9:
-    resolution: {integrity: sha512-UHrPbPoLnJwd063cRSO0U865VhcATykpMiHsAnNFz5EFRsBvM9wefqyS2Z6W8Ti9J7Fjrf4MV4PA+Q5k2lhFfQ==}
+  /chromatic@7.0.0:
+    resolution: {integrity: sha512-ZPHRO/6v0jAKk0G1oW+HAngQmbq+opAVkgjy3Yx5Cvxvpfv+Y7zyfBuQ8KHewoNuIqLTfvRTbKzekqbGYT+7UQ==}
     hasBin: true
     dev: true
 
@@ -10740,10 +10723,10 @@ packages:
     dependencies:
       function-bind: 1.1.1
 
-  /hast-util-to-string@2.0.0:
-    resolution: {integrity: sha512-02AQ3vLhuH3FisaMM+i/9sm4OXGSq1UhOOCpTLLQtHdL3tZt7qil69r8M8iDkZYyC0HCFylcYoP+8IO7ddta1A==}
+  /hast-util-to-string@3.0.0:
+    resolution: {integrity: sha512-OGkAxX1Ua3cbcW6EJ5pT/tslVb90uViVkcJ4ZZIMW/R33DX/AkcJcRrPebPwJkHYwlDHXz4aIwvAAaAdtrACFA==}
     dependencies:
-      '@types/hast': 2.3.4
+      '@types/hast': 3.0.0
     dev: false
 
   /he@1.2.0:
@@ -13355,15 +13338,13 @@ packages:
       - utf-8-validate
     dev: true
 
-  /pyodide@0.23.2:
-    resolution: {integrity: sha512-GK4YDZVgzfAXK/7X0IiCI+142k0Ah/HwYTzDHtG8zC47dflWYuPozeFbOngShuL1M9Un5sCmHFqiH3boxJv0pQ==}
+  /pyodide@0.24.0:
+    resolution: {integrity: sha512-k2TzIbAYQ/ucme0LYv4KmxKDR15m68/3pvPKmUVtdpzn6K9Qt1NLHeZI1RErWJE6PtlQI8UA0Q21wrtu3XPUMg==}
     dependencies:
       base-64: 1.0.0
-      node-fetch: 2.6.7
       ws: 8.13.0(bufferutil@4.0.7)
     transitivePeerDependencies:
       - bufferutil
-      - encoding
       - utf-8-validate
     dev: true
 
@@ -16318,6 +16299,10 @@ packages:
     resolution: {integrity: sha512-eDMORYaPNZ4sQIuuYPDHdQvf4gyCF9rEEV/yPxGfwPkRodwEgiMUUXTx/dex+Me0wxx53S+NgUHaP7y3MGlDmg==}
     dependencies:
       string-width: 4.2.3
+
+  /wikidata-lang@4.1.2:
+    resolution: {integrity: sha512-Nw+loOQQO02cVZQCAFCaE5IWdPakX9zXLr4Pjv0GA81OyI+TPWC6iLy/0cORL6YbYde19MbRVITIHiKRv1HmFA==}
+    dev: true
 
   /with@7.0.2:
     resolution: {integrity: sha512-RNGKj82nUPg3g5ygxkQl0R937xLyho1J24ItRCBTr/m1YnZkzJy1hUiHUJrc/VlsDQzsCnInEGSg3bci0Lmd4w==}
