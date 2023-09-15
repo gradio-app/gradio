@@ -87,10 +87,7 @@ async def _do_wasm_analytics_request(url: str, data: dict[str, Any]) -> None:
 
 def version_check():
     try:
-        version_data = pkgutil.get_data(__name__, "version.txt")
-        if not version_data:
-            raise FileNotFoundError
-        current_pkg_version = version_data.decode("ascii").strip()
+        current_pkg_version = get_package_version()
         latest_pkg_version = requests.get(url=PKG_VERSION_URL, timeout=3).json()[
             "version"
         ]
