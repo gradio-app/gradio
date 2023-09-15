@@ -72,6 +72,7 @@
 			chatbot={false}
 		/>
 	{:else}
+		<!-- {value} -->
 		{edit ? value : display_value || value}
 	{/if}
 </span>

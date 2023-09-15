@@ -542,6 +542,7 @@
 
 	function sort_data(
 		_data: typeof data,
+		_display_value: string[][] | null,
 		col?: number,
 		dir?: SortDirection
 	): void {
@@ -549,11 +550,25 @@
 		if (typeof col !== "number" || !dir) {
 			return;
 		}
+		// Create an array of indices representing the original order
+		const indices = [...Array(_data.length).keys()];
+
+		// Sort indices based on `_data`
 		if (dir === "asc") {
-			_data.sort((a, b) => (a[col].value < b[col].value ? -1 : 1));
+			indices.sort((i, j) => (_data[i][col].value < _data[j][col].value ? -1 : 1));
 		} else if (dir === "des") {
-			_data.sort((a, b) => (a[col].value > b[col].value ? -1 : 1));
+			indices.sort((i, j) => (_data[i][col].value > _data[j][col].value ? -1 : 1));
 		}
+
+		// Create temporary copies to assist with the in-place sort
+		const tempData = [..._data];
+		const tempData2 = [..._display_value];
+
+		// Reorder `_data` and `_data2` based on sorted indices
+		indices.forEach((originalIndex, sortedIndex) => {
+			_data[sortedIndex] = tempData[originalIndex];
+			_display_value[sortedIndex] = tempData2[originalIndex];
+		});
 
 		data = data;
 
@@ -563,7 +578,7 @@
 		}
 	}
 
-	$: sort_data(data, sort_by, sort_direction);
+	$: sort_data(data, display_value, sort_by, sort_direction);
 
 	$: selected_index = !!selected && selected[0];
 
