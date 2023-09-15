@@ -46,6 +46,7 @@
 				type="radio"
 				name="radio-{elem_id}"
 				value={choice[1]}
+				aria-label={choice[0]}
 			/>
 			<span class="ml-2">{choice[0]}</span>
 		</label>
