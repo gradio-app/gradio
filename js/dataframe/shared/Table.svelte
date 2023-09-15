@@ -9,7 +9,7 @@
 	import type { SelectData } from "@gradio/utils";
 	import { _ } from "svelte-i18n";
 	import VirtualTable from "./VirtualTable.svelte";
-	import type { Headers, Data, Metadata, Datatype } from "../shared/utils";
+	import type { Headers, HeadersWithIDs, Data, Metadata, Datatype } from "../shared/utils";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -30,7 +30,7 @@
 	export let height: number | undefined;
 	let selected: false | [number, number] = false;
 
-	let display_value: string[][] | null = Array.isArray(values) ? null : values.metadata?.display_value;
+	let display_value: string[][] | null = Array.isArray(values) ? null : values.metadata?.display_value ?? null;
 
 	$: {
 		if (values && !Array.isArray(values)) {
@@ -65,12 +65,10 @@
 
 	let data_binding: Record<string, (typeof data)[0][0]> = {};
 
-	type Headers = { value: string; id: string }[];
-
 	function make_id(): string {
 		return Math.random().toString(36).substring(2, 15);
 	}
-	function make_headers(_head: Headers): Headers {
+	function make_headers(_head: Headers): HeadersWithIDs {
 		let _h = _head || [];
 		if (col_count[1] === "fixed" && _h.length < col_count[0]) {
 			const fill = Array(col_count[0] - _h.length)
@@ -567,12 +565,13 @@
 
 		// Create temporary copies to assist with the in-place sort
 		const tempData = [..._data];
-		const tempData2 = [..._display_value];
+		const tempData2 = _display_value ? [..._display_value] : null;
 
 		// Reorder `_data` and `_data2` based on sorted indices
 		indices.forEach((originalIndex, sortedIndex) => {
 			_data[sortedIndex] = tempData[originalIndex];
-			_display_value[sortedIndex] = tempData2[originalIndex];
+			if (_display_value && tempData2)
+				_display_value[sortedIndex] = tempData2[originalIndex];
 		});
 
 		data = data;
