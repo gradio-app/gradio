@@ -23,10 +23,11 @@ set_documentation_group("component")
 
 
 @dataclass
-class DataframeData():
+class DataframeData:
     """
     This is a dataclass to represent all the data that is sent to or received from the frontend.
     """
+
     data: list[list[str | int | bool]]
     headers: list[str] | list[int] | None = None
     metadata: dict[str, list[list]] | None = None
@@ -245,14 +246,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
 
     def postprocess(
         self,
-        y: pd.DataFrame
-        | Styler
-        | np.ndarray
-        | list
-        | list[list]
-        | dict
-        | str
-        | None,
+        y: pd.DataFrame | Styler | np.ndarray | list | list[list] | dict | str | None,
     ) -> dict:
         """
         Parameters:
@@ -267,16 +261,16 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         elif isinstance(y, Styler):
             df: pd.DataFrame = y.data  # type: ignore
             value = DataframeData(
-                headers = list(df.columns),
-                data = df.to_dict(orient="split")["data"],
-                metadata = self.__extract_metadata(y),
+                headers=list(df.columns),
+                data=df.to_dict(orient="split")["data"],
+                metadata=self.__extract_metadata(y),
             )
         elif isinstance(y, (str, pd.DataFrame)):
             if isinstance(y, str):
                 y = pd.read_csv(y)
             value = DataframeData(
-                    headers=list(y.columns),
-                    data=y.to_dict(orient="split")["data"],
+                headers=list(y.columns),
+                data=y.to_dict(orient="split")["data"],
             )
         elif isinstance(y, (np.ndarray, list)):
             if len(y) == 0:
