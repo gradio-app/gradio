@@ -9,15 +9,14 @@
 	import type { SelectData } from "@gradio/utils";
 	import { _ } from "svelte-i18n";
 	import VirtualTable from "./VirtualTable.svelte";
-
-	type Datatype = "str" | "markdown" | "html" | "number" | "bool" | "date";
+	import type { Headers, Data, Metadata, Datatype } from "../shared/utils.ts";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
-	export let headers: string[] = [];
+	export let headers: Headers = [];
 	export let values:
 		| (string | number)[][]
-		| { data: (string | number)[][]; headers: string[] } = [[]];
+		| { data: Data; headers: Headers, metadata: Metadata } = [[]];
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
 	export let latex_delimiters: {
@@ -30,6 +29,7 @@
 	export let wrap = false;
 	export let height: number | undefined;
 	let selected: false | [number, number] = false;
+	let display_value: string[][] | null = values.metadata?.display_value;
 
 	$: {
 		if (values && !Array.isArray(values)) {
@@ -743,6 +743,7 @@
 								<EditableCell
 									bind:value={data[index][j].value}
 									bind:el={els[id].input}
+									display_value={display_value?.[index]?.[j]}
 									{latex_delimiters}
 									edit={dequal(editing, [index, j])}
 									datatype={Array.isArray(datatype) ? datatype[j] : datatype}

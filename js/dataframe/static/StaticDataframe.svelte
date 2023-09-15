@@ -5,18 +5,15 @@
 	import Table from "../shared";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-
-	type Headers = string[];
-	type Data = (string | number)[][];
-	type Datatype = "str" | "markdown" | "html" | "number" | "bool" | "date";
-
+	import type { Headers, Data, Metadata, Datatype } from "../shared/utils.ts";
 	export let headers: Headers = [];
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: { data: Data; headers: Headers } = {
+	export let value: { data: Data; headers: Headers, metadata: Metadata } = {
 		data: [["", "", ""]],
-		headers: ["1", "2", "3"]
+		headers: ["1", "2", "3"],
+		metadata: null
 	};
 	let old_value: string = JSON.stringify(value);
 	export let value_is_output = false;
@@ -56,7 +53,6 @@
 			handle_change();
 		}
 	}
-
 	if (
 		(Array.isArray(value) && value?.[0]?.length === 0) ||
 		value.data?.[0]?.length === 0

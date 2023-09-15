@@ -5,6 +5,7 @@
 
 	export let edit: boolean;
 	export let value: string | number = "";
+	export let display_value: string | null = null;
 	export let header = false;
 	export let datatype:
 		| "str"
@@ -71,7 +72,8 @@
 			chatbot={false}
 		/>
 	{:else}
-		{value}
+		<!-- {edit ? value : display_value || value} -->
+		{edit ? value : display_value}
 	{/if}
 </span>
 
