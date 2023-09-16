@@ -9,7 +9,13 @@
 	import type { SelectData } from "@gradio/utils";
 	import { _ } from "svelte-i18n";
 	import VirtualTable from "./VirtualTable.svelte";
-	import type { Headers, HeadersWithIDs, Data, Metadata, Datatype } from "../shared/utils";
+	import type {
+		Headers,
+		HeadersWithIDs,
+		Data,
+		Metadata,
+		Datatype
+	} from "../shared/utils";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -29,7 +35,7 @@
 	export let height: number | undefined;
 	let selected: false | [number, number] = false;
 	let display_value: string[][] | null = value?.metadata?.display_value ?? null;
-	
+
 	$: {
 		if (value) {
 			headers = value.headers;
@@ -41,7 +47,11 @@
 	}
 
 	const dispatch = createEventDispatcher<{
-		change: { data: (string | number)[][]; headers: string[], metadata: Metadata };
+		change: {
+			data: (string | number)[][];
+			headers: string[];
+			metadata: Metadata;
+		};
 		select: SelectData;
 	}>();
 
@@ -151,7 +161,7 @@
 		dispatch("change", {
 			data: data.map((r) => r.map(({ value }) => value)),
 			headers: _headers.map((h) => h.value),
-			metadata: editable ? null : {"display_value": display_value}
+			metadata: editable ? null : { display_value: display_value }
 		});
 
 	function get_sort_status(
@@ -559,11 +569,10 @@
 			indices.sort((i, j) =>
 				_data[i][col].value > _data[j][col].value ? -1 : 1
 			);
-		}
-		else {
+		} else {
 			return;
 		}
-		
+
 		// sort both data and display_value in place based on the values in data
 		const tempData = [..._data];
 		const tempData2 = _display_value ? [..._display_value] : null;
