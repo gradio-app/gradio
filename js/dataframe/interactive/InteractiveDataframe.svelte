@@ -6,7 +6,7 @@
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { afterUpdate } from "svelte";
 	import { _ } from "svelte-i18n";
-	import type { Headers, Data, Metadata, Datatype } from "../shared/utils.ts";
+	import type { Headers, Data, Metadata, Datatype } from "../shared/utils";
 
 	export let headers: Headers = [];
 	export let elem_id = "";
