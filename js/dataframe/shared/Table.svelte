@@ -151,7 +151,7 @@
 		dispatch("change", {
 			data: data.map((r) => r.map(({ value }) => value)),
 			headers: _headers.map((h) => h.value),
-			metadata: {"display_value": display_value}
+			metadata: editable ? null : {"display_value": display_value}
 		});
 
 	function get_sort_status(
