@@ -21,6 +21,7 @@
 	}[];
 	export let clear_on_focus = false;
 	export let select_on_focus = false;
+	export let editable = true;
 
 	const dispatch = createEventDispatcher();
 
@@ -72,7 +73,7 @@
 			chatbot={false}
 		/>
 	{:else}
-		{edit ? value : display_value || value}
+		{editable ? value : display_value || value}
 	{/if}
 </span>
 

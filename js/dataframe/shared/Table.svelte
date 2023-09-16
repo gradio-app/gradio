@@ -14,9 +14,8 @@
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
 	export let headers: Headers = [];
-	export let values:
-		| (string | number)[][]
-		| { data: Data; headers: Headers; metadata: Metadata } = [[]];
+	let values: (string | number)[][];
+	export let value: { data: Data; headers: Headers; metadata: Metadata } | null;
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
 	export let latex_delimiters: {
@@ -29,13 +28,13 @@
 	export let wrap = false;
 	export let height: number | undefined;
 	let selected: false | [number, number] = false;
-
-	let display_value: string[][] | null = Array.isArray(values) ? null : values.metadata?.display_value ?? null;
-
+	let display_value: string[][] | null = value?.metadata?.display_value ?? null;
+	
 	$: {
-		if (values && !Array.isArray(values)) {
-			headers = values.headers;
-			values = values.data;
+		if (value) {
+			headers = value.headers;
+			values = value.data;
+			display_value = value?.metadata?.display_value ?? null;
 		} else if (values === null) {
 			values = [];
 		}
@@ -550,10 +549,8 @@
 		if (typeof col !== "number" || !dir) {
 			return;
 		}
-		// Create an array of indices representing the original order
 		const indices = [...Array(_data.length).keys()];
 
-		// Sort indices based on `_data`
 		if (dir === "asc") {
 			indices.sort((i, j) =>
 				_data[i][col].value < _data[j][col].value ? -1 : 1
@@ -563,12 +560,13 @@
 				_data[i][col].value > _data[j][col].value ? -1 : 1
 			);
 		}
-
-		// Create temporary copies to assist with the in-place sort
+		else {
+			return;
+		}
+		
+		// sort both data and display_value in place based on the values in data
 		const tempData = [..._data];
 		const tempData2 = _display_value ? [..._display_value] : null;
-
-		// Reorder `_data` and `_data2` based on sorted indices
 		indices.forEach((originalIndex, sortedIndex) => {
 			_data[sortedIndex] = tempData[originalIndex];
 			if (_display_value && tempData2)
@@ -765,6 +763,7 @@
 									bind:el={els[id].input}
 									display_value={display_value?.[index]?.[j]}
 									{latex_delimiters}
+									{editable}
 									edit={dequal(editing, [index, j])}
 									datatype={Array.isArray(datatype) ? datatype[j] : datatype}
 									on:blur={() => ((clear_on_focus = false), parent.focus())}

@@ -87,7 +87,7 @@
 		{label}
 		{row_count}
 		{col_count}
-		values={value}
+		{value}
 		{headers}
 		on:change={({ detail }) => {
 			value = detail;

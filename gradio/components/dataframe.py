@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import asdict, dataclass
 from typing import Callable, Literal
 
@@ -259,6 +260,8 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         if isinstance(y, dict):
             value = DataframeData(**y)
         elif isinstance(y, Styler):
+            if self.interactive:
+                warnings.warn("Cannot display Styler object in interactive mode. Will display as a regular pandas dataframe.")
             df: pd.DataFrame = y.data  # type: ignore
             value = DataframeData(
                 headers=list(df.columns),
