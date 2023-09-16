@@ -261,7 +261,9 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             value = DataframeData(**y)
         elif isinstance(y, Styler):
             if self.interactive:
-                warnings.warn("Cannot display Styler object in interactive mode. Will display as a regular pandas dataframe.")
+                warnings.warn(
+                    "Cannot display Styler object in interactive mode. Will display as a regular pandas dataframe."
+                )
             df: pd.DataFrame = y.data  # type: ignore
             value = DataframeData(
                 headers=list(df.columns),
