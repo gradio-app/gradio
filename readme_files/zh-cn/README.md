@@ -18,6 +18,7 @@
 | [开始](https://gradio.app/getting_started/)]
 | [样例](../../demo/)
 | [English](https://github.com/gradio-app/gradio#readme)
+| [日本語](../ja-jp/readme.md#readme)
 
 </div>
 
