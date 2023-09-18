@@ -115,6 +115,8 @@ def updateable(fn):
     return wrapper
 
 
+updated_cls_set = set()
+
 class Block:
     def __init__(
         self,
@@ -147,9 +149,9 @@ class Block:
         check_deprecated_parameters(self.__class__.__name__, kwargs=kwargs)
 
     def __new__(cls, *args, **kwargs):
-        if not hasattr(cls, "updatable_init"):
+        if cls not in updated_cls_set:
             cls.__init__ = updateable(cls.__init__)
-            cls.updatable_init = True
+            updated_cls_set.add(cls)
         return super().__new__(cls)
 
     def render(self):

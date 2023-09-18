@@ -438,7 +438,7 @@ class Queue:
                         event,
                         {
                             "msg": "process_completed",
-                            "output": {"error": str(e)},
+                            "output": {"error": None if len(e.args) and e.args[0] is None else str(e)},
                             "success": False,
                         },
                     )
