@@ -46,6 +46,7 @@ jobs:
         fi
     - name: Build pr package
       run: |
+        python -c 'import json; j = json.load(open("gradio/package.json")); j["version"] = "${{ steps.get_pr_number.outputs.GRADIO_VERSION }}"; json.dump(j, open("gradio/package.json", "w"))'
         pnpm i --frozen-lockfile --ignore-scripts
         pnpm build
         python3 -m build -w
