@@ -70,7 +70,7 @@ def plot(df):
   return plots
 
 inputs = [gr.Dataframe(label="Supersoaker Production Data")]
-outputs = [gr.Gallery(label="Profiling Dashboard").style(grid=(1,3))]
+outputs = [gr.Gallery(label="Profiling Dashboard", columns=(1,3))]
 
 gr.Interface(plot, inputs=inputs, outputs=outputs, examples=[df.head(100)], title="Supersoaker Failures Analysis Dashboard").launch()
 ```

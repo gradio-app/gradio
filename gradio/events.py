@@ -101,7 +101,7 @@ class EventListenerMethod:
         api_name: str | None | Literal[False] = None,
         status_tracker: None = None,
         scroll_to_output: bool = False,
-        show_progress: Literal["full", "minimal", "hidden"] = "full",
+        show_progress: Literal["full", "minimal", "hidden"] | None = None,
         queue: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,

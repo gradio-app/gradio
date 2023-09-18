@@ -151,14 +151,6 @@ with gr.Interface(css=".gradio-container {background-color: red}") as demo:
     ...
 ```
 
-Some components can be additionally styled through the `style()` method. For example:
-
-```python
-img = gr.Image("lion.jpg").style(height='24', rounded=False)
-```
-
-Take a look at the [Docs](https://gradio.app/docs) to see all the styling options for each Component.
-
 ## Queuing
 
 If your app expects heavy traffic, use the `queue()` method to control processing rate. This will queue up calls so only a certain number of requests are processed at a single time. Queueing uses websockets, which also prevent network timeouts, so you should use queueing if the inference time of your function is long (> 1min).

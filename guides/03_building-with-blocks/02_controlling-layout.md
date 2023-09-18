@@ -17,7 +17,7 @@ To make every element in a Row have the same height, use the `equal_height` argu
 
 ```python
 with gr.Blocks() as demo:
-    with gr.Row().style(equal_height=True):
+    with gr.Row(equal_height=True):
         textbox = gr.Textbox()
         btn2 = gr.Button("Button 2")
 ```

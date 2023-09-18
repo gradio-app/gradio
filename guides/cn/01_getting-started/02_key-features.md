@@ -137,14 +137,6 @@ with `gr.Interface(css=".gradio-container {background-color: red}") as demo:
     ...
 ```
 
-一些组件还可以通过 `style()` 方法进行额外的样式设置。例如：
-
-```python
-img = gr.Image("lion.jpg").style(height='24', rounded=False)
-```
-
-查看[文档](https://gradio.app/docs)可以了解每个组件的所有样式选项。
-
 ## 队列 (Queuing)
 
 如果您的应用程序预计会有大量流量，请 with `queue()` 方法来控制处理速率。这将排队处理调用，因此一次只处理一定数量的请求。队列使用 Websockets，还可以防止网络超时，因此如果您的函数的推理时间很长（> 1 分钟），应使用队列。
