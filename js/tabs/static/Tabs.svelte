@@ -59,12 +59,15 @@
 	<div class="tab-nav scroll-hide">
 		{#each tabs as t, i (t.id)}
 			{#if t.id === $selected_tab}
-				<button class="selected" {...elem_id ? {id: t.elem_id + "-button"} : {}}>
+				<button
+					class="selected"
+					{...elem_id ? { id: t.elem_id + "-button" } : {}}
+				>
 					{t.name}
 				</button>
 			{:else}
 				<button
-				{...elem_id ? {id: t.elem_id + "-button"} : {}}
+					{...elem_id ? { id: t.elem_id + "-button" } : {}}
 					on:click={() => {
 						change_tab(t.id);
 						dispatch("select", { value: t.name, index: i });
