@@ -5,7 +5,10 @@
 	import { createEventDispatcher } from "svelte";
 	import { correct_color_map } from "../utils";
 
-	export let value: [{token: string, class_or_confidence: string | number}] | [] = [];
+	export let value: {
+		token: string;
+		class_or_confidence: string | number | null;
+	}[] = [];
 	export let show_legend = false;
 	export let color_map: Record<string, string> = {};
 	export let selectable = false;
@@ -114,8 +117,10 @@
 								});
 							}}
 						>
-							<span class:no-label={!_color_map[v.class_or_confidence]} class="text"
-								>{line}</span
+							<span
+								class:no-label={v.class_or_confidence === null ||
+									!_color_map[v.class_or_confidence]}
+								class="text">{line}</span
 							>
 							{#if !show_legend && v.class_or_confidence !== null}
 								&nbsp;
@@ -147,7 +152,10 @@
 		{/if}
 		<div class="textfield" data-testid="highlighted-text:textfield">
 			{#each value as v}
-				{@const score = typeof v.class_or_confidence === "string" ? parseInt(v.class_or_confidence) : v.class_or_confidence}
+				{@const score =
+					typeof v.class_or_confidence === "string"
+						? parseInt(v.class_or_confidence)
+						: v.class_or_confidence}
 				<span
 					class="textspan score-text"
 					style={"background-color: rgba(" +

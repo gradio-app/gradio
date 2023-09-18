@@ -41,10 +41,10 @@ export function correct_color_map(
 }
 
 export function merge_elements(
-	value: [{ token: string; class_or_confidence: string | number }] | [],
+	value: { token: string; class_or_confidence: string | number | null }[],
 	mergeMode: "empty" | "equal"
-): [{ token: string; class_or_confidence: string | number }] | []{
-	let result: [{ token: string; class_or_confidence: string | number }] | [] = [];
+): { token: string; class_or_confidence: string | number | null }[] {
+	let result: typeof value = [];
 	let tempStr: string | null = null;
 	let tempVal: string | number | null = null;
 
@@ -56,7 +56,10 @@ export function merge_elements(
 			tempStr = tempStr ? tempStr + val.token : val.token;
 		} else {
 			if (tempStr !== null) {
-				result.push({token: tempStr, class_or_confidence: tempVal as string | number});
+				result.push({
+					token: tempStr,
+					class_or_confidence: tempVal
+				});
 			}
 			tempStr = val.token;
 			tempVal = val.class_or_confidence;
@@ -64,7 +67,10 @@ export function merge_elements(
 	}
 
 	if (tempStr !== null) {
-		result.push({token: tempStr, class_or_confidence: tempVal as string | number});
+		result.push({
+			token: tempStr,
+			class_or_confidence: tempVal
+		});
 	}
 
 	return result;

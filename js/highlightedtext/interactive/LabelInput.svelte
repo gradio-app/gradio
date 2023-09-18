@@ -1,5 +1,8 @@
 <script lang="ts">
-	type HighlightedTextType = [string, string | number | null, symbol?];
+	type HighlightedTextType = {
+		token: string;
+		class_or_confidence: string | number | null;
+	};
 
 	export let value: HighlightedTextType[];
 	export let category: string | number | null;
@@ -28,15 +31,16 @@
 		let target = e.target as HTMLInputElement;
 		value = [
 			...value.slice(0, elementIndex),
-			[
-				text,
-				target.value === ""
-					? null
-					: isScoresMode
-					? Number(target.value)
-					: target.value,
-			],
-			...value.slice(elementIndex + 1),
+			{
+				token: text,
+				class_or_confidence:
+					target.value === ""
+						? null
+						: isScoresMode
+						? Number(target.value)
+						: target.value
+			},
+			...value.slice(elementIndex + 1)
 		];
 
 		handleValueChange();

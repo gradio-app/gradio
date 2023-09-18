@@ -6,7 +6,7 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { merge_elements } from "../utils";
-	
+
 	export let gradio: Gradio<{
 		select: SelectData;
 		change: never;
@@ -14,10 +14,11 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value:
-		| [{ token: string; class_or_confidence: string | number }]
-		| [];
-	let old_value: [{ token: string; class_or_confidence: string | number }] | [];
+	export let value: {
+		token: string;
+		class_or_confidence: string | number | null;
+	}[];
+	let old_value: typeof value;
 	export let show_legend: boolean;
 	export let color_map: Record<string, string> = {};
 	export let label = gradio.i18n("highlighted_text.highlighted_text");
@@ -27,7 +28,6 @@
 	export let selectable = false;
 	export let combine_adjacent = false;
 	export let mode: "static" | "interactive";
-
 
 	$: if (!color_map && Object.keys(color_map).length) {
 		color_map = color_map;
@@ -42,7 +42,7 @@
 		}
 	}
 
-	$: if (combine_adjacent) {
+	$: if (value && combine_adjacent) {
 		value = merge_elements(value, "equal");
 	}
 </script>
