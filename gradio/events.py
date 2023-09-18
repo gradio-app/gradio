@@ -180,6 +180,7 @@ class EventListener(str):
             """
 
             if fn == "decorator":
+
                 def wrapper(func):
                     event_trigger(
                         block,
@@ -207,7 +208,6 @@ class EventListener(str):
                     return inner
 
                 return Dependency(None, {}, None, wrapper)
-
 
             if status_tracker:
                 warn_deprecation(
@@ -276,8 +276,7 @@ class Events:
         callback=lambda block: setattr(block, "streaming", True),
     )
     like = EventListener(
-        "like",
-        callback=lambda block: setattr(block, "likeable", True)
+        "like", callback=lambda block: setattr(block, "likeable", True)
     )
 
 

@@ -20,15 +20,13 @@ set_documentation_group("component")
 
 
 class PlotData(GradioModel):
-    # TODO: fix literals
-    type: str  # Literal["altair", "bokeh", "plotly", "matplotlib"]
+    type: Literal["altair", "bokeh", "plotly", "matplotlib"]
     plot: str
 
 
 class AltairPlotData(PlotData):
-    # TODO: fix literals
-    chart: str  # Literal["bar", "line", "scatter"]
-    type: str = "altair"  # Literal["altair"] = "altair"
+    chart: Literal["bar", "line", "scatter"]
+    type: Literal["altair"] = "altair"
 
 
 @document()

@@ -518,7 +518,11 @@ class APIInfoParseError(ValueError):
 
 
 def get_type(schema: dict):
-    if "type" in schema:
+    if "const" in schema:
+        return "const"
+    if "enum" in schema:
+        return "enum"
+    elif "type" in schema:
         return schema["type"]
     elif schema.get("$ref"):
         return "$ref"
@@ -550,6 +554,10 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
         return _json_schema_to_python_type(defs[schema["$ref"].split("/")[-1]], defs)
     elif type_ == "null":
         return "None"
+    elif type_ == "const":
+        return f"Litetal[{schema['const']}]"
+    elif type_ == "enum":
+        return f"Literal[{', '.join(schema['enum'])}]"
     elif type_ == "integer":
         return "int"
     elif type_ == "string":
