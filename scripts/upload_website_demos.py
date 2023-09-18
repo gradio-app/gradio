@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import pathlib
 import shutil
@@ -12,7 +13,6 @@ import huggingface_hub
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 DIR = os.path.dirname(__file__)
 GRADIO_DEMO_DIR = os.path.abspath(os.path.join(ROOT, "demo"))
-
 
 # Reasoning:
 # 1. all_demos includes all demos and is for testing PRs
