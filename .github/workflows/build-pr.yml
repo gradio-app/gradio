@@ -1,9 +1,7 @@
 name: Build PR Artifacts
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
   pull_request:
     branches:
       - main
@@ -43,7 +41,7 @@ jobs:
           python -c "import os;print(os.environ['GITHUB_REF'].split('/')[2])" > pr_number.txt
           echo "PR_NUMBER=$(cat pr_number.txt)" >> $GITHUB_OUTPUT
         else 
-          echo "GRADIO_VERSION=$(cat gradio/version.txt)" >> $GITHUB_OUTPUT
+          echo "GRADIO_VERSION=$(python -c 'import json; print(json.load(open("gradio/package.json"))["version"])')" >> $GITHUB_OUTPUT
           echo "PR_NUMBER='main'" >> $GITHUB_OUTPUT
         fi
     - name: Build pr package

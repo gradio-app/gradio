@@ -60,7 +60,7 @@ jobs:
         echo "SPACE_URL=$(cat url.txt)" >> $GITHUB_OUTPUT
     - name: Upload Website Demos
       if: >
-        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.event == 'workflow_dispatch' &&
         github.event.workflow_run.conclusion == 'success'
       id: upload-website-demos
       run: |
