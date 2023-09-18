@@ -10,6 +10,7 @@
 	interface Tab {
 		name: string;
 		id: object;
+		tab_id: string;
 	}
 
 	export let visible = true;
@@ -28,7 +29,7 @@
 
 	setContext(TABS, {
 		register_tab: (tab: Tab) => {
-			tabs.push({ name: tab.name, id: tab.id });
+			tabs.push({ name: tab.name, id: tab.id, tab_id: tab.elem_id });
 			selected_tab.update((current) => current ?? tab.id);
 			tabs = tabs;
 			return tabs.length - 1;
@@ -58,11 +59,12 @@
 	<div class="tab-nav scroll-hide">
 		{#each tabs as t, i (t.id)}
 			{#if t.id === $selected_tab}
-				<button class="selected">
+				<button class="selected" id={t.tab_id + "-button"}>
 					{t.name}
 				</button>
 			{:else}
 				<button
+				id={t.tab_id + "-button"}
 					on:click={() => {
 						change_tab(t.id);
 						dispatch("select", { value: t.name, index: i });
