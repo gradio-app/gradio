@@ -50,7 +50,9 @@ class Row(BlockContext):
         self.equal_height = equal_height
         if variant == "compact":
             self.allow_expected_parents = False
-        super().__init__(visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs)
+        super().__init__(
+            visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
+        )
 
     def get_config(self):
         return {
@@ -133,7 +135,9 @@ class Column(BlockContext):
         self.variant = variant
         if variant == "compact":
             self.allow_expected_parents = False
-        super().__init__(visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs)
+        super().__init__(
+            visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
+        )
 
     def get_config(self):
         return {
@@ -177,7 +181,9 @@ class Tabs(BlockContext, Changeable, Selectable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        BlockContext.__init__(self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs)
+        BlockContext.__init__(
+            self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
+        )
         Changeable.__init__(self)
         Selectable.__init__(self)
         self.selected = selected
@@ -226,7 +232,9 @@ class Tab(BlockContext, Selectable):
             elem_id: An optional string that is assigned as the id of the <div> containing the contents of the Tab layout. The same string followed by "-button" is attached to the Tab button. Can be used for targeting CSS styles.
             elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        BlockContext.__init__(self, elem_id=elem_id, elem_classes=elem_classes, **kwargs)
+        BlockContext.__init__(
+            self, elem_id=elem_id, elem_classes=elem_classes, **kwargs
+        )
         Selectable.__init__(self)
         self.label = label
         self.id = id
@@ -273,7 +281,9 @@ class Group(BlockContext):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        super().__init__(visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs)
+        super().__init__(
+            visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
+        )
 
     def get_config(self):
         return {"type": "group", **super().get_config()}
@@ -374,7 +384,7 @@ class Accordion(BlockContext):
         open: bool = True,
         visible: bool = True,
         elem_id: str | None = None,
-        elem_classes: list[str] | str | None = None,        
+        elem_classes: list[str] | str | None = None,
         **kwargs,
     ):
         """
@@ -386,7 +396,9 @@ class Accordion(BlockContext):
         """
         self.label = label
         self.open = open
-        super().__init__(visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs)
+        super().__init__(
+            visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
+        )
 
     def get_config(self):
         return {
