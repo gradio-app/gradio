@@ -59,12 +59,12 @@ To make this a *streaming* demo, we need to make these changes:
 
 Take a look below.
 
-$code_asr_streaming
+$code_stream_asr
 
 Notice now we have a state variable now, because we need to track all the audio history. `transcribe` gets called whenever there is a new small chunk of audio, but we also need to keep track of all the audio that has been spoken so far in state. 
 As the interface runs, the `transcribe` function gets called, with a record of all the previously spoken audio in `stream`, as well as the new chunk of audio as `new_chunk`. We return the new full audio so that can be stored back in state, and we also return the transcription.
 Here we naively append the audio together and simply call the `transcriber` object on the entire audio. You can imagine more efficient ways of handling this, such as re-processing only the last 5 seconds of audio whenever a new chunk of audio received. 
 
-$demo_asr_streaming
+$demo_stream_asr
 
 Now the ASR model will run inference as you speak! 
