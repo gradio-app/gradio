@@ -1,6 +1,6 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import Slider from "./interactive";
+	import Slider from "./static";
 </script>
 
 <Meta title="Components/Slider" component={Slider} />
