@@ -51,12 +51,9 @@
 
 	function handle_upload({ detail }: CustomEvent<string>): void {
 		if (tool === "color-sketch") {
-			static_image = detail;
+			static_image = normalise_file(detail, root, null);
 		} else {
-			value =
-				(source === "upload" || source === "webcam") && tool === "sketch"
-					? { image: detail, mask: null }
-					: detail;
+			value = { image: normalise_file(detail, root, null), mask: null };
 		}
 		dispatch("upload", detail);
 	}
@@ -194,6 +191,8 @@
 			dispatch("select", { index: coordinates, value: null });
 		}
 	}
+
+	$: console.log(value);
 </script>
 
 <BlockLabel
@@ -241,7 +240,7 @@
 				<!-- svelte-ignore a11y-click-events-have-key-events -->
 				<!-- svelte-ignore a11y-no-noninteractive-element-interactions-->
 				<img
-					src={value_.data}
+					src={value_.image.data}
 					alt=""
 					class:scale-x-[-1]={source === "webcam" && mirror_webcam}
 					class:selectable
@@ -298,7 +297,7 @@
 				<!-- svelte-ignore a11y-click-events-have-key-events -->
 				<!-- svelte-ignore a11y-no-noninteractive-element-interactions-->
 				<img
-					src={value.image || value.data}
+					src={value.image.data || value.data}
 					alt="hello"
 					class:webcam={source === "webcam" && mirror_webcam}
 					class:selectable
