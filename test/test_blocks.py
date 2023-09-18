@@ -665,13 +665,11 @@ class TestBlocksPostprocessing:
             update = gr.Button(value="update")
 
             def update_values(val):
-                return {num2: gr.Number.update(value=42)}
+                return {num2: gr.Number(value=42)}
 
             update.click(update_values, inputs=[num], outputs=[num2])
 
-        output = demo.postprocess_data(
-            0, {num2: gr.Number.update(value=42)}, state=None
-        )
+        output = demo.postprocess_data(0, {num2: gr.Number(value=42)}, state=None)
         assert output[0]["value"] == 42
 
         output = demo.postprocess_data(0, {num2: 23}, state=None)
@@ -698,7 +696,7 @@ class TestBlocksPostprocessing:
         self,
     ):
         def infer(x):
-            return gr.Image.update(value=media_data.BASE64_IMAGE)
+            return gr.Image(value=media_data.BASE64_IMAGE)
 
         with gr.Blocks() as demo:
             prompt = gr.Textbox()
@@ -718,8 +716,8 @@ class TestBlocksPostprocessing:
     ):
         def specific_update():
             return [
-                gr.Image.update(interactive=True),
-                gr.Textbox.update(interactive=True),
+                gr.Image(interactive=True),
+                gr.Textbox(interactive=True),
             ]
 
         def generic_update():
@@ -1179,23 +1177,8 @@ class TestSpecificUpdate:
         )
         assert specific_update == {
             "lines": 4,
-            "info": None,
-            "max_lines": None,
-            "autofocus": None,
-            "placeholder": None,
-            "label": None,
-            "show_label": None,
-            "container": None,
-            "scale": None,
-            "min_width": None,
-            "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
-            "type": None,
             "interactive": False,
-            "show_copy_button": None,
-            "rtl": None,
-            "text_align": None,
-            "autoscroll": None,
             "__type__": "update",
         }
 
@@ -1204,23 +1187,8 @@ class TestSpecificUpdate:
         )
         assert specific_update == {
             "lines": 4,
-            "max_lines": None,
-            "info": None,
-            "placeholder": None,
-            "label": None,
-            "show_label": None,
-            "container": None,
-            "scale": None,
-            "autofocus": None,
-            "min_width": None,
-            "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
-            "type": None,
             "interactive": True,
-            "show_copy_button": None,
-            "rtl": None,
-            "text_align": None,
-            "autoscroll": None,
             "__type__": "update",
         }
 
@@ -1240,19 +1208,9 @@ class TestSpecificUpdate:
             }
         )
         assert specific_update == {
-            "autoplay": None,
-            "source": None,
-            "label": None,
-            "show_label": None,
             "visible": True,
             "value": "test.mp4",
             "interactive": True,
-            "container": None,
-            "height": None,
-            "min_width": None,
-            "scale": None,
-            "width": None,
-            "show_share_button": None,
             "__type__": "update",
         }
 
@@ -1264,12 +1222,12 @@ class TestSpecificUpdate:
             open_btn = gr.Button(label="Open Accordion")
             close_btn = gr.Button(label="Close Accordion")
             open_btn.click(
-                lambda: gr.Accordion.update(open=True, label="Open Accordion"),
+                lambda: gr.Accordion(open=True, label="Open Accordion"),
                 inputs=None,
                 outputs=[accordion],
             )
             close_btn.click(
-                lambda: gr.Accordion.update(open=False, label="Closed Accordion"),
+                lambda: gr.Accordion(open=False, label="Closed Accordion"),
                 inputs=None,
                 outputs=[accordion],
             )

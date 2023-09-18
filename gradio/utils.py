@@ -660,7 +660,14 @@ def get_function_with_locals(
         thread_data.in_event_listener = in_event_listener
         thread_data.event_id = event_id
 
-    return function_wrapper(fn, before_fn=before_fn, before_args=(blocks, event_id))
+    def after_fn():
+        from gradio.context import thread_data
+
+        thread_data.in_event_listener = False
+
+    return function_wrapper(
+        fn, before_fn=before_fn, before_args=(blocks, event_id), after_fn=after_fn
+    )
 
 
 async def cancel_tasks(task_ids: set[str]):

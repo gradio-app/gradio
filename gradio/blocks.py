@@ -62,7 +62,6 @@ from gradio.utils import (
     check_function_inputs_match,
     component_or_layout_class,
     concurrency_count_warning,
-    delete_none,
     get_cancel_function,
     get_continuous_fn,
 )
@@ -360,6 +359,7 @@ class Block:
         generic_update = generic_update.copy()
         del generic_update["__type__"]
         specific_update = cls.update(**generic_update)
+        specific_update = utils.delete_none(specific_update, skip_value=True)
         return specific_update
 
 
@@ -488,13 +488,12 @@ def postprocess_update_dict(block: Block, update_dict: dict, postprocess: bool =
     interactive = update_dict.pop("interactive", None)
     if interactive is not None:
         update_dict["mode"] = "dynamic" if interactive else "static"
-    prediction_value = delete_none(update_dict, skip_value=True)
-    if "value" in prediction_value and postprocess:
+    if "value" in update_dict and postprocess:
         assert isinstance(
             block, components.IOComponent
         ), f"Component {block.__class__} does not support value"
-        prediction_value["value"] = block.postprocess(prediction_value["value"])
-    return prediction_value
+        update_dict["value"] = block.postprocess(update_dict["value"])
+    return update_dict
 
 
 def convert_component_dict_to_list(
@@ -1261,7 +1260,10 @@ Received inputs:
     [{received}]"""
             )
 
-    def preprocess_data(self, fn_index: int, inputs: list[Any], state: SessionState):
+    def preprocess_data(
+        self, fn_index: int, inputs: list[Any], state: SessionState | None
+    ):
+        state = state or SessionState(self)
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
@@ -1326,8 +1328,9 @@ Received outputs:
             )
 
     def postprocess_data(
-        self, fn_index: int, predictions: list | dict, state: SessionState
+        self, fn_index: int, predictions: list | dict, state: SessionState | None
     ):
+        state = state or SessionState(self)
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
         batch = dependency["batch"]
@@ -1369,13 +1372,32 @@ Received outputs:
                 output.append(None)
             else:
                 prediction_value = predictions[i]
+                if utils.is_update(
+                    prediction_value
+                ):  # if update is passed directly (deprecated), remove Nones
+                    prediction_value = utils.delete_none(
+                        prediction_value, skip_value=True
+                    )
+
                 if isinstance(prediction_value, Block):
                     prediction_value = prediction_value.constructor_args
                     prediction_value["__type__"] = "update"
                 if utils.is_update(prediction_value):
+                    if output_id in state:
+                        args = state[output_id].constructor_args.copy()
+                    else:
+                        args = self.blocks[output_id].constructor_args.copy()
+                    args.update(prediction_value)
+                    args.pop("value", None)
+                    args.pop("__type__")
+                    args["render"] = False
+                    state[output_id] = self.blocks[output_id].__class__(
+                        **args, _skip_init_processing=(not block_fn.postprocess)
+                    )
+
                     assert isinstance(prediction_value, dict)
                     prediction_value = postprocess_update_dict(
-                        block=block,
+                        block=state[output_id],
                         update_dict=prediction_value,
                         postprocess=block_fn.postprocess,
                     )
@@ -1426,7 +1448,7 @@ Received outputs:
         session_hash: str | None = None,
         event_id: str | None = None,
         event_data: EventData | None = None,
-        in_event_listener: bool = False,
+        in_event_listener: bool = True,
     ) -> dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -1443,7 +1465,6 @@ Received outputs:
         """
         block_fn = self.fns[fn_index]
         batch = self.dependencies[fn_index]["batch"]
-        state = state or SessionState(self)
 
         if batch:
             max_batch_size = self.dependencies[fn_index]["max_batch_size"]
@@ -1505,19 +1526,6 @@ Received outputs:
                     session_hash=session_hash,
                     run=id(old_iterator) if was_generating else id(iterator),
                 )
-            for component_id, component_output in zip(
-                self.dependencies[fn_index]["outputs"], data
-            ):
-                if utils.is_update(component_output):
-                    if component_id in state:
-                        args = state[component_id].constructor_args.copy()
-                    else:
-                        args = self.blocks[component_id].constructor_args.copy()
-                    args.update(component_output)
-                    args.pop("value", None)
-                    args.pop("__type__")
-                    args["render"] = False
-                    state[component_id] = self.blocks[component_id].__class__(**args)
 
         block_fn.total_runtime += result["duration"]
         block_fn.total_runs += 1
