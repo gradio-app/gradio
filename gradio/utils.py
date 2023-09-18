@@ -37,7 +37,6 @@ from typing import (
 import anyio
 import matplotlib
 import requests
-from pydantic import BaseModel, parse_obj_as
 from typing_extensions import ParamSpec
 
 import gradio

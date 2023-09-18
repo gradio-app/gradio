@@ -1,29 +1,29 @@
 """Pydantic data models and other dataclasses. This is the only file that uses Optional[]
 typing syntax instead of | None syntax to work with pydantic"""
 from __future__ import annotations
+
 import pathlib
 import secrets
 import shutil
 from enum import Enum, auto
-from typing import Any, Dict, List, Optional, Union, NewType
+from typing import Any, Optional, Union
 
 from gradio_client.utils import traverse
 from pydantic import BaseModel, RootModel
 from typing_extensions import Literal
-from abc import abstractmethod
 
 
 class PredictBody(BaseModel):
     session_hash: Optional[str] = None
     event_id: Optional[str] = None
-    data: List[Any]
+    data: list[Any]
     event_data: Optional[Any] = None
     fn_index: Optional[int] = None
     batched: Optional[
         bool
     ] = False  # Whether the data is a batch of samples (i.e. called from the queue if batch=True) or a single sample (i.e. called from the UI)
     request: Optional[
-        Union[Dict, List[Dict]]
+        Union[dict, list[dict]]
     ] = None  # dictionary of request headers, query parameters, url, etc. (used to to pass in request for queuing)
 
 
@@ -59,7 +59,7 @@ class ProgressUnit(BaseModel):
 
 class Progress(BaseModel):
     msg: str = "progress"
-    progress_data: List[ProgressUnit] = []
+    progress_data: list[ProgressUnit] = []
 
 
 class LogMessage(BaseModel):
@@ -69,7 +69,7 @@ class LogMessage(BaseModel):
 
 
 class GradioBaseModel:
-    def copy_to_dir(self, dir: str | pathlib.Path) -> "GradioDataModel":
+    def copy_to_dir(self, dir: str | pathlib.Path) -> GradioDataModel:
         assert isinstance(self, (BaseModel, RootModel))
         if isinstance(dir, str):
             dir = pathlib.Path(dir)
@@ -95,13 +95,13 @@ class GradioBaseModel:
 
 class GradioModel(GradioBaseModel, BaseModel):
     @classmethod
-    def from_json(cls, x) -> "GradioModel":
+    def from_json(cls, x) -> GradioModel:
         return cls(**x)
 
 
 class GradioRootModel(GradioBaseModel, RootModel):
     @classmethod
-    def from_json(cls, x) -> "GradioRootModel":
+    def from_json(cls, x) -> GradioRootModel:
         return cls(x)
 
 
@@ -131,10 +131,10 @@ class FileData(GradioModel):
         )
 
     @classmethod
-    def from_path(cls, path: str) -> "FileData":
+    def from_path(cls, path: str) -> FileData:
         return cls(name=path, is_file=True)
 
-    def _copy_to_dir(self, dir: str) -> "FileData":
+    def _copy_to_dir(self, dir: str) -> FileData:
         pathlib.Path(dir).mkdir(exist_ok=True)
         new_obj = dict(self)
         if self.is_file:
