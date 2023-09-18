@@ -49,12 +49,21 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.routes import App
 
 JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
-GRADIO_VERSION = (
-    (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
-)
 
 P = ParamSpec("P")
 T = TypeVar("T")
+
+
+def get_package_version() -> str:
+    try:
+        package_json_data = (
+            pkgutil.get_data(__name__, "package.json").decode("utf-8").strip()  # type: ignore
+        )
+        package_data = json.loads(package_json_data)
+        version = package_data.get("version", "")
+        return version
+    except Exception:
+        return ""
 
 
 def safe_get_lock() -> asyncio.Lock:

@@ -55,14 +55,19 @@ from gradio.oauth import attach_oauth
 from gradio.queueing import Estimation, Event
 from gradio.route_utils import Request  # noqa: F401
 from gradio.state_holder import StateHolder
-from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
+from gradio.utils import (
+    cancel_tasks,
+    get_package_version,
+    run_coro_in_background,
+    set_task_name,
+)
 
 mimetypes.init()
 
 STATIC_TEMPLATE_LIB = files("gradio").joinpath("templates").as_posix()  # type: ignore
 STATIC_PATH_LIB = files("gradio").joinpath("templates", "frontend", "static").as_posix()  # type: ignore
 BUILD_PATH_LIB = files("gradio").joinpath("templates", "frontend", "assets").as_posix()  # type: ignore
-VERSION = files("gradio").joinpath("version.txt").read_text()
+VERSION = get_package_version()
 
 
 class ORJSONResponse(JSONResponse):

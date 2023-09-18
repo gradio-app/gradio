@@ -57,13 +57,13 @@ from gradio.tunneling import (
     CURRENT_TUNNELS,
 )
 from gradio.utils import (
-    GRADIO_VERSION,
     TupleNoPrint,
     check_function_inputs_match,
     component_or_layout_class,
     concurrency_count_warning,
     get_cancel_function,
     get_continuous_fn,
+    get_package_version,
 )
 
 try:
@@ -806,7 +806,7 @@ class Blocks(BlockContext):
                 "custom_css": self.css is not None,
                 "theme": self.theme.name,
                 "is_custom_theme": is_custom_theme,
-                "version": GRADIO_VERSION,
+                "version": get_package_version(),
             }
             analytics.initiated_analytics(data)
 
