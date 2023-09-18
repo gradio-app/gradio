@@ -1,6 +1,6 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import Slider from "./static";
+	import Slider from "./interactive";
 </script>
 
 <Meta title="Components/Slider" component={Slider} />
@@ -21,13 +21,6 @@
 	name="Slider with step of 10"
 	args={{
 		step: 10
-	}}
-/>
-
-<Story
-	name="Slider in disabled state"
-	args={{
-		mode: "static"
 	}}
 />
 
