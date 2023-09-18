@@ -1,4 +1,7 @@
-import "@gradio/theme";
+import "@gradio/theme/src/reset.css";
+import "@gradio/theme/src/global.css";
+import "@gradio/theme/src/pollen.css";
+import "@gradio/theme/src/typography.css";
 import { client, upload_files } from "@gradio/client";
 import { mount_css } from "./css";
 import Index from "./Index.svelte";

@@ -40,6 +40,8 @@
 
 	let last_value_img;
 
+	$: console.log(value_img);
+
 	$: {
 		if (mounted && value_img !== last_value_img) {
 			last_value_img = value_img;
