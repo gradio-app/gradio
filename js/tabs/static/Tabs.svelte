@@ -59,10 +59,7 @@
 	<div class="tab-nav scroll-hide">
 		{#each tabs as t, i (t.id)}
 			{#if t.id === $selected_tab}
-				<button
-					class="selected"
-					id={t.elem_id ? t.elem_id + "-button" : null}
-				>
+				<button class="selected" id={t.elem_id ? t.elem_id + "-button" : null}>
 					{t.name}
 				</button>
 			{:else}
