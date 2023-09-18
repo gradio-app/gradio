@@ -1391,9 +1391,8 @@ Received outputs:
                     args.pop("value", None)
                     args.pop("__type__")
                     args["render"] = False
-                    state[output_id] = self.blocks[output_id].__class__(
-                        **args, _skip_init_processing=(not block_fn.postprocess)
-                    )
+                    args["_skip_init_processing"] = not block_fn.postprocess
+                    state[output_id] = self.blocks[output_id].__class__(**args)
 
                     assert isinstance(prediction_value, dict)
                     prediction_value = postprocess_update_dict(
