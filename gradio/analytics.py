@@ -4,7 +4,6 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-import pkgutil
 import threading
 import urllib.parse
 import warnings
