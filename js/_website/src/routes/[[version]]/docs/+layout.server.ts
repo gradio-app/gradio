@@ -35,6 +35,7 @@ export async function load({ params, url }) {
 	let js_client = docs_json.js_client;
 	let on_main = params?.version === "main";
 	let wheel: string = WHEEL;
+	let pages: string[] = docs_json.pages;
 
 	return {
 		docs,
@@ -44,6 +45,7 @@ export async function load({ params, url }) {
 		py_client,
 		js_client,
 		on_main,
-		wheel
+		wheel,
+		pages
 	};
 }
