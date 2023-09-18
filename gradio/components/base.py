@@ -26,7 +26,7 @@ from gradio_client.serializing import (
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
-from gradio.blocks import Block, BlockContext
+from gradio.blocks import Block, BlockContext, Updateable
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
     EventListener,
@@ -50,7 +50,7 @@ class _Keywords(Enum):
     FINISHED_ITERATING = "FINISHED_ITERATING"  # Used to skip processing of a component's value (needed for generators + state)
 
 
-class Component(Block, Serializable):
+class Component(Updateable, Block, Serializable):
     """
     A base class for defining the methods that all gradio components should have.
     """

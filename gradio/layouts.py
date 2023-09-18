@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.blocks import BlockContext
+from gradio.blocks import BlockContext, Updateable
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Changeable, Selectable
 
@@ -16,7 +16,7 @@ set_documentation_group("layout")
 
 
 @document()
-class Row(BlockContext):
+class Row(Updateable, BlockContext):
     """
     Row is a layout element within Blocks that renders all children horizontally.
     Example:
@@ -77,7 +77,7 @@ class Row(BlockContext):
 
 
 @document()
-class Column(BlockContext):
+class Column(Updateable, BlockContext):
     """
     Column is a layout element within Blocks that renders all children vertically. The widths of columns can be set through the `scale` and `min_width` parameters.
     If a certain scale results in a column narrower than min_width, the min_width parameter will win.
@@ -214,7 +214,7 @@ TabItem = Tab
 
 
 @document()
-class Group(BlockContext):
+class Group(Updateable, BlockContext):
     """
     Group is a layout element within Blocks which groups together children so that
     they do not have any padding or margin between them.
@@ -248,7 +248,7 @@ class Group(BlockContext):
         }
 
 
-class Box(BlockContext):
+class Box(Updateable, BlockContext):
     """
     DEPRECATED.
     Box is a a layout element which places children in a box with rounded corners and
@@ -288,7 +288,7 @@ class Box(BlockContext):
         return self
 
 
-class Form(BlockContext):
+class Form(Updateable, BlockContext):
     def __init__(self, *, scale: int = 0, min_width: int = 0, **kwargs):
         """
         Parameters:
@@ -308,7 +308,7 @@ class Form(BlockContext):
 
 
 @document()
-class Accordion(BlockContext):
+class Accordion(Updateable, BlockContext):
     """
     Accordion is a layout element which can be toggled to show/hide the contained content.
     Example:

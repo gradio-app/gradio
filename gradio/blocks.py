@@ -117,6 +117,15 @@ def updateable(fn):
 
 updated_cls_set = set()
 
+
+class Updateable:
+    def __new__(cls, *args, **kwargs):
+        if cls not in updated_cls_set:
+            cls.__init__ = updateable(cls.__init__)
+            updated_cls_set.add(cls)
+        return super().__new__(cls)
+
+
 class Block:
     def __init__(
         self,
@@ -147,12 +156,6 @@ class Block:
         if render:
             self.render()
         check_deprecated_parameters(self.__class__.__name__, kwargs=kwargs)
-
-    def __new__(cls, *args, **kwargs):
-        if cls not in updated_cls_set:
-            cls.__init__ = updateable(cls.__init__)
-            updated_cls_set.add(cls)
-        return super().__new__(cls)
 
     def render(self):
         """
