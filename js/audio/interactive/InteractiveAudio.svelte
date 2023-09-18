@@ -44,6 +44,7 @@
 		start_recording: never;
 		stop_recording: never;
 		upload: never;
+		clear: never;
 	}>;
 
 	let old_value: null | FileData | string = null;
@@ -97,6 +98,7 @@
 		on:start_recording={() => gradio.dispatch("start_recording")}
 		on:stop_recording={() => gradio.dispatch("stop_recording")}
 		on:upload={() => gradio.dispatch("upload")}
+		on:clear={() => gradio.dispatch("clear")}
 		on:error={({ detail }) => {
 			loading_status = loading_status || {};
 			loading_status.status = "error";
