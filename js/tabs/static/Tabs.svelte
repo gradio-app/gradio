@@ -61,13 +61,13 @@
 			{#if t.id === $selected_tab}
 				<button
 					class="selected"
-					{...elem_id ? { id: t.elem_id + "-button" } : {}}
+					id={t.elem_id ? t.elem_id + "-button" : null}
 				>
 					{t.name}
 				</button>
 			{:else}
 				<button
-					{...elem_id ? { id: t.elem_id + "-button" } : {}}
+					id={t.elem_id ? t.elem_id + "-button" : null}
 					on:click={() => {
 						change_tab(t.id);
 						dispatch("select", { value: t.name, index: i });
