@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Guide fixes, esp. streaming audio
+fix:Guide fixes, esp. streaming audio
