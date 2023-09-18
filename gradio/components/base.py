@@ -4,12 +4,15 @@ each component. These demos are located in the `demo` directory."""
 
 from __future__ import annotations
 
+import abc
 import hashlib
+import json
 import os
 import secrets
 import shutil
 import tempfile
 import urllib.request
+from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
@@ -20,18 +23,15 @@ import requests
 from fastapi import UploadFile
 from gradio_client import utils as client_utils
 from gradio_client.documentation import set_documentation_group
-from gradio_client.serializing import (
-    Serializable,
-)
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
 from gradio.blocks import Block, BlockContext
-from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
-from gradio.events import (
-    EventListener,
-)
-from gradio.layouts import Column, Form, Row
+from gradio.component_meta import ComponentMeta
+from gradio.data_classes import GradioDataModel
+from gradio.deprecation import warn_deprecation
+from gradio.events import EventListener
+from gradio.layouts import Form
 
 if TYPE_CHECKING:
     from typing import TypedDict
@@ -50,79 +50,80 @@ class _Keywords(Enum):
     FINISHED_ITERATING = "FINISHED_ITERATING"  # Used to skip processing of a component's value (needed for generators + state)
 
 
-class Component(Block, Serializable):
-    """
-    A base class for defining the methods that all gradio components should have.
-    """
+class ComponentBase(ABC, metaclass=ComponentMeta):
+    EVENTS: list[str | EventListener] = []
 
-    def __init__(self, *args, **kwargs):
-        Block.__init__(self, *args, **kwargs)
-        EventListener.__init__(self)
-
-    def __str__(self):
-        return self.__repr__()
-
-    def __repr__(self):
-        return f"{self.get_block_name()}"
-
-    def get_config(self):
-        """
-        :return: a dictionary with context variables for the javascript file associated with the context
-        """
-        return {
-            "name": self.get_block_name(),
-            **super().get_config(),
-        }
-
+    @abstractmethod
     def preprocess(self, x: Any) -> Any:
         """
         Any preprocessing needed to be performed on function input.
         """
         return x
 
+    @abstractmethod
     def postprocess(self, y):
         """
         Any postprocessing needed to be performed on function output.
         """
         return y
 
-    def style(self, *args, **kwargs):
+    @abstractmethod
+    def as_example(self, y):
         """
-        This method is deprecated. Please set these arguments in the Components constructor instead.
+        Return the input data in a way that can be displayed by the examples dataset component in the front-end.
+
+        For example, only return the name of a file as opposed to a full path. Or get the head of a dataframe.
+        Must be able to be converted to a string to put in the config.
         """
-        warn_style_method_deprecation()
-        put_deprecated_params_in_box = False
-        if "rounded" in kwargs:
-            warn_deprecation(
-                "'rounded' styling is no longer supported. To round adjacent components together, place them in a Column(variant='box')."
-            )
-            if isinstance(kwargs["rounded"], (list, tuple)):
-                put_deprecated_params_in_box = True
-            kwargs.pop("rounded")
-        if "margin" in kwargs:
-            warn_deprecation(
-                "'margin' styling is no longer supported. To place adjacent components together without margin, place them in a Column(variant='box')."
-            )
-            if isinstance(kwargs["margin"], (list, tuple)):
-                put_deprecated_params_in_box = True
-            kwargs.pop("margin")
-        if "border" in kwargs:
-            warn_deprecation(
-                "'border' styling is no longer supported. To place adjacent components in a shared border, place them in a Column(variant='box')."
-            )
-            kwargs.pop("border")
-        for key in kwargs:
-            warn_deprecation(f"Unknown style parameter: {key}")
-        if (
-            put_deprecated_params_in_box
-            and isinstance(self.parent, (Row, Column))
-            and self.parent.variant == "default"
-        ):
-            self.parent.variant = "compact"
-        return self
+        pass
+
+    @abstractmethod
+    def api_info(self) -> dict[str, list[str]]:
+        """
+        The typing information for this component as a dictionary whose values are a list of 2 strings: [Python type, language-agnostic description].
+        Keys of the dictionary are: raw_input, raw_output, serialized_input, serialized_output
+        """
+        pass
+
+    @abstractmethod
+    def example_inputs(self) -> Any:
+        """
+        The example inputs for this component as a dictionary whose values are example inputs compatible with this component.
+        Keys of the dictionary are: raw, serialized
+        """
+        pass
+
+    @abstractmethod
+    def flag(self, x: Any | GradioDataModel, flag_dir: str | Path = "") -> str:
+        """
+        Write the component's value to a format that can be stored in a csv or jsonl format for flagging.
+        """
+        pass
+
+    @abstractmethod
+    def read_from_flag(
+        self,
+        x: Any,
+        flag_dir: str | Path | None = None,
+    ) -> GradioDataModel | Any:
+        """
+        Convert the data from the csv or jsonl file into the component state.
+        """
+        return x
+
+    @property
+    @abstractmethod
+    def skip_api(self):
+        """Whether this component should be skipped from the api return value"""
+
+    @classmethod
+    def has_event(cls, event: str | EventListener) -> bool:
+        # names = [e if isinstance(e, str) else e.event_name for e in self.EVENTS]
+        # event = event if isinstance(event, str) else event.event_name
+        return event in cls.EVENTS
 
 
-class IOComponent(Component):
+class Component(ComponentBase, Block):
     """
     A base class for defining methods that all input/output components should have.
     """
@@ -145,14 +146,21 @@ class IOComponent(Component):
         every: float | None = None,
         **kwargs,
     ):
+        # This gets overriden when `select` is called
+
+        self.selectable = False
+        if not hasattr(self, "data_model"):
+            self.data_model: GradioDataModel | None = None
         self.temp_files: set[str] = set()
         self.DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
             Path(tempfile.gettempdir()) / "gradio"
         )
 
-        Component.__init__(
+        Block.__init__(
             self, elem_id=elem_id, elem_classes=elem_classes, visible=visible, **kwargs
         )
+        if isinstance(self, StreamingInput):
+            self.check_streamable()
 
         self.label = label
         self.info = info
@@ -343,11 +351,17 @@ class IOComponent(Component):
             "scale": self.scale,
             "min_width": self.min_width,
             "interactive": self.interactive,
+            "name": self.get_block_name(),
             **super().get_config(),
         }
         if self.info:
             config["info"] = self.info
+        config["custom_component"] = not self.__module__.startswith("gradio")
         return config
+
+    @property
+    def skip_api(self):
+        return False
 
     @staticmethod
     def get_load_fn_and_initial_value(value):
@@ -359,6 +373,12 @@ class IOComponent(Component):
             load_fn = None
         return load_fn, initial_value
 
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        return f"{self.get_block_name()}"
+
     def attach_load_event(self, callable: Callable, every: float | None):
         """Add a load event that runs `callable`, optionally every `every` seconds."""
         self.load_event_to_attach = (callable, every)
@@ -367,18 +387,57 @@ class IOComponent(Component):
         """Return the input data in a way that can be displayed by the examples dataset component in the front-end."""
         return input_data
 
+    def api_info(self) -> dict[str, list[str]]:
+        """
+        The typing information for this component as a dictionary whose values are a list of 2 strings: [Python type, language-agnostic description].
+        Keys of the dictionary are: raw_input, raw_output, serialized_input, serialized_output
+        """
+        if self.data_model is not None:
+            return self.data_model.model_json_schema()
+        raise NotImplementedError(
+            f"The api_info method has not been implemented for {self.get_block_name()}"
+        )
 
-class FormComponent:
+    def flag(self, x: Any, flag_dir: str | Path = "") -> str:
+        """
+        Write the component's value to a format that can be stored in a csv or jsonl format for flagging.
+        """
+        if self.data_model:
+            x = self.data_model.from_json(x)
+            return x.copy_to_dir(flag_dir).model_dump_json()
+        return x
+
+    def read_from_flag(
+        self,
+        x: Any,
+        flag_dir: str | Path | None = None,
+    ):
+        """
+        Convert the data from the csv or jsonl file into the component state.
+        """
+        if self.data_model:
+            return self.data_model.from_json(json.loads(x))
+        return x
+
+
+class FormComponent(Component):
     def get_expected_parent(self) -> type[Form] | None:
         if getattr(self, "container", None) is False:
             return None
         return Form
+
+    def preprocess(self, x: Any) -> Any:
+        return x
+
+    def postprocess(self, y):
+        return y
 
 
 def component(cls_name: str) -> Component:
     obj = utils.component_or_layout_class(cls_name)()
     if isinstance(obj, BlockContext):
         raise ValueError(f"Invalid component: {obj.__class__}")
+    assert isinstance(obj, Component)
     return obj
 
 
@@ -405,8 +464,30 @@ def get_component_instance(
         raise ValueError(
             f"Component must provided as a `str` or `dict` or `Component` but is {comp}"
         )
+
     if render and not component_obj.is_rendered:
         component_obj.render()
     elif render is False and component_obj.is_rendered:
         component_obj.unrender()
+    assert isinstance(component_obj, Component)
     return component_obj
+
+
+class StreamingOutput(metaclass=abc.ABCMeta):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.streaming: bool
+
+    @abc.abstractmethod
+    def stream_output(self, y) -> bytes:
+        pass
+
+
+class StreamingInput(metaclass=abc.ABCMeta):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+    @abc.abstractmethod
+    def check_streamable(self):
+        """Used to check if streaming is supported given the input."""
+        pass

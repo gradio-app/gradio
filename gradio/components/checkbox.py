@@ -5,25 +5,15 @@ from __future__ import annotations
 from typing import Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import BooleanSerializable
 
-from gradio.components.base import FormComponent, IOComponent, _Keywords
-from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
-from gradio.interpretation import NeighborInterpretable
+from gradio.components.base import Component, FormComponent, _Keywords
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class Checkbox(
-    FormComponent,
-    Changeable,
-    Inputable,
-    Selectable,
-    IOComponent,
-    BooleanSerializable,
-    NeighborInterpretable,
-):
+class Checkbox(FormComponent):
     """
     Creates a checkbox that can be set to `True` or `False`.
 
@@ -32,6 +22,8 @@ class Checkbox(
     Examples-format: a {bool} representing whether the box is checked.
     Demos: sentence_builder, titanic_survival
     """
+
+    EVENTS = [Events.change, Events.input, Events.select]
 
     def __init__(
         self,
@@ -65,14 +57,7 @@ class Checkbox(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user selects or deselects Checkbox.
-        Uses event data gradio.SelectData to carry `value` referring to label of checkbox, and `selected` to refer to state of checkbox.
-        See EventData documentation on how to use this event data.
-        """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             info=info,
             every=every,
@@ -87,12 +72,11 @@ class Checkbox(
             value=value,
             **kwargs,
         )
-        NeighborInterpretable.__init__(self)
 
     def get_config(self):
         return {
             "value": self.value,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     @staticmethod
@@ -132,3 +116,9 @@ class Checkbox(
             return scores[0], None
         else:
             return None, scores[0]
+
+    def api_info(self) -> dict[str, list[str]]:
+        return {"type": "boolean"}
+
+    def example_inputs(self) -> bool:
+        return True

@@ -1,13 +1,12 @@
 import pkgutil
 
 import gradio.components as components
-import gradio.inputs as inputs
-import gradio.outputs as outputs
 import gradio.processing_utils
 import gradio.templates
 import gradio.themes as themes
 from gradio.blocks import Blocks
 from gradio.chat_interface import ChatInterface
+from gradio.cli import deploy
 from gradio.components import (
     HTML,
     JSON,
@@ -52,15 +51,12 @@ from gradio.components import (
     StatusTracker,
     Text,
     Textbox,
-    TimeSeries,
-    Timeseries,
     UploadButton,
     Variable,
     Video,
     component,
 )
-from gradio.deploy_space import deploy
-from gradio.events import LikeData, SelectData
+from gradio.events import LikeData, SelectData, EventData
 from gradio.exceptions import Error
 from gradio.external import load
 from gradio.flagging import (
@@ -71,7 +67,6 @@ from gradio.flagging import (
     SimpleCSVLogger,
 )
 from gradio.helpers import (
-    EventData,
     Info,
     Progress,
     Warning,

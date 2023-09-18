@@ -5,20 +5,19 @@
 
 	import { createEventDispatcher } from "svelte";
 	import { tick } from "svelte";
-	import { _ } from "svelte-i18n";
 
 	import { Download, Image } from "@gradio/icons";
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
 	import { format_gallery_for_sharing } from "./utils";
 	import { IconButton } from "@gradio/atoms";
+	import type { I18nFormatter } from "@gradio/utils";
 
 	export let show_label = true;
 	export let label: string;
 	export let root = "";
 	export let root_url: null | string = null;
-	export let value: (FileData | string | [FileData | string, string])[] | null =
-		null;
+	export let value: { image: FileData; caption: string | null }[] | null = null;
 	export let grid_cols: number | number[] | undefined = [2];
 	export let grid_rows: number | number[] | undefined = undefined;
 	export let height: number | "auto" = "auto";
@@ -28,6 +27,7 @@
 		"cover";
 	export let show_share_button = false;
 	export let show_download_button = false;
+	export let i18n: I18nFormatter;
 
 	const dispatch = createEventDispatcher<{
 		select: SelectData;
@@ -38,17 +38,16 @@
 
 	$: was_reset = value == null || value.length == 0 ? true : was_reset;
 
-	let _value: [FileData, string | null][] | null = null;
+	let _value: { image: FileData; caption: string | null }[] | null = null;
 	$: _value =
 		value === null
 			? null
-			: value.map((img) =>
-					Array.isArray(img)
-						? [normalise_file(img[0], root, root_url) as FileData, img[1]]
-						: [normalise_file(img, root, root_url) as FileData, null]
-			  );
+			: value.map((data) => ({
+					image: normalise_file(data.image, root, root_url) as FileData,
+					caption: data.caption
+			  }));
 
-	let prevValue: (FileData | string | [FileData | string, string])[] | null =
+	let prevValue: { image: FileData; caption: string | null }[] | null | null =
 		value;
 	let selected_image = preview && value?.length ? 0 : null;
 	let old_selected_image: number | null = selected_image;
@@ -127,7 +126,7 @@
 			if (selected_image !== null) {
 				dispatch("select", {
 					index: selected_image,
-					value: _value?.[selected_image][1]
+					value: _value?.[selected_image].caption
 				});
 			}
 		}
@@ -186,11 +185,12 @@
 						target={window.__is_colab__ ? "_blank" : null}
 						download="image"
 					>
-						<IconButton Icon={Download} label={$_("common.download")} />
+						<IconButton Icon={Download} label={i18n("common.download")} />
 					</a>
 				{/if}
 
 				<ModifyUpload
+					{i18n}
 					absolute={false}
 					on:clear={() => (selected_image = null)}
 				/>
@@ -200,18 +200,18 @@
 			<img
 				data-testid="detailed-image"
 				on:click={(event) => handle_preview_click(event)}
-				src={_value[selected_image][0].data}
-				alt={_value[selected_image][1] || ""}
-				title={_value[selected_image][1] || null}
-				class:with-caption={!!_value[selected_image][1]}
-				style="height: calc(100% - {_value[selected_image][1]
+				src={_value[selected_image].image.data}
+				alt={_value[selected_image].caption || ""}
+				title={_value[selected_image].caption || null}
+				class:with-caption={!!_value[selected_image].caption}
+				style="height: calc(100% - {_value[selected_image].caption}
 					? '80px'
 					: '60px'})"
 				loading="lazy"
 			/>
-			{#if _value[selected_image][1]}
+			{#if _value[selected_image].caption}
 				<div class="caption">
-					{_value[selected_image][1]}
+					{_value[selected_image].caption}
 				</div>
 			{/if}
 			<div
@@ -227,9 +227,9 @@
 						class:selected={selected_image === i}
 					>
 						<img
-							src={image[0].data}
-							title={image[1] || null}
-							alt={image[1] || null}
+							src={image.image.data}
+							title={image.caption || null}
+							alt={image.caption || null}
 							loading="lazy"
 						/>
 					</button>
@@ -251,6 +251,7 @@
 			{#if show_share_button}
 				<div class="icon-button">
 					<ShareButton
+						{i18n}
 						on:share
 						on:error
 						value={_value}
@@ -258,20 +259,22 @@
 					/>
 				</div>
 			{/if}
-			{#each _value as [image, caption], i}
+			{#each _value as entry, i}
 				<button
 					class="thumbnail-item thumbnail-lg"
 					class:selected={selected_image === i}
 					on:click={() => (selected_image = i)}
 				>
 					<img
-						alt={caption || ""}
-						src={typeof image === "string" ? image : image.data}
+						alt={entry.caption || ""}
+						src={typeof entry.image === "string"
+							? entry.image
+							: entry.image.data}
 						loading="lazy"
 					/>
-					{#if caption}
+					{#if entry.caption}
 						<div class="caption-label">
-							{caption}
+							{entry.caption}
 						</div>
 					{/if}
 				</button>

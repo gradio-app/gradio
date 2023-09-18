@@ -3,7 +3,10 @@
 	import { _ } from "svelte-i18n";
 	import type { client } from "@gradio/client";
 
-	import { component_map } from "./components/directory";
+	import {
+		component_map,
+		fallback_component_map
+	} from "./components/directory";
 	import { create_loading_status_store, app_state } from "./stores";
 	import type { LoadingStatusCollection } from "./stores";
 
@@ -120,7 +123,7 @@
 
 	async function load_component<T extends ComponentMeta["type"]>(
 		name: T,
-		mode: ComponentMeta["props"]["mode"]
+		mode: ComponentMeta["props"]["mode"] | "example"
 	): Promise<{
 		name: T;
 		component: LoadedComponent;
@@ -133,6 +136,16 @@
 				component: c as LoadedComponent
 			};
 		} catch (e) {
+			if (mode === "example") {
+				try {
+					return load_custom_component(name, "example");
+				} catch (e) {
+					return {
+						name,
+						component: await import("@gradio/fallback/example")
+					};
+				}
+			}
 			if (mode === "interactive") {
 				try {
 					const c = await component_map[name]["static"]();
@@ -194,6 +207,50 @@
 
 	$: components, layout, prepare_components();
 
+	async function load_custom_component<T extends ComponentMeta["type"]>(
+		name: T,
+		mode: ComponentMeta["props"]["mode"] | "example"
+	): Promise<{
+		name: T;
+		component: LoadedComponent;
+	}> {
+		const comps = "__ROOT_PATH__";
+		try {
+			if (
+				typeof comps !== "object" ||
+				!comps?.[name] ||
+				!comps?.[name]?.[mode]
+			) {
+				throw new Error(`Component ${name} not found`);
+			}
+			//@ts-ignore
+			const c = await comps[name][mode]();
+			return {
+				name,
+				component: c as LoadedComponent
+			};
+		} catch (e) {
+			if (mode === "interactive") {
+				try {
+					//@ts-ignore
+					const c = await comps[name]["static"]();
+					return {
+						name,
+						component: c as LoadedComponent
+					};
+				} catch (e) {
+					console.error(`failed to load: ${name}`);
+					console.error(e);
+					throw e;
+				}
+			} else {
+				// console.error(`failed to load: ${name}`);
+				// console.error(e);
+				throw e;
+			}
+		}
+	}
+
 	function prepare_components(): void {
 		loading_status = create_loading_status_store();
 
@@ -252,7 +309,29 @@
 			}
 			__type_for_id.set(c.id, c.props.mode);
 
-			const _c = load_component(c.type, c.props.mode);
+			if (c.type === "dataset") {
+				const example_component_map = new Map();
+
+				(c.props.components as string[]).forEach((name: string) => {
+					if (example_component_map.has(name)) {
+						return;
+					}
+					let _c;
+
+					//@ts-ignore
+					_c = load_component(name, "example");
+
+					example_component_map.set(name, _c);
+				});
+
+				c.props.component_map = example_component_map;
+			}
+
+			// maybe load custom
+
+			const _c = c.props.custom_component
+				? load_custom_component(c.type, c.props.mode)
+				: load_component(c.type, c.props.mode);
 			_component_set.add(_c);
 			__component_map.set(`${c.type}_${c.props.mode}`, _c);
 		});

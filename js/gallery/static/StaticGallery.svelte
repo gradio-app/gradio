@@ -14,8 +14,10 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: (FileData | string | [FileData | string, string])[] | null =
-		null;
+	export let value:
+		| { image: FileData; caption: string | null }[]
+		| null
+		| null = null;
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
@@ -47,7 +49,7 @@
 	allow_overflow={false}
 	height={typeof height === "number" ? height : undefined}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker i18n={gradio.i18n} {...loading_status} />
 	<Gallery
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 		on:share={(e) => gradio.dispatch("share", e.detail)}
@@ -65,5 +67,6 @@
 		{allow_preview}
 		{show_share_button}
 		{show_download_button}
+		i18n={gradio.i18n}
 	/>
 </Block>

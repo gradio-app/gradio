@@ -2,19 +2,19 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from pathlib import Path
+from typing import Any, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import StringSerializable
 
-from gradio.components.base import IOComponent, _Keywords
-from gradio.events import Changeable, Inputable
+from gradio.components.base import Component, _Keywords
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
-@document()
-class Code(Changeable, Inputable, IOComponent, StringSerializable):
+@document("languages")
+class Code(Component):
     """
     Creates a Code editor for entering, editing or viewing code.
     Preprocessing: passes a {str} of code into the function.
@@ -35,6 +35,8 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
         "r",
         None,
     ]
+
+    EVENTS = [Events.change, Events.input]
 
     def __init__(
         self,
@@ -83,8 +85,7 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
         assert language in Code.languages, f"Language {language} not supported."
         self.language = language
         self.lines = lines
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             interactive=interactive,
             show_label=show_label,
@@ -103,10 +104,13 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
             "value": self.value,
             "language": self.language,
             "lines": self.lines,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
-    def postprocess(self, y):
+    def preprocess(self, x: Any) -> Any:
+        return x
+
+    def postprocess(self, y: tuple | str | None) -> None | str:
         if y is None:
             return None
         elif isinstance(y, tuple):
@@ -114,6 +118,15 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
                 return file_data.read()
         else:
             return y.strip()
+
+    def flag(self, x: Any, flag_dir: str | Path = "") -> str:
+        return super().flag(x, flag_dir)
+
+    def api_info(self) -> dict[str, list[str]]:
+        return {"type": "string"}
+
+    def example_inputs(self) -> Any:
+        return "print('Hello World')"
 
     @staticmethod
     def update(

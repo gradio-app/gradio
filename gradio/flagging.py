@@ -21,7 +21,7 @@ from gradio import utils
 from gradio.deprecation import warn_deprecation
 
 if TYPE_CHECKING:
-    from gradio.components import IOComponent
+    from gradio.components import Component
 
 set_documentation_group("flagging")
 
@@ -32,7 +32,7 @@ class FlaggingCallback(ABC):
     """
 
     @abstractmethod
-    def setup(self, components: list[IOComponent], flagging_dir: str):
+    def setup(self, components: list[Component], flagging_dir: str):
         """
         This method should be overridden and ensure that everything is set up correctly for flag().
         This method gets called once at the beginning of the Interface.launch() method.
@@ -80,7 +80,7 @@ class SimpleCSVLogger(FlaggingCallback):
     def __init__(self):
         pass
 
-    def setup(self, components: list[IOComponent], flagging_dir: str | Path):
+    def setup(self, components: list[Component], flagging_dir: str | Path):
         self.components = components
         self.flagging_dir = flagging_dir
         os.makedirs(flagging_dir, exist_ok=True)
@@ -99,11 +99,11 @@ class SimpleCSVLogger(FlaggingCallback):
             save_dir = Path(
                 flagging_dir
             ) / client_utils.strip_invalid_filename_characters(component.label or "")
+            save_dir.mkdir(exist_ok=True)
             csv_data.append(
-                component.deserialize(
+                component.flag(
                     sample,
                     save_dir,
-                    None,
                 )
             )
 
@@ -135,7 +135,7 @@ class CSVLogger(FlaggingCallback):
 
     def setup(
         self,
-        components: list[IOComponent],
+        components: list[Component],
         flagging_dir: str | Path,
     ):
         self.components = components
@@ -167,11 +167,12 @@ class CSVLogger(FlaggingCallback):
             ) / client_utils.strip_invalid_filename_characters(
                 getattr(component, "label", None) or f"component {idx}"
             )
+            save_dir.mkdir(exist_ok=True)
             if utils.is_update(sample):
                 csv_data.append(str(sample))
             else:
                 csv_data.append(
-                    component.deserialize(sample, save_dir=save_dir)
+                    component.flag(sample, flag_dir=save_dir)
                     if sample is not None
                     else ""
                 )
@@ -234,7 +235,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         self.info_filename = info_filename
         self.separate_dirs = separate_dirs
 
-    def setup(self, components: list[IOComponent], flagging_dir: str):
+    def setup(self, components: list[Component], flagging_dir: str):
         """
         Params:
         flagging_dir (str): local directory where the dataset is cloned,
@@ -425,7 +426,8 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             # Get deserialized object (will save sample to disk if applicable -file, audio, image,...-)
             label = component.label or ""
             save_dir = data_dir / client_utils.strip_invalid_filename_characters(label)
-            deserialized = component.deserialize(sample, save_dir, None)
+            save_dir.mkdir(exist_ok=True)
+            deserialized = component.flag(sample, save_dir)
 
             # Add deserialized object to row
             features[label] = {"dtype": "string", "_type": "Value"}

@@ -1,7 +1,6 @@
 <script context="module" lang="ts">
 	import { tick } from "svelte";
 	import { pretty_si } from "./utils";
-	import { _ } from "svelte-i18n";
 
 	let items: HTMLDivElement[] = [];
 
@@ -51,7 +50,9 @@
 	import { app_state } from "../../app/src/stores";
 	import Loader from "./Loader.svelte";
 	import type { LoadingStatus } from "./types";
+	import type { I18nFormatter } from "@gradio/utils";
 
+	export let i18n: I18nFormatter;
 	export let eta: number | null = null;
 	export let queue = false;
 	export let queue_position: number | null;
@@ -269,7 +270,7 @@
 			<p class="loading">{loading_text}</p>
 		{/if}
 	{:else if status === "error"}
-		<span class="error">{$_("common.error")}</span>
+		<span class="error">{i18n("common.error")}</span>
 		<slot name="error" />
 	{/if}
 </div>

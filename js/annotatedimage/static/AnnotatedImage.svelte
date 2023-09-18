@@ -6,14 +6,27 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { type FileData, normalise_file } from "@gradio/upload";
-	import { _ } from "svelte-i18n";
+
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: [FileData, [FileData, string][]] | null;
-	let old_value: [FileData, [FileData, string][]] | null;
-	let _value: [FileData, [FileData, string][]] | null;
-	export let label = $_("annotated_image.annotated_image");
+	export let value: {
+		image: FileData;
+		annotations: { image: FileData; label: string }[] | [];
+	} | null = null;
+	let old_value: {
+		image: FileData;
+		annotations: { image: FileData; label: string }[] | [];
+	} | null = null;
+	let _value: {
+		image: FileData;
+		annotations: { image: FileData; label: string }[];
+	} | null = null;
+	export let gradio: Gradio<{
+		change: undefined;
+		select: SelectData;
+	}>;
+	export let label = gradio.i18n("annotated_image.annotated_image");
 	export let show_label = true;
 	export let show_legend = true;
 	export let height: number | undefined;
@@ -26,24 +39,20 @@
 	export let root_url: string;
 	let active: string | null = null;
 	export let loading_status: LoadingStatus;
-	export let gradio: Gradio<{
-		change: undefined;
-		select: SelectData;
-	}>;
 
 	$: {
 		if (value !== old_value) {
 			old_value = value;
 			gradio.dispatch("change");
 		}
-		if (value) {
-			_value = [
-				normalise_file(value[0], root, root_url) as FileData,
-				value[1].map(([file, _label]) => [
-					normalise_file(file, root, root_url) as FileData,
-					_label
-				])
-			];
+		if (value !== null) {
+			_value = {
+				image: normalise_file(value.image, root, root_url) as FileData,
+				annotations: value.annotations.map((ann) => ({
+					image: normalise_file(ann.image, root, root_url) as FileData,
+					label: ann.label
+				}))
+			};
 		} else {
 			_value = null;
 		}
@@ -55,9 +64,9 @@
 		active = null;
 	}
 
-	function handle_click(i: number): void {
+	function handle_click(i: number, value: string): void {
 		gradio.dispatch("select", {
-			value: label,
+			value: value,
 			index: i
 		});
 	}
@@ -75,8 +84,12 @@
 	{scale}
 	{min_width}
 >
-	<StatusTracker {...loading_status} />
-	<BlockLabel {show_label} Icon={Image} label={label || $_("image.image")} />
+	<StatusTracker i18n={gradio.i18n} {...loading_status} />
+	<BlockLabel
+		{show_label}
+		Icon={Image}
+		label={label || gradio.i18n("image.image")}
+	/>
 
 	<div class="container">
 		{#if _value == null}
@@ -87,43 +100,43 @@
 				<img
 					class="base-image"
 					class:fit-height={height}
-					src={_value ? _value[0].data : null}
+					src={_value ? _value.image.data : null}
 				/>
-				{#each _value ? _value[1] : [] as [file, label], i}
+				{#each _value ? _value?.annotations : [] as ann, i}
 					<!-- svelte-ignore a11y-missing-attribute -->
 					<img
 						class="mask fit-height"
-						class:active={active == label}
-						class:inactive={active != label && active != null}
-						src={file.data}
-						style={color_map && label in color_map
+						class:active={active == ann.label}
+						class:inactive={active != ann.label && active != null}
+						src={ann.image.data}
+						style={color_map && ann.label in color_map
 							? null
 							: `filter: hue-rotate(${Math.round(
-									(i * 360) / _value[1].length
+									(i * 360) / _value?.annotations.length
 							  )}deg);`}
 					/>
 				{/each}
 			</div>
 			{#if show_legend && _value}
 				<div class="legend">
-					{#each _value[1] as [_, label], i}
+					{#each _value.annotations as ann, i}
 						<!-- TODO: fix -->
 						<!-- svelte-ignore a11y-click-events-have-key-events -->
 						<!-- svelte-ignore a11y-no-static-element-interactions -->
 						<div
 							class="legend-item"
-							style="background-color: {color_map && label in color_map
-								? color_map[label] + '88'
+							style="background-color: {color_map && ann.label in color_map
+								? color_map[ann.label] + '88'
 								: `hsla(${Math.round(
-										(i * 360) / _value[1].length
+										(i * 360) / _value.annotations.length
 								  )}, 100%, 50%, 0.3)`}"
-							on:mouseover={() => handle_mouseover(label)}
-							on:focus={() => handle_mouseover(label)}
+							on:mouseover={() => handle_mouseover(ann.label)}
+							on:focus={() => handle_mouseover(ann.label)}
 							on:mouseout={() => handle_mouseout()}
 							on:blur={() => handle_mouseout()}
-							on:click={() => handle_click(i)}
+							on:click={() => handle_click(i, ann.label)}
 						>
-							{label}
+							{ann.label}
 						</div>
 					{/each}
 				</div>

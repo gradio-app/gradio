@@ -37,7 +37,7 @@ from typing import (
 import anyio
 import matplotlib
 import requests
-from gradio_client.serializing import Serializable
+from pydantic import BaseModel, parse_obj_as
 from typing_extensions import ParamSpec
 
 import gradio
@@ -45,7 +45,7 @@ from gradio.context import Context
 from gradio.strings import en
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio.blocks import Block, BlockContext, Blocks
+    from gradio.blocks import BlockContext, Blocks
     from gradio.components import Component
     from gradio.routes import App
 
@@ -139,7 +139,7 @@ def watchfn(reloader: SourceFileReloader):
     # The thread running watchfn will be the thread reloading
     # the app. So we need to modify this thread_data attr here
     # so that subsequent calls to reload don't launch the app
-    from gradio.reload import reload_thread
+    from gradio.cli.commands.reload import reload_thread
 
     reload_thread.running_reload = True
 
@@ -165,10 +165,13 @@ def watchfn(reloader: SourceFileReloader):
 
     module = None
     reload_dirs = [Path(dir_) for dir_ in reloader.watch_dirs]
+    import sys
+
+    for dir_ in reload_dirs:
+        sys.path.insert(0, str(dir_))
+
     mtimes = {}
     while reloader.should_watch():
-        import sys
-
         changed = get_changes()
         if changed:
             print(f"Changes detected in: {changed}")
@@ -526,7 +529,7 @@ def sanitize_value_for_csv(value: str | Number) -> str | Number:
     if any(value.startswith(prefix) for prefix in unsafe_prefixes) or any(
         sequence in value for sequence in unsafe_sequences
     ):
-        value = f"'{value}"
+        value = f"{value}"
     return value
 
 
@@ -890,41 +893,6 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path):
     except ValueError:
         return False
     return True
-
-
-def get_serializer_name(block: Block) -> str | None:
-    if not hasattr(block, "serialize"):
-        return None
-
-    def get_class_that_defined_method(meth: Callable):
-        # Adapted from: https://stackoverflow.com/a/25959545/5209347
-        if isinstance(meth, functools.partial):
-            return get_class_that_defined_method(meth.func)
-        if inspect.ismethod(meth) or (
-            inspect.isbuiltin(meth)
-            and getattr(meth, "__self__", None) is not None
-            and getattr(meth.__self__, "__class__", None)
-        ):
-            for cls in inspect.getmro(meth.__self__.__class__):
-                # Find the first serializer defined in gradio_client that
-                if issubclass(cls, Serializable) and "gradio_client" in cls.__module__:
-                    return cls
-                if meth.__name__ in cls.__dict__:
-                    return cls
-            meth = getattr(meth, "__func__", meth)  # fallback to __qualname__ parsing
-        if inspect.isfunction(meth):
-            cls = getattr(
-                inspect.getmodule(meth),
-                meth.__qualname__.split(".<locals>", 1)[0].rsplit(".", 1)[0],
-                None,
-            )
-            if isinstance(cls, type):
-                return cls
-        return getattr(meth, "__objclass__", None)
-
-    cls = get_class_that_defined_method(block.serialize)  # type: ignore
-    if cls:
-        return cls.__name__
 
 
 HTML_TAG_RE = re.compile("<.*?>")

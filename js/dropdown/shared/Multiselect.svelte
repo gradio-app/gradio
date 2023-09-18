@@ -3,7 +3,7 @@
 	import { _, number } from "svelte-i18n";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Remove, DropdownArrow } from "@gradio/icons";
-	import type { SelectData } from "@gradio/utils";
+	import type { SelectData, I18nFormatter } from "@gradio/utils";
 	import DropdownOptions from "./DropdownOptions.svelte";
 	import { handle_filter, handle_change, handle_shared_keys } from "./utils";
 
@@ -20,6 +20,7 @@
 	export let container = true;
 	export let allow_custom_value = false;
 	export let filterable = true;
+	export let i18n: I18nFormatter
 
 	let filter_input: HTMLElement;
 	let input_text = "";
@@ -236,7 +237,7 @@
 						{/if}
 					</span>
 					{#if !disabled}
-						<div class="token-remove" title={$_("common.remove") + " " + s}>
+						<div class="token-remove" title={i18n("common.remove") + " " + s}>
 							<Remove />
 						</div>
 					{/if}
@@ -264,7 +265,7 @@
 					{#if selected_indices.length > 0}
 						<div
 							class="token-remove remove-all"
-							title={$_("common.clear")}
+							title={i18n("common.clear")}
 							on:click={remove_all}
 						>
 							<Remove />

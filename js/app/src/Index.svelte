@@ -196,9 +196,16 @@
 			active_theme_mode = handle_darkmode(wrapper);
 		}
 
+		//@ts-ignore
+		const gradio_dev_mode = window.__GRADIO_DEV__;
+		//@ts-ignore
+		const server_port = window.__GRADIO__SERVER_PORT__;
+
 		const api_url =
-			BUILD_MODE === "dev"
-				? "http://localhost:7860"
+			BUILD_MODE === "dev" || gradio_dev_mode === "dev"
+				? `http://localhost:${
+						typeof server_port === "number" ? server_port : 7860
+				  }`
 				: host || space || src || location.origin;
 
 		app = await client(api_url, {
@@ -327,6 +334,7 @@
 			queue_size={null}
 			translucent={true}
 			{loading_text}
+			i18n={$_}
 		>
 			<!-- todo: translate message text -->
 			<div class="error" slot="error">

@@ -2,12 +2,11 @@ from gradio.components.annotated_image import AnnotatedImage
 from gradio.components.audio import Audio
 from gradio.components.bar_plot import BarPlot
 from gradio.components.base import (
-    Column,
     Component,
     Form,
     FormComponent,
-    IOComponent,
-    Row,
+    StreamingInput,
+    StreamingOutput,
     _Keywords,
     component,
     get_component_instance,
@@ -45,7 +44,6 @@ from gradio.components.slider import Slider
 from gradio.components.state import State, Variable
 from gradio.components.status_tracker import StatusTracker
 from gradio.components.textbox import Textbox
-from gradio.components.timeseries import Timeseries
 from gradio.components.upload_button import UploadButton
 from gradio.components.video import Video
 
@@ -55,7 +53,6 @@ Highlightedtext = HighlightedText
 Annotatedimage = AnnotatedImage
 Highlight = HighlightedText
 Checkboxgroup = CheckboxGroup
-TimeSeries = Timeseries
 Json = JSON
 
 __all__ = [
@@ -73,7 +70,6 @@ __all__ = [
     "CheckboxGroup",
     "Code",
     "ColorPicker",
-    "Column",
     "Dataframe",
     "DataFrame",
     "Dataset",
@@ -83,7 +79,6 @@ __all__ = [
     "Gallery",
     "HTML",
     "Image",
-    "IOComponent",
     "Interpretation",
     "JSON",
     "Json",
@@ -99,17 +94,14 @@ __all__ = [
     "HighlightedText",
     "AnnotatedImage",
     "CheckboxGroup",
-    "Timeseries",
     "Text",
     "Highlightedtext",
     "Annotatedimage",
     "Highlight",
     "Checkboxgroup",
-    "TimeSeries",
     "Number",
     "Plot",
     "Radio",
-    "Row",
     "ScatterPlot",
     "Slider",
     "State",
@@ -117,4 +109,6 @@ __all__ = [
     "StatusTracker",
     "UploadButton",
     "Video",
+    "StreamingInput",
+    "StreamingOutput",
 ]

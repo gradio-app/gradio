@@ -5,26 +5,15 @@ from __future__ import annotations
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import ListStringSerializable
 
-from gradio.components.base import FormComponent, IOComponent, _Keywords
-from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
-from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
-from gradio.interpretation import NeighborInterpretable
+from gradio.components.base import Component, FormComponent, _Keywords
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class CheckboxGroup(
-    FormComponent,
-    Changeable,
-    Inputable,
-    Selectable,
-    IOComponent,
-    ListStringSerializable,
-    NeighborInterpretable,
-):
+class CheckboxGroup(FormComponent):
     """
     Creates a set of checkboxes of which a subset can be checked.
     Preprocessing: passes the list of checked checkboxes as a {List[str | int | float]} or their indices as a {List[int]} into the function, depending on `type`.
@@ -32,6 +21,8 @@ class CheckboxGroup(
     Examples-format: a {List[str | int | float]} representing the values to be checked.
     Demos: sentence_builder, titanic_survival
     """
+
+    EVENTS = [Events.change, Events.input, Events.select]
 
     def __init__(
         self,
@@ -80,14 +71,7 @@ class CheckboxGroup(
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
             )
         self.type = type
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user selects or deselects within CheckboxGroup.
-        Uses event data gradio.SelectData to carry `value` referring to label of selected checkbox, `index` to refer to index, and `selected` to refer to state of checkbox.
-        See EventData documentation on how to use this event data.
-        """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             info=info,
             every=every,
@@ -102,20 +86,19 @@ class CheckboxGroup(
             value=value,
             **kwargs,
         )
-        NeighborInterpretable.__init__(self)
 
     def get_config(self):
         return {
             "choices": self.choices,
             "value": self.value,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     def example_inputs(self) -> dict[str, Any]:
-        return {
-            "raw": [self.choices[0][1]] if self.choices else None,
-            "serialized": [self.choices[0][1]] if self.choices else None,
-        }
+        return [self.choices[0][1]] if self.choices else None
+
+    def api_info(self) -> dict[str, bool | dict]:
+        return {"type": "array", "items": {"type": "string"}}
 
     @staticmethod
     def update(
@@ -182,55 +165,3 @@ class CheckboxGroup(
         if not isinstance(y, list):
             y = [y]
         return y
-
-    def get_interpretation_neighbors(self, x):
-        leave_one_out_sets = []
-        for choice in [value for _, value in self.choices]:
-            leave_one_out_set = list(x)
-            if choice in leave_one_out_set:
-                leave_one_out_set.remove(choice)
-            else:
-                leave_one_out_set.append(choice)
-            leave_one_out_sets.append(leave_one_out_set)
-        return leave_one_out_sets, {}
-
-    def get_interpretation_scores(self, x, neighbors, scores, **kwargs):
-        """
-        Returns:
-            For each tuple in the list, the first value represents the interpretation score if the input is False, and the second if the input is True.
-        """
-        final_scores = []
-        for choice, score in zip([value for _, value in self.choices], scores):
-            score_set = [score, None] if choice in x else [None, score]
-            final_scores.append(score_set)
-        return final_scores
-
-    def style(
-        self,
-        *,
-        item_container: bool | None = None,
-        container: bool | None = None,
-        **kwargs,
-    ):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if item_container is not None:
-            warn_deprecation("The `item_container` parameter is deprecated.")
-        if container is not None:
-            self.container = container
-        return self
-
-    def as_example(self, input_data):
-        if input_data is None:
-            return None
-        elif not isinstance(input_data, list):
-            input_data = [input_data]
-        for data in input_data:
-            if data not in [c[0] for c in self.choices]:
-                raise ValueError(f"Example {data} provided not a valid choice.")
-        return [
-            next((c[0] for c in self.choices if c[1] == data), None)
-            for data in input_data
-        ]

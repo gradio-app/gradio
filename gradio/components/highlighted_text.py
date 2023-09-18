@@ -2,22 +2,29 @@
 
 from __future__ import annotations
 
-from typing import Callable, Literal
+from typing import Any, Callable, Literal, Union
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import (
-    JSONSerializable,
-)
 
-from gradio.components.base import IOComponent, _Keywords
+from gradio.components.base import Component, _Keywords
+from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.deprecation import warn_style_method_deprecation
-from gradio.events import Changeable, EventListenerMethod, Selectable
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
+class HighlightedToken(GradioModel):
+    token: str
+    class_or_confidence: Union[str, float, None] = None
+
+
+class HighlightedTextData(GradioRootModel):
+    root: list[HighlightedToken]
+
+
 @document()
-class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
+class HighlightedText(Component):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
     Preprocessing: passes a list of tuples as a {List[Tuple[str, float | str | None]]]} into the function. If no labels are provided, the text will be displayed as a single span.
@@ -26,6 +33,9 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
     Demos: diff_texts, text_analysis
     Guides: named-entity-recognition
     """
+
+    data_model = HighlightedTextData
+    EVENTS = [Events.change, Events.select]
 
     def __init__(
         self,
@@ -70,14 +80,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
         self.show_legend = show_legend
         self.combine_adjacent = combine_adjacent
         self.adjacent_separator = adjacent_separator
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user selects Highlighted text span.
-        Uses event data gradio.SelectData to carry `value` referring to selected [text, label] tuple, and `index` to refer to span index.
-        See EventData documentation on how to use this event data.
-        """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -99,8 +102,11 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
             "value": self.value,
             "selectable": self.selectable,
             "combine_adjacent": self.combine_adjacent,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
+
+    def example_inputs(self) -> Any:
+        return {"value": [{"token": "Hello", "class_or_confidence": "1"}]}
 
     @staticmethod
     def update(
@@ -135,7 +141,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
 
     def postprocess(
         self, y: list[tuple[str, str | float | None]] | dict | None
-    ) -> list[tuple[str, str | float | None]] | None:
+    ) -> HighlightedTextData | None:
         """
         Parameters:
             y: List of (word, category) tuples, or a dictionary of two keys: "text", and "entities", which itself is a list of dictionaries, each of which have the keys: "entity" (or "entity_group"), "start", and "end"
@@ -187,9 +193,16 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
                     running_category = category
             if running_text is not None:
                 output.append((running_text, running_category))
-            return output
+            return HighlightedTextData(
+                root=[HighlightedToken(token=o[0], class_or_confidence=o[1]) for o in output]
+            )
         else:
-            return y
+            return HighlightedTextData(
+                root=[HighlightedToken(token=o[0], class_or_confidence=o[1]) for o in y]
+            )
+
+    def preprocess(self, x: Any) -> Any:
+        return super().preprocess(x)
 
     def style(
         self,

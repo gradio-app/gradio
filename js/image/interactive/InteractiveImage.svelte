@@ -5,15 +5,16 @@
 	import Image from "./Image.svelte";
 
 	import { Block } from "@gradio/atoms";
-	import { _ } from "svelte-i18n";
+
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { UploadText } from "@gradio/atoms";
+	import type { FileData } from "js/upload/src";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: null | string = null;
+	export let value: null | FileData = null;
 	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let tool: "editor" | "select" | "sketch" | "color-sketch" = "editor";
 	export let label: string;
@@ -32,6 +33,8 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
+	export let root: string;
+
 	export let gradio: Gradio<{
 		change: never;
 		error: string;
@@ -65,7 +68,7 @@
 	{scale}
 	{min_width}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker i18n={gradio.i18n} {...loading_status} />
 
 	<Image
 		{brush_radius}
@@ -76,6 +79,7 @@
 		{tool}
 		{selectable}
 		{mask_opacity}
+		{root}
 		on:edit={() => gradio.dispatch("edit")}
 		on:clear={() => gradio.dispatch("clear")}
 		on:stream={() => gradio.dispatch("stream")}
@@ -93,7 +97,8 @@
 		{pending}
 		{streaming}
 		{mirror_webcam}
+		i18n={gradio.i18n}
 	>
-		<UploadText type="image" />
+		<UploadText i18n={gradio.i18n} type="image" />
 	</Image>
 </Block>

@@ -5,17 +5,19 @@
 	import StaticImage from "./ImagePreview.svelte";
 
 	import { Block } from "@gradio/atoms";
-	import { _ } from "svelte-i18n";
+
 	import { StatusTracker } from "@gradio/statustracker";
+	import type { FileData } from "js/upload/src";
 	import type { LoadingStatus } from "@gradio/statustracker";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: null | string = null;
+	export let value: null | FileData = null;
 	export let label: string;
 	export let show_label: boolean;
 	export let show_download_button: boolean;
+	export let root: string;
 
 	export let height: number | undefined;
 	export let width: number | undefined;
@@ -53,16 +55,18 @@
 	{scale}
 	{min_width}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker i18n={gradio.i18n} {...loading_status} />
 	<StaticImage
 		on:select={({ detail }) => gradio.dispatch("select", detail)}
 		on:share={({ detail }) => gradio.dispatch("share", detail)}
 		on:error={({ detail }) => gradio.dispatch("error", detail)}
+		{root}
 		{value}
 		{label}
 		{show_label}
 		{show_download_button}
 		{selectable}
 		{show_share_button}
+		i18n={gradio.i18n}
 	/>
 </Block>

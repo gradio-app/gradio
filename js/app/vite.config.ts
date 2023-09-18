@@ -16,17 +16,19 @@ const version = version_raw.replace(/\./g, "-");
 
 const client_version_path = resolve(
 	__dirname,
-	"../../client/python/gradio_client/version.txt"
+	"../../client/python/gradio_client/package.json"
 );
-const client_version_raw = readFileSync(client_version_path, {
-	encoding: "utf-8"
-}).trim();
-const client_version = client_version_raw.replace(/\./g, "-");
+const client_version_raw = JSON.parse(
+	readFileSync(client_version_path, {
+		encoding: "utf-8"
+	})
+).version;
 
 import {
 	inject_ejs,
 	patch_dynamic_import,
 	generate_cdn_entry,
+	generate_dev_entry,
 	handle_ce_css
 } from "./build_plugins";
 
@@ -69,26 +71,36 @@ export default defineConfig(({ mode }) => {
 			// while we need to disable inlining for the wheel files to pass their URLs to `micropip.install()`.
 			// So we build it as an app and only use the bundled JS and CSS files as library assets, ignoring the HTML file.
 			// See also `lite.ts` about it.
-			rollupOptions: is_lite && {
-				input: "./lite.html",
-				output: {
-					// To use it as a library, we don't add the hash to the file name.
-					entryFileNames: "lite.js",
-					assetFileNames: (file) => {
-						if (file.name?.endsWith(".whl")) {
-							// Python wheel files must follow the naming rules to be installed, so adding a hash to the name is not allowed.
-							return `assets/[name].[ext]`;
-						}
-						if (file.name === "lite.css") {
+			rollupOptions: is_lite
+				? {
+						input: "./lite.html",
+						output: {
 							// To use it as a library, we don't add the hash to the file name.
-							return `[name].[ext]`;
-						} else {
-							return `assets/[name]-[hash].[ext]`;
+							entryFileNames: "lite.js",
+							assetFileNames: (file) => {
+								if (file.name?.endsWith(".whl")) {
+									// Python wheel files must follow the naming rules to be installed, so adding a hash to the name is not allowed.
+									return `assets/[name].[ext]`;
+								}
+								if (file.name === "lite.css") {
+									// To use it as a library, we don't add the hash to the file name.
+									return `[name].[ext]`;
+								} else {
+									return `assets/[name]-[hash].[ext]`;
+								}
+							}
 						}
-					}
-				}
-			}
+				  }
+				: {
+						external: [
+							"__REPLACE_ME_INTERACTIVE__",
+							"__REPLACE_ME_STATIC__",
+							"../../../node/dev/svelte.js",
+							"../../../node/dev/svelte-internal.js"
+						]
+				  }
 		},
+
 		define: {
 			BUILD_MODE: production ? JSON.stringify("prod") : JSON.stringify("dev"),
 			BACKEND_URL: production
@@ -123,7 +135,8 @@ export default defineConfig(({ mode }) => {
 			svelte({
 				inspector: true,
 				compilerOptions: {
-					dev: !production
+					dev: true,
+					discloseVersion: false
 				},
 				hot: !process.env.VITEST && !production,
 				preprocess: sveltePreprocess({
@@ -142,6 +155,7 @@ export default defineConfig(({ mode }) => {
 				cdn_url: CDN_URL
 			}),
 			generate_cdn_entry({ enable: is_cdn, cdn_url: CDN_URL }),
+			generate_dev_entry({ enable: mode === "dev:custom" }),
 			handle_ce_css()
 		],
 		test: {
@@ -151,6 +165,7 @@ export default defineConfig(({ mode }) => {
 				TEST_MODE === "node"
 					? ["**/*.node-test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"]
 					: ["**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+			exclude: ["**/node_modules/**", "**/gradio/gradio/**"],
 			globals: true
 		},
 		resolve: {

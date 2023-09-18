@@ -48,7 +48,7 @@
 	padding={container}
 >
 	{#if loading_status}
-		<StatusTracker {...loading_status} />
+		<StatusTracker i18n={gradio.i18n} {...loading_status} />
 	{/if}
 
 	<TextBox

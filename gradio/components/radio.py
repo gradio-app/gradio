@@ -5,26 +5,15 @@ from __future__ import annotations
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import StringSerializable
 
-from gradio.components.base import FormComponent, IOComponent, _Keywords
-from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
-from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
-from gradio.interpretation import NeighborInterpretable
+from gradio.components.base import Component, FormComponent, _Keywords
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class Radio(
-    FormComponent,
-    Selectable,
-    Changeable,
-    Inputable,
-    IOComponent,
-    StringSerializable,
-    NeighborInterpretable,
-):
+class Radio(FormComponent):
     """
     Creates a set of (string or numeric type) radio buttons of which only one can be selected.
     Preprocessing: passes the value of the selected radio button as a {str} or {int} or {float} or its index as an {int} into the function, depending on `type`.
@@ -33,6 +22,8 @@ class Radio(
 
     Demos: sentence_builder, titanic_survival, blocks_essay
     """
+
+    EVENTS = [Events.select, Events.change, Events.input]
 
     def __init__(
         self,
@@ -81,14 +72,7 @@ class Radio(
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
             )
         self.type = type
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user selects Radio option.
-        Uses event data gradio.SelectData to carry `value` referring to label of selected option, and `index` to refer to index.
-        See EventData documentation on how to use this event data.
-        """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             info=info,
             every=every,
@@ -103,20 +87,16 @@ class Radio(
             value=value,
             **kwargs,
         )
-        NeighborInterpretable.__init__(self)
 
     def get_config(self):
         return {
             "choices": self.choices,
             "value": self.value,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     def example_inputs(self) -> dict[str, Any]:
-        return {
-            "raw": self.choices[0][1] if self.choices else None,
-            "serialized": self.choices[0][1] if self.choices else None,
-        }
+        return self.choices[0][1] if self.choices else None
 
     @staticmethod
     def update(
@@ -173,38 +153,8 @@ class Radio(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
 
-    def get_interpretation_neighbors(self, x):
-        choices = [value for _, value in self.choices]
-        choices.remove(x)
-        return choices, {}
+    def postprocess(self, y):
+        return y
 
-    def get_interpretation_scores(
-        self, x, neighbors, scores: list[float | None], **kwargs
-    ) -> list:
-        """
-        Returns:
-            Each value represents the interpretation score corresponding to each choice.
-        """
-        choices = [value for _, value in self.choices]
-        scores.insert(choices.index(x), None)
-        return scores
-
-    def style(
-        self,
-        *,
-        item_container: bool | None = None,
-        container: bool | None = None,
-        **kwargs,
-    ):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if item_container is not None:
-            warn_deprecation("The `item_container` parameter is deprecated.")
-        if container is not None:
-            self.container = container
-        return self
-
-    def as_example(self, input_data):
-        return next((c[0] for c in self.choices if c[1] == input_data), None)
+    def api_info(self) -> dict[str, list[str]]:
+        return {"type": "string"}

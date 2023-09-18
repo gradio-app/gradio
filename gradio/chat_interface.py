@@ -16,13 +16,13 @@ from gradio.blocks import Blocks
 from gradio.components import (
     Button,
     Chatbot,
-    IOComponent,
+    Component,
     Markdown,
     State,
     Textbox,
     get_component_instance,
 )
-from gradio.events import Dependency, EventListenerMethod
+from gradio.events import Dependency
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.layouts import Accordion, Column, Group, Row
 from gradio.themes import ThemeClass as Theme
@@ -57,7 +57,7 @@ class ChatInterface(Blocks):
         *,
         chatbot: Chatbot | None = None,
         textbox: Textbox | None = None,
-        additional_inputs: str | IOComponent | list[str | IOComponent] | None = None,
+        additional_inputs: str | Component | list[str | Component] | None = None,
         additional_inputs_accordion_name: str = "Additional Inputs",
         examples: list[str] | None = None,
         cache_examples: bool | None = None,
@@ -343,9 +343,7 @@ class ChatInterface(Blocks):
                 api_name=False,
             )
 
-    def _setup_stop_events(
-        self, event_trigger: EventListenerMethod, event_to_cancel: Dependency
-    ) -> None:
+    def _setup_stop_events(self, event_trigger, event_to_cancel: Dependency) -> None:
         if self.stop_btn and self.is_generator:
             if self.submit_btn:
                 event_trigger(

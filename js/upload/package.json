@@ -8,7 +8,10 @@
 	"license": "ISC",
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
-		"@gradio/icons": "workspace:^"
+		"@gradio/icons": "workspace:^",
+		"@gradio/client": "workspace:^",
+		"@gradio/upload": "workspace:^",
+		"@gradio/utils": "workspace:^"
 	},
 	"main_changeset": true
 }

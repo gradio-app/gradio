@@ -1,7 +1,7 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import HighlightedText from "./interactive/InteractiveHighlightedText.svelte";
-	import { Gradio } from "../app/src/gradio_helper";
+	import HighlightedText from "./static";
+	import { Gradio } from "@gradio/utils";
 </script>
 
 <Meta title="Components/HighlightedText" component={HighlightedText} />

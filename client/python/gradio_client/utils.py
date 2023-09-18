@@ -35,20 +35,6 @@ SPACE_FETCHER_URL = "https://gradio-space-api-fetcher-v2.hf.space/api"
 RESET_URL = "reset"
 SPACE_URL = "https://hf.space/{}"
 
-SKIP_COMPONENTS = {
-    "state",
-    "row",
-    "column",
-    "tabs",
-    "tab",
-    "tabitem",
-    "box",
-    "form",
-    "accordion",
-    "group",
-    "interpretation",
-    "dataset",
-}
 STATE_COMPONENT = "state"
 INVALID_RUNTIME = [
     SpaceStage.NO_APP_FILE,
@@ -534,6 +520,8 @@ class APIInfoParseError(ValueError):
 def get_type(schema: dict):
     if "type" in schema:
         return schema["type"]
+    elif schema.get("$ref"):
+        return "$ref"
     elif schema.get("oneOf"):
         return "oneOf"
     elif schema.get("anyOf"):
@@ -542,7 +530,15 @@ def get_type(schema: dict):
         raise APIInfoParseError(f"Cannot parse type for {schema}")
 
 
+FILE_DATA = "Dict(name: str | None, data: str | None, size: int | None, is_file: bool | None, orig_name: str | None, mime_type: str | None)"
+
+
 def json_schema_to_python_type(schema: Any) -> str:
+    type_ = _json_schema_to_python_type(schema, schema.get("$defs"))
+    return type_.replace(FILE_DATA, "filepath")
+
+
+def _json_schema_to_python_type(schema: Any, defs) -> str:
     """Convert the json schema into a python type hint"""
     type_ = get_type(schema)
     if type_ == {}:
@@ -550,6 +546,8 @@ def json_schema_to_python_type(schema: Any) -> str:
             return "Dict[Any, Any]"
         else:
             return "Any"
+    elif type_ == "$ref":
+        return _json_schema_to_python_type(defs[schema["$ref"].split("/")[-1]], defs)
     elif type_ == "null":
         return "None"
     elif type_ == "integer":
@@ -564,22 +562,44 @@ def json_schema_to_python_type(schema: Any) -> str:
         items = schema.get("items")
         if "prefixItems" in items:
             elements = ", ".join(
-                [json_schema_to_python_type(i) for i in items["prefixItems"]]
+                [_json_schema_to_python_type(i, defs) for i in items["prefixItems"]]
             )
             return f"Tuple[{elements}]"
         else:
-            elements = json_schema_to_python_type(items)
+            elements = _json_schema_to_python_type(items, defs)
             return f"List[{elements}]"
     elif type_ == "object":
+
+        def get_desc(v):
+            return f" ({v.get('description')})" if v.get("description") else ""
+
         des = ", ".join(
             [
-                f"{n}: {json_schema_to_python_type(v)} ({v.get('description')})"
+                f"{n}: {_json_schema_to_python_type(v, defs)}{get_desc(v)}"
                 for n, v in schema["properties"].items()
+                if n != "$defs"
             ]
         )
         return f"Dict({des})"
     elif type_ in ["oneOf", "anyOf"]:
-        desc = " | ".join([json_schema_to_python_type(i) for i in schema[type_]])
+        desc = " | ".join([_json_schema_to_python_type(i, defs) for i in schema[type_]])
         return desc
     else:
         raise APIInfoParseError(f"Cannot parse schema {schema}")
+
+
+def traverse(json_obj, func, is_root):
+    if is_root(json_obj):
+        return func(json_obj)
+    elif isinstance(json_obj, dict):
+        new_obj = {}
+        for key, value in json_obj.items():
+            new_obj[key] = traverse(value, func, is_root)
+        return new_obj
+    elif isinstance(json_obj, list):
+        new_obj = []
+        for item in json_obj:
+            new_obj.append(traverse(item, func, is_root))
+        return new_obj
+    else:
+        return json_obj

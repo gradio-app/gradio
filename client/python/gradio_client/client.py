@@ -29,9 +29,8 @@ from huggingface_hub.utils import (
 )
 from packaging import version
 
-from gradio_client import serializing, utils
+from gradio_client import utils
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import Serializable
 from gradio_client.utils import (
     Communicator,
     JobStatus,
@@ -126,6 +125,7 @@ class Client:
         self.upload_url = urllib.parse.urljoin(self.src, utils.UPLOAD_URL)
         self.reset_url = urllib.parse.urljoin(self.src, utils.RESET_URL)
         self.config = self._get_config()
+        self._info = self._get_api_info()
         self.session_hash = str(uuid.uuid4())
 
         self.endpoints = [
@@ -351,6 +351,32 @@ class Client:
 
         return job
 
+    def _get_api_info(self):
+        if self.serialize:
+            api_info_url = urllib.parse.urljoin(self.src, utils.API_INFO_URL)
+        else:
+            api_info_url = urllib.parse.urljoin(self.src, utils.RAW_API_INFO_URL)
+
+        # Versions of Gradio older than 3.29.0 returned format of the API info
+        # from the /info endpoint
+        if version.parse(self.config.get("version", "2.0")) > version.Version("3.36.1"):
+            r = requests.get(api_info_url, headers=self.headers)
+            if r.ok:
+                info = r.json()
+            else:
+                raise ValueError(f"Could not fetch api info for {self.src}")
+        else:
+            fetch = requests.post(
+                utils.SPACE_FETCHER_URL,
+                json={"config": json.dumps(self.config), "serialize": self.serialize},
+            )
+            if fetch.ok:
+                info = fetch.json()["api"]
+            else:
+                raise ValueError(f"Could not fetch api info for {self.src}")
+
+        return info
+
     def view_api(
         self,
         all_endpoints: bool | None = None,
@@ -426,42 +452,20 @@ class Client:
             }
 
         """
-        if self.serialize:
-            api_info_url = urllib.parse.urljoin(self.src, utils.API_INFO_URL)
-        else:
-            api_info_url = urllib.parse.urljoin(self.src, utils.RAW_API_INFO_URL)
-
-        # Versions of Gradio older than 3.29.0 returned format of the API info
-        # from the /info endpoint
-        if version.parse(self.config.get("version", "2.0")) > version.Version("3.36.1"):
-            r = requests.get(api_info_url, headers=self.headers)
-            if r.ok:
-                info = r.json()
-            else:
-                raise ValueError(f"Could not fetch api info for {self.src}")
-        else:
-            fetch = requests.post(
-                utils.SPACE_FETCHER_URL,
-                json={"config": json.dumps(self.config), "serialize": self.serialize},
-            )
-            if fetch.ok:
-                info = fetch.json()["api"]
-            else:
-                raise ValueError(f"Could not fetch api info for {self.src}")
-        num_named_endpoints = len(info["named_endpoints"])
-        num_unnamed_endpoints = len(info["unnamed_endpoints"])
+        num_named_endpoints = len(self._info["named_endpoints"])
+        num_unnamed_endpoints = len(self._info["unnamed_endpoints"])
         if num_named_endpoints == 0 and all_endpoints is None:
             all_endpoints = True
 
         human_info = "Client.predict() Usage Info\n---------------------------\n"
         human_info += f"Named API endpoints: {num_named_endpoints}\n"
 
-        for api_name, endpoint_info in info["named_endpoints"].items():
+        for api_name, endpoint_info in self._info["named_endpoints"].items():
             human_info += self._render_endpoints_info(api_name, endpoint_info)
 
         if all_endpoints:
             human_info += f"\nUnnamed API endpoints: {num_unnamed_endpoints}\n"
-            for fn_index, endpoint_info in info["unnamed_endpoints"].items():
+            for fn_index, endpoint_info in self._info["unnamed_endpoints"].items():
                 # When loading from json, the fn_indices are read as strings
                 # because json keys can only be strings
                 human_info += self._render_endpoints_info(int(fn_index), endpoint_info)
@@ -474,7 +478,7 @@ class Client:
         if return_format == "str":
             return human_info
         elif return_format == "dict":
-            return info
+            return self._info
 
     def reset_session(self) -> None:
         self.session_hash = str(uuid.uuid4())
@@ -535,6 +539,39 @@ class Client:
 
     def __str__(self):
         return self.view_api(print_info=False, return_format="str")
+
+    def download_file(
+        self,
+        x: str | None,
+        save_dir: str | None = None,
+        root_url: str | None = None,
+        hf_token: str | None = None,
+    ) -> str | None:
+        if x is None:
+            return None
+        if isinstance(x, str):
+            file_name = utils.decode_base64_to_file(x, dir=save_dir).name
+        elif isinstance(x, dict):
+            if x.get("is_file"):
+                filepath = x.get("name")
+                assert filepath is not None, f"The 'name' field is missing in {x}"
+                if root_url is not None:
+                    file_name = utils.download_tmp_copy_of_file(
+                        root_url + "file=" + filepath,
+                        hf_token=hf_token,
+                        dir=save_dir,
+                    )
+                else:
+                    file_name = utils.create_tmp_copy_of_file(filepath, dir=save_dir)
+            else:
+                data = x.get("data")
+                assert data is not None, f"The 'data' field is missing in {x}"
+                file_name = utils.decode_base64_to_file(data, dir=save_dir).name
+        else:
+            raise ValueError(
+                f"A FileSerializable component can only deserialize a string or a dict, not a {type(x)}: {x}"
+            )
+        return file_name
 
     def _telemetry_thread(self) -> None:
         # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
@@ -656,12 +693,8 @@ class Client:
             raise ValueError(
                 f"api_name {api_names[0][0]} not present in {self.space_id or self.src}"
             )
-        inputs = [
-            inp for inp in fn.input_component_types if fn not in utils.SKIP_COMPONENTS
-        ]
-        outputs = [
-            inp for inp in fn.input_component_types if fn not in utils.SKIP_COMPONENTS
-        ]
+        inputs = [inp for inp in fn.input_component_types if not inp.skip]
+        outputs = [inp for inp in fn.input_component_types if not inp.skip]
         if not inputs == ["textbox"] and outputs == ["textbox"]:
             raise ValueError(
                 "Currently only api_names with a single textbox as input and output are supported. "
@@ -751,6 +784,21 @@ class Client:
         return url
 
 
+from dataclasses import dataclass
+
+
+@dataclass
+class ComponentApiType:
+    skip: bool
+    value_is_file: bool
+    is_state: bool
+
+
+@dataclass
+class ReplaceMe:
+    index: int
+
+
 class Endpoint:
     """Helper class for storing all the information about a single API endpoint."""
 
@@ -763,17 +811,45 @@ class Endpoint:
             None if (api_name is None or api_name is False) else "/" + api_name
         )
         self.use_ws = self._use_websocket(self.dependency)
-        self.input_component_types = []
-        self.output_component_types = []
+        self.input_component_types = [
+            self._get_component_type(id_) for id_ in dependency["inputs"]
+        ]
+        self.output_component_types = [
+            self._get_component_type(id_) for id_ in dependency["outputs"]
+        ]
         self.root_url = client.src + "/" if not client.src.endswith("/") else client.src
         self.is_continuous = dependency.get("types", {}).get("continuous", False)
+        self.download_file = lambda d: self._download_file(
+            d,
+            save_dir=self.client.output_dir,
+            hf_token=self.client.hf_token,
+            root_url=self.root_url,
+        )
         try:
             # Only a real API endpoint if backend_fn is True (so not just a frontend function), serializers are valid,
             # and api_name is not False (meaning that the developer has explicitly disabled the API endpoint)
-            self.serializers, self.deserializers = self._setup_serializers()
             self.is_valid = self.dependency["backend_fn"] and self.api_name is not False
         except AssertionError:
             self.is_valid = False
+
+    def _get_component_type(self, component_id: int):
+        component = next(
+            i for i in self.client.config["components"] if i["id"] == component_id
+        )
+        return ComponentApiType(
+            component["skip_api"],
+            self.value_is_file(component),
+            component["type"] == "state",
+        )
+
+    def value_is_file(self, component: dict) -> bool:
+        # Hacky for now
+        if "api_info" not in component:
+            return False
+        api_info = utils._json_schema_to_python_type(
+            component["api_info"], component["api_info"].get("$defs")
+        )
+        return utils.FILE_DATA in api_info
 
     def __repr__(self):
         return f"Endpoint src: {self.client.src}, api_name: {self.api_name}, fn_index: {self.fn_index}"
@@ -904,133 +980,114 @@ class Endpoint:
                 uploaded.append(res)
         return uploaded
 
-    def _add_uploaded_files_to_data(
-        self,
-        files: list[str | list[str]] | list[dict[str, Any] | list[dict[str, Any]]],
-        data: list[Any],
-    ) -> None:
-        """Helper function to modify the input data with the uploaded files."""
-        file_counter = 0
-        for i, t in enumerate(self.input_component_types):
-            if t in ["file", "uploadbutton"]:
-                data[i] = files[file_counter]
-                file_counter += 1
-
     def insert_state(self, *data) -> tuple:
         data = list(data)
         for i, input_component_type in enumerate(self.input_component_types):
-            if input_component_type == utils.STATE_COMPONENT:
+            if input_component_type.is_state:
                 data.insert(i, None)
         return tuple(data)
 
     def remove_skipped_components(self, *data) -> tuple:
-        data = [
-            d
-            for d, oct in zip(data, self.output_component_types)
-            if oct not in utils.SKIP_COMPONENTS
-        ]
+        data = [d for d, oct in zip(data, self.output_component_types) if not oct.skip]
         return tuple(data)
 
     def reduce_singleton_output(self, *data) -> Any:
-        if (
-            len(
-                [
-                    oct
-                    for oct in self.output_component_types
-                    if oct not in utils.SKIP_COMPONENTS
-                ]
-            )
-            == 1
-        ):
+        if len([oct for oct in self.output_component_types if not oct.skip]) == 1:
             return data[0]
         else:
             return data
 
-    def serialize(self, *data) -> tuple:
-        assert len(data) == len(
-            self.serializers
-        ), f"Expected {len(self.serializers)} arguments, got {len(data)}"
+    def _gather_files(self, *data):
+        file_list = []
 
-        files = [
-            f
-            for f, t in zip(data, self.input_component_types)
-            if t in ["file", "uploadbutton"]
-        ]
+        def get_file(d):
+            file_list.append(d)
+            return ReplaceMe(len(file_list) - 1)
+
+        new_data = []
+        for i, d in enumerate(data):
+            if self.input_component_types[i].value_is_file:
+                d = utils.traverse(
+                    d, get_file, lambda s: isinstance(s, str) and Path(s).exists()
+                )
+            new_data.append(d)
+        return file_list, new_data
+
+    def _add_uploaded_files_to_data(self, data: list[Any], files: list[dict]):
+        def replace(d: ReplaceMe) -> dict:
+            return files[d.index]
+
+        new_data = []
+        for d in data:
+            d = utils.traverse(
+                d, replace, is_root=lambda node: isinstance(node, ReplaceMe)
+            )
+            new_data.append(d)
+        return new_data
+
+    def serialize(self, *data) -> tuple:
+        files, new_data = self._gather_files(*data)
         uploaded_files = self._upload(files)
-        data = list(data)
-        self._add_uploaded_files_to_data(uploaded_files, data)
-        o = tuple([s.serialize(d) for s, d in zip(self.serializers, data)])
+        data = list(new_data)
+        data = self._add_uploaded_files_to_data(data, uploaded_files)
+        o = tuple(data)
         return o
 
+    def _download_file(
+        self,
+        x: dict,
+        save_dir: str | None = None,
+        root_url: str | None = None,
+        hf_token: str | None = None,
+    ):
+        if x is None:
+            return None
+        if isinstance(x, str):
+            file_name = utils.decode_base64_to_file(x, dir=save_dir).name
+        elif isinstance(x, dict):
+            if x.get("is_file"):
+                filepath = x.get("name")
+                assert filepath is not None, f"The 'name' field is missing in {x}"
+                if root_url is not None:
+                    file_name = utils.download_tmp_copy_of_file(
+                        root_url + "file=" + filepath,
+                        hf_token=hf_token,
+                        dir=save_dir,
+                    )
+                else:
+                    file_name = utils.create_tmp_copy_of_file(filepath, dir=save_dir)
+            else:
+                data = x.get("data")
+                assert data is not None, f"The 'data' field is missing in {x}"
+                file_name = utils.decode_base64_to_file(data, dir=save_dir).name
+        else:
+            raise ValueError(
+                f"A FileSerializable component can only deserialize a string or a dict, not a {type(x)}: {x}"
+            )
+        return file_name
+
     def deserialize(self, *data) -> tuple:
-        assert len(data) == len(
-            self.deserializers
-        ), f"Expected {len(self.deserializers)} outputs, got {len(data)}"
-        outputs = tuple(
-            [
-                s.deserialize(
-                    d,
-                    save_dir=self.client.output_dir,
-                    hf_token=self.client.hf_token,
-                    root_url=self.root_url,
-                )
-                for s, d in zip(self.deserializers, data)
-            ]
-        )
-        return outputs
+        data = list(data)
+
+        def is_file(d):
+            return (
+                isinstance(d, dict)
+                and "name" in d
+                and "is_file" in d
+                and "data" in d
+                and "size" in d
+                and "orig_name" in d
+                and "mime_type" in d
+            )
+
+        data = utils.traverse(data, self.download_file, is_file)
+        return data
 
     def process_predictions(self, *predictions):
-        if self.client.serialize:
-            predictions = self.deserialize(*predictions)
+        predictions = self.deserialize(*predictions)
         predictions = self.remove_skipped_components(*predictions)
         predictions = self.reduce_singleton_output(*predictions)
         return predictions
-
-    def _setup_serializers(self) -> tuple[list[Serializable], list[Serializable]]:
-        inputs = self.dependency["inputs"]
-        serializers = []
-
-        for i in inputs:
-            for component in self.client.config["components"]:
-                if component["id"] == i:
-                    component_name = component["type"]
-                    self.input_component_types.append(component_name)
-                    if component.get("serializer"):
-                        serializer_name = component["serializer"]
-                        assert (
-                            serializer_name in serializing.SERIALIZER_MAPPING
-                        ), f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
-                        serializer = serializing.SERIALIZER_MAPPING[serializer_name]
-                    else:
-                        assert (
-                            component_name in serializing.COMPONENT_MAPPING
-                        ), f"Unknown component: {component_name}, you may need to update your gradio_client version."
-                        serializer = serializing.COMPONENT_MAPPING[component_name]
-                    serializers.append(serializer())  # type: ignore
-
-        outputs = self.dependency["outputs"]
-        deserializers = []
-        for i in outputs:
-            for component in self.client.config["components"]:
-                if component["id"] == i:
-                    component_name = component["type"]
-                    self.output_component_types.append(component_name)
-                    if component.get("serializer"):
-                        serializer_name = component["serializer"]
-                        assert (
-                            serializer_name in serializing.SERIALIZER_MAPPING
-                        ), f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
-                        deserializer = serializing.SERIALIZER_MAPPING[serializer_name]
-                    elif component_name in utils.SKIP_COMPONENTS:
-                        deserializer = serializing.SimpleSerializable
-                    else:
-                        assert (
-                            component_name in serializing.COMPONENT_MAPPING
-                        ), f"Unknown component: {component_name}, you may need to update your gradio_client version."
-                        deserializer = serializing.COMPONENT_MAPPING[component_name]
-                    deserializers.append(deserializer())  # type: ignore
-
-        return serializers, deserializers
 
     def _use_websocket(self, dependency: dict) -> bool:
         queue_enabled = self.client.config.get("enable_queue", False)

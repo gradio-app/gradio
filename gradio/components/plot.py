@@ -9,18 +9,30 @@ from typing import Any, Callable, Literal
 import altair as alt
 import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import JSONSerializable
 
 from gradio import processing_utils
-from gradio.components.base import IOComponent, _Keywords
+from gradio.components.base import Component, _Keywords
+from gradio.data_classes import GradioModel
 from gradio.deprecation import warn_style_method_deprecation
-from gradio.events import Changeable, Clearable
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
+class PlotData(GradioModel):
+    # TODO: fix literals
+    type: str  # Literal["altair", "bokeh", "plotly", "matplotlib"]
+    plot: str
+
+
+class AltairPlotData(PlotData):
+    # TODO: fix literals
+    chart: str  # Literal["bar", "line", "scatter"]
+    type: str = "altair"  # Literal["altair"] = "altair"
+
+
 @document()
-class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
+class Plot(Component):
     """
     Used to display various kinds of plots (matplotlib, plotly, or bokeh are supported)
     Preprocessing: this component does *not* accept input.
@@ -29,6 +41,9 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
     Demos: altair_plot, outbreak_forecast, blocks_kinematics, stock_forecast, map_airbnb
     Guides: plot-component-for-maps
     """
+
+    data_model = PlotData
+    EVENTS = [Events.change, Events.clear]
 
     def __init__(
         self,
@@ -58,8 +73,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -83,7 +97,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         return {
             "value": self.value,
             "bokeh_version": bokeh_version,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     @staticmethod
@@ -108,7 +122,13 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         }
         return updated_config
 
-    def postprocess(self, y) -> dict[str, str] | None:
+    def preprocess(self, x: Any) -> Any:
+        return x
+
+    def example_inputs(self) -> Any:
+        return None
+
+    def postprocess(self, y) -> PlotData | None:
         """
         Parameters:
             y: plot data
@@ -131,7 +151,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
             is_altair = "altair" in y.__module__
             dtype = "altair" if is_altair else "plotly"
             out_y = y.to_json()
-        return {"type": dtype, "plot": out_y}
+        return PlotData(**{"type": dtype, "plot": out_y})
 
     def style(self, container: bool | None = None):
         """

@@ -7,7 +7,7 @@
 
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { _ } from "svelte-i18n";
+	import type { Gradio } from "@gradio/utils";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -22,6 +22,7 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+	export let gradio: Gradio;
 	export let height: number | undefined = undefined;
 	export let zoom_speed = 1;
 
@@ -50,11 +51,12 @@
 	{min_width}
 	{height}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker i18n={gradio.i18n} {...loading_status} />
 
 	{#if value}
 		<Model3D
 			value={_value}
+			i18n={gradio.i18n}
 			{clear_color}
 			{label}
 			{show_label}

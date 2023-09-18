@@ -18,16 +18,16 @@ from gradio.blocks import Blocks
 from gradio.components import (
     Button,
     ClearButton,
+    Component,
     DuplicateButton,
     Interpretation,
-    IOComponent,
     Markdown,
     State,
     get_component_instance,
 )
 from gradio.data_classes import InterfaceTypes
 from gradio.deprecation import warn_deprecation
-from gradio.events import Changeable, Streamable, Submittable
+from gradio.events import Events
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_pipeline
@@ -122,8 +122,8 @@ class Interface(Blocks):
     def __init__(
         self,
         fn: Callable,
-        inputs: str | IOComponent | list[str | IOComponent] | None,
-        outputs: str | IOComponent | list[str | IOComponent] | None,
+        inputs: str | Component | list[str | Component] | None,
+        outputs: str | Component | list[str | Component] | None,
         examples: list[Any] | list[list[Any]] | str | None = None,
         cache_examples: bool | None = None,
         examples_per_page: int = 10,
@@ -139,7 +139,7 @@ class Interface(Blocks):
         allow_flagging: str | None = None,
         flagging_options: list[str] | list[tuple[str, str]] | None = None,
         flagging_dir: str = "flagged",
-        flagging_callback: FlaggingCallback = CSVLogger(),
+        flagging_callback: FlaggingCallback | None = None,
         analytics_enabled: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
@@ -202,8 +202,8 @@ class Interface(Blocks):
             inputs = []
             self.interface_type = InterfaceTypes.OUTPUT_ONLY
 
-        assert isinstance(inputs, (str, list, IOComponent))
-        assert isinstance(outputs, (str, list, IOComponent))
+        assert isinstance(inputs, (str, list, Component))
+        assert isinstance(outputs, (str, list, Component))
 
         if not isinstance(inputs, list):
             inputs = [inputs]
@@ -255,7 +255,7 @@ class Interface(Blocks):
         ]
 
         for component in self.input_components + self.output_components:
-            if not (isinstance(component, IOComponent)):
+            if not (isinstance(component, Component)):
                 raise ValueError(
                     f"{component} is not a valid input/output component for Interface."
                 )
@@ -272,7 +272,7 @@ class Interface(Blocks):
             InterfaceTypes.OUTPUT_ONLY,
         ]:
             for o in self.output_components:
-                assert isinstance(o, IOComponent)
+                assert isinstance(o, Component)
                 if o.interactive is None:
                     # Unless explicitly otherwise specified, force output components to
                     # be non-interactive
@@ -356,8 +356,11 @@ class Interface(Blocks):
                 "flagging_options must be a list of strings or list of (string, string) tuples."
             )
 
+        if not flagging_callback:
+            flagging_callback = CSVLogger()
         self.flagging_callback = flagging_callback
         self.flagging_dir = flagging_dir
+
         self.batch = batch
         self.max_batch_size = max_batch_size
         self.allow_duplication = allow_duplication
@@ -377,11 +380,11 @@ class Interface(Blocks):
             if utils.is_special_typed_parameter(param_name, param_types):
                 param_names.remove(param_name)
         for component, param_name in zip(self.input_components, param_names):
-            assert isinstance(component, IOComponent)
+            assert isinstance(component, Component)
             if component.label is None:
                 component.label = param_name
         for i, component in enumerate(self.output_components):
-            assert isinstance(component, IOComponent)
+            assert isinstance(component, Component)
             if component.label is None:
                 if len(self.output_components) == 1:
                     component.label = "output"
@@ -625,7 +628,7 @@ class Interface(Blocks):
                 )
             else:
                 for component in self.input_components:
-                    if isinstance(component, Streamable) and component.streaming:
+                    if component.has_event(Events.stream) and component.streaming:
                         component.stream(
                             self.fn,
                             self.input_components,
@@ -635,7 +638,7 @@ class Interface(Blocks):
                             postprocess=not (self.api_mode),
                         )
                         continue
-                    if isinstance(component, Changeable):
+                    if component.has_event(Events.change):
                         component.change(
                             self.fn,
                             self.input_components,
@@ -652,7 +655,7 @@ class Interface(Blocks):
             triggers = [submit_btn.click] + [
                 component.submit
                 for component in self.input_components
-                if isinstance(component, Submittable)
+                if component.has_event(Events.submit)
             ]
             predict_events = []
 

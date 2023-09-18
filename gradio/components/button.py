@@ -2,20 +2,19 @@
 
 from __future__ import annotations
 
-from typing import Callable, Literal
+from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import StringSerializable
 
-from gradio.components.base import Component, IOComponent, _Keywords
+from gradio.components.base import Component, _Keywords
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
-from gradio.events import Clickable
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class Button(Clickable, IOComponent, StringSerializable):
+class Button(Component):
     """
     Used to create a button, that can be assigned arbitrary click() events. The label (value) of the button can be used as an input or set via the output of a function.
 
@@ -23,6 +22,8 @@ class Button(Clickable, IOComponent, StringSerializable):
     Postprocessing: expects a {str} to be returned from a function, which is set as the label of the button
     Demos: blocks_inputs, blocks_kinematics
     """
+
+    EVENTS = [Events.click]
 
     def __init__(
         self,
@@ -54,8 +55,7 @@ class Button(Clickable, IOComponent, StringSerializable):
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
         """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
@@ -85,6 +85,10 @@ class Button(Clickable, IOComponent, StringSerializable):
             "min_width": self.min_width,
             **Component.get_config(self),
         }
+
+    @property
+    def skip_api(self):
+        return True
 
     @staticmethod
     def update(
@@ -131,3 +135,12 @@ class Button(Clickable, IOComponent, StringSerializable):
         if size is not None:
             self.size = size
         return self
+
+    def preprocess(self, x: Any) -> Any:
+        return x
+
+    def postprocess(self, y):
+        return y
+
+    def example_inputs(self) -> Any:
+        return None

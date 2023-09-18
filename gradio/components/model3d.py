@@ -7,23 +7,16 @@ from typing import Any, Callable, Literal
 
 from gradio_client import media_data
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import FileSerializable
 
-from gradio.components.base import IOComponent, _Keywords
-from gradio.events import (
-    Changeable,
-    Clearable,
-    Editable,
-    Uploadable,
-)
+from gradio.components.base import Component, _Keywords
+from gradio.data_classes import FileData
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class Model3D(
-    Changeable, Uploadable, Editable, Clearable, IOComponent, FileSerializable
-):
+class Model3D(Component):
     """
     Component allows users to upload or view 3D Model files (.obj, .glb, or .gltf).
     Preprocessing: This component passes the uploaded file as a {str}filepath.
@@ -32,6 +25,10 @@ class Model3D(
     Demos: model3D
     Guides: how-to-use-3D-model-component
     """
+
+    EVENTS = [Events.change, Events.upload, Events.edit, Events.clear]
+
+    data_model = FileData
 
     def __init__(
         self,
@@ -79,9 +76,7 @@ class Model3D(
         self.camera_position = camera_position
         self.height = height
         self.zoom_speed = zoom_speed
-
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -102,13 +97,7 @@ class Model3D(
             "camera_position": self.camera_position,
             "height": self.height,
             "zoom_speed": self.zoom_speed,
-            **IOComponent.get_config(self),
-        }
-
-    def example_inputs(self) -> dict[str, Any]:
-        return {
-            "raw": {"is_file": False, "data": media_data.BASE64_MODEL3D},
-            "serialized": "https://github.com/gradio-app/gradio/raw/main/test/test_files/Box.gltf",
+            **Component.get_config(self),
         }
 
     @staticmethod
@@ -165,7 +154,7 @@ class Model3D(
 
         return temp_file_path
 
-    def postprocess(self, y: str | Path | None) -> dict[str, str] | None:
+    def postprocess(self, y: str | Path | None) -> FileData | None:
         """
         Parameters:
             y: path to the model
@@ -179,7 +168,11 @@ class Model3D(
             "data": None,
             "is_file": True,
         }
-        return data
+        return FileData(**data)
 
     def as_example(self, input_data: str | None) -> str:
         return Path(input_data).name if input_data else ""
+
+    def example_inputs(self):
+        # TODO: Use permanent link
+        return "https://raw.githubusercontent.com/gradio-app/gradio/main/demo/model3D/files/Fox.gltf"

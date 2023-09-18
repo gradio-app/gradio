@@ -35,6 +35,8 @@
 	export let datatype: Datatype | Datatype[];
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+	export let root: string;
+
 	export let gradio: Gradio<{
 		change: never;
 		select: SelectData;
@@ -82,11 +84,12 @@
 	{min_width}
 	allow_overflow={false}
 >
-	<StatusTracker {...loading_status} border={true} />
+	<StatusTracker {...loading_status} />
 	<Table
 		{label}
 		{row_count}
 		{col_count}
+		{root}
 		values={value}
 		{headers}
 		on:change={({ detail }) => {
@@ -98,5 +101,6 @@
 		{datatype}
 		{latex_delimiters}
 		{height}
+		i18n={gradio.i18n}
 	/>
 </Block>

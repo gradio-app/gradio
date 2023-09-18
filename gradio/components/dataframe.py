@@ -2,34 +2,27 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Literal
+from typing import Any, Callable, Literal, Union
 
 import numpy as np
 import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import JSONSerializable
 
-from gradio.components.base import IOComponent, _Keywords
-from gradio.events import (
-    Changeable,
-    EventListenerMethod,
-    Inputable,
-    Selectable,
-)
+from gradio.components import Component, _Keywords
+from gradio.data_classes import GradioModel
+from gradio.events import Events
 
-if TYPE_CHECKING:
-    from typing import TypedDict
 
-    class DataframeData(TypedDict):
-        headers: list[str]
-        data: list[list[str | int | bool]]
+class DataframeData(GradioModel):
+    headers: list[Union[str, int]]
+    data: list[list[Union[str, int, bool]]]
 
 
 set_documentation_group("component")
 
 
 @document()
-class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable):
+class Dataframe(Component):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
@@ -37,6 +30,10 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
     Examples-format: a {str} filepath to a csv with data, a pandas dataframe, or a list of lists (excluding headers) where each sublist is a row of data.
     Demos: filter_records, matrix_transpose, tax_calculator
     """
+
+    EVENTS = [Events.change, Events.input, Events.select]
+
+    data_model = DataframeData
 
     def __init__(
         self,
@@ -121,9 +118,12 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         column_dtypes = (
             [datatype] * self.col_count[0] if isinstance(datatype, str) else datatype
         )
-        self.empty_input = [
-            [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
-        ]
+        self.empty_input = {
+            "headers": ["a", "b", "c"],
+            "data": [
+                [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
+            ],
+        }
 
         self.max_rows = max_rows
         self.max_cols = max_cols
@@ -132,15 +132,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             latex_delimiters = [{"left": "$", "right": "$", "display": False}]
         self.latex_delimiters = latex_delimiters
         self.height = height
-
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user selects cell within Dataframe.
-        Uses event data gradio.SelectData to carry `value` referring to value of selected cell, and `index` tuple to refer to index row and column.
-        See EventData documentation on how to use this event data.
-        """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -167,7 +159,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             "wrap": self.wrap,
             "latex_delimiters": self.latex_delimiters,
             "height": self.height,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     @staticmethod
@@ -199,7 +191,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             "__type__": "update",
         }
 
-    def preprocess(self, x: DataframeData):
+    def preprocess(self, x: dict):
         """
         Parameters:
             x: 2D array of str, numeric, or bool data
@@ -224,7 +216,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
 
     def postprocess(
         self, y: str | pd.DataFrame | np.ndarray | list[list[str | float]] | dict
-    ) -> dict:
+    ) -> DataframeData:
         """
         Parameters:
             y: dataframe in given format
@@ -238,10 +230,12 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         if isinstance(y, (str, pd.DataFrame)):
             if isinstance(y, str):
                 y = pd.read_csv(y)
-            return {
-                "headers": list(y.columns),  # type: ignore
-                "data": y.to_dict(orient="split")["data"],  # type: ignore
-            }
+            return DataframeData(
+                **{
+                    "headers": list(y.columns),
+                    "data": y.to_dict(orient="split")["data"],
+                }
+            )
         if isinstance(y, (np.ndarray, list)):
             if len(y) == 0:
                 return self.postprocess([[]])
@@ -259,10 +253,12 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             elif len(self.headers) > len(y[0]):
                 _headers = self.headers[: len(y[0])]
 
-            return {
-                "headers": _headers,
-                "data": y,
-            }
+            return DataframeData(
+                **{
+                    "headers": _headers,
+                    "data": y,
+                }
+            )
         raise ValueError("Cannot process value as a Dataframe")
 
     @staticmethod
@@ -291,3 +287,6 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         elif isinstance(input_data, np.ndarray):
             return input_data.tolist()
         return input_data
+
+    def example_inputs(self) -> Any:
+        return {"headers": ["a", "b"], "data": [["foo", "bar"]]}

@@ -2,45 +2,32 @@
 
 from __future__ import annotations
 
-import tempfile
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import Any, Callable, Literal, Optional
 
 import numpy as np
 import requests
-from gradio_client import media_data
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import FileSerializable
 
 from gradio import processing_utils, utils
-from gradio.components.base import IOComponent, _Keywords
-from gradio.events import (
-    Changeable,
-    Clearable,
-    Playable,
-    Recordable,
-    Streamable,
-    StreamableOutput,
-    Uploadable,
-)
-from gradio.interpretation import TokenInterpretable
+from gradio.components.base import Component, StreamingInput, StreamingOutput, _Keywords
+from gradio.data_classes import FileData
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
+class AudioInputData(FileData):
+    crop_min: Optional[int] = 0
+    crop_max: Optional[int] = 100
+
+
 @document()
 class Audio(
-    Changeable,
-    Clearable,
-    Playable,
-    Recordable,
-    Streamable,
-    StreamableOutput,
-    Uploadable,
-    IOComponent,
-    FileSerializable,
-    TokenInterpretable,
+    StreamingInput,
+    StreamingOutput,
+    Component,
 ):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
@@ -50,6 +37,21 @@ class Audio(
     Demos: main_note, generate_tone, reverse_audio
     Guides: real-time-speech-recognition
     """
+
+    EVENTS = [
+        Events.stream,
+        Events.change,
+        Events.clear,
+        Events.play,
+        Events.pause,
+        Events.stop,
+        Events.pause,
+        Events.start_recording,
+        Events.stop_recording,
+        Events.upload,
+    ]
+
+    data_model = FileData
 
     def __init__(
         self,
@@ -124,8 +126,7 @@ class Audio(
             else show_share_button
         )
         self.show_edit_button = show_edit_button
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -139,7 +140,6 @@ class Audio(
             value=value,
             **kwargs,
         )
-        TokenInterpretable.__init__(self)
 
     def get_config(self):
         return {
@@ -150,14 +150,11 @@ class Audio(
             "show_download_button": self.show_download_button,
             "show_share_button": self.show_share_button,
             "show_edit_button": self.show_edit_button,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     def example_inputs(self) -> dict[str, Any]:
-        return {
-            "raw": {"is_file": False, "data": media_data.BASE64_AUDIO},
-            "serialized": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav",
-        }
+        return "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
 
     @staticmethod
     def update(
@@ -203,22 +200,19 @@ class Audio(
         """
         if x is None:
             return x
-        file_name, file_data, is_file = (
-            x["name"],
-            x["data"],
-            x.get("is_file", False),
-        )
-        crop_min, crop_max = x.get("crop_min", 0), x.get("crop_max", 100)
-        if is_file:
-            if client_utils.is_http_url_like(file_name):
-                temp_file_path = self.download_temp_copy_if_needed(file_name)
+
+        x = AudioInputData(**x)
+
+        if x.is_file:
+            if client_utils.is_http_url_like(x.name):
+                temp_file_path = self.download_temp_copy_if_needed(x.name)
             else:
-                temp_file_path = self.make_temp_copy_if_needed(file_name)
+                temp_file_path = self.make_temp_copy_if_needed(x.name)
         else:
-            temp_file_path = self.base64_to_temp_file_if_needed(file_data, file_name)
+            temp_file_path = self.base64_to_temp_file_if_needed(x.data, x.name)
 
         sample_rate, data = processing_utils.audio_from_file(
-            temp_file_path, crop_min=crop_min, crop_max=crop_max
+            temp_file_path, crop_min=x.crop_min, crop_max=x.crop_max
         )
 
         # Need a unique name for the file to avoid re-using the same audio file if
@@ -226,7 +220,7 @@ class Audio(
         temp_file_path = Path(temp_file_path)
         output_file_name = str(
             temp_file_path.with_name(
-                f"{temp_file_path.stem}-{crop_min}-{crop_max}{temp_file_path.suffix}"
+                f"{temp_file_path.stem}-{x.crop_min}-{x.crop_max}{temp_file_path.suffix}"
             )
         )
 
@@ -245,91 +239,9 @@ class Audio(
                 + ". Please choose from: 'numpy', 'filepath'."
             )
 
-    def set_interpret_parameters(self, segments: int = 8):
-        """
-        Calculates interpretation score of audio subsections by splitting the audio into subsections, then using a "leave one out" method to calculate the score of each subsection by removing the subsection and measuring the delta of the output value.
-        Parameters:
-            segments: Number of interpretation segments to split audio into.
-        """
-        self.interpretation_segments = segments
-        return self
-
-    def tokenize(self, x):
-        if x.get("is_file"):
-            sample_rate, data = processing_utils.audio_from_file(x["name"])
-        else:
-            file_name = self.base64_to_temp_file_if_needed(x["data"])
-            sample_rate, data = processing_utils.audio_from_file(file_name)
-        leave_one_out_sets = []
-        tokens = []
-        masks = []
-        duration = data.shape[0]
-        boundaries = np.linspace(0, duration, self.interpretation_segments + 1).tolist()
-        boundaries = [round(boundary) for boundary in boundaries]
-        for index in range(len(boundaries) - 1):
-            start, stop = boundaries[index], boundaries[index + 1]
-            masks.append((start, stop))
-
-            # Handle the leave one outs
-            leave_one_out_data = np.copy(data)
-            leave_one_out_data[start:stop] = 0
-            file = tempfile.NamedTemporaryFile(
-                delete=False, suffix=".wav", dir=self.DEFAULT_TEMP_DIR
-            )
-            processing_utils.audio_to_file(sample_rate, leave_one_out_data, file.name)
-            out_data = client_utils.encode_file_to_base64(file.name)
-            leave_one_out_sets.append(out_data)
-            file.close()
-            Path(file.name).unlink()
-
-            # Handle the tokens
-            token = np.copy(data)
-            token[0:start] = 0
-            token[stop:] = 0
-            file = tempfile.NamedTemporaryFile(
-                delete=False, suffix=".wav", dir=self.DEFAULT_TEMP_DIR
-            )
-            processing_utils.audio_to_file(sample_rate, token, file.name)
-            token_data = client_utils.encode_file_to_base64(file.name)
-            file.close()
-            Path(file.name).unlink()
-
-            tokens.append(token_data)
-        tokens = [{"name": "token.wav", "data": token} for token in tokens]
-        leave_one_out_sets = [
-            {"name": "loo.wav", "data": loo_set} for loo_set in leave_one_out_sets
-        ]
-        return tokens, leave_one_out_sets, masks
-
-    def get_masked_inputs(self, tokens, binary_mask_matrix):
-        # create a "zero input" vector and get sample rate
-        x = tokens[0]["data"]
-        file_name = self.base64_to_temp_file_if_needed(x)
-        sample_rate, data = processing_utils.audio_from_file(file_name)
-        zero_input = np.zeros_like(data, dtype="int16")
-        # decode all of the tokens
-        token_data = []
-        for token in tokens:
-            file_name = self.base64_to_temp_file_if_needed(token["data"])
-            _, data = processing_utils.audio_from_file(file_name)
-            token_data.append(data)
-        # construct the masked version
-        masked_inputs = []
-        for binary_mask_vector in binary_mask_matrix:
-            masked_input = np.copy(zero_input)
-            for t, b in zip(token_data, binary_mask_vector):
-                masked_input = masked_input + t * int(b)
-            file = tempfile.NamedTemporaryFile(delete=False, dir=self.DEFAULT_TEMP_DIR)
-            processing_utils.audio_to_file(sample_rate, masked_input, file.name)
-            masked_data = client_utils.encode_file_to_base64(file.name)
-            file.close()
-            Path(file.name).unlink()
-            masked_inputs.append(masked_data)
-        return masked_inputs
-
     def postprocess(
-        self, y: tuple[int, np.ndarray] | str | Path | bytes | None
-    ) -> str | dict | bytes | None:
+        self, y: tuple[int, np.ndarray] | str | Path | None
+    ) -> FileData | None:
         """
         Parameters:
             y: audio data in either of the following formats: a tuple of (sample_rate, data), or a string filepath or URL to an audio file, or None.
@@ -354,12 +266,7 @@ class Audio(
             self.temp_files.add(file_path)
         else:
             file_path = self.make_temp_copy_if_needed(y)
-        return {
-            "name": file_path,
-            "data": None,
-            "is_file": True,
-            "orig_name": Path(file_path).name,
-        }
+        return FileData(**{"name": file_path, "data": None, "is_file": True})
 
     def stream_output(self, y, output_id: str, first_chunk: bool):
         output_file = {
@@ -393,11 +300,11 @@ class Audio(
                     binary_data = binary_data[44:]
         return binary_data, output_file
 
+    def as_example(self, input_data: str | None) -> str:
+        return Path(input_data).name if input_data else ""
+
     def check_streamable(self):
-        if self.source != "microphone":
+        if self.source != "microphone" and self.streaming:
             raise ValueError(
                 "Audio streaming only available if source is 'microphone'."
             )
-
-    def as_example(self, input_data: str | None) -> str:
-        return Path(input_data).name if input_data else ""

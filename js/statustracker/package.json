@@ -17,6 +17,7 @@
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
 		"@gradio/column": "workspace:^",
-		"@gradio/icons": "workspace:^"
+		"@gradio/icons": "workspace:^",
+		"@gradio/utils": "workspace:^"
 	}
 }

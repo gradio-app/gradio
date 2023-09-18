@@ -25,12 +25,13 @@ from matplotlib import animation
 
 from gradio import components, oauth, processing_utils, routes, utils
 from gradio.context import Context
+from gradio.data_classes import GradioModel, GradioRootModel
+from gradio.events import EventData
 from gradio.exceptions import Error
 from gradio.flagging import CSVLogger
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
-    from gradio.blocks import Block
-    from gradio.components import IOComponent
+    from gradio.components import Component
 
 CACHED_FOLDER = "gradio_cached_examples"
 LOG_FILE = "log.csv"
@@ -40,8 +41,8 @@ set_documentation_group("helpers")
 
 def create_examples(
     examples: list[Any] | list[list[Any]] | str,
-    inputs: IOComponent | list[IOComponent],
-    outputs: IOComponent | list[IOComponent] | None = None,
+    inputs: Component | list[Component],
+    outputs: Component | list[Component] | None = None,
     fn: Callable | None = None,
     cache_examples: bool = False,
     examples_per_page: int = 10,
@@ -91,8 +92,8 @@ class Examples:
     def __init__(
         self,
         examples: list[Any] | list[list[Any]] | str,
-        inputs: IOComponent | list[IOComponent],
-        outputs: IOComponent | list[IOComponent] | None = None,
+        inputs: Component | list[Component],
+        outputs: Component | list[Component] | None = None,
         fn: Callable | None = None,
         cache_examples: bool = False,
         examples_per_page: int = 10,
@@ -206,13 +207,15 @@ class Examples:
         self.batch = batch
 
         with utils.set_directory(working_directory):
-            self.processed_examples = [
-                [
-                    component.postprocess(sample)
-                    for component, sample in zip(inputs, example)
-                ]
-                for example in examples
-            ]
+            self.processed_examples = []
+            for example in examples:
+                sub = []
+                for component, sample in zip(inputs, example):
+                    prediction_value = component.postprocess(sample)
+                    if isinstance(prediction_value, (GradioRootModel, GradioModel)):
+                        prediction_value = prediction_value.model_dump()
+                    sub.append(prediction_value)
+                self.processed_examples.append(sub)
         self.non_none_processed_examples = [
             [ex for (ex, keep) in zip(example, input_has_examples) if keep]
             for example in self.processed_examples
@@ -402,16 +405,21 @@ class Examples:
                 assert utils.is_update(value_as_dict)
                 output.append(value_as_dict)
             except (ValueError, TypeError, SyntaxError, AssertionError):
-                output.append(
-                    component.serialize(
-                        value_to_use, self.cached_folder, allow_links=True
+                try:
+                    output.append(
+                        component.read_from_flag(
+                            value_to_use,
+                            self.cached_folder,
+                        )
                     )
-                )
+                except:
+                    breakpoint()
+                    2 + 2
         return output
 
 
 def merge_generated_values_into_output(
-    components: list[IOComponent], generated_values: list, output: list
+    components: list[Component], generated_values: list, output: list
 ):
     from gradio.events import StreamableOutput
 
@@ -1063,37 +1071,6 @@ def make_waveform(
 
     subprocess.check_call(ffmpeg_cmd)
     return output_mp4.name
-
-
-@document()
-class EventData:
-    """
-    When a subclass of EventData is added as a type hint to an argument of an event listener method, this object will be passed as that argument.
-    It contains information about the event that triggered the listener, such the target object, and other data related to the specific event that are attributes of the subclass.
-
-    Example:
-        table = gr.Dataframe([[1, 2, 3], [4, 5, 6]])
-        gallery = gr.Gallery([("cat.jpg", "Cat"), ("dog.jpg", "Dog")])
-        textbox = gr.Textbox("Hello World!")
-
-        statement = gr.Textbox()
-
-        def on_select(evt: gr.SelectData):  # SelectData is a subclass of EventData
-            return f"You selected {evt.value} at {evt.index} from {evt.target}"
-
-        table.select(on_select, None, statement)
-        gallery.select(on_select, None, statement)
-        textbox.select(on_select, None, statement)
-    Demos: gallery_selections, tictactoe
-    """
-
-    def __init__(self, target: Block | None, _data: Any):
-        """
-        Parameters:
-            target: The target object that triggered the event. Can be used to distinguish if multiple components are bound to the same listener.
-        """
-        self.target = target
-        self._data = _data
 
 
 def log_message(message: str, level: Literal["info", "warning"] = "info"):

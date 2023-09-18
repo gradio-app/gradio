@@ -37,6 +37,7 @@ classifiers = [
 [project.scripts]
 gradio = "gradio.cli:cli"
 upload_theme = "gradio.themes.upload_theme:main"
+gradio_component = "gradio.cli:custom_component"
 
 [project.urls]
 Homepage = "https://github.com/gradio-app/gradio"
@@ -68,8 +69,13 @@ replacement = 'https://raw.githubusercontent.com/gradio-app/gradio/main/demo/\g<
 [tool.hatch.build]
 artifacts = [
   "/gradio/templates",
+  "/gradio/_frontend_code",
+  "*.pyi",
+  "/gradio/node"
 ]
 
+[tool.hatch.build.targets.wheel.hooks.custom]
+path = ".config/copy_frontend.py"
 
 [tool.hatch.build.targets.sdist]
 include = [
@@ -78,6 +84,8 @@ include = [
   "/README.md",
   "/requirements.txt",
   "/requirements-oauth.txt",
+  "/.config/copy_frontend.py",
+  "/js"
 ]
 
 [tool.pyright]
@@ -119,6 +127,7 @@ ignore = [
 "gradio/routes.py" = [
   "UP006", # Pydantic on Python 3.7 requires old-style type annotations (TODO: drop when Python 3.7 is dropped)
 ]
+"gradio/cli/commands/files/NoTemplateComponent.py" = ["ALL"]
 
 [tool.pytest.ini_options]
 GRADIO_ANALYTICS_ENABLED = "False"

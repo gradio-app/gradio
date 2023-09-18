@@ -2,28 +2,33 @@
 
 from __future__ import annotations
 
+import json
 import operator
 from pathlib import Path
-from typing import Callable, Literal
+from typing import Any, Callable, Literal, Optional
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import (
-    JSONSerializable,
-)
 
-from gradio.components.base import IOComponent, _Keywords
+from gradio.components.base import Component, _Keywords
+from gradio.data_classes import GradioModel
 from gradio.deprecation import warn_style_method_deprecation
-from gradio.events import (
-    Changeable,
-    EventListenerMethod,
-    Selectable,
-)
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
+class LabelConfidence(GradioModel):
+    label: Optional[str] = None
+    confidence: Optional[float] = None
+
+
+class LabelData(GradioModel):
+    label: str
+    confidences: Optional[list[LabelConfidence]] = None
+
+
 @document()
-class Label(Changeable, Selectable, IOComponent, JSONSerializable):
+class Label(Component):
     """
     Displays a classification label, along with confidence scores of top categories, if provided.
     Preprocessing: this component does *not* accept input.
@@ -34,6 +39,8 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
     """
 
     CONFIDENCES_KEY = "confidences"
+    data_model = LabelData
+    EVENTS = [Events.change, Events.select]
 
     def __init__(
         self,
@@ -69,14 +76,7 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
         """
         self.num_top_classes = num_top_classes
         self.color = color
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user selects a category from Label.
-        Uses event data gradio.SelectData to carry `value` referring to name of selected category, and `index` to refer to index.
-        See EventData documentation on how to use this event data.
-        """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -96,10 +96,12 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
             "value": self.value,
             "color": self.color,
             "selectable": self.selectable,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
-    def postprocess(self, y: dict[str, float] | str | float | None) -> dict | None:
+    def postprocess(
+        self, y: dict[str, float] | str | float | None
+    ) -> LabelData | dict | None:
         """
         Parameters:
             y: a dictionary mapping labels to confidence value, or just a string/numerical label by itself
@@ -109,9 +111,9 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
         if y is None or y == {}:
             return {}
         if isinstance(y, str) and y.endswith(".json") and Path(y).exists():
-            return self.serialize(y)
+            return LabelData(**json.load(open(y)))
         if isinstance(y, (str, float, int)):
-            return {"label": str(y)}
+            return LabelData(label=str(y))
         if isinstance(y, dict):
             if "confidences" in y and isinstance(y["confidences"], dict):
                 y = y["confidences"]
@@ -119,12 +121,15 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
             sorted_pred = sorted(y.items(), key=operator.itemgetter(1), reverse=True)
             if self.num_top_classes is not None:
                 sorted_pred = sorted_pred[: self.num_top_classes]
-            return {
-                "label": sorted_pred[0][0],
-                "confidences": [
-                    {"label": pred[0], "confidence": pred[1]} for pred in sorted_pred
-                ],
-            }
+            return LabelData(
+                **{
+                    "label": sorted_pred[0][0],
+                    "confidences": [
+                        {"label": pred[0], "confidence": pred[1]}
+                        for pred in sorted_pred
+                    ],
+                }
+            )
         raise ValueError(
             "The `Label` output interface expects one of: a string label, or an int label, a "
             "float label, or a dictionary whose keys are labels and values are confidences. "
@@ -180,3 +185,15 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
         if container is not None:
             self.container = container
         return self
+
+    def preprocess(self, x: Any) -> Any:
+        return x
+
+    def example_inputs(self) -> Any:
+        return {
+            "label": "Cat",
+            "confidences": [
+                {"label": "cat", "confidence": 0.9},
+                {"label": "dog", "confidence": 0.1},
+            ],
+        }

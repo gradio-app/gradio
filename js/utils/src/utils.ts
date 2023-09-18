@@ -150,3 +150,5 @@ async function copy_to_clipboard(value: string): Promise<boolean> {
 
 	return copied;
 }
+
+export { Gradio } from "../../app/src/gradio_helper";

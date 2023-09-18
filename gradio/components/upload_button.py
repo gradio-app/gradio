@@ -8,18 +8,22 @@ from typing import Any, Callable, Literal
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import FileSerializable
 
 from gradio import utils
-from gradio.components.base import Component, IOComponent, _Keywords
+from gradio.components.base import Component, _Keywords
+from gradio.data_classes import FileData, GradioRootModel
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
-from gradio.events import Clickable, Uploadable
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
+class ListFiles(GradioRootModel):
+    root: list[FileData]
+
+
 @document()
-class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
+class UploadButton(Component):
     """
     Used to create an upload button, when clicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
@@ -27,6 +31,8 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
     Examples-format: a {str} path to a local file that populates the component.
     Demos: upload_button
     """
+
+    EVENTS = [Events.click, Events.upload]
 
     def __init__(
         self,
@@ -76,8 +82,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         self.file_types = file_types
         self.label = label
         self.variant = variant
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             visible=visible,
             elem_id=elem_id,
@@ -102,6 +107,20 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             "interactive": self.interactive,
             **Component.get_config(self),
         }
+
+    def api_info(self) -> dict[str, list[str]]:
+        if self.file_count == "single":
+            return FileData.model_json_schema()
+        else:
+            return ListFiles.model_json_schema()
+
+    def example_inputs(self) -> dict[str, Any]:
+        if self.file_count == "single":
+            return "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+        else:
+            return [
+                "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+            ]
 
     @staticmethod
     def update(
@@ -189,6 +208,9 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             else:
                 return process_single_file(x)
 
+    def postprocess(self, y):
+        return super().postprocess(y)
+
     def style(
         self,
         *,
@@ -209,3 +231,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         if size is not None:
             self.size = size
         return self
+
+    @property
+    def skip_api(self):
+        return False

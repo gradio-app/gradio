@@ -6,8 +6,9 @@ from typing import TYPE_CHECKING, Literal
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.blocks import BlockContext
+from gradio.component_meta import ComponentMeta
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
-from gradio.events import Changeable, Selectable
+from gradio.events import Events
 
 if TYPE_CHECKING:
     from gradio.blocks import Block
@@ -16,7 +17,7 @@ set_documentation_group("layout")
 
 
 @document()
-class Row(BlockContext):
+class Row(BlockContext, metaclass=ComponentMeta):
     """
     Row is a layout element within Blocks that renders all children horizontally.
     Example:
@@ -27,6 +28,8 @@ class Row(BlockContext):
         demo.launch()
     Guides: controlling-layout
     """
+
+    EVENTS = []
 
     def __init__(
         self,
@@ -85,7 +88,7 @@ class Row(BlockContext):
 
 
 @document()
-class Column(BlockContext):
+class Column(BlockContext, metaclass=ComponentMeta):
     """
     Column is a layout element within Blocks that renders all children vertically. The widths of columns can be set through the `scale` and `min_width` parameters.
     If a certain scale results in a column narrower than min_width, the min_width parameter will win.
@@ -100,6 +103,8 @@ class Column(BlockContext):
                     btn2 = gr.Button("Button 2")
     Guides: controlling-layout
     """
+
+    EVENTS = ["baz"]
 
     def __init__(
         self,
@@ -152,10 +157,12 @@ class Column(BlockContext):
         }
 
 
-class Tabs(BlockContext, Changeable, Selectable):
+class Tabs(BlockContext, metaclass=ComponentMeta):
     """
     Tabs is a layout element within Blocks that can contain multiple "Tab" Components.
     """
+
+    EVENTS = [Events.change, Events.select]
 
     def __init__(
         self,
@@ -172,8 +179,6 @@ class Tabs(BlockContext, Changeable, Selectable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         BlockContext.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
-        Changeable.__init__(self)
-        Selectable.__init__(self)
         self.selected = selected
 
     def get_config(self):
@@ -190,7 +195,7 @@ class Tabs(BlockContext, Changeable, Selectable):
 
 
 @document()
-class Tab(BlockContext, Selectable):
+class Tab(BlockContext, metaclass=ComponentMeta):
     """
     Tab (or its alias TabItem) is a layout element. Components defined within the Tab will be visible when this tab is selected tab.
     Example:
@@ -203,6 +208,8 @@ class Tab(BlockContext, Selectable):
                 gr.Button("New Tiger")
     Guides: controlling-layout
     """
+
+    EVENTS = [Events.select]
 
     def __init__(
         self,
@@ -219,7 +226,6 @@ class Tab(BlockContext, Selectable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         BlockContext.__init__(self, elem_id=elem_id, **kwargs)
-        Selectable.__init__(self)
         self.label = label
         self.id = id
 
@@ -241,7 +247,7 @@ TabItem = Tab
 
 
 @document()
-class Group(BlockContext):
+class Group(BlockContext, metaclass=ComponentMeta):
     """
     Group is a layout element within Blocks which groups together children so that
     they do not have any padding or margin between them.
@@ -250,6 +256,8 @@ class Group(BlockContext):
             gr.Textbox(label="First")
             gr.Textbox(label="Last")
     """
+
+    EVENTS = []
 
     def __init__(
         self,
@@ -278,7 +286,7 @@ class Group(BlockContext):
         }
 
 
-class Box(BlockContext):
+class Box(BlockContext, metaclass=ComponentMeta):
     """
     DEPRECATED.
     Box is a a layout element which places children in a box with rounded corners and
@@ -288,6 +296,8 @@ class Box(BlockContext):
             gr.Textbox(label="First")
             gr.Textbox(label="Last")
     """
+
+    EVENTS = []
 
     def __init__(
         self,
@@ -321,7 +331,9 @@ class Box(BlockContext):
         return self
 
 
-class Form(BlockContext):
+class Form(BlockContext, metaclass=ComponentMeta):
+    EVENTS = []
+
     def __init__(self, *, scale: int = 0, min_width: int = 0, **kwargs):
         """
         Parameters:
@@ -349,13 +361,15 @@ class Form(BlockContext):
 
 
 @document()
-class Accordion(BlockContext):
+class Accordion(BlockContext, metaclass=ComponentMeta):
     """
     Accordion is a layout element which can be toggled to show/hide the contained content.
     Example:
         with gr.Accordion("See Details"):
             gr.Markdown("lorem ipsum")
     """
+
+    EVENTS = []
 
     def __init__(
         self,

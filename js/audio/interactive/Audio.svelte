@@ -16,12 +16,13 @@
 	// @ts-ignore
 	import Range from "svelte-range-slider-pips";
 	import { loaded } from "../shared/utils";
-	import { _ } from "svelte-i18n";
 
 	import type { IBlobEvent, IMediaRecorder } from "extendable-media-recorder";
+	import type { I18nFormatter } from "js/app/src/gradio_helper";
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
+	export let root: string;
 	export let show_label = true;
 	export let name = "";
 	export let source: "microphone" | "upload" | "none";
@@ -29,6 +30,7 @@
 	export let streaming = false;
 	export let autoplay = false;
 	export let show_edit_button = true;
+	export let i18n: I18nFormatter;
 
 	// TODO: make use of this
 	// export let type: "normal" | "numpy" = "normal";
@@ -105,7 +107,7 @@
 			stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 		} catch (err) {
 			if (err instanceof DOMException && err.name == "NotAllowedError") {
-				dispatch("error", $_("audio.allow_recording_access"));
+				dispatch("error", i18n("audio.allow_recording_access"));
 				return;
 			}
 			throw err;
@@ -230,7 +232,7 @@
 		};
 	}): void {
 		value = detail;
-		dispatch("change", { data: detail.data, name: detail.name });
+		dispatch("change", detail);
 		dispatch("upload", detail);
 	}
 
@@ -247,7 +249,7 @@
 	{show_label}
 	Icon={Music}
 	float={source === "upload" && value === null}
-	label={label || $_("audio.audio")}
+	label={label || i18n("audio.audio")}
 />
 {#if value === null || streaming}
 	{#if source === "microphone"}
@@ -258,14 +260,14 @@
 						<span class="pinger" />
 						<span class="dot" />
 					</span>
-					{$_("audio.stop_recording")}
+					{i18n("audio.stop_recording")}
 				</BaseButton>
 			{:else}
 				<BaseButton size="sm" on:click={record}>
 					<span class="record-icon">
 						<span class="dot" />
 					</span>
-					{$_("audio.record_from_microphone")}
+					{i18n("audio.record_from_microphone")}
 				</BaseButton>
 			{/if}
 		</div>
@@ -275,12 +277,14 @@
 			filetype="audio/aac,audio/midi,audio/mpeg,audio/ogg,audio/wav,audio/x-wav,audio/opus,audio/webm,audio/flac,audio/vnd.rn-realaudio,audio/x-ms-wma,audio/x-aiff,audio/amr,audio/*"
 			on:load={handle_load}
 			bind:dragging
+			{root}
 		>
 			<slot />
 		</Upload>
 	{/if}
 {:else}
 	<ModifyUpload
+		{i18n}
 		on:clear={clear}
 		on:edit={() => (mode = "edit")}
 		editable={show_edit_button}

@@ -17,18 +17,15 @@
 		focus: never;
 	}>();
 
-	export let gradio:
-		| Gradio<{
-				change: string;
-				submit: never;
-				blur: never;
-				select: SelectData;
-				input: never;
-				focus: never;
-		  }>
-		| { dispatch: typeof dispatch } = {
-		dispatch
-	};
+	export let gradio: Gradio<{
+		change: string;
+		submit: never;
+		blur: never;
+		select: SelectData;
+		input: never;
+		focus: never;
+	}> = { dispatch, i18n: (s: string) => s };
+
 	export let label = "Textbox";
 	export let info: string | undefined = undefined;
 	export let elem_id = "";
@@ -62,7 +59,7 @@
 	padding={container}
 >
 	{#if loading_status}
-		<StatusTracker {...loading_status} />
+		<StatusTracker i18n={gradio.i18n} {...loading_status} />
 	{/if}
 
 	<TextBox

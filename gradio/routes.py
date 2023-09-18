@@ -49,6 +49,7 @@ import gradio.ranged_response as ranged_response
 from gradio import route_utils, utils, wasm_utils
 from gradio.context import Context
 from gradio.data_classes import PredictBody, ResetBody
+from gradio.events import EventData
 from gradio.deprecation import warn_deprecation
 from gradio.exceptions import Error
 from gradio.oauth import attach_oauth
@@ -329,8 +330,8 @@ class App(FastAPI):
         @app.get("/info/", dependencies=[Depends(login_check)])
         @app.get("/info", dependencies=[Depends(login_check)])
         def api_info(serialize: bool = True):
-            config = app.get_blocks().config
-            return gradio.blocks.get_api_info(config, serialize)  # type: ignore
+            # config = app.get_blocks().get_api_info()
+            return app.get_blocks().get_api_info()  # type: ignore
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])

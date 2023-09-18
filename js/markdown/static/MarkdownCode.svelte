@@ -32,7 +32,7 @@
 		html = "";
 	}
 	async function render_html(value: string): Promise<void> {
-		if (latex_delimiters.length > 0) {
+		if (latex_delimiters?.length > 0) {
 			render_math_in_element(el, {
 				delimiters: latex_delimiters,
 				throwOnError: false

@@ -1,12 +1,18 @@
 <script lang="ts">
-	import type { Gradio, SelectData } from "@gradio/utils";
+	import type { Gradio, SelectData, I18nFormatter } from "@gradio/utils";
 	import { Dropdown, Multiselect } from "../shared";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { _ } from "svelte-i18n";
 
-	export let label = $_("dropdown.dropdown");
+	export let gradio: Gradio<{
+		change: never;
+		input: never;
+		select: SelectData;
+		blur: never;
+		focus: never;
+	}>;
+	export let label = gradio.i18n("dropdown.dropdown");
 	export let info: string | undefined = undefined;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -23,13 +29,7 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let allow_custom_value = false;
-	export let gradio: Gradio<{
-		change: never;
-		input: never;
-		select: SelectData;
-		blur: never;
-		focus: never;
-	}>;
+	export let i18n: I18nFormatter;
 </script>
 
 <Block
@@ -41,7 +41,7 @@
 	{scale}
 	{min_width}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker i18n={gradio.i18n} {...loading_status} />
 
 	{#if multiselect}
 		<Multiselect
@@ -77,6 +77,7 @@
 			on:select={(e) => gradio.dispatch("select", e.detail)}
 			on:blur={() => gradio.dispatch("blur")}
 			on:focus={() => gradio.dispatch("focus")}
+			{i18n}
 		/>
 	{/if}
 </Block>

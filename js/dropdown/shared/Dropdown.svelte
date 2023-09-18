@@ -1,10 +1,9 @@
 <script lang="ts">
-	import { afterUpdate, createEventDispatcher } from "svelte";
-	import { _ } from "svelte-i18n";
-	import type { SelectData } from "@gradio/utils";
+	import DropdownOptions from "./DropdownOptions.svelte";
+	import { createEventDispatcher, afterUpdate } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import { DropdownArrow } from "@gradio/icons";
-	import DropdownOptions from "./DropdownOptions.svelte";
+	import type { I18nFormatter, SelectData } from "@gradio/utils";
 	import { handle_filter, handle_change, handle_shared_keys } from "./utils";
 
 	export let label: string;
@@ -18,6 +17,7 @@
 	export let show_label: boolean;
 	export let container = true;
 	export let allow_custom_value = false;
+	export let i18n: I18nFormatter;
 	export let filterable = true;
 
 	let filter_input: HTMLElement;

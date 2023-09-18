@@ -2,7 +2,7 @@ import type { Plugin } from "vite";
 import { parse, HTMLElement } from "node-html-parser";
 
 import { join } from "path";
-import { writeFileSync } from "fs";
+import { writeFileSync, cpSync } from "fs";
 
 export function inject_ejs(): Plugin {
 	return {
@@ -85,6 +85,66 @@ export function generate_cdn_entry({
 			const output_location = join(config.dir, "gradio.js");
 
 			writeFileSync(output_location, make_entry(script));
+		}
+	};
+}
+
+export function generate_dev_entry({ enable }: { enable: boolean }): Plugin {
+	return {
+		enforce: "pre",
+		name: "generate-dev-entry",
+		resolveId(id, importer) {
+			if (!enable) return;
+			if (
+				!id.includes(".svelte") &&
+				(importer?.includes("svelte") || id.includes("svelte"))
+			)
+				if (id === "svelte") {
+					return "../../../node/dev/svelte-internal.js";
+				}
+
+			if (id === "svelte/internal") {
+				return "../../../node/dev/svelte-internal.js";
+			}
+
+			if (id === "svelte/internal/disclose-version") {
+				return "../../../node/dev/svelte-disclose.js";
+			}
+		},
+		writeBundle(config, bundle) {
+			if (!enable) return;
+
+			if (
+				!config.dir ||
+				!bundle["index.html"] ||
+				bundle["index.html"].type !== "asset"
+			)
+				return;
+
+			const tree = parse(bundle["index.html"].source as string);
+
+			const gradio_script = tree.querySelector("script[data-gradio-mode]");
+
+			const script_location = gradio_script?.firstChild?.range;
+			if (!script_location) return;
+			const dev_script =
+				(bundle["index.html"].source as string).substring(
+					0,
+					script_location[1]
+				) +
+				`\t\twindow.__GRADIO_DEV__ = "dev"\n` +
+				(bundle["index.html"].source as string).substring(
+					script_location[1],
+					bundle["index.html"].source.length
+				);
+
+			// recursively copy all assets from config.dir to ../dev
+			cpSync(
+				join(config.dir, "..", "frontend"),
+				join(config.dir, "..", "dev"),
+				{ recursive: true }
+			);
+			writeFileSync(join(config.dir, "..", "dev", "index.html"), dev_script);
 		}
 	};
 }

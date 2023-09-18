@@ -6,18 +6,15 @@ import inspect
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import StringSerializable
 
-from gradio.components.base import Component, IOComponent, _Keywords
-from gradio.events import (
-    Changeable,
-)
+from gradio.components.base import Component, _Keywords
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class Markdown(IOComponent, Changeable, StringSerializable):
+class Markdown(Component):
     """
     Used to render arbitrary Markdown output. Can also render latex enclosed by dollar signs.
     Preprocessing: this component does *not* accept input.
@@ -26,6 +23,8 @@ class Markdown(IOComponent, Changeable, StringSerializable):
     Demos: blocks_hello, blocks_kinematics
     Guides: key-features
     """
+
+    EVENTS = [Events.change]
 
     def __init__(
         self,
@@ -50,13 +49,10 @@ class Markdown(IOComponent, Changeable, StringSerializable):
             sanitize_html: If False, will disable HTML sanitization when converted from markdown. This is not recommended, as it can lead to security vulnerabilities.
         """
         self.rtl = rtl
-        if latex_delimiters is None:
-            latex_delimiters = [{"left": "$", "right": "$", "display": False}]
         self.latex_delimiters = latex_delimiters
         self.sanitize_html = sanitize_html
 
-        IOComponent.__init__(
-            self,
+        super().__init__(
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
@@ -106,3 +102,12 @@ class Markdown(IOComponent, Changeable, StringSerializable):
     def as_example(self, input_data: str | None) -> str:
         postprocessed = self.postprocess(input_data)
         return postprocessed if postprocessed else ""
+
+    def preprocess(self, x: Any) -> Any:
+        return x
+
+    def example_inputs(self) -> Any:
+        return "# Hello!"
+
+    def api_info(self) -> dict[str, list[str]]:
+        return {"type": "string"}

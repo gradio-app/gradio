@@ -1,1 +1,1 @@
-export { type Gradio } from "../../app/src/gradio_helper";
+export type { Gradio, I18nFormatter } from "../../app/src/gradio_helper";

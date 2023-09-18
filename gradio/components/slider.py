@@ -6,28 +6,16 @@ import math
 import random
 from typing import Any, Callable, Literal
 
-import numpy as np
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import NumberSerializable
 
-from gradio.components.base import FormComponent, IOComponent, _Keywords
-from gradio.deprecation import warn_style_method_deprecation
-from gradio.events import Changeable, Inputable, Releaseable
-from gradio.interpretation import NeighborInterpretable
+from gradio.components.base import Component, FormComponent, _Keywords
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class Slider(
-    FormComponent,
-    Changeable,
-    Inputable,
-    Releaseable,
-    IOComponent,
-    NumberSerializable,
-    NeighborInterpretable,
-):
+class Slider(FormComponent):
     """
     Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
     Preprocessing: passes slider value as a {float} into the function.
@@ -37,6 +25,8 @@ class Slider(
     Demos: sentence_builder, slider_release, generate_tone, titanic_survival, interface_random_slider, blocks_random_slider
     Guides: create-your-own-friends-with-a-gan
     """
+
+    EVENTS = [Events.change, Events.input, Events.release]
 
     def __init__(
         self,
@@ -88,8 +78,7 @@ class Slider(
             self.step = step
         if randomize:
             value = self.get_random_value
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             info=info,
             every=every,
@@ -104,22 +93,15 @@ class Slider(
             value=value,
             **kwargs,
         )
-        NeighborInterpretable.__init__(self)
 
     def api_info(self) -> dict[str, dict | bool]:
         return {
-            "info": {
-                "type": "number",
-                "description": f"numeric value between {self.minimum} and {self.maximum}",
-            },
-            "serialized_info": False,
+            "type": "number",
+            "description": f"numeric value between {self.minimum} and {self.maximum}",
         }
 
     def example_inputs(self) -> dict[str, Any]:
-        return {
-            "raw": self.minimum,
-            "serialized": self.minimum,
-        }
+        return self.minimum
 
     def get_config(self):
         return {
@@ -127,7 +109,7 @@ class Slider(
             "maximum": self.maximum,
             "step": self.step,
             "value": self.value,
-            **IOComponent.get_config(self),
+            **Component.get_config(self),
         }
 
     def get_random_value(self):
@@ -181,30 +163,5 @@ class Slider(
         """
         return self.minimum if y is None else y
 
-    def set_interpret_parameters(self, steps: int = 8) -> Slider:
-        """
-        Calculates interpretation scores of numeric values ranging between the minimum and maximum values of the slider.
-        Parameters:
-            steps: Number of neighboring values to measure between the minimum and maximum values of the slider range.
-        """
-        self.interpretation_steps = steps
-        return self
-
-    def get_interpretation_neighbors(self, x) -> tuple[object, dict]:
-        return (
-            np.linspace(self.minimum, self.maximum, self.interpretation_steps).tolist(),
-            {},
-        )
-
-    def style(
-        self,
-        *,
-        container: bool | None = None,
-    ):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if container is not None:
-            self.container = container
-        return self
+    def preprocess(self, x: Any) -> Any:
+        return x

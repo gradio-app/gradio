@@ -31,7 +31,7 @@
 </script>
 
 <Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
-	<StatusTracker {...loading_status} />
+	<StatusTracker i18n={gradio.i18n} {...loading_status} />
 
 	<Colorpicker
 		bind:value

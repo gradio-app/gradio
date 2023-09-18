@@ -2,7 +2,6 @@
 	import type { Gradio, ShareData } from "@gradio/utils";
 
 	import Button from "./Button.svelte";
-	import { _ } from "svelte-i18n";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -38,5 +37,5 @@
 	disabled={mode === "static"}
 	on:click={() => gradio.dispatch("click")}
 >
-	{$_(value)}
+	{gradio.i18n(value)}
 </Button>
