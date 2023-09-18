@@ -189,9 +189,9 @@ class App(FastAPI):
         @app.get("/user")
         @app.get("/user/")
         def get_current_user(request: fastapi.Request) -> Optional[str]:
-            token = request.cookies.get(f"access-token-{app.cookie_id}") or request.cookies.get(
-                f"access-token-unsecure-{app.cookie_id}"
-            )
+            token = request.cookies.get(
+                f"access-token-{app.cookie_id}"
+            ) or request.cookies.get(f"access-token-unsecure-{app.cookie_id}")
             return app.tokens.get(token)
 
         @app.get("/login_check")
@@ -204,9 +204,9 @@ class App(FastAPI):
             )
 
         async def ws_login_check(websocket: WebSocket) -> Optional[str]:
-            token = websocket.cookies.get(f"access-token-{app.cookie_id}") or websocket.cookies.get(
-                f"access-token-unsecure-{app.cookie_id}"
-            )
+            token = websocket.cookies.get(
+                f"access-token-{app.cookie_id}"
+            ) or websocket.cookies.get(f"access-token-unsecure-{app.cookie_id}")
             return token  # token is returned to authenticate the websocket connection in the endpoint handler.
 
         @app.get("/token")
@@ -275,7 +275,9 @@ class App(FastAPI):
                     secure=True,
                 )
                 response.set_cookie(
-                    key=f"access-token-unsecure-{app.cookie_id}", value=token, httponly=True
+                    key=f"access-token-unsecure-{app.cookie_id}",
+                    value=token,
+                    httponly=True,
                 )
                 return response
             else:
