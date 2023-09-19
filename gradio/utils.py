@@ -44,6 +44,7 @@ from gradio.context import Context
 from gradio.strings import en
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
+    from gradio import Request
     from gradio.blocks import Block, BlockContext, Blocks
     from gradio.components import Component
     from gradio.routes import App
@@ -660,7 +661,11 @@ def function_wrapper(
 
 
 def get_function_with_locals(
-    fn: Callable, blocks: Blocks, event_id: str | None, in_event_listener: bool
+    fn: Callable,
+    blocks: Blocks,
+    event_id: str | None,
+    in_event_listener: bool,
+    request: Request | None,
 ):
     def before_fn(blocks, event_id):
         from gradio.context import thread_data
@@ -668,6 +673,7 @@ def get_function_with_locals(
         thread_data.blocks = blocks
         thread_data.in_event_listener = in_event_listener
         thread_data.event_id = event_id
+        thread_data.request = request
 
     def after_fn():
         from gradio.context import thread_data

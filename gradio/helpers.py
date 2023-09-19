@@ -1100,7 +1100,7 @@ class EventData:
 def log_message(message: str, level: Literal["info", "warning"] = "info"):
     from gradio import context
 
-    if not hasattr(context.thread_data, "blocks"):  # Function called outside of Gradio
+    if context.thread_data.blocks is None:  # Function called outside of Gradio
         if level == "info":
             print(message)
         elif level == "warning":
@@ -1111,6 +1111,7 @@ def log_message(message: str, level: Literal["info", "warning"] = "info"):
             f"Queueing must be enabled to issue {level.capitalize()}: '{message}'."
         )
         return
+    assert context.thread_data.event_id
     context.thread_data.blocks._queue.log_message(
         event_id=context.thread_data.event_id, log=message, level=level
     )
