@@ -12,7 +12,6 @@ import time
 import warnings
 import webbrowser
 from collections import defaultdict
-from functools import wraps
 from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast
@@ -86,42 +85,6 @@ BUILT_IN_THEMES: dict[str, Theme] = {
         themes.Glass(),
     ]
 }
-
-
-def in_event_listener():
-    from gradio import context
-
-    return getattr(context.thread_data, "in_event_listener", False)
-
-
-def updateable(fn):
-    @wraps(fn)
-    def wrapper(*args, **kwargs):
-        fn_args = inspect.getfullargspec(fn).args
-        self = args[0]
-        for i, arg in enumerate(args):
-            if i == 0 or i >= len(fn_args):  #  skip self, *args
-                continue
-            arg_name = fn_args[i]
-            kwargs[arg_name] = arg
-        self.constructor_args = kwargs
-        if in_event_listener():
-            return None
-        else:
-            return fn(self, **kwargs)
-
-    return wrapper
-
-
-updated_cls_set = set()
-
-
-class Updateable:
-    def __new__(cls, *args, **kwargs):
-        if cls not in updated_cls_set:
-            cls.__init__ = updateable(cls.__init__)
-            updated_cls_set.add(cls)
-        return super().__new__(cls)
 
 
 class Block:

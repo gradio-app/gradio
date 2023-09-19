@@ -125,8 +125,35 @@ def create_or_modify_pyi(
         pyi_file.write_text(contents)
 
 
+def in_event_listener():
+    from gradio import context
+
+    return getattr(context.thread_data, "in_event_listener", False)
+
+def updateable(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        fn_args = inspect.getfullargspec(fn).args
+        self = args[0]
+        for i, arg in enumerate(args):
+            if i == 0 or i >= len(fn_args):  #  skip self, *args
+                continue
+            arg_name = fn_args[i]
+            kwargs[arg_name] = arg
+        self.constructor_args = kwargs
+        if in_event_listener():
+            return None
+        else:
+            return fn(self, **kwargs)
+
+    return wrapper
+
+
+
 class ComponentMeta(ABCMeta):
     def __new__(cls, name, bases, attrs):
+        if "__init__" in attrs:
+            attrs["__init__"] = updateable(attrs["__init__"])
         if "EVENTS" not in attrs:
             found = False
             for base in bases:
