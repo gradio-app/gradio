@@ -17,6 +17,7 @@ from gradio.utils import set_directory
 
 
 def in_test_dir():
+    """Determine if we're in the test dir."""
     gradio_dir = (pathlib.Path(gradio.__file__) / ".." / "..").resolve()
     try:
         (gradio_dir / "js/gradio-preview/test").relative_to(pathlib.Path().cwd())
