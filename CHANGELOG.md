@@ -1,5 +1,11 @@
 # gradio
 
+## 3.45.0-beta.4
+
+### Features
+
+- [#5620](https://github.com/gradio-app/gradio/pull/5620) [`c4c25ecdf`](https://github.com/gradio-app/gradio/commit/c4c25ecdf8c2fab5e3c41b519564e3b6a9ebfce3) - fix build and broken imports.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 3.45.0-beta.3
 
 ### Features
