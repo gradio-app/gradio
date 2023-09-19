@@ -1,5 +1,11 @@
 # @gradio/app
 
+## 1.5.4
+
+### Features
+
+- [#5514](https://github.com/gradio-app/gradio/pull/5514) [`52f783175`](https://github.com/gradio-app/gradio/commit/52f7831751b432411e109bd41add4ab286023a8e) - refactor: Use package.json for version management.  Thanks [@DarhkVoyd](https://github.com/DarhkVoyd)!
+
 ## 1.5.3
 
 ### Fixes
