@@ -4,4 +4,4 @@
 "gradio": patch
 ---
 
-fix:Add `disable_markdown` param to chatbot
+fix:Add `render_markdown` parameter to chatbot
