@@ -60,6 +60,7 @@ from gradio.utils import (
     get_package_version,
     run_coro_in_background,
     set_task_name,
+    get_space
 )
 
 mimetypes.init()
@@ -302,7 +303,10 @@ class App(FastAPI):
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
-            root_path = request.scope.get("root_path", "")
+            if get_space() and request.headers.get("x-direct-url"):
+                root_path = request.headers['x-direct-url']
+            else:
+                root_path = request.scope.get("root_path", "")
 
             if app.auth is None or user is not None:
                 config = app.get_blocks().config
@@ -344,7 +348,10 @@ class App(FastAPI):
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request):
-            root_path = request.scope.get("root_path", "")
+            if get_space() and request.headers.get("x-direct-url"):
+                root_path = request.headers['x-direct-url']
+            else:
+                root_path = request.scope.get("root_path", "")
             config = app.get_blocks().config
             config["root"] = root_path
             return config
