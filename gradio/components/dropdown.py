@@ -133,18 +133,6 @@ class Dropdown(FormComponent):
         else:
             return self.choices[0] if self.choices else None
 
-    def get_config(self):
-        return {
-            "choices": self.choices,
-            "value": self.value,
-            "multiselect": self.multiselect,
-            "max_choices": self.max_choices,
-            "allow_custom_value": self.allow_custom_value,
-            "container": self.container,
-            "filterable": self.filterable,
-            **Component.get_config(self),
-        }
-
     @staticmethod
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
@@ -160,6 +148,9 @@ class Dropdown(FormComponent):
         placeholder: str | None = None,
         visible: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Dropdown(...)` instead of `return gr.Dropdown.update(...)`."
+        )
         choices = (
             None
             if choices is None
@@ -182,8 +173,8 @@ class Dropdown(FormComponent):
         }
 
     def preprocess(
-        self, x: str | list[str]
-    ) -> str | int | list[str] | list[int] | None:
+        self, x: str | int | float | list[str | int | float] | None
+    ) -> str | int | float | list[str | int | float] | list[int | None] | None:
         """
         Parameters:
             x: selected choice(s)
@@ -193,19 +184,17 @@ class Dropdown(FormComponent):
         if self.type == "value":
             return x
         elif self.type == "index":
+            choice_values = [value for _, value in self.choices]
             if x is None:
                 return None
             elif self.multiselect:
+                assert isinstance(x, list)
                 return [
-                    [value for _, value in self.choices].index(choice) for choice in x
+                    choice_values.index(choice) if choice in choice_values else None
+                    for choice in x
                 ]
             else:
-                if isinstance(x, str):
-                    return (
-                        [value for _, value in self.choices].index(x)
-                        if x in self.choices
-                        else None
-                    )
+                return choice_values.index(x) if x in choice_values else None
         else:
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."

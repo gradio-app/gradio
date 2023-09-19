@@ -120,12 +120,14 @@ class EventListener(str):
     def __init__(
         self,
         event_name: str,
+        config_data: Callable[..., dict[str, Any]] = lambda: {},
         show_progress: Literal["full", "minimal", "hidden"] | None = None,
         callback: Callable | None = None,
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
     ):
         super().__init__()
+        self.config_data = config_data
         self.event_name = event_name
         self.show_progress = show_progress
         self.trigger_after = trigger_after
@@ -279,7 +281,6 @@ class Events:
         "like",
         callback=lambda block: setattr(block, "likeable", True)
     )
-
 
 class LikeData(EventData):
     def __init__(self, target: Block | None, data: Any):

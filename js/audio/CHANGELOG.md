@@ -1,5 +1,11 @@
 # @gradio/audio
 
+## 0.3.4
+
+### Fixes
+
+- [#5587](https://github.com/gradio-app/gradio/pull/5587) [`e0d61b8ba`](https://github.com/gradio-app/gradio/commit/e0d61b8baa0f6293f53b9bdb1647d42f9ae2583a) - Fix `.clear()` events for audio and image.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.3.3
 
 ### Fixes

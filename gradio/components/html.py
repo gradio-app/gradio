@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
@@ -58,12 +59,6 @@ class HTML(Component):
             **kwargs,
         )
 
-    def get_config(self):
-        return {
-            "value": self.value,
-            **Component.get_config(self),
-        }
-
     def example_inputs(self) -> Any:
         return "<p>Hello</p>"
 
@@ -80,6 +75,9 @@ class HTML(Component):
         show_label: bool | None = None,
         visible: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.HTML(...)` instead of `return gr.HTML.update(...)`."
+        )
         updated_config = {
             "label": label,
             "show_label": show_label,

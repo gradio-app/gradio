@@ -127,6 +127,7 @@
 	}
 
 	async function handle_sketch_clear(): Promise<void> {
+		dispatch("clear");
 		sketch.clear();
 		await tick();
 		value = null;

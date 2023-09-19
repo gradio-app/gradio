@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
@@ -87,13 +88,6 @@ class CheckboxGroup(FormComponent):
             **kwargs,
         )
 
-    def get_config(self):
-        return {
-            "choices": self.choices,
-            "value": self.value,
-            **Component.get_config(self),
-        }
-
     def example_inputs(self) -> dict[str, Any]:
         return [self.choices[0][1]] if self.choices else None
 
@@ -116,6 +110,9 @@ class CheckboxGroup(FormComponent):
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.CheckboxGroup(...)` instead of `return gr.CheckboxGroup.update(...)`."
+        )
         choices = (
             None
             if choices is None
@@ -135,7 +132,9 @@ class CheckboxGroup(FormComponent):
             "__type__": "update",
         }
 
-    def preprocess(self, x: list[str | int | float]) -> list[str | int | float]:
+    def preprocess(
+        self, x: list[str | int | float]
+    ) -> list[str | int | float] | list[int | None]:
         """
         Parameters:
             x: list of selected choices
@@ -145,7 +144,11 @@ class CheckboxGroup(FormComponent):
         if self.type == "value":
             return x
         elif self.type == "index":
-            return [[value for _, value in self.choices].index(choice) for choice in x]
+            choice_values = [value for _, value in self.choices]
+            return [
+                choice_values.index(choice) if choice in choice_values else None
+                for choice in x
+            ]
         else:
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."

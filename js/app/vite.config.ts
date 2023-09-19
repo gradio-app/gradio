@@ -9,9 +9,9 @@ import prefixer from "postcss-prefix-selector";
 import { readFileSync } from "fs";
 import { resolve } from "path";
 
-const version_path = resolve(__dirname, "../../gradio/version.txt");
+const version_path = resolve(__dirname, "../../gradio/package.json");
 const theme_token_path = resolve(__dirname, "../theme/src/tokens.css");
-const version_raw = readFileSync(version_path, { encoding: "utf-8" }).trim();
+const version_raw = JSON.parse(readFileSync(version_path, { encoding: "utf-8" })).version.trim();
 const version = version_raw.replace(/\./g, "-");
 
 const client_version_path = resolve(
@@ -22,7 +22,7 @@ const client_version_raw = JSON.parse(
 	readFileSync(client_version_path, {
 		encoding: "utf-8"
 	})
-).version;
+).version.trim();
 
 import {
 	inject_ejs,

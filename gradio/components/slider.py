@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import math
 import random
+import warnings
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.components.base import Component, FormComponent, _Keywords
+from gradio.components.base import FormComponent, _Keywords
 from gradio.events import Events
 
 set_documentation_group("component")
@@ -103,15 +104,6 @@ class Slider(FormComponent):
     def example_inputs(self) -> dict[str, Any]:
         return self.minimum
 
-    def get_config(self):
-        return {
-            "minimum": self.minimum,
-            "maximum": self.maximum,
-            "step": self.step,
-            "value": self.value,
-            **Component.get_config(self),
-        }
-
     def get_random_value(self):
         n_steps = int((self.maximum - self.minimum) / self.step)
         step = random.randint(0, n_steps)
@@ -137,6 +129,9 @@ class Slider(FormComponent):
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Slider(...)` instead of `return gr.Slider.update(...)`."
+        )
         return {
             "minimum": minimum,
             "maximum": maximum,

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any, Literal
+import warnings
 
 import numpy as np
 from gradio_client.documentation import document, set_documentation_group
@@ -100,17 +101,6 @@ class AnnotatedImage(Component):
             **kwargs,
         )
 
-    def get_config(self):
-        return {
-            "show_legend": self.show_legend,
-            "value": self.value,
-            "height": self.height,
-            "width": self.width,
-            "color_map": self.color_map,
-            "selectable": self.selectable,
-            **Component.get_config(self),
-        }
-
     @staticmethod
     def update(
         value: tuple[
@@ -129,6 +119,9 @@ class AnnotatedImage(Component):
         min_width: int | None = None,
         visible: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.AnnotatedImage(...)` instead of `return gr.AnnotatedImage.update(...)`."
+        )
         updated_config = {
             "show_legend": show_legend,
             "height": height,
@@ -226,7 +219,7 @@ class AnnotatedImage(Component):
             )
 
         return AnnotatedImageData(
-            image={"name": base_img_path, "data": None, "is_file": True},
+            image=FileData(name=base_img_path, data=None, is_file=True),
             annotations=sections,
         )
 

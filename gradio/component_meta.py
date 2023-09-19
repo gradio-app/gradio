@@ -144,11 +144,15 @@ class ComponentMeta(ABCMeta):
                 f"All events for {name} must either be an string or an instance "
                 "of EventListener."
             )
+        new_events = []
         for event in events:
             trigger = (
                 EventListener(event_name=event) if isinstance(event, str) else event
             )
+            new_events.append(trigger)
             attrs[event] = trigger.listener
+        if "EVENTS" in attrs:
+            attrs["EVENTS"] = new_events
         if "postprocess" in attrs:
             attrs["postprocess"] = serializes(attrs["postprocess"])
 

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any, Literal
+import warnings
+from typing import Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
@@ -99,14 +101,6 @@ class Code(Component):
             **kwargs,
         )
 
-    def get_config(self):
-        return {
-            "value": self.value,
-            "language": self.language,
-            "lines": self.lines,
-            **Component.get_config(self),
-        }
-
     def preprocess(self, x: Any) -> Any:
         return x
 
@@ -156,6 +150,9 @@ class Code(Component):
         | None = None,
         interactive: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Code(...)` instead of `return gr.Code.update(...)`."
+        )
         return {
             "label": label,
             "show_label": show_label,

@@ -139,19 +139,6 @@ class Video(Component):
             **kwargs,
         )
 
-    def get_config(self):
-        return {
-            "source": self.source,
-            "value": self.value,
-            "height": self.height,
-            "width": self.width,
-            "mirror_webcam": self.mirror_webcam,
-            "include_audio": self.include_audio,
-            "autoplay": self.autoplay,
-            "show_share_button": self.show_share_button,
-            **Component.get_config(self),
-        }
-
     @staticmethod
     def update(
         value: str
@@ -171,6 +158,9 @@ class Video(Component):
         autoplay: bool | None = None,
         show_share_button: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Video(...)` instead of `return gr.Video.update(...)`."
+        )
         return {
             "source": source,
             "height": height,

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any, Callable, Literal, Union
+import warnings
 
 from gradio_client.documentation import document, set_documentation_group
 
@@ -95,16 +96,6 @@ class HighlightedText(Component):
             **kwargs,
         )
 
-    def get_config(self):
-        return {
-            "color_map": self.color_map,
-            "show_legend": self.show_legend,
-            "value": self.value,
-            "selectable": self.selectable,
-            "combine_adjacent": self.combine_adjacent,
-            **Component.get_config(self),
-        }
-
     def example_inputs(self) -> Any:
         return {"value": [{"token": "Hello", "class_or_confidence": "1"}]}
 
@@ -124,6 +115,9 @@ class HighlightedText(Component):
         visible: bool | None = None,
         interactive: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.HighlightedText(...)` instead of `return gr.HighlightedText.update(...)`."
+        )
         updated_config = {
             "color_map": color_map,
             "show_legend": show_legend,

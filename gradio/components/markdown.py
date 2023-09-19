@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+import warnings
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
@@ -72,15 +73,6 @@ class Markdown(Component):
         unindented_y = inspect.cleandoc(y)
         return unindented_y
 
-    def get_config(self):
-        return {
-            "value": self.value,
-            "rtl": self.rtl,
-            "latex_delimiters": self.latex_delimiters,
-            "sanitize_html": self.sanitize_html,
-            **Component.get_config(self),
-        }
-
     @staticmethod
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
@@ -89,6 +81,9 @@ class Markdown(Component):
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         sanitize_html: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Markdown(...)` instead of `return gr.Markdown.update(...)`."
+        )
         updated_config = {
             "visible": visible,
             "value": value,

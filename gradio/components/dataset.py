@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Any, Literal
 
 from gradio_client.documentation import document, set_documentation_group
@@ -64,47 +65,32 @@ class Dataset(Component):
         self.container = container
         self.scale = scale
         self.min_width = min_width
-        self.components = [get_component_instance(c) for c in components]
+        self._components = [get_component_instance(c) for c in components]
 
         # Narrow type to IOComponent
         assert all(
-            isinstance(c, Component) for c in self.components
+            isinstance(c, Component) for c in self._components
         ), "All components in a `Dataset` must be subclasses of `IOComponent`"
-        self.components = [c for c in self.components if isinstance(c, Component)]
-        for component in self.components:
+        for component in self._components:
             component.root_url = self.root_url
 
         self.samples = [[]] if samples is None else samples
         for example in self.samples:
-            for i, (component, ex) in enumerate(zip(self.components, example)):
+            for i, (component, ex) in enumerate(zip(self._components, example)):
                 example[i] = component.as_example(ex)
         self.type = type
         self.label = label
         if headers is not None:
             self.headers = headers
-        elif all(c.label is None for c in self.components):
+        elif all(c.label is None for c in self._components):
             self.headers = []
         else:
-            self.headers = [c.label or "" for c in self.components]
+            self.headers = [c.label or "" for c in self._components]
         self.samples_per_page = samples_per_page
 
     @property
     def skip_api(self):
         return True
-
-    def get_config(self):
-        return {
-            "components": [component.get_block_name() for component in self.components],
-            "headers": self.headers,
-            "samples": self.samples,
-            "type": self.type,
-            "label": self.label,
-            "samples_per_page": self.samples_per_page,
-            "container": self.container,
-            "scale": self.scale,
-            "min_width": self.min_width,
-            **Component.get_config(self),
-        }
 
     @staticmethod
     def update(
@@ -115,6 +101,9 @@ class Dataset(Component):
         scale: int | None = None,
         min_width: int | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Dataset(...)` instead of `return gr.Dataset.update(...)`."
+        )
         return {
             "samples": samples,
             "visible": visible,
@@ -124,6 +113,13 @@ class Dataset(Component):
             "min_width": min_width,
             "__type__": "update",
         }
+
+    def get_config(self):
+        config = super().get_config()
+        config["components"] = [
+            component.get_block_name() for component in self._components
+        ]
+        return config
 
     def preprocess(self, x: Any) -> Any:
         """

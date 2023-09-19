@@ -1,5 +1,18 @@
 # @gradio/app
 
+## 1.5.4
+
+### Features
+
+- [#5514](https://github.com/gradio-app/gradio/pull/5514) [`52f783175`](https://github.com/gradio-app/gradio/commit/52f7831751b432411e109bd41add4ab286023a8e) - refactor: Use package.json for version management.  Thanks [@DarhkVoyd](https://github.com/DarhkVoyd)!
+
+## 1.5.3
+
+### Fixes
+
+- [#5562](https://github.com/gradio-app/gradio/pull/5562) [`50d9747d0`](https://github.com/gradio-app/gradio/commit/50d9747d061962cff7f60a8da648bb3781794102) - chore(deps): update dependency iframe-resizer to v4.3.7.  Thanks [@renovate](https://github.com/apps/renovate)!
+- [#5550](https://github.com/gradio-app/gradio/pull/5550) [`4ed5902e7`](https://github.com/gradio-app/gradio/commit/4ed5902e7dda2d95cd43e4ccaaef520ddd8eba57) - Adding basque language.  Thanks [@EkhiAzur](https://github.com/EkhiAzur)!
+
 ## 1.5.2
 
 ### Patch Changes

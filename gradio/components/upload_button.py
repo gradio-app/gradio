@@ -94,27 +94,13 @@ class UploadButton(Component):
             **kwargs,
         )
 
-    def get_config(self):
-        return {
-            "label": self.label,
-            "value": self.value,
-            "size": self.size,
-            "file_count": self.file_count,
-            "file_types": self.file_types,
-            "scale": self.scale,
-            "min_width": self.min_width,
-            "variant": self.variant,
-            "interactive": self.interactive,
-            **Component.get_config(self),
-        }
-
     def api_info(self) -> dict[str, list[str]]:
         if self.file_count == "single":
             return FileData.model_json_schema()
         else:
             return ListFiles.model_json_schema()
 
-    def example_inputs(self) -> dict[str, Any]:
+    def example_inputs(self) -> Any:
         if self.file_count == "single":
             return "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
         else:
@@ -136,6 +122,9 @@ class UploadButton(Component):
         scale: int | None = None,
         min_width: int | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.UploadButton(...)` instead of `return gr.UploadButton.update(...)`."
+        )
         return {
             "variant": variant,
             "interactive": interactive,

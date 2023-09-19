@@ -43,8 +43,8 @@ gradio_component = "gradio.cli:custom_component"
 Homepage = "https://github.com/gradio-app/gradio"
 
 [tool.hatch.version]
-path = "gradio/version.txt"
-pattern = "(?P<version>.+)"
+path = "gradio/package.json"
+pattern = ".*\"version\":\\s*\"(?P<version>[^\"]+)\""
 
 [tool.hatch.metadata.hooks.requirements_txt]
 filename = "requirements.txt"

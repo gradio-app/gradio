@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any, Callable, Literal
+import warnings
 
 from gradio_client.documentation import document, set_documentation_group
 
@@ -73,19 +74,6 @@ class Button(Component):
         self.icon = icon
         self.link = link
 
-    def get_config(self):
-        return {
-            "value": self.value,
-            "variant": self.variant,
-            "size": self.size,
-            "icon": self.icon,
-            "link": self.link,
-            "interactive": self.interactive,
-            "scale": self.scale,
-            "min_width": self.min_width,
-            **Component.get_config(self),
-        }
-
     @property
     def skip_api(self):
         return True
@@ -102,6 +90,9 @@ class Button(Component):
         scale: int | None = None,
         min_width: int | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Button(...)` instead of `return gr.Button.update(...)`."
+        )
         return {
             "variant": variant,
             "size": size,

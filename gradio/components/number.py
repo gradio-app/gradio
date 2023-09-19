@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any, Callable, Literal
+import warnings
 
 from gradio_client.documentation import document, set_documentation_group
 
@@ -107,16 +108,6 @@ class Number(FormComponent):
         else:
             return round(num, precision)
 
-    def get_config(self):
-        return {
-            "value": self.value,
-            "minimum": self.minimum,
-            "maximum": self.maximum,
-            "step": self.step,
-            "container": self.container,
-            **Component.get_config(self),
-        }
-
     @staticmethod
     def update(
         value: float | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
@@ -132,6 +123,9 @@ class Number(FormComponent):
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Number(...)` instead of `return gr.Number.update(...)`."
+        )
         return {
             "label": label,
             "info": info,

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any, Callable, Literal
+import warnings
 
 from gradio_client.documentation import document, set_documentation_group
 
@@ -111,22 +112,6 @@ class Textbox(FormComponent):
         self.rtl = rtl
         self.text_align = text_align
 
-    def get_config(self):
-        return {
-            "lines": self.lines,
-            "max_lines": self.max_lines,
-            "placeholder": self.placeholder,
-            "value": self.value,
-            "type": self.type,
-            "autofocus": self.autofocus,
-            "show_copy_button": self.show_copy_button,
-            "container": self.container,
-            "text_align": self.text_align,
-            "rtl": self.rtl,
-            "autoscroll": self.autoscroll,
-            **Component.get_config(self),
-        }
-
     @staticmethod
     def update(
         value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
@@ -148,6 +133,9 @@ class Textbox(FormComponent):
         autofocus: bool | None = None,
         autoscroll: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Textbox(...)` instead of `return gr.Textbox.update(...)`."
+        )
         return {
             "lines": lines,
             "max_lines": max_lines,

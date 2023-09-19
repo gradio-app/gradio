@@ -7,7 +7,7 @@ import time
 
 def add_text(history, text):
     history = history + [(text, None)]
-    return history, gr.update(value="", interactive=False)
+    return history, gr.Textbox(value="", interactive=False)
 
 
 def add_file(history, file):
@@ -44,7 +44,7 @@ with gr.Blocks() as demo:
     txt_msg = txt.submit(add_text, [chatbot, txt], [chatbot, txt], queue=False).then(
         bot, chatbot, chatbot, api_name="bot_response"
     )
-    txt_msg.then(lambda: gr.update(interactive=True), None, [txt], queue=False)
+    txt_msg.then(lambda: gr.Textbox(interactive=True), None, [txt], queue=False)
     file_msg = btn.upload(add_file, [chatbot, btn], [chatbot], queue=False).then(
         bot, chatbot, chatbot
     )

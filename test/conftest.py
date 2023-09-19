@@ -32,7 +32,7 @@ def io_components():
 
         if children:
             classes_to_check.extend(children)
-        if "value" in inspect.signature(subclass).parameters:
+        if "value" in inspect.signature(subclass.__init__).parameters:
             subclasses.append(subclass)
 
     return subclasses

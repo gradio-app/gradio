@@ -117,16 +117,6 @@ class File(Component):
             **kwargs,
         )
 
-    def get_config(self):
-        return {
-            "file_count": self.file_count,
-            "file_types": self.file_types,
-            "value": self.value,
-            "selectable": self.selectable,
-            "height": self.height,
-            **Component.get_config(self),
-        }
-
     @staticmethod
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
@@ -139,6 +129,9 @@ class File(Component):
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.File(...)` instead of `return gr.File.update(...)`."
+        )
         return {
             "label": label,
             "show_label": show_label,
@@ -227,14 +220,14 @@ class File(Component):
             return None
         if isinstance(y, list):
             return ListFiles(
-                [
-                    {
+                root=[
+                    FileData(**{
                         "orig_name": Path(file).name,
                         "name": self.make_temp_copy_if_needed(file),
                         "size": Path(file).stat().st_size,
                         "data": None,
                         "is_file": True,
-                    }
+                    })
                     for file in y
                 ]
             )
@@ -256,7 +249,7 @@ class File(Component):
         else:
             return Path(input_data).name
 
-    def example_inputs(self) -> dict[str, Any]:
+    def example_inputs(self) -> Any:
         if self.file_count == "single":
             return "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
         else:

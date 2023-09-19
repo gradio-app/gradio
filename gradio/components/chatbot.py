@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+import warnings
 from pathlib import Path
 from typing import Any, Callable, Literal, Optional, Union
 
@@ -126,22 +127,6 @@ class Chatbot(Component):
             **kwargs,
         )
 
-    def get_config(self):
-        return {
-            "value": self.value,
-            "latex_delimiters": self.latex_delimiters,
-            "selectable": self.selectable,
-            "likeable": self.likeable,
-            "height": self.height,
-            "show_share_button": self.show_share_button,
-            "rtl": self.rtl,
-            "show_copy_button": self.show_copy_button,
-            "avatar_images": self.avatar_images,
-            "sanitize_html": self.sanitize_html,
-            "bubble_full_width": self.bubble_full_width,
-            **Component.get_config(self),
-        }
-
     @staticmethod
     def update(
         value: list[list[str | tuple[str] | tuple[str, str] | None]]
@@ -162,6 +147,9 @@ class Chatbot(Component):
         sanitize_html: bool | None = None,
         bubble_full_width: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Chatbot(...)` instead of `return gr.Chatbot.update(...)`."
+        )
         updated_config = {
             "label": label,
             "show_label": show_label,

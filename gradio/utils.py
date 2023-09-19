@@ -11,7 +11,6 @@ import json
 import json.decoder
 import os
 import pkgutil
-import pprint
 import random
 import re
 import threading
@@ -50,12 +49,21 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.routes import App
 
 JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
-GRADIO_VERSION = (
-    (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
-)
 
 P = ParamSpec("P")
 T = TypeVar("T")
+
+
+def get_package_version() -> str:
+    try:
+        package_json_data = (
+            pkgutil.get_data(__name__, "package.json").decode("utf-8").strip()  # type: ignore
+        )
+        package_data = json.loads(package_json_data)
+        version = package_data.get("version", "")
+        return version
+    except Exception:
+        return ""
 
 
 def safe_get_lock() -> asyncio.Lock:
@@ -329,7 +337,8 @@ def assert_configs_are_equivalent_besides_ids(
     """
     config1 = copy.deepcopy(config1)
     config2 = copy.deepcopy(config2)
-    pp = pprint.PrettyPrinter(indent=2)
+    config1 = json.loads(json.dumps(config1))  # convert tuples to lists
+    config2 = json.loads(json.dumps(config2))
 
     for key in root_keys:
         assert config1[key] == config2[key], f"Configs have different: {key}"
@@ -339,15 +348,19 @@ def assert_configs_are_equivalent_besides_ids(
     ), "# of components are different"
 
     def assert_same_components(config1_id, config2_id):
-        c1 = list(filter(lambda c: c["id"] == config1_id, config1["components"]))[0]
-        c2 = list(filter(lambda c: c["id"] == config2_id, config2["components"]))[0]
+        c1 = list(filter(lambda c: c["id"] == config1_id, config1["components"]))
+        if len(c1) == 0:
+            raise ValueError(f"Could not find component with id {config1_id}")
+        c1 = c1[0]
+        c2 = list(filter(lambda c: c["id"] == config2_id, config2["components"]))
+        if len(c2) == 0:
+            raise ValueError(f"Could not find component with id {config2_id}")
+        c2 = c2[0]
         c1 = copy.deepcopy(c1)
         c1.pop("id")
         c2 = copy.deepcopy(c2)
         c2.pop("id")
-        assert json.dumps(c1) == json.dumps(
-            c2
-        ), f"{pp.pprint(c1)} does not match {pp.pprint(c2)}"
+        assert c1 == c2, f"{c1} does not match {c2}"
 
     def same_children_recursive(children1, chidren2):
         for child1, child2 in zip(children1, chidren2):
@@ -649,14 +662,24 @@ def function_wrapper(
         return wrapper
 
 
-def get_function_with_locals(fn: Callable, blocks: Blocks, event_id: str | None):
+def get_function_with_locals(
+    fn: Callable, blocks: Blocks, event_id: str | None, in_event_listener: bool
+):
     def before_fn(blocks, event_id):
         from gradio.context import thread_data
 
         thread_data.blocks = blocks
+        thread_data.in_event_listener = in_event_listener
         thread_data.event_id = event_id
 
-    return function_wrapper(fn, before_fn=before_fn, before_args=(blocks, event_id))
+    def after_fn():
+        from gradio.context import thread_data
+
+        thread_data.in_event_listener = False
+
+    return function_wrapper(
+        fn, before_fn=before_fn, before_args=(blocks, event_id), after_fn=after_fn
+    )
 
 
 async def cancel_tasks(task_ids: set[str]):

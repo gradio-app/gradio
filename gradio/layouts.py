@@ -51,15 +51,7 @@ class Row(BlockContext, metaclass=ComponentMeta):
         self.equal_height = equal_height
         if variant == "compact":
             self.allow_expected_parents = False
-        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
-
-    def get_config(self):
-        return {
-            "type": "row",
-            "variant": self.variant,
-            "equal_height": self.equal_height,
-            **super().get_config(),
-        }
+        BlockContext.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
 
     @staticmethod
     def update(
@@ -134,16 +126,7 @@ class Column(BlockContext, metaclass=ComponentMeta):
         self.variant = variant
         if variant == "compact":
             self.allow_expected_parents = False
-        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
-
-    def get_config(self):
-        return {
-            "type": "column",
-            "variant": self.variant,
-            "scale": self.scale,
-            "min_width": self.min_width,
-            **super().get_config(),
-        }
+        BlockContext.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
 
     @staticmethod
     def update(
@@ -180,9 +163,6 @@ class Tabs(BlockContext, metaclass=ComponentMeta):
         """
         BlockContext.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.selected = selected
-
-    def get_config(self):
-        return {"selected": self.selected, **super(BlockContext, self).get_config()}
 
     @staticmethod
     def update(
@@ -229,13 +209,6 @@ class Tab(BlockContext, metaclass=ComponentMeta):
         self.label = label
         self.id = id
 
-    def get_config(self):
-        return {
-            "label": self.label,
-            "id": self.id,
-            **super(BlockContext, self).get_config(),
-        }
-
     def get_expected_parent(self) -> type[Tabs]:
         return Tabs
 
@@ -271,10 +244,7 @@ class Group(BlockContext, metaclass=ComponentMeta):
             visible: If False, group will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
-
-    def get_config(self):
-        return {"type": "group", **super().get_config()}
+        BlockContext.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
 
     @staticmethod
     def update(
@@ -312,10 +282,7 @@ class Box(BlockContext, metaclass=ComponentMeta):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         warnings.warn("gr.Box is deprecated. Use gr.Group instead.", DeprecationWarning)
-        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
-
-    def get_config(self):
-        return {"type": "box", **super().get_config()}
+        BlockContext.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
 
     @staticmethod
     def update(
@@ -342,22 +309,14 @@ class Form(BlockContext, metaclass=ComponentMeta):
         """
         self.scale = scale
         self.min_width = min_width
-        super().__init__(**kwargs)
+        BlockContext.__init__(self, **kwargs)
 
     def add_child(self, child: Block):
         if isinstance(self.parent, Row):
             scale = getattr(child, "scale", None)
             self.scale += 1 if scale is None else scale
             self.min_width += getattr(child, "min_width", 0) or 0
-        super().add_child(child)
-
-    def get_config(self):
-        return {
-            "type": "form",
-            "scale": self.scale,
-            "min_width": self.min_width,
-            **super().get_config(),
-        }
+        BlockContext.add_child(self, child)
 
 
 @document()
@@ -388,15 +347,7 @@ class Accordion(BlockContext, metaclass=ComponentMeta):
         """
         self.label = label
         self.open = open
-        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
-
-    def get_config(self):
-        return {
-            "type": "accordion",
-            "open": self.open,
-            "label": self.label,
-            **super().get_config(),
-        }
+        BlockContext.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
 
     @staticmethod
     def update(

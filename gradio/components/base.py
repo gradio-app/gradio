@@ -51,7 +51,7 @@ class _Keywords(Enum):
 
 
 class ComponentBase(ABC, metaclass=ComponentMeta):
-    EVENTS: list[str | EventListener] = []
+    EVENTS: list[EventListener | str] = []
 
     @abstractmethod
     def preprocess(self, x: Any) -> Any:
@@ -344,19 +344,14 @@ class Component(ComponentBase, Block):
         return path
 
     def get_config(self):
-        config = {
-            "label": self.label,
-            "show_label": self.show_label,
-            "container": self.container,
-            "scale": self.scale,
-            "min_width": self.min_width,
-            "interactive": self.interactive,
-            "name": self.get_block_name(),
-            **super().get_config(),
-        }
+        config = super().get_config()
         if self.info:
             config["info"] = self.info
         config["custom_component"] = not self.__module__.startswith("gradio")
+        for e in self.events:
+            to_add = e.config_data()
+            if to_add:
+                config = {**config, **to_add}
         return config
 
     @property

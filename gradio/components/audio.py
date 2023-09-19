@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import tempfile
+import warnings
 from pathlib import Path
 from typing import Any, Callable, Literal, Optional
 
@@ -141,18 +143,6 @@ class Audio(
             **kwargs,
         )
 
-    def get_config(self):
-        return {
-            "source": self.source,
-            "value": self.value,
-            "streaming": self.streaming,
-            "autoplay": self.autoplay,
-            "show_download_button": self.show_download_button,
-            "show_share_button": self.show_share_button,
-            "show_edit_button": self.show_edit_button,
-            **Component.get_config(self),
-        }
-
     def example_inputs(self) -> dict[str, Any]:
         return "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
 
@@ -172,6 +162,9 @@ class Audio(
         show_share_button: bool | None = None,
         show_edit_button: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Audio(...)` instead of `return gr.Audio.update(...)`."
+        )
         return {
             "source": source,
             "label": label,
@@ -201,7 +194,7 @@ class Audio(
         if x is None:
             return x
 
-        x = AudioInputData(**x)
+        x: AudioInputData = AudioInputData(**x)
 
         if x.is_file:
             if client_utils.is_http_url_like(x.name):
@@ -255,7 +248,7 @@ class Audio(
                 return y
             file_path = self.file_bytes_to_file(y, "audio")
         elif isinstance(y, str) and client_utils.is_http_url_like(y):
-            return {"name": y, "data": None, "is_file": True}
+            return FileData(**{"name": y, "data": None, "is_file": True})
         elif isinstance(y, tuple):
             sample_rate, data = y
             file_path = self.audio_to_temp_file(
