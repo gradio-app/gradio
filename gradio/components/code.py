@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
+import warnings
 from pathlib import Path
 from typing import Any, Literal
-import warnings
-from typing import Literal
 
 from gradio_client.documentation import document, set_documentation_group
 

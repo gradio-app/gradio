@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal
 import warnings
+from typing import Any, Literal
 
 import numpy as np
 from gradio_client.documentation import document, set_documentation_group
