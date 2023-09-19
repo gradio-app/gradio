@@ -269,6 +269,7 @@
 		font-size: var(--text-lg);
 		line-height: var(--line-lg);
 		overflow-wrap: break-word;
+		overflow-x: hidden;
 	}
 	.message-fit {
 		width: fit-content !important;
@@ -321,6 +322,7 @@
 		justify-content: center;
 		width: 35px;
 		height: 35px;
+		flex-shrink: 0;
 		bottom: 0;
 	}
 	.user-row > .avatar-container {
