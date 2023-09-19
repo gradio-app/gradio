@@ -13,9 +13,17 @@ from typing_extensions import Annotated
 
 import gradio
 from gradio.cli.commands.display import LivePanelDisplay
-from gradio.utils import is_in_or_equal, set_directory
+from gradio.utils import set_directory
 
-IN_TEST_DIR = is_in_or_equal("gradio/js/gradio-preview/test", pathlib.Path().cwd())
+
+def in_test_dir():
+    gradio_dir = (pathlib.Path(gradio.__file__) / ".." / "..").resolve()
+    try:
+        (gradio_dir / "js/gradio-preview/test").relative_to(pathlib.Path().cwd())
+        return True
+    except ValueError:
+        return False
+
 
 app = typer.Typer()
 
@@ -67,8 +75,8 @@ def _create_frontend(name: str, template: str, directory: pathlib.Path):
     source_package_json = json.load(open(str(frontend / "package.json")))
     source_package_json["name"] = name.lower()
     for dep in source_package_json.get("dependencies", []):
-        # if curent working directory is the gradio repo, use the local version of the dependency
-        if not IN_TEST_DIR and dep.startswith("@gradio/"):
+        # if curent working directory is the gradio repo, use the local version of the dependency'
+        if not in_test_dir() and dep.startswith("@gradio/"):
             source_package_json["dependencies"][dep] = get_js_dependency_version(
                 dep, p / "_frontend_code"
             )
@@ -184,7 +192,7 @@ def _create(
 
     directory.mkdir(exist_ok=True)
 
-    if IN_TEST_DIR:
+    if in_test_dir():
         npm_install = "pnpm i --ignore-scripts"
 
     with LivePanelDisplay() as live:
