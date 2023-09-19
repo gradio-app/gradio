@@ -1,5 +1,13 @@
 # @gradio/form
 
+## 0.0.6-beta.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/utils@0.2.0-beta.1
+  - @gradio/atoms@0.2.0-beta.1
+
 ## 0.0.6-beta.0
 
 ### Patch Changes

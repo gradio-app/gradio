@@ -1,5 +1,12 @@
 # gradio
 
+## 3.45.0-beta.2
+
+### Features
+
+- [#5615](https://github.com/gradio-app/gradio/pull/5615) [`142880ba5`](https://github.com/gradio-app/gradio/commit/142880ba589126d98da3d6a38866828864cc6b81) - Publish js theme.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5613](https://github.com/gradio-app/gradio/pull/5613) [`d0b22b6cf`](https://github.com/gradio-app/gradio/commit/d0b22b6cf4345ce9954b166f8b4278f8d3e24472) - backend linting.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 3.45.0-beta.1
 
 ### Features
