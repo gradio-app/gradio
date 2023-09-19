@@ -30,7 +30,7 @@ jobs:
           . venv/bin/activate
           pip install build
           pnpm css
-          pnpm --filter @gradio/client --filter @gradio/lite build
+          pnpm --filter @gradio/client
       - name: create and publish versions
         id: changesets
         uses: changesets/action@v1
