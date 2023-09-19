@@ -48,7 +48,7 @@ class Row(Updateable, BlockContext):
         self.equal_height = equal_height
         if variant == "compact":
             self.allow_expected_parents = False
-        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
+        BlockContext.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
 
     @staticmethod
     def update(
@@ -121,7 +121,7 @@ class Column(Updateable, BlockContext):
         self.variant = variant
         if variant == "compact":
             self.allow_expected_parents = False
-        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
+        BlockContext.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
 
     @staticmethod
     def update(
@@ -236,7 +236,7 @@ class Group(Updateable, BlockContext):
             visible: If False, group will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
+        BlockContext.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
 
     @staticmethod
     def update(
@@ -272,7 +272,7 @@ class Box(Updateable, BlockContext):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         warnings.warn("gr.Box is deprecated. Use gr.Group instead.", DeprecationWarning)
-        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
+        BlockContext.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
 
     @staticmethod
     def update(
@@ -297,14 +297,14 @@ class Form(Updateable, BlockContext):
         """
         self.scale = scale
         self.min_width = min_width
-        super().__init__(**kwargs)
+        BlockContext.__init__(self, **kwargs)
 
     def add_child(self, child: Block):
         if isinstance(self.parent, Row):
             scale = getattr(child, "scale", None)
             self.scale += 1 if scale is None else scale
             self.min_width += getattr(child, "min_width", 0) or 0
-        super().add_child(child)
+        BlockContext.add_child(self, child)
 
 
 @document()
@@ -333,7 +333,7 @@ class Accordion(Updateable, BlockContext):
         """
         self.label = label
         self.open = open
-        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
+        BlockContext.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
 
     @staticmethod
     def update(
