@@ -319,6 +319,7 @@
 		justify-content: center;
 		width: 35px;
 		height: 35px;
+		flex-shrink: 0;
 		bottom: 0;
 	}
 	.user-row > .avatar-container {
@@ -331,7 +332,7 @@
 	img.avatar-image {
 		width: 100%;
 		height: 100%;
-		object-fit: cover;
+		object-fit: contain;
 		border-radius: 50%;
 	}
 
