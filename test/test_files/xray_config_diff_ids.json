@@ -1,11 +1,12 @@
 {
-	"version": "3.41.2",
+	"version": "3.44.1",
 	"mode": "blocks",
-	"dev_mode": true,
-	"analytics_enabled": true,
+	"app_id": 3299865391549106311,
+	"dev_mode": false,
+	"analytics_enabled": false,
 	"components": [
 		{
-			"id": 101,
+			"id": 1031,
 			"type": "markdown",
 			"props": {
 				"value": "# Detect Disease From Scan\nWith this model you can lorem ipsum\n- ipsum 1\n- ipsum 2",
@@ -17,9 +18,9 @@
 						"display": false
 					}
 				],
+				"visible": true,
 				"sanitize_html": true,
-				"name": "markdown",
-				"visible": true
+				"name": "markdown"
 			},
 			"serializer": "StringSerializable",
 			"api_info": {
@@ -34,21 +35,32 @@
 			}
 		},
 		{
-			"id": 102,
+			"id": 1032,
 			"type": "checkboxgroup",
 			"props": {
 				"choices": [
-					["Covid", "Covid"],
-					["Malaria", "Malaria"],
-					["Lung Cancer", "Lung Cancer"]
+					[
+						"Covid",
+						"Covid"
+					],
+					[
+						"Malaria",
+						"Malaria"
+					],
+					[
+						"Lung Cancer",
+						"Lung Cancer"
+					]
 				],
 				"value": [],
+				"type": "value",
 				"label": "Disease to Scan For",
 				"show_label": true,
 				"container": true,
 				"min_width": 160,
+				"visible": true,
 				"name": "checkboxgroup",
-				"visible": true
+				"selectable": false
 			},
 			"serializer": "ListStringSerializable",
 			"api_info": {
@@ -61,54 +73,63 @@
 				"serialized_info": false
 			},
 			"example_inputs": {
-				"raw": ["Covid"],
-				"serialized": ["Covid"]
+				"raw": [
+					"Covid"
+				],
+				"serialized": [
+					"Covid"
+				]
 			}
 		},
 		{
-			"id": 103,
+			"id": 1033,
 			"type": "tabs",
 			"props": {
-				"visible": true
+				"visible": true,
+				"name": "tabs",
+				"selectable": false
 			}
 		},
 		{
-			"id": 104,
+			"id": 1034,
 			"type": "tabitem",
 			"props": {
 				"label": "X-ray",
-				"visible": true
+				"name": "tabitem",
+				"selectable": false
 			}
 		},
 		{
-			"id": 105,
+			"id": 1035,
 			"type": "row",
 			"props": {
-				"type": "row",
 				"variant": "default",
+				"visible": true,
 				"equal_height": true,
-				"visible": true
+				"name": "row"
 			}
 		},
 		{
-			"id": 106,
+			"id": 1036,
 			"type": "image",
 			"props": {
 				"image_mode": "RGB",
+				"invert_colors": false,
 				"source": "upload",
 				"tool": "editor",
+				"type": "numpy",
+				"show_label": true,
+				"show_download_button": true,
+				"container": true,
+				"min_width": 160,
+				"visible": true,
 				"streaming": false,
 				"mirror_webcam": true,
 				"brush_color": "#000000",
 				"mask_opacity": 0.7,
-				"selectable": false,
 				"show_share_button": false,
-				"show_download_button": true,
-				"show_label": true,
-				"container": true,
-				"min_width": 160,
 				"name": "image",
-				"visible": true
+				"selectable": false
 			},
 			"serializer": "ImgSerializable",
 			"api_info": {
@@ -124,14 +145,14 @@
 			}
 		},
 		{
-			"id": 107,
+			"id": 1037,
 			"type": "json",
 			"props": {
 				"show_label": true,
 				"container": true,
 				"min_width": 160,
-				"name": "json",
-				"visible": true
+				"visible": true,
+				"name": "json"
 			},
 			"serializer": "JSONSerializable",
 			"api_info": {
@@ -150,14 +171,14 @@
 			}
 		},
 		{
-			"id": 108,
+			"id": 1038,
 			"type": "button",
 			"props": {
 				"value": "Run",
 				"variant": "secondary",
+				"visible": true,
 				"interactive": true,
-				"name": "button",
-				"visible": true
+				"name": "button"
 			},
 			"serializer": "StringSerializable",
 			"api_info": {
@@ -172,42 +193,45 @@
 			}
 		},
 		{
-			"id": 109,
+			"id": 1039,
 			"type": "tabitem",
 			"props": {
 				"label": "CT Scan",
-				"visible": true
+				"name": "tabitem",
+				"selectable": false
 			}
 		},
 		{
-			"id": 110,
+			"id": 1040,
 			"type": "row",
 			"props": {
-				"type": "row",
 				"variant": "default",
+				"visible": true,
 				"equal_height": true,
-				"visible": true
+				"name": "row"
 			}
 		},
 		{
-			"id": 111,
+			"id": 1041,
 			"type": "image",
 			"props": {
 				"image_mode": "RGB",
+				"invert_colors": false,
 				"source": "upload",
 				"tool": "editor",
+				"type": "numpy",
+				"show_label": true,
+				"show_download_button": true,
+				"container": true,
+				"min_width": 160,
+				"visible": true,
 				"streaming": false,
 				"mirror_webcam": true,
 				"brush_color": "#000000",
 				"mask_opacity": 0.7,
-				"selectable": false,
 				"show_share_button": false,
-				"show_download_button": true,
-				"show_label": true,
-				"container": true,
-				"min_width": 160,
 				"name": "image",
-				"visible": true
+				"selectable": false
 			},
 			"serializer": "ImgSerializable",
 			"api_info": {
@@ -223,14 +247,14 @@
 			}
 		},
 		{
-			"id": 112,
+			"id": 1042,
 			"type": "json",
 			"props": {
 				"show_label": true,
 				"container": true,
 				"min_width": 160,
-				"name": "json",
-				"visible": true
+				"visible": true,
+				"name": "json"
 			},
 			"serializer": "JSONSerializable",
 			"api_info": {
@@ -249,14 +273,14 @@
 			}
 		},
 		{
-			"id": 113,
+			"id": 1043,
 			"type": "button",
 			"props": {
 				"value": "Run",
 				"variant": "secondary",
+				"visible": true,
 				"interactive": true,
-				"name": "button",
-				"visible": true
+				"name": "button"
 			},
 			"serializer": "StringSerializable",
 			"api_info": {
@@ -271,21 +295,23 @@
 			}
 		},
 		{
-			"id": 114,
+			"id": 1044,
 			"type": "textbox",
 			"props": {
+				"value": "",
 				"lines": 1,
 				"max_lines": 20,
-				"value": "",
-				"type": "text",
-				"autofocus": false,
-				"show_copy_button": false,
-				"container": true,
-				"rtl": false,
 				"show_label": true,
+				"container": true,
 				"min_width": 160,
+				"visible": true,
+				"autofocus": false,
+				"autoscroll": true,
+				"type": "text",
+				"rtl": false,
+				"show_copy_button": false,
 				"name": "textbox",
-				"visible": true
+				"selectable": false
 			},
 			"serializer": "StringSerializable",
 			"api_info": {
@@ -300,23 +326,21 @@
 			}
 		},
 		{
-			"id": 115,
+			"id": 1045,
 			"type": "form",
 			"props": {
-				"type": "form",
 				"scale": 0,
 				"min_width": 0,
-				"visible": true
+				"name": "form"
 			}
 		},
 		{
-			"id": 116,
+			"id": 1046,
 			"type": "form",
 			"props": {
-				"type": "form",
 				"scale": 0,
 				"min_width": 0,
-				"visible": true
+				"name": "form"
 			}
 		}
 	],
@@ -333,67 +357,67 @@
 	],
 	"theme": "default",
 	"layout": {
-		"id": 100,
+		"id": 1030,
 		"children": [
 			{
-				"id": 101
+				"id": 1031
 			},
 			{
-				"id": 115,
+				"id": 1045,
 				"children": [
 					{
-						"id": 102
+						"id": 1032
 					}
 				]
 			},
 			{
-				"id": 103,
+				"id": 1033,
 				"children": [
 					{
-						"id": 104,
+						"id": 1034,
 						"children": [
 							{
-								"id": 105,
+								"id": 1035,
 								"children": [
 									{
-										"id": 106
+										"id": 1036
 									},
 									{
-										"id": 107
+										"id": 1037
 									}
 								]
 							},
 							{
-								"id": 108
+								"id": 1038
 							}
 						]
 					},
 					{
-						"id": 109,
+						"id": 1039,
 						"children": [
 							{
-								"id": 110,
+								"id": 1040,
 								"children": [
 									{
-										"id": 111
+										"id": 1041
 									},
 									{
-										"id": 112
+										"id": 1042
 									}
 								]
 							},
 							{
-								"id": 113
+								"id": 1043
 							}
 						]
 					}
 				]
 			},
 			{
-				"id": 116,
+				"id": 1046,
 				"children": [
 					{
-						"id": 114
+						"id": 1044
 					}
 				]
 			}
@@ -401,10 +425,17 @@
 	},
 	"dependencies": [
 		{
-			"targets": [108],
+			"targets": [
+				1038
+			],
 			"trigger": "click",
-			"inputs": [102, 106],
-			"outputs": [107],
+			"inputs": [
+				1032,
+				1036
+			],
+			"outputs": [
+				1037
+			],
 			"backend_fn": true,
 			"js": null,
 			"queue": null,
@@ -424,10 +455,42 @@
 			"trigger_only_on_success": false
 		},
 		{
-			"targets": [113],
+			"targets": [
+				1043
+			],
 			"trigger": "click",
-			"inputs": [102, 111],
-			"outputs": [112],
+			"inputs": [
+				1032,
+				1041
+			],
+			"outputs": [
+				1042
+			],
+			"backend_fn": true,
+			"js": null,
+			"queue": null,
+			"api_name": null,
+			"scroll_to_output": false,
+			"show_progress": "full",
+			"every": null,
+			"batch": false,
+			"max_batch_size": 4,
+			"cancels": [],
+			"types": {
+				"continuous": false,
+				"generator": false
+			},
+			"collects_event_data": false,
+			"trigger_after": null,
+			"trigger_only_on_success": false
+		},
+		{
+			"targets": [],
+			"trigger": "load",
+			"inputs": [],
+			"outputs": [
+				1044
+			],
 			"backend_fn": true,
 			"js": null,
 			"queue": null,

@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/wasm",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "Gradio Wasm package",
 	"type": "module",
 	"main": "./dist/index.js",
@@ -21,7 +21,7 @@
 		"build": "run-s build:worker build:client"
 	},
 	"devDependencies": {
-		"pyodide": "^0.23.2"
+		"pyodide": "^0.24.0"
 	},
 	"dependencies": {
 		"@types/path-browserify": "^1.0.0",

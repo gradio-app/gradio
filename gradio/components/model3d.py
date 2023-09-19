@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from pathlib import Path
 from typing import Any, Callable, Literal
 
@@ -95,16 +96,6 @@ class Model3D(
             **kwargs,
         )
 
-    def get_config(self):
-        return {
-            "clear_color": self.clear_color,
-            "value": self.value,
-            "camera_position": self.camera_position,
-            "height": self.height,
-            "zoom_speed": self.zoom_speed,
-            **IOComponent.get_config(self),
-        }
-
     def example_inputs(self) -> dict[str, Any]:
         return {
             "raw": {"is_file": False, "data": media_data.BASE64_MODEL3D},
@@ -128,6 +119,9 @@ class Model3D(
         min_width: int | None = None,
         visible: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Model3D(...)` instead of `return gr.Model3D.update(...)`."
+        )
         updated_config = {
             "camera_position": camera_position,
             "clear_color": clear_color,

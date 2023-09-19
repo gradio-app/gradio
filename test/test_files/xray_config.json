@@ -1,11 +1,12 @@
 {
-	"version": "3.41.2",
+	"version": "3.44.1",
 	"mode": "blocks",
-	"dev_mode": true,
-	"analytics_enabled": true,
+	"app_id": 3299865391549106311,
+	"dev_mode": false,
+	"analytics_enabled": false,
 	"components": [
 		{
-			"id": 1,
+			"id": 31,
 			"type": "markdown",
 			"props": {
 				"value": "# Detect Disease From Scan\nWith this model you can lorem ipsum\n- ipsum 1\n- ipsum 2",
@@ -17,9 +18,9 @@
 						"display": false
 					}
 				],
+				"visible": true,
 				"sanitize_html": true,
-				"name": "markdown",
-				"visible": true
+				"name": "markdown"
 			},
 			"serializer": "StringSerializable",
 			"api_info": {
@@ -34,21 +35,32 @@
 			}
 		},
 		{
-			"id": 2,
+			"id": 32,
 			"type": "checkboxgroup",
 			"props": {
 				"choices": [
-					["Covid", "Covid"],
-					["Malaria", "Malaria"],
-					["Lung Cancer", "Lung Cancer"]
+					[
+						"Covid",
+						"Covid"
+					],
+					[
+						"Malaria",
+						"Malaria"
+					],
+					[
+						"Lung Cancer",
+						"Lung Cancer"
+					]
 				],
 				"value": [],
+				"type": "value",
 				"label": "Disease to Scan For",
 				"show_label": true,
 				"container": true,
 				"min_width": 160,
+				"visible": true,
 				"name": "checkboxgroup",
-				"visible": true
+				"selectable": false
 			},
 			"serializer": "ListStringSerializable",
 			"api_info": {
@@ -61,54 +73,63 @@
 				"serialized_info": false
 			},
 			"example_inputs": {
-				"raw": ["Covid"],
-				"serialized": ["Covid"]
+				"raw": [
+					"Covid"
+				],
+				"serialized": [
+					"Covid"
+				]
 			}
 		},
 		{
-			"id": 3,
+			"id": 33,
 			"type": "tabs",
 			"props": {
-				"visible": true
+				"visible": true,
+				"name": "tabs",
+				"selectable": false
 			}
 		},
 		{
-			"id": 4,
+			"id": 34,
 			"type": "tabitem",
 			"props": {
 				"label": "X-ray",
-				"visible": true
+				"name": "tabitem",
+				"selectable": false
 			}
 		},
 		{
-			"id": 5,
+			"id": 35,
 			"type": "row",
 			"props": {
-				"type": "row",
 				"variant": "default",
+				"visible": true,
 				"equal_height": true,
-				"visible": true
+				"name": "row"
 			}
 		},
 		{
-			"id": 6,
+			"id": 36,
 			"type": "image",
 			"props": {
 				"image_mode": "RGB",
+				"invert_colors": false,
 				"source": "upload",
 				"tool": "editor",
+				"type": "numpy",
+				"show_label": true,
+				"show_download_button": true,
+				"container": true,
+				"min_width": 160,
+				"visible": true,
 				"streaming": false,
 				"mirror_webcam": true,
 				"brush_color": "#000000",
 				"mask_opacity": 0.7,
-				"selectable": false,
 				"show_share_button": false,
-				"show_download_button": true,
-				"show_label": true,
-				"container": true,
-				"min_width": 160,
 				"name": "image",
-				"visible": true
+				"selectable": false
 			},
 			"serializer": "ImgSerializable",
 			"api_info": {
@@ -124,14 +145,14 @@
 			}
 		},
 		{
-			"id": 7,
+			"id": 37,
 			"type": "json",
 			"props": {
 				"show_label": true,
 				"container": true,
 				"min_width": 160,
-				"name": "json",
-				"visible": true
+				"visible": true,
+				"name": "json"
 			},
 			"serializer": "JSONSerializable",
 			"api_info": {
@@ -150,14 +171,14 @@
 			}
 		},
 		{
-			"id": 8,
+			"id": 38,
 			"type": "button",
 			"props": {
 				"value": "Run",
 				"variant": "secondary",
+				"visible": true,
 				"interactive": true,
-				"name": "button",
-				"visible": true
+				"name": "button"
 			},
 			"serializer": "StringSerializable",
 			"api_info": {
@@ -172,42 +193,45 @@
 			}
 		},
 		{
-			"id": 9,
+			"id": 39,
 			"type": "tabitem",
 			"props": {
 				"label": "CT Scan",
-				"visible": true
+				"name": "tabitem",
+				"selectable": false
 			}
 		},
 		{
-			"id": 10,
+			"id": 40,
 			"type": "row",
 			"props": {
-				"type": "row",
 				"variant": "default",
+				"visible": true,
 				"equal_height": true,
-				"visible": true
+				"name": "row"
 			}
 		},
 		{
-			"id": 11,
+			"id": 41,
 			"type": "image",
 			"props": {
 				"image_mode": "RGB",
+				"invert_colors": false,
 				"source": "upload",
 				"tool": "editor",
+				"type": "numpy",
+				"show_label": true,
+				"show_download_button": true,
+				"container": true,
+				"min_width": 160,
+				"visible": true,
 				"streaming": false,
 				"mirror_webcam": true,
 				"brush_color": "#000000",
 				"mask_opacity": 0.7,
-				"selectable": false,
 				"show_share_button": false,
-				"show_download_button": true,
-				"show_label": true,
-				"container": true,
-				"min_width": 160,
 				"name": "image",
-				"visible": true
+				"selectable": false
 			},
 			"serializer": "ImgSerializable",
 			"api_info": {
@@ -223,14 +247,14 @@
 			}
 		},
 		{
-			"id": 12,
+			"id": 42,
 			"type": "json",
 			"props": {
 				"show_label": true,
 				"container": true,
 				"min_width": 160,
-				"name": "json",
-				"visible": true
+				"visible": true,
+				"name": "json"
 			},
 			"serializer": "JSONSerializable",
 			"api_info": {
@@ -249,14 +273,14 @@
 			}
 		},
 		{
-			"id": 13,
+			"id": 43,
 			"type": "button",
 			"props": {
 				"value": "Run",
 				"variant": "secondary",
+				"visible": true,
 				"interactive": true,
-				"name": "button",
-				"visible": true
+				"name": "button"
 			},
 			"serializer": "StringSerializable",
 			"api_info": {
@@ -271,21 +295,23 @@
 			}
 		},
 		{
-			"id": 14,
+			"id": 44,
 			"type": "textbox",
 			"props": {
+				"value": "",
 				"lines": 1,
 				"max_lines": 20,
-				"value": "",
-				"type": "text",
-				"autofocus": false,
-				"show_copy_button": false,
-				"container": true,
-				"rtl": false,
 				"show_label": true,
+				"container": true,
 				"min_width": 160,
+				"visible": true,
+				"autofocus": false,
+				"autoscroll": true,
+				"type": "text",
+				"rtl": false,
+				"show_copy_button": false,
 				"name": "textbox",
-				"visible": true
+				"selectable": false
 			},
 			"serializer": "StringSerializable",
 			"api_info": {
@@ -300,23 +326,21 @@
 			}
 		},
 		{
-			"id": 15,
+			"id": 45,
 			"type": "form",
 			"props": {
-				"type": "form",
 				"scale": 0,
 				"min_width": 0,
-				"visible": true
+				"name": "form"
 			}
 		},
 		{
-			"id": 16,
+			"id": 46,
 			"type": "form",
 			"props": {
-				"type": "form",
 				"scale": 0,
 				"min_width": 0,
-				"visible": true
+				"name": "form"
 			}
 		}
 	],
@@ -333,67 +357,67 @@
 	],
 	"theme": "default",
 	"layout": {
-		"id": 0,
+		"id": 30,
 		"children": [
 			{
-				"id": 1
+				"id": 31
 			},
 			{
-				"id": 15,
+				"id": 45,
 				"children": [
 					{
-						"id": 2
+						"id": 32
 					}
 				]
 			},
 			{
-				"id": 3,
+				"id": 33,
 				"children": [
 					{
-						"id": 4,
+						"id": 34,
 						"children": [
 							{
-								"id": 5,
+								"id": 35,
 								"children": [
 									{
-										"id": 6
+										"id": 36
 									},
 									{
-										"id": 7
+										"id": 37
 									}
 								]
 							},
 							{
-								"id": 8
+								"id": 38
 							}
 						]
 					},
 					{
-						"id": 9,
+						"id": 39,
 						"children": [
 							{
-								"id": 10,
+								"id": 40,
 								"children": [
 									{
-										"id": 11
+										"id": 41
 									},
 									{
-										"id": 12
+										"id": 42
 									}
 								]
 							},
 							{
-								"id": 13
+								"id": 43
 							}
 						]
 					}
 				]
 			},
 			{
-				"id": 16,
+				"id": 46,
 				"children": [
 					{
-						"id": 14
+						"id": 44
 					}
 				]
 			}
@@ -401,10 +425,17 @@
 	},
 	"dependencies": [
 		{
-			"targets": [8],
+			"targets": [
+				38
+			],
 			"trigger": "click",
-			"inputs": [2, 6],
-			"outputs": [7],
+			"inputs": [
+				32,
+				36
+			],
+			"outputs": [
+				37
+			],
 			"backend_fn": true,
 			"js": null,
 			"queue": null,
@@ -424,10 +455,42 @@
 			"trigger_only_on_success": false
 		},
 		{
-			"targets": [13],
+			"targets": [
+				43
+			],
 			"trigger": "click",
-			"inputs": [2, 11],
-			"outputs": [12],
+			"inputs": [
+				32,
+				41
+			],
+			"outputs": [
+				42
+			],
+			"backend_fn": true,
+			"js": null,
+			"queue": null,
+			"api_name": null,
+			"scroll_to_output": false,
+			"show_progress": "full",
+			"every": null,
+			"batch": false,
+			"max_batch_size": 4,
+			"cancels": [],
+			"types": {
+				"continuous": false,
+				"generator": false
+			},
+			"collects_event_data": false,
+			"trigger_after": null,
+			"trigger_only_on_success": false
+		},
+		{
+			"targets": [],
+			"trigger": "load",
+			"inputs": [],
+			"outputs": [
+				44
+			],
 			"backend_fn": true,
 			"js": null,
 			"queue": null,

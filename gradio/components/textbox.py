@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Callable, Literal
 
 import numpy as np
@@ -67,6 +68,7 @@ class Textbox(
         visible: bool = True,
         elem_id: str | None = None,
         autofocus: bool = False,
+        autoscroll: bool = True,
         elem_classes: list[str] | str | None = None,
         type: Literal["text", "password", "email"] = "text",
         text_align: Literal["left", "right"] | None = None,
@@ -96,6 +98,7 @@ class Textbox(
             text_align: How to align the text in the textbox, can be: "left", "right", or None (default). If None, the alignment is left if `rtl` is False, or right if `rtl` is True. Can only be changed if `type` is "text".
             rtl: If True and `type` is "text", sets the direction of the text to right-to-left (cursor appears on the left of the text). Default is False, which renders cursor on the right.
             show_copy_button: If True, includes a copy button to copy the text in the textbox. Only applies if show_label is True.
+            autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes.
         """
         if type not in ["text", "password", "email"]:
             raise ValueError('`type` must be one of "text", "password", or "email".')
@@ -109,6 +112,7 @@ class Textbox(
         self.show_copy_button = show_copy_button
         self.autofocus = autofocus
         self.select: EventListenerMethod
+        self.autoscroll = autoscroll
         """
         Event listener for when the user selects text in the Textbox.
         Uses event data gradio.SelectData to carry `value` referring to selected substring, and `index` tuple referring to selected range endpoints.
@@ -135,21 +139,6 @@ class Textbox(
         self.rtl = rtl
         self.text_align = text_align
 
-    def get_config(self):
-        return {
-            "lines": self.lines,
-            "max_lines": self.max_lines,
-            "placeholder": self.placeholder,
-            "value": self.value,
-            "type": self.type,
-            "autofocus": self.autofocus,
-            "show_copy_button": self.show_copy_button,
-            "container": self.container,
-            "text_align": self.text_align,
-            "rtl": self.rtl,
-            **IOComponent.get_config(self),
-        }
-
     @staticmethod
     def update(
         value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
@@ -169,7 +158,11 @@ class Textbox(
         rtl: bool | None = None,
         show_copy_button: bool | None = None,
         autofocus: bool | None = None,
+        autoscroll: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Textbox(...)` instead of `return gr.Textbox.update(...)`."
+        )
         return {
             "lines": lines,
             "max_lines": max_lines,
@@ -188,6 +181,7 @@ class Textbox(
             "autofocus": autofocus,
             "text_align": text_align,
             "rtl": rtl,
+            "autoscroll": autoscroll,
             "__type__": "update",
         }
 

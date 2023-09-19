@@ -391,11 +391,6 @@ class Queue:
                 gr_request=gr_request,
                 fn_index_inferred=fn_index_inferred,
             )
-        except asyncio.CancelledError:
-            # `asyncio.CancelledError` can be raised in a normal case and we don't want to show it to the user,
-            # so we catch it here before the `BaseException` handler that prints the traceback.
-            # Ref: https://github.com/gradio-app/gradio/pull/5165#discussion_r1310497840
-            raise
         except Exception as error:
             show_error = app.get_blocks().show_error or isinstance(error, Error)
             traceback.print_exc()
@@ -406,7 +401,11 @@ class Queue:
         # This is done by FastAPI automatically in the HTTP endpoint handlers,
         # but we need to do it manually here.
         response_class = app.router.default_response_class
-        http_response = response_class(
+        if isinstance(response_class, fastapi.datastructures.DefaultPlaceholder):
+            actual_response_class = response_class.value
+        else:
+            actual_response_class = response_class
+        http_response = actual_response_class(
             output
         )  # Do the same as https://github.com/tiangolo/fastapi/blob/0.87.0/fastapi/routing.py#L264
         # Also, decode the JSON string to a Python object, emulating the HTTP client behavior e.g. the `json()` method of `httpx`.
@@ -439,7 +438,11 @@ class Queue:
                         event,
                         {
                             "msg": "process_completed",
-                            "output": {"error": str(e)},
+                            "output": {
+                                "error": None
+                                if len(e.args) and e.args[0] is None
+                                else str(e)
+                            },
                             "success": False,
                         },
                     )

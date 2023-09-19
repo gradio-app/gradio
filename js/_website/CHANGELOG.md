@@ -1,5 +1,17 @@
 # website
 
+## 0.6.0
+
+### Features
+
+- [#5565](https://github.com/gradio-app/gradio/pull/5565) [`f0514fc49`](https://github.com/gradio-app/gradio/commit/f0514fc49ea04ba01dce748238e1fd16f9cb5d8b) - Route docs and guide urls correctly.  Thanks [@aliabd](https://github.com/aliabd)!
+
+## 0.5.0
+
+### Features
+
+- [#5481](https://github.com/gradio-app/gradio/pull/5481) [`df623e74`](https://github.com/gradio-app/gradio/commit/df623e743aad4b21a7eda9bae4c03eb17f01c90d) - Toggle main vs versioned demos on website and show install snippet.  Thanks [@aliabd](https://github.com/aliabd)!
+
 ## 0.4.0
 
 ### Features

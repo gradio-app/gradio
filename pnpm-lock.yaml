@@ -204,6 +204,9 @@ importers:
       storybook:
         specifier: ^7.0.23
         version: 7.0.23
+      wikidata-lang:
+        specifier: ^4.1.2
+        version: 4.1.2
 
   client/js:
     dependencies:
@@ -1218,8 +1221,8 @@ importers:
         version: 1.0.1
     devDependencies:
       pyodide:
-        specifier: ^0.23.2
-        version: 0.23.2
+        specifier: ^0.24.0
+        version: 0.24.0
 
 packages:
 
@@ -12700,15 +12703,13 @@ packages:
       - utf-8-validate
     dev: true
 
-  /pyodide@0.23.2:
-    resolution: {integrity: sha512-GK4YDZVgzfAXK/7X0IiCI+142k0Ah/HwYTzDHtG8zC47dflWYuPozeFbOngShuL1M9Un5sCmHFqiH3boxJv0pQ==}
+  /pyodide@0.24.0:
+    resolution: {integrity: sha512-k2TzIbAYQ/ucme0LYv4KmxKDR15m68/3pvPKmUVtdpzn6K9Qt1NLHeZI1RErWJE6PtlQI8UA0Q21wrtu3XPUMg==}
     dependencies:
       base-64: 1.0.0
-      node-fetch: 2.6.7
       ws: 8.13.0(bufferutil@4.0.7)
     transitivePeerDependencies:
       - bufferutil
-      - encoding
       - utf-8-validate
     dev: true
 
@@ -15456,6 +15457,10 @@ packages:
     resolution: {integrity: sha512-eDMORYaPNZ4sQIuuYPDHdQvf4gyCF9rEEV/yPxGfwPkRodwEgiMUUXTx/dex+Me0wxx53S+NgUHaP7y3MGlDmg==}
     dependencies:
       string-width: 4.2.3
+
+  /wikidata-lang@4.1.2:
+    resolution: {integrity: sha512-Nw+loOQQO02cVZQCAFCaE5IWdPakX9zXLr4Pjv0GA81OyI+TPWC6iLy/0cORL6YbYde19MbRVITIHiKRv1HmFA==}
+    dev: true
 
   /word-wrap@1.2.3:
     resolution: {integrity: sha512-Hz/mrNwitNRh/HUAtM/VT/5VH+ygD6DV7mYKZAtHOrbs8U7lvPS6xf7EJKMF0uW1KJCl0H701g3ZGus+muE5vQ==}

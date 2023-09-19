@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import warnings
 from typing import Callable, Literal
 
 import numpy as np
@@ -125,16 +126,6 @@ class Number(
         else:
             return round(num, precision)
 
-    def get_config(self):
-        return {
-            "value": self.value,
-            "minimum": self.minimum,
-            "maximum": self.maximum,
-            "step": self.step,
-            "container": self.container,
-            **IOComponent.get_config(self),
-        }
-
     @staticmethod
     def update(
         value: float | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
@@ -150,6 +141,9 @@ class Number(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Number(...)` instead of `return gr.Number.update(...)`."
+        )
         return {
             "label": label,
             "info": info,
