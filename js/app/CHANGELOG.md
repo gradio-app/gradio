@@ -1,24 +1,68 @@
 # @gradio/app
 
+## 1.6.0-beta.1
+
+### Patch Changes
+
+- Updated dependencies [[`142880ba5`](https://github.com/gradio-app/gradio/commit/142880ba589126d98da3d6a38866828864cc6b81)]:
+  - @gradio/theme@0.2.0-beta.1
+  - @gradio/chatbot@0.4.0-beta.1
+  - @gradio/highlightedtext@0.4.0-beta.1
+  - @gradio/plot@0.2.0-beta.1
+  - @gradio/utils@0.2.0-beta.1
+  - @gradio/annotatedimage@0.2.0-beta.1
+  - @gradio/atoms@0.2.0-beta.1
+  - @gradio/audio@0.4.0-beta.1
+  - @gradio/button@0.2.0-beta.1
+  - @gradio/checkbox@0.2.0-beta.1
+  - @gradio/checkboxgroup@0.3.0-beta.1
+  - @gradio/code@0.2.0-beta.1
+  - @gradio/colorpicker@0.2.0-beta.1
+  - @gradio/dataframe@0.3.0-beta.1
+  - @gradio/dropdown@0.3.0-beta.1
+  - @gradio/fallback@0.2.0-beta.1
+  - @gradio/file@0.2.0-beta.1
+  - @gradio/form@0.0.6-beta.1
+  - @gradio/gallery@0.4.0-beta.1
+  - @gradio/html@0.1.0-beta.1
+  - @gradio/image@0.3.0-beta.1
+  - @gradio/json@0.1.0-beta.1
+  - @gradio/label@0.2.0-beta.1
+  - @gradio/markdown@0.3.0-beta.1
+  - @gradio/model3d@0.3.0-beta.1
+  - @gradio/number@0.3.0-beta.1
+  - @gradio/radio@0.3.0-beta.1
+  - @gradio/slider@0.2.0-beta.1
+  - @gradio/statustracker@0.3.0-beta.1
+  - @gradio/tabitem@0.0.5-beta.1
+  - @gradio/tabs@0.0.6-beta.1
+  - @gradio/textbox@0.4.0-beta.1
+  - @gradio/upload@0.3.0-beta.1
+  - @gradio/uploadbutton@0.1.0-beta.1
+  - @gradio/video@0.1.0-beta.1
+  - @gradio/accordion@0.1.0-beta.1
+  - @gradio/box@0.0.5-beta.1
+  - @gradio/row@0.0.1
+
 ## 1.6.0-beta.0
 
 ### Features
 
-- [#5507](https://github.com/gradio-app/gradio/pull/5507) [`1385dc688`](https://github.com/gradio-app/gradio/commit/1385dc6881f2d8ae7a41106ec21d33e2ef04d6a9) - Custom components.  Thanks [@pngwn](https://github.com/pngwn)!
-- [#5589](https://github.com/gradio-app/gradio/pull/5589) [`af1b2f9ba`](https://github.com/gradio-app/gradio/commit/af1b2f9bafbacf2804fcfe68af6bb4b921442aca) - image fixes.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5507](https://github.com/gradio-app/gradio/pull/5507) [`1385dc688`](https://github.com/gradio-app/gradio/commit/1385dc6881f2d8ae7a41106ec21d33e2ef04d6a9) - Custom components. Thanks [@pngwn](https://github.com/pngwn)!
+- [#5589](https://github.com/gradio-app/gradio/pull/5589) [`af1b2f9ba`](https://github.com/gradio-app/gradio/commit/af1b2f9bafbacf2804fcfe68af6bb4b921442aca) - image fixes. Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 1.5.4
 
 ### Features
 
-- [#5514](https://github.com/gradio-app/gradio/pull/5514) [`52f783175`](https://github.com/gradio-app/gradio/commit/52f7831751b432411e109bd41add4ab286023a8e) - refactor: Use package.json for version management.  Thanks [@DarhkVoyd](https://github.com/DarhkVoyd)!
+- [#5514](https://github.com/gradio-app/gradio/pull/5514) [`52f783175`](https://github.com/gradio-app/gradio/commit/52f7831751b432411e109bd41add4ab286023a8e) - refactor: Use package.json for version management. Thanks [@DarhkVoyd](https://github.com/DarhkVoyd)!
 
 ## 1.5.3
 
 ### Fixes
 
-- [#5562](https://github.com/gradio-app/gradio/pull/5562) [`50d9747d0`](https://github.com/gradio-app/gradio/commit/50d9747d061962cff7f60a8da648bb3781794102) - chore(deps): update dependency iframe-resizer to v4.3.7.  Thanks [@renovate](https://github.com/apps/renovate)!
-- [#5550](https://github.com/gradio-app/gradio/pull/5550) [`4ed5902e7`](https://github.com/gradio-app/gradio/commit/4ed5902e7dda2d95cd43e4ccaaef520ddd8eba57) - Adding basque language.  Thanks [@EkhiAzur](https://github.com/EkhiAzur)!
+- [#5562](https://github.com/gradio-app/gradio/pull/5562) [`50d9747d0`](https://github.com/gradio-app/gradio/commit/50d9747d061962cff7f60a8da648bb3781794102) - chore(deps): update dependency iframe-resizer to v4.3.7. Thanks [@renovate](https://github.com/apps/renovate)!
+- [#5550](https://github.com/gradio-app/gradio/pull/5550) [`4ed5902e7`](https://github.com/gradio-app/gradio/commit/4ed5902e7dda2d95cd43e4ccaaef520ddd8eba57) - Adding basque language. Thanks [@EkhiAzur](https://github.com/EkhiAzur)!
 
 ## 1.5.2
 

@@ -1,28 +1,40 @@
 # @gradio/dataframe
 
+## 0.3.0-beta.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/utils@0.2.0-beta.1
+  - @gradio/atoms@0.2.0-beta.1
+  - @gradio/button@0.2.0-beta.1
+  - @gradio/markdown@0.3.0-beta.1
+  - @gradio/statustracker@0.3.0-beta.1
+  - @gradio/upload@0.3.0-beta.1
+
 ## 0.3.0-beta.0
 
 ### Features
 
-- [#5507](https://github.com/gradio-app/gradio/pull/5507) [`1385dc688`](https://github.com/gradio-app/gradio/commit/1385dc6881f2d8ae7a41106ec21d33e2ef04d6a9) - Custom components.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5507](https://github.com/gradio-app/gradio/pull/5507) [`1385dc688`](https://github.com/gradio-app/gradio/commit/1385dc6881f2d8ae7a41106ec21d33e2ef04d6a9) - Custom components. Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 0.2.2
 
 ### Fixes
 
-- [#5456](https://github.com/gradio-app/gradio/pull/5456) [`6e381c4f`](https://github.com/gradio-app/gradio/commit/6e381c4f146cc8177a4e2b8e39f914f09cd7ff0c) - ensure dataframe doesn't steal focus.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5456](https://github.com/gradio-app/gradio/pull/5456) [`6e381c4f`](https://github.com/gradio-app/gradio/commit/6e381c4f146cc8177a4e2b8e39f914f09cd7ff0c) - ensure dataframe doesn't steal focus. Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 0.2.1
 
 ### Fixes
 
-- [#5445](https://github.com/gradio-app/gradio/pull/5445) [`67bb7bcb`](https://github.com/gradio-app/gradio/commit/67bb7bcb6a95b7a00a8bdf612cf147850d919a44) - ensure dataframe doesn't scroll unless needed.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5445](https://github.com/gradio-app/gradio/pull/5445) [`67bb7bcb`](https://github.com/gradio-app/gradio/commit/67bb7bcb6a95b7a00a8bdf612cf147850d919a44) - ensure dataframe doesn't scroll unless needed. Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 0.2.0
 
 ### Features
 
-- [#5342](https://github.com/gradio-app/gradio/pull/5342) [`afac0006`](https://github.com/gradio-app/gradio/commit/afac0006337ce2840cf497cd65691f2f60ee5912) - significantly improve the performance of `gr.Dataframe` for large datasets.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5342](https://github.com/gradio-app/gradio/pull/5342) [`afac0006`](https://github.com/gradio-app/gradio/commit/afac0006337ce2840cf497cd65691f2f60ee5912) - significantly improve the performance of `gr.Dataframe` for large datasets. Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 0.1.2
 

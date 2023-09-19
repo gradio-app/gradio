@@ -1,5 +1,11 @@
 # @gradio/theme
 
+## 0.2.0-beta.1
+
+### Features
+
+- [#5615](https://github.com/gradio-app/gradio/pull/5615) [`142880ba5`](https://github.com/gradio-app/gradio/commit/142880ba589126d98da3d6a38866828864cc6b81) - Publish js theme.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 0.2.0-beta.0
 
 ### Features
