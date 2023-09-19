@@ -51,7 +51,7 @@ class Row(Updateable, BlockContext):
         if variant == "compact":
             self.allow_expected_parents = False
         BlockContext.__init__(
-            visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
+            self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
         )
 
     @staticmethod
@@ -128,7 +128,7 @@ class Column(Updateable, BlockContext):
         if variant == "compact":
             self.allow_expected_parents = False
         BlockContext.__init__(
-            visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
+            self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
         )
 
     @staticmethod
@@ -255,7 +255,7 @@ class Group(Updateable, BlockContext):
             elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         BlockContext.__init__(
-            visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
+            self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
         )
 
     @staticmethod
@@ -356,7 +356,7 @@ class Accordion(Updateable, BlockContext):
         self.label = label
         self.open = open
         BlockContext.__init__(
-            visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
+            self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
         )
 
     @staticmethod
