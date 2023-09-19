@@ -49,7 +49,11 @@
 	allow_overflow={false}
 	height={typeof height === "number" ? height : undefined}
 >
-	<StatusTracker i18n={gradio.i18n} {...loading_status} />
+	<StatusTracker
+		autoscroll={gradio.autoscroll}
+		i18n={gradio.i18n}
+		{...loading_status}
+	/>
 	<Gallery
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 		on:share={(e) => gradio.dispatch("share", e.detail)}

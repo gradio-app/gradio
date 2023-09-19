@@ -84,7 +84,11 @@
 	{min_width}
 	allow_overflow={false}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker
+		autoscroll={gradio.autoscroll}
+		{...loading_status}
+		i18n={gradio.i18n}
+	/>
 	<Table
 		{label}
 		{row_count}

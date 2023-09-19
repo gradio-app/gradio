@@ -55,7 +55,11 @@
 	{scale}
 	{min_width}
 >
-	<StatusTracker i18n={gradio.i18n} {...loading_status} />
+	<StatusTracker
+		autoscroll={gradio.autoscroll}
+		i18n={gradio.i18n}
+		{...loading_status}
+	/>
 	<StaticImage
 		on:select={({ detail }) => gradio.dispatch("select", detail)}
 		on:share={({ detail }) => gradio.dispatch("share", detail)}

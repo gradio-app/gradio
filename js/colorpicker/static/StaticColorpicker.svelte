@@ -31,7 +31,11 @@
 </script>
 
 <Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
-	<StatusTracker i18n={gradio.i18n} {...loading_status} />
+	<StatusTracker
+		autoscroll={gradio.autoscroll}
+		i18n={gradio.i18n}
+		{...loading_status}
+	/>
 
 	<Colorpicker
 		bind:value

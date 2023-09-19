@@ -90,6 +90,7 @@
 >
 	{#if loading_status}
 		<StatusTracker
+			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
 			show_progress={loading_status.show_progress === "hidden"

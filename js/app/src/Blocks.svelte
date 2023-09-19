@@ -7,7 +7,7 @@
 		component_map,
 		fallback_component_map
 	} from "./components/directory";
-	import { create_loading_status_store, app_state } from "./stores";
+	import { create_loading_status_store } from "./stores";
 	import type { LoadingStatusCollection } from "./stores";
 
 	import type {
@@ -47,8 +47,6 @@
 	export let version: string;
 
 	let loading_status = create_loading_status_store();
-
-	$: app_state.update((s) => ({ ...s, autoscroll }));
 
 	let rootNode: ComponentMeta = {
 		id: layout.id,
@@ -744,6 +742,7 @@
 				on:mount={handle_mount}
 				on:destroy={({ detail }) => handle_destroy(detail)}
 				{version}
+				{autoscroll}
 			/>
 		{/if}
 	</div>

@@ -11,13 +11,15 @@ export class Gradio<T extends Record<string, any> = Record<string, any>> {
 	i18n: typeof x;
 	#el: HTMLElement;
 	root: string;
+	autoscroll: boolean;
 
 	constructor(
 		id: number,
 		el: HTMLElement,
 		theme: string,
 		version: string,
-		root: string
+		root: string,
+		autoscroll: boolean
 	) {
 		this.#id = id;
 		this.theme = theme;
@@ -25,6 +27,7 @@ export class Gradio<T extends Record<string, any> = Record<string, any>> {
 		this.#el = el;
 		this.i18n = get(format);
 		this.root = root;
+		this.autoscroll = autoscroll;
 	}
 
 	dispatch<E extends keyof T>(event_name: E, data?: T[E]): void {

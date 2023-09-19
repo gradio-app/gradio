@@ -43,7 +43,11 @@
 		label={label || gradio.i18n("plot.plot")}
 		Icon={PlotIcon}
 	/>
-	<StatusTracker i18n={gradio.i18n} {...loading_status} />
+	<StatusTracker
+		autoscroll={gradio.autoscroll}
+		i18n={gradio.i18n}
+		{...loading_status}
+	/>
 	<Plot
 		{value}
 		{target}

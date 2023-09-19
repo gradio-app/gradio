@@ -335,6 +335,7 @@
 			translucent={true}
 			{loading_text}
 			i18n={$_}
+			{autoscroll}
 		>
 			<!-- todo: translate message text -->
 			<div class="error" slot="error">

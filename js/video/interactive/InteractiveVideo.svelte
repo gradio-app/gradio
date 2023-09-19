@@ -92,7 +92,11 @@
 	{min_width}
 	allow_overflow={false}
 >
-	<StatusTracker i18n={gradio.i18n} {...loading_status} />
+	<StatusTracker
+		autoscroll={gradio.autoscroll}
+		i18n={gradio.i18n}
+		{...loading_status}
+	/>
 
 	<Video
 		value={_video}
