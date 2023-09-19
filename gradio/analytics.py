@@ -165,7 +165,8 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
     if not analytics_enabled():
         return
 
-    blocks_telemetry, inputs_telemetry, outputs_telemetry, targets_telemetry = (
+    blocks_telemetry, inputs_telemetry, outputs_telemetry, targets_telemetry, events_telemetry = (
+        [],
         [],
         [],
         [],
@@ -183,6 +184,11 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
         targets_telemetry = targets_telemetry + [
             # Sometimes the target can be the Blocks object itself, so we need to check if its in blocks.blocks
             str(blocks.blocks[y[0]])
+            for y in x["targets"]
+            if y[0] in blocks.blocks
+        ]
+        events_telemetry = events_telemetry + [
+            y[1]
             for y in x["targets"]
             if y[0] in blocks.blocks
         ]
@@ -209,6 +215,7 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
         else outputs_telemetry,
         "targets": targets_telemetry,
         "blocks": blocks_telemetry,
+        "events": events_telemetry,
         "is_wasm": wasm_utils.IS_WASM,
     }
 

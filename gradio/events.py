@@ -47,7 +47,7 @@ class EventListener(Block):
 
 
 class Dependency(dict):
-    def __init__(self, trigger, key_vals, dep_index, fn):
+    def __init__(self, trigger: Block, key_vals, dep_index, fn):
         super().__init__(key_vals)
         self.fn = fn
         self.trigger = trigger

@@ -77,6 +77,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
 
     from gradio.components import Component
+    from gradio.events import Dependency 
 
 BUILT_IN_THEMES: dict[str, Theme] = {
     t.name: t
@@ -784,7 +785,7 @@ class Blocks(BlockContext):
                 targets = [
                     (original_mapping[target], trigger)
                     if isinstance(target, int)
-                    else original_mapping[target]
+                    else (original_mapping[target[0]].trigger, target[1])
                     for target in _targets
                 ]
                 dependency.pop("backend_fn")
@@ -850,7 +851,7 @@ class Blocks(BlockContext):
 
     def set_event_trigger(
         self,
-        targets: list[tuple[Component, str]],
+        targets: list[tuple[Dependency, str]],
         fn: Callable | None,
         inputs: Component | list[Component] | set[Component] | None,
         outputs: Component | list[Component] | None,
@@ -895,6 +896,7 @@ class Blocks(BlockContext):
         Returns: dependency information, dependency index
         """
         # Support for singular parameter
+        _targets = [(target[0].trigger._id, target[1]) for target in targets]
         if isinstance(inputs, set):
             inputs_as_dict = True
             inputs = sorted(inputs, key=lambda x: x._id)
@@ -954,7 +956,7 @@ class Blocks(BlockContext):
             collects_event_data = event_data_index is not None
 
         dependency = {
-            "targets": targets if not no_target else [],
+            "targets": _targets if not no_target else [],
             "inputs": [block._id for block in inputs],
             "outputs": [block._id for block in outputs],
             "backend_fn": fn is not None,
