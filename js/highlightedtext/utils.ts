@@ -46,31 +46,30 @@ export function merge_elements(
 	value: HighlightValueType[],
 	mergeMode: "empty" | "equal"
 ): HighlightValueType[] | null {
-	if (value) {
-		let result: HighlightValueType[] = [];
-		let tempStr: string | null = null;
-		let tempVal: string | number | null = null;
+	if (!value) return null;
 
-		for (const [str, val] of value) {
-			if (
-				(mergeMode === "empty" && val === null) ||
-				(mergeMode === "equal" && tempVal === val)
-			) {
-				tempStr = tempStr ? tempStr + str : str;
-			} else {
-				if (tempStr !== null) {
-					result.push([tempStr, tempVal as string | number]);
-				}
-				tempStr = str;
-				tempVal = val;
+	let result: HighlightValueType[] = [];
+	let tempStr: string | null = null;
+	let tempVal: string | number | null = null;
+
+	for (const [str, val] of value) {
+		if (
+			(mergeMode === "empty" && val === null) ||
+			(mergeMode === "equal" && tempVal === val)
+		) {
+			tempStr = tempStr ? tempStr + str : str;
+		} else {
+			if (tempStr !== null) {
+				result.push([tempStr, tempVal as string | number]);
 			}
+			tempStr = str;
+			tempVal = val;
 		}
-
-		if (tempStr !== null) {
-			result.push([tempStr, tempVal as string | number]);
-		}
-
-		return result;
 	}
-	return null;
+
+	if (tempStr !== null) {
+		result.push([tempStr, tempVal as string | number]);
+	}
+
+	return result;
 }
