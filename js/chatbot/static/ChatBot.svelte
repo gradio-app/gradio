@@ -267,6 +267,7 @@
 		font-size: var(--text-lg);
 		line-height: var(--line-lg);
 		overflow-wrap: break-word;
+		overflow-x: hidden;
 	}
 	.message-fit {
 		width: fit-content !important;
@@ -332,7 +333,7 @@
 	img.avatar-image {
 		width: 100%;
 		height: 100%;
-		object-fit: contain;
+		object-fit: cover;
 		border-radius: 50%;
 	}
 
