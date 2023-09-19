@@ -56,6 +56,11 @@
 		end = i;
 		const remaining = _items.length - end;
 
+		const scrollbarHeight = viewport.offsetHeight - viewport.clientHeight;
+		if (scrollbarHeight > 0) {
+			content_height += scrollbarHeight;
+		}
+
 		let filtered_height_map = height_map.filter((v) => typeof v === "number");
 		average_height =
 			filtered_height_map.reduce((a, b) => a + b, 0) /
@@ -63,7 +68,6 @@
 
 		bottom = remaining * average_height;
 		height_map.length = _items.length;
-
 		await tick();
 		if (!max_height) {
 			actual_height = content_height + 1;
@@ -206,6 +210,13 @@
 		if (align_end) {
 			distance = distance - viewport_height + _itemHeight + head_height;
 		}
+
+		const scrollbarHeight = viewport.offsetHeight - viewport.clientHeight;
+		if (scrollbarHeight > 0) {
+			distance += scrollbarHeight;
+		}
+
+
 		const _opts = {
 			top: distance,
 			behavior: "smooth" as ScrollBehavior,
