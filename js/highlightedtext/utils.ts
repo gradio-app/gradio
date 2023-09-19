@@ -45,9 +45,7 @@ export function correct_color_map(
 export function merge_elements(
 	value: HighlightValueType[],
 	mergeMode: "empty" | "equal"
-): HighlightValueType[] | null {
-	if (!value) return null;
-
+): HighlightValueType[] {
 	let result: HighlightValueType[] = [];
 	let tempStr: string | null = null;
 	let tempVal: string | number | null = null;
