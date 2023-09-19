@@ -28,10 +28,10 @@
 
 	function process_message(value: string): string {
 		if (render_markdown) {
-			value = marked.parse(value)
+			value = marked.parse(value);
 		}
 		if (sanitize_html) {
-			value = DOMPurify.sanitize(value)
+			value = DOMPurify.sanitize(value);
 		}
 		return value;
 	}
