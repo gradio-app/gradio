@@ -17,7 +17,7 @@ To make every element in a Row have the same height, use the `equal_height` argu
 
 ```python
 with gr.Blocks() as demo:
-    with gr.Row().style(equal_height=True):
+    with gr.Row(equal_height=True):
         textbox = gr.Textbox()
         btn2 = gr.Button("Button 2")
 ```
@@ -64,7 +64,7 @@ Learn more about [Tabs](https://gradio.app/docs/#tab) and [Accordions](https://g
 
 ## Visibility
 
-Both Components and Layout elements have a `visible` argument that can set initially and also updated using `gr.update()`. Setting `gr.update(visible=...)` on a Column can be used to show or hide a set of Components.
+Both Components and Layout elements have a `visible` argument that can set initially and also updated. Setting `gr.Column(visible=...)` on a Column can be used to show or hide a set of Components.
 
 $code_blocks_form
 $demo_blocks_form

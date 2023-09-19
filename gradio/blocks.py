@@ -13,6 +13,7 @@ import warnings
 import webbrowser
 from abc import abstractmethod
 from collections import defaultdict
+from functools import wraps
 from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast
@@ -45,6 +46,7 @@ from gradio.exceptions import (
     InvalidBlockError,
 )
 from gradio.helpers import EventData, create_tracker, skip, special_args
+from gradio.state_holder import SessionState
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
 from gradio.tunneling import (
@@ -55,14 +57,13 @@ from gradio.tunneling import (
     CURRENT_TUNNELS,
 )
 from gradio.utils import (
-    GRADIO_VERSION,
     TupleNoPrint,
     check_function_inputs_match,
     component_or_layout_class,
     concurrency_count_warning,
-    delete_none,
     get_cancel_function,
     get_continuous_fn,
+    get_package_version,
 )
 
 try:
@@ -89,6 +90,42 @@ BUILT_IN_THEMES: dict[str, Theme] = {
 }
 
 
+def in_event_listener():
+    from gradio import context
+
+    return getattr(context.thread_data, "in_event_listener", False)
+
+
+def updateable(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        fn_args = inspect.getfullargspec(fn).args
+        self = args[0]
+        for i, arg in enumerate(args):
+            if i == 0 or i >= len(fn_args):  #  skip self, *args
+                continue
+            arg_name = fn_args[i]
+            kwargs[arg_name] = arg
+        self.constructor_args = kwargs
+        if in_event_listener():
+            return None
+        else:
+            return fn(self, **kwargs)
+
+    return wrapper
+
+
+updated_cls_set = set()
+
+
+class Updateable:
+    def __new__(cls, *args, **kwargs):
+        if cls not in updated_cls_set:
+            cls.__init__ = updateable(cls.__init__)
+            updated_cls_set.add(cls)
+        return super().__new__(cls)
+
+
 class Block:
     def __init__(
         self,
@@ -113,6 +150,8 @@ class Block:
         self._skip_init_processing = _skip_init_processing
         self.parent: BlockContext | None = None
         self.is_rendered: bool = False
+        self.constructor_args: dict
+        self.state_session_capacity = 10000
 
         if render:
             self.render()
@@ -171,12 +210,13 @@ class Block:
         return None
 
     def get_config(self):
-        return {
-            "visible": self.visible,
-            "elem_id": self.elem_id,
-            "elem_classes": self.elem_classes,
-            "root_url": self.root_url,
-        }
+        config = {}
+        signature = inspect.signature(self.__class__.__init__)
+        for parameter in signature.parameters.values():
+            if hasattr(self, parameter.name):
+                value = getattr(self, parameter.name)
+                config[parameter.name] = value
+        return {**config, "root_url": self.root_url, "name": self.get_block_name()}
 
     @staticmethod
     @abstractmethod
@@ -188,6 +228,7 @@ class Block:
         generic_update = generic_update.copy()
         del generic_update["__type__"]
         specific_update = cls.update(**generic_update)
+        specific_update = utils.delete_none(specific_update, skip_value=True)
         return specific_update
 
 
@@ -316,13 +357,20 @@ def postprocess_update_dict(block: Block, update_dict: dict, postprocess: bool =
     interactive = update_dict.pop("interactive", None)
     if interactive is not None:
         update_dict["mode"] = "dynamic" if interactive else "static"
-    prediction_value = delete_none(update_dict, skip_value=True)
-    if "value" in prediction_value and postprocess:
+    attr_dict = {
+        k: getattr(block, k) if hasattr(block, k) else v for k, v in update_dict.items()
+    }
+    attr_dict["__type__"] = "update"
+    attr_dict.pop("value", None)
+    if "value" in update_dict:
         assert isinstance(
             block, components.IOComponent
         ), f"Component {block.__class__} does not support value"
-        prediction_value["value"] = block.postprocess(prediction_value["value"])
-    return prediction_value
+        if postprocess:
+            attr_dict["value"] = block.postprocess(update_dict["value"])
+        else:
+            attr_dict["value"] = update_dict["value"]
+    return attr_dict
 
 
 def convert_component_dict_to_list(
@@ -635,7 +683,7 @@ class Blocks(BlockContext):
                 "custom_css": self.css is not None,
                 "theme": self.theme.name,
                 "is_custom_theme": is_custom_theme,
-                "version": GRADIO_VERSION,
+                "version": get_package_version(),
             }
             analytics.initiated_analytics(data)
 
@@ -1070,6 +1118,7 @@ class Blocks(BlockContext):
         requests: routes.Request | list[routes.Request] | None = None,
         event_id: str | None = None,
         event_data: EventData | None = None,
+        in_event_listener: bool = False,
     ):
         """
         Calls function with given index and preprocessed input, and measures process time.
@@ -1086,7 +1135,10 @@ class Blocks(BlockContext):
         is_generating = False
         request = requests[0] if isinstance(requests, list) else requests
         start = time.time()
-        fn = utils.get_function_with_locals(block_fn.fn, self, event_id)
+
+        fn = utils.get_function_with_locals(
+            block_fn.fn, self, event_id, in_event_listener
+        )
 
         if iterator is None:  # If not a generator function that has already run
             if block_fn.inputs_as_dict:
@@ -1223,7 +1275,10 @@ Received inputs:
     [{received}]"""
             )
 
-    def preprocess_data(self, fn_index: int, inputs: list[Any], state: dict[int, Any]):
+    def preprocess_data(
+        self, fn_index: int, inputs: list[Any], state: SessionState | None
+    ):
+        state = state or SessionState(self)
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
@@ -1242,8 +1297,10 @@ Received inputs:
                     block, components.Component
                 ), f"{block.__class__} Component with id {input_id} not a valid input component."
                 if getattr(block, "stateful", False):
-                    processed_input.append(state.get(input_id))
+                    processed_input.append(state[input_id])
                 else:
+                    if input_id in state:
+                        block = state[input_id]
                     processed_input.append(block.preprocess(inputs[i]))
         else:
             processed_input = inputs
@@ -1286,8 +1343,9 @@ Received outputs:
             )
 
     def postprocess_data(
-        self, fn_index: int, predictions: list | dict, state: dict[int, Any]
+        self, fn_index: int, predictions: list | dict, state: SessionState | None
     ):
+        state = state or SessionState(self)
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
         batch = dependency["batch"]
@@ -1329,10 +1387,31 @@ Received outputs:
                 output.append(None)
             else:
                 prediction_value = predictions[i]
+                if utils.is_update(
+                    prediction_value
+                ):  # if update is passed directly (deprecated), remove Nones
+                    prediction_value = utils.delete_none(
+                        prediction_value, skip_value=True
+                    )
+
+                if isinstance(prediction_value, Block):
+                    prediction_value = prediction_value.constructor_args
+                    prediction_value["__type__"] = "update"
                 if utils.is_update(prediction_value):
+                    if output_id in state:
+                        args = state[output_id].constructor_args.copy()
+                    else:
+                        args = self.blocks[output_id].constructor_args.copy()
+                    args.update(prediction_value)
+                    args.pop("value", None)
+                    args.pop("__type__")
+                    args["render"] = False
+                    args["_skip_init_processing"] = not block_fn.postprocess
+                    state[output_id] = self.blocks[output_id].__class__(**args)
+
                     assert isinstance(prediction_value, dict)
                     prediction_value = postprocess_update_dict(
-                        block=block,
+                        block=state[output_id],
                         update_dict=prediction_value,
                         postprocess=block_fn.postprocess,
                     )
@@ -1377,12 +1456,13 @@ Received outputs:
         self,
         fn_index: int,
         inputs: list[Any],
-        state: dict[int, Any],
+        state: SessionState | None = None,
         request: routes.Request | list[routes.Request] | None = None,
         iterators: dict[int, Any] | None = None,
         session_hash: str | None = None,
         event_id: str | None = None,
         event_data: EventData | None = None,
+        in_event_listener: bool = True,
     ) -> dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -1421,7 +1501,13 @@ Received outputs:
                 self.preprocess_data(fn_index, list(i), state) for i in zip(*inputs)
             ]
             result = await self.call_function(
-                fn_index, list(zip(*inputs)), None, request, event_id, event_data
+                fn_index,
+                list(zip(*inputs)),
+                None,
+                request,
+                event_id,
+                event_data,
+                in_event_listener,
             )
             preds = result["prediction"]
             data = [
@@ -1437,7 +1523,13 @@ Received outputs:
                 inputs = self.preprocess_data(fn_index, inputs, state)
             was_generating = old_iterator is not None
             result = await self.call_function(
-                fn_index, inputs, old_iterator, request, event_id, event_data
+                fn_index,
+                inputs,
+                old_iterator,
+                request,
+                event_id,
+                event_data,
+                in_event_listener,
             )
             data = self.postprocess_data(fn_index, result["prediction"], state)
             is_generating, iterator = result["is_generating"], result["iterator"]
@@ -1756,6 +1848,7 @@ Received outputs:
         root_path: str | None = None,
         _frontend: bool = True,
         app_kwargs: dict[str, Any] | None = None,
+        state_session_capacity: int = 10000,
     ) -> tuple[FastAPI, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -1790,6 +1883,7 @@ Received outputs:
             blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default.
             root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". Can be set by environment variable GRADIO_ROOT_PATH. Defaults to "".
             app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
+            state_session_capacity: The maximum number of sessions whose information to store in memory. If the number of sessions exceeds this number, the oldest sessions will be removed. Reduce capacity to reduce memory usage when using gradio.State or returning updated components from functions. Defaults to 10000.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -1832,6 +1926,7 @@ Received outputs:
         self.width = width
         self.favicon_path = favicon_path
         self.ssl_verify = ssl_verify
+        self.state_session_capacity = state_session_capacity
         if root_path is None:
             self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         else:
@@ -1922,7 +2017,9 @@ Received outputs:
             self.server_name = server_name
             self.local_url = local_url
             self.server_port = server_port
-            self.server_app = app
+            self.server_app = (
+                self.app
+            ) = app  # server_app is included for backwards compatibility
             self.server = server
             self.is_running = True
             self.is_colab = utils.colab_check()

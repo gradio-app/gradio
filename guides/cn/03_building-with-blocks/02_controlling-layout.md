@@ -17,7 +17,7 @@ with gr.Blocks() as demo:
 
 ```python
 with gr.Blocks() as demo:
-    with gr.Row().style(equal_height=True):
+    with gr.Row(equal_height=True):
         textbox = gr.Textbox()
         btn2 = gr.Button("按钮2")
 ```

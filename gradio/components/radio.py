@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
@@ -105,13 +106,6 @@ class Radio(
         )
         NeighborInterpretable.__init__(self)
 
-    def get_config(self):
-        return {
-            "choices": self.choices,
-            "value": self.value,
-            **IOComponent.get_config(self),
-        }
-
     def example_inputs(self) -> dict[str, Any]:
         return {
             "raw": self.choices[0][1] if self.choices else None,
@@ -135,6 +129,9 @@ class Radio(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Radio(...)` instead of `return gr.Radio.update(...)`."
+        )
         choices = (
             None
             if choices is None
@@ -167,7 +164,8 @@ class Radio(
             if x is None:
                 return None
             else:
-                return [value for _, value in self.choices].index(x)
+                choice_values = [value for _, value in self.choices]
+                return choice_values.index(x) if x in choice_values else None
         else:
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."

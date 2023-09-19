@@ -15,6 +15,8 @@
 	export let label: string;
 	export let info: string | undefined = undefined;
 	export let show_label: boolean;
+	let rangeInput: HTMLInputElement;
+	let numberInput: HTMLInputElement;
 
 	const id = `range_id_${_id++}`;
 	const dispatch = createEventDispatcher<{
@@ -31,6 +33,7 @@
 	}
 	afterUpdate(() => {
 		value_is_output = false;
+		setSlider();
 	});
 	$: value, handle_change();
 
@@ -41,6 +44,19 @@
 		dispatch("release", value);
 		value = Math.min(Math.max(value, minimum), maximum);
 	}
+
+	function setSlider(): void {
+		setSliderRange();
+		rangeInput.addEventListener("input", setSliderRange);
+		numberInput.addEventListener("input", setSliderRange);
+	}
+	function setSliderRange(): void {
+		rangeInput.style.backgroundSize =
+			((Number(rangeInput.value) - Number(rangeInput.min)) /
+				(Number(rangeInput.max) - Number(rangeInput.min))) *
+				100 +
+			"% 100%";
+	}
 </script>
 
 <div class="wrap">
@@ -48,10 +64,12 @@
 		<label for={id}>
 			<BlockTitle {show_label} {info}>{label}</BlockTitle>
 		</label>
+
 		<input
 			data-testid="number-input"
 			type="number"
 			bind:value
+			bind:this={numberInput}
 			min={minimum}
 			max={maximum}
 			on:blur={clamp}
@@ -67,6 +85,7 @@
 	{id}
 	name="cowbell"
 	bind:value
+	bind:this={rangeInput}
 	min={minimum}
 	max={maximum}
 	{step}
@@ -115,12 +134,45 @@
 		color: var(--input-placeholder-color);
 	}
 
-	input[type="range"] {
-		width: 100%;
-		accent-color: var(--slider-color);
-	}
-
 	input[disabled] {
 		cursor: not-allowed;
+	}
+
+	input[type="range"] {
+		-webkit-appearance: none;
+		appearance: none;
+		width: 100%;
+		accent-color: var(--slider-color);
+		height: 4px;
+		background: var(--neutral-200);
+		border-radius: 5px;
+		background-image: linear-gradient(var(--slider-color), var(--slider-color));
+		background-size: 0% 100%;
+		background-repeat: no-repeat;
+	}
+
+	input[type="range"]::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		box-shadow: var(--input-shadow);
+		border: solid 0.5px #ddd;
+		height: 20px;
+		width: 20px;
+		border-radius: 50%;
+		background-color: white;
+		cursor: pointer;
+		margin-top: -7px;
+		transition: background-color 0.1s ease;
+	}
+
+	input[type="range"]::-webkit-slider-thumb:hover {
+		background: var(--neutral-50);
+	}
+
+	input[type="range"]::-webkit-slider-runnable-track {
+		-webkit-appearance: none;
+		box-shadow: none;
+		border: none;
+		background: transparent;
+		height: 100%;
 	}
 </style>

@@ -1,5 +1,28 @@
 # gradio
 
+## 3.44.4
+
+### Features
+
+- [#5514](https://github.com/gradio-app/gradio/pull/5514) [`52f783175`](https://github.com/gradio-app/gradio/commit/52f7831751b432411e109bd41add4ab286023a8e) - refactor: Use package.json for version management.  Thanks [@DarhkVoyd](https://github.com/DarhkVoyd)!
+- [#5535](https://github.com/gradio-app/gradio/pull/5535) [`d29b1ab74`](https://github.com/gradio-app/gradio/commit/d29b1ab740784d8c70f9ab7bc38bbbf7dd3ff737) - Makes sliders consistent across all browsers.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
+### Fixes
+
+- [#5587](https://github.com/gradio-app/gradio/pull/5587) [`e0d61b8ba`](https://github.com/gradio-app/gradio/commit/e0d61b8baa0f6293f53b9bdb1647d42f9ae2583a) - Fix `.clear()` events for audio and image.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#5534](https://github.com/gradio-app/gradio/pull/5534) [`d9e9ae43f`](https://github.com/gradio-app/gradio/commit/d9e9ae43f5c52c1f729af5a20e5d4f754689d429) - Guide fixes, esp. streaming audio.  Thanks [@aliabid94](https://github.com/aliabid94)!
+- [#5588](https://github.com/gradio-app/gradio/pull/5588) [`acdeff57e`](https://github.com/gradio-app/gradio/commit/acdeff57ece4672f943c374d537eaf47d3ec034f) - Allow multiple instances of Gradio with authentication to run on different ports.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
+## 3.44.3
+
+### Fixes
+
+- [#5562](https://github.com/gradio-app/gradio/pull/5562) [`50d9747d0`](https://github.com/gradio-app/gradio/commit/50d9747d061962cff7f60a8da648bb3781794102) - chore(deps): update dependency iframe-resizer to v4.3.7.  Thanks [@renovate](https://github.com/apps/renovate)!
+- [#5550](https://github.com/gradio-app/gradio/pull/5550) [`4ed5902e7`](https://github.com/gradio-app/gradio/commit/4ed5902e7dda2d95cd43e4ccaaef520ddd8eba57) - Adding basque language.  Thanks [@EkhiAzur](https://github.com/EkhiAzur)!
+- [#5547](https://github.com/gradio-app/gradio/pull/5547) [`290f51871`](https://github.com/gradio-app/gradio/commit/290f5187160cdbd7a786494fe3c19b0e70abe167) - typo in UploadButton's docstring.  Thanks [@chaeheum3](https://github.com/chaeheum3)!
+- [#5553](https://github.com/gradio-app/gradio/pull/5553) [`d1bf23cd2`](https://github.com/gradio-app/gradio/commit/d1bf23cd2c6da3692d7753856bfe7564d84778e0) - Modify Image examples docstring.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5563](https://github.com/gradio-app/gradio/pull/5563) [`ba64082ed`](https://github.com/gradio-app/gradio/commit/ba64082ed80c1ed9113497ae089e63f032dbcc75) - preprocess for components when type='index'.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 3.44.2
 
 ### Fixes
