@@ -2236,7 +2236,6 @@ Received outputs:
                 label = component["props"].get("label", f"value_{o}")
                 info = self.blocks[component["id"]].api_info()
                 example = self.blocks[component["id"]].example_inputs()
-
                 python_type = client_utils.json_schema_to_python_type(info)
                 dependency_info["returns"].append(
                     {

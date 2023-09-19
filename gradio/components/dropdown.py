@@ -117,13 +117,12 @@ class Dropdown(FormComponent):
         if self.multiselect:
             json_type = {
                 "type": "array",
-                "items": {"type": "string"},
-                "description": f"List of options from: {self.choices}",
+                "items": {"type": "string", "enum": [c[1] for c in self.choices]},
             }
         else:
             json_type = {
                 "type": "string",
-                "description": f"Option from: {self.choices}",
+                "enum": [c[1] for c in self.choices],
             }
         return json_type
 

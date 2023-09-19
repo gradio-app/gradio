@@ -91,8 +91,12 @@ class CheckboxGroup(FormComponent):
     def example_inputs(self) -> dict[str, Any]:
         return [self.choices[0][1]] if self.choices else None
 
-    def api_info(self) -> dict[str, bool | dict]:
-        return {"type": "array", "items": {"type": "string"}}
+    def api_info(self) -> dict[str, Any]:
+        return {
+            "items": {"enum": [c[1] for c in self.choices], "type": "string"},
+            "title": "Checkbox Group",
+            "type": "array",
+        }
 
     @staticmethod
     def update(

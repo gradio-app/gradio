@@ -154,5 +154,9 @@ class Radio(FormComponent):
     def postprocess(self, y):
         return y
 
-    def api_info(self) -> dict[str, list[str]]:
-        return {"type": "string"}
+    def api_info(self) -> dict[str, Any]:
+        return {
+            "enum": [c[1] for c in self.choices],
+            "title": "Radio",
+            "type": "string",
+        }

@@ -49,7 +49,6 @@ import gradio.ranged_response as ranged_response
 from gradio import route_utils, utils, wasm_utils
 from gradio.context import Context
 from gradio.data_classes import PredictBody, ResetBody
-from gradio.events import EventData
 from gradio.deprecation import warn_deprecation
 from gradio.exceptions import Error
 from gradio.oauth import attach_oauth

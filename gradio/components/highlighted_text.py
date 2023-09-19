@@ -188,7 +188,10 @@ class HighlightedText(Component):
             if running_text is not None:
                 output.append((running_text, running_category))
             return HighlightedTextData(
-                root=[HighlightedToken(token=o[0], class_or_confidence=o[1]) for o in output]
+                root=[
+                    HighlightedToken(token=o[0], class_or_confidence=o[1])
+                    for o in output
+                ]
             )
         else:
             return HighlightedTextData(

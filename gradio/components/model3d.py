@@ -6,7 +6,6 @@ import warnings
 from pathlib import Path
 from typing import Any, Callable, Literal
 
-from gradio_client import media_data
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import Component, _Keywords
