@@ -5,13 +5,12 @@
 	export let selected = false;
 </script>
 
-<!-- TODO: fix -->
-<!-- svelte-ignore a11y-missing-attribute -->
 <img
 	src={samples_dir + value}
 	class:table={type === "table"}
 	class:gallery={type === "gallery"}
 	class:selected
+	alt=""
 />
 
 <style>

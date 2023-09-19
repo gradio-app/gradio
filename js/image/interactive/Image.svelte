@@ -69,12 +69,12 @@
 			if (source === "webcam" && initial) {
 				value = {
 					image: detail,
-					mask: null
+					mask: null,
 				};
 			} else {
 				value = {
 					image: typeof value === "string" ? value : value?.image || null,
-					mask: detail
+					mask: detail,
 				};
 			}
 		} else if (
@@ -275,7 +275,7 @@
 				<!-- svelte-ignore a11y-no-noninteractive-element-interactions-->
 				<img
 					src={value.image || value}
-					alt="hello"
+					alt=""
 					class:webcam={source === "webcam" && mirror_webcam}
 					class:selectable
 					on:click={handle_click}
