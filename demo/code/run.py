@@ -8,16 +8,16 @@ css_file = os.path.join(os.path.dirname(__file__), "file.css")
 
 def set_lang(language):
     print(language)
-    return gr.Code.update(language=language)
+    return gr.Code(language=language)
 
 
 def set_lang_from_path():
     sleep(1)
-    return gr.Code.update((css_file,), language="css")
+    return gr.Code((css_file,), language="css")
 
 
 def code(language, code):
-    return gr.Code.update(code, language=language)
+    return gr.Code(code, language=language)
 
 
 io = gr.Interface(lambda x: x, "code", "code")

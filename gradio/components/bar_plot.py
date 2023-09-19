@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Callable, Literal
 
 import altair as alt
@@ -69,6 +70,7 @@ class BarPlot(Plot):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         sort: Literal["x", "y", "-x", "-y"] | None = None,
+        **kwargs,
     ):
         """
         Parameters:
@@ -132,12 +134,8 @@ class BarPlot(Plot):
             elem_id=elem_id,
             elem_classes=elem_classes,
             every=every,
+            **kwargs,
         )
-
-    def get_config(self):
-        config = super().get_config()
-        config["caption"] = self.caption
-        return config
 
     def get_block_name(self) -> str:
         return "plot"
@@ -213,6 +211,9 @@ class BarPlot(Plot):
             visible: Whether the plot should be visible.
             sort: Specifies the sorting axis as either "x", "y", "-x" or "-y". If None, no sorting is applied.
         """
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.BarPlot(...)` instead of `return gr.BarPlot.update(...)`."
+        )
         properties = [
             x,
             y,

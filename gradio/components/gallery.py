@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from pathlib import Path
 from typing import Any, Callable, Literal
 
@@ -135,6 +136,9 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         show_share_button: bool | None = None,
         show_download_button: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Gallery(...)` instead of `return gr.Gallery.update(...)`."
+        )
         updated_config = {
             "label": label,
             "show_label": show_label,
@@ -154,20 +158,6 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             "__type__": "update",
         }
         return updated_config
-
-    def get_config(self):
-        return {
-            "value": self.value,
-            "grid_cols": self.grid_cols,
-            "grid_rows": self.grid_rows,
-            "height": self.height,
-            "preview": self.preview,
-            "object_fit": self.object_fit,
-            "allow_preview": self.allow_preview,
-            "show_share_button": self.show_share_button,
-            "show_download_button": self.show_download_button,
-            **IOComponent.get_config(self),
-        }
 
     def postprocess(
         self,

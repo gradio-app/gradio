@@ -26,7 +26,7 @@ from gradio_client.serializing import (
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
-from gradio.blocks import Block, BlockContext
+from gradio.blocks import Block, BlockContext, Updateable
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
     EventListener,
@@ -50,7 +50,7 @@ class _Keywords(Enum):
     FINISHED_ITERATING = "FINISHED_ITERATING"  # Used to skip processing of a component's value (needed for generators + state)
 
 
-class Component(Block, Serializable):
+class Component(Updateable, Block, Serializable):
     """
     A base class for defining the methods that all gradio components should have.
     """
@@ -64,15 +64,6 @@ class Component(Block, Serializable):
 
     def __repr__(self):
         return f"{self.get_block_name()}"
-
-    def get_config(self):
-        """
-        :return: a dictionary with context variables for the javascript file associated with the context
-        """
-        return {
-            "name": self.get_block_name(),
-            **super().get_config(),
-        }
 
     def preprocess(self, x: Any) -> Any:
         """
@@ -334,20 +325,6 @@ class IOComponent(Component):
         path = path / Path(file_name).name
         path.write_bytes(data)
         return path
-
-    def get_config(self):
-        config = {
-            "label": self.label,
-            "show_label": self.show_label,
-            "container": self.container,
-            "scale": self.scale,
-            "min_width": self.min_width,
-            "interactive": self.interactive,
-            **super().get_config(),
-        }
-        if self.info:
-            config["info"] = self.info
-        return config
 
     @staticmethod
     def get_load_fn_and_initial_value(value):

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from copy import deepcopy
 from typing import TYPE_CHECKING, Optional, Union
 
 import fastapi
@@ -11,6 +10,7 @@ from gradio import utils
 from gradio.data_classes import PredictBody
 from gradio.exceptions import Error
 from gradio.helpers import EventData
+from gradio.state_holder import SessionState
 
 if TYPE_CHECKING:
     from gradio.routes import App
@@ -164,12 +164,6 @@ def restore_session_state(app: App, body: PredictBody):
     fn_index = body.fn_index
     session_hash = getattr(body, "session_hash", None)
     if session_hash is not None:
-        if session_hash not in app.state_holder:
-            app.state_holder[session_hash] = {
-                _id: deepcopy(getattr(block, "value", None))
-                for _id, block in app.get_blocks().blocks.items()
-                if getattr(block, "stateful", False)
-            }
         session_state = app.state_holder[session_hash]
         # The should_reset set keeps track of the fn_indices
         # that have been cancelled. When a job is cancelled,
@@ -182,7 +176,7 @@ def restore_session_state(app: App, body: PredictBody):
         else:
             iterators = app.iterators[session_hash]
     else:
-        session_state = {}
+        session_state = SessionState(app.get_blocks())
         iterators = {}
 
     return session_state, iterators
@@ -225,6 +219,7 @@ async def call_process_api(
                 session_hash=session_hash,
                 event_id=event_id,
                 event_data=event_data,
+                in_event_listener=True,
             )
         iterator = output.pop("iterator", None)
         if hasattr(body, "session_hash"):

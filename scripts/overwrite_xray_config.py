@@ -22,7 +22,7 @@ with gr.Blocks() as demo:
     """
     )
     disease = gr.CheckboxGroup(
-        choices=["Covid", "Malaria", "Lung Cancer"], label="Disease to Scan For"
+        choices=[["Covid", "Covid"], ["Malaria", "Malaria"], ["Lung Cancer", "Lung Cancer"]], label="Disease to Scan For"
     )
 
     with gr.Tabs():
@@ -58,7 +58,7 @@ with gr.Blocks() as demo2:
     """
     )
     disease = gr.CheckboxGroup(
-        choices=["Covid", "Malaria", "Lung Cancer"], label="Disease to Scan For"
+        choices=[["Covid", "Covid"], ["Malaria", "Malaria"], ["Lung Cancer", "Lung Cancer"]], label="Disease to Scan For"
     )
 
     with gr.Tabs():

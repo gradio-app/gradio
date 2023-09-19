@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Callable, Literal
 
 import altair as alt
@@ -81,6 +82,7 @@ class LinePlot(Plot):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        **kwargs,
     ):
         """
         Parameters:
@@ -145,12 +147,8 @@ class LinePlot(Plot):
             elem_id=elem_id,
             elem_classes=elem_classes,
             every=every,
+            **kwargs,
         )
-
-    def get_config(self):
-        config = super().get_config()
-        config["caption"] = self.caption
-        return config
 
     def get_block_name(self) -> str:
         return "plot"
@@ -239,6 +237,9 @@ class LinePlot(Plot):
             show_label: Whether the label should be displayed.
             visible: Whether the plot should be visible.
         """
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.LinePlot(...)` instead of `return gr.LinePlot.update(...)`."
+        )
         properties = [
             x,
             y,

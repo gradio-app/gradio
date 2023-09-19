@@ -54,6 +54,7 @@ from gradio.exceptions import Error
 from gradio.oauth import attach_oauth
 from gradio.queueing import Estimation, Event
 from gradio.route_utils import Request  # noqa: F401
+from gradio.state_holder import StateHolder
 from gradio.utils import (
     cancel_tasks,
     get_package_version,
@@ -113,7 +114,7 @@ class App(FastAPI):
         self.tokens = {}
         self.auth = None
         self.blocks: gradio.Blocks | None = None
-        self.state_holder = {}
+        self.state_holder = StateHolder()
         self.iterators = defaultdict(dict)
         self.iterators_to_reset = defaultdict(set)
         self.lock = utils.safe_get_lock()
@@ -145,6 +146,7 @@ class App(FastAPI):
         self.favicon_path = blocks.favicon_path
         self.tokens = {}
         self.root_path = blocks.root_path
+        self.state_holder.set_blocks(blocks)
 
     def get_blocks(self) -> gradio.Blocks:
         if self.blocks is None:

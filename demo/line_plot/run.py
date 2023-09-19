@@ -40,7 +40,7 @@ seattle_weather = data.seattle_weather()
 
 def line_plot_fn(dataset):
     if dataset == "stocks":
-        return gr.LinePlot.update(
+        return gr.LinePlot(
             stocks,
             x="date",
             y="price",
@@ -52,7 +52,7 @@ def line_plot_fn(dataset):
             width=500,
         )
     elif dataset == "climate":
-        return gr.LinePlot.update(
+        return gr.LinePlot(
             climate,
             x="DATE",
             y="HLY-TEMP-NORMAL",
@@ -63,7 +63,7 @@ def line_plot_fn(dataset):
             width=500,
         )
     elif dataset == "seattle_weather":
-        return gr.LinePlot.update(
+        return gr.LinePlot(
             seattle_weather,
             x="date",
             y="temp_min",
@@ -74,7 +74,7 @@ def line_plot_fn(dataset):
             width=500,
         )
     elif dataset == "gapminder":
-        return gr.LinePlot.update(
+        return gr.LinePlot(
             gapminder,
             x="year",
             y="life_expect",

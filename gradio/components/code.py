@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Literal
 
 from gradio_client.documentation import document, set_documentation_group
@@ -98,14 +99,6 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
             **kwargs,
         )
 
-    def get_config(self):
-        return {
-            "value": self.value,
-            "language": self.language,
-            "lines": self.lines,
-            **IOComponent.get_config(self),
-        }
-
     def postprocess(self, y):
         if y is None:
             return None
@@ -143,6 +136,9 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
         | None = None,
         interactive: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Code(...)` instead of `return gr.Code.update(...)`."
+        )
         return {
             "label": label,
             "show_label": show_label,

@@ -118,8 +118,8 @@ with gr.Blocks() as demo:
 
 事件监听器函数的返回值通常是相应输出组件的更新值。有时我们还希望更新组件的配置，例如可见性。在这种情况下，我们返回一个 `gr.update()` 对象，而不仅仅是更新组件的值。
 
-$code_blocks_essay_update
-$demo_blocks_essay_update
+$code_blocks_essay_simple
+$demo_blocks_essay_simple
 
 请注意，我们可以通过 `gr.update()` 方法自我配置文本框。`value=` 参数仍然可以用于更新值以及组件配置。
 

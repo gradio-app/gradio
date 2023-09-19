@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
@@ -85,12 +86,6 @@ class ColorPicker(
             "serialized": "#000000",
         }
 
-    def get_config(self):
-        return {
-            "value": self.value,
-            **IOComponent.get_config(self),
-        }
-
     @staticmethod
     def update(
         value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
@@ -103,6 +98,9 @@ class ColorPicker(
         visible: bool | None = None,
         interactive: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.ColorPicker(...)` instead of `return gr.ColorPicker.update(...)`."
+        )
         return {
             "value": value,
             "label": label,

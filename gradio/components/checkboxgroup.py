@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
@@ -104,13 +105,6 @@ class CheckboxGroup(
         )
         NeighborInterpretable.__init__(self)
 
-    def get_config(self):
-        return {
-            "choices": self.choices,
-            "value": self.value,
-            **IOComponent.get_config(self),
-        }
-
     def example_inputs(self) -> dict[str, Any]:
         return {
             "raw": [self.choices[0][1]] if self.choices else None,
@@ -133,6 +127,9 @@ class CheckboxGroup(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.CheckboxGroup(...)` instead of `return gr.CheckboxGroup.update(...)`."
+        )
         choices = (
             None
             if choices is None

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 import random
+import warnings
 from typing import Any, Callable, Literal
 
 import numpy as np
@@ -121,15 +122,6 @@ class Slider(
             "serialized": self.minimum,
         }
 
-    def get_config(self):
-        return {
-            "minimum": self.minimum,
-            "maximum": self.maximum,
-            "step": self.step,
-            "value": self.value,
-            **IOComponent.get_config(self),
-        }
-
     def get_random_value(self):
         n_steps = int((self.maximum - self.minimum) / self.step)
         step = random.randint(0, n_steps)
@@ -155,6 +147,9 @@ class Slider(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Slider(...)` instead of `return gr.Slider.update(...)`."
+        )
         return {
             "minimum": minimum,
             "maximum": maximum,

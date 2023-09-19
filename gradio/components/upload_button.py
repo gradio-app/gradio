@@ -11,7 +11,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio import utils
-from gradio.components.base import Component, IOComponent, _Keywords
+from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Clickable, Uploadable
 
@@ -89,20 +89,6 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             **kwargs,
         )
 
-    def get_config(self):
-        return {
-            "label": self.label,
-            "value": self.value,
-            "size": self.size,
-            "file_count": self.file_count,
-            "file_types": self.file_types,
-            "scale": self.scale,
-            "min_width": self.min_width,
-            "variant": self.variant,
-            "interactive": self.interactive,
-            **Component.get_config(self),
-        }
-
     @staticmethod
     def update(
         value: str
@@ -117,6 +103,9 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         scale: int | None = None,
         min_width: int | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.UploadButton(...)` instead of `return gr.UploadButton.update(...)`."
+        )
         return {
             "variant": variant,
             "interactive": interactive,

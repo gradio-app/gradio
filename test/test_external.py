@@ -241,7 +241,6 @@ class TestLoadInterface:
             gr.load("models/microsoft/DialoGPT-medium")
         app, _, _ = io.launch(prevent_thread_lock=True)
         client = TestClient(app)
-        assert app.state_holder == {}
         response = client.post(
             "/api/predict/",
             json={"session_hash": "foo", "data": ["Hi!", None], "fn_index": 0},
@@ -249,7 +248,7 @@ class TestLoadInterface:
         output = response.json()
         assert isinstance(output["data"], list)
         assert isinstance(output["data"][0], list)
-        assert isinstance(app.state_holder["foo"], dict)
+        assert "foo" in app.state_holder
 
     def test_speech_recognition_model(self):
         io = gr.load("models/facebook/wav2vec2-base-960h")

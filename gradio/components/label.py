@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import operator
+import warnings
 from pathlib import Path
 from typing import Callable, Literal
 
@@ -90,15 +91,6 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
             **kwargs,
         )
 
-    def get_config(self):
-        return {
-            "num_top_classes": self.num_top_classes,
-            "value": self.value,
-            "color": self.color,
-            "selectable": self.selectable,
-            **IOComponent.get_config(self),
-        }
-
     def postprocess(self, y: dict[str, float] | str | float | None) -> dict | None:
         """
         Parameters:
@@ -146,6 +138,9 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
         visible: bool | None = None,
         color: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Label(...)` instead of `return gr.Label.update(...)`."
+        )
         # If color is not specified (NO_VALUE) map it to None so that
         # it gets filtered out in postprocess. This will mean the color
         # will not be updated in the front-end

@@ -53,7 +53,7 @@ fake_barley = pd.DataFrame(
 
 def bar_plot_fn(display):
     if display == "simple":
-        return gr.BarPlot.update(
+        return gr.BarPlot(
             simple,
             x="a",
             y="b",
@@ -62,7 +62,7 @@ def bar_plot_fn(display):
             y_lim=[20, 100],
         )
     elif display == "stacked":
-        return gr.BarPlot.update(
+        return gr.BarPlot(
             fake_barley,
             x="variety",
             y="yield",
@@ -71,7 +71,7 @@ def bar_plot_fn(display):
             tooltip=["variety", "site"],
         )
     elif display == "grouped":
-        return gr.BarPlot.update(
+        return gr.BarPlot(
             fake_barley.astype({"year": str}),
             x="year",
             y="yield",
@@ -82,7 +82,7 @@ def bar_plot_fn(display):
             tooltip=["yield", "site", "year"],
         )
     elif display == "simple-horizontal":
-        return gr.BarPlot.update(
+        return gr.BarPlot(
             simple,
             x="a",
             y="b",
@@ -94,7 +94,7 @@ def bar_plot_fn(display):
             y_lim=[20, 100],
         )
     elif display == "stacked-horizontal":
-        return gr.BarPlot.update(
+        return gr.BarPlot(
             fake_barley,
             x="variety",
             y="yield",
@@ -104,7 +104,7 @@ def bar_plot_fn(display):
             tooltip=["variety", "site"],
         )
     elif display == "grouped-horizontal":
-        return gr.BarPlot.update(
+        return gr.BarPlot(
             fake_barley.astype({"year": str}),
             x="year",
             y="yield",

@@ -8,7 +8,7 @@ iris = data.iris()
 
 def scatter_plot_fn(dataset):
     if dataset == "iris":
-        return gr.ScatterPlot.update(
+        return gr.ScatterPlot(
             value=iris,
             x="petalWidth",
             y="petalLength",
@@ -21,7 +21,7 @@ def scatter_plot_fn(dataset):
             caption="",
         )
     else:
-        return gr.ScatterPlot.update(
+        return gr.ScatterPlot(
             value=cars,
             x="Horsepower",
             y="Miles_per_Gallon",
