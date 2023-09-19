@@ -40,7 +40,11 @@
 	{min_width}
 	padding={false}
 >
-	<StatusTracker i18n={gradio.i18n} {...loading_status} />
+	<StatusTracker
+		autoscroll={gradio.autoscroll}
+		i18n={gradio.i18n}
+		{...loading_status}
+	/>
 	{#if show_label}
 		<BlockLabel Icon={LabelIcon} {label} disable={container === false} />
 	{/if}

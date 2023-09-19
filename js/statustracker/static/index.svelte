@@ -46,8 +46,7 @@
 
 <script lang="ts">
 	import { onDestroy } from "svelte";
-	// TODO: revisit this
-	import { app_state } from "../../app/src/stores";
+
 	import Loader from "./Loader.svelte";
 	import type { LoadingStatus } from "./types";
 	import type { I18nFormatter } from "@gradio/utils";
@@ -68,6 +67,7 @@
 	export let absolute = true;
 	export let translucent = false;
 	export let border = false;
+	export let autoscroll: boolean;
 
 	let el: HTMLDivElement;
 
@@ -154,7 +154,7 @@
 	$: el &&
 		scroll_to_output &&
 		(status === "pending" || status === "complete") &&
-		scroll_into_view(el, $app_state.autoscroll);
+		scroll_into_view(el, autoscroll);
 
 	let formatted_eta: string | null = null;
 	$: {

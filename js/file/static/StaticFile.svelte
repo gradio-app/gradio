@@ -116,6 +116,7 @@
 	allow_overflow={false}
 >
 	<StatusTracker
+		autoscroll={gradio.autoscroll}
 		i18n={gradio.i18n}
 		{...loading_status}
 		status={pending_upload

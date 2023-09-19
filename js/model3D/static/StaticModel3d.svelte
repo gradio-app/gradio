@@ -51,7 +51,11 @@
 	{min_width}
 	{height}
 >
-	<StatusTracker i18n={gradio.i18n} {...loading_status} />
+	<StatusTracker
+		autoscroll={gradio.autoscroll}
+		i18n={gradio.i18n}
+		{...loading_status}
+	/>
 
 	{#if value}
 		<Model3D

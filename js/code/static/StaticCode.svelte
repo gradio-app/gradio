@@ -40,7 +40,11 @@
 </script>
 
 <Block variant={"solid"} padding={false} {elem_id} {elem_classes} {visible}>
-	<StatusTracker i18n={gradio.i18n} {...loading_status} />
+	<StatusTracker
+		autoscroll={gradio.autoscroll}
+		i18n={gradio.i18n}
+		{...loading_status}
+	/>
 
 	<BlockLabel Icon={CodeIcon} {show_label} {label} float={false} />
 

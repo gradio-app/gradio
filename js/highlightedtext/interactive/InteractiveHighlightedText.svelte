@@ -51,7 +51,11 @@
 	{scale}
 	{min_width}
 >
-	<StatusTracker {...loading_status} i18n={gradio.i18n} />
+	<StatusTracker
+		autoscroll={gradio.autoscroll}
+		{...loading_status}
+		i18n={gradio.i18n}
+	/>
 	{#if label}
 		<BlockLabel
 			Icon={TextHighlight}
