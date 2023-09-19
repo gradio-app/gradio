@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import TYPE_CHECKING, Any, Callable, Literal
 
 import numpy as np
@@ -154,22 +155,6 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             **kwargs,
         )
 
-    def get_config(self):
-        return {
-            "headers": self.headers,
-            "datatype": self.datatype,
-            "row_count": self.row_count,
-            "col_count": self.col_count,
-            "value": self.value,
-            "max_rows": self.max_rows,
-            "max_cols": self.max_cols,
-            "overflow_row_behaviour": self.overflow_row_behaviour,
-            "wrap": self.wrap,
-            "latex_delimiters": self.latex_delimiters,
-            "height": self.height,
-            **IOComponent.get_config(self),
-        }
-
     @staticmethod
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
@@ -184,6 +169,9 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Dataframe(...)` instead of `return gr.Dataframe.update(...)`."
+        )
         return {
             "max_rows": max_rows,
             "max_cols": max_cols,

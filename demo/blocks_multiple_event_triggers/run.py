@@ -10,7 +10,7 @@ def get_plot(lib, time):
     start_date = date.today() - relativedelta(months=int(time.split(" ")[0]))
     data = data[(data['date'] > str(start_date))]
     data.date = pd.to_datetime(pd.to_datetime(data.date))
-    return gr.LinePlot.update(value=data, x="date", y="downloads",
+    return gr.LinePlot(value=data, x="date", y="downloads",
                               tooltip=['date', 'downloads'],
                               title=f"Pypi downloads of {lib} over last {time}",
                               overlay_point=True,
