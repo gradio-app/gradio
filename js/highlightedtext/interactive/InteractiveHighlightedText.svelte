@@ -33,7 +33,7 @@
 
 	export let loading_status: LoadingStatus;
 
-	$: if (combine_adjacent) {
+	$: if (value && combine_adjacent) {
 		value = merge_elements(value, "equal");
 	}
 </script>
