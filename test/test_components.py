@@ -2077,12 +2077,12 @@ class TestChatbot:
             "root_url": None,
             "selectable": False,
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
-            "disable_markdown": False,
             "likeable": False,
             "rtl": False,
             "show_copy_button": False,
             "avatar_images": (None, None),
             "sanitize_html": True,
+            "render_markdown": True,
             "bubble_full_width": True,
         }
 
