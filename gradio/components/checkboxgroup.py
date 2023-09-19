@@ -88,7 +88,7 @@ class CheckboxGroup(FormComponent):
             **kwargs,
         )
 
-    def example_inputs(self) -> dict[str, Any]:
+    def example_inputs(self) -> Any:
         return [self.choices[0][1]] if self.choices else None
 
     def api_info(self) -> dict[str, Any]:

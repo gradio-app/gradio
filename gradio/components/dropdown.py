@@ -128,9 +128,9 @@ class Dropdown(FormComponent):
 
     def example_inputs(self) -> Any:
         if self.multiselect:
-            return [self.choices[0]] if self.choices else []
+            return [self.choices[0][1]] if self.choices else []
         else:
-            return self.choices[0] if self.choices else None
+            return self.choices[0][1] if self.choices else None
 
     @staticmethod
     def update(
