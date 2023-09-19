@@ -1,16 +1,28 @@
 # @gradio/chatbot
 
+## 0.4.0-beta.1
+
+### Patch Changes
+
+- Updated dependencies [[`142880ba5`](https://github.com/gradio-app/gradio/commit/142880ba589126d98da3d6a38866828864cc6b81)]:
+  - @gradio/theme@0.2.0-beta.1
+  - @gradio/utils@0.2.0-beta.1
+  - @gradio/atoms@0.2.0-beta.1
+  - @gradio/markdown@0.3.0-beta.1
+  - @gradio/statustracker@0.3.0-beta.1
+  - @gradio/upload@0.3.0-beta.1
+
 ## 0.4.0-beta.0
 
 ### Features
 
-- [#5507](https://github.com/gradio-app/gradio/pull/5507) [`1385dc688`](https://github.com/gradio-app/gradio/commit/1385dc6881f2d8ae7a41106ec21d33e2ef04d6a9) - Custom components.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5507](https://github.com/gradio-app/gradio/pull/5507) [`1385dc688`](https://github.com/gradio-app/gradio/commit/1385dc6881f2d8ae7a41106ec21d33e2ef04d6a9) - Custom components. Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 0.3.2
 
 ### Fixes
 
-- [#5470](https://github.com/gradio-app/gradio/pull/5470) [`a4e010a9`](https://github.com/gradio-app/gradio/commit/a4e010a96f1d8a52b3ac645e03fe472b9c3cbbb1) - Fix share button position.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#5470](https://github.com/gradio-app/gradio/pull/5470) [`a4e010a9`](https://github.com/gradio-app/gradio/commit/a4e010a96f1d8a52b3ac645e03fe472b9c3cbbb1) - Fix share button position. Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
 
 ## 0.3.1
 
