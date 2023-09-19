@@ -1,5 +1,11 @@
 # gradio
 
+## 3.45.0-beta.1
+
+### Features
+
+- [#5610](https://github.com/gradio-app/gradio/pull/5610) [`73f2e8e7e`](https://github.com/gradio-app/gradio/commit/73f2e8e7e426e80e397b5bf23b3a64b0dd6f4e09) - Fix js deps in cli and add gradio-preview artifacts to build.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 3.45.0-beta.0
 
 ### Features
