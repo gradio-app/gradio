@@ -127,7 +127,7 @@
 			if (selected_image !== null) {
 				dispatch("select", {
 					index: selected_image,
-					value: _value?.[selected_image][1]
+					value: _value?.[selected_image][1],
 				});
 			}
 		}
@@ -160,7 +160,7 @@
 
 		container_element?.scrollTo({
 			left: pos < 0 ? 0 : pos,
-			behavior: "smooth"
+			behavior: "smooth",
 		});
 	}
 
@@ -224,12 +224,9 @@
 						on:click={() => (selected_image = i)}
 						class="thumbnail-item thumbnail-small"
 						class:selected={selected_image === i}
+						aria-label={"Thumbail " + (i + 1) + " of " + _value.length}
 					>
-						<img
-							src={image[0].data}
-							title={image[1] || null}
-							alt={image[1] || null}
-						/>
+						<img src={image[0].data} title={image[1] || null} alt="" />
 					</button>
 				{/each}
 			</div>
@@ -261,6 +258,7 @@
 					class="thumbnail-item thumbnail-lg"
 					class:selected={selected_image === i}
 					on:click={() => (selected_image = i)}
+					aria-label={"Thumbail " + (i + 1) + " of " + _value.length}
 				>
 					<img
 						alt={caption || ""}
@@ -338,9 +336,7 @@
 	.thumbnail-item {
 		--ring-color: transparent;
 		position: relative;
-		box-shadow:
-			0 0 0 2px var(--ring-color),
-			var(--shadow-drop);
+		box-shadow: 0 0 0 2px var(--ring-color), var(--shadow-drop);
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--button-small-radius);
 		background: var(--background-fill-secondary);

@@ -52,7 +52,7 @@
 		{disabled}
 	>
 		{#if icon}
-			<img class="button-icon" src={icon_path} alt={`${value}-icon`} />
+			<img class="button-icon" src={icon_path} alt={`${value} icon`} />
 		{/if}
 		<slot />
 	</button>
