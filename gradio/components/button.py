@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Literal
 import warnings
+from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 

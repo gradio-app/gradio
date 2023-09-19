@@ -1,5 +1,19 @@
 # @gradio/utils
 
+## 0.2.0-beta.1
+
+### Patch Changes
+
+- Updated dependencies [[`142880ba5`](https://github.com/gradio-app/gradio/commit/142880ba589126d98da3d6a38866828864cc6b81)]:
+  - @gradio/theme@0.2.0-beta.1
+
+## 0.2.0-beta.0
+
+### Features
+
+- [#5507](https://github.com/gradio-app/gradio/pull/5507) [`1385dc688`](https://github.com/gradio-app/gradio/commit/1385dc6881f2d8ae7a41106ec21d33e2ef04d6a9) - Custom components. Thanks [@pngwn](https://github.com/pngwn)!
+- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`681f10c31`](https://github.com/gradio-app/gradio/commit/681f10c315a75cc8cd0473c9a0167961af7696db) - release first version. Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.1.1
 
 ### Patch Changes

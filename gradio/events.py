@@ -281,6 +281,7 @@ class Events:
         "like", callback=lambda block: setattr(block, "likeable", True)
     )
 
+
 class LikeData(EventData):
     def __init__(self, target: Block | None, data: Any):
         super().__init__(target, data)

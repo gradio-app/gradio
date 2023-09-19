@@ -1,10 +1,25 @@
 # @gradio/slider
 
+## 0.2.0-beta.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/utils@0.2.0-beta.1
+  - @gradio/atoms@0.2.0-beta.1
+  - @gradio/statustracker@0.3.0-beta.1
+
+## 0.2.0-beta.0
+
+### Features
+
+- [#5507](https://github.com/gradio-app/gradio/pull/5507) [`1385dc688`](https://github.com/gradio-app/gradio/commit/1385dc6881f2d8ae7a41106ec21d33e2ef04d6a9) - Custom components. Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.1.3
 
 ### Features
 
-- [#5535](https://github.com/gradio-app/gradio/pull/5535) [`d29b1ab74`](https://github.com/gradio-app/gradio/commit/d29b1ab740784d8c70f9ab7bc38bbbf7dd3ff737) - Makes sliders consistent across all browsers.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#5535](https://github.com/gradio-app/gradio/pull/5535) [`d29b1ab74`](https://github.com/gradio-app/gradio/commit/d29b1ab740784d8c70f9ab7bc38bbbf7dd3ff737) - Makes sliders consistent across all browsers. Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
 
 ## 0.1.2
 

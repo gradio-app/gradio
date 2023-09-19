@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Literal
 import warnings
+from typing import Any, Callable, Literal
 
 import altair as alt
 import pandas as pd
