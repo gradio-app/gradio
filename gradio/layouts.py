@@ -52,6 +52,7 @@ class Row(Updateable, BlockContext):
             self.allow_expected_parents = False
         BlockContext.__init__(
             visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
+        )
 
     @staticmethod
     def update(
