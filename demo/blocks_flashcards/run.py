@@ -37,7 +37,7 @@ with demo:
         return (
             card,
             card[0],
-            gr.Column.update(visible=False),
+            gr.Column(visible=False),
         )
 
     new_btn.click(
@@ -47,7 +47,7 @@ with demo:
     )
 
     def flip_card(card):
-        return card[1], gr.Column.update(visible=True)
+        return card[1], gr.Column(visible=True)
 
     flip_btn.click(flip_card, [selected_card], [back, answer_col])
 

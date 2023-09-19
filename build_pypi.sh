@@ -6,7 +6,7 @@ cd "$(dirname ${0})"
 # You should update the version in package.json before running this script
 FILE="gradio/package.json"
 new_version=$(python -c "import json; f = open('$FILE', 'r'); data = json.load(f); print(data['version']); f.close();")
-GRADIO_VERSION = $new_version
+GRADIO_VERSION=$new_version
 
 rm -rf gradio/templates/frontend
 rm -rf gradio/templates/cdn

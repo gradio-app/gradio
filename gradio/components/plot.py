@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import warnings
 from types import ModuleType
 from typing import Any, Callable, Literal
 
@@ -80,11 +81,10 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
             bokeh_version = bokeh.__version__
         except ImportError:
             bokeh_version = None
-        return {
-            "value": self.value,
-            "bokeh_version": bokeh_version,
-            **IOComponent.get_config(self),
-        }
+
+        config = super().get_config()
+        config["bokeh_version"] = bokeh_version
+        return config
 
     @staticmethod
     def update(
@@ -96,6 +96,9 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         min_width: int | None = None,
         visible: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Plot(...)` instead of `return gr.Plot.update(...)`."
+        )
         updated_config = {
             "label": label,
             "show_label": show_label,
