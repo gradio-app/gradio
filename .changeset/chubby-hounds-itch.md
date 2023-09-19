@@ -1,6 +1,6 @@
 ---
-"@gradio/highlightedtext": minor
-"gradio": minor
+"@gradio/highlightedtext": patch
+"gradio": patch
 ---
 
-feat:Ensure HighlightedText with `merge_elements` loads without a value 
+fix:Ensure HighlightedText with `merge_elements` loads without a value 
