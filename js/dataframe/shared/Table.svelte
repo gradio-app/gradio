@@ -529,7 +529,7 @@
 
 	function set_cell_widths(): void {
 		const widths = cells.map((el, i) => {
-			return el?.clientWidth || 0;
+			return el?.offsetHeight || 0;
 		});
 
 		if (widths.length === 0) return;
