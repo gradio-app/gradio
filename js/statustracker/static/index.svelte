@@ -46,7 +46,6 @@
 
 <script lang="ts">
 	import { onDestroy } from "svelte";
-	// TODO: revisit this
 
 	import Loader from "./Loader.svelte";
 	import type { LoadingStatus } from "./types";
