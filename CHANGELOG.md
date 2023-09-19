@@ -1,5 +1,18 @@
 # gradio
 
+## 3.45.0-beta.0
+
+### Features
+
+- [#5507](https://github.com/gradio-app/gradio/pull/5507) [`1385dc688`](https://github.com/gradio-app/gradio/commit/1385dc6881f2d8ae7a41106ec21d33e2ef04d6a9) - Custom components.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`681f10c31`](https://github.com/gradio-app/gradio/commit/681f10c315a75cc8cd0473c9a0167961af7696db) - release first version.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5589](https://github.com/gradio-app/gradio/pull/5589) [`af1b2f9ba`](https://github.com/gradio-app/gradio/commit/af1b2f9bafbacf2804fcfe68af6bb4b921442aca) - image fixes.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5240](https://github.com/gradio-app/gradio/pull/5240) [`da05e59a5`](https://github.com/gradio-app/gradio/commit/da05e59a53bbad15e5755a47f46685da18e1031e) - Cleanup of .update and .get_config per component.  Thanks [@aliabid94](https://github.com/aliabid94)!/n  get_config is removed, the config used is simply any attribute that is in the Block that shares a name with one of the constructor paramaters./n  update is not removed for backwards compatibility, but deprecated. Instead return the component itself. Created a updateable decorator that simply checks to see if we're in an update, and if so, skips the constructor and wraps the args and kwargs in an update dictionary. easy peasy.
+
+### Fixes
+
+- [#5602](https://github.com/gradio-app/gradio/pull/5602) [`54d21d3f1`](https://github.com/gradio-app/gradio/commit/54d21d3f18f2ddd4e796d149a0b41461f49c711b) - Ensure `HighlightedText` with `merge_elements` loads without a value.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 3.44.4
 
 ### Features

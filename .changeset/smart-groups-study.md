@@ -27,7 +27,6 @@
 "@gradio/preview": minor
 "@gradio/radio": minor
 "@gradio/slider": minor
-"@gradio/spaces-test": minor
 "@gradio/statustracker": minor
 "@gradio/textbox": minor
 "@gradio/theme": minor
