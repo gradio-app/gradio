@@ -54,7 +54,16 @@
     "@gradio/uploadbutton": "0.0.5",
     "@gradio/utils": "0.1.1",
     "@gradio/video": "0.0.6",
-    "@gradio/wasm": "0.0.1"
+    "@gradio/wasm": "0.0.1",
+    "@gradio/fallback": "0.1.1",
+    "@gradio/preview": "0.0.2"
   },
-  "changesets": []
+  "changesets": [
+    "chubby-hounds-itch",
+    "cold-hoops-heal",
+    "dry-points-join",
+    "hip-drinks-bow",
+    "many-tips-create",
+    "smart-groups-study"
+  ]
 }
