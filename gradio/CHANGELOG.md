@@ -1,5 +1,11 @@
 # gradio
 
+## 3.45.0-beta.3
+
+### Features
+
+- [#5618](https://github.com/gradio-app/gradio/pull/5618) [`327cc4a6c`](https://github.com/gradio-app/gradio/commit/327cc4a6c1a213238cecd21f2b6c9cedc64bde5b) - Add docstring to trigger release.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 3.45.0-beta.2
 
 ### Features
