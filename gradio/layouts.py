@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.blocks import BlockContext
+from gradio.blocks import BlockContext, Updateable
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Changeable, Selectable
 
@@ -16,7 +16,7 @@ set_documentation_group("layout")
 
 
 @document()
-class Row(BlockContext):
+class Row(Updateable, BlockContext):
     """
     Row is a layout element within Blocks that renders all children horizontally.
     Example:
@@ -50,17 +50,8 @@ class Row(BlockContext):
         self.equal_height = equal_height
         if variant == "compact":
             self.allow_expected_parents = False
-        super().__init__(
+        BlockContext.__init__(
             visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
-        )
-
-    def get_config(self):
-        return {
-            "type": "row",
-            "variant": self.variant,
-            "equal_height": self.equal_height,
-            **super().get_config(),
-        }
 
     @staticmethod
     def update(
@@ -89,7 +80,7 @@ class Row(BlockContext):
 
 
 @document()
-class Column(BlockContext):
+class Column(Updateable, BlockContext):
     """
     Column is a layout element within Blocks that renders all children vertically. The widths of columns can be set through the `scale` and `min_width` parameters.
     If a certain scale results in a column narrower than min_width, the min_width parameter will win.
@@ -135,18 +126,9 @@ class Column(BlockContext):
         self.variant = variant
         if variant == "compact":
             self.allow_expected_parents = False
-        super().__init__(
+        BlockContext.__init__(
             visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
         )
-
-    def get_config(self):
-        return {
-            "type": "column",
-            "variant": self.variant,
-            "scale": self.scale,
-            "min_width": self.min_width,
-            **super().get_config(),
-        }
 
     @staticmethod
     def update(
@@ -187,9 +169,6 @@ class Tabs(BlockContext, Changeable, Selectable):
         Changeable.__init__(self)
         Selectable.__init__(self)
         self.selected = selected
-
-    def get_config(self):
-        return {"selected": self.selected, **super(BlockContext, self).get_config()}
 
     @staticmethod
     def update(
@@ -239,13 +218,6 @@ class Tab(BlockContext, Selectable):
         self.label = label
         self.id = id
 
-    def get_config(self):
-        return {
-            "label": self.label,
-            "id": self.id,
-            **super(BlockContext, self).get_config(),
-        }
-
     def get_expected_parent(self) -> type[Tabs]:
         return Tabs
 
@@ -257,7 +229,7 @@ TabItem = Tab
 
 
 @document()
-class Group(BlockContext):
+class Group(Updateable, BlockContext):
     """
     Group is a layout element within Blocks which groups together children so that
     they do not have any padding or margin between them.
@@ -281,12 +253,9 @@ class Group(BlockContext):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        super().__init__(
+        BlockContext.__init__(
             visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
         )
-
-    def get_config(self):
-        return {"type": "group", **super().get_config()}
 
     @staticmethod
     def update(
@@ -298,7 +267,7 @@ class Group(BlockContext):
         }
 
 
-class Box(BlockContext):
+class Box(Updateable, BlockContext):
     """
     DEPRECATED.
     Box is a a layout element which places children in a box with rounded corners and
@@ -322,10 +291,7 @@ class Box(BlockContext):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         warnings.warn("gr.Box is deprecated. Use gr.Group instead.", DeprecationWarning)
-        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
-
-    def get_config(self):
-        return {"type": "box", **super().get_config()}
+        BlockContext.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
 
     @staticmethod
     def update(
@@ -341,7 +307,7 @@ class Box(BlockContext):
         return self
 
 
-class Form(BlockContext):
+class Form(Updateable, BlockContext):
     def __init__(self, *, scale: int = 0, min_width: int = 0, **kwargs):
         """
         Parameters:
@@ -350,26 +316,18 @@ class Form(BlockContext):
         """
         self.scale = scale
         self.min_width = min_width
-        super().__init__(**kwargs)
+        BlockContext.__init__(self, **kwargs)
 
     def add_child(self, child: Block):
         if isinstance(self.parent, Row):
             scale = getattr(child, "scale", None)
             self.scale += 1 if scale is None else scale
             self.min_width += getattr(child, "min_width", 0) or 0
-        super().add_child(child)
-
-    def get_config(self):
-        return {
-            "type": "form",
-            "scale": self.scale,
-            "min_width": self.min_width,
-            **super().get_config(),
-        }
+        BlockContext.add_child(self, child)
 
 
 @document()
-class Accordion(BlockContext):
+class Accordion(Updateable, BlockContext):
     """
     Accordion is a layout element which can be toggled to show/hide the contained content.
     Example:
@@ -396,17 +354,9 @@ class Accordion(BlockContext):
         """
         self.label = label
         self.open = open
-        super().__init__(
+        BlockContext.__init__(
             visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
         )
-
-    def get_config(self):
-        return {
-            "type": "accordion",
-            "open": self.open,
-            "label": self.label,
-            **super().get_config(),
-        }
 
     @staticmethod
     def update(

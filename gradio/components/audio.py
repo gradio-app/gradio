@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import tempfile
+import warnings
 from pathlib import Path
 from typing import Any, Callable, Literal
 
@@ -141,18 +142,6 @@ class Audio(
         )
         TokenInterpretable.__init__(self)
 
-    def get_config(self):
-        return {
-            "source": self.source,
-            "value": self.value,
-            "streaming": self.streaming,
-            "autoplay": self.autoplay,
-            "show_download_button": self.show_download_button,
-            "show_share_button": self.show_share_button,
-            "show_edit_button": self.show_edit_button,
-            **IOComponent.get_config(self),
-        }
-
     def example_inputs(self) -> dict[str, Any]:
         return {
             "raw": {"is_file": False, "data": media_data.BASE64_AUDIO},
@@ -175,6 +164,9 @@ class Audio(
         show_share_button: bool | None = None,
         show_edit_button: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Audio(...)` instead of `return gr.Audio.update(...)`."
+        )
         return {
             "source": source,
             "label": label,
