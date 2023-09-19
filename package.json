@@ -5,7 +5,7 @@
 	"scripts": {
 		"dev": "pnpm css && pnpm --filter @gradio/client build && pnpm --filter @gradio/app dev",
 		"css": "pnpm --filter @gradio/theme generate",
-		"build": "pnpm css && pnpm --filter @gradio/client build && pnpm --filter @gradio/app build:local --emptyOutDir && pnpm --filter @gradio/gradio-preview build --emptyOutDir",
+		"build": "pnpm css && pnpm --filter @gradio/client build && pnpm --filter @gradio/app build:local --emptyOutDir && pnpm --filter @gradio/preview build",
 		"build:cdn": "pnpm --filter @gradio/client build && pnpm --filter @gradio/app build:cdn --emptyOutDir",
 		"build:website": "pnpm --filter @gradio/app build:website --emptyOutDir",
 		"build:cdn-local": "TEST_CDN=TRUE pnpm build:cdn",
