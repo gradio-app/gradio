@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Ensure HighlightedText with `merge_elements` loads without a value 
+fix:Ensure `HighlightedText` with `merge_elements` loads without a value 
