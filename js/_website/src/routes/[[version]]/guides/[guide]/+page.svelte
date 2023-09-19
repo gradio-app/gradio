@@ -3,7 +3,6 @@
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import { page } from "$app/stores";
 	import DropDown from "$lib/components/VersionDropdown.svelte";
-	import { slugifyWithCounter } from "@sindresorhus/slugify";
 
 	export let data: {
 		guide: any;
