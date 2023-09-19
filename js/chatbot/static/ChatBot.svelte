@@ -30,6 +30,7 @@
 	export let avatar_images: [string | null, string | null] = [null, null];
 	export let sanitize_html = true;
 	export let bubble_full_width = true;
+	export let disable_markdown = false;
 	export let root: string;
 	export let root_url: null | string;
 
@@ -167,6 +168,7 @@
 									{message}
 									{latex_delimiters}
 									{sanitize_html}
+									{disable_markdown}
 									on:load={scroll}
 								/>
 							{:else if message !== null && message.mime_type?.includes("audio")}

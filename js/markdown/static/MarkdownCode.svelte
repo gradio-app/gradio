@@ -14,6 +14,7 @@
 		right: string;
 		display: boolean;
 	}[] = [];
+	export let disable_markdown = false;
 
 	let el: HTMLSpanElement;
 	let html: string;
@@ -24,10 +25,19 @@
 			node.setAttribute("rel", "noopener noreferrer");
 		}
 	});
+
+	function process_message(value: string): string {
+		if (sanitize_html && !disable_markdown) {
+			return DOMPurify.sanitize(marked.parse(value));
+		} else if (sanitize_html && disable_markdown) {
+			return DOMPurify.sanitize(value);
+		} else if (!sanitize_html && !disable_markdown) {
+			return marked.parse(value);
+		}
+		return value;
+	}
 	$: if (message && message.trim()) {
-		html = sanitize_html
-			? DOMPurify.sanitize(marked.parse(message))
-			: marked.parse(message);
+		html = process_message(message);
 	} else {
 		html = "";
 	}

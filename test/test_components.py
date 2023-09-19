@@ -2077,6 +2077,7 @@ class TestChatbot:
             "root_url": None,
             "selectable": False,
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
+            "disable_markdown": False,
             "likeable": False,
             "rtl": False,
             "show_copy_button": False,
