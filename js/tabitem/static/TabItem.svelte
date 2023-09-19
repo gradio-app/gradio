@@ -14,10 +14,10 @@
 	const { register_tab, unregister_tab, selected_tab, selected_tab_index } =
 		getContext(TABS) as any;
 
-	let tab_index = register_tab({ name, id });
+	let tab_index = register_tab({ name, id, elem_id });
 
 	onMount(() => {
-		return (): void => unregister_tab({ name, id });
+		return (): void => unregister_tab({ name, id, elem_id });
 	});
 
 	$: $selected_tab_index === tab_index &&
