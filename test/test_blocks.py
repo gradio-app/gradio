@@ -121,29 +121,29 @@ class TestBlocksMethods:
     #                     xray_model, inputs=[disease, xray_scan], outputs=xray_results
     #                 )
 
-        #         with gr.TabItem("CT Scan"):
-        #             with gr.Row():
-        #                 ct_scan = gr.Image()
-        #                 ct_results = gr.JSON()
-        #             ct_run = gr.Button("Run")
-        #             ct_run.click(
-        #                 ct_model, inputs=[disease, ct_scan], outputs=ct_results
-        #             )
-        #     textbox = gr.Textbox()
-        #     demo.load(fake_func, [], [textbox])
+    #         with gr.TabItem("CT Scan"):
+    #             with gr.Row():
+    #                 ct_scan = gr.Image()
+    #                 ct_results = gr.JSON()
+    #             ct_run = gr.Button("Run")
+    #             ct_run.click(
+    #                 ct_model, inputs=[disease, ct_scan], outputs=ct_results
+    #             )
+    #     textbox = gr.Textbox()
+    #     demo.load(fake_func, [], [textbox])
 
-        # config = demo.get_config_file()
-        # xray_config_file = (
-        #     pathlib.Path(__file__).parent / "test_files" / "xray_config.json"
-        # )
-        # with open(xray_config_file) as fp:
-        #     xray_config = json.load(fp)
+    # config = demo.get_config_file()
+    # xray_config_file = (
+    #     pathlib.Path(__file__).parent / "test_files" / "xray_config.json"
+    # )
+    # with open(xray_config_file) as fp:
+    #     xray_config = json.load(fp)
 
-        # print(json.dumps(config))
-        # assert assert_configs_are_equivalent_besides_ids(xray_config, config)
-        # assert config["show_api"] is True
-        # _ = demo.launch(prevent_thread_lock=True, show_api=False)
-        # assert demo.config["show_api"] is False
+    # print(json.dumps(config))
+    # assert assert_configs_are_equivalent_besides_ids(xray_config, config)
+    # assert config["show_api"] is True
+    # _ = demo.launch(prevent_thread_lock=True, show_api=False)
+    # assert demo.config["show_api"] is False
 
     def test_load_from_config(self):
         fake_url = "https://fake.hf.space"

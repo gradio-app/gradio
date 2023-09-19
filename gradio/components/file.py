@@ -221,13 +221,15 @@ class File(Component):
         if isinstance(y, list):
             return ListFiles(
                 root=[
-                    FileData(**{
-                        "orig_name": Path(file).name,
-                        "name": self.make_temp_copy_if_needed(file),
-                        "size": Path(file).stat().st_size,
-                        "data": None,
-                        "is_file": True,
-                    })
+                    FileData(
+                        **{
+                            "orig_name": Path(file).name,
+                            "name": self.make_temp_copy_if_needed(file),
+                            "size": Path(file).stat().st_size,
+                            "data": None,
+                            "is_file": True,
+                        }
+                    )
                     for file in y
                 ]
             )

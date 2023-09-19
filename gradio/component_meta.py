@@ -130,6 +130,7 @@ def in_event_listener():
 
     return getattr(context.thread_data, "in_event_listener", False)
 
+
 def updateable(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
@@ -147,7 +148,6 @@ def updateable(fn):
             return fn(self, **kwargs)
 
     return wrapper
-
 
 
 class ComponentMeta(ABCMeta):

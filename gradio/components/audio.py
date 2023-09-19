@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import tempfile
 import warnings
 from pathlib import Path
 from typing import Any, Callable, Literal, Optional
