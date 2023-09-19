@@ -1740,7 +1740,7 @@ async def test_queue_when_using_auth():
         follow_redirects=False,
     )
     assert resp.status_code == 200
-    token = resp.cookies.get("access-token")
+    token = resp.cookies.get(f"access-token-{demo.app.cookie_id}")
     assert token
 
     with pytest.raises(Exception) as e:
@@ -1753,7 +1753,7 @@ async def test_queue_when_using_auth():
     async def run_ws(i):
         async with websockets.connect(
             f"{demo.local_url.replace('http', 'ws')}queue/join",
-            extra_headers={"Cookie": f"access-token={token}"},
+            extra_headers={"Cookie": f"access-token-{demo.app.cookie_id}={token}"},
         ) as ws:
             while True:
                 try:

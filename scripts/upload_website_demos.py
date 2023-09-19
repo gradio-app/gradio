@@ -11,12 +11,8 @@ import textwrap
 import huggingface_hub
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-VERSION_FILE = os.path.abspath(os.path.join(ROOT, "gradio", "package.json"))
 DIR = os.path.dirname(__file__)
 GRADIO_DEMO_DIR = os.path.abspath(os.path.join(ROOT, "demo"))
-
-with open(VERSION_FILE) as f:
-    version = json.load(f)["version"]
 
 # Reasoning:
 # 1. all_demos includes all demos and is for testing PRs
@@ -98,11 +94,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--WHEEL_URL", type=str, help="aws link to gradio wheel")
     parser.add_argument("--AUTH_TOKEN", type=str, help="huggingface auth token")
+    parser.add_argument("--GRADIO_VERSION", type=str, help="gradio version")
     args = parser.parse_args()
-    gradio_wheel_url = args.WHEEL_URL + f"gradio-{gradio_version}-py3-none-any.whl"
+    gradio_wheel_url = args.WHEEL_URL + f"gradio-{args.GRADIO_VERSION}-py3-none-any.whl"
     if args.AUTH_TOKEN is not None:
         hello_world_version = str(huggingface_hub.space_info("gradio/hello_world").cardData["sdk_version"])
         for demo in demos:
-            if hello_world_version != gradio_version:
-                upload_demo_to_space(demo_name=demo, space_id="gradio/" + demo, hf_token=args.AUTH_TOKEN, gradio_version=gradio_version)
-            upload_demo_to_space(demo_name=demo, space_id="gradio/" + demo + "_main", hf_token=args.AUTH_TOKEN, gradio_version=gradio_version, gradio_wheel_url=gradio_wheel_url)
+            if hello_world_version != args.GRADIO_VERSION:
+                upload_demo_to_space(demo_name=demo, space_id="gradio/" + demo, hf_token=args.AUTH_TOKEN, gradio_version=args.GRADIO_VERSION)
+            upload_demo_to_space(demo_name=demo, space_id="gradio/" + demo + "_main", hf_token=args.AUTH_TOKEN, gradio_version=args.GRADIO_VERSION, gradio_wheel_url=gradio_wheel_url)

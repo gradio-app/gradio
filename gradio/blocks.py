@@ -2011,7 +2011,9 @@ Received outputs:
             self.server_name = server_name
             self.local_url = local_url
             self.server_port = server_port
-            self.server_app = app
+            self.server_app = (
+                self.app
+            ) = app  # server_app is included for backwards compatibility
             self.server = server
             self.is_running = True
             self.is_colab = utils.colab_check()
