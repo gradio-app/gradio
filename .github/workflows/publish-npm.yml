@@ -26,11 +26,7 @@ jobs:
           npm_token: ${{ secrets.NPM_TOKEN }}
           skip_build: 'true'
       - name: Build packages
-        run: |
-          . venv/bin/activate
-          pip install build
-          pnpm css
-          pnpm --filter @gradio/client
+        run: pnpm --filter @gradio/client  build
       - name: create and publish versions
         id: changesets
         uses: changesets/action@v1
