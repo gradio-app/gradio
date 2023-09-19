@@ -1,5 +1,11 @@
 # @gradio/slider
 
+## 0.1.3
+
+### Features
+
+- [#5535](https://github.com/gradio-app/gradio/pull/5535) [`d29b1ab74`](https://github.com/gradio-app/gradio/commit/d29b1ab740784d8c70f9ab7bc38bbbf7dd3ff737) - Makes sliders consistent across all browsers.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.1.2
 
 ### Patch Changes
