@@ -493,12 +493,20 @@ def postprocess_update_dict(block: Block, update_dict: dict, postprocess: bool =
     interactive = update_dict.pop("interactive", None)
     if interactive is not None:
         update_dict["mode"] = "dynamic" if interactive else "static"
-    if "value" in update_dict and postprocess:
+    attr_dict = {
+        k: getattr(block, k) if hasattr(block, k) else v for k, v in update_dict.items()
+    }
+    attr_dict["__type__"] = "update"
+    attr_dict.pop("value", None)
+    if "value" in update_dict:
         assert isinstance(
             block, components.IOComponent
         ), f"Component {block.__class__} does not support value"
-        update_dict["value"] = block.postprocess(update_dict["value"])
-    return update_dict
+        if postprocess:
+            attr_dict["value"] = block.postprocess(update_dict["value"])
+        else:
+            attr_dict["value"] = update_dict["value"]
+    return attr_dict
 
 
 def convert_component_dict_to_list(
