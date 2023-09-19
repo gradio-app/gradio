@@ -45,29 +45,32 @@ export function correct_color_map(
 export function merge_elements(
 	value: HighlightValueType[],
 	mergeMode: "empty" | "equal"
-): HighlightValueType[] {
-	let result: HighlightValueType[] = [];
-	let tempStr: string | null = null;
-	let tempVal: string | number | null = null;
+): HighlightValueType[] | null {
+	if (value) {
+		let result: HighlightValueType[] = [];
+		let tempStr: string | null = null;
+		let tempVal: string | number | null = null;
 
-	for (const [str, val] of value) {
-		if (
-			(mergeMode === "empty" && val === null) ||
-			(mergeMode === "equal" && tempVal === val)
-		) {
-			tempStr = tempStr ? tempStr + str : str;
-		} else {
-			if (tempStr !== null) {
-				result.push([tempStr, tempVal as string | number]);
+		for (const [str, val] of value) {
+			if (
+				(mergeMode === "empty" && val === null) ||
+				(mergeMode === "equal" && tempVal === val)
+			) {
+				tempStr = tempStr ? tempStr + str : str;
+			} else {
+				if (tempStr !== null) {
+					result.push([tempStr, tempVal as string | number]);
+				}
+				tempStr = str;
+				tempVal = val;
 			}
-			tempStr = str;
-			tempVal = val;
 		}
-	}
 
-	if (tempStr !== null) {
-		result.push([tempStr, tempVal as string | number]);
-	}
+		if (tempStr !== null) {
+			result.push([tempStr, tempVal as string | number]);
+		}
 
-	return result;
+		return result;
+	}
+	return null;
 }
