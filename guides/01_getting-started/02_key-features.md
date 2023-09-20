@@ -23,7 +23,7 @@ $demo_calculator
 
 You can load a large dataset into the examples to browse and interact with the dataset through Gradio. The examples will be automatically paginated (you can configure this through the `examples_per_page` argument of `Interface`).
 
-Continue learning about examples in the [More On Examples](https://gradio.app/more-on-examples) guide.
+Continue learning about examples in the [More On Examples](https://gradio.app/guides/more-on-examples) guide.
 
 ## Alerts
 
