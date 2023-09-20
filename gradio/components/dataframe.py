@@ -53,9 +53,9 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         overflow_row_behaviour: Literal["paginate", "show_ends"] = "paginate",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | None = None,
-        every: float | None = None,
         show_label: bool | None = None,
-        height: int | float | None = None,
+        every: float | None = None,
+        height: int = 500,
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
@@ -74,14 +74,14 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             datatype: Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", "date", and "markdown".
             type: Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python array.
             label: component name in interface.
-            max_rows: Maximum number of rows to display at once. Set to None for infinite.
-            max_cols: Maximum number of columns to display at once. Set to None for infinite.
-            overflow_row_behaviour: If set to "paginate", will create pages for overflow rows. If set to "show_ends", will show initial and final rows and truncate middle rows.
+            max_rows: Deprecated and has no effect. Use `row_count` instead.
+            max_cols: Deprecated and has no effect. Use `col_count` instead.
+            overflow_row_behaviour: Deprecated and has no effect.
             latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$", "right": "$", "display": False }]`, so only expressions enclosed in $ delimiters will be rendered as LaTeX, and in the same line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html). Only applies to columns whose datatype is "markdown".
             label: component name in interface.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
-            height: The maximum height of the file component, in pixels. If more files are uploaded than can fit in the height, a scrollbar will appear.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            height: The maximum height of the dataframe, in pixels. If more rows are created than can fit in the height, a scrollbar will appear.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: if True, will allow users to edit the dataframe; if False, can only be used to display data. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -165,7 +165,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         scale: int | None = None,
         min_width: int | None = None,
-        height: int | float | None = None,
+        height: int | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
