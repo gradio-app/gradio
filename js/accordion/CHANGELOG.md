@@ -1,5 +1,13 @@
 # @gradio/accordion
 
+## 0.1.0-beta.4
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/atoms@0.2.0-beta.3
+  - @gradio/statustracker@0.3.0-beta.4
+
 ## 0.1.0-beta.3
 
 ### Patch Changes

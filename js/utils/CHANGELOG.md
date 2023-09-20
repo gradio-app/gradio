@@ -1,5 +1,11 @@
 # @gradio/utils
 
+## 0.2.0-beta.3
+
+### Features
+
+- [#5630](https://github.com/gradio-app/gradio/pull/5630) [`0b4fd5b6d`](https://github.com/gradio-app/gradio/commit/0b4fd5b6db96fc95a155e5e935e17e1ab11d1161) - Fix esbuild.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.2.0-beta.2
 
 ### Features
