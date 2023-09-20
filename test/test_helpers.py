@@ -137,7 +137,7 @@ def test_example_caching_relaunch(connect):
             api_name="examples",
         )
 
-    with connect(demo, server_port=7859) as client:
+    with connect(demo) as client:
         assert client.predict(1, api_name="/examples") == (
             "hello",
             "Eve",
@@ -147,7 +147,7 @@ def test_example_caching_relaunch(connect):
     # Let the server shut down
     time.sleep(1)
 
-    with connect(demo, server_port=7859) as client:
+    with connect(demo) as client:
         assert client.predict(1, api_name="/examples") == (
             "hello",
             "Eve",
