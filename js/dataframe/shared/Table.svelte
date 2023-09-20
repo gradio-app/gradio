@@ -28,7 +28,7 @@
 
 	export let editable = true;
 	export let wrap = false;
-	export let height: number | undefined;
+	export let height: number;
 	let selected: false | [number, number] = false;
 
 	$: {
@@ -541,7 +541,7 @@
 		}
 	}
 
-	let table_height: number = height || 500;
+	let table_height: number = height;
 	let scrollbar_width = 0;
 
 	function sort_data(
@@ -683,7 +683,7 @@
 			<VirtualTable
 				bind:items={data}
 				table_width={t_width}
-				max_height={height || 500}
+				max_height={height}
 				bind:actual_height={table_height}
 				bind:table_scrollbar_width={scrollbar_width}
 				selected={selected_index}
