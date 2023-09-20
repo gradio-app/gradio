@@ -5,6 +5,7 @@ const __dirname = fileURLToPath(new URL(".", import.meta.url));
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { transform } from "sucrase";
 import { viteCommonjs } from "@originjs/vite-plugin-commonjs";
+import sucrase from "@rollup/plugin-sucrase";
 
 const vite_messages_to_ignore = [
 	"Default and named imports from CSS files are deprecated."
@@ -40,7 +41,6 @@ export async function create_server({
 	const NODE_DIR = join(root_dir, "..", "..", "node", "dev");
 
 	try {
-		console.log("Atttempting to start server...");
 		const server = await createServer({
 			// any valid user config options, plus `mode` and `configFile`
 			esbuild: false,
@@ -102,6 +102,10 @@ export async function create_server({
 						);
 					}
 				},
+				sucrase({
+					transforms: ["typescript"],
+					include: ["**/*.ts", "**/*.tsx"]
+				}),
 				//@ts-ignore
 				svelte({
 					onwarn(warning, handler) {
@@ -147,7 +151,6 @@ export async function create_server({
 			`[orange3]Frontend Server[/] (Go here): ${server.resolvedUrls?.local}`
 		);
 	} catch (e) {
-		console.log("Error starting server:");
 		console.error(e);
 	}
 }
