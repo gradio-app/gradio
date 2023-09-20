@@ -58,9 +58,9 @@
 		end = i;
 		const remaining = _items.length - end;
 
-		const scrollbarHeight = viewport.offsetHeight - viewport.clientHeight;
-		if (scrollbarHeight > 0) {
-			content_height += scrollbarHeight;
+		const scrollbar_height = viewport.offsetHeight - viewport.clientHeight;
+		if (scrollbar_height > 0) {
+			content_height += scrollbar_height;
 		}
 
 		let filtered_height_map = height_map.filter((v) => typeof v === "number");
@@ -213,9 +213,9 @@
 			distance = distance - viewport_height + _itemHeight + head_height;
 		}
 
-		const scrollbarHeight = viewport.offsetHeight - viewport.clientHeight;
-		if (scrollbarHeight > 0) {
-			distance += scrollbarHeight;
+		const scrollbar_height = viewport.offsetHeight - viewport.clientHeight;
+		if (scrollbar_height > 0) {
+			distance += scrollbar_height;
 		}
 
 		const _opts = {
