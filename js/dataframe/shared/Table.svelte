@@ -528,19 +528,21 @@
 	let parent: HTMLDivElement;
 	let table: HTMLTableElement;
 
-
 	function set_cell_widths(): void {
 		const widths = cells.map((el, i) => {
 			return el?.clientWidth || 0;
 		});
 		if (widths.length === 0) return;
 		for (let i = 0; i < widths.length; i++) {
-			parent.style.setProperty(`--cell-width-${i}`, `${widths[i] - scroll_width/widths.length}px`);
+			parent.style.setProperty(
+				`--cell-width-${i}`,
+				`${widths[i] - scrollbar_width / widths.length}px`
+			);
 		}
 	}
 
 	let table_height: number = height || 500;
-	let scroll_width = 0;
+	let scrollbar_width = 0;
 
 	function sort_data(
 		_data: typeof data,
@@ -683,7 +685,7 @@
 				table_width={t_width}
 				max_height={height || 500}
 				bind:actual_height={table_height}
-				bind:table_scroll_width={scroll_width}
+				bind:table_scrollbar_width={scrollbar_width}
 				selected={selected_index}
 			>
 				{#if label && label.length !== 0}
