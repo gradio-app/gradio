@@ -73,7 +73,7 @@ class CheckboxGroup(
         self.choices = (
             # Although we expect choices to be a list of tuples, it can be a list of tuples if the Gradio app
             # is loaded with gr.load() since Python tuples are converted to lists in JSON.
-            [c if isinstance(c, (tuple, list)) else (str(c), c) for c in choices]
+            [tuple(c) if isinstance(c, (tuple, list)) else (str(c), c) for c in choices]
             if choices
             else []
         )
@@ -135,7 +135,7 @@ class CheckboxGroup(
         choices = (
             None
             if choices is None
-            else [c if isinstance(c, (tuple, list)) else (str(c), c) for c in choices]
+            else [c if isinstance(c, tuple) else (str(c), c) for c in choices]
         )
         return {
             "choices": choices,
