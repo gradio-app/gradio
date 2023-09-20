@@ -790,8 +790,8 @@ class Endpoint:
             data = self.insert_state(*data)
             if self.client.serialize:
                 data = self.serialize(*data)
-            predictions = _predict(*data)
-            predictions = self.process_predictions(*predictions)
+            output = _predict(*data)
+            predictions = self.process_predictions(*output['data'], root_url=output['root_url'])
             # Append final output only if not already present
             # for consistency between generators and not generators
             if helper:
@@ -817,7 +817,6 @@ class Endpoint:
                     "session_hash": self.client.session_hash,
                 }
             )
-
             if self.use_ws:
                 result = utils.synchronize_async(self._ws_fn, data, hash_data, helper)
                 if "error" in result:
@@ -845,7 +844,8 @@ class Endpoint:
                 raise KeyError(
                     f"Could not find 'data' key in response. Response received: {result}"
                 ) from ke
-            return tuple(output)
+            print(result)
+            return {"data": tuple(output), "root_url": result.get("root_url")}
 
         return _predict
 
@@ -962,7 +962,7 @@ class Endpoint:
         o = tuple([s.serialize(d) for s, d in zip(self.serializers, data)])
         return o
 
-    def deserialize(self, *data) -> tuple:
+    def deserialize(self, *data, root_url) -> tuple:
         assert len(data) == len(
             self.deserializers
         ), f"Expected {len(self.deserializers)} outputs, got {len(data)}"
@@ -972,16 +972,16 @@ class Endpoint:
                     d,
                     save_dir=self.client.output_dir,
                     hf_token=self.client.hf_token,
-                    root_url=self.root_url,
+                    root_url=root_url or self.root_url,
                 )
                 for s, d in zip(self.deserializers, data)
             ]
         )
         return outputs
 
-    def process_predictions(self, *predictions):
+    def process_predictions(self, *predictions, root_url: str | None):
         if self.client.serialize:
-            predictions = self.deserialize(*predictions)
+            predictions = self.deserialize(*predictions, root_url=root_url)
         predictions = self.remove_skipped_components(*predictions)
         predictions = self.reduce_singleton_output(*predictions)
         return predictions
