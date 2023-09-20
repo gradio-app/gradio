@@ -72,6 +72,8 @@ class Radio(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.choices = (
+            # Although we expect choices to be a list of tuples, it can be a list of tuples if the Gradio app
+            # is loaded with gr.load() since Python tuples are converted to lists in JSON.
             [c if isinstance(c, (tuple, list)) else (str(c), c) for c in choices]
             if choices
             else []
