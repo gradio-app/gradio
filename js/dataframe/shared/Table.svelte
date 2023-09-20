@@ -28,7 +28,7 @@
 
 	export let editable = true;
 	export let wrap = false;
-	export let height: number;
+	export let height = 500;
 	let selected: false | [number, number] = false;
 
 	$: {
