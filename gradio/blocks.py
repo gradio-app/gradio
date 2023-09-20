@@ -91,9 +91,9 @@ BUILT_IN_THEMES: dict[str, Theme] = {
 
 
 def in_event_listener():
-    from gradio.context import LocalContext
+    from gradio import context
 
-    return LocalContext.in_event_listener.get()
+    return getattr(context.thread_data, "in_event_listener", False)
 
 
 def updateable(fn):
