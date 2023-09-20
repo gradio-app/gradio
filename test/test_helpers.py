@@ -132,6 +132,39 @@ class TestProcessExamples:
         prediction = await io.examples_handler.load_from_cache(1)
         assert prediction[0] == "Hello Dunya"
 
+    def test_example_caching_relaunch(self, connect):
+        def combine(a, b):
+            return a + " " + b
+
+        with gr.Blocks() as demo:
+            txt = gr.Textbox(label="Input")
+            txt_2 = gr.Textbox(label="Input 2")
+            txt_3 = gr.Textbox(value="", label="Output")
+            btn = gr.Button(value="Submit")
+            btn.click(combine, inputs=[txt, txt_2], outputs=[txt_3])
+            gr.Examples(
+                [["hi", "Adam"], ["hello", "Eve"]],
+                [txt, txt_2],
+                txt_3,
+                combine,
+                cache_examples=True,
+                api_name="examples",
+            )
+
+        with connect(demo) as client:
+            assert client.predict(1, api_name="/examples") == (
+                "hello",
+                "Eve",
+                "hello Eve",
+            )
+
+        with connect(demo) as client:
+            assert client.predict(1, api_name="/examples") == (
+                "hello",
+                "Eve",
+                "hello Eve",
+            )
+
     @pytest.mark.asyncio
     async def test_caching_image(self):
         io = gr.Interface(
