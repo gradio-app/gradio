@@ -85,8 +85,8 @@ def _create_frontend(name: str, template: str, directory: pathlib.Path):
     json.dump(source_package_json, open(str(frontend / "package.json"), "w"), indent=2)
 
 
-def _create_backend(name: str, template: str, directory: pathlib.Path):
-    backend = directory / "backend" / name.lower()
+def _create_backend(name: str, template: str, directory: pathlib.Path, package_name: str):
+    backend = directory / "backend" / package_name
     backend.mkdir(exist_ok=True, parents=True)
 
     gitignore = pathlib.Path(__file__).parent / "files" / "gitignore"
@@ -97,7 +97,7 @@ def _create_backend(name: str, template: str, directory: pathlib.Path):
     pyproject = pathlib.Path(__file__).parent / "files" / "pyproject_.toml"
     pyproject_contents = pyproject.read_text()
     pyproject_dest = directory / "pyproject.toml"
-    pyproject_dest.write_text(pyproject_contents.replace("<<name>>", name.lower()))
+    pyproject_dest.write_text(pyproject_contents.replace("<<name>>", package_name))
 
     demo_dir = directory / "demo"
     demo_dir.mkdir(exist_ok=True, parents=True)
@@ -105,7 +105,7 @@ def _create_backend(name: str, template: str, directory: pathlib.Path):
     (demo_dir / "app.py").write_text(
         f"""
 import gradio as gr
-from {name.lower()} import {name}
+from {package_name} import {name}
 
 with gr.Blocks() as demo:
     {name}(interactive=True)
@@ -171,6 +171,12 @@ def _create(
             help="Directory to create the component in. Default is None. If None, will be created in <component-name> directory in the current directory."
         ),
     ] = None,
+    package_name: Annotated[
+        Optional[str],
+        typer.Option(
+            help="Name of the package. Default is gradio_{name.lower()}"
+        )
+    ] = None,
     template: Annotated[
         str,
         typer.Option(
@@ -190,6 +196,8 @@ def _create(
 ):
     if not directory:
         directory = pathlib.Path(name.lower())
+    if not package_name:
+        package_name = f"gradio_{name.lower()}"    
 
     directory.mkdir(exist_ok=True)
 
@@ -209,7 +217,7 @@ def _create(
         _create_frontend(name.lower(), template, directory=directory)
         live.update(":art: Created frontend code", add_sleep=0.2)
 
-        _create_backend(name, template, directory)
+        _create_backend(name, template, directory, package_name)
         live.update(":snake: Created backend code", add_sleep=0.2)
 
         if install:

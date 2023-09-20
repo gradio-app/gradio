@@ -8,12 +8,6 @@ class NAME(gr.components.Component):
     def postprocess(self, x):
         return x
 
-    def get_config(self):
-        return {
-            "value": self.value,
-            **gr.components.Component.get_config(self),
-        }
-
     def example_inputs(self):
         return {"foo": "bar"}
 
