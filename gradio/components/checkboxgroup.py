@@ -71,7 +71,7 @@ class CheckboxGroup(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.choices = (
-            [c if isinstance(c, tuple) else (str(c), c) for c in choices]
+            [c if isinstance(c, (tuple, list)) else (str(c), c) for c in choices]
             if choices
             else []
         )
@@ -133,7 +133,7 @@ class CheckboxGroup(
         choices = (
             None
             if choices is None
-            else [c if isinstance(c, tuple) else (str(c), c) for c in choices]
+            else [c if isinstance(c, (tuple, list)) else (str(c), c) for c in choices]
         )
         return {
             "choices": choices,
