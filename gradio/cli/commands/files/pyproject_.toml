@@ -11,7 +11,7 @@ requires-python = ">=3.8"
 authors = [
   { name = "YOUR NAME", email = "YOUREMAIL@domain.com" },
 ]
-keywords = ["machine learning", "reproducibility", "visualization"]
+keywords = ["machine learning", "reproducibility", "visualization", "gradio", "gradio custom component"]
 # Add dependencies here
 dependencies = []
 classifiers = [

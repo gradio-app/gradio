@@ -11,6 +11,7 @@ from typing import Any, Optional, Union
 from gradio_client.utils import traverse
 from pydantic import BaseModel, RootModel
 from typing_extensions import Literal
+from abc import abstractmethod, ABC
 
 
 class PredictBody(BaseModel):
@@ -68,7 +69,7 @@ class LogMessage(BaseModel):
     level: Literal["info", "warning"]
 
 
-class GradioBaseModel:
+class GradioBaseModel(ABC):
     def copy_to_dir(self, dir: str | pathlib.Path) -> GradioDataModel:
         assert isinstance(self, (BaseModel, RootModel))
         if isinstance(dir, str):
@@ -82,14 +83,16 @@ class GradioBaseModel:
             ).model_dump()
 
         return self.__class__.from_json(
-            traverse(
+            x=traverse(
                 self.model_dump(),
                 unique_copy,
                 FileData.is_file_data,
             )
         )
 
-    def from_json(self, x):
+    @classmethod
+    @abstractmethod
+    def from_json(cls, x) -> GradioDataModel:
         pass
 
 
@@ -102,7 +105,7 @@ class GradioModel(GradioBaseModel, BaseModel):
 class GradioRootModel(GradioBaseModel, RootModel):
     @classmethod
     def from_json(cls, x) -> GradioRootModel:
-        return cls(x)
+        return cls(root=x)
 
 
 GradioDataModel = Union[GradioModel, GradioRootModel]

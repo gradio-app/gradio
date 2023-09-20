@@ -90,7 +90,7 @@ include = [
 
 [tool.pyright]
 include = ["gradio/**/*.py"]
-exclude = ["gradio/themes/"]
+exclude = ["gradio/themes/", "gradio/_frontend_code/"]
 
 [tool.ruff]
 target-version = "py37"
