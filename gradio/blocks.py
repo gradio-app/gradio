@@ -16,7 +16,7 @@ from collections import defaultdict
 from functools import wraps
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast, Sequence
+from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, Sequence, cast
 
 import anyio
 import requests
@@ -955,7 +955,7 @@ class Blocks(BlockContext):
         )
         if api_name is not None and api_name is not False:
             api_name_ = utils.append_unique_suffix(
-                api_name, [dep["api_name"] for dep in Context.root_block.dependencies]
+                api_name, [dep["api_name"] for dep in self.dependencies]
             )
             if api_name != api_name_:
                 warnings.warn(f"api_name {api_name} already exists, using {api_name_}")

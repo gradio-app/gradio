@@ -29,6 +29,11 @@ def set_cancel_events(
             cancels = [cancels]
         cancel_fn, fn_indices_to_cancel = get_cancel_function(cancels)
 
+        if Context.root_block is None:
+            raise AttributeError(
+                "Cannot cancel {self.event_name} outside of a gradio.Blocks context."
+            )
+
         Context.root_block.set_event_trigger(
             triggers,
             cancel_fn,
@@ -207,8 +212,8 @@ class EventListenerMethod:
 def on(
     triggers: Sequence[EventListenerMethod] | EventListenerMethod | None = None,
     fn: Callable | None | Literal["decorator"] = "decorator",
-    inputs: Component | Sequence[Component] | set[Component] | None = None,
-    outputs: Component | Sequence[Component] | None = None,
+    inputs: Component | list[Component] | set[Component] | None = None,
+    outputs: Component | list[Component] | None = None,
     *,
     api_name: str | None | Literal[False] = None,
     scroll_to_output: bool = False,
