@@ -59,9 +59,9 @@ export async function create_server({
 				}
 			},
 
-			optimizeDeps: {
-				disabled: true
-			},
+			// optimizeDeps: {
+			// 	disabled: true
+			// },
 			server: {
 				port: frontend_port,
 				fs: {
