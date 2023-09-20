@@ -592,7 +592,9 @@ class TestComponentsInBlocks:
         )
 
         dependencies_on_load = [
-            dep for dep in interface.config["dependencies"] if dep["targets"][0][1] == "load"
+            dep
+            for dep in interface.config["dependencies"]
+            if dep["targets"][0][1] == "load"
         ]
         assert len(dependencies_on_load) == len(io_components)
         assert all(dep["every"] == 1 for dep in dependencies_on_load)
@@ -1429,7 +1431,7 @@ class TestCancel:
 class TestEvery:
     def test_raise_exception_if_parameters_invalid(self):
         with pytest.raises(
-            ValueError, match="Cannot run change event in a batch and every 0.5 seconds"
+            ValueError, match="Cannot run event in a batch and every 0.5 seconds"
         ):
             with gr.Blocks():
                 num = gr.Number()

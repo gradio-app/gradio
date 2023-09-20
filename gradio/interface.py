@@ -27,7 +27,7 @@ from gradio.components import (
 )
 from gradio.data_classes import InterfaceTypes
 from gradio.deprecation import warn_deprecation
-from gradio.events import Changeable, Streamable, Submittable
+from gradio.events import Changeable, Streamable, Submittable, on
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_pipeline
@@ -37,6 +37,8 @@ set_documentation_group("interface")
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from transformers.pipelines.base import Pipeline
+
+    from gradio.events import EventListenerMethod
 
 
 @document("launch", "load", "from_pipeline", "integrate", "queue")
@@ -624,26 +626,21 @@ class Interface(Blocks):
                     max_batch_size=self.max_batch_size,
                 )
             else:
+                events: list[EventListenerMethod] = []
                 for component in self.input_components:
                     if isinstance(component, Streamable) and component.streaming:
-                        component.stream(
-                            self.fn,
-                            self.input_components,
-                            self.output_components,
-                            api_name=self.api_name,
-                            preprocess=not (self.api_mode),
-                            postprocess=not (self.api_mode),
-                        )
-                        continue
-                    if isinstance(component, Changeable):
-                        component.change(
-                            self.fn,
-                            self.input_components,
-                            self.output_components,
-                            api_name=self.api_name,
-                            preprocess=not (self.api_mode),
-                            postprocess=not (self.api_mode),
-                        )
+                        events.append(component.stream)
+                    elif isinstance(component, Changeable):
+                        events.append(component.change)
+                on(
+                    events,
+                    self.fn,
+                    self.input_components,
+                    self.output_components,
+                    api_name=self.api_name,
+                    preprocess=not (self.api_mode),
+                    postprocess=not (self.api_mode),
+                )
         else:
             assert submit_btn is not None, "Submit button not rendered"
             fn = self.fn

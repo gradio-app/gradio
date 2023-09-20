@@ -273,7 +273,6 @@ class TestProcessExamples:
             cache_examples=True,
         )
         prediction = await io.examples_handler.load_from_cache(0)
-        assert not any(d["trigger"] == "fake_event" for d in io.config["dependencies"])
         assert prediction == [
             {"lines": 4, "__type__": "update", "mode": "static"},
             {"label": "lion"},

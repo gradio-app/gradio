@@ -41,7 +41,7 @@ class Interpretation(Component, SimpleSerializable):
         Component.__init__(
             self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
         )
-        self.component = component
+        self._component = component
 
     @staticmethod
     def update(

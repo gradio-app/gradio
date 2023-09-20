@@ -21,7 +21,7 @@ set_documentation_group("events")
 
 
 def set_cancel_events(
-    triggers: list[EventListenerMethod],
+    triggers: Sequence[EventListenerMethod],
     cancels: None | dict[str, Any] | list[dict[str, Any]],
 ):
     if cancels:
@@ -174,7 +174,7 @@ class EventListenerMethod:
             show_progress = "full" if show_progress else "hidden"
 
         if Context.root_block is None:
-            raise Exception(
+            raise AttributeError(
                 "Cannot call {self.event_name} outside of a gradio.Blocks context."
             )
 
@@ -241,6 +241,8 @@ def on(
     """
     if isinstance(triggers, EventListenerMethod):
         triggers = [triggers]
+    if isinstance(inputs, Component):
+        inputs = [inputs]
 
     if fn == "decorator":
 

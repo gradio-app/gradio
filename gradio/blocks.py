@@ -16,7 +16,7 @@ from collections import defaultdict
 from functools import wraps
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast
+from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast, Sequence
 
 import anyio
 import requests
@@ -854,7 +854,7 @@ class Blocks(BlockContext):
 
     def set_event_trigger(
         self,
-        targets: list[EventListenerMethod],
+        targets: Sequence[EventListenerMethod],
         fn: Callable | None,
         inputs: Component | list[Component] | set[Component] | None,
         outputs: Component | list[Component] | None,
@@ -1715,7 +1715,7 @@ Received outputs:
             from gradio.events import Dependency, EventListenerMethod
 
             if Context.root_block is None:
-                raise Exception(
+                raise AttributeError(
                     "Cannot call load() outside of a gradio.Blocks context."
                 )
 
