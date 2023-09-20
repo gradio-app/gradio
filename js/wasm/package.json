@@ -6,7 +6,8 @@
 	"main": "./dist/index.js",
 	"exports": {
 		".": "./dist/index.js",
-		"./package.json": "./package.json"
+		"./package.json": "./package.json",
+		"./svelte": "./svelte/index.ts"
 	},
 	"private": true,
 	"keywords": [],

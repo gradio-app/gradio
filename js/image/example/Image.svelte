@@ -1,15 +1,21 @@
 <script lang="ts">
+	import { Image } from "@gradio/wasm/svelte";
+
 	export let value: string;
 	export let samples_dir: string;
 	export let type: "gallery" | "table";
 	export let selected = false;
 </script>
 
-<img
+<Image
 	src={samples_dir + value}
-	class:table={type === "table"}
-	class:gallery={type === "gallery"}
-	class:selected
+	class={[
+		type === "table" && "table",
+		type === "gallery" && "gallery",
+		selected && "selected"
+	]
+		.filter((c) => c)
+		.join(" ")}
 	alt=""
 />
 

@@ -919,6 +919,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      '@gradio/wasm':
+        specifier: workspace:^
+        version: link:../wasm
       cropperjs:
         specifier: ^1.5.12
         version: 1.5.12
