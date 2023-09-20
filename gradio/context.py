@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import threading
+from contextvars import ContextVar
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
@@ -17,4 +17,7 @@ class Context:
     hf_token: str | None = None  # The token provided when loading private HF repos
 
 
-thread_data = threading.local()
+class LocalContext:
+    blocks: ContextVar[Blocks | None] = ContextVar("blocks", default=None)
+    in_event_listener: ContextVar[bool] = ContextVar("in_event_listener", default=False)
+    event_id: ContextVar[str | None] = ContextVar("event_id", default=None)

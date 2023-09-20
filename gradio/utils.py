@@ -663,16 +663,16 @@ def get_function_with_locals(
     fn: Callable, blocks: Blocks, event_id: str | None, in_event_listener: bool
 ):
     def before_fn(blocks, event_id):
-        from gradio.context import thread_data
+        from gradio.context import LocalContext
 
-        thread_data.blocks = blocks
-        thread_data.in_event_listener = in_event_listener
-        thread_data.event_id = event_id
+        LocalContext.blocks.set(blocks)
+        LocalContext.in_event_listener.set(in_event_listener)
+        LocalContext.event_id.set(event_id)
 
     def after_fn():
-        from gradio.context import thread_data
+        from gradio.context import LocalContext
 
-        thread_data.in_event_listener = False
+        LocalContext.in_event_listener.set(False)
 
     return function_wrapper(
         fn, before_fn=before_fn, before_args=(blocks, event_id), after_fn=after_fn
