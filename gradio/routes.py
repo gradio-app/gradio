@@ -23,6 +23,7 @@ from asyncio import TimeoutError as AsyncTimeOutError
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
+from urllib.parse import urlparse
 
 import fastapi
 import httpx
@@ -58,9 +59,9 @@ from gradio.state_holder import StateHolder
 from gradio.utils import (
     cancel_tasks,
     get_package_version,
+    get_space,
     run_coro_in_background,
     set_task_name,
-    get_space
 )
 
 mimetypes.init()
@@ -304,7 +305,7 @@ class App(FastAPI):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
             if get_space() and request.headers.get("x-direct-url"):
-                root_path = request.headers['x-direct-url']
+                root_path = request.headers["x-direct-url"]
             else:
                 root_path = request.scope.get("root_path", "")
 
@@ -349,7 +350,9 @@ class App(FastAPI):
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request):
             if get_space() and request.headers.get("x-direct-url"):
-                root_path = request.headers['x-direct-url']
+                root_path = request.headers["x-direct-url"]
+                url = urlparse(root_path)
+                root_path = f"{url.scheme}://{url.hostname}/"
             else:
                 root_path = request.scope.get("root_path", "")
             config = app.get_blocks().config
@@ -398,6 +401,18 @@ class App(FastAPI):
                 return RedirectResponse(
                     url=path_or_url, status_code=status.HTTP_302_FOUND
                 )
+
+            # if get_space() and request.headers["x-direct-url"]:
+            #     root_path = request.headers["x-direct-url"]
+            #     url = urlparse(root_path)
+            #     print(request.url.hostname)
+            #     print(url.hostname)
+            #     if request.url.hostname != url.hostname:
+            #         print("HERE")
+            #         root_path = f"{url.scheme}://{url.hostname}/file={path_or_url}"
+            #         return RedirectResponse(
+            #             url=root_path, status_code=status.HTTP_302_FOUND
+            #         )
 
             abs_path = utils.abspath(path_or_url)
 
@@ -534,6 +549,11 @@ class App(FastAPI):
                     content={"error": str(error) if show_error else None},
                     status_code=500,
                 )
+            if get_space() and request.headers.get("x-direct-url"):
+                root_path = request.headers["x-direct-url"]
+                url = urlparse(root_path)
+                root_path = f"{url.scheme}://{url.hostname}/"
+                output['root_url'] = root_path
             return output
 
         @app.websocket("/queue/join")
