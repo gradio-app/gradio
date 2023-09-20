@@ -1,5 +1,11 @@
 # gradio
 
+## 3.45.0-beta.5
+
+### Features
+
+- [#5624](https://github.com/gradio-app/gradio/pull/5624) [`14fc612d8`](https://github.com/gradio-app/gradio/commit/14fc612d84bf6b1408eccd3a40fab41f25477571) - Fix esbuild.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 3.45.0-beta.4
 
 ### Features

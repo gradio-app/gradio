@@ -844,124 +844,6 @@ importers:
         specifier: workspace:^
         version: link:../utils
 
-  js/gradio-preview:
-    dependencies:
-      '@originjs/vite-plugin-commonjs':
-        specifier: ^1.0.3
-        version: 1.0.3
-      '@rollup/plugin-sucrase':
-        specifier: ^5.0.1
-        version: 5.0.1(rollup@3.28.0)
-      '@sveltejs/vite-plugin-svelte':
-        specifier: ^2.4.2
-        version: 2.4.2(svelte@4.2.0)(vite@4.4.9)
-      coffeescript:
-        specifier: ^2.7.0
-        version: 2.7.0
-      css-tree:
-        specifier: 2.3.1
-        version: 2.3.1
-      esbuild:
-        specifier: ^0.19.0
-        version: 0.19.0
-      lightningcss:
-        specifier: ^1.21.7
-        version: 1.21.7
-      pug:
-        specifier: ^3.0.2
-        version: 3.0.2
-      rollup-plugin-ignore:
-        specifier: ^1.0.10
-        version: 1.0.10
-      sass:
-        specifier: ^1.66.1
-        version: 1.66.1
-      stylus:
-        specifier: ^0.60.0
-        version: 0.60.0
-      sucrase:
-        specifier: ^3.34.0
-        version: 3.34.0
-      sugarss:
-        specifier: ^4.0.1
-        version: 4.0.1(postcss@8.4.27)
-      svelte:
-        specifier: ^4.2.0
-        version: 4.2.0
-      yootils:
-        specifier: ^0.3.1
-        version: 0.3.1
-    devDependencies:
-      '@rollup/plugin-commonjs':
-        specifier: ^25.0.4
-        version: 25.0.4(rollup@3.28.0)
-      '@rollup/plugin-json':
-        specifier: ^6.0.0
-        version: 6.0.0(rollup@3.28.0)
-      '@rollup/plugin-node-resolve':
-        specifier: ^15.1.0
-        version: 15.1.0(rollup@3.28.0)
-      '@rollup/plugin-typescript':
-        specifier: ^11.1.2
-        version: 11.1.2(rollup@3.28.0)(typescript@5.1.3)
-      rollup:
-        specifier: ^3.28.0
-        version: 3.28.0
-      svelte-hmr:
-        specifier: ^0.15.3
-        version: 0.15.3(svelte@4.2.0)
-      vite:
-        specifier: ^4.4.9
-        version: 4.4.9(@types/node@20.3.1)(less@4.1.3)(lightningcss@1.21.7)(sass@1.66.1)(stylus@0.60.0)(sugarss@4.0.1)
-
-  js/gradio-preview/test/imageslider/frontend:
-    dependencies:
-      '@gradio/atoms':
-        specifier: workspace:^
-        version: link:../../../../atoms
-      '@gradio/icons':
-        specifier: workspace:^
-        version: link:../../../../icons
-      '@gradio/statustracker':
-        specifier: workspace:^
-        version: link:../../../../statustracker
-      '@gradio/upload':
-        specifier: workspace:^
-        version: link:../../../../upload
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../../../../utils
-      cropperjs:
-        specifier: ^1.5.12
-        version: 1.5.12
-      lazy-brush:
-        specifier: ^1.0.1
-        version: 1.0.1
-      resize-observer-polyfill:
-        specifier: ^1.5.1
-        version: 1.5.1
-
-  js/gradio-preview/test/newnewtext/frontend:
-    dependencies:
-      '@gradio/atoms':
-        specifier: workspace:^
-        version: link:../../../../atoms
-      '@gradio/icons':
-        specifier: workspace:^
-        version: link:../../../../icons
-      '@gradio/statustracker':
-        specifier: workspace:^
-        version: link:../../../../statustracker
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../../../../utils
-
-  js/gradio-preview/test/newtext/frontend:
-    dependencies:
-      '@zerodevx/svelte-json-view':
-        specifier: ^1.0
-        version: 1.0.7(svelte@4.2.0)
-
   js/group: {}
 
   js/highlightedtext:
@@ -4176,6 +4058,7 @@ packages:
     cpu: [arm64]
     os: [android]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@esbuild/android-arm@0.17.14:
@@ -4200,6 +4083,7 @@ packages:
     cpu: [arm]
     os: [android]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@esbuild/android-x64@0.17.14:
@@ -4224,6 +4108,7 @@ packages:
     cpu: [x64]
     os: [android]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@esbuild/darwin-arm64@0.17.14:
@@ -4248,6 +4133,7 @@ packages:
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@esbuild/darwin-x64@0.17.14:
@@ -4272,6 +4158,7 @@ packages:
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@esbuild/freebsd-arm64@0.17.14:
@@ -4296,6 +4183,7 @@ packages:
     cpu: [arm64]
     os: [freebsd]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@esbuild/freebsd-x64@0.17.14:
@@ -4320,6 +4208,7 @@ packages:
     cpu: [x64]
     os: [freebsd]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@esbuild/linux-arm64@0.17.14:
@@ -4344,6 +4233,7 @@ packages:
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@esbuild/linux-arm@0.17.14:
@@ -4368,6 +4258,7 @@ packages:
     cpu: [arm]
     os: [linux]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@esbuild/linux-ia32@0.17.14:
@@ -4392,6 +4283,7 @@ packages:
     cpu: [ia32]
     os: [linux]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@esbuild/linux-loong64@0.14.54:
@@ -4425,6 +4317,7 @@ packages:
     cpu: [loong64]
     os: [linux]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@esbuild/linux-mips64el@0.17.14:
@@ -4449,6 +4342,7 @@ packages:
     cpu: [mips64el]
     os: [linux]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@esbuild/linux-ppc64@0.17.14:
@@ -4473,6 +4367,7 @@ packages:
     cpu: [ppc64]
     os: [linux]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@esbuild/linux-riscv64@0.17.14:
@@ -4497,6 +4392,7 @@ packages:
     cpu: [riscv64]
     os: [linux]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@esbuild/linux-s390x@0.17.14:
@@ -4521,6 +4417,7 @@ packages:
     cpu: [s390x]
     os: [linux]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@esbuild/linux-x64@0.17.14:
@@ -4545,6 +4442,7 @@ packages:
     cpu: [x64]
     os: [linux]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@esbuild/netbsd-x64@0.17.14:
@@ -4569,6 +4467,7 @@ packages:
     cpu: [x64]
     os: [netbsd]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@esbuild/openbsd-x64@0.17.14:
@@ -4593,6 +4492,7 @@ packages:
     cpu: [x64]
     os: [openbsd]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@esbuild/sunos-x64@0.17.14:
@@ -4617,6 +4517,7 @@ packages:
     cpu: [x64]
     os: [sunos]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@esbuild/win32-arm64@0.17.14:
@@ -4641,6 +4542,7 @@ packages:
     cpu: [arm64]
     os: [win32]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@esbuild/win32-ia32@0.17.14:
@@ -4665,6 +4567,7 @@ packages:
     cpu: [ia32]
     os: [win32]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@esbuild/win32-x64@0.17.14:
@@ -4689,6 +4592,7 @@ packages:
     cpu: [x64]
     os: [win32]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@eslint-community/eslint-utils@4.4.0(eslint@8.46.0):
@@ -5184,24 +5088,6 @@ packages:
   /@polka/url@1.0.0-next.21:
     resolution: {integrity: sha512-a5Sab1C4/icpTZVzZc5Ghpz88yQtGOyNqYXcZgOssB2uuAr+wF/MvN6bgtW32q7HHrvBki+BsZ0OuNv6EV3K9g==}
 
-  /@rollup/plugin-commonjs@25.0.4(rollup@3.28.0):
-    resolution: {integrity: sha512-L92Vz9WUZXDnlQQl3EwbypJR4+DM2EbsO+/KOcEkP4Mc6Ct453EeDB2uH9lgRwj4w5yflgNpq9pHOiY8aoUXBQ==}
-    engines: {node: '>=14.0.0'}
-    peerDependencies:
-      rollup: ^2.68.0||^3.0.0
-    peerDependenciesMeta:
-      rollup:
-        optional: true
-    dependencies:
-      '@rollup/pluginutils': 5.0.2(rollup@3.28.0)
-      commondir: 1.0.1
-      estree-walker: 2.0.2
-      glob: 8.1.0
-      is-reference: 1.2.1
-      magic-string: 0.27.0
-      rollup: 3.28.0
-    dev: true
-
   /@rollup/plugin-commonjs@25.0.4(rollup@3.29.0):
     resolution: {integrity: sha512-L92Vz9WUZXDnlQQl3EwbypJR4+DM2EbsO+/KOcEkP4Mc6Ct453EeDB2uH9lgRwj4w5yflgNpq9pHOiY8aoUXBQ==}
     engines: {node: '>=14.0.0'}
@@ -5220,19 +5106,6 @@ packages:
       rollup: 3.29.0
     dev: true
 
-  /@rollup/plugin-json@6.0.0(rollup@3.28.0):
-    resolution: {integrity: sha512-i/4C5Jrdr1XUarRhVu27EEwjt4GObltD7c+MkCIpO2QIbojw8MUs+CCTqOphQi3Qtg1FLmYt+l+6YeoIf51J7w==}
-    engines: {node: '>=14.0.0'}
-    peerDependencies:
-      rollup: ^1.20.0||^2.0.0||^3.0.0
-    peerDependenciesMeta:
-      rollup:
-        optional: true
-    dependencies:
-      '@rollup/pluginutils': 5.0.2(rollup@3.28.0)
-      rollup: 3.28.0
-    dev: true
-
   /@rollup/plugin-json@6.0.0(rollup@3.29.0):
     resolution: {integrity: sha512-i/4C5Jrdr1XUarRhVu27EEwjt4GObltD7c+MkCIpO2QIbojw8MUs+CCTqOphQi3Qtg1FLmYt+l+6YeoIf51J7w==}
     engines: {node: '>=14.0.0'}
@@ -5244,24 +5117,6 @@ packages:
     dependencies:
       '@rollup/pluginutils': 5.0.2(rollup@3.29.0)
       rollup: 3.29.0
-
-  /@rollup/plugin-node-resolve@15.1.0(rollup@3.28.0):
-    resolution: {integrity: sha512-xeZHCgsiZ9pzYVgAo9580eCGqwh/XCEUM9q6iQfGNocjgkufHAqC3exA+45URvhiYV8sBF9RlBai650eNs7AsA==}
-    engines: {node: '>=14.0.0'}
-    peerDependencies:
-      rollup: ^2.78.0||^3.0.0
-    peerDependenciesMeta:
-      rollup:
-        optional: true
-    dependencies:
-      '@rollup/pluginutils': 5.0.2(rollup@3.28.0)
-      '@types/resolve': 1.20.2
-      deepmerge: 4.3.1
-      is-builtin-module: 3.2.1
-      is-module: 1.0.0
-      resolve: 1.22.1
-      rollup: 3.28.0
-    dev: true
 
   /@rollup/plugin-node-resolve@15.1.0(rollup@3.29.0):
     resolution: {integrity: sha512-xeZHCgsiZ9pzYVgAo9580eCGqwh/XCEUM9q6iQfGNocjgkufHAqC3exA+45URvhiYV8sBF9RlBai650eNs7AsA==}
@@ -5281,20 +5136,6 @@ packages:
       rollup: 3.29.0
     dev: true
 
-  /@rollup/plugin-sucrase@5.0.1(rollup@3.28.0):
-    resolution: {integrity: sha512-3mYe28rR/sUTkV8v10yPCP55TQ/oJkvcxKZBj6NGx9ZfCn9BdBtBL1v1S0TQrcOV4WD3FTHJaI7TbbukALx9wA==}
-    engines: {node: '>=14.0.0'}
-    peerDependencies:
-      rollup: ^2.53.1||^3.0.0
-    peerDependenciesMeta:
-      rollup:
-        optional: true
-    dependencies:
-      '@rollup/pluginutils': 5.0.2(rollup@3.28.0)
-      rollup: 3.28.0
-      sucrase: 3.34.0
-    dev: false
-
   /@rollup/plugin-sucrase@5.0.1(rollup@3.29.0):
     resolution: {integrity: sha512-3mYe28rR/sUTkV8v10yPCP55TQ/oJkvcxKZBj6NGx9ZfCn9BdBtBL1v1S0TQrcOV4WD3FTHJaI7TbbukALx9wA==}
     engines: {node: '>=14.0.0'}
@@ -5308,25 +5149,6 @@ packages:
       rollup: 3.29.0
       sucrase: 3.34.0
     dev: false
-
-  /@rollup/plugin-typescript@11.1.2(rollup@3.28.0)(typescript@5.1.3):
-    resolution: {integrity: sha512-0ghSOCMcA7fl1JM+0gYRf+Q/HWyg+zg7/gDSc+fRLmlJWcW5K1I+CLRzaRhXf4Y3DRyPnnDo4M2ktw+a6JcDEg==}
-    engines: {node: '>=14.0.0'}
-    peerDependencies:
-      rollup: ^2.14.0||^3.0.0
-      tslib: '*'
-      typescript: '>=3.7.0'
-    peerDependenciesMeta:
-      rollup:
-        optional: true
-      tslib:
-        optional: true
-    dependencies:
-      '@rollup/pluginutils': 5.0.2(rollup@3.28.0)
-      resolve: 1.22.1
-      rollup: 3.28.0
-      typescript: 5.1.3
-    dev: true
 
   /@rollup/plugin-typescript@11.1.2(rollup@3.29.0)(typescript@5.1.3):
     resolution: {integrity: sha512-0ghSOCMcA7fl1JM+0gYRf+Q/HWyg+zg7/gDSc+fRLmlJWcW5K1I+CLRzaRhXf4Y3DRyPnnDo4M2ktw+a6JcDEg==}
@@ -5354,20 +5176,6 @@ packages:
       estree-walker: 2.0.2
       picomatch: 2.3.1
     dev: false
-
-  /@rollup/pluginutils@5.0.2(rollup@3.28.0):
-    resolution: {integrity: sha512-pTd9rIsP92h+B6wWwFbW8RkZv4hiR/xKsqre4SIuAOaOEQRxi0lqLke9k2/7WegC85GgUs9pjmOjCUi3In4vwA==}
-    engines: {node: '>=14.0.0'}
-    peerDependencies:
-      rollup: ^1.20.0||^2.0.0||^3.0.0
-    peerDependenciesMeta:
-      rollup:
-        optional: true
-    dependencies:
-      '@types/estree': 1.0.0
-      estree-walker: 2.0.2
-      picomatch: 2.3.1
-      rollup: 3.28.0
 
   /@rollup/pluginutils@5.0.2(rollup@3.29.0):
     resolution: {integrity: sha512-pTd9rIsP92h+B6wWwFbW8RkZv4hiR/xKsqre4SIuAOaOEQRxi0lqLke9k2/7WegC85GgUs9pjmOjCUi3In4vwA==}
@@ -9940,6 +9748,7 @@ packages:
       '@esbuild/win32-arm64': 0.19.0
       '@esbuild/win32-ia32': 0.19.0
       '@esbuild/win32-x64': 0.19.0
+    dev: true
 
   /escalade@3.1.1:
     resolution: {integrity: sha512-k0er2gUkLf8O0zKJiAhmkTnJlTvINGv7ygDNPbeIsX/TJjGJZHuh9B2UxbsaEkmlEo9MfhrSzmhIlhRlI2GXnw==}
@@ -13952,13 +13761,6 @@ packages:
   /rollup-plugin-ignore@1.0.10:
     resolution: {integrity: sha512-VsbnfwwaTv2Dxl2onubetX/3RnSnplNnjdix0hvF8y2YpqdzlZrjIq6zkcuVJ08XysS8zqW3gt3ORBndFDgsrg==}
     dev: false
-
-  /rollup@3.28.0:
-    resolution: {integrity: sha512-d7zhvo1OUY2SXSM6pfNjgD5+d0Nz87CUp4mt8l/GgVP3oBsPwzNvSzyu1me6BSG9JIgWNTVcafIXBIyM8yQ3yw==}
-    engines: {node: '>=14.18.0', npm: '>=8.0.0'}
-    hasBin: true
-    optionalDependencies:
-      fsevents: 2.3.2
 
   /rollup@3.29.0:
     resolution: {integrity: sha512-nszM8DINnx1vSS+TpbWKMkxem0CDWk3cSit/WWCBVs9/JZ1I/XLwOsiUglYuYReaeWWSsW9kge5zE5NZtf/a4w==}
