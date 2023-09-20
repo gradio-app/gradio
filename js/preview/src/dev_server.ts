@@ -41,6 +41,7 @@ export async function create_server({
 
 	const server = await createServer({
 		// any valid user config options, plus `mode` and `configFile`
+		esbuild: false,
 		customLogger: logger,
 		mode: "development",
 		configFile: false,
@@ -55,6 +56,7 @@ export async function create_server({
 				]
 			}
 		},
+
 		optimizeDeps: {
 			disabled: true
 		},

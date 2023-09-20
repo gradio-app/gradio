@@ -14,8 +14,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const require = createRequire(import.meta.url);
 
-const esbuild_binary_path = require.resolve("esbuild-wasm");
-console.log(esbuild_binary_path);
+// const esbuild_binary_path = require.resolve("esbuild-wasm");
+// console.log(esbuild_binary_path);
 const vite_client = require.resolve("vite/dist/client/client.mjs");
 const hmr = require.resolve("svelte-hmr");
 
@@ -95,13 +95,13 @@ export default [
 							recursive: true
 						}
 					);
-					cpSync(
-						join(esbuild_binary_path, "..", "..", ".."),
-						"../../gradio/node/dev/node_modules",
-						{
-							recursive: true
-						}
-					);
+					// cpSync(
+					// 	join(esbuild_binary_path, "..", "..", ".."),
+					// 	"../../gradio/node/dev/node_modules",
+					// 	{
+					// 		recursive: true
+					// 	}
+					// );
 
 					writeFileSync(
 						"../../gradio/node/package.json",
