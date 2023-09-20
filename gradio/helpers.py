@@ -316,8 +316,9 @@ class Examples:
                 fn = self.fn
 
             # create a fake dependency to process the examples and get the predictions
+            from gradio.events import EventListenerMethod
             dependency, fn_index = Context.root_block.set_event_trigger(
-                [(Context.root_block, "fake_event")],
+                [EventListenerMethod(self, "load")],
                 fn=fn,
                 inputs=self.inputs_with_examples,  # type: ignore
                 outputs=self.outputs,  # type: ignore

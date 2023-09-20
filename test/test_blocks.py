@@ -576,7 +576,7 @@ class TestComponentsInBlocks:
                 else:
                     assert component.load_event_to_attach
         dependencies_on_load = [
-            dep["trigger"] == "load" for dep in demo.config["dependencies"]
+            dep["targets"][0][1] == "load" for dep in demo.config["dependencies"]
         ]
         assert all(dependencies_on_load)
         assert len(dependencies_on_load) == 2
@@ -592,7 +592,7 @@ class TestComponentsInBlocks:
         )
 
         dependencies_on_load = [
-            dep for dep in interface.config["dependencies"] if dep["trigger"] == "load"
+            dep for dep in interface.config["dependencies"] if dep["targets"][0][1] == "load"
         ]
         assert len(dependencies_on_load) == len(io_components)
         assert all(dep["every"] == 1 for dep in dependencies_on_load)

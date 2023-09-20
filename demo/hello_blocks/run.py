@@ -8,7 +8,13 @@ with gr.Blocks() as demo:
     output = gr.Textbox(label="Output Box")
     greet_btn = gr.Button("Greet")
 
-    gr.on([name.submit, greet_btn.click], fn=greet, inputs=name, outputs=output, api_name="greet")
+    gr.on(
+        triggers=[name.submit, greet_btn.click],
+        fn=greet,
+        inputs=name,
+        outputs=output,
+        api_name="greet",
+    )
 
 if __name__ == "__main__":
     demo.launch()

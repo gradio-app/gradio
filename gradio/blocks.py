@@ -773,7 +773,7 @@ class Blocks(BlockContext):
                 # We fixed the issue by removing "fake_event" from the config in examples.py
                 # but we still need to skip these events when loading the config to support
                 # older demos
-                if dependency["trigger"] == "fake_event":
+                if "trigger" in dependency and dependency["trigger"] == "fake_event":
                     continue
                 for field in derived_fields:
                     dependency.pop(field, None)
@@ -781,11 +781,14 @@ class Blocks(BlockContext):
                 # older versions had a separate trigger field, but now it is part of the
                 # targets field
                 _targets = dependency.pop("targets")
-                trigger = dependency.pop("trigger")
+                trigger = dependency.pop("trigger", None)
                 targets = [
-                    (original_mapping[target], trigger)
-                    if isinstance(target, int)
-                    else (original_mapping[target[0]]._id, target[1])
+                    getattr(
+                        original_mapping[
+                            target if isinstance(target, int) else target[0]
+                        ],
+                        trigger if isinstance(target, int) else target[1],
+                    )
                     for target in _targets
                 ]
                 dependency.pop("backend_fn")
@@ -896,7 +899,13 @@ class Blocks(BlockContext):
         Returns: dependency information, dependency index
         """
         # Support for singular parameter
-        _targets = [(target.trigger._id, target.event_name) for target in targets]
+        _targets = [
+            (
+                target.trigger._id if target.trigger and not no_target else None,
+                target.event_name,
+            )
+            for target in targets
+        ]
         if isinstance(inputs, set):
             inputs_as_dict = True
             inputs = sorted(inputs, key=lambda x: x._id)
@@ -956,7 +965,7 @@ class Blocks(BlockContext):
             collects_event_data = event_data_index is not None
 
         dependency = {
-            "targets": _targets if not no_target else [],
+            "targets": _targets,
             "inputs": [block._id for block in inputs],
             "outputs": [block._id for block in outputs],
             "backend_fn": fn is not None,
@@ -1703,7 +1712,7 @@ Received outputs:
                 name=name, src=src, hf_token=api_key, alias=alias, **kwargs
             )
         else:
-            from gradio.events import Dependency
+            from gradio.events import Dependency, EventListenerMethod
 
             if Context.root_block is None:
                 raise Exception(
@@ -1711,7 +1720,7 @@ Received outputs:
                 )
 
             dep, dep_index = Context.root_block.set_event_trigger(
-                targets=[(self, "load")],
+                targets=[EventListenerMethod(self, "load")],
                 fn=fn,
                 inputs=inputs,
                 outputs=outputs,
@@ -1727,7 +1736,7 @@ Received outputs:
                 every=every,
                 no_target=True,
             )
-            return Dependency(self, dep, dep_index, fn)
+            return Dependency(dep, dep_index, fn)
 
     def clear(self):
         """Resets the layout of the Blocks object."""
@@ -2330,8 +2339,10 @@ Received outputs:
                 ):
                     load_fn, every = component.load_event_to_attach
                     # Use set_event_trigger to avoid ambiguity between load class/instance method
+                    from gradio.events import EventListenerMethod
+
                     dep = self.set_event_trigger(
-                        [(self, "load")],
+                        [EventListenerMethod(self, "load")],
                         load_fn,
                         None,
                         component,

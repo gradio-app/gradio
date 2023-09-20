@@ -21,7 +21,8 @@ set_documentation_group("events")
 
 
 def set_cancel_events(
-    block: Block, event_name: str, cancels: None | dict[str, Any] | list[dict[str, Any]]
+    triggers: list[EventListenerMethod],
+    cancels: None | dict[str, Any] | list[dict[str, Any]],
 ):
     if cancels:
         if not isinstance(cancels, list):
@@ -29,7 +30,7 @@ def set_cancel_events(
         cancel_fn, fn_indices_to_cancel = get_cancel_function(cancels)
 
         Context.root_block.set_event_trigger(
-            [(block, event_name)],
+            triggers,
             cancel_fn,
             inputs=None,
             outputs=None,
@@ -47,12 +48,11 @@ class EventListener(Block):
 
 
 class Dependency(dict):
-    def __init__(self, trigger: Block, key_vals, dep_index, fn):
+    def __init__(self, key_vals, dep_index, fn):
         super().__init__(key_vals)
         self.fn = fn
-        self.trigger = trigger
         self.then = EventListenerMethod(
-            self.trigger,
+            None,
             "then",
             trigger_after=dep_index,
             trigger_only_on_success=False,
@@ -61,7 +61,7 @@ class Dependency(dict):
         Triggered after directly preceding event is completed, regardless of success or failure.
         """
         self.success = EventListenerMethod(
-            self.trigger,
+            None,
             "success",
             trigger_after=dep_index,
             trigger_only_on_success=True,
@@ -81,7 +81,7 @@ class EventListenerMethod:
 
     def __init__(
         self,
-        trigger: Block,
+        trigger: Block | None,
         event_name: str,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
         callback: Callable | None = None,
@@ -157,7 +157,7 @@ class EventListenerMethod:
 
                 return inner
 
-            return Dependency(None, {}, None, wrapper)
+            return Dependency({}, None, wrapper)
 
         if status_tracker:
             warn_deprecation(
@@ -198,18 +198,18 @@ class EventListenerMethod:
             trigger_after=self.trigger_after,
             trigger_only_on_success=self.trigger_only_on_success,
         )
-        set_cancel_events(self.trigger, self.event_name, cancels)
+        set_cancel_events([self], cancels)
         if self.callback:
             self.callback()
-        return Dependency(self.trigger, dep, dep_index, fn)
+        return Dependency(dep, dep_index, fn)
 
 
 def on(
     triggers: Sequence[EventListenerMethod] | EventListenerMethod | None = None,
-    *,
     fn: Callable | None | Literal["decorator"] = "decorator",
     inputs: Component | Sequence[Component] | set[Component] | None = None,
     outputs: Component | Sequence[Component] | None = None,
+    *,
     api_name: str | None | Literal[False] = None,
     scroll_to_output: bool = False,
     show_progress: Literal["full", "minimal", "hidden"] = "full",
@@ -269,7 +269,7 @@ def on(
 
             return inner
 
-        return Dependency(None, {}, None, wrapper)
+        return Dependency({}, None, wrapper)
 
     if Context.root_block is None:
         raise Exception("Cannot call on() outside of a gradio.Blocks context.")
@@ -292,8 +292,8 @@ def on(
         max_batch_size=max_batch_size,
         every=every,
     )
-    # set_cancel_events(self.trigger, self.event_name, cancels)
-    # return Dependency(self.trigger, dep, dep_index, fn)
+    set_cancel_events(triggers, cancels)
+    return Dependency(dep, dep_index, fn)
 
 
 @document("*change", inherit=True)
