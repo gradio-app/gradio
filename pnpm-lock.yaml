@@ -1,4 +1,4 @@
-lockfileVersion: '6.0'
+lockfileVersion: '6.1'
 
 settings:
   autoInstallPeers: true
@@ -512,6 +512,9 @@ importers:
         specifier: ^1.16.0
         version: 1.16.0(postcss@8.4.21)
     devDependencies:
+      vite-plugin-css-injected-by-js:
+        specifier: ^3.3.0
+        version: 3.3.0(vite@4.3.9)
       vite-plugin-static-copy:
         specifier: ^0.16.0
         version: 0.16.0(vite@4.3.9)
@@ -15066,6 +15069,14 @@ packages:
       - terser
     dev: false
 
+  /vite-plugin-css-injected-by-js@3.3.0(vite@4.3.9):
+    resolution: {integrity: sha512-xG+jyHNCmUqi/TXp6q88wTJGeAOrNLSyUUTp4qEQ9QZLGcHWQQsCsSSKa59rPMQr8sOzfzmWDd8enGqfH/dBew==}
+    peerDependencies:
+      vite: '>2.0.0-0'
+    dependencies:
+      vite: 4.3.9
+    dev: true
+
   /vite-plugin-static-copy@0.16.0(vite@4.3.9):
     resolution: {integrity: sha512-dMVEg5Z2SwYRgQnHZaeokvSKB4p/TOTf65JU4sP3U6ccSBsukqdtDOjpmT+xzTFHAA8WJjcS31RMLjUdWQCBzw==}
     engines: {node: ^14.18.0 || >=16.0.0}
@@ -15076,7 +15087,7 @@ packages:
       fast-glob: 3.2.11
       fs-extra: 11.1.1
       picocolors: 1.0.0
-      vite: 4.3.9(@types/node@20.3.1)(less@4.1.3)
+      vite: 4.3.9
     dev: true
 
   /vite@4.3.5(@types/node@20.3.1)(less@4.1.3):
@@ -15108,6 +15119,38 @@ packages:
       esbuild: 0.17.14
       less: 4.1.3
       postcss: 8.4.23
+      rollup: 3.21.6
+    optionalDependencies:
+      fsevents: 2.3.2
+    dev: true
+
+  /vite@4.3.9:
+    resolution: {integrity: sha512-qsTNZjO9NoJNW7KnOrgYwczm0WctJ8m/yqYAMAK9Lxt4SoySUfS5S8ia9K7JHpa3KEeMfyF8LoJ3c5NeBJy6pg==}
+    engines: {node: ^14.18.0 || >=16.0.0}
+    hasBin: true
+    peerDependencies:
+      '@types/node': '>= 14'
+      less: '*'
+      sass: '*'
+      stylus: '*'
+      sugarss: '*'
+      terser: ^5.4.0
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      less:
+        optional: true
+      sass:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      terser:
+        optional: true
+    dependencies:
+      esbuild: 0.17.14
+      postcss: 8.4.27
       rollup: 3.21.6
     optionalDependencies:
       fsevents: 2.3.2

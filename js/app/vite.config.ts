@@ -9,6 +9,7 @@ import prefixer from "postcss-prefix-selector";
 import { readFileSync } from "fs";
 import { resolve } from "path";
 import { viteStaticCopy } from 'vite-plugin-static-copy';
+import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js'
 
 const version_path = resolve(__dirname, "../../gradio/version.txt");
 const theme_token_path = resolve(__dirname, "../theme/src/tokens.css");
@@ -58,6 +59,7 @@ export default defineConfig(({ mode }) => {
 		},
 
 		build: {
+			cssCodeSplit: true,
 			sourcemap: true,
 			target: "esnext",
 			minify: production,
@@ -158,7 +160,12 @@ export default defineConfig(({ mode }) => {
 						dest: 'wheels'
 					}
 				]
-			})
+			}),
+			is_lite && cssInjectedByJsPlugin({
+				// This makes the binary files e.g. `*.woff2` embedded in chunked files separated from the generated entrypoint JS file.
+				// Such binary files embedding makes the files large, so we want to chunk them to be loaded separately only when necessary.
+				relativeCSSInjection: true,
+			}),
 		],
 		test: {
 			setupFiles: [resolve(__dirname, "../../.config/setup_vite_tests.ts")],

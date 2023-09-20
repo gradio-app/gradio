@@ -75,6 +75,7 @@
 		"postcss-prefix-selector": "^1.16.0"
 	},
 	"devDependencies": {
+		"vite-plugin-css-injected-by-js": "^3.3.0",
 		"vite-plugin-static-copy": "^0.16.0"
 	},
 	"msw": {
