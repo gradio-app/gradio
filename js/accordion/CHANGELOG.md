@@ -1,10 +1,18 @@
 # @gradio/accordion
 
+## 0.1.0-beta.3
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/atoms@0.2.0-beta.2
+  - @gradio/statustracker@0.3.0-beta.3
+
 ## 0.1.0-beta.2
 
 ### Features
 
-- [#5620](https://github.com/gradio-app/gradio/pull/5620) [`c4c25ecdf`](https://github.com/gradio-app/gradio/commit/c4c25ecdf8c2fab5e3c41b519564e3b6a9ebfce3) - fix build and broken imports.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5620](https://github.com/gradio-app/gradio/pull/5620) [`c4c25ecdf`](https://github.com/gradio-app/gradio/commit/c4c25ecdf8c2fab5e3c41b519564e3b6a9ebfce3) - fix build and broken imports. Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 0.1.0-beta.1
 
