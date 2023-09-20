@@ -526,19 +526,21 @@
 	$: cells[0] && set_cell_widths();
 	let cells: HTMLTableCellElement[] = [];
 	let parent: HTMLDivElement;
+	let table: HTMLTableElement;
+
 
 	function set_cell_widths(): void {
 		const widths = cells.map((el, i) => {
-			return el?.offsetHeight || 0;
+			return el?.clientWidth || 0;
 		});
-
 		if (widths.length === 0) return;
 		for (let i = 0; i < widths.length; i++) {
-			parent.style.setProperty(`--cell-width-${i}`, `${widths[i]}px`);
+			parent.style.setProperty(`--cell-width-${i}`, `${widths[i] - scroll_width/widths.length}px`);
 		}
 	}
 
 	let table_height: number = height || 500;
+	let scroll_width = 0;
 
 	function sort_data(
 		_data: typeof data,
@@ -610,7 +612,7 @@
 		role="grid"
 		tabindex="0"
 	>
-		<table bind:clientWidth={t_width}>
+		<table bind:clientWidth={t_width} bind:this={table}>
 			{#if label && label.length !== 0}
 				<caption class="sr-only">{label}</caption>
 			{/if}
@@ -681,6 +683,7 @@
 				table_width={t_width}
 				max_height={height || 500}
 				bind:actual_height={table_height}
+				bind:table_scroll_width={scroll_width}
 				selected={selected_index}
 			>
 				{#if label && label.length !== 0}

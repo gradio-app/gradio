@@ -7,6 +7,7 @@
 	export let table_width: number;
 	export let max_height: number;
 	export let actual_height: number;
+	export let table_scroll_width: number;
 	export let start = 0;
 	export let end = 0;
 	export let selected: number | false;
@@ -33,6 +34,7 @@
 			return;
 		}
 		const { scrollTop } = viewport;
+		table_scroll_width = viewport.offsetWidth - viewport.clientWidth;
 
 		content_height = top - (scrollTop - head_height);
 		let i = start;
