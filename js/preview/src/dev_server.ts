@@ -39,111 +39,117 @@ export async function create_server({
 
 	const NODE_DIR = join(root_dir, "..", "..", "node", "dev");
 
-	const server = await createServer({
-		// any valid user config options, plus `mode` and `configFile`
-		esbuild: false,
-		customLogger: logger,
-		mode: "development",
-		configFile: false,
-		root: root_dir,
-		build: {
-			rollupOptions: {
-				external: [
-					"../../../node/dev/svelte.js",
-					"../../../node/dev/svelte-internal.js",
-					"../../../../../../gradio/node/dev/svelte-internal.js",
-					"../../../../../../gradio/node/dev/svelte.js"
-				]
-			}
-		},
-
-		optimizeDeps: {
-			disabled: true
-		},
-		server: {
-			port: frontend_port,
-			fs: {
-				allow: [root_dir, NODE_DIR, component_dir]
-			}
-		},
-		plugins: [
-			//@ts-ignore
-			viteCommonjs(),
-			{
-				name: "gradio",
-				enforce: "pre",
-				resolveId(importee, importer) {
-					if (importee === "svelte/internal/disclose-version") {
-						return join(NODE_DIR, "svelte-action.js");
-					}
-
-					if (importee.startsWith("svelte/")) {
-						return join(
-							NODE_DIR,
-							importee.replace("svelte/", "svelte-") + ".js"
-						);
-					}
-					if (importee === "svelte") {
-						return join(NODE_DIR, "svelte-internal.js");
-					}
-				},
-				transform(code) {
-					if (code.includes("__ROOT_PATH__")) {
-						return code.replace(`"__ROOT_PATH__"`, imports);
-					}
-				},
-				transformIndexHtml(html) {
-					return html.replace(
-						`window.__GRADIO_DEV__ = "dev"`,
-						`window.__GRADIO_DEV__ = "dev";
-						window.__GRADIO__SERVER_PORT__ = ${backend_port};`
-					);
+	try {
+		console.log("Atttempting to start server...");
+		const server = await createServer({
+			// any valid user config options, plus `mode` and `configFile`
+			esbuild: false,
+			customLogger: logger,
+			mode: "development",
+			configFile: false,
+			root: root_dir,
+			build: {
+				rollupOptions: {
+					external: [
+						"../../../node/dev/svelte.js",
+						"../../../node/dev/svelte-internal.js",
+						"../../../../../../gradio/node/dev/svelte-internal.js",
+						"../../../../../../gradio/node/dev/svelte.js"
+					]
 				}
 			},
-			//@ts-ignore
-			svelte({
-				onwarn(warning, handler) {
-					if (
-						svelte_codes_to_ignore.hasOwnProperty(warning.code) &&
-						svelte_codes_to_ignore[warning.code] &&
-						warning.message.includes(svelte_codes_to_ignore[warning.code])
-					) {
-						return;
+
+			optimizeDeps: {
+				disabled: true
+			},
+			server: {
+				port: frontend_port,
+				fs: {
+					allow: [root_dir, NODE_DIR, component_dir]
+				}
+			},
+			plugins: [
+				//@ts-ignore
+				viteCommonjs(),
+				{
+					name: "gradio",
+					enforce: "pre",
+					resolveId(importee, importer) {
+						if (importee === "svelte/internal/disclose-version") {
+							return join(NODE_DIR, "svelte-action.js");
+						}
+
+						if (importee.startsWith("svelte/")) {
+							return join(
+								NODE_DIR,
+								importee.replace("svelte/", "svelte-") + ".js"
+							);
+						}
+						if (importee === "svelte") {
+							return join(NODE_DIR, "svelte-internal.js");
+						}
+					},
+					transform(code) {
+						if (code.includes("__ROOT_PATH__")) {
+							return code.replace(`"__ROOT_PATH__"`, imports);
+						}
+					},
+					transformIndexHtml(html) {
+						return html.replace(
+							`window.__GRADIO_DEV__ = "dev"`,
+							`window.__GRADIO_DEV__ = "dev";
+							window.__GRADIO__SERVER_PORT__ = ${backend_port};`
+						);
 					}
-
-					handler!(warning);
 				},
-				prebundleSvelteLibraries: false,
-				hot: true,
-				compilerOptions: {
-					discloseVersion: false
-				},
-				preprocess: [
-					{
-						script: ({ attributes, filename, content }) => {
-							if (attributes.lang === "ts") {
-								const compiledCode = transform(content, {
-									transforms: ["typescript"],
-									keepUnusedImports: true
-								});
+				//@ts-ignore
+				svelte({
+					onwarn(warning, handler) {
+						if (
+							svelte_codes_to_ignore.hasOwnProperty(warning.code) &&
+							svelte_codes_to_ignore[warning.code] &&
+							warning.message.includes(svelte_codes_to_ignore[warning.code])
+						) {
+							return;
+						}
 
-								return {
-									code: compiledCode.code,
-									map: compiledCode.sourceMap
-								};
+						handler!(warning);
+					},
+					prebundleSvelteLibraries: false,
+					hot: true,
+					compilerOptions: {
+						discloseVersion: false
+					},
+					preprocess: [
+						{
+							script: ({ attributes, filename, content }) => {
+								if (attributes.lang === "ts") {
+									const compiledCode = transform(content, {
+										transforms: ["typescript"],
+										keepUnusedImports: true
+									});
+
+									return {
+										code: compiledCode.code,
+										map: compiledCode.sourceMap
+									};
+								}
 							}
 						}
-					}
-				]
-			})
-		]
-	});
+					]
+				})
+			]
+		});
 
-	await server.listen();
+		await server.listen();
 
-	console.info(
-		`[orange3]Frontend Server[/] (Go here): ${server.resolvedUrls?.local}`
-	);
+		console.info(
+			`[orange3]Frontend Server[/] (Go here): ${server.resolvedUrls?.local}`
+		);
+	} catch (e) {
+		console.log("Error starting server:");
+		console.error(e);
+	}
 }
 
 import * as fs from "fs";

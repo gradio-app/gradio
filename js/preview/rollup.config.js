@@ -14,11 +14,15 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const require = createRequire(import.meta.url);
 
-// const esbuild_binary_path = require.resolve("esbuild-wasm");
-// console.log(esbuild_binary_path);
+const esbuild_binary_path = require.resolve("esbuild-wasm");
+console.log(esbuild_binary_path);
 const vite_client = require.resolve("vite/dist/client/client.mjs");
 const hmr = require.resolve("svelte-hmr");
 
+const onwarn = (warning, warn) => {
+	if (warning.plugin === "typescript") return;
+	warn(warning);
+};
 export default [
 	{
 		input: "src/index.ts",
@@ -27,7 +31,18 @@ export default [
 			format: "esm",
 			minifyInternalExports: false
 		},
+		onwarn,
+
 		plugins: [
+			{
+				resolveId(id, importer) {
+					// console.log(id);
+					if (id === "esbuild") {
+						console.log(id, importer);
+						return "esbuild-wasm";
+					}
+				}
+			},
 			ts(),
 			node(),
 			cjs(),
@@ -42,7 +57,7 @@ export default [
 			json(),
 			{
 				name: "inject __dirname",
-				resolveId(id) {
+				resolveId(id, importer) {
 					const pkgs = [
 						"sugarss",
 						"stylus",
@@ -95,13 +110,13 @@ export default [
 							recursive: true
 						}
 					);
-					// cpSync(
-					// 	join(esbuild_binary_path, "..", "..", ".."),
-					// 	"../../gradio/node/dev/node_modules",
-					// 	{
-					// 		recursive: true
-					// 	}
-					// );
+					cpSync(
+						join(esbuild_binary_path, "..", "..", ".."),
+						"../../gradio/node/dev/node_modules",
+						{
+							recursive: true
+						}
+					);
 
 					writeFileSync(
 						"../../gradio/node/package.json",
@@ -113,7 +128,7 @@ export default [
 				}
 			}
 		],
-		external: ["fsevents", "esbuild", "../compiler.js", "../svelte.js"]
+		external: ["fsevents", "esbuild-wasm", "../compiler.js", "../svelte.js"]
 	},
 	{
 		input: "src/svelte.ts",
@@ -121,6 +136,7 @@ export default [
 			file: "../../gradio/node/dev/svelte.js",
 			format: "esm"
 		},
+		onwarn,
 		external: ["./svelte-internal.js"],
 		plugins: [
 			node(),
@@ -153,6 +169,7 @@ export default [
 			file: "../../gradio/node/dev/svelte-action.js",
 			format: "esm"
 		},
+		onwarn,
 		plugins: [node(), json(), cjs(), ts()]
 	},
 	{
@@ -161,6 +178,7 @@ export default [
 			file: "../../gradio/node/dev/svelte-internal.js",
 			format: "esm"
 		},
+		onwarn,
 		plugins: [node(), json(), cjs(), ts()]
 	},
 	{
@@ -169,6 +187,7 @@ export default [
 			file: "../../gradio/node/dev/svelte-animate.js",
 			format: "esm"
 		},
+		onwarn,
 		plugins: [node(), json(), cjs(), ts()]
 	},
 	{
@@ -177,6 +196,7 @@ export default [
 			file: "../../gradio/node/dev/svelte-motion.js",
 			format: "esm"
 		},
+		onwarn,
 		plugins: [node(), json(), cjs(), ts()]
 	},
 	{
@@ -185,6 +205,7 @@ export default [
 			file: "../../gradio/node/dev/svelte-store.js",
 			format: "esm"
 		},
+		onwarn,
 		plugins: [node(), json(), cjs(), ts()]
 	},
 	{
@@ -193,6 +214,7 @@ export default [
 			file: "../../gradio/node/dev/svelte-transition.js",
 			format: "esm"
 		},
+		onwarn,
 		plugins: [node(), json(), cjs(), ts()]
 	},
 	{
@@ -201,6 +223,7 @@ export default [
 			file: "../../gradio/node/dev/svelte-disclose.js",
 			format: "esm"
 		},
+		onwarn,
 		plugins: [node(), json(), cjs(), ts()]
 	},
 	{
@@ -209,6 +232,7 @@ export default [
 			file: "../../gradio/node/dev/compiler.js",
 			format: "esm"
 		},
+		onwarn,
 		plugins: [
 			node(),
 			json({
@@ -233,6 +257,7 @@ export default [
 			file: "../../gradio/node/dev/files/compiler.js",
 			format: "esm"
 		},
+		onwarn,
 		plugins: [
 			node(),
 			json({
