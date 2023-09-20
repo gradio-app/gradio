@@ -77,7 +77,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
 
     from gradio.components import Component
-    from gradio.events import Dependency 
+    from gradio.events import EventListenerMethod
 
 BUILT_IN_THEMES: dict[str, Theme] = {
     t.name: t
@@ -785,7 +785,7 @@ class Blocks(BlockContext):
                 targets = [
                     (original_mapping[target], trigger)
                     if isinstance(target, int)
-                    else (original_mapping[target[0]].trigger, target[1])
+                    else (original_mapping[target[0]]._id, target[1])
                     for target in _targets
                 ]
                 dependency.pop("backend_fn")
@@ -851,7 +851,7 @@ class Blocks(BlockContext):
 
     def set_event_trigger(
         self,
-        targets: list[tuple[Dependency, str]],
+        targets: list[EventListenerMethod],
         fn: Callable | None,
         inputs: Component | list[Component] | set[Component] | None,
         outputs: Component | list[Component] | None,
@@ -896,7 +896,7 @@ class Blocks(BlockContext):
         Returns: dependency information, dependency index
         """
         # Support for singular parameter
-        _targets = [(target[0].trigger._id, target[1]) for target in targets]
+        _targets = [(target.trigger._id, target.event_name) for target in targets]
         if isinstance(inputs, set):
             inputs_as_dict = True
             inputs = sorted(inputs, key=lambda x: x._id)
@@ -1704,6 +1704,7 @@ Received outputs:
             )
         else:
             from gradio.events import Dependency
+
             if Context.root_block is None:
                 raise Exception(
                     "Cannot call load() outside of a gradio.Blocks context."

@@ -165,7 +165,13 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
     if not analytics_enabled():
         return
 
-    blocks_telemetry, inputs_telemetry, outputs_telemetry, targets_telemetry, events_telemetry = (
+    (
+        blocks_telemetry,
+        inputs_telemetry,
+        outputs_telemetry,
+        targets_telemetry,
+        events_telemetry,
+    ) = (
         [],
         [],
         [],
@@ -188,9 +194,7 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
             if y[0] in blocks.blocks
         ]
         events_telemetry = events_telemetry + [
-            y[1]
-            for y in x["targets"]
-            if y[0] in blocks.blocks
+            y[1] for y in x["targets"] if y[0] in blocks.blocks
         ]
         inputs_telemetry = inputs_telemetry + [
             str(blocks.blocks[y]) for y in x["inputs"] if y in blocks.blocks

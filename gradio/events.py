@@ -179,7 +179,7 @@ class EventListenerMethod:
             )
 
         dep, dep_index = Context.root_block.set_event_trigger(
-            [[self, self.event_name]],
+            [self],
             fn,
             inputs,
             outputs,
@@ -205,8 +205,7 @@ class EventListenerMethod:
 
 
 def on(
-    self,
-    triggers: Sequence[EventListenerMethod] | None = None,
+    triggers: Sequence[EventListenerMethod] | EventListenerMethod | None = None,
     *,
     fn: Callable | None | Literal["decorator"] = "decorator",
     inputs: Component | Sequence[Component] | set[Component] | None = None,
@@ -240,6 +239,9 @@ def on(
         cancels: A list of other events to cancel when this listener is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method. Functions that have not yet run (or generators that are iterating) will be cancelled, but functions that are currently running will be allowed to finish.
         every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
     """
+    if isinstance(triggers, EventListenerMethod):
+        triggers = [triggers]
+
     if fn == "decorator":
 
         def wrapper(func):
@@ -272,36 +274,26 @@ def on(
     if Context.root_block is None:
         raise Exception("Cannot call on() outside of a gradio.Blocks context.")
     if triggers is None:
-        targets = [(input, "change") for input in inputs] if inputs is not None else []
-    else:
-        targets = [
-            (trigger_evt.trigger, trigger_evt.event_name) for trigger_evt in triggers
-        ]
+        triggers = [input.change for input in inputs] if inputs is not None else []
 
     dep, dep_index = Context.root_block.set_event_trigger(
-        targets,
+        triggers,
         fn,
         inputs,
         outputs,
         preprocess=preprocess,
         postprocess=postprocess,
         scroll_to_output=scroll_to_output,
-        show_progress=show_progress
-        if show_progress is not None
-        else self.show_progress,
+        show_progress=show_progress,
         api_name=api_name,
         js=_js,
         queue=queue,
         batch=batch,
         max_batch_size=max_batch_size,
         every=every,
-        trigger_after=self.trigger_after,
-        trigger_only_on_success=self.trigger_only_on_success,
     )
-    set_cancel_events(self.trigger, self.event_name, cancels)
-    if self.callback:
-        self.callback()
-    return Dependency(self.trigger, dep, dep_index, fn)
+    # set_cancel_events(self.trigger, self.event_name, cancels)
+    # return Dependency(self.trigger, dep, dep_index, fn)
 
 
 @document("*change", inherit=True)
