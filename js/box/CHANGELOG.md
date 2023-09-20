@@ -1,5 +1,12 @@
 # @gradio/box
 
+## 0.0.5-beta.3
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/atoms@0.2.0-beta.3
+
 ## 0.0.5-beta.2
 
 ### Patch Changes

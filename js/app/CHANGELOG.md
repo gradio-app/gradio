@@ -1,5 +1,48 @@
 # @gradio/app
 
+## 1.6.0-beta.4
+
+### Patch Changes
+
+- Updated dependencies [[`0b4fd5b6d`](https://github.com/gradio-app/gradio/commit/0b4fd5b6db96fc95a155e5e935e17e1ab11d1161)]:
+  - @gradio/utils@0.2.0-beta.3
+  - @gradio/annotatedimage@0.2.0-beta.4
+  - @gradio/atoms@0.2.0-beta.3
+  - @gradio/audio@0.4.0-beta.4
+  - @gradio/button@0.2.0-beta.3
+  - @gradio/chatbot@0.4.0-beta.4
+  - @gradio/checkbox@0.2.0-beta.4
+  - @gradio/checkboxgroup@0.3.0-beta.4
+  - @gradio/code@0.2.0-beta.4
+  - @gradio/colorpicker@0.2.0-beta.4
+  - @gradio/dataframe@0.3.0-beta.4
+  - @gradio/dropdown@0.3.0-beta.4
+  - @gradio/fallback@0.2.0-beta.4
+  - @gradio/file@0.2.0-beta.4
+  - @gradio/form@0.0.6-beta.3
+  - @gradio/gallery@0.4.0-beta.4
+  - @gradio/highlightedtext@0.4.0-beta.4
+  - @gradio/html@0.1.0-beta.4
+  - @gradio/image@0.3.0-beta.4
+  - @gradio/json@0.1.0-beta.4
+  - @gradio/label@0.2.0-beta.4
+  - @gradio/markdown@0.3.0-beta.4
+  - @gradio/model3d@0.3.0-beta.4
+  - @gradio/number@0.3.0-beta.4
+  - @gradio/plot@0.2.0-beta.4
+  - @gradio/radio@0.3.0-beta.4
+  - @gradio/slider@0.2.0-beta.4
+  - @gradio/statustracker@0.3.0-beta.4
+  - @gradio/tabitem@0.0.5-beta.3
+  - @gradio/tabs@0.0.6-beta.3
+  - @gradio/textbox@0.4.0-beta.4
+  - @gradio/upload@0.3.0-beta.3
+  - @gradio/uploadbutton@0.1.0-beta.3
+  - @gradio/video@0.1.0-beta.4
+  - @gradio/accordion@0.1.0-beta.4
+  - @gradio/box@0.0.5-beta.3
+  - @gradio/row@0.0.1
+
 ## 1.6.0-beta.3
 
 ### Patch Changes
