@@ -1098,22 +1098,23 @@ class EventData:
 
 
 def log_message(message: str, level: Literal["info", "warning"] = "info"):
-    from gradio import context
+    from gradio.context import LocalContext
 
-    if not hasattr(context.thread_data, "blocks"):  # Function called outside of Gradio
+    blocks = LocalContext.blocks.get()
+    if blocks is None:  # Function called outside of Gradio
         if level == "info":
             print(message)
         elif level == "warning":
             warnings.warn(message)
         return
-    if not context.thread_data.blocks.enable_queue:
+    if not blocks.enable_queue:
         warnings.warn(
             f"Queueing must be enabled to issue {level.capitalize()}: '{message}'."
         )
         return
-    context.thread_data.blocks._queue.log_message(
-        event_id=context.thread_data.event_id, log=message, level=level
-    )
+    event_id = LocalContext.event_id.get()
+    assert event_id
+    blocks._queue.log_message(event_id=event_id, log=message, level=level)
 
 
 @document()
