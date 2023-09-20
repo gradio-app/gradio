@@ -760,13 +760,19 @@ class TestProgressBar:
 
 
 @pytest.mark.asyncio
-async def test_info_isolation():
-    async def greet(name):
+@pytest.mark.parametrize("async_handler", [True, False])
+async def test_info_isolation(async_handler: bool):
+    async def greet_async(name):
         await asyncio.sleep(2)
         gr.Info(f"Hello {name}")
         return name
 
-    demo = gr.Interface(greet, "text", "text")
+    def greet_sync(name):
+        time.sleep(2)
+        gr.Info(f"Hello {name}")
+        return name
+
+    demo = gr.Interface(greet_async if async_handler else greet_sync, "text", "text")
     demo.queue(concurrency_count=2).launch(prevent_thread_lock=True)
 
     async def session_interaction(name, delay=0):
