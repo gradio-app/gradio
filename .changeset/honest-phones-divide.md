@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Fix width and height of `gr.DataFrame`
+fix:Fix width and height issues that would cut off content in `gr.DataFrame`
