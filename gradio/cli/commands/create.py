@@ -273,7 +273,15 @@ def dev(
         )
 
     print(f":recycle: [green]Launching[/] {app} in reload mode\n")
-
+    print(
+        gradio_node_path,
+        "--component-directory",
+        component_directory,
+        "--root",
+        gradio_template_path,
+        "--app",
+        str(app),
+    )
     proc = subprocess.Popen(
         [
             "node",
