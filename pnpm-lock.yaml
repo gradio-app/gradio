@@ -914,6 +914,54 @@ importers:
         specifier: ^4.4.9
         version: 4.4.9(@types/node@20.3.1)(less@4.1.3)(lightningcss@1.21.7)(sass@1.66.1)(stylus@0.60.0)(sugarss@4.0.1)
 
+  js/gradio-preview/test/imageslider/frontend:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../../../../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../../../../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../../../../statustracker
+      '@gradio/upload':
+        specifier: workspace:^
+        version: link:../../../../upload
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../../../../utils
+      cropperjs:
+        specifier: ^1.5.12
+        version: 1.5.12
+      lazy-brush:
+        specifier: ^1.0.1
+        version: 1.0.1
+      resize-observer-polyfill:
+        specifier: ^1.5.1
+        version: 1.5.1
+
+  js/gradio-preview/test/newnewtext/frontend:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../../../../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../../../../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../../../../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../../../../utils
+
+  js/gradio-preview/test/newtext/frontend:
+    dependencies:
+      '@zerodevx/svelte-json-view':
+        specifier: ^1.0
+        version: 1.0.7(svelte@4.2.0)
+
   js/group: {}
 
   js/highlightedtext:
@@ -1105,7 +1153,7 @@ importers:
         version: link:../utils
       '@rollup/plugin-json':
         specifier: ^6.0.0
-        version: 6.0.0(rollup@3.28.0)
+        version: 6.0.0(rollup@3.29.0)
       plotly.js-dist-min:
         specifier: ^2.10.1
         version: 2.11.1
@@ -1118,6 +1166,76 @@ importers:
       vega-lite:
         specifier: ^5.12.0
         version: 5.12.0(vega@5.22.1)
+
+  js/preview:
+    dependencies:
+      '@originjs/vite-plugin-commonjs':
+        specifier: ^1.0.3
+        version: 1.0.3
+      '@rollup/plugin-sucrase':
+        specifier: ^5.0.1
+        version: 5.0.1(rollup@3.29.0)
+      '@sveltejs/vite-plugin-svelte':
+        specifier: ^2.4.2
+        version: 2.4.2(svelte@4.2.0)(vite@4.4.9)
+      coffeescript:
+        specifier: ^2.7.0
+        version: 2.7.0
+      css-tree:
+        specifier: 2.3.1
+        version: 2.3.1
+      esbuild-wasm:
+        specifier: ^0.19.0
+        version: 0.19.0
+      lightningcss:
+        specifier: ^1.21.7
+        version: 1.21.7
+      pug:
+        specifier: ^3.0.2
+        version: 3.0.2
+      rollup-plugin-ignore:
+        specifier: ^1.0.10
+        version: 1.0.10
+      sass:
+        specifier: ^1.66.1
+        version: 1.66.1
+      stylus:
+        specifier: ^0.60.0
+        version: 0.60.0
+      sucrase:
+        specifier: ^3.34.0
+        version: 3.34.0
+      sugarss:
+        specifier: ^4.0.1
+        version: 4.0.1(postcss@8.4.27)
+      svelte:
+        specifier: ^4.2.0
+        version: 4.2.0
+      yootils:
+        specifier: ^0.3.1
+        version: 0.3.1
+    devDependencies:
+      '@rollup/plugin-commonjs':
+        specifier: ^25.0.4
+        version: 25.0.4(rollup@3.29.0)
+      '@rollup/plugin-json':
+        specifier: ^6.0.0
+        version: 6.0.0(rollup@3.29.0)
+      '@rollup/plugin-node-resolve':
+        specifier: ^15.1.0
+        version: 15.1.0(rollup@3.29.0)
+      '@rollup/plugin-typescript':
+        specifier: ^11.1.2
+        version: 11.1.2(rollup@3.29.0)(typescript@5.1.3)
+      rollup:
+        specifier: ^3.28.0
+        version: 3.29.0
+      svelte-hmr:
+        specifier: ^0.15.3
+        version: 0.15.3(svelte@4.2.0)
+      vite:
+        specifier: ^4.4.9
+        version: 4.4.9(@types/node@20.3.1)(less@4.1.3)(lightningcss@1.21.7)(sass@1.66.1)(stylus@0.60.0)(sugarss@4.0.1)
 
   js/radio:
     dependencies:
@@ -1247,6 +1365,9 @@ importers:
       '@gradio/theme':
         specifier: workspace:^
         version: link:../theme
+      svelte-i18n:
+        specifier: ^3.6.0
+        version: 3.7.0(svelte@4.2.0)
 
   js/video:
     dependencies:
@@ -5081,6 +5202,24 @@ packages:
       rollup: 3.28.0
     dev: true
 
+  /@rollup/plugin-commonjs@25.0.4(rollup@3.29.0):
+    resolution: {integrity: sha512-L92Vz9WUZXDnlQQl3EwbypJR4+DM2EbsO+/KOcEkP4Mc6Ct453EeDB2uH9lgRwj4w5yflgNpq9pHOiY8aoUXBQ==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      rollup: ^2.68.0||^3.0.0
+    peerDependenciesMeta:
+      rollup:
+        optional: true
+    dependencies:
+      '@rollup/pluginutils': 5.0.2(rollup@3.29.0)
+      commondir: 1.0.1
+      estree-walker: 2.0.2
+      glob: 8.1.0
+      is-reference: 1.2.1
+      magic-string: 0.27.0
+      rollup: 3.29.0
+    dev: true
+
   /@rollup/plugin-json@6.0.0(rollup@3.28.0):
     resolution: {integrity: sha512-i/4C5Jrdr1XUarRhVu27EEwjt4GObltD7c+MkCIpO2QIbojw8MUs+CCTqOphQi3Qtg1FLmYt+l+6YeoIf51J7w==}
     engines: {node: '>=14.0.0'}
@@ -5092,6 +5231,19 @@ packages:
     dependencies:
       '@rollup/pluginutils': 5.0.2(rollup@3.28.0)
       rollup: 3.28.0
+    dev: true
+
+  /@rollup/plugin-json@6.0.0(rollup@3.29.0):
+    resolution: {integrity: sha512-i/4C5Jrdr1XUarRhVu27EEwjt4GObltD7c+MkCIpO2QIbojw8MUs+CCTqOphQi3Qtg1FLmYt+l+6YeoIf51J7w==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      rollup: ^1.20.0||^2.0.0||^3.0.0
+    peerDependenciesMeta:
+      rollup:
+        optional: true
+    dependencies:
+      '@rollup/pluginutils': 5.0.2(rollup@3.29.0)
+      rollup: 3.29.0
 
   /@rollup/plugin-node-resolve@15.1.0(rollup@3.28.0):
     resolution: {integrity: sha512-xeZHCgsiZ9pzYVgAo9580eCGqwh/XCEUM9q6iQfGNocjgkufHAqC3exA+45URvhiYV8sBF9RlBai650eNs7AsA==}
@@ -5111,6 +5263,24 @@ packages:
       rollup: 3.28.0
     dev: true
 
+  /@rollup/plugin-node-resolve@15.1.0(rollup@3.29.0):
+    resolution: {integrity: sha512-xeZHCgsiZ9pzYVgAo9580eCGqwh/XCEUM9q6iQfGNocjgkufHAqC3exA+45URvhiYV8sBF9RlBai650eNs7AsA==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      rollup: ^2.78.0||^3.0.0
+    peerDependenciesMeta:
+      rollup:
+        optional: true
+    dependencies:
+      '@rollup/pluginutils': 5.0.2(rollup@3.29.0)
+      '@types/resolve': 1.20.2
+      deepmerge: 4.3.1
+      is-builtin-module: 3.2.1
+      is-module: 1.0.0
+      resolve: 1.22.1
+      rollup: 3.29.0
+    dev: true
+
   /@rollup/plugin-sucrase@5.0.1(rollup@3.28.0):
     resolution: {integrity: sha512-3mYe28rR/sUTkV8v10yPCP55TQ/oJkvcxKZBj6NGx9ZfCn9BdBtBL1v1S0TQrcOV4WD3FTHJaI7TbbukALx9wA==}
     engines: {node: '>=14.0.0'}
@@ -5122,6 +5292,20 @@ packages:
     dependencies:
       '@rollup/pluginutils': 5.0.2(rollup@3.28.0)
       rollup: 3.28.0
+      sucrase: 3.34.0
+    dev: false
+
+  /@rollup/plugin-sucrase@5.0.1(rollup@3.29.0):
+    resolution: {integrity: sha512-3mYe28rR/sUTkV8v10yPCP55TQ/oJkvcxKZBj6NGx9ZfCn9BdBtBL1v1S0TQrcOV4WD3FTHJaI7TbbukALx9wA==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      rollup: ^2.53.1||^3.0.0
+    peerDependenciesMeta:
+      rollup:
+        optional: true
+    dependencies:
+      '@rollup/pluginutils': 5.0.2(rollup@3.29.0)
+      rollup: 3.29.0
       sucrase: 3.34.0
     dev: false
 
@@ -5141,6 +5325,25 @@ packages:
       '@rollup/pluginutils': 5.0.2(rollup@3.28.0)
       resolve: 1.22.1
       rollup: 3.28.0
+      typescript: 5.1.3
+    dev: true
+
+  /@rollup/plugin-typescript@11.1.2(rollup@3.29.0)(typescript@5.1.3):
+    resolution: {integrity: sha512-0ghSOCMcA7fl1JM+0gYRf+Q/HWyg+zg7/gDSc+fRLmlJWcW5K1I+CLRzaRhXf4Y3DRyPnnDo4M2ktw+a6JcDEg==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      rollup: ^2.14.0||^3.0.0
+      tslib: '*'
+      typescript: '>=3.7.0'
+    peerDependenciesMeta:
+      rollup:
+        optional: true
+      tslib:
+        optional: true
+    dependencies:
+      '@rollup/pluginutils': 5.0.2(rollup@3.29.0)
+      resolve: 1.22.1
+      rollup: 3.29.0
       typescript: 5.1.3
     dev: true
 
@@ -5165,6 +5368,20 @@ packages:
       estree-walker: 2.0.2
       picomatch: 2.3.1
       rollup: 3.28.0
+
+  /@rollup/pluginutils@5.0.2(rollup@3.29.0):
+    resolution: {integrity: sha512-pTd9rIsP92h+B6wWwFbW8RkZv4hiR/xKsqre4SIuAOaOEQRxi0lqLke9k2/7WegC85GgUs9pjmOjCUi3In4vwA==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      rollup: ^1.20.0||^2.0.0||^3.0.0
+    peerDependenciesMeta:
+      rollup:
+        optional: true
+    dependencies:
+      '@types/estree': 1.0.0
+      estree-walker: 2.0.2
+      picomatch: 2.3.1
+      rollup: 3.29.0
 
   /@sinclair/typebox@0.25.24:
     resolution: {integrity: sha512-XJfwUVUKDHF5ugKwIcxEgc9k8b7HbznCp6eUfWgu710hMPNIO4aw4/zB5RogDQz8nd6gyCDpU9O/m6qYEWY6yQ==}
@@ -9575,6 +9792,12 @@ packages:
     dev: false
     optional: true
 
+  /esbuild-wasm@0.19.0:
+    resolution: {integrity: sha512-RqTcOMscbNJEEbPjEUK/37G8nZyC9Ixobv4M/pRhVjb6/v+WxxivAOjaKQKgOpM8zHjQdHALXx0vnpEVYaxKtw==}
+    engines: {node: '>=12'}
+    hasBin: true
+    dev: false
+
   /esbuild-windows-32@0.14.54:
     resolution: {integrity: sha512-T+rdZW19ql9MjS7pixmZYVObd9G7kcaZo+sETqNH4RCkuuYSuv9AGHUVnPoP9hhuE1WM1ZimHz1CIBHBboLU7w==}
     engines: {node: '>=12'}
@@ -10080,7 +10303,7 @@ packages:
       '@babel/runtime': 7.22.6
       broker-factory: 3.0.68
       extendable-media-recorder-wav-encoder-worker: 8.0.69
-      tslib: 2.5.3
+      tslib: 2.6.1
     dev: false
 
   /extendable-media-recorder-wav-encoder-broker@7.0.88:
@@ -10096,7 +10319,7 @@ packages:
     resolution: {integrity: sha512-8RJgKYTTHkzDoCWrnPMMqX+TyJpwzP9lwqxQWDpa9J5J1DP0SybgoYWP8Dtty/R5xT344lU+NKo7g1661i7Ujg==}
     dependencies:
       '@babel/runtime': 7.22.6
-      tslib: 2.5.3
+      tslib: 2.6.1
       worker-factory: 6.0.69
     dev: false
 
@@ -13730,13 +13953,6 @@ packages:
     resolution: {integrity: sha512-VsbnfwwaTv2Dxl2onubetX/3RnSnplNnjdix0hvF8y2YpqdzlZrjIq6zkcuVJ08XysS8zqW3gt3ORBndFDgsrg==}
     dev: false
 
-  /rollup@3.21.6:
-    resolution: {integrity: sha512-SXIICxvxQxR3D4dp/3LDHZIJPC8a4anKMHd4E3Jiz2/JnY+2bEjqrOokAauc5ShGVNFHlEFjBXAXlaxkJqIqSg==}
-    engines: {node: '>=14.18.0', npm: '>=8.0.0'}
-    hasBin: true
-    optionalDependencies:
-      fsevents: 2.3.2
-
   /rollup@3.28.0:
     resolution: {integrity: sha512-d7zhvo1OUY2SXSM6pfNjgD5+d0Nz87CUp4mt8l/GgVP3oBsPwzNvSzyu1me6BSG9JIgWNTVcafIXBIyM8yQ3yw==}
     engines: {node: '>=14.18.0', npm: '>=8.0.0'}
@@ -13750,7 +13966,6 @@ packages:
     hasBin: true
     optionalDependencies:
       fsevents: 2.3.2
-    dev: true
 
   /rrweb-cssom@0.6.0:
     resolution: {integrity: sha512-APM0Gt1KoXBz0iIkkdB/kfvGOwC4UuJFeG/c+yV7wSc7q96cG/kJ0HiYCnzivD9SB53cLV1MlHFNfOuPaadYSw==}
@@ -14518,6 +14733,22 @@ packages:
       intl-messageformat: 9.13.0
       sade: 1.8.1
       svelte: 4.0.0
+      tiny-glob: 0.2.9
+    dev: false
+
+  /svelte-i18n@3.7.0(svelte@4.2.0):
+    resolution: {integrity: sha512-kfdJsYsyOE9tFEVtjPXvrUaufXQnbFAI6LsX9vaQP+xm8A5Wao2qQ6pRZmIUCAvXvYQt7aXQ7hK9+NP9AlxehA==}
+    engines: {node: '>= 16'}
+    hasBin: true
+    peerDependencies:
+      svelte: ^3 || ^4
+    dependencies:
+      cli-color: 2.0.3
+      deepmerge: 4.3.1
+      estree-walker: 2.0.2
+      intl-messageformat: 9.13.0
+      sade: 1.8.1
+      svelte: 4.2.0
       tiny-glob: 0.2.9
     dev: false
 
@@ -15426,7 +15657,7 @@ packages:
       fast-json-patch: 3.1.1
       json-stringify-pretty-compact: 3.0.0
       semver: 7.4.0
-      tslib: 2.5.3
+      tslib: 2.6.1
       vega: 5.22.1
       vega-interpreter: 1.0.5
       vega-lite: 5.12.0(vega@5.22.1)
@@ -15886,7 +16117,7 @@ packages:
       esbuild: 0.17.14
       less: 4.1.3
       postcss: 8.4.23
-      rollup: 3.21.6
+      rollup: 3.29.0
     optionalDependencies:
       fsevents: 2.3.2
 
@@ -15919,7 +16150,7 @@ packages:
       esbuild: 0.17.14
       less: 4.1.3
       postcss: 8.4.23
-      rollup: 3.21.6
+      rollup: 3.29.0
     optionalDependencies:
       fsevents: 2.3.2
 
@@ -15956,7 +16187,7 @@ packages:
       less: 4.1.3
       lightningcss: 1.21.7
       postcss: 8.4.27
-      rollup: 3.28.0
+      rollup: 3.29.0
       sass: 1.66.1
       stylus: 0.60.0
       sugarss: 4.0.1(postcss@8.4.27)
@@ -15995,7 +16226,7 @@ packages:
       esbuild: 0.18.20
       less: 4.1.3
       postcss: 8.4.27
-      rollup: 3.28.0
+      rollup: 3.29.0
     optionalDependencies:
       fsevents: 2.3.2
     dev: false
@@ -16085,7 +16316,7 @@ packages:
       strip-literal: 1.0.1
       tinybench: 2.5.0
       tinypool: 0.7.0
-      vite: 4.3.9(@types/node@20.3.2)(less@4.1.3)
+      vite: 4.4.9(@types/node@20.3.2)(less@4.1.3)
       vite-node: 0.34.0(@types/node@20.3.2)(less@4.1.3)
       why-is-node-running: 2.2.2
     transitivePeerDependencies:
