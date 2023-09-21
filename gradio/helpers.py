@@ -280,14 +280,13 @@ class Examples:
         """
         Caches all of the examples so that their predictions can be shown immediately.
         """
+        if Context.root_block is None:
+            raise ValueError("Cannot cache examples if not in a Blocks context")
         if Path(self.cached_file).exists():
             print(
                 f"Using cache from '{utils.abspath(self.cached_folder)}' directory. If method or examples have changed since last caching, delete this folder to clear cache.\n"
             )
         else:
-            if Context.root_block is None:
-                raise ValueError("Cannot cache examples if not in a Blocks context")
-
             print(f"Caching examples at: '{utils.abspath(self.cached_folder)}'")
             cache_logger = CSVLogger()
 
@@ -338,7 +337,6 @@ class Examples:
                         fn_index=fn_index,
                         inputs=processed_input,
                         request=None,
-                        state={},
                     )
                 output = prediction["data"]
                 if len(generated_values):
@@ -353,30 +351,28 @@ class Examples:
             Context.root_block.dependencies.remove(dependency)
             Context.root_block.fns.pop(fn_index)
 
-            # Remove the original load_input_event and replace it with one that
-            # also populates the input. We do it this way to to allow the cache()
-            # method to be called independently of the create() method
-            index = Context.root_block.dependencies.index(self.load_input_event)
-            Context.root_block.dependencies.pop(index)
-            Context.root_block.fns.pop(index)
+        # Remove the original load_input_event and replace it with one that
+        # also populates the input. We do it this way to to allow the cache()
+        # method to be called independently of the create() method
+        index = Context.root_block.dependencies.index(self.load_input_event)
+        Context.root_block.dependencies.pop(index)
+        Context.root_block.fns.pop(index)
 
-            async def load_example(example_id):
-                processed_example = self.non_none_processed_examples[
-                    example_id
-                ] + await self.load_from_cache(example_id)
-                return utils.resolve_singleton(processed_example)
+        async def load_example(example_id):
+            processed_example = self.non_none_processed_examples[
+                example_id
+            ] + await self.load_from_cache(example_id)
+            return utils.resolve_singleton(processed_example)
 
-            self.load_input_event = self.dataset.click(
-                load_example,
-                inputs=[self.dataset],
-                outputs=self.inputs_with_examples + self.outputs,  # type: ignore
-                show_progress="hidden",
-                postprocess=False,
-                queue=False,
-                api_name=self.api_name,  # type: ignore
-            )
-
-            print("Caching complete\n")
+        self.load_input_event = self.dataset.click(
+            load_example,
+            inputs=[self.dataset],
+            outputs=self.inputs_with_examples + self.outputs,  # type: ignore
+            show_progress="hidden",
+            postprocess=False,
+            queue=False,
+            api_name=self.api_name,  # type: ignore
+        )
 
     async def load_from_cache(self, example_id: int) -> list[Any]:
         """Loads a particular cached example for the interface.
@@ -783,10 +779,9 @@ def special_args(
     return inputs or [], progress_index, event_data_index
 
 
-@document()
 def update(**kwargs) -> dict:
     """
-    Updates component properties. When a function passed into a Gradio Interface or a Blocks events returns a typical value, it updates the value of the output component. But it is also possible to update the properties of an output component (such as the number of lines of a `Textbox` or the visibility of an `Image`) by returning the component's `update()` function, which takes as parameters any of the constructor parameters for that component.
+    DEPRECATED. Updates component properties. When a function passed into a Gradio Interface or a Blocks events returns a typical value, it updates the value of the output component. But it is also possible to update the properties of an output component (such as the number of lines of a `Textbox` or the visibility of an `Image`) by returning the component's `update()` function, which takes as parameters any of the constructor parameters for that component.
     This is a shorthand for using the update method on a component.
     For example, rather than using gr.Number.update(...) you can just use gr.update(...).
     Note that your editor's autocompletion will suggest proper parameters
@@ -822,6 +817,9 @@ def update(**kwargs) -> dict:
           live=True,
         ).launch()
     """
+    warnings.warn(
+        "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Textbox(...)` instead of `return gr.update(...)"
+    )
     kwargs["__type__"] = "generic_update"
     return kwargs
 

@@ -68,7 +68,7 @@ class Dropdown(
             value: default value(s) selected in dropdown. If None, no value is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
             multiselect: if True, multiple choices can be selected.
-            allow_custom_value: If True, allows user to enter a custom value that is not in the list of choices. Only applies if `multiselect` is False.
+            allow_custom_value: If True, allows user to enter a custom value that is not in the list of choices.
             max_choices: maximum number of choices that can be selected. If None, no limit is enforced.
             filterable: If True, user will be able to type into the dropdown and filter the choices by typing. Can only be set to False if `allow_custom_value` is False.
             label: component name in interface.
@@ -84,7 +84,9 @@ class Dropdown(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.choices = (
-            [c if isinstance(c, tuple) else (str(c), c) for c in choices]
+            # Although we expect choices to be a list of tuples, it can be a list of tuples if the Gradio app
+            # is loaded with gr.load() since Python tuples are converted to lists in JSON.
+            [tuple(c) if isinstance(c, (tuple, list)) else (str(c), c) for c in choices]
             if choices
             else []
         )
@@ -156,18 +158,6 @@ class Dropdown(
                 "serialized": self.choices[0] if self.choices else None,
             }
 
-    def get_config(self):
-        return {
-            "choices": self.choices,
-            "value": self.value,
-            "multiselect": self.multiselect,
-            "max_choices": self.max_choices,
-            "allow_custom_value": self.allow_custom_value,
-            "container": self.container,
-            "filterable": self.filterable,
-            **IOComponent.get_config(self),
-        }
-
     @staticmethod
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
@@ -183,6 +173,14 @@ class Dropdown(
         placeholder: str | None = None,
         visible: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Dropdown(...)` instead of `return gr.Dropdown.update(...)`."
+        )
+        choices = (
+            None
+            if choices is None
+            else [c if isinstance(c, tuple) else (str(c), c) for c in choices]
+        )
         return {
             "choices": choices,
             "label": label,
@@ -200,8 +198,8 @@ class Dropdown(
         }
 
     def preprocess(
-        self, x: str | list[str]
-    ) -> str | int | list[str] | list[int] | None:
+        self, x: str | int | float | list[str | int | float] | None
+    ) -> str | int | float | list[str | int | float] | list[int | None] | None:
         """
         Parameters:
             x: selected choice(s)
@@ -211,19 +209,17 @@ class Dropdown(
         if self.type == "value":
             return x
         elif self.type == "index":
+            choice_values = [value for _, value in self.choices]
             if x is None:
                 return None
             elif self.multiselect:
+                assert isinstance(x, list)
                 return [
-                    [value for _, value in self.choices].index(choice) for choice in x
+                    choice_values.index(choice) if choice in choice_values else None
+                    for choice in x
                 ]
             else:
-                if isinstance(x, str):
-                    return (
-                        [value for _, value in self.choices].index(x)
-                        if x in self.choices
-                        else None
-                    )
+                return choice_values.index(x) if x in choice_values else None
         else:
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."

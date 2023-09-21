@@ -67,9 +67,10 @@ def greet(name):
     return "Hello " + name + "!"
 
 demo = gr.Interface(fn=greet, inputs="text", outputs="text")
-
+    
 demo.launch()
 ```
+
 
 We shorten the imported name to `gr` for better readability of code using Gradio. This is a widely adopted convention that you should follow so that anyone working with your code can easily understand it.
 
@@ -154,8 +155,8 @@ import gradio as gr
 
 def sepia(input_img):
     sepia_filter = np.array([
-        [0.393, 0.769, 0.189],
-        [0.349, 0.686, 0.168],
+        [0.393, 0.769, 0.189], 
+        [0.349, 0.686, 0.168], 
         [0.272, 0.534, 0.131]
     ])
     sepia_img = input_img.dot(sepia_filter.T)
@@ -233,7 +234,6 @@ with gr.Blocks() as demo:
     greet_btn = gr.Button("Greet")
     greet_btn.click(fn=greet, inputs=name, outputs=output, api_name="greet")
 
-
 demo.launch()
 ```
 
@@ -285,9 +285,10 @@ demo.launch()
 
 ![`blocks_flipper` demo](demo/blocks_flipper/screenshot.gif)
 
-A lot more going on here! We'll cover how to create complex `Blocks` apps like this in the [building with blocks](https://gradio.app/building_with_blocks) section for you.
+A lot more going on here! We'll cover how to create complex `Blocks` apps like this in the [building with blocks](https://gradio.app/blocks-and-event-listeners) section for you.
 
 Congrats, you're now familiar with the basics of Gradio! 🥳 Go to our [next guide](https://gradio.app/key_features) to learn more about the key features of Gradio.
+
 
 ## Open Source Stack
 

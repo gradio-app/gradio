@@ -1,5 +1,17 @@
 # @gradio/image
 
+## 0.2.4
+
+### Fixes
+
+- [#5587](https://github.com/gradio-app/gradio/pull/5587) [`e0d61b8ba`](https://github.com/gradio-app/gradio/commit/e0d61b8baa0f6293f53b9bdb1647d42f9ae2583a) - Fix `.clear()` events for audio and image.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
+## 0.2.3
+
+### Fixes
+
+- [#5528](https://github.com/gradio-app/gradio/pull/5528) [`dc86e4a7`](https://github.com/gradio-app/gradio/commit/dc86e4a7e1c40b910c74558e6f88fddf9b3292bc) - Lazy load all images.  Thanks [@aliabid94](https://github.com/aliabid94)!
+
 ## 0.2.2
 
 ### Patch Changes

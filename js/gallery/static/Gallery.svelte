@@ -208,6 +208,7 @@
 					alt={_value[selected_image][1] || ""}
 					title={_value[selected_image][1] || null}
 					class:with-caption={!!_value[selected_image][1]}
+					loading="lazy"
 				/>
 			</button>
 			{#if _value[selected_image][1]}
@@ -228,7 +229,12 @@
 						class:selected={selected_image === i}
 						aria-label={"Thumbnail " + (i + 1) + " of " + _value.length}
 					>
-						<img src={image[0].data} title={image[1] || null} alt="" />
+						<img
+							src={image[0].data}
+							title={image[1] || null}
+							alt=""
+							loading="lazy"
+						/>
 					</button>
 				{/each}
 			</div>
@@ -265,6 +271,7 @@
 					<img
 						alt={caption || ""}
 						src={typeof image === "string" ? image : image.data}
+						loading="lazy"
 					/>
 					{#if caption}
 						<div class="caption-label">

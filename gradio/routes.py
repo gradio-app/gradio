@@ -54,14 +54,20 @@ from gradio.exceptions import Error
 from gradio.oauth import attach_oauth
 from gradio.queueing import Estimation, Event
 from gradio.route_utils import Request  # noqa: F401
-from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
+from gradio.state_holder import StateHolder
+from gradio.utils import (
+    cancel_tasks,
+    get_package_version,
+    run_coro_in_background,
+    set_task_name,
+)
 
 mimetypes.init()
 
 STATIC_TEMPLATE_LIB = files("gradio").joinpath("templates").as_posix()  # type: ignore
 STATIC_PATH_LIB = files("gradio").joinpath("templates", "frontend", "static").as_posix()  # type: ignore
 BUILD_PATH_LIB = files("gradio").joinpath("templates", "frontend", "assets").as_posix()  # type: ignore
-VERSION = files("gradio").joinpath("version.txt").read_text()
+VERSION = get_package_version()
 
 
 class ORJSONResponse(JSONResponse):
@@ -108,10 +114,11 @@ class App(FastAPI):
         self.tokens = {}
         self.auth = None
         self.blocks: gradio.Blocks | None = None
-        self.state_holder = {}
+        self.state_holder = StateHolder()
         self.iterators = defaultdict(dict)
         self.iterators_to_reset = defaultdict(set)
         self.lock = utils.safe_get_lock()
+        self.cookie_id = secrets.token_urlsafe(32)
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
         self.uploaded_file_dir = os.environ.get("GRADIO_TEMP_DIR") or str(
@@ -139,6 +146,7 @@ class App(FastAPI):
         self.favicon_path = blocks.favicon_path
         self.tokens = {}
         self.root_path = blocks.root_path
+        self.state_holder.set_blocks(blocks)
 
     def get_blocks(self) -> gradio.Blocks:
         if self.blocks is None:
@@ -167,8 +175,7 @@ class App(FastAPI):
         blocks: gradio.Blocks, app_kwargs: Dict[str, Any] | None = None
     ) -> App:
         app_kwargs = app_kwargs or {}
-        if not wasm_utils.IS_WASM:
-            app_kwargs.setdefault("default_response_class", ORJSONResponse)
+        app_kwargs.setdefault("default_response_class", ORJSONResponse)
         app = App(**app_kwargs)
         app.configure_app(blocks)
 
@@ -183,9 +190,9 @@ class App(FastAPI):
         @app.get("/user")
         @app.get("/user/")
         def get_current_user(request: fastapi.Request) -> Optional[str]:
-            token = request.cookies.get("access-token") or request.cookies.get(
-                "access-token-unsecure"
-            )
+            token = request.cookies.get(
+                f"access-token-{app.cookie_id}"
+            ) or request.cookies.get(f"access-token-unsecure-{app.cookie_id}")
             return app.tokens.get(token)
 
         @app.get("/login_check")
@@ -198,15 +205,15 @@ class App(FastAPI):
             )
 
         async def ws_login_check(websocket: WebSocket) -> Optional[str]:
-            token = websocket.cookies.get("access-token") or websocket.cookies.get(
-                "access-token-unsecure"
-            )
+            token = websocket.cookies.get(
+                f"access-token-{app.cookie_id}"
+            ) or websocket.cookies.get(f"access-token-unsecure-{app.cookie_id}")
             return token  # token is returned to authenticate the websocket connection in the endpoint handler.
 
         @app.get("/token")
         @app.get("/token/")
         def get_token(request: fastapi.Request) -> dict:
-            token = request.cookies.get("access-token")
+            token = request.cookies.get(f"access-token-{app.cookie_id}")
             return {"token": token, "user": app.tokens.get(token)}
 
         @app.get("/app_id")
@@ -262,14 +269,16 @@ class App(FastAPI):
                 app.tokens[token] = username
                 response = JSONResponse(content={"success": True})
                 response.set_cookie(
-                    key="access-token",
+                    key=f"access-token-{app.cookie_id}",
                     value=token,
                     httponly=True,
                     samesite="none",
                     secure=True,
                 )
                 response.set_cookie(
-                    key="access-token-unsecure", value=token, httponly=True
+                    key=f"access-token-unsecure-{app.cookie_id}",
+                    value=token,
+                    httponly=True,
                 )
                 return response
             else:

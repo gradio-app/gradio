@@ -59,7 +59,7 @@
 		{/if}
 	</div>
 	<button on:click={handle_click}>
-		<img src={value} alt="" class:selectable />
+		<img src={value} alt="" class:selectable loading="lazy" />
 	</button>
 {/if}
 

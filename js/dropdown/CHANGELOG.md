@@ -1,5 +1,17 @@
 # @gradio/dropdown
 
+## 0.2.2
+
+### Fixes
+
+- [#5544](https://github.com/gradio-app/gradio/pull/5544) [`a0cc9ac9`](https://github.com/gradio-app/gradio/commit/a0cc9ac931554e06dcb091158c9b9ac0cc580b6c) - Fixes dropdown breaking if a user types in invalid value and presses enter.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
+## 0.2.1
+
+### Fixes
+
+- [#5525](https://github.com/gradio-app/gradio/pull/5525) [`21f1db40`](https://github.com/gradio-app/gradio/commit/21f1db40de6d1717eba97a550e11422a457ba7e9) - Ensure input value saves on dropdown blur.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.2.0
 
 ### Features

@@ -93,6 +93,12 @@
 		if (!allow_custom_value) {
 			input_text = "";
 		}
+
+		if (allow_custom_value && input_text !== "") {
+			add_selected_choice(input_text);
+			input_text = "";
+		}
+
 		show_options = false;
 		active_index = null;
 		dispatch("blur");

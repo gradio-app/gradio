@@ -1,6 +1,6 @@
 numpy==1.23.2
 matplotlib
 shap
-xgboost
+xgboost==1.7.6
 pandas
 datasets

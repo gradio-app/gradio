@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from pathlib import Path
 from typing import Any, Callable, Literal
 
@@ -82,15 +83,6 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
             **kwargs,
         )
 
-    def get_config(self):
-        return {
-            "x": self.x,
-            "y": self.y,
-            "value": self.value,
-            "colors": self.colors,
-            **IOComponent.get_config(self),
-        }
-
     @staticmethod
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
@@ -103,6 +95,9 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Timeseries(...)` instead of `return gr.Timeseries.update(...)`."
+        )
         return {
             "colors": colors,
             "label": label,
