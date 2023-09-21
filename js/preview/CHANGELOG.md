@@ -1,5 +1,11 @@
 # @gradio/preview
 
+## 0.1.0-beta.4
+
+### Features
+
+- [#5649](https://github.com/gradio-app/gradio/pull/5649) [`d56b355c1`](https://github.com/gradio-app/gradio/commit/d56b355c12ccdeeb8406a3520fecc15ae69d9141) - Fix front-end imports + other misc fixes.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 0.1.0-beta.3
 
 ### Features

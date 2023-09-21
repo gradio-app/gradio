@@ -1,5 +1,12 @@
 # gradio
 
+## 3.45.0-beta.8
+
+### Features
+
+- [#5649](https://github.com/gradio-app/gradio/pull/5649) [`d56b355c1`](https://github.com/gradio-app/gradio/commit/d56b355c12ccdeeb8406a3520fecc15ae69d9141) - Fix front-end imports + other misc fixes.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5651](https://github.com/gradio-app/gradio/pull/5651) [`0ab84bf80`](https://github.com/gradio-app/gradio/commit/0ab84bf80f66c866327473d08fe5bdc8d32f155a) - Add overwrite flag to create command.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 3.45.0-beta.7
 
 ### Features
