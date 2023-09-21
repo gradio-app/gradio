@@ -120,7 +120,7 @@
 		const current_scroll_top = target.scrollTop;
 		if (current_scroll_top < previous_scroll_top) {
 			user_has_scrolled_up = true;
-		} 
+		}
 		previous_scroll_top = current_scroll_top;
 
 		const max_scroll_top = target.scrollHeight - target.clientHeight;
