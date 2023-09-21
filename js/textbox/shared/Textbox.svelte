@@ -120,7 +120,7 @@
 		const currentScrollTop = target.scrollTop;
 		if (currentScrollTop < previousScrollTop) {
 			user_has_scrolled_up = true;
-		} 
+		}
 		previousScrollTop = currentScrollTop;
 	}
 
