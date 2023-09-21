@@ -213,10 +213,13 @@ function generate_imports(component_dir: string): string {
 			static: join(component.dir, "static"),
 			example: join(component.dir, "example")
 		};
+
+		const interactive = fs.existsSync(x.interactive) ? `interactive: () => import("${x.interactive}"),\n` : ""
+		const example = fs.existsSync(x.example) ? `example: () => import("${x.example}"),\n` : ""
 		return `${acc}"${component.package_name}": {
-			interactive: () => import("${x.interactive}"),
-			static: () => import("${x.static}"),
-			example: () => import("${x.example}")
+			${interactive}
+			${example}
+			static: () => import("${x.static}")
 			},\n`;
 	}, "");
 
