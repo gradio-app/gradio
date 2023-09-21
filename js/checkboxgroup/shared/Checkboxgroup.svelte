@@ -72,8 +72,8 @@
 				}}
 				checked={value.includes(choice[1])}
 				type="checkbox"
-				name={choice[1].toString()}
-				title={choice[1].toString()}
+				name={choice[1]?.toString()}
+				title={choice[1]?.toString()}
 			/>
 			<span class="ml-2">{choice[0]}</span>
 		</label>
