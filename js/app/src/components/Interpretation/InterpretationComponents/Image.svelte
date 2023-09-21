@@ -67,7 +67,7 @@
 		<div class="interpretation">
 			<canvas bind:this={saliency_layer} />
 		</div>
-		<img bind:this={image} src={original} alt={"uploaded input"} />
+		<img bind:this={image} src={original} alt="uploaded input" />
 	</div>
 </div>
 
