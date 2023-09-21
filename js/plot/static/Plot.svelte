@@ -192,7 +192,7 @@
 	<div data-testid={"bokeh"} id={divId} class="gradio-bokeh" />
 {:else if type == "altair"}
 	<div data-testid={"altair"} class="altair layout">
-		<Vega {spec} />
+		<Vega {spec} options={{ actions: false }} />
 		{#if caption}
 			<div class="caption layout">
 				{caption}
@@ -209,6 +209,10 @@
 {/if}
 
 <style>
+	.altair :global(canvas) {
+		max-width: 100%;
+		padding: 6px;
+	}
 	.gradio-bokeh {
 		display: flex;
 		justify-content: center;
@@ -234,6 +238,7 @@
 
 	.caption {
 		font-size: var(--text-sm);
+		margin-bottom: 6px;
 	}
 
 	.matplotlib img {

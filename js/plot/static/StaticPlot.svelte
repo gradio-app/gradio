@@ -37,6 +37,7 @@
 	{container}
 	{scale}
 	{min_width}
+	allow_overflow={false}
 >
 	<BlockLabel {show_label} label={label || $_("plot.plot")} Icon={PlotIcon} />
 	<StatusTracker {...loading_status} />
