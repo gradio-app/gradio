@@ -1,5 +1,5 @@
 import type { WorkerProxy } from "@gradio/wasm";
-import { is_self_origin } from "./url";
+import { is_self_host } from "./url";
 
 /**
  * A WebSocket factory that proxies requests to the worker,
@@ -10,7 +10,7 @@ export function wasm_proxied_WebSocket_factory(
 	worker_proxy: WorkerProxy,
 	url: URL
 ): WebSocket {
-	if (!is_self_origin(url)) {
+	if (!is_self_host(url)) {
 		console.debug("Fallback to original WebSocket");
 		return new WebSocket(url);
 	}
