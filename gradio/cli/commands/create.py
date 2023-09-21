@@ -195,13 +195,22 @@ def _create(
         str,
         typer.Option(help="NPM install command to use. Default is 'npm install'."),
     ] = "npm install",
+    overwrite: Annotated[
+        bool,
+        typer.Option(help="Whether to overwrite the existing component if it exists.")
+    ] = False
 ):
     if not directory:
         directory = pathlib.Path(name.lower())
     if not package_name:
         package_name = f"gradio_{name.lower()}"    
 
-    directory.mkdir(exist_ok=True)
+    if directory.exists() and not overwrite:
+        raise ValueError(f"The directory {directory.resolve()} already exists. "
+                         "Please set --overwrite flag or pass in the name "
+                         "of a directory that does not already exist via the --directory option.")
+
+    directory.mkdir(exist_ok=overwrite)    
 
     if in_test_dir():
         npm_install = "pnpm i --ignore-scripts"
