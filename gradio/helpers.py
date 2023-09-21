@@ -12,6 +12,7 @@ import subprocess
 import tempfile
 import threading
 import warnings
+from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal, Optional
 
@@ -24,7 +25,7 @@ from gradio_client.documentation import document, set_documentation_group
 from matplotlib import animation
 
 from gradio import components, oauth, processing_utils, routes, utils
-from gradio.context import Context
+from gradio.context import Context, LocalContext
 from gradio.exceptions import Error
 from gradio.flagging import CSVLogger
 
@@ -487,16 +488,12 @@ class Progress(Iterable):
     def __init__(
         self,
         track_tqdm: bool = False,
-        _callback: Callable | None = None,  # for internal use only
-        _event_id: str | None = None,
     ):
         """
         Parameters:
             track_tqdm: If True, the Progress object will track any tqdm.tqdm iterations with the tqdm library in the function.
         """
         self.track_tqdm = track_tqdm
-        self._callback = _callback
-        self._event_id = _event_id
         self.iterables: list[TrackedIterable] = []
 
     def __len__(self):
@@ -509,17 +506,15 @@ class Progress(Iterable):
         """
         Updates progress tracker with next item in iterable.
         """
-        if self._callback:
+        callback = self._progress_callback()
+        if callback:
             current_iterable = self.iterables[-1]
             while (
                 not hasattr(current_iterable.iterable, "__next__")
                 and len(self.iterables) > 0
             ):
                 current_iterable = self.iterables.pop()
-            self._callback(
-                event_id=self._event_id,
-                iterables=self.iterables,
-            )
+            callback(self.iterables)
             assert current_iterable.index is not None, "Index not set."
             current_iterable.index += 1
             try:
@@ -546,16 +541,16 @@ class Progress(Iterable):
             total: estimated total number of steps.
             unit: unit of iterations.
         """
-        if self._callback:
+        callback = self._progress_callback()
+        if callback:
             if isinstance(progress, tuple):
                 index, total = progress
                 progress = None
             else:
                 index = None
-            self._callback(
-                event_id=self._event_id,
-                iterables=self.iterables
-                + [TrackedIterable(None, index, total, desc, unit, _tqdm, progress)],
+            callback(
+                self.iterables
+                + [TrackedIterable(None, index, total, desc, unit, _tqdm, progress)]
             )
         else:
             return progress
@@ -576,11 +571,12 @@ class Progress(Iterable):
             total: estimated total number of steps.
             unit: unit of iterations.
         """
-        if self._callback:
+        callback = self._progress_callback()
+        if callback:
             if iterable is None:
                 new_iterable = TrackedIterable(None, 0, total, desc, unit, _tqdm)
                 self.iterables.append(new_iterable)
-                self._callback(event_id=self._event_id, iterables=self.iterables)
+                callback(self.iterables)
                 return self
             length = len(iterable) if hasattr(iterable, "__len__") else None  # type: ignore
             self.iterables.append(
@@ -594,14 +590,12 @@ class Progress(Iterable):
         Parameters:
             n: number of steps completed.
         """
-        if self._callback and len(self.iterables) > 0:
+        callback = self._progress_callback()
+        if callback and len(self.iterables) > 0:
             current_iterable = self.iterables[-1]
             assert current_iterable.index is not None, "Index not set."
             current_iterable.index += n
-            self._callback(
-                event_id=self._event_id,
-                iterables=self.iterables,
-            )
+            callback(self.iterables)
         else:
             return
 
@@ -609,93 +603,102 @@ class Progress(Iterable):
         """
         Removes iterable with given _tqdm.
         """
-        if self._callback:
+        callback = self._progress_callback()
+        if callback:
             for i in range(len(self.iterables)):
                 if id(self.iterables[i]._tqdm) == id(_tqdm):
                     self.iterables.pop(i)
                     break
-            self._callback(
-                event_id=self._event_id,
-                iterables=self.iterables,
-            )
+            callback(self.iterables)
         else:
             return
 
+    @staticmethod
+    def _progress_callback():
+        blocks = LocalContext.blocks.get()
+        event_id = LocalContext.event_id.get()
+        if not (blocks and event_id):
+            return None
+        return partial(blocks._queue.set_progress, event_id)
 
-def create_tracker(root_blocks, event_id, fn, track_tqdm):
-    progress = Progress(_callback=root_blocks._queue.set_progress, _event_id=event_id)
-    if not track_tqdm:
-        return progress, fn
 
+def patch_tqdm() -> None:
     try:
         _tqdm = __import__("tqdm")
     except ModuleNotFoundError:
-        return progress, fn
-    if not hasattr(root_blocks, "_progress_tracker_per_thread"):
-        root_blocks._progress_tracker_per_thread = {}
+        return
 
     def init_tqdm(
         self, iterable=None, desc=None, total=None, unit="steps", *args, **kwargs
     ):
-        self._progress = root_blocks._progress_tracker_per_thread.get(
-            threading.get_ident()
-        )
-        if self._progress is not None:
-            self._progress.event_id = event_id
-            self._progress.tqdm(iterable, desc, total, unit, _tqdm=self)
-            kwargs["file"] = open(os.devnull, "w")  # noqa: SIM115
+        self._progress = Progress()
+        self._progress.tqdm(iterable, desc, total, unit, _tqdm=self)
+        kwargs["file"] = open(os.devnull, "w")  # noqa: SIM115
         self.__init__orig__(iterable, desc, total, *args, unit=unit, **kwargs)
 
     def iter_tqdm(self):
-        if self._progress is not None:
-            return self._progress
-        else:
-            return self.__iter__orig__()
+        return self._progress
 
     def update_tqdm(self, n=1):
-        if self._progress is not None:
-            self._progress.update(n)
+        self._progress.update(n)
         return self.__update__orig__(n)
 
     def close_tqdm(self):
-        if self._progress is not None:
-            self._progress.close(self)
+        self._progress.close(self)
         return self.__close__orig__()
 
     def exit_tqdm(self, exc_type, exc_value, traceback):
-        if self._progress is not None:
-            self._progress.close(self)
+        self._progress.close(self)
         return self.__exit__orig__(exc_type, exc_value, traceback)
 
+    # Backup
     if not hasattr(_tqdm.tqdm, "__init__orig__"):
         _tqdm.tqdm.__init__orig__ = _tqdm.tqdm.__init__
-    _tqdm.tqdm.__init__ = init_tqdm
     if not hasattr(_tqdm.tqdm, "__update__orig__"):
         _tqdm.tqdm.__update__orig__ = _tqdm.tqdm.update
-    _tqdm.tqdm.update = update_tqdm
     if not hasattr(_tqdm.tqdm, "__close__orig__"):
         _tqdm.tqdm.__close__orig__ = _tqdm.tqdm.close
-    _tqdm.tqdm.close = close_tqdm
     if not hasattr(_tqdm.tqdm, "__exit__orig__"):
         _tqdm.tqdm.__exit__orig__ = _tqdm.tqdm.__exit__
-    _tqdm.tqdm.__exit__ = exit_tqdm
     if not hasattr(_tqdm.tqdm, "__iter__orig__"):
         _tqdm.tqdm.__iter__orig__ = _tqdm.tqdm.__iter__
+
+    # Patch
+    _tqdm.tqdm.__init__ = init_tqdm
+    _tqdm.tqdm.update = update_tqdm
+    _tqdm.tqdm.close = close_tqdm
+    _tqdm.tqdm.__exit__ = exit_tqdm
     _tqdm.tqdm.__iter__ = iter_tqdm
+
     if hasattr(_tqdm, "auto") and hasattr(_tqdm.auto, "tqdm"):
         _tqdm.auto.tqdm = _tqdm.tqdm
 
-    def before_fn():
-        thread_id = threading.get_ident()
-        root_blocks._progress_tracker_per_thread[thread_id] = progress
 
-    def after_fn():
-        thread_id = threading.get_ident()
-        del root_blocks._progress_tracker_per_thread[thread_id]
+def unpatch_tqdm() -> None:
+    try:
+        _tqdm = __import__("tqdm")
+    except ModuleNotFoundError:
+        return
 
-    tracked_fn = utils.function_wrapper(fn, before_fn=before_fn, after_fn=after_fn)
+    try:
+        _tqdm.tqdm.__init__ = _tqdm.tqdm.__init__orig__
+        _tqdm.tqdm.update = _tqdm.tqdm.__update__orig__
+        _tqdm.tqdm.close = _tqdm.tqdm.__close__orig__
+        _tqdm.tqdm.__exit__ = _tqdm.tqdm.__exit__orig__
+        _tqdm.tqdm.__iter__ = _tqdm.tqdm.__iter__orig__
+    except AttributeError:
+        pass
 
-    return progress, tracked_fn
+
+def create_tracker(fn, track_tqdm):
+    progress = Progress()
+    if not track_tqdm:
+        return progress, fn
+    return progress, utils.function_wrapper(
+        f=fn,
+        before_fn=patch_tqdm,
+        after_fn=unpatch_tqdm,
+    )
 
 
 def special_args(
