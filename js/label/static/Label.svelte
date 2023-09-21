@@ -43,11 +43,13 @@
 							100}%; background: var(--stat-background-fill);
 						"
 						value={confidence_set.confidence * 100}
-						aria-valuetext={Math.round(confidence_set.confidence * 100) + "%"}
+						aria-label={Math.round(confidence_set.confidence * 100) + "%"}
 					/>
 
 					<dl class="label">
-						<dt id="meter-text" class="text">{confidence_set.label}</dt>
+						<dt id={`meter-text-${confidence_set.label}`} class="text">
+							{confidence_set.label}
+						</dt>
 						{#if value.confidences}
 							<div class="line" />
 							<dd class="confidence">

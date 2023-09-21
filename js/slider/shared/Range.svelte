@@ -49,6 +49,7 @@
 			<BlockTitle {show_label} {info}>{label}</BlockTitle>
 		</label>
 		<input
+			title="number input"
 			data-testid="number-input"
 			type="number"
 			bind:value
@@ -58,7 +59,6 @@
 			{step}
 			{disabled}
 			on:pointerup={handle_release}
-			aria-label="number input"
 		/>
 	</div>
 </div>
