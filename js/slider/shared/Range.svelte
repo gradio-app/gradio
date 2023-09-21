@@ -92,7 +92,7 @@
 	{step}
 	{disabled}
 	on:pointerup={handle_release}
-	aria-label={label}
+	aria-label="Range slider"
 />
 
 <style>
