@@ -651,7 +651,6 @@ class Interface(Blocks):
                 for component in self.input_components
                 if isinstance(component, Submittable)
             ]
-            predict_events = []
 
             if stop_btn:
                 extra_output = [submit_btn, stop_btn]
@@ -659,57 +658,54 @@ class Interface(Blocks):
                 def cleanup():
                     return [Button.update(visible=True), Button.update(visible=False)]
 
-                for i, trigger in enumerate(triggers):
-                    predict_event = trigger(
-                        lambda: (
-                            submit_btn.update(visible=False),
-                            stop_btn.update(visible=True),
-                        ),
-                        inputs=None,
-                        outputs=[submit_btn, stop_btn],
-                        queue=False,
-                    ).then(
-                        self.fn,
-                        self.input_components,
-                        self.output_components,
-                        api_name=self.api_name if i == 0 else None,
-                        scroll_to_output=True,
-                        preprocess=not (self.api_mode),
-                        postprocess=not (self.api_mode),
-                        batch=self.batch,
-                        max_batch_size=self.max_batch_size,
-                    )
-                    predict_events.append(predict_event)
+                predict_event = on(
+                    triggers,
+                    lambda: (
+                        submit_btn.update(visible=False),
+                        stop_btn.update(visible=True),
+                    ),
+                    inputs=None,
+                    outputs=[submit_btn, stop_btn],
+                    queue=False,
+                ).then(
+                    self.fn,
+                    self.input_components,
+                    self.output_components,
+                    api_name=self.api_name,
+                    scroll_to_output=True,
+                    preprocess=not (self.api_mode),
+                    postprocess=not (self.api_mode),
+                    batch=self.batch,
+                    max_batch_size=self.max_batch_size,
+                )
 
-                    predict_event.then(
-                        cleanup,
-                        inputs=None,
-                        outputs=extra_output,  # type: ignore
-                        queue=False,
-                    )
+                predict_event.then(
+                    cleanup,
+                    inputs=None,
+                    outputs=extra_output,  # type: ignore
+                    queue=False,
+                )
 
                 stop_btn.click(
                     cleanup,
                     inputs=None,
                     outputs=[submit_btn, stop_btn],
-                    cancels=predict_events,
+                    cancels=predict_event,
                     queue=False,
                 )
             else:
-                for i, trigger in enumerate(triggers):
-                    predict_events.append(
-                        trigger(
-                            fn,
-                            self.input_components,
-                            self.output_components,
-                            api_name=self.api_name if i == 0 else None,
-                            scroll_to_output=True,
-                            preprocess=not (self.api_mode),
-                            postprocess=not (self.api_mode),
-                            batch=self.batch,
-                            max_batch_size=self.max_batch_size,
-                        )
-                    )
+                on(
+                    triggers,
+                    fn,
+                    self.input_components,
+                    self.output_components,
+                    api_name=self.api_name,
+                    scroll_to_output=True,
+                    preprocess=not (self.api_mode),
+                    postprocess=not (self.api_mode),
+                    batch=self.batch,
+                    max_batch_size=self.max_batch_size,
+                )
 
     def attach_clear_events(
         self,
