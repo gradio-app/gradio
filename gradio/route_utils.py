@@ -122,7 +122,10 @@ class Request:
 
     @property
     def query_params(self):
-        return dict(QueryParams(URL(self.request.headers["referer"]).query))
+        if self.request:
+            return dict(QueryParams(URL(self.request.headers["referer"]).query))
+        else:
+            return {}
 
 
 class FnIndexInferError(Exception):
