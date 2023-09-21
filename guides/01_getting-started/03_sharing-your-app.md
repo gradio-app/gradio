@@ -151,7 +151,7 @@ Note: if you use IFrames, you'll probably want to add a fixed `height` attribute
 
 You can use almost any Gradio app as an API! In the footer of a Gradio app [like this one](https://huggingface.co/spaces/gradio/hello_world), you'll see a "Use via API" link.
 
-![Use via API](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/api3.gif)
+![Use via API](https://github.com/gradio-app/gradio/blob/main/guides/assets/use_via_api.png?raw=true)
 
 This is a page that lists the endpoints that can be used to query the Gradio app, via our supported clients: either [the Python client](https://gradio.app/guides/getting-started-with-the-python-client/), or [the JavaScript client](https://gradio.app/guides/getting-started-with-the-js-client/). For each endpoint, Gradio automatically generates the parameters and their types, as well as example inputs.
 
@@ -195,11 +195,9 @@ If allows to add a _"Sign in with Hugging Face"_ button to your demo. Check out 
 for a live demo.
 
 To enable OAuth, you must set `hf_oauth: true` as a Space metadata in your README.md file. This will register your Space
-as an OAuth application on Hugging Face. You also need to include `itsdangerous` and `authlib` in a separate
-`requirements.txt` file. Next, you can use `gr.LoginButton` and `gr.LogoutButton` to add login and logout buttons to
-your Gradio app. Once a user is logged in with their HF account, you can retrieve their profile. To do so, you only
-have to add a parameter of type `gr.OAuthProfile` to any Gradio function. The user profile will be automatically
-injected as a parameter value.
+as an OAuth application on Hugging Face. Next, you can use `gr.LoginButton` and `gr.LogoutButton` to add login and logout buttons to
+your Gradio app. Once a user is logged in with their HF account, you can retrieve their profile by adding a parameter of type
+`gr.OAuthProfile` to any Gradio function. The user profile will be automatically injected as a parameter value.
 
 Here is a short example:
 

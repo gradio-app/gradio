@@ -96,7 +96,7 @@
 </script>
 
 {#if show_share_button && value !== null && value.length > 0}
-	<div class="icon-button">
+	<div class="share-button">
 		<ShareButton
 			on:error
 			on:share
@@ -157,7 +157,7 @@
 								{/if}
 
 								{#if show_copy_button && message && typeof message === "string"}
-									<div class="icon-button">
+									<div class="copy-button">
 										<Copy value={message} />
 									</div>
 								{/if}
@@ -267,6 +267,7 @@
 		font-size: var(--text-lg);
 		line-height: var(--line-lg);
 		overflow-wrap: break-word;
+		overflow-x: hidden;
 	}
 	.message-fit {
 		width: fit-content !important;
@@ -319,6 +320,7 @@
 		justify-content: center;
 		width: 35px;
 		height: 35px;
+		flex-shrink: 0;
 		bottom: 0;
 	}
 	.user-row > .avatar-container {
@@ -347,9 +349,14 @@
 	.message-buttons-fit {
 		margin-right: 0px;
 	}
-	.icon-button {
+	.copy-button {
 		margin-top: -10px;
 		margin-bottom: -10px;
+	}
+	.share-button {
+		position: absolute;
+		top: 4px;
+		right: 6px;
 	}
 	.like {
 		display: flex;

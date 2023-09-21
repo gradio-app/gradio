@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from pathlib import Path
 from typing import Any, Callable, Literal
 
@@ -69,8 +70,8 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
-            columns: Represents the number of images that should be shown in one row, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
-            rows: Represents the number of rows in the image grid, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
+            columns: Represents the number of images that should be shown in one row, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). If fewer than 6 are given then the last will be used for all subsequent breakpoints
+            rows: Represents the number of rows in the image grid, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). If fewer than 6 are given then the last will be used for all subsequent breakpoints
             height: The height of the gallery component, in pixels. If more images are displayed than can fit in the height, a scrollbar will appear.
             preview: If True, will display the Gallery in preview mode, which shows all of the images as thumbnails and allows the user to click on them to view them in full size.
             object_fit: CSS object-fit property for the thumbnail images in the gallery. Can be "contain", "cover", "fill", "none", or "scale-down".
@@ -135,6 +136,9 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         show_share_button: bool | None = None,
         show_download_button: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Gallery(...)` instead of `return gr.Gallery.update(...)`."
+        )
         updated_config = {
             "label": label,
             "show_label": show_label,
@@ -154,20 +158,6 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             "__type__": "update",
         }
         return updated_config
-
-    def get_config(self):
-        return {
-            "value": self.value,
-            "grid_cols": self.grid_cols,
-            "grid_rows": self.grid_rows,
-            "height": self.height,
-            "preview": self.preview,
-            "object_fit": self.object_fit,
-            "allow_preview": self.allow_preview,
-            "show_share_button": self.show_share_button,
-            "show_download_button": self.show_download_button,
-            **IOComponent.get_config(self),
-        }
 
     def postprocess(
         self,

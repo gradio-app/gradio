@@ -101,7 +101,7 @@ class EventListenerMethod:
         api_name: str | None | Literal[False] = None,
         status_tracker: None = None,
         scroll_to_output: bool = False,
-        show_progress: Literal["full", "minimal", "hidden"] = "full",
+        show_progress: Literal["full", "minimal", "hidden"] | None = None,
         queue: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
@@ -364,6 +364,11 @@ class Selectable(EventListener):
         See EventData documentation on how to use this event data.
         """
 
+    def get_config(self):
+        config = super().get_config()
+        config["selectable"] = self.selectable
+        return config
+
 
 class SelectData(EventData):
     def __init__(self, target: Block | None, data: Any):
@@ -394,6 +399,11 @@ class Likeable(EventListener):
         This event has EventData of type gradio.LikeData that carries information, accessible through LikeData.index and LikeData.value.
         See EventData documentation on how to use this event data.
         """
+
+    def get_config(self):
+        config = super().get_config()
+        config["likeable"] = self.likeable
+        return config
 
 
 class LikeData(EventData):

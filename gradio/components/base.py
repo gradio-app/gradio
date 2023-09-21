@@ -26,7 +26,7 @@ from gradio_client.serializing import (
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
-from gradio.blocks import Block, BlockContext
+from gradio.blocks import Block, BlockContext, Updateable
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
     EventListener,
@@ -50,7 +50,7 @@ class _Keywords(Enum):
     FINISHED_ITERATING = "FINISHED_ITERATING"  # Used to skip processing of a component's value (needed for generators + state)
 
 
-class Component(Block, Serializable):
+class Component(Updateable, Block, Serializable):
     """
     A base class for defining the methods that all gradio components should have.
     """
@@ -64,15 +64,6 @@ class Component(Block, Serializable):
 
     def __repr__(self):
         return f"{self.get_block_name()}"
-
-    def get_config(self):
-        """
-        :return: a dictionary with context variables for the javascript file associated with the context
-        """
-        return {
-            "name": self.get_block_name(),
-            **super().get_config(),
-        }
 
     def preprocess(self, x: Any) -> Any:
         """
@@ -335,20 +326,6 @@ class IOComponent(Component):
         path.write_bytes(data)
         return path
 
-    def get_config(self):
-        config = {
-            "label": self.label,
-            "show_label": self.show_label,
-            "container": self.container,
-            "scale": self.scale,
-            "min_width": self.min_width,
-            "interactive": self.interactive,
-            **super().get_config(),
-        }
-        if self.info:
-            config["info"] = self.info
-        return config
-
     @staticmethod
     def get_load_fn_and_initial_value(value):
         if callable(value):
@@ -382,24 +359,31 @@ def component(cls_name: str) -> Component:
     return obj
 
 
-def get_component_instance(comp: str | dict | Component, render=True) -> Component:
+def get_component_instance(
+    comp: str | dict | Component, render: bool | None = None
+) -> Component:
+    """
+    Returns a component instance from a string, dict, or Component object.
+    Parameters:
+        comp: the component to instantiate. If a string, must be the name of a component, e.g. "dropdown". If a dict, must have a "name" key, e.g. {"name": "dropdown", "choices": ["a", "b"]}. If a Component object, will be returned as is.
+        render: whether to render the component. If True, renders the component (if not already rendered). If False, *unrenders* the component (if already rendered) -- this is useful when constructing an Interface or ChatInterface inside of a Blocks. If None, does not render or unrender the component.
+    """
     if isinstance(comp, str):
         component_obj = component(comp)
-        if not (render):
-            component_obj.unrender()
-        return component_obj
     elif isinstance(comp, dict):
         name = comp.pop("name")
         component_cls = utils.component_or_layout_class(name)
         component_obj = component_cls(**comp)
         if isinstance(component_obj, BlockContext):
             raise ValueError(f"Invalid component: {name}")
-        if not (render):
-            component_obj.unrender()
-        return component_obj
     elif isinstance(comp, Component):
-        return comp
+        component_obj = comp
     else:
         raise ValueError(
             f"Component must provided as a `str` or `dict` or `Component` but is {comp}"
         )
+    if render and not component_obj.is_rendered:
+        component_obj.render()
+    elif render is False and component_obj.is_rendered:
+        component_obj.unrender()
+    return component_obj
