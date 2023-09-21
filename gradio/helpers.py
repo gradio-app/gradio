@@ -10,7 +10,6 @@ import os
 import shutil
 import subprocess
 import tempfile
-import threading
 import warnings
 from functools import partial
 from pathlib import Path
