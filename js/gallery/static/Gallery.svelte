@@ -212,9 +212,9 @@
 				/>
 			</button>
 			{#if _value[selected_image][1]}
-				<div class="caption">
+				<caption class="caption">
 					{_value[selected_image][1]}
-				</div>
+				</caption>
 			{/if}
 			<div
 				bind:this={container_element}
@@ -333,6 +333,7 @@
 		text-align: center;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+		align-self: center;
 	}
 
 	.thumbnails {
