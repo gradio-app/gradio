@@ -6,7 +6,7 @@
 	"main": "./static/index.svelte",
 	"author": "",
 	"license": "ISC",
-	"private": true,
+	"private": false,
 	"main_changeset": true,
 	"exports": {
 		".": "./static/index.svelte",
