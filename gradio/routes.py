@@ -304,10 +304,7 @@ class App(FastAPI):
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
-            if get_space() and request.headers.get("x-direct-url"):
-                root_path = request.headers["x-direct-url"]
-            else:
-                root_path = request.scope.get("root_path", "")
+            root_path = request.scope.get("root_path", "")
 
             if app.auth is None or user is not None:
                 config = app.get_blocks().config
@@ -349,12 +346,7 @@ class App(FastAPI):
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request):
-            if get_space() and request.headers.get("x-direct-url"):
-                root_path = request.headers["x-direct-url"]
-                url = urlparse(root_path)
-                root_path = f"{url.scheme}://{url.hostname}/"
-            else:
-                root_path = request.scope.get("root_path", "")
+            root_path = request.scope.get("root_path", "")
             config = app.get_blocks().config
             config["root"] = root_path
             return config
@@ -401,18 +393,6 @@ class App(FastAPI):
                 return RedirectResponse(
                     url=path_or_url, status_code=status.HTTP_302_FOUND
                 )
-
-            # if get_space() and request.headers["x-direct-url"]:
-            #     root_path = request.headers["x-direct-url"]
-            #     url = urlparse(root_path)
-            #     print(request.url.hostname)
-            #     print(url.hostname)
-            #     if request.url.hostname != url.hostname:
-            #         print("HERE")
-            #         root_path = f"{url.scheme}://{url.hostname}/file={path_or_url}"
-            #         return RedirectResponse(
-            #             url=root_path, status_code=status.HTTP_302_FOUND
-            #         )
 
             abs_path = utils.abspath(path_or_url)
 
