@@ -91,9 +91,9 @@ BUILT_IN_THEMES: dict[str, Theme] = {
 
 
 def in_event_listener():
-    from gradio import context
+    from gradio.context import LocalContext
 
-    return getattr(context.thread_data, "in_event_listener", False)
+    return LocalContext.in_event_listener.get()
 
 
 def updateable(fn):
@@ -1135,7 +1135,11 @@ class Blocks(BlockContext):
         start = time.time()
 
         fn = utils.get_function_with_locals(
-            block_fn.fn, self, event_id, in_event_listener
+            fn=block_fn.fn,
+            blocks=self,
+            event_id=event_id,
+            in_event_listener=in_event_listener,
+            request=request,
         )
 
         if iterator is None:  # If not a generator function that has already run
