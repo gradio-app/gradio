@@ -1,5 +1,13 @@
 # @gradio/accordion
 
+## 0.1.0-beta.5
+
+### Patch Changes
+
+- Updated dependencies [[`c573e2339`](https://github.com/gradio-app/gradio/commit/c573e2339b86c85b378dc349de5e9223a3c3b04a)]:
+  - @gradio/column@0.1.0-beta.1
+  - @gradio/statustracker@0.3.0-beta.5
+
 ## 0.1.0-beta.4
 
 ### Patch Changes
