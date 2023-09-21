@@ -568,6 +568,10 @@ class Client:
                 raise ValueError(error_message)
         elif fn_index is not None:
             inferred_fn_index = fn_index
+            if inferred_fn_index >= len(self.endpoints) or not self.endpoints[inferred_fn_index].is_valid:
+                raise ValueError(
+                    f"This Gradio app does not provide access to a function with index: {fn_index}."
+                )
         else:
             valid_endpoints = [
                 e for e in self.endpoints if e.is_valid and e.api_name is not None
@@ -759,8 +763,8 @@ class Endpoint:
         self.fn_index = fn_index
         self.dependency = dependency
         api_name = dependency.get("api_name")
-        self.api_name: str | None = (
-            None if (api_name is None or api_name is False) else "/" + api_name
+        self.api_name: str | Literal[False] | None = (
+            "/" + api_name if isinstance(api_name, str) else api_name 
         )
         self.use_ws = self._use_websocket(self.dependency)
         self.input_component_types = []
