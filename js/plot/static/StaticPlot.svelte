@@ -27,7 +27,7 @@
 	export let gradio: Gradio<{
 		change: never;
 	}>;
-	export let show_actions_button: boolean = false;
+	export let show_actions_button = false;
 </script>
 
 <Block
