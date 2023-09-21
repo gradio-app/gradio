@@ -43,7 +43,14 @@
 			<div class="children">
 				{#each Object.entries(value) as node, i}
 					<div>
-						{node[0]}: <svelte:self value={node[1]} depth={depth + 1} key={i} />
+						{node[0]}: <svelte:self
+							value={node[1]}
+							depth={depth + 1}
+							key={i}
+						/><!--
+		-->{#if i !== Object.keys(value).length - 1}<!--
+		-->,
+						{/if}
 					</div>
 				{/each}
 			</div>

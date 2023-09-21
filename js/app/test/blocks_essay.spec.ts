@@ -20,8 +20,8 @@ test("updates frontend correctly", async ({ page }) => {
 });
 
 test("updates backend correctly", async ({ page }) => {
-	const min_slider = await page.getByLabel("min");
-	const max_slider = await page.getByLabel("max");
+	const min_slider = await page.getByText("min");
+	const max_slider = await page.getByText("max");
 	const num = await page.getByLabel("input");
 	const output = await page.getByLabel("out");
 
