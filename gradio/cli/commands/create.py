@@ -107,9 +107,11 @@ def _create_backend(name: str, template: str, directory: pathlib.Path, package_n
 import gradio as gr
 from {package_name} import {name}
 
+example = {name}().example_inputs()
+
 with gr.Blocks() as demo:
-    {name}(interactive=True)
-    {name}(interactive=False)
+    {name}(value=example, interactive=True)
+    {name}(value=example, interactive=False)
     
 
 demo.launch()
@@ -149,11 +151,11 @@ __all__ = ['{name}']
             shutil.copy(str(source_pyi_file), str(pyi_file))
 
         content = python_file.read_text()
-        python_file.write_text(content.replace(f"class {template}", f"class {name}"))
+        python_file.write_text(content.replace(f"class {template}(", f"class {name}("))
         if pyi_file.exists():
             pyi_content = pyi_file.read_text()
             pyi_file.write_text(
-                pyi_content.replace(f"class {template}", f"class {name}")
+                pyi_content.replace(f"class {template}(", f"class {name}(")
             )
 
 
@@ -297,6 +299,10 @@ def dev(
         stderr=subprocess.STDOUT,
     )
     while True:
+        proc.poll()
+        if proc.returncode is not None:
+            print("Backend server failed to launch. Exiting.")
+            return
         text = proc.stdout.readline()
         text = (
             text.decode("utf-8")
