@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Optional, Union
 
 import fastapi
 from gradio_client.documentation import document, set_documentation_group
+from starlette.datastructures import URL, QueryParams
 
 from gradio import utils
 from gradio.data_classes import PredictBody
@@ -118,6 +119,10 @@ class Request:
                     f"'Request' object has no attribute '{name}'"
                 ) from ke
             return self.dict_to_obj(obj)
+
+    @property
+    def query_params(self):
+        return dict(QueryParams(URL(self.request.headers["referer"]).query))
 
 
 class FnIndexInferError(Exception):
