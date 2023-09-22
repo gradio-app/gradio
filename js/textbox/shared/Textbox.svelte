@@ -32,8 +32,6 @@
 	let copied = false;
 	let timer: NodeJS.Timeout;
 	let can_scroll: boolean;
-	let previousScrollTop: number;
-	let user_has_scrolled_up = false;
 
 	$: value, el && lines !== max_lines && resize({ target: el });
 
@@ -53,7 +51,7 @@
 	});
 
 	const scroll = (): void => {
-		if (can_scroll && autoscroll && !user_has_scrolled_up) {
+		if (can_scroll && autoscroll) {
 			el.scrollTo(0, el.scrollHeight);
 		}
 	};
@@ -113,15 +111,6 @@
 			e.preventDefault();
 			dispatch("submit");
 		}
-	}
-
-	function handle_scroll(event: Event): void {
-		const target = event.target as HTMLElement;
-		const currentScrollTop = target.scrollTop;
-		if (currentScrollTop < previousScrollTop) {
-			user_has_scrolled_up = true;
-		}
-		previousScrollTop = currentScrollTop;
 	}
 
 	async function resize(
@@ -248,7 +237,6 @@
 			on:blur
 			on:select={handle_select}
 			on:focus
-			on:scroll={handle_scroll}
 			style={text_align ? "text-align: " + text_align : ""}
 		/>
 	{/if}
