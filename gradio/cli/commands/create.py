@@ -5,7 +5,7 @@ import json
 import pathlib
 import shutil
 import subprocess
-from typing import Optional
+from typing import Literal, Optional
 
 import typer
 from rich import print
@@ -45,6 +45,18 @@ def get_js_dependency_version(name: str, local_js_dir: pathlib.Path) -> str:
     return package_json["version"]
 
 
+def _modify_js_deps(package_json: dict,
+                    key: Literal["dependencies", "devDependencies"],
+                    gradio_dir: pathlib.Path):
+    for dep in package_json.get(key, []):
+        # if curent working directory is the gradio repo, use the local version of the dependency'
+        if not in_test_dir() and dep.startswith("@gradio/"):
+            package_json[key][dep] = get_js_dependency_version(
+                dep, gradio_dir / "_frontend_code"
+            )
+    return package_json
+
+
 def _create_frontend(name: str, template: str, directory: pathlib.Path):
     frontend = directory / "frontend"
     frontend.mkdir(exist_ok=True)
@@ -75,12 +87,8 @@ def _create_frontend(name: str, template: str, directory: pathlib.Path):
     )
     source_package_json = json.load(open(str(frontend / "package.json")))
     source_package_json["name"] = name.lower()
-    for dep in source_package_json.get("dependencies", []):
-        # if curent working directory is the gradio repo, use the local version of the dependency'
-        if not in_test_dir() and dep.startswith("@gradio/"):
-            source_package_json["dependencies"][dep] = get_js_dependency_version(
-                dep, p / "_frontend_code"
-            )
+    source_package_json = _modify_js_deps(source_package_json, "dependencies", p)
+    source_package_json = _modify_js_deps(source_package_json, "devDependencies", p)
 
     json.dump(source_package_json, open(str(frontend / "package.json"), "w"), indent=2)
 
@@ -140,12 +148,19 @@ __all__ = ['{name}']
         p = pathlib.Path(inspect.getfile(gradio)).parent
         python_file = backend / f"{name.lower()}.py"
 
+        if template in gradio.components.__all__:
+            module = "components"
+        elif template in gradio.layouts.__all__:
+            module = "layouts"
+        else:
+            raise ValueError(f"Cannot find {template} in gradio.components or gradio.layouts")
+
         shutil.copy(
-            str(p / "components" / f"{template.lower()}.py"),
+            str(p / module / f"{template.lower()}.py"),
             str(python_file),
         )
 
-        source_pyi_file = p / "components" / f"{template.lower()}.pyi"
+        source_pyi_file = p / module / f"{template.lower()}.pyi"
         pyi_file = backend / f"{name.lower()}.pyi"
         if source_pyi_file.exists():
             shutil.copy(str(source_pyi_file), str(pyi_file))

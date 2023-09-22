@@ -417,11 +417,11 @@ class Examples:
 def merge_generated_values_into_output(
     components: list[Component], generated_values: list, output: list
 ):
-    from gradio.events import StreamableOutput
+    from gradio.components.base import StreamingOutput
 
     for output_index, output_component in enumerate(components):
         if (
-            isinstance(output_component, StreamableOutput)
+            isinstance(output_component, StreamingOutput)
             and output_component.streaming
         ):
             binary_chunks = []

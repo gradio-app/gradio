@@ -475,7 +475,7 @@ class StreamingOutput(metaclass=abc.ABCMeta):
         self.streaming: bool
 
     @abc.abstractmethod
-    def stream_output(self, y) -> bytes:
+    def stream_output(self, y, output_id: str, first_chunk: bool) -> tuple[bytes, Any]:
         pass
 
 
