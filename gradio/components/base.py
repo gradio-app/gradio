@@ -347,7 +347,10 @@ class Component(ComponentBase, Block):
         config = super().get_config()
         if self.info:
             config["info"] = self.info
-        custom = not (self.__module__.startswith("gradio.components") or self.__module__.startswith("gradio.layouts"))
+        custom = not (
+            self.__module__.startswith("gradio.components")
+            or self.__module__.startswith("gradio.layouts")
+        )
         config["custom_component"] = custom
         for e in self.events:
             to_add = e.config_data()
@@ -475,7 +478,7 @@ class StreamingOutput(metaclass=abc.ABCMeta):
         self.streaming: bool
 
     @abc.abstractmethod
-    def stream_output(self, y) -> bytes:
+    def stream_output(self, y, output_id: str, first_chunk: bool) -> tuple[bytes, Any]:
         pass
 
 

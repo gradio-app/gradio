@@ -5,13 +5,13 @@ from __future__ import annotations
 import pathlib
 import secrets
 import shutil
+from abc import ABC, abstractmethod
 from enum import Enum, auto
 from typing import Any, Optional, Union
 
 from gradio_client.utils import traverse
 from pydantic import BaseModel, RootModel
 from typing_extensions import Literal
-from abc import abstractmethod, ABC
 
 
 class PredictBody(BaseModel):
