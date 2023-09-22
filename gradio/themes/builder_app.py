@@ -878,7 +878,7 @@ with gr.Blocks(theme=theme) as demo:
         )
         attach_rerender(
             secondary_hue.select(
-                load_color, secondary_hue, secondary_hue, api_name=False
+                load_color, secondary_hue, secondary_hues, api_name=False
             ).then
         )
         attach_rerender(

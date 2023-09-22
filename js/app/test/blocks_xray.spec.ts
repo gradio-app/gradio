@@ -12,8 +12,8 @@ test("renders the correct elements", async ({ page }) => {
 });
 
 test("can run an api request and display the data", async ({ page }) => {
-	await page.getByLabel("Covid").check();
-	await page.getByLabel("Lung Cancer").check();
+	await page.getByTitle("Covid").check();
+	await page.getByTitle("Lung Cancer").check();
 
 	const run_button = await page.locator("button", { hasText: /Run/ }).first();
 
