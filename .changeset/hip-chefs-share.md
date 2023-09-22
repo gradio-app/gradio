@@ -4,4 +4,4 @@
 "gradio_client": minor
 ---
 
-feat:Some fixes to the Clients [WIP]
+feat:Prevent Clients from accessing API endpoints that set `api_name=False`
