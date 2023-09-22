@@ -570,7 +570,7 @@ class Client:
             inferred_fn_index = fn_index
             if inferred_fn_index >= len(self.endpoints) or not self.endpoints[inferred_fn_index].is_valid:
                 raise ValueError(
-                    f"This Gradio app does not provide access to a function with index: {fn_index}."
+                    f"Cannot access endpoint with fn_index: {fn_index}."
                 )
         else:
             valid_endpoints = [
