@@ -568,10 +568,11 @@ class Client:
                 raise ValueError(error_message)
         elif fn_index is not None:
             inferred_fn_index = fn_index
-            if inferred_fn_index >= len(self.endpoints) or not self.endpoints[inferred_fn_index].is_valid:
-                raise ValueError(
-                    f"Cannot access endpoint with fn_index: {fn_index}."
-                )
+            if (
+                inferred_fn_index >= len(self.endpoints)
+                or not self.endpoints[inferred_fn_index].is_valid
+            ):
+                raise ValueError(f"Cannot access endpoint with fn_index: {fn_index}.")
         else:
             valid_endpoints = [
                 e for e in self.endpoints if e.is_valid and e.api_name is not None
@@ -764,7 +765,7 @@ class Endpoint:
         self.dependency = dependency
         api_name = dependency.get("api_name")
         self.api_name: str | Literal[False] | None = (
-            "/" + api_name if isinstance(api_name, str) else api_name 
+            "/" + api_name if isinstance(api_name, str) else api_name
         )
         self.use_ws = self._use_websocket(self.dependency)
         self.input_component_types = []
