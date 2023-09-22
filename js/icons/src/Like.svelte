@@ -1,37 +1,9 @@
-<svg
-	viewBox="0 0 32 32"
-	height="100%"
-	width="100%"
-	version="1.1"
-	xmlns="http://www.w3.org/2000/svg"
-	xmlns:xlink="http://www.w3.org/1999/xlink"
-	fill="currentColor"
-	><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g
-		id="SVGRepo_tracerCarrier"
+<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+	><g stroke-width="0" /><g
 		stroke-linecap="round"
 		stroke-linejoin="round"
-	></g><g id="SVGRepo_iconCarrier">
-		<title>like [#1385]</title> <desc>Created with Sketch.</desc> <defs> </defs>
-		<g
-			id="Page-1"
-			stroke="none"
-			stroke-width="1"
-			fill="none"
-			fill-rule="evenodd"
-		>
-			<g
-				id="Dribbble-Light-Preview"
-				transform="translate(-259.000000, -760.000000)"
-				fill="currentColor"
-			>
-				<g id="icons" transform="translate(56.000000, 160.000000)">
-					<path
-						d="M203,620 L207.200006,620 L207.200006,608 L203,608 L203,620 Z M223.924431,611.355 L222.100579,617.89 C221.799228,619.131 220.638976,620 219.302324,620 L209.300009,620 L209.300009,608.021 L211.104962,601.825 C211.274012,600.775 212.223214,600 213.339366,600 C214.587817,600 215.600019,600.964 215.600019,602.153 L215.600019,608 L221.126177,608 C222.97313,608 224.340232,609.641 223.924431,611.355 L223.924431,611.355 Z"
-						id="like-[#1385]"
-					>
-					</path>
-				</g>
-			</g>
-		</g>
-	</g></svg
+	/><path
+		d="M0 20h4.2V8H0v12Zm20.924-8.645-1.823 6.535c-.302 1.241-1.462 2.11-2.799 2.11H6.3V8.021l1.805-6.196C8.274.775 9.223 0 10.339 0 11.588 0 12.6.964 12.6 2.153V8h5.526c1.847 0 3.214 1.641 2.798 3.355Z"
+		fill-rule="evenodd"
+	/></svg
 >
