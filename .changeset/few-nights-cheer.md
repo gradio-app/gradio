@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:fix: builder_app.py
+feat:Fix secondary hue bug in gr.themes.builder()
