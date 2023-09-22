@@ -62,7 +62,12 @@ test("Slider Default Value And Label rendered", async ({ mount }) => {
 		}
 	});
 	await expect(component).toContainText("My Slider");
-	await expect(component.getByLabel("My Slider")).toHaveValue("3");
+
+	expect(
+		component.getByRole("spinbutton", {
+			name: "My Slider"
+		})
+	).toHaveValue("3");
 });
 
 test("Slider respects show_label", async ({ mount, page }) => {
