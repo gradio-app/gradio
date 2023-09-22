@@ -20,7 +20,7 @@ from gradio.exceptions import ServerFailedToStartError
 from gradio.routes import App
 from gradio.tunneling import Tunnel
 from gradio.utils import SourceFileReloader, watchfn
-
+from gradio import requests_unixsocket
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio.blocks import Blocks
 
@@ -156,6 +156,12 @@ def start_server(
 
     app = App.create_app(blocks, app_kwargs=app_kwargs)
 
+    uds = None
+    if host.startswith("/"):
+        uds = host
+        host = None
+        server_port = 0
+
     server_ports = (
         [server_port]
         if server_port is not None
@@ -164,15 +170,16 @@ def start_server(
 
     for port in server_ports:
         try:
-            # The fastest way to check if a port is available is to try to bind to it with socket.
-            # If the port is not available, socket will throw an OSError.
-            s = socket.socket()
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            # Really, we should be checking if (server_name, server_port) is available, but
-            # socket.bind() doesn't seem to throw an OSError with ipv6 addresses, based on my testing.
-            # Instead, we just check if the port is available on localhost.
-            s.bind((LOCALHOST_NAME, port))
-            s.close()
+            if host is not None:
+                # The fastest way to check if a port is available is to try to bind to it with socket.
+                # If the port is not available, socket will throw an OSError.
+                s = socket.socket()
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                # Really, we should be checking if (server_name, server_port) is available, but
+                # socket.bind() doesn't seem to throw an OSError with ipv6 addresses, based on my testing.
+                # Instead, we just check if the port is available on localhost.
+                s.bind((LOCALHOST_NAME, port))
+                s.close()
 
             # To avoid race conditions, so we also check if the port by trying to start the uvicorn server.
             # If the port is not available, this will throw a ServerFailedToStartError.
@@ -180,6 +187,7 @@ def start_server(
                 app=app,
                 port=port,
                 host=host,
+                uds=uds,
                 log_level="warning",
                 ssl_keyfile=ssl_keyfile,
                 ssl_certfile=ssl_certfile,
@@ -211,6 +219,9 @@ def start_server(
         path_to_local_server = f"https://{url_host_name}:{port}/"
     else:
         path_to_local_server = f"http://{url_host_name}:{port}/"
+
+    if server_name.startswith("/"):
+        path_to_local_server = "http+unix://" + server_name.replace("/", "%2F") + "/"
 
     return server_name, port, path_to_local_server, app, server
 

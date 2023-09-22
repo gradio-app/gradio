@@ -35,6 +35,7 @@ from gradio import (
     themes,
     utils,
     wasm_utils,
+    requests_unixsocket,
 )
 from gradio.blocks_events import BlocksEvents, BlocksMeta
 from gradio.context import Context
@@ -1876,6 +1877,8 @@ Received outputs:
             if not wasm_utils.IS_WASM:
                 # Cannot run async functions in background other than app's scope.
                 # Workaround by triggering the app endpoint
+                if self.local_url.startswith(requests_unixsocket.DEFAULT_SCHEME):
+                    requests_unixsocket.monkeypatch()
                 requests.get(f"{self.local_url}startup-events", verify=ssl_verify)
             else:
                 # NOTE: One benefit of the code above dispatching `startup_events()` via a self HTTP request is

@@ -55,8 +55,8 @@ class TestInterfaceErrors:
 
 class TestStartServer:
     # Test IPv4 and IPv6 hostnames as they would be passed from --server-name.
-    @pytest.mark.parametrize("host", ["127.0.0.1", "[::1]"])
-    def test_start_server(self, host):
+    @pytest.mark.parametrize("host,scheme", [("127.0.0.1", "http"), ("[::1]", "http"), ("/tmp/test.socket", "http+unix")])
+    def test_start_server(self, host, scheme):
         io = Interface(lambda x: x, "number", "number")
         io.favicon_path = None
         io.config = io.get_config_file()
@@ -65,14 +65,23 @@ class TestStartServer:
         io.auth = None
         io.host = host
 
-        port = networking.get_first_available_port(
-            networking.INITIAL_PORT_VALUE,
-            networking.INITIAL_PORT_VALUE + networking.TRY_NUM_PORTS,
-        )
-        _, _, local_path, _, server = networking.start_server(io, server_port=port)
+        port = None
+        if scheme == "http":
+            port = networking.get_first_available_port(
+                networking.INITIAL_PORT_VALUE,
+                networking.INITIAL_PORT_VALUE + networking.TRY_NUM_PORTS,
+            )
+        _, _, local_path, _, server = networking.start_server(io, server_port=port, server_name=host)
         url = urllib.parse.urlparse(local_path)
-        assert url.scheme == "http"
+        assert url.scheme == scheme
         assert url.port == port
+        if scheme == "http":
+            assert server.config.uds is None
+            assert server.config.host == host.replace("[", "").replace("]", "")
+        else:
+            assert server.config.uds == host
+            assert server.config.host is None
+
         server.close()
 
 
