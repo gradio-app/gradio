@@ -116,7 +116,7 @@
 		`https://cdn.pydata.org/bokeh/release/bokeh-widgets-${bokeh_version}.min.js`,
 		`https://cdn.pydata.org/bokeh/release/bokeh-tables-${bokeh_version}.min.js`,
 		`https://cdn.pydata.org/bokeh/release/bokeh-gl-${bokeh_version}.min.js`,
-		`https://cdn.pydata.org/bokeh/release/bokeh-api-${bokeh_version}.min.js`
+		`https://cdn.pydata.org/bokeh/release/bokeh-api-${bokeh_version}.min.js`,
 	];
 
 	function load_plugins(): HTMLScriptElement[] {
@@ -201,8 +201,7 @@
 	</div>
 {:else if type == "matplotlib"}
 	<div data-testid={"matplotlib"} class="matplotlib layout">
-		<!-- svelte-ignore a11y-missing-attribute -->
-		<img src={plot} />
+		<img src={plot} alt={`${value.chart} plot visualising provided data`} />
 	</div>
 {:else}
 	<Empty unpadded_box={true} size="large"><PlotIcon /></Empty>
