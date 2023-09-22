@@ -2097,6 +2097,7 @@ class TestChatbot:
             "show_copy_button": False,
             "avatar_images": (None, None),
             "sanitize_html": True,
+            "render_markdown": True,
             "bubble_full_width": True,
         }
 
