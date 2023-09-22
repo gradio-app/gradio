@@ -12,7 +12,7 @@ test("test inputs", async ({ page }) => {
 	await textbox2.fill("hello world");
 	await expect(textbox2).toHaveValue("hello world");
 
-	const number = await page.getByLabel("Number");
+	const number = await page.getByLabel("Number").first();
 	await expect(number).toHaveValue("42");
 	await number.fill("10");
 	await expect(number).toHaveValue("10");

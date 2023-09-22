@@ -4,9 +4,9 @@ test("selecting matplotlib should show matplotlib image and pressing clear shoul
 	page
 }) => {
 	await page.getByLabel("Plot Type").click();
-	await page.getByRole("button", { name: "Matplotlib" }).click();
+	await page.getByRole("option", { name: "Matplotlib" }).click();
 	await page.getByLabel("Month").click();
-	await page.getByRole("button", { name: "January" }).click();
+	await page.getByRole("option", { name: "January" }).click();
 	await page.getByLabel("Social Distancing?").check();
 
 	await Promise.all([
@@ -26,9 +26,9 @@ test("selecting plotly should show plotly plot and pressing clear should clear o
 	page
 }) => {
 	await page.getByLabel("Plot Type").click();
-	await page.getByRole("button", { name: "Plotly" }).click();
+	await page.getByRole("option", { name: "Plotly" }).click();
 	await page.getByLabel("Month").click();
-	await page.getByRole("button", { name: "January" }).click();
+	await page.getByRole("option", { name: "January" }).click();
 	await page.getByLabel("Social Distancing?").check();
 
 	await Promise.all([
@@ -44,9 +44,9 @@ test("selecting altair should show altair plot and pressing clear should clear o
 	page
 }) => {
 	await page.getByLabel("Plot Type").click();
-	await page.getByRole("button", { name: "altair" }).click();
+	await page.getByRole("option", { name: "altair" }).click();
 	await page.getByLabel("Month").click();
-	await page.getByRole("button", { name: "January" }).click();
+	await page.getByRole("option", { name: "January" }).click();
 	await page.getByLabel("Social Distancing?").check();
 
 	await Promise.all([
@@ -66,9 +66,9 @@ test("switching between all 3 plot types and pressing submit should update outpu
 }) => {
 	//Matplotlib
 	await page.getByLabel("Plot Type").click();
-	await page.getByRole("button", { name: "Matplotlib" }).click();
+	await page.getByRole("option", { name: "Matplotlib" }).click();
 	await page.getByLabel("Month").click();
-	await page.getByRole("button", { name: "January" }).click();
+	await page.getByRole("option", { name: "January" }).click();
 	await page.getByLabel("Social Distancing?").check();
 
 	await Promise.all([
@@ -82,7 +82,7 @@ test("switching between all 3 plot types and pressing submit should update outpu
 
 	//Plotly
 	await page.getByLabel("Plot Type").click();
-	await page.getByRole("button", { name: "Plotly" }).click();
+	await page.getByRole("option", { name: "Plotly" }).click();
 
 	await Promise.all([
 		page.click("text=Submit"),
@@ -92,7 +92,7 @@ test("switching between all 3 plot types and pressing submit should update outpu
 
 	//Altair
 	await page.getByLabel("Plot Type").click();
-	await page.getByRole("button", { name: "Altair" }).click();
+	await page.getByRole("option", { name: "Altair" }).click();
 
 	await Promise.all([
 		page.click("text=Submit"),

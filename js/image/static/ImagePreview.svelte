@@ -58,16 +58,9 @@
 			/>
 		{/if}
 	</div>
-	<!-- TODO: fix -->
-	<!-- svelte-ignore a11y-click-events-have-key-events -->
-	<!-- svelte-ignore a11y-no-noninteractive-element-interactions-->
-	<img
-		src={value}
-		alt=""
-		class:selectable
-		on:click={handle_click}
-		loading="lazy"
-	/>
+	<button on:click={handle_click}>
+		<img src={value} alt="" class:selectable loading="lazy" />
+	</button>
 {/if}
 
 <style>

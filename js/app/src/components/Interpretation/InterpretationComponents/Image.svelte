@@ -67,8 +67,7 @@
 		<div class="interpretation">
 			<canvas bind:this={saliency_layer} />
 		</div>
-		<!-- svelte-ignore a11y-missing-attribute -->
-		<img bind:this={image} src={original} />
+		<img bind:this={image} src={original} alt="uploaded input" />
 	</div>
 </div>
 
