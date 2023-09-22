@@ -20,10 +20,9 @@ test("updates frontend correctly", async ({ page }) => {
 });
 
 test("updates backend correctly", async ({ page }) => {
-	const min_slider = await page.getByText("min");
-	const max_slider = await page.getByText("max");
-	const num = await page.getByLabel("input");
-	const output = await page.getByLabel("out");
+	const min_slider = await page.getByLabel("number input for min");
+	const num = await page.getByLabel("input number input");
+	const output = await page.getByLabel("output number input");
 
 	await min_slider.fill("10");
 	await num.fill("15");
