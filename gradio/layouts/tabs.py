@@ -1,13 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.blocks import BlockContext
 from gradio.component_meta import ComponentMeta
 from gradio.events import Events
-
 
 set_documentation_group("layout")
 

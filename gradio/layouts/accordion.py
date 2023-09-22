@@ -1,17 +1,14 @@
 from __future__ import annotations
 
-import warnings
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.blocks import BlockContext
 from gradio.component_meta import ComponentMeta
-from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
-from gradio.events import Events
 
 if TYPE_CHECKING:
-    from gradio.blocks import Block
+    pass
 
 set_documentation_group("layout")
 

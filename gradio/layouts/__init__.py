@@ -2,10 +2,9 @@ from .accordion import Accordion
 from .box import Box
 from .column import Column
 from .form import Form
-from .row import Row
 from .group import Group
-from .tabs import Tabs, Tab, TabItem
-
+from .row import Row
+from .tabs import Tab, TabItem, Tabs
 
 __all__ = [
     "Accordion",

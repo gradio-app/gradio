@@ -347,7 +347,10 @@ class Component(ComponentBase, Block):
         config = super().get_config()
         if self.info:
             config["info"] = self.info
-        custom = not (self.__module__.startswith("gradio.components") or self.__module__.startswith("gradio.layouts"))
+        custom = not (
+            self.__module__.startswith("gradio.components")
+            or self.__module__.startswith("gradio.layouts")
+        )
         config["custom_component"] = custom
         for e in self.events:
             to_add = e.config_data()

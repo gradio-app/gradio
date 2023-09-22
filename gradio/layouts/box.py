@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import warnings
 
-
 from gradio.blocks import BlockContext
 from gradio.component_meta import ComponentMeta
 from gradio.deprecation import warn_style_method_deprecation

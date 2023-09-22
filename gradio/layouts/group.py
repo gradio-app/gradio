@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.blocks import BlockContext
 from gradio.component_meta import ComponentMeta
 
 set_documentation_group("layout")
+
 
 @document()
 class Group(BlockContext, metaclass=ComponentMeta):

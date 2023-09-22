@@ -323,7 +323,10 @@ class Block:
             if hasattr(self, parameter.name):
                 value = getattr(self, parameter.name)
                 config[parameter.name] = value
-        custom = not (self.__module__.startswith("gradio.components") or self.__module__.startswith("gradio.layouts"))
+        custom = not (
+            self.__module__.startswith("gradio.components")
+            or self.__module__.startswith("gradio.layouts")
+        )
         config["custom_component"] = custom
         for e in self.events:
             to_add = e.config_data()

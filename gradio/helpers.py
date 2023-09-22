@@ -420,10 +420,7 @@ def merge_generated_values_into_output(
     from gradio.components.base import StreamingOutput
 
     for output_index, output_component in enumerate(components):
-        if (
-            isinstance(output_component, StreamingOutput)
-            and output_component.streaming
-        ):
+        if isinstance(output_component, StreamingOutput) and output_component.streaming:
             binary_chunks = []
             for i, chunk in enumerate(generated_values):
                 if len(components) > 1:

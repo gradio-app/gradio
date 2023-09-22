@@ -14,7 +14,6 @@ if TYPE_CHECKING:
 set_documentation_group("layout")
 
 
-
 class Form(BlockContext, metaclass=ComponentMeta):
     EVENTS = []
 
@@ -34,4 +33,3 @@ class Form(BlockContext, metaclass=ComponentMeta):
             self.scale += 1 if scale is None else scale
             self.min_width += getattr(child, "min_width", 0) or 0
         BlockContext.add_child(self, child)
-
