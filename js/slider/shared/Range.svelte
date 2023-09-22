@@ -66,7 +66,7 @@
 		</label>
 
 		<input
-			aria-label={label}
+			aria-label={`number input for ${label}`}
 			data-testid="number-input"
 			type="number"
 			bind:value
@@ -92,7 +92,7 @@
 	{step}
 	{disabled}
 	on:pointerup={handle_release}
-	aria-label="Range slider"
+	aria-label={`range slider for ${label}`}
 />
 
 <style>

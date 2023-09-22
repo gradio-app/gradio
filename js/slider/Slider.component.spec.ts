@@ -100,11 +100,28 @@ test("Slider Maximum/Minimum values", async ({ mount, page }) => {
 			}
 		}
 	});
-	const slider = component.getByLabel("My Slider");
-	await changeSlider(page, slider, slider, 1);
-	await expect(component.getByLabel("My Slider")).toHaveValue("10");
-	await changeSlider(page, slider, slider, 0);
-	await expect(component.getByLabel("My Slider")).toHaveValue("0");
+
+	const sliderNumberInput = component.getByRole("spinbutton", {
+		name: "My Slider"
+	});
+
+	await expect(sliderNumberInput).toHaveValue("3");
+
+	await sliderNumberInput.press("ArrowUp");
+
+	await expect(sliderNumberInput).toHaveValue("4");
+
+	const sliderRangeInput = component.getByRole("slider");
+
+	await sliderRangeInput.focus();
+
+	sliderRangeInput.press("ArrowRight");
+
+	await expect(sliderNumberInput).toHaveValue("5");
+
+	changeSlider(page, sliderRangeInput, sliderRangeInput, 2);
+
+	await expect(sliderNumberInput).toHaveValue("10");
 });
 
 test("Slider Change event", async ({ mount, page }) => {
@@ -133,10 +150,17 @@ test("Slider Change event", async ({ mount, page }) => {
 		}
 	});
 
-	const slider = page.getByLabel("Slider");
+	const sliderNumberInput = component.getByRole("spinbutton", {
+		name: "My Slider"
+	});
 
-	await changeSlider(page, slider, slider, 0.7);
-	await expect(component.getByLabel("My Slider")).toHaveValue("7");
+	const sliderRangeInput = component.getByRole("slider");
+
+	await expect(sliderNumberInput).toHaveValue("3");
+
+	await changeSlider(page, sliderRangeInput, sliderRangeInput, 0.7);
+
+	await expect(sliderNumberInput).toHaveValue("7");
 
 	// More than one change event and one release event.
 	await expect(events.change).toBeGreaterThanOrEqual(1);
