@@ -31,8 +31,8 @@
 
 		<div class="flex-col md:w-1/2 lg:w-1/3">
 			{#each LOGO_OPTIONS as logo}
-				<div class="mt-8 flex items-center justify-between">
-					<div class="h-12 ml-2 mr-4 flex-1">
+				<div class="mt-8 flex items-center">
+					<div class="h-12 ml-2 mr-4">
 						<img
 							src={logo.thumbnailUrl}
 							alt={logo.thumbnailAlt}
