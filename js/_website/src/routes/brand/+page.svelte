@@ -28,7 +28,6 @@
 	</h2>
 
 	<section class="mb-8">
-		<h3 class="mb-4 text-2xl font-thin block">Gradio Logos</h3>
 
 		<div class="flex-col md:w-1/2 lg:w-1/3">
 			{#each LOGO_OPTIONS as logo}
