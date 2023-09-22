@@ -30,14 +30,14 @@
 	<section class="mb-8">
 		<h3 class="mb-4 text-2xl font-thin block">Gradio Logos</h3>
 
-		<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+		<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 			{#each LOGO_OPTIONS as logo}
 				<div class="pt-4 flex items-center justify-between">
-					<div class="h-16 flex-grow">
+					<div class="h-12 ml-2 mr-4 flex-1">
 						<img
 							src={logo.thumbnailUrl}
 							alt={logo.thumbnailAlt}
-							class="w-full h-full object-contain"
+							class="w-full h-full object-contain object-left"
 						/>
 					</div>
 					<ul class="space-y-2 px-2">
