@@ -21,8 +21,8 @@ test("updates frontend correctly", async ({ page }) => {
 
 test("updates backend correctly", async ({ page }) => {
 	const min_slider = await page.getByLabel("number input for min");
-	const num = await page.getByLabel("input number input");
-	const output = await page.getByLabel("output number input");
+	const num = await page.getByLabel("input").first();
+	const output = await page.getByLabel("output");
 
 	await min_slider.fill("10");
 	await num.fill("15");
