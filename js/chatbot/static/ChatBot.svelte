@@ -137,6 +137,7 @@
 							class:latest={i === value.length - 1}
 							class="message {j == 0 ? 'user' : 'bot'}"
 							class:message-fit={!bubble_full_width}
+							class:message-markdown-disabled={!render_markdown}
 							class:selectable
 							on:click={() => handle_select(i, j, message)}
 							dir={rtl ? "rtl" : "ltr"}
@@ -276,6 +277,9 @@
 	}
 	.message-fit.user {
 		margin-left: auto;
+	}
+	.message-markdown-disabled {
+		white-space: pre-line;
 	}
 	.user {
 		align-self: flex-end;
