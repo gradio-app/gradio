@@ -126,9 +126,9 @@ def create_or_modify_pyi(
 
 
 def in_event_listener():
-    from gradio import context
+    from gradio.context import LocalContext
 
-    return getattr(context.thread_data, "in_event_listener", False)
+    return LocalContext.in_event_listener.get()
 
 
 def updateable(fn):

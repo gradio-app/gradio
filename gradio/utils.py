@@ -45,7 +45,7 @@ from gradio.strings import en
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext, Blocks
     from gradio.components import Component
-    from gradio.routes import App
+    from gradio.routes import App, Request
 
 JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 
@@ -662,19 +662,25 @@ def function_wrapper(
 
 
 def get_function_with_locals(
-    fn: Callable, blocks: Blocks, event_id: str | None, in_event_listener: bool
+    fn: Callable,
+    blocks: Blocks,
+    event_id: str | None,
+    in_event_listener: bool,
+    request: Request | None,
 ):
     def before_fn(blocks, event_id):
-        from gradio.context import thread_data
+        from gradio.context import LocalContext
 
-        thread_data.blocks = blocks
-        thread_data.in_event_listener = in_event_listener
-        thread_data.event_id = event_id
+        LocalContext.blocks.set(blocks)
+        LocalContext.in_event_listener.set(in_event_listener)
+        LocalContext.event_id.set(event_id)
+        LocalContext.request.set(request)
 
     def after_fn():
-        from gradio.context import thread_data
+        from gradio.context import LocalContext
 
-        thread_data.in_event_listener = False
+        LocalContext.in_event_listener.set(False)
+        LocalContext.request.set(None)
 
     return function_wrapper(
         fn, before_fn=before_fn, before_args=(blocks, event_id), after_fn=after_fn

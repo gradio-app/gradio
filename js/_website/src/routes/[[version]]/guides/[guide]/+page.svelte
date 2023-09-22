@@ -49,6 +49,12 @@
 		});
 	}
 
+	let flattened_guides = guide_names
+		.map((category) => category.guides)
+		.flat();
+	let prev_guide: any;
+	let next_guide: any;
+
 	$: if (sidebar) {
 		if (
 			target_link?.previousElementSibling?.classList.contains("category-link")
@@ -59,6 +65,11 @@
 	}
 	$: guide_page = data.guide;
 	$: guide_slug = data.guide_slug;
+	$: prev_guide = flattened_guides[
+		flattened_guides.findIndex((guide) => guide.url === guide_page.url) - 1];
+	$: next_guide = flattened_guides[
+		flattened_guides.findIndex((guide) => guide.url === guide_page.url) + 1];
+
 </script>
 
 <MetaTags
@@ -131,7 +142,36 @@
 			{/each}
 		{/each}
 	</div>
-	<div class="w-10/12 mx-auto">
+	<div class="w-full lg:w-10/12 mx-auto">
+		<div class="w-full flex justify-between my-4">
+			{#if prev_guide}
+				<a
+					href="{prev_guide.url}"
+					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
+				>	
+					<div class="flex text-lg">
+						<span class="text-orange-500 mr-1">&#8592;</span>
+						<p class="whitespace-nowrap overflow-hidden text-ellipsis">{prev_guide.pretty_name}</p>
+					</div>
+				</a>
+			{:else}
+				<div />
+			{/if}
+			{#if next_guide}
+				<a
+					href="{next_guide.url}"
+					class="text-right px-4 py-1 bg-gray-50 rounded-full max-w-1/2 hover:underline max-w-[48%]"
+				>
+				<div class="flex text-lg">
+					<p class="whitespace-nowrap overflow-hidden text-ellipsis">{next_guide.pretty_name}</p>
+					<span class="text-orange-500 ml-1">&#8594;</span>
+				</div>
+				</a>
+			{:else}
+				<div />
+			{/if}
+		</div>
+
 		{#if guide_page.spaces.length}
 			<div id="spaces-holder" class="mb-4">
 				<a href="https://hf.co/spaces" target="_blank">
@@ -155,6 +195,34 @@
 		{/if}
 		<div class="prose text-lg max-w-full">
 			{@html guide_page.new_html}
+		</div>
+		<div class="w-full flex justify-between my-4">
+			{#if prev_guide}
+				<a
+					href="{prev_guide.url}"
+					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
+				>	
+					<div class="flex text-lg">
+						<span class="text-orange-500 mr-1">&#8592;</span>
+						<p class="whitespace-nowrap overflow-hidden text-ellipsis">{prev_guide.pretty_name}</p>
+					</div>
+				</a>
+			{:else}
+				<div />
+			{/if}
+			{#if next_guide}
+				<a
+					href="{next_guide.url}"
+					class="text-right px-4 py-1 bg-gray-50 rounded-full max-w-1/2 hover:underline max-w-[48%]"
+				>
+				<div class="flex text-lg">
+					<p class="whitespace-nowrap overflow-hidden text-ellipsis">{next_guide.pretty_name}</p>
+					<span class="text-orange-500 ml-1">&#8594;</span>
+				</div>
+				</a>
+			{:else}
+				<div />
+			{/if}
 		</div>
 	</div>
 </div>
