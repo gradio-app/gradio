@@ -3,7 +3,7 @@
 		beforeUpdate,
 		afterUpdate,
 		createEventDispatcher,
-		tick
+		tick,
 	} from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Copy, Check } from "@gradio/icons";
@@ -94,7 +94,7 @@
 		const text = target.value;
 		const index: [number, number] = [
 			target.selectionStart as number,
-			target.selectionEnd as number
+			target.selectionEnd as number,
 		];
 		dispatch("select", { value: text.substring(...index), index: index });
 	}
@@ -171,7 +171,7 @@
 		resize({ target: _el });
 
 		return {
-			destroy: () => _el.removeEventListener("input", resize)
+			destroy: () => _el.removeEventListener("input", resize),
 		};
 	}
 </script>
@@ -234,9 +234,17 @@
 	{:else}
 		{#if show_label && show_copy_button}
 			{#if copied}
-				<button in:fade={{ duration: 300 }}><Check /></button>
+				<button
+					in:fade={{ duration: 300 }}
+					aria-label="Copied"
+					aria-roledescription="Text copied"><Check /></button
+				>
 			{:else}
-				<button on:click={handle_copy} class="copy-text"><Copy /></button>
+				<button
+					on:click={handle_copy}
+					aria-label="Copy"
+					aria-roledescription="Copy text"><Copy /></button
+				>
 			{/if}
 		{/if}
 		<textarea
