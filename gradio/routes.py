@@ -301,7 +301,8 @@ class App(FastAPI):
         @app.get("/", response_class=HTMLResponse)
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
             # if utils.get_space() and request.headers.get("x-direct-url"):
-            print(request.headers.get("x-direct-url"))
+            print("x-direct-url", request.headers.get("x-direct-url"))
+            print("X-Direct-Url", request.headers.get("X-Direct-Url"))
 
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
