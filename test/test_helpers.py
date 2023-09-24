@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import shutil
@@ -825,3 +826,46 @@ class TestProgressBar:
             ["Letter c", "info"],
             ["Too short!", "warning"],
         ]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("async_handler", [True, False])
+async def test_info_isolation(async_handler: bool):
+    async def greet_async(name):
+        await asyncio.sleep(2)
+        gr.Info(f"Hello {name}")
+        return name
+
+    def greet_sync(name):
+        time.sleep(2)
+        gr.Info(f"Hello {name}")
+        return name
+
+    demo = gr.Interface(greet_async if async_handler else greet_sync, "text", "text")
+    demo.queue(concurrency_count=2).launch(prevent_thread_lock=True)
+
+    async def session_interaction(name, delay=0):
+        await asyncio.sleep(delay)
+        async with websockets.connect(
+            f"{demo.local_url.replace('http', 'ws')}queue/join"
+        ) as ws:
+            log_messages = []
+            while True:
+                msg = json.loads(await ws.recv())
+                if msg["msg"] == "send_data":
+                    await ws.send(json.dumps({"data": [name], "fn_index": 0}))
+                if msg["msg"] == "send_hash":
+                    await ws.send(json.dumps({"fn_index": 0, "session_hash": name}))
+                if msg["msg"] == "log":
+                    log_messages.append(msg["log"])
+                if msg["msg"] == "process_completed":
+                    break
+            return log_messages
+
+    alice_logs, bob_logs = await asyncio.gather(
+        session_interaction("Alice"),
+        session_interaction("Bob", delay=1),
+    )
+
+    assert alice_logs == ["Hello Alice"]
+    assert bob_logs == ["Hello Bob"]
