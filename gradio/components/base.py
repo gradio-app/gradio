@@ -34,7 +34,7 @@ from gradio.events import (
 from gradio.layouts import Column, Form, Row
 
 if TYPE_CHECKING:
-    from typing import TypedDict
+    from typing import TypedDict, Callable
 
     class DataframeData(TypedDict):
         headers: list[str]
@@ -55,6 +55,7 @@ class Component(Updateable, Block, Serializable):
     A base class for defining the methods that all gradio components should have.
     """
 
+    server_fns: list[Callable] = []
     def __init__(self, *args, **kwargs):
         Block.__init__(self, *args, **kwargs)
         EventListener.__init__(self)
@@ -111,6 +112,17 @@ class Component(Updateable, Block, Serializable):
         ):
             self.parent.variant = "compact"
         return self
+    
+    def get_config(self):
+        config = super().get_config()
+        if len(self.server_fns):
+            config["server_fns"] = [fn.__name__ for fn in self.server_fns]
+        return config
+
+
+def server(fn):
+    Component.server_fns.append(fn)
+    return fn
 
 
 class IOComponent(Component):

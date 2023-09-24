@@ -43,6 +43,7 @@
 		"@gradio/gallery": "workspace:^",
 		"@gradio/group": "workspace:^",
 		"@gradio/highlightedtext": "workspace:^",
+		"@gradio/hostfile": "workspace:^",
 		"@gradio/html": "workspace:^",
 		"@gradio/icons": "workspace:^",
 		"@gradio/image": "workspace:^",

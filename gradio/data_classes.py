@@ -26,6 +26,12 @@ class ResetBody(BaseModel):
     fn_index: int
 
 
+class ComponentServerBody(BaseModel):
+    session_hash: str
+    component_id: int
+    data: Any
+    
+
 class InterfaceTypes(Enum):
     STANDARD = auto()
     INPUT_ONLY = auto()

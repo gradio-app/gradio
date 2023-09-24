@@ -28,6 +28,7 @@ from gradio.components.file import File
 from gradio.components.gallery import Gallery
 from gradio.components.highlighted_text import HighlightedText
 from gradio.components.html import HTML
+from gradio.components.host_file import HostFile
 from gradio.components.image import Image
 from gradio.components.interpretation import Interpretation
 from gradio.components.json_component import JSON
@@ -82,6 +83,7 @@ __all__ = [
     "FormComponent",
     "Gallery",
     "HTML",
+    "HostFile",
     "Image",
     "IOComponent",
     "Interpretation",

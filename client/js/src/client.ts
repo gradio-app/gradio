@@ -45,6 +45,10 @@ type client_return = {
 		data?: unknown[],
 		event_data?: unknown
 	) => SubmitReturn;
+	component_server: (
+		component_id: string,
+		data?: unknown[],
+	) => SubmitReturn;
 	view_api: (c?: Config) => Promise<ApiInfo<JsApiData>>;
 };
 

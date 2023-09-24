@@ -427,6 +427,9 @@ importers:
       '@gradio/highlightedtext':
         specifier: workspace:^
         version: link:../highlightedtext
+      '@gradio/hostfile':
+        specifier: workspace:^
+        version: link:../hostfile
       '@gradio/html':
         specifier: workspace:^
         version: link:../html
@@ -845,6 +848,27 @@ importers:
       '@gradio/theme':
         specifier: workspace:^
         version: link:../theme
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+
+  js/hostfile:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/upload':
+        specifier: workspace:^
+        version: link:../upload
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils

@@ -22,7 +22,7 @@ import traceback
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Dict, List, Optional, Type, TYPE_CHECKING
 
 import fastapi
 import httpx
@@ -48,7 +48,7 @@ import gradio
 import gradio.ranged_response as ranged_response
 from gradio import route_utils, utils, wasm_utils
 from gradio.context import Context
-from gradio.data_classes import PredictBody, ResetBody
+from gradio.data_classes import PredictBody, ResetBody, ComponentServerBody
 from gradio.deprecation import warn_deprecation
 from gradio.exceptions import Error
 from gradio.oauth import attach_oauth
@@ -61,6 +61,10 @@ from gradio.utils import (
     run_coro_in_background,
     set_task_name,
 )
+
+if TYPE_CHECKING:
+    from gradio.components.base import Component
+
 
 mimetypes.init()
 
@@ -587,6 +591,21 @@ class App(FastAPI):
                 await asyncio.sleep(1)
                 if websocket.application_state == WebSocketState.DISCONNECTED:
                     return
+
+
+        @app.post("/component_server", dependencies=[Depends(login_check)])
+        @app.post("/component_server/", dependencies=[Depends(login_check)])
+        def component_server(body: ComponentServerBody):
+            state = app.state_holder[body.session_hash]
+            component_id = body.component_id
+            block: Component
+            if component_id in state:
+                block = state[component_id]
+            else:
+                block = app.get_blocks().blocks[component_id]
+            fn = getattr(block, body.fn_name)
+            return fn(body.data)
+
 
         @app.get(
             "/queue/status",
