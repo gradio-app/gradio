@@ -303,7 +303,16 @@ class App(FastAPI):
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
-            root_path = request.scope.get("root_path", "")
+            
+            # If the Gradio app is running on Hugging Face Spaces and the machine has multiple replicas,
+            # we pass in the direct URL to the replica so that we have the correct path to any assets
+            # on that machine. This direct URL can be shared with other users and the path will correctly resolve.
+            replica_url = request.headers.get("X-Direct-Url")
+            if utils.get_space() and replica_url:
+                app.replica_urls.add(replica_url)
+                root_path = replica_url
+            else:
+                root_path = request.scope.get("root_path", "")
 
             if app.auth is None or user is not None:
                 config = app.get_blocks().config
@@ -347,14 +356,12 @@ class App(FastAPI):
         def get_config(request: fastapi.Request):
             config = app.get_blocks().config
             replica_url = request.headers.get("X-Direct-Url")
-            print(">>", replica_url, utils.get_space())
             if utils.get_space() and replica_url:
                 app.replica_urls.add(replica_url)
                 config["root"] = replica_url
             else:
                 root_path = request.scope.get("root_path", "")
                 config["root"] = root_path
-            print(config)
             return config
 
         @app.get("/static/{path:path}")
