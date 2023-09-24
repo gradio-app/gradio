@@ -5,13 +5,13 @@
 	export let label: string;
 	export let show_label = true;
 	export let interactive = true;
-	export let path: string[] = ["path"];
 	export let server: {
 		ls: (arg0: string[]) => Promise<[string[], string[]]>;
 	};
+	export let type: "file" | "folder" | "any" = "any";
 	export let value: string[] | null = null;
-	$: selected = value && value.length ? value[-1] : null;
-	let type: "file" | "folder" | "any" = "any";
+	let path: string[] = value && value.length ? value.slice(0, -1) : [];
+	let selected = value && value.length ? value[-1] : null;
 	let loading = false;
 	let contents: [string[], string[]] = [[], []];
 	const refreshContents = async () => {
@@ -26,7 +26,6 @@
 	};
 	$: [folders, files] = contents;
 	$: path, refreshContents();
-	$: console.log(selected)
 </script>
 
 <BlockLabel
@@ -37,6 +36,13 @@
 />
 <div class="container" class:loading>
 	<div class="full-path">
+		<button
+			class="path-level"
+			on:click={() => {
+				path = [];
+			}}>.</button
+		>
+		/
 		{#each path as level}
 			<button
 				class="path-level"
@@ -56,7 +62,7 @@
 					bind:group={selected}
 					value={folder}
 					on:click={() => {
-						if (type === "folder" && interactive) {
+						if (type !== "file" && interactive) {
 							value = [...path, folder];
 						}
 					}}
@@ -74,7 +80,7 @@
 			<label
 				class="file"
 				on:click={() => {
-					if (type === "file" && interactive) {
+					if (type !== "folder" && interactive) {
 						value = [...path, file];
 					}
 				}}

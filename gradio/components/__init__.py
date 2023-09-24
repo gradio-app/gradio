@@ -27,8 +27,8 @@ from gradio.components.duplicate_button import DuplicateButton
 from gradio.components.file import File
 from gradio.components.gallery import Gallery
 from gradio.components.highlighted_text import HighlightedText
-from gradio.components.html import HTML
 from gradio.components.host_file import HostFile
+from gradio.components.html import HTML
 from gradio.components.image import Image
 from gradio.components.interpretation import Interpretation
 from gradio.components.json_component import JSON

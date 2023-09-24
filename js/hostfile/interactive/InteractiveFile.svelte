@@ -19,8 +19,6 @@
 	export let root: string;
 	export let label: string;
 	export let show_label: boolean;
-	export let file_count: string;
-	export let file_types: string[] = ["file"];
 	export let root_url: null | string;
 	export let selectable = false;
 	export let loading_status: LoadingStatus;
@@ -32,18 +30,9 @@
 		change: never;
 		select: SelectData;
 	}>;
-	let server = {
-		ls: async (path: string[]): Promise<[string[], string[]]> => {
-			// sleep for 1 second
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-			return [
-				["folder1", "folder2", "folder3"].slice(0, path.length),
-				["file1", "file2", "file3", "file4", "file5", "file6"].slice(
-					0,
-					path.length
-				),
-			];
-		},
+	export let type: "file" | "folder" | "any" = "any";
+	export let server: {
+		ls: (path: string[]) => Promise<[string[], string[]]>;
 	};
 </script>
 
@@ -60,11 +49,10 @@
 	<StatusTracker {...loading_status} />
 
 	<DirectoryExplorer
+		bind:value
 		{label}
 		{show_label}
-		{value}
-		{file_count}
-		{file_types}
+		{type}
 		{selectable}
 		{height}
 		{server}

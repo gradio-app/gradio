@@ -19,12 +19,7 @@ set_documentation_group("component")
 
 
 @document()
-class HostFile(
-    Changeable,
-    Selectable,
-    IOComponent,
-    JSONSerializable
-):
+class HostFile(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
     Preprocessing: passes the uploaded file as a {tempfile._TemporaryFileWrapper} or {List[tempfile._TemporaryFileWrapper]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
@@ -108,12 +103,9 @@ class HostFile(
         """
         if x is None:
             return None
-        return self.safe_join(x)
-        
+        return self._safe_join(x)
 
-    def postprocess(
-        self, y: str | None
-    ) -> list[str] | None:
+    def postprocess(self, y: str | None) -> list[str] | None:
         """
         Parameters:
             y: file path
@@ -123,15 +115,6 @@ class HostFile(
         if y is None:
             return None
         return y.split(os.path.sep)
-
-
-    def safe_join(self, folders):
-        combined_path = os.path.join(self._root, *folders)
-        absolute_path = os.path.abspath(combined_path)
-        if os.path.commonprefix([self._root, absolute_path]) != os.path.abspath(self._root):
-            raise ValueError("Attempted to navigate outside of root directory")
-        return absolute_path
-            
 
     @server
     def ls(self, y: list[str] | None) -> tuple[list[str], list[str]] | None:
@@ -143,7 +126,7 @@ class HostFile(
         """
         if y is None:
             return None
-        absolute_path = self.safe_join(y)
+        absolute_path = self._safe_join(y)
         files = []
         folders = []
         for f in os.listdir(absolute_path):
@@ -151,4 +134,13 @@ class HostFile(
                 files.append(f)
             else:
                 folders.append(f)
-        return files, folders
+        return folders, files
+
+    def _safe_join(self, folders):
+        combined_path = os.path.join(self._root, *folders)
+        absolute_path = os.path.abspath(combined_path)
+        if os.path.commonprefix([self._root, absolute_path]) != os.path.abspath(
+            self._root
+        ):
+            raise ValueError("Attempted to navigate outside of root directory")
+        return absolute_path

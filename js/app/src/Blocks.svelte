@@ -250,6 +250,20 @@
 			} else {
 				(c.props as any).mode = "static";
 			}
+
+			if ((c.props as any).server_fns) {
+				let server: Record<string, (...args: any[]) => Promise<any>> = {};
+				(c.props as any).server_fns.forEach((fn: string) => {
+					server[fn] = async (...args: any[]) => {
+						if (args.length === 1) {
+							args = args[0];
+						}
+						const result = await app.component_server(c.id, fn, args);
+						return result;
+					};
+				});
+				(c.props as any).server = server;
+			}
 			__type_for_id.set(c.id, c.props.mode);
 
 			const _c = load_component(c.type, c.props.mode);

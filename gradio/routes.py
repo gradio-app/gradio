@@ -22,7 +22,7 @@ import traceback
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type
 
 import fastapi
 import httpx
@@ -48,7 +48,7 @@ import gradio
 import gradio.ranged_response as ranged_response
 from gradio import route_utils, utils, wasm_utils
 from gradio.context import Context
-from gradio.data_classes import PredictBody, ResetBody, ComponentServerBody
+from gradio.data_classes import ComponentServerBody, PredictBody, ResetBody
 from gradio.deprecation import warn_deprecation
 from gradio.exceptions import Error
 from gradio.oauth import attach_oauth
@@ -592,7 +592,6 @@ class App(FastAPI):
                 if websocket.application_state == WebSocketState.DISCONNECTED:
                     return
 
-
         @app.post("/component_server", dependencies=[Depends(login_check)])
         @app.post("/component_server/", dependencies=[Depends(login_check)])
         def component_server(body: ComponentServerBody):
@@ -605,7 +604,6 @@ class App(FastAPI):
                 block = app.get_blocks().blocks[component_id]
             fn = getattr(block, body.fn_name)
             return fn(body.data)
-
 
         @app.get(
             "/queue/status",

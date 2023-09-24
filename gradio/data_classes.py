@@ -29,8 +29,9 @@ class ResetBody(BaseModel):
 class ComponentServerBody(BaseModel):
     session_hash: str
     component_id: int
+    fn_name: str
     data: Any
-    
+
 
 class InterfaceTypes(Enum):
     STANDARD = auto()

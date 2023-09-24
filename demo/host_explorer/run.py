@@ -1,7 +1,7 @@
 import gradio as gr
 
 with gr.Blocks() as demo:
-    file = gr.HostFile()
+    file = gr.HostFile("/etc")
     submit_btn = gr.Button("Select")
     selected = gr.Textbox(label="Selected File")
 
