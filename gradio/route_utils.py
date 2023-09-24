@@ -241,3 +241,15 @@ async def call_process_api(
         output["data"] = output["data"][0]
 
     return output
+
+
+def set_replica_url_in_config(config: dict, replica_url: str):
+    """
+    If the Gradio app is running on Hugging Face Spaces and the machine has multiple replicas,
+    we pass in the direct URL to the replica so that we have the correct path to any assets
+    on that machine. This direct URL can be shared with other users and the path will correctly resolve.
+    """
+    for component in config["components"]:
+        if component.get("props") and not component["props"].get(["root_url"]):
+            component["props"]["root_url"] = replica_url
+    return config
