@@ -79,11 +79,11 @@
 
 			<div class="lg:ml-10 flex justify-between mt-4">
 				<a
-					href="./mount_gradio_app"
+					href="./themes"
 					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
-						<span class="text-orange-500">&#8592;</span> mount_gradio_app
+						<span class="text-orange-500">&#8592;</span> Themes
 					</div>
 				</a>
 				<a

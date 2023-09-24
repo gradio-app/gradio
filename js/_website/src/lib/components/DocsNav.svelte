@@ -112,31 +112,52 @@
 		href="./interface/">Interface</a
 	>
 	<a
-		class:current-nav-link={current_nav_link == "flagging"}
-		class="thin-link px-4 block"
-		href="./flagging/">Flagging</a
-	>
-	<a
-		class:current-nav-link={current_nav_link == "blocks"}
-		class="thin-link px-4 block"
-		href="./blocks/">Blocks</a
-	>
-	<a
-		class:current-nav-link={current_nav_link == "block-layouts"}
-		class="thin-link px-4 block"
-		href="./block-layouts/">Block Layouts</a
-	>
-	<a
 		class:current-nav-link={current_nav_link == "chatinterface"}
 		class="thin-link px-4 block"
 		href="./chatinterface/"
 		>ChatInterface<sup class="text-orange-500">NEW</sup></a
 	>
 	<a
-		class:current-nav-link={current_nav_link == "themes"}
+		class:current-nav-link={current_nav_link == "tabbedinterface"}
 		class="thin-link px-4 block"
-		href="./themes/">Themes</a
+		href="./tabbedinterface/"
+		>TabbedInterface</a
 	>
+	
+	<a
+		class:current-nav-link={current_nav_link == "blocks"}
+		class="thin-link px-4 block"
+		href="./blocks/">Blocks</a
+	>
+
+	<p class="font-semibold px-4 my-2 block">Block Layouts</p>
+
+	<a
+		class:current-nav-link={current_nav_link == "row"}
+		class="thin-link px-4 block"
+		href="./row/">Row</a
+	>
+	<a
+		class:current-nav-link={current_nav_link == "column"}
+		class="thin-link px-4 block"
+		href="./column/">Column</a
+	>
+	<a
+		class:current-nav-link={current_nav_link == "tab"}
+		class="thin-link px-4 block"
+		href="./tab/">Tab</a
+	>
+	<a
+		class:current-nav-link={current_nav_link == "group"}
+		class="thin-link px-4 block"
+		href="./group/">Group</a
+	>
+	<a
+		class:current-nav-link={current_nav_link == "accordion"}
+		class="thin-link px-4 block"
+		href="./accordion/">Accordion</a
+	>
+
 	<a
 		class:current-nav-link={current_nav_link == "components"}
 		class="link px-4 my-2 block"
@@ -149,7 +170,7 @@
 			href="./{name}/">{obj.name}</a
 		>
 	{/each}
-	<a class="link px-4 my-2 block">Helpers</a>
+	<p class="font-semibold px-4 my-2 block">Helpers</p>
 	{#each Object.entries(helpers) as [name, obj] (name)}
 		<a
 			class:current-nav-link={current_nav_link == name}
@@ -157,7 +178,7 @@
 			href="./{name}/">{obj.name}</a
 		>
 	{/each}
-	<a class="link px-4 my-2 block">Routes</a>
+	<p class="font-semibold px-4 my-2 block">Routes</p>
 	{#each Object.entries(routes) as [name, obj] (name)}
 		<a
 			class:current-nav-link={current_nav_link == name}
@@ -165,6 +186,20 @@
 			href="./{name}/">{obj.name}</a
 		>
 	{/each}
+
+	<p class="font-semibold px-4 my-2 block">Other</p>
+
+	<a
+		class:current-nav-link={current_nav_link == "flagging"}
+		class="thin-link px-4 block"
+		href="./flagging/">Flagging</a
+	>
+	<a
+		class:current-nav-link={current_nav_link == "themes"}
+		class="thin-link px-4 block"
+		href="./themes/">Themes</a
+	>
+
 	<a
 		class:current-nav-link={current_nav_link == "python-client"}
 		class="link px-4 my-2 block"

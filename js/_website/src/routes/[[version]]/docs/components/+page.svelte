@@ -81,19 +81,19 @@
 
 		<div class="lg:ml-10 flex justify-between mt-4">
 			<a
-				href="./themes"
+				href="./accordion"
 				class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 			>
 				<div class="text-lg">
-					<span class="text-orange-500">&#8592;</span> Themes
+					<span class="text-orange-500">&#8592;</span> Accordion
 				</div>
 			</a>
 			<a
-				href="./audio"
+				href="./annotatedimage"
 				class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 			>
 				<div class="text-lg">
-					Audio <span class="text-orange-500">&#8594;</span>
+					AnnotatedImage <span class="text-orange-500">&#8594;</span>
 				</div>
 			</a>
 		</div>
@@ -172,21 +172,21 @@
 				</div>
 			</div>
 		</div>
-		<div class="flex justify-between my-4">
+		<div class="lg:ml-10 flex justify-between my-4">
 			<a
-				href="./block-layouts"
+				href="./accordion"
 				class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 			>
 				<div class="text-lg">
-					<span class="text-orange-500">&#8592;</span> Block Layouts
+					<span class="text-orange-500">&#8592;</span> Accordion
 				</div>
 			</a>
 			<a
-				href="./audio"
+				href="./annotatedimage"
 				class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 			>
 				<div class="text-lg">
-					Audio <span class="text-orange-500">&#8594;</span>
+					AnnotatedImage <span class="text-orange-500">&#8594;</span>
 				</div>
 			</a>
 		</div>

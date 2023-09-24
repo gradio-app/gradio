@@ -194,7 +194,7 @@ def organize_docs(d):
             organized["components"][cls]["prev_obj"] = organized["components"][
                 c_keys[len(c_keys) - 2]
             ]["name"]
-            organized["components"][cls]["next_obj"] = "Examples"
+            organized["components"][cls]["next_obj"] = "Error"
         else:
             organized["components"][cls]["prev_obj"] = organized["components"][
                 c_keys[i - 1]
@@ -232,7 +232,7 @@ def organize_docs(d):
             organized["routes"][cls]["prev_obj"] = organized["routes"][
                 c_keys[len(c_keys) - 2]
             ]["name"]
-            organized["routes"][cls]["next_obj"] = "Python-Client"
+            organized["routes"][cls]["next_obj"] = "Flagging"
         else:
             organized["routes"][cls]["prev_obj"] = organized["routes"][c_keys[i - 1]][
                 "name"
@@ -259,6 +259,23 @@ def organize_docs(d):
             organized["py-client"][cls]["next_obj"] = organized["py-client"][
                 c_keys[i + 1]
             ]["name"]
+
+    layout_keys = ["row", "column", "tab", "group", "accordion"]
+    for i, cls in enumerate(layout_keys):
+        if not i:
+            organized["building"][cls]["prev_obj"] = "Blocks"
+            organized["building"][cls]["next_obj"] = layout_keys[i+1].capitalize()
+        elif i == len(layout_keys) - 1:
+            organized["building"][cls]["prev_obj"] = layout_keys[i-1].capitalize()
+            organized["building"][cls]["next_obj"] = "Components"
+        else:
+            organized["building"][cls]["prev_obj"] = layout_keys[i-1].capitalize()
+            organized["building"][cls]["next_obj"] = layout_keys[i+1].capitalize()
+
+
+    organized["building"][cls]["prev_obj"]
+    
+
 
     organized["events_matrix"] = component_events
     organized["events"] = events

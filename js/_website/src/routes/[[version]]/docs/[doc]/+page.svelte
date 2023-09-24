@@ -508,7 +508,7 @@
 				</div>
 			</div>
 
-			<div class="flex justify-between my-4">
+			<div class="lg:ml-10 flex justify-between my-4">
 				{#if obj.prev_obj}
 					<a
 						href="./{obj.prev_obj.toLowerCase()}"
