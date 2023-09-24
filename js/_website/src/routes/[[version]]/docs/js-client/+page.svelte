@@ -12,6 +12,11 @@
 	let py_client = data.py_client;
 
 	let readme_html = data.readme_html;
+	$: components = data.components;
+	$: helpers = data.helpers;
+	$: modals = data.modals;
+	$: routes = data.routes;
+	$: py_client = data.py_client;
 </script>
 
 <MetaTags
