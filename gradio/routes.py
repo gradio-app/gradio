@@ -58,7 +58,6 @@ from gradio.state_holder import StateHolder
 from gradio.utils import (
     cancel_tasks,
     get_package_version,
-    get_space,
     run_coro_in_background,
     set_task_name,
 )
@@ -301,6 +300,9 @@ class App(FastAPI):
         @app.head("/", response_class=HTMLResponse)
         @app.get("/", response_class=HTMLResponse)
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
+            # if utils.get_space() and request.headers.get("x-direct-url"):
+            print(request.headers.get("x-direct-url"))
+
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
             root_path = request.scope.get("root_path", "")
@@ -392,8 +394,6 @@ class App(FastAPI):
                 return RedirectResponse(
                     url=path_or_url, status_code=status.HTTP_302_FOUND
                 )
-            if get_space() and request.headers.get("x-direct-url"):
-                print(">>>>>>>>", request.headers.get("x-direct-url"))
 
             abs_path = utils.abspath(path_or_url)
 
