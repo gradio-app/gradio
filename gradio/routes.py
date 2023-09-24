@@ -124,6 +124,7 @@ class App(FastAPI):
         self.uploaded_file_dir = os.environ.get("GRADIO_TEMP_DIR") or str(
             Path(tempfile.gettempdir()) / "gradio"
         )
+        self.replica_urls = set()  # these are the full paths to the replicas if running on a Hugging Face Space with multiple replicas
         self.change_event: None | threading.Event = None
         # Allow user to manually set `docs_url` and `redoc_url`
         # when instantiating an App; when they're not set, disable docs and redoc.
@@ -160,7 +161,7 @@ class App(FastAPI):
         # gr.load() to prevent SSRF or harvesting of HF tokens by malicious Spaces.
         is_safe_url = any(
             url.host == httpx.URL(root).host for root in self.blocks.root_urls
-        )
+        ) or url.host in self.replica_urls
         if not is_safe_url:
             raise PermissionError("This URL cannot be proxied.")
         is_hf_url = url.host.endswith(".hf.space")
@@ -300,7 +301,6 @@ class App(FastAPI):
         @app.head("/", response_class=HTMLResponse)
         @app.get("/", response_class=HTMLResponse)
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
-            # if utils.get_space() and request.headers.get("x-direct-url"):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
             root_path = request.scope.get("root_path", "")
@@ -345,9 +345,14 @@ class App(FastAPI):
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request):
-            root_path = request.scope.get("root_path", "")
             config = app.get_blocks().config
-            config["root"] = root_path
+            replica_url = request.headers.get("X-Direct-Url")
+            if utils.get_space() and replica_url:
+                app.replica_urls.add(replica_url)
+                config["root"] = replica_url
+            else:
+                root_path = request.scope.get("root_path", "")
+                config["root"] = root_path
             return config
 
         @app.get("/static/{path:path}")
