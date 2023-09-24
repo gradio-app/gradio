@@ -347,12 +347,14 @@ class App(FastAPI):
         def get_config(request: fastapi.Request):
             config = app.get_blocks().config
             replica_url = request.headers.get("X-Direct-Url")
+            print(">>", replica_url, utils.get_space())
             if utils.get_space() and replica_url:
                 app.replica_urls.add(replica_url)
                 config["root"] = replica_url
             else:
                 root_path = request.scope.get("root_path", "")
                 config["root"] = root_path
+            print(config)
             return config
 
         @app.get("/static/{path:path}")
