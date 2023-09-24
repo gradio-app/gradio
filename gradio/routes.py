@@ -316,7 +316,9 @@ class App(FastAPI):
                 print("replica_url", replica_url)
                 if utils.get_space() and replica_url:
                     app.replica_urls.add(replica_url)
+                    print("config before", config)
                     config = set_replica_url_in_config(config, replica_url)
+                    print("config after", config)
             else:
                 config = {
                     "auth_required": True,
