@@ -117,11 +117,6 @@
 		href="./flagging/">Flagging</a
 	>
 	<a
-		class:current-nav-link={current_nav_link == "combining-interfaces"}
-		class="thin-link px-4 block"
-		href="./combining-interfaces/">Combining Interfaces</a
-	>
-	<a
 		class:current-nav-link={current_nav_link == "blocks"}
 		class="thin-link px-4 block"
 		href="./blocks/">Blocks</a
