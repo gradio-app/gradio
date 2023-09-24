@@ -273,8 +273,7 @@ class ChatInterface(Blocks):
                 api_name=False,
             )
         )
-        for submit_trigger in submit_triggers:
-            self._setup_stop_events(submit_trigger, submit_event)
+        self._setup_stop_events(submit_triggers, submit_event)
 
         if self.retry_btn:
             retry_event = (
@@ -299,7 +298,7 @@ class ChatInterface(Blocks):
                     api_name=False,
                 )
             )
-            self._setup_stop_events(self.retry_btn.click, retry_event)
+            self._setup_stop_events([self.retry_btn.click], retry_event)
 
         if self.undo_btn:
             self.undo_btn.click(
@@ -326,17 +325,21 @@ class ChatInterface(Blocks):
             )
 
     def _setup_stop_events(
-        self, event_trigger: EventListenerMethod, event_to_cancel: Dependency
+        self, event_triggers: list[EventListenerMethod], event_to_cancel: Dependency
     ) -> None:
         if self.stop_btn and self.is_generator:
             if self.submit_btn:
-                event_trigger(
-                    lambda: (Button.update(visible=False), Button.update(visible=True)),
-                    None,
-                    [self.submit_btn, self.stop_btn],
-                    api_name=False,
-                    queue=False,
-                )
+                for event_trigger in event_triggers:
+                    event_trigger(
+                        lambda: (
+                            Button.update(visible=False),
+                            Button.update(visible=True),
+                        ),
+                        None,
+                        [self.submit_btn, self.stop_btn],
+                        api_name=False,
+                        queue=False,
+                    )
                 event_to_cancel.then(
                     lambda: (Button.update(visible=True), Button.update(visible=False)),
                     None,
@@ -345,13 +348,14 @@ class ChatInterface(Blocks):
                     queue=False,
                 )
             else:
-                event_trigger(
-                    lambda: Button.update(visible=True),
-                    None,
-                    [self.stop_btn],
-                    api_name=False,
-                    queue=False,
-                )
+                for event_trigger in event_triggers:
+                    event_trigger(
+                        lambda: Button.update(visible=True),
+                        None,
+                        [self.stop_btn],
+                        api_name=False,
+                        queue=False,
+                    )
                 event_to_cancel.then(
                     lambda: Button.update(visible=False),
                     None,
