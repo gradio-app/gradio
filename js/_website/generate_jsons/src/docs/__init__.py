@@ -149,6 +149,7 @@ def organize_docs(d):
         "building": {},
         "components": {},
         "helpers": {},
+        "modals": {},
         "routes": {},
         "events": {},
         "py-client": {},
@@ -174,7 +175,7 @@ def organize_docs(d):
             if mode == "component":
                 organized["components"][c["name"].lower()] = c
                 pages.append(c["name"].lower())
-            elif mode in ["helpers", "routes", "py-client"]:
+            elif mode in ["helpers", "routes", "py-client", "modals"]:
                 organized[mode][c["name"].lower()] = c
                 pages.append(c["name"].lower())
             else:
@@ -213,7 +214,7 @@ def organize_docs(d):
             organized["helpers"][cls]["prev_obj"] = organized["helpers"][
                 c_keys[len(c_keys) - 2]
             ]["name"]
-            organized["helpers"][cls]["next_obj"] = "Request"
+            organized["helpers"][cls]["next_obj"] = "Error"
         else:
             organized["helpers"][cls]["prev_obj"] = organized["helpers"][c_keys[i - 1]][
                 "name"
@@ -221,6 +222,26 @@ def organize_docs(d):
             organized["helpers"][cls]["next_obj"] = organized["helpers"][c_keys[i + 1]][
                 "name"
             ]
+    c_keys = list(organized["modals"].keys())
+    for i, cls in enumerate(organized["modals"]):
+        if not i:
+            organized["modals"][cls]["prev_obj"] = "EventData"
+            organized["modals"][cls]["next_obj"] = organized["modals"][c_keys[1]][
+                "name"
+            ]
+        elif i == len(c_keys) - 1:
+            organized["modals"][cls]["prev_obj"] = organized["modals"][
+                c_keys[len(c_keys) - 2]
+            ]["name"]
+            organized["modals"][cls]["next_obj"] = "Request"
+        else:
+            organized["modals"][cls]["prev_obj"] = organized["modals"][c_keys[i - 1]][
+                "name"
+            ]
+            organized["modals"][cls]["next_obj"] = organized["modals"][c_keys[i + 1]][
+                "name"
+            ]
+
     c_keys = list(organized["routes"].keys())
     for i, cls in enumerate(organized["routes"]):
         if not i:

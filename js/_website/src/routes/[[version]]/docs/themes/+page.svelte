@@ -16,6 +16,7 @@
 	let description = data.description;
 	let components = data.components;
 	let helpers = data.helpers;
+	let modals = data.modals;
 	let routes = data.routes;
 	let headers = data.headers;
 	let method_headers = data.method_headers;
@@ -81,6 +82,7 @@
 			current_nav_link={"themes"}
 			{components}
 			{helpers}
+			{modals}
 			{routes}
 			{py_client}
 		/>

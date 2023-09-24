@@ -10,6 +10,7 @@
 
 	let components = data.components;
 	let helpers = data.helpers;
+	let modals = data.modals;
 	let routes = data.routes;
 	let events = data.events;
 	let events_matrix = data.events_matrix;
@@ -40,6 +41,7 @@
 		current_nav_link={"components"}
 		{components}
 		{helpers}
+		{modals}
 		{routes}
 		{py_client}
 	/>

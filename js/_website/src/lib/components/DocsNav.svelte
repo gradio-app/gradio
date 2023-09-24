@@ -4,6 +4,7 @@
 
 	export let components: any;
 	export let helpers: any;
+	export let modals: any;
 	export let routes: any;
 	export let py_client: any;
 
@@ -178,6 +179,15 @@
 			href="./{name}/">{obj.name}</a
 		>
 	{/each}
+	<p class="font-semibold px-4 my-2 block">Modals</p>
+	{#each Object.entries(modals) as [name, obj] (name)}
+		<a
+			class:current-nav-link={current_nav_link == name}
+			class="px-4 block thin-link"
+			href="./{name}/">{obj.name}</a
+		>
+	{/each}
+
 	<p class="font-semibold px-4 my-2 block">Routes</p>
 	{#each Object.entries(routes) as [name, obj] (name)}
 		<a

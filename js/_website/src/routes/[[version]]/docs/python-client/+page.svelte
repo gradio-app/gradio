@@ -8,6 +8,7 @@
 	export let data;
 	let components = data.components;
 	let helpers = data.helpers;
+	let modals = data.modals;
 	let routes = data.routes;
 	let py_client = data.py_client;
 	
@@ -38,6 +39,7 @@
 			current_nav_link={"python-client"}
 			{components}
 			{helpers}
+			{modals}
 			{routes}
 			{py_client}
 		/>

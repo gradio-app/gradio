@@ -7,6 +7,7 @@
 
 	let components = data.components;
 	let helpers = data.helpers;
+	let modals = data.modals;
 	let routes = data.routes;
 	let py_client = data.py_client;
 
@@ -26,6 +27,7 @@
 			current_nav_link={"js-client"}
 			{components}
 			{helpers}
+			{modals}
 			{routes}
 			{py_client}
 		/>

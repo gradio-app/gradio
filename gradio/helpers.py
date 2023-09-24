@@ -1113,7 +1113,7 @@ def log_message(message: str, level: Literal["info", "warning"] = "info"):
     assert event_id
     blocks._queue.log_message(event_id=event_id, log=message, level=level)
 
-
+set_documentation_group("modals")
 @document()
 def Warning(message: str = "Warning issued."):  # noqa: N802
     """
