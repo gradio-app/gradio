@@ -82,6 +82,10 @@
 						target="_blank"
 						href="https://gradio.curated.co/">Newsletter</a
 					>
+					<a
+						class="thin-link inline-block px-4 py-2 hover:bg-gray-100"
+						href="/brand">Brand</a
+					>
 				</div>
 			{/if}
 		</div>
