@@ -16,7 +16,7 @@ def _in_test_dir():
     """Determine if we're in the test dir."""
     gradio_dir = (Path(gradio.__file__) / ".." / "..").resolve()
     try:
-        (gradio_dir / "js/gradio-preview/test").relative_to(Path().cwd())
+        (gradio_dir / "js" / "gradio-preview" / "test").relative_to(Path().cwd())
         return True
     except ValueError:
         return False

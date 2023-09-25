@@ -207,7 +207,6 @@
 						typeof server_port === "number" ? server_port : 7860
 				  }`
 				: host || space || src || location.origin;
-
 		app = await client(api_url, {
 			status_callback: handle_status,
 			normalise_files: false
@@ -237,7 +236,6 @@
 							status_callback: handle_status,
 							normalise_files: false
 						});
-						app.config.root = app.config.path;
 						config = app.config;
 						window.__gradio_space__ = config.space_id;
 					}
