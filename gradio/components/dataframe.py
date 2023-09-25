@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import Any, Callable, Literal, Union
+from typing import Any, Callable, Literal, Union, List
 
 import numpy as np
 import pandas as pd
@@ -15,8 +15,8 @@ from gradio.events import Events
 
 
 class DataframeData(GradioModel):
-    headers: list[str]
-    data: list[list[Union[str, int, float, bool]]]
+    headers: List[str]
+    data: List[List[Union[str, int, float, bool]]]
 
 
 set_documentation_group("component")

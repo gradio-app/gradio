@@ -1,8 +1,8 @@
 import subprocess
 from pathlib import Path
-from typing import Annotated
 
 import typer
+from typing_extensions import Annotated
 
 from gradio.cli.commands.display import LivePanelDisplay
 

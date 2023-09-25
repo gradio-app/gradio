@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import tempfile
 import warnings
-from typing import Any, Callable, Literal
+from typing import Any, Callable, Literal, List
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
@@ -19,7 +19,7 @@ set_documentation_group("component")
 
 
 class ListFiles(GradioRootModel):
-    root: list[FileData]
+    root: List[FileData]
 
 
 @document()

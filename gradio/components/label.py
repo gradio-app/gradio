@@ -6,7 +6,7 @@ import json
 import operator
 import warnings
 from pathlib import Path
-from typing import Any, Callable, Literal, Optional
+from typing import Any, Callable, Literal, Optional, List
 
 from gradio_client.documentation import document, set_documentation_group
 
@@ -25,7 +25,7 @@ class LabelConfidence(GradioModel):
 
 class LabelData(GradioModel):
     label: str
-    confidences: Optional[list[LabelConfidence]] = None
+    confidences: Optional[List[LabelConfidence]] = None
 
 
 @document()
