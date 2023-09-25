@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -757,8 +757,8 @@ importers:
         specifier: ^0.16.7
         version: 0.16.7
       marked:
-        specifier: ^7.0.0
-        version: 7.0.0
+        specifier: ^9.0.0
+        version: 9.0.3
 
   js/dropdown:
     dependencies:
@@ -953,11 +953,11 @@ importers:
         specifier: ^0.16.7
         version: 0.16.7
       marked:
-        specifier: ^7.0.0
-        version: 7.0.0
+        specifier: ^9.0.0
+        version: 9.0.3
       marked-highlight:
         specifier: ^2.0.1
-        version: 2.0.1(marked@7.0.0)
+        version: 2.0.1(marked@9.0.3)
       prismjs:
         specifier: 1.29.0
         version: 1.29.0
@@ -6401,7 +6401,7 @@ packages:
     peerDependencies:
       '@sveltejs/kit': ^1.0.0
     dependencies:
-      '@sveltejs/kit': 1.16.3(svelte@3.59.2)(vite@4.3.9)
+      '@sveltejs/kit': 1.16.3(svelte@3.57.0)(vite@4.3.5)
       import-meta-resolve: 3.0.0
     dev: true
 
@@ -11396,16 +11396,16 @@ packages:
       react: 18.2.0
     dev: true
 
-  /marked-highlight@2.0.1(marked@7.0.0):
+  /marked-highlight@2.0.1(marked@9.0.3):
     resolution: {integrity: sha512-LDUfR/zDvD+dJ+lQOWHkxvBLNxiXcaN8pBtwJ/i4pI0bkDC/Ef6Mz1qUrAuHXfnpdr2rabdMpVFhqFuU+5Mskg==}
     peerDependencies:
       marked: ^4 || ^5
     dependencies:
-      marked: 7.0.0
+      marked: 9.0.3
     dev: false
 
-  /marked@7.0.0:
-    resolution: {integrity: sha512-7Gv1Ry8tqR352ElQOQfxdGpIh8kNZh/yYjNCxAQCN1DDbY4bCTG3qDCSkZWlRElSseeEILDxkY/G9w7cgziBNw==}
+  /marked@9.0.3:
+    resolution: {integrity: sha512-pI/k4nzBG1PEq1J3XFEHxVvjicfjl8rgaMaqclouGSMPhk7Q3Ejb2ZRxx/ZQOcQ1909HzVoWCFYq6oLgtL4BpQ==}
     engines: {node: '>= 16'}
     hasBin: true
     dev: false
