@@ -234,12 +234,12 @@ When a user makes a prediction to your app, you may need the underlying network 
 ```python
 import gradio as gr
 
-def echo(name, request: gr.Request):
+def echo(text, request: gr.Request):
     if request:
         print("Request headers dictionary:", request.headers)
         print("IP address:", request.client.host)
         print("Query parameters:", dict(request.query_params))
-    return name
+    return text
 
 io = gr.Interface(echo, "textbox", "textbox").launch()
 ```
