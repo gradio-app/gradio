@@ -138,12 +138,6 @@ export function generate_dev_entry({ enable }: { enable: boolean }): Plugin {
 					bundle["index.html"].source.length
 				);
 
-			// recursively copy all assets from config.dir to ../dev
-			cpSync(
-				join(config.dir, "..", "frontend"),
-				join(config.dir, "..", "dev"),
-				{ recursive: true }
-			);
 			writeFileSync(join(config.dir, "..", "dev", "index.html"), dev_script);
 		}
 	};

@@ -1,5 +1,11 @@
 # @gradio/chatbot
 
+## 0.4.0-beta.6
+
+### Fixes
+
+- [#5593](https://github.com/gradio-app/gradio/pull/5593) [`88d43bd12`](https://github.com/gradio-app/gradio/commit/88d43bd124792d216da445adef932a2b02f5f416) - Fixes avatar image in chatbot being squashed.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.4.0-beta.5
 
 ### Features

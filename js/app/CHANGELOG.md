@@ -1,5 +1,11 @@
 # @gradio/app
 
+## 1.6.0-beta.6
+
+### Features
+
+- [#5680](https://github.com/gradio-app/gradio/pull/5680) [`77c5ad98c`](https://github.com/gradio-app/gradio/commit/77c5ad98cf530dd45ef03c4f438105640c4b9c4c) - Fix build and file route.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 1.6.0-beta.5
 
 ### Patch Changes
