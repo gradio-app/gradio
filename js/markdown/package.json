@@ -21,7 +21,7 @@
 		"@gradio/utils": "workspace:^",
 		"@types/dompurify": "^3.0.2",
 		"@types/katex": "^0.16.0",
-		"@types/prismjs": "1.26.0",
+		"@types/prismjs": "1.26.1",
 		"dompurify": "^3.0.3",
 		"katex": "^0.16.7",
 		"marked": "^7.0.0",
