@@ -41,6 +41,11 @@ const TEST_MODE = process.env.TEST_MODE || "jsdom";
 
 //@ts-ignore
 export default defineConfig(({ mode }) => {
+	const targets = {
+		"production:cdn": "../../gradio/templates/cdn",
+		"production:local": "../../gradio/templates/frontend",
+		"dev:custom": "../../gradio/templates/dev",
+	}
 	const CDN_URL = mode === "production:cdn" ? CDN : "/";
 	const production =
 		mode === "production:cdn" ||
@@ -64,7 +69,7 @@ export default defineConfig(({ mode }) => {
 			minify: production,
 			outDir: is_lite
 				? resolve(__dirname, "../lite/dist")
-				: `../../gradio/templates/${is_cdn ? "cdn" : "frontend"}`,
+				: targets[mode],
 			// To build Gradio-lite as a library, we can't use the library mode
 			// like `lib: is_lite && {}`
 			// because it inevitably enables inlining of all the static file assets,
