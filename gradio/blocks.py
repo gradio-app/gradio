@@ -1553,7 +1553,7 @@ Received outputs:
             "average_duration": block_fn.total_runtime / block_fn.total_runs,
         }
 
-    async def create_limiter(self):
+    def create_limiter(self):
         self.limiter = (
             None
             if self.max_threads == 40
@@ -2344,10 +2344,10 @@ Received outputs:
         """Events that should be run when the app containing this block starts up."""
 
         if self.enable_queue:
-            utils.run_coro_in_background(self._queue.start, self.ssl_verify)
+            self._queue.start()
             # So that processing can resume in case the queue was stopped
             self._queue.stopped = False
-        utils.run_coro_in_background(self.create_limiter)
+        self.create_limiter()
 
     def queue_enabled_for_fn(self, fn_index: int):
         if self.dependencies[fn_index]["queue"] is None:
