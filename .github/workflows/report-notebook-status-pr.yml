@@ -9,7 +9,7 @@ jobs:
     outputs:
       pr_number: ${{ steps.pr_number.outputs.pr_number }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install Python
         uses: actions/setup-python@v4
         with:
