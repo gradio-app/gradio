@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:add queryParams to frontend request to backend
+feat:add query parameters to the `gr.Request` object through the `query_params` attribute
