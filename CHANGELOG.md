@@ -1,5 +1,23 @@
 # gradio
 
+## 3.45.0-beta.9
+
+### Features
+
+- [#5678](https://github.com/gradio-app/gradio/pull/5678) [`6be98dac3`](https://github.com/gradio-app/gradio/commit/6be98dac33626ed48e0da8abf62fa545ed217ae0) - Patch fixes.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5665](https://github.com/gradio-app/gradio/pull/5665) [`0b072d797`](https://github.com/gradio-app/gradio/commit/0b072d797d5f92edfd00de8bae737bf16a885815) - Make layout components templateable.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5635](https://github.com/gradio-app/gradio/pull/5635) [`38fafb9e2`](https://github.com/gradio-app/gradio/commit/38fafb9e2a5509b444942e1d5dd48dffa20066f4) - Fix typos in Gallery docs.  Thanks [@atesgoral](https://github.com/atesgoral)!
+- [#5590](https://github.com/gradio-app/gradio/pull/5590) [`d1ad1f671`](https://github.com/gradio-app/gradio/commit/d1ad1f671caef9f226eb3965f39164c256d8615c) - Attach `elem_classes` selectors to layout elements, and an id to the Tab button (for targeting via CSS/JS).  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#5598](https://github.com/gradio-app/gradio/pull/5598) [`6b1714386`](https://github.com/gradio-app/gradio/commit/6b17143868bdd2c1400af1199a01c1c0d5c27477) - Upgrade Pyodide to 0.24.0 and install the native orjson package.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#5680](https://github.com/gradio-app/gradio/pull/5680) [`77c5ad98c`](https://github.com/gradio-app/gradio/commit/77c5ad98cf530dd45ef03c4f438105640c4b9c4c) - Fix build and file route.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
+### Fixes
+
+- [#5625](https://github.com/gradio-app/gradio/pull/5625) [`9ccc4794a`](https://github.com/gradio-app/gradio/commit/9ccc4794a72ce8319417119f6c370e7af3ffca6d) - Use ContextVar instead of threading.local().  Thanks [@cbensimon](https://github.com/cbensimon)!
+- [#5636](https://github.com/gradio-app/gradio/pull/5636) [`fb5964fb8`](https://github.com/gradio-app/gradio/commit/fb5964fb88082e7b956853b543c468116811cab9) - Fix bug in example cache loading event.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5633](https://github.com/gradio-app/gradio/pull/5633) [`341402337`](https://github.com/gradio-app/gradio/commit/34140233794c29d4722020e13c2d045da642dfae) - Allow Gradio apps containing `gr.Radio()`, `gr.Checkboxgroup()`, or `gr.Dropdown()` to be loaded with `gr.load()`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#5593](https://github.com/gradio-app/gradio/pull/5593) [`88d43bd12`](https://github.com/gradio-app/gradio/commit/88d43bd124792d216da445adef932a2b02f5f416) - Fixes avatar image in chatbot being squashed.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 3.45.0-beta.8
 
 ### Features

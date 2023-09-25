@@ -1,6 +1,6 @@
 {
 	"name": "website",
-	"version": "0.6.0",
+	"version": "0.6.1-beta.0",
 	"private": true,
 	"scripts": {
 		"dev": "python generate_jsons/generate.py && vite dev",
