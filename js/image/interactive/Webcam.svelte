@@ -32,7 +32,7 @@
 		try {
 			stream = await navigator.mediaDevices.getUserMedia({
 				video: true,
-				audio: include_audio
+				audio: include_audio,
 			});
 			video_source.srcObject = stream;
 			video_source.muted = true;
@@ -81,7 +81,7 @@
 					dispatch("capture", {
 						data: e.target.result,
 						name: "sample." + mimeType.substring(6),
-						is_example: false
+						is_example: false,
 					});
 					dispatch("stop_recording");
 				}
@@ -102,7 +102,7 @@
 				return;
 			}
 			media_recorder = new MediaRecorder(stream, {
-				mimeType: mimeType
+				mimeType: mimeType,
 			});
 			media_recorder.addEventListener("dataavailable", function (e) {
 				recorded_blobs.push(e.data);
@@ -125,21 +125,25 @@
 
 <div class="wrap">
 	<!-- svelte-ignore a11y-media-has-caption -->
+	<!-- need to suppress for video streaming https://github.com/sveltejs/svelte/issues/5967 -->
 	<video bind:this={video_source} class:flip={mirror_webcam} />
 	{#if !streaming}
-		<button on:click={mode === "image" ? take_picture : take_recording}>
+		<button
+			on:click={mode === "image" ? take_picture : take_recording}
+			aria-label={mode === "image" ? "capture photo" : "start recording"}
+		>
 			{#if mode === "video"}
 				{#if recording}
-					<div class="icon">
+					<div class="icon" title="stop recording">
 						<Square />
 					</div>
 				{:else}
-					<div class="icon">
+					<div class="icon" title="start recording">
 						<Circle />
 					</div>
 				{/if}
 			{:else}
-				<div class="icon">
+				<div class="icon" title="capture photo">
 					<Camera />
 				</div>
 			{/if}

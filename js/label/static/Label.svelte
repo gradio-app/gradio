@@ -14,21 +14,18 @@
 </script>
 
 <div class="container">
-	<div
+	<h2
 		class="output-class"
 		data-testid="label-output-value"
 		class:no-confidence={!("confidences" in value)}
 		style:background-color={color || "transparent"}
 	>
 		{value.label}
-	</div>
+	</h2>
 
-	<!-- TODO: fix -->
-	<!-- svelte-ignore a11y-click-events-have-key-events-->
-	<!-- svelte-ignore a11y-no-static-element-interactions-->
 	{#if typeof value === "object" && value.confidences}
 		{#each value.confidences as confidence_set, i}
-			<div
+			<button
 				class="confidence-set group"
 				data-testid={`${confidence_set.label}-confidence-set`}
 				class:selectable
@@ -37,18 +34,31 @@
 				}}
 			>
 				<div class="inner-wrap">
-					<div class="bar" style="width: {confidence_set.confidence * 100}%" />
-					<div class="label">
-						<div class="text">{confidence_set.label}</div>
+					<meter
+						aria-labelledby="meter-text"
+						class="bar"
+						min="0"
+						max="100"
+						style="width: {confidence_set.confidence *
+							100}%; background: var(--stat-background-fill);
+						"
+						value={confidence_set.confidence * 100}
+						aria-label={Math.round(confidence_set.confidence * 100) + "%"}
+					/>
+
+					<dl class="label">
+						<dt id={`meter-text-${confidence_set.label}`} class="text">
+							{confidence_set.label}
+						</dt>
 						{#if value.confidences}
 							<div class="line" />
-							<div class="confidence">
+							<dd class="confidence">
 								{Math.round(confidence_set.confidence * 100)}%
-							</div>
+							</dd>
 						{/if}
-					</div>
+					</dl>
 				</div>
-			</div>
+			</button>
 		{/each}
 	{/if}
 </div>
@@ -75,6 +85,7 @@
 		color: var(--body-text-color);
 		line-height: var(--line-none);
 		font-family: var(--font-mono);
+		width: 100%;
 	}
 
 	.confidence-set:last-child {
@@ -83,9 +94,13 @@
 
 	.inner-wrap {
 		flex: 1 1 0%;
+		display: flex;
+		flex-direction: column;
 	}
 
 	.bar {
+		appearance: none;
+		align-self: flex-start;
 		margin-bottom: var(--size-1);
 		border-radius: var(--radius-md);
 		background: var(--stat-background-fill);
@@ -105,6 +120,10 @@
 		color: var(--color-accent);
 	}
 
+	.confidence-set:focus .label {
+		color: var(--color-accent);
+	}
+
 	.text {
 		line-height: var(--line-md);
 	}
@@ -119,8 +138,5 @@
 	.confidence {
 		margin-left: auto;
 		text-align: right;
-	}
-	.selectable {
-		cursor: pointer;
 	}
 </style>

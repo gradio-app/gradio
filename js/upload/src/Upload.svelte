@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import type { FileData } from "./types";
 	import { blobToBase64 } from "./utils";
 
 	export let filetype: string | null = null;
@@ -39,7 +38,7 @@
 		if (include_file_metadata) {
 			var file_metadata: { name: string; size: number }[] = _files.map((f) => ({
 				name: f.name,
-				size: f.size
+				size: f.size,
 			}));
 		}
 		var load_file_data = [];
@@ -53,13 +52,13 @@
 			if (parse_to_data_url) {
 				load_file_data = file_data.map((data, i) => ({
 					data,
-					...file_metadata[i]
+					...file_metadata[i],
 				}));
 			} else {
 				load_file_data = file_data.map((data, i) => ({
 					data: "",
 					blob: data,
-					...file_metadata[i]
+					...file_metadata[i],
 				}));
 			}
 		} else {
@@ -85,10 +84,7 @@
 	}
 </script>
 
-<!-- TODO: fix -->
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<div
+<button
 	class:center
 	class:boundedheight
 	class:flex
@@ -114,17 +110,18 @@
 		webkitdirectory={file_count === "directory" || undefined}
 		mozdirectory={file_count === "directory" || undefined}
 	/>
-</div>
+</button>
 
 <style>
-	div {
+	button {
 		cursor: pointer;
 		width: var(--size-full);
 		height: var(--size-full);
 	}
 
 	.center {
-		text-align: center;
+		display: flex;
+		justify-content: center;
 	}
 	.flex {
 		display: flex;

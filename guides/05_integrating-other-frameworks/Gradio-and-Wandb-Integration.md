@@ -12,9 +12,6 @@ In this Guide, we'll walk you through:
 - How to setup a Gradio demo using the Wandb integration for JoJoGAN
 - How to contribute your own Gradio demos after tracking your experiments on wandb to the Wandb organization on Hugging Face
 
-Here's an example of an model trained and experiments tracked on wandb, try out the JoJoGAN demo below.
-
-<iframe src="https://akhaliq-jojogan.hf.space" frameBorder="0" height="810" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 ## What is Wandb?
 

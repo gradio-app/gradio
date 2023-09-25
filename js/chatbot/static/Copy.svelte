@@ -44,12 +44,17 @@
 	});
 </script>
 
-<button on:click={handle_copy} title="copy">
+<button
+	on:click={handle_copy}
+	title="copy"
+	aria-roledescription={copied ? "Value copied" : "Copy value"}
+	aria-label={copied ? "Copied" : "Copy"}
+>
 	{#if !copied}
-		<span><Copy /> </span>
+		<Copy />
 	{/if}
 	{#if copied}
-		<span><Check /></span>
+		<Check />
 	{/if}
 </button>
 

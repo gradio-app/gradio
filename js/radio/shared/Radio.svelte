@@ -81,6 +81,7 @@
 	label:focus {
 		background: var(--checkbox-label-background-fill-focus);
 	}
+
 	label.selected {
 		background: var(--checkbox-label-background-fill-selected);
 		color: var(--checkbox-label-text-color-selected);
@@ -101,8 +102,7 @@
 	}
 
 	input:checked,
-	input:checked:hover,
-	input:checked:focus {
+	input:checked:hover {
 		border-color: var(--checkbox-border-color-selected);
 		background-image: var(--radio-circle);
 		background-color: var(--checkbox-background-color-selected);
@@ -116,6 +116,12 @@
 	input:focus {
 		border-color: var(--checkbox-border-color-focus);
 		background-color: var(--checkbox-background-color-focus);
+	}
+
+	input:checked:focus {
+		border-color: var(--checkbox-border-color-focus);
+		background-image: var(--radio-circle);
+		background-color: var(--checkbox-background-color-selected);
 	}
 
 	input[disabled],

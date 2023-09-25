@@ -152,6 +152,7 @@ def organize_docs(d):
         "routes": {},
         "events": {},
         "py-client": {},
+        "chatinterface": {}
     }
     pages = []
     for mode in d:
@@ -174,9 +175,10 @@ def organize_docs(d):
             if mode == "component":
                 organized["components"][c["name"].lower()] = c
                 pages.append(c["name"].lower())
-            elif mode in ["helpers", "routes", "py-client"]:
+            elif mode in ["helpers", "routes", "py-client", "chatinterface"]:
                 organized[mode][c["name"].lower()] = c
                 pages.append(c["name"].lower())
+                
             else:
                 # if mode not in organized["building"]:
                 #     organized["building"][mode] = {}
@@ -259,6 +261,10 @@ def organize_docs(d):
             organized["py-client"][cls]["next_obj"] = organized["py-client"][
                 c_keys[i + 1]
             ]["name"]
+    
+    for cls in organized["chatinterface"]:
+        organized["chatinterface"][cls]["prev_obj"] = "Block-Layouts"
+        organized["chatinterface"][cls]["next_obj"] = "Themes"
 
     organized["events_matrix"] = component_events
     organized["events"] = events
