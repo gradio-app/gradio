@@ -1,7 +1,7 @@
-import gradio as gr
+from gradio.components.base import Component
 
 
-class NAME(gr.components.Component):
+class Fallback(Component):
     def preprocess(self, x):
         return x
 

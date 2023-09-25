@@ -27,11 +27,6 @@ def _dev(
     ] = Path("."),
 ):
     component_directory = component_directory.resolve()
-    if not (component_directory / "pyproject.toml").exists():
-        raise ValueError(
-            f"Cannot find pyproject.toml file in {component_directory}. Make sure "
-            f"{component_directory} parameter points to a valid python package."
-        )
 
     print(f":recycle: [green]Launching[/] {app} in reload mode\n")
 

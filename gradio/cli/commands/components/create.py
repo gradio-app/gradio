@@ -76,10 +76,12 @@ def _create(
         else:
             live.update(":page_facing_up: Creating a new component from scratch.")
 
-        _create_utils._create_frontend(name.lower(), template, directory=directory)
+        component = _create_utils._get_component_code(template)
+
+        _create_utils._create_frontend(name.lower(), component, directory=directory)
         live.update(":art: Created frontend code", add_sleep=0.2)
 
-        _create_utils._create_backend(name, template, directory, package_name)
+        _create_utils._create_backend(name, component, directory, package_name)
         live.update(":snake: Created backend code", add_sleep=0.2)
 
         if install:
