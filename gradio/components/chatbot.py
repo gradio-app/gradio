@@ -5,7 +5,7 @@ from __future__ import annotations
 import inspect
 import warnings
 from pathlib import Path
-from typing import Any, Callable, Literal, Optional, Union, List, Tuple
+from typing import Any, Callable, List, Literal, Optional, Tuple, Union
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group

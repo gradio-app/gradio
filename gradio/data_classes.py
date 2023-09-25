@@ -7,7 +7,7 @@ import secrets
 import shutil
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-from typing import Any, Optional, Union, List
+from typing import Any, List, Optional, Union
 
 from gradio_client.utils import traverse
 from pydantic import BaseModel, RootModel, ValidationError

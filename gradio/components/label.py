@@ -6,7 +6,7 @@ import json
 import operator
 import warnings
 from pathlib import Path
-from typing import Any, Callable, Literal, Optional, List
+from typing import Any, Callable, List, Literal, Optional
 
 from gradio_client.documentation import document, set_documentation_group
 

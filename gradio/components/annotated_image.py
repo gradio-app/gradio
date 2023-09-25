@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import Any, Literal, List
+from typing import Any, List, Literal
 
 import numpy as np
 from gradio_client.documentation import document, set_documentation_group
