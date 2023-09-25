@@ -512,6 +512,11 @@ class TestCheckboxGroup:
         assert checkboxes_input.preprocess(["a", "b"]) == [0, 1]
         assert checkboxes_input.preprocess(["a", "b", "c"]) == [0, 1, None]
 
+        # When a Gradio app is loaded with gr.load, the tuples are converted to lists,
+        # so we need to test that case as well
+        checkboxgroup = gr.CheckboxGroup(["a", "b", ["c", "c full"]])  # type: ignore
+        assert checkboxgroup.choices == [("a", "a"), ("b", "b"), ("c", "c full")]
+
         checkboxes_input = gr.CheckboxGroup(
             value=["a", "c"],
             choices=["a", "b", "c"],
@@ -592,6 +597,11 @@ class TestRadio:
         assert radio.preprocess("b") == 1
         assert radio.preprocess("c") is None
 
+        # When a Gradio app is loaded with gr.load, the tuples are converted to lists,
+        # so we need to test that case as well
+        radio = gr.Radio(["a", "b", ["c", "c full"]])  # type: ignore
+        assert radio.choices == [("a", "a"), ("b", "b"), ("c", "c full")]
+
         with pytest.raises(ValueError):
             gr.Radio(["a", "b"], type="unknown")
 
@@ -632,6 +642,11 @@ class TestDropdown:
         assert dropdown_input.postprocess("a") == "a"
         assert dropdown_input.preprocess("c full") == "c full"
         assert dropdown_input.postprocess("c full") == "c full"
+
+        # When a Gradio app is loaded with gr.load, the tuples are converted to lists,
+        # so we need to test that case as well
+        dropdown_input = gr.Dropdown(["a", "b", ["c", "c full"]])  # type: ignore
+        assert dropdown_input.choices == [("a", "a"), ("b", "b"), ("c", "c full")]
 
         dropdown = gr.Dropdown(choices=["a", "b"], type="index")
         assert dropdown.preprocess("a") == 0
@@ -1206,7 +1221,7 @@ class TestDataframe:
             "wrap": False,
             "root_url": None,
             "name": "dataframe",
-            "height": None,
+            "height": 500,
             "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
         }
         dataframe_input = gr.Dataframe()
@@ -1238,7 +1253,7 @@ class TestDataframe:
             "wrap": False,
             "root_url": None,
             "name": "dataframe",
-            "height": None,
+            "height": 500,
             "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
         }
 
@@ -2082,6 +2097,7 @@ class TestChatbot:
             "show_copy_button": False,
             "avatar_images": (None, None),
             "sanitize_html": True,
+            "render_markdown": True,
             "bubble_full_width": True,
         }
 
@@ -2426,6 +2442,7 @@ class TestScatterPlot:
             "label": None,
             "name": "plot",
             "bokeh_version": "3.0.3",
+            "show_actions_button": False,
             "root_url": None,
             "show_label": True,
             "container": True,
@@ -2627,6 +2644,7 @@ class TestLinePlot:
             "label": None,
             "name": "plot",
             "bokeh_version": "3.0.3",
+            "show_actions_button": False,
             "root_url": None,
             "show_label": True,
             "container": True,
@@ -2812,6 +2830,7 @@ class TestBarPlot:
             "label": None,
             "name": "plot",
             "bokeh_version": "3.0.3",
+            "show_actions_button": False,
             "root_url": None,
             "show_label": True,
             "container": True,

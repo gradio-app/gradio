@@ -58,6 +58,7 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
         show_copy_button: bool = False,
         avatar_images: tuple[str | Path | None, str | Path | None] | None = None,
         sanitize_html: bool = True,
+        render_markdown: bool = True,
         bubble_full_width: bool = True,
         **kwargs,
     ):
@@ -81,6 +82,7 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
             show_copy_button: If True, will show a copy button for each chatbot message.
             avatar_images: Tuple of two avatar image paths or URLs for user and bot (in that order). Pass None for either the user or bot image to skip. Must be within the working directory of the Gradio app or an external URL.
             sanitize_html: If False, will disable HTML sanitization for chatbot messages. This is not recommended, as it can lead to security vulnerabilities.
+            render_markdown: If False, will disable Markdown rendering for chatbot messages.
             bubble_full_width: If False, the chat bubble will fit to the content of the message. If True (default), the chat bubble will be the full width of the component.
         """
         if color_map is not None:
@@ -108,6 +110,7 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
             if show_share_button is None
             else show_share_button
         )
+        self.render_markdown = render_markdown
         self.show_copy_button = show_copy_button
         self.sanitize_html = sanitize_html
         self.bubble_full_width = bubble_full_width
@@ -145,6 +148,7 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
         avatar_images: tuple[str | Path | None] | None = None,
         sanitize_html: bool | None = None,
         bubble_full_width: bool | None = None,
+        render_markdown: bool | None = None,
     ):
         warnings.warn(
             "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Chatbot(...)` instead of `return gr.Chatbot.update(...)`."
@@ -165,6 +169,7 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
             "avatar_images": avatar_images,
             "sanitize_html": sanitize_html,
             "bubble_full_width": bubble_full_width,
+            "render_markdown": render_markdown,
             "__type__": "update",
         }
         return updated_config

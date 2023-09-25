@@ -127,7 +127,7 @@
 			if (selected_image !== null) {
 				dispatch("select", {
 					index: selected_image,
-					value: _value?.[selected_image][1]
+					value: _value?.[selected_image][1],
 				});
 			}
 		}
@@ -160,7 +160,7 @@
 
 		container_element?.scrollTo({
 			left: pos < 0 ? 0 : pos,
-			behavior: "smooth"
+			behavior: "smooth",
 		});
 	}
 
@@ -177,8 +177,7 @@
 	<Empty unpadded_box={true} size="large"><Image /></Empty>
 {:else}
 	{#if selected_image !== null && allow_preview}
-		<!-- svelte-ignore a11y-no-static-element-interactions -->
-		<div on:keydown={on_keydown} class="preview">
+		<button on:keydown={on_keydown} class="preview">
 			<div class="icon-buttons">
 				{#if show_download_button}
 					<a
@@ -195,24 +194,27 @@
 					on:clear={() => (selected_image = null)}
 				/>
 			</div>
-			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-			<img
-				data-testid="detailed-image"
+			<button
+				class="image-button"
 				on:click={(event) => handle_preview_click(event)}
-				src={_value[selected_image][0].data}
-				alt={_value[selected_image][1] || ""}
-				title={_value[selected_image][1] || null}
-				class:with-caption={!!_value[selected_image][1]}
 				style="height: calc(100% - {_value[selected_image][1]
 					? '80px'
 					: '60px'})"
-				loading="lazy"
-			/>
+				aria-label="detailed view of selected image"
+			>
+				<img
+					data-testid="detailed-image"
+					src={_value[selected_image][0].data}
+					alt={_value[selected_image][1] || ""}
+					title={_value[selected_image][1] || null}
+					class:with-caption={!!_value[selected_image][1]}
+					loading="lazy"
+				/>
+			</button>
 			{#if _value[selected_image][1]}
-				<div class="caption">
+				<caption class="caption">
 					{_value[selected_image][1]}
-				</div>
+				</caption>
 			{/if}
 			<div
 				bind:this={container_element}
@@ -225,17 +227,18 @@
 						on:click={() => (selected_image = i)}
 						class="thumbnail-item thumbnail-small"
 						class:selected={selected_image === i}
+						aria-label={"Thumbnail " + (i + 1) + " of " + _value.length}
 					>
 						<img
 							src={image[0].data}
 							title={image[1] || null}
-							alt={image[1] || null}
+							alt=""
 							loading="lazy"
 						/>
 					</button>
 				{/each}
 			</div>
-		</div>
+		</button>
 	{/if}
 
 	<div
@@ -263,6 +266,7 @@
 					class="thumbnail-item thumbnail-lg"
 					class:selected={selected_image === i}
 					on:click={() => (selected_image = i)}
+					aria-label={"Thumbnail " + (i + 1) + " of " + _value.length}
 				>
 					<img
 						alt={caption || ""}
@@ -306,14 +310,19 @@
 		}
 	}
 
+	.image-button {
+		height: calc(100% - 60px);
+		width: 100%;
+		display: flex;
+	}
 	.preview img {
 		width: var(--size-full);
-		height: calc(var(--size-full) - 60px);
+		height: var(--size-full);
 		object-fit: contain;
 	}
 
 	.preview img.with-caption {
-		height: calc(var(--size-full) - 80px);
+		height: var(--size-full);
 	}
 
 	.caption {
@@ -324,6 +333,7 @@
 		text-align: center;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+		align-self: center;
 	}
 
 	.thumbnails {
@@ -341,9 +351,7 @@
 	.thumbnail-item {
 		--ring-color: transparent;
 		position: relative;
-		box-shadow:
-			0 0 0 2px var(--ring-color),
-			var(--shadow-drop);
+		box-shadow: 0 0 0 2px var(--ring-color), var(--shadow-drop);
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--button-small-radius);
 		background: var(--background-fill-secondary);
