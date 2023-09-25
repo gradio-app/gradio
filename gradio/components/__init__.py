@@ -46,6 +46,7 @@ from gradio.components.status_tracker import StatusTracker
 from gradio.components.textbox import Textbox
 from gradio.components.upload_button import UploadButton
 from gradio.components.video import Video
+from gradio.components.fallback import Fallback
 
 Text = Textbox
 DataFrame = Dataframe
@@ -74,6 +75,7 @@ __all__ = [
     "DataFrame",
     "Dataset",
     "DuplicateButton",
+    "Fallback",
     "Form",
     "FormComponent",
     "Gallery",
