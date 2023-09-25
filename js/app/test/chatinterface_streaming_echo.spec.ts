@@ -33,7 +33,7 @@ test("chatinterface works with streaming functions and all buttons behave as exp
 	await textbox.fill("hi");
 	await submit_button.click();
 	await iterations[1];
-	await expect(textbox).toHaveValue("");
+	await expect(textbox).toHaveText("");
 	await expect.poll(async () => page.locator(".bot.message p").count()).toBe(2);
 	const bot_message_1 = await page.locator(".bot.message p").nth(1);
 	await expect(bot_message_1).toContainText("You typed: hi");
