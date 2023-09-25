@@ -442,10 +442,11 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 							time: new Date()
 						});
 
+						const urlParams = new URLSearchParams(window.location.search);
 						post_data(
 							`${http_protocol}//${host + config.path}/run${
 								_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
-							}`,
+							}?${urlParams.toString()}`,
 							{
 								...payload,
 								session_hash
@@ -512,8 +513,9 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 							time: new Date()
 						});
 
+						const urlParams = new URLSearchParams(window.location.search);
 						let url = new URL(`${ws_protocol}://${host}${config.path}
-							/queue/join`);
+							/queue/join?${urlParams.toString()}`);
 
 						if (jwt) {
 							url.searchParams.set("__sign", jwt);
