@@ -1,5 +1,11 @@
 # website
 
+## 0.6.1-beta.0
+
+### Fixes
+
+- [#5608](https://github.com/gradio-app/gradio/pull/5608) [`eebf9d71f`](https://github.com/gradio-app/gradio/commit/eebf9d71f90a83bd84b62c855fdcd13b086f7ad5) - Styling fixes to guides.  Thanks [@aliabd](https://github.com/aliabd)!
+
 ## 0.6.0
 
 ### Features

@@ -59,21 +59,32 @@
     "@gradio/preview": "0.0.2"
   },
   "changesets": [
+    "chatty-adults-reply",
     "chubby-hounds-itch",
     "cold-hoops-heal",
     "cold-lemons-roll",
+    "cold-lights-trade",
+    "dirty-ghosts-tickle",
     "dry-points-join",
     "easy-mirrors-retire",
+    "empty-bobcats-judge",
+    "great-mammals-lead",
     "hip-drinks-bow",
+    "hot-words-sin",
     "lazy-aliens-drive",
+    "lovely-radios-worry",
     "many-tips-create",
+    "puny-papayas-bake",
     "purple-jokes-shake",
+    "real-items-cover",
+    "rich-points-dance",
     "sad-ears-sink",
     "sad-eels-sink",
     "short-clouds-see",
     "silver-beers-refuse",
     "slick-pants-stand",
     "smart-groups-study",
+    "strong-peas-tell",
     "three-trams-sniff"
   ]
 }
