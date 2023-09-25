@@ -36,15 +36,13 @@ def mock_event() -> Event:
 
 
 class TestQueueMethods:
-    @pytest.mark.asyncio
-    async def test_start(self, queue: Queue):
-        await queue.start()
+    def test_start(self, queue: Queue):
+        queue.start()
         assert queue.stopped is False
         assert queue.get_active_worker_count() == 0
 
-    @pytest.mark.asyncio
-    async def test_stop_resume(self, queue: Queue):
-        await queue.start()
+    def test_stop_resume(self, queue: Queue):
+        queue.start()
         queue.close()
         assert queue.stopped
         queue.resume()
