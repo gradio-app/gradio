@@ -38,6 +38,8 @@ class ReloadError(ValueError):
 InvalidApiName = InvalidApiNameError  # backwards compatibility
 
 set_documentation_group("modals")
+
+
 @document()
 class Error(Exception):
     """
