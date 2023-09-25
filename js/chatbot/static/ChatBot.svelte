@@ -30,6 +30,7 @@
 	export let avatar_images: [string | null, string | null] = [null, null];
 	export let sanitize_html = true;
 	export let bubble_full_width = true;
+	export let render_markdown = true;
 	export let root: string;
 	export let root_url: null | string;
 
@@ -136,6 +137,7 @@
 							class:latest={i === value.length - 1}
 							class="message {j == 0 ? 'user' : 'bot'}"
 							class:message-fit={!bubble_full_width}
+							class:message-markdown-disabled={!render_markdown}
 							class:selectable
 							on:click={() => handle_select(i, j, message)}
 							dir={rtl ? "rtl" : "ltr"}
@@ -167,6 +169,7 @@
 									{message}
 									{latex_delimiters}
 									{sanitize_html}
+									{render_markdown}
 									on:load={scroll}
 								/>
 							{:else if message !== null && message.mime_type?.includes("audio")}
@@ -267,12 +270,16 @@
 		font-size: var(--text-lg);
 		line-height: var(--line-lg);
 		overflow-wrap: break-word;
+		overflow-x: hidden;
 	}
 	.message-fit {
 		width: fit-content !important;
 	}
 	.message-fit.user {
 		margin-left: auto;
+	}
+	.message-markdown-disabled {
+		white-space: pre-line;
 	}
 	.user {
 		align-self: flex-end;
@@ -319,6 +326,7 @@
 		justify-content: center;
 		width: 35px;
 		height: 35px;
+		flex-shrink: 0;
 		bottom: 0;
 	}
 	.user-row > .avatar-container {

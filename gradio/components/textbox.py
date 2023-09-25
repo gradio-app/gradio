@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Callable, Literal
 
 import numpy as np
@@ -90,7 +91,7 @@ class Textbox(
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: if True, will be rendered as an editable textbox; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
-            autofocus: If True, will focus on the textbox when the page loads.
+            autofocus: If True, will focus on the textbox when the page loads. Use this carefully, as it can cause usability issues for sighted and non-sighted users.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             type: The type of textbox. One of: 'text', 'password', 'email', Default is 'text'.
@@ -138,22 +139,6 @@ class Textbox(
         self.rtl = rtl
         self.text_align = text_align
 
-    def get_config(self):
-        return {
-            "lines": self.lines,
-            "max_lines": self.max_lines,
-            "placeholder": self.placeholder,
-            "value": self.value,
-            "type": self.type,
-            "autofocus": self.autofocus,
-            "show_copy_button": self.show_copy_button,
-            "container": self.container,
-            "text_align": self.text_align,
-            "rtl": self.rtl,
-            "autoscroll": self.autoscroll,
-            **IOComponent.get_config(self),
-        }
-
     @staticmethod
     def update(
         value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
@@ -175,6 +160,9 @@ class Textbox(
         autofocus: bool | None = None,
         autoscroll: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Textbox(...)` instead of `return gr.Textbox.update(...)`."
+        )
         return {
             "lines": lines,
             "max_lines": max_lines,

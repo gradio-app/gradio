@@ -11,58 +11,77 @@ simple = pd.DataFrame({
 
 def bar_plot_fn(display):
     if display == "simple":
-        return gr.BarPlot.update(
+        return gr.BarPlot(
             simple,
             x="a",
             y="b",
+            color=None,
+            group=None,
             title="Simple Bar Plot with made up data",
             tooltip=['a', 'b'],
-            y_lim=[20, 100]
+            y_lim=[20, 100],
+            x_title=None,
+            y_title=None,
+            vertical=True,
         )
     elif display == "stacked":
-        return gr.BarPlot.update(
+        return gr.BarPlot(
             barley,
             x="variety",
             y="yield",
             color="site",
+            group=None,
             title="Barley Yield Data",
-            tooltip=['variety', 'site']
+            tooltip=['variety', 'site'],
+            y_lim=None,
+            x_title=None,
+            y_title=None,
+            vertical=True,
         )
     elif display == "grouped":
-        return gr.BarPlot.update(
+        return gr.BarPlot(
             barley.astype({"year": str}),
             x="year",
             y="yield",
             color="year",
             group="site",
             title="Barley Yield by Year and Site",
-            group_title="",
-            tooltip=["yield", "site", "year"]
+            tooltip=["yield", "site", "year"],
+            y_lim=None,
+            x_title=None,
+            y_title=None,
+            vertical=True,
         )
     elif display == "simple-horizontal":
-        return gr.BarPlot.update(
+        return gr.BarPlot(
             simple,
             x="a",
             y="b",
-            x_title="Variable A",
-            y_title="Variable B",
+            color=None,
+            group=None,
             title="Simple Bar Plot with made up data",
             tooltip=['a', 'b'],
+            y_lim=[20, 100],
+            x_title="Variable A",
+            y_title="Variable B",
             vertical=False,
-            y_lim=[20, 100]
         )
     elif display == "stacked-horizontal":
-        return gr.BarPlot.update(
+        return gr.BarPlot(
             barley,
             x="variety",
             y="yield",
             color="site",
+            group=None,
             title="Barley Yield Data",
+            tooltip=['variety', 'site'],
+            y_lim=None,
+            x_title=None,
+            y_title=None,
             vertical=False,
-            tooltip=['variety', 'site']
         )
     elif display == "grouped-horizontal":
-        return gr.BarPlot.update(
+        return gr.BarPlot(
             barley.astype({"year": str}),
             x="year",
             y="yield",
@@ -71,6 +90,9 @@ def bar_plot_fn(display):
             title="Barley Yield by Year and Site",
             group_title="",
             tooltip=["yield", "site", "year"],
+            y_lim=None,
+            x_title=None,
+            y_title=None,
             vertical=False
         )
 
@@ -84,6 +106,6 @@ with gr.Blocks() as bar_plot:
                 label="Type of Bar Plot"
             )
         with gr.Column():
-            plot = gr.BarPlot(show_label=False)
+            plot = gr.BarPlot(show_label=False, show_actions_button=True)
     display.change(bar_plot_fn, inputs=display, outputs=plot)
     bar_plot.load(fn=bar_plot_fn, inputs=display, outputs=plot)

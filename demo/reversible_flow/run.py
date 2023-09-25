@@ -6,8 +6,8 @@ def increase(num):
 with gr.Blocks() as demo:
     a = gr.Number(label="a")
     b = gr.Number(label="b")
-    btoa = gr.Button("a > b")
-    atob = gr.Button("b > a")
+    atob = gr.Button("a > b")
+    btoa = gr.Button("b > a")
     atob.click(increase, a, b)
     btoa.click(increase, b, a)
 

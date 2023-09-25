@@ -4,7 +4,7 @@
 	import {
 		EditorView,
 		keymap,
-		placeholder as placeholderExt
+		placeholder as placeholderExt,
 	} from "@codemirror/view";
 	import { StateEffect, EditorState, type Extension } from "@codemirror/state";
 	import { indentWithTab } from "@codemirror/commands";
@@ -42,7 +42,7 @@
 
 	$: reconfigure(), lang_extension;
 	$: setDoc(value);
-	$: updateLines(lines);
+	$: updateLines();
 
 	function setDoc(newDoc: string): void {
 		if (view && newDoc !== view.state.doc.toString()) {
@@ -50,13 +50,13 @@
 				changes: {
 					from: 0,
 					to: view.state.doc.length,
-					insert: newDoc
-				}
+					insert: newDoc,
+				},
 			});
 		}
 	}
 
-	function updateLines(newLines: number): void {
+	function updateLines(): void {
 		if (view) {
 			view.requestMeasure({ read: updateGutters });
 		}
@@ -65,7 +65,7 @@
 	function createEditorView(): EditorView {
 		return new EditorView({
 			parent: element,
-			state: createEditorState(value)
+			state: createEditorState(value),
 		});
 	}
 
@@ -119,7 +119,7 @@
 			),
 			FontTheme,
 			...getTheme(),
-			...extensions
+			...extensions,
 		];
 		return stateExtensions;
 	}
@@ -127,36 +127,36 @@
 	const FontTheme = EditorView.theme({
 		"&": {
 			fontSize: "var(--text-sm)",
-			backgroundColor: "var(--border-color-secondary)"
+			backgroundColor: "var(--border-color-secondary)",
 		},
 		".cm-content": {
 			paddingTop: "5px",
 			paddingBottom: "5px",
 			color: "var(--body-text-color)",
 			fontFamily: "var(--font-mono)",
-			minHeight: "100%"
+			minHeight: "100%",
 		},
 		".cm-gutters": {
 			marginRight: "1px",
 			borderRight: "1px solid var(--border-color-primary)",
 			backgroundColor: "transparent",
-			color: "var(--body-text-color-subdued)"
+			color: "var(--body-text-color-subdued)",
 		},
 		".cm-focused": {
-			outline: "none"
+			outline: "none",
 		},
 		".cm-scroller": {
-			height: "auto"
+			height: "auto",
 		},
 		".cm-cursor": {
-			borderLeftColor: "var(--body-text-color)"
-		}
+			borderLeftColor: "var(--body-text-color)",
+		},
 	});
 
 	function createEditorState(_value: string | null | undefined): EditorState {
 		return EditorState.create({
 			doc: _value ?? undefined,
-			extensions: getExtensions()
+			extensions: getExtensions(),
 		});
 	}
 
@@ -169,7 +169,8 @@
 	): Extension[] {
 		const extensions: Extension[] = [
 			EditorView.editable.of(!readonly),
-			EditorState.readOnly.of(readonly)
+			EditorState.readOnly.of(readonly),
+			EditorView.contentAttributes.of({ "aria-label": "Code input container" }),
 		];
 
 		if (basic) {
@@ -202,7 +203,7 @@
 
 	function reconfigure(): void {
 		view?.dispatch({
-			effects: StateEffect.reconfigure.of(getExtensions())
+			effects: StateEffect.reconfigure.of(getExtensions()),
 		});
 	}
 

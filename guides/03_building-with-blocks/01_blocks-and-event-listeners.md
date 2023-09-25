@@ -122,12 +122,12 @@ Keep in mind that with dictionary returns, we still need to specify the possible
 
 ## Updating Component Configurations
 
-The return value of an event listener function is usually the updated value of the corresponding output Component. Sometimes we want to update the configuration of the Component as well, such as the visibility. In this case, we return a `gr.update()` object instead of just the update Component value.
+The return value of an event listener function is usually the updated value of the corresponding output Component. Sometimes we want to update the configuration of the Component as well, such as the visibility. In this case, we return a new Component, setting the properties we want to change.
 
-$code_blocks_essay_update
-$demo_blocks_essay_update
+$code_blocks_essay_simple
+$demo_blocks_essay_simple
 
-See how we can configure the Textbox itself through the `gr.update()` method. The `value=` argument can still be used to update the value along with Component configuration.
+See how we can configure the Textbox itself through a new `gr.Textbox()` method. The `value=` argument can still be used to update the value along with Component configuration. Any arguments we do not set will use their previous values.
 
 ## Running Events Consecutively
 

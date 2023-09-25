@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
@@ -71,7 +72,9 @@ class Radio(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.choices = (
-            [c if isinstance(c, tuple) else (str(c), c) for c in choices]
+            # Although we expect choices to be a list of tuples, it can be a list of tuples if the Gradio app
+            # is loaded with gr.load() since Python tuples are converted to lists in JSON.
+            [tuple(c) if isinstance(c, (tuple, list)) else (str(c), c) for c in choices]
             if choices
             else []
         )
@@ -105,13 +108,6 @@ class Radio(
         )
         NeighborInterpretable.__init__(self)
 
-    def get_config(self):
-        return {
-            "choices": self.choices,
-            "value": self.value,
-            **IOComponent.get_config(self),
-        }
-
     def example_inputs(self) -> dict[str, Any]:
         return {
             "raw": self.choices[0][1] if self.choices else None,
@@ -135,6 +131,9 @@ class Radio(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Radio(...)` instead of `return gr.Radio.update(...)`."
+        )
         choices = (
             None
             if choices is None

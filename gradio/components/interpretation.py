@@ -43,12 +43,6 @@ class Interpretation(Component, SimpleSerializable):
         )
         self.component = component
 
-    def get_config(self):
-        return {
-            "component": self.component.get_block_name(),
-            "component_props": self.component.get_config(),
-        }
-
     @staticmethod
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,

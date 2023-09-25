@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Callable, Literal
 
 import altair as alt
@@ -69,6 +70,8 @@ class BarPlot(Plot):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         sort: Literal["x", "y", "-x", "-y"] | None = None,
+        show_actions_button: bool = False,
+        **kwargs,
     ):
         """
         Parameters:
@@ -99,6 +102,7 @@ class BarPlot(Plot):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             sort: Specifies the sorting axis as either "x", "y", "-x" or "-y". If None, no sorting is applied.
+            show_actions_button: Whether to show the actions button on the top right corner of the plot.
         """
         self.x = x
         self.y = y
@@ -121,6 +125,7 @@ class BarPlot(Plot):
         self.width = width
         self.height = height
         self.sort = sort
+        self.show_actions_button = show_actions_button
         super().__init__(
             value=value,
             label=label,
@@ -132,12 +137,8 @@ class BarPlot(Plot):
             elem_id=elem_id,
             elem_classes=elem_classes,
             every=every,
+            **kwargs,
         )
-
-    def get_config(self):
-        config = super().get_config()
-        config["caption"] = self.caption
-        return config
 
     def get_block_name(self) -> str:
         return "plot"
@@ -213,6 +214,9 @@ class BarPlot(Plot):
             visible: Whether the plot should be visible.
             sort: Specifies the sorting axis as either "x", "y", "-x" or "-y". If None, no sorting is applied.
         """
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.BarPlot(...)` instead of `return gr.BarPlot.update(...)`."
+        )
         properties = [
             x,
             y,
