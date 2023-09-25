@@ -76,7 +76,7 @@
 <svelte:window bind:scrollY={y} />
 
 <main class="container mx-auto px-4 flex gap-4">
-	<div class="flex">
+	<div class="flex w-full">
 		<DocsNav
 			current_nav_link={"flagging"}
 			{components}
@@ -85,7 +85,7 @@
 			{py_client}
 		/>
 
-		<div class="flex flex-col w-full min-w-full lg:w-10/12 lg:min-w-0">
+		<div class="flex flex-col w-full min-w-full lg:w-8/12 lg:min-w-0">
 			<div>
 				<p
 					class="lg:ml-10 bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 mr-2 rounded-full text-orange-800 mb-1 w-fit float-left"
@@ -488,7 +488,7 @@
 			</div>
 		</div>
 		<div
-			class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:block"
+			class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:block lg:w-2/12"
 		>
 			<div class="mx-8">
 				<a
