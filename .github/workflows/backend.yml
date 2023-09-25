@@ -106,6 +106,7 @@ jobs:
         . venv/bin/activate
         python -m pip install -e client/python
         python -m pip install -e .
+        python -c "import gradio"
     - name: Lint (Linux)
       if: runner.os == 'Linux'
       run: |
