@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses
 import inspect
 import json
@@ -18,6 +20,99 @@ def _in_test_dir():
         return True
     except ValueError:
         return False
+
+
+default_demo_code = """
+example = {name}().example_inputs()
+
+with gr.Blocks() as demo:
+    {name}(value=example, interactive=True)
+    {name}(value=example, interactive=False)
+"""
+
+
+@dataclasses.dataclass
+class ComponentFiles:
+    template: str
+    demo_code: str = default_demo_code
+    python_file_name: str = ""
+    js_dir: str = ""
+
+
+OVERRIDES = {
+    "JSON": ComponentFiles(template="JSON", python_file_name="json_component"),
+    "Row": ComponentFiles(
+        template="Row",
+        demo_code=textwrap.dedent(
+            """
+        with gr.Blocks() as demo:
+            with {name}():
+                gr.Textbox(value="foo", interactive=True)
+                gr.Number(value=10, interactive=True)
+        """
+        ),
+        python_file_name="row",
+    ),
+    "Column": ComponentFiles(
+        template="Column",
+        demo_code=textwrap.dedent(
+            """
+        with gr.Blocks() as demo:
+            with {name}():
+                gr.Textbox(value="foo", interactive=True)
+                gr.Number(value=10, interactive=True)
+        """
+        ),
+        python_file_name="column",
+    ),
+    "Tabs": ComponentFiles(
+        template="Tabs",
+        demo_code=textwrap.dedent(
+            """
+        with gr.Blocks() as demo:
+            with {name}():
+                with gr.Tab("Tab 1"):
+                    gr.Textbox(value="foo", interactive=True)
+                with gr.Tab("Tab 2"):
+                    gr.Number(value=10, interactive=True)
+        """
+        ),
+        python_file_name="tabs",
+    ),
+    "Group": ComponentFiles(
+        template="Group",
+        demo_code=textwrap.dedent(
+            """
+        with gr.Blocks() as demo:
+            with {name}():
+                gr.Textbox(value="foo", interactive=True)
+                gr.Number(value=10, interactive=True)
+        """
+        ),
+        python_file_name="group",
+    ),
+    "Accordion": ComponentFiles(
+        template="Accordion",
+        demo_code=textwrap.dedent(
+            """
+        with gr.Blocks() as demo:
+            with {name}(label="Accordion"):
+                gr.Textbox(value="foo", interactive=True)
+                gr.Number(value=10, interactive=True)
+        """
+        ),
+        python_file_name="accordion",
+    ),
+}
+
+
+def _get_component_code(template: str | None) -> ComponentFiles:
+    template = template or "Fallback"
+    return ComponentFiles(
+        python_file_name=f"{template.lower()}.py",
+        js_dir=template.lower(),
+        template=template,
+    )
 
 
 def _get_js_dependency_version(name: str, local_js_dir: Path) -> str:
@@ -41,12 +136,9 @@ def _modify_js_deps(
     return package_json
 
 
-def _create_frontend(name: str, template: str, directory: Path):
+def _create_frontend(name: str, component: ComponentFiles, directory: Path):
     frontend = directory / "frontend"
     frontend.mkdir(exist_ok=True)
-
-    if not template:
-        template = "fallback"
 
     p = Path(inspect.getfile(gradio)).parent
 
@@ -64,7 +156,7 @@ def _create_frontend(name: str, template: str, directory: Path):
         return ignored
 
     shutil.copytree(
-        str(p / "_frontend_code" / template),
+        str(p / "_frontend_code" / component.js_dir),
         frontend,
         dirs_exist_ok=True,
         ignore=ignore,
@@ -82,88 +174,18 @@ def _replace_old_class_name(old_class_name: str, new_class_name: str, content: s
     return re.sub(pattern, new_class_name, content)
 
 
-default_demo_code = """
-example = {name}().example_inputs()
+def _create_backend(
+    name: str, component: ComponentFiles, directory: Path, package_name: str
+):
+    if component.template in gradio.components.__all__:
+        module = "components"
+    elif component.template in gradio.layouts.__all__:
+        module = "layouts"
+    else:
+        raise ValueError(
+            f"Cannot find {component.template} in gradio.components or gradio.layouts"
+        )
 
-with gr.Blocks() as demo:
-    {name}(value=example, interactive=True)
-    {name}(value=example, interactive=False)
-"""
-
-
-@dataclasses.dataclass
-class Override:
-    demo_code: str = default_demo_code
-    python_file_name: str = ""
-
-
-OVERRIDES = {
-    "JSON": Override(python_file_name="json_component"),
-    "Row": Override(
-        demo_code=textwrap.dedent(
-            """
-        with gr.Blocks() as demo:
-            with {name}():
-                gr.Textbox(value="foo", interactive=True)
-                gr.Number(value=10, interactive=True)
-        """
-        ),
-        python_file_name="row",
-    ),
-    "Column": Override(
-        demo_code=textwrap.dedent(
-            """
-        with gr.Blocks() as demo:
-            with {name}():
-                gr.Textbox(value="foo", interactive=True)
-                gr.Number(value=10, interactive=True)
-        """
-        ),
-        python_file_name="column",
-    ),
-    "Tabs": Override(
-        demo_code=textwrap.dedent(
-            """
-        with gr.Blocks() as demo:
-            with {name}():
-                with gr.Tab("Tab 1"):
-                    gr.Textbox(value="foo", interactive=True)
-                with gr.Tab("Tab 2"):
-                    gr.Number(value=10, interactive=True)
-        """
-        ),
-        python_file_name="tabs",
-    ),
-    "Group": Override(
-        demo_code=textwrap.dedent(
-            """
-        with gr.Blocks() as demo:
-            with {name}():
-                gr.Textbox(value="foo", interactive=True)
-                gr.Number(value=10, interactive=True)
-        """
-        ),
-        python_file_name="group",
-    ),
-    "Accordion": Override(
-        demo_code=textwrap.dedent(
-            """
-        with gr.Blocks() as demo:
-            with {name}(label="Accordion"):
-                gr.Textbox(value="foo", interactive=True)
-                gr.Number(value=10, interactive=True)
-        """
-        ),
-        python_file_name="accordion",
-    ),
-}
-
-
-def get_default(template: str):
-    return Override(python_file_name=f"{template.lower()}.py")
-
-
-def _create_backend(name: str, template: str, directory: Path, package_name: str):
     backend = directory / "backend" / package_name
     backend.mkdir(exist_ok=True, parents=True)
 
@@ -179,8 +201,6 @@ def _create_backend(name: str, template: str, directory: Path, package_name: str
 
     demo_dir = directory / "demo"
     demo_dir.mkdir(exist_ok=True, parents=True)
-
-    component = OVERRIDES[template] if template in OVERRIDES else get_default(template)
 
     (demo_dir / "app.py").write_text(
         f"""
@@ -203,39 +223,23 @@ __all__ = ['{name}']
 """
     )
 
-    if not template:
-        backend = backend / f"{name.lower()}.py"
-        no_template = (
-            (Path(__file__).parent / "files" / "NoTemplateComponent.py")
-            .read_text()
-            .replace("NAME", name)
+    p = Path(inspect.getfile(gradio)).parent
+    python_file = backend / f"{name.lower()}.py"
+
+    shutil.copy(
+        str(p / module / component.python_file_name),
+        str(python_file),
+    )
+
+    source_pyi_file = p / module / component.python_file_name.replace(".py", ".pyi")
+    pyi_file = backend / f"{name.lower()}.pyi"
+    if source_pyi_file.exists():
+        shutil.copy(str(source_pyi_file), str(pyi_file))
+
+    content = python_file.read_text()
+    python_file.write_text(_replace_old_class_name(component.template, name, content))
+    if pyi_file.exists():
+        pyi_content = pyi_file.read_text()
+        pyi_file.write_text(
+            _replace_old_class_name(component.template, name, pyi_content)
         )
-        backend.write_text(no_template)
-    else:
-        p = Path(inspect.getfile(gradio)).parent
-        python_file = backend / f"{name.lower()}.py"
-
-        if template in gradio.components.__all__:
-            module = "components"
-        elif template in gradio.layouts.__all__:
-            module = "layouts"
-        else:
-            raise ValueError(
-                f"Cannot find {template} in gradio.components or gradio.layouts"
-            )
-
-        shutil.copy(
-            str(p / module / f"{component.python_file_name}.py"),
-            str(python_file),
-        )
-
-        source_pyi_file = p / module / f"{component.python_file_name}.pyi"
-        pyi_file = backend / f"{name.lower()}.pyi"
-        if source_pyi_file.exists():
-            shutil.copy(str(source_pyi_file), str(pyi_file))
-
-        content = python_file.read_text()
-        python_file.write_text(_replace_old_class_name(template, name, content))
-        if pyi_file.exists():
-            pyi_content = pyi_file.read_text()
-            pyi_file.write_text(_replace_old_class_name(template, name, pyi_content))
