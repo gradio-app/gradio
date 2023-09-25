@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import asyncio
 import copy
 import inspect
 import json
 import os
 import random
+import re
 import secrets
 import sys
 import threading
@@ -2043,8 +2045,13 @@ Received outputs:
                 # Workaround by triggering the app endpoint
                 requests.get(f"{self.local_url}startup-events", verify=ssl_verify)
             else:
-                pass
-                # TODO: Call the startup endpoint in the Wasm env too.
+                # NOTE: One benefit of the code above dispatching `startup_events()` via a self HTTP request is
+                # that `self._queue.start()` is called in another thread which is managed by the HTTP server, `uvicorn`
+                # so all the asyncio tasks created by the queue runs in an event loop in that thread and
+                # will be cancelled just by stopping the server.
+                # In contrast, in the Wasm env, we can't do that because `threading` is not supported and all async tasks will run in the same event loop, `pyodide.webloop.WebLoop` in the main thread.
+                # So we need to manually cancel them. See `self.close()`..
+                self.startup_events()
 
         utils.launch_counter()
         self.is_sagemaker = utils.sagemaker_check()
@@ -2292,6 +2299,20 @@ Received outputs:
                 self._queue.close()
             if self.server:
                 self.server.close()
+            if wasm_utils.IS_WASM:
+                # NOTE:
+                # Normally, queue-related async tasks (e.g. continuous events created by `gr.Blocks.load(..., every=interval)`, whose async tasks are started at the `/queue/join` endpoint function)
+                # are running in an event loop in the server thread,
+                # so they will be cancelled by `self.server.close()` above.
+                # However, in the Wasm env, we don't have the `server` and
+                # all async tasks are running in the same event loop, `pyodide.webloop.WebLoop` in the main thread,
+                # so we have to cancel them manually.
+                for task in asyncio.all_tasks():
+                    task_name = task.get_name()
+                    if re.match(
+                        r"\w+_\d+", task_name
+                    ):  # This regex matches the task names set by `utils.set_task_name()`
+                        task.cancel()
             self.is_running = False
             # So that the startup events (starting the queue)
             # happen the next time the app is launched
