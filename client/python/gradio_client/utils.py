@@ -609,7 +609,7 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
         raise APIInfoParseError(f"Cannot parse schema {schema}")
 
 
-def traverse(json_obj, func, is_root):
+def traverse(json_obj: Any, func: Callable, is_root: Callable) -> Any:
     if is_root(json_obj):
         return func(json_obj)
     elif isinstance(json_obj, dict):

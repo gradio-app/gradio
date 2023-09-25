@@ -75,9 +75,9 @@ class File(Component):
         """
         self.file_count = file_count
         if self.file_count == "multiple":
-            self.data_model = ListFiles
+            self._data_model = ListFiles
         else:
-            self.data_model = FileData
+            self._data_model = FileData
         self.file_types = file_types
         if file_types is not None and not isinstance(file_types, list):
             raise ValueError(

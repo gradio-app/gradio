@@ -238,7 +238,7 @@ class Image(StreamingInput, Component):
         if isinstance(x, str):
             im = processing_utils.decode_base64_to_image(x)
         else:
-            im = PIL.Image.open(self.make_temp_copy_if_needed(x["name"]))
+            im = _Image.open(self.make_temp_copy_if_needed(x["name"]))
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)

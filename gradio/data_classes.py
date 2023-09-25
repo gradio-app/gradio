@@ -10,7 +10,7 @@ from enum import Enum, auto
 from typing import Any, Optional, Union
 
 from gradio_client.utils import traverse
-from pydantic import BaseModel, RootModel
+from pydantic import BaseModel, RootModel, ValidationError
 from typing_extensions import Literal
 
 
@@ -141,6 +141,7 @@ class FileData(GradioModel):
         pathlib.Path(dir).mkdir(exist_ok=True)
         new_obj = dict(self)
         if self.is_file:
+            assert self.name
             new_name = shutil.copy(self.name, dir)
             new_obj["name"] = new_name
         return self.__class__(**new_obj)
@@ -150,6 +151,6 @@ class FileData(GradioModel):
         if isinstance(obj, dict):
             try:
                 return not FileData(**obj).is_none
-            except:
+            except (TypeError, ValidationError):
                 return False
         return False

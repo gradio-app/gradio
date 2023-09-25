@@ -45,8 +45,8 @@ class State(Component):
     def postprocess(self, y):
         return y
 
-    def api_info(self) -> dict[str, list[str]]:
-        return None
+    def api_info(self) -> dict[str, Any]:
+        return {}
 
     def example_inputs(self) -> Any:
         return None

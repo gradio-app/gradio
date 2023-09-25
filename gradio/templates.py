@@ -583,4 +583,5 @@ class List(components.Dataframe):
         )
 
 
-Mic = Microphone
+class Mic(Microphone):
+    pass

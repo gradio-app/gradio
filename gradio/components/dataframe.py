@@ -15,8 +15,8 @@ from gradio.events import Events
 
 
 class DataframeData(GradioModel):
-    headers: list[Union[str, int]]
-    data: list[list[Union[str, int, bool]]]
+    headers: list[str]
+    data: list[list[Union[str, int, float, bool]]]
 
 
 set_documentation_group("component")
@@ -97,7 +97,9 @@ class Dataframe(Component):
         self.__validate_headers(headers, self.col_count[0])
 
         self.headers = (
-            headers if headers is not None else list(range(1, self.col_count[0] + 1))
+            headers
+            if headers is not None
+            else [str(i) for i in (range(1, self.col_count[0] + 1))]
         )
         self.datatype = (
             datatype if isinstance(datatype, list) else [datatype] * self.col_count[0]
@@ -204,7 +206,7 @@ class Dataframe(Component):
 
     def postprocess(
         self, y: str | pd.DataFrame | np.ndarray | list[list[str | float]] | dict
-    ) -> DataframeData:
+    ) -> DataframeData | dict:
         """
         Parameters:
             y: dataframe in given format
@@ -219,10 +221,8 @@ class Dataframe(Component):
             if isinstance(y, str):
                 y = pd.read_csv(y)
             return DataframeData(
-                **{
-                    "headers": list(y.columns),
-                    "data": y.to_dict(orient="split")["data"],
-                }
+                headers=list(y.columns),  # type: ignore
+                data=y.to_dict(orient="split")["data"],  # type: ignore
             )
         if isinstance(y, (np.ndarray, list)):
             if len(y) == 0:
@@ -234,19 +234,14 @@ class Dataframe(Component):
             _headers = self.headers
 
             if len(self.headers) < len(y[0]):
-                _headers = [
+                _headers: list[str] = [
                     *self.headers,
-                    *list(range(len(self.headers) + 1, len(y[0]) + 1)),
+                    *[str(i) for i in range(len(self.headers) + 1, len(y[0]) + 1)],
                 ]
             elif len(self.headers) > len(y[0]):
                 _headers = self.headers[: len(y[0])]
 
-            return DataframeData(
-                **{
-                    "headers": _headers,
-                    "data": y,
-                }
-            )
+            return DataframeData(headers=_headers, data=y)
         raise ValueError("Cannot process value as a Dataframe")
 
     @staticmethod

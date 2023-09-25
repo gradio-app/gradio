@@ -35,7 +35,6 @@ from gradio.components import (
     HighlightedText,
     Highlightedtext,
     Image,
-    Interpretation,
     Json,
     Label,
     LinePlot,
@@ -57,6 +56,7 @@ from gradio.components import (
     Video,
     component,
 )
+from gradio.data_classes import FileData
 from gradio.events import EventData, LikeData, SelectData
 from gradio.exceptions import Error
 from gradio.external import load

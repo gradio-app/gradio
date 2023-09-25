@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any, Callable, Literal, Optional
 
 from gradio_client import utils as client_utils
-from gradio_client.data_classes import FileData
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio import processing_utils, utils, wasm_utils
@@ -200,6 +199,7 @@ class Video(Component):
             file_name = Path(fn(data.video.name))
         else:
             assert data.video is not None, "Received empty file data."
+            assert data.video.data
             file_name = Path(
                 self.base64_to_temp_file_if_needed(data.video.data, data.video.name)
             )
@@ -285,7 +285,7 @@ class Video(Component):
             )
         else:
             raise Exception(f"Cannot process type as video: {type(y)}")
-
+        assert processed_files[0]
         return VideoData(video=processed_files[0], subtitles=processed_files[1])
 
     def _format_video(self, video: str | Path | None) -> FileData | None:
@@ -313,7 +313,7 @@ class Video(Component):
 
         # For cases where the video is a URL and does not need to be converted to another format, we can just return the URL
         if is_url and not (conversion_needed):
-            return {"name": video, "data": None, "is_file": True}
+            return FileData(name=video, is_file=True)
 
         # For cases where the video needs to be converted to another format
         if is_url:
@@ -345,12 +345,7 @@ class Video(Component):
 
         video = self.make_temp_copy_if_needed(video)
 
-        return {
-            "name": video,
-            "data": None,
-            "is_file": True,
-            "orig_name": Path(video).name,
-        }
+        return FileData(name=video, data=None, is_file=True, orig_name=Path(video).name)
 
     def _format_subtitle(self, subtitle: str | Path | None) -> FileData | None:
         """
@@ -397,7 +392,7 @@ class Video(Component):
             subtitle = temp_file.name
 
         subtitle_data = client_utils.encode_url_or_file_to_base64(subtitle)
-        return {"name": None, "data": subtitle_data, "is_file": False}
+        return FileData(name=None, data=subtitle_data, is_file=False)
 
     def style(self, *, height: int | None = None, width: int | None = None, **kwargs):
         """

@@ -150,7 +150,7 @@ class Component(ComponentBase, Block):
 
         self.selectable = False
         if not hasattr(self, "data_model"):
-            self.data_model: GradioDataModel | None = None
+            self.data_model: type[GradioDataModel] | None = None
         self.temp_files: set[str] = set()
         self.DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
             Path(tempfile.gettempdir()) / "gradio"
@@ -182,7 +182,7 @@ class Component(ComponentBase, Block):
 
         # load_event is set in the Blocks.attach_load_events method
         self.load_event: None | dict[str, Any] = None
-        self.load_event_to_attach = None
+        self.load_event_to_attach: None | tuple[Callable, float | None] = None
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
         self.value = (
             initial_value
@@ -347,15 +347,6 @@ class Component(ComponentBase, Block):
         config = super().get_config()
         if self.info:
             config["info"] = self.info
-        custom = not (
-            self.__module__.startswith("gradio.components")
-            or self.__module__.startswith("gradio.layouts")
-        )
-        config["custom_component"] = custom
-        for e in self.events:
-            to_add = e.config_data()
-            if to_add:
-                config = {**config, **to_add}
         return config
 
     @property
@@ -386,7 +377,7 @@ class Component(ComponentBase, Block):
         """Return the input data in a way that can be displayed by the examples dataset component in the front-end."""
         return input_data
 
-    def api_info(self) -> dict[str, list[str]]:
+    def api_info(self) -> dict[str, Any]:
         """
         The typing information for this component as a dictionary whose values are a list of 2 strings: [Python type, language-agnostic description].
         Keys of the dictionary are: raw_input, raw_output, serialized_input, serialized_output

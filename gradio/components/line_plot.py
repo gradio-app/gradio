@@ -422,7 +422,9 @@ class LinePlot(Plot):
 
         return chart
 
-    def postprocess(self, y: pd.DataFrame | dict | None) -> AltairPlotData | None:
+    def postprocess(
+        self, y: pd.DataFrame | dict | None
+    ) -> AltairPlotData | dict | None:
         # if None or update
         if y is None or isinstance(y, dict):
             return y

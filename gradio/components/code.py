@@ -115,7 +115,7 @@ class Code(Component):
     def flag(self, x: Any, flag_dir: str | Path = "") -> str:
         return super().flag(x, flag_dir)
 
-    def api_info(self) -> dict[str, list[str]]:
+    def api_info(self) -> dict[str, Any]:
         return {"type": "string"}
 
     def example_inputs(self) -> Any:

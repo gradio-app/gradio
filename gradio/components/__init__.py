@@ -3,7 +3,6 @@ from gradio.components.audio import Audio
 from gradio.components.bar_plot import BarPlot
 from gradio.components.base import (
     Component,
-    Form,
     FormComponent,
     StreamingInput,
     StreamingOutput,
@@ -28,7 +27,6 @@ from gradio.components.gallery import Gallery
 from gradio.components.highlighted_text import HighlightedText
 from gradio.components.html import HTML
 from gradio.components.image import Image
-from gradio.components.interpretation import Interpretation
 from gradio.components.json_component import JSON
 from gradio.components.label import Label
 from gradio.components.line_plot import LinePlot
@@ -46,6 +44,7 @@ from gradio.components.status_tracker import StatusTracker
 from gradio.components.textbox import Textbox
 from gradio.components.upload_button import UploadButton
 from gradio.components.video import Video
+from gradio.layouts import Form
 
 Text = Textbox
 DataFrame = Dataframe
@@ -79,7 +78,6 @@ __all__ = [
     "Gallery",
     "HTML",
     "Image",
-    "Interpretation",
     "JSON",
     "Json",
     "Label",

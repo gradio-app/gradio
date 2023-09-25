@@ -103,7 +103,7 @@ class Label(Component):
         if y is None or y == {}:
             return {}
         if isinstance(y, str) and y.endswith(".json") and Path(y).exists():
-            return LabelData(**json.load(open(y)))
+            return LabelData(**json.loads(Path(y).read_text()))
         if isinstance(y, (str, float, int)):
             return LabelData(label=str(y))
         if isinstance(y, dict):

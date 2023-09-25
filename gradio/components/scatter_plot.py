@@ -462,7 +462,9 @@ class ScatterPlot(Plot):
 
         return chart
 
-    def postprocess(self, y: pd.DataFrame | dict | None) -> dict[str, str] | None:
+    def postprocess(
+        self, y: pd.DataFrame | dict | None
+    ) -> AltairPlotData | dict | None:
         # if None or update
         if y is None or isinstance(y, dict):
             return y
