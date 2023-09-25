@@ -153,6 +153,7 @@ def organize_docs(d):
         "routes": {},
         "events": {},
         "py-client": {},
+        "chatinterface": {}
     }
     pages = []
     for mode in d:
@@ -175,9 +176,10 @@ def organize_docs(d):
             if mode == "component":
                 organized["components"][c["name"].lower()] = c
                 pages.append(c["name"].lower())
-            elif mode in ["helpers", "routes", "py-client", "modals"]:
+            elif mode in ["helpers", "routes", "py-client", "chatinterface", "modals"]:
                 organized[mode][c["name"].lower()] = c
                 pages.append(c["name"].lower())
+                
             else:
                 # if mode not in organized["building"]:
                 #     organized["building"][mode] = {}
@@ -195,7 +197,7 @@ def organize_docs(d):
             organized["components"][cls]["prev_obj"] = organized["components"][
                 c_keys[len(c_keys) - 2]
             ]["name"]
-            organized["components"][cls]["next_obj"] = "Error"
+            organized["components"][cls]["next_obj"] = "load"
         else:
             organized["components"][cls]["prev_obj"] = organized["components"][
                 c_keys[i - 1]
@@ -245,7 +247,7 @@ def organize_docs(d):
     c_keys = list(organized["routes"].keys())
     for i, cls in enumerate(organized["routes"]):
         if not i:
-            organized["routes"][cls]["prev_obj"] = "make_waveform"
+            organized["routes"][cls]["prev_obj"] = "Info"
             organized["routes"][cls]["next_obj"] = organized["routes"][c_keys[1]][
                 "name"
             ]
@@ -280,6 +282,10 @@ def organize_docs(d):
             organized["py-client"][cls]["next_obj"] = organized["py-client"][
                 c_keys[i + 1]
             ]["name"]
+    
+    for cls in organized["chatinterface"]:
+        organized["chatinterface"][cls]["prev_obj"] = "Block-Layouts"
+        organized["chatinterface"][cls]["next_obj"] = "Themes"
 
     layout_keys = ["row", "column", "tab", "group", "accordion"]
     for i, cls in enumerate(layout_keys):

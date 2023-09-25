@@ -106,7 +106,7 @@
 		<DropDown></DropDown>
 	</div>
 
-	<a class="link px-4 my-2 block" href="./">Building Demos</a>
+	<p class="font-semibold px-4 my-2 block">Building Demos</p>
 	<a
 		class:current-nav-link={current_nav_link == "interface"}
 		class="thin-link px-4 block"
