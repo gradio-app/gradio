@@ -402,6 +402,11 @@ export function api_factory(
 
 				if (typeof endpoint === "number") {
 					fn_index = endpoint;
+					if (fn_index in api.unnamed_endpoints) {
+						api_info = api.unnamed_endpoints[fn_index];
+					} else {
+						throw new Error(`Invalid function index: ${fn_index}`);
+					}
 					api_info = api.unnamed_endpoints[fn_index];
 				} else {
 					const trimmed_endpoint = endpoint.replace(/^\//, "");
