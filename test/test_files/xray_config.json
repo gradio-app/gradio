@@ -1,12 +1,12 @@
 {
-	"version": "3.44.1",
+	"version": "3.44.4",
 	"mode": "blocks",
-	"app_id": 3299865391549106311,
+	"app_id": 5570383359191764024,
 	"dev_mode": false,
 	"analytics_enabled": false,
 	"components": [
 		{
-			"id": 31,
+			"id": 1,
 			"type": "markdown",
 			"props": {
 				"value": "# Detect Disease From Scan\nWith this model you can lorem ipsum\n- ipsum 1\n- ipsum 2",
@@ -35,7 +35,7 @@
 			}
 		},
 		{
-			"id": 32,
+			"id": 2,
 			"type": "checkboxgroup",
 			"props": {
 				"choices": [
@@ -82,7 +82,7 @@
 			}
 		},
 		{
-			"id": 33,
+			"id": 3,
 			"type": "tabs",
 			"props": {
 				"visible": true,
@@ -91,7 +91,7 @@
 			}
 		},
 		{
-			"id": 34,
+			"id": 4,
 			"type": "tabitem",
 			"props": {
 				"label": "X-ray",
@@ -100,7 +100,7 @@
 			}
 		},
 		{
-			"id": 35,
+			"id": 5,
 			"type": "row",
 			"props": {
 				"variant": "default",
@@ -110,7 +110,7 @@
 			}
 		},
 		{
-			"id": 36,
+			"id": 6,
 			"type": "image",
 			"props": {
 				"image_mode": "RGB",
@@ -145,7 +145,7 @@
 			}
 		},
 		{
-			"id": 37,
+			"id": 7,
 			"type": "json",
 			"props": {
 				"show_label": true,
@@ -171,7 +171,7 @@
 			}
 		},
 		{
-			"id": 38,
+			"id": 8,
 			"type": "button",
 			"props": {
 				"value": "Run",
@@ -193,7 +193,7 @@
 			}
 		},
 		{
-			"id": 39,
+			"id": 9,
 			"type": "tabitem",
 			"props": {
 				"label": "CT Scan",
@@ -202,7 +202,7 @@
 			}
 		},
 		{
-			"id": 40,
+			"id": 10,
 			"type": "row",
 			"props": {
 				"variant": "default",
@@ -212,7 +212,7 @@
 			}
 		},
 		{
-			"id": 41,
+			"id": 11,
 			"type": "image",
 			"props": {
 				"image_mode": "RGB",
@@ -247,7 +247,7 @@
 			}
 		},
 		{
-			"id": 42,
+			"id": 12,
 			"type": "json",
 			"props": {
 				"show_label": true,
@@ -273,7 +273,7 @@
 			}
 		},
 		{
-			"id": 43,
+			"id": 13,
 			"type": "button",
 			"props": {
 				"value": "Run",
@@ -295,7 +295,7 @@
 			}
 		},
 		{
-			"id": 44,
+			"id": 14,
 			"type": "textbox",
 			"props": {
 				"value": "",
@@ -326,7 +326,7 @@
 			}
 		},
 		{
-			"id": 45,
+			"id": 15,
 			"type": "form",
 			"props": {
 				"scale": 0,
@@ -335,7 +335,7 @@
 			}
 		},
 		{
-			"id": 46,
+			"id": 16,
 			"type": "form",
 			"props": {
 				"scale": 0,
@@ -357,67 +357,67 @@
 	],
 	"theme": "default",
 	"layout": {
-		"id": 30,
+		"id": 0,
 		"children": [
 			{
-				"id": 31
+				"id": 1
 			},
 			{
-				"id": 45,
+				"id": 15,
 				"children": [
 					{
-						"id": 32
+						"id": 2
 					}
 				]
 			},
 			{
-				"id": 33,
+				"id": 3,
 				"children": [
 					{
-						"id": 34,
+						"id": 4,
 						"children": [
 							{
-								"id": 35,
+								"id": 5,
 								"children": [
 									{
-										"id": 36
+										"id": 6
 									},
 									{
-										"id": 37
+										"id": 7
 									}
 								]
 							},
 							{
-								"id": 38
+								"id": 8
 							}
 						]
 					},
 					{
-						"id": 39,
+						"id": 9,
 						"children": [
 							{
-								"id": 40,
+								"id": 10,
 								"children": [
 									{
-										"id": 41
+										"id": 11
 									},
 									{
-										"id": 42
+										"id": 12
 									}
 								]
 							},
 							{
-								"id": 43
+								"id": 13
 							}
 						]
 					}
 				]
 			},
 			{
-				"id": 46,
+				"id": 16,
 				"children": [
 					{
-						"id": 44
+						"id": 14
 					}
 				]
 			}
@@ -426,15 +426,17 @@
 	"dependencies": [
 		{
 			"targets": [
-				38
+				[
+					8,
+					"click"
+				]
 			],
-			"trigger": "click",
 			"inputs": [
-				32,
-				36
+				2,
+				6
 			],
 			"outputs": [
-				37
+				7
 			],
 			"backend_fn": true,
 			"js": null,
@@ -456,15 +458,17 @@
 		},
 		{
 			"targets": [
-				43
+				[
+					13,
+					"click"
+				]
 			],
-			"trigger": "click",
 			"inputs": [
-				32,
-				41
+				2,
+				11
 			],
 			"outputs": [
-				42
+				12
 			],
 			"backend_fn": true,
 			"js": null,
@@ -486,10 +490,9 @@
 		},
 		{
 			"targets": [],
-			"trigger": "load",
 			"inputs": [],
 			"outputs": [
-				44
+				14
 			],
 			"backend_fn": true,
 			"js": null,
