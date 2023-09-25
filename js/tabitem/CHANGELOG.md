@@ -1,5 +1,11 @@
 # @gradio/tabitem
 
+## 0.0.5-beta.5
+
+### Features
+
+- [#5590](https://github.com/gradio-app/gradio/pull/5590) [`d1ad1f671`](https://github.com/gradio-app/gradio/commit/d1ad1f671caef9f226eb3965f39164c256d8615c) - Attach `elem_classes` selectors to layout elements, and an id to the Tab button (for targeting via CSS/JS).  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.0.5-beta.4
 
 ### Features
