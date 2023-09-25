@@ -16,7 +16,7 @@ class TestEvent:
 
             img.clear(fn_img_cleared, [], [])
 
-        assert demo.config["dependencies"][0]["trigger"] == "clear"
+        assert demo.config["dependencies"][0]["targets"][0][1] == "clear"
 
     def test_event_data(self):
         with gr.Blocks() as demo:
@@ -69,6 +69,42 @@ class TestEvent:
         assert not parent.config["dependencies"][2]["trigger_only_on_success"]
         assert parent.config["dependencies"][3]["trigger_only_on_success"]
 
+    def test_on_listener(self):
+        with gr.Blocks() as demo:
+            name = gr.Textbox(label="Name")
+            output = gr.Textbox(label="Output Box")
+            greet_btn = gr.Button("Greet")
+
+            def greet(name):
+                return "Hello " + name + "!"
+
+            gr.on(
+                triggers=[name.submit, greet_btn.click],
+                fn=greet,
+                inputs=name,
+                outputs=output,
+            )
+
+            with gr.Row():
+                num1 = gr.Slider(1, 10)
+                num2 = gr.Slider(1, 10)
+                num3 = gr.Slider(1, 10)
+            output = gr.Number(label="Sum")
+
+            @gr.on(inputs=[num1, num2, num3], outputs=output)
+            def sum(a, b, c):
+                return a + b + c
+
+        assert demo.config["dependencies"][0]["targets"] == [
+            (name._id, "submit"),
+            (greet_btn._id, "click"),
+        ]
+        assert demo.config["dependencies"][1]["targets"] == [
+            (num1._id, "change"),
+            (num2._id, "change"),
+            (num3._id, "change"),
+        ]
+
     def test_load_chaining(self):
         calls = 0
 
@@ -83,9 +119,9 @@ class TestEvent:
                 increment, inputs=None, outputs=out
             )
 
-        assert demo.config["dependencies"][0]["trigger"] == "load"
+        assert demo.config["dependencies"][0]["targets"][0][1] == "load"
         assert demo.config["dependencies"][0]["trigger_after"] is None
-        assert demo.config["dependencies"][1]["trigger"] == "then"
+        assert demo.config["dependencies"][1]["targets"][0][1] == "then"
         assert demo.config["dependencies"][1]["trigger_after"] == 0
 
     def test_load_chaining_reuse(self):
@@ -105,9 +141,9 @@ class TestEvent:
         with gr.Blocks() as demo2:
             demo.render()
 
-        assert demo2.config["dependencies"][0]["trigger"] == "load"
+        assert demo2.config["dependencies"][0]["targets"][0][1] == "load"
         assert demo2.config["dependencies"][0]["trigger_after"] is None
-        assert demo2.config["dependencies"][1]["trigger"] == "then"
+        assert demo2.config["dependencies"][1]["targets"][0][1] == "then"
         assert demo2.config["dependencies"][1]["trigger_after"] == 0
 
 

@@ -543,9 +543,7 @@
 
 	$: target_map = dependencies.reduce(
 		(acc, dep, i) => {
-			let { targets, trigger } = dep;
-
-			targets.forEach((id) => {
+			dep.targets.forEach(([id, trigger]) => {
 				if (!acc[id]) {
 					acc[id] = {};
 				}
@@ -577,7 +575,7 @@
 
 		// handle load triggers
 		dependencies.forEach((dep, i) => {
-			if (dep.targets.length === 0 && dep.trigger === "load") {
+			if (dep.targets.length === 1 && dep.targets[0][1] === "load") {
 				trigger_api_call(i);
 			}
 		});

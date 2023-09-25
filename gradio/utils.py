@@ -371,7 +371,7 @@ def assert_configs_are_equivalent_besides_ids(
 
     for d1, d2 in zip(config1["dependencies"], config2["dependencies"]):
         for t1, t2 in zip(d1.pop("targets"), d2.pop("targets")):
-            assert_same_components(t1, t2)
+            assert_same_components(t1[0], t2[0])
         for i1, i2 in zip(d1.pop("inputs"), d2.pop("inputs")):
             assert_same_components(i1, i2)
         for o1, o2 in zip(d1.pop("outputs"), d2.pop("outputs")):
