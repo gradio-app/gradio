@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import dataclasses
 import inspect
 import json
@@ -19,7 +20,6 @@ def _in_test_dir():
         return True
     except ValueError:
         return False
-
 
 
 default_demo_code = """
@@ -105,11 +105,14 @@ OVERRIDES = {
     ),
 }
 
+
 def _get_component_code(template: str | None) -> ComponentFiles:
     template = template or "Fallback"
-    return ComponentFiles(python_file_name=f"{template.lower()}.py", js_dir=template.lower(),
-                          template=template)
-
+    return ComponentFiles(
+        python_file_name=f"{template.lower()}.py",
+        js_dir=template.lower(),
+        template=template,
+    )
 
 
 def _get_js_dependency_version(name: str, local_js_dir: Path) -> str:
@@ -171,8 +174,9 @@ def _replace_old_class_name(old_class_name: str, new_class_name: str, content: s
     return re.sub(pattern, new_class_name, content)
 
 
-def _create_backend(name: str, component: ComponentFiles, directory: Path, package_name: str):
-
+def _create_backend(
+    name: str, component: ComponentFiles, directory: Path, package_name: str
+):
     if component.template in gradio.components.__all__:
         module = "components"
     elif component.template in gradio.layouts.__all__:
@@ -236,4 +240,6 @@ __all__ = ['{name}']
     python_file.write_text(_replace_old_class_name(component.template, name, content))
     if pyi_file.exists():
         pyi_content = pyi_file.read_text()
-        pyi_file.write_text(_replace_old_class_name(component.template, name, pyi_content))
+        pyi_file.write_text(
+            _replace_old_class_name(component.template, name, pyi_content)
+        )

@@ -75,7 +75,7 @@ def _create(
             live.update(f":fax: Starting from template [orange3]{template}[/]")
         else:
             live.update(":page_facing_up: Creating a new component from scratch.")
-        
+
         component = _create_utils._get_component_code(template)
 
         _create_utils._create_frontend(name.lower(), component, directory=directory)
