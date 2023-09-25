@@ -7,6 +7,7 @@
 	export let table_width: number;
 	export let max_height: number;
 	export let actual_height: number;
+	export let table_scrollbar_width: number;
 	export let start = 0;
 	export let end = 0;
 	export let selected: number | false;
@@ -33,6 +34,7 @@
 			return;
 		}
 		const { scrollTop } = viewport;
+		table_scrollbar_width = viewport.offsetWidth - viewport.clientWidth;
 
 		content_height = top - (scrollTop - head_height);
 		let i = start;
@@ -56,6 +58,11 @@
 		end = i;
 		const remaining = _items.length - end;
 
+		const scrollbar_height = viewport.offsetHeight - viewport.clientHeight;
+		if (scrollbar_height > 0) {
+			content_height += scrollbar_height;
+		}
+
 		let filtered_height_map = height_map.filter((v) => typeof v === "number");
 		average_height =
 			filtered_height_map.reduce((a, b) => a + b, 0) /
@@ -63,7 +70,6 @@
 
 		bottom = remaining * average_height;
 		height_map.length = _items.length;
-
 		await tick();
 		if (!max_height) {
 			actual_height = content_height + 1;
@@ -206,6 +212,12 @@
 		if (align_end) {
 			distance = distance - viewport_height + _itemHeight + head_height;
 		}
+
+		const scrollbar_height = viewport.offsetHeight - viewport.clientHeight;
+		if (scrollbar_height > 0) {
+			distance += scrollbar_height;
+		}
+
 		const _opts = {
 			top: distance,
 			behavior: "smooth" as ScrollBehavior,

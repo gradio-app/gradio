@@ -1221,7 +1221,7 @@ class TestDataframe:
             "wrap": False,
             "root_url": None,
             "name": "dataframe",
-            "height": None,
+            "height": 500,
             "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
         }
         dataframe_input = gr.Dataframe()
@@ -1253,7 +1253,7 @@ class TestDataframe:
             "wrap": False,
             "root_url": None,
             "name": "dataframe",
-            "height": None,
+            "height": 500,
             "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
         }
 
