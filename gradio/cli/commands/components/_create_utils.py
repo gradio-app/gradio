@@ -40,7 +40,7 @@ class ComponentFiles:
 
 
 OVERRIDES = {
-    "JSON": ComponentFiles(template="JSON", python_file_name="json_component"),
+    "JSON": ComponentFiles(template="JSON", python_file_name="json_component.py"),
     "Row": ComponentFiles(
         template="Row",
         demo_code=textwrap.dedent(
@@ -51,7 +51,7 @@ OVERRIDES = {
                 gr.Number(value=10, interactive=True)
         """
         ),
-        python_file_name="row",
+        python_file_name="row.py",
     ),
     "Column": ComponentFiles(
         template="Column",
@@ -63,7 +63,7 @@ OVERRIDES = {
                 gr.Number(value=10, interactive=True)
         """
         ),
-        python_file_name="column",
+        python_file_name="column.py",
     ),
     "Tabs": ComponentFiles(
         template="Tabs",
@@ -77,7 +77,7 @@ OVERRIDES = {
                     gr.Number(value=10, interactive=True)
         """
         ),
-        python_file_name="tabs",
+        python_file_name="tabs.py",
     ),
     "Group": ComponentFiles(
         template="Group",
@@ -89,7 +89,7 @@ OVERRIDES = {
                 gr.Number(value=10, interactive=True)
         """
         ),
-        python_file_name="group",
+        python_file_name="group.py",
     ),
     "Accordion": ComponentFiles(
         template="Accordion",
@@ -101,18 +101,21 @@ OVERRIDES = {
                 gr.Number(value=10, interactive=True)
         """
         ),
-        python_file_name="accordion",
+        python_file_name="accordion.py",
     ),
 }
 
 
 def _get_component_code(template: str | None) -> ComponentFiles:
     template = template or "Fallback"
-    return ComponentFiles(
-        python_file_name=f"{template.lower()}.py",
-        js_dir=template.lower(),
-        template=template,
-    )
+    if template in OVERRIDES:
+        return OVERRIDES[template]
+    else:
+        return ComponentFiles(
+            python_file_name=f"{template.lower()}.py",
+            js_dir=template.lower(),
+            template=template,
+        )
 
 
 def _get_js_dependency_version(name: str, local_js_dir: Path) -> str:
