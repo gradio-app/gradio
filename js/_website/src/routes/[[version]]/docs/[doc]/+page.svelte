@@ -16,6 +16,7 @@
 	let mode = data.mode;
 	let components = data.components;
 	let helpers = data.helpers;
+	let modals = data.modals;
 	let routes = data.routes;
 	let py_client = data.py_client;
 	let on_main: boolean;
@@ -69,6 +70,11 @@
 	$: obj = data.obj;
 	$: mode = data.mode;
 	$: on_main = data.on_main;
+	$: components = data.components;
+	$: helpers = data.helpers;
+	$: modals = data.modals;
+	$: routes = data.routes;
+	$: py_client = data.py_client;
 </script>
 
 <MetaTags
@@ -86,6 +92,7 @@
 			current_nav_link={obj.name.toLowerCase()}
 			{components}
 			{helpers}
+			{modals}
 			{routes}
 			{py_client}
 		/>
@@ -506,7 +513,7 @@
 				</div>
 			</div>
 
-			<div class="flex justify-between my-4">
+			<div class="lg:ml-10 flex justify-between my-4">
 				{#if obj.prev_obj}
 					<a
 						href="./{obj.prev_obj.toLowerCase()}"

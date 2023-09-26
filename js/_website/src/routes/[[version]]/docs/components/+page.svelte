@@ -10,6 +10,7 @@
 
 	let components = data.components;
 	let helpers = data.helpers;
+	let modals = data.modals;
 	let routes = data.routes;
 	let events = data.events;
 	let events_matrix = data.events_matrix;
@@ -26,6 +27,11 @@
 	}
 
 	$: on_main = data.on_main;
+	$: components = data.components;
+	$: helpers = data.helpers;
+	$: modals = data.modals;
+	$: routes = data.routes;
+	$: py_client = data.py_client;
 </script>
 
 <MetaTags
@@ -41,6 +47,7 @@
 			current_nav_link={"components"}
 			{components}
 			{helpers}
+			{modals}
 			{routes}
 			{py_client}
 		/>
@@ -82,24 +89,24 @@
 
 			<div class="lg:ml-10 flex justify-between mt-4">
 				<a
-					href="./themes"
+					href="./accordion"
 					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
-						<span class="text-orange-500">&#8592;</span> Themes
+						<span class="text-orange-500">&#8592;</span> Accordion
 					</div>
 				</a>
 				<a
-					href="./audio"
+					href="./annotatedimage"
 					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
-						Audio <span class="text-orange-500">&#8594;</span>
+						AnnotatedImage <span class="text-orange-500">&#8594;</span>
 					</div>
 				</a>
 			</div>
 			<div class="flex flex-row">
-				<div class="lg:w-3/4 lg:ml-10 lg:mr-24">
+				<div class="lg:w-full lg:ml-10 lg:pr-10">
 					<div class="obj" id="components">
 						<h2
 							id="components-header"
@@ -173,28 +180,26 @@
 					</div>
 				</div>
 			</div>
-			<div class="flex justify-between my-4">
+			<div class="lg:ml-10 flex justify-between my-4">
 				<a
-					href="./block-layouts"
+					href="./accordion"
 					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
-						<span class="text-orange-500">&#8592;</span> Block Layouts
+						<span class="text-orange-500">&#8592;</span> Accordion
 					</div>
 				</a>
 				<a
-					href="./audio"
+					href="./annotatedimage"
 					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
-						Audio <span class="text-orange-500">&#8594;</span>
+						AnnotatedImage <span class="text-orange-500">&#8594;</span>
 					</div>
 				</a>
 			</div>
 		</div>
-
 		<div class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:w-2/12 lg:block">
-
 		</div>
 	</div>
 </main>

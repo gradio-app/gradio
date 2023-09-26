@@ -46,7 +46,7 @@ function highlight(code: string, lang: string | undefined) {
 }
 
 export async function load({ parent }) {
-	const { components, helpers, py_client, routes, js_client, on_main, wheel } = await parent();
+	const { components, helpers, modals, py_client, routes, js_client, on_main, wheel } = await parent();
 
 	const guide_slug = [];
 
@@ -106,6 +106,7 @@ export async function load({ parent }) {
 		readme_html,
 		components,
 		helpers,
+		modals,
 		routes,
 		py_client
 	};
