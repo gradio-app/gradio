@@ -34,14 +34,30 @@ from gradio.deprecation import (
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
-class TestComponent:
-    def test_component_functions(self):
-        """
-        component
-        """
+class TestGettingComponents:
+    def test_component_function(self):
         assert isinstance(
             gr.components.component("textarea", render=False), gr.templates.TextArea
         )
+
+    @pytest.mark.parametrize(
+        "component, render, unrender, should_be_rendered",
+        [
+            (gr.Textbox(render=True), False, True, False),
+            (gr.Textbox(render=False), False, False, False),
+            (gr.Textbox(render=False), True, False, True),
+            ("textbox", False, False, False),
+            ("textbox", True, False, True),
+        ],
+    )
+    def test_get_component_instance_rendering(
+        self, component, render, unrender, should_be_rendered
+    ):
+        with gr.Blocks():
+            textbox = gr.components.get_component_instance(
+                component, render=render, unrender=unrender
+            )
+            assert textbox.is_rendered == should_be_rendered
 
 
 def test_raise_warnings():
