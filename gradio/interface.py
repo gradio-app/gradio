@@ -250,10 +250,10 @@ class Interface(Blocks):
             self.cache_examples = False
 
         self.input_components = [
-            get_component_instance(i, render=False) for i in inputs  # type: ignore
+            get_component_instance(i, unrender=True) for i in inputs  # type: ignore
         ]
         self.output_components = [
-            get_component_instance(o, render=False) for o in outputs  # type: ignore
+            get_component_instance(o, unrender=True) for o in outputs  # type: ignore
         ]
 
         for component in self.input_components + self.output_components:

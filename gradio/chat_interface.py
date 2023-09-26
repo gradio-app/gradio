@@ -119,7 +119,7 @@ class ChatInterface(Blocks):
             if not isinstance(additional_inputs, list):
                 additional_inputs = [additional_inputs]
             self.additional_inputs = [
-                get_component_instance(i, render=False) for i in additional_inputs  # type: ignore
+                get_component_instance(i) for i in additional_inputs  # type: ignore
             ]
         else:
             self.additional_inputs = []
