@@ -4,7 +4,7 @@ description: 'Install frontend deps'
 inputs:
   always-install-pnpm:
     description: 'Dictates whether or not we should install pnpm & dependencies, regardless of the cache'
-    default: false
+    default: 'false'
   node_auth_token:
     description: 'Node auth token'
     default: ""
@@ -13,7 +13,7 @@ inputs:
     default: ""
   skip_build:
     description: 'Skip build'
-    default: false
+    default: 'false'
 
 runs:
   using: "composite"
@@ -23,7 +23,7 @@ runs:
       with:
         path: |
           gradio/templates/*
-        key: gradio-lib-front-end-${{ hashFiles('js/**')}}
+        key: gradio-lib-front-end-${{ hashFiles('js/**', 'client/js/**')}}
     - name: Install pnpm
       if: steps.frontend-cache.outputs.cache-hit != 'true' || inputs.always-install-pnpm == 'true'
       uses: pnpm/action-setup@v2

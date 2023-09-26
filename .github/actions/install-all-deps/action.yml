@@ -4,7 +4,7 @@ description: 'Install all deps'
 inputs:
   always-install-pnpm: 
     description: 'Dictates whether or not we should install pnpm & dependencies, regardless of the cache'
-    default: false
+    default: 'false'
   node_auth_token:
     description: 'Node auth token'
     default: ""
@@ -13,7 +13,7 @@ inputs:
     default: ""
   skip_build:
     description: 'Skip build'
-    default: false
+    default: 'false'
 
 runs:
   using: "composite"
