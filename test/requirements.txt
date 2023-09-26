@@ -232,7 +232,7 @@ traitlets==5.3.0
     #   matplotlib-inline
 transformers==4.20.1
     # via -r requirements.in
-typing-extensions==4.3.0
+typing-extensions==4.7.1
     # via
     #   black
     #   huggingface-hub
