@@ -62,10 +62,10 @@
 		position: relative;
 		top: 0;
 		right: 0;
-		width: 16px;
-		height: 16px;
 		cursor: pointer;
 		color: var(--body-text-color-subdued);
+		margin-right: 5px;
+		margin-left: 5px;
 	}
 
 	button:hover {

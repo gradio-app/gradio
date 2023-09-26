@@ -9,7 +9,8 @@
 	import { MarkdownCode as Markdown } from "@gradio/markdown/static";
 	import { get_fetchable_url_or_file } from "@gradio/upload";
 	import Copy from "./Copy.svelte";
-	import { Like, Dislike, Check } from "@gradio/icons";
+	import Like from "./Like.svelte";
+	import Dislike from "./Dislike.svelte";
 
 	export let value:
 		| [string | FileData | null, string | FileData | null][]
@@ -30,6 +31,7 @@
 	export let avatar_images: [string | null, string | null] = [null, null];
 	export let sanitize_html = true;
 	export let bubble_full_width = true;
+	export let render_markdown = true;
 	export let root: string;
 	export let root_url: null | string;
 
@@ -77,7 +79,7 @@
 	): void {
 		dispatch("select", {
 			index: [i, j],
-			value: message
+			value: message,
 		});
 	}
 
@@ -90,7 +92,7 @@
 		dispatch("like", {
 			index: [i, j],
 			value: message,
-			liked: liked
+			liked: liked,
 		});
 	}
 </script>
@@ -106,7 +108,13 @@
 	</div>
 {/if}
 
-<div class="wrap" bind:this={div}>
+<div
+	class="wrap"
+	bind:this={div}
+	role="log"
+	aria-label="chatbot conversation"
+	aria-live="polite"
+>
 	<div class="message-wrap" use:copy>
 		{#if value !== null}
 			{#each value as message_pair, i}
@@ -124,100 +132,112 @@
 										root,
 										root_url
 									)}
-									alt="avatar-{j == 0 ? 'user' : 'bot'}"
+									alt="{j == 0 ? 'user' : 'bot'} avatar"
 								/>
 							</div>
 						{/if}
-						<!-- TODO: fix-->
-						<!-- svelte-ignore a11y-no-static-element-interactions-->
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
+
 						<div
-							data-testid={j == 0 ? "user" : "bot"}
-							class:latest={i === value.length - 1}
 							class="message {j == 0 ? 'user' : 'bot'}"
 							class:message-fit={!bubble_full_width}
-							class:selectable
-							on:click={() => handle_select(i, j, message)}
-							dir={rtl ? "rtl" : "ltr"}
 						>
+							<button
+								data-testid={j == 0 ? "user" : "bot"}
+								class:latest={i === value.length - 1}
+								class:message-markdown-disabled={!render_markdown}
+								class:selectable
+								style:text-align="left"
+								on:click={() => handle_select(i, j, message)}
+								on:keydown={(e) => {
+									if (e.key === "Enter") {
+										handle_select(i, j, message);
+									}
+								}}
+								dir={rtl ? "rtl" : "ltr"}
+								aria-label={(j == 0 ? "user" : "bot") +
+									"'s message:' " +
+									message}
+							>
+								{#if typeof message === "string"}
+									<Markdown
+										{message}
+										{latex_delimiters}
+										{sanitize_html}
+										{render_markdown}
+										on:load={scroll}
+									/>
+								{:else if message !== null && message.mime_type?.includes("audio")}
+									<audio
+										data-testid="chatbot-audio"
+										controls
+										preload="metadata"
+										src={message.data}
+										title={message.alt_text}
+										on:play
+										on:pause
+										on:ended
+									/>
+								{:else if message !== null && message.mime_type?.includes("video")}
+									<video
+										data-testid="chatbot-video"
+										controls
+										src={message.data}
+										title={message.alt_text}
+										preload="auto"
+										on:play
+										on:pause
+										on:ended
+									>
+										<track kind="captions" />
+									</video>
+								{:else if message !== null && message.mime_type?.includes("image")}
+									<img
+										data-testid="chatbot-image"
+										src={message.data}
+										alt={message.alt_text}
+									/>
+								{:else if message !== null && message.data !== null}
+									<a
+										data-testid="chatbot-file"
+										href={message.data}
+										target="_blank"
+										download={window.__is_colab__
+											? null
+											: message.orig_name || message.name}
+									>
+										{message.orig_name || message.name}
+									</a>
+								{/if}
+							</button>
+						</div>
+						{#if likeable || show_copy_button}
 							<div
 								class="message-buttons-{j == 0 ? 'user' : 'bot'}"
 								class:message-buttons-fit={!bubble_full_width}
-								class:hide={message === null}
 							>
 								{#if likeable && j == 1}
-									<div class="like">
-										<button on:click={() => handle_like(i, j, message, true)}
-											><Like /></button
-										>
-										<button on:click={() => handle_like(i, j, message, false)}
-											><Dislike /></button
-										>
-									</div>
+									<Like handle_like={() => handle_like(i, j, message, true)} />
+									<Dislike
+										handle_dislike={() => handle_like(i, j, message, false)}
+									/>
 								{/if}
-
 								{#if show_copy_button && message && typeof message === "string"}
-									<div class="copy-button">
-										<Copy value={message} />
-									</div>
+									<Copy value={message} />
 								{/if}
 							</div>
-							{#if typeof message === "string"}
-								<Markdown
-									{message}
-									{latex_delimiters}
-									{sanitize_html}
-									on:load={scroll}
-								/>
-							{:else if message !== null && message.mime_type?.includes("audio")}
-								<audio
-									data-testid="chatbot-audio"
-									controls
-									preload="metadata"
-									src={message.data}
-									title={message.alt_text}
-									on:play
-									on:pause
-									on:ended
-								/>
-							{:else if message !== null && message.mime_type?.includes("video")}
-								<video
-									data-testid="chatbot-video"
-									controls
-									src={message.data}
-									title={message.alt_text}
-									preload="auto"
-									on:play
-									on:pause
-									on:ended
-								>
-									<track kind="captions" />
-								</video>
-							{:else if message !== null && message.mime_type?.includes("image")}
-								<img
-									data-testid="chatbot-image"
-									src={message.data}
-									alt={message.alt_text}
-								/>
-							{:else if message !== null && message.data !== null}
-								<a
-									data-testid="chatbot-file"
-									href={message.data}
-									target="_blank"
-									download={window.__is_colab__
-										? null
-										: message.orig_name || message.name}
-								>
-									{message.orig_name || message.name}
-								</a>
-							{/if}
-						</div>
+						{/if}
 					</div>
 				{/each}
 			{/each}
 		{/if}
 		{#if pending_message}
-			<div class="message pending">
+			<div
+				class="message pending"
+				role="status"
+				aria-label="Loading response"
+				aria-live="polite"
+			>
+				<span class="sr-only">Loading content</span>
 				<div class="dot-flashing" />
 				&nbsp;
 				<div class="dot-flashing" />
@@ -238,7 +258,8 @@
 	.message-wrap {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-xxl);
+		justify-content: space-between;
+		gap: calc(var(--spacing-xxl) + var(--spacing-lg));
 	}
 
 	.message-wrap > div :not(.avatar-container) :global(img) {
@@ -256,32 +277,35 @@
 
 	.message {
 		position: relative;
-		align-self: flex-start;
+		display: flex;
+		flex-direction: column;
+		align-self: flex-end;
+		text-align: left;
 		border-width: 1px;
 		border-radius: var(--radius-xxl);
 		background: var(--background-fill-secondary);
-		padding: var(--spacing-xxl);
-		padding-right: calc(var(--spacing-xxl) + var(--spacing-md));
 		width: calc(100% - var(--spacing-xxl));
 		color: var(--body-text-color);
 		font-size: var(--text-lg);
 		line-height: var(--line-lg);
 		overflow-wrap: break-word;
 		overflow-x: hidden;
+		padding-right: calc(var(--spacing-xxl) + var(--spacing-md));
+		padding: calc(var(--spacing-xxl) + var(--spacing-sm));
 	}
+
 	.message-fit {
 		width: fit-content !important;
 	}
-	.message-fit.user {
-		margin-left: auto;
+	.message-markdown-disabled {
+		white-space: pre-line;
 	}
 	.user {
-		align-self: flex-end;
+		align-self: flex-start;
 		border-bottom-right-radius: 0;
 	}
 	.bot {
 		border-bottom-left-radius: 0;
-		padding-left: var(--spacing-xxl);
 	}
 
 	/* Colors */
@@ -296,9 +320,19 @@
 	}
 	.message-row {
 		display: flex;
-		flex-direction: row;
+		flex-direction: row-reverse;
+		justify-content: flex-end;
+		position: relative;
 	}
 
+	.message-row:last-of-type {
+		margin-bottom: var(--spacing-xxl);
+	}
+
+	.user-row {
+		flex-direction: row;
+		justify-content: flex-end;
+	}
 	@media (max-width: 480px) {
 		.user-row {
 			align-self: flex-end;
@@ -339,38 +373,35 @@
 
 	.message-buttons-user,
 	.message-buttons-bot {
+		border: 1px solid var(--border-color-accent);
+		background: var(--background-fill-secondary);
+		border-radius: var(--radius-md);
 		display: flex;
-		position: relative;
-		justify-content: flex-end;
+		align-items: center;
+		bottom: 0;
+		height: var(--size-7);
+		align-self: self-end;
+		position: absolute;
+		bottom: -15px;
+		margin: 2px;
 	}
 	.message-buttons-bot {
-		margin-right: 15px;
+		left: 10px;
 	}
-	.message-buttons-fit {
-		margin-right: 0px;
+	.message-buttons-user {
+		right: 5px;
 	}
-	.copy-button {
-		margin-top: -10px;
-		margin-bottom: -10px;
+
+	@media (max-width: 480px) {
+		.message {
+			padding: calc(var(--spacing-xl) * 2);
+		}
 	}
+
 	.share-button {
 		position: absolute;
 		top: 4px;
 		right: 6px;
-	}
-	.like {
-		display: flex;
-		height: var(--size-8);
-		width: var(--size-8);
-		margin-top: -10px;
-		margin-bottom: -10px;
-	}
-	.like button {
-		color: var(--body-text-color-subdued);
-	}
-	.like button:hover,
-	button:focus {
-		color: var(--body-text-color);
 	}
 
 	.selectable {
@@ -379,6 +410,7 @@
 
 	.pending {
 		display: flex;
+		flex-direction: row;
 		justify-content: center;
 		align-items: center;
 		align-self: center;
@@ -399,17 +431,6 @@
 		animation-delay: 0.66s;
 	}
 
-	/* Small screen */
-	@media (max-width: 480px) {
-		.user {
-			align-self: flex-end;
-		}
-		.bot {
-			align-self: flex-start;
-			padding-left: var(--size-3);
-		}
-	}
-
 	@keyframes dot-flashing {
 		0% {
 			opacity: 0.8;
@@ -428,10 +449,6 @@
 	.message-wrap .message :global(a) {
 		color: var(--color-text-link);
 		text-decoration: underline;
-	}
-
-	.hide {
-		display: none;
 	}
 
 	.message-wrap .bot :global(table),

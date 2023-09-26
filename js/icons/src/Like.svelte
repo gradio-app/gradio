@@ -1,9 +1,21 @@
-<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-	><g stroke-width="0" /><g
+<svg
+	xmlns="http://www.w3.org/2000/svg"
+	width="15px"
+	height="15px"
+	viewBox="0 0 24 24"
+	fill="none"
+	stroke-width="1.5"
+	color="currentColor"
+	><path
+		stroke="currentColor"
+		stroke-width="1.5"
+		stroke-linecap="round"
+		d="M16.472 20H4.1a.6.6 0 0 1-.6-.6V9.6a.6.6 0 0 1 .6-.6h2.768a2 2 0 0 0 1.715-.971l2.71-4.517a1.631 1.631 0 0 1 2.961 1.308l-1.022 3.408a.6.6 0 0 0 .574.772h4.575a2 2 0 0 1 1.93 2.526l-1.91 7A2 2 0 0 1 16.473 20Z"
+	/><path
+		stroke="currentColor"
+		stroke-width="1.5"
 		stroke-linecap="round"
 		stroke-linejoin="round"
-	/><path
-		d="M0 20h4.2V8H0v12Zm20.924-8.645-1.823 6.535c-.302 1.241-1.462 2.11-2.799 2.11H6.3V8.021l1.805-6.196C8.274.775 9.223 0 10.339 0 11.588 0 12.6.964 12.6 2.153V8h5.526c1.847 0 3.214 1.641 2.798 3.355Z"
-		fill-rule="evenodd"
+		d="M7 20V9"
 	/></svg
 >
