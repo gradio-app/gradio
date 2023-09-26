@@ -730,6 +730,8 @@ class Blocks(BlockContext):
             cls = component_or_layout_class(block_config["type"])
             block_config["props"].pop("type", None)
             block_config["props"].pop("name", None)
+            block_config["props"].pop("selectable", None)
+
             # If a Gradio app B is loaded into a Gradio app A, and B itself loads a
             # Gradio app C, then the root_urls of the components in A need to be the
             # URL of C, not B. The else clause below handles this case.
@@ -737,6 +739,19 @@ class Blocks(BlockContext):
                 block_config["props"]["root_url"] = f"{root_url}/"
             else:
                 root_urls.add(block_config["props"]["root_url"])
+
+            # We treat dataset components as a special case because they reference other components
+            # in the config. Instead of using the component string names, we use the component ids.
+            if (
+                block_config["type"] == "dataset"
+                and "component_ids" in block_config["props"]
+            ):
+                block_config["props"].pop("components", None)
+                block_config["props"]["components"] = [
+                    original_mapping[c] for c in block_config["props"]["component_ids"]
+                ]
+                block_config["props"].pop("component_ids", None)
+
             # Any component has already processed its initial value, so we skip that step here
             block = cls(**block_config["props"], _skip_init_processing=True)
             return block
@@ -2115,9 +2130,17 @@ Received outputs:
 
         if self.share:
             if self.space_id:
-                raise RuntimeError("Share is not supported when you are in Spaces")
+                warnings.warn(
+                    "Setting share=True is not supported on Hugging Face Spaces"
+                )
+                self.share = False
             if wasm_utils.IS_WASM:
-                raise RuntimeError("Share is not supported in the Wasm environment")
+                warnings.warn(
+                    "Setting share=True is not supported in the Wasm environment"
+                )
+                self.share = False
+
+        if self.share:
             try:
                 if self.share_url is None:
                     self.share_url = networking.setup_tunnel(
