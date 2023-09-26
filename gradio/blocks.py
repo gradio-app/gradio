@@ -2070,7 +2070,7 @@ Received outputs:
         ):
             self.block_thread()
 
-        return TupleNoPrint((self.server_app, self.local_url, self.share_url))
+        return TupleNoPrint((self.server_app, self.local_url, self.share_url))  # type: ignore
 
     def integrate(
         self,

@@ -17,10 +17,6 @@ from PIL import Image, ImageOps, PngImagePlugin
 
 from gradio import wasm_utils
 
-if not wasm_utils.IS_WASM:
-    # TODO: Support ffmpeg on Wasm
-    from ffmpy import FFmpeg, FFprobe, FFRuntimeError
-
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # Ignore pydub warning if ffmpeg is not installed
     from pydub import AudioSegment
@@ -505,6 +501,8 @@ def video_is_playable(video_filepath: str) -> bool:
         .webm -> vp9
         .ogg -> theora
     """
+    from ffmpy import FFprobe, FFRuntimeError
+
     try:
         container = Path(video_filepath).suffix.lower()
         probe = FFprobe(
@@ -526,6 +524,8 @@ def video_is_playable(video_filepath: str) -> bool:
 
 def convert_video_to_playable_mp4(video_path: str) -> str:
     """Convert the video to mp4. If something goes wrong return the original video."""
+    from ffmpy import FFmpeg, FFRuntimeError
+
     try:
         with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
             output_path = Path(video_path).with_suffix(".mp4")

@@ -219,7 +219,7 @@ class Dataframe(Component):
             return y
         if isinstance(y, (str, pd.DataFrame)):
             if isinstance(y, str):
-                y = pd.read_csv(y)
+                y = pd.read_csv(y)  # type: ignore
             return DataframeData(
                 headers=list(y.columns),  # type: ignore
                 data=y.to_dict(orient="split")["data"],  # type: ignore
