@@ -45,8 +45,6 @@ decorator==5.1.1
     # via ipython
 entrypoints==0.4
     # via altair
-fastapi==0.87.0
-    # via -r requirements.in
 filelock==3.7.1
     # via
     #   huggingface-hub
