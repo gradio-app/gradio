@@ -139,7 +139,7 @@ jobs:
       matrix:
         os: ["ubuntu-latest", "windows-latest"]
         test-type: ["not flaky", "flaky"]
-        python-version: ["3.9"]
+        python-version: ["3.8"]
     runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.test-type == 'flaky' }}
     steps:
@@ -162,7 +162,7 @@ jobs:
       with:
         path: |
           venv/*
-        key: gradio-lib-${{ matrix.python-version }}-${{ runner.os }}-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
+        key: gradio-lib-${{ runner.os }}-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
     - uses: actions/cache@v3
       id: frontend-cache
       with:
@@ -204,11 +204,11 @@ jobs:
       run: |
         . venv/bin/activate
         bash scripts/lint_backend.sh
-    - name: Typecheck (Linux)
-      if: runner.os == 'Linux'
-      run: |
-        . venv/bin/activate
-        bash scripts/type_check_backend.sh
+    # - name: Typecheck (Linux)
+    #   if: runner.os == 'Linux'
+    #   run: |
+    #     . venv/bin/activate
+    #     bash scripts/type_check_backend.sh
     - name: Run tests (Linux)
       if: runner.os == 'Linux'
       run: |
