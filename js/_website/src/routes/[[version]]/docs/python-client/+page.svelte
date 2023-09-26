@@ -8,6 +8,7 @@
 	export let data;
 	let components = data.components;
 	let helpers = data.helpers;
+	let modals = data.modals;
 	let routes = data.routes;
 	let py_client = data.py_client;
 	
@@ -22,7 +23,11 @@
 	}
 
 	$: on_main = data.on_main;
-
+	$: components = data.components;
+	$: helpers = data.helpers;
+	$: modals = data.modals;
+	$: routes = data.routes;
+	$: py_client = data.py_client;
 </script>
 
 <MetaTags
@@ -38,6 +43,7 @@
 			current_nav_link={"python-client"}
 			{components}
 			{helpers}
+			{modals}
 			{routes}
 			{py_client}
 		/>
@@ -79,11 +85,11 @@
 
 			<div class="lg:ml-10 flex justify-between mt-4">
 				<a
-					href="./mount_gradio_app"
+					href="./themes"
 					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
-						<span class="text-orange-500">&#8592;</span> mount_gradio_app
+						<span class="text-orange-500">&#8592;</span> Themes
 					</div>
 				</a>
 				<a
