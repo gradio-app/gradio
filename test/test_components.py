@@ -1405,6 +1405,10 @@ class TestDataset:
 
         assert dataset.preprocess(1) == 1
 
+        radio = gr.Radio(choices=[("name 1", "value 1"), ("name 2", "value 2")])
+        dataset = gr.Dataset(samples=[["value 1"], ["value 2"]], components=[radio])
+        assert dataset.samples == [["name 1"], ["name 2"]]
+
     def test_postprocessing(self):
         test_file_dir = Path(Path(__file__).parent, "test_files")
         bus = Path(test_file_dir, "bus.png")
