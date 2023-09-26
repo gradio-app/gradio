@@ -1,5 +1,15 @@
 # @gradio/markdown
 
+## 0.2.1
+
+### Features
+
+- [#5671](https://github.com/gradio-app/gradio/pull/5671) [`6a36c3b78`](https://github.com/gradio-app/gradio/commit/6a36c3b786700600d3826ce1e0629cc5308ddd47) - chore(deps): update dependency @types/prismjs to v1.26.1.  Thanks [@renovate](https://github.com/apps/renovate)!
+
+### Fixes
+
+- [#5604](https://github.com/gradio-app/gradio/pull/5604) [`faad01f8e`](https://github.com/gradio-app/gradio/commit/faad01f8e10ef6d18249b1a4587477c59b74adb2) - Add `render_markdown` parameter to chatbot.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.2.0
 
 ### Features

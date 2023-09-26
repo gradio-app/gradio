@@ -1,5 +1,11 @@
 # @gradio/highlightedtext
 
+## 0.3.1
+
+### Fixes
+
+- [#5602](https://github.com/gradio-app/gradio/pull/5602) [`54d21d3f1`](https://github.com/gradio-app/gradio/commit/54d21d3f18f2ddd4e796d149a0b41461f49c711b) - Ensure `HighlightedText` with `merge_elements` loads without a value.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.3.0
 
 ### Features
