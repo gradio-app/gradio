@@ -207,4 +207,6 @@ class Radio(
         return self
 
     def as_example(self, input_data):
+        print("input_data", input_data)
+        print("self.choices", self.choices)
         return next((c[0] for c in self.choices if c[1] == input_data), None)

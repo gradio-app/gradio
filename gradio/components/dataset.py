@@ -78,6 +78,7 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
         self.samples = [[]] if samples is None else samples
         for example in self.samples:
             for i, (component, ex) in enumerate(zip(self._components, example)):
+                print(component, ex)
                 example[i] = component.as_example(ex)
         self.type = type
         self.label = label
