@@ -2117,9 +2117,17 @@ Received outputs:
 
         if self.share:
             if self.space_id:
-                raise RuntimeError("Share is not supported when you are in Spaces")
+                warnings.warn(
+                    "Setting share=True is not supported on Hugging Face Spaces"
+                )
+                self.share = False
             if wasm_utils.IS_WASM:
-                raise RuntimeError("Share is not supported in the Wasm environment")
+                warnings.warn(
+                    "Setting share=True is not supported in the Wasm environment"
+                )
+                self.share = False
+
+        if self.share:
             try:
                 if self.share_url is None:
                     self.share_url = networking.setup_tunnel(
