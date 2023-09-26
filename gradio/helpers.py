@@ -1140,7 +1140,7 @@ def Warning(message: str = "Warning issued."):  # noqa: N802
 @document()
 def Info(message: str = "Info issued."):  # noqa: N802
     """
-    This function allows you to pass custom info messages to the user. You can do so simply with `gr.Info('message here')`, and when that line is executed the custom message will appear in a modal on the demo.  Queue must be enabled to use Info.
+    This function allows you to pass custom info messages to the user. You can do so simply by writing `gr.Info('message here')` in your function, and when that line is executed the custom message will appear in a (gray, by default) modal on the demo.  Queue must be enabled to use Info.
     Demos: blocks_chained_events
     Parameters:
         message: The info message to be displayed to the user.
