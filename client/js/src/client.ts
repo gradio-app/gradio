@@ -398,6 +398,9 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 				let api_info;
 
 				if (typeof endpoint === "number") {
+					throw new Error(
+						"There is no endpoint matching that name of fn_index matching that number."
+					);
 				} else {
 					const trimmed_endpoint = endpoint.replace(/^\//, "");
 
