@@ -175,6 +175,6 @@
 		box-shadow: none;
 		border: none;
 		background: transparent;
-		height: 16px;
+		height: 400%;
 	}
 </style>
