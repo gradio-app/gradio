@@ -688,9 +688,9 @@ def create_tracker(fn, track_tqdm):
     return progress, utils.function_wrapper(
         f=fn,
         before_fn=LocalContext.track_tqdm.set,
-        before_args=True,
+        before_args=(True,),
         after_fn=LocalContext.track_tqdm.set,
-        after_args=False,
+        after_args=(False,),
     )
 
 
