@@ -4,7 +4,7 @@ of the on-page-load event, which is defined in gr.Blocks().load()."""
 from __future__ import annotations
 
 from functools import partial, wraps
-from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
+from typing import TYPE_CHECKING, Any, Callable, Literal
 
 from gradio_client.documentation import document
 
@@ -34,7 +34,7 @@ def set_cancel_events(
 
 
 class Dependency(dict):
-    def __init__(self, trigger: Block, key_vals, dep_index, fn):
+    def __init__(self, trigger: Block | None, key_vals, dep_index, fn):
         super().__init__(key_vals)
         self.fn = fn
         self.trigger = trigger
@@ -146,10 +146,10 @@ class EventListener(str):
         _trigger_only_on_success: bool,
     ):
         def event_trigger(
-            block: Block,
+            block: Block | None,
             fn: Callable | None,
-            inputs: Component | Sequence[Component] | set[Component] | None = None,
-            outputs: Component | Sequence[Component] | None = None,
+            inputs: Component | list[Component] | set[Component] | None = None,
+            outputs: Component | list[Component] | None = None,
             api_name: str | None | Literal[False] = None,
             status_tracker: None = None,
             scroll_to_output: bool = False,
@@ -210,7 +210,7 @@ class EventListener(str):
                     return inner
 
                 return Dependency(None, {}, None, wrapper)
-
+            assert isinstance(block, Block)
             if status_tracker:
                 warn_deprecation(
                     "The 'status_tracker' parameter has been deprecated and has no effect."
@@ -220,7 +220,7 @@ class EventListener(str):
                     "The `stop` event on Video and Audio has been deprecated and will be remove in a future version. Use `ended` instead."
                 )
             if "stream" in block.events:
-                block.check_streamable()
+                block.check_streamable()  # type: ignore
             if isinstance(show_progress, bool):
                 show_progress = "full" if show_progress else "hidden"
 

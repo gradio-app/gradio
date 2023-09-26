@@ -20,7 +20,6 @@ from gradio.components import (
     ClearButton,
     Component,
     DuplicateButton,
-    Interpretation,
     Markdown,
     State,
     get_component_instance,
@@ -415,7 +414,6 @@ class Interface(Blocks):
                 None,
                 None,
             )
-            interpretation_btn, interpretation_set = None, None
             input_component_column, interpret_component_column = None, None
 
             with Row(equal_height=False):
@@ -430,8 +428,6 @@ class Interface(Blocks):
                         stop_btn,
                         flag_btns,
                         input_component_column,
-                        interpret_component_column,
-                        interpretation_set,
                     ) = self.render_input_column()
                 if self.interface_type in [
                     InterfaceTypes.STANDARD,
@@ -443,7 +439,6 @@ class Interface(Blocks):
                         duplicate_btn,
                         stop_btn_2_out,
                         flag_btns_out,
-                        interpretation_btn,
                     ) = self.render_output_column(submit_btn)
                     submit_btn = submit_btn or submit_btn_out
                     clear_btn = clear_btn or clear_btn_2_out
@@ -458,12 +453,6 @@ class Interface(Blocks):
             )
             if duplicate_btn is not None:
                 duplicate_btn.activate()
-            self.attach_interpretation_events(
-                interpretation_btn,
-                interpretation_set,
-                input_component_column,
-                interpret_component_column,
-            )
 
             self.attach_flagging_events(flag_btns, clear_btn)
             self.render_examples()
@@ -490,23 +479,14 @@ class Interface(Blocks):
         Button | None,
         list[Button] | None,
         Column,
-        Column | None,
-        list[Interpretation] | None,
     ]:
         submit_btn, clear_btn, stop_btn, flag_btns = None, None, None, None
-        interpret_component_column, interpretation_set = None, None
 
         with Column(variant="panel"):
             input_component_column = Column()
             with input_component_column:
                 for component in self.input_components:
                     component.render()
-            if self.interpretation:
-                interpret_component_column = Column(visible=False)
-                interpretation_set = []
-                with interpret_component_column:
-                    for component in self.input_components:
-                        interpretation_set.append(Interpretation(component))
             with Row():
                 if self.interface_type in [
                     InterfaceTypes.STANDARD,
@@ -542,8 +522,6 @@ class Interface(Blocks):
             stop_btn,
             flag_btns,
             input_component_column,
-            interpret_component_column,
-            interpretation_set,
         )
 
     def render_output_column(
@@ -552,14 +530,12 @@ class Interface(Blocks):
     ) -> tuple[
         Button | None,
         ClearButton | None,
-        DuplicateButton,
+        DuplicateButton | None,
         Button | None,
         list | None,
-        Button | None,
     ]:
         submit_btn = submit_btn_in
-        interpretation_btn, clear_btn, duplicate_btn, flag_btns, stop_btn = (
-            None,
+        clear_btn, duplicate_btn, flag_btns, stop_btn = (
             None,
             None,
             None,
@@ -590,9 +566,6 @@ class Interface(Blocks):
                     assert submit_btn is not None, "Submit button not rendered"
                     flag_btns = [submit_btn]
 
-                if self.interpretation:
-                    interpretation_btn = Button("Interpret")
-
                 if self.allow_duplication:
                     duplicate_btn = DuplicateButton(scale=1, size="lg", _activate=False)
 
@@ -602,7 +575,6 @@ class Interface(Blocks):
             duplicate_btn,
             stop_btn,
             flag_btns,
-            interpretation_btn,
         )
 
     def render_article(self):
@@ -628,8 +600,8 @@ class Interface(Blocks):
                 )
             else:
                 for component in self.input_components:
-                    if component.has_event(Events.stream) and component.streaming:
-                        component.stream(
+                    if component.has_event(Events.stream) and component.streaming:  # type: ignore
+                        component.stream(  # type: ignore
                             self.fn,
                             self.input_components,
                             self.output_components,
@@ -639,7 +611,7 @@ class Interface(Blocks):
                         )
                         continue
                     if component.has_event(Events.change):
-                        component.change(
+                        component.change(  # type: ignore
                             self.fn,
                             self.input_components,
                             self.output_components,
@@ -653,7 +625,7 @@ class Interface(Blocks):
             extra_output = []
 
             triggers = [submit_btn.click] + [
-                component.submit
+                component.submit  # type: ignore
                 for component in self.input_components
                 if component.has_event(Events.submit)
             ]
@@ -746,21 +718,6 @@ class Interface(Blocks):
             )}
             """,
         )
-
-    def attach_interpretation_events(
-        self,
-        interpretation_btn: Button | None,
-        interpretation_set: list[Interpretation] | None,
-        input_component_column: Column | None,
-        interpret_component_column: Column | None,
-    ):
-        if interpretation_btn:
-            interpretation_btn.click(
-                self.interpret_func,
-                inputs=self.input_components + self.output_components,
-                outputs=(interpretation_set or []) + [input_component_column, interpret_component_column],  # type: ignore
-                preprocess=False,
-            )
 
     def attach_flagging_events(
         self, flag_btns: list[Button] | None, clear_btn: ClearButton

@@ -116,8 +116,8 @@ def _get_component_code(template: str | None) -> ComponentFiles:
 
 
 def _get_js_dependency_version(name: str, local_js_dir: Path) -> str:
-    package_json = json.load(
-        open(str(local_js_dir / name.split("/")[1] / "package.json"))
+    package_json = json.loads(
+        Path(local_js_dir / name.split("/")[1] / "package.json").read_text()
     )
     return package_json["version"]
 
@@ -161,12 +161,11 @@ def _create_frontend(name: str, component: ComponentFiles, directory: Path):
         dirs_exist_ok=True,
         ignore=ignore,
     )
-    source_package_json = json.load(open(str(frontend / "package.json")))
+    source_package_json = json.loads(Path(frontend / "package.json").read_text())
     source_package_json["name"] = name.lower()
     source_package_json = _modify_js_deps(source_package_json, "dependencies", p)
     source_package_json = _modify_js_deps(source_package_json, "devDependencies", p)
-
-    json.dump(source_package_json, open(str(frontend / "package.json"), "w"), indent=2)
+    (frontend / "package.json").write_text(json.dumps(source_package_json, indent=2))
 
 
 def _replace_old_class_name(old_class_name: str, new_class_name: str, content: str):

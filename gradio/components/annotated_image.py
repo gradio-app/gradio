@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import Any, Literal
+from typing import Any, List, Literal
 
 import numpy as np
 from gradio_client.documentation import document, set_documentation_group
@@ -26,7 +26,7 @@ class Annotation(GradioModel):
 
 class AnnotatedImageData(GradioModel):
     image: FileData
-    annotations: list[Annotation]
+    annotations: List[Annotation]
 
 
 @document()

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import warnings
 from pathlib import Path
-from typing import Any, Callable, Literal, Optional
+from typing import Any, Callable, List, Literal, Optional
 
 import numpy as np
 from gradio_client.documentation import document, set_documentation_group
@@ -24,7 +24,7 @@ class GalleryImage(GradioModel):
 
 
 class GalleryData(GradioRootModel):
-    root: list[GalleryImage]
+    root: List[GalleryImage]
 
 
 @document()

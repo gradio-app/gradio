@@ -130,5 +130,5 @@ class JSON(Component):
             self.container = container
         return self
 
-    def api_info(self) -> dict[str, list[str]]:
+    def api_info(self) -> dict[str, Any]:
         return {"type": {}, "description": "any valid json"}

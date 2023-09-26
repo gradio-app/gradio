@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import Callable, Literal
+from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
@@ -115,7 +115,7 @@ class Checkbox(FormComponent):
         else:
             return None, scores[0]
 
-    def api_info(self) -> dict[str, list[str]]:
+    def api_info(self) -> dict[str, Any]:
         return {"type": "boolean"}
 
     def example_inputs(self) -> bool:

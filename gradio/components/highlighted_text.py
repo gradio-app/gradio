@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import Any, Callable, Literal, Union
+from typing import Any, Callable, List, Literal, Union
 
 from gradio_client.documentation import document, set_documentation_group
 
@@ -21,7 +21,7 @@ class HighlightedToken(GradioModel):
 
 
 class HighlightedTextData(GradioRootModel):
-    root: list[HighlightedToken]
+    root: List[HighlightedToken]
 
 
 @document()

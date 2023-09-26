@@ -87,5 +87,5 @@ class HTML(Component):
         }
         return updated_config
 
-    def api_info(self) -> dict[str, list[str]]:
+    def api_info(self) -> dict[str, Any]:
         return {"type": "string"}

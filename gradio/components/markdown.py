@@ -104,5 +104,5 @@ class Markdown(Component):
     def example_inputs(self) -> Any:
         return "# Hello!"
 
-    def api_info(self) -> dict[str, list[str]]:
+    def api_info(self) -> dict[str, Any]:
         return {"type": "string"}

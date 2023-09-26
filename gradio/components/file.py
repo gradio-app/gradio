@@ -5,7 +5,7 @@ from __future__ import annotations
 import tempfile
 import warnings
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import Any, Callable, List, Literal
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
@@ -20,7 +20,7 @@ set_documentation_group("component")
 
 
 class ListFiles(GradioRootModel):
-    root: list[FileData]
+    root: List[FileData]
 
 
 @document()
@@ -75,9 +75,9 @@ class File(Component):
         """
         self.file_count = file_count
         if self.file_count == "multiple":
-            self.data_model = ListFiles
+            self._data_model = ListFiles
         else:
-            self.data_model = FileData
+            self._data_model = FileData
         self.file_types = file_types
         if file_types is not None and not isinstance(file_types, list):
             raise ValueError(

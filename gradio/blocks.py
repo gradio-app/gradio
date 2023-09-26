@@ -42,7 +42,7 @@ from gradio.exceptions import (
     InvalidApiNameError,
     InvalidBlockError,
 )
-from gradio.helpers import EventData, create_tracker, skip, special_args
+from gradio.helpers import create_tracker, skip, special_args
 from gradio.state_holder import SessionState
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
@@ -73,7 +73,7 @@ set_documentation_group("blocks")
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
 
-    from gradio.components import Component
+    from gradio.components.base import Component
 
 BUILT_IN_THEMES: dict[str, Theme] = {
     t.name: t
@@ -189,7 +189,7 @@ class Block:
         preprocess: bool = True,
         postprocess: bool = True,
         scroll_to_output: bool = False,
-        show_progress: str = "full",
+        show_progress: Literal["full", "hidden", "minimal"] | None = "full",
         api_name: str | None | Literal[False] = None,
         js: str | None = None,
         no_target: bool = False,
@@ -458,7 +458,9 @@ class BlockFunction:
         return str(self)
 
 
-def postprocess_update_dict(block: Block, update_dict: dict, postprocess: bool = True):
+def postprocess_update_dict(
+    block: Component | BlockContext, update_dict: dict, postprocess: bool = True
+):
     """
     Converts a dictionary of updates into a format that can be sent to the frontend.
     E.g. {"__type__": "generic_update", "value": "2", "interactive": False}
@@ -616,7 +618,7 @@ class Blocks(BlockContext):
         else:
             os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
         super().__init__(render=False, **kwargs)
-        self.blocks: dict[int, Block] = {}
+        self.blocks: dict[int, Component | Block] = {}
         self.fns: list[BlockFunction] = []
         self.dependencies = []
         self.mode = mode
@@ -664,6 +666,11 @@ class Blocks(BlockContext):
                 "version": get_package_version(),
             }
             analytics.initiated_analytics(data)
+
+    def get_component(self, id: int) -> Component:
+        comp = self.blocks[id]
+        assert isinstance(comp, Component)
+        return comp
 
     @property
     def _is_running_in_reload_thread(self):
@@ -1052,7 +1059,7 @@ class Blocks(BlockContext):
             assert isinstance(
                 block, components.Component
             ), f"{block.__class__} Component with id {input_id} not a valid input component."
-            serialized_input = block.serialize(inputs[i])
+            serialized_input = block.serialize(inputs[i])  # type: ignore
             processed_input.append(serialized_input)
 
         return processed_input
@@ -1071,9 +1078,9 @@ class Blocks(BlockContext):
             assert isinstance(
                 block, components.Component
             ), f"{block.__class__} Component with id {output_id} not a valid output component."
-            deserialized = block.deserialize(
+            deserialized = block.deserialize(  # type: ignore
                 outputs[o],
-                save_dir=block.DEFAULT_TEMP_DIR,
+                save_dir=block.DEFAULT_TEMP_DIR,  # type: ignore
                 root_url=block.root_url,
                 hf_token=Context.hf_token,
             )
@@ -1480,7 +1487,7 @@ Received outputs:
         outputs: list[Component] | None = None,
         api_name: str | None | Literal[False] = None,
         scroll_to_output: bool = False,
-        show_progress: str = "full",
+        show_progress: Literal["full", "hidden", "minimal"] | None = "full",
         queue=None,
         batch: bool = False,
         max_batch_size: int = 4,
@@ -2063,7 +2070,7 @@ Received outputs:
         ):
             self.block_thread()
 
-        return TupleNoPrint((self.server_app, self.local_url, self.share_url))
+        return TupleNoPrint((self.server_app, self.local_url, self.share_url))  # type: ignore
 
     def integrate(
         self,
@@ -2219,8 +2226,8 @@ Received outputs:
                 # The config has the most specific API info (taking into account the parameters
                 # of the component), so we use that if it exists. Otherwise, we fallback to the
                 # Serializer's API info.
-                info = self.blocks[component["id"]].api_info()
-                example = self.blocks[component["id"]].example_inputs()
+                info = self.get_component(component["id"]).api_info()
+                example = self.get_component(component["id"]).example_inputs
                 python_type = client_utils.json_schema_to_python_type(info)
                 dependency_info["parameters"].append(
                     {
@@ -2244,11 +2251,11 @@ Received outputs:
                     skip_endpoint = True  # if component not found, skip endpoint
                     break
                 type = component["type"]
-                if self.blocks[component["id"]].skip_api:
+                if self.get_component(component["id"]).skip_api:
                     continue
                 label = component["props"].get("label", f"value_{o}")
-                info = self.blocks[component["id"]].api_info()
-                example = self.blocks[component["id"]].example_inputs()
+                info = self.get_component(component["id"]).api_info()
+                example = self.get_component(component["id"]).example_inputs()
                 python_type = client_utils.json_schema_to_python_type(info)
                 dependency_info["returns"].append(
                     {

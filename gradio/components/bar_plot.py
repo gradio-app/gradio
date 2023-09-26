@@ -338,8 +338,8 @@ class BarPlot(Plot):
                 y,  # type: ignore
                 title=y_title,  # type: ignore
                 scale=AltairPlot.create_scale(y_lim),  # type: ignore
-                axis=alt.Axis(labelAngle=x_label_angle)
-                if x_label_angle is not None
+                axis=alt.Axis(labelAngle=y_label_angle)
+                if y_label_angle is not None
                 else alt.Axis(),
                 sort=sort if not vertical and sort is not None else None,
             ),
@@ -379,7 +379,9 @@ class BarPlot(Plot):
 
         return chart
 
-    def postprocess(self, y: pd.DataFrame | dict | None) -> AltairPlotData | None:
+    def postprocess(
+        self, y: pd.DataFrame | dict | None
+    ) -> AltairPlotData | dict | None:
         # if None or update
         if y is None or isinstance(y, dict):
             return y

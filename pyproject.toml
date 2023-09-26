@@ -90,7 +90,7 @@ include = [
 
 [tool.pyright]
 include = ["gradio/**/*.py"]
-exclude = ["gradio/themes/", "gradio/_frontend_code/"]
+exclude = ["gradio/themes/", "gradio/_frontend_code/", "gradio/components/*_plot.py", "gradio/ipython_ext.py"]
 
 [tool.ruff]
 target-version = "py37"
@@ -112,6 +112,7 @@ ignore = [
   "SIM105", # contextlib.suppress (has a performance cost)
   "SIM117", # multiple nested with blocks (doesn't look good with gr.Row etc)
   "UP007", # use X | Y for type annotations (TODO: can be enabled once Pydantic plays nice with them)
+  "UP006", # use `list` instead of `List` for type annotations (fails for 3.8)
 ]
 
 [tool.ruff.per-file-ignores]

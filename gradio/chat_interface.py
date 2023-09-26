@@ -113,7 +113,7 @@ class ChatInterface(Blocks):
             self.cache_examples = True
         else:
             self.cache_examples = cache_examples or False
-        self.buttons: list[Button] = []
+        self.buttons: list[Button | None] = []
 
         if additional_inputs:
             if not isinstance(additional_inputs, list):
@@ -144,7 +144,9 @@ class ChatInterface(Blocks):
                         if textbox:
                             textbox.container = False
                             textbox.show_label = False
-                            self.textbox = textbox.render()
+                            textbox_ = textbox.render()
+                            assert isinstance(textbox_, Textbox)
+                            self.textbox = textbox_
                         else:
                             self.textbox = Textbox(
                                 container=False,
@@ -184,7 +186,7 @@ class ChatInterface(Blocks):
                                 raise ValueError(
                                     f"The stop_btn parameter must be a gr.Button, string, or None, not {type(stop_btn)}"
                                 )
-                        self.buttons.extend([submit_btn, stop_btn])
+                        self.buttons.extend([submit_btn, stop_btn])  # type: ignore
 
                 with Row():
                     for btn in [retry_btn, undo_btn, clear_btn]:
@@ -197,7 +199,7 @@ class ChatInterface(Blocks):
                                 raise ValueError(
                                     f"All the _btn parameters must be a gr.Button, string, or None, not {type(btn)}"
                                 )
-                        self.buttons.append(btn)
+                        self.buttons.append(btn)  # type: ignore
 
                     self.fake_api_btn = Button("Fake API", visible=False)
                     self.fake_response_textbox = Textbox(

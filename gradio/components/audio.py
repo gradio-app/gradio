@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import warnings
 from pathlib import Path
-from typing import Any, Callable, Literal, Optional
+from typing import Any, Callable, Literal
 
 import numpy as np
 import requests
@@ -20,8 +20,8 @@ set_documentation_group("component")
 
 
 class AudioInputData(FileData):
-    crop_min: Optional[int] = 0
-    crop_max: Optional[int] = 100
+    crop_min: int = 0
+    crop_max: int = 100
 
 
 @document()
@@ -142,7 +142,7 @@ class Audio(
             **kwargs,
         )
 
-    def example_inputs(self) -> dict[str, Any]:
+    def example_inputs(self) -> Any:
         return "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
 
     @staticmethod
@@ -193,18 +193,22 @@ class Audio(
         if x is None:
             return x
 
-        x: AudioInputData = AudioInputData(**x)
+        payload: AudioInputData = AudioInputData(**x)
 
-        if x.is_file:
-            if client_utils.is_http_url_like(x.name):
-                temp_file_path = self.download_temp_copy_if_needed(x.name)
+        if payload.is_file:
+            assert payload.name
+            if client_utils.is_http_url_like(payload.name):
+                temp_file_path = self.download_temp_copy_if_needed(payload.name)
             else:
-                temp_file_path = self.make_temp_copy_if_needed(x.name)
+                temp_file_path = self.make_temp_copy_if_needed(payload.name)
         else:
-            temp_file_path = self.base64_to_temp_file_if_needed(x.data, x.name)
+            assert payload.data
+            temp_file_path = self.base64_to_temp_file_if_needed(
+                payload.data, payload.name
+            )
 
         sample_rate, data = processing_utils.audio_from_file(
-            temp_file_path, crop_min=x.crop_min, crop_max=x.crop_max
+            temp_file_path, crop_min=payload.crop_min, crop_max=payload.crop_max
         )
 
         # Need a unique name for the file to avoid re-using the same audio file if
@@ -212,7 +216,7 @@ class Audio(
         temp_file_path = Path(temp_file_path)
         output_file_name = str(
             temp_file_path.with_name(
-                f"{temp_file_path.stem}-{x.crop_min}-{x.crop_max}{temp_file_path.suffix}"
+                f"{temp_file_path.stem}-{payload.crop_min}-{payload.crop_max}{temp_file_path.suffix}"
             )
         )
 
@@ -233,7 +237,7 @@ class Audio(
 
     def postprocess(
         self, y: tuple[int, np.ndarray] | str | Path | None
-    ) -> FileData | None:
+    ) -> FileData | None | bytes:
         """
         Parameters:
             y: audio data in either of the following formats: a tuple of (sample_rate, data), or a string filepath or URL to an audio file, or None.
@@ -260,7 +264,9 @@ class Audio(
             file_path = self.make_temp_copy_if_needed(y)
         return FileData(**{"name": file_path, "data": None, "is_file": True})
 
-    def stream_output(self, y, output_id: str, first_chunk: bool):
+    def stream_output(
+        self, y, output_id: str, first_chunk: bool
+    ) -> tuple[bytes | None, Any]:
         output_file = {
             "name": output_id,
             "is_stream": True,

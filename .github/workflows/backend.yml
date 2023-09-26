@@ -191,6 +191,7 @@ jobs:
         . venv/bin/activate
         python -m pip install -e client/python
         python -m pip install .
+        python -c "import gradio"
     - name: Install Test Dependencies (Linux)
       if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Linux'
       run: |

@@ -13,6 +13,7 @@ import urllib.parse
 import uuid
 import warnings
 from concurrent.futures import Future
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from threading import Lock
@@ -91,7 +92,9 @@ class Client:
             library_version=utils.__version__,
         )
         self.space_id = None
-        self.output_dir = output_dir
+        self.output_dir = (
+            str(output_dir) if isinstance(output_dir, Path) else output_dir
+        )
 
         if src.startswith("http://") or src.startswith("https://"):
             _src = src if src.endswith("/") else src + "/"
@@ -776,15 +779,12 @@ class Client:
             )
         if is_private:
             huggingface_hub.add_space_secret(
-                space_id, "HF_TOKEN", hf_token, token=hf_token
+                space_id, "HF_TOKEN", hf_token, token=hf_token  # type: ignore
             )
 
         url = f"https://huggingface.co/spaces/{space_id}"
         print(f"See your discord bot here! {url}")
         return url
-
-
-from dataclasses import dataclass
 
 
 @dataclass
@@ -1013,7 +1013,7 @@ class Endpoint:
             new_data.append(d)
         return file_list, new_data
 
-    def _add_uploaded_files_to_data(self, data: list[Any], files: list[dict]):
+    def _add_uploaded_files_to_data(self, data: list[Any], files: list[Any]):
         def replace(d: ReplaceMe) -> dict:
             return files[d.index]
 
@@ -1039,7 +1039,7 @@ class Endpoint:
         save_dir: str | None = None,
         root_url: str | None = None,
         hf_token: str | None = None,
-    ):
+    ) -> str | None:
         if x is None:
             return None
         if isinstance(x, str):
@@ -1067,7 +1067,7 @@ class Endpoint:
         return file_name
 
     def deserialize(self, *data) -> tuple:
-        data = list(data)
+        data_ = list(data)
 
         def is_file(d):
             return (
@@ -1080,8 +1080,8 @@ class Endpoint:
                 and "mime_type" in d
             )
 
-        data = utils.traverse(data, self.download_file, is_file)
-        return data
+        data_: list[Any] = utils.traverse(data_, self.download_file, is_file)
+        return tuple(data_)
 
     def process_predictions(self, *predictions):
         predictions = self.deserialize(*predictions)

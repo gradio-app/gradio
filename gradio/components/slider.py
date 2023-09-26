@@ -95,13 +95,13 @@ class Slider(FormComponent):
             **kwargs,
         )
 
-    def api_info(self) -> dict[str, dict | bool]:
+    def api_info(self) -> dict[str, Any]:
         return {
             "type": "number",
             "description": f"numeric value between {self.minimum} and {self.maximum}",
         }
 
-    def example_inputs(self) -> dict[str, Any]:
+    def example_inputs(self) -> Any:
         return self.minimum
 
     def get_random_value(self):

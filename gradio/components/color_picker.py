@@ -83,7 +83,7 @@ class ColorPicker(Component):
     def read_from_flag(self, x: Any, flag_dir: str | Path | None = None):
         return x
 
-    def api_info(self) -> dict[str, bool | dict]:
+    def api_info(self) -> dict[str, Any]:
         return {"type": "string"}
 
     @staticmethod

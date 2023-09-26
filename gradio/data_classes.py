@@ -7,24 +7,24 @@ import secrets
 import shutil
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-from typing import Any, Optional, Union
+from typing import Any, List, Optional, Union
 
 from gradio_client.utils import traverse
-from pydantic import BaseModel, RootModel
+from pydantic import BaseModel, RootModel, ValidationError
 from typing_extensions import Literal
 
 
 class PredictBody(BaseModel):
     session_hash: Optional[str] = None
     event_id: Optional[str] = None
-    data: list[Any]
+    data: List[Any]
     event_data: Optional[Any] = None
     fn_index: Optional[int] = None
     batched: Optional[
         bool
     ] = False  # Whether the data is a batch of samples (i.e. called from the queue if batch=True) or a single sample (i.e. called from the UI)
     request: Optional[
-        Union[dict, list[dict]]
+        Union[dict, List[dict]]
     ] = None  # dictionary of request headers, query parameters, url, etc. (used to to pass in request for queuing)
 
 
@@ -60,7 +60,7 @@ class ProgressUnit(BaseModel):
 
 class Progress(BaseModel):
     msg: str = "progress"
-    progress_data: list[ProgressUnit] = []
+    progress_data: List[ProgressUnit] = []
 
 
 class LogMessage(BaseModel):
@@ -141,6 +141,7 @@ class FileData(GradioModel):
         pathlib.Path(dir).mkdir(exist_ok=True)
         new_obj = dict(self)
         if self.is_file:
+            assert self.name
             new_name = shutil.copy(self.name, dir)
             new_obj["name"] = new_name
         return self.__class__(**new_obj)
@@ -150,6 +151,6 @@ class FileData(GradioModel):
         if isinstance(obj, dict):
             try:
                 return not FileData(**obj).is_none
-            except:
+            except (TypeError, ValidationError):
                 return False
         return False

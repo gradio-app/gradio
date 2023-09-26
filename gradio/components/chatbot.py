@@ -5,7 +5,7 @@ from __future__ import annotations
 import inspect
 import warnings
 from pathlib import Path
-from typing import Any, Callable, Literal, Optional, Union
+from typing import Any, Callable, List, Literal, Optional, Tuple, Union
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
@@ -25,7 +25,7 @@ class FileMessage(GradioModel):
 
 
 class ChatbotData(GradioRootModel):
-    root: list[tuple[Union[str, FileMessage, None], Union[str, FileMessage, None]]]
+    root: List[Tuple[Union[str, FileMessage, None], Union[str, FileMessage, None]]]
 
 
 @document()
