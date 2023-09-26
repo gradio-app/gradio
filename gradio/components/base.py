@@ -363,7 +363,7 @@ def get_component_instance(
     comp: str | dict | Component, render: bool = False, unrender: bool = False
 ) -> Component:
     """
-    Returns a component instance from an int, string, dict, or Component object.
+    Returns a component instance from a string, dict, or Component object.
     Parameters:
         comp: the component to instantiate. If a string, must be the name of a component, e.g. "dropdown". If a dict, must have a "name" key, e.g. {"name": "dropdown", "choices": ["a", "b"]}. If a Component object, will be returned as is.
         render: whether to render the component. If True, renders the component (if not already rendered). If False, does not do anything.
