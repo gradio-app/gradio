@@ -16,6 +16,7 @@
 	let description = data.description;
 	let components = data.components;
 	let helpers = data.helpers;
+	let modals = data.modals;
 	let routes = data.routes;
 	let headers = data.headers;
 	let method_headers = data.method_headers;
@@ -64,6 +65,11 @@
 	}
 
 	$: on_main = data.on_main;
+	$: components = data.components;
+	$: helpers = data.helpers;
+	$: modals = data.modals;
+	$: routes = data.routes;
+	$: py_client = data.py_client;
 </script>
 
 <MetaTags
@@ -81,6 +87,7 @@
 			current_nav_link={"flagging"}
 			{components}
 			{helpers}
+			{modals}
 			{routes}
 			{py_client}
 		/>
@@ -122,19 +129,19 @@
 
 			<div class="lg:ml-10 flex justify-between mt-4">
 				<a
-					href="./interface"
+					href="./mount_gradio_app"
 					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
-						<span class="text-orange-500">&#8592;</span> Interface
+						<span class="text-orange-500">&#8592;</span> mount_gradio_app
 					</div>
 				</a>
 				<a
-					href="./combining-interfaces"
+					href="./themes"
 					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
-						Combining Interfaces <span class="text-orange-500">&#8594;</span>
+						Themes <span class="text-orange-500">&#8594;</span>
 					</div>
 				</a>
 			</div>
@@ -468,21 +475,21 @@
 				</div>
 			</div>
 
-			<div class="flex justify-between my-4">
+			<div class="lg:ml-10 flex justify-between my-4">
 				<a
-					href="./interface"
+					href="./mount_gradio_app"
 					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
-						<span class="text-orange-500">&#8592;</span> Interface
+						<span class="text-orange-500">&#8592;</span> mount_gradio_app
 					</div>
 				</a>
 				<a
-					href="./combining-interfaces"
+					href="./themes"
 					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
-						Combining Interfaces <span class="text-orange-500">&#8594;</span>
+						Themes <span class="text-orange-500">&#8594;</span>
 					</div>
 				</a>
 			</div>
