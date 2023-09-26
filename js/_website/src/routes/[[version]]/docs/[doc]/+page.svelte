@@ -114,11 +114,11 @@
 			</div>
 			
 			{#if on_main}
-				<div class="codeblock bg-gray-100 border border-gray-200 text-gray-800 px-3 py-1 mt-4  rounded-lg lg:ml-10">
+				<div class="codeblock bg-gray-100 border border-gray-200 text-gray-800 px-3 py-1 mt-4 rounded-lg lg:ml-10">
 					<p class="my-2">
 						To install Gradio from main, run the following command:
 					</p>
-					<button class="clipboard-button" type="button" on:click={() => copy("pip install " + wheel)}>
+					<button class="clipboard-button m-4 pt-0.5" type="button" on:click={() => copy("pip install " + wheel)}>
 						{#if !copied}
 							{@html svgCopy}
 						{:else}
@@ -277,6 +277,13 @@
 									>
 								</h4>
 								<div class="codeblock bg-gray-50 mx-auto p-3 mt-2">
+									<button class="clipboard-button m-2" type="button" on:click={() => copy(obj.example)}>
+										{#if !copied}
+											{@html svgCopy}
+										{:else}
+											{@html svgCheck}
+										{/if}
+									</button>
 									<pre><code class="code language-python"
 											>{@html obj.highlighted_example}</code
 										></pre>

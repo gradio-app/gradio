@@ -1,6 +1,8 @@
 <script lang="ts">
 	export let fn: any;
 	import anchor from "../assets/img/anchor.svg";
+	import { svgCopy, svgCheck } from "$lib/assets/copy.js";
+
 
 	function handleAnchorClick(event: MouseEvent) {
 		event.preventDefault();
@@ -13,6 +15,14 @@
 			behavior: "smooth"
 		});
 	}
+
+	let copied = false;
+	function copy(code: string) {
+		navigator.clipboard.writeText(code);
+		copied = true;
+		setTimeout(() => (copied = false), 2000);
+	}
+
 </script>
 
 <!-- name, signature, description, params -->
@@ -79,6 +89,13 @@
 			>
 		</h4>
 		<div class="mt-2 codeblock bg-gray-50 mx-auto p-3">
+			<button class="clipboard-button m-2" type="button" on:click={() => copy(fn.example)}>
+				{#if !copied}
+					{@html svgCopy}
+				{:else}
+					{@html svgCheck}
+				{/if}
+			</button>
 			<pre><code class="code language-python"
 					>{@html fn.highlighted_example}</code
 				></pre>

@@ -73,7 +73,7 @@
 				<p class="my-2">
 					To install Gradio from main, run the following command:
 				</p>
-				<button class="clipboard-button" type="button" on:click={() => copy("pip install " + wheel)}>
+				<button class="clipboard-button m-4 pt-0.5" type="button" on:click={() => copy("pip install " + wheel)}>
 					{#if !copied}
 						{@html svgCopy}
 					{:else}

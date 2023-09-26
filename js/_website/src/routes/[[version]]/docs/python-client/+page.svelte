@@ -69,7 +69,7 @@
 					<p class="my-2">
 						To install Gradio from main, run the following command:
 					</p>
-					<button class="clipboard-button" type="button" on:click={() => copy("pip install " + wheel)}>
+					<button class="clipboard-button m-4 pt-0.5" type="button" on:click={() => copy("pip install " + wheel)}>
 						{#if !copied}
 							{@html svgCopy}
 						{:else}
@@ -101,8 +101,8 @@
 					</div>
 				</a>
 			</div>
-			<div class="flex flex-row mr-28">
-				<div class="lg:w-3/4 lg:ml-10 lg:mr-24">
+			<div class="flex flex-row">
+				<div class="lg:w-full lg:ml-10">
 					<div class="obj" id="python-client">
 						<h2
 							id="python-client-header"
@@ -130,6 +130,13 @@
 						</p>
 
 						<div class="codeblock bg-gray-50 mx-auto p-3 my-3">
+							<button class="clipboard-button m-2" type="button" on:click={() => copy("pip install gradio_client")}>
+								{#if !copied}
+									{@html svgCopy}
+								{:else}
+									{@html svgCheck}
+								{/if}
+							</button>
 							<pre><code class="language-bash">pip install gradio_client</code
 								></pre>
 						</div>

@@ -17,14 +17,14 @@
 
 <div class="codeblock bg-gray-50 mx-auto p-3 my-3" id="{name}_code">
 	<a
-		class="clipboard-button"
+		class="clipboard-button m-2"
 		href="https://colab.research.google.com/github/gradio-app/gradio/blob/main/demo/{name}/run.ipynb"
 		target="_blank"
 		style="right:30px"
 	>
 		<img src="https://colab.research.google.com/assets/colab-badge.svg" />
 	</a>
-	<button class="clipboard-button" type="button" on:click={() => copy(code)}>
+	<button class="clipboard-button m-2" type="button" on:click={() => copy(code)}>
 		{#if !copied}
 			{@html svgCopy}
 		{:else}
