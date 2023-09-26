@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:Fix `gr.load()` with `gr.Examples`
+fix:Fix incorrect behavior of `gr.load()` with `gr.Examples`
