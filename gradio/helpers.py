@@ -633,8 +633,9 @@ def patch_tqdm() -> None:
         self, iterable=None, desc=None, total=None, unit="steps", *args, **kwargs
     ):
         self._progress = Progress()
-        self._progress.tqdm(iterable, desc, total, unit, _tqdm=self)
-        kwargs["file"] = open(os.devnull, "w")  # noqa: SIM115
+        if LocalContext.track_tqdm.get():
+            self._progress.tqdm(iterable, desc, total, unit, _tqdm=self)
+            kwargs["file"] = open(os.devnull, "w")  # noqa: SIM115
         self.__init__orig__(iterable, desc, total, *args, unit=unit, **kwargs)
 
     def iter_tqdm(self):
