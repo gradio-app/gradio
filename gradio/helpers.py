@@ -682,7 +682,7 @@ def patch_tqdm() -> None:
 
 
 def create_tracker(fn, track_tqdm):
-    progress = Progress()
+    progress = Progress(track_tqdm=track_tqdm)
     if not track_tqdm:
         return progress, fn
     return progress, utils.function_wrapper(
