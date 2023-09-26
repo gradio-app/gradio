@@ -4,6 +4,7 @@ import json
 from typing import TYPE_CHECKING, Optional, Union
 
 import fastapi
+import httpx
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio import utils
@@ -252,7 +253,13 @@ def set_replica_url_in_config(config: dict, replica_url: str) -> dict:
     we pass in the direct URL to the replica so that we have the correct path to any assets
     on that machine. This direct URL can be shared with other users and the path will correctly resolve.
     """
+    parsed_url = httpx.URL(replica_url)
+    stripped_url = parsed_url.copy_with(query=None)
+    stripped_url = str(stripped_url)
+    if not stripped_url.endswith('/'):
+        stripped_url += '/'
+
     for component in config["components"]:
         if component.get("props") and not component["props"].get("root_url"):
-            component["props"]["root_url"] = replica_url
+            component["props"]["root_url"] = stripped_url
     return config
