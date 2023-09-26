@@ -360,9 +360,7 @@ def component(cls_name: str, render: bool) -> Component:
 
 
 def get_component_instance(
-    comp: str | dict | Component, 
-    render: bool = False,
-    unrender: bool = False
+    comp: str | dict | Component, render: bool = False, unrender: bool = False
 ) -> Component:
     """
     Returns a component instance from a string, dict, or Component object.
