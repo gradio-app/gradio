@@ -361,29 +361,16 @@ def component(cls_name: str, render: bool) -> Component:
 
 
 def get_component_instance(
-    comp: int | str | dict | Component, render: bool = False, unrender: bool = False
+    comp: str | dict | Component, render: bool = False, unrender: bool = False
 ) -> Component:
     """
     Returns a component instance from an int, string, dict, or Component object.
     Parameters:
-        comp: the component to instantiate. If int, must be the id of the component in the current Blocks. If a string, must be the name of a component, e.g. "dropdown". If a dict, must have a "name" key, e.g. {"name": "dropdown", "choices": ["a", "b"]}. If a Component object, will be returned as is.
+        comp: the component to instantiate. If a string, must be the name of a component, e.g. "dropdown". If a dict, must have a "name" key, e.g. {"name": "dropdown", "choices": ["a", "b"]}. If a Component object, will be returned as is.
         render: whether to render the component. If True, renders the component (if not already rendered). If False, does not do anything.
         unrender: whether to unrender the component. If True, unrenders the the component (if already rendered) -- this is useful when constructing an Interface or ChatInterface inside of a Blocks. If False, does not do anything.
     """
-    if isinstance(comp, int):
-        try:
-            if Context.root_block is None:
-                raise ValueError(
-                    "Cannot create component when not in a gr.Blocks() context."
-                ) 
-            component_obj = Context.root_block.blocks[comp]
-        except IndexError as e:
-            raise IndexError(
-                f"Component with id {comp} does not exist in current Blocks."
-            ) from e
-        if not isinstance(component_obj, Component):
-            raise ValueError(f"Invalid component: {component_obj.__class__}")
-    elif isinstance(comp, str):
+    if isinstance(comp, str):
         component_obj = component(comp, render=render)
     elif isinstance(comp, dict):
         name = comp.pop("name")
