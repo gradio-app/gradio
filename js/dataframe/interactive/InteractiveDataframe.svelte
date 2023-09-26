@@ -24,7 +24,7 @@
 		right: string;
 		display: boolean;
 	}[];
-	export let height: number | undefined = undefined;
+	export let height = 500;
 
 	let old_value: string = JSON.stringify(value);
 	export let value_is_output = false;

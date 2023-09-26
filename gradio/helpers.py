@@ -315,8 +315,10 @@ class Examples:
                 fn = self.fn
 
             # create a fake dependency to process the examples and get the predictions
+            from gradio.events import EventListenerMethod
+
             dependency, fn_index = Context.root_block.set_event_trigger(
-                event_name="fake_event",
+                [EventListenerMethod(Context.root_block, "load")],
                 fn=fn,
                 inputs=self.inputs_with_examples,  # type: ignore
                 outputs=self.outputs,  # type: ignore
@@ -1114,12 +1116,25 @@ def log_message(message: str, level: Literal["info", "warning"] = "info"):
     blocks._queue.log_message(event_id=event_id, log=message, level=level)
 
 
+set_documentation_group("modals")
+
+
 @document()
 def Warning(message: str = "Warning issued."):  # noqa: N802
     """
-    This function allows you to pass custom warning messages to the user. You can do so simply with `gr.Warning('message here')`, and when that line is executed the custom message will appear in a modal on the demo.
+    This function allows you to pass custom warning messages to the user. You can do so simply with `gr.Warning('message here')`, and when that line is executed the custom message will appear in a modal on the demo. The modal is yellow by default and has the heading: "Warning." Queue must be enabled to use Warning.
+    Demos: blocks_chained_events
     Parameters:
         message: The warning message to be displayed to the user.
+    Example:
+        import gradio as gr
+        def hello_world():
+            gr.Warning('This is a warning message.')
+            return "hello world"
+        with gr.Blocks() as demo:
+            md = gr.Markdown()
+            demo.load(hello_world, inputs=None, outputs=[md])
+        demo.queue().launch()
     """
     log_message(message, level="warning")
 
@@ -1127,7 +1142,18 @@ def Warning(message: str = "Warning issued."):  # noqa: N802
 @document()
 def Info(message: str = "Info issued."):  # noqa: N802
     """
+    This function allows you to pass custom info messages to the user. You can do so simply by writing `gr.Info('message here')` in your function, and when that line is executed the custom message will appear in a (gray, by default) modal on the demo.  Queue must be enabled to use Info.
+    Demos: blocks_chained_events
     Parameters:
         message: The info message to be displayed to the user.
+    Example:
+        import gradio as gr
+        def hello_world():
+            gr.Info('This is some info.')
+            return "hello world"
+        with gr.Blocks() as demo:
+            md = gr.Markdown()
+            demo.load(hello_world, inputs=None, outputs=[md])
+        demo.queue().launch()
     """
     log_message(message, level="info")
