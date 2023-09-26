@@ -161,6 +161,7 @@ class App(FastAPI):
         assert self.blocks
         # Don't proxy a URL unless it's a URL specifically loaded by the user using
         # gr.load() to prevent SSRF or harvesting of HF tokens by malicious Spaces.
+        print(url.host, self.blocks.root_urls, self.replica_urls)
         is_safe_url = (
             any(url.host == httpx.URL(root).host for root in self.blocks.root_urls)
             or url.host in self.replica_urls
