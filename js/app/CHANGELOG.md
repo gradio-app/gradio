@@ -1,5 +1,12 @@
 # @gradio/app
 
+## 1.6.0
+
+### Features
+
+- [#5639](https://github.com/gradio-app/gradio/pull/5639) [`e1874aff8`](https://github.com/gradio-app/gradio/commit/e1874aff814d13b23f3e59ef239cc13e18ad3fa7) - Add `gr.on` listener method.  Thanks [@aliabid94](https://github.com/aliabid94)!
+- [#5554](https://github.com/gradio-app/gradio/pull/5554) [`75ddeb390`](https://github.com/gradio-app/gradio/commit/75ddeb390d665d4484667390a97442081b49a423) - Accessibility Improvements.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 1.5.4
 
 ### Features
