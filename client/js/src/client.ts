@@ -419,6 +419,7 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 				let payload: Payload;
 				let complete: false | Record<string, any> = false;
 				const listener_map: ListenerMap<EventType> = {};
+				const url_params = new URLSearchParams(window.location.search).toString();
 
 				handle_blob(
 					`${http_protocol}//${host + config.path}`,
@@ -437,11 +438,10 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 							time: new Date()
 						});
 
-						const urlParams = new URLSearchParams(window.location.search);
 						post_data(
 							`${http_protocol}//${host + config.path}/run${
 								_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
-							}?${urlParams.toString()}`,
+							}${url_params ? '?' + url_params : ''}`,
 							{
 								...payload,
 								session_hash
@@ -508,9 +508,8 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 							time: new Date()
 						});
 
-						const urlParams = new URLSearchParams(window.location.search);
 						let url = new URL(`${ws_protocol}://${host}${config.path}
-							/queue/join?${urlParams.toString()}`);
+							/queue/join${url_params ? '?' + url_params : ''}`);
 
 						if (jwt) {
 							url.searchParams.set("__sign", jwt);
