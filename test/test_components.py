@@ -39,7 +39,9 @@ class TestComponent:
         """
         component
         """
-        assert isinstance(gr.components.component("textarea"), gr.templates.TextArea)
+        assert isinstance(
+            gr.components.component("textarea", render=False), gr.templates.TextArea
+        )
 
 
 def test_raise_warnings():
