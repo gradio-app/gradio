@@ -19,7 +19,7 @@ class TestSeries:
         series = mix.Series(io1, io2)
         assert series("Hello") == "Hello World!"
 
-    @pytest.mark.flaky
+    @pytest.mark.xfail
     def test_with_external(self):
         io1 = gr.load("spaces/gradio-tests/image-identity")
         io2 = gr.load("spaces/gradio-tests/image-classifier")
@@ -50,7 +50,7 @@ class TestParallel:
             "Hello World 2!",
         ]
 
-    @pytest.mark.flaky
+    @pytest.mark.xfail
     def test_with_external(self):
         io1 = gr.load("spaces/gradio-tests/english_to_spanish")
         io2 = gr.load("spaces/gradio-tests/english2german")

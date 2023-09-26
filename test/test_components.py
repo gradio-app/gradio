@@ -149,7 +149,6 @@ class TestNumber:
         assert numeric_input.postprocess(3) == 3.0
         assert numeric_input.postprocess(2.14) == 2.14
         assert numeric_input.postprocess(None) is None
-        assert numeric_input.serialize(3, True) == 3
         assert numeric_input.get_config() == {
             "value": None,
             "name": "number",
@@ -183,7 +182,6 @@ class TestNumber:
         assert numeric_input.postprocess(3) == 3
         assert numeric_input.postprocess(2.85) == 3
         assert numeric_input.postprocess(None) is None
-        assert numeric_input.serialize(3, True) == 3
         assert numeric_input.get_config() == {
             "value": 42,
             "name": "number",
@@ -271,7 +269,6 @@ class TestSlider:
         assert slider_input.postprocess(3) == 3
         assert slider_input.postprocess(3) == 3
         assert slider_input.postprocess(None) == 0
-        assert slider_input.serialize(3, True) == 3
 
         slider_input = gr.Slider(10, 20, value=15, step=1, label="Slide Your Input")
         assert slider_input.get_config() == {
@@ -336,7 +333,6 @@ class TestCheckbox:
         assert bool_input.preprocess(True)
         assert bool_input.postprocess(True)
         assert bool_input.postprocess(True)
-        assert bool_input.serialize(True, True)
         bool_input = gr.Checkbox(value=True, label="Check Your Input")
         assert bool_input.get_config() == {
             "value": True,
@@ -373,7 +369,6 @@ class TestCheckboxGroup:
         checkboxes_input = gr.CheckboxGroup(["a", "b", "c"])
         assert checkboxes_input.preprocess(["a", "c"]) == ["a", "c"]
         assert checkboxes_input.postprocess(["a", "c"]) == ["a", "c"]
-        assert checkboxes_input.serialize(["a", "c"]) == ["a", "c"]
 
         checkboxes_input = gr.CheckboxGroup(["a", "b"], type="index")
         assert checkboxes_input.preprocess(["a"]) == [0]
@@ -438,7 +433,6 @@ class TestRadio:
         radio_input = gr.Radio(["a", "b", "c"])
         assert radio_input.preprocess("c") == "c"
         assert radio_input.postprocess("a") == "a"
-        assert radio_input.serialize("a", True) == "a"
         radio_input = gr.Radio(
             choices=["a", "b", "c"], default="a", label="Pick Your One Input"
         )
@@ -527,7 +521,6 @@ class TestDropdown:
             "a",
             "c full",
         ]
-        assert dropdown_input_multiselect.serialize(["a", "c full"]) == ["a", "c full"]
         dropdown_input_multiselect = gr.Dropdown(
             value=["a", "c"],
             choices=["a", "b", ("c", "c full")],
@@ -599,7 +592,6 @@ class TestImage:
         image_input = gr.Image(shape=(30, 10), type="pil")
         assert image_input.preprocess(img).size == (30, 10)
         assert image_input.postprocess("test/test_files/bus.png") == img
-        assert image_input.serialize("test/test_files/bus.png") == img
         image_input = gr.Image(type="filepath")
         image_temp_filepath = image_input.preprocess(img)
         assert image_temp_filepath in image_input.temp_files
@@ -653,22 +645,16 @@ class TestImage:
             deepcopy(media_data.BASE64_IMAGE)
         )
         image_output = gr.Image()
-        assert image_output.postprocess(y_img).startswith(
+        assert image_output.postprocess(y_img).name.startswith(
             "data:image/png;base64,iVBORw0KGgoAAA"
         )
-        assert image_output.postprocess(np.array(y_img)).startswith(
+        assert image_output.postprocess(np.array(y_img)).name.startswith(
             "data:image/png;base64,iVBORw0KGgoAAA"
         )
         with pytest.raises(ValueError):
             image_output.postprocess([1, 2, 3])
         image_output = gr.Image(type="numpy")
-        assert image_output.postprocess(y_img).startswith("data:image/png;base64,")
-
-    @pytest.mark.flaky
-    def test_serialize_url(self):
-        img = "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"
-        expected = client_utils.encode_url_or_file_to_base64(img)
-        assert gr.Image().serialize(img) == expected
+        assert image_output.postprocess(y_img).name.startswith("data:image/png;base64,")
 
     def test_in_interface_as_input(self):
         """
@@ -786,11 +772,6 @@ class TestAudio:
         output1 = audio_input.preprocess(x_wav)
         assert Path(output1).name == "audio_sample-0-100.wav"
 
-        assert filecmp.cmp(
-            "test/test_files/audio_sample.wav",
-            audio_input.serialize("test/test_files/audio_sample.wav")["name"],
-        )
-
         audio_input = gr.Audio(label="Upload Your Audio")
         assert audio_input.get_config() == {
             "autoplay": False,
@@ -859,25 +840,10 @@ class TestAudio:
             "type": "filepath",
             "format": "wav",
         }
-        assert audio_output.deserialize(
-            {
-                "name": None,
-                "data": deepcopy(media_data.BASE64_AUDIO)["data"],
-                "is_file": False,
-            }
-        ).endswith(".wav")
 
         output1 = audio_output.postprocess(y_audio.name)
         output2 = audio_output.postprocess(Path(y_audio.name))
         assert output1 == output2
-
-    def test_serialize(self):
-        audio_input = gr.Audio()
-        serialized_input = audio_input.serialize("test/test_files/audio_sample.wav")
-        assert serialized_input["data"] == media_data.BASE64_AUDIO["data"]
-        assert os.path.basename(serialized_input["name"]) == "audio_sample.wav"
-        assert serialized_input["orig_name"] == "audio_sample.wav"
-        assert not serialized_input["is_file"]
 
     def test_in_interface(self):
         def reverse_audio(audio):
@@ -932,13 +898,6 @@ class TestFile:
         file_input = gr.File()
         output = file_input.preprocess(x_file)
         assert isinstance(output, tempfile._TemporaryFileWrapper)
-        serialized = file_input.serialize("test/test_files/sample_file.pdf")
-        assert filecmp.cmp(
-            serialized["name"],
-            "test/test_files/sample_file.pdf",
-        )
-        assert serialized["orig_name"] == "sample_file.pdf"
-        assert output.orig_name == "test/test_files/sample_file.pdf"
 
         x_file["is_file"] = True
         input1 = file_input.preprocess(x_file)
@@ -1318,10 +1277,6 @@ class TestVideo:
         assert output_video[-3:] == "avi"
         assert "flip" not in output_video
 
-        assert filecmp.cmp(
-            video_input.serialize(x_video["name"])[0]["name"], x_video["name"]
-        )
-
         # Output functionalities
         y_vid_path = "test/test_files/video_sample.mp4"
         subtitles_path = "test/test_files/s1.srt"
@@ -1335,17 +1290,6 @@ class TestVideo:
         )
         output_with_subtitles = video_output.postprocess((y_vid_path, subtitles_path))
         assert output_with_subtitles[1]["data"].startswith("data")
-
-        assert video_output.deserialize(
-            (
-                {
-                    "name": None,
-                    "data": deepcopy(media_data.BASE64_VIDEO)["data"],
-                    "is_file": False,
-                },
-                None,
-            )
-        ).endswith(".mp4")
 
         p_video = gr.Video()
         video_with_subtitle = gr.Video()
@@ -1499,8 +1443,6 @@ class TestLabel:
         label_output = gr.Label()
         label = label_output.postprocess(y)
         assert label == {"label": "happy"}
-        with open(label_output.deserialize(label)) as f:
-            assert json.load(f) == label
 
         y = {3: 0.7, 1: 0.2, 0: 0.1}
         label = label_output.postprocess(y)
@@ -2047,9 +1989,6 @@ class TestColorPicker:
         assert color_picker_input.postprocess("#000000") == "#000000"
         assert color_picker_input.postprocess(None) is None
         assert color_picker_input.postprocess("#FFFFFF") == "#FFFFFF"
-        assert color_picker_input.serialize("#000000", True) == "#000000"
-
-        color_picker_input.interpretation_replacement = "unknown"
 
         assert color_picker_input.get_config() == {
             "value": None,
@@ -2096,17 +2035,10 @@ class TestGallery:
     def test_gallery(self, mock_uuid):
         gallery = gr.Gallery()
         test_file_dir = Path(Path(__file__).parent, "test_files")
-        data = [
+        [
             client_utils.encode_file_to_base64(Path(test_file_dir, "bus.png")),
             client_utils.encode_file_to_base64(Path(test_file_dir, "cheetah1.jpg")),
         ]
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            path = gallery.deserialize(data, tmpdir)
-            assert path.endswith("my-uuid")
-            data_restored = gallery.serialize(path)
-            data_restored = [d[0]["data"] for d in data_restored]
-            assert sorted(data) == sorted(data_restored)
 
         postprocessed_gallery = gallery.postprocess([Path("test/test_files/bus.png")])
         processed_gallery = [{"name": "bus.png", "data": None, "is_file": True}]
@@ -2799,9 +2731,6 @@ class TestCode:
         with open(path) as f:
             assert code.postprocess(path) == path
             assert code.postprocess((path,)) == f.read()
-
-        assert code.serialize("def fn(a):\n  return a") == "def fn(a):\n  return a"
-        assert code.deserialize("def fn(a):\n  return a") == "def fn(a):\n  return a"
 
         assert code.get_config() == {
             "value": None,

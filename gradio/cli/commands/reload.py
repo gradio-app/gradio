@@ -14,7 +14,7 @@ import subprocess
 import sys
 import threading
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 import typer
 from rich import print
@@ -93,7 +93,7 @@ def _setup_config(
 
 
 def main(
-    demo_path: Path, demo_name: str = "demo", watch_dirs: Optional[list[str]] = None
+    demo_path: Path, demo_name: str = "demo", watch_dirs: Optional[List[str]] = None
 ):
     # default execution pattern to start the server and watch changes
     filename, path, watch_dirs, demo_name = _setup_config(

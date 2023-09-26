@@ -836,8 +836,9 @@ class Endpoint:
         component = next(
             i for i in self.client.config["components"] if i["id"] == component_id
         )
+        skip_api = component.get("skip_api", component["type"] in utils.SKIP_COMPONENTS)
         return ComponentApiType(
-            component["skip_api"],
+            skip_api,
             self.value_is_file(component),
             component["type"] == "state",
         )

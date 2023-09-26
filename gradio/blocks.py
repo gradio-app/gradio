@@ -669,7 +669,7 @@ class Blocks(BlockContext):
 
     def get_component(self, id: int) -> Component:
         comp = self.blocks[id]
-        assert isinstance(comp, Component)
+        assert isinstance(comp, components.Component), f"{comp}"
         return comp
 
     @property
@@ -2227,7 +2227,7 @@ Received outputs:
                 # of the component), so we use that if it exists. Otherwise, we fallback to the
                 # Serializer's API info.
                 info = self.get_component(component["id"]).api_info()
-                example = self.get_component(component["id"]).example_inputs
+                example = self.get_component(component["id"]).example_inputs()
                 python_type = client_utils.json_schema_to_python_type(info)
                 dependency_info["parameters"].append(
                     {
@@ -2251,7 +2251,7 @@ Received outputs:
                     skip_endpoint = True  # if component not found, skip endpoint
                     break
                 type = component["type"]
-                if self.get_component(component["id"]).skip_api:
+                if self.blocks[component["id"]].skip_api:
                     continue
                 label = component["props"].get("label", f"value_{o}")
                 info = self.get_component(component["id"]).api_info()

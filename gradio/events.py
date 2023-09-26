@@ -210,7 +210,7 @@ class EventListener(str):
                     return inner
 
                 return Dependency(None, {}, None, wrapper)
-            assert isinstance(block, Block)
+            assert block is not None
             if status_tracker:
                 warn_deprecation(
                     "The 'status_tracker' parameter has been deprecated and has no effect."

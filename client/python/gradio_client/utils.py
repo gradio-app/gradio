@@ -624,3 +624,19 @@ def traverse(json_obj: Any, func: Callable, is_root: Callable) -> Any:
         return new_obj
     else:
         return json_obj
+
+
+SKIP_COMPONENTS = {
+    "state",
+    "row",
+    "column",
+    "tabs",
+    "tab",
+    "tabitem",
+    "box",
+    "form",
+    "accordion",
+    "group",
+    "interpretation",
+    "dataset",
+}
