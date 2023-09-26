@@ -313,7 +313,7 @@ class App(FastAPI):
                 config = app.get_blocks().config
                 config["root"] = root_path
 
-                replica_url = request.headers.get("X-Direct-Url")                
+                replica_url = request.headers.get("X-Direct-Url")
                 if utils.get_space() and replica_url:
                     replica_url = httpx.URL(replica_url).host
                     app.replica_urls.add(replica_url)

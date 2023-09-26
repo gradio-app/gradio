@@ -256,8 +256,8 @@ def set_replica_url_in_config(config: dict, replica_url: str) -> dict:
     parsed_url = httpx.URL(replica_url)
     stripped_url = parsed_url.copy_with(query=None)
     stripped_url = str(stripped_url)
-    if not stripped_url.endswith('/'):
-        stripped_url += '/'
+    if not stripped_url.endswith("/"):
+        stripped_url += "/"
 
     for component in config["components"]:
         if component.get("props") and not component["props"].get("root_url"):
