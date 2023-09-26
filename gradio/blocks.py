@@ -751,7 +751,7 @@ class Blocks(BlockContext):
                     original_mapping[c] for c in block_config["props"]["component_ids"]
                 ]
                 block_config["props"].pop("component_ids", None)
-            
+
             # Any component has already processed its initial value, so we skip that step here
             block = cls(**block_config["props"], _skip_init_processing=True)
             return block
