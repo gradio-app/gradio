@@ -162,7 +162,7 @@
 		border-radius: 50%;
 		background-color: white;
 		cursor: pointer;
-		margin-top: -7px;
+		margin-top: -2px;
 		transition: background-color 0.1s ease;
 	}
 
@@ -175,6 +175,6 @@
 		box-shadow: none;
 		border: none;
 		background: transparent;
-		height: 100%;
+		height: 16px;
 	}
 </style>
