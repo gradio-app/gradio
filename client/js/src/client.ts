@@ -398,9 +398,8 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 				let api_info;
 
 				if (typeof endpoint === "number") {
-					throw new Error(
-						"There is no endpoint matching that name of fn_index matching that number."
-					);
+					fn_index = endpoint;
+					api_info = api.unnamed_endpoints[fn_index];
 				} else {
 					const trimmed_endpoint = endpoint.replace(/^\//, "");
 
@@ -420,6 +419,9 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 				let payload: Payload;
 				let complete: false | Record<string, any> = false;
 				const listener_map: ListenerMap<EventType> = {};
+				const url_params = new URLSearchParams(
+					window.location.search
+				).toString();
 
 				handle_blob(
 					`${http_protocol}//${host + config.path}`,
@@ -441,7 +443,7 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 						post_data(
 							`${http_protocol}//${host + config.path}/run${
 								_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
-							}`,
+							}${url_params ? "?" + url_params : ""}`,
 							{
 								...payload,
 								session_hash
@@ -509,7 +511,7 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 						});
 
 						let url = new URL(`${ws_protocol}://${host}${config.path}
-							/queue/join`);
+							/queue/join${url_params ? "?" + url_params : ""}`);
 
 						if (jwt) {
 							url.searchParams.set("__sign", jwt);
