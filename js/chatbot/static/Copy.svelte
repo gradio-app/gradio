@@ -44,12 +44,16 @@
 	});
 </script>
 
-<button on:click={handle_copy} title="copy">
+<button
+	on:click={handle_copy}
+	title="copy"
+	aria-label={copied ? "Copied message" : "Copy message"}
+>
 	{#if !copied}
-		<span><Copy /> </span>
+		<Copy />
 	{/if}
 	{#if copied}
-		<span><Check /></span>
+		<Check />
 	{/if}
 </button>
 
@@ -58,12 +62,13 @@
 		position: relative;
 		top: 0;
 		right: 0;
-
-		width: 22px;
-		height: 22px;
-
-		padding: 5px;
-
+		width: 16px;
+		height: 16px;
 		cursor: pointer;
+		color: var(--body-text-color-subdued);
+	}
+
+	button:hover {
+		color: var(--body-text-color);
 	}
 </style>
