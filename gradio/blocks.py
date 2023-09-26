@@ -2117,10 +2117,14 @@ Received outputs:
 
         if self.share:
             if self.space_id:
-                warnings.warn("Setting share=True is not supported on Hugging Face Spaces")
+                warnings.warn(
+                    "Setting share=True is not supported on Hugging Face Spaces"
+                )
                 self.share = False
             if wasm_utils.IS_WASM:
-                warnings.warn("Setting share=True is not supported in the Wasm environment")
+                warnings.warn(
+                    "Setting share=True is not supported in the Wasm environment"
+                )
                 self.share = False
 
         if self.share:
