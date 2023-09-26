@@ -32,7 +32,7 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
         self,
         *,
         label: str | None = None,
-        components: list[IOComponent] | list[str],
+        components: list[int] | list[IOComponent] | list[str],
         samples: list[list[Any]] | None = None,
         headers: list[str] | None = None,
         type: Literal["values", "index"] = "values",
@@ -47,7 +47,7 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
     ):
         """
         Parameters:
-            components: Which component types to show in this dataset widget, can be passed in as a list of string names or Components instances. The following components are supported in a Dataset: Audio, Checkbox, CheckboxGroup, ColorPicker, Dataframe, Dropdown, File, HTML, Image, Markdown, Model3D, Number, Radio, Slider, Textbox, TimeSeries, Video
+            components: Which component types to show in this dataset widget, should be passed in as a list of component IDs in the current Blocks. For backwards compatibility, a list of string names or Components instances is also supported.
             samples: a nested list of samples. Each sublist within the outer list represents a data sample, and each element within the sublist represents an value for each component
             headers: Column headers in the Dataset widget, should be the same len as components. If not provided, inferred from component labels
             type: 'values' if clicking on a sample should pass the value of the sample, or "index" if it should pass the index of the sample
@@ -65,29 +65,28 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
         self.container = container
         self.scale = scale
         self.min_width = min_width
-        self._components = [get_component_instance(c) for c in components]
+        self.components = [get_component_instance(c) for c in components]
 
         # Narrow type to IOComponent
         assert all(
-            isinstance(c, IOComponent) for c in self._components
+            isinstance(c, IOComponent) for c in self.components
         ), "All components in a `Dataset` must be subclasses of `IOComponent`"
-        self._components = [c for c in self._components if isinstance(c, IOComponent)]
-        for component in self._components:
+        self.components = [c for c in self.components if isinstance(c, IOComponent)]
+        for component in self.components:
             component.root_url = self.root_url
 
         self.samples = [[]] if samples is None else samples
         for example in self.samples:
-            for i, (component, ex) in enumerate(zip(self._components, example)):
-                print(component, ex)
+            for i, (component, ex) in enumerate(zip(self.components, example)):
                 example[i] = component.as_example(ex)
         self.type = type
         self.label = label
         if headers is not None:
             self.headers = headers
-        elif all(c.label is None for c in self._components):
+        elif all(c.label is None for c in self.components):
             self.headers = []
         else:
-            self.headers = [c.label or "" for c in self._components]
+            self.headers = [c.label or "" for c in self.components]
         self.samples_per_page = samples_per_page
 
     @staticmethod
@@ -115,7 +114,10 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
     def get_config(self):
         config = super().get_config()
         config["components"] = [
-            component.get_block_name() for component in self._components
+            component.get_block_name() for component in self.components
+        ]
+        config["component_ids"] = [
+            component._id for component in self.components
         ]
         return config
 

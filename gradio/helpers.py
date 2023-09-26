@@ -233,7 +233,7 @@ class Examples:
 
         with utils.set_directory(working_directory):
             self.dataset = components.Dataset(
-                components=inputs_with_examples,
+                components=[i._id for i in inputs_with_examples],
                 samples=non_none_examples,
                 type="index",
                 label=label,
