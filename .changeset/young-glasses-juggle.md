@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:setting share=True on Spaces or in wasm should warn instead of raising error
+fix:setting share=True on Spaces or in wasm should warn instead of raising error
