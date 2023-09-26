@@ -6,4 +6,4 @@
 "gradio_client": minor
 ---
 
-feat:Component <-> Server direct communication support
+feat:Add component <-> server direct communication support, as well as a "file explorer" component
