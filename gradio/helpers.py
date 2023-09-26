@@ -492,6 +492,8 @@ class Progress(Iterable):
         Parameters:
             track_tqdm: If True, the Progress object will track any tqdm.tqdm iterations with the tqdm library in the function.
         """
+        if track_tqdm:
+            patch_tqdm()
         self.track_tqdm = track_tqdm
         self.iterables: list[TrackedIterable] = []
 
@@ -636,18 +638,23 @@ def patch_tqdm() -> None:
         self.__init__orig__(iterable, desc, total, *args, unit=unit, **kwargs)
 
     def iter_tqdm(self):
-        return self._progress
+        if LocalContext.track_tqdm.get():
+            return self._progress
+        return self.__iter__orig__()
 
     def update_tqdm(self, n=1):
-        self._progress.update(n)
+        if LocalContext.track_tqdm.get():
+            self._progress.update(n)
         return self.__update__orig__(n)
 
     def close_tqdm(self):
-        self._progress.close(self)
+        if LocalContext.track_tqdm.get():
+            self._progress.close(self)
         return self.__close__orig__()
 
     def exit_tqdm(self, exc_type, exc_value, traceback):
-        self._progress.close(self)
+        if LocalContext.track_tqdm.get():
+            self._progress.close(self)
         return self.__exit__orig__(exc_type, exc_value, traceback)
 
     # Backup
@@ -673,30 +680,16 @@ def patch_tqdm() -> None:
         _tqdm.auto.tqdm = _tqdm.tqdm
 
 
-def unpatch_tqdm() -> None:
-    try:
-        _tqdm = __import__("tqdm")
-    except ModuleNotFoundError:
-        return
-
-    try:
-        _tqdm.tqdm.__init__ = _tqdm.tqdm.__init__orig__
-        _tqdm.tqdm.update = _tqdm.tqdm.__update__orig__
-        _tqdm.tqdm.close = _tqdm.tqdm.__close__orig__
-        _tqdm.tqdm.__exit__ = _tqdm.tqdm.__exit__orig__
-        _tqdm.tqdm.__iter__ = _tqdm.tqdm.__iter__orig__
-    except AttributeError:
-        pass
-
-
 def create_tracker(fn, track_tqdm):
     progress = Progress()
     if not track_tqdm:
         return progress, fn
     return progress, utils.function_wrapper(
         f=fn,
-        before_fn=patch_tqdm,
-        after_fn=unpatch_tqdm,
+        before_fn=LocalContext.track_tqdm.set,
+        before_args=True,
+        after_fn=LocalContext.track_tqdm.set,
+        after_args=False,
     )
 
 

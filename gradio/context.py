@@ -23,3 +23,4 @@ class LocalContext:
     in_event_listener: ContextVar[bool] = ContextVar("in_event_listener", default=False)
     event_id: ContextVar[str | None] = ContextVar("event_id", default=None)
     request: ContextVar[Request | None] = ContextVar("request", default=None)
+    track_tqdm: ContextVar[bool] = ContextVar("track_tqdm", default=False)
