@@ -250,6 +250,6 @@ def set_replica_url_in_config(config: dict, replica_url: str) -> dict:
     on that machine. This direct URL can be shared with other users and the path will correctly resolve.
     """
     for component in config["components"]:
-        if component.get("props") and not component["props"].get(["root_url"]):
+        if component.get("props") and not component["props"].get("root_url"):
             component["props"]["root_url"] = replica_url
     return config
