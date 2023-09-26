@@ -78,11 +78,14 @@ class Request:
     auth is enabled, the `username` attribute can be used to get the logged in user.
     Example:
         import gradio as gr
-        def echo(name, request: gr.Request):
-            print("Request headers dictionary:", request.headers)
-            print("IP address:", request.client.host)
-            return name
+        def echo(text, request: gr.Request):
+            if request:
+                print("Request headers dictionary:", request.headers)
+                print("IP address:", request.client.host)
+                print("Query parameters:", dict(request.query_params))
+            return text
         io = gr.Interface(echo, "textbox", "textbox").launch()
+    Demos: request_ip_headers
     """
 
     def __init__(
