@@ -737,15 +737,18 @@ class Blocks(BlockContext):
                 block_config["props"]["root_url"] = f"{root_url}/"
             else:
                 root_urls.add(block_config["props"]["root_url"])
-            if block_config["type"] == "dataset" and "component_ids" in block_config["props"]:
-                # We treat dataset components as a special case because they reference other components 
+            if (
+                block_config["type"] == "dataset"
+                and "component_ids" in block_config["props"]
+            ):
+                # We treat dataset components as a special case because they reference other components
                 # in the config. Instead of using the component string names, we use the component ids.
                 block_config["props"].pop("components", None)
-                block_config["props"]["components"] = [original_mapping[c] for c in block_config["props"]["component_ids"]]
-                block = cls(**block_config["props"], _skip_init_processing=True)
-            else:
-                # Any component has already processed its initial value, so we skip that step here
-                block = cls(**block_config["props"], _skip_init_processing=True)
+                block_config["props"]["components"] = [
+                    original_mapping[c] for c in block_config["props"]["component_ids"]
+                ]
+            # Any component has already processed its initial value, so we skip that step here
+            block = cls(**block_config["props"], _skip_init_processing=True)
             return block
 
         def iterate_over_children(children_list):

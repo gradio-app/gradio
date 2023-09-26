@@ -116,9 +116,7 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
         config["components"] = [
             component.get_block_name() for component in self._components
         ]
-        config["component_ids"] = [
-            component._id for component in self._components
-        ]
+        config["component_ids"] = [component._id for component in self._components]
         return config
 
     def preprocess(self, x: Any) -> Any:
