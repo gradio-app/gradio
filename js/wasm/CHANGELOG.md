@@ -1,5 +1,11 @@
 # @gradio/wasm
 
+## 0.0.3
+
+### Features
+
+- [#5598](https://github.com/gradio-app/gradio/pull/5598) [`6b1714386`](https://github.com/gradio-app/gradio/commit/6b17143868bdd2c1400af1199a01c1c0d5c27477) - Upgrade Pyodide to 0.24.0 and install the native orjson package.  Thanks [@whitphx](https://github.com/whitphx)!
+
 ## 0.0.2
 
 ### Fixes

@@ -1,5 +1,12 @@
 # @gradio/plot
 
+## 0.2.0
+
+### Features
+
+- [#5642](https://github.com/gradio-app/gradio/pull/5642) [`21c7225bd`](https://github.com/gradio-app/gradio/commit/21c7225bda057117a9d3311854323520218720b5) - Improve plot rendering.  Thanks [@aliabid94](https://github.com/aliabid94)!
+- [#5554](https://github.com/gradio-app/gradio/pull/5554) [`75ddeb390`](https://github.com/gradio-app/gradio/commit/75ddeb390d665d4484667390a97442081b49a423) - Accessibility Improvements.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.1.2
 
 ### Patch Changes

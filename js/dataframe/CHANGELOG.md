@@ -1,5 +1,11 @@
 # @gradio/dataframe
 
+## 0.2.3
+
+### Fixes
+
+- [#5616](https://github.com/gradio-app/gradio/pull/5616) [`7c34b434a`](https://github.com/gradio-app/gradio/commit/7c34b434aae0eb85f112a1dc8d66cefc7e2296b2) - Fix width and height issues that would cut off content in `gr.DataFrame`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.2.2
 
 ### Fixes

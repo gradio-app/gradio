@@ -1,5 +1,12 @@
 # @gradio/timeseries
 
+## 0.0.6
+
+### Patch Changes
+
+- Updated dependencies [[`75ddeb390`](https://github.com/gradio-app/gradio/commit/75ddeb390d665d4484667390a97442081b49a423)]:
+  - @gradio/upload@0.3.0
+
 ## 0.0.5
 
 ### Patch Changes
