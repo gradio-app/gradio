@@ -152,7 +152,7 @@
 								class:latest={i === value.length - 1}
 								class:message-markdown-disabled={!render_markdown}
 								class:selectable
-								style:text-align="left"
+								style:text-align={layout === "panel" ? "left" : "inherit"}
 								on:click={() => handle_select(i, j, message)}
 								on:keydown={(e) => {
 									if (e.key === "Enter") {
@@ -331,9 +331,11 @@
 	.user {
 		align-self: flex-start;
 		border-bottom-right-radius: 0;
+		text-align: right;
 	}
 	.bot {
 		border-bottom-left-radius: 0;
+		text-align: left;
 	}
 
 	/* Colors */
