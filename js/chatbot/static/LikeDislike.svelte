@@ -38,7 +38,7 @@
 	title={action + " message"}
 	aria-label={actioned ? `clicked ${action}` : action}
 >
-	<Icon />
+	<Icon {actioned} />
 </button>
 
 <style>

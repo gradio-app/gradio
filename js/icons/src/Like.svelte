@@ -1,9 +1,13 @@
+<script lang="ts">
+	export let actioned: boolean;
+</script>
+
 <svg
 	xmlns="http://www.w3.org/2000/svg"
 	width="15px"
 	height="15px"
 	viewBox="0 0 24 24"
-	fill="none"
+	fill={actioned ? "currentColor" : "none"}
 	stroke-width="1.5"
 	color="currentColor"
 	><path
