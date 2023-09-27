@@ -13,13 +13,8 @@ import gradio
 
 
 def _in_test_dir():
-    """Determine if we're in the test dir."""
-    gradio_dir = (Path(gradio.__file__) / ".." / "..").resolve()
-    try:
-        (gradio_dir / "js" / "gradio-preview" / "test").relative_to(Path().cwd())
-        return True
-    except ValueError:
-        return False
+    """Check if the current working directory ends with gradio/js/gradio-preview/test."""
+    return Path.cwd().parts[-4:] == ("gradio", "js", "gradio-preview", "test")
 
 
 default_demo_code = """
