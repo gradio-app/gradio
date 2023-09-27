@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-ensure all relevant packages are available to the custom component CLI
+fix: ensure all relevant packages are available to the custom component CLI
