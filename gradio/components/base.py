@@ -423,6 +423,26 @@ class FormComponent(Component):
         return y
 
 
+class StreamingOutput(metaclass=abc.ABCMeta):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.streaming: bool
+
+    @abc.abstractmethod
+    def stream_output(self, y, output_id: str, first_chunk: bool) -> tuple[bytes, Any]:
+        pass
+
+
+class StreamingInput(metaclass=abc.ABCMeta):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+    @abc.abstractmethod
+    def check_streamable(self):
+        """Used to check if streaming is supported given the input."""
+        pass
+
+
 def component(cls_name: str) -> Component:
     obj = utils.component_or_layout_class(cls_name)()
     if isinstance(obj, BlockContext):
@@ -461,23 +481,3 @@ def get_component_instance(
         component_obj.unrender()
     assert isinstance(component_obj, Component)
     return component_obj
-
-
-class StreamingOutput(metaclass=abc.ABCMeta):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.streaming: bool
-
-    @abc.abstractmethod
-    def stream_output(self, y, output_id: str, first_chunk: bool) -> tuple[bytes, Any]:
-        pass
-
-
-class StreamingInput(metaclass=abc.ABCMeta):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-
-    @abc.abstractmethod
-    def check_streamable(self):
-        """Used to check if streaming is supported given the input."""
-        pass
