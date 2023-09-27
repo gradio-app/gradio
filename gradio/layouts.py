@@ -143,7 +143,7 @@ class Column(Updateable, BlockContext):
         }
 
 
-class Tabs(BlockContext, Changeable, Selectable):
+class Tabs(Updateable, BlockContext, Changeable, Selectable):
     """
     Tabs is a layout element within Blocks that can contain multiple "Tab" Components.
     """
@@ -182,7 +182,7 @@ class Tabs(BlockContext, Changeable, Selectable):
 
 
 @document()
-class Tab(BlockContext, Selectable):
+class Tab(Updateable, BlockContext, Selectable):
     """
     Tab (or its alias TabItem) is a layout element. Components defined within the Tab will be visible when this tab is selected tab.
     Example:
