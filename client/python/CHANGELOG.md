@@ -1,5 +1,11 @@
 # gradio_client
 
+## 0.5.2
+
+### Features
+
+- [#5653](https://github.com/gradio-app/gradio/pull/5653) [`ea0e00b20`](https://github.com/gradio-app/gradio/commit/ea0e00b207b4b90a10e9d054c4202d4e705a29ba) - Prevent Clients from accessing API endpoints that set `api_name=False`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.5.1
 
 ### Features
