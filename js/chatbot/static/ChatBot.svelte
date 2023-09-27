@@ -217,9 +217,10 @@
 						</div>
 						{#if (likeable && j !== 0) || (show_copy_button && message && typeof message === "string")}
 							<div
-								class="message-buttons-{j == 0 ? 'user' : 'bot'}"
+								class="message-buttons-{j == 0
+									? 'user'
+									: 'bot'} message-buttons-{layout}"
 								class:message-buttons-fit={!bubble_full_width}
-								class:panel-buttons-user={layout === "panel"}
 								class:bubble-buttons-user={layout === "bubble"}
 							>
 								{#if likeable && j == 1}
@@ -297,6 +298,12 @@
 		padding: calc(var(--spacing-xxl) + var(--spacing-sm));
 	}
 
+	@media (max-width: 480px) {
+		.message {
+			padding: calc(var(--spacing-xxl) * 2);
+		}
+	}
+
 	.message-bubble-border {
 		border-width: 1px;
 		border-radius: var(--radius-xxl);
@@ -313,6 +320,13 @@
 	.message-markdown-disabled {
 		white-space: pre-line;
 	}
+
+	@media (max-width: 480px) {
+		.panel-full-width {
+			padding: calc(var(--spacing-xxl) * 2);
+		}
+	}
+
 	.user {
 		align-self: flex-start;
 		border-bottom-right-radius: 0;
@@ -386,8 +400,6 @@
 
 	.message-buttons-user,
 	.message-buttons-bot {
-		border: 1px solid var(--border-color-accent);
-		background: var(--background-fill-secondary);
 		border-radius: var(--radius-md);
 		display: flex;
 		align-items: center;
@@ -407,15 +419,15 @@
 		right: 5px;
 	}
 
-	.panel-buttons-user {
-		left: unset;
-		right: 10px;
+	.message-buttons-bubble {
+		border: 1px solid var(--border-color-accent);
+		background: var(--background-fill-secondary);
 	}
 
-	@media (max-width: 480px) {
-		.message {
-			padding: calc(var(--spacing-xl) * 2);
-		}
+	.message-buttons-panel {
+		left: unset;
+		right: 0px;
+		top: 0px;
 	}
 
 	.share-button {
