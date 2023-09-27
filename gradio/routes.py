@@ -161,9 +161,6 @@ class App(FastAPI):
         assert self.blocks
         # Don't proxy a URL unless it's a URL specifically loaded by the user using
         # gr.load() to prevent SSRF or harvesting of HF tokens by malicious Spaces.
-        print(
-            "url host", url.host, "root urls", self.blocks.root_urls, self.replica_urls
-        )
         safe_urls = {httpx.URL(root).host for root in self.blocks.root_urls} | {
             httpx.URL(root).host for root in self.replica_urls
         }
@@ -315,8 +312,9 @@ class App(FastAPI):
                 config = app.get_blocks().config
                 config["root"] = root_path
 
+                # Handles the case where the app is running on Hugging Face Spaces with
+                # multiple replicas. See `set_replica_url_in_config` for more details.
                 replica_url = request.headers.get("X-Direct-Url")
-                print("request.headers", replica_url)
                 if utils.get_space() and replica_url:
                     app.replica_urls.add(replica_url)
                     config = set_replica_url_in_config(config, replica_url)
@@ -359,14 +357,12 @@ class App(FastAPI):
         def get_config(request: fastapi.Request):
             config = app.get_blocks().config
 
-            # replica_url = request.headers.get("X-Direct-Url")
-            # if utils.get_space() and replica_url:
-            #     app.replica_urls.add(replica_url)
-            #     config = set_replica_url_in_config(config, replica_url)
-
-            # replica_url = "https://huggingface.co/spaces/abidlabs/test-client-replica"
-            # app.replica_urls.add(replica_url)
-            # config = set_replica_url_in_config(config, replica_url)
+            # Handles the case where the app is running on Hugging Face Spaces with
+            # multiple replicas. See `set_replica_url_in_config` for more details.
+            replica_url = request.headers.get("X-Direct-Url")
+            if utils.get_space() and replica_url:
+                app.replica_urls.add(replica_url)
+                config = set_replica_url_in_config(config, replica_url)
 
             root_path = request.scope.get("root_path", "")
             config["root"] = root_path

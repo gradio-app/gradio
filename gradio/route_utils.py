@@ -250,8 +250,8 @@ async def call_process_api(
 def set_replica_url_in_config(config: dict, replica_url: str) -> dict:
     """
     If the Gradio app is running on Hugging Face Spaces and the machine has multiple replicas,
-    we pass in the direct URL to the replica so that we have the correct path to any assets
-    on that machine. This direct URL can be shared with other users and the path will correctly resolve.
+    we pass in the direct URL to the replica so that we have the fully resolved path to any files
+    on that machine. This direct URL can be shared with other users and the path will still work.
     """
     parsed_url = httpx.URL(replica_url)
     stripped_url = parsed_url.copy_with(query=None)
