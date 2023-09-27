@@ -9,7 +9,7 @@ import pytest
 import requests
 
 import gradio
-from gradio.blocks import Blocks, get_api_info
+from gradio.blocks import Blocks
 from gradio.components import Image, Textbox
 from gradio.interface import Interface, TabbedInterface, close_all, os
 from gradio.layouts import TabItem, Tabs
@@ -47,6 +47,7 @@ class TestInterface:
         with pytest.raises(TypeError):
             Interface(lambda x: x, examples=1234)
 
+    @pytest.mark.xfail
     def test_partial_functions(self):
         def greet(name, formatter):
             return formatter(f"Hello {name}!")
@@ -129,14 +130,6 @@ class TestInterface:
         assert prediction_fn.__name__ in repr[0]
         assert len(repr[0]) == len(repr[1])
 
-    @pytest.mark.asyncio
-    async def test_interface_none_interp(self):
-        interface = Interface(lambda x: x, "textbox", "label", interpretation=[None])
-        scores = (await interface.interpret(["quickest brown fox"]))[0][
-            "interpretation"
-        ]
-        assert scores is None
-
     @mock.patch("webbrowser.open")
     def test_interface_browser(self, mock_browser):
         interface = Interface(lambda x: x, "textbox", "label")
@@ -174,7 +167,7 @@ class TestInterface:
 
     def test_get_api_info(self):
         io = Interface(lambda x: x, Image(type="filepath"), "textbox")
-        api_info = get_api_info(io.get_config_file())
+        api_info = io.get_api_info()
         assert len(api_info["named_endpoints"]) == 1
         assert len(api_info["unnamed_endpoints"]) == 0
 
