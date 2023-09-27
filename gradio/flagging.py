@@ -426,7 +426,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             # Get deserialized object (will save sample to disk if applicable -file, audio, image,...-)
             label = component.label or ""
             save_dir = data_dir / client_utils.strip_invalid_filename_characters(label)
-            save_dir.mkdir(exist_ok=True)
+            save_dir.mkdir(exist_ok=True, parents=True)
             deserialized = component.flag(sample, save_dir)
 
             # Add deserialized object to row

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import Any, Callable, List, Literal, Union
+from typing import Any, Callable, List, Literal
 
 import numpy as np
 import pandas as pd
@@ -16,7 +16,7 @@ from gradio.events import Events
 
 class DataframeData(GradioModel):
     headers: List[str]
-    data: List[List[Union[str, int, float, bool]]]
+    data: List[List[Any]]
 
 
 set_documentation_group("component")
@@ -122,7 +122,7 @@ class Dataframe(Component):
             [datatype] * self.col_count[0] if isinstance(datatype, str) else datatype
         )
         self.empty_input = {
-            "headers": ["a", "b", "c"],
+            "headers": self.headers,
             "data": [
                 [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
             ],

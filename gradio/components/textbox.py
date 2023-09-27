@@ -28,7 +28,14 @@ class Textbox(FormComponent):
     Guides: creating-a-chatbot, real-time-speech-recognition
     """
 
-    EVENTS = [Events.change, Events.input, Events.select, Events.submit, Events.focus]
+    EVENTS = [
+        Events.change,
+        Events.input,
+        Events.select,
+        Events.submit,
+        Events.focus,
+        Events.blur,
+    ]
 
     def __init__(
         self,

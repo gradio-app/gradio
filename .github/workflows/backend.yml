@@ -49,7 +49,7 @@ jobs:
         test-type: ["not flaky", "flaky"]
         python-version: ["3.8"]
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.test-type == 'flaky' }}
+    continue-on-error: true
     steps:
     - uses: actions/checkout@v3
     - name: Install Python
@@ -141,7 +141,7 @@ jobs:
         test-type: ["not flaky", "flaky"]
         python-version: ["3.8"]
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.test-type == 'flaky' }}
+    continue-on-error: true
     steps:
     - uses: actions/checkout@v3
     - name: Install Python

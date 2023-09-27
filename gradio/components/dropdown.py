@@ -24,7 +24,7 @@ class Dropdown(FormComponent):
     Demos: sentence_builder, titanic_survival
     """
 
-    EVENTS = [Events.change, Events.input, Events.select, Events.focus]
+    EVENTS = [Events.change, Events.input, Events.select, Events.focus, Events.blur]
 
     def __init__(
         self,

@@ -324,6 +324,13 @@ def stream_audio():
 
 
 @pytest.fixture
+def video_component():
+    return gr.Interface(
+        fn=lambda x: x, inputs=gr.Video(type="file"), outputs=gr.Video()
+    )
+
+
+@pytest.fixture
 def all_components():
     classes_to_check = gr.components.Component.__subclasses__()
     subclasses = []

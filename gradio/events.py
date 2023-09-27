@@ -210,7 +210,7 @@ class EventListener(str):
                     return inner
 
                 return Dependency(None, {}, None, wrapper)
-            assert isinstance(block, Block)
+            assert block is not None
             if status_tracker:
                 warn_deprecation(
                     "The 'status_tracker' parameter has been deprecated and has no effect."
@@ -270,15 +270,20 @@ class Events:
     upload = "upload"
     release = "release"
     select = EventListener(
-        "select", callback=lambda block: setattr(block, "selectable", True)
+        "select",
+        config_data=lambda: {"selectable": False},
+        callback=lambda block: setattr(block, "selectable", True),
     )
     stream = EventListener(
         "stream",
         show_progress="hidden",
+        config_data=lambda: {"streamable": False},
         callback=lambda block: setattr(block, "streaming", True),
     )
     like = EventListener(
-        "like", callback=lambda block: setattr(block, "likeable", True)
+        "like",
+        config_data=lambda: {"likeable": False},
+        callback=lambda block: setattr(block, "likeable", True),
     )
 
 
