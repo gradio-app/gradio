@@ -1,5 +1,16 @@
 # gradio
 
+## 3.45.0-beta.10
+
+### Features
+
+- [#5695](https://github.com/gradio-app/gradio/pull/5695) [`5d6086901`](https://github.com/gradio-app/gradio/commit/5d6086901e5153650a48dff8e5cacd62aa0eed9f) - Use overrides.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5686](https://github.com/gradio-app/gradio/pull/5686) [`e19d333cb`](https://github.com/gradio-app/gradio/commit/e19d333cb2cde682e983ee0117e70f0d17d78842) - V4 fix typing.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
+### Fixes
+
+- [#5709](https://github.com/gradio-app/gradio/pull/5709) [`6ebaeaada`](https://github.com/gradio-app/gradio/commit/6ebaeaada923487c33a3c37495c3d76eb3abb5d9) - ensure all relevant packages are available to the custom component CLI.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 3.45.0-beta.9
 
 ### Features
