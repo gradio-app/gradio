@@ -2121,6 +2121,7 @@ class TestChatbot:
             "sanitize_html": True,
             "render_markdown": True,
             "bubble_full_width": True,
+            "layout": None,
         }
 
 
