@@ -54,6 +54,7 @@ class TestTextbox:
         assert text_input.postprocess("Ali") == "Ali"
         assert text_input.postprocess(2) == "2"
         assert text_input.postprocess(2.14) == "2.14"
+        breakpoint()
         assert text_input.get_config() == {
             "lines": 1,
             "max_lines": 20,

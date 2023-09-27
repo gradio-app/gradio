@@ -16,12 +16,19 @@ from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Events
 
+# from pydantic import Field, TypeAdapter
+
 set_documentation_group("component")
 
 
 class FileMessage(GradioModel):
     file: FileData
     alt_text: Optional[str] = None
+
+
+# _Message = Annotated[List[Union[str, FileMessage, None]], Field(min_length=2, max_length=2)]
+
+# Message = TypeAdapter(_Message)
 
 
 class ChatbotData(GradioRootModel):
