@@ -317,7 +317,7 @@ class App(FastAPI):
                 replica_url = request.headers.get("X-Direct-Url")
                 if utils.get_space() and replica_url:
                     app.replica_urls.add(replica_url)
-                    config = set_replica_url_in_config(config, replica_url)
+                    set_replica_url_in_config(config, replica_url)
             else:
                 config = {
                     "auth_required": True,
@@ -362,7 +362,7 @@ class App(FastAPI):
             replica_url = request.headers.get("X-Direct-Url")
             if utils.get_space() and replica_url:
                 app.replica_urls.add(replica_url)
-                config = set_replica_url_in_config(config, replica_url)
+                set_replica_url_in_config(config, replica_url)
 
             root_path = request.scope.get("root_path", "")
             config["root"] = root_path

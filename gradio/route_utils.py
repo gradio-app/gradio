@@ -247,7 +247,7 @@ async def call_process_api(
     return output
 
 
-def set_replica_url_in_config(config: dict, replica_url: str) -> dict:
+def set_replica_url_in_config(config: dict, replica_url: str) -> None:
     """
     If the Gradio app is running on Hugging Face Spaces and the machine has multiple replicas,
     we pass in the direct URL to the replica so that we have the fully resolved path to any files
@@ -262,4 +262,3 @@ def set_replica_url_in_config(config: dict, replica_url: str) -> dict:
     for component in config["components"]:
         if component.get("props") and not component["props"].get("root_url"):
             component["props"]["root_url"] = stripped_url
-    return config
