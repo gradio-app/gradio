@@ -548,10 +548,10 @@
 		col?: number,
 		dir?: SortDirection
 	): void {
-		const id = null
+		let id = null
 		//Checks if the selected cell is still in the data
 		if (selected && selected[0] in data && selected[1] in data[selected[0]]) {
-			const id = data[selected[0]][selected[1]].id
+			id = data[selected[0]][selected[1]].id
 		}
 		if (typeof col !== "number" || !dir) {
 			return;
