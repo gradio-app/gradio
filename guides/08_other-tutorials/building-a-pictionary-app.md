@@ -7,9 +7,7 @@ Tags: SKETCHPAD, LABELS, LIVE
 
 How well can an algorithm guess what you're drawing? A few years ago, Google released the **Quick Draw** dataset, which contains drawings made by humans of a variety of every objects. Researchers have used this dataset to train models to guess Pictionary-style drawings.
 
-Such models are perfect to use with Gradio's _sketchpad_ input, so in this tutorial we will build a Pictionary web application using Gradio. We will be able to build the whole web application in Python, and will look like this (try drawing something!):
-
-<iframe src="https://abidlabs-draw2.hf.space" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+Such models are perfect to use with Gradio's _sketchpad_ input, so in this tutorial we will build a Pictionary web application using Gradio. We will be able to build the whole web application in Python, and it will look like the demo on the bottom of the page.
 
 Let's get started! This guide covers how to build a pictionary app (step-by-step):
 
@@ -101,7 +99,7 @@ gr.Interface(fn=predict,
 
 This produces the following interface, which you can try right here in your browser (try drawing something, like a "snake" or a "laptop"):
 
-<iframe src="https://abidlabs-draw2.hf.space" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+<gradio-app space="gradio/pictionary">
 
 ---
 

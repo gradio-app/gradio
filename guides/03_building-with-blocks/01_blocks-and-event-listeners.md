@@ -162,3 +162,21 @@ In the 2 player tic-tac-toe demo below, a user can select a cell in the `DataFra
 
 $code_tictactoe
 $demo_tictactoe
+
+## Binding Multiple Triggers to a Function
+
+Often times, you may want to bind multiple triggers to the same function. For example, you may want to allow a user to click a submit button, or press enter to submit a form. You can do this using the `gr.on` method and passing a list of triggers to the `trigger`.
+
+$code_on_listener_basic
+$demo_on_listener_basic
+
+You can use decorator syntax as well:
+
+$code_on_listener_decorator
+
+You can use `gr.on` to create "live" events by binding to the change event of all components. If you do not specify any triggers, the function will automatically bind to the change event of all input components. 
+
+$code_on_listener_live
+$demo_on_listener_live
+
+You can follow `gr.on` with `.then`, just like any regular event listener. This handy method should save you from having to write a lot of repetitive code!

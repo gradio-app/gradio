@@ -14,6 +14,7 @@
 		right: string;
 		display: boolean;
 	}[] = [];
+	export let render_markdown = true;
 
 	let el: HTMLSpanElement;
 	let html: string;
@@ -24,15 +25,24 @@
 			node.setAttribute("rel", "noopener noreferrer");
 		}
 	});
+
+	function process_message(value: string): string {
+		if (render_markdown) {
+			value = marked.parse(value);
+		}
+		if (sanitize_html) {
+			value = DOMPurify.sanitize(value);
+		}
+		return value;
+	}
+
 	$: if (message && message.trim()) {
-		html = sanitize_html
-			? DOMPurify.sanitize(marked.parse(message))
-			: marked.parse(message);
+		html = process_message(message);
 	} else {
 		html = "";
 	}
 	async function render_html(value: string): Promise<void> {
-		if (latex_delimiters.length > 0) {
+		if (latex_delimiters.length > 0 && value) {
 			render_math_in_element(el, {
 				delimiters: latex_delimiters,
 				throwOnError: false
@@ -43,7 +53,11 @@
 </script>
 
 <span class:chatbot bind:this={el} class="md">
-	{@html html}
+	{#if render_markdown}
+		{@html html}
+	{:else}
+		{html}
+	{/if}
 </span>
 
 <style>

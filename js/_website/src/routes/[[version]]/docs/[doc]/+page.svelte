@@ -16,6 +16,7 @@
 	let mode = data.mode;
 	let components = data.components;
 	let helpers = data.helpers;
+	let modals = data.modals;
 	let routes = data.routes;
 	let py_client = data.py_client;
 	let on_main: boolean;
@@ -69,6 +70,11 @@
 	$: obj = data.obj;
 	$: mode = data.mode;
 	$: on_main = data.on_main;
+	$: components = data.components;
+	$: helpers = data.helpers;
+	$: modals = data.modals;
+	$: routes = data.routes;
+	$: py_client = data.py_client;
 </script>
 
 <MetaTags
@@ -81,16 +87,17 @@
 <svelte:window bind:scrollY={y} />
 
 <main class="container mx-auto px-4 flex gap-4">
-	<div class="flex">
+	<div class="flex w-full">
 		<DocsNav
 			current_nav_link={obj.name.toLowerCase()}
 			{components}
 			{helpers}
+			{modals}
 			{routes}
 			{py_client}
 		/>
 
-		<div class="flex flex-col w-full min-w-full lg:w-10/12 lg:min-w-0">
+		<div class="flex flex-col w-full min-w-full lg:w-8/12 lg:min-w-0">
 			<div>
 				<p
 					class="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 mr-2 rounded-full text-orange-800 mb-1 w-fit float-left lg:ml-10"
@@ -169,14 +176,12 @@
 							</h3>
 						</div>
 
+						<div class="codeblock bg-gray-50 mx-auto p-3">
 						{#if obj.override_signature}
-							<div class="codeblock bg-gray-50 mx-auto p-3">
 								<pre><code class="code language-python"
 										>{obj.override_signature}</code
 									></pre>
-							</div>
 						{:else}
-							<div class="codeblock bg-gray-50 mx-auto p-3">
 								<pre><code class="code language-python"
 										>{obj.parent}.<span>{obj.name}&lpar;</span
 										><!--
@@ -189,8 +194,8 @@
 											>&rpar;</span
 										></code
 									></pre>
-							</div>
 						{/if}
+					</div>
 
 						{#if mode === "components"}
 							<div class="embedded-component">
@@ -508,7 +513,7 @@
 				</div>
 			</div>
 
-			<div class="flex justify-between my-4">
+			<div class="lg:ml-10 flex justify-between my-4">
 				{#if obj.prev_obj}
 					<a
 						href="./{obj.prev_obj.toLowerCase()}"
@@ -539,7 +544,7 @@
 		</div>
 
 		<div
-			class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:block"
+			class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:block lg:w-2/12"
 		>
 			<div class="mx-8">
 				<a

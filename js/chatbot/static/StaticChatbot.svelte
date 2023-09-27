@@ -27,6 +27,7 @@
 	export let sanitize_html = true;
 	export let bubble_full_width = true;
 	export let layout: "bubble" | "panel" = "bubble";
+	export let render_markdown = true;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -94,6 +95,7 @@
 			{show_share_button}
 			value={_value}
 			{latex_delimiters}
+			{render_markdown}
 			pending_message={loading_status?.status === "pending"}
 			{rtl}
 			{show_copy_button}

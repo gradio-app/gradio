@@ -238,7 +238,7 @@ class TestInterfaceInterpretation:
         interpretation_dep = next(
             d
             for d in iface.config["dependencies"]
-            if d["targets"] == [interpretation_id]
+            if d["targets"][0][0] == interpretation_id
         )
         interpretation_comps = [
             c["id"]
@@ -268,7 +268,7 @@ class TestInterfaceInterpretation:
         fn_index = next(
             i
             for i, d in enumerate(iface.config["dependencies"])
-            if d["targets"] == [btn]
+            if d["targets"][0][0] == btn
         )
 
         response = client.post(

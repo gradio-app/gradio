@@ -145,6 +145,7 @@
 							class:message-fit={!bubble_full_width}
 							class:panel-full-width={layout === "panel"}
 							class:message-bubble-border={layout === "bubble"}
+							class:message-markdown-disabled={!render_markdown}
 						>
 							<button
 								data-testid={j == 0 ? "user" : "bot"}
