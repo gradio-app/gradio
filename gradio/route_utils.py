@@ -260,5 +260,8 @@ def set_replica_url_in_config(config: dict, replica_url: str) -> None:
         stripped_url += "/"
 
     for component in config["components"]:
-        if component.get("props") and not component["props"].get("root_url"):
+        if (
+            component.get("props") is not None
+            and component["props"].get("root_url") is None
+        ):
             component["props"]["root_url"] = stripped_url
