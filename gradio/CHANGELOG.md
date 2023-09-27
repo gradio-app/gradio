@@ -1,5 +1,11 @@
 # gradio
 
+## 3.45.1
+
+### Fixes
+
+- [#5701](https://github.com/gradio-app/gradio/pull/5701) [`ee8eec1e5`](https://github.com/gradio-app/gradio/commit/ee8eec1e5e544a0127e0aa68c2522a7085b8ada5) - Fix for regression in rendering empty Markdown.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 3.45.0
 
 ### Features
