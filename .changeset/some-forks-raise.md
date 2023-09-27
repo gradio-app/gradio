@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Alternative approach for direct urls
+feat:Fully resolve filepaths when running on Hugging Face Spaces with multiple replicas
