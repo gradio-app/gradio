@@ -316,8 +316,8 @@ class App(FastAPI):
                 config["root"] = root_path
 
                 replica_url = request.headers.get("X-Direct-Url")
+                print("request.headers", replica_url)
                 if utils.get_space() and replica_url:
-                    replica_url = httpx.URL(replica_url).host
                     app.replica_urls.add(replica_url)
                     config = set_replica_url_in_config(config, replica_url)
             else:
