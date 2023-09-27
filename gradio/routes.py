@@ -53,7 +53,7 @@ from gradio.deprecation import warn_deprecation
 from gradio.exceptions import Error
 from gradio.oauth import attach_oauth
 from gradio.queueing import Estimation, Event
-from gradio.route_utils import Request  # noqa: F401
+from gradio.route_utils import Request, set_replica_url_in_config  # noqa: F401
 from gradio.state_holder import StateHolder
 from gradio.utils import (
     cancel_tasks,
@@ -124,6 +124,9 @@ class App(FastAPI):
         self.uploaded_file_dir = os.environ.get("GRADIO_TEMP_DIR") or str(
             Path(tempfile.gettempdir()) / "gradio"
         )
+        self.replica_urls = (
+            set()
+        )  # these are the full paths to the replicas if running on a Hugging Face Space with multiple replicas
         self.change_event: None | threading.Event = None
         # Allow user to manually set `docs_url` and `redoc_url`
         # when instantiating an App; when they're not set, disable docs and redoc.
@@ -158,9 +161,10 @@ class App(FastAPI):
         assert self.blocks
         # Don't proxy a URL unless it's a URL specifically loaded by the user using
         # gr.load() to prevent SSRF or harvesting of HF tokens by malicious Spaces.
-        is_safe_url = any(
-            url.host == httpx.URL(root).host for root in self.blocks.root_urls
-        )
+        safe_urls = {httpx.URL(root).host for root in self.blocks.root_urls} | {
+            httpx.URL(root).host for root in self.replica_urls
+        }
+        is_safe_url = url.host in safe_urls
         if not is_safe_url:
             raise PermissionError("This URL cannot be proxied.")
         is_hf_url = url.host.endswith(".hf.space")
@@ -307,6 +311,13 @@ class App(FastAPI):
             if app.auth is None or user is not None:
                 config = app.get_blocks().config
                 config["root"] = root_path
+
+                # Handles the case where the app is running on Hugging Face Spaces with
+                # multiple replicas. See `set_replica_url_in_config` for more details.
+                replica_url = request.headers.get("X-Direct-Url")
+                if utils.get_space() and replica_url:
+                    app.replica_urls.add(replica_url)
+                    config = set_replica_url_in_config(config, replica_url)
             else:
                 config = {
                     "auth_required": True,
@@ -344,8 +355,16 @@ class App(FastAPI):
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request):
-            root_path = request.scope.get("root_path", "")
             config = app.get_blocks().config
+
+            # Handles the case where the app is running on Hugging Face Spaces with
+            # multiple replicas. See `set_replica_url_in_config` for more details.
+            replica_url = request.headers.get("X-Direct-Url")
+            if utils.get_space() and replica_url:
+                app.replica_urls.add(replica_url)
+                config = set_replica_url_in_config(config, replica_url)
+
+            root_path = request.scope.get("root_path", "")
             config["root"] = root_path
             return config
 
