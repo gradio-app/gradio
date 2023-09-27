@@ -280,7 +280,6 @@ class TestClientPredictions:
                 "https://gradio-builds.s3.amazonaws.com/demo-files/bark_demo.mp4",
                 api_name="/predict",
             )
-            breakpoint()
             assert Path(job1.result()).exists()
 
             job2 = client.submit(
@@ -787,7 +786,6 @@ class TestAPIInfo:
     @pytest.mark.flaky
     def test_fetch_fixed_version_space(self, calculator_demo):
         with connect(calculator_demo) as client:
-            breakpoint()
             assert client.view_api(return_format="dict") == {
                 "named_endpoints": {
                     "/predict": {
