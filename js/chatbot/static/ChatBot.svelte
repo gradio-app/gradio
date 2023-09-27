@@ -9,8 +9,8 @@
 	import { MarkdownCode as Markdown } from "@gradio/markdown/static";
 	import { get_fetchable_url_or_file } from "@gradio/upload";
 	import Copy from "./Copy.svelte";
-	import Like from "./Like.svelte";
-	import Dislike from "./Dislike.svelte";
+	import LikeDislike from "./LikeDislike.svelte";
+	import Pending from "./Pending.svelte";
 
 	export let value:
 		| [string | FileData | null, string | FileData | null][]
@@ -210,15 +210,19 @@
 								{/if}
 							</button>
 						</div>
-						{#if likeable || show_copy_button}
+						{#if (likeable && j !== 0) || (show_copy_button && message && typeof message === "string")}
 							<div
 								class="message-buttons-{j == 0 ? 'user' : 'bot'}"
 								class:message-buttons-fit={!bubble_full_width}
 							>
 								{#if likeable && j == 1}
-									<Like handle_like={() => handle_like(i, j, message, true)} />
-									<Dislike
-										handle_dislike={() => handle_like(i, j, message, false)}
+									<LikeDislike
+										action="like"
+										handle_action={() => handle_like(i, j, message, true)}
+									/>
+									<LikeDislike
+										action="dislike"
+										handle_action={() => handle_like(i, j, message, false)}
 									/>
 								{/if}
 								{#if show_copy_button && message && typeof message === "string"}
@@ -230,21 +234,7 @@
 				{/each}
 			{/each}
 		{/if}
-		{#if pending_message}
-			<div
-				class="message pending"
-				role="status"
-				aria-label="Loading response"
-				aria-live="polite"
-			>
-				<span class="sr-only">Loading content</span>
-				<div class="dot-flashing" />
-				&nbsp;
-				<div class="dot-flashing" />
-				&nbsp;
-				<div class="dot-flashing" />
-			</div>
-		{/if}
+		<Pending {pending_message} />
 	</div>
 </div>
 
@@ -309,11 +299,11 @@
 	}
 
 	/* Colors */
-	.bot,
-	.pending {
+	.bot {
 		border-color: var(--border-color-primary);
 		background: var(--background-fill-secondary);
 	}
+
 	.user {
 		border-color: var(--border-color-accent-subdued);
 		background-color: var(--color-accent-soft);
@@ -384,6 +374,7 @@
 		position: absolute;
 		bottom: -15px;
 		margin: 2px;
+		padding-left: 5px;
 	}
 	.message-buttons-bot {
 		left: 10px;
@@ -406,29 +397,6 @@
 
 	.selectable {
 		cursor: pointer;
-	}
-
-	.pending {
-		display: flex;
-		flex-direction: row;
-		justify-content: center;
-		align-items: center;
-		align-self: center;
-		gap: 2px;
-	}
-	.dot-flashing {
-		animation: dot-flashing 1s infinite linear alternate;
-		border-radius: 5px;
-		background-color: var(--body-text-color);
-		width: 5px;
-		height: 5px;
-		color: var(--body-text-color);
-	}
-	.dot-flashing:nth-child(2) {
-		animation-delay: 0.33s;
-	}
-	.dot-flashing:nth-child(3) {
-		animation-delay: 0.66s;
 	}
 
 	@keyframes dot-flashing {

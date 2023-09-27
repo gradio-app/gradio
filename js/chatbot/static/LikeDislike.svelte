@@ -1,17 +1,21 @@
 <script lang="ts">
 	import { onDestroy } from "svelte";
 	import { Like } from "@gradio/icons";
+	import { Dislike } from "@gradio/icons";
 
-	let liked = false;
+	export let action: "like" | "dislike";
+	export let handle_action: () => void;
+
+	let actioned = false;
+	let Icon = action === "like" ? Like : Dislike;
+
 	let timer: NodeJS.Timeout;
 
-	export let handle_like: () => void;
-
-	function like_feedback(): void {
-		liked = true;
+	function action_feedback(): void {
+		actioned = true;
 		if (timer) clearTimeout(timer);
 		timer = setTimeout(() => {
-			liked = false;
+			actioned = false;
 		}, 2000);
 	}
 
@@ -22,14 +26,13 @@
 
 <button
 	on:click={() => {
-		like_feedback();
-		handle_like();
+		action_feedback();
+		handle_action();
 	}}
-	title="like"
-	aria-roledescription={liked ? "Message liked" : "Like message"}
-	aria-label={liked ? "Liked" : "Like"}
+	title={action + " message"}
+	aria-label={actioned ? `clicked ${action}` : action}
 >
-	<Like />
+	<Icon />
 </button>
 
 <style>
@@ -41,7 +44,7 @@
 		color: var(--body-text-color-subdued);
 		width: 17px;
 		height: 17px;
-		margin-left: 5px;
+		margin-right: 5px;
 	}
 
 	button:hover,

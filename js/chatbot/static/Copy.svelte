@@ -65,7 +65,6 @@
 		cursor: pointer;
 		color: var(--body-text-color-subdued);
 		margin-right: 5px;
-		margin-left: 5px;
 	}
 
 	button:hover {
