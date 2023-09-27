@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Context-based Progress tracker
+fix:Context-based Progress tracker
