@@ -34,6 +34,7 @@
 	export let render_markdown = true;
 	export let root: string;
 	export let root_url: null | string;
+	export let layout: "bubble" | "panel" = "bubble";
 
 	let div: HTMLDivElement;
 	let autoscroll: boolean;
@@ -109,18 +110,20 @@
 {/if}
 
 <div
-	class="wrap"
+	class={layout === "bubble" ? "bubble-wrap" : "panel-wrap"}
 	bind:this={div}
 	role="log"
 	aria-label="chatbot conversation"
 	aria-live="polite"
 >
-	<div class="message-wrap" use:copy>
+	<div class="message-wrap" class:bubble-gap={layout === "bubble"} use:copy>
 		{#if value !== null}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
 					<div
-						class="message-row {j == 0 ? 'user-row' : 'bot-row'}"
+						class="message-row {j == 0 && layout === 'bubble'
+							? 'user-row'
+							: 'bot-row'}"
 						class:hide={message === null}
 					>
 						{#if avatar_images[j] !== null}
@@ -140,6 +143,8 @@
 						<div
 							class="message {j == 0 ? 'user' : 'bot'}"
 							class:message-fit={!bubble_full_width}
+							class:panel-full-width={layout === "panel"}
+							class:message-bubble-border={layout === "bubble"}
 						>
 							<button
 								data-testid={j == 0 ? "user" : "bot"}
@@ -214,6 +219,8 @@
 							<div
 								class="message-buttons-{j == 0 ? 'user' : 'bot'}"
 								class:message-buttons-fit={!bubble_full_width}
+								class:panel-buttons-user={layout === "panel"}
+								class:bubble-buttons-user={layout === "bubble"}
 							>
 								{#if likeable && j == 1}
 									<LikeDislike
@@ -239,8 +246,13 @@
 </div>
 
 <style>
-	.wrap {
+	.bubble-wrap {
 		padding: var(--block-padding);
+		width: 100%;
+		overflow-y: auto;
+	}
+
+	.panel-wrap {
 		width: 100%;
 		overflow-y: auto;
 	}
@@ -249,6 +261,9 @@
 		display: flex;
 		flex-direction: column;
 		justify-content: space-between;
+	}
+
+	.bubble-gap {
 		gap: calc(var(--spacing-xxl) + var(--spacing-lg));
 	}
 
@@ -271,8 +286,6 @@
 		flex-direction: column;
 		align-self: flex-end;
 		text-align: left;
-		border-width: 1px;
-		border-radius: var(--radius-xxl);
 		background: var(--background-fill-secondary);
 		width: calc(100% - var(--spacing-xxl));
 		color: var(--body-text-color);
@@ -284,8 +297,18 @@
 		padding: calc(var(--spacing-xxl) + var(--spacing-sm));
 	}
 
+	.message-bubble-border {
+		border-width: 1px;
+		border-radius: var(--radius-xxl);
+	}
+
 	.message-fit {
 		width: fit-content !important;
+	}
+
+	.panel-full-width {
+		padding: calc(var(--spacing-xxl) * 2);
+		width: 100%;
 	}
 	.message-markdown-disabled {
 		white-space: pre-line;
@@ -375,12 +398,18 @@
 		bottom: -15px;
 		margin: 2px;
 		padding-left: 5px;
+		z-index: 1;
 	}
 	.message-buttons-bot {
 		left: 10px;
 	}
 	.message-buttons-user {
 		right: 5px;
+	}
+
+	.panel-buttons-user {
+		left: unset;
+		right: 10px;
 	}
 
 	@media (max-width: 480px) {

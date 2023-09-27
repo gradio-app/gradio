@@ -26,6 +26,7 @@
 	export let show_copy_button = false;
 	export let sanitize_html = true;
 	export let bubble_full_width = true;
+	export let layout: "bubble" | "panel" = "bubble";
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -104,6 +105,7 @@
 			{avatar_images}
 			{sanitize_html}
 			{bubble_full_width}
+			{layout}
 			{root_url}
 			{root}
 		/>

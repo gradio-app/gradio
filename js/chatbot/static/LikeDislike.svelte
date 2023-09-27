@@ -29,6 +29,12 @@
 		action_feedback();
 		handle_action();
 	}}
+	on:keydown={(e) => {
+		if (e.key === "Enter") {
+			action_feedback();
+			handle_action();
+		}
+	}}
 	title={action + " message"}
 	aria-label={actioned ? `clicked ${action}` : action}
 >
