@@ -1,5 +1,11 @@
 # gradio_client
 
+## 0.6.0-beta.1
+
+### Features
+
+- [#5686](https://github.com/gradio-app/gradio/pull/5686) [`e19d333cb`](https://github.com/gradio-app/gradio/commit/e19d333cb2cde682e983ee0117e70f0d17d78842) - V4 fix typing.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 0.6.0-beta.0
 
 ### Features
