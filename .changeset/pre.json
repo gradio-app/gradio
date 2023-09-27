@@ -59,6 +59,7 @@
     "@gradio/preview": "0.0.2"
   },
   "changesets": [
+    "bright-planes-divide",
     "chatty-adults-reply",
     "chubby-hounds-itch",
     "cold-hoops-heal",
@@ -68,10 +69,12 @@
     "dry-points-join",
     "easy-mirrors-retire",
     "empty-bobcats-judge",
+    "fresh-ears-pump",
     "great-mammals-lead",
     "hip-drinks-bow",
     "hot-words-sin",
     "lazy-aliens-drive",
+    "lovely-news-speak",
     "lovely-radios-worry",
     "many-tips-create",
     "puny-papayas-bake",
