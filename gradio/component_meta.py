@@ -174,7 +174,7 @@ class ComponentMeta(ABCMeta):
         new_events = []
         for event in events:
             trigger = (
-                EventListener(event_name=event) if isinstance(event, str) else event
+               event if isinstance(event, EventListener) else EventListener(event_name=event)
             )
             new_events.append(trigger)
             attrs[event] = trigger.listener

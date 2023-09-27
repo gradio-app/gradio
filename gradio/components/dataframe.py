@@ -122,7 +122,7 @@ class Dataframe(Component):
             [datatype] * self.col_count[0] if isinstance(datatype, str) else datatype
         )
         self.empty_input = {
-            "headers": ["a", "b", "c"],
+            "headers": self.headers,
             "data": [
                 [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
             ],
