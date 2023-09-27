@@ -1100,7 +1100,10 @@ def log_message(message: str, level: Literal["info", "warning"] = "info"):
     from gradio.context import LocalContext
 
     blocks = LocalContext.blocks.get()
-    if blocks is None:  # Function called outside of Gradio
+    event_id = LocalContext.event_id.get()
+    if blocks is None or event_id is None:
+        # Function called outside of Gradio if blocks is None
+        # Or from /api/predict if event_id is None
         if level == "info":
             print(message)
         elif level == "warning":
@@ -1111,8 +1114,6 @@ def log_message(message: str, level: Literal["info", "warning"] = "info"):
             f"Queueing must be enabled to issue {level.capitalize()}: '{message}'."
         )
         return
-    event_id = LocalContext.event_id.get()
-    assert event_id
     blocks._queue.log_message(event_id=event_id, log=message, level=level)
 
 
@@ -1122,7 +1123,7 @@ set_documentation_group("modals")
 @document()
 def Warning(message: str = "Warning issued."):  # noqa: N802
     """
-    This function allows you to pass custom warning messages to the user. You can do so simply with `gr.Warning('message here')`, and when that line is executed the custom message will appear in a modal on the demo. The modal is yellow by default and has the heading: "Warning." Queue must be enabled to use Warning.
+    This function allows you to pass custom warning messages to the user. You can do so simply by writing `gr.Warning('message here')` in your function, and when that line is executed the custom message will appear in a modal on the demo. The modal is yellow by default and has the heading: "Warning." Queue must be enabled for this behavior; otherwise, the warning will be printed to the console using the `warnings` library.
     Demos: blocks_chained_events
     Parameters:
         message: The warning message to be displayed to the user.
@@ -1142,7 +1143,7 @@ def Warning(message: str = "Warning issued."):  # noqa: N802
 @document()
 def Info(message: str = "Info issued."):  # noqa: N802
     """
-    This function allows you to pass custom info messages to the user. You can do so simply by writing `gr.Info('message here')` in your function, and when that line is executed the custom message will appear in a (gray, by default) modal on the demo.  Queue must be enabled to use Info.
+    This function allows you to pass custom info messages to the user. You can do so simply by writing `gr.Info('message here')` in your function, and when that line is executed the custom message will appear in a modal on the demo. The modal is gray by default and has the heading: "Info." Queue must be enabled for this behavior; otherwise, the message will be printed to the console.
     Demos: blocks_chained_events
     Parameters:
         message: The info message to be displayed to the user.
