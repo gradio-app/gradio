@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 from typing import TYPE_CHECKING, Optional, Union
 
@@ -247,7 +248,7 @@ async def call_process_api(
     return output
 
 
-def set_replica_url_in_config(config: dict, replica_url: str) -> None:
+def set_replica_url_in_config(config: dict, replica_url: str) -> dict:
     """
     If the Gradio app is running on Hugging Face Spaces and the machine has multiple replicas,
     we pass in the direct URL to the replica so that we have the fully resolved path to any files
@@ -259,9 +260,11 @@ def set_replica_url_in_config(config: dict, replica_url: str) -> None:
     if not stripped_url.endswith("/"):
         stripped_url += "/"
 
-    for component in config["components"]:
+    config_ = copy.deepcopy(config)
+    for component in config_["components"]:
         if (
             component.get("props") is not None
             and component["props"].get("root_url") is None
         ):
             component["props"]["root_url"] = stripped_url
+    return config_

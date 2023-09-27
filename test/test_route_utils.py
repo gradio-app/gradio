@@ -7,7 +7,7 @@ def test_set_replica_url():
     }
     replica_url = "https://abidlabs-test-client-replica--fttzk.hf.space?__theme=light"
 
-    set_replica_url_in_config(config, replica_url)
+    config = set_replica_url_in_config(config, replica_url)
     assert (
         config["components"][0]["props"]["root_url"]
         == "https://abidlabs-test-client-replica--fttzk.hf.space/"
@@ -20,7 +20,7 @@ def test_url_without_trailing_slash():
     config = {"components": [{"props": {}}]}
     replica_url = "https://abidlabs-test-client-replica--fttzk.hf.space"
 
-    set_replica_url_in_config(config, replica_url)
+    config = set_replica_url_in_config(config, replica_url)
     assert (
         config["components"][0]["props"]["root_url"]
         == "https://abidlabs-test-client-replica--fttzk.hf.space/"
