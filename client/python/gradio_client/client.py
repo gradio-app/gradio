@@ -1031,11 +1031,16 @@ class Endpoint:
         uploaded_files = self._upload(files)
         data = list(new_data)
         data = self._add_uploaded_files_to_data(data, uploaded_files)
+        data = utils.traverse(
+            data,
+            lambda s: {"name": s, "is_file": True},
+            lambda s: isinstance(s, str) and utils.is_http_url_like(s),
+        )
         o = tuple(data)
         return o
 
+    @staticmethod
     def _download_file(
-        self,
         x: dict,
         save_dir: str | None = None,
         root_url: str | None = None,

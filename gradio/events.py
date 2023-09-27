@@ -272,7 +272,7 @@ class Events:
     select = EventListener(
         "select",
         config_data=lambda: {"selectable": False},
-        callback=lambda block: setattr(block, "selectable", True)
+        callback=lambda block: setattr(block, "selectable", True),
     )
     stream = EventListener(
         "stream",
@@ -283,7 +283,7 @@ class Events:
     like = EventListener(
         "like",
         config_data=lambda: {"likeable": False},
-        callback=lambda block: setattr(block, "likeable", True)
+        callback=lambda block: setattr(block, "likeable", True),
     )
 
 

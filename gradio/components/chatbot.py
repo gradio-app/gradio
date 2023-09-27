@@ -46,7 +46,7 @@ class Chatbot(Component):
     Guides: creating-a-chatbot
     """
 
-    EVENTS = [Events.change, Events.select]
+    EVENTS = [Events.change, Events.select, Events.like]
     data_model = ChatbotData
 
     def __init__(

@@ -187,6 +187,14 @@ class Video(Component):
         if x is None:
             return None
         data: FileData = FileData(**x) if isinstance(x, dict) else x
+        # if isinstance(x, FileData):
+        #     data = x
+        # elif isinstance(x, str):
+        #     data = FileData(name=x, is_file=True)
+        # elif isinstance(x, dict):
+        #     data = FileData(**x)
+        # else:
+        #     raise Exception(f"Cannot process type as video: {type(x)}")
 
         if data.is_file:
             assert data.name is not None, "Received file data without a file name."

@@ -219,7 +219,6 @@ class TestNumber:
         iface = gr.Interface(lambda x: x**2, "number", "textbox")
         assert iface(2) == "4.0"
 
-
     @pytest.mark.xfail
     def test_precision_0_in_interface(self):
         """
@@ -235,7 +234,6 @@ class TestNumber:
         """
         iface = gr.Interface(lambda x: int(x) ** 2, "textbox", "number")
         assert iface(2) == 4.0
-
 
     def test_static(self):
         """
@@ -581,8 +579,10 @@ class TestImage:
         assert image_input.preprocess(img).shape == (25, 25)
         image_input = gr.Image(shape=(30, 10), type="pil")
         assert image_input.preprocess(img).size == (30, 10)
-        base64 = client_utils.encode_file_to_base64(image_input.postprocess("test/test_files/bus.png")['name'])
-        assert  base64 == img
+        base64 = client_utils.encode_file_to_base64(
+            image_input.postprocess("test/test_files/bus.png")["name"]
+        )
+        assert base64 == img
         image_input = gr.Image(type="filepath")
         image_temp_filepath = image_input.preprocess(img)
         assert image_temp_filepath in image_input.temp_files
@@ -637,19 +637,21 @@ class TestImage:
             deepcopy(media_data.BASE64_IMAGE)
         )
         image_output = gr.Image()
-        file = image_output.postprocess(y_img)['name']
+        file = image_output.postprocess(y_img)["name"]
         assert client_utils.encode_file_to_base64(file).startswith(
             "data:image/png;base64,iVBORw0KGgoAAA"
         )
-        file = image_output.postprocess(np.array(y_img))['name']
+        file = image_output.postprocess(np.array(y_img))["name"]
         assert client_utils.encode_file_to_base64(file).startswith(
             "data:image/png;base64,iVBORw0KGgoAAA"
         )
         with pytest.raises(ValueError):
             image_output.postprocess([1, 2, 3])
         image_output = gr.Image(type="numpy")
-        file = image_output.postprocess(y_img)['name']
-        assert client_utils.encode_file_to_base64(file).startswith("data:image/png;base64,")
+        file = image_output.postprocess(y_img)["name"]
+        assert client_utils.encode_file_to_base64(file).startswith(
+            "data:image/png;base64,"
+        )
 
     @pytest.mark.xfail
     def test_in_interface_as_input(self):
@@ -659,7 +661,7 @@ class TestImage:
         interpretation: default, shap,
         """
         img = "test/test_files/bus.png"
-        image_input = gr.Image()
+        gr.Image()
         iface = gr.Interface(
             lambda x: PIL.Image.open(x).rotate(90, expand=True),
             gr.Image(shape=(30, 10), type="filepath"),
@@ -691,7 +693,7 @@ class TestImage:
         """
         component = gr.Image("test/test_files/bus.png")
         value = component.get_config().get("value")
-        base64 = client_utils.encode_file_to_base64(value['name'])
+        base64 = client_utils.encode_file_to_base64(value["name"])
         assert base64 == media_data.BASE64_IMAGE
         component = gr.Image(None)
         assert component.get_config().get("value") is None
@@ -836,7 +838,7 @@ class TestAudio:
             "custom_component": False,
             "type": "filepath",
             "format": "wav",
-            "streamable": False
+            "streamable": False,
         }
 
         output1 = audio_output.postprocess(y_audio.name)
@@ -1084,9 +1086,9 @@ class TestDataframe:
         output = dataframe_output.postprocess([])
         assert output == {"data": [[]], "headers": []}
         output = dataframe_output.postprocess(np.zeros((2, 2)))
-        assert output == {"data": [[0, 0], [0, 0]], "headers": [1, 2]}
+        assert output == {"data": [[0, 0], [0, 0]], "headers": ["1", "2"]}
         output = dataframe_output.postprocess([[1, 3, 5]])
-        assert output == {"data": [[1, 3, 5]], "headers": [1, 2, 3]}
+        assert output == {"data": [[1, 3, 5]], "headers": ["1", "2", "3"]}
         output = dataframe_output.postprocess(
             pd.DataFrame([[2, True], [3, True], [4, False]], columns=["num", "prime"])
         )
@@ -1107,7 +1109,7 @@ class TestDataframe:
         dataframe_output = gr.Dataframe(headers=["one", "two", "three"])
         output = dataframe_output.postprocess([[2, True, "ab", 4], [3, True, "cd", 5]])
         assert output == {
-            "headers": ["one", "two", "three", 4],
+            "headers": ["one", "two", "three", "4"],
             "data": [[2, True, "ab", 4], [3, True, "cd", 5]],
         }
 
@@ -1283,15 +1285,16 @@ class TestVideo:
         y_vid_path = "test/test_files/video_sample.mp4"
         subtitles_path = "test/test_files/s1.srt"
         video_output = gr.Video()
-        output1 = video_output.postprocess(y_vid_path)['video']["name"]
+        output1 = video_output.postprocess(y_vid_path)["video"]["name"]
         assert output1.endswith("mp4")
-        output2 = video_output.postprocess(y_vid_path)['video']["name"]
+        output2 = video_output.postprocess(y_vid_path)["video"]["name"]
         assert output1 == output2
         assert (
-            video_output.postprocess(y_vid_path)['video']["orig_name"] == "video_sample.mp4"
+            video_output.postprocess(y_vid_path)["video"]["orig_name"]
+            == "video_sample.mp4"
         )
         output_with_subtitles = video_output.postprocess((y_vid_path, subtitles_path))
-        assert output_with_subtitles['subtitles']["data"].startswith("data")
+        assert output_with_subtitles["subtitles"]["data"].startswith("data")
 
         p_video = gr.Video()
         video_with_subtitle = gr.Video()
@@ -1301,7 +1304,7 @@ class TestVideo:
         )
 
         processed_video = {
-         "video": {
+            "video": {
                 "name": "video_sample.mp4",
                 "data": None,
                 "is_file": True,
@@ -1309,11 +1312,11 @@ class TestVideo:
                 "mime_type": None,
                 "size": None,
             },
-          "subtitles": None
+            "subtitles": None,
         }
 
         processed_video_with_subtitle = {
-         "video": {
+            "video": {
                 "name": "video_sample.mp4",
                 "data": None,
                 "is_file": True,
@@ -1321,18 +1324,24 @@ class TestVideo:
                 "mime_type": None,
                 "size": None,
             },
-         "subtitles": {"name": None, "data": True, "is_file": False,
-                       "mime_type": None, "orig_name": None, "size": None},
+            "subtitles": {
+                "name": None,
+                "data": True,
+                "is_file": False,
+                "mime_type": None,
+                "orig_name": None,
+                "size": None,
+            },
         }
-        postprocessed_video['video']["name"] = os.path.basename(
-            postprocessed_video['video']["name"]
+        postprocessed_video["video"]["name"] = os.path.basename(
+            postprocessed_video["video"]["name"]
         )
         assert processed_video == postprocessed_video
-        postprocessed_video_with_subtitle['video']["name"] = os.path.basename(
-            postprocessed_video_with_subtitle['video']["name"]
+        postprocessed_video_with_subtitle["video"]["name"] = os.path.basename(
+            postprocessed_video_with_subtitle["video"]["name"]
         )
-        if postprocessed_video_with_subtitle['subtitles']["data"]:
-            postprocessed_video_with_subtitle['subtitles']["data"] = True
+        if postprocessed_video_with_subtitle["subtitles"]["data"]:
+            postprocessed_video_with_subtitle["subtitles"]["data"] = True
         assert processed_video_with_subtitle == postprocessed_video_with_subtitle
 
     @pytest.mark.xfail
@@ -1363,7 +1372,7 @@ class TestVideo:
             assert not processing_utils.video_is_playable(bad_vid)
             shutil.copy(bad_vid, tmp_not_playable_vid.name)
             output = gr.Video().postprocess(tmp_not_playable_vid.name)
-            assert processing_utils.video_is_playable(output['video']['name'])
+            assert processing_utils.video_is_playable(output["video"]["name"])
 
         # This file has a playable codec but not a playable container
         with tempfile.NamedTemporaryFile(
@@ -1373,7 +1382,7 @@ class TestVideo:
             assert not processing_utils.video_is_playable(bad_vid)
             shutil.copy(bad_vid, tmp_not_playable_vid.name)
             output = gr.Video().postprocess(tmp_not_playable_vid.name)
-            assert processing_utils.video_is_playable(output['video']["name"])
+            assert processing_utils.video_is_playable(output["video"]["name"])
 
     @patch("pathlib.Path.exists", MagicMock(return_value=False))
     @patch("gradio.components.video.FFmpeg")
@@ -1629,8 +1638,11 @@ class TestHighlightedText:
             {"entity": "PER", "start": 0, "end": 8},
         ]
         result_ = component.postprocess({"text": text, "entities": entities})
-        assert [{"token": "", "class_or_confidence": None},
-                {"token": text, "class_or_confidence": "PER"}, {"token": "", "class_or_confidence": None}] == result_
+        assert [
+            {"token": "", "class_or_confidence": None},
+            {"token": text, "class_or_confidence": "PER"},
+            {"token": "", "class_or_confidence": None},
+        ] == result_
 
     def test_component_functions(self):
         """
@@ -1705,12 +1717,11 @@ class TestAnnotatedImage:
         input = (img, [(mask1, "mask1"), (mask2, "mask2")])
         result = component.postprocess(input)
 
-        base_img_out, (mask1_out, mask2_out) = result
-        base_img_out = PIL.Image.open(base_img_out["name"])
+        base_img_out = PIL.Image.open(result["image"]["name"])
 
-        assert mask1_out[1] == "mask1"
+        assert result["annotations"][0]["label"] == "mask1"
 
-        mask1_img_out = PIL.Image.open(mask1_out[0]["name"])
+        mask1_img_out = PIL.Image.open(result["annotations"][0]["image"]["name"])
         assert mask1_img_out.size == base_img_out.size
         mask1_array_out = np.array(mask1_img_out)
         assert np.max(mask1_array_out[40:50, 40:50]) == 255
@@ -1735,7 +1746,6 @@ class TestAnnotatedImage:
             "value": None,
             "root_url": None,
             "selectable": False,
-            "interactive": None,
             "custom_component": False,
         }
 
@@ -1766,7 +1776,7 @@ class TestChatbot:
         """
         chatbot = gr.Chatbot()
         assert chatbot.postprocess([["You are **cool**\nand fun", "so are *you*"]]) == [
-            ["You are **cool**\nand fun", "so are *you*"]
+            ("You are **cool**\nand fun", "so are *you*")
         ]
 
         multimodal_msg = [
@@ -1777,56 +1787,14 @@ class TestChatbot:
             [(Path("test/test_files/audio_sample.wav"),), "cool audio"],
             [(Path("test/test_files/bus.png"), "A bus"), "cool pic"],
         ]
-        processed_multimodal_msg = [
-            [
-                {
-                    "name": "video_sample.mp4",
-                    "mime_type": "video/mp4",
-                    "alt_text": None,
-                    "data": None,
-                    "is_file": True,
-                },
-                "cool video",
-            ],
-            [
-                {
-                    "name": "audio_sample.wav",
-                    "mime_type": "audio/wav",
-                    "alt_text": None,
-                    "data": None,
-                    "is_file": True,
-                },
-                "cool audio",
-            ],
-            [
-                {
-                    "name": "bus.png",
-                    "mime_type": "image/png",
-                    "alt_text": "A bus",
-                    "data": None,
-                    "is_file": True,
-                },
-                "cool pic",
-            ],
-        ] * 2
         postprocessed_multimodal_msg = chatbot.postprocess(multimodal_msg)
-        postprocessed_multimodal_msg_base_names = []
-        for x, y in postprocessed_multimodal_msg:
-            if isinstance(x, dict):
-                x["name"] = os.path.basename(x["name"])
-                postprocessed_multimodal_msg_base_names.append([x, y])
-        assert postprocessed_multimodal_msg_base_names == processed_multimodal_msg
-
-        preprocessed_multimodal_msg = chatbot.preprocess(processed_multimodal_msg)
-        multimodal_msg_base_names = []
-        for x, y in multimodal_msg:
-            if isinstance(x, tuple):
-                if len(x) > 1:
-                    new_x = (os.path.basename(x[0]), x[1])
-                else:
-                    new_x = (os.path.basename(x[0]),)
-                multimodal_msg_base_names.append([new_x, y])
-        assert multimodal_msg_base_names == preprocessed_multimodal_msg
+        for msg in postprocessed_multimodal_msg:
+            assert "file" in msg[0]
+            assert msg[1] in {"cool video", "cool audio", "cool pic"}
+            assert msg[0]["file"]["name"].split(".")[-1] in {"mp4", "wav", "png"}
+            assert msg[0]["file"]["is_file"]
+            if msg[0]["alt_text"]:
+                assert msg[0]["alt_text"] == "A bus"
 
         assert chatbot.get_config() == {
             "value": [],
@@ -2064,9 +2032,21 @@ class TestGallery:
         ]
 
         postprocessed_gallery = gallery.postprocess([Path("test/test_files/bus.png")])
-        processed_gallery = [{"name": "bus.png", "data": None, "is_file": True}]
-        postprocessed_gallery[0]["name"] = os.path.basename(
-            postprocessed_gallery[0]["name"]
+        processed_gallery = [
+            {
+                "image": {
+                    "name": "bus.png",
+                    "data": None,
+                    "is_file": True,
+                    "orig_name": None,
+                    "mime_type": None,
+                    "size": None,
+                },
+                "caption": None,
+            }
+        ]
+        postprocessed_gallery[0]["image"]["name"] = os.path.basename(
+            postprocessed_gallery[0]["image"]["name"]
         )
         assert processed_gallery == postprocessed_gallery
 
