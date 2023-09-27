@@ -1,165 +1,113 @@
-<script lang="ts">
-	import { BlockLabel } from "@gradio/atoms";
-	import { File } from "@gradio/icons";
+<script>
+	import Arrow from "./ArrowIcon.svelte";
+	import Checkbox from "./Checkbox.svelte";
+	export let checked = true;
+	export let hidden = false;
+	export let tree = [
+		"folder",
+		["folder", ["file", "file"]],
+		"folder",
+		["folder", ["file", "file"]],
+		"folder",
+		["folder", ["file", "file", "folder", ["folder", ["file", "file"], "file"]]]
+	];
 
-	export let label: string;
-	export let show_label = true;
-	export let interactive = true;
-	export let server: {
-		ls: (arg0: string[]) => Promise<[string[], string[]]>;
-	};
-	export let type: "file" | "folder" | "any" = "any";
-	export let value: string[] | null = null;
-	let path: string[] = value && value.length ? value.slice(0, -1) : [];
-	let selected = value && value.length ? value[-1] : null;
-	let loading = false;
-	let contents: [string[], string[]] = [[], []];
-	const refreshContents = async () => {
-		loading = true;
-		try {
-			contents = await server.ls(path);
-		} finally {
-			loading = false;
+	function process_tree(state, node) {
+		if (Array.isArray(node)) {
+			// Create a new array to store the processed items
+			const result = [];
+			for (let i = 0; i < node.length; i++) {
+				// If it's a string, convert it to true/false and add to the result
+
+				// If it's an array, recursively process it and add the processed array to the result
+				if (Array.isArray(node[i])) {
+					result.push(process_tree(node[i]));
+				} else {
+					result.push(state);
+				}
+			}
+			return result;
 		}
-		value = null;
-		selected = null;
-	};
-	$: [folders, files] = contents;
-	$: path, refreshContents();
+		return [];
+	}
+
+	function handle_change(i) {
+		console.log(checked_tree, i);
+
+		checked_tree[i] = !checked_tree[i];
+		// checked_tree = checked_tree
+	}
+
+	$: checked_tree = process_tree(checked, tree);
+	$: hidden_tree = tree.map((v) => (typeof v === "string" ? hidden : true));
+
+	$: console.log(checked, hidden_tree);
 </script>
 
-<BlockLabel
-	{show_label}
-	float={false}
-	Icon={File}
-	label={label || "File Explorer"}
-/>
-<div class="container" class:loading>
-	<div class="full-path">
-		<button
-			class="path-level"
-			on:click={() => {
-				path = [];
-			}}>.</button
-		>
-		/
-		{#each path as level}
-			<button
-				class="path-level"
-				on:click={() => {
-					path = path.slice(0, path.indexOf(level) + 1);
-				}}>{level}</button
-			>
-			/
-		{/each}
-	</div>
-	<div class="folders">
-		{#each folders as folder}
-			<div class="folder">
-				<input
-					type="radio"
-					disabled={type === "file" || !interactive}
-					bind:group={selected}
-					value={folder}
-					on:click={() => {
-						if (type !== "file" && interactive) {
-							value = [...path, folder];
-						}
-					}}
+<!-- Render directory or file -->
+<ul>
+	{#each tree as file_or_folder, i}
+		<li>
+			{#if Array.isArray(file_or_folder) && !hidden_tree[i - 1]}
+				<svelte:self
+					tree={file_or_folder}
+					checked={checked_tree[i - 1]}
+					hidden={hidden_tree[i]}
 				/>
-				<button
-					on:click={() => {
-						path = [...path, folder];
-					}}>{folder}/</button
-				>
-			</div>
-		{/each}
-	</div>
-	<div class="files">
-		{#each files as file}
-			<label
-				class="file"
-				on:click={() => {
-					if (type !== "folder" && interactive) {
-						value = [...path, file];
-					}
-				}}
-			>
-				<input
-					type="radio"
-					bind:group={selected}
-					value={file}
-					checked={value && value[value.length - 1] === file}
-					disabled={type === "folder" || !interactive}
-				/><span>{file}</span>
-			</label>
-		{/each}
-	</div>
-</div>
+			{:else if typeof file_or_folder === "string"}
+				<Checkbox bind:value={checked_tree[i]} />
+				{#if Array.isArray(tree[i + 1])}
+					<span
+						class:hidden={hidden_tree[i]}
+						on:click|stopPropagation={() => {}}><Arrow /></span
+					>
+				{/if}
+				{file_or_folder}
+			{/if}
+		</li>
+	{/each}
+</ul>
 
 <style>
-	.container {
-		max-height: var(--size-60);
-		overflow-y: auto;
-	}
-	.container.loading {
-		opacity: 0.5;
-		pointer-events: none;
-	}
-	.full-path {
-		display: flex;
-		flex-direction: row;
-		flex-wrap: wrap;
-		font-weight: 600;
-	}
-	.path-level {
-		padding: 0 0.5em;
-		text-decoration: underline;
-	}
-	.container {
-		padding: var(--block-padding);
-	}
-	.folders button {
-		text-decoration: underline;
-	}
-	.folder,
-	.file {
-		display: block;
-		margin-top: 8px;
-	}
-	input[type="radio"] {
-		cursor: pointer;
+	span {
 		display: inline-block;
-		--ring-color: transparent;
-		position: relative;
-		box-shadow: var(--checkbox-shadow);
-		border: var(--checkbox-border-width) solid var(--checkbox-border-color);
-		border-radius: var(--radius-full);
-		background-color: var(--checkbox-background-color);
-		line-height: var(--line-sm);
-		margin-right: 8px;
-	}
-	input:checked,
-	input:checked:hover,
-	input:checked:focus {
-		border-color: var(--checkbox-border-color-selected);
-		background-image: var(--checkbox-check);
-		background-color: var(--checkbox-background-color-selected);
+		width: 8px;
+		height: 8px;
+		padding: 3px 3px 3px 3px;
+		margin: 0;
+		flex-grow: 0;
+		display: inline-flex;
+		justify-content: center;
+		align-items: center;
+		border-radius: 2px;
+		cursor: pointer;
+		transition: 0.1s;
 	}
 
-	input:hover {
-		border-color: var(--checkbox-border-color-hover);
-		background-color: var(--checkbox-background-color-hover);
+	span:hover {
+		background: #eee;
 	}
 
-	input:focus {
-		border-color: var(--checkbox-border-color-focus);
-		background-color: var(--checkbox-background-color-focus);
+	span :global(> *) {
+		transform: rotate(90deg);
+		transform-origin: 40% 50%;
+		transition: 0.1s;
 	}
 
-	input[disabled],
-	.disabled {
-		opacity: 0;
-		pointer-events: none;
+	.hidden :global(> *) {
+		transform: rotate(0);
+	}
+	ul {
+		margin-left: 10px;
+		padding-left: 0;
+		list-style: none;
+	}
+
+	li {
+		margin-left: 0;
+		padding-left: 0;
+		display: flex;
+		align-items: center;
+		gap: 5px;
 	}
 </style>

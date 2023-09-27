@@ -31,7 +31,7 @@ class HostFile(Changeable, Selectable, IOComponent, JSONSerializable):
     def __init__(
         self,
         root: str = ".",
-        value: str | Callable | None = None,
+        value: str | list[str] | Callable | None = None,
         *,
         type: Literal["file", "folder", "any"] = "file",
         label: str | None = None,

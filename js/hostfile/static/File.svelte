@@ -2,7 +2,7 @@
 	import type { FileData } from "@gradio/upload";
 	import { BlockLabel, Empty } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
-	import { FilePreview } from "../shared";
+	import { FilePreview } from "@gradio/file/static";
 
 	export let value: FileData | FileData[] | null = null;
 	export let label: string;

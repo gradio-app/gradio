@@ -1,0 +1,40 @@
+<script lang="ts">
+	import { createEventDispatcher } from "svelte";
+	export let value: boolean;
+
+	const dispatch = createEventDispatcher<{ change: boolean }>();
+
+	$: dispatch("change", value);
+</script>
+
+<input bind:checked={value} type="checkbox" />
+
+<style>
+	input {
+		--ring-color: transparent;
+		position: relative;
+		box-shadow: var(--input-shadow);
+		border: 1px solid var(--checkbox-border-color);
+		border-radius: var(--radius-xs);
+		background-color: var(--checkbox-background-color);
+		line-height: var(--line-sm);
+	}
+
+	input:checked,
+	input:checked:hover,
+	input:checked:focus {
+		border-color: var(--checkbox-border-color-selected);
+		background-image: var(--checkbox-check);
+		background-color: var(--checkbox-background-color-selected);
+	}
+
+	input:hover {
+		border-color: var(--checkbox-border-color-hover);
+		background-color: var(--checkbox-background-color-hover);
+	}
+
+	input:focus {
+		border-color: var(--checkbox-border-color-focus);
+		background-color: var(--checkbox-background-color-focus);
+	}
+</style>
