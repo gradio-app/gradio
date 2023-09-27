@@ -325,7 +325,6 @@
 
 	async function handle_cell_click(i: number, j: number): Promise<void> {
 		if (dequal(editing, [i, j])) return;
-		if (dequal(selected, [i, j])) return;
 		header_edit = false;
 		selected_header = false;
 		editing = false;
@@ -549,7 +548,11 @@
 		col?: number,
 		dir?: SortDirection
 	): void {
-		const id = selected ? data[selected[0]][selected[1]]?.id : null;
+		let id = null
+		//Checks if the selected cell is still in the data
+		if (selected && selected[0] in data && selected[1] in data[selected[0]]) {
+			id = data[selected[0]][selected[1]].id
+		}
 		if (typeof col !== "number" || !dir) {
 			return;
 		}
