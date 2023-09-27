@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Fully resolve generated filepaths when running on Hugging Face Spaces with multiple replicas
+fix:Fully resolve generated filepaths when running on Hugging Face Spaces with multiple replicas
