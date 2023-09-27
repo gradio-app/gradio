@@ -632,7 +632,7 @@ def patch_tqdm() -> None:
     def init_tqdm(
         self, iterable=None, desc=None, total=None, unit="steps", *args, **kwargs
     ):
-        self._progress = LocalContext.progress_tracker.get()
+        self._progress = LocalContext.progress.get()
         if self._progress is not None:
             self._progress.tqdm(iterable, desc, total, unit, _tqdm=self)
             kwargs["file"] = open(os.devnull, "w")  # noqa: SIM115
@@ -687,9 +687,9 @@ def create_tracker(fn, track_tqdm):
         return progress, fn
     return progress, utils.function_wrapper(
         f=fn,
-        before_fn=LocalContext.progress_tracker.set,
+        before_fn=LocalContext.progress.set,
         before_args=(progress,),
-        after_fn=LocalContext.progress_tracker.set,
+        after_fn=LocalContext.progress.set,
         after_args=(None,),
     )
 
