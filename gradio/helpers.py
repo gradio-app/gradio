@@ -1100,7 +1100,10 @@ def log_message(message: str, level: Literal["info", "warning"] = "info"):
     from gradio.context import LocalContext
 
     blocks = LocalContext.blocks.get()
-    if blocks is None:  # Function called outside of Gradio
+    event_id = LocalContext.event_id.get()
+    if blocks is None or event_id is None:
+        # Function called outside of Gradio if blocks is None
+        # Or from /api/predict if event_id is None
         if level == "info":
             print(message)
         elif level == "warning":
@@ -1111,8 +1114,6 @@ def log_message(message: str, level: Literal["info", "warning"] = "info"):
             f"Queueing must be enabled to issue {level.capitalize()}: '{message}'."
         )
         return
-    event_id = LocalContext.event_id.get()
-    assert event_id
     blocks._queue.log_message(event_id=event_id, log=message, level=level)
 
 
