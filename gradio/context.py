@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext, Blocks
+    from gradio.helpers import Progress
     from gradio.routes import Request
 
 
@@ -23,3 +24,4 @@ class LocalContext:
     in_event_listener: ContextVar[bool] = ContextVar("in_event_listener", default=False)
     event_id: ContextVar[str | None] = ContextVar("event_id", default=None)
     request: ContextVar[Request | None] = ContextVar("request", default=None)
+    progress: ContextVar[Progress | None] = ContextVar("progress", default=None)

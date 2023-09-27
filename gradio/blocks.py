@@ -1182,9 +1182,7 @@ class Blocks(BlockContext):
             )
 
             if progress_tracker is not None and progress_index is not None:
-                progress_tracker, fn = create_tracker(
-                    self, event_id, fn, progress_tracker.track_tqdm
-                )
+                progress_tracker, fn = create_tracker(fn, progress_tracker.track_tqdm)
                 processed_input[progress_index] = progress_tracker
 
             if inspect.iscoroutinefunction(fn):

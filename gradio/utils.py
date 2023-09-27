@@ -28,6 +28,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
+    Iterable,
     Iterator,
     Optional,
     TypeVar,
@@ -603,7 +604,11 @@ def get_continuous_fn(fn: Callable, every: float) -> Callable:
 
 
 def function_wrapper(
-    f, before_fn=None, before_args=None, after_fn=None, after_args=None
+    f: Callable,
+    before_fn: Callable | None = None,
+    before_args: Iterable | None = None,
+    after_fn: Callable | None = None,
+    after_args: Iterable | None = None,
 ):
     before_args = [] if before_args is None else before_args
     after_args = [] if after_args is None else after_args
