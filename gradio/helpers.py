@@ -632,29 +632,29 @@ def patch_tqdm() -> None:
     def init_tqdm(
         self, iterable=None, desc=None, total=None, unit="steps", *args, **kwargs
     ):
-        self._progress = Progress()
-        if LocalContext.track_tqdm.get():
+        self._progress = LocalContext.progress_tracker.get()
+        if self._progress is not None:
             self._progress.tqdm(iterable, desc, total, unit, _tqdm=self)
             kwargs["file"] = open(os.devnull, "w")  # noqa: SIM115
         self.__init__orig__(iterable, desc, total, *args, unit=unit, **kwargs)
 
     def iter_tqdm(self):
-        if LocalContext.track_tqdm.get():
+        if self._progress is not None:
             return self._progress
         return self.__iter__orig__()
 
     def update_tqdm(self, n=1):
-        if LocalContext.track_tqdm.get():
+        if self._progress is not None:
             self._progress.update(n)
         return self.__update__orig__(n)
 
     def close_tqdm(self):
-        if LocalContext.track_tqdm.get():
+        if self._progress is not None:
             self._progress.close(self)
         return self.__close__orig__()
 
     def exit_tqdm(self, exc_type, exc_value, traceback):
-        if LocalContext.track_tqdm.get():
+        if self._progress is not None:
             self._progress.close(self)
         return self.__exit__orig__(exc_type, exc_value, traceback)
 
@@ -687,10 +687,10 @@ def create_tracker(fn, track_tqdm):
         return progress, fn
     return progress, utils.function_wrapper(
         f=fn,
-        before_fn=LocalContext.track_tqdm.set,
-        before_args=(True,),
-        after_fn=LocalContext.track_tqdm.set,
-        after_args=(False,),
+        before_fn=LocalContext.progress_tracker.set,
+        before_args=(progress,),
+        after_fn=LocalContext.progress_tracker.set,
+        after_args=(None,),
     )
 
 
