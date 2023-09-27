@@ -855,7 +855,7 @@ class TestAPIInfo:
 
             assert inputs[1]["python_type"] == {
                 "type": "str",
-                "description": "filepath or URL to file",
+                "description": "filepath on your computer, or URL to file",
             }
             assert isinstance(inputs[1]["example_input"], str)
 
@@ -867,7 +867,7 @@ class TestAPIInfo:
 
             assert outputs[1]["python_type"] == {
                 "type": "str",
-                "description": "filepath or URL to file",
+                "description": "filepath on your computer, or URL to file",
             }
 
     def test_layout_components_in_output(self, hello_world_with_group):
