@@ -156,7 +156,7 @@ code.language-bash {
 	@apply outline-0;
 }
 .codeblock {
-	@apply relative;
+	@apply relative bg-gray-50 mx-auto p-3 mt-2;
 }
 .codeblock:hover > .clipboard-button {
 	@apply opacity-100 duration-200;

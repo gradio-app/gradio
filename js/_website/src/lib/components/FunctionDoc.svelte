@@ -1,7 +1,6 @@
 <script lang="ts">
 	export let fn: any;
 	import anchor from "../assets/img/anchor.svg";
-	import { svgCopy, svgCheck } from "$lib/assets/copy.js";
 
 
 	function handleAnchorClick(event: MouseEvent) {
@@ -15,14 +14,6 @@
 			behavior: "smooth"
 		});
 	}
-
-	let copied = false;
-	function copy(code: string) {
-		navigator.clipboard.writeText(code);
-		copied = true;
-		setTimeout(() => (copied = false), 2000);
-	}
-
 </script>
 
 <!-- name, signature, description, params -->
@@ -40,12 +31,12 @@
 	</div>
 
 	{#if fn.override_signature}
-		<div class="codeblock bg-gray-50 mx-auto p-3">
+		<div class="codeblock">
 			<pre><code class="code language-python">{fn.override_signature}</code
 				></pre>
 		</div>
 	{:else}
-		<div class="codeblock bg-gray-50 mx-auto p-3">
+		<div class="codeblock">
 			<pre><code class="code language-python"
 					>{fn.parent}.<span>{fn.name}&lpar;</span
 					><!--
@@ -88,14 +79,7 @@
 				><img class="anchor-img-small" src={anchor} /></a
 			>
 		</h4>
-		<div class="mt-2 codeblock bg-gray-50 mx-auto p-3">
-			<button class="clipboard-button m-2" type="button" on:click={() => copy(fn.example)}>
-				{#if !copied}
-					{@html svgCopy}
-				{:else}
-					{@html svgCheck}
-				{/if}
-			</button>
+		<div class="codeblock">
 			<pre><code class="code language-python"
 					>{@html fn.highlighted_example}</code
 				></pre>
