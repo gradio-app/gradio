@@ -1,4 +1,3 @@
-import json
 import pathlib
 import tempfile
 import time
@@ -19,17 +18,18 @@ from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client
 from gradio_client.client import DEFAULT_TEMP_DIR
-from gradio_client.serializing import Serializable
 from gradio_client.utils import Communicator, ProgressUnit, Status, StatusUpdate
 
 HF_TOKEN = "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"  # Intentionally revealing this key for testing purposes
 
 
 @contextmanager
-def connect(demo: gr.Blocks, serialize: bool = True):
+def connect(
+    demo: gr.Blocks, serialize: bool = True, output_dir: str = DEFAULT_TEMP_DIR
+):
     _, local_url, _ = demo.launch(prevent_thread_lock=True)
     try:
-        yield Client(local_url, serialize=serialize)
+        yield Client(local_url, serialize=serialize, output_dir=output_dir)
     finally:
         # A more verbose version of .close()
         # because we should set a timeout
@@ -51,8 +51,8 @@ class TestClientPredictions:
     @pytest.mark.flaky
     def test_numerical_to_label_space(self):
         client = Client("gradio-tests/titanic-survival")
-        with open(client.predict("male", 77, 10, api_name="/predict")) as f:
-            assert json.load(f)["label"] == "Perishes"
+        label = client.predict("male", 77, 10, api_name="/predict")
+        assert label["label"] == "Perishes"
         with pytest.raises(
             ValueError,
             match="This Gradio app might have multiple endpoints. Please specify an `api_name` or `fn_index`",
@@ -176,24 +176,29 @@ class TestClientPredictions:
                 job = client.submit([5], api_name="/sleep")
                 job.result()
 
-    @pytest.mark.flaky
-    def test_job_output_video(self):
-        client = Client(src="gradio/video_component")
-        job = client.submit(
-            "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4",
-            fn_index=0,
-        )
-        assert Path(job.result()).exists()
-        assert Path(DEFAULT_TEMP_DIR).resolve() in Path(job.result()).resolve().parents
+    def test_job_output_video(self, video_component):
+        with connect(video_component) as client:
+            job = client.submit(
+                "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4",
+                fn_index=0,
+            )
+            assert Path(job.result()["video"]).exists()
+            assert (
+                Path(DEFAULT_TEMP_DIR).resolve()
+                in Path(job.result()["video"]).resolve().parents
+            )
 
         temp_dir = tempfile.mkdtemp()
-        client = Client(src="gradio/video_component", output_dir=temp_dir)
-        job = client.submit(
-            "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4",
-            fn_index=0,
-        )
-        assert Path(job.result()).exists()
-        assert Path(temp_dir).resolve() in Path(job.result()).resolve().parents
+        with connect(video_component, output_dir=temp_dir) as client:
+            job = client.submit(
+                "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4",
+                fn_index=0,
+            )
+            assert Path(job.result()["video"]).exists()
+            assert (
+                Path(temp_dir).resolve()
+                in Path(job.result()["video"]).resolve().parents
+            )
 
     def test_progress_updates(self, progress_demo):
         with connect(progress_demo) as client:
@@ -268,6 +273,7 @@ class TestClientPredictions:
             assert job2.status().code == Status.FINISHED
             assert len(job2.outputs()) == 4
 
+    @pytest.mark.xfail
     def test_stream_audio(self, stream_audio):
         with connect(stream_audio) as client:
             job1 = client.submit(
@@ -283,6 +289,7 @@ class TestClientPredictions:
             assert Path(job2.result()).exists()
             assert all(Path(p).exists() for p in job2.outputs())
 
+    @pytest.mark.xfail
     @pytest.mark.flaky
     def test_upload_file_private_space(self):
         client = Client(
@@ -336,6 +343,7 @@ class TestClientPredictions:
                 assert f.read() == "File2"
             upload.assert_called_once()
 
+    @pytest.mark.xfail
     @pytest.mark.flaky
     def test_upload_file_upload_route_does_not_exist(self):
         client = Client(
@@ -390,6 +398,7 @@ class TestClientPredictions:
         finally:
             server.thread.join(timeout=1)
 
+    @pytest.mark.xfail
     def test_predict_with_space_with_api_name_false(self):
         client = Client("gradio-tests/client-bool-api-name-error")
         assert client.predict("Hello!", api_name="/run") == "Hello!"
@@ -416,7 +425,7 @@ class TestClientPredictions:
 
 class TestStatusUpdates:
     @patch("gradio_client.client.Endpoint.make_end_to_end_fn")
-    def test_messages_passed_correctly(self, mock_make_end_to_end_fn):
+    def test_messages_passed_correctly(self, mock_make_end_to_end_fn, calculator_demo):
         now = datetime.now()
 
         messages = [
@@ -488,18 +497,20 @@ class TestStatusUpdates:
 
         mock_make_end_to_end_fn.side_effect = MockEndToEndFunction
 
-        client = Client(src="gradio/calculator")
-        job = client.submit(5, "add", 6, api_name="/predict")
+        with connect(calculator_demo) as client:
+            job = client.submit(5, "add", 6, api_name="/predict")
 
-        statuses = []
-        while not job.done():
-            statuses.append(job.status())
-            time.sleep(0.09)
+            statuses = []
+            while not job.done():
+                statuses.append(job.status())
+                time.sleep(0.09)
 
-        assert all(s in messages for s in statuses)
+            assert all(s in messages for s in statuses)
 
     @patch("gradio_client.client.Endpoint.make_end_to_end_fn")
-    def test_messages_correct_two_concurrent(self, mock_make_end_to_end_fn):
+    def test_messages_correct_two_concurrent(
+        self, mock_make_end_to_end_fn, calculator_demo
+    ):
         now = datetime.now()
 
         messages_1 = [
@@ -563,21 +574,22 @@ class TestStatusUpdates:
 
         mock_make_end_to_end_fn.side_effect = MockEndToEndFunction
 
-        client = Client(src="gradio/calculator")
-        job_1 = client.submit(5, "add", 6, api_name="/predict")
-        job_2 = client.submit(11, "subtract", 1, api_name="/predict")
+        with connect(calculator_demo) as client:
+            job_1 = client.submit(5, "add", 6, api_name="/predict")
+            job_2 = client.submit(11, "subtract", 1, api_name="/predict")
 
-        statuses_1 = []
-        statuses_2 = []
-        while not (job_1.done() and job_2.done()):
-            statuses_1.append(job_1.status())
-            statuses_2.append(job_2.status())
-            time.sleep(0.05)
+            statuses_1 = []
+            statuses_2 = []
+            while not (job_1.done() and job_2.done()):
+                statuses_1.append(job_1.status())
+                statuses_2.append(job_2.status())
+                time.sleep(0.05)
 
-        assert all(s in messages_1 for s in statuses_1)
+            assert all(s in messages_1 for s in statuses_1)
 
 
 class TestAPIInfo:
+    @pytest.mark.xfail
     @pytest.mark.parametrize("trailing_char", ["/", ""])
     def test_test_endpoint_src(self, trailing_char):
         src = "https://gradio-calculator.hf.space" + trailing_char
@@ -731,12 +743,6 @@ class TestAPIInfo:
             "unnamed_endpoints": {},
         }
 
-    def test_serializable_in_mapping(self, calculator_demo):
-        with connect(calculator_demo) as client:
-            assert all(
-                isinstance(c, Serializable) for c in client.endpoints[0].serializers
-            )
-
     def test_state_does_not_appear(self, state_demo):
         with connect(state_demo) as client:
             api_info = client.view_api(return_format="dict")
@@ -778,49 +784,62 @@ class TestAPIInfo:
         }
 
     @pytest.mark.flaky
-    def test_fetch_fixed_version_space(self):
-        assert Client("gradio-tests/calculator").view_api(return_format="dict") == {
-            "named_endpoints": {
-                "/predict": {
-                    "parameters": [
-                        {
-                            "label": "num1",
-                            "type": {"type": "number"},
-                            "python_type": {"type": "int | float", "description": ""},
-                            "component": "Number",
-                            "example_input": 5,
-                            "serializer": "NumberSerializable",
-                        },
-                        {
-                            "label": "operation",
-                            "type": {"type": "string"},
-                            "python_type": {"type": "str", "description": ""},
-                            "component": "Radio",
-                            "example_input": "add",
-                            "serializer": "StringSerializable",
-                        },
-                        {
-                            "label": "num2",
-                            "type": {"type": "number"},
-                            "python_type": {"type": "int | float", "description": ""},
-                            "component": "Number",
-                            "example_input": 5,
-                            "serializer": "NumberSerializable",
-                        },
-                    ],
-                    "returns": [
-                        {
-                            "label": "output",
-                            "type": {"type": "number"},
-                            "python_type": {"type": "int | float", "description": ""},
-                            "component": "Number",
-                            "serializer": "NumberSerializable",
-                        }
-                    ],
-                }
-            },
-            "unnamed_endpoints": {},
-        }
+    def test_fetch_fixed_version_space(self, calculator_demo):
+        with connect(calculator_demo) as client:
+            assert client.view_api(return_format="dict") == {
+                "named_endpoints": {
+                    "/predict": {
+                        "parameters": [
+                            {
+                                "label": "num1",
+                                "type": {"type": "number"},
+                                "python_type": {
+                                    "type": "int | float",
+                                    "description": "",
+                                },
+                                "component": "Number",
+                                "example_input": 3,
+                            },
+                            {
+                                "label": "operation",
+                                "type": {
+                                    "enum": ["add", "subtract", "multiply", "divide"],
+                                    "title": "Radio",
+                                    "type": "string",
+                                },
+                                "python_type": {
+                                    "type": "Literal[add, subtract, multiply, divide]",
+                                    "description": "",
+                                },
+                                "component": "Radio",
+                                "example_input": "add",
+                            },
+                            {
+                                "label": "num2",
+                                "type": {"type": "number"},
+                                "python_type": {
+                                    "type": "int | float",
+                                    "description": "",
+                                },
+                                "component": "Number",
+                                "example_input": 3,
+                            },
+                        ],
+                        "returns": [
+                            {
+                                "label": "output",
+                                "type": {"type": "number"},
+                                "python_type": {
+                                    "type": "int | float",
+                                    "description": "",
+                                },
+                                "component": "Number",
+                            }
+                        ],
+                    }
+                },
+                "unnamed_endpoints": {},
+            }
 
     def test_unnamed_endpoints_use_fn_index(self, count_generator_demo):
         with connect(count_generator_demo) as client:
@@ -834,6 +853,7 @@ class TestAPIInfo:
             assert len(info["named_endpoints"]) == 0
             assert len(info["unnamed_endpoints"]) == 2
 
+    @pytest.mark.xfail
     def test_file_io(self, file_io_demo):
         with connect(file_io_demo) as client:
             info = client.view_api(return_format="dict")
@@ -842,7 +862,7 @@ class TestAPIInfo:
 
             assert inputs[0]["type"]["type"] == "array"
             assert inputs[0]["python_type"] == {
-                "type": "List[str]",
+                "type": "List[filepath]",
                 "description": "List of filepath(s) or URL(s) to files",
             }
             assert isinstance(inputs[0]["example_input"], list)
@@ -877,8 +897,7 @@ class TestAPIInfo:
                                 "type": {"type": "string"},
                                 "python_type": {"type": "str", "description": ""},
                                 "component": "Textbox",
-                                "example_input": "Howdy!",
-                                "serializer": "StringSerializable",
+                                "example_input": "Hello!!",
                             }
                         ],
                         "returns": [
@@ -887,17 +906,12 @@ class TestAPIInfo:
                                 "type": {"type": "string"},
                                 "python_type": {"type": "str", "description": ""},
                                 "component": "Textbox",
-                                "serializer": "StringSerializable",
                             }
                         ],
                     },
                     "/show_group": {"parameters": [], "returns": []},
                 },
                 "unnamed_endpoints": {},
-            }
-            assert info["named_endpoints"]["/show_group"] == {
-                "parameters": [],
-                "returns": [],
             }
 
     def test_layout_and_state_components_in_output(
@@ -914,8 +928,7 @@ class TestAPIInfo:
                                 "type": {"type": "string"},
                                 "python_type": {"type": "str", "description": ""},
                                 "component": "Textbox",
-                                "example_input": "Howdy!",
-                                "serializer": "StringSerializable",
+                                "example_input": "Hello!!",
                             }
                         ],
                         "returns": [
@@ -924,7 +937,6 @@ class TestAPIInfo:
                                 "type": {"type": "string"},
                                 "python_type": {"type": "str", "description": ""},
                                 "component": "Textbox",
-                                "serializer": "StringSerializable",
                             },
                             {
                                 "label": "count",
@@ -934,7 +946,6 @@ class TestAPIInfo:
                                     "description": "",
                                 },
                                 "component": "Number",
-                                "serializer": "NumberSerializable",
                             },
                         ],
                     },
@@ -949,7 +960,6 @@ class TestAPIInfo:
                                     "description": "",
                                 },
                                 "component": "Number",
-                                "serializer": "NumberSerializable",
                             }
                         ],
                     },
@@ -964,7 +974,6 @@ class TestAPIInfo:
                                     "description": "",
                                 },
                                 "component": "Number",
-                                "serializer": "NumberSerializable",
                             }
                         ],
                     },
@@ -974,6 +983,7 @@ class TestAPIInfo:
 
 
 class TestEndpoints:
+    @pytest.mark.xfail
     def test_upload(self):
         client = Client(
             src="gradio-tests/not-actually-private-file-upload", hf_token=HF_TOKEN

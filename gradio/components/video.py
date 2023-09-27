@@ -177,7 +177,7 @@ class Video(Component):
             "__type__": "update",
         }
 
-    def preprocess(self, x: dict | VideoData) -> str | None:
+    def preprocess(self, x: dict | FileData) -> str | None:
         """
         Parameters:
             x: A tuple of (video file data, subtitle file data) or just video file data.
@@ -186,23 +186,26 @@ class Video(Component):
         """
         if x is None:
             return None
-        data: VideoData = VideoData(**x) if isinstance(x, dict) else x
+        data: FileData = FileData(**x) if isinstance(x, dict) else x
+        # if isinstance(x, FileData):
+        #     data = x
+        # elif isinstance(x, str):
+        #     data = FileData(name=x, is_file=True)
+        # elif isinstance(x, dict):
+        #     data = FileData(**x)
+        # else:
+        #     raise Exception(f"Cannot process type as video: {type(x)}")
 
-        if data.video.is_file:
-            assert (
-                data.video.name is not None
-            ), "Received file data without a file name."
-            if client_utils.is_http_url_like(data.video.name):
+        if data.is_file:
+            assert data.name is not None, "Received file data without a file name."
+            if client_utils.is_http_url_like(data.name):
                 fn = self.download_temp_copy_if_needed
             else:
                 fn = self.make_temp_copy_if_needed
-            file_name = Path(fn(data.video.name))
+            file_name = Path(fn(data.name))
         else:
-            assert data.video is not None, "Received empty file data."
-            assert data.video.data
-            file_name = Path(
-                self.base64_to_temp_file_if_needed(data.video.data, data.video.name)
-            )
+            assert data.data
+            file_name = Path(self.base64_to_temp_file_if_needed(data.data, data.name))
 
         uploaded_format = file_name.suffix.replace(".", "")
         needs_formatting = self.format is not None and uploaded_format != self.format

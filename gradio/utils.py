@@ -541,7 +541,7 @@ def sanitize_value_for_csv(value: str | Number) -> str | Number:
     if any(value.startswith(prefix) for prefix in unsafe_prefixes) or any(
         sequence in value for sequence in unsafe_sequences
     ):
-        value = f"{value}"
+        value = f"'{value}"
     return value
 
 

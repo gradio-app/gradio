@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio import Examples, external, interpretation, utils
+from gradio import Examples, external, utils
 from gradio.blocks import Blocks
 from gradio.components import (
     Button,
@@ -127,8 +127,6 @@ class Interface(Blocks):
         cache_examples: bool | None = None,
         examples_per_page: int = 10,
         live: bool = False,
-        interpretation: Callable | str | None = None,
-        num_shap: float = 2.0,
         title: str | None = None,
         description: str | None = None,
         article: str | None = None,
@@ -156,8 +154,6 @@ class Interface(Blocks):
             cache_examples: If True, caches examples in the server for fast runtime in examples. If `fn` is a generator function, then the last yielded value will be used as the output. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
             examples_per_page: If examples are provided, how many to display per page.
             live: whether the interface should automatically rerun if any of the inputs change.
-            interpretation: function that provides interpretation explaining prediction output. Pass "default" to use simple built-in interpreter, "shap" to use a built-in shapley-based interpreter, or your own custom interpretation function. For more information on the different interpretation methods, see the Advanced Interface Features guide.
-            num_shap: a multiplier that determines how many examples are computed for shap-based interpretation. Increasing this value will increase shap runtime, but improve results. Only applies if interpretation is "shap".
             title: a title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
             description: a description for the interface; if provided, appears above the input and output components and beneath the title in regular font. Accepts Markdown and HTML content.
             article: an expanded article explaining the interface; if provided, appears below the input and output components in regular font. Accepts Markdown and HTML content.
@@ -276,18 +272,6 @@ class Interface(Blocks):
                     # Unless explicitly otherwise specified, force output components to
                     # be non-interactive
                     o.interactive = False
-        if (
-            interpretation is None
-            or isinstance(interpretation, list)
-            or callable(interpretation)
-        ):
-            self.interpretation = interpretation
-        elif isinstance(interpretation, str):
-            self.interpretation = [
-                interpretation.lower() for _ in self.input_components
-            ]
-        else:
-            raise ValueError("Invalid value for parameter: interpretation")
 
         self.api_mode = _api_mode
         self.fn = fn
@@ -305,7 +289,6 @@ class Interface(Blocks):
         self.thumbnail = thumbnail
 
         self.examples = examples
-        self.num_shap = num_shap
         self.examples_per_page = examples_per_page
 
         self.simple_server = None
@@ -700,8 +683,7 @@ class Interface(Blocks):
             None,
             [],
             (
-                ([input_component_column] if input_component_column else [])
-                + ([interpret_component_column] if self.interpretation else [])
+                [input_component_column] if input_component_column else []
             ),  # type: ignore
             _js=f"""() => {json.dumps(
                 (
@@ -714,7 +696,6 @@ class Interface(Blocks):
                         ]
                     else []
                 )
-                + ([Column.update(visible=False)] if self.interpretation else [])
             )}
             """,
         )
@@ -806,20 +787,6 @@ class Interface(Blocks):
         for component in self.output_components:
             repr += f"\n|-{component}"
         return repr
-
-    async def interpret_func(self, *args):
-        return await self.interpret(list(args)) + [
-            Column.update(visible=False),
-            Column.update(visible=True),
-        ]
-
-    async def interpret(self, raw_input: list[Any]) -> list[Any]:
-        return [
-            {"original": raw_value, "interpretation": interpretation}
-            for interpretation, raw_value in zip(
-                (await interpretation.run_interpret(self, raw_input))[0], raw_input
-            )
-        ]
 
     def test_launch(self) -> None:
         """

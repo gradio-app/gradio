@@ -84,8 +84,8 @@ class TestInit:
         )
         prediction_hello = await chatbot.examples_handler.load_from_cache(0)
         prediction_hi = await chatbot.examples_handler.load_from_cache(1)
-        assert prediction_hello[0][0] == ["hello", "hello hello"]
-        assert prediction_hi[0][0] == ["hi", "hi hi"]
+        assert prediction_hello[0].root[0] == ("hello", "hello hello")
+        assert prediction_hi[0].root[0] == ("hi", "hi hi")
 
     @pytest.mark.asyncio
     async def test_example_caching_async(self, monkeypatch):
@@ -95,8 +95,8 @@ class TestInit:
         )
         prediction_hello = await chatbot.examples_handler.load_from_cache(0)
         prediction_hi = await chatbot.examples_handler.load_from_cache(1)
-        assert prediction_hello[0][0] == ["abubakar", "hi, abubakar"]
-        assert prediction_hi[0][0] == ["tom", "hi, tom"]
+        assert prediction_hello[0].root[0] == ("abubakar", "hi, abubakar")
+        assert prediction_hi[0].root[0] == ("tom", "hi, tom")
 
     @pytest.mark.asyncio
     async def test_example_caching_with_streaming(self, monkeypatch):
@@ -106,8 +106,8 @@ class TestInit:
         )
         prediction_hello = await chatbot.examples_handler.load_from_cache(0)
         prediction_hi = await chatbot.examples_handler.load_from_cache(1)
-        assert prediction_hello[0][0] == ["hello", "hello"]
-        assert prediction_hi[0][0] == ["hi", "hi"]
+        assert prediction_hello[0].root[0] == ("hello", "hello")
+        assert prediction_hi[0].root[0] == ("hi", "hi")
 
     @pytest.mark.asyncio
     async def test_example_caching_with_streaming_async(self, monkeypatch):
@@ -117,8 +117,8 @@ class TestInit:
         )
         prediction_hello = await chatbot.examples_handler.load_from_cache(0)
         prediction_hi = await chatbot.examples_handler.load_from_cache(1)
-        assert prediction_hello[0][0] == ["hello", "hello"]
-        assert prediction_hi[0][0] == ["hi", "hi"]
+        assert prediction_hello[0].root[0] == ("hello", "hello")
+        assert prediction_hi[0].root[0] == ("hi", "hi")
 
     @pytest.mark.asyncio
     async def test_example_caching_with_additional_inputs(self, monkeypatch):
@@ -131,8 +131,8 @@ class TestInit:
         )
         prediction_hello = await chatbot.examples_handler.load_from_cache(0)
         prediction_hi = await chatbot.examples_handler.load_from_cache(1)
-        assert prediction_hello[0][0] == ["hello", "robot hello"]
-        assert prediction_hi[0][0] == ["hi", "ro"]
+        assert prediction_hello[0].root[0] == ("hello", "robot hello")
+        assert prediction_hi[0].root[0] == ("hi", "ro")
 
     @pytest.mark.asyncio
     async def test_example_caching_with_additional_inputs_already_rendered(
@@ -151,14 +151,14 @@ class TestInit:
                 )
         prediction_hello = await chatbot.examples_handler.load_from_cache(0)
         prediction_hi = await chatbot.examples_handler.load_from_cache(1)
-        assert prediction_hello[0][0] == ["hello", "robot hello"]
-        assert prediction_hi[0][0] == ["hi", "ro"]
+        assert prediction_hello[0].root[0] == ("hello", "robot hello")
+        assert prediction_hi[0].root[0] == ("hi", "ro")
 
 
 class TestAPI:
     def test_get_api_info(self):
         chatbot = gr.ChatInterface(double)
-        api_info = gr.blocks.get_api_info(chatbot.get_config_file())
+        api_info = chatbot.get_api_info()
         assert len(api_info["named_endpoints"]) == 1
         assert len(api_info["unnamed_endpoints"]) == 0
         assert "/chat" in api_info["named_endpoints"]

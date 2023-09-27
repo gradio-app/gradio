@@ -46,7 +46,7 @@ class State(Component):
         return y
 
     def api_info(self) -> dict[str, Any]:
-        return {}
+        return {"type": {}, "description": "any valid json"}
 
     def example_inputs(self) -> Any:
         return None
