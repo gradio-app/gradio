@@ -4,7 +4,6 @@
 	export let value: string;
 	export let type: "gallery" | "table";
 	export let selected = false;
-	
 </script>
 
 <div
@@ -13,11 +12,7 @@
 	class:selected
 	class="prose"
 >
-	<MarkdownCode 
-		message={value}
-		chatbot={false}
-		sanitize_html={true}
-	/>
+	<MarkdownCode message={value} chatbot={false} sanitize_html={true} />
 </div>
 
 <style>
