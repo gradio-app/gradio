@@ -269,6 +269,6 @@ def set_replica_url_in_config(
     for component in config["components"]:
         if component.get("props") is not None:
             root_url = component["props"].get("root_url")
-            # Don't replace the root_url if it's pointing to a different Space
+            # Don't replace the root_url if it's loaded from a different Space
             if root_url is None or root_url in all_replica_urls:
                 component["props"]["root_url"] = stripped_url
