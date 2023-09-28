@@ -114,6 +114,7 @@ class Tunnel:
             if time.time() - start_timestamp >= timeout:
                 _raise_tunnel_error()
 
+            assert self.proc is not None
             if self.proc.stdout is None:
                 continue
 
