@@ -27,6 +27,7 @@ async function run(): Promise<void> {
 		root_dir: parsed_args.root,
 		frontend_port,
 		backend_port,
+		host: parsed_args.host,
 		...parsed_args
 	};
 	process.env.GRADIO_BACKEND_PORT = backend_port.toString();
