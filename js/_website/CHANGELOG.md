@@ -1,5 +1,11 @@
 # website
 
+## 0.7.1
+
+### Features
+
+- [#5721](https://github.com/gradio-app/gradio/pull/5721) [`84e03fe50`](https://github.com/gradio-app/gradio/commit/84e03fe506e08f1f81bac6d504c9fba7924f2d93) - Adds copy buttons to website, and better descriptions to API Docs.  Thanks [@aliabd](https://github.com/aliabd)!
+
 ## 0.7.0
 
 ### Features
