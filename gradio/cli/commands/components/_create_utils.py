@@ -167,7 +167,7 @@ def _create_frontend(name: str, component: ComponentFiles, directory: Path):
 
 
 def _replace_old_class_name(old_class_name: str, new_class_name: str, content: str):
-    pattern = rf"(?<=\b){re.escape(old_class_name)}(?=\b)"
+    pattern = rf"(?<=\b)(?<!\bimport\s){re.escape(old_class_name)}(?=\b)"
     return re.sub(pattern, new_class_name, content)
 
 
