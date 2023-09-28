@@ -379,9 +379,9 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 							if (status.stage === "error") rej(status);
 							if (status.stage === "complete") {
 								status_complete = true;
-								app.destroy();
 								// if complete message comes after data, resolve here
 								if (data_returned) {
+									app.destroy();
 									res(result);
 								}
 							}
