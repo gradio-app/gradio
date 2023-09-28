@@ -123,7 +123,7 @@ class Tunnel:
 
             if line == "":
                 continue
-            
+
             log.append(line)
 
             if "start proxy success" in line:
