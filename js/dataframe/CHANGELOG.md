@@ -1,5 +1,11 @@
 # @gradio/dataframe
 
+## 0.2.5
+
+### Fixes
+
+- [#5713](https://github.com/gradio-app/gradio/pull/5713) [`c10dabd6b`](https://github.com/gradio-app/gradio/commit/c10dabd6b18b49259441eb5f956a19046f466339) - Fixes gr.select() Method Issues with Dataframe Cells.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.2.4
 
 ### Patch Changes
