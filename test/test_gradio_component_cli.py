@@ -71,6 +71,7 @@ def test_do_not_replace_class_name_in_import_statement(tmp_path):
 
 
 def test_raises_if_directory_exists(tmp_path):
-    with pytest.raises(ValueError,
-                       match=f"The directory {tmp_path.resolve()} already exists."):
+    with pytest.raises(
+        ValueError, match=f"The directory {tmp_path.resolve()} already exists."
+    ):
         _create("MyComponent", tmp_path)
