@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Fix for replicas
+feat:Fix for deepcopy errors when running the replica-related logic on Spaces
