@@ -84,9 +84,14 @@ class TestQueueMethods:
 
     @pytest.mark.asyncio
     async def test_clean_event(self, queue: Queue, mock_event: Event):
+        app = MagicMock()
+        queue.set_server_app(app)
+
         queue.push(mock_event)
         await queue.clean_event(mock_event)
+
         assert len(queue.event_queue) == 0
+        app.state_holder.del_if_exists.assert_called()
 
     @pytest.mark.asyncio
     async def test_gather_event_data(self, queue: Queue, mock_event: Event):

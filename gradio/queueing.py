@@ -228,6 +228,9 @@ class Queue:
             async with self.delete_lock:
                 self.event_queue.remove(event)
 
+        if self.server_app:
+            self.server_app.state_holder.del_if_exists(event.session_hash)
+
     async def broadcast_live_estimations(self) -> None:
         """
         Runs 2 functions sequentially instead of concurrently. Otherwise dced clients are tried to get deleted twice.
