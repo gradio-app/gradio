@@ -124,7 +124,7 @@ class Tunnel:
             if line == "":
                 continue
 
-            log.append(line)
+            log.append(line.strip())
 
             if "start proxy success" in line:
                 result = re.search("start proxy success: (.+)\n", line)
