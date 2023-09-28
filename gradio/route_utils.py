@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 import json
 from typing import TYPE_CHECKING, Optional, Union
 
@@ -248,11 +247,18 @@ async def call_process_api(
     return output
 
 
-def set_replica_url_in_config(config: dict, replica_url: str) -> dict:
+def set_replica_url_in_config(
+    config: dict, replica_url: str, all_replica_urls: set[str]
+) -> None:
     """
     If the Gradio app is running on Hugging Face Spaces and the machine has multiple replicas,
     we pass in the direct URL to the replica so that we have the fully resolved path to any files
     on that machine. This direct URL can be shared with other users and the path will still work.
+
+    Parameters:
+        config: The config dictionary to modify.
+        replica_url: The direct URL to the replica.
+        all_replica_urls: The direct URLs to the other replicas. These should be replaced with the replica_url.
     """
     parsed_url = httpx.URL(replica_url)
     stripped_url = parsed_url.copy_with(query=None)
@@ -260,11 +266,9 @@ def set_replica_url_in_config(config: dict, replica_url: str) -> dict:
     if not stripped_url.endswith("/"):
         stripped_url += "/"
 
-    config_ = copy.deepcopy(config)
-    for component in config_["components"]:
-        if (
-            component.get("props") is not None
-            and component["props"].get("root_url") is None
-        ):
-            component["props"]["root_url"] = stripped_url
-    return config_
+    for component in config["components"]:
+        if component.get("props") is not None:
+            root_url = component["props"].get("root_url")
+            # Don't replace the root_url if it's loaded from a different Space
+            if root_url is None or root_url in all_replica_urls:
+                component["props"]["root_url"] = stripped_url
