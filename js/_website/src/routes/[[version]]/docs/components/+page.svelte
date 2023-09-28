@@ -3,13 +3,12 @@
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import dataflow_svg from "$lib/assets/img/dataflow.svg";
 	import { page } from "$app/stores";
-	import { svgCopy, svgCheck } from "$lib/assets/copy.js";
-
 
 	export let data;
 
 	let components = data.components;
 	let helpers = data.helpers;
+	let modals = data.modals;
 	let routes = data.routes;
 	let events = data.events;
 	let events_matrix = data.events_matrix;
@@ -18,14 +17,12 @@
 	let on_main: boolean;
 	let wheel: string = data.wheel;
 
-	let copied = false;
-	function copy(code: string) {
-		navigator.clipboard.writeText(code);
-		copied = true;
-		setTimeout(() => (copied = false), 2000);
-	}
-
 	$: on_main = data.on_main;
+	$: components = data.components;
+	$: helpers = data.helpers;
+	$: modals = data.modals;
+	$: routes = data.routes;
+	$: py_client = data.py_client;
 </script>
 
 <MetaTags
@@ -41,6 +38,7 @@
 			current_nav_link={"components"}
 			{components}
 			{helpers}
+			{modals}
 			{routes}
 			{py_client}
 		/>
@@ -62,44 +60,39 @@
 			</div>
 
 			{#if on_main}
-			<div class="codeblock bg-gray-100 border border-gray-200 text-gray-800 px-3 py-1 mt-4  rounded-lg lg:ml-10">
-				<p class="my-2">
-					To install Gradio from main, run the following command:
-				</p>
-				<button class="clipboard-button" type="button" on:click={() => copy("pip install " + wheel)}>
-					{#if !copied}
-						{@html svgCopy}
-					{:else}
-						{@html svgCheck}
-					{/if}
-				</button>
-					<pre class="language-bash" style="padding-right: 25px;"><code class="language-bash text-xs">pip install {wheel}</code></pre>
-					<p class="float-right text-sm">
+				<div class="bg-gray-100 border border-gray-200 text-gray-800 px-3 py-1 mt-4 rounded-lg lg:ml-10">
+					<p class="my-2">
+						To install Gradio from main, run the following command:
+					</p>
+					<div class="codeblock">
+						<pre class="language-bash" style="padding-right: 50px;"><code class="language-bash">pip install {wheel}</code></pre>
+					</div>
+						<p class="float-right text-sm">
 						*Note: Setting <code style="font-size: 0.85rem">share=True</code> in <code style="font-size: 0.85rem">launch()</code> will not work. 
 					</p>
-				</div>
+					</div>
 			{/if}
 
 			<div class="lg:ml-10 flex justify-between mt-4">
 				<a
-					href="./themes"
+					href="./accordion"
 					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
-						<span class="text-orange-500">&#8592;</span> Themes
+						<span class="text-orange-500">&#8592;</span> Accordion
 					</div>
 				</a>
 				<a
-					href="./audio"
+					href="./annotatedimage"
 					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
-						Audio <span class="text-orange-500">&#8594;</span>
+						AnnotatedImage <span class="text-orange-500">&#8594;</span>
 					</div>
 				</a>
 			</div>
 			<div class="flex flex-row">
-				<div class="lg:w-3/4 lg:ml-10 lg:mr-24">
+				<div class="lg:w-full lg:ml-10 lg:pr-10">
 					<div class="obj" id="components">
 						<h2
 							id="components-header"
@@ -173,28 +166,26 @@
 					</div>
 				</div>
 			</div>
-			<div class="flex justify-between my-4">
+			<div class="lg:ml-10 flex justify-between my-4">
 				<a
-					href="./block-layouts"
+					href="./accordion"
 					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
-						<span class="text-orange-500">&#8592;</span> Block Layouts
+						<span class="text-orange-500">&#8592;</span> Accordion
 					</div>
 				</a>
 				<a
-					href="./audio"
+					href="./annotatedimage"
 					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
-						Audio <span class="text-orange-500">&#8594;</span>
+						AnnotatedImage <span class="text-orange-500">&#8594;</span>
 					</div>
 				</a>
 			</div>
 		</div>
-
 		<div class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:w-2/12 lg:block">
-
 		</div>
 	</div>
 </main>

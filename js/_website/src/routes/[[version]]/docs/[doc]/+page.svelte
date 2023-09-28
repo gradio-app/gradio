@@ -7,7 +7,6 @@
 	import anchor from "$lib/assets/img/anchor.svg";
 	import { onDestroy } from "svelte";
 	import { page } from "$app/stores";
-	import { svgCopy, svgCheck } from "$lib/assets/copy.js";
 
 	export let data: any = {};
 
@@ -16,6 +15,7 @@
 	let mode = data.mode;
 	let components = data.components;
 	let helpers = data.helpers;
+	let modals = data.modals;
 	let routes = data.routes;
 	let py_client = data.py_client;
 	let on_main: boolean;
@@ -59,16 +59,14 @@
 		}
 	}
 
-	let copied = false;
-	function copy(code: string) {
-		navigator.clipboard.writeText(code);
-		copied = true;
-		setTimeout(() => (copied = false), 2000);
-	}
-
 	$: obj = data.obj;
 	$: mode = data.mode;
 	$: on_main = data.on_main;
+	$: components = data.components;
+	$: helpers = data.helpers;
+	$: modals = data.modals;
+	$: routes = data.routes;
+	$: py_client = data.py_client;
 </script>
 
 <MetaTags
@@ -86,6 +84,7 @@
 			current_nav_link={obj.name.toLowerCase()}
 			{components}
 			{helpers}
+			{modals}
 			{routes}
 			{py_client}
 		/>
@@ -107,19 +106,14 @@
 			</div>
 			
 			{#if on_main}
-				<div class="codeblock bg-gray-100 border border-gray-200 text-gray-800 px-3 py-1 mt-4  rounded-lg lg:ml-10">
+				<div class="bg-gray-100 border border-gray-200 text-gray-800 px-3 py-1 mt-4 rounded-lg lg:ml-10">
 					<p class="my-2">
 						To install Gradio from main, run the following command:
 					</p>
-					<button class="clipboard-button" type="button" on:click={() => copy("pip install " + wheel)}>
-						{#if !copied}
-							{@html svgCopy}
-						{:else}
-							{@html svgCheck}
-						{/if}
-					</button>
-						<pre class="language-bash" style="padding-right: 25px;"><code class="language-bash text-xs">pip install {wheel}</code></pre>
-					<p class="float-right text-sm">
+					<div class="codeblock">
+						<pre class="language-bash" style="padding-right: 50px;"><code class="language-bash">pip install {wheel}</code></pre>
+					</div>
+						<p class="float-right text-sm">
 						*Note: Setting <code style="font-size: 0.85rem">share=True</code> in <code style="font-size: 0.85rem">launch()</code> will not work. 
 					</p>
 					</div>
@@ -169,7 +163,7 @@
 							</h3>
 						</div>
 
-						<div class="codeblock bg-gray-50 mx-auto p-3">
+						<div class="codeblock">
 						{#if obj.override_signature}
 								<pre><code class="code language-python"
 										>{obj.override_signature}</code
@@ -269,7 +263,7 @@
 										><img class="anchor-img-small" src={anchor} /></a
 									>
 								</h4>
-								<div class="codeblock bg-gray-50 mx-auto p-3 mt-2">
+								<div class="codeblock">
 									<pre><code class="code language-python"
 											>{@html obj.highlighted_example}</code
 										></pre>
@@ -506,7 +500,7 @@
 				</div>
 			</div>
 
-			<div class="flex justify-between my-4">
+			<div class="lg:ml-10 flex justify-between my-4">
 				{#if obj.prev_obj}
 					<a
 						href="./{obj.prev_obj.toLowerCase()}"
