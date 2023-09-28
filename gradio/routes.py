@@ -303,7 +303,7 @@ class App(FastAPI):
 
         @app.head("/", response_class=HTMLResponse)
         @app.get("/", response_class=HTMLResponse)
-        async def main(request: fastapi.Request, user: str = Depends(get_current_user)):
+        def main(request: fastapi.Request, user: str = Depends(get_current_user)):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
             root_path = request.scope.get("root_path", "")
@@ -317,8 +317,7 @@ class App(FastAPI):
                 replica_url = request.headers.get("X-Direct-Url")
                 if utils.get_space() and replica_url:
                     app.replica_urls.add(replica_url)
-                    async with app.lock:
-                        config = set_replica_url_in_config(config, replica_url)
+                    set_replica_url_in_config(config, replica_url, app.replica_urls)
             else:
                 config = {
                     "auth_required": True,
