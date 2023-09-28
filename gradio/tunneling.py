@@ -26,6 +26,7 @@ BINARY_FILENAME = f"{BINARY_REMOTE_NAME}_v{VERSION}"
 BINARY_FOLDER = Path(__file__).parent
 BINARY_PATH = f"{BINARY_FOLDER / BINARY_FILENAME}"
 
+TUNNEL_TIMEOUT_SECONDS = 30
 TUNNEL_ERROR_MESSAGE = (
     "Could not create share URL. "
     "Please check the appended log from frpc for more information:"
@@ -62,7 +63,6 @@ class Tunnel:
             os.chmod(BINARY_PATH, st.st_mode | stat.S_IEXEC)
 
     def start_tunnel(self) -> str:
-        print("Creating share link...")
         self.download_binary()
         self.url = self._start_tunnel(BINARY_PATH)
         return self.url
@@ -98,7 +98,7 @@ class Tunnel:
         atexit.register(self.kill)
         return self._read_url_from_tunnel_stream()
 
-    def _read_url_from_tunnel_stream(self, timeout: float = 30.0) -> str:
+    def _read_url_from_tunnel_stream(self) -> str:
         start_timestamp = time.time()
 
         log = []
@@ -111,7 +111,7 @@ class Tunnel:
 
         while url == "":
             # check for timeout and log
-            if time.time() - start_timestamp >= timeout:
+            if time.time() - start_timestamp >= TUNNEL_TIMEOUT_SECONDS:
                 _raise_tunnel_error()
 
             assert self.proc is not None
@@ -119,11 +119,11 @@ class Tunnel:
                 continue
 
             line = self.proc.stdout.readline()
-            line = line.decode("utf-8").strip()
+            line = line.decode("utf-8")
 
             if line == "":
                 continue
-
+            
             log.append(line)
 
             if "start proxy success" in line:
