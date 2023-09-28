@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 0.4.1
+
+### Fixes
+
+- [#5705](https://github.com/gradio-app/gradio/pull/5705) [`78e7cf516`](https://github.com/gradio-app/gradio/commit/78e7cf5163e8d205e8999428fce4c02dbdece25f) - ensure internal data has updated before dispatching `success` or `then` events.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.4.0
 
 ### Features
