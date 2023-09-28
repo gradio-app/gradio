@@ -26,8 +26,10 @@ BINARY_FILENAME = f"{BINARY_REMOTE_NAME}_v{VERSION}"
 BINARY_FOLDER = Path(__file__).parent
 BINARY_PATH = f"{BINARY_FOLDER / BINARY_FILENAME}"
 
-TUNNEL_ERROR_MESSAGE = ("Could not create share URL. "
-                        "Please check the appended log from frpc for more information:")
+TUNNEL_ERROR_MESSAGE = (
+    "Could not create share URL. "
+    "Please check the appended log from frpc for more information:"
+)
 
 
 class Tunnel:
@@ -60,7 +62,7 @@ class Tunnel:
             os.chmod(BINARY_PATH, st.st_mode | stat.S_IEXEC)
 
     def start_tunnel(self) -> str:
-        print(f"Creating shared link...")
+        print("Creating shared link...")
         self.download_binary()
         self.url = self._start_tunnel(BINARY_PATH)
         return self.url
