@@ -7,10 +7,10 @@
 	},
 	"upload_text": {
 		"click_to_upload": "點擊上傳",
-		"drop_audio": "刪除音頻",
-		"drop_csv": "刪除CSV",
-		"drop_file": "刪除檔案",
-		"drop_image": "刪除圖片",
-		"drop_video": "刪除影片"
+		"drop_audio": "拖放音訊至此處",
+		"drop_csv": "拖放CSV至此處",
+		"drop_file": "拖放檔案至此處",
+		"drop_image": "拖放圖片至此處",
+		"drop_video": "拖放影片至此處"
 	}
 }
