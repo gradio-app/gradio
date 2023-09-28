@@ -1,4 +1,5 @@
 import pathlib
+import shutil
 import subprocess
 from typing import Optional
 
@@ -65,6 +66,17 @@ def _create(
 
     if _create_utils._in_test_dir():
         npm_install = "pnpm i --ignore-scripts"
+
+    npm_install = npm_install.strip()
+    if npm_install == "npm install":
+        npm = shutil.which("npm")
+        if not npm:
+            raise ValueError(
+                "By default, the install command uses npm to install "
+                "the frontend dependencies. Please install npm or pass your own install command "
+                "via the --npm-install option."
+            )
+        npm_install = f"{npm} install"
 
     with LivePanelDisplay() as live:
         live.update(
