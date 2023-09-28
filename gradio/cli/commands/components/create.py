@@ -1,6 +1,6 @@
-import pathlib
 import shutil
 import subprocess
+from pathlib import Path
 from typing import Optional
 
 import typer
@@ -20,7 +20,7 @@ def _create(
         ),
     ],
     directory: Annotated[
-        Optional[pathlib.Path],
+        Optional[Path],
         typer.Option(
             help="Directory to create the component in. Default is None. If None, will be created in <component-name> directory in the current directory."
         ),
@@ -51,7 +51,7 @@ def _create(
     ] = False,
 ):
     if not directory:
-        directory = pathlib.Path(name.lower())
+        directory = Path(name.lower())
     if not package_name:
         package_name = f"gradio_{name.lower()}"
 
@@ -90,11 +90,11 @@ def _create(
 
         component = _create_utils._get_component_code(template)
 
-        _create_utils._create_frontend(name.lower(), component, directory=directory)
-        live.update(":art: Created frontend code", add_sleep=0.2)
-
         _create_utils._create_backend(name, component, directory, package_name)
         live.update(":snake: Created backend code", add_sleep=0.2)
+
+        _create_utils._create_frontend(name.lower(), component, directory=directory)
+        live.update(":art: Created frontend code", add_sleep=0.2)
 
         if install:
             cmds = ["pip", "install", "-e", f"{str(directory)}"]
