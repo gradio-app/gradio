@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:wip hotfix
+feat:Fix for replicas
