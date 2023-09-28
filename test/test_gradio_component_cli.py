@@ -18,3 +18,4 @@ def test_do_not_replace_class_name_in_import_statement(tmp_path):
     code = (tmp_path / "backend" / "gradio_myimage" / "myimage.py").read_text()
     assert "from PIL import Image as _Image" in code
     assert "class MyImage" in code
+    assert "_Image.Image" in code
