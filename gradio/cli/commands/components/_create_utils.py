@@ -33,6 +33,10 @@ class ComponentFiles:
     python_file_name: str = ""
     js_dir: str = ""
 
+    def __post_init__(self):
+        self.js_dir = self.js_dir or self.template.lower()
+        self.python_file_name = self.python_file_name or f"{self.template.lower()}.py"
+
 
 OVERRIDES = {
     "JSON": ComponentFiles(template="JSON", python_file_name="json_component.py"),
@@ -46,7 +50,6 @@ OVERRIDES = {
                 gr.Number(value=10, interactive=True)
         """
         ),
-        python_file_name="row.py",
     ),
     "Column": ComponentFiles(
         template="Column",
@@ -58,7 +61,6 @@ OVERRIDES = {
                 gr.Number(value=10, interactive=True)
         """
         ),
-        python_file_name="column.py",
     ),
     "Tabs": ComponentFiles(
         template="Tabs",
@@ -72,7 +74,6 @@ OVERRIDES = {
                     gr.Number(value=10, interactive=True)
         """
         ),
-        python_file_name="tabs.py",
     ),
     "Group": ComponentFiles(
         template="Group",
@@ -84,7 +85,6 @@ OVERRIDES = {
                 gr.Number(value=10, interactive=True)
         """
         ),
-        python_file_name="group.py",
     ),
     "Accordion": ComponentFiles(
         template="Accordion",
@@ -96,7 +96,6 @@ OVERRIDES = {
                 gr.Number(value=10, interactive=True)
         """
         ),
-        python_file_name="accordion.py",
     ),
 }
 
