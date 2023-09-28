@@ -39,6 +39,41 @@ class ComponentFiles:
 
 
 OVERRIDES = {
+    "AnnotatedImage": ComponentFiles(
+        template="AnnotatedImage", python_file_name="annotated_image.py"
+    ),
+    "HighlightedText": ComponentFiles(
+        template="HighlightedText", python_file_name="highlighted_text.py"
+    ),
+    "BarPlot": ComponentFiles(
+        template="BarPlot", python_file_name="bar_plot.py", js_dir="plot"
+    ),
+    "ClearButton": ComponentFiles(
+        template="ClearButton", python_file_name="clear_button.py", js_dir="button"
+    ),
+    "ColorPicker": ComponentFiles(
+        template="ColorPicker", python_file_name="color_picker.py"
+    ),
+    "DuplicateButton": ComponentFiles(
+        template="DuplicateButton",
+        python_file_name="duplicate_button.py",
+        js_dir="button",
+    ),
+    "LinePlot": ComponentFiles(
+        template="LinePlot", python_file_name="line_plot.py", js_dir="plot"
+    ),
+    "LogoutButton": ComponentFiles(
+        template="LogoutButton", python_file_name="logout_button.py", js_dir="button"
+    ),
+    "LoginButton": ComponentFiles(
+        template="LoginButton", python_file_name="login_button.py", js_dir="button"
+    ),
+    "ScatterPlot": ComponentFiles(
+        template="ScatterPlot", python_file_name="scatter_plot.py", js_dir="plot"
+    ),
+    "UploadButton": ComponentFiles(
+        template="UploadButton", python_file_name="upload_button.py"
+    ),
     "JSON": ComponentFiles(template="JSON", python_file_name="json_component.py"),
     "Row": ComponentFiles(
         template="Row",
@@ -216,7 +251,7 @@ def _create_backend(
 import gradio as gr
 from {package_name} import {name}
 
-{component.demo_code.format(name=name)} 
+{component.demo_code.format(name=name)}
 
 demo.launch()
 """
