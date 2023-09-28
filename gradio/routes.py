@@ -315,9 +315,6 @@ class App(FastAPI):
                 # Handles the case where the app is running on Hugging Face Spaces with
                 # multiple replicas. See `set_replica_url_in_config` for more details.
                 replica_url = request.headers.get("X-Direct-Url")
-                route_url = request.url
-                print("replica_url", replica_url, "route_url", route_url)
-
                 if utils.get_space() and replica_url:
                     app.replica_urls.add(replica_url)
                     async with app.lock:
