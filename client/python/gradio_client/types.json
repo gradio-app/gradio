@@ -26,7 +26,7 @@
 		"oneOf": [
 			{
 				"type": "string",
-				"description": "filepath or URL to file"
+				"description": "filepath on your computer (or URL) of file"
 			},
 			{
 				"type": "object",
@@ -57,7 +57,7 @@
 					"anyOf": [
 						{
 							"type": "string",
-							"description": "filepath or URL to file"
+							"description": "filepath on your computer (or URL) of file"
 						},
 						{
 							"type": "object",
@@ -91,7 +91,7 @@
 		"oneOf": [
 			{
 				"type": "string",
-				"description": "filepath or URL to file"
+				"description": "filepath on your computer (or URL) of file"
 			},
 			{
 				"type": "object",
@@ -124,7 +124,7 @@
 			"anyOf": [
 				{
 					"type": "string",
-					"description": "filepath or URL to file"
+					"description": "filepath on your computer (or URL) of file"
 				},
 				{
 					"type": "object",
