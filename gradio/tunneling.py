@@ -4,6 +4,8 @@ import platform
 import re
 import stat
 import subprocess
+import sys
+import time
 from pathlib import Path
 from typing import List
 
@@ -23,6 +25,9 @@ BINARY_URL = f"https://cdn-media.huggingface.co/frpc-gradio-{VERSION}/{BINARY_RE
 BINARY_FILENAME = f"{BINARY_REMOTE_NAME}_v{VERSION}"
 BINARY_FOLDER = Path(__file__).parent
 BINARY_PATH = f"{BINARY_FOLDER / BINARY_FILENAME}"
+
+TUNNEL_ERROR_MESSAGE = ("Could not create share URL. "
+                        "Please check the appended log from frpc for more information:")
 
 
 class Tunnel:
@@ -55,6 +60,7 @@ class Tunnel:
             os.chmod(BINARY_PATH, st.st_mode | stat.S_IEXEC)
 
     def start_tunnel(self) -> str:
+        print(f"Creating shared link...")
         self.download_binary()
         self.url = self._start_tunnel(BINARY_PATH)
         return self.url
@@ -88,16 +94,42 @@ class Tunnel:
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
         atexit.register(self.kill)
+        return self._read_url_from_tunnel_stream()
+
+    def _read_url_from_tunnel_stream(self, timeout: float = 30.0) -> str:
+        start_timestamp = time.time()
+
+        log = []
         url = ""
+
+        def _raise_tunnel_error():
+            log_text = "\n".join(log)
+            print(log_text, file=sys.stderr)
+            raise ValueError(f"{TUNNEL_ERROR_MESSAGE}\n{log_text}")
+
         while url == "":
+            # check for timeout and log
+            if time.time() - start_timestamp >= timeout:
+                _raise_tunnel_error()
+
             if self.proc.stdout is None:
                 continue
+
             line = self.proc.stdout.readline()
-            line = line.decode("utf-8")
+            line = line.decode("utf-8").strip()
+
+            if line == "":
+                continue
+
+            log.append(line)
+
             if "start proxy success" in line:
                 result = re.search("start proxy success: (.+)\n", line)
                 if result is None:
-                    raise ValueError("Could not create share URL")
+                    _raise_tunnel_error()
                 else:
                     url = result.group(1)
+            elif "login to server failed" in line:
+                _raise_tunnel_error()
+
         return url
