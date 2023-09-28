@@ -1,27 +1,48 @@
+import textwrap
+
 import pytest
 
+from gradio.cli.commands.components._create_utils import OVERRIDES
 from gradio.cli.commands.components.create import _create
 
 
-def test_template_layout_component(tmp_path):
-    _create("MyRow", tmp_path, template="Row", overwrite=True)
-    assert (
-        (tmp_path / "demo" / "app.py").read_text()
-        == """
+@pytest.mark.parametrize(
+    "template",
+    [
+        "Row",
+        "Column",
+        "Tabs",
+        "Group",
+        "Accordion",
+        "AnnotatedImage",
+        "HighlightedText",
+        "BarPlot",
+        "ClearButton",
+        "ColorPicker",
+        "DuplicateButton",
+        "LinePlot",
+        "LogoutButton",
+        "LoginButton",
+        "ScatterPlot",
+        "UploadButton",
+        "JSON",
+    ],
+)
+def test_template_override_component(template, tmp_path):
+    _create("MyComponent", tmp_path, template=template, overwrite=True)
+    app = (tmp_path / "demo" / "app.py").read_text()
+    answer = textwrap.dedent(
+        f"""
 import gradio as gr
-from gradio_myrow import MyRow
+from gradio_mycomponent import MyComponent
 
-
-with gr.Blocks() as demo:
-    with MyRow():
-        gr.Textbox(value="foo", interactive=True)
-        gr.Number(value=10, interactive=True)
- 
+{OVERRIDES[template].demo_code.format(name="MyComponent")}
 
 demo.launch()
 """
     )
-    assert (tmp_path / "backend" / "gradio_myrow" / "myrow.py").exists()
+    assert app.strip() == answer.strip()
+    assert (tmp_path / "backend" / "gradio_mycomponent" / "mycomponent.py").exists()
 
 
 def test_raise_error_component_template_does_not_exist(tmp_path):
