@@ -69,7 +69,14 @@ def _create(
 
     npm_install = npm_install.strip()
     if npm_install == "npm install":
-        npm_install = f"{shutil.which('npm')} install"
+        npm = shutil.which("npm")
+        if not npm:
+            raise ValueError(
+                "By default, the install command uses npm to install "
+                "the frontend dependencies. Please install npm or pass your own install command "
+                "via the --npm-install option."
+            )
+        npm_install = f"{npm} install"
 
     with LivePanelDisplay() as live:
         live.update(
