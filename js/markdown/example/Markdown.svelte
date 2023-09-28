@@ -1,7 +1,10 @@
 <script lang="ts">
+	import MarkdownCode from "../static/MarkdownCode.svelte";
+
 	export let value: string;
 	export let type: "gallery" | "table";
 	export let selected = false;
+	
 </script>
 
 <div
@@ -10,7 +13,11 @@
 	class:selected
 	class="prose"
 >
-	{@html value}
+	<MarkdownCode 
+		message={value}
+		chatbot={false}
+		sanitize_html={true}
+	/>
 </div>
 
 <style>
