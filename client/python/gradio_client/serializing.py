@@ -154,7 +154,7 @@ class ImgSerializable(Serializable):
     def serialized_info(self):
         return {
             "type": "string",
-            "description": "filepath on your computer, or URL to image",
+            "description": "filepath on your computer (or URL) of image",
         }
 
     def api_info(self) -> dict[str, bool | dict]:
@@ -227,7 +227,7 @@ class FileSerializable(Serializable):
     def _single_file_serialized_info(self):
         return {
             "type": "string",
-            "description": "filepath on your computer, or URL to file",
+            "description": "filepath on your computer (or URL) of file",
         }
 
     def _multiple_file_serialized_info(self):
@@ -236,7 +236,7 @@ class FileSerializable(Serializable):
             "description": "List of filepath(s) or URL(s) to files",
             "items": {
                 "type": "string",
-                "description": "filepath on your computer, or URL to file",
+                "description": "filepath on your computer (or URL) of file",
             },
         }
 
@@ -397,7 +397,7 @@ class VideoSerializable(FileSerializable):
     def serialized_info(self):
         return {
             "type": "string",
-            "description": "filepath on your computer, or URL to video file",
+            "description": "filepath on your computer (or URL) of video file",
         }
 
     def api_info(self) -> dict[str, dict | bool]:
