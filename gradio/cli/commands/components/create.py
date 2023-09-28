@@ -1,4 +1,5 @@
 import pathlib
+import shutil
 import subprocess
 from typing import Optional
 
@@ -65,6 +66,10 @@ def _create(
 
     if _create_utils._in_test_dir():
         npm_install = "pnpm i --ignore-scripts"
+
+    npm_install = npm_install.strip()
+    if npm_install == "npm install":
+        npm_install = f"{shutil.which('npm')} install"
 
     with LivePanelDisplay() as live:
         live.update(
