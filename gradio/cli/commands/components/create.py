@@ -61,6 +61,8 @@ def _create(
             "Please set --overwrite flag or pass in the name "
             "of a directory that does not already exist via the --directory option."
         )
+    elif directory.exists() and overwrite:
+        _create_utils.delete_contents(directory)
 
     directory.mkdir(exist_ok=overwrite)
 

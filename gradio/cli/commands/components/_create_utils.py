@@ -168,6 +168,17 @@ def _modify_js_deps(
     return package_json
 
 
+def delete_contents(directory: str | Path) -> None:
+    """Delete all contents of a directory, but not the directory itself."""
+    path = Path(directory)
+    for child in path.glob("*"):
+        if child.is_file():
+            child.unlink()
+        elif child.is_dir():
+            delete_contents(child)
+            child.rmdir()
+
+
 def _create_frontend(name: str, component: ComponentFiles, directory: Path):
     frontend = directory / "frontend"
     frontend.mkdir(exist_ok=True)
