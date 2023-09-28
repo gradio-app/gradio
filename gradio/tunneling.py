@@ -62,7 +62,7 @@ class Tunnel:
             os.chmod(BINARY_PATH, st.st_mode | stat.S_IEXEC)
 
     def start_tunnel(self) -> str:
-        print("Creating shared link...")
+        print("Creating share link...")
         self.download_binary()
         self.url = self._start_tunnel(BINARY_PATH)
         return self.url
