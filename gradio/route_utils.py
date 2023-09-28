@@ -260,6 +260,7 @@ def set_replica_url_in_config(config: dict, replica_url: str) -> dict:
     if not stripped_url.endswith("/"):
         stripped_url += "/"
 
+    print(config)
     config_ = copy.deepcopy(config)
     for component in config_["components"]:
         if (
