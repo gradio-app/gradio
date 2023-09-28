@@ -180,7 +180,9 @@ def _create_backend(
         module = "layouts"
     else:
         raise ValueError(
-            f"Cannot find {component.template} in gradio.components or gradio.layouts"
+            f"Cannot find {component.template} in gradio.components or gradio.layouts. "
+            "Please pass in a valid component name via the --template option. "
+            "It must match the name of the python class exactly."
         )
 
     backend = directory / "backend" / package_name
