@@ -25,6 +25,27 @@
 	}
 	import version_json from "$lib/json/version.json";
 	let version = version_json.version;
+
+	import CopyButton from '$lib/components/CopyButton.svelte'
+	import { afterNavigate } from "$app/navigation";
+
+	afterNavigate(() => {
+		for (const node of document.querySelectorAll('.codeblock')) {
+			let children = Array.from(node.querySelectorAll('pre, a'));
+			let textContent = node.textContent;
+			node.innerHTML = "";
+			
+			new CopyButton({
+				target: node,
+				props: {
+					content: textContent ?? '',
+				},
+			})
+			for (const child of children) {
+				node.appendChild(child);
+			}
+		}})
+	
 </script>
 
 <svelte:head>

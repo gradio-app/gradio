@@ -2,8 +2,6 @@
 	import DocsNav from "$lib/components/DocsNav.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import { page } from "$app/stores";
-	import { svgCopy, svgCheck } from "$lib/assets/copy.js";
-
 
 	export let data;
 	let components = data.components;
@@ -14,13 +12,6 @@
 	
 	let on_main: boolean;
 	let wheel: string = data.wheel;
-
-	let copied = false;
-	function copy(code: string) {
-		navigator.clipboard.writeText(code);
-		copied = true;
-		setTimeout(() => (copied = false), 2000);
-	}
 
 	$: on_main = data.on_main;
 	$: components = data.components;
@@ -65,21 +56,16 @@
 			</div>
 
 			{#if on_main}
-				<div class="codeblock bg-gray-100 border border-gray-200 text-gray-800 px-3 py-1 mt-4  rounded-lg lg:ml-10">
+				<div class="bg-gray-100 border border-gray-200 text-gray-800 px-3 py-1 mt-4 rounded-lg lg:ml-10">
 					<p class="my-2">
 						To install Gradio from main, run the following command:
 					</p>
-					<button class="clipboard-button" type="button" on:click={() => copy("pip install " + wheel)}>
-						{#if !copied}
-							{@html svgCopy}
-						{:else}
-							{@html svgCheck}
-						{/if}
-					</button>
-						<pre class="language-bash" style="padding-right: 25px;"><code class="language-bash text-xs">pip install {wheel}</code></pre>
+					<div class="codeblock">
+						<pre class="language-bash" style="padding-right: 50px;"><code class="language-bash">pip install {wheel}</code></pre>
+					</div>
 						<p class="float-right text-sm">
-							*Note: Setting <code style="font-size: 0.85rem">share=True</code> in <code style="font-size: 0.85rem">launch()</code> will not work. 
-						</p>
+						*Note: Setting <code style="font-size: 0.85rem">share=True</code> in <code style="font-size: 0.85rem">launch()</code> will not work. 
+					</p>
 					</div>
 			{/if}
 
@@ -101,8 +87,8 @@
 					</div>
 				</a>
 			</div>
-			<div class="flex flex-row mr-28">
-				<div class="lg:w-3/4 lg:ml-10 lg:mr-24">
+			<div class="flex flex-row">
+				<div class="lg:w-full lg:ml-10">
 					<div class="obj" id="python-client">
 						<h2
 							id="python-client-header"
@@ -129,7 +115,7 @@
 							<code class="language-bash">gradio</code>:
 						</p>
 
-						<div class="codeblock bg-gray-50 mx-auto p-3 my-3">
+						<div class="codeblock">
 							<pre><code class="language-bash">pip install gradio_client</code
 								></pre>
 						</div>

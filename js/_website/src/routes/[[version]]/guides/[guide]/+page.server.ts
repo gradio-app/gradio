@@ -29,11 +29,11 @@ function highlight(code: string, lang: string | undefined) {
 	const _lang = langs[lang as keyof typeof langs] || "";
 
 	const highlighted = _lang
-		? `<pre class="language-${lang}"><code>${Prism.highlight(
+		? `<div class="codeblock"><pre class="language-${lang}"><code>${Prism.highlight(
 				code,
 				Prism.languages[_lang],
 				_lang
-		  )}</code></pre>`
+		  )}</code></pre></div>`
 		: code;
 
 	return highlighted;

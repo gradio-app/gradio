@@ -144,7 +144,7 @@ code.language-bash {
 
 /* copy button */
 .clipboard-button {
-	@apply absolute right-0 px-1.5 pt-0.5 pb-1 m-4 text-gray-500 text-sm z-[100] opacity-0 duration-100;
+	@apply absolute right-0 px-1.5 pb-1 text-gray-500 text-sm z-[100] opacity-0 duration-100;
 }
 .clipboard-button:hover {
 	@apply cursor-pointer;
@@ -156,7 +156,7 @@ code.language-bash {
 	@apply outline-0;
 }
 .codeblock {
-	@apply relative;
+	@apply relative bg-gray-50 mx-auto p-3 mt-2;
 }
 .codeblock:hover > .clipboard-button {
 	@apply opacity-100 duration-200;

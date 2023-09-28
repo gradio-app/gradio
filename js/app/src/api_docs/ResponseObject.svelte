@@ -22,9 +22,14 @@
 				<div class:second-level={endpoint_returns.length > 1}>
 					<span class="desc"
 						><!--
-					--> # {#if current_language === "python"}{python_type.type}{:else}{js_returns[
+					--> # {#if current_language === "python"}{python_type.type}{#if python_type?.description}&nbsp;({python_type.description}){/if}{:else}{js_returns[
 								i
-							].type}{/if}
+							].type}{#if js_returns[
+								i
+							].description}&nbsp;({js_returns[
+								i
+							]
+											.description}){/if}{/if}
 						<!--
 					-->representing output in '{label}' <!--
 					-->{component}

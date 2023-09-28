@@ -50,7 +50,7 @@
 		>
 			<div
 				class:hidden={!code}
-				class="codeblock rounded-lg bg-gray-50 shadow-inner text-sm md:text-base mx-auto max-w-5xl"
+				class="codeblock text-sm md:text-base mx-auto max-w-5xl"
 			>
 				{@html code}
 			</div>

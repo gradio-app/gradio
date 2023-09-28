@@ -53,7 +53,7 @@ client = Client(<span class="token string">"{root}"</span>)
 result = client.predict(<!--
 -->{#each endpoint_parameters as { label, type, python_type, component, example_input, serializer }, i}<!--
         -->
-				<span
+		<span
 								class="example-inputs"
 								>{represent_value(example_input, python_type.type, "py")}</span
 							>,<!--
@@ -64,19 +64,16 @@ result = client.predict(<!--
 				-->{/if}<!--
 			--><span class="desc"
 								><!--
-			-->	# {python_type.type} {#if python_type.description}({python_type.description})
-								{/if}<!--
-			-->in '{label}' <!--
+			-->	# {python_type.type} {#if python_type.description}({python_type.description}){/if}<!----> in '{label}' <!--
 			-->{component} component<!--
-			--></span
-							><!--
-        -->
-						{/each}
-				{#if named}
-							api_name="/{dependency.api_name}"
-						{:else}
-							fn_index={dependency_index}
-						{/if}
+			--></span><!--
+		-->{/each}<!--
+
+		-->{#if named}
+		api_name="/{dependency.api_name}"<!--
+		-->{:else}
+		fn_index={dependency_index}
+		{/if}
 )
 print(result)</pre>
 				</div>
