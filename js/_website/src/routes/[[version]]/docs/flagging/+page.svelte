@@ -6,8 +6,6 @@
 	import anchor from "$lib/assets/img/anchor.svg";
 	import { onDestroy } from "svelte";
 	import { page } from "$app/stores";
-	import { svgCopy, svgCheck } from "$lib/assets/copy.js";
-
 
 	export let data: any;
 
@@ -57,13 +55,6 @@
 	let on_main: boolean;
 	let wheel: string = data.wheel;
 
-	let copied = false;
-	function copy(code: string) {
-		navigator.clipboard.writeText(code);
-		copied = true;
-		setTimeout(() => (copied = false), 2000);
-	}
-
 	$: on_main = data.on_main;
 	$: components = data.components;
 	$: helpers = data.helpers;
@@ -109,21 +100,16 @@
 			</div>
 
 			{#if on_main}
-				<div class="codeblock bg-gray-100 border border-gray-200 text-gray-800 px-3 py-1 mt-4  rounded-lg lg:ml-10">
+				<div class="bg-gray-100 border border-gray-200 text-gray-800 px-3 py-1 mt-4 rounded-lg lg:ml-10">
 					<p class="my-2">
 						To install Gradio from main, run the following command:
 					</p>
-					<button class="clipboard-button" type="button" on:click={() => copy("pip install " + wheel)}>
-						{#if !copied}
-							{@html svgCopy}
-						{:else}
-							{@html svgCheck}
-						{/if}
-					</button>
-						<pre class="language-bash" style="padding-right: 25px;"><code class="language-bash text-xs">pip install {wheel}</code></pre>
+					<div class="codeblock">
+						<pre class="language-bash" style="padding-right: 50px;"><code class="language-bash">pip install {wheel}</code></pre>
+					</div>
 						<p class="float-right text-sm">
-							*Note: Setting <code style="font-size: 0.85rem">share=True</code> in <code style="font-size: 0.85rem">launch()</code> will not work. 
-						</p>
+						*Note: Setting <code style="font-size: 0.85rem">share=True</code> in <code style="font-size: 0.85rem">launch()</code> will not work. 
+					</p>
 					</div>
 			{/if}
 
@@ -194,13 +180,13 @@
 							</div>
 
 							{#if obj.override_signature}
-								<div class="codeblock bg-gray-50 mx-auto p-3">
+								<div class="codeblock">
 									<pre><code class="code language-python"
 											>{obj.override_signature}</code
 										></pre>
 								</div>
 							{:else}
-								<div class="codeblock bg-gray-50 mx-auto p-3">
+								<div class="codeblock">
 									<pre><code class="code language-python"
 											>{obj.parent}.<span>{obj.name}&lpar;</span
 											><!--
@@ -280,7 +266,7 @@
 										><img class="anchor-img-small" src={anchor} /></a
 									>
 								</h4>
-								<div class="codeblock bg-gray-50 mx-auto p-3 mt-2">
+								<div class="codeblock">
 									<pre><code class="code language-python"
 											>{@html obj.highlighted_example}</code
 										></pre>
