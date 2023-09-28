@@ -1,113 +1,74 @@
-<script>
-	import Arrow from "./ArrowIcon.svelte";
-	import Checkbox from "./Checkbox.svelte";
-	export let checked = true;
-	export let hidden = false;
-	export let tree = [
-		"folder",
-		["folder", ["file", "file"]],
-		"folder",
-		["folder", ["file", "file"]],
-		"folder",
-		["folder", ["file", "file", "folder", ["folder", ["file", "file"], "file"]]]
-	];
+<script context="module" lang="ts">
+	type File = {
+		type: "file";
+		path: string;
+		children: null;
+		checked: boolean;
+		children_visible: boolean;
+	};
 
-	function process_tree(state, node) {
-		if (Array.isArray(node)) {
-			// Create a new array to store the processed items
-			const result = [];
-			for (let i = 0; i < node.length; i++) {
-				// If it's a string, convert it to true/false and add to the result
+	type Folder = {
+		type: "folder";
+		path: string;
+		children: Node[];
+		checked: boolean;
+		children_visible: boolean;
+	};
 
-				// If it's an array, recursively process it and add the processed array to the result
-				if (Array.isArray(node[i])) {
-					result.push(process_tree(node[i]));
-				} else {
-					result.push(state);
-				}
-			}
-			return result;
-		}
-		return [];
-	}
-
-	function handle_change(i) {
-		console.log(checked_tree, i);
-
-		checked_tree[i] = !checked_tree[i];
-		// checked_tree = checked_tree
-	}
-
-	$: checked_tree = process_tree(checked, tree);
-	$: hidden_tree = tree.map((v) => (typeof v === "string" ? hidden : true));
-
-	$: console.log(checked, hidden_tree);
+	export type Node = File | Folder;
 </script>
 
-<!-- Render directory or file -->
-<ul>
-	{#each tree as file_or_folder, i}
-		<li>
-			{#if Array.isArray(file_or_folder) && !hidden_tree[i - 1]}
-				<svelte:self
-					tree={file_or_folder}
-					checked={checked_tree[i - 1]}
-					hidden={hidden_tree[i]}
-				/>
-			{:else if typeof file_or_folder === "string"}
-				<Checkbox bind:value={checked_tree[i]} />
-				{#if Array.isArray(tree[i + 1])}
-					<span
-						class:hidden={hidden_tree[i]}
-						on:click|stopPropagation={() => {}}><Arrow /></span
-					>
-				{/if}
-				{file_or_folder}
-			{/if}
-		</li>
-	{/each}
-</ul>
+<script lang="ts">
+	import FileTree from "./FileTree.svelte";
 
-<style>
-	span {
-		display: inline-block;
-		width: 8px;
-		height: 8px;
-		padding: 3px 3px 3px 3px;
-		margin: 0;
-		flex-grow: 0;
-		display: inline-flex;
-		justify-content: center;
-		align-items: center;
-		border-radius: 2px;
-		cursor: pointer;
-		transition: 0.1s;
-	}
+	export let mode: "static" | "interactive";
+	export let server: any;
 
-	span:hover {
-		background: #eee;
-	}
+	let tree: Node[] = [];
 
-	span :global(> *) {
-		transform: rotate(90deg);
-		transform-origin: 40% 50%;
-		transition: 0.1s;
+	function process_tree(
+		node: Omit<Node, "checked" | "children_visible">[]
+	): Node[] {
+		const _tree: Node[] = [];
+
+		const folders: Folder[] = [];
+		const files: File[] = [];
+
+		for (let i = 0; i < node.length; i++) {
+			let n: (typeof node)[number] = node[i];
+
+			if (n.type === "file") {
+				let index = files.findIndex(
+					(v) => v.path.toLocaleLowerCase() >= n.path.toLocaleLowerCase()
+				);
+				files.splice(index === -1 ? files.length : index, 0, {
+					children: null,
+					type: "file",
+					path: n.path,
+					checked: false,
+					children_visible: false
+				});
+			} else {
+				let index = folders.findIndex(
+					(v) => v.path.toLocaleLowerCase() >= n.path.toLocaleLowerCase()
+				);
+				folders.splice(index === -1 ? folders.length : index, 0, {
+					type: "folder",
+					path: n.path,
+					checked: false,
+					children: process_tree(n.children!),
+					children_visible: false
+				});
+			}
+		}
+		return Array().concat(folders, files);
 	}
 
-	.hidden :global(> *) {
-		transform: rotate(0);
+	if (mode === "interactive") {
+		server.ls().then((v: any) => {
+			tree = process_tree(v);
+		});
 	}
-	ul {
-		margin-left: 10px;
-		padding-left: 0;
-		list-style: none;
-	}
+</script>
 
-	li {
-		margin-left: 0;
-		padding-left: 0;
-		display: flex;
-		align-items: center;
-		gap: 5px;
-	}
-</style>
+<FileTree {tree} {mode} />

@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import itertools
 import os
+import re
+from glob import glob as glob_func
 from typing import Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
@@ -30,10 +33,12 @@ class HostFile(Changeable, Selectable, IOComponent, JSONSerializable):
 
     def __init__(
         self,
-        root: str = ".",
+        glob: str,
+        file_count: Literal["single", "multiple", "directory"] = "multiple",
+        root: str | Path = ".",
+        ignore_glob: str | None = None,
         value: str | list[str] | Callable | None = None,
         *,
-        type: Literal["file", "folder", "any"] = "file",
         label: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
@@ -65,12 +70,14 @@ class HostFile(Changeable, Selectable, IOComponent, JSONSerializable):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self._root = os.path.abspath(root)
-        valid_types = ["file", "folder", "any"]
-        if type not in valid_types:
+        self.glob = glob
+        self.ignore_glob = ignore_glob
+        valid_file_count = ["single", "multiple", "directory"]
+        if file_count not in valid_file_count:
             raise ValueError(
-                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_file_count}"
             )
-        self.type = type
+        self.file_count = file_count
         self.height = height
         self.select: EventListenerMethod
         """
@@ -94,7 +101,7 @@ class HostFile(Changeable, Selectable, IOComponent, JSONSerializable):
             **kwargs,
         )
 
-    def preprocess(self, x: list[str] | None) -> str | None:
+    def preprocess(self, x: list[str] | None) -> list[str] | None:
         """
         Parameters:
             x: File path selected as a list of strings for each directory level relative to the root.
@@ -103,9 +110,12 @@ class HostFile(Changeable, Selectable, IOComponent, JSONSerializable):
         """
         if x is None:
             return None
-        return self._safe_join(x)
 
-    def postprocess(self, y: str | None) -> list[str] | None:
+        files = [x] if self.file_count == "single" else x
+
+        return [self._safe_join(file) for file in (files)]
+
+    def postprocess(self, y: str | list[str] | None) -> list[list[str]] | None:
         """
         Parameters:
             y: file path
@@ -114,27 +124,81 @@ class HostFile(Changeable, Selectable, IOComponent, JSONSerializable):
         """
         if y is None:
             return None
-        return y.split(os.path.sep)
+
+        files = [y] if isinstance(y, str) else y
+
+        return [file.split(os.path.sep) for file in (files)]
 
     @server
-    def ls(self, y: list[str] | None) -> tuple[list[str], list[str]] | None:
+    def ls(self, y=None) -> list[dict[str, str]] | None:
         """
         Parameters:
             y: file path as a list of strings for each directory level relative to the root.
         Returns:
             tuple of list of files in directory, then list of folders in directory
         """
-        if y is None:
-            return None
-        absolute_path = self._safe_join(y)
-        files = []
-        folders = []
-        for f in os.listdir(absolute_path):
-            if os.path.isfile(os.path.join(absolute_path, f)):
-                files.append(f)
+
+        def expand_braces(text, seen=None):
+            if seen is None:
+                seen = set()
+
+            spans = [m.span() for m in re.finditer("{[^{}]*}", text)][::-1]
+            alts = [text[start + 1 : stop - 1].split(",") for start, stop in spans]
+
+            if len(spans) == 0:
+                if text not in seen:
+                    yield text
+                seen.add(text)
+
             else:
-                folders.append(f)
-        return folders, files
+                for combo in itertools.product(*alts):
+                    replaced = list(text)
+                    for (start, stop), replacement in zip(spans, combo):
+                        replaced[start:stop] = replacement
+
+                    yield from expand_braces("".join(replaced), seen)
+
+        ### testing
+
+        def make_tree(files):
+            tree = []
+            for file in files:
+                parts = file.split("/")
+                make_node(parts, tree)
+            return tree
+
+        def make_node(parts, tree):
+            _tree = tree
+            for i in range(len(parts)):
+                if i == len(parts) - 1:
+                    type = "file"
+                    _tree.append({"path": parts[i], "type": type, "children": None})
+                    continue
+                type = "folder"
+                j = next(
+                    (index for (index, v) in enumerate(_tree) if v["path"] == parts[i]),
+                    None,
+                )
+                if j is not None:
+                    _tree = _tree[j]["children"]
+                else:
+                    _tree.append({"path": parts[i], "type": type, "children": []})
+                    _tree = _tree[-1]["children"]
+
+        files = []
+        for result in expand_braces(self.glob):
+            files += glob_func(result, recursive=True, root_dir=self._root)
+
+        ignore_files = []
+        if self.ignore_glob:
+            for result in expand_braces(self.ignore_glob):
+                print(result)
+                ignore_files += glob_func(result, recursive=True, root_dir=self._root)
+            files = list(set(files) - set(ignore_files))
+
+        tree = make_tree(files)
+
+        return tree
 
     def _safe_join(self, folders):
         combined_path = os.path.join(self._root, *folders)

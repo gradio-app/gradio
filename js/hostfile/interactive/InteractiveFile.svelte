@@ -56,5 +56,6 @@
 		{selectable}
 		{height}
 		{server}
+		mode="interactive"
 	/>
 </Block>

@@ -18,6 +18,8 @@
 		border-radius: var(--radius-xs);
 		background-color: var(--checkbox-background-color);
 		line-height: var(--line-sm);
+		width: 18px !important;
+		height: 18px !important;
 	}
 
 	input:checked,
