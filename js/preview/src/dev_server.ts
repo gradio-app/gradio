@@ -204,18 +204,15 @@ function find_frontend_folders(
 	return results;
 }
 
-function toPosix(pathString: string): string {
-	return pathString.split(path.sep).join(path.posix.sep);
-}
 
 function generate_imports(component_dir: string): string {
 	const components = find_frontend_folders(component_dir);
 
 	const imports = components.reduce((acc, component) => {
 		const x = {
-			interactive: toPosix(join(component.dir, "interactive")),
-			static: toPosix(join(component.dir, "static")),
-			example: toPosix(join(component.dir, "example"))
+			interactive: join(component.dir, "interactive").normalize(),
+			static: join(component.dir, "static").normalize(),
+			example: join(component.dir, "example").normalize()
 		};
 
 		const interactive = fs.existsSync(x.interactive) ? `interactive: () => import("${x.interactive}"),\n` : ""
