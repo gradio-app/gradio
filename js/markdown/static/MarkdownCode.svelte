@@ -19,6 +19,10 @@
 	let el: HTMLSpanElement;
 	let html: string;
 
+	marked.use({
+		breaks: true
+	});
+
 	DOMPurify.addHook("afterSanitizeAttributes", function (node) {
 		if ("target" in node) {
 			node.setAttribute("target", "_blank");
