@@ -19,7 +19,7 @@
 <Story name="Spacing">
 	<div class="wrapper">
 		<section>
-			<h1>Radii</h1>
+			<h1>Spacing</h1>
 		</section>
 		<div class="container">
 			<table>

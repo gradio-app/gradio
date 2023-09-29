@@ -19,7 +19,7 @@
 <Story name="Text Size">
 	<div class="wrapper">
 		<section>
-			<h1>Radii</h1>
+			<h1>Text Sizing</h1>
 		</section>
 		<div class="container">
 			<table>
