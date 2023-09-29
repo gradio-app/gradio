@@ -847,48 +847,6 @@ importers:
         specifier: workspace:^
         version: link:../utils
 
-  js/gradio-preview/test/coolslider/frontend:
-    dependencies:
-      '@gradio/atoms':
-        specifier: workspace:^
-        version: link:../../../../atoms
-      '@gradio/statustracker':
-        specifier: workspace:^
-        version: link:../../../../statustracker
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../../../../utils
-
-  js/gradio-preview/test/newtextbox/frontend:
-    dependencies:
-      '@gradio/atoms':
-        specifier: workspace:^
-        version: link:../../../../atoms
-      '@gradio/icons':
-        specifier: workspace:^
-        version: link:../../../../icons
-      '@gradio/statustracker':
-        specifier: workspace:^
-        version: link:../../../../statustracker
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../../../../utils
-
-  js/gradio-preview/test/segaeditor/frontend:
-    dependencies:
-      '@gradio/atoms':
-        specifier: workspace:^
-        version: link:../../../../atoms
-      '@gradio/statustracker':
-        specifier: workspace:^
-        version: link:../../../../statustracker
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../../../../utils
-      '@zerodevx/svelte-json-view':
-        specifier: ^1.0.7
-        version: 1.0.7(svelte@4.2.0)
-
   js/group: {}
 
   js/highlightedtext:

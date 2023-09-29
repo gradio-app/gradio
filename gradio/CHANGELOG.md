@@ -1,5 +1,20 @@
 # gradio
 
+## 3.45.0-beta.11
+
+### Features
+
+- [#5719](https://github.com/gradio-app/gradio/pull/5719) [`f7e154333`](https://github.com/gradio-app/gradio/commit/f7e154333b8ece96cc6492ff5b3da091168aaf27) - Better test dir check.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5752](https://github.com/gradio-app/gradio/pull/5752) [`771cca273`](https://github.com/gradio-app/gradio/commit/771cca2735452a80e7888ab9ac0c893a3a9df76d) - Fix windows ci build.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5736](https://github.com/gradio-app/gradio/pull/5736) [`59049e559`](https://github.com/gradio-app/gradio/commit/59049e5598d195a12b38ecd925a71320518c94d9) - Use path to npm executable in subprocess.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5739](https://github.com/gradio-app/gradio/pull/5739) [`438d08e39`](https://github.com/gradio-app/gradio/commit/438d08e39e396c74b16533afc61a01502c593b02) - Fix component regex.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5738](https://github.com/gradio-app/gradio/pull/5738) [`1c644a2b8`](https://github.com/gradio-app/gradio/commit/1c644a2b8cdd360a96ccdfdd2830bee02a81bfaf) - Add Error + test.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5715](https://github.com/gradio-app/gradio/pull/5715) [`9b3d55044`](https://github.com/gradio-app/gradio/commit/9b3d5504433ed19df8f588f7b85d82700fb98c08) - Fix python unit tests for v4.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5743](https://github.com/gradio-app/gradio/pull/5743) [`b4f8d890b`](https://github.com/gradio-app/gradio/commit/b4f8d890b800ba31c60126a528d5f07f9153ac95) - Fix template remaining components.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5740](https://github.com/gradio-app/gradio/pull/5740) [`6071e6715`](https://github.com/gradio-app/gradio/commit/6071e6715c4ca0fd706022147f16a1ed57cf996d) - Fix layout templates.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5751](https://github.com/gradio-app/gradio/pull/5751) [`95e35cde4`](https://github.com/gradio-app/gradio/commit/95e35cde4728fc01ad2c488b1a1283958d72cda8) - Support call method.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5744](https://github.com/gradio-app/gradio/pull/5744) [`199208ef3`](https://github.com/gradio-app/gradio/commit/199208ef3bbbb1c59472a9c2b2ea1a6bfcbc9446) - --overwrite deletes previous content.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 3.45.0-beta.10
 
 ### Features

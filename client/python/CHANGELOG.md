@@ -1,5 +1,12 @@
 # gradio_client
 
+## 0.6.0-beta.2
+
+### Features
+
+- [#5715](https://github.com/gradio-app/gradio/pull/5715) [`9b3d55044`](https://github.com/gradio-app/gradio/commit/9b3d5504433ed19df8f588f7b85d82700fb98c08) - Fix python unit tests for v4.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5751](https://github.com/gradio-app/gradio/pull/5751) [`95e35cde4`](https://github.com/gradio-app/gradio/commit/95e35cde4728fc01ad2c488b1a1283958d72cda8) - Support call method.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 0.6.0-beta.1
 
 ### Features

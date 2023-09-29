@@ -1,5 +1,11 @@
 # @gradio/app
 
+## 1.6.0-beta.7
+
+### Features
+
+- [#5752](https://github.com/gradio-app/gradio/pull/5752) [`771cca273`](https://github.com/gradio-app/gradio/commit/771cca2735452a80e7888ab9ac0c893a3a9df76d) - Fix windows ci build.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 1.6.0-beta.6
 
 ### Features
