@@ -881,7 +881,6 @@ class TestStateHolder:
 
 
 class TestCallFunction:
-    @pytest.mark.xfail
     @pytest.mark.asyncio
     async def test_call_regular_function(self):
         with gr.Blocks() as demo:
@@ -901,7 +900,6 @@ class TestCallFunction:
         output = await demo.call_function(0, ["Abubakar"])
         assert output["prediction"] == "Hello, Abubakar"
 
-    @pytest.mark.xfail
     @pytest.mark.asyncio
     async def test_call_multiple_functions(self):
         with gr.Blocks() as demo:
@@ -1043,7 +1041,6 @@ class TestBatchProcessing:
             demo.queue()
             demo.launch(prevent_thread_lock=True)
 
-    @pytest.mark.xfail
     @pytest.mark.asyncio
     async def test_call_regular_function(self):
         def batch_fn(x):
