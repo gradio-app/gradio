@@ -19,8 +19,8 @@
 	export let root_url: null | string = null;
 	export let value: (FileData | string | [FileData | string, string])[] | null =
 		null;
-	export let grid_cols: number | number[] | undefined = [2];
-	export let grid_rows: number | number[] | undefined = undefined;
+	export let columns: number | number[] | undefined = [2];
+	export let rows: number | number[] | undefined = undefined;
 	export let height: number | "auto" = "auto";
 	export let preview: boolean;
 	export let allow_preview = true;
@@ -250,7 +250,7 @@
 	>
 		<div
 			class="grid-container"
-			style="--grid-cols:{grid_cols}; --grid-rows:{grid_rows}; --object-fit: {object_fit}; height: {height};"
+			style="--grid-cols:{columns}; --grid-rows:{rows}; --object-fit: {object_fit}; height: {height};"
 			class:pt-6={show_label}
 		>
 			{#if show_share_button}
