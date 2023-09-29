@@ -1664,8 +1664,8 @@ Received outputs:
     def load(
         self: Blocks | None = None,
         fn: Callable | None = None,
-        inputs: list[Component] | None = None,
-        outputs: list[Component] | None = None,
+        inputs: Component | list[Component] | None = None,
+        outputs: Component | list[Component] | None = None,
         api_name: str | None | Literal[False] = None,
         scroll_to_output: bool = False,
         show_progress: str = "full",
