@@ -80,7 +80,6 @@ class TestTextbox:
             "autoscroll": True,
         }
 
-    @pytest.mark.xfail
     @pytest.mark.asyncio
     async def test_in_interface_as_input(self):
         """
@@ -89,7 +88,6 @@ class TestTextbox:
         iface = gr.Interface(lambda x: x[::-1], "textbox", "textbox")
         assert iface("Hello") == "olleH"
 
-    @pytest.mark.xfail
     def test_in_interface_as_output(self):
         """
         Interface, process
@@ -211,7 +209,6 @@ class TestNumber:
         assert numeric_input.postprocess(2.1421) == 2.14
         assert numeric_input.postprocess(None) is None
 
-    @pytest.mark.xfail
     def test_in_interface_as_input(self):
         """
         Interface, process, interpret
@@ -219,7 +216,6 @@ class TestNumber:
         iface = gr.Interface(lambda x: x**2, "number", "textbox")
         assert iface(2) == "4.0"
 
-    @pytest.mark.xfail
     def test_precision_0_in_interface(self):
         """
         Interface, process, interpret
@@ -227,7 +223,6 @@ class TestNumber:
         iface = gr.Interface(lambda x: x**2, gr.Number(precision=0), "textbox")
         assert iface(2) == "4"
 
-    @pytest.mark.xfail
     def test_in_interface_as_output(self):
         """
         Interface, process, interpret
@@ -277,7 +272,6 @@ class TestSlider:
             "info": None,
         }
 
-    @pytest.mark.xfail
     def test_in_interface(self):
         """ "
         Interface, process, interpret
@@ -338,7 +332,6 @@ class TestCheckbox:
             "info": None,
         }
 
-    @pytest.mark.xfail
     def test_in_interface(self):
         """
         Interface, process, interpret
@@ -399,7 +392,6 @@ class TestCheckboxGroup:
         with pytest.raises(ValueError):
             gr.CheckboxGroup().as_example("a")
 
-    @pytest.mark.xfail
     def test_in_interface(self):
         """
         Interface, process
@@ -456,7 +448,6 @@ class TestRadio:
         with pytest.raises(ValueError):
             gr.Radio(["a", "b"], type="unknown")
 
-    @pytest.mark.xfail
     def test_in_interface(self):
         """
         Interface, process, interpret
@@ -545,7 +536,6 @@ class TestDropdown:
         assert dropdown.get_config()["value"] == "c"
         assert dropdown.postprocess("a") == "a"
 
-    @pytest.mark.xfail
     def test_in_interface(self):
         """
         Interface, process
@@ -653,7 +643,6 @@ class TestImage:
             "data:image/png;base64,"
         )
 
-    @pytest.mark.xfail
     def test_in_interface_as_input(self):
         """
         Interface, process, interpret
@@ -675,7 +664,6 @@ class TestImage:
         url = "https://gradio-static-files.s3.us-west-2.amazonaws.com/header-image.jpg"
         assert gr.Image().as_example(url) == url
 
-    @pytest.mark.xfail
     def test_in_interface_as_output(self):
         """
         Interface, process
@@ -845,7 +833,6 @@ class TestAudio:
         output2 = audio_output.postprocess(Path(y_audio.name))
         assert output1 == output2
 
-    @pytest.mark.xfail
     def test_in_interface(self):
         def reverse_audio(audio):
             sr, data = audio
@@ -862,7 +849,6 @@ class TestAudio:
         ).ratio()
         assert similarity > 0.99
 
-    @pytest.mark.xfail
     def test_in_interface_as_output(self):
         """
         Interface, process
@@ -950,7 +936,6 @@ class TestFile:
         ):
             gr.File(file_types=".json")
 
-    @pytest.mark.xfail
     def test_in_interface_as_input(self):
         """
         Interface, process
@@ -963,7 +948,6 @@ class TestFile:
         iface = gr.Interface(get_size_of_file, "file", "number")
         assert iface(x_file) == 10558
 
-    @pytest.mark.xfail
     def test_as_component_as_output(self):
         """
         Interface, process
@@ -1344,23 +1328,21 @@ class TestVideo:
             postprocessed_video_with_subtitle["subtitles"]["data"] = True
         assert processed_video_with_subtitle == postprocessed_video_with_subtitle
 
-    @pytest.mark.xfail
     def test_in_interface(self):
         """
         Interface, process
         """
         x_video = media_data.BASE64_VIDEO["name"]
         iface = gr.Interface(lambda x: x, "video", "playable_video")
-        assert iface(x_video).endswith(".mp4")
+        assert iface(x_video)["video"].endswith(".mp4")
 
-    @pytest.mark.xfail
     def test_with_waveform(self):
         """
         Interface, process
         """
         x_audio = media_data.BASE64_AUDIO["name"]
         iface = gr.Interface(lambda x: gr.make_waveform(x), "audio", "video")
-        assert iface(x_audio).endswith(".mp4")
+        assert iface(x_audio)["video"].endswith(".mp4")
 
     def test_video_postprocess_converts_to_playable_format(self):
         test_file_dir = Path(Path(__file__).parent, "test_files")
@@ -1527,7 +1509,6 @@ class TestLabel:
         )
         assert update_5["color"] == "transparent"
 
-    @pytest.mark.xfail
     def test_in_interface(self):
         """
         Interface, process
@@ -1545,16 +1526,15 @@ class TestLabel:
             }
 
         iface = gr.Interface(rgb_distribution, "image", "label")
-        output_filepath = iface(x_img)
-        with open(output_filepath) as fp:
-            assert json.load(fp) == {
-                "label": "red",
-                "confidences": [
-                    {"label": "red", "confidence": 0.44},
-                    {"label": "green", "confidence": 0.28},
-                    {"label": "blue", "confidence": 0.28},
-                ],
-            }
+        output = iface(x_img)
+        assert output == {
+            "label": "red",
+            "confidences": [
+                {"label": "red", "confidence": 0.44},
+                {"label": "green", "confidence": 0.28},
+                {"label": "blue", "confidence": 0.28},
+            ],
+        }
 
 
 class TestHighlightedText:
@@ -1670,7 +1650,6 @@ class TestHighlightedText:
             "interactive": None,
         }
 
-    @pytest.mark.xfail
     def test_in_interface(self):
         """
         Interface, process
@@ -1692,15 +1671,13 @@ class TestHighlightedText:
             return phrases
 
         iface = gr.Interface(highlight_vowels, "text", "highlight")
-        output_filepath = iface("Helloooo")
-        with open(output_filepath) as fp:
-            output = json.load(fp)
-            assert output == [
-                ["H", "non"],
-                ["e", "vowel"],
-                ["ll", "non"],
-                ["oooo", "vowel"],
-            ]
+        output = iface("Helloooo")
+        assert output == [
+            {"token": "H", "class_or_confidence": "non"},
+            {"token": "e", "class_or_confidence": "vowel"},
+            {"token": "ll", "class_or_confidence": "non"},
+            {"token": "oooo", "class_or_confidence": "vowel"},
+        ]
 
 
 class TestAnnotatedImage:
@@ -1749,7 +1726,6 @@ class TestAnnotatedImage:
             "custom_component": False,
         }
 
-    @pytest.mark.xfail
     def test_in_interface(self):
         def mask(img):
             top_left_corner = [0, 0, 20, 20]
@@ -1757,13 +1733,11 @@ class TestAnnotatedImage:
             return (img, [(top_left_corner, "left corner"), (random_mask, "random")])
 
         iface = gr.Interface(mask, "image", gr.AnnotatedImage())
-        output_json = iface("test/test_files/bus.png")
-        with open(output_json) as fp:
-            output = json.load(fp)
-            output_img, (mask1, mask1) = output
+        output = iface("test/test_files/bus.png")
+        output_img, (mask1, _) = output["image"], output["annotations"]
         input_img = PIL.Image.open("test/test_files/bus.png")
-        output_img = PIL.Image.open(output_img["name"])
-        mask1_img = PIL.Image.open(mask1[0]["name"])
+        output_img = PIL.Image.open(output_img)
+        mask1_img = PIL.Image.open(mask1["image"])
 
         assert output_img.size == input_img.size
         assert mask1_img.size == input_img.size
@@ -1898,7 +1872,6 @@ class TestHTML:
             "name": "html",
         }
 
-    @pytest.mark.xfail
     def test_in_interface(self):
         """
         Interface, process
@@ -1916,7 +1889,6 @@ class TestMarkdown:
         markdown_component = gr.Markdown("# Let's learn about $x$", label="Markdown")
         assert markdown_component.get_config()["value"] == "# Let's learn about $x$"
 
-    @pytest.mark.xfail
     def test_in_interface(self):
         """
         Interface, process
@@ -1957,7 +1929,6 @@ class TestModel3D:
         output2 = model_component.postprocess(Path(file))
         assert output1 == output2
 
-    @pytest.mark.xfail
     def test_in_interface(self):
         """
         Interface, process
@@ -1996,7 +1967,6 @@ class TestColorPicker:
             "info": None,
         }
 
-    @pytest.mark.xfail
     def test_in_interface_as_input(self):
         """
         Interface, process, interpret,
@@ -2004,7 +1974,6 @@ class TestColorPicker:
         iface = gr.Interface(lambda x: x, "colorpicker", "colorpicker")
         assert iface("#000000") == "#000000"
 
-    @pytest.mark.xfail
     def test_in_interface_as_output(self):
         """
         Interface, process

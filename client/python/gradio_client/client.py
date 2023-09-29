@@ -843,14 +843,12 @@ class Endpoint:
             component["type"] == "state",
         )
 
-    def value_is_file(self, component: dict) -> bool:
+    @staticmethod
+    def value_is_file(component: dict) -> bool:
         # Hacky for now
         if "api_info" not in component:
             return False
-        api_info = utils._json_schema_to_python_type(
-            component["api_info"], component["api_info"].get("$defs")
-        )
-        return utils.FILE_DATA in api_info
+        return utils.value_is_file(component["api_info"])
 
     def __repr__(self):
         return f"Endpoint src: {self.client.src}, api_name: {self.api_name}, fn_index: {self.fn_index}"
@@ -1008,9 +1006,7 @@ class Endpoint:
         new_data = []
         for i, d in enumerate(data):
             if self.input_component_types[i].value_is_file:
-                d = utils.traverse(
-                    d, get_file, lambda s: isinstance(s, str) and Path(s).exists()
-                )
+                d = utils.traverse(d, get_file, utils.is_filepath)
             new_data.append(d)
         return file_list, new_data
 
@@ -1033,8 +1029,8 @@ class Endpoint:
         data = self._add_uploaded_files_to_data(data, uploaded_files)
         data = utils.traverse(
             data,
-            lambda s: {"name": s, "is_file": True},
-            lambda s: isinstance(s, str) and utils.is_http_url_like(s),
+            lambda s: {"name": s, "is_file": True, "data": None},
+            utils.is_url,
         )
         o = tuple(data)
         return o
@@ -1075,18 +1071,7 @@ class Endpoint:
     def deserialize(self, *data) -> tuple:
         data_ = list(data)
 
-        def is_file(d):
-            return (
-                isinstance(d, dict)
-                and "name" in d
-                and "is_file" in d
-                and "data" in d
-                and "size" in d
-                and "orig_name" in d
-                and "mime_type" in d
-            )
-
-        data_: list[Any] = utils.traverse(data_, self.download_file, is_file)
+        data_: list[Any] = utils.traverse(data_, self.download_file, utils.is_file_obj)
         return tuple(data_)
 
     def process_predictions(self, *predictions):
