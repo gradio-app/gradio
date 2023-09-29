@@ -117,6 +117,8 @@
 			return selected.data;
 		} else if (typeof selected === "string") {
 			return selected;
+		} else if (Array.isArray(selected)) {
+			return getHrefValue(selected[0]);
 		}
 		return "";
 	}
