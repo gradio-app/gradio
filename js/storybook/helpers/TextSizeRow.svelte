@@ -8,7 +8,7 @@
 	<td class="token-name"><pre>{textSize.tokenName}</pre></td>
 	<td><pre>{textSize.value}</pre></td>
 
-	<td class="color-button">
+	<td class="td-button">
 		<button
 			on:click={() => {
 				copied = true;
@@ -26,7 +26,7 @@
 </tr>
 
 <style>
-	.color-button {
+	.td-button {
 		width: 100%;
 	}
 
