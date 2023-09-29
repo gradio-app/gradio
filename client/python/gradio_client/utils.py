@@ -617,13 +617,38 @@ def traverse(json_obj: Any, func: Callable, is_root: Callable) -> Any:
         for key, value in json_obj.items():
             new_obj[key] = traverse(value, func, is_root)
         return new_obj
-    elif isinstance(json_obj, list):
+    elif isinstance(json_obj, (list, tuple)):
         new_obj = []
         for item in json_obj:
             new_obj.append(traverse(item, func, is_root))
         return new_obj
     else:
         return json_obj
+
+
+def value_is_file(api_info: dict) -> bool:
+    info = _json_schema_to_python_type(api_info, api_info.get("$defs"))
+    return FILE_DATA in info
+
+
+def is_filepath(s):
+    return isinstance(s, str) and Path(s).exists()
+
+
+def is_url(s):
+    return isinstance(s, str) and is_http_url_like(s)
+
+
+def is_file_obj(d):
+    return (
+        isinstance(d, dict)
+        and "name" in d
+        and "is_file" in d
+        and "data" in d
+        and "size" in d
+        and "orig_name" in d
+        and "mime_type" in d
+    )
 
 
 SKIP_COMPONENTS = {

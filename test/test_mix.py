@@ -13,7 +13,6 @@ So if, e.g. Spaces is down, then these test will not pass.
 
 
 class TestSeries:
-    @pytest.mark.xfail
     def test_in_interface(self):
         io1 = gr.Interface(lambda x: f"{x} World", "textbox", gr.Textbox())
         io2 = gr.Interface(lambda x: f"{x}!", "textbox", gr.Textbox())
@@ -22,8 +21,8 @@ class TestSeries:
 
     @pytest.mark.xfail
     def test_with_external(self):
-        io1 = gr.load("spaces/gradio-tests/image-identity")
-        io2 = gr.load("spaces/gradio-tests/image-classifier")
+        io1 = gr.load("spaces/gradio-tests/image-identity-new")
+        io2 = gr.load("spaces/gradio-tests/image-classifier-new")
         series = mix.Series(io1, io2)
         try:
             with open(series("gradio/test_data/lion.jpg")) as f:
@@ -33,14 +32,12 @@ class TestSeries:
 
 
 class TestParallel:
-    @pytest.mark.xfail
     def test_in_interface(self):
         io1 = gr.Interface(lambda x: f"{x} World 1!", "textbox", gr.Textbox())
         io2 = gr.Interface(lambda x: f"{x} World 2!", "textbox", gr.Textbox())
         parallel = mix.Parallel(io1, io2)
         assert parallel("Hello") == ["Hello World 1!", "Hello World 2!"]
 
-    @pytest.mark.xfail
     def test_multiple_return_in_interface(self):
         io1 = gr.Interface(
             lambda x: (x, x + x), "textbox", [gr.Textbox(), gr.Textbox()]

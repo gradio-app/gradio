@@ -35,6 +35,7 @@ from gradio import (
     wasm_utils,
 )
 from gradio.context import Context
+from gradio.data_classes import FileData
 from gradio.deprecation import check_deprecated_parameters, warn_deprecation
 from gradio.events import EventData, EventListener
 from gradio.exceptions import (
@@ -952,8 +953,8 @@ class Blocks(BlockContext):
         if batch:
             outputs = [out[0] for out in outputs]
 
-        processed_outputs = self.deserialize_data(fn_index, outputs)
-        processed_outputs = utils.resolve_singleton(processed_outputs)
+        outputs = self.deserialize_data(fn_index, outputs)
+        processed_outputs = utils.resolve_singleton(outputs)
 
         return processed_outputs
 
@@ -1049,6 +1050,9 @@ class Blocks(BlockContext):
         dependency = self.dependencies[fn_index]
         processed_input = []
 
+        def format_file(s):
+            return FileData(name=s, is_file=True).model_dump()
+
         for i, input_id in enumerate(dependency["inputs"]):
             try:
                 block = self.blocks[input_id]
@@ -1059,7 +1063,15 @@ class Blocks(BlockContext):
             assert isinstance(
                 block, components.Component
             ), f"{block.__class__} Component with id {input_id} not a valid input component."
-            serialized_input = block.serialize(inputs[i])  # type: ignore
+            api_info = block.api_info()
+            if client_utils.value_is_file(api_info):
+                serialized_input = client_utils.traverse(
+                    inputs[i],
+                    format_file,
+                    lambda s: client_utils.is_filepath(s) or client_utils.is_url(s),
+                )
+            else:
+                serialized_input = inputs[i]
             processed_input.append(serialized_input)
 
         return processed_input
@@ -1078,11 +1090,9 @@ class Blocks(BlockContext):
             assert isinstance(
                 block, components.Component
             ), f"{block.__class__} Component with id {output_id} not a valid output component."
-            deserialized = block.deserialize(  # type: ignore
-                outputs[o],
-                save_dir=block.DEFAULT_TEMP_DIR,  # type: ignore
-                root_url=block.root_url,
-                hf_token=Context.hf_token,
+
+            deserialized = client_utils.traverse(
+                outputs[o], lambda s: s["name"], client_utils.is_file_obj
             )
             predictions.append(deserialized)
 
