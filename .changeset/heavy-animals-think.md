@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:WIP: Fix windows ci build
+feat:Fix windows ci build
