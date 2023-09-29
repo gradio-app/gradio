@@ -11,7 +11,7 @@
 		"build:cdn": "vite build --mode production:cdn --emptyOutDir",
 		"build:website": "vite build --mode production:website --emptyOutDir",
 		"build:local": "vite build --mode production:local --emptyOutDir",
-		"build:cc": "NODE_ENV=development vite build --mode dev:custom --emptyOutDir",
+		"build:cc": "cross-env NODE_ENV=development vite build --mode dev:custom --emptyOutDir",
 		"cssbuild": "python ../../scripts/generate_theme.py --outfile ./src/lite/theme.css",
 		"pybuild:gradio": "cd ../../ && rm -rf gradio/templates/frontend && python -m build",
 		"pybuild:gradio-client": "cd ../../client/python && python -m build",
@@ -71,7 +71,8 @@
 		"d3-dsv": "^3.0.1",
 		"mime-types": "^2.1.34",
 		"postcss": "^8.4.21",
-		"postcss-prefix-selector": "^1.16.0"
+		"postcss-prefix-selector": "^1.16.0",
+		"cross-env": "^7.0.3",
 	},
 	"msw": {
 		"workerDirectory": "public"

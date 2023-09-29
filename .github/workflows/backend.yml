@@ -89,7 +89,6 @@ jobs:
         cache: pnpm
         cache-dependency-path: pnpm-lock.yaml
     - name: Build frontend
-      shell: bash
       if: steps.frontend-cache.outputs.cache-hit != 'true'
       run: |
         pnpm i --frozen-lockfile  --ignore-scripts
@@ -183,7 +182,6 @@ jobs:
         cache-dependency-path: pnpm-lock.yaml
     - name: Build frontend
       if: steps.frontend-cache.outputs.cache-hit != 'true'
-      shell: bash
       run: |
         pnpm i --frozen-lockfile --ignore-scripts
         pnpm build
