@@ -251,6 +251,8 @@ class Component(ComponentBase, Block):
         temp_dir = Path(upload_dir) / temp_dir
         temp_dir.mkdir(exist_ok=True, parents=True)
 
+        sha1 = hashlib.sha1()
+
         if file.filename:
             file_name = Path(file.filename).name
             name = client_utils.strip_invalid_filename_characters(file_name)
@@ -264,9 +266,14 @@ class Component(ComponentBase, Block):
                 content = await file.read(100 * 1024 * 1024)
                 if not content:
                     break
+                sha1.update(content)
                 await output_file.write(content)
 
-        return full_temp_file_path
+        directory = Path(upload_dir) / sha1.hexdigest()
+        directory.mkdir(exist_ok=True, parents=True)
+        dest = (directory / name).resolve()
+        shutil.move(full_temp_file_path, dest)
+        return str(dest)
 
     def download_temp_copy_if_needed(self, url: str) -> str:
         """Downloads a file and makes a temporary file path for a copy if does not already

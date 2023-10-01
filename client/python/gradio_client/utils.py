@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import hashlib
 import json
 import mimetypes
 import os
@@ -9,6 +10,7 @@ import pkgutil
 import secrets
 import shutil
 import tempfile
+import urllib.request
 import warnings
 from concurrent.futures import CancelledError
 from dataclasses import dataclass, field
@@ -308,21 +310,99 @@ async def get_pred_from_ws(
 ########################
 
 
-def download_tmp_copy_of_file(
-    url_path: str, hf_token: str | None = None, dir: str | None = None
+def hash_file(file_path: str | Path, chunk_num_blocks: int = 128) -> str:
+    """Returns the sha1 hash of a file.
+
+    Used to create a unique directory for a file.
+
+    Parameters:
+        file_path: path to file
+        chunk_num_blocks: number of blocks to read at a time
+    """
+    sha1 = hashlib.sha1()
+    with open(file_path, "rb") as f:
+        for chunk in iter(lambda: f.read(chunk_num_blocks * sha1.block_size), b""):
+            sha1.update(chunk)
+    return sha1.hexdigest()
+
+
+def hash_url(url: str, chunk_num_blocks: int = 128) -> str:
+    """Returns the sha1 hash of a url.
+
+    Used to create a unique directory for a url.
+
+    Parameters:
+        url: url
+        chunk_num_blocks: number of blocks to read at a time
+    """
+    sha1 = hashlib.sha1()
+    remote = urllib.request.urlopen(url)
+    max_file_size = 100 * 1024 * 1024  # 100MB
+    total_read = 0
+    while True:
+        data = remote.read(chunk_num_blocks * sha1.block_size)
+        total_read += chunk_num_blocks * sha1.block_size
+        if not data or total_read > max_file_size:
+            break
+        sha1.update(data)
+    return sha1.hexdigest()
+
+
+def hash_bytes(bytes: bytes) -> str:
+    """Returns the sha1 hash of a bytes object.
+
+    Used to create a unique directory for a bytes object.
+
+    Parameters:
+        bytes: bytes object
+    """
+
+    sha1 = hashlib.sha1()
+    sha1.update(bytes)
+    return sha1.hexdigest()
+
+
+def hash_base64(base64_encoding: str, chunk_num_blocks: int = 128) -> str:
+    """Returns the sha1 hash of a base64 encoding.
+
+    Used to create a unique directory for a base64 encoding.
+
+    Parameters:
+        base64_encoding: base64 encoding
+        chunk_num_blocks: number of blocks to read at a time
+    """
+    sha1 = hashlib.sha1()
+    for i in range(0, len(base64_encoding), chunk_num_blocks * sha1.block_size):
+        data = base64_encoding[i : i + chunk_num_blocks * sha1.block_size]
+        sha1.update(data.encode("utf-8"))
+    return sha1.hexdigest()
+
+
+def download_file(
+    url_path: str,
+    dir: str,
+    hf_token: str | None = None,
 ) -> str:
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
     headers = {"Authorization": "Bearer " + hf_token} if hf_token else {}
-    directory = Path(dir or tempfile.gettempdir()) / secrets.token_hex(20)
-    directory.mkdir(exist_ok=True, parents=True)
-    file_path = directory / Path(url_path).name
+
+    sha1 = hashlib.sha1()
+    temp_dir = Path(tempfile.gettempdir()) / secrets.token_hex(20)
+    temp_dir.mkdir(exist_ok=True, parents=True)
 
     with requests.get(url_path, headers=headers, stream=True) as r:
         r.raise_for_status()
-        with open(file_path, "wb") as f:
-            shutil.copyfileobj(r.raw, f)
-    return str(file_path.resolve())
+        with open(temp_dir / Path(url_path).name, "wb") as f:
+            for chunk in r.iter_content(chunk_size=128 * sha1.block_size):
+                sha1.update(chunk)
+                f.write(chunk)
+
+    directory = Path(dir) / sha1.hexdigest()
+    directory.mkdir(exist_ok=True, parents=True)
+    dest = directory / Path(url_path).name
+    shutil.move(temp_dir / Path(url_path).name, dest)
+    return str(dest.resolve())
 
 
 def create_tmp_copy_of_file(file_path: str, dir: str | None = None) -> str:
