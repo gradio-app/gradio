@@ -39,9 +39,18 @@
 			"type": "checkboxgroup",
 			"props": {
 				"choices": [
-					["Covid", "Covid"],
-					["Malaria", "Malaria"],
-					["Lung Cancer", "Lung Cancer"]
+					[
+						"Covid",
+						"Covid"
+					],
+					[
+						"Malaria",
+						"Malaria"
+					],
+					[
+						"Lung Cancer",
+						"Lung Cancer"
+					]
 				],
 				"value": [],
 				"type": "value",
@@ -64,8 +73,12 @@
 				"serialized_info": false
 			},
 			"example_inputs": {
-				"raw": ["Covid"],
-				"serialized": ["Covid"]
+				"raw": [
+					"Covid"
+				],
+				"serialized": [
+					"Covid"
+				]
 			}
 		},
 		{
@@ -478,13 +491,9 @@
 		{
 			"targets": [],
 			"inputs": [],
-<<<<<<< HEAD
-			"outputs": [1044],
-=======
 			"outputs": [
 				1014
 			],
->>>>>>> main
 			"backend_fn": true,
 			"js": null,
 			"queue": null,

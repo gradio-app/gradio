@@ -110,7 +110,7 @@
 							on:click={() => {
 								dispatch("select", {
 									index: i,
-									value: [text, category]
+									value: [text, category],
 								});
 							}}
 						>

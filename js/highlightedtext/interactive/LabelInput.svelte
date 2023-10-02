@@ -34,9 +34,9 @@
 					? null
 					: isScoresMode
 					? Number(target.value)
-					: target.value
+					: target.value,
 			],
-			...value.slice(elementIndex + 1)
+			...value.slice(elementIndex + 1),
 		];
 
 		handleValueChange();
