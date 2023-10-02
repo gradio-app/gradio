@@ -74,7 +74,6 @@ export const make_fs_store = (): FSStore => {
 			const nodes = check_node_and_children(_node.children, true, [_node]);
 			check_parent(_node);
 
-			console.log({ nodes });
 			nodes.forEach((node) => {
 				const path = get_full_path(node);
 				if (seen_nodes.has(path.join("/"))) {

@@ -714,7 +714,7 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 				component_id: number,
 				fn_name: string,
 				data: unknown[]
-			) {
+			): Promise<any> {
 				const headers: {
 					Authorization?: string;
 					"Content-Type": "application/json";
