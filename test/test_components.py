@@ -1241,6 +1241,7 @@ class TestDataframe:
             "name": "dataframe",
             "height": 500,
             "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
+            "line_breaks": True,
         }
         dataframe_input = gr.Dataframe()
         output = dataframe_input.preprocess(x_data)
