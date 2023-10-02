@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-import asyncio
 import copy
 import inspect
 import json
 import os
 import random
-import re
 import secrets
 import sys
 import threading
@@ -2295,26 +2293,21 @@ Received outputs:
         Closes the Interface that was launched and frees the port.
         """
         try:
-            if self.enable_queue:
-                self._queue.close()
-            if self.server:
-                self.server.close()
             if wasm_utils.IS_WASM:
                 # NOTE:
                 # Normally, queue-related async tasks (e.g. continuous events created by `gr.Blocks.load(..., every=interval)`, whose async tasks are started at the `/queue/join` endpoint function)
                 # are running in an event loop in the server thread,
-                # so they will be cancelled by `self.server.close()` above.
+                # so they will be cancelled by `self.server.close()` below.
                 # However, in the Wasm env, we don't have the `server` and
                 # all async tasks are running in the same event loop, `pyodide.webloop.WebLoop` in the main thread,
-                # so we have to cancel them manually.
-                # To avoid cancelling other async tasks that are not related to the queue,
-                # we only cancel the tasks whose names are set by `utils.set_task_name()`.
-                for task in asyncio.all_tasks():
-                    task_name = task.get_name()
-                    if re.match(
-                        r"\w+_\d+", task_name
-                    ):  # This regex matches the task names set by `utils.set_task_name()`
-                        task.cancel()
+                # so we have to cancel them explicitly so that these tasks won't run after a new app is launched.
+                if self.enable_queue:
+                    self._queue._cancel_asyncio_tasks()
+                self.server_app._cancel_asyncio_tasks()
+            if self.enable_queue:
+                self._queue.close()
+            if self.server:
+                self.server.close()
             self.is_running = False
             # So that the startup events (starting the queue)
             # happen the next time the app is launched

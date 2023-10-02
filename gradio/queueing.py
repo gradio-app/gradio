@@ -75,6 +75,7 @@ class Queue:
         self.max_size = max_size
         self.blocks_dependencies = blocks_dependencies
         self.continuous_tasks: list[Event] = []
+        self._asyncio_tasks: list[asyncio.Task] = []
 
     async def start(self, ssl_verify=True):
         run_coro_in_background(self.start_processing)
@@ -87,6 +88,11 @@ class Queue:
 
     def resume(self):
         self.stopped = False
+
+    def _cancel_asyncio_tasks(self):
+        for task in self._asyncio_tasks:
+            task.cancel()
+        self._asyncio_tasks = []
 
     def set_server_app(self, app: routes.App):
         self.server_app = app
@@ -133,9 +139,12 @@ class Queue:
 
             if events:
                 self.active_jobs[self.active_jobs.index(None)] = events
-                task = run_coro_in_background(self.process_events, events, batch)
-                run_coro_in_background(self.broadcast_live_estimations)
-                set_task_name(task, events[0].session_hash, events[0].fn_index, batch)
+                process_event_task = run_coro_in_background(self.process_events, events, batch)
+                set_task_name(process_event_task, events[0].session_hash, events[0].fn_index, batch)
+                broadcast_live_estimations_task = run_coro_in_background(self.broadcast_live_estimations)
+
+                self._asyncio_tasks.append(process_event_task)
+                self._asyncio_tasks.append(broadcast_live_estimations_task)
 
     async def start_log_and_progress_updates(self) -> None:
         while not self.stopped:

@@ -125,6 +125,7 @@ class App(FastAPI):
             Path(tempfile.gettempdir()) / "gradio"
         )
         self.change_event: None | threading.Event = None
+        self._asyncio_tasks: list[asyncio.Task] = []
         # Allow user to manually set `docs_url` and `redoc_url`
         # when instantiating an App; when they're not set, disable docs and redoc.
         kwargs.setdefault("docs_url", None)
@@ -169,6 +170,11 @@ class App(FastAPI):
             headers["Authorization"] = f"Bearer {Context.hf_token}"
         rp_req = client.build_request("GET", url, headers=headers)
         return rp_req
+
+    def _cancel_asyncio_tasks(self):
+        for task in self._asyncio_tasks:
+            task.cancel()
+        self._asyncio_tasks = []
 
     @staticmethod
     def create_app(
@@ -574,6 +580,7 @@ class App(FastAPI):
                     blocks._queue.process_events, [event], False
                 )
                 set_task_name(task, event.session_hash, event.fn_index, batch=False)
+                app._asyncio_tasks.append(task)
             else:
                 rank = blocks._queue.push(event)
 
