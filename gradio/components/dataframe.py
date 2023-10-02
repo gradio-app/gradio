@@ -258,11 +258,10 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
                 metadata=self.__extract_metadata(y),
             )
         elif isinstance(y, (str, pd.DataFrame)):
-            if isinstance(y, str):
-                y = pd.read_csv(y)
+            df = pd.read_csv(y) if isinstance(y, str) else y
             value = DataframeData(
-                headers=list(y.columns),
-                data=y.to_dict(orient="split")["data"],
+                headers=list(df.columns),
+                data=df.to_dict(orient="split")["data"],
             )
         elif isinstance(y, (np.ndarray, list)):
             if len(y) == 0:
