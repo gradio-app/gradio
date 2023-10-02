@@ -468,7 +468,6 @@ class TestTempFile:
         # only three files created and in temp directory
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 3
 
-    @pytest.mark.xfail
     def test_no_empty_image_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         image = str(file_dir / "bus.png")
@@ -482,10 +481,9 @@ class TestTempFile:
             _ = client.predict(image)
             _ = client.predict(image)
             _ = client.predict(image)
-        # only three files created
-        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
+        # Upload creates a file. image preprocessing creates another one.
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
 
-    @pytest.mark.xfail
     @pytest.mark.parametrize("component", [gr.UploadButton, gr.File])
     def test_file_component_uploads(self, component, connect, gradio_temp_dir):
         code_file = str(pathlib.Path(__file__))
@@ -493,25 +491,22 @@ class TestTempFile:
         with connect(demo) as client:
             _ = client.predict(code_file)
             _ = client.predict(code_file)
-        # the upload route does not hash the file so 2 files from there
+        # the upload route hashees the files so we get 1 from there
         # We create two tempfiles (empty) because API says we return
-        # preprocess/postprocess will only create one file since we hash
-        # so 2 + 2 + 1 = 5
-        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 5
+        # preprocess/postprocess will create the same file as the upload route
+        # so 1 + 2 = 3
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 3
 
-    @pytest.mark.xfail
     def test_no_empty_video_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         video = str(file_dir / "video_sample.mp4")
         demo = gr.Interface(lambda x: x, gr.Video(type="file"), gr.Video())
         with connect(demo) as client:
-            _ = client.predict(video)
-            _ = client.predict(video)
-        # During preprocessing we compute the hash based on base64
-        # In postprocessing we compute it based on the file
-        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
+            _ = client.predict({"video": video})
+            _ = client.predict({"video": video})
+        # Upload route and postprocessing return the same file
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
 
-    @pytest.mark.xfail
     def test_no_empty_audio_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         audio = str(file_dir / "audio_sample.wav")
@@ -524,8 +519,7 @@ class TestTempFile:
         with connect(demo) as client:
             _ = client.predict(audio)
             _ = client.predict(audio)
-            # During preprocessing we compute the hash based on base64
-            # In postprocessing we compute it based on the file
+            # One for upload and one for reversal
             assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
 
 
@@ -1059,7 +1053,6 @@ class TestBatchProcessing:
         output = demo("Abubakar")
         assert output == "Hello Abubakar"
 
-    @pytest.mark.xfail
     @pytest.mark.asyncio
     async def test_functions_multiple_parameters(self):
         def regular_fn(word1, word2):

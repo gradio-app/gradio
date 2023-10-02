@@ -557,7 +557,7 @@ class TestDropdown:
 
 
 class TestImage:
-    def test_component_functions(self):
+    def test_component_functions(self, gradio_temp_dir):
         """
         Preprocess, postprocess, serialize, get_config, _segment_by_slic
         type: pil, file, filepath, numpy
@@ -575,7 +575,9 @@ class TestImage:
         assert base64 == img
         image_input = gr.Image(type="filepath")
         image_temp_filepath = image_input.preprocess(img)
-        assert image_temp_filepath in image_input.temp_files
+        assert image_temp_filepath in [
+            str(f) for f in gradio_temp_dir.glob("**/*") if f.is_file()
+        ]
 
         image_input = gr.Image(
             source="upload", tool="editor", type="pil", label="Upload Your Image"
@@ -860,14 +862,24 @@ class TestAudio:
         iface = gr.Interface(generate_noise, "slider", "audio")
         assert iface(100).endswith(".wav")
 
-    def test_audio_preprocess_can_be_read_by_scipy(self):
-        x_wav = deepcopy(media_data.BASE64_MICROPHONE)
+    def test_audio_preprocess_can_be_read_by_scipy(self, gradio_temp_dir):
+        x_wav = {
+            "name": processing_utils.save_base64_to_cache(
+                media_data.BASE64_MICROPHONE["data"], cache_dir=gradio_temp_dir
+            ),
+            "is_file": True,
+        }
         audio_input = gr.Audio(type="filepath")
         output = audio_input.preprocess(x_wav)
         wavfile.read(output)
 
-    def test_prepost_process_to_mp3(self):
-        x_wav = deepcopy(media_data.BASE64_MICROPHONE)
+    def test_prepost_process_to_mp3(self, gradio_temp_dir):
+        x_wav = {
+            "name": processing_utils.save_base64_to_cache(
+                media_data.BASE64_MICROPHONE["data"], cache_dir=gradio_temp_dir
+            ),
+            "is_file": True,
+        }
         audio_input = gr.Audio(type="filepath", format="mp3")
         output = audio_input.preprocess(x_wav)
         assert output.endswith("mp3")
@@ -920,7 +932,7 @@ class TestFile:
 
         zero_size_file = {"name": "document.txt", "size": 0, "data": ""}
         temp_file = file_input.preprocess(zero_size_file)
-        assert os.stat(temp_file.name).st_size == 0
+        assert not Path(temp_file.name).exists()
 
         file_input = gr.File(type="binary")
         output = file_input.preprocess(x_file)
@@ -1221,7 +1233,7 @@ class TestVideo:
         """
         Preprocess, serialize, deserialize, get_config
         """
-        x_video = deepcopy(media_data.BASE64_VIDEO)
+        x_video = {"video": deepcopy(media_data.BASE64_VIDEO)}
         video_input = gr.Video()
         output1 = video_input.preprocess(x_video)
         assert isinstance(output1, str)
@@ -1334,7 +1346,7 @@ class TestVideo:
         """
         x_video = media_data.BASE64_VIDEO["name"]
         iface = gr.Interface(lambda x: x, "video", "playable_video")
-        assert iface(x_video)["video"].endswith(".mp4")
+        assert iface({"video": x_video})["video"].endswith(".mp4")
 
     def test_with_waveform(self):
         """
@@ -1370,7 +1382,7 @@ class TestVideo:
     @patch("gradio.components.video.FFmpeg")
     def test_video_preprocessing_flips_video_for_webcam(self, mock_ffmpeg):
         # Ensures that the cached temp video file is not used so that ffmpeg is called for each test
-        x_video = deepcopy(media_data.BASE64_VIDEO)
+        x_video = {"video": deepcopy(media_data.BASE64_VIDEO)}
         video_input = gr.Video(source="webcam")
         _ = video_input.preprocess(x_video)
 
@@ -1415,11 +1427,13 @@ class TestVideo:
     def test_preprocess_url(self):
         output = gr.Video().preprocess(
             {
-                "name": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
-                "is_file": True,
-                "data": None,
-                "size": None,
-                "orig_name": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
+                "video": {
+                    "name": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
+                    "is_file": True,
+                    "data": None,
+                    "size": None,
+                    "orig_name": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
+                }
             }
         )
         assert Path(output).name == "a.mp4" and not client_utils.probe_url(output)
@@ -2721,87 +2735,6 @@ class TestCode:
             "root_url": None,
             "custom_component": False,
         }
-
-
-class TestTempFileManagement:
-    def test_hash_file(self):
-        temp_file_manager = gr.File()
-        h1 = temp_file_manager.hash_file("gradio/test_data/cheetah1.jpg")
-        h2 = temp_file_manager.hash_file("gradio/test_data/cheetah1-copy.jpg")
-        h3 = temp_file_manager.hash_file("gradio/test_data/cheetah2.jpg")
-        assert h1 == h2
-        assert h1 != h3
-
-    @patch("shutil.copy2")
-    def test_make_temp_copy_if_needed(self, mock_copy):
-        temp_file_manager = gr.File()
-
-        f = temp_file_manager.make_temp_copy_if_needed("gradio/test_data/cheetah1.jpg")
-        try:  # Delete if already exists from before this test
-            os.remove(f)
-        except OSError:
-            pass
-
-        f = temp_file_manager.make_temp_copy_if_needed("gradio/test_data/cheetah1.jpg")
-        assert mock_copy.called
-        assert len(temp_file_manager.temp_files) == 1
-        assert Path(f).name == "cheetah1.jpg"
-
-        f = temp_file_manager.make_temp_copy_if_needed("gradio/test_data/cheetah1.jpg")
-        assert len(temp_file_manager.temp_files) == 1
-
-        f = temp_file_manager.make_temp_copy_if_needed(
-            "gradio/test_data/cheetah1-copy.jpg"
-        )
-        assert len(temp_file_manager.temp_files) == 2
-        assert Path(f).name == "cheetah1-copy.jpg"
-
-    def test_base64_to_temp_file_if_needed(self):
-        temp_file_manager = gr.File()
-
-        base64_file_1 = media_data.BASE64_IMAGE
-        base64_file_2 = media_data.BASE64_AUDIO["data"]
-
-        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_1)
-        try:  # Delete if already exists from before this test
-            os.remove(f)
-        except OSError:
-            pass
-
-        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_1)
-        assert len(temp_file_manager.temp_files) == 1
-
-        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_1)
-        assert len(temp_file_manager.temp_files) == 1
-
-        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_2)
-        assert len(temp_file_manager.temp_files) == 2
-
-        for file in temp_file_manager.temp_files:
-            os.remove(file)
-
-    @pytest.mark.flaky
-    @patch("shutil.copyfileobj")
-    def test_download_temp_copy_if_needed(self, mock_copy):
-        temp_file_manager = gr.File()
-        url1 = "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/test_image.png"
-        url2 = "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/cheetah1.jpg"
-
-        f = temp_file_manager.download_temp_copy_if_needed(url1)
-        try:  # Delete if already exists from before this test
-            os.remove(f)
-        except OSError:
-            pass
-
-        f = temp_file_manager.download_temp_copy_if_needed(url1)
-        assert mock_copy.called
-        assert len(temp_file_manager.temp_files) == 1
-
-        f = temp_file_manager.download_temp_copy_if_needed(url1)
-        assert len(temp_file_manager.temp_files) == 1
-
-        f = temp_file_manager.download_temp_copy_if_needed(url2)
-        assert len(temp_file_manager.temp_files) == 2
 
 
 def test_type_arg_deperecation_warning():

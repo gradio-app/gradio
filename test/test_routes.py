@@ -308,6 +308,7 @@ class TestRoutes:
                     {
                         "data": media_data.BASE64_IMAGE,
                         "name": "bus.png",
+                        "is_file": False,
                         "size": len(media_data.BASE64_IMAGE),
                     }
                 ],

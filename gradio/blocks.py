@@ -27,6 +27,7 @@ from gradio import (
     components,
     external,
     networking,
+    processing_utils,
     queueing,
     routes,
     strings,
@@ -1162,7 +1163,10 @@ Received inputs:
                 else:
                     if input_id in state:
                         block = state[input_id]
-                    processed_input.append(block.preprocess(inputs[i]))
+                    inputs_cached = processing_utils.move_files_to_cache(
+                        inputs[i], block
+                    )
+                    processed_input.append(block.preprocess(inputs_cached))
         else:
             processed_input = inputs
         return processed_input
@@ -1281,7 +1285,8 @@ Received outputs:
                         block, components.Component
                     ), f"{block.__class__} Component with id {output_id} not a valid output component."
                     prediction_value = block.postprocess(prediction_value)
-                output.append(prediction_value)
+                outputs_cached = processing_utils.move_files_to_cache(prediction_value, block)  # type: ignore
+                output.append(outputs_cached)
 
         return output
 

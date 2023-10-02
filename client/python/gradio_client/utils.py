@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import hashlib
 import json
 import mimetypes
 import os
@@ -308,21 +309,31 @@ async def get_pred_from_ws(
 ########################
 
 
-def download_tmp_copy_of_file(
-    url_path: str, hf_token: str | None = None, dir: str | None = None
+def download_file(
+    url_path: str,
+    dir: str,
+    hf_token: str | None = None,
 ) -> str:
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
     headers = {"Authorization": "Bearer " + hf_token} if hf_token else {}
-    directory = Path(dir or tempfile.gettempdir()) / secrets.token_hex(20)
-    directory.mkdir(exist_ok=True, parents=True)
-    file_path = directory / Path(url_path).name
+
+    sha1 = hashlib.sha1()
+    temp_dir = Path(tempfile.gettempdir()) / secrets.token_hex(20)
+    temp_dir.mkdir(exist_ok=True, parents=True)
 
     with requests.get(url_path, headers=headers, stream=True) as r:
         r.raise_for_status()
-        with open(file_path, "wb") as f:
-            shutil.copyfileobj(r.raw, f)
-    return str(file_path.resolve())
+        with open(temp_dir / Path(url_path).name, "wb") as f:
+            for chunk in r.iter_content(chunk_size=128 * sha1.block_size):
+                sha1.update(chunk)
+                f.write(chunk)
+
+    directory = Path(dir) / sha1.hexdigest()
+    directory.mkdir(exist_ok=True, parents=True)
+    dest = directory / Path(url_path).name
+    shutil.move(temp_dir / Path(url_path).name, dest)
+    return str(dest.resolve())
 
 
 def create_tmp_copy_of_file(file_path: str, dir: str | None = None) -> str:
@@ -557,6 +568,8 @@ def json_schema_to_python_type(schema: Any) -> str:
 
 def _json_schema_to_python_type(schema: Any, defs) -> str:
     """Convert the json schema into a python type hint"""
+    if schema == {}:
+        return "Any"
     type_ = get_type(schema)
     if type_ == {}:
         if "json" in schema["description"]:
@@ -640,15 +653,7 @@ def is_url(s):
 
 
 def is_file_obj(d):
-    return (
-        isinstance(d, dict)
-        and "name" in d
-        and "is_file" in d
-        and "data" in d
-        and "size" in d
-        and "orig_name" in d
-        and "mime_type" in d
-    )
+    return isinstance(d, dict) and "name" in d and "is_file" in d and "data" in d
 
 
 SKIP_COMPONENTS = {

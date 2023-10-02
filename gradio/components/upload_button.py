@@ -6,11 +6,10 @@ import tempfile
 import warnings
 from typing import Any, Callable, List, Literal
 
-from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio import utils
 from gradio.components.base import Component, _Keywords
+from gradio.components.file import File
 from gradio.data_classes import FileData, GradioRootModel
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Events
@@ -154,48 +153,27 @@ class UploadButton(Component):
         if x is None:
             return None
 
-        def process_single_file(f) -> bytes | tempfile._TemporaryFileWrapper:
-            file_name, data, is_file = (
-                f["name"],
-                f["data"],
-                f.get("is_file", False),
-            )
-            if self.type == "file":
-                if is_file:
-                    path = self.make_temp_copy_if_needed(file_name)
-                else:
-                    data, _ = client_utils.decode_base64_to_binary(data)
-                    path = self.file_bytes_to_file(data, file_name=file_name)
-                    path = str(utils.abspath(path))
-                    self.temp_files.add(path)
-                file = tempfile.NamedTemporaryFile(
-                    delete=False, dir=self.DEFAULT_TEMP_DIR
-                )
-                file.name = path
-                file.orig_name = file_name  # type: ignore
-                return file
-            elif self.type == "bytes":
-                if is_file:
-                    with open(file_name, "rb") as file_data:
-                        return file_data.read()
-                return client_utils.decode_base64_to_binary(data)[0]
-            else:
-                raise ValueError(
-                    "Unknown type: "
-                    + str(self.type)
-                    + ". Please choose from: 'file', 'bytes'."
-                )
-
         if self.file_count == "single":
             if isinstance(x, list):
-                return process_single_file(x[0])
+                return File._process_single_file(
+                    x[0], type=self.type, cache_dir=self.GRADIO_CACHE  # type: ignore
+                )
             else:
-                return process_single_file(x)
+                return File._process_single_file(
+                    x, type=self.type, cache_dir=self.GRADIO_CACHE  # type: ignore
+                )
         else:
             if isinstance(x, list):
-                return [process_single_file(f) for f in x]
+                return [
+                    File._process_single_file(
+                        f, type=self.type, cache_dir=self.GRADIO_CACHE  # type: ignore
+                    )
+                    for f in x
+                ]
             else:
-                return process_single_file(x)
+                return File._process_single_file(
+                    x, type=self.type, cache_dir=self.GRADIO_CACHE  # type: ignore
+                )
 
     def postprocess(self, y):
         return super().postprocess(y)
