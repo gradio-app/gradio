@@ -179,7 +179,9 @@ class TestClientPredictions:
     def test_job_output_video(self, video_component):
         with connect(video_component) as client:
             job = client.submit(
-                "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4",
+                {
+                    "video": "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
+                },
                 fn_index=0,
             )
             assert Path(job.result()["video"]).exists()
@@ -191,7 +193,9 @@ class TestClientPredictions:
         temp_dir = tempfile.mkdtemp()
         with connect(video_component, output_dir=temp_dir) as client:
             job = client.submit(
-                "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4",
+                {
+                    "video": "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
+                },
                 fn_index=0,
             )
             assert Path(job.result()["video"]).exists()
