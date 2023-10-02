@@ -174,6 +174,7 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
             "sanitize_html": sanitize_html,
             "bubble_full_width": bubble_full_width,
             "render_markdown": render_markdown,
+            "layout": layout,
             "__type__": "update",
         }
         return updated_config

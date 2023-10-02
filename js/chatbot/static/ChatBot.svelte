@@ -121,9 +121,7 @@
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
 					<div
-						class="message-row {j == 0 && layout === 'bubble'
-							? 'user-row'
-							: 'bot-row'}"
+						class="message-row {layout} {j == 0 ? 'user-row' : 'bot-row'}"
 						class:hide={message === null}
 					>
 						{#if avatar_images[j] !== null}
@@ -142,7 +140,7 @@
 
 						<div
 							class="message {j == 0 ? 'user' : 'bot'}"
-							class:message-fit={!bubble_full_width}
+							class:message-fit={layout === "bubble" && !bubble_full_width}
 							class:panel-full-width={layout === "panel"}
 							class:message-bubble-border={layout === "bubble"}
 							class:message-markdown-disabled={!render_markdown}
@@ -152,7 +150,7 @@
 								class:latest={i === value.length - 1}
 								class:message-markdown-disabled={!render_markdown}
 								class:selectable
-								style:text-align={layout === "panel" ? "left" : "inherit"}
+								style:text-align="left"
 								on:click={() => handle_select(i, j, message)}
 								on:keydown={(e) => {
 									if (e.key === "Enter") {
@@ -220,8 +218,10 @@
 							<div
 								class="message-buttons-{j == 0
 									? 'user'
-									: 'bot'} message-buttons-{layout}"
-								class:message-buttons-fit={!bubble_full_width}
+									: 'bot'} message-buttons-{layout} {avatar_images[j] !==
+									null && 'with-avatar'}"
+								class:message-buttons-fit={layout === "bubble" &&
+									!bubble_full_width}
 								class:bubble-buttons-user={layout === "bubble"}
 							>
 								{#if likeable && j == 1}
@@ -335,7 +335,6 @@
 	}
 	.bot {
 		border-bottom-left-radius: 0;
-		text-align: left;
 	}
 
 	/* Colors */
@@ -350,25 +349,32 @@
 	}
 	.message-row {
 		display: flex;
-		flex-direction: row-reverse;
-		justify-content: flex-end;
+		flex-direction: row;
 		position: relative;
+	}
+
+	.message-row.panel.user-row {
+		background: var(--color-accent-soft);
+	}
+
+	.message-row.panel.bot-row {
+		background: var(--background-fill-secondary);
 	}
 
 	.message-row:last-of-type {
 		margin-bottom: var(--spacing-xxl);
 	}
 
-	.user-row {
+	.user-row.bubble {
 		flex-direction: row;
 		justify-content: flex-end;
 	}
 	@media (max-width: 480px) {
-		.user-row {
+		.user-row.bubble {
 			align-self: flex-end;
 		}
 
-		.bot-row {
+		.bot-row.bubble {
 			align-self: flex-start;
 		}
 		.message {
@@ -387,12 +393,17 @@
 		flex-shrink: 0;
 		bottom: 0;
 	}
-	.user-row > .avatar-container {
+	.user-row.bubble > .avatar-container {
 		order: 2;
 		margin-left: 10px;
 	}
-	.bot-row > .avatar-container {
+	.bot-row.bubble > .avatar-container {
 		margin-right: 10px;
+	}
+
+	.panel > .avatar-container {
+		margin-left: 25px;
+		align-self: center;
 	}
 	img.avatar-image {
 		width: 100%;
@@ -420,6 +431,13 @@
 	}
 	.message-buttons-user {
 		right: 5px;
+	}
+
+	.message-buttons-bot.message-buttons-bubble.with-avatar {
+		left: 50px;
+	}
+	.message-buttons-user.message-buttons-bubble.with-avatar {
+		right: 50px;
 	}
 
 	.message-buttons-bubble {
