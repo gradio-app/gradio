@@ -60,6 +60,7 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
         sanitize_html: bool = True,
         render_markdown: bool = True,
         bubble_full_width: bool = True,
+        layout: Literal["panel", "bubble"] | None = None,
         **kwargs,
     ):
         """
@@ -84,6 +85,7 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
             sanitize_html: If False, will disable HTML sanitization for chatbot messages. This is not recommended, as it can lead to security vulnerabilities.
             render_markdown: If False, will disable Markdown rendering for chatbot messages.
             bubble_full_width: If False, the chat bubble will fit to the content of the message. If True (default), the chat bubble will be the full width of the component.
+            layout: If "panel", will display the chatbot in a llm style layout. If "bubble", will display the chatbot with message bubbles, with the user and bot messages on alterating sides. Will default to "bubble".
         """
         if color_map is not None:
             warn_deprecation("The 'color_map' parameter has been deprecated.")
@@ -114,6 +116,7 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
         self.show_copy_button = show_copy_button
         self.sanitize_html = sanitize_html
         self.bubble_full_width = bubble_full_width
+        self.layout = layout
         IOComponent.__init__(
             self,
             label=label,
@@ -148,6 +151,7 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
         avatar_images: tuple[str | Path | None] | None = None,
         sanitize_html: bool | None = None,
         bubble_full_width: bool | None = None,
+        layout: Literal["panel", "bubble"] | None = None,
         render_markdown: bool | None = None,
     ):
         warnings.warn(
@@ -170,6 +174,7 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
             "sanitize_html": sanitize_html,
             "bubble_full_width": bubble_full_width,
             "render_markdown": render_markdown,
+            "layout": layout,
             "__type__": "update",
         }
         return updated_config
