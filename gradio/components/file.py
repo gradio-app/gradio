@@ -10,7 +10,6 @@ from typing import Any, Callable, List, Literal
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio import utils
 from gradio.components.base import Component, _Keywords
 from gradio.data_classes import FileData, GradioRootModel
 from gradio.deprecation import warn_deprecation
@@ -100,8 +99,6 @@ class File(Component):
             warnings.warn(
                 "The `file_types` parameter is ignored when `file_count` is 'directory'."
             )
-        self.type = type
-        self.height = height
         super().__init__(
             label=label,
             every=every,
@@ -116,6 +113,8 @@ class File(Component):
             value=value,
             **kwargs,
         )
+        self.type = type
+        self.height = height
 
     @staticmethod
     def update(
@@ -145,6 +144,31 @@ class File(Component):
             "__type__": "update",
         }
 
+    @staticmethod
+    def _process_single_file(
+        f, type: Literal["file", "bytes", "binary"], cache_dir: str
+    ) -> bytes | tempfile._TemporaryFileWrapper:
+        file_name, data, is_file = (
+            f["name"],
+            f["data"],
+            f.get("is_file", False),
+        )
+        print(file_name)
+        if type == "file":
+            file = tempfile.NamedTemporaryFile(delete=False, dir=cache_dir)
+            file.name = file_name
+            file.orig_name = file_name  # type: ignore
+            return file
+        elif type in {"bytes", "binary"}:
+            if is_file:
+                with open(file_name, "rb") as file_data:
+                    return file_data.read()
+            return client_utils.decode_base64_to_binary(data)[0]
+        else:
+            raise ValueError(
+                "Unknown type: " + str(type) + ". Please choose from: 'file', 'bytes'."
+            )
+
     def preprocess(
         self, x: list[dict[str, Any]] | None
     ) -> (
@@ -162,52 +186,18 @@ class File(Component):
         if x is None:
             return None
 
-        def process_single_file(f) -> bytes | tempfile._TemporaryFileWrapper:
-            file_name, data, is_file = (
-                f["name"],
-                f["data"],
-                f.get("is_file", False),
-            )
-            if self.type == "file":
-                if is_file:
-                    path = self.make_temp_copy_if_needed(file_name)
-                else:
-                    data, _ = client_utils.decode_base64_to_binary(data)
-                    path = self.file_bytes_to_file(data, file_name=file_name)
-                    path = str(utils.abspath(path))
-                    self.temp_files.add(path)
-
-                # Creation of tempfiles here
-                file = tempfile.NamedTemporaryFile(
-                    delete=False, dir=self.DEFAULT_TEMP_DIR
-                )
-                file.name = path
-                file.orig_name = file_name  # type: ignore
-                return file
-            elif (
-                self.type == "binary" or self.type == "bytes"
-            ):  # "bytes" is included for backwards compatibility
-                if is_file:
-                    with open(file_name, "rb") as file_data:
-                        return file_data.read()
-                return client_utils.decode_base64_to_binary(data)[0]
-            else:
-                raise ValueError(
-                    "Unknown type: "
-                    + str(self.type)
-                    + ". Please choose from: 'file', 'bytes'."
-                )
-
         if self.file_count == "single":
             if isinstance(x, list):
-                return process_single_file(x[0])
+                return self._process_single_file(
+                    x[0], type=self.type, cache_dir=self.GRADIO_CACHE  # type: ignore
+                )
             else:
-                return process_single_file(x)
+                return self._process_single_file(x, type=self.type, cache_dir=self.GRADIO_CACHE)  # type: ignore
         else:
             if isinstance(x, list):
-                return [process_single_file(f) for f in x]
+                return [self._process_single_file(f, type=self.type, cache_dir=self.GRADIO_CACHE) for f in x]  # type: ignore
             else:
-                return process_single_file(x)
+                return self._process_single_file(x, type=self.type, cache_dir=self.GRADIO_CACHE)  # type: ignore
 
     def postprocess(self, y: str | list[str] | None) -> ListFiles | FileData | None:
         """
@@ -222,26 +212,21 @@ class File(Component):
             return ListFiles(
                 root=[
                     FileData(
-                        **{
-                            "orig_name": Path(file).name,
-                            "name": self.make_temp_copy_if_needed(file),
-                            "size": Path(file).stat().st_size,
-                            "data": None,
-                            "is_file": True,
-                        }
+                        name=file,
+                        orig_name=Path(file).name,
+                        size=Path(file).stat().st_size,
+                        is_file=True,
                     )
                     for file in y
                 ]
             )
         else:
-            d = {
-                "orig_name": Path(y).name,
-                "name": self.make_temp_copy_if_needed(y),
-                "size": Path(y).stat().st_size,
-                "data": None,
-                "is_file": True,
-            }
-            return FileData(**d)
+            return FileData(
+                name=y,
+                orig_name=Path(y).name,
+                size=Path(y).stat().st_size,
+                is_file=True,
+            )
 
     def as_example(self, input_data: str | list | None) -> str:
         if input_data is None:

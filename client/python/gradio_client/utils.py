@@ -10,7 +10,6 @@ import pkgutil
 import secrets
 import shutil
 import tempfile
-import urllib.request
 import warnings
 from concurrent.futures import CancelledError
 from dataclasses import dataclass, field
@@ -308,74 +307,6 @@ async def get_pred_from_ws(
 ########################
 # Data processing utils
 ########################
-
-
-def hash_file(file_path: str | Path, chunk_num_blocks: int = 128) -> str:
-    """Returns the sha1 hash of a file.
-
-    Used to create a unique directory for a file.
-
-    Parameters:
-        file_path: path to file
-        chunk_num_blocks: number of blocks to read at a time
-    """
-    sha1 = hashlib.sha1()
-    with open(file_path, "rb") as f:
-        for chunk in iter(lambda: f.read(chunk_num_blocks * sha1.block_size), b""):
-            sha1.update(chunk)
-    return sha1.hexdigest()
-
-
-def hash_url(url: str, chunk_num_blocks: int = 128) -> str:
-    """Returns the sha1 hash of a url.
-
-    Used to create a unique directory for a url.
-
-    Parameters:
-        url: url
-        chunk_num_blocks: number of blocks to read at a time
-    """
-    sha1 = hashlib.sha1()
-    remote = urllib.request.urlopen(url)
-    max_file_size = 100 * 1024 * 1024  # 100MB
-    total_read = 0
-    while True:
-        data = remote.read(chunk_num_blocks * sha1.block_size)
-        total_read += chunk_num_blocks * sha1.block_size
-        if not data or total_read > max_file_size:
-            break
-        sha1.update(data)
-    return sha1.hexdigest()
-
-
-def hash_bytes(bytes: bytes) -> str:
-    """Returns the sha1 hash of a bytes object.
-
-    Used to create a unique directory for a bytes object.
-
-    Parameters:
-        bytes: bytes object
-    """
-
-    sha1 = hashlib.sha1()
-    sha1.update(bytes)
-    return sha1.hexdigest()
-
-
-def hash_base64(base64_encoding: str, chunk_num_blocks: int = 128) -> str:
-    """Returns the sha1 hash of a base64 encoding.
-
-    Used to create a unique directory for a base64 encoding.
-
-    Parameters:
-        base64_encoding: base64 encoding
-        chunk_num_blocks: number of blocks to read at a time
-    """
-    sha1 = hashlib.sha1()
-    for i in range(0, len(base64_encoding), chunk_num_blocks * sha1.block_size):
-        data = base64_encoding[i : i + chunk_num_blocks * sha1.block_size]
-        sha1.update(data.encode("utf-8"))
-    return sha1.hexdigest()
 
 
 def download_file(
@@ -720,15 +651,7 @@ def is_url(s):
 
 
 def is_file_obj(d):
-    return (
-        isinstance(d, dict)
-        and "name" in d
-        and "is_file" in d
-        and "data" in d
-        and "size" in d
-        and "orig_name" in d
-        and "mime_type" in d
-    )
+    return isinstance(d, dict) and "name" in d and "is_file" in d and "data" in d
 
 
 SKIP_COMPONENTS = {

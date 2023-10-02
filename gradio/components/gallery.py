@@ -10,7 +10,7 @@ import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
-from gradio import utils
+from gradio import processing_utils, utils
 from gradio.components.base import Component, _Keywords
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
@@ -181,40 +181,24 @@ class Gallery(Component):
             if isinstance(img, (tuple, list)):
                 img, caption = img
             if isinstance(img, np.ndarray):
-                file = self.img_array_to_temp_file(img, dir=self.DEFAULT_TEMP_DIR)
+                file = processing_utils.save_img_array_to_cache(
+                    img, cache_dir=self.GRADIO_CACHE
+                )
                 file_path = str(utils.abspath(file))
-                self.temp_files.add(file_path)
             elif isinstance(img, _Image.Image):
-                file = self.pil_to_temp_file(img, dir=self.DEFAULT_TEMP_DIR)
+                file = processing_utils.save_pil_to_cache(
+                    img, cache_dir=self.GRADIO_CACHE
+                )
                 file_path = str(utils.abspath(file))
-                self.temp_files.add(file_path)
             elif isinstance(img, (str, Path)):
-                if utils.validate_url(img):
-                    file_path = img
-                else:
-                    file_path = self.make_temp_copy_if_needed(img)
+                file_path = str(img)
             else:
                 raise ValueError(f"Cannot process type as image: {type(img)}")
 
-            if caption is not None:
-                output.append(
-                    {
-                        "image": {
-                            "name": file_path,
-                            "data": None,
-                            "is_file": True,
-                        },
-                        "caption": caption,
-                    }
-                )
-            else:
-                output.append(
-                    {
-                        "image": {"name": file_path, "data": None, "is_file": True},
-                        "caption": None,
-                    }
-                )
-
+            entry = GalleryImage(
+                image=FileData(name=file_path, is_file=True), caption=caption
+            )
+            output.append(entry)
         return GalleryData(root=output)
 
     def preprocess(self, x: Any) -> Any:

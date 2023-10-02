@@ -502,8 +502,8 @@ class TestTempFile:
         video = str(file_dir / "video_sample.mp4")
         demo = gr.Interface(lambda x: x, gr.Video(type="file"), gr.Video())
         with connect(demo) as client:
-            _ = client.predict(video)
-            _ = client.predict(video)
+            _ = client.predict({"video": video})
+            _ = client.predict({"video": video})
         # Upload route and postprocessing return the same file
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
 
