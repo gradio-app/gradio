@@ -25,7 +25,7 @@ set_documentation_group("component")
 class FileExplorer(Changeable, IOComponent, JSONSerializable):
     """
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
-    Preprocessing: passes the uploaded file as a {tempfile._TemporaryFileWrapper} or {List[tempfile._TemporaryFileWrapper]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
+    Preprocessing: passes the selected file or directory as a {str} path (relative to root) or {list[str}} depending on `file_count`
     Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
     Examples-format: a {str} path to a local file that populates the component.
     Demos: zip_to_json, zip_files
@@ -33,9 +33,9 @@ class FileExplorer(Changeable, IOComponent, JSONSerializable):
 
     def __init__(
         self,
-        value: str | list[str] | Callable | None = None,
-        *,
         glob: str,
+        *,
+        value: str | list[str] | Callable | None = None,
         file_count: Literal["single", "multiple", "directory"] = "multiple",
         root: str | Path = ".",
         ignore_glob: str | None = None,
