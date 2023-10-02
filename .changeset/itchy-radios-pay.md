@@ -1,7 +1,10 @@
 ---
 "@gradio/app": minor
+"@gradio/checkbox": minor
 "@gradio/client": minor
-"@gradio/hostfile": minor
+"@gradio/file": minor
+"@gradio/fileexplorer": minor
+"@gradio/theme": minor
 "gradio": minor
 "gradio_client": minor
 ---
