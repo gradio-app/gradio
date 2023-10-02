@@ -1,4 +1,6 @@
 ---
+"@gradio/chatbot": patch
+"@gradio/dataframe": patch
 "@gradio/markdown": patch
 "gradio": patch
 ---
