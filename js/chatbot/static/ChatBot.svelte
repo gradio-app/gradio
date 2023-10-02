@@ -299,12 +299,6 @@
 		padding: calc(var(--spacing-xxl) + var(--spacing-sm));
 	}
 
-	@media (max-width: 480px) {
-		.message {
-			padding: calc(var(--spacing-xxl) * 2);
-		}
-	}
-
 	.message-bubble-border {
 		border-width: 1px;
 		border-radius: var(--radius-xxl);
@@ -379,9 +373,6 @@
 		}
 		.message {
 			width: auto;
-		}
-		.bot {
-			padding-left: var(--spacing-xxl);
 		}
 	}
 	.avatar-container {
