@@ -82,3 +82,26 @@
 		layout: "panel",
 	}}
 />
+
+<Story
+	name="Chatbot with panel layout enabled and avatars"
+	args={{
+		layout: "panel",
+		avatar_images: [
+			"https://avatars.githubusercontent.com/u/100000?v=4",
+			"https://avatars.githubusercontent.com/u/100000?v=4",
+		],
+	}}
+/>
+
+<Story
+	name="Chatbot with bubble layout enabled and avatars"
+	args={{
+		bubble_full_width: true,
+		layout: "bubble",
+		avatar_images: [
+			"https://avatars.githubusercontent.com/u/100000?v=4",
+			"https://avatars.githubusercontent.com/u/100000?v=4",
+		],
+	}}
+/>
