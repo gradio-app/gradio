@@ -52,6 +52,29 @@
 />
 
 <Story
+	name="Dataframe with different precisions"
+	args={{
+		values: {
+			data: [
+				[1.24, 1.24, 1.24],
+				[1.21, 1.21, 1.21]
+			],
+			metadata: {
+				display_value: [
+					["1", "1.2", "1.24"],
+					["1", "1.2", "1.21"]
+				]
+			}
+		},
+		headers: ["Precision=0", "Precision=1", "Precision=2"],
+		label: "Animals",
+		col_count: [3, "dynamic"],
+		row_count: [2, "dynamic"],
+		editable: false
+	}}
+/>
+
+<Story
 	name="Dataframe with markdown and math"
 	args={{
 		values: [
