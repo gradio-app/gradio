@@ -39,18 +39,9 @@
 			"type": "checkboxgroup",
 			"props": {
 				"choices": [
-					[
-						"Covid",
-						"Covid"
-					],
-					[
-						"Malaria",
-						"Malaria"
-					],
-					[
-						"Lung Cancer",
-						"Lung Cancer"
-					]
+					["Covid", "Covid"],
+					["Malaria", "Malaria"],
+					["Lung Cancer", "Lung Cancer"]
 				],
 				"value": [],
 				"type": "value",
@@ -73,12 +64,8 @@
 				"serialized_info": false
 			},
 			"example_inputs": {
-				"raw": [
-					"Covid"
-				],
-				"serialized": [
-					"Covid"
-				]
+				"raw": ["Covid"],
+				"serialized": ["Covid"]
 			}
 		},
 		{
@@ -425,17 +412,10 @@
 	},
 	"dependencies": [
 		{
-			"targets": [
-				1038
-			],
+			"targets": [1038],
 			"trigger": "click",
-			"inputs": [
-				1032,
-				1036
-			],
-			"outputs": [
-				1037
-			],
+			"inputs": [1032, 1036],
+			"outputs": [1037],
 			"backend_fn": true,
 			"js": null,
 			"queue": null,
@@ -455,17 +435,10 @@
 			"trigger_only_on_success": false
 		},
 		{
-			"targets": [
-				1043
-			],
+			"targets": [1043],
 			"trigger": "click",
-			"inputs": [
-				1032,
-				1041
-			],
-			"outputs": [
-				1042
-			],
+			"inputs": [1032, 1041],
+			"outputs": [1042],
 			"backend_fn": true,
 			"js": null,
 			"queue": null,
@@ -488,9 +461,7 @@
 			"targets": [],
 			"trigger": "load",
 			"inputs": [],
-			"outputs": [
-				1044
-			],
+			"outputs": [1044],
 			"backend_fn": true,
 			"js": null,
 			"queue": null,

@@ -11,7 +11,7 @@
 		value={[
 			["zebras", "+"],
 			["dogs", "-"],
-			["elephants", "+"],
+			["elephants", "+"]
 		]}
 		gradio={new Gradio(
 			0,
@@ -30,7 +30,7 @@
 <Story
 	name="Highlighted Text with new lines"
 	args={{
-		value: [["zebras", "+"], ["\n"], ["dogs", "-"], ["\n"], ["elephants", "+"]],
+		value: [["zebras", "+"], ["\n"], ["dogs", "-"], ["\n"], ["elephants", "+"]]
 	}}
 />
 <Story
@@ -48,9 +48,9 @@
 			["fox", "subject"],
 			[" jumped ", "past tense verb"],
 			["over the", null],
-			["lazy dog", "object"],
+			["lazy dog", "object"]
 		],
-		combine_adjacent: true,
+		combine_adjacent: true
 	}}
 />
 
@@ -64,8 +64,8 @@
 			["fox", "subject"],
 			[" jumped ", "past tense verb"],
 			["over the", null],
-			["lazy dog", "object"],
-		],
+			["lazy dog", "object"]
+		]
 	}}
 />
 
@@ -81,9 +81,9 @@
 			["jumped", "past tense verb"],
 			["\n"],
 			["over the", null],
-			["lazy dog", "object"],
+			["lazy dog", "object"]
 		],
-		combine_adjacent: true,
+		combine_adjacent: true
 	}}
 />
 
@@ -93,9 +93,9 @@
 		value: [
 			["the", -1],
 			["quick", 1],
-			["fox", 0.3],
+			["fox", 0.3]
 		],
 
-		show_legend: true,
+		show_legend: true
 	}}
 />

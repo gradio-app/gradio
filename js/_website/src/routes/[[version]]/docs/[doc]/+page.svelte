@@ -105,24 +105,33 @@
 					See the <a class="link" href="/changelog">Release History</a>
 				</p>
 			</div>
-			
+
 			{#if on_main}
-				<div class="codeblock bg-gray-100 border border-gray-200 text-gray-800 px-3 py-1 mt-4  rounded-lg lg:ml-10">
+				<div
+					class="codeblock bg-gray-100 border border-gray-200 text-gray-800 px-3 py-1 mt-4 rounded-lg lg:ml-10"
+				>
 					<p class="my-2">
 						To install Gradio from main, run the following command:
 					</p>
-					<button class="clipboard-button" type="button" on:click={() => copy("pip install " + wheel)}>
+					<button
+						class="clipboard-button"
+						type="button"
+						on:click={() => copy("pip install " + wheel)}
+					>
 						{#if !copied}
 							{@html svgCopy}
 						{:else}
 							{@html svgCheck}
 						{/if}
 					</button>
-						<pre class="language-bash" style="padding-right: 25px;"><code class="language-bash text-xs">pip install {wheel}</code></pre>
+					<pre class="language-bash" style="padding-right: 25px;"><code
+							class="language-bash text-xs">pip install {wheel}</code
+						></pre>
 					<p class="float-right text-sm">
-						*Note: Setting <code style="font-size: 0.85rem">share=True</code> in <code style="font-size: 0.85rem">launch()</code> will not work. 
+						*Note: Setting <code style="font-size: 0.85rem">share=True</code> in
+						<code style="font-size: 0.85rem">launch()</code> will not work.
 					</p>
-					</div>
+				</div>
 			{/if}
 
 			<div class="flex justify-between mt-4 lg:ml-10">
@@ -423,7 +432,7 @@
 															name={demo[0]}
 															code={demo[1]}
 															highlighted_code={demo[2]}
-															on_main={on_main}
+															{on_main}
 														/>
 													</div>
 												{/each}

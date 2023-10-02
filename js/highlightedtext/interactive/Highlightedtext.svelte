@@ -45,7 +45,7 @@
 			const [before, selected, after] = [
 				str.substring(0, startIndex),
 				str.substring(startIndex, endIndex),
-				str.substring(endIndex),
+				str.substring(endIndex)
 			];
 
 			let tempValue: [string, string | number | null, symbol?][] = [
@@ -53,7 +53,7 @@
 				[before, null],
 				[selected, mode === "scores" ? 1 : "label", tempFlag], // add a temp flag to the new highlighted text element
 				[after, null],
-				...value.slice(activeElementIndex + 1),
+				...value.slice(activeElementIndex + 1)
 			];
 
 			// store the index of the new highlighted text element and remove the flag
@@ -153,7 +153,7 @@
 	): void {
 		dispatch("select", {
 			index: i,
-			value: [text, category],
+			value: [text, category]
 		});
 	}
 </script>
