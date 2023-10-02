@@ -47,8 +47,7 @@
 <button
 	on:click={handle_copy}
 	title="copy"
-	aria-roledescription={copied ? "Value copied" : "Copy value"}
-	aria-label={copied ? "Copied" : "Copy"}
+	aria-label={copied ? "Copied message" : "Copy message"}
 >
 	{#if !copied}
 		<Copy />
@@ -63,12 +62,12 @@
 		position: relative;
 		top: 0;
 		right: 0;
-
-		width: 22px;
-		height: 22px;
-
-		padding: 5px;
-
 		cursor: pointer;
+		color: var(--body-text-color-subdued);
+		margin-right: 5px;
+	}
+
+	button:hover {
+		color: var(--body-text-color);
 	}
 </style>

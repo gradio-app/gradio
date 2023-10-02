@@ -26,6 +26,7 @@
 	export let show_copy_button = false;
 	export let sanitize_html = true;
 	export let bubble_full_width = true;
+	export let layout: "bubble" | "panel" = "bubble";
 	export let render_markdown = true;
 	export let line_breaks = true;
 	export let latex_delimiters: {
@@ -54,7 +55,7 @@
 					: normalise_file(user_msg, root, root_url),
 				typeof bot_msg === "string"
 					? redirect_src_url(bot_msg)
-					: normalise_file(bot_msg, root, root_url)
+					: normalise_file(bot_msg, root, root_url),
 		  ])
 		: [];
 
@@ -108,6 +109,7 @@
 			{sanitize_html}
 			{bubble_full_width}
 			{line_breaks}
+			{layout}
 			{root_url}
 			{root}
 		/>

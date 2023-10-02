@@ -2122,6 +2122,7 @@ class TestChatbot:
             "render_markdown": True,
             "bubble_full_width": True,
             "line_breaks": True,
+            "layout": None,
         }
 
 
