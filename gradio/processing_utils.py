@@ -294,7 +294,10 @@ def move_files_to_cache(data: Any, block: Component):
 
     def _move_to_cache(d: dict):
         payload = FileData(**d)
-        if payload.name and not is_in_or_equal(payload.name, block.GRADIO_CACHE):
+        if payload.name and (
+            client_utils.is_http_url_like(payload.name)
+            or not is_in_or_equal(payload.name, block.GRADIO_CACHE)
+        ):
             if payload.is_file:
                 if client_utils.is_http_url_like(payload.name):
                     temp_file_path = save_url_to_cache(
