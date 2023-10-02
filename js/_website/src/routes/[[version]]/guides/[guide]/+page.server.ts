@@ -3,7 +3,7 @@ import anchor from "$lib/assets/img/anchor.svg";
 import { make_slug_processor } from "$lib/utils";
 import { toString as to_string } from "hast-util-to-string";
 import { redirect } from "@sveltejs/kit";
-import { error } from "@sveltejs/kit";
+import { error } from '@sveltejs/kit';
 
 import Prism from "prismjs";
 import "prismjs/components/prism-python";
@@ -49,9 +49,7 @@ async function load_release_guides(
 	version: string,
 	guide: string
 ): Promise<typeof import("$lib/json/guides/Gradio-and-Comet.json")> {
-	let guide_json = await fetch(
-		`${DOCS_BUCKET}/${version}/guides/${guide}.json`
-	);
+	let guide_json = await fetch(`${DOCS_BUCKET}/${version}/guides/${guide}.json`);
 	return await guide_json.json();
 }
 
@@ -60,7 +58,7 @@ async function load_release_guide_names(
 ): Promise<typeof import("$lib/json/guides/guide_names.json")> {
 	let guide_names_json = await fetch(
 		`${DOCS_BUCKET}/${version}/guides/guide_names.json`
-	);
+	)
 	return await guide_names_json.json();
 }
 
@@ -75,22 +73,20 @@ async function load_main_guide_names() {
 export async function load({ params, url }) {
 	if (params?.version === VERSION) {
 		throw redirect(302, url.href.replace(`/${params.version}`, ""));
-	}
-	let guide_names_json =
-		params?.version === "main"
+	}	
+	let guide_names_json = params?.version === "main"
 			? await load_main_guide_names()
 			: await load_release_guide_names(params.version || VERSION);
-
-	if (
-		!guide_names_json.guide_urls.some((guide: string) => guide === params.guide)
-	) {
+	
+	if (!(guide_names_json.guide_urls.some((guide: string) => guide === params.guide))) {
 		throw error(404);
 	}
-
+	
 	let guide_json =
 		params?.version === "main"
 			? await load_main_guides(params.guide)
 			: await load_release_guides(params.version || VERSION, params.guide);
+
 
 	let guide = guide_json.guide;
 	const guide_slug: object[] = [];

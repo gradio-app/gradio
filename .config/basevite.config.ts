@@ -21,9 +21,7 @@ const theme_token_path = join(
 	"tokens.css"
 );
 
-const version = JSON.parse(readFileSync(version_path, { encoding: "utf-8" }))
-	.version.trim()
-	.replace(/\./g, "-");
+const version = JSON.parse(readFileSync(version_path, { encoding: 'utf-8' })).version.trim().replace(/\./g, '-');
 
 //@ts-ignore
 export default defineConfig(({ mode }) => {

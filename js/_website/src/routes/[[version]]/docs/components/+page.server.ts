@@ -1,14 +1,5 @@
 export async function load({ parent }) {
-	const {
-		docs,
-		components,
-		helpers,
-		modals,
-		py_client,
-		routes,
-		on_main,
-		wheel
-	} = await parent();
+	const { docs, components, helpers, modals, py_client, routes, on_main, wheel } = await parent();
 
 	let events = docs.events;
 	let events_matrix = docs.events_matrix;

@@ -825,6 +825,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      dequal:
+        specifier: ^2.0.2
+        version: 2.0.3
 
   js/form:
     dependencies:
