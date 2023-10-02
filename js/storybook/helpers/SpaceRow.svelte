@@ -19,22 +19,26 @@
 			}}
 			style="height: {space.value};"
 			><div class="copy-text">
-				{copied ? "Copied to clipboard!" : "Click to copy token"}
+				{copied ? "Copied to clipboard!" : "Copy token"}
 			</div>
 		</button></td
 	>
 </tr>
 
 <style>
+	.td-button {
+		width: 100%;
+	}
 	.copy-text {
 		font-size: 0.8em;
 		margin: 15px 0;
 		width: max-content;
+		color: #8d9196;
 	}
 
 	button {
 		border: none;
-		width: 50px;
+		width: 100%;
 		cursor: pointer;
 		background-color: #fb923c;
 	}

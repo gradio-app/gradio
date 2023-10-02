@@ -19,7 +19,7 @@
 			}}
 			style="background-color: {color.value};"
 			><div class="copy-text">
-				{copied ? "Copied to clipboard!" : "Click to copy token"}
+				{copied ? "Copied to clipboard!" : "Copy token"}
 			</div>
 		</button></td
 	>

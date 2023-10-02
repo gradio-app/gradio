@@ -18,11 +18,11 @@
 				}, 1000);
 			}}
 			><div style="font-size: {textSize.value}">Gradio</div>
+			<div class="copy-text">
+				{copied ? "Copied to clipboard!" : "Copy token"}
+			</div>
 		</button>
-		<div class="copy-text">
-			{copied ? "Copied to clipboard!" : "Click to copy token"}
-		</div></td
-	>
+	</td>
 </tr>
 
 <style>
@@ -37,17 +37,14 @@
 		margin: 0 auto;
 		padding: 5px 10px;
 		border-radius: 10px;
-		color: #374151;
+		color: #8d9196;
 	}
 
 	button {
 		border: none;
 		width: 100%;
-		border-radius: 15px;
 		cursor: pointer;
 		background-color: white;
-		border: 3px solid #fb923c;
-		padding: 10px;
 	}
 
 	td {

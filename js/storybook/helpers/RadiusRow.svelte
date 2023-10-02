@@ -19,7 +19,7 @@
 			}}
 			style="border-radius: {radius.value};"
 			><div class="copy-text">
-				{copied ? "Copied to clipboard!" : "Click to copy token"}
+				{copied ? "Copied to clipboard!" : "Copy token"}
 			</div>
 		</button></td
 	>
@@ -37,7 +37,7 @@
 		margin: 0 auto;
 		padding: 5px 10px;
 		border-radius: 10px;
-		color: #374151;
+		color: #8d9196;
 	}
 
 	button {

@@ -52,7 +52,7 @@
 				<thead>
 					<tr>
 						<th>Token Name</th>
-						<th>Hex Code</th>
+						<th>Value</th>
 						<th>Swatch</th>
 					</tr>
 				</thead>
@@ -103,7 +103,10 @@
 	}
 
 	tr {
-		text-align: left;
 		margin: 10px;
+		font: var(--font-sans);
+		color: var(--block-title-text-color);
+		font-weight: var(--block-title-text-weight);
+		font-size: var(--block-title-text-size);
 	}
 </style>
