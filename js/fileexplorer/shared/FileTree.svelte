@@ -119,7 +119,7 @@
 		transform: rotate(90deg);
 		transform-origin: 40% 50%;
 		transition: 0.2s;
-		color: var(--color-accent) !important;
+		color: var(--color-accent);
 	}
 
 	.hidden :global(> *) {
