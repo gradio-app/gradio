@@ -65,9 +65,9 @@ export const component_map = {
 		static: () => import("@gradio/highlightedtext/static"),
 		interactive: () => import("@gradio/highlightedtext/interactive")
 	},
-	hostfile: {
-		static: () => import("@gradio/hostfile/static"),
-		interactive: () => import("@gradio/hostfile/interactive")
+	fileexplorer: {
+		static: () => import("@gradio/fileexplorer/static"),
+		interactive: () => import("@gradio/fileexplorer/interactive")
 	},
 	html: {
 		static: () => import("@gradio/html/static")

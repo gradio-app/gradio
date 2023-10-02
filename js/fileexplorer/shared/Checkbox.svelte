@@ -1,13 +1,18 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	export let value: boolean;
+	export let disabled: boolean;
 
 	const dispatch = createEventDispatcher<{ change: boolean }>();
-
-	$: dispatch("change", value);
 </script>
 
-<input bind:checked={value} type="checkbox" />
+<input
+	bind:checked={value}
+	type="checkbox"
+	on:click={() => dispatch("change", value)}
+	{disabled}
+	class:disabled={disabled && !value}
+/>
 
 <style>
 	input {
@@ -38,5 +43,18 @@
 	input:focus {
 		border-color: var(--checkbox-border-color-focus);
 		background-color: var(--checkbox-background-color-focus);
+	}
+
+	.disabled {
+		cursor: not-allowed;
+		border-color: var(--checkbox-border-color-hover);
+		background-color: var(--checkbox-background-color-hover);
+	}
+
+	input:disabled:checked,
+	input:disabled:checked:hover,
+	.disabled:checked:focus {
+		opacity: 0.8 !important;
+		cursor: not-allowed;
 	}
 </style>

@@ -415,6 +415,9 @@ importers:
       '@gradio/file':
         specifier: workspace:^
         version: link:../file
+      '@gradio/fileexplorer':
+        specifier: workspace:^
+        version: link:../fileexplorer
       '@gradio/form':
         specifier: workspace:^
         version: link:../form
@@ -427,9 +430,6 @@ importers:
       '@gradio/highlightedtext':
         specifier: workspace:^
         version: link:../highlightedtext
-      '@gradio/hostfile':
-        specifier: workspace:^
-        version: link:../hostfile
       '@gradio/html':
         specifier: workspace:^
         version: link:../html
@@ -799,6 +799,36 @@ importers:
         specifier: workspace:^
         version: link:../utils
 
+  js/fileexplorer:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/checkbox':
+        specifier: workspace:^
+        version: link:../checkbox
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
+      '@gradio/file':
+        specifier: workspace:^
+        version: link:../file
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/upload':
+        specifier: workspace:^
+        version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+      dequal:
+        specifier: ^2.0.2
+        version: 2.0.3
+
   js/form:
     dependencies:
       '@gradio/atoms':
@@ -848,33 +878,6 @@ importers:
       '@gradio/theme':
         specifier: workspace:^
         version: link:../theme
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../utils
-
-  js/hostfile:
-    dependencies:
-      '@gradio/atoms':
-        specifier: workspace:^
-        version: link:../atoms
-      '@gradio/checkbox':
-        specifier: workspace:^
-        version: link:../checkbox
-      '@gradio/client':
-        specifier: workspace:^
-        version: link:../../client/js
-      '@gradio/file':
-        specifier: workspace:^
-        version: link:../file
-      '@gradio/icons':
-        specifier: workspace:^
-        version: link:../icons
-      '@gradio/statustracker':
-        specifier: workspace:^
-        version: link:../statustracker
-      '@gradio/upload':
-        specifier: workspace:^
-        version: link:../upload
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils

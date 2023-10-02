@@ -1,4 +1,4 @@
-"""gr.HostFile() component"""
+"""gr.FileExplorer() component"""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import itertools
 import os
 import re
 from glob import glob as glob_func
+from pathlib import Path
 from typing import Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
@@ -15,14 +16,13 @@ from gradio.components.base import IOComponent, server
 from gradio.events import (
     Changeable,
     EventListenerMethod,
-    Selectable,
 )
 
 set_documentation_group("component")
 
 
 @document()
-class HostFile(Changeable, Selectable, IOComponent, JSONSerializable):
+class FileExplorer(Changeable, IOComponent, JSONSerializable):
     """
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
     Preprocessing: passes the uploaded file as a {tempfile._TemporaryFileWrapper} or {List[tempfile._TemporaryFileWrapper]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
@@ -33,12 +33,12 @@ class HostFile(Changeable, Selectable, IOComponent, JSONSerializable):
 
     def __init__(
         self,
+        value: str | list[str] | Callable | None = None,
+        *,
         glob: str,
         file_count: Literal["single", "multiple", "directory"] = "multiple",
         root: str | Path = ".",
         ignore_glob: str | None = None,
-        value: str | list[str] | Callable | None = None,
-        *,
         label: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
@@ -101,19 +101,27 @@ class HostFile(Changeable, Selectable, IOComponent, JSONSerializable):
             **kwargs,
         )
 
-    def preprocess(self, x: list[str] | None) -> list[str] | None:
+    def preprocess(self, x: list[list[str]] | None) -> list[str] | str | None:
         """
         Parameters:
-            x: File path selected as a list of strings for each directory level relative to the root.
+            x: File path segments as a list of list of strings for each file relative to the root.
         Returns:
             File path selected, as an absolute path.
         """
         if x is None:
             return None
 
-        files = [x] if self.file_count == "single" else x
+        if self.file_count == "single":
+            if len(x) > 1:
+                raise ValueError(f"Expected only one file, but {len(x)} were selected.")
+            return self._safe_join(x[0])
 
-        return [self._safe_join(file) for file in (files)]
+        return [self._safe_join(file) for file in (x)]
+
+    def _strip_root(self, path):
+        if path.startswith(self._root):
+            return path[len(self._root) + 1 :]
+        return path
 
     def postprocess(self, y: str | list[str] | None) -> list[list[str]] | None:
         """
@@ -127,7 +135,7 @@ class HostFile(Changeable, Selectable, IOComponent, JSONSerializable):
 
         files = [y] if isinstance(y, str) else y
 
-        return [file.split(os.path.sep) for file in (files)]
+        return [self._strip_root(file).split(os.path.sep) for file in (files)]
 
     @server
     def ls(self, y=None) -> list[dict[str, str]] | None:
@@ -157,8 +165,6 @@ class HostFile(Changeable, Selectable, IOComponent, JSONSerializable):
                         replaced[start:stop] = replacement
 
                     yield from expand_braces("".join(replaced), seen)
-
-        ### testing
 
         def make_tree(files):
             tree = []
@@ -192,7 +198,6 @@ class HostFile(Changeable, Selectable, IOComponent, JSONSerializable):
         ignore_files = []
         if self.ignore_glob:
             for result in expand_braces(self.ignore_glob):
-                print(result)
                 ignore_files += glob_func(result, recursive=True, root_dir=self._root)
             files = list(set(files) - set(ignore_files))
 

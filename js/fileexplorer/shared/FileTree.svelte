@@ -1,41 +1,41 @@
 <script lang="ts">
-	import type { Node } from "./DirectoryExplorer.svelte";
+	import type { Node } from "./utils";
+	import { createEventDispatcher, tick } from "svelte";
 
 	import Arrow from "./ArrowIcon.svelte";
 	import Checkbox from "./Checkbox.svelte";
 	import FileIcon from "../icons/light-file.svg";
 
-	import { tick } from "svelte";
-
 	export let mode: "static" | "interactive";
 	export let tree: Node[] = [];
 	export let icons: any = {};
+	export let node_indices: number[] = [];
+	export let file_count: "single" | "multiple" = "multiple";
 
-	function set_checked(node: Node[] | null, checked: boolean): void {
-		if (node === null) return;
-		for (let i = 0; i < node.length; i++) {
-			node[i].checked = checked;
-			set_checked(node[i].children, checked);
-		}
-	}
+	const dispatch = createEventDispatcher<{
+		check: { node_indices: number[]; checked: boolean };
+	}>();
 
-	async function process_tree(i: number): Promise<void> {
+	async function dispatch_change(i: number): Promise<void> {
 		await tick();
 
-		if (tree[i].type === "folder") {
-			set_checked(tree[i].children, tree[i].checked);
-		}
-
-		tree = tree;
+		dispatch("check", {
+			node_indices: [...node_indices, i],
+			checked: !tree[i].checked
+		});
 	}
 </script>
 
-<!-- Render directory or file -->
 <ul>
 	{#each tree as { type, path, children, children_visible, checked }, i}
 		<li>
-			<span class="wrap"
-				><Checkbox bind:value={checked} on:change={() => process_tree(i)} />
+			<span class="wrap">
+				<Checkbox
+					disabled={mode === "static" ||
+						(type === "folder" && file_count === "single")}
+					bind:value={checked}
+					on:change={() => dispatch_change(i)}
+				/>
 
 				{#if type === "folder"}
 					<span
@@ -58,7 +58,14 @@
 				{path}
 			</span>
 			{#if children && children_visible}
-				<svelte:self tree={children} {icons} />
+				<svelte:self
+					tree={children}
+					{icons}
+					on:check
+					node_indices={[...node_indices, i]}
+					{mode}
+					{file_count}
+				/>
 			{/if}
 		</li>
 	{/each}
@@ -78,7 +85,6 @@
 		border-radius: 2px;
 		cursor: pointer;
 		transition: 0.1s;
-		color: var(--color-accent);
 	}
 
 	.file-icon {
@@ -105,16 +111,22 @@
 		background: #eee;
 	}
 
+	.icon:hover :global(> *) {
+		color: var(--block-info-text-color);
+	}
+
 	.icon :global(> *) {
 		transform: rotate(90deg);
 		transform-origin: 40% 50%;
 		transition: 0.2s;
+		color: var(--color-accent) !important;
 	}
 
 	.hidden :global(> *) {
 		transform: rotate(0);
-		color: #666;
+		color: var(--body-text-color-subdued);
 	}
+
 	ul {
 		margin-left: 26px;
 		padding-left: 0;

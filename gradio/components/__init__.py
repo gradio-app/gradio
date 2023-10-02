@@ -25,9 +25,9 @@ from gradio.components.dataset import Dataset
 from gradio.components.dropdown import Dropdown
 from gradio.components.duplicate_button import DuplicateButton
 from gradio.components.file import File
+from gradio.components.file_explorer import FileExplorer
 from gradio.components.gallery import Gallery
 from gradio.components.highlighted_text import HighlightedText
-from gradio.components.host_file import HostFile
 from gradio.components.html import HTML
 from gradio.components.image import Image
 from gradio.components.interpretation import Interpretation
@@ -83,7 +83,7 @@ __all__ = [
     "FormComponent",
     "Gallery",
     "HTML",
-    "HostFile",
+    "FileExplorer",
     "Image",
     "IOComponent",
     "Interpretation",
