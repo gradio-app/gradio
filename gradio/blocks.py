@@ -2307,6 +2307,8 @@ Received outputs:
                 # However, in the Wasm env, we don't have the `server` and
                 # all async tasks are running in the same event loop, `pyodide.webloop.WebLoop` in the main thread,
                 # so we have to cancel them manually.
+                # To avoid cancelling other async tasks that are not related to the queue,
+                # we only cancel the tasks whose names are set by `utils.set_task_name()`.
                 for task in asyncio.all_tasks():
                     task_name = task.get_name()
                     if re.match(
