@@ -13,4 +13,6 @@
 "website": minor
 ---
 
-feat:Add component <-> server direct communication support, as well as a "file explorer" component
+highlight:
+
+#### Add component <-> server direct communication support, as well as a "file explorer" component
