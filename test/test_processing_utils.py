@@ -142,6 +142,7 @@ class TestImagePreprocessing:
         input_img = Image.open("gradio/test_data/test_image.png")
         input_img = input_img.convert("RGB")
         input_img.info = {"key1": "value1", "key2": "value2"}
+        input_img.save(gradio_temp_dir / "test_test_image.png")
 
         file_obj = processing_utils.save_pil_to_cache(
             input_img, cache_dir=gradio_temp_dir

@@ -153,7 +153,6 @@ class File(Component):
             f["data"],
             f.get("is_file", False),
         )
-        print(file_name)
         if type == "file":
             file = tempfile.NamedTemporaryFile(delete=False, dir=cache_dir)
             file.name = file_name
