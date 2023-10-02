@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Template fixes
+feat:Fix deployed demos on v4 branch
