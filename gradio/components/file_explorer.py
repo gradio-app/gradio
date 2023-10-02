@@ -56,7 +56,6 @@ class FileExplorer(Changeable, IOComponent, JSONSerializable):
         Parameters:
             root: Path to root directory to select files from. If not provided, defaults to current working directory.
             value: Default path to select, given as str file path. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            type: Type of value to be returned by component. "file" returns a temporary file object with the same base name as the uploaded file, whose full path can be retrieved by file_obj.name, "binary" returns an bytes object.
             label: component name in interface.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
