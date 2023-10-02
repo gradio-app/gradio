@@ -1,5 +1,12 @@
 # @gradio/slider
 
+## 0.2.0
+
+### Features
+
+- [#5697](https://github.com/gradio-app/gradio/pull/5697) [`f4e4f82b5`](https://github.com/gradio-app/gradio/commit/f4e4f82b58a65efca9030a7e8e7c5ace60d8cc10) - Increase Slider clickable area.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#5554](https://github.com/gradio-app/gradio/pull/5554) [`75ddeb390`](https://github.com/gradio-app/gradio/commit/75ddeb390d665d4484667390a97442081b49a423) - Accessibility Improvements.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.1.3
 
 ### Features

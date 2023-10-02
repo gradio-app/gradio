@@ -34,12 +34,30 @@ from gradio.deprecation import (
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
-class TestComponent:
-    def test_component_functions(self):
-        """
-        component
-        """
-        assert isinstance(gr.components.component("textarea"), gr.templates.TextArea)
+class TestGettingComponents:
+    def test_component_function(self):
+        assert isinstance(
+            gr.components.component("textarea", render=False), gr.templates.TextArea
+        )
+
+    @pytest.mark.parametrize(
+        "component, render, unrender, should_be_rendered",
+        [
+            (gr.Textbox(render=True), False, True, False),
+            (gr.Textbox(render=False), False, False, False),
+            (gr.Textbox(render=False), True, False, True),
+            ("textbox", False, False, False),
+            ("textbox", True, False, True),
+        ],
+    )
+    def test_get_component_instance_rendering(
+        self, component, render, unrender, should_be_rendered
+    ):
+        with gr.Blocks():
+            textbox = gr.components.get_component_instance(
+                component, render=render, unrender=unrender
+            )
+            assert textbox.is_rendered == should_be_rendered
 
 
 def test_raise_warnings():
@@ -1221,7 +1239,7 @@ class TestDataframe:
             "wrap": False,
             "root_url": None,
             "name": "dataframe",
-            "height": None,
+            "height": 500,
             "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
         }
         dataframe_input = gr.Dataframe()
@@ -1253,7 +1271,7 @@ class TestDataframe:
             "wrap": False,
             "root_url": None,
             "name": "dataframe",
-            "height": None,
+            "height": 500,
             "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
         }
 
@@ -1386,6 +1404,10 @@ class TestDataset:
         )
 
         assert dataset.preprocess(1) == 1
+
+        radio = gr.Radio(choices=[("name 1", "value 1"), ("name 2", "value 2")])
+        dataset = gr.Dataset(samples=[["value 1"], ["value 2"]], components=[radio])
+        assert dataset.samples == [["name 1"], ["name 2"]]
 
     def test_postprocessing(self):
         test_file_dir = Path(Path(__file__).parent, "test_files")
@@ -2097,6 +2119,7 @@ class TestChatbot:
             "show_copy_button": False,
             "avatar_images": (None, None),
             "sanitize_html": True,
+            "render_markdown": True,
             "bubble_full_width": True,
         }
 
@@ -2441,6 +2464,7 @@ class TestScatterPlot:
             "label": None,
             "name": "plot",
             "bokeh_version": "3.0.3",
+            "show_actions_button": False,
             "root_url": None,
             "show_label": True,
             "container": True,
@@ -2642,6 +2666,7 @@ class TestLinePlot:
             "label": None,
             "name": "plot",
             "bokeh_version": "3.0.3",
+            "show_actions_button": False,
             "root_url": None,
             "show_label": True,
             "container": True,
@@ -2827,6 +2852,7 @@ class TestBarPlot:
             "label": None,
             "name": "plot",
             "bokeh_version": "3.0.3",
+            "show_actions_button": False,
             "root_url": None,
             "show_label": True,
             "container": True,

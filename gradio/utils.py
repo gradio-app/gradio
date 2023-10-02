@@ -28,6 +28,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
+    Iterable,
     Iterator,
     Optional,
     TypeVar,
@@ -46,7 +47,7 @@ from gradio.strings import en
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import Block, BlockContext, Blocks
     from gradio.components import Component
-    from gradio.routes import App
+    from gradio.routes import App, Request
 
 JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 
@@ -371,7 +372,7 @@ def assert_configs_are_equivalent_besides_ids(
 
     for d1, d2 in zip(config1["dependencies"], config2["dependencies"]):
         for t1, t2 in zip(d1.pop("targets"), d2.pop("targets")):
-            assert_same_components(t1, t2)
+            assert_same_components(t1[0], t2[0])
         for i1, i2 in zip(d1.pop("inputs"), d2.pop("inputs")):
             assert_same_components(i1, i2)
         for o1, o2 in zip(d1.pop("outputs"), d2.pop("outputs")):
@@ -603,7 +604,11 @@ def get_continuous_fn(fn: Callable, every: float) -> Callable:
 
 
 def function_wrapper(
-    f, before_fn=None, before_args=None, after_fn=None, after_args=None
+    f: Callable,
+    before_fn: Callable | None = None,
+    before_args: Iterable | None = None,
+    after_fn: Callable | None = None,
+    after_args: Iterable | None = None,
 ):
     before_args = [] if before_args is None else before_args
     after_args = [] if after_args is None else after_args
@@ -660,19 +665,25 @@ def function_wrapper(
 
 
 def get_function_with_locals(
-    fn: Callable, blocks: Blocks, event_id: str | None, in_event_listener: bool
+    fn: Callable,
+    blocks: Blocks,
+    event_id: str | None,
+    in_event_listener: bool,
+    request: Request | None,
 ):
     def before_fn(blocks, event_id):
-        from gradio.context import thread_data
+        from gradio.context import LocalContext
 
-        thread_data.blocks = blocks
-        thread_data.in_event_listener = in_event_listener
-        thread_data.event_id = event_id
+        LocalContext.blocks.set(blocks)
+        LocalContext.in_event_listener.set(in_event_listener)
+        LocalContext.event_id.set(event_id)
+        LocalContext.request.set(request)
 
     def after_fn():
-        from gradio.context import thread_data
+        from gradio.context import LocalContext
 
-        thread_data.in_event_listener = False
+        LocalContext.in_event_listener.set(False)
+        LocalContext.request.set(None)
 
     return function_wrapper(
         fn, before_fn=before_fn, before_args=(blocks, event_id), after_fn=after_fn

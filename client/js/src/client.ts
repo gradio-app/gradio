@@ -385,9 +385,9 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 							if (status.stage === "error") rej(status);
 							if (status.stage === "complete") {
 								status_complete = true;
-								app.destroy();
 								// if complete message comes after data, resolve here
 								if (data_returned) {
+									app.destroy();
 									res(result);
 								}
 							}
@@ -425,6 +425,9 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 				let payload: Payload;
 				let complete: false | Record<string, any> = false;
 				const listener_map: ListenerMap<EventType> = {};
+				const url_params = new URLSearchParams(
+					window.location.search
+				).toString();
 
 				handle_blob(
 					`${http_protocol}//${host + config.path}`,
@@ -446,7 +449,7 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 						post_data(
 							`${http_protocol}//${host + config.path}/run${
 								_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
-							}`,
+							}${url_params ? "?" + url_params : ""}`,
 							{
 								...payload,
 								session_hash
@@ -514,7 +517,7 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 						});
 
 						let url = new URL(`${ws_protocol}://${host}${config.path}
-							/queue/join`);
+							/queue/join${url_params ? "?" + url_params : ""}`);
 
 						if (jwt) {
 							url.searchParams.set("__sign", jwt);

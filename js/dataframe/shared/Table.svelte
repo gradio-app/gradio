@@ -28,7 +28,7 @@
 
 	export let editable = true;
 	export let wrap = false;
-	export let height: number | undefined;
+	export let height = 500;
 	let selected: false | [number, number] = false;
 
 	$: {
@@ -325,7 +325,6 @@
 
 	async function handle_cell_click(i: number, j: number): Promise<void> {
 		if (dequal(editing, [i, j])) return;
-		if (dequal(selected, [i, j])) return;
 		header_edit = false;
 		selected_header = false;
 		editing = false;
@@ -526,26 +525,34 @@
 	$: cells[0] && set_cell_widths();
 	let cells: HTMLTableCellElement[] = [];
 	let parent: HTMLDivElement;
+	let table: HTMLTableElement;
 
 	function set_cell_widths(): void {
 		const widths = cells.map((el, i) => {
 			return el?.clientWidth || 0;
 		});
-
 		if (widths.length === 0) return;
 		for (let i = 0; i < widths.length; i++) {
-			parent.style.setProperty(`--cell-width-${i}`, `${widths[i]}px`);
+			parent.style.setProperty(
+				`--cell-width-${i}`,
+				`${widths[i] - scrollbar_width / widths.length}px`
+			);
 		}
 	}
 
-	let table_height: number = height || 500;
+	let table_height: number = height;
+	let scrollbar_width = 0;
 
 	function sort_data(
 		_data: typeof data,
 		col?: number,
 		dir?: SortDirection
 	): void {
-		const id = selected ? data[selected[0]][selected[1]]?.id : null;
+		let id = null
+		//Checks if the selected cell is still in the data
+		if (selected && selected[0] in data && selected[1] in data[selected[0]]) {
+			id = data[selected[0]][selected[1]].id
+		}
 		if (typeof col !== "number" || !dir) {
 			return;
 		}
@@ -610,7 +617,7 @@
 		role="grid"
 		tabindex="0"
 	>
-		<table bind:clientWidth={t_width}>
+		<table bind:clientWidth={t_width} bind:this={table}>
 			{#if label && label.length !== 0}
 				<caption class="sr-only">{label}</caption>
 			{/if}
@@ -679,8 +686,9 @@
 			<VirtualTable
 				bind:items={data}
 				table_width={t_width}
-				max_height={height || 500}
+				max_height={height}
 				bind:actual_height={table_height}
+				bind:table_scrollbar_width={scrollbar_width}
 				selected={selected_index}
 			>
 				{#if label && label.length !== 0}
