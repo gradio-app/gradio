@@ -15,13 +15,11 @@
 		display: boolean;
 	}[] = [];
 	export let render_markdown = true;
-
+	export let line_breaks = true;
 	let el: HTMLSpanElement;
 	let html: string;
 
-	marked.use({
-		breaks: true
-	});
+	marked.use({ breaks: line_breaks });
 
 	DOMPurify.addHook("afterSanitizeAttributes", function (node) {
 		if ("target" in node) {

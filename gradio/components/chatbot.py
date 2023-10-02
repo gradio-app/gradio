@@ -60,6 +60,7 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
         sanitize_html: bool = True,
         render_markdown: bool = True,
         bubble_full_width: bool = True,
+        line_breaks: bool = True,
         **kwargs,
     ):
         """
@@ -84,6 +85,7 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
             sanitize_html: If False, will disable HTML sanitization for chatbot messages. This is not recommended, as it can lead to security vulnerabilities.
             render_markdown: If False, will disable Markdown rendering for chatbot messages.
             bubble_full_width: If False, the chat bubble will fit to the content of the message. If True (default), the chat bubble will be the full width of the component.
+            line_breaks: If True (default), will enable GFM line breaks in chatbot messages. If False, single new lines will be ignored.
         """
         if color_map is not None:
             warn_deprecation("The 'color_map' parameter has been deprecated.")
@@ -114,6 +116,7 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
         self.show_copy_button = show_copy_button
         self.sanitize_html = sanitize_html
         self.bubble_full_width = bubble_full_width
+        self.line_breaks = line_breaks
         IOComponent.__init__(
             self,
             label=label,
@@ -149,6 +152,7 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
         sanitize_html: bool | None = None,
         bubble_full_width: bool | None = None,
         render_markdown: bool | None = None,
+        line_breaks: bool | None = None,
     ):
         warnings.warn(
             "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Chatbot(...)` instead of `return gr.Chatbot.update(...)`."
@@ -170,6 +174,7 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
             "sanitize_html": sanitize_html,
             "bubble_full_width": bubble_full_width,
             "render_markdown": render_markdown,
+            "line_breaks": line_breaks,
             "__type__": "update",
         }
         return updated_config

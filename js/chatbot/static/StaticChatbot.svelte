@@ -27,6 +27,7 @@
 	export let sanitize_html = true;
 	export let bubble_full_width = true;
 	export let render_markdown = true;
+	export let line_breaks = true;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -106,6 +107,7 @@
 			{avatar_images}
 			{sanitize_html}
 			{bubble_full_width}
+			{line_breaks}
 			{root_url}
 			{root}
 		/>

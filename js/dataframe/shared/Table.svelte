@@ -29,6 +29,7 @@
 	export let editable = true;
 	export let wrap = false;
 	export let height = 500;
+	export let line_breaks = true;
 	let selected: false | [number, number] = false;
 
 	$: {
@@ -632,6 +633,7 @@
 								<EditableCell
 									{value}
 									{latex_delimiters}
+									{line_breaks}
 									header
 									edit={false}
 									el={null}
