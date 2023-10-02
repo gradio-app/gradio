@@ -8,6 +8,7 @@ from typing import Callable, Literal
 
 import numpy as np
 import pandas as pd
+import semantic_version
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 from pandas.io.formats.style import Styler
@@ -247,9 +248,15 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         if isinstance(y, dict):
             value = DataframeData(**y)
         elif isinstance(y, Styler):
+            if semantic_version.Version(pd.__version__) < semantic_version.Version(
+                "1.5.0"
+            ):
+                raise ValueError(
+                    "Styler objects are only supported in pandas version 1.5.0 or higher. Please try: `pip install --upgrade pandas` to use this feature."
+                )
             if self.interactive:
                 warnings.warn(
-                    "Cannot display Styler object in interactive mode. Will display as a regular pandas dataframe."
+                    "Cannot display Styler object in interactive mode. Will display as a regular pandas dataframe instead."
                 )
             df: pd.DataFrame = y.data  # type: ignore
             value = DataframeData(
