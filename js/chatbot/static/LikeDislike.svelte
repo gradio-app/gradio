@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onDestroy } from "svelte";
 	import { Like } from "@gradio/icons";
 	import { Dislike } from "@gradio/icons";
 
@@ -9,19 +8,9 @@
 	let actioned = false;
 	let Icon = action === "like" ? Like : Dislike;
 
-	let timer: NodeJS.Timeout;
-
 	function action_feedback(): void {
 		actioned = true;
-		if (timer) clearTimeout(timer);
-		timer = setTimeout(() => {
-			actioned = false;
-		}, 2000);
 	}
-
-	onDestroy(() => {
-		if (timer) clearTimeout(timer);
-	});
 </script>
 
 <button
