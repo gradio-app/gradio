@@ -722,8 +722,15 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 				if (hf_token) {
 					headers.Authorization = `Bearer ${hf_token}`;
 				}
+				let root_url: string;
+				let component = config.components.find(comp => comp.id === component_id);
+				if (component?.props?.root_url) {
+					root_url = component.props.root_url;
+				} else {
+					root_url = `${http_protocol}//${host + config.path}/`
+				}
 				const response = await fetch_implementation(
-					`${http_protocol}//${host + config.path}/component_server/`,
+					`${root_url}component_server/`,
 					{
 						method: "POST",
 						body: JSON.stringify({
