@@ -50,7 +50,7 @@ class Markdown(IOComponent, Changeable, StringSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             sanitize_html: If False, will disable HTML sanitization when converted from markdown. This is not recommended, as it can lead to security vulnerabilities.
-            line_breaks: If True, will enable GFM line breaks in chatbot messages. If False (default), single new lines will be ignored.
+            line_breaks: If True, will enable Github-flavored Markdown line breaks in chatbot messages. If False (default), single new lines will be ignored.
         """
         self.rtl = rtl
         if latex_delimiters is None:
