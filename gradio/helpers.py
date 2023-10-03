@@ -823,7 +823,7 @@ def update(**kwargs) -> dict:
 
 
 def skip() -> dict:
-    return update()
+    return {"__type__": "generic_update"}
 
 
 @document()
