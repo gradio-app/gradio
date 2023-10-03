@@ -164,16 +164,14 @@
 									message}
 							>
 								{#if typeof message === "string"}
-									{#if message.length > 0}
-										<Markdown
-											{message}
-											{latex_delimiters}
-											{sanitize_html}
-											{render_markdown}
-											{line_breaks}
-											on:load={scroll}
-										/>
-									{/if}
+									<Markdown
+										{message}
+										{latex_delimiters}
+										{sanitize_html}
+										{render_markdown}
+										{line_breaks}
+										on:load={scroll}
+									/>
 								{:else if message !== null && message.mime_type?.includes("audio")}
 									<audio
 										data-testid="chatbot-audio"
@@ -333,6 +331,10 @@
 	}
 	.bot {
 		border-bottom-left-radius: 0;
+	}
+
+	.hide {
+		display: none;
 	}
 
 	/* Colors */
