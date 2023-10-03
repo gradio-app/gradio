@@ -729,6 +729,7 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 						}
 					);
 				} else {
+					console.log(`${config.root}`);
 					response = await fetch_implementation(`${config.root}/info`, {
 						headers
 					});
@@ -1147,7 +1148,7 @@ async function resolve_config(
 	) {
 		const path = window.gradio_config.root;
 		const config = window.gradio_config;
-		config.root = endpoint + config.root;
+		config.root = config.root.startsWith('http://') || config.root.startsWith('https://') ?  config.root : endpoint + config.root;
 		return { ...config, path: path };
 	} else if (endpoint) {
 		let response = await fetch_implementation(`${endpoint}/config`, {

@@ -302,11 +302,10 @@ class App(FastAPI):
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
-            root_path = request.scope.get("root_path", "")
-
+            root_path = request.headers.get("X-Direct-Url") or request.scope.get("root_path", "")
             if app.auth is None or user is not None:
                 config = app.get_blocks().config
-                config["root"] = root_path
+                config["root"] = root_path.rstrip("/")
             else:
                 config = {
                     "auth_required": True,
@@ -344,9 +343,9 @@ class App(FastAPI):
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request):
-            root_path = request.scope.get("root_path", "")
+            root_path = request.headers.get("X-Direct-Url") or request.scope.get("root_path", "")
             config = app.get_blocks().config
-            config["root"] = root_path
+            config["root"] = root_path.rstrip("/")
             return config
 
         @app.get("/static/{path:path}")
