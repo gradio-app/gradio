@@ -63,7 +63,7 @@ from gradio.utils import (
 )
 
 if TYPE_CHECKING:
-    from gradio.components.base import Component
+    from gradio.blocks import Block
 
 
 mimetypes.init()
@@ -618,7 +618,7 @@ class App(FastAPI):
         def component_server(body: ComponentServerBody):
             state = app.state_holder[body.session_hash]
             component_id = body.component_id
-            block: Component
+            block: Block
             if component_id in state:
                 block = state[component_id]
             else:

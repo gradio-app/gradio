@@ -34,7 +34,7 @@ from gradio.events import (
 from gradio.layouts import Column, Form, Row
 
 if TYPE_CHECKING:
-    from typing import Callable, TypedDict
+    from typing import TypedDict
 
     class DataframeData(TypedDict):
         headers: list[str]

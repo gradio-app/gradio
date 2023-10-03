@@ -68,7 +68,7 @@ class FileExplorer(Changeable, IOComponent, JSONSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self._root = os.path.abspath(root)
+        self.root = os.path.abspath(root)
         self.glob = glob
         self.ignore_glob = ignore_glob
         valid_file_count = ["single", "multiple", "directory"]
@@ -118,8 +118,8 @@ class FileExplorer(Changeable, IOComponent, JSONSerializable):
         return [self._safe_join(file) for file in (x)]
 
     def _strip_root(self, path):
-        if path.startswith(self._root):
-            return path[len(self._root) + 1 :]
+        if path.startswith(self.root):
+            return path[len(self.root) + 1 :]
         return path
 
     def postprocess(self, y: str | list[str] | None) -> list[list[str]] | None:
@@ -192,12 +192,12 @@ class FileExplorer(Changeable, IOComponent, JSONSerializable):
 
         files = []
         for result in expand_braces(self.glob):
-            files += glob_func(result, recursive=True, root_dir=self._root)
+            files += glob_func(result, recursive=True, root_dir=self.root)  # type: ignore
 
         ignore_files = []
         if self.ignore_glob:
             for result in expand_braces(self.ignore_glob):
-                ignore_files += glob_func(result, recursive=True, root_dir=self._root)
+                ignore_files += glob_func(result, recursive=True, root_dir=self.root)  # type: ignore
             files = list(set(files) - set(ignore_files))
 
         tree = make_tree(files)
@@ -205,10 +205,10 @@ class FileExplorer(Changeable, IOComponent, JSONSerializable):
         return tree
 
     def _safe_join(self, folders):
-        combined_path = os.path.join(self._root, *folders)
+        combined_path = os.path.join(self.root, *folders)
         absolute_path = os.path.abspath(combined_path)
-        if os.path.commonprefix([self._root, absolute_path]) != os.path.abspath(
-            self._root
+        if os.path.commonprefix([self.root, absolute_path]) != os.path.abspath(
+            self.root
         ):
             raise ValueError("Attempted to navigate outside of root directory")
         return absolute_path
