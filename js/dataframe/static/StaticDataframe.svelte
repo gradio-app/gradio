@@ -24,6 +24,7 @@
 	export let datatype: Datatype | Datatype[];
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+	export let line_breaks = true;
 	export let gradio: Gradio<{
 		change: never;
 		select: SelectData;
@@ -90,5 +91,6 @@
 		{latex_delimiters}
 		editable={false}
 		{height}
+		{line_breaks}
 	/>
 </Block>
