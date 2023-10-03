@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:fix pending chatbot message styling and scroll 
+feat:fix pending chatbot message styling 
