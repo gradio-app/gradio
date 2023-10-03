@@ -510,8 +510,6 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 							fn_index,
 							time: new Date()
 						});
-						console.log("host", host)
-						console.log("config.path", config.path)
 						let url = new URL(`${ws_protocol}://${resolve_root(host, config.path, true)}
 							/queue/join${url_params ? "?" + url_params : ""}`);
 
@@ -731,7 +729,6 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 						}
 					);
 				} else {
-					console.log(`${config.root}`);
 					response = await fetch_implementation(`${config.root}/info`, {
 						headers
 					});
