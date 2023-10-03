@@ -2080,7 +2080,7 @@ Received outputs:
         utils.launch_counter()
         self.is_sagemaker = utils.sagemaker_check()
         if share is None:
-            if self.is_colab and self.enable_queue:
+            if self.is_colab:
                 if not quiet:
                     print(
                         "Setting queue=True in a Colab notebook requires sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
