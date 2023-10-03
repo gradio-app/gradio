@@ -55,11 +55,14 @@ class Component(Updateable, Block, Serializable):
     A base class for defining the methods that all gradio components should have.
     """
 
-    server_fns: list[Callable] = []
-
     def __init__(self, *args, **kwargs):
         Block.__init__(self, *args, **kwargs)
         EventListener.__init__(self)
+        self.server_fns = [
+            value
+            for value in self.__class__.__dict__.values()
+            if callable(value) and getattr(value, "_is_server_fn", False)
+        ]
 
     def __str__(self):
         return self.__repr__()
@@ -122,7 +125,7 @@ class Component(Updateable, Block, Serializable):
 
 
 def server(fn):
-    Component.server_fns.append(fn)
+    fn._is_server_fn = True
     return fn
 
 
