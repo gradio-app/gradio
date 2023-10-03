@@ -19,8 +19,8 @@
 	export let root_url: null | string = null;
 	export let value: (FileData | string | [FileData | string, string])[] | null =
 		null;
-	export let grid_cols: number | number[] | undefined = [2];
-	export let grid_rows: number | number[] | undefined = undefined;
+	export let columns: number | number[] | undefined = [2];
+	export let rows: number | number[] | undefined = undefined;
 	export let height: number | "auto" = "auto";
 	export let preview: boolean;
 	export let allow_preview = true;
@@ -129,7 +129,7 @@
 			if (selected_image !== null) {
 				dispatch("select", {
 					index: selected_image,
-					value: _value?.[selected_image][1],
+					value: _value?.[selected_image][1]
 				});
 			}
 		}
@@ -162,7 +162,7 @@
 
 		container_element?.scrollTo({
 			left: pos < 0 ? 0 : pos,
-			behavior: "smooth",
+			behavior: "smooth"
 		});
 	}
 
@@ -250,7 +250,7 @@
 	>
 		<div
 			class="grid-container"
-			style="--grid-cols:{grid_cols}; --grid-rows:{grid_rows}; --object-fit: {object_fit}; height: {height};"
+			style="--grid-cols:{columns}; --grid-rows:{rows}; --object-fit: {object_fit}; height: {height};"
 			class:pt-6={show_label}
 		>
 			{#if show_share_button}
@@ -353,7 +353,9 @@
 	.thumbnail-item {
 		--ring-color: transparent;
 		position: relative;
-		box-shadow: 0 0 0 2px var(--ring-color), var(--shadow-drop);
+		box-shadow:
+			0 0 0 2px var(--ring-color),
+			var(--shadow-drop);
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--button-small-radius);
 		background: var(--background-fill-secondary);

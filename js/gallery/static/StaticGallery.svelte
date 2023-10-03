@@ -19,8 +19,8 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let grid_cols: number | number[] | undefined = [2];
-	export let grid_rows: number | number[] | undefined = undefined;
+	export let columns: number | number[] | undefined = [2];
+	export let rows: number | number[] | undefined = undefined;
 	export let height: number | "auto" = "auto";
 	export let preview: boolean;
 	export let allow_preview = true;
@@ -57,8 +57,8 @@
 		{show_label}
 		{root}
 		{root_url}
-		{grid_cols}
-		{grid_rows}
+		{columns}
+		{rows}
 		{height}
 		{preview}
 		{object_fit}
