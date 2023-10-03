@@ -86,7 +86,7 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
             sanitize_html: If False, will disable HTML sanitization for chatbot messages. This is not recommended, as it can lead to security vulnerabilities.
             render_markdown: If False, will disable Markdown rendering for chatbot messages.
             bubble_full_width: If False, the chat bubble will fit to the content of the message. If True (default), the chat bubble will be the full width of the component.
-            line_breaks: If True (default), will enable GFM line breaks in chatbot messages. If False, single new lines will be ignored.
+            line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies if `render_markdown` is True.
             layout: If "panel", will display the chatbot in a llm style layout. If "bubble", will display the chatbot with message bubbles, with the user and bot messages on alterating sides. Will default to "bubble".
         """
         if color_map is not None:
