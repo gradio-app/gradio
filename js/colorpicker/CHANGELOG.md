@@ -1,5 +1,13 @@
 # @gradio/colorpicker
 
+## 0.1.3
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/atoms@0.1.3
+  - @gradio/statustracker@0.2.1
+
 ## 0.1.2
 
 ### Patch Changes
