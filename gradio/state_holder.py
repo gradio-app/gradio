@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import threading
 from collections import OrderedDict
 from copy import deepcopy
 from typing import TYPE_CHECKING, Any
@@ -13,7 +12,6 @@ class StateHolder:
     def __init__(self):
         self.capacity = 10000
         self.session_data = OrderedDict()
-        self.lock = threading.Lock()
 
     def set_blocks(self, blocks: Blocks):
         self.blocks = blocks
@@ -26,16 +24,14 @@ class StateHolder:
         return self.session_data[session_id]
 
     def update(self, session_id: str):
-        with self.lock:
-            if session_id in self.session_data:
-                self.session_data.move_to_end(session_id)
-            if len(self.session_data) > self.capacity:
-                self.session_data.popitem(last=False)
+        if session_id in self.session_data:
+            self.session_data.move_to_end(session_id)
+        if len(self.session_data) > self.capacity:
+            self.session_data.popitem(last=False)
 
     def del_if_exists(self, session_id: str):
-        with self.lock:
-            if session_id in self.session_data:
-                del self.session_data[session_id]
+        if session_id in self.session_data:
+            del self.session_data[session_id]
 
 
 class SessionState:
