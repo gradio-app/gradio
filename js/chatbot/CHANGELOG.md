@@ -1,5 +1,15 @@
 # @gradio/chatbot
 
+## 0.5.0
+
+### Features
+
+- [#5699](https://github.com/gradio-app/gradio/pull/5699) [`8f0fed857`](https://github.com/gradio-app/gradio/commit/8f0fed857d156830626eb48b469d54d211a582d2) - Improve chatbot accessibility and UX.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
+### Fixes
+
+- [#5755](https://github.com/gradio-app/gradio/pull/5755) [`e842a561a`](https://github.com/gradio-app/gradio/commit/e842a561af4394f8109291ee5725bcf74743e816) - Fix new line issue in chatbot.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.4.1
 
 ### Patch Changes

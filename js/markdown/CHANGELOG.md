@@ -1,5 +1,11 @@
 # @gradio/markdown
 
+## 0.3.0
+
+### Fixes
+
+- [#5755](https://github.com/gradio-app/gradio/pull/5755) [`e842a561a`](https://github.com/gradio-app/gradio/commit/e842a561af4394f8109291ee5725bcf74743e816) - Fix new line issue in chatbot.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.2.2
 
 ### Fixes
