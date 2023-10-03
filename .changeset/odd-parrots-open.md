@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Test: Revert Replica Proxy Logic to debug
+fix:Test: Revert Replica Proxy Logic to debug
