@@ -90,7 +90,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             wrap: if True text in table cells will wrap when appropriate, if False the table will scroll horizontally. Defaults to False.
-            line_breaks: If True (default), will enable GFM line breaks in chatbot messages. If False, single new lines will be ignored.
+            line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies for columns of type "markdown." 
         """
 
         self.wrap = wrap
