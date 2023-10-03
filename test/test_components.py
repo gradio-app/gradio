@@ -1279,6 +1279,7 @@ class TestDataframe:
             "name": "dataframe",
             "height": 500,
             "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
+            "line_breaks": True,
         }
 
     def test_postprocess(self):
