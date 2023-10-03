@@ -33,7 +33,7 @@ class FileExplorer(Changeable, IOComponent, JSONSerializable):
 
     def __init__(
         self,
-        glob: str = "*",
+        glob: str = "**/*.*",
         *,
         value: str | list[str] | Callable | None = None,
         file_count: Literal["single", "multiple"] = "multiple",
@@ -54,7 +54,7 @@ class FileExplorer(Changeable, IOComponent, JSONSerializable):
     ):
         """
         Parameters:
-            glob: The glob-style pattern used to select which files to display, e.g. "*" to match all files, "*.png" to match all .png files, "**/*.txt" to match any .txt file in any subdirectory, etc. See the Python glob documentation at https://docs.python.org/3/library/glob.html for more information.
+            glob: The glob-style pattern used to select which files to display, e.g. "*" to match all files, "*.png" to match all .png files, "**/*.txt" to match any .txt file in any subdirectory, etc. The default value matches all files and folders recursively. See the Python glob documentation at https://docs.python.org/3/library/glob.html for more information.
             value: The file (or list of files, depending on the `file_count` parameter) to show as "selected" when the component is first loaded. If a callable is provided, it will be called when the app loads to set the initial value of the component. If not provided, no files are shown as selected.
             file_count: Whether to allow single or multiple files to be selected. If "single", the component will return a single absolute file path as a string. If "multiple", the component will return a list of absolute file paths as a list of strings.
             root: Path to root directory to select files from. If not provided, defaults to current working directory.
@@ -178,6 +178,8 @@ class FileExplorer(Changeable, IOComponent, JSONSerializable):
         def make_node(parts, tree):
             _tree = tree
             for i in range(len(parts)):
+                if _tree is None:
+                    continue
                 if i == len(parts) - 1:
                     type = "file"
                     _tree.append({"path": parts[i], "type": type, "children": None})
