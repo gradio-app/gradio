@@ -8,7 +8,8 @@ import {
 	get_space_hardware,
 	set_space_hardware,
 	set_space_timeout,
-	hardware_types
+	hardware_types,
+	resolve_root
 } from "./utils.js";
 
 import type {
@@ -424,7 +425,7 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 				).toString();
 
 				handle_blob(
-					`${http_protocol}//${host + config.path}`,
+					`${http_protocol}//${resolve_root(host, config.path)}`,
 					data,
 					api_info,
 					hf_token
@@ -441,7 +442,7 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 						});
 
 						post_data(
-							`${http_protocol}//${host + config.path}/run${
+							`${http_protocol}//${resolve_root(host,config.path)}/run${
 								_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
 							}${url_params ? "?" + url_params : ""}`,
 							{
@@ -511,7 +512,7 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 						});
 						console.log("host", host)
 						console.log("config.path", config.path)
-						let url = new URL(`${ws_protocol}://${host}${config.path}
+						let url = new URL(`${ws_protocol}://${resolve_root(host, config.path)}
 							/queue/join${url_params ? "?" + url_params : ""}`);
 
 						if (jwt) {
@@ -675,7 +676,7 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 
 					try {
 						await fetch_implementation(
-							`${http_protocol}//${host + config.path}/reset`,
+							`${http_protocol}//${resolve_root(host, config.path)}/reset`,
 							{
 								headers: { "Content-Type": "application/json" },
 								method: "POST",
@@ -1149,7 +1150,7 @@ async function resolve_config(
 	) {
 		const path = window.gradio_config.root;
 		const config = window.gradio_config;
-		config.root = config.root.startsWith('http://') || config.root.startsWith('https://') ?  config.root : endpoint + config.root;
+		config.root = resolve_root(endpoint, config.root);
 		return { ...config, path: path };
 	} else if (endpoint) {
 		let response = await fetch_implementation(`${endpoint}/config`, {

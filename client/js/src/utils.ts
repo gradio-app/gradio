@@ -1,5 +1,9 @@
 import type { Config } from "./types.js";
 
+export function resolve_root(base_url: string, root_path: string): string {
+	return root_path.startsWith('http://') || root_path.startsWith('https://') ?  root_path : base_url + root_path;
+}
+
 export function determine_protocol(endpoint: string): {
 	ws_protocol: "ws" | "wss";
 	http_protocol: "http:" | "https:";
