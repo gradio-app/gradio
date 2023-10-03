@@ -77,6 +77,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         wrap: bool = False,
+        line_breaks: bool = True,
         **kwargs,
     ):
         """
@@ -103,6 +104,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             wrap: if True text in table cells will wrap when appropriate, if False the table will scroll horizontally. Defaults to False.
+            line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies for columns of type "markdown."
         """
 
         self.wrap = wrap
@@ -147,6 +149,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             latex_delimiters = [{"left": "$", "right": "$", "display": False}]
         self.latex_delimiters = latex_delimiters
         self.height = height
+        self.line_breaks = line_breaks
 
         self.select: EventListenerMethod
         """
@@ -190,6 +193,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         height: int | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
+        line_breaks: bool | None = None,
     ):
         warnings.warn(
             "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Dataframe(...)` instead of `return gr.Dataframe.update(...)`."
@@ -206,6 +210,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             "visible": visible,
             "value": value,
             "latex_delimiters": latex_delimiters,
+            "line_breaks": line_breaks,
             "__type__": "update",
         }
 

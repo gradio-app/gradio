@@ -1,5 +1,11 @@
 # @gradio/icons
 
+## 0.2.0
+
+### Features
+
+- [#5699](https://github.com/gradio-app/gradio/pull/5699) [`8f0fed857`](https://github.com/gradio-app/gradio/commit/8f0fed857d156830626eb48b469d54d211a582d2) - Improve chatbot accessibility and UX.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.1.0
 
 ### Highlights

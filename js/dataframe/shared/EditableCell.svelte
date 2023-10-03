@@ -21,6 +21,7 @@
 	}[];
 	export let clear_on_focus = false;
 	export let select_on_focus = false;
+	export let line_breaks = true;
 	export let editable = true;
 
 	const dispatch = createEventDispatcher();
@@ -70,6 +71,7 @@
 		<MarkdownCode
 			message={value.toLocaleString()}
 			{latex_delimiters}
+			{line_breaks}
 			chatbot={false}
 		/>
 	{:else}
