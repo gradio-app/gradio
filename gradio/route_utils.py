@@ -254,5 +254,5 @@ def strip_url(orig_url: str) -> str:
     parsed_url = httpx.URL(orig_url)
     stripped_url = parsed_url.copy_with(query=None)
     stripped_url = str(stripped_url)
-    # return stripped_url.rstrip("/")
-    return "https://abidlabs-test-client-replica--gqf2x.hf.space"
+    return stripped_url.rstrip("/")
+    # return "https://abidlabs-test-client-replica--gqf2x.hf.space"
