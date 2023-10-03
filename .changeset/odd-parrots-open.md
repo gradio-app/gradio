@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Test: Revert Replica Proxy Logic to debug
+fix:Revert replica proxy logic and instead implement using the `root` variable
