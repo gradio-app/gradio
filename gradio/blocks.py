@@ -328,6 +328,7 @@ class Block:
         custom = not (
             self.__module__.startswith("gradio.components")
             or self.__module__.startswith("gradio.layouts")
+            or self.__module__.startswith("gradio.templates")
         )
         config["custom_component"] = custom
         for e in self.events:
