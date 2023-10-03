@@ -4,6 +4,7 @@ import json
 from typing import TYPE_CHECKING, Optional, Union
 
 import fastapi
+import httpx
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio import utils
@@ -244,3 +245,13 @@ async def call_process_api(
         output["data"] = output["data"][0]
 
     return output
+
+
+def strip_url(orig_url: str) -> str:
+    """
+    Strips the query parameters and trailing slash from a URL.
+    """
+    parsed_url = httpx.URL(orig_url)
+    stripped_url = parsed_url.copy_with(query=None)
+    stripped_url = str(stripped_url)
+    return stripped_url.rstrip("/")

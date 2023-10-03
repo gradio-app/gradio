@@ -509,7 +509,8 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 							fn_index,
 							time: new Date()
 						});
-
+						console.log("host", host)
+						console.log("config.path", config.path)
 						let url = new URL(`${ws_protocol}://${host}${config.path}
 							/queue/join${url_params ? "?" + url_params : ""}`);
 

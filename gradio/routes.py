@@ -305,7 +305,7 @@ class App(FastAPI):
             root_path = request.headers.get("X-Direct-Url") or request.scope.get("root_path", "")
             if app.auth is None or user is not None:
                 config = app.get_blocks().config
-                config["root"] = root_path.rstrip("/")
+                config["root"] = route_utils.strip_url(root_path)
             else:
                 config = {
                     "auth_required": True,
@@ -345,7 +345,7 @@ class App(FastAPI):
         def get_config(request: fastapi.Request):
             root_path = request.headers.get("X-Direct-Url") or request.scope.get("root_path", "")
             config = app.get_blocks().config
-            config["root"] = root_path.rstrip("/")
+            config["root"] = route_utils.strip_url(root_path)
             return config
 
         @app.get("/static/{path:path}")
