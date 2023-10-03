@@ -1,5 +1,15 @@
 # @gradio/file
 
+## 0.1.5
+
+### Patch Changes
+
+- Updated dependencies [[`8f0fed857`](https://github.com/gradio-app/gradio/commit/8f0fed857d156830626eb48b469d54d211a582d2)]:
+  - @gradio/icons@0.2.0
+  - @gradio/atoms@0.1.3
+  - @gradio/statustracker@0.2.1
+  - @gradio/upload@0.3.1
+
 ## 0.1.4
 
 ### Patch Changes

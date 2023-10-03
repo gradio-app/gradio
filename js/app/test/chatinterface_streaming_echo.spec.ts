@@ -3,11 +3,11 @@ import { test, expect } from "@gradio/tootils";
 test("chatinterface works with streaming functions and all buttons behave as expected", async ({
 	page
 }) => {
-	const submit_button = await page.locator("button").nth(0);
-	const retry_button = await page.locator("button").nth(2);
-	const undo_button = await page.locator("button").nth(3);
-	const clear_button = await page.locator("button").nth(4);
-	const textbox = await page.getByTestId("textbox").nth(0);
+	const submit_button = await page.getByRole("button", { name: "Submit" });
+	const retry_button = await page.getByRole("button", { name: "🔄 Retry" });
+	const undo_button = await page.getByRole("button", { name: "↩️ Undo" });
+	const clear_button = await page.getByRole("button", { name: "🗑️ Clear" });
+	const textbox = await page.getByPlaceholder("Type a message...");
 
 	let iterations: Promise<any>[] = [];
 	page.on("websocket", (ws) => {
@@ -26,16 +26,16 @@ test("chatinterface works with streaming functions and all buttons behave as exp
 	await submit_button.click();
 	await iterations[0];
 	await expect(textbox).toHaveValue("");
-	await expect.poll(async () => page.locator(".bot.message p").count()).toBe(1);
-	const bot_message_0 = await page.locator(".bot.message p").nth(0);
+	await expect.poll(async () => page.locator(".chatbot p").count()).toBe(1);
+	const bot_message_0 = await page.locator(".bot.message").nth(0);
 	await expect(bot_message_0).toContainText("You typed: hello");
 
 	await textbox.fill("hi");
 	await submit_button.click();
 	await iterations[1];
 	await expect(textbox).toHaveValue("");
-	await expect.poll(async () => page.locator(".bot.message p").count()).toBe(2);
-	const bot_message_1 = await page.locator(".bot.message p").nth(1);
+	await expect.poll(async () => page.locator(".message.bot").count()).toBe(2);
+	const bot_message_1 = await page.locator(".bot").nth(1);
 	await expect(bot_message_1).toContainText("You typed: hi");
 
 	await retry_button.click();
@@ -45,16 +45,16 @@ test("chatinterface works with streaming functions and all buttons behave as exp
 
 	await undo_button.click();
 	await iterations[3];
-	await expect.poll(async () => page.locator(".bot.message p").count()).toBe(1);
+	await expect.poll(async () => page.locator(".message.bot").count()).toBe(1);
 	await expect(textbox).toHaveValue("hi");
 
 	await textbox.fill("salaam");
 	await submit_button.click();
 	await iterations[4];
 	await expect(textbox).toHaveValue("");
-	await expect.poll(async () => page.locator(".bot.message p").count()).toBe(2);
+	await expect.poll(async () => page.locator(".bot.message").count()).toBe(2);
 	await expect(bot_message_1).toContainText("You typed: salaam");
 
 	await clear_button.click();
-	await expect.poll(async () => page.locator(".bot.message p").count()).toBe(0);
+	await expect.poll(async () => page.locator(".bot.message").count()).toBe(0);
 });

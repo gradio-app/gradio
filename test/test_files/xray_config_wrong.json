@@ -1,7 +1,7 @@
 {
-  "version": "3.43.2",
+  "version": "3.45.2",
   "mode": "blocks",
-  "app_id": 17216565833834664150,
+  "app_id": 14154062863405525567,
   "dev_mode": false,
   "analytics_enabled": true,
   "components": [
@@ -18,9 +18,10 @@
             "display": false
           }
         ],
+        "visible": true,
         "sanitize_html": true,
-        "name": "markdown",
-        "visible": true
+        "line_breaks": false,
+        "name": "markdown"
       },
       "serializer": "StringSerializable",
       "api_info": {
@@ -53,12 +54,14 @@
           ]
         ],
         "value": [],
+        "type": "value",
         "label": "Disease to Scan For",
         "show_label": true,
         "container": true,
         "min_width": 160,
+        "visible": true,
         "name": "checkboxgroup",
-        "visible": true
+        "selectable": false
       },
       "serializer": "ListStringSerializable",
       "api_info": {
@@ -83,7 +86,9 @@
       "id": 3,
       "type": "tabs",
       "props": {
-        "visible": true
+        "visible": true,
+        "name": "tabs",
+        "selectable": false
       }
     },
     {
@@ -91,17 +96,18 @@
       "type": "tabitem",
       "props": {
         "label": "X-ray",
-        "visible": true
+        "name": "tabitem",
+        "selectable": false
       }
     },
     {
       "id": 5,
       "type": "row",
       "props": {
-        "type": "row",
         "variant": "default",
+        "visible": true,
         "equal_height": true,
-        "visible": true
+        "name": "row"
       }
     },
     {
@@ -109,20 +115,22 @@
       "type": "image",
       "props": {
         "image_mode": "RGB",
+        "invert_colors": false,
         "source": "upload",
         "tool": "editor",
+        "type": "numpy",
+        "show_label": true,
+        "show_download_button": true,
+        "container": true,
+        "min_width": 160,
+        "visible": true,
         "streaming": false,
         "mirror_webcam": true,
         "brush_color": "#000000",
         "mask_opacity": 0.7,
-        "selectable": false,
         "show_share_button": false,
-        "show_download_button": true,
-        "show_label": true,
-        "container": true,
-        "min_width": 160,
         "name": "image",
-        "visible": true
+        "selectable": false
       },
       "serializer": "ImgSerializable",
       "api_info": {
@@ -144,8 +152,8 @@
         "show_label": true,
         "container": true,
         "min_width": 160,
-        "name": "json",
-        "visible": true
+        "visible": true,
+        "name": "json"
       },
       "serializer": "JSONSerializable",
       "api_info": {
@@ -169,9 +177,9 @@
       "props": {
         "value": "Run",
         "variant": "secondary",
+        "visible": true,
         "interactive": true,
-        "name": "button",
-        "visible": true
+        "name": "button"
       },
       "serializer": "StringSerializable",
       "api_info": {
@@ -190,17 +198,18 @@
       "type": "tabitem",
       "props": {
         "label": "CT Scan",
-        "visible": true
+        "name": "tabitem",
+        "selectable": false
       }
     },
     {
       "id": 10,
       "type": "row",
       "props": {
-        "type": "row",
         "variant": "default",
+        "visible": true,
         "equal_height": true,
-        "visible": true
+        "name": "row"
       }
     },
     {
@@ -208,20 +217,22 @@
       "type": "image",
       "props": {
         "image_mode": "RGB",
+        "invert_colors": false,
         "source": "upload",
         "tool": "editor",
+        "type": "numpy",
+        "show_label": true,
+        "show_download_button": true,
+        "container": true,
+        "min_width": 160,
+        "visible": true,
         "streaming": false,
         "mirror_webcam": true,
         "brush_color": "#000000",
         "mask_opacity": 0.7,
-        "selectable": false,
         "show_share_button": false,
-        "show_download_button": true,
-        "show_label": true,
-        "container": true,
-        "min_width": 160,
         "name": "image",
-        "visible": true
+        "selectable": false
       },
       "serializer": "ImgSerializable",
       "api_info": {
@@ -243,8 +254,8 @@
         "show_label": true,
         "container": true,
         "min_width": 160,
-        "name": "json",
-        "visible": true
+        "visible": true,
+        "name": "json"
       },
       "serializer": "JSONSerializable",
       "api_info": {
@@ -268,9 +279,9 @@
       "props": {
         "value": "Run",
         "variant": "secondary",
+        "visible": true,
         "interactive": true,
-        "name": "button",
-        "visible": true
+        "name": "button"
       },
       "serializer": "StringSerializable",
       "api_info": {
@@ -288,19 +299,20 @@
       "id": 14,
       "type": "textbox",
       "props": {
+        "value": "",
         "lines": 1,
         "max_lines": 20,
-        "value": "",
-        "type": "text",
-        "autofocus": false,
-        "show_copy_button": false,
-        "container": true,
-        "rtl": false,
-        "autoscroll": true,
         "show_label": true,
+        "container": true,
         "min_width": 160,
+        "visible": true,
+        "autofocus": false,
+        "autoscroll": true,
+        "type": "text",
+        "rtl": false,
+        "show_copy_button": false,
         "name": "textbox",
-        "visible": true
+        "selectable": false
       },
       "serializer": "StringSerializable",
       "api_info": {
@@ -318,39 +330,38 @@
       "id": 15,
       "type": "form",
       "props": {
-        "type": "form",
         "scale": 0,
         "min_width": 0,
-        "visible": true
+        "name": "form"
       }
     },
     {
       "id": 16,
       "type": "form",
       "props": {
-        "type": "form",
         "scale": 0,
         "min_width": 0,
-        "visible": true
+        "name": "form"
       }
     },
     {
       "id": 118,
       "type": "textbox",
       "props": {
+        "value": "",
         "lines": 1,
         "max_lines": 20,
-        "value": "",
-        "type": "text",
-        "autofocus": false,
-        "show_copy_button": false,
-        "container": true,
-        "rtl": false,
-        "autoscroll": true,
         "show_label": true,
+        "container": true,
         "min_width": 160,
+        "visible": true,
+        "autofocus": false,
+        "autoscroll": true,
+        "type": "text",
+        "rtl": false,
+        "show_copy_button": false,
         "name": "textbox",
-        "visible": true
+        "selectable": false
       },
       "serializer": "StringSerializable",
       "api_info": {
@@ -368,10 +379,9 @@
       "id": 119,
       "type": "form",
       "props": {
-        "type": "form",
         "scale": 0,
         "min_width": 0,
-        "visible": true
+        "name": "form"
       }
     }
   ],
@@ -465,9 +475,11 @@
   "dependencies": [
     {
       "targets": [
-        8
+        [
+          8,
+          "click"
+        ]
       ],
-      "trigger": "click",
       "inputs": [
         2,
         6
@@ -495,9 +507,11 @@
     },
     {
       "targets": [
-        13
+        [
+          13,
+          "click"
+        ]
       ],
-      "trigger": "click",
       "inputs": [
         2,
         11
@@ -524,8 +538,12 @@
       "trigger_only_on_success": false
     },
     {
-      "targets": [],
-      "trigger": "load",
+      "targets": [
+        [
+          null,
+          "load"
+        ]
+      ],
       "inputs": [],
       "outputs": [
         118
