@@ -29,6 +29,7 @@
 	export let show_share_button = false;
 	export let show_download_button = false;
 	export let gradio: Gradio<{
+		change: typeof value;
 		select: SelectData;
 		share: ShareData;
 		error: string;
@@ -49,6 +50,7 @@
 >
 	<StatusTracker {...loading_status} />
 	<Gallery
+		on:change={() => gradio.dispatch("change", value)}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 		on:share={(e) => gradio.dispatch("share", e.detail)}
 		on:error={(e) => gradio.dispatch("error", e.detail)}

@@ -30,6 +30,7 @@
 	export let show_download_button = false;
 
 	const dispatch = createEventDispatcher<{
+		change: undefined;
 		select: SelectData;
 	}>();
 
@@ -54,6 +55,7 @@
 	let old_selected_image: number | null = selected_image;
 
 	$: if (prevValue !== value) {
+		console.log(prevValue, value)
 		// When value is falsy (clear button or first load),
 		// preview determines the selected image
 		if (was_reset) {
@@ -69,6 +71,7 @@
 					? selected_image
 					: null;
 		}
+		dispatch("change");
 		prevValue = value;
 	}
 
