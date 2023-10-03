@@ -442,7 +442,7 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 						});
 
 						post_data(
-							`${http_protocol}//${resolve_root(host,config.path, true)}/run${
+							`${http_protocol}//${resolve_root(host, config.path, true)}/run${
 								_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
 							}${url_params ? "?" + url_params : ""}`,
 							{
@@ -510,7 +510,11 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 							fn_index,
 							time: new Date()
 						});
-						let url = new URL(`${ws_protocol}://${resolve_root(host, config.path, true)}
+						let url = new URL(`${ws_protocol}://${resolve_root(
+							host,
+							config.path,
+							true
+						)}
 							/queue/join${url_params ? "?" + url_params : ""}`);
 
 						if (jwt) {
@@ -674,7 +678,11 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 
 					try {
 						await fetch_implementation(
-							`${http_protocol}//${resolve_root(host, config.path, true)}/reset`,
+							`${http_protocol}//${resolve_root(
+								host,
+								config.path,
+								true
+							)}/reset`,
 							{
 								headers: { "Content-Type": "application/json" },
 								method: "POST",

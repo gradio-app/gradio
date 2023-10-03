@@ -10,10 +10,14 @@ import type { Config } from "./types.js";
  * @param {boolean} prioritize_base Whether to prioritize the base URL over the root path. This is used when both the base path and root paths are full URLs. For example, for fetching files the root path should be prioritized, but for making request, the base URL should be prioritized.
  * @returns {string} the resolved URL
  */
-export function resolve_root(base_url: string, root_path: string, prioritize_base: boolean): string {
-	if (root_path.startsWith('http://') || root_path.startsWith('https://')) {
-		return prioritize_base ? base_url : root_path
- 	} 
+export function resolve_root(
+	base_url: string,
+	root_path: string,
+	prioritize_base: boolean
+): string {
+	if (root_path.startsWith("http://") || root_path.startsWith("https://")) {
+		return prioritize_base ? base_url : root_path;
+	}
 	return base_url + root_path;
 }
 
