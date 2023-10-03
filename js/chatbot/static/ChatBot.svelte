@@ -245,7 +245,7 @@
 				{/each}
 			{/each}
 		{/if}
-		<Pending {pending_message} />
+		<Pending {pending_message} {layout} />
 	</div>
 </div>
 
