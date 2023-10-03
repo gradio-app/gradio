@@ -1246,6 +1246,7 @@ class TestDataframe:
             "name": "dataframe",
             "height": 500,
             "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
+            "line_breaks": True,
         }
         dataframe_input = gr.Dataframe()
         output = dataframe_input.preprocess(x_data)
@@ -1278,6 +1279,7 @@ class TestDataframe:
             "name": "dataframe",
             "height": 500,
             "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
+            "line_breaks": True,
         }
 
     def test_postprocess(self):
@@ -2168,6 +2170,7 @@ class TestChatbot:
             "sanitize_html": True,
             "render_markdown": True,
             "bubble_full_width": True,
+            "line_breaks": True,
             "layout": None,
         }
 

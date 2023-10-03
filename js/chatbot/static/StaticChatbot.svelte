@@ -28,6 +28,7 @@
 	export let bubble_full_width = true;
 	export let layout: "bubble" | "panel" = "bubble";
 	export let render_markdown = true;
+	export let line_breaks = true;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -107,6 +108,7 @@
 			{avatar_images}
 			{sanitize_html}
 			{bubble_full_width}
+			{line_breaks}
 			{layout}
 			{root_url}
 			{root}

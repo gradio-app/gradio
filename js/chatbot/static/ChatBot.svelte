@@ -32,6 +32,7 @@
 	export let sanitize_html = true;
 	export let bubble_full_width = true;
 	export let render_markdown = true;
+	export let line_breaks = true;
 	export let root: string;
 	export let root_url: null | string;
 	export let layout: "bubble" | "panel" = "bubble";
@@ -168,6 +169,7 @@
 										{latex_delimiters}
 										{sanitize_html}
 										{render_markdown}
+										{line_breaks}
 										on:load={scroll}
 									/>
 								{:else if message !== null && message.mime_type?.includes("audio")}
