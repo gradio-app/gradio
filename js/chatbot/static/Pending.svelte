@@ -28,6 +28,10 @@
 		align-items: center;
 		align-self: center;
 		gap: 2px;
+		width: 100%;
+		border-radius: var(--radius-xxl);
+		padding: calc(var(--spacing-xxl) + var(--spacing-sm));
+		border: 1px solid var(--border-color-accent);
 	}
 	.dot-flashing {
 		animation: dot-flashing 1s infinite linear alternate;
