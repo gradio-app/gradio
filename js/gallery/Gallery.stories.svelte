@@ -19,13 +19,13 @@
 			control: { type: "boolean" },
 			defaultValue: true
 		},
-		grid_cols: {
+		columns: {
 			options: [1, 2, 3, 4],
 			description: "The number of columns to show in grid",
 			control: { type: "select" },
 			defaultValue: 2
 		},
-		grid_rows: {
+		rows: {
 			options: [1, 2, 3, 4],
 			description: "The number of rows to show in grid",
 			control: { type: "select" },
@@ -91,20 +91,20 @@
 	args={{ label: "My Cheetah Gallery", show_label: false }}
 />
 <Story
-	name="Gallery with grid_rows=3 and grid_cols=3"
+	name="Gallery with rows=3 and columns=3"
 	args={{
 		label: "My Cheetah Gallery",
 		show_label: true,
-		grid_rows: 3,
-		grid_cols: 3
+		rows: 3,
+		columns: 3
 	}}
 />
 <Story
-	name="Gallery with grid_cols=4"
+	name="Gallery with columns=4"
 	args={{
 		label: "My Cheetah Gallery",
 		show_label: true,
-		grid_cols: 4
+		columns: 4
 	}}
 />
 <Story
@@ -184,8 +184,8 @@
 	args={{
 		label: "My Cheetah Gallery",
 		show_label: true,
-		grid_rows: 2,
-		grid_cols: 2,
+		rows: 2,
+		columns: 2,
 		height: 400,
 		value: [
 			"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
@@ -201,7 +201,7 @@
 	name="Gallery with download button"
 	args={{
 		label: "My Cheetah Gallery",
-		grid_rows: 2,
+		rows: 2,
 		height: 400,
 		show_download_button: true,
 		value: ["https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"]

@@ -80,8 +80,8 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             show_download_button: If True, will show a download button in the corner of the selected image. If False, the icon does not appear. Default is True.
 
         """
-        self.grid_cols = columns
-        self.grid_rows = rows
+        self.columns = columns
+        self.rows = rows
         self.height = height
         self.preview = preview
         self.object_fit = object_fit
@@ -147,8 +147,8 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             "min_width": min_width,
             "visible": visible,
             "value": value,
-            "grid_cols": columns,
-            "grid_rows": rows,
+            "columns": columns,
+            "rows": rows,
             "height": height,
             "preview": preview,
             "object_fit": object_fit,
@@ -223,11 +223,11 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             warn_deprecation(
                 "The 'grid' parameter will be deprecated. Please use 'columns' in the constructor instead.",
             )
-            self.grid_cols = grid
+            self.columns = grid
         if columns is not None:
-            self.grid_cols = columns
+            self.columns = columns
         if rows is not None:
-            self.grid_rows = rows
+            self.rows = rows
         if height is not None:
             self.height = height
         if preview is not None:
