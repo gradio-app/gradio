@@ -302,8 +302,10 @@ class App(FastAPI):
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
-            root_path = request.headers.get("X-Direct-Url") or request.scope.get(
-                "root_path", ""
+            root_path = (
+                request.scope.get("root_path")
+                or request.headers.get("X-Direct-Url")
+                or ""
             )
             if app.auth is None or user is not None:
                 config = app.get_blocks().config
@@ -345,8 +347,10 @@ class App(FastAPI):
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request):
-            root_path = request.headers.get("X-Direct-Url") or request.scope.get(
-                "root_path", ""
+            root_path = (
+                request.scope.get("root_path")
+                or request.headers.get("X-Direct-Url")
+                or ""
             )
             config = app.get_blocks().config
             config["root"] = route_utils.strip_url(root_path)
