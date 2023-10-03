@@ -164,14 +164,16 @@
 									message}
 							>
 								{#if typeof message === "string"}
-									<Markdown
-										{message}
-										{latex_delimiters}
-										{sanitize_html}
-										{render_markdown}
-										{line_breaks}
-										on:load={scroll}
-									/>
+									{#if message.length > 0}
+										<Markdown
+											{message}
+											{latex_delimiters}
+											{sanitize_html}
+											{render_markdown}
+											{line_breaks}
+											on:load={scroll}
+										/>
+									{/if}
 								{:else if message !== null && message.mime_type?.includes("audio")}
 									<audio
 										data-testid="chatbot-audio"
