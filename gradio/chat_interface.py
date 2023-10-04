@@ -22,7 +22,7 @@ from gradio.components import (
     Textbox,
     get_component_instance,
 )
-from gradio.events import Dependency, EventListenerMethod
+from gradio.events import Dependency, EventListenerMethod, on
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.layouts import Accordion, Column, Group, Row
 from gradio.themes import ThemeClass as Theme
@@ -119,7 +119,7 @@ class ChatInterface(Blocks):
             if not isinstance(additional_inputs, list):
                 additional_inputs = [additional_inputs]
             self.additional_inputs = [
-                get_component_instance(i, render=False) for i in additional_inputs  # type: ignore
+                get_component_instance(i) for i in additional_inputs  # type: ignore
             ]
         else:
             self.additional_inputs = []
@@ -245,8 +245,14 @@ class ChatInterface(Blocks):
 
     def _setup_events(self) -> None:
         submit_fn = self._stream_fn if self.is_generator else self._submit_fn
+        submit_triggers = (
+            [self.textbox.submit, self.submit_btn.click]
+            if self.submit_btn
+            else [self.textbox.submit]
+        )
         submit_event = (
-            self.textbox.submit(
+            on(
+                submit_triggers,
                 self._clear_and_save_textbox,
                 [self.textbox],
                 [self.textbox, self.saved_input],
@@ -267,32 +273,7 @@ class ChatInterface(Blocks):
                 api_name=False,
             )
         )
-        self._setup_stop_events(self.textbox.submit, submit_event)
-
-        if self.submit_btn:
-            click_event = (
-                self.submit_btn.click(
-                    self._clear_and_save_textbox,
-                    [self.textbox],
-                    [self.textbox, self.saved_input],
-                    api_name=False,
-                    queue=False,
-                )
-                .then(
-                    self._display_input,
-                    [self.saved_input, self.chatbot_state],
-                    [self.chatbot, self.chatbot_state],
-                    api_name=False,
-                    queue=False,
-                )
-                .then(
-                    submit_fn,
-                    [self.saved_input, self.chatbot_state] + self.additional_inputs,
-                    [self.chatbot, self.chatbot_state],
-                    api_name=False,
-                )
-            )
-            self._setup_stop_events(self.submit_btn.click, click_event)
+        self._setup_stop_events(submit_triggers, submit_event)
 
         if self.retry_btn:
             retry_event = (
@@ -317,7 +298,7 @@ class ChatInterface(Blocks):
                     api_name=False,
                 )
             )
-            self._setup_stop_events(self.retry_btn.click, retry_event)
+            self._setup_stop_events([self.retry_btn.click], retry_event)
 
         if self.undo_btn:
             self.undo_btn.click(
@@ -344,17 +325,21 @@ class ChatInterface(Blocks):
             )
 
     def _setup_stop_events(
-        self, event_trigger: EventListenerMethod, event_to_cancel: Dependency
+        self, event_triggers: list[EventListenerMethod], event_to_cancel: Dependency
     ) -> None:
         if self.stop_btn and self.is_generator:
             if self.submit_btn:
-                event_trigger(
-                    lambda: (Button.update(visible=False), Button.update(visible=True)),
-                    None,
-                    [self.submit_btn, self.stop_btn],
-                    api_name=False,
-                    queue=False,
-                )
+                for event_trigger in event_triggers:
+                    event_trigger(
+                        lambda: (
+                            Button.update(visible=False),
+                            Button.update(visible=True),
+                        ),
+                        None,
+                        [self.submit_btn, self.stop_btn],
+                        api_name=False,
+                        queue=False,
+                    )
                 event_to_cancel.then(
                     lambda: (Button.update(visible=True), Button.update(visible=False)),
                     None,
@@ -363,13 +348,14 @@ class ChatInterface(Blocks):
                     queue=False,
                 )
             else:
-                event_trigger(
-                    lambda: Button.update(visible=True),
-                    None,
-                    [self.stop_btn],
-                    api_name=False,
-                    queue=False,
-                )
+                for event_trigger in event_triggers:
+                    event_trigger(
+                        lambda: Button.update(visible=True),
+                        None,
+                        [self.stop_btn],
+                        api_name=False,
+                        queue=False,
+                    )
                 event_to_cancel.then(
                     lambda: Button.update(visible=False),
                     None,

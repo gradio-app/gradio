@@ -16,7 +16,7 @@ from collections import defaultdict
 from functools import wraps
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast
+from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, Sequence, cast
 
 import anyio
 import requests
@@ -77,6 +77,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
 
     from gradio.components import Component
+    from gradio.events import EventListenerMethod
 
 BUILT_IN_THEMES: dict[str, Theme] = {
     t.name: t
@@ -208,142 +209,6 @@ class Block:
 
     def get_expected_parent(self) -> type[BlockContext] | None:
         return None
-
-    def set_event_trigger(
-        self,
-        event_name: str,
-        fn: Callable | None,
-        inputs: Component | list[Component] | set[Component] | None,
-        outputs: Component | list[Component] | None,
-        preprocess: bool = True,
-        postprocess: bool = True,
-        scroll_to_output: bool = False,
-        show_progress: str = "full",
-        api_name: str | None | Literal[False] = None,
-        js: str | None = None,
-        no_target: bool = False,
-        queue: bool | None = None,
-        batch: bool = False,
-        max_batch_size: int = 4,
-        cancels: list[int] | None = None,
-        every: float | None = None,
-        collects_event_data: bool | None = None,
-        trigger_after: int | None = None,
-        trigger_only_on_success: bool = False,
-    ) -> tuple[dict[str, Any], int]:
-        """
-        Adds an event to the component's dependencies.
-        Parameters:
-            event_name: event name
-            fn: Callable function
-            inputs: input list
-            outputs: output list
-            preprocess: whether to run the preprocess methods of components
-            postprocess: whether to run the postprocess methods of components
-            scroll_to_output: whether to scroll to output of dependency on trigger
-            show_progress: whether to show progress animation while running.
-            api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.
-            js: Experimental parameter (API may change): Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
-            no_target: if True, sets "targets" to [], used for Blocks "load" event
-            queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
-            batch: whether this function takes in a batch of inputs
-            max_batch_size: the maximum batch size to send to the function
-            cancels: a list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
-            every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
-            collects_event_data: whether to collect event data for this event
-            trigger_after: if set, this event will be triggered after 'trigger_after' function index
-            trigger_only_on_success: if True, this event will only be triggered if the previous event was successful (only applies if `trigger_after` is set)
-        Returns: dependency information, dependency index
-        """
-        # Support for singular parameter
-        if isinstance(inputs, set):
-            inputs_as_dict = True
-            inputs = sorted(inputs, key=lambda x: x._id)
-        else:
-            inputs_as_dict = False
-            if inputs is None:
-                inputs = []
-            elif not isinstance(inputs, list):
-                inputs = [inputs]
-
-        if isinstance(outputs, set):
-            outputs = sorted(outputs, key=lambda x: x._id)
-        else:
-            if outputs is None:
-                outputs = []
-            elif not isinstance(outputs, list):
-                outputs = [outputs]
-
-        if fn is not None and not cancels:
-            check_function_inputs_match(fn, inputs, inputs_as_dict)
-
-        if Context.root_block is None:
-            raise AttributeError(
-                f"{event_name}() and other events can only be called within a Blocks context."
-            )
-        if every is not None and every <= 0:
-            raise ValueError("Parameter every must be positive or None")
-        if every and batch:
-            raise ValueError(
-                f"Cannot run {event_name} event in a batch and every {every} seconds. "
-                "Either batch is True or every is non-zero but not both."
-            )
-
-        if every and fn:
-            fn = get_continuous_fn(fn, every)
-        elif every:
-            raise ValueError("Cannot set a value for `every` without a `fn`.")
-
-        _, progress_index, event_data_index = (
-            special_args(fn) if fn else (None, None, None)
-        )
-        Context.root_block.fns.append(
-            BlockFunction(
-                fn,
-                inputs,
-                outputs,
-                preprocess,
-                postprocess,
-                inputs_as_dict,
-                progress_index is not None,
-            )
-        )
-        if api_name is not None and api_name is not False:
-            api_name_ = utils.append_unique_suffix(
-                api_name, [dep["api_name"] for dep in Context.root_block.dependencies]
-            )
-            if api_name != api_name_:
-                warnings.warn(f"api_name {api_name} already exists, using {api_name_}")
-                api_name = api_name_
-
-        if collects_event_data is None:
-            collects_event_data = event_data_index is not None
-
-        dependency = {
-            "targets": [self._id] if not no_target else [],
-            "trigger": event_name,
-            "inputs": [block._id for block in inputs],
-            "outputs": [block._id for block in outputs],
-            "backend_fn": fn is not None,
-            "js": js,
-            "queue": False if fn is None else queue,
-            "api_name": api_name,
-            "scroll_to_output": False if utils.get_space() else scroll_to_output,
-            "show_progress": show_progress,
-            "every": every,
-            "batch": batch,
-            "max_batch_size": max_batch_size,
-            "cancels": cancels or [],
-            "types": {
-                "continuous": bool(every),
-                "generator": inspect.isgeneratorfunction(fn) or bool(every),
-            },
-            "collects_event_data": collects_event_data,
-            "trigger_after": trigger_after,
-            "trigger_only_on_success": trigger_only_on_success,
-        }
-        Context.root_block.dependencies.append(dependency)
-        return dependency, len(Context.root_block.dependencies) - 1
 
     def get_config(self):
         config = {}
@@ -709,7 +574,7 @@ class Blocks(BlockContext):
             btn.click(fn=update, inputs=inp, outputs=out)
 
         demo.launch()
-    Demos: blocks_hello, blocks_flipper, blocks_speech_text_sentiment, generate_english_german, sound_alert
+    Demos: blocks_hello, blocks_flipper, blocks_speech_text_sentiment, generate_english_german
     Guides: blocks-and-event-listeners, controlling-layout, state-in-blocks, custom-CSS-and-JS, custom-interpretations-with-blocks, using-blocks-like-functions
     """
 
@@ -865,6 +730,8 @@ class Blocks(BlockContext):
             cls = component_or_layout_class(block_config["type"])
             block_config["props"].pop("type", None)
             block_config["props"].pop("name", None)
+            block_config["props"].pop("selectable", None)
+
             # If a Gradio app B is loaded into a Gradio app A, and B itself loads a
             # Gradio app C, then the root_urls of the components in A need to be the
             # URL of C, not B. The else clause below handles this case.
@@ -872,6 +739,19 @@ class Blocks(BlockContext):
                 block_config["props"]["root_url"] = f"{root_url}/"
             else:
                 root_urls.add(block_config["props"]["root_url"])
+
+            # We treat dataset components as a special case because they reference other components
+            # in the config. Instead of using the component string names, we use the component ids.
+            if (
+                block_config["type"] == "dataset"
+                and "component_ids" in block_config["props"]
+            ):
+                block_config["props"].pop("components", None)
+                block_config["props"]["components"] = [
+                    original_mapping[c] for c in block_config["props"]["component_ids"]
+                ]
+                block_config["props"].pop("component_ids", None)
+
             # Any component has already processed its initial value, so we skip that step here
             block = cls(**block_config["props"], _skip_init_processing=True)
             return block
@@ -908,12 +788,24 @@ class Blocks(BlockContext):
                 # We fixed the issue by removing "fake_event" from the config in examples.py
                 # but we still need to skip these events when loading the config to support
                 # older demos
-                if dependency["trigger"] == "fake_event":
+                if "trigger" in dependency and dependency["trigger"] == "fake_event":
                     continue
                 for field in derived_fields:
                     dependency.pop(field, None)
-                targets = dependency.pop("targets")
-                trigger = dependency.pop("trigger")
+
+                # older versions had a separate trigger field, but now it is part of the
+                # targets field
+                _targets = dependency.pop("targets")
+                trigger = dependency.pop("trigger", None)
+                targets = [
+                    getattr(
+                        original_mapping[
+                            target if isinstance(target, int) else target[0]
+                        ],
+                        trigger if isinstance(target, int) else target[1],
+                    )
+                    for target in _targets
+                ]
                 dependency.pop("backend_fn")
                 dependency.pop("documentation", None)
                 dependency["inputs"] = [
@@ -926,12 +818,11 @@ class Blocks(BlockContext):
                 dependency["preprocess"] = False
                 dependency["postprocess"] = False
 
-                for target in targets:
-                    dependency = original_mapping[target].set_event_trigger(
-                        event_name=trigger, fn=fn, **dependency
-                    )[0]
-                    if first_dependency is None:
-                        first_dependency = dependency
+                dependency = blocks.set_event_trigger(
+                    targets=targets, fn=fn, **dependency
+                )[0]
+                if first_dependency is None:
+                    first_dependency = dependency
 
             # Allows some use of Interface-specific methods with loaded Spaces
             if first_dependency and Context.root_block:
@@ -975,6 +866,143 @@ class Blocks(BlockContext):
             isinstance(block, (components.LoginButton, components.LogoutButton))
             for block in self.blocks.values()
         )
+
+    def set_event_trigger(
+        self,
+        targets: Sequence[EventListenerMethod],
+        fn: Callable | None,
+        inputs: Component | list[Component] | set[Component] | None,
+        outputs: Component | list[Component] | None,
+        preprocess: bool = True,
+        postprocess: bool = True,
+        scroll_to_output: bool = False,
+        show_progress: str = "full",
+        api_name: str | None | Literal[False] = None,
+        js: str | None = None,
+        no_target: bool = False,
+        queue: bool | None = None,
+        batch: bool = False,
+        max_batch_size: int = 4,
+        cancels: list[int] | None = None,
+        every: float | None = None,
+        collects_event_data: bool | None = None,
+        trigger_after: int | None = None,
+        trigger_only_on_success: bool = False,
+    ) -> tuple[dict[str, Any], int]:
+        """
+        Adds an event to the component's dependencies.
+        Parameters:
+            event_name: event name
+            fn: Callable function
+            inputs: input list
+            outputs: output list
+            preprocess: whether to run the preprocess methods of components
+            postprocess: whether to run the postprocess methods of components
+            scroll_to_output: whether to scroll to output of dependency on trigger
+            show_progress: whether to show progress animation while running.
+            api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.
+            js: Experimental parameter (API may change): Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
+            no_target: if True, sets "targets" to [], used for Blocks "load" event
+            queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
+            batch: whether this function takes in a batch of inputs
+            max_batch_size: the maximum batch size to send to the function
+            cancels: a list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
+            every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
+            collects_event_data: whether to collect event data for this event
+            trigger_after: if set, this event will be triggered after 'trigger_after' function index
+            trigger_only_on_success: if True, this event will only be triggered if the previous event was successful (only applies if `trigger_after` is set)
+        Returns: dependency information, dependency index
+        """
+        # Support for singular parameter
+        _targets = [
+            (
+                target.trigger._id if target.trigger and not no_target else None,
+                target.event_name,
+            )
+            for target in targets
+        ]
+        if isinstance(inputs, set):
+            inputs_as_dict = True
+            inputs = sorted(inputs, key=lambda x: x._id)
+        else:
+            inputs_as_dict = False
+            if inputs is None:
+                inputs = []
+            elif not isinstance(inputs, list):
+                inputs = [inputs]
+
+        if isinstance(outputs, set):
+            outputs = sorted(outputs, key=lambda x: x._id)
+        else:
+            if outputs is None:
+                outputs = []
+            elif not isinstance(outputs, list):
+                outputs = [outputs]
+
+        if fn is not None and not cancels:
+            check_function_inputs_match(fn, inputs, inputs_as_dict)
+        if every is not None and every <= 0:
+            raise ValueError("Parameter every must be positive or None")
+        if every and batch:
+            raise ValueError(
+                f"Cannot run event in a batch and every {every} seconds. "
+                "Either batch is True or every is non-zero but not both."
+            )
+
+        if every and fn:
+            fn = get_continuous_fn(fn, every)
+        elif every:
+            raise ValueError("Cannot set a value for `every` without a `fn`.")
+
+        _, progress_index, event_data_index = (
+            special_args(fn) if fn else (None, None, None)
+        )
+        self.fns.append(
+            BlockFunction(
+                fn,
+                inputs,
+                outputs,
+                preprocess,
+                postprocess,
+                inputs_as_dict,
+                progress_index is not None,
+            )
+        )
+        if api_name is not None and api_name is not False:
+            api_name_ = utils.append_unique_suffix(
+                api_name, [dep["api_name"] for dep in self.dependencies]
+            )
+            if api_name != api_name_:
+                warnings.warn(f"api_name {api_name} already exists, using {api_name_}")
+                api_name = api_name_
+
+        if collects_event_data is None:
+            collects_event_data = event_data_index is not None
+
+        dependency = {
+            "targets": _targets,
+            "inputs": [block._id for block in inputs],
+            "outputs": [block._id for block in outputs],
+            "backend_fn": fn is not None,
+            "js": js,
+            "queue": False if fn is None else queue,
+            "api_name": api_name,
+            "scroll_to_output": False if utils.get_space() else scroll_to_output,
+            "show_progress": show_progress,
+            "every": every,
+            "batch": batch,
+            "max_batch_size": max_batch_size,
+            "cancels": cancels or [],
+            "types": {
+                "continuous": bool(every),
+                "generator": inspect.isgeneratorfunction(fn) or bool(every),
+            },
+            "collects_event_data": collects_event_data,
+            "trigger_after": trigger_after,
+            "trigger_only_on_success": trigger_only_on_success,
+        }
+        self.dependencies.append(dependency)
+        return dependency, len(self.dependencies) - 1
 
     def render(self):
         if Context.root_block is not None:
@@ -1154,9 +1182,7 @@ class Blocks(BlockContext):
             )
 
             if progress_tracker is not None and progress_index is not None:
-                progress_tracker, fn = create_tracker(
-                    self, event_id, fn, progress_tracker.track_tqdm
-                )
+                progress_tracker, fn = create_tracker(fn, progress_tracker.track_tqdm)
                 processed_input[progress_index] = progress_tracker
 
             if inspect.iscoroutinefunction(fn):
@@ -1553,7 +1579,7 @@ Received outputs:
             "average_duration": block_fn.total_runtime / block_fn.total_runs,
         }
 
-    async def create_limiter(self):
+    def create_limiter(self):
         self.limiter = (
             None
             if self.max_threads == 40
@@ -1638,8 +1664,8 @@ Received outputs:
     def load(
         self: Blocks | None = None,
         fn: Callable | None = None,
-        inputs: list[Component] | None = None,
-        outputs: list[Component] | None = None,
+        inputs: Component | list[Component] | None = None,
+        outputs: Component | list[Component] | None = None,
         api_name: str | None | Literal[False] = None,
         scroll_to_output: bool = False,
         show_progress: str = "full",
@@ -1703,10 +1729,15 @@ Received outputs:
                 name=name, src=src, hf_token=api_key, alias=alias, **kwargs
             )
         else:
-            from gradio.events import Dependency
+            from gradio.events import Dependency, EventListenerMethod
 
-            dep, dep_index = self.set_event_trigger(
-                event_name="load",
+            if Context.root_block is None:
+                raise AttributeError(
+                    "Cannot call load() outside of a gradio.Blocks context."
+                )
+
+            dep, dep_index = Context.root_block.set_event_trigger(
+                targets=[EventListenerMethod(self, "load")],
                 fn=fn,
                 inputs=inputs,
                 outputs=outputs,
@@ -1722,7 +1753,7 @@ Received outputs:
                 every=every,
                 no_target=True,
             )
-            return Dependency(self, dep, dep_index, fn)
+            return Dependency(dep, dep_index, fn)
 
     def clear(self):
         """Resets the layout of the Blocks object."""
@@ -2054,7 +2085,7 @@ Received outputs:
         utils.launch_counter()
         self.is_sagemaker = utils.sagemaker_check()
         if share is None:
-            if self.is_colab and self.enable_queue:
+            if self.is_colab:
                 if not quiet:
                     print(
                         "Setting queue=True in a Colab notebook requires sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
@@ -2104,9 +2135,17 @@ Received outputs:
 
         if self.share:
             if self.space_id:
-                raise RuntimeError("Share is not supported when you are in Spaces")
+                warnings.warn(
+                    "Setting share=True is not supported on Hugging Face Spaces"
+                )
+                self.share = False
             if wasm_utils.IS_WASM:
-                raise RuntimeError("Share is not supported in the Wasm environment")
+                warnings.warn(
+                    "Setting share=True is not supported in the Wasm environment"
+                )
+                self.share = False
+
+        if self.share:
             try:
                 if self.share_url is None:
                     self.share_url = networking.setup_tunnel(
@@ -2341,8 +2380,10 @@ Received outputs:
                 ):
                     load_fn, every = component.load_event_to_attach
                     # Use set_event_trigger to avoid ambiguity between load class/instance method
+                    from gradio.events import EventListenerMethod
+
                     dep = self.set_event_trigger(
-                        "load",
+                        [EventListenerMethod(self, "load")],
                         load_fn,
                         None,
                         component,
@@ -2360,10 +2401,10 @@ Received outputs:
         """Events that should be run when the app containing this block starts up."""
 
         if self.enable_queue:
-            utils.run_coro_in_background(self._queue.start, self.ssl_verify)
+            self._queue.start()
             # So that processing can resume in case the queue was stopped
             self._queue.stopped = False
-        utils.run_coro_in_background(self.create_limiter)
+        self.create_limiter()
 
     def queue_enabled_for_fn(self, fn_index: int):
         if self.dependencies[fn_index]["queue"] is None:

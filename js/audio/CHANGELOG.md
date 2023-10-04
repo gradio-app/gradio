@@ -1,16 +1,35 @@
 # @gradio/audio
 
+## 0.3.6
+
+### Patch Changes
+
+- Updated dependencies [[`8f0fed857`](https://github.com/gradio-app/gradio/commit/8f0fed857d156830626eb48b469d54d211a582d2)]:
+  - @gradio/icons@0.2.0
+  - @gradio/atoms@0.1.3
+  - @gradio/statustracker@0.2.1
+  - @gradio/upload@0.3.1
+  - @gradio/button@0.2.1
+
+## 0.3.5
+
+### Patch Changes
+
+- Updated dependencies [[`75ddeb390`](https://github.com/gradio-app/gradio/commit/75ddeb390d665d4484667390a97442081b49a423)]:
+  - @gradio/button@0.2.0
+  - @gradio/upload@0.3.0
+
 ## 0.3.4
 
 ### Fixes
 
-- [#5587](https://github.com/gradio-app/gradio/pull/5587) [`e0d61b8ba`](https://github.com/gradio-app/gradio/commit/e0d61b8baa0f6293f53b9bdb1647d42f9ae2583a) - Fix `.clear()` events for audio and image.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#5587](https://github.com/gradio-app/gradio/pull/5587) [`e0d61b8ba`](https://github.com/gradio-app/gradio/commit/e0d61b8baa0f6293f53b9bdb1647d42f9ae2583a) - Fix `.clear()` events for audio and image. Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
 
 ## 0.3.3
 
 ### Fixes
 
-- [#5459](https://github.com/gradio-app/gradio/pull/5459) [`bd2fda77`](https://github.com/gradio-app/gradio/commit/bd2fda77fc98d815f4fb670f535af453ebee9b80) - Dispatch `stop_recording` event in Audio.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#5459](https://github.com/gradio-app/gradio/pull/5459) [`bd2fda77`](https://github.com/gradio-app/gradio/commit/bd2fda77fc98d815f4fb670f535af453ebee9b80) - Dispatch `stop_recording` event in Audio. Thanks [@hannahblair](https://github.com/hannahblair)!
 
 ## 0.3.2
 

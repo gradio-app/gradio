@@ -37,13 +37,20 @@ class ReloadError(ValueError):
 
 InvalidApiName = InvalidApiNameError  # backwards compatibility
 
+set_documentation_group("modals")
+
 
 @document()
 class Error(Exception):
     """
     This class allows you to pass custom error messages to the user. You can do so by raising a gr.Error("custom message") anywhere in the code, and when that line is executed the custom message will appear in a modal on the demo.
-
-    Demos: calculator
+    Example:
+        import gradio as gr
+        def divide(numerator, denominator):
+            if denominator == 0:
+                raise gr.Error("Cannot divide by zero!")
+        gr.Interface(divide, ["number", "number"], "number").launch()
+    Demos: calculator, blocks_chained_events
     """
 
     def __init__(self, message: str = "Error raised."):

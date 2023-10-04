@@ -1,17 +1,85 @@
 # @gradio/app
 
+## 1.6.3
+
+### Patch Changes
+
+- Updated dependencies [[`abb5e9df4`](https://github.com/gradio-app/gradio/commit/abb5e9df47989b2c56c2c312d74944678f9f2d4e), [`e842a561a`](https://github.com/gradio-app/gradio/commit/e842a561af4394f8109291ee5725bcf74743e816), [`8f0fed857`](https://github.com/gradio-app/gradio/commit/8f0fed857d156830626eb48b469d54d211a582d2), [`502054848`](https://github.com/gradio-app/gradio/commit/502054848fdbe39fc03ec42445242b4e49b7affc), [`2a5b9e03b`](https://github.com/gradio-app/gradio/commit/2a5b9e03b15ea324d641fe6982f26d81b1ca7210)]:
+  - @gradio/gallery@0.4.1
+  - @gradio/chatbot@0.5.0
+  - @gradio/dataframe@0.3.0
+  - @gradio/markdown@0.3.0
+  - @gradio/icons@0.2.0
+  - @gradio/annotatedimage@0.2.1
+  - @gradio/atoms@0.1.3
+  - @gradio/audio@0.3.6
+  - @gradio/code@0.2.1
+  - @gradio/dropdown@0.3.1
+  - @gradio/file@0.1.5
+  - @gradio/form@0.0.6
+  - @gradio/highlightedtext@0.3.2
+  - @gradio/image@0.3.1
+  - @gradio/json@0.1.1
+  - @gradio/label@0.2.1
+  - @gradio/model3d@0.2.3
+  - @gradio/plot@0.2.1
+  - @gradio/statustracker@0.2.1
+  - @gradio/textbox@0.4.1
+  - @gradio/timeseries@0.0.7
+  - @gradio/upload@0.3.1
+  - @gradio/video@0.0.10
+  - @gradio/accordion@0.1.1
+  - @gradio/box@0.0.5
+  - @gradio/checkbox@0.2.1
+  - @gradio/checkboxgroup@0.3.1
+  - @gradio/colorpicker@0.1.3
+  - @gradio/html@0.0.5
+  - @gradio/number@0.3.1
+  - @gradio/radio@0.3.1
+  - @gradio/slider@0.2.1
+  - @gradio/row@0.0.1
+  - @gradio/button@0.2.1
+  - @gradio/uploadbutton@0.0.8
+
+## 1.6.2
+
+### Features
+
+- [#5721](https://github.com/gradio-app/gradio/pull/5721) [`84e03fe50`](https://github.com/gradio-app/gradio/commit/84e03fe506e08f1f81bac6d504c9fba7924f2d93) - Adds copy buttons to website, and better descriptions to API Docs. Thanks [@aliabd](https://github.com/aliabd)!
+
+### Fixes
+
+- [#5705](https://github.com/gradio-app/gradio/pull/5705) [`78e7cf516`](https://github.com/gradio-app/gradio/commit/78e7cf5163e8d205e8999428fce4c02dbdece25f) - ensure internal data has updated before dispatching `success` or `then` events. Thanks [@pngwn](https://github.com/pngwn)!
+- [#5726](https://github.com/gradio-app/gradio/pull/5726) [`96c4b97c7`](https://github.com/gradio-app/gradio/commit/96c4b97c742311e90a87d8e8ee562c6ad765e9f0) - Adjust translation. Thanks [@ylhsieh](https://github.com/ylhsieh)!
+
+## 1.6.1
+
+### Patch Changes
+
+- Updated dependencies [[`ee8eec1e5`](https://github.com/gradio-app/gradio/commit/ee8eec1e5e544a0127e0aa68c2522a7085b8ada5)]:
+  - @gradio/markdown@0.2.2
+  - @gradio/chatbot@0.4.1
+  - @gradio/dataframe@0.2.4
+
+## 1.6.0
+
+### Features
+
+- [#5639](https://github.com/gradio-app/gradio/pull/5639) [`e1874aff8`](https://github.com/gradio-app/gradio/commit/e1874aff814d13b23f3e59ef239cc13e18ad3fa7) - Add `gr.on` listener method. Thanks [@aliabid94](https://github.com/aliabid94)!
+- [#5554](https://github.com/gradio-app/gradio/pull/5554) [`75ddeb390`](https://github.com/gradio-app/gradio/commit/75ddeb390d665d4484667390a97442081b49a423) - Accessibility Improvements. Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 1.5.4
 
 ### Features
 
-- [#5514](https://github.com/gradio-app/gradio/pull/5514) [`52f783175`](https://github.com/gradio-app/gradio/commit/52f7831751b432411e109bd41add4ab286023a8e) - refactor: Use package.json for version management.  Thanks [@DarhkVoyd](https://github.com/DarhkVoyd)!
+- [#5514](https://github.com/gradio-app/gradio/pull/5514) [`52f783175`](https://github.com/gradio-app/gradio/commit/52f7831751b432411e109bd41add4ab286023a8e) - refactor: Use package.json for version management. Thanks [@DarhkVoyd](https://github.com/DarhkVoyd)!
 
 ## 1.5.3
 
 ### Fixes
 
-- [#5562](https://github.com/gradio-app/gradio/pull/5562) [`50d9747d0`](https://github.com/gradio-app/gradio/commit/50d9747d061962cff7f60a8da648bb3781794102) - chore(deps): update dependency iframe-resizer to v4.3.7.  Thanks [@renovate](https://github.com/apps/renovate)!
-- [#5550](https://github.com/gradio-app/gradio/pull/5550) [`4ed5902e7`](https://github.com/gradio-app/gradio/commit/4ed5902e7dda2d95cd43e4ccaaef520ddd8eba57) - Adding basque language.  Thanks [@EkhiAzur](https://github.com/EkhiAzur)!
+- [#5562](https://github.com/gradio-app/gradio/pull/5562) [`50d9747d0`](https://github.com/gradio-app/gradio/commit/50d9747d061962cff7f60a8da648bb3781794102) - chore(deps): update dependency iframe-resizer to v4.3.7. Thanks [@renovate](https://github.com/apps/renovate)!
+- [#5550](https://github.com/gradio-app/gradio/pull/5550) [`4ed5902e7`](https://github.com/gradio-app/gradio/commit/4ed5902e7dda2d95cd43e4ccaaef520ddd8eba57) - Adding basque language. Thanks [@EkhiAzur](https://github.com/EkhiAzur)!
 
 ## 1.5.2
 

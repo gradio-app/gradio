@@ -77,7 +77,7 @@ class Queue:
         self.continuous_tasks: list[Event] = []
         self._asyncio_tasks: list[asyncio.Task] = []
 
-    async def start(self, ssl_verify=True):
+    def start(self):
         run_coro_in_background(self.start_processing)
         run_coro_in_background(self.start_log_and_progress_updates)
         if not self.live_updates:

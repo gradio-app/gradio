@@ -28,6 +28,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
+    Iterable,
     Iterator,
     Optional,
     TypeVar,
@@ -371,7 +372,7 @@ def assert_configs_are_equivalent_besides_ids(
 
     for d1, d2 in zip(config1["dependencies"], config2["dependencies"]):
         for t1, t2 in zip(d1.pop("targets"), d2.pop("targets")):
-            assert_same_components(t1, t2)
+            assert_same_components(t1[0], t2[0])
         for i1, i2 in zip(d1.pop("inputs"), d2.pop("inputs")):
             assert_same_components(i1, i2)
         for o1, o2 in zip(d1.pop("outputs"), d2.pop("outputs")):
@@ -603,7 +604,11 @@ def get_continuous_fn(fn: Callable, every: float) -> Callable:
 
 
 def function_wrapper(
-    f, before_fn=None, before_args=None, after_fn=None, after_args=None
+    f: Callable,
+    before_fn: Callable | None = None,
+    before_args: Iterable | None = None,
+    after_fn: Callable | None = None,
+    after_args: Iterable | None = None,
 ):
     before_args = [] if before_args is None else before_args
     after_args = [] if after_args is None else after_args

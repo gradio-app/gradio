@@ -229,23 +229,24 @@ automatically logged in with a fake user profile. This allows you to debug your 
 
 ## Accessing the Network Request Directly
 
-When a user makes a prediction to your app, you may need the underlying network request, in order to get the request headers (e.g. for advanced authentication), log the client's IP address, or for other reasons. Gradio supports this in a similar manner to FastAPI: simply add a function parameter whose type hint is `gr.Request` and Gradio will pass in the network request as that parameter. Here is an example:
+When a user makes a prediction to your app, you may need the underlying network request, in order to get the request headers (e.g. for advanced authentication), log the client's IP address, getting the query parameters, or for other reasons. Gradio supports this in a similar manner to FastAPI: simply add a function parameter whose type hint is `gr.Request` and Gradio will pass in the network request as that parameter. Here is an example:
 
 ```python
 import gradio as gr
 
-def echo(name, request: gr.Request):
+def echo(text, request: gr.Request):
     if request:
         print("Request headers dictionary:", request.headers)
         print("IP address:", request.client.host)
-    return name
+        print("Query parameters:", dict(request.query_params))
+    return text
 
 io = gr.Interface(echo, "textbox", "textbox").launch()
 ```
 
 Note: if your function is called directly instead of through the UI (this happens, for
-example, when examples are cached), then `request` will be `None`. You should handle
-this case explicitly to ensure that your app does not throw any errors. That is why
+example, when examples are cached, or when the Gradio app is called via API), then `request` will be `None`. 
+You should handle this case explicitly to ensure that your app does not throw any errors. That is why
 we have the explicit check `if request`.
 
 ## Mounting Within Another FastAPI App

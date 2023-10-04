@@ -4,6 +4,7 @@ import json
 from typing import TYPE_CHECKING, Optional, Union
 
 import fastapi
+import httpx
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio import utils
@@ -78,11 +79,14 @@ class Request:
     auth is enabled, the `username` attribute can be used to get the logged in user.
     Example:
         import gradio as gr
-        def echo(name, request: gr.Request):
-            print("Request headers dictionary:", request.headers)
-            print("IP address:", request.client.host)
-            return name
+        def echo(text, request: gr.Request):
+            if request:
+                print("Request headers dictionary:", request.headers)
+                print("IP address:", request.client.host)
+                print("Query parameters:", dict(request.query_params))
+            return text
         io = gr.Interface(echo, "textbox", "textbox").launch()
+    Demos: request_ip_headers
     """
 
     def __init__(
@@ -241,3 +245,30 @@ async def call_process_api(
         output["data"] = output["data"][0]
 
     return output
+
+
+def set_replica_url_in_config(
+    config: dict, replica_url: str, all_replica_urls: set[str]
+) -> None:
+    """
+    If the Gradio app is running on Hugging Face Spaces and the machine has multiple replicas,
+    we pass in the direct URL to the replica so that we have the fully resolved path to any files
+    on that machine. This direct URL can be shared with other users and the path will still work.
+
+    Parameters:
+        config: The config dictionary to modify.
+        replica_url: The direct URL to the replica.
+        all_replica_urls: The direct URLs to the other replicas. These should be replaced with the replica_url.
+    """
+    parsed_url = httpx.URL(replica_url)
+    stripped_url = parsed_url.copy_with(query=None)
+    stripped_url = str(stripped_url)
+    if not stripped_url.endswith("/"):
+        stripped_url += "/"
+
+    for component in config["components"]:
+        if component.get("props") is not None:
+            root_url = component["props"].get("root_url")
+            # Don't replace the root_url if it's loaded from a different Space
+            if root_url is None or root_url in all_replica_urls:
+                component["props"]["root_url"] = stripped_url

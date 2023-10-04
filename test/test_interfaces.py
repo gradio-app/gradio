@@ -104,14 +104,6 @@ class TestInterface:
                 )
 
     @mock.patch("gradio.utils.colab_check")
-    def test_launch_colab_share(self, mock_colab_check):
-        mock_colab_check.return_value = True
-        interface = Interface(lambda x: x, "textbox", "label")
-        _, _, share_url = interface.launch(prevent_thread_lock=True)
-        assert share_url is None
-        interface.close()
-
-    @mock.patch("gradio.utils.colab_check")
     @mock.patch("gradio.networking.setup_tunnel")
     def test_launch_colab_share_error(self, mock_setup_tunnel, mock_colab_check):
         mock_setup_tunnel.side_effect = RuntimeError()
@@ -238,7 +230,7 @@ class TestInterfaceInterpretation:
         interpretation_dep = next(
             d
             for d in iface.config["dependencies"]
-            if d["targets"] == [interpretation_id]
+            if d["targets"][0][0] == interpretation_id
         )
         interpretation_comps = [
             c["id"]
@@ -268,7 +260,7 @@ class TestInterfaceInterpretation:
         fn_index = next(
             i
             for i, d in enumerate(iface.config["dependencies"])
-            if d["targets"] == [btn]
+            if d["targets"][0][0] == btn
         )
 
         response = client.post(

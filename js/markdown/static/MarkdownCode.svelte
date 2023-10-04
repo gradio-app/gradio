@@ -15,9 +15,11 @@
 		display: boolean;
 	}[] = [];
 	export let render_markdown = true;
-
+	export let line_breaks = true;
 	let el: HTMLSpanElement;
 	let html: string;
+
+	marked.use({ breaks: line_breaks });
 
 	DOMPurify.addHook("afterSanitizeAttributes", function (node) {
 		if ("target" in node) {
@@ -42,7 +44,7 @@
 		html = "";
 	}
 	async function render_html(value: string): Promise<void> {
-		if (latex_delimiters.length > 0) {
+		if (latex_delimiters.length > 0 && value) {
 			render_math_in_element(el, {
 				delimiters: latex_delimiters,
 				throwOnError: false
