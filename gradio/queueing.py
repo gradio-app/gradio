@@ -527,7 +527,14 @@ class Queue:
                     await event.disconnect()
                 except Exception:
                     pass
-            self.active_jobs[self.active_jobs.index(events)] = None
+            try:
+                self.active_jobs[self.active_jobs.index(events)] = None
+            except ValueError:
+                # `events` can be absent from `self.active_jobs`
+                # when this coroutine is called from the `join_queue` endpoint handler in `routes.py`
+                # without putting the `events` into `self.active_jobs`.
+                # https://github.com/gradio-app/gradio/blob/f09aea34d6bd18c1e2fef80c86ab2476a6d1dd83/gradio/routes.py#L594-L596
+                pass
             for event in events:
                 await self.clean_event(event)
                 # Always reset the state of the iterator
