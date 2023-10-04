@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:fix pending chatbot message styling and ensure `None` messages don't render
+fix:fix pending chatbot message styling and ensure messages with value `None` don't render
