@@ -28,6 +28,7 @@
 		"cover";
 	export let show_share_button = false;
 	export let show_download_button = false;
+	export let selected_index = true;
 
 	const dispatch = createEventDispatcher<{
 		select: SelectData;
