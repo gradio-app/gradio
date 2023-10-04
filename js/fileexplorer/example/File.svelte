@@ -1,27 +1,38 @@
 <script lang="ts">
 	import type { FileData } from "@gradio/upload";
 
-	export let value: FileData;
+	export let value: string[];
 	export let type: "gallery" | "table";
 	export let selected = false;
 </script>
 
-<div
+<ul
 	class:table={type === "table"}
 	class:gallery={type === "gallery"}
 	class:selected
 >
-	{Array.isArray(value) ? value.join(", ") : value}
-</div>
+	{#each value.slice(0, 3) as path}
+		<li><code>./{path}</code></li>
+	{/each}
+	{#if value.length > 3}
+		<li class="extra">...</li>
+	{/if}
+</ul>
 
 <style>
-	div {
-		overflow: hidden;
-		text-overflow: ellipsis;
+	ul {
 		white-space: nowrap;
+		max-height: 100px;
+		list-style: none;
+		padding: 0;
+		margin: 0;
 	}
+
+	.extra {
+		text-align: center;
+	}
+
 	.gallery {
-		display: flex;
 		align-items: center;
 		cursor: pointer;
 		padding: var(--size-1) var(--size-2);

@@ -34,7 +34,7 @@
 	}
 </script>
 
-{#if $tree}
+{#if $tree && $tree.length}
 	<div class="file-wrap">
 		<FileTree
 			tree={$tree}

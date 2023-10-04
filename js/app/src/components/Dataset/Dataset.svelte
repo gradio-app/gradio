@@ -24,7 +24,7 @@
 
 	let samples_dir: string = get_fetchable_url_or_file(null, root, root_url);
 	let page = 0;
-	$: gallery = components.length < 2;
+	$: gallery = false;
 	let paginate = samples.length > samples_per_page;
 
 	let selected_samples: any[][];
@@ -69,7 +69,7 @@
 	$: component_meta = selected_samples.map((sample_row) =>
 		sample_row.map((sample_cell, j) => ({
 			value: sample_cell,
-			component: component_map[components[j]] as ComponentType<SvelteComponent>,
+			component: component_map[components[j]] as ComponentType<SvelteComponent>
 		}))
 	);
 </script>
