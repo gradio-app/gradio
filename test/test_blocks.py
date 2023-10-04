@@ -432,7 +432,7 @@ class TestBlocksMethods:
                 lambda x: f"Hello, {x}", inputs=input_, outputs=output, queue=True
             )
 
-        with pytest.raises(ValueError, match="The queue is enabled for event 0"):
+        with pytest.raises(ValueError, match="The queue is enabled for event lambda"):
             demo.launch(prevent_thread_lock=True)
 
         demo.close()
@@ -463,8 +463,8 @@ class TestTempFile:
             outputs=gallery,
         )
         with connect(demo) as client:
-            client.predict(3)
-            _ = client.predict(3)
+            client.predict(3, api_name="/predict")
+            _ = client.predict(3, api_name="/predict")
         # only three files created and in temp directory
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 3
 
@@ -478,9 +478,9 @@ class TestTempFile:
             outputs=gr.Image(),
         )
         with connect(demo) as client:
-            _ = client.predict(image)
-            _ = client.predict(image)
-            _ = client.predict(image)
+            _ = client.predict(image, api_name="/predict")
+            _ = client.predict(image, api_name="/predict")
+            _ = client.predict(image, api_name="/predict")
         # Upload creates a file. image preprocessing creates another one.
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
 
@@ -489,8 +489,8 @@ class TestTempFile:
         code_file = str(pathlib.Path(__file__))
         demo = gr.Interface(lambda x: x.name, component(), gr.File())
         with connect(demo) as client:
-            _ = client.predict(code_file)
-            _ = client.predict(code_file)
+            _ = client.predict(code_file, api_name="/predict")
+            _ = client.predict(code_file, api_name="/predict")
         # the upload route hashees the files so we get 1 from there
         # We create two tempfiles (empty) because API says we return
         # preprocess/postprocess will create the same file as the upload route
@@ -502,8 +502,8 @@ class TestTempFile:
         video = str(file_dir / "video_sample.mp4")
         demo = gr.Interface(lambda x: x, gr.Video(type="file"), gr.Video())
         with connect(demo) as client:
-            _ = client.predict({"video": video})
-            _ = client.predict({"video": video})
+            _ = client.predict({"video": video}, api_name="/predict")
+            _ = client.predict({"video": video}, api_name="/predict")
         # Upload route and postprocessing return the same file
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
 
@@ -517,8 +517,8 @@ class TestTempFile:
 
         demo = gr.Interface(fn=reverse_audio, inputs=gr.Audio(), outputs=gr.Audio())
         with connect(demo) as client:
-            _ = client.predict(audio)
-            _ = client.predict(audio)
+            _ = client.predict(audio, api_name="/predict")
+            _ = client.predict(audio, api_name="/predict")
             # One for upload and one for reversal
             assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
 
@@ -1495,12 +1495,12 @@ class TestGetAPIInfo:
             t5 = gr.Textbox()
             t1.change(lambda x: x, t1, t2, api_name="change1")
             t2.change(lambda x: x, t2, t3, api_name="change2")
-            t3.change(lambda x: x, t3, t4)
+            t3.change(lambda x: x, t3, t4, api_name=False)
             t4.change(lambda x: x, t4, t5, api_name=False)
 
         api_info = demo.get_api_info()
         assert len(api_info["named_endpoints"]) == 2
-        assert len(api_info["unnamed_endpoints"]) == 1
+        assert len(api_info["unnamed_endpoints"]) == 0
 
     def test_no_endpoints(self):
         with gr.Blocks() as demo:

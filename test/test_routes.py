@@ -1,4 +1,5 @@
 """Contains tests for networking.py and app.py"""
+import functools
 import json
 import os
 import tempfile
@@ -712,6 +713,8 @@ def test_api_name_set_for_all_events(connect):
         btn4 = Button()
         btn5 = Button()
         btn6 = Button()
+        btn7 = Button()
+        btn8 = Button()
 
         def greet(i):
             return "Hello " + i
@@ -735,6 +738,15 @@ def test_api_name_set_for_all_events(connect):
 
         foo2.__name__ = "foo-2"
 
+        class Callable:
+            def __call__(self, a) -> str:
+                return "From __call__"
+
+        def from_partial(a, b):
+            return b + a
+
+        part = functools.partial(from_partial, b="From partial: ")
+
         btn.click(greet, i, o)
         btn1.click(goodbye, i, o)
         btn2.click(greet_me, i, o)
@@ -742,6 +754,8 @@ def test_api_name_set_for_all_events(connect):
         btn4.click(None, i, o)
         btn5.click(foo, i, o)
         btn6.click(foo2, i, o)
+        btn7.click(Callable(), i, o)
+        btn8.click(part, i, o)
 
     with closing(demo) as io:
         app, _, _ = io.launch(prevent_thread_lock=True)
@@ -764,6 +778,12 @@ def test_api_name_set_for_all_events(connect):
         assert client.post(
             "/api/foo-2", json={"data": ["freddy"], "session_hash": "foo"}
         ).json()["data"] == ["freddy foo"]
+        assert client.post(
+            "/api/Callable", json={"data": ["freddy"], "session_hash": "foo"}
+        ).json()["data"] == ["From __call__"]
+        assert client.post(
+            "/api/partial", json={"data": ["freddy"], "session_hash": "foo"}
+        ).json()["data"] == ["From partial: freddy"]
         with pytest.raises(FnIndexInferError):
             client.post(
                 "/api/Say_goodbye", json={"data": ["freddy"], "session_hash": "foo"}

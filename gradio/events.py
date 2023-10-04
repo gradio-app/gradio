@@ -227,15 +227,25 @@ class EventListener(str):
 
             if api_name is None:
                 if fn is not None:
+                    if not hasattr(fn, "__name__"):
+                        if hasattr(fn, "__class__") and hasattr(
+                            fn.__class__, "__name__"
+                        ):
+                            name = fn.__class__.__name__
+                        else:
+                            name = "unnamed"
+                    else:
+                        name = fn.__name__
                     api_name = "".join(
                         [
                             s
-                            for s in fn.__name__
+                            for s in name
                             if s not in set(string.punctuation) - {"-", "_"}
                         ]
                     )
                 else:
-                    api_name = "unnamed"
+                    # Don't document _js only events
+                    api_name = False
 
             dep, dep_index = block.set_event_trigger(
                 _event_name,
