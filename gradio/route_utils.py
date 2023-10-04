@@ -198,7 +198,7 @@ async def call_process_api(
 
     target = dependency["targets"][0] if len(dependency["targets"]) else None
     event_data = EventData(
-        app.get_blocks().blocks.get(target) if target else None,
+        app.get_blocks().blocks.get(target[0]) if target else None,
         body.event_data,
     )
 
