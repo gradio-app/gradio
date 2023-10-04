@@ -1,6 +1,6 @@
 ---
-"@gradio/chatbot": minor
-"gradio": minor
+"@gradio/chatbot": patch
+"gradio": patch
 ---
 
-feat:fix pending chatbot message styling and ensure `None` messages don't render
+fix:fix pending chatbot message styling and ensure `None` messages don't render
