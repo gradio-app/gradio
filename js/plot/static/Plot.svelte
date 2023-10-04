@@ -108,8 +108,8 @@
 	}
 
 	// Plotly
-	let plotDiv;
-	let plotlyGlobalStyle;
+	let plot_div;
+	let plotly_global_style;
 
 	const main_src = `https://cdn.bokeh.org/bokeh/release/bokeh-${bokeh_version}.min.js`;
 
@@ -123,7 +123,7 @@
 	function load_plugins(): HTMLScriptElement[] {
 		return plugins_src.map((src, i) => {
 			const script = document.createElement("script");
-			script.onload = (): void => initializeBokeh(i + 1);
+			script.onload = (): void => initialize_bokeh(i + 1);
 			script.src = src;
 			document.head.appendChild(script);
 
@@ -133,7 +133,7 @@
 
 	function load_bokeh(): HTMLScriptElement {
 		const script = document.createElement("script");
-		script.onload = handleBokehLoaded;
+		script.onload = handle_bokeh_loaded;
 		script.src = main_src;
 		document.head.appendChild(script);
 		bokeh_loaded = true;
@@ -141,12 +141,12 @@
 	}
 
 	function load_plotly_css(): void {
-		if (!plotlyGlobalStyle) {
-			plotlyGlobalStyle = document.getElementById("plotly.js-style-global");
-			const plotlyStyleClone = plotlyGlobalStyle.cloneNode();
-			target.appendChild(plotlyStyleClone);
-			for (const rule of plotlyGlobalStyle.sheet.cssRules) {
-				plotlyStyleClone.sheet.insertRule(rule.cssText);
+		if (!plotly_global_style) {
+			plotly_global_style = document.getElementById("plotly.js-style-global");
+			const plotly_style_clone = plotly_global_style.cloneNode();
+			target.appendChild(plotly_style_clone);
+			for (const rule of plotly_global_style.sheet.cssRules) {
+				plotly_style_clone.sheet.insertRule(rule.cssText);
 			}
 		}
 	}
@@ -157,14 +157,14 @@
 
 	const resolves = [];
 
-	const initializeBokeh = (index): void => {
+	const initialize_bokeh = (index): void => {
 		if (type == "bokeh") {
 			resolves[index]();
 		}
 	};
 
-	function handleBokehLoaded(): void {
-		initializeBokeh(0);
+	function handle_bokeh_loaded(): void {
+		initialize_bokeh(0);
 		plugin_scripts = load_plugins();
 	}
 
@@ -175,7 +175,7 @@
 			plotObj.layout.title
 				? (plotObj.layout.margin = { autoexpand: true })
 				: (plotObj.layout.margin = { l: 0, r: 0, b: 0, t: 0 });
-			Plotly.react(plotDiv, plotObj);
+			Plotly.react(plot_div, plotObj);
 		}
 	});
 
@@ -188,7 +188,7 @@
 </script>
 
 {#if value && type == "plotly"}
-	<div data-testid={"plotly"} bind:this={plotDiv} />
+	<div data-testid={"plotly"} bind:this={plot_div} />
 {:else if type == "bokeh"}
 	<div data-testid={"bokeh"} id={divId} class="gradio-bokeh" />
 {:else if type == "altair"}
