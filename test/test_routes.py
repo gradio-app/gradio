@@ -23,6 +23,7 @@ from gradio import (
     close_all,
     routes,
 )
+from gradio.route_utils import FnIndexInferError
 
 
 @pytest.fixture()
@@ -698,3 +699,68 @@ def test_file_route_does_not_allow_dot_paths(tmp_path):
         assert client.get("/file=.env").status_code == 403
         assert client.get("/file=subdir/.env").status_code == 403
         assert client.get("/file=.versioncontrol/settings").status_code == 403
+
+
+def test_api_name_set_for_all_events(connect):
+    with gr.Blocks() as demo:
+        i = Textbox()
+        o = Textbox()
+        btn = Button()
+        btn1 = Button()
+        btn2 = Button()
+        btn3 = Button()
+        btn4 = Button()
+        btn5 = Button()
+
+        def greet(i):
+            return "Hello " + i
+
+        def goodbye(i):
+            return "Goodbye " + i
+
+        def greet_me(i):
+            return "Hello"
+
+        def say_goodbye(i):
+            return "Goodbye"
+
+        say_goodbye.__name__ = "Say_$$_goodbye"
+
+        def foo(s):
+            return s
+
+        btn.click(greet, i, o)
+        btn1.click(goodbye, i, o)
+        btn2.click(greet_me, i, o)
+        btn3.click(say_goodbye, i, o)
+        btn4.click(None, i, o)
+        btn5.click(foo, i, o)
+
+    with closing(demo) as io:
+        app, _, _ = io.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        assert client.post(
+            "/api/greet", json={"data": ["freddy"], "session_hash": "foo"}
+        ).json()["data"] == ["Hello freddy"]
+        assert client.post(
+            "/api/goodbye", json={"data": ["freddy"], "session_hash": "foo"}
+        ).json()["data"] == ["Goodbye freddy"]
+        assert client.post(
+            "/api/greet_me", json={"data": ["freddy"], "session_hash": "foo"}
+        ).json()["data"] == ["Hello"]
+        assert client.post(
+            "/api/Say__goodbye", json={"data": ["freddy"], "session_hash": "foo"}
+        ).json()["data"] == ["Goodbye"]
+        assert client.post(
+            "/api/lambda", json={"data": ["freddy"], "session_hash": "foo"}
+        ).json()["data"] == ["freddy"]
+        with pytest.raises(FnIndexInferError):
+            client.post(
+                "/api/Say_goodbye", json={"data": ["freddy"], "session_hash": "foo"}
+            )
+
+    with connect(demo) as client:
+        assert client.predict("freddy", api_name="/greet") == "Hello freddy"
+        assert client.predict("freddy", api_name="/goodbye") == "Goodbye freddy"
+        assert client.predict("freddy", api_name="/greet_me") == "Hello"
+        assert client.predict("freddy", api_name="/Say__goodbye") == "Goodbye"

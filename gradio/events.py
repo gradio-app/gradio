@@ -3,6 +3,7 @@ of the on-page-load event, which is defined in gr.Blocks().load()."""
 
 from __future__ import annotations
 
+import string
 from functools import partial, wraps
 from typing import TYPE_CHECKING, Any, Callable, Literal
 
@@ -168,7 +169,7 @@ class EventListener(str):
                 fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
                 inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
                 outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
-                api_name: Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.
+                api_name: Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be given the name of the python function fn. If no fn is passed in, it will be given the name 'unnamed'. If set to a string, the endpoint will be exposed in the api docs with the given name.
                 status_tracker: Deprecated and has no effect.
                 scroll_to_output: If True, will scroll to output component on completion
                 show_progress: If True, will show progress animation while pending
@@ -223,6 +224,18 @@ class EventListener(str):
                 block.check_streamable()  # type: ignore
             if isinstance(show_progress, bool):
                 show_progress = "full" if show_progress else "hidden"
+
+            if api_name is None:
+                if fn is not None:
+                    api_name = "".join(
+                        [
+                            s
+                            for s in fn.__name__
+                            if s not in set(string.punctuation) - {"-", "_"}
+                        ]
+                    )
+                else:
+                    api_name = "unnamed"
 
             dep, dep_index = block.set_event_trigger(
                 _event_name,
