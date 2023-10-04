@@ -2,7 +2,7 @@
 	import { BlockLabel, Empty, ShareButton } from "@gradio/atoms";
 	import { ModifyUpload } from "@gradio/upload";
 	import type { SelectData } from "@gradio/utils";
-
+	import { dequal } from "dequal";
 	import { createEventDispatcher } from "svelte";
 	import { tick } from "svelte";
 	import { _ } from "svelte-i18n";
@@ -28,9 +28,9 @@
 		"cover";
 	export let show_share_button = false;
 	export let show_download_button = false;
-	export let selected_index: number | null = null;
 
 	const dispatch = createEventDispatcher<{
+		change: undefined;
 		select: SelectData;
 	}>();
 
@@ -51,33 +51,32 @@
 
 	let prevValue: (FileData | string | [FileData | string, string])[] | null =
 		value;
-	if (selected_index === null && preview && value?.length) {
-		selected_index = 0;
-	}
-	let old_selected_index: number | null = selected_index;
+	let selected_image = preview && value?.length ? 0 : null;
+	let old_selected_image: number | null = selected_image;
 
-	$: if (prevValue !== value) {
+	$: if (!dequal(prevValue, value)) {
 		// When value is falsy (clear button or first load),
 		// preview determines the selected image
 		if (was_reset) {
-			selected_index = preview && value?.length ? 0 : null;
+			selected_image = preview && value?.length ? 0 : null;
 			was_reset = false;
-			// Otherwise we keep the selected_index the same if the
+			// Otherwise we keep the selected_image the same if the
 			// gallery has at least as many elements as it did before
 		} else {
-			selected_index =
-				selected_index !== null &&
+			selected_image =
+				selected_image !== null &&
 				value !== null &&
-				selected_index < value.length
-					? selected_index
+				selected_image < value.length
+					? selected_image
 					: null;
 		}
+		dispatch("change");
 		prevValue = value;
 	}
 
 	$: previous =
-		((selected_index ?? 0) + (_value?.length ?? 0) - 1) % (_value?.length ?? 0);
-	$: next = ((selected_index ?? 0) + 1) % (_value?.length ?? 0);
+		((selected_image ?? 0) + (_value?.length ?? 0) - 1) % (_value?.length ?? 0);
+	$: next = ((selected_image ?? 0) + 1) % (_value?.length ?? 0);
 
 	function handle_preview_click(event: MouseEvent): void {
 		const element = event.target as HTMLElement;
@@ -86,9 +85,9 @@
 		const centerX = width / 2;
 
 		if (x < centerX) {
-			selected_index = previous;
+			selected_image = previous;
 		} else {
-			selected_index = next;
+			selected_image = next;
 		}
 	}
 
@@ -96,15 +95,15 @@
 		switch (e.code) {
 			case "Escape":
 				e.preventDefault();
-				selected_index = null;
+				selected_image = null;
 				break;
 			case "ArrowLeft":
 				e.preventDefault();
-				selected_index = previous;
+				selected_image = previous;
 				break;
 			case "ArrowRight":
 				e.preventDefault();
-				selected_index = next;
+				selected_image = next;
 				break;
 			default:
 				break;
@@ -127,11 +126,11 @@
 	}
 
 	$: {
-		if (selected_index !== old_selected_index) {
-			old_selected_index = selected_index;
-			if (selected_index !== null) {
+		if (selected_image !== old_selected_image) {
+			old_selected_image = selected_image;
+			if (selected_image !== null) {
 				dispatch("select", {
-					index: selected_index,
+					index: selected_image,
 					value: [_value?.[selected_index][0].data, _value?.[selected_index][1]]
 				});
 			}
@@ -139,7 +138,7 @@
 	}
 
 	$: if (allow_preview) {
-		scroll_to_img(selected_index);
+		scroll_to_img(selected_image);
 	}
 
 	let el: HTMLButtonElement[] = [];
@@ -163,10 +162,12 @@
 			container_width / 2 +
 			container_element.scrollLeft;
 
-		container_element?.scrollTo({
-			left: pos < 0 ? 0 : pos,
-			behavior: "smooth"
-		});
+		if (container_element && typeof container_element.scrollTo === "function") {
+			container_element.scrollTo({
+				left: pos < 0 ? 0 : pos,
+				behavior: "smooth"
+			});
+		}
 	}
 
 	let client_height = 0;
@@ -181,12 +182,12 @@
 {#if value === null || _value === null || _value.length === 0}
 	<Empty unpadded_box={true} size="large"><Image /></Empty>
 {:else}
-	{#if selected_index !== null && allow_preview}
+	{#if selected_image !== null && allow_preview}
 		<button on:keydown={on_keydown} class="preview">
 			<div class="icon-buttons">
 				{#if show_download_button}
 					<a
-						href={getHrefValue(value[selected_index])}
+						href={getHrefValue(value[selected_image])}
 						target={window.__is_colab__ ? "_blank" : null}
 						download="image"
 					>
@@ -196,29 +197,29 @@
 
 				<ModifyUpload
 					absolute={false}
-					on:clear={() => (selected_index = null)}
+					on:clear={() => (selected_image = null)}
 				/>
 			</div>
 			<button
 				class="image-button"
 				on:click={(event) => handle_preview_click(event)}
-				style="height: calc(100% - {_value[selected_index][1]
+				style="height: calc(100% - {_value[selected_image][1]
 					? '80px'
 					: '60px'})"
 				aria-label="detailed view of selected image"
 			>
 				<img
 					data-testid="detailed-image"
-					src={_value[selected_index][0].data}
-					alt={_value[selected_index][1] || ""}
-					title={_value[selected_index][1] || null}
-					class:with-caption={!!_value[selected_index][1]}
+					src={_value[selected_image][0].data}
+					alt={_value[selected_image][1] || ""}
+					title={_value[selected_image][1] || null}
+					class:with-caption={!!_value[selected_image][1]}
 					loading="lazy"
 				/>
 			</button>
-			{#if _value[selected_index][1]}
+			{#if _value[selected_image][1]}
 				<caption class="caption">
-					{_value[selected_index][1]}
+					{_value[selected_image][1]}
 				</caption>
 			{/if}
 			<div
@@ -229,9 +230,9 @@
 				{#each _value as image, i}
 					<button
 						bind:this={el[i]}
-						on:click={() => (selected_index = i)}
+						on:click={() => (selected_image = i)}
 						class="thumbnail-item thumbnail-small"
-						class:selected={selected_index === i}
+						class:selected={selected_image === i}
 						aria-label={"Thumbnail " + (i + 1) + " of " + _value.length}
 					>
 						<img
@@ -269,8 +270,8 @@
 			{#each _value as [image, caption], i}
 				<button
 					class="thumbnail-item thumbnail-lg"
-					class:selected={selected_index === i}
-					on:click={() => (selected_index = i)}
+					class:selected={selected_image === i}
+					on:click={() => (selected_image = i)}
 					aria-label={"Thumbnail " + (i + 1) + " of " + _value.length}
 				>
 					<img
