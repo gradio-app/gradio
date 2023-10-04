@@ -114,7 +114,6 @@
 	function load_plugins(): HTMLScriptElement[] {
 		return plugins_src.map((src, i) => {
 			const script = document.createElement("script");
-			script.onload = (): void => initialize_bokeh(i + 1);
 			script.src = src;
 			document.head.appendChild(script);
 
@@ -148,16 +147,7 @@
 
 	let plugin_scripts = [];
 
-	const resolves = [];
-
-	const initialize_bokeh = (index): void => {
-		if (type == "bokeh") {
-			resolves[index]();
-		}
-	};
-
 	function handle_bokeh_loaded(): void {
-		initialize_bokeh(0);
 		plugin_scripts = load_plugins();
 	}
 
