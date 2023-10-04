@@ -1,5 +1,15 @@
 # gradio
 
+## 3.46.1
+
+### Features
+
+- [#5124](https://github.com/gradio-app/gradio/pull/5124) [`6e56a0d9b`](https://github.com/gradio-app/gradio/commit/6e56a0d9b0c863e76c69e1183d9d40196922b4cd) - Lite: Websocket queueing.  Thanks [@whitphx](https://github.com/whitphx)!
+
+### Fixes
+
+- [#5775](https://github.com/gradio-app/gradio/pull/5775) [`e2874bc3c`](https://github.com/gradio-app/gradio/commit/e2874bc3cb1397574f77dbd7f0408ed4e6792970) - fix pending chatbot message styling and ensure messages with value `None` don't render.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 3.46.0
 
 ### Features
