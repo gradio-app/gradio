@@ -165,7 +165,10 @@ interface Client {
 	) => Promise<unknown[]>;
 }
 
-export function api_factory(fetch_implementation: typeof fetch): Client {
+export function api_factory(
+	fetch_implementation: typeof fetch,
+	WebSocket_factory: (url: URL) => WebSocket
+): Client {
 	return { post_data, upload_files, client, handle_blob };
 
 	async function post_data(
@@ -517,7 +520,7 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 							url.searchParams.set("__sign", jwt);
 						}
 
-						websocket = new WebSocket(url);
+						websocket = WebSocket_factory(url);
 
 						websocket.onclose = (evt) => {
 							if (!evt.wasClean) {
@@ -803,8 +806,10 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 	}
 }
 
-export const { post_data, upload_files, client, handle_blob } =
-	api_factory(fetch);
+export const { post_data, upload_files, client, handle_blob } = api_factory(
+	fetch,
+	(...args) => new WebSocket(...args)
+);
 
 function transform_output(
 	data: any[],
