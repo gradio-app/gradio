@@ -711,6 +711,7 @@ def test_api_name_set_for_all_events(connect):
         btn3 = Button()
         btn4 = Button()
         btn5 = Button()
+        btn6 = Button()
 
         def greet(i):
             return "Hello " + i
@@ -726,8 +727,13 @@ def test_api_name_set_for_all_events(connect):
 
         say_goodbye.__name__ = "Say_$$_goodbye"
 
-        def foo(s):
-            return s
+        # Otherwise changed by ruff
+        foo = lambda s: s  # noqa
+
+        def foo2(s):
+            return s + " foo"
+
+        foo2.__name__ = "foo-2"
 
         btn.click(greet, i, o)
         btn1.click(goodbye, i, o)
@@ -735,6 +741,7 @@ def test_api_name_set_for_all_events(connect):
         btn3.click(say_goodbye, i, o)
         btn4.click(None, i, o)
         btn5.click(foo, i, o)
+        btn6.click(foo2, i, o)
 
     with closing(demo) as io:
         app, _, _ = io.launch(prevent_thread_lock=True)
@@ -754,6 +761,9 @@ def test_api_name_set_for_all_events(connect):
         assert client.post(
             "/api/lambda", json={"data": ["freddy"], "session_hash": "foo"}
         ).json()["data"] == ["freddy"]
+        assert client.post(
+            "/api/foo-2", json={"data": ["freddy"], "session_hash": "foo"}
+        ).json()["data"] == ["freddy foo"]
         with pytest.raises(FnIndexInferError):
             client.post(
                 "/api/Say_goodbye", json={"data": ["freddy"], "session_hash": "foo"}
