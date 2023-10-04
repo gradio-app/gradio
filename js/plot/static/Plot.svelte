@@ -38,10 +38,7 @@
 	$: plot = value?.plot;
 	$: type = value?.type;
 
-	function embed_bokeh(
-		_plot: Record<string, any>,
-		_type: string,
-	): void {
+	function embed_bokeh(_plot: Record<string, any>, _type: string): void {
 		if (document) {
 			if (document.getElementById(div_id)) {
 				document.getElementById(div_id).innerHTML = "";
@@ -108,7 +105,7 @@
 		`https://cdn.pydata.org/bokeh/release/bokeh-widgets-${bokeh_version}.min.js`,
 		`https://cdn.pydata.org/bokeh/release/bokeh-tables-${bokeh_version}.min.js`,
 		`https://cdn.pydata.org/bokeh/release/bokeh-gl-${bokeh_version}.min.js`,
-		`https://cdn.pydata.org/bokeh/release/bokeh-api-${bokeh_version}.min.js`,
+		`https://cdn.pydata.org/bokeh/release/bokeh-api-${bokeh_version}.min.js`
 	];
 
 	function load_plugins(): HTMLScriptElement[] {
@@ -125,7 +122,9 @@
 		const script = document.createElement("script");
 		script.onload = handle_bokeh_loaded;
 		script.src = main_src;
-		const is_bokeh_script_present = document.head.querySelector(`script[src="${main_src}"]`);
+		const is_bokeh_script_present = document.head.querySelector(
+			`script[src="${main_src}"]`
+		);
 		if (!is_bokeh_script_present) {
 			document.head.appendChild(script);
 		}
