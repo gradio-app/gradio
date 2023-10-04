@@ -13,7 +13,8 @@
 		"@gradio/image": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/upload": "workspace:^",
-		"@gradio/utils": "workspace:^"
+		"@gradio/utils": "workspace:^",
+		"dequal": "^2.0.2"
 	},
 	"main_changeset": true,
 	"exports": {
