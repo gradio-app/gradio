@@ -1,26 +1,24 @@
 <script lang="ts">
-	export let pending_message = false;
+	export let layout = "bubble";
 </script>
 
-{#if pending_message}
-	<div
-		class="message pending"
-		role="status"
-		aria-label="Loading response"
-		aria-live="polite"
-	>
-		<span class="sr-only">Loading content</span>
-		<div class="dot-flashing" />
-		&nbsp;
-		<div class="dot-flashing" />
-		&nbsp;
-		<div class="dot-flashing" />
-	</div>
-{/if}
+<div
+	class="message pending"
+	role="status"
+	aria-label="Loading response"
+	aria-live="polite"
+	style:border-radius={layout === "bubble" ? "var(--radius-xxl)" : "none"}
+>
+	<span class="sr-only">Loading content</span>
+	<div class="dot-flashing" />
+	&nbsp;
+	<div class="dot-flashing" />
+	&nbsp;
+	<div class="dot-flashing" />
+</div>
 
 <style>
 	.pending {
-		border-color: var(--border-color-primary);
 		background: var(--background-fill-secondary);
 		display: flex;
 		flex-direction: row;
@@ -28,6 +26,8 @@
 		align-items: center;
 		align-self: center;
 		gap: 2px;
+		width: 100%;
+		height: 100%;
 	}
 	.dot-flashing {
 		animation: dot-flashing 1s infinite linear alternate;
