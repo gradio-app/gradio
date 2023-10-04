@@ -18,7 +18,7 @@ There are a few ways to install and run Gradio.
 ### 🛠️ Install Gradio locally from `main`
 
 - Clone this repo
-- Navigate to the repo directory and run
+- Navigate to the repo directory and (from the root directory) run
 
 ```bash
 bash scripts/install_gradio.sh
@@ -90,6 +90,8 @@ gradio app.py
 
 ### 🧪 Testing
 
+We use Pytest, Playwright and Vitest to test our code. 
+
 - To run all Python tests:
 
 ```
@@ -108,16 +110,28 @@ pnpm test
 pnpm test:browser
 ```
 
+To build the frontend code before running browser tests:
+
+```
+pnpm test:browser
+```
+
+You can also run browser tests in the UI mode by adding the `--ui` flag: 
+
+```
+pnpm test:browser --ui
+```
+
 #### 🕸️ Gradio Website
 
 We also welcome any contributions to our [website](https://www.gradio.app). 
 
-First, build the CDN:
+First, build the website:
 
 ```
 pnpm build:cdn-local
 ```
-and get it up and running:
+then serve the website build:
 ```
 pnpm preview:cdn-local
 ```
@@ -134,7 +148,7 @@ to
 You should now be able to view a local version of the website at `http://localhost:4321`. 
 #### 📚 Component Storybook
 
-If you would like to fix or contribute something to our Storybook, you can get Storybook running with:
+If you would like to fix or contribute something to our Storybook, you can get it running locally with:
 
 ```
 pnpm storybook
@@ -150,7 +164,7 @@ All PRs should be against `main`, and ideally should address an open issue, unle
 
  🧹 We ask that you make sure initial CI checks are passing before requesting a review. One of the Gradio maintainers will merge the PR when all the checks are passing.  You can safely ignore the Vercel and Spaces checks, which only run under maintainers' pull requests.  
 
-Don't forget the format the backend before pushing:
+Don't forget the format your code before pushing:
 
 ```
 bash scripts/format_backend.sh
