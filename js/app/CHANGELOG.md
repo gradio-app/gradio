@@ -1,5 +1,11 @@
 # @gradio/app
 
+## 1.6.4
+
+### Features
+
+- [#5124](https://github.com/gradio-app/gradio/pull/5124) [`6e56a0d9b`](https://github.com/gradio-app/gradio/commit/6e56a0d9b0c863e76c69e1183d9d40196922b4cd) - Lite: Websocket queueing.  Thanks [@whitphx](https://github.com/whitphx)!
+
 ## 1.6.3
 
 ### Patch Changes
