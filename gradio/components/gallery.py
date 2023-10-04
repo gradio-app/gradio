@@ -76,7 +76,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             height: The height of the gallery component, in pixels. If more images are displayed than can fit in the height, a scrollbar will appear.
             allow_preview: If True, images in the gallery will be enlarged when they are clicked. Default is True.
             preview: If True, Gallery will start in preview mode, which shows all of the images as thumbnails and allows the user to click on them to view them in full size. Only works if allow_preview is True.
-            selected_index: The index of the image that should be initially selected. If None, no image will be selected at start.
+            selected_index: The index of the image that should be initially selected. If None, no image will be selected at start. If provided, will set Gallery to preview mode unless allow_preview is set to False.
             object_fit: CSS object-fit property for the thumbnail images in the gallery. Can be "contain", "cover", "fill", "none", or "scale-down".
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             show_download_button: If True, will show a download button in the corner of the selected image. If False, the icon does not appear. Default is True.
