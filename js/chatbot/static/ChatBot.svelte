@@ -121,131 +121,131 @@
 		{#if value !== null}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
-					<div
-						class="message-row {layout} {j == 0 ? 'user-row' : 'bot-row'}"
-						class:hide={message === null}
-					>
-						{#if avatar_images[j] !== null}
-							<div class="avatar-container">
-								<img
-									class="avatar-image"
-									src={get_fetchable_url_or_file(
-										avatar_images[j],
-										root,
-										root_url
-									)}
-									alt="{j == 0 ? 'user' : 'bot'} avatar"
-								/>
-							</div>
-						{/if}
-
-						<div
-							class="message {j == 0 ? 'user' : 'bot'}"
-							class:message-fit={layout === "bubble" && !bubble_full_width}
-							class:panel-full-width={layout === "panel"}
-							class:message-bubble-border={layout === "bubble"}
-							class:message-markdown-disabled={!render_markdown}
-						>
-							<button
-								data-testid={j == 0 ? "user" : "bot"}
-								class:latest={i === value.length - 1}
-								class:message-markdown-disabled={!render_markdown}
-								class:selectable
-								style:text-align="left"
-								on:click={() => handle_select(i, j, message)}
-								on:keydown={(e) => {
-									if (e.key === "Enter") {
-										handle_select(i, j, message);
-									}
-								}}
-								dir={rtl ? "rtl" : "ltr"}
-								aria-label={(j == 0 ? "user" : "bot") +
-									"'s message:' " +
-									message}
-							>
-								{#if typeof message === "string"}
-									<Markdown
-										{message}
-										{latex_delimiters}
-										{sanitize_html}
-										{render_markdown}
-										{line_breaks}
-										on:load={scroll}
-									/>
-								{:else if message !== null && message.mime_type?.includes("audio")}
-									<audio
-										data-testid="chatbot-audio"
-										controls
-										preload="metadata"
-										src={message.data}
-										title={message.alt_text}
-										on:play
-										on:pause
-										on:ended
-									/>
-								{:else if message !== null && message.mime_type?.includes("video")}
-									<video
-										data-testid="chatbot-video"
-										controls
-										src={message.data}
-										title={message.alt_text}
-										preload="auto"
-										on:play
-										on:pause
-										on:ended
-									>
-										<track kind="captions" />
-									</video>
-								{:else if message !== null && message.mime_type?.includes("image")}
+					{#if message !== null || pending_message}
+						<div class="message-row {layout} {j == 0 ? 'user-row' : 'bot-row'}">
+							{#if avatar_images[j] !== null}
+								<div class="avatar-container">
 									<img
-										data-testid="chatbot-image"
-										src={message.data}
-										alt={message.alt_text}
+										class="avatar-image"
+										src={get_fetchable_url_or_file(
+											avatar_images[j],
+											root,
+											root_url
+										)}
+										alt="{j == 0 ? 'user' : 'bot'} avatar"
 									/>
-								{:else if message !== null && message.data !== null}
-									<a
-										data-testid="chatbot-file"
-										href={message.data}
-										target="_blank"
-										download={window.__is_colab__
-											? null
-											: message.orig_name || message.name}
-									>
-										{message.orig_name || message.name}
-									</a>
-								{/if}
-							</button>
-						</div>
-						{#if (likeable && j !== 0) || (show_copy_button && message && typeof message === "string")}
+								</div>
+							{/if}
+
 							<div
-								class="message-buttons-{j == 0
-									? 'user'
-									: 'bot'} message-buttons-{layout} {avatar_images[j] !==
-									null && 'with-avatar'}"
-								class:message-buttons-fit={layout === "bubble" &&
-									!bubble_full_width}
-								class:bubble-buttons-user={layout === "bubble"}
+								class="message {j == 0 ? 'user' : 'bot'}"
+								class:message-fit={layout === "bubble" && !bubble_full_width}
+								class:panel-full-width={layout === "panel"}
+								class:message-bubble-border={layout === "bubble"}
+								class:message-markdown-disabled={!render_markdown}
 							>
-								{#if likeable && j == 1}
-									<LikeDislike
-										action="like"
-										handle_action={() => handle_like(i, j, message, true)}
-									/>
-									<LikeDislike
-										action="dislike"
-										handle_action={() => handle_like(i, j, message, false)}
-									/>
-								{/if}
-								{#if show_copy_button && message && typeof message === "string"}
-									<Copy value={message} />
-								{/if}
+								<button
+									data-testid={j == 0 ? "user" : "bot"}
+									class:latest={i === value.length - 1}
+									class:message-markdown-disabled={!render_markdown}
+									class:selectable
+									style:text-align="left"
+									on:click={() => handle_select(i, j, message)}
+									on:keydown={(e) => {
+										if (e.key === "Enter") {
+											handle_select(i, j, message);
+										}
+									}}
+									dir={rtl ? "rtl" : "ltr"}
+									aria-label={(j == 0 ? "user" : "bot") +
+										"'s message:' " +
+										message}
+								>
+									{#if typeof message === "string"}
+										<Markdown
+											{message}
+											{latex_delimiters}
+											{sanitize_html}
+											{render_markdown}
+											{line_breaks}
+											on:load={scroll}
+										/>
+									{:else if message !== null && message.mime_type?.includes("audio")}
+										<audio
+											data-testid="chatbot-audio"
+											controls
+											preload="metadata"
+											src={message.data}
+											title={message.alt_text}
+											on:play
+											on:pause
+											on:ended
+										/>
+									{:else if message !== null && message.mime_type?.includes("video")}
+										<video
+											data-testid="chatbot-video"
+											controls
+											src={message.data}
+											title={message.alt_text}
+											preload="auto"
+											on:play
+											on:pause
+											on:ended
+										>
+											<track kind="captions" />
+										</video>
+									{:else if message !== null && message.mime_type?.includes("image")}
+										<img
+											data-testid="chatbot-image"
+											src={message.data}
+											alt={message.alt_text}
+										/>
+									{:else if message !== null && message.data !== null}
+										<a
+											data-testid="chatbot-file"
+											href={message.data}
+											target="_blank"
+											download={window.__is_colab__
+												? null
+												: message.orig_name || message.name}
+										>
+											{message.orig_name || message.name}
+										</a>
+									{:else if pending_message && j === 1}
+										<Pending {layout} />
+									{/if}
+								</button>
 							</div>
-						{/if}
-					</div>
+							{#if (likeable && j !== 0) || (show_copy_button && message && typeof message === "string")}
+								<div
+									class="message-buttons-{j == 0
+										? 'user'
+										: 'bot'} message-buttons-{layout} {avatar_images[j] !==
+										null && 'with-avatar'}"
+									class:message-buttons-fit={layout === "bubble" &&
+										!bubble_full_width}
+									class:bubble-buttons-user={layout === "bubble"}
+								>
+									{#if likeable && j == 1}
+										<LikeDislike
+											action="like"
+											handle_action={() => handle_like(i, j, message, true)}
+										/>
+										<LikeDislike
+											action="dislike"
+											handle_action={() => handle_like(i, j, message, false)}
+										/>
+									{/if}
+									{#if show_copy_button && message && typeof message === "string"}
+										<Copy value={message} />
+									{/if}
+								</div>
+							{/if}
+						</div>
+					{/if}
 				{/each}
 			{/each}
 		{/if}
-		<Pending {pending_message} {layout} />
 	</div>
 </div>
 
@@ -331,10 +331,6 @@
 	}
 	.bot {
 		border-bottom-left-radius: 0;
-	}
-
-	.hide {
-		display: none;
 	}
 
 	/* Colors */
