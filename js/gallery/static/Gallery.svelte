@@ -55,7 +55,6 @@
 	let old_selected_image: number | null = selected_image;
 
 	$: if (prevValue !== value) {
-		console.log(prevValue, value);
 		// When value is falsy (clear button or first load),
 		// preview determines the selected image
 		if (was_reset) {
