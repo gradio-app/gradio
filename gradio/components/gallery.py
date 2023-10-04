@@ -15,6 +15,7 @@ from gradio import utils
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
+    Changeable,
     EventListenerMethod,
     Selectable,
 )
@@ -23,7 +24,7 @@ set_documentation_group("component")
 
 
 @document()
-class Gallery(IOComponent, GallerySerializable, Selectable):
+class Gallery(IOComponent, GallerySerializable, Changeable, Selectable):
     """
     Used to display a list of images as a gallery that can be scrolled through.
     Preprocessing: this component does *not* accept input.
