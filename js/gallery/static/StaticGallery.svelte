@@ -64,7 +64,7 @@
 		{preview}
 		{object_fit}
 		{allow_preview}
-		{selected_index}
+		bind:selected_index
 		{show_share_button}
 		{show_download_button}
 	/>
