@@ -18,7 +18,7 @@
 	export let caption: string;
 	export let bokeh_version: string | null;
 	export let show_actions_button: bool;
-	const divId = `bokehDiv-${Math.random().toString(5).substring(2)}`;
+	const div_id = `bokehDiv-${Math.random().toString(5).substring(2)}`;
 
 	function get_color(index: number): string {
 		let current_color = colors[index % colors.length];
@@ -49,8 +49,8 @@
 		_bokeh_loaded: boolean
 	): void {
 		if (document) {
-			if (document.getElementById(divId)) {
-				document.getElementById(divId).innerHTML = "";
+			if (document.getElementById(div_id)) {
+				document.getElementById(div_id).innerHTML = "";
 			}
 		}
 		if (_type == "bokeh" && window.Bokeh) {
@@ -59,7 +59,7 @@
 				bokeh_loaded = true;
 			}
 			let plotObj = JSON.parse(_plot);
-			window.Bokeh.embed.embed_item(plotObj, divId);
+			window.Bokeh.embed.embed_item(plotObj, div_id);
 		}
 	}
 
@@ -190,7 +190,7 @@
 {#if value && type == "plotly"}
 	<div data-testid={"plotly"} bind:this={plot_div} />
 {:else if type == "bokeh"}
-	<div data-testid={"bokeh"} id={divId} class="gradio-bokeh" />
+	<div data-testid={"bokeh"} id={div_id} class="gradio-bokeh" />
 {:else if type == "altair"}
 	<div data-testid={"altair"} class="altair layout">
 		<Vega {spec} options={{ actions: show_actions_button }} />
