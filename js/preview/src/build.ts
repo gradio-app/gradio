@@ -24,45 +24,28 @@ logger.warn = (msg, options) => {
 
 interface ServerOptions {
 	component_dir: string;
-	root_dir: string;
-	frontend_port: number;
-	backend_port: number;
+	// root_dir: string;
 }
 
 const RE_SVELTE_IMPORT =
 	/import\s+([\w*{},\s]+)\s+from\s+['"](svelte|svelte\/internal)['"]/g;
 
-export async function create_server({
-	component_dir,
-	root_dir,
-	frontend_port,
-	backend_port
-}: ServerOptions): Promise<void> {
+export async function make_build({
+	component_dir // backend_port
+} // root_dir // frontend_port,
+: ServerOptions): Promise<void> {
 	process.env.gradio_mode = "dev";
 	const imports = generate_imports(component_dir);
 
-	const NODE_DIR = join(root_dir, "..", "..", "node", "dev");
-	console.log({ root_dir });
-	const SVELTE_DIR = join(root_dir, "assets", "svelte");
+	// const NODE_DIR = join(root_dir, "..", "..", "node", "dev");
+	// console.log({ root_dir });
+	// const SVELTE_DIR = join(root_dir, "assets", "svelte");
 
 	try {
-		const server = await createServer({
+		const config = {
 			// any valid user config options, plus `mode` and `configFile`
-			esbuild: false,
-			customLogger: logger,
-			mode: "development",
-			configFile: false,
-			root: root_dir,
+			root: component_dir,
 
-			optimizeDeps: {
-				disabled: true
-			},
-			server: {
-				port: frontend_port,
-				fs: {
-					allow: [root_dir, NODE_DIR, component_dir]
-				}
-			},
 			plugins: [
 				//@ts-ignore
 				viteCommonjs(),
@@ -120,31 +103,53 @@ export async function create_server({
 							code: new_code,
 							map: null
 						};
-					},
-
-					transformIndexHtml(html) {
-						return [
-							{
-								tag: "script",
-								children: `window.__GRADIO_DEV__ = "dev";
-							window.__GRADIO__SERVER_PORT__ = ${backend_port};
-							window.__GRADIO__CC__ = ${imports};`
-							}
-						];
 					}
+
+					// transformIndexHtml(html) {
+					// 	return [
+					// 		{
+					// 			tag: "script",
+					// 			children: `window.__GRADIO_DEV__ = "dev";
+					// 		window.__GRADIO__SERVER_PORT__ = ${backend_port};
+					// 		window.__GRADIO__CC__ = ${imports};`
+					// 		}
+					// 	];
+					// }
 				},
 				sucrase({
 					transforms: ["typescript"],
 					include: ["**/*.ts", "**/*.tsx"]
 				})
 			]
+		};
+
+		await build({
+			root: path.resolve(component_dir, "frontend", "interactive", "index.ts"),
+			plugins: [],
+
+			build: {
+				outDir: path.resolve(component_dir, "interactive"),
+				rollupOptions: {
+					input: path.resolve(
+						component_dir,
+						"frontend",
+						"interactive",
+						"index.ts"
+					),
+					output: {
+						dir: path.resolve(component_dir, "backend", "newnewtext", "build"),
+						entryFileNames: "[name].js",
+						chunkFileNames: "[name].js",
+						format: "es"
+					}
+				}
+			}
 		});
+		// await server.listen();
 
-		await server.listen();
-
-		console.info(
-			`[orange3]Frontend Server[/] (Go here): ${server.resolvedUrls?.local}`
-		);
+		// console.info(
+		// 	`[orange3]Frontend Server[/] (Go here): ${server.resolvedUrls?.local}`
+		// );
 	} catch (e) {
 		console.error(e);
 	}

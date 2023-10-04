@@ -89,6 +89,27 @@ BUILT_IN_THEMES: dict[str, Theme] = {
 }
 
 
+def get_module_location_from_instance(instance: Any):
+    """
+    Returns the location of the module that the instance of the class is in.
+    """
+    module_name = instance.__class__.__module__
+    module_path = sys.modules[module_name].__file__
+    print(module_path, module_name)
+    if module_path is None:
+        module_path = os.getcwd()
+    module_dir = os.path.dirname(module_path)
+    module_root = module_dir
+
+    # this doesn't work, dunno how to handle submodules
+    # if "." in module_name:
+    #     name_parts = module_name.split(".")
+    #     for _ in range(len(name_parts) - 1):
+    #         module_root = os.path.dirname(module_root)
+
+    return module_root
+
+
 class Block:
     def __init__(
         self,
@@ -331,6 +352,9 @@ class Block:
             or self.__module__.startswith("gradio.templates")
         )
         config["custom_component"] = custom
+        if custom:
+            config["module_location"] = get_module_location_from_instance(self)
+
         for e in self.events:
             to_add = e.config_data()
             if to_add:
@@ -672,6 +696,7 @@ class Blocks(BlockContext):
 
     def get_component(self, id: int) -> Component:
         comp = self.blocks[id]
+        print(comp)
         assert isinstance(comp, components.Component), f"{comp}"
         return comp
 

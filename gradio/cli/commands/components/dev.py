@@ -8,7 +8,7 @@ from typing_extensions import Annotated
 
 import gradio
 
-gradio_template_path = Path(gradio.__file__).parent / "templates" / "dev"
+gradio_template_path = Path(gradio.__file__).parent / "templates" / "frontend"
 gradio_node_path = Path(gradio.__file__).parent / "node" / "dev" / "files" / "index.js"
 
 

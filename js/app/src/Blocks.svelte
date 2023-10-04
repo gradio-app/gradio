@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { load_component } from "virtual:component-loader";
+
 	import { onMount, tick } from "svelte";
 	import { _ } from "svelte-i18n";
 	import type { client } from "@gradio/client";
@@ -119,51 +121,6 @@
 		default: ComponentMeta["component"];
 	};
 
-	async function load_component<T extends ComponentMeta["type"]>(
-		name: T,
-		mode: ComponentMeta["props"]["mode"] | "example"
-	): Promise<{
-		name: T;
-		component: LoadedComponent;
-	}> {
-		try {
-			//@ts-ignore
-			const c = await component_map[name][mode]();
-			return {
-				name,
-				component: c as LoadedComponent
-			};
-		} catch (e) {
-			if (mode === "example") {
-				try {
-					return load_custom_component(name, "example");
-				} catch (e) {
-					return {
-						name,
-						component: await import("@gradio/fallback/example")
-					};
-				}
-			}
-			if (mode === "interactive") {
-				try {
-					const c = await component_map[name]["static"]();
-					return {
-						name,
-						component: c as LoadedComponent
-					};
-				} catch (e) {
-					console.error(`failed to load: ${name}`);
-					console.error(e);
-					throw e;
-				}
-			} else {
-				console.error(`failed to load: ${name}`);
-				console.error(e);
-				throw e;
-			}
-		}
-	}
-
 	let component_set = new Set<
 		Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
 	>();
@@ -204,50 +161,6 @@
 	export let render_complete = false;
 
 	$: components, layout, prepare_components();
-
-	async function load_custom_component<T extends ComponentMeta["type"]>(
-		name: T,
-		mode: ComponentMeta["props"]["mode"] | "example"
-	): Promise<{
-		name: T;
-		component: LoadedComponent;
-	}> {
-		const comps = "__ROOT_PATH__";
-		try {
-			if (
-				typeof comps !== "object" ||
-				!comps?.[name] ||
-				!comps?.[name]?.[mode]
-			) {
-				throw new Error(`Component ${name} not found`);
-			}
-			//@ts-ignore
-			const c = await comps[name][mode]();
-			return {
-				name,
-				component: c as LoadedComponent
-			};
-		} catch (e) {
-			if (mode === "interactive") {
-				try {
-					//@ts-ignore
-					const c = await comps[name]["static"]();
-					return {
-						name,
-						component: c as LoadedComponent
-					};
-				} catch (e) {
-					console.error(`failed to load: ${name}`);
-					console.error(e);
-					throw e;
-				}
-			} else {
-				// console.error(`failed to load: ${name}`);
-				// console.error(e);
-				throw e;
-			}
-		}
-	}
 
 	function prepare_components(): void {
 		loading_status = create_loading_status_store();
@@ -327,9 +240,7 @@
 
 			// maybe load custom
 
-			const _c = c.props.custom_component
-				? load_custom_component(c.type, c.props.mode)
-				: load_component(c.type, c.props.mode);
+			const _c = load_component(c.type, c.props.mode);
 			_component_set.add(_c);
 			__component_map.set(`${c.type}_${c.props.mode}`, _c);
 		});
