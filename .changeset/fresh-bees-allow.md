@@ -1,8 +1,8 @@
 ---
-"@gradio/app": minor
-"@gradio/client": minor
-"@gradio/wasm": minor
-"gradio": minor
+"@gradio/app": patch
+"@gradio/client": patch
+"@gradio/wasm": patch
+"gradio": patch
 ---
 
 feat:Lite: Websocket queueing
