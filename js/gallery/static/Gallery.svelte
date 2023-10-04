@@ -2,7 +2,7 @@
 	import { BlockLabel, Empty, ShareButton } from "@gradio/atoms";
 	import { ModifyUpload } from "@gradio/upload";
 	import type { SelectData } from "@gradio/utils";
-
+	import { dequal } from "dequal";
 	import { createEventDispatcher } from "svelte";
 	import { tick } from "svelte";
 	import { _ } from "svelte-i18n";
@@ -54,7 +54,7 @@
 	let selected_image = preview && value?.length ? 0 : null;
 	let old_selected_image: number | null = selected_image;
 
-	$: if (prevValue !== value) {
+	$: if (!dequal(prevValue, value)) {
 		// When value is falsy (clear button or first load),
 		// preview determines the selected image
 		if (was_reset) {
@@ -162,10 +162,12 @@
 			container_width / 2 +
 			container_element.scrollLeft;
 
-		container_element?.scrollTo({
-			left: pos < 0 ? 0 : pos,
-			behavior: "smooth"
-		});
+		if (container_element && typeof container_element.scrollTo === 'function') {
+			container_element.scrollTo({
+				left: pos < 0 ? 0 : pos,
+				behavior: "smooth"
+			});
+		}
 	}
 
 	let client_height = 0;
