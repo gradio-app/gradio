@@ -38,15 +38,9 @@
 	$: plot = value?.plot;
 	$: type = value?.type;
 
-	// Need to keep track of this because
-	// otherwise embed_bokeh may try to embed before
-	// bokeh is loaded
-	$: bokeh_loaded = window.Bokeh === undefined;
-
 	function embed_bokeh(
 		_plot: Record<string, any>,
 		_type: string,
-		_bokeh_loaded: boolean
 	): void {
 		if (document) {
 			if (document.getElementById(div_id)) {
@@ -54,16 +48,13 @@
 			}
 		}
 		if (_type == "bokeh" && window.Bokeh) {
-			if (!_bokeh_loaded) {
-				load_bokeh();
-				bokeh_loaded = true;
-			}
+			load_bokeh();
 			let plotObj = JSON.parse(_plot);
 			window.Bokeh.embed.embed_item(plotObj, div_id);
 		}
 	}
 
-	$: embed_bokeh(plot, type, bokeh_loaded);
+	$: embed_bokeh(plot, type);
 
 	$: if (type == "altair") {
 		spec = JSON.parse(plot);
@@ -135,8 +126,10 @@
 		const script = document.createElement("script");
 		script.onload = handle_bokeh_loaded;
 		script.src = main_src;
-		document.head.appendChild(script);
-		bokeh_loaded = true;
+		const is_bokeh_script_present = document.head.querySelector(`script[src="${main_src}"]`);
+		if (!is_bokeh_script_present) {
+			document.head.appendChild(script);
+		}
 		return script;
 	}
 
