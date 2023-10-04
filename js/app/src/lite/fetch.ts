@@ -1,5 +1,5 @@
 import type { WorkerProxy } from "@gradio/wasm";
-import { is_self_origin } from "./url";
+import { is_self_host } from "./url";
 
 /**
  * A fetch() function that proxies HTTP requests to the worker,
@@ -24,7 +24,7 @@ export async function wasm_proxied_fetch(
 
 	const url = new URL(request.url);
 
-	if (!is_self_origin(url)) {
+	if (!is_self_host(url)) {
 		console.debug("Fallback to original fetch");
 		return fetch(input, init);
 	}
