@@ -139,9 +139,18 @@ class Queue:
 
             if events:
                 self.active_jobs[self.active_jobs.index(None)] = events
-                process_event_task = run_coro_in_background(self.process_events, events, batch)
-                set_task_name(process_event_task, events[0].session_hash, events[0].fn_index, batch)
-                broadcast_live_estimations_task = run_coro_in_background(self.broadcast_live_estimations)
+                process_event_task = run_coro_in_background(
+                    self.process_events, events, batch
+                )
+                set_task_name(
+                    process_event_task,
+                    events[0].session_hash,
+                    events[0].fn_index,
+                    batch,
+                )
+                broadcast_live_estimations_task = run_coro_in_background(
+                    self.broadcast_live_estimations
+                )
 
                 self._asyncio_tasks.append(process_event_task)
                 self._asyncio_tasks.append(broadcast_live_estimations_task)
