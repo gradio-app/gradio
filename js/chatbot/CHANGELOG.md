@@ -1,5 +1,11 @@
 # @gradio/chatbot
 
+## 0.5.1
+
+### Fixes
+
+- [#5775](https://github.com/gradio-app/gradio/pull/5775) [`e2874bc3c`](https://github.com/gradio-app/gradio/commit/e2874bc3cb1397574f77dbd7f0408ed4e6792970) - fix pending chatbot message styling and ensure messages with value `None` don't render.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.5.0
 
 ### Features
