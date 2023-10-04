@@ -162,7 +162,7 @@
 			container_width / 2 +
 			container_element.scrollLeft;
 
-		if (container_element && typeof container_element.scrollTo === 'function') {
+		if (container_element && typeof container_element.scrollTo === "function") {
 			container_element.scrollTo({
 				left: pos < 0 ? 0 : pos,
 				behavior: "smooth"
