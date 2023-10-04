@@ -24,6 +24,7 @@
 	export let height: number | "auto" = "auto";
 	export let preview: boolean;
 	export let allow_preview = true;
+	export let selected_index: number | null = null;
 	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
 		"cover";
 	export let show_share_button = false;
@@ -63,6 +64,7 @@
 		{preview}
 		{object_fit}
 		{allow_preview}
+		{selected_index}
 		{show_share_button}
 		{show_download_button}
 	/>
