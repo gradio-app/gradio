@@ -3,7 +3,7 @@
 ![GitHub issues by-label](https://img.shields.io/github/issues/gradio-app/gradio/good%20first%20issue?color=fe7c01&link=https%3A%2F%2Fgithub.com%2Fgradio-app%2Fgradio%2Fissues%3Fq%3Dis%253Aopen%2Bis%253Aissue%2Blabel%253A%2522good%2Bfirst%2Bissue%2522)
 
 
-More than 200 awesome developers have contributed to the `gradio` library, and we'd be thrilled if you would like to be the next Gradio contributor! 
+More than 200 awesome developers have contributed to the `gradio` library, and we'd be thrilled if you would like to be the next contributor! 
 
 Prerequisites:
 
