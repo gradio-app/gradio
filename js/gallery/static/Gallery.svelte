@@ -131,7 +131,7 @@
 			if (selected_image !== null) {
 				dispatch("select", {
 					index: selected_image,
-					value: [_value?.[selected_index][0].data, _value?.[selected_index][1]]
+					value: [_value?.[selected_image][0].data, _value?.[selected_image][1]]
 				});
 			}
 		}
