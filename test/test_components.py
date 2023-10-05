@@ -2419,7 +2419,7 @@ class TestState:
 
     def test_initial_value_deepcopy(self):
         with pytest.raises(TypeError):
-            gr.State(value=gr)
+            gr.State(value=gr)  # modules are not deepcopyable
 
     @pytest.mark.asyncio
     async def test_in_interface(self):
