@@ -45,6 +45,11 @@ type client_return = {
 		data?: unknown[],
 		event_data?: unknown
 	) => SubmitReturn;
+	component_server: (
+		component_id: number,
+		fn_name: string,
+		data: unknown[]
+	) => any;
 	view_api: (c?: Config) => Promise<ApiInfo<JsApiData>>;
 };
 
@@ -243,7 +248,8 @@ export function api_factory(
 			const return_obj = {
 				predict,
 				submit,
-				view_api
+				view_api,
+				component_server
 				// duplicate
 			};
 
@@ -422,9 +428,12 @@ export function api_factory(
 				let payload: Payload;
 				let complete: false | Record<string, any> = false;
 				const listener_map: ListenerMap<EventType> = {};
-				const url_params = new URLSearchParams(
-					window.location.search
-				).toString();
+				let url_params = ""
+				if (typeof(window) !== "undefined") {
+					url_params = new URLSearchParams(
+						window.location.search
+					).toString();
+				}
 
 				handle_blob(
 					`${http_protocol}//${host + config.path}`,
@@ -705,6 +714,51 @@ export function api_factory(
 					cancel,
 					destroy
 				};
+			}
+
+			async function component_server(
+				component_id: number,
+				fn_name: string,
+				data: unknown[]
+			): Promise<any> {
+				const headers: {
+					Authorization?: string;
+					"Content-Type": "application/json";
+				} = { "Content-Type": "application/json" };
+				if (hf_token) {
+					headers.Authorization = `Bearer ${hf_token}`;
+				}
+				let root_url: string;
+				let component = config.components.find(
+					(comp) => comp.id === component_id
+				);
+				if (component?.props?.root_url) {
+					root_url = component.props.root_url;
+				} else {
+					root_url = `${http_protocol}//${host + config.path}/`;
+				}
+				const response = await fetch_implementation(
+					`${root_url}component_server/`,
+					{
+						method: "POST",
+						body: JSON.stringify({
+							data: data,
+							component_id: component_id,
+							fn_name: fn_name,
+							session_hash: session_hash
+						}),
+						headers
+					}
+				);
+
+				if (!response.ok) {
+					throw new Error(
+						"Could not connect to component server: " + response.statusText
+					);
+				}
+
+				const output = await response.json();
+				return output;
 			}
 
 			async function view_api(config?: Config): Promise<ApiInfo<JsApiData>> {
