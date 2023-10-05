@@ -834,6 +834,11 @@ class TestAPIInfo:
             assert len(info["named_endpoints"]) == 0
             assert len(info["unnamed_endpoints"]) == 2
 
+    def test_api_false_endpoints_cannot_be_accessed_with_fn_index(self, increment_demo):
+        with connect(increment_demo) as client:
+            with pytest.raises(ValueError):
+                client.submit(1, fn_index=2)
+
     def test_file_io(self, file_io_demo):
         with connect(file_io_demo) as client:
             info = client.view_api(return_format="dict")
@@ -850,7 +855,7 @@ class TestAPIInfo:
 
             assert inputs[1]["python_type"] == {
                 "type": "str",
-                "description": "filepath or URL to file",
+                "description": "filepath on your computer (or URL) of file",
             }
             assert isinstance(inputs[1]["example_input"], str)
 
@@ -862,7 +867,7 @@ class TestAPIInfo:
 
             assert outputs[1]["python_type"] == {
                 "type": "str",
-                "description": "filepath or URL to file",
+                "description": "filepath on your computer (or URL) of file",
             }
 
     def test_layout_components_in_output(self, hello_world_with_group):

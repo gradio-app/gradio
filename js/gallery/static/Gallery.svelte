@@ -2,7 +2,7 @@
 	import { BlockLabel, Empty, ShareButton } from "@gradio/atoms";
 	import { ModifyUpload } from "@gradio/upload";
 	import type { SelectData } from "@gradio/utils";
-
+	import { dequal } from "dequal";
 	import { createEventDispatcher } from "svelte";
 	import { tick } from "svelte";
 	import { _ } from "svelte-i18n";
@@ -19,8 +19,8 @@
 	export let root_url: null | string = null;
 	export let value: (FileData | string | [FileData | string, string])[] | null =
 		null;
-	export let grid_cols: number | number[] | undefined = [2];
-	export let grid_rows: number | number[] | undefined = undefined;
+	export let columns: number | number[] | undefined = [2];
+	export let rows: number | number[] | undefined = undefined;
 	export let height: number | "auto" = "auto";
 	export let preview: boolean;
 	export let allow_preview = true;
@@ -30,6 +30,7 @@
 	export let show_download_button = false;
 
 	const dispatch = createEventDispatcher<{
+		change: undefined;
 		select: SelectData;
 	}>();
 
@@ -53,7 +54,7 @@
 	let selected_image = preview && value?.length ? 0 : null;
 	let old_selected_image: number | null = selected_image;
 
-	$: if (prevValue !== value) {
+	$: if (!dequal(prevValue, value)) {
 		// When value is falsy (clear button or first load),
 		// preview determines the selected image
 		if (was_reset) {
@@ -69,6 +70,7 @@
 					? selected_image
 					: null;
 		}
+		dispatch("change");
 		prevValue = value;
 	}
 
@@ -117,6 +119,8 @@
 			return selected.data;
 		} else if (typeof selected === "string") {
 			return selected;
+		} else if (Array.isArray(selected)) {
+			return getHrefValue(selected[0]);
 		}
 		return "";
 	}
@@ -158,10 +162,12 @@
 			container_width / 2 +
 			container_element.scrollLeft;
 
-		container_element?.scrollTo({
-			left: pos < 0 ? 0 : pos,
-			behavior: "smooth"
-		});
+		if (container_element && typeof container_element.scrollTo === "function") {
+			container_element.scrollTo({
+				left: pos < 0 ? 0 : pos,
+				behavior: "smooth"
+			});
+		}
 	}
 
 	let client_height = 0;
@@ -177,8 +183,7 @@
 	<Empty unpadded_box={true} size="large"><Image /></Empty>
 {:else}
 	{#if selected_image !== null && allow_preview}
-		<!-- svelte-ignore a11y-no-static-element-interactions -->
-		<div on:keydown={on_keydown} class="preview">
+		<button on:keydown={on_keydown} class="preview">
 			<div class="icon-buttons">
 				{#if show_download_button}
 					<a
@@ -195,23 +200,27 @@
 					on:clear={() => (selected_image = null)}
 				/>
 			</div>
-			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-			<img
-				data-testid="detailed-image"
+			<button
+				class="image-button"
 				on:click={(event) => handle_preview_click(event)}
-				src={_value[selected_image][0].data}
-				alt={_value[selected_image][1] || ""}
-				title={_value[selected_image][1] || null}
-				class:with-caption={!!_value[selected_image][1]}
 				style="height: calc(100% - {_value[selected_image][1]
 					? '80px'
 					: '60px'})"
-			/>
+				aria-label="detailed view of selected image"
+			>
+				<img
+					data-testid="detailed-image"
+					src={_value[selected_image][0].data}
+					alt={_value[selected_image][1] || ""}
+					title={_value[selected_image][1] || null}
+					class:with-caption={!!_value[selected_image][1]}
+					loading="lazy"
+				/>
+			</button>
 			{#if _value[selected_image][1]}
-				<div class="caption">
+				<caption class="caption">
 					{_value[selected_image][1]}
-				</div>
+				</caption>
 			{/if}
 			<div
 				bind:this={container_element}
@@ -224,16 +233,18 @@
 						on:click={() => (selected_image = i)}
 						class="thumbnail-item thumbnail-small"
 						class:selected={selected_image === i}
+						aria-label={"Thumbnail " + (i + 1) + " of " + _value.length}
 					>
 						<img
 							src={image[0].data}
 							title={image[1] || null}
-							alt={image[1] || null}
+							alt=""
+							loading="lazy"
 						/>
 					</button>
 				{/each}
 			</div>
-		</div>
+		</button>
 	{/if}
 
 	<div
@@ -243,7 +254,7 @@
 	>
 		<div
 			class="grid-container"
-			style="--grid-cols:{grid_cols}; --grid-rows:{grid_rows}; --object-fit: {object_fit}; height: {height};"
+			style="--grid-cols:{columns}; --grid-rows:{rows}; --object-fit: {object_fit}; height: {height};"
 			class:pt-6={show_label}
 		>
 			{#if show_share_button}
@@ -261,10 +272,12 @@
 					class="thumbnail-item thumbnail-lg"
 					class:selected={selected_image === i}
 					on:click={() => (selected_image = i)}
+					aria-label={"Thumbnail " + (i + 1) + " of " + _value.length}
 				>
 					<img
 						alt={caption || ""}
 						src={typeof image === "string" ? image : image.data}
+						loading="lazy"
 					/>
 					{#if caption}
 						<div class="caption-label">
@@ -303,14 +316,19 @@
 		}
 	}
 
+	.image-button {
+		height: calc(100% - 60px);
+		width: 100%;
+		display: flex;
+	}
 	.preview img {
 		width: var(--size-full);
-		height: calc(var(--size-full) - 60px);
+		height: var(--size-full);
 		object-fit: contain;
 	}
 
 	.preview img.with-caption {
-		height: calc(var(--size-full) - 80px);
+		height: var(--size-full);
 	}
 
 	.caption {
@@ -321,6 +339,7 @@
 		text-align: center;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+		align-self: center;
 	}
 
 	.thumbnails {

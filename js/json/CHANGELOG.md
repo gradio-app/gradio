@@ -1,5 +1,39 @@
 # @gradio/json
 
+## 0.1.1
+
+### Patch Changes
+
+- Updated dependencies [[`8f0fed857`](https://github.com/gradio-app/gradio/commit/8f0fed857d156830626eb48b469d54d211a582d2)]:
+  - @gradio/icons@0.2.0
+  - @gradio/atoms@0.1.3
+  - @gradio/statustracker@0.2.1
+
+## 0.1.0
+
+### Features
+
+- [#5554](https://github.com/gradio-app/gradio/pull/5554) [`75ddeb390`](https://github.com/gradio-app/gradio/commit/75ddeb390d665d4484667390a97442081b49a423) - Accessibility Improvements. Thanks [@hannahblair](https://github.com/hannahblair)!
+
+## 0.0.5
+
+### Patch Changes
+
+- Updated dependencies [[`afac0006`](https://github.com/gradio-app/gradio/commit/afac0006337ce2840cf497cd65691f2f60ee5912)]:
+  - @gradio/statustracker@0.2.0
+  - @gradio/utils@0.1.1
+  - @gradio/atoms@0.1.2
+
+## 0.0.4
+
+### Patch Changes
+
+- Updated dependencies [[`abf1c57d`](https://github.com/gradio-app/gradio/commit/abf1c57d7d85de0df233ee3b38aeb38b638477db)]:
+  - @gradio/icons@0.1.0
+  - @gradio/utils@0.1.0
+  - @gradio/atoms@0.1.1
+  - @gradio/statustracker@0.1.1
+
 ## 0.0.3
 
 ### Highlights
@@ -19,11 +53,11 @@ These improvements will be particularly beneficial to large applications.
 - Corrected an issue that was causing markdown to re-render infinitely.
 - Ensured that the `gr.3DModel` does re-render prematurely.
 
- Thanks [@pngwn](https://github.com/pngwn)!
+Thanks [@pngwn](https://github.com/pngwn)!
 
 ### Features
 
-- [#5215](https://github.com/gradio-app/gradio/pull/5215) [`fbdad78a`](https://github.com/gradio-app/gradio/commit/fbdad78af4c47454cbb570f88cc14bf4479bbceb) - Lazy load interactive or static variants of a component individually, rather than loading both variants regardless. This change will improve performance for many applications.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5215](https://github.com/gradio-app/gradio/pull/5215) [`fbdad78a`](https://github.com/gradio-app/gradio/commit/fbdad78af4c47454cbb570f88cc14bf4479bbceb) - Lazy load interactive or static variants of a component individually, rather than loading both variants regardless. This change will improve performance for many applications. Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 0.0.2
 

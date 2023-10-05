@@ -10,8 +10,8 @@ import os
 import shutil
 import subprocess
 import tempfile
-import threading
 import warnings
+from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal, Optional
 
@@ -24,7 +24,7 @@ from gradio_client.documentation import document, set_documentation_group
 from matplotlib import animation
 
 from gradio import components, oauth, processing_utils, routes, utils
-from gradio.context import Context
+from gradio.context import Context, LocalContext
 from gradio.exceptions import Error
 from gradio.flagging import CSVLogger
 
@@ -280,14 +280,13 @@ class Examples:
         """
         Caches all of the examples so that their predictions can be shown immediately.
         """
+        if Context.root_block is None:
+            raise ValueError("Cannot cache examples if not in a Blocks context")
         if Path(self.cached_file).exists():
             print(
                 f"Using cache from '{utils.abspath(self.cached_folder)}' directory. If method or examples have changed since last caching, delete this folder to clear cache.\n"
             )
         else:
-            if Context.root_block is None:
-                raise ValueError("Cannot cache examples if not in a Blocks context")
-
             print(f"Caching examples at: '{utils.abspath(self.cached_folder)}'")
             cache_logger = CSVLogger()
 
@@ -316,8 +315,10 @@ class Examples:
                 fn = self.fn
 
             # create a fake dependency to process the examples and get the predictions
+            from gradio.events import EventListenerMethod
+
             dependency, fn_index = Context.root_block.set_event_trigger(
-                event_name="fake_event",
+                [EventListenerMethod(Context.root_block, "load")],
                 fn=fn,
                 inputs=self.inputs_with_examples,  # type: ignore
                 outputs=self.outputs,  # type: ignore
@@ -338,7 +339,6 @@ class Examples:
                         fn_index=fn_index,
                         inputs=processed_input,
                         request=None,
-                        state={},
                     )
                 output = prediction["data"]
                 if len(generated_values):
@@ -353,30 +353,28 @@ class Examples:
             Context.root_block.dependencies.remove(dependency)
             Context.root_block.fns.pop(fn_index)
 
-            # Remove the original load_input_event and replace it with one that
-            # also populates the input. We do it this way to to allow the cache()
-            # method to be called independently of the create() method
-            index = Context.root_block.dependencies.index(self.load_input_event)
-            Context.root_block.dependencies.pop(index)
-            Context.root_block.fns.pop(index)
+        # Remove the original load_input_event and replace it with one that
+        # also populates the input. We do it this way to to allow the cache()
+        # method to be called independently of the create() method
+        index = Context.root_block.dependencies.index(self.load_input_event)
+        Context.root_block.dependencies.pop(index)
+        Context.root_block.fns.pop(index)
 
-            async def load_example(example_id):
-                processed_example = self.non_none_processed_examples[
-                    example_id
-                ] + await self.load_from_cache(example_id)
-                return utils.resolve_singleton(processed_example)
+        async def load_example(example_id):
+            processed_example = self.non_none_processed_examples[
+                example_id
+            ] + await self.load_from_cache(example_id)
+            return utils.resolve_singleton(processed_example)
 
-            self.load_input_event = self.dataset.click(
-                load_example,
-                inputs=[self.dataset],
-                outputs=self.inputs_with_examples + self.outputs,  # type: ignore
-                show_progress="hidden",
-                postprocess=False,
-                queue=False,
-                api_name=self.api_name,  # type: ignore
-            )
-
-            print("Caching complete\n")
+        self.load_input_event = self.dataset.click(
+            load_example,
+            inputs=[self.dataset],
+            outputs=self.inputs_with_examples + self.outputs,  # type: ignore
+            show_progress="hidden",
+            postprocess=False,
+            queue=False,
+            api_name=self.api_name,  # type: ignore
+        )
 
     async def load_from_cache(self, example_id: int) -> list[Any]:
         """Loads a particular cached example for the interface.
@@ -489,16 +487,14 @@ class Progress(Iterable):
     def __init__(
         self,
         track_tqdm: bool = False,
-        _callback: Callable | None = None,  # for internal use only
-        _event_id: str | None = None,
     ):
         """
         Parameters:
             track_tqdm: If True, the Progress object will track any tqdm.tqdm iterations with the tqdm library in the function.
         """
+        if track_tqdm:
+            patch_tqdm()
         self.track_tqdm = track_tqdm
-        self._callback = _callback
-        self._event_id = _event_id
         self.iterables: list[TrackedIterable] = []
 
     def __len__(self):
@@ -511,17 +507,15 @@ class Progress(Iterable):
         """
         Updates progress tracker with next item in iterable.
         """
-        if self._callback:
+        callback = self._progress_callback()
+        if callback:
             current_iterable = self.iterables[-1]
             while (
                 not hasattr(current_iterable.iterable, "__next__")
                 and len(self.iterables) > 0
             ):
                 current_iterable = self.iterables.pop()
-            self._callback(
-                event_id=self._event_id,
-                iterables=self.iterables,
-            )
+            callback(self.iterables)
             assert current_iterable.index is not None, "Index not set."
             current_iterable.index += 1
             try:
@@ -548,16 +542,16 @@ class Progress(Iterable):
             total: estimated total number of steps.
             unit: unit of iterations.
         """
-        if self._callback:
+        callback = self._progress_callback()
+        if callback:
             if isinstance(progress, tuple):
                 index, total = progress
                 progress = None
             else:
                 index = None
-            self._callback(
-                event_id=self._event_id,
-                iterables=self.iterables
-                + [TrackedIterable(None, index, total, desc, unit, _tqdm, progress)],
+            callback(
+                self.iterables
+                + [TrackedIterable(None, index, total, desc, unit, _tqdm, progress)]
             )
         else:
             return progress
@@ -578,11 +572,12 @@ class Progress(Iterable):
             total: estimated total number of steps.
             unit: unit of iterations.
         """
-        if self._callback:
+        callback = self._progress_callback()
+        if callback:
             if iterable is None:
                 new_iterable = TrackedIterable(None, 0, total, desc, unit, _tqdm)
                 self.iterables.append(new_iterable)
-                self._callback(event_id=self._event_id, iterables=self.iterables)
+                callback(self.iterables)
                 return self
             length = len(iterable) if hasattr(iterable, "__len__") else None  # type: ignore
             self.iterables.append(
@@ -596,14 +591,12 @@ class Progress(Iterable):
         Parameters:
             n: number of steps completed.
         """
-        if self._callback and len(self.iterables) > 0:
+        callback = self._progress_callback()
+        if callback and len(self.iterables) > 0:
             current_iterable = self.iterables[-1]
             assert current_iterable.index is not None, "Index not set."
             current_iterable.index += n
-            self._callback(
-                event_id=self._event_id,
-                iterables=self.iterables,
-            )
+            callback(self.iterables)
         else:
             return
 
@@ -611,39 +604,36 @@ class Progress(Iterable):
         """
         Removes iterable with given _tqdm.
         """
-        if self._callback:
+        callback = self._progress_callback()
+        if callback:
             for i in range(len(self.iterables)):
                 if id(self.iterables[i]._tqdm) == id(_tqdm):
                     self.iterables.pop(i)
                     break
-            self._callback(
-                event_id=self._event_id,
-                iterables=self.iterables,
-            )
+            callback(self.iterables)
         else:
             return
 
+    @staticmethod
+    def _progress_callback():
+        blocks = LocalContext.blocks.get()
+        event_id = LocalContext.event_id.get()
+        if not (blocks and event_id):
+            return None
+        return partial(blocks._queue.set_progress, event_id)
 
-def create_tracker(root_blocks, event_id, fn, track_tqdm):
-    progress = Progress(_callback=root_blocks._queue.set_progress, _event_id=event_id)
-    if not track_tqdm:
-        return progress, fn
 
+def patch_tqdm() -> None:
     try:
         _tqdm = __import__("tqdm")
     except ModuleNotFoundError:
-        return progress, fn
-    if not hasattr(root_blocks, "_progress_tracker_per_thread"):
-        root_blocks._progress_tracker_per_thread = {}
+        return
 
     def init_tqdm(
         self, iterable=None, desc=None, total=None, unit="steps", *args, **kwargs
     ):
-        self._progress = root_blocks._progress_tracker_per_thread.get(
-            threading.get_ident()
-        )
+        self._progress = LocalContext.progress.get()
         if self._progress is not None:
-            self._progress.event_id = event_id
             self._progress.tqdm(iterable, desc, total, unit, _tqdm=self)
             kwargs["file"] = open(os.devnull, "w")  # noqa: SIM115
         self.__init__orig__(iterable, desc, total, *args, unit=unit, **kwargs)
@@ -651,8 +641,7 @@ def create_tracker(root_blocks, event_id, fn, track_tqdm):
     def iter_tqdm(self):
         if self._progress is not None:
             return self._progress
-        else:
-            return self.__iter__orig__()
+        return self.__iter__orig__()
 
     def update_tqdm(self, n=1):
         if self._progress is not None:
@@ -669,35 +658,40 @@ def create_tracker(root_blocks, event_id, fn, track_tqdm):
             self._progress.close(self)
         return self.__exit__orig__(exc_type, exc_value, traceback)
 
+    # Backup
     if not hasattr(_tqdm.tqdm, "__init__orig__"):
         _tqdm.tqdm.__init__orig__ = _tqdm.tqdm.__init__
-    _tqdm.tqdm.__init__ = init_tqdm
     if not hasattr(_tqdm.tqdm, "__update__orig__"):
         _tqdm.tqdm.__update__orig__ = _tqdm.tqdm.update
-    _tqdm.tqdm.update = update_tqdm
     if not hasattr(_tqdm.tqdm, "__close__orig__"):
         _tqdm.tqdm.__close__orig__ = _tqdm.tqdm.close
-    _tqdm.tqdm.close = close_tqdm
     if not hasattr(_tqdm.tqdm, "__exit__orig__"):
         _tqdm.tqdm.__exit__orig__ = _tqdm.tqdm.__exit__
-    _tqdm.tqdm.__exit__ = exit_tqdm
     if not hasattr(_tqdm.tqdm, "__iter__orig__"):
         _tqdm.tqdm.__iter__orig__ = _tqdm.tqdm.__iter__
+
+    # Patch
+    _tqdm.tqdm.__init__ = init_tqdm
+    _tqdm.tqdm.update = update_tqdm
+    _tqdm.tqdm.close = close_tqdm
+    _tqdm.tqdm.__exit__ = exit_tqdm
     _tqdm.tqdm.__iter__ = iter_tqdm
+
     if hasattr(_tqdm, "auto") and hasattr(_tqdm.auto, "tqdm"):
         _tqdm.auto.tqdm = _tqdm.tqdm
 
-    def before_fn():
-        thread_id = threading.get_ident()
-        root_blocks._progress_tracker_per_thread[thread_id] = progress
 
-    def after_fn():
-        thread_id = threading.get_ident()
-        del root_blocks._progress_tracker_per_thread[thread_id]
-
-    tracked_fn = utils.function_wrapper(fn, before_fn=before_fn, after_fn=after_fn)
-
-    return progress, tracked_fn
+def create_tracker(fn, track_tqdm):
+    progress = Progress(track_tqdm=track_tqdm)
+    if not track_tqdm:
+        return progress, fn
+    return progress, utils.function_wrapper(
+        f=fn,
+        before_fn=LocalContext.progress.set,
+        before_args=(progress,),
+        after_fn=LocalContext.progress.set,
+        after_args=(None,),
+    )
 
 
 def special_args(
@@ -783,10 +777,9 @@ def special_args(
     return inputs or [], progress_index, event_data_index
 
 
-@document()
 def update(**kwargs) -> dict:
     """
-    Updates component properties. When a function passed into a Gradio Interface or a Blocks events returns a typical value, it updates the value of the output component. But it is also possible to update the properties of an output component (such as the number of lines of a `Textbox` or the visibility of an `Image`) by returning the component's `update()` function, which takes as parameters any of the constructor parameters for that component.
+    DEPRECATED. Updates component properties. When a function passed into a Gradio Interface or a Blocks events returns a typical value, it updates the value of the output component. But it is also possible to update the properties of an output component (such as the number of lines of a `Textbox` or the visibility of an `Image`) by returning the component's `update()` function, which takes as parameters any of the constructor parameters for that component.
     This is a shorthand for using the update method on a component.
     For example, rather than using gr.Number.update(...) you can just use gr.update(...).
     Note that your editor's autocompletion will suggest proper parameters
@@ -822,12 +815,15 @@ def update(**kwargs) -> dict:
           live=True,
         ).launch()
     """
+    warnings.warn(
+        "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Textbox(...)` instead of `return gr.update(...)"
+    )
     kwargs["__type__"] = "generic_update"
     return kwargs
 
 
 def skip() -> dict:
-    return update()
+    return {"__type__": "generic_update"}
 
 
 @document()
@@ -1097,30 +1093,45 @@ class EventData:
 
 
 def log_message(message: str, level: Literal["info", "warning"] = "info"):
-    from gradio import context
+    from gradio.context import LocalContext
 
-    if not hasattr(context.thread_data, "blocks"):  # Function called outside of Gradio
+    blocks = LocalContext.blocks.get()
+    event_id = LocalContext.event_id.get()
+    if blocks is None or event_id is None:
+        # Function called outside of Gradio if blocks is None
+        # Or from /api/predict if event_id is None
         if level == "info":
             print(message)
         elif level == "warning":
             warnings.warn(message)
         return
-    if not context.thread_data.blocks.enable_queue:
+    if not blocks.enable_queue:
         warnings.warn(
             f"Queueing must be enabled to issue {level.capitalize()}: '{message}'."
         )
         return
-    context.thread_data.blocks._queue.log_message(
-        event_id=context.thread_data.event_id, log=message, level=level
-    )
+    blocks._queue.log_message(event_id=event_id, log=message, level=level)
+
+
+set_documentation_group("modals")
 
 
 @document()
 def Warning(message: str = "Warning issued."):  # noqa: N802
     """
-    This function allows you to pass custom warning messages to the user. You can do so simply with `gr.Warning('message here')`, and when that line is executed the custom message will appear in a modal on the demo.
+    This function allows you to pass custom warning messages to the user. You can do so simply by writing `gr.Warning('message here')` in your function, and when that line is executed the custom message will appear in a modal on the demo. The modal is yellow by default and has the heading: "Warning." Queue must be enabled for this behavior; otherwise, the warning will be printed to the console using the `warnings` library.
+    Demos: blocks_chained_events
     Parameters:
         message: The warning message to be displayed to the user.
+    Example:
+        import gradio as gr
+        def hello_world():
+            gr.Warning('This is a warning message.')
+            return "hello world"
+        with gr.Blocks() as demo:
+            md = gr.Markdown()
+            demo.load(hello_world, inputs=None, outputs=[md])
+        demo.queue().launch()
     """
     log_message(message, level="warning")
 
@@ -1128,7 +1139,18 @@ def Warning(message: str = "Warning issued."):  # noqa: N802
 @document()
 def Info(message: str = "Info issued."):  # noqa: N802
     """
+    This function allows you to pass custom info messages to the user. You can do so simply by writing `gr.Info('message here')` in your function, and when that line is executed the custom message will appear in a modal on the demo. The modal is gray by default and has the heading: "Info." Queue must be enabled for this behavior; otherwise, the message will be printed to the console.
+    Demos: blocks_chained_events
     Parameters:
         message: The info message to be displayed to the user.
+    Example:
+        import gradio as gr
+        def hello_world():
+            gr.Info('This is some info.')
+            return "hello world"
+        with gr.Blocks() as demo:
+            md = gr.Markdown()
+            demo.load(hello_world, inputs=None, outputs=[md])
+        demo.queue().launch()
     """
     log_message(message, level="info")

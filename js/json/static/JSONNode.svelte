@@ -48,8 +48,8 @@
 							depth={depth + 1}
 							key={i}
 						/><!--
-            -->{#if i !== Object.keys(value).length - 1}<!--
-            -->,
+		-->{#if i !== Object.keys(value).length - 1}<!--
+		-->,
 						{/if}
 					</div>
 				{/each}

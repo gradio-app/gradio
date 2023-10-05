@@ -2,6 +2,7 @@
 	export let fn: any;
 	import anchor from "../assets/img/anchor.svg";
 
+
 	function handleAnchorClick(event: MouseEvent) {
 		event.preventDefault();
 		const link = event.currentTarget as HTMLAnchorElement;
@@ -30,12 +31,12 @@
 	</div>
 
 	{#if fn.override_signature}
-		<div class="codeblock bg-gray-50 mx-auto p-3">
+		<div class="codeblock">
 			<pre><code class="code language-python">{fn.override_signature}</code
 				></pre>
 		</div>
 	{:else}
-		<div class="codeblock bg-gray-50 mx-auto p-3">
+		<div class="codeblock">
 			<pre><code class="code language-python"
 					>{fn.parent}.<span>{fn.name}&lpar;</span
 					><!--
@@ -78,7 +79,7 @@
 				><img class="anchor-img-small" src={anchor} /></a
 			>
 		</h4>
-		<div class="mt-2 codeblock bg-gray-50 mx-auto p-3">
+		<div class="codeblock">
 			<pre><code class="code language-python"
 					>{@html fn.highlighted_example}</code
 				></pre>

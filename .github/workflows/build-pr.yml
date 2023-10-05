@@ -1,6 +1,7 @@
 name: Build PR Artifacts
 
 on:
+  workflow_dispatch:
   pull_request:
     branches:
       - main
@@ -35,12 +36,17 @@ jobs:
     - name: Get PR Number
       id: get_pr_number
       run: |
-        python -c "import os;print(os.environ['GITHUB_REF'].split('/')[2])" > pr_number.txt
-        echo "PR_NUMBER=$(cat pr_number.txt)" >> $GITHUB_OUTPUT
-        echo "GRADIO_VERSION=$(python -c 'import requests;print(requests.get("https://pypi.org/pypi/gradio/json").json()["info"]["version"])')" >> $GITHUB_OUTPUT
+        if ${{ github.event_name == 'pull_request' }}; then
+          echo "GRADIO_VERSION=$(python -c 'import requests;print(requests.get("https://pypi.org/pypi/gradio/json").json()["info"]["version"])')" >> $GITHUB_OUTPUT
+          python -c "import os;print(os.environ['GITHUB_REF'].split('/')[2])" > pr_number.txt
+          echo "PR_NUMBER=$(cat pr_number.txt)" >> $GITHUB_OUTPUT
+        else 
+          echo "GRADIO_VERSION=$(python -c 'import json; print(json.load(open("gradio/package.json"))["version"])')" >> $GITHUB_OUTPUT
+          echo "PR_NUMBER='main'" >> $GITHUB_OUTPUT
+        fi
     - name: Build pr package
       run: |
-        echo ${{ steps.get_pr_number.outputs.GRADIO_VERSION }} > gradio/version.txt
+        python -c 'import json; j = json.load(open("gradio/package.json")); j["version"] = "${{ steps.get_pr_number.outputs.GRADIO_VERSION }}"; json.dump(j, open("gradio/package.json", "w"))'
         pnpm i --frozen-lockfile --ignore-scripts
         pnpm build
         python3 -m build -w

@@ -17,6 +17,7 @@
 	export let theme_mode: ThemeMode;
 	export let caption: string;
 	export let bokeh_version: string | null;
+	export let show_actions_button: bool;
 	const divId = `bokehDiv-${Math.random().toString(5).substring(2)}`;
 
 	function get_color(index: number): string {
@@ -116,7 +117,7 @@
 		`https://cdn.pydata.org/bokeh/release/bokeh-widgets-${bokeh_version}.min.js`,
 		`https://cdn.pydata.org/bokeh/release/bokeh-tables-${bokeh_version}.min.js`,
 		`https://cdn.pydata.org/bokeh/release/bokeh-gl-${bokeh_version}.min.js`,
-		`https://cdn.pydata.org/bokeh/release/bokeh-api-${bokeh_version}.min.js`
+		`https://cdn.pydata.org/bokeh/release/bokeh-api-${bokeh_version}.min.js`,
 	];
 
 	function load_plugins(): HTMLScriptElement[] {
@@ -192,7 +193,7 @@
 	<div data-testid={"bokeh"} id={divId} class="gradio-bokeh" />
 {:else if type == "altair"}
 	<div data-testid={"altair"} class="altair layout">
-		<Vega {spec} />
+		<Vega {spec} options={{ actions: show_actions_button }} />
 		{#if caption}
 			<div class="caption layout">
 				{caption}
@@ -201,14 +202,23 @@
 	</div>
 {:else if type == "matplotlib"}
 	<div data-testid={"matplotlib"} class="matplotlib layout">
-		<!-- svelte-ignore a11y-missing-attribute -->
-		<img src={plot} />
+		<img src={plot} alt={`${value.chart} plot visualising provided data`} />
 	</div>
 {:else}
 	<Empty unpadded_box={true} size="large"><PlotIcon /></Empty>
 {/if}
 
 <style>
+	.altair :global(canvas) {
+		max-width: 100%;
+		padding: 6px;
+	}
+	.altair :global(.vega-embed) {
+		padding: 0px !important;
+	}
+	.altair :global(.vega-actions) {
+		right: 0px !important;
+	}
 	.gradio-bokeh {
 		display: flex;
 		justify-content: center;
@@ -234,6 +244,7 @@
 
 	.caption {
 		font-size: var(--text-sm);
+		margin-bottom: 6px;
 	}
 
 	.matplotlib img {

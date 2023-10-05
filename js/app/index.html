@@ -13,7 +13,7 @@
 		<meta charset="utf-8" />
 		<meta
 			name="viewport"
-			content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1"
+			content="width=device-width, initial-scale=1, shrink-to-fit=no"
 		/>
 
 		<script type="module" src="./src/main.ts"></script>
@@ -36,6 +36,9 @@
 
 		<script>
 			window.__gradio_mode__ = "app";
+			window.iFrameResizer = {
+				heightCalculationMethod: "taggedElement"
+			};
 		</script>
 
 		%gradio_config%
@@ -47,7 +50,7 @@
 			crossorigin="anonymous"
 		/>
 		<script
-			src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.6/iframeResizer.contentWindow.min.js"
+			src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.7/iframeResizer.contentWindow.min.js"
 			async
 		></script>
 	</head>

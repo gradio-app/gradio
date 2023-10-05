@@ -152,7 +152,10 @@ class ImgSerializable(Serializable):
     """Expects a base64 string as input/output which is serialized to a filepath."""
 
     def serialized_info(self):
-        return {"type": "string", "description": "filepath or URL to image"}
+        return {
+            "type": "string",
+            "description": "filepath on your computer (or URL) of image",
+        }
 
     def api_info(self) -> dict[str, bool | dict]:
         return {"info": serializer_types["ImgSerializable"], "serialized_info": True}
@@ -222,13 +225,19 @@ class FileSerializable(Serializable):
         }
 
     def _single_file_serialized_info(self):
-        return {"type": "string", "description": "filepath or URL to file"}
+        return {
+            "type": "string",
+            "description": "filepath on your computer (or URL) of file",
+        }
 
     def _multiple_file_serialized_info(self):
         return {
             "type": "array",
             "description": "List of filepath(s) or URL(s) to files",
-            "items": {"type": "string", "description": "filepath or URL to file"},
+            "items": {
+                "type": "string",
+                "description": "filepath on your computer (or URL) of file",
+            },
         }
 
     def _multiple_file_api_info(self):
@@ -386,7 +395,10 @@ class FileSerializable(Serializable):
 
 class VideoSerializable(FileSerializable):
     def serialized_info(self):
-        return {"type": "string", "description": "filepath or URL to video file"}
+        return {
+            "type": "string",
+            "description": "filepath on your computer (or URL) of video file",
+        }
 
     def api_info(self) -> dict[str, dict | bool]:
         return {"info": serializer_types["FileSerializable"], "serialized_info": True}
@@ -561,6 +573,7 @@ COMPONENT_MAPPING: dict[str, type] = {
     "file": FileSerializable,
     "dataframe": JSONSerializable,
     "timeseries": JSONSerializable,
+    "fileexplorer": JSONSerializable,
     "state": SimpleSerializable,
     "button": StringSerializable,
     "uploadbutton": FileSerializable,

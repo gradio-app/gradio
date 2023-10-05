@@ -16,16 +16,14 @@ with demo:
             with gr.Column():
                 front = gr.Textbox(label="Prompt")
                 with gr.Row():
-                    new_btn = gr.Button("New Card").style(full_width=True)
-                    flip_btn = gr.Button("Flip Card").style(full_width=True)
+                    new_btn = gr.Button("New Card")
+                    flip_btn = gr.Button("Flip Card")
             with gr.Column(visible=False) as answer_col:
                 back = gr.Textbox(label="Answer")
                 selected_card = gr.State()
                 with gr.Row():
-                    correct_btn = gr.Button(
-                        "Correct",
-                    ).style(full_width=True)
-                    incorrect_btn = gr.Button("Incorrect").style(full_width=True)
+                    correct_btn = gr.Button("Correct")
+                    incorrect_btn = gr.Button("Incorrect")
 
     with gr.Tab("Results"):
         results = gr.State(value={})
@@ -39,7 +37,7 @@ with demo:
         return (
             card,
             card[0],
-            gr.Column.update(visible=False),
+            gr.Column(visible=False),
         )
 
     new_btn.click(
@@ -49,7 +47,7 @@ with demo:
     )
 
     def flip_card(card):
-        return card[1], gr.Column.update(visible=True)
+        return card[1], gr.Column(visible=True)
 
     flip_btn.click(flip_card, [selected_card], [back, answer_col])
 

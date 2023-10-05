@@ -1,31 +1,25 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import { afterUpdate, createEventDispatcher } from "svelte";
 	import DOMPurify from "dompurify";
 	import render_math_in_element from "katex/dist/contrib/auto-render.js";
 	import "katex/dist/katex.min.css";
-
 	import { marked } from "./utils";
-	const dispatch = createEventDispatcher();
-
 	import "./prism.css";
-	// import "./prism-dark.css";
-
-	// const code_highlight_css = {
-	// 	light: (): Promise<typeof import("prismjs/themes/prism.css")> =>
-	// 		import("prismjs/themes/prism.css"),
-	// 	dark: (): Promise<typeof import("prismjs/themes/prism.css")> =>
-	// 		import("prismjs/themes/prism-dark.css")
-	// };
 
 	export let chatbot = true;
 	export let message: string;
+	export let sanitize_html = true;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
 		display: boolean;
-	}[];
-
+	}[] = [];
+	export let render_markdown = true;
+	export let line_breaks = true;
 	let el: HTMLSpanElement;
+	let html: string;
+
+	marked.use({ breaks: line_breaks });
 
 	DOMPurify.addHook("afterSanitizeAttributes", function (node) {
 		if ("target" in node) {
@@ -34,23 +28,38 @@
 		}
 	});
 
-	$: el && html && render_html(message);
+	function process_message(value: string): string {
+		if (render_markdown) {
+			value = marked.parse(value);
+		}
+		if (sanitize_html) {
+			value = DOMPurify.sanitize(value);
+		}
+		return value;
+	}
 
-	$: html =
-		message && message.trim() ? DOMPurify.sanitize(marked.parse(message)) : "";
-
+	$: if (message && message.trim()) {
+		html = process_message(message);
+	} else {
+		html = "";
+	}
 	async function render_html(value: string): Promise<void> {
-		if (latex_delimiters.length > 0) {
+		if (latex_delimiters.length > 0 && value) {
 			render_math_in_element(el, {
 				delimiters: latex_delimiters,
 				throwOnError: false
 			});
 		}
 	}
+	afterUpdate(() => render_html(message));
 </script>
 
 <span class:chatbot bind:this={el} class="md">
-	{@html html}
+	{#if render_markdown}
+		{@html html}
+	{:else}
+		{html}
+	{/if}
 </span>
 
 <style>

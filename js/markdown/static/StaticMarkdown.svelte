@@ -13,6 +13,8 @@
 	export let value = "";
 	export let loading_status: LoadingStatus;
 	export let rtl = false;
+	export let sanitize_html = true;
+	export let line_breaks = false;
 	export let gradio: Gradio<{
 		change: never;
 	}>;
@@ -37,6 +39,8 @@
 			{rtl}
 			on:change={() => gradio.dispatch("change")}
 			{latex_delimiters}
+			{sanitize_html}
+			{line_breaks}
 		/>
 	</div>
 </Block>

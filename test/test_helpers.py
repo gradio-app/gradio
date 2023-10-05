@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import shutil
@@ -118,6 +119,43 @@ class TestExamplesDataset:
         assert examples.dataset.headers == ["im", ""]
 
 
+def test_example_caching_relaunch(connect):
+    def combine(a, b):
+        return a + " " + b
+
+    with gr.Blocks() as demo:
+        txt = gr.Textbox(label="Input")
+        txt_2 = gr.Textbox(label="Input 2")
+        txt_3 = gr.Textbox(value="", label="Output")
+        btn = gr.Button(value="Submit")
+        btn.click(combine, inputs=[txt, txt_2], outputs=[txt_3])
+        gr.Examples(
+            [["hi", "Adam"], ["hello", "Eve"]],
+            [txt, txt_2],
+            txt_3,
+            combine,
+            cache_examples=True,
+            api_name="examples",
+        )
+
+    with connect(demo) as client:
+        assert client.predict(1, api_name="/examples") == (
+            "hello",
+            "Eve",
+            "hello Eve",
+        )
+
+    # Let the server shut down
+    time.sleep(1)
+
+    with connect(demo) as client:
+        assert client.predict(1, api_name="/examples") == (
+            "hello",
+            "Eve",
+            "hello Eve",
+        )
+
+
 @patch("gradio.helpers.CACHED_FOLDER", tempfile.mkdtemp())
 class TestProcessExamples:
     @pytest.mark.asyncio
@@ -131,6 +169,39 @@ class TestProcessExamples:
         )
         prediction = await io.examples_handler.load_from_cache(1)
         assert prediction[0] == "Hello Dunya"
+
+    def test_example_caching_relaunch(self, connect):
+        def combine(a, b):
+            return a + " " + b
+
+        with gr.Blocks() as demo:
+            txt = gr.Textbox(label="Input")
+            txt_2 = gr.Textbox(label="Input 2")
+            txt_3 = gr.Textbox(value="", label="Output")
+            btn = gr.Button(value="Submit")
+            btn.click(combine, inputs=[txt, txt_2], outputs=[txt_3])
+            gr.Examples(
+                [["hi", "Adam"], ["hello", "Eve"]],
+                [txt, txt_2],
+                txt_3,
+                combine,
+                cache_examples=True,
+                api_name="examples",
+            )
+
+        with connect(demo) as client:
+            assert client.predict(1, api_name="/examples") == (
+                "hello",
+                "Eve",
+                "hello Eve",
+            )
+
+        with connect(demo) as client:
+            assert client.predict(1, api_name="/examples") == (
+                "hello",
+                "Eve",
+                "hello Eve",
+            )
 
     @pytest.mark.asyncio
     async def test_caching_image(self):
@@ -203,7 +274,6 @@ class TestProcessExamples:
             cache_examples=True,
         )
         prediction = await io.examples_handler.load_from_cache(0)
-        assert not any(d["trigger"] == "fake_event" for d in io.config["dependencies"])
         assert prediction == [
             {"lines": 4, "__type__": "update", "mode": "static"},
             {"label": "lion"},
@@ -756,3 +826,46 @@ class TestProgressBar:
             ["Letter c", "info"],
             ["Too short!", "warning"],
         ]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("async_handler", [True, False])
+async def test_info_isolation(async_handler: bool):
+    async def greet_async(name):
+        await asyncio.sleep(2)
+        gr.Info(f"Hello {name}")
+        return name
+
+    def greet_sync(name):
+        time.sleep(2)
+        gr.Info(f"Hello {name}")
+        return name
+
+    demo = gr.Interface(greet_async if async_handler else greet_sync, "text", "text")
+    demo.queue(concurrency_count=2).launch(prevent_thread_lock=True)
+
+    async def session_interaction(name, delay=0):
+        await asyncio.sleep(delay)
+        async with websockets.connect(
+            f"{demo.local_url.replace('http', 'ws')}queue/join"
+        ) as ws:
+            log_messages = []
+            while True:
+                msg = json.loads(await ws.recv())
+                if msg["msg"] == "send_data":
+                    await ws.send(json.dumps({"data": [name], "fn_index": 0}))
+                if msg["msg"] == "send_hash":
+                    await ws.send(json.dumps({"fn_index": 0, "session_hash": name}))
+                if msg["msg"] == "log":
+                    log_messages.append(msg["log"])
+                if msg["msg"] == "process_completed":
+                    break
+            return log_messages
+
+    alice_logs, bob_logs = await asyncio.gather(
+        session_interaction("Alice"),
+        session_interaction("Bob", delay=1),
+    )
+
+    assert alice_logs == ["Hello Alice"]
+    assert bob_logs == ["Hello Bob"]

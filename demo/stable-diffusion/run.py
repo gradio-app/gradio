@@ -1,16 +1,19 @@
 import gradio as gr
 import torch
 from diffusers import StableDiffusionPipeline
-from PIL import Image  
+from PIL import Image
 import os
 
 auth_token = os.getenv("auth_token")
 model_id = "CompVis/stable-diffusion-v1-4"
 device = "cpu"
-pipe = StableDiffusionPipeline.from_pretrained(model_id, use_auth_token=auth_token, revision="fp16", torch_dtype=torch.float16)
+pipe = StableDiffusionPipeline.from_pretrained(
+    model_id, use_auth_token=auth_token, revision="fp16", torch_dtype=torch.float16
+)
 pipe = pipe.to(device)
 
-def infer(prompt, samples, steps, scale, seed):        
+
+def infer(prompt, samples, steps, scale, seed):
     generator = torch.Generator(device=device).manual_seed(seed)
     images_list = pipe(
         [prompt] * samples,
@@ -21,37 +24,32 @@ def infer(prompt, samples, steps, scale, seed):
     images = []
     safe_image = Image.open(r"unsafe.png")
     for i, image in enumerate(images_list["sample"]):
-        if(images_list["nsfw_content_detected"][i]):
+        if images_list["nsfw_content_detected"][i]:
             images.append(safe_image)
         else:
             images.append(image)
     return images
-    
 
 
 block = gr.Blocks()
 
 with block:
     with gr.Group():
-        with gr.Box():
-            with gr.Row().style(mobile_collapse=False, equal_height=True):
-                text = gr.Textbox(
-                    label="Enter your prompt",
-                    show_label=False,
-                    max_lines=1,
-                    placeholder="Enter your prompt",
-                ).style(
-                    border=(True, False, True, True),
-                    rounded=(True, False, False, True),
-                    container=False,
-                )
-                btn = gr.Button("Generate image").style(
-                    margin=False,
-                    rounded=(False, True, True, False),
-                )
+        with gr.Row():
+            text = gr.Textbox(
+                label="Enter your prompt",
+                max_lines=1,
+                placeholder="Enter your prompt",
+                container=False,
+            )
+            btn = gr.Button("Generate image")
         gallery = gr.Gallery(
-            label="Generated images", show_label=False, elem_id="gallery"
-        ).style(grid=[2], height="auto")
+            label="Generated images",
+            show_label=False,
+            elem_id="gallery",
+            columns=[2],
+            height="auto",
+        )
 
         advanced_button = gr.Button("Advanced options", elem_id="advanced-btn")
 
@@ -68,12 +66,11 @@ with block:
                 step=1,
                 randomize=True,
             )
-        text.submit(infer, inputs=[text, samples, steps, scale, seed], outputs=gallery)
-        btn.click(infer, inputs=[text, samples, steps, scale, seed], outputs=gallery)
+        gr.on([text.submit, btn.click], infer, inputs=[text, samples, steps, scale, seed], outputs=gallery)
         advanced_button.click(
             None,
             [],
             text,
         )
-        
+
 block.launch()

@@ -107,7 +107,6 @@ const renderer: Partial<Omit<Renderer, "constructor" | "options">> = {
 marked.use(
 	{
 		gfm: true,
-		breaks: true,
 		pedantic: false,
 		headerIds: false,
 		mangle: false

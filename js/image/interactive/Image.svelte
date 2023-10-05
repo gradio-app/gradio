@@ -69,12 +69,12 @@
 			if (source === "webcam" && initial) {
 				value = {
 					image: detail,
-					mask: null
+					mask: null,
 				};
 			} else {
 				value = {
 					image: typeof value === "string" ? value : value?.image || null,
-					mask: detail
+					mask: detail,
 				};
 			}
 		} else if (
@@ -113,6 +113,7 @@
 	}
 
 	async function handle_sketch_clear(): Promise<void> {
+		dispatch("clear");
 		sketch.clear();
 		await tick();
 		value = null;
@@ -224,6 +225,7 @@
 					class:scale-x-[-1]={source === "webcam" && mirror_webcam}
 					class:selectable
 					on:click={handle_click}
+					loading="lazy"
 				/>
 			{:else if (tool === "sketch" || tool === "color-sketch") && (value !== null || static_image)}
 				{#key static_image}
@@ -234,6 +236,7 @@
 						alt=""
 						on:load={handle_image_load}
 						class:webcam={source === "webcam" && mirror_webcam}
+						loading="lazy"
 					/>
 				{/key}
 				{#if img_width > 0}
@@ -275,10 +278,11 @@
 				<!-- svelte-ignore a11y-no-noninteractive-element-interactions-->
 				<img
 					src={value.image || value}
-					alt="hello"
+					alt=""
 					class:webcam={source === "webcam" && mirror_webcam}
 					class:selectable
 					on:click={handle_click}
+					loading="lazy"
 				/>
 			{/if}
 		</Upload>
@@ -341,6 +345,7 @@
 			class:selectable
 			class:webcam={source === "webcam" && mirror_webcam}
 			on:click={handle_click}
+			loading="lazy"
 		/>
 	{:else if (tool === "sketch" || tool === "color-sketch") && (value !== null || static_image)}
 		{#key static_image}
@@ -351,6 +356,7 @@
 				alt=""
 				on:load={handle_image_load}
 				class:webcam={source === "webcam" && mirror_webcam}
+				loading="lazy"
 			/>
 		{/key}
 		{#if img_width > 0}
@@ -393,6 +399,7 @@
 			class:webcam={source === "webcam" && mirror_webcam}
 			class:selectable
 			on:click={handle_click}
+			loading="lazy"
 		/>
 	{/if}
 </div>

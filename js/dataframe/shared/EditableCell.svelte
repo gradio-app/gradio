@@ -1,8 +1,11 @@
 <script lang="ts">
+	import { createEventDispatcher } from "svelte";
+	import type { ActionReturn } from "svelte/action";
 	import { MarkdownCode } from "@gradio/markdown";
 
 	export let edit: boolean;
 	export let value: string | number = "";
+	export let display_value: string | null = null;
 	export let header = false;
 	export let datatype:
 		| "str"
@@ -16,35 +19,63 @@
 		right: string;
 		display: boolean;
 	}[];
+	export let clear_on_focus = false;
+	export let select_on_focus = false;
+	export let line_breaks = true;
+	export let editable = true;
+
+	const dispatch = createEventDispatcher();
 
 	export let el: HTMLInputElement | null;
+	$: _value = value;
+
+	function use_focus(node: HTMLInputElement): ActionReturn {
+		if (clear_on_focus) {
+			_value = "";
+		}
+		if (select_on_focus) {
+			node.select();
+		}
+
+		node.focus();
+
+		return {};
+	}
 </script>
 
 {#if edit}
 	<input
 		bind:this={el}
+		bind:value={_value}
 		class:header
 		tabindex="-1"
-		{value}
-		on:keydown
 		on:blur={({ currentTarget }) => {
 			value = currentTarget.value;
-			currentTarget.setAttribute("tabindex", "-1");
+			dispatch("blur");
 		}}
+		use:use_focus
+		on:keydown
 	/>
 {/if}
 
-<span on:dblclick tabindex="-1" role="button" class:edit>
+<span
+	on:dblclick
+	tabindex="-1"
+	role="button"
+	class:edit
+	on:focus|preventDefault
+>
 	{#if datatype === "html"}
 		{@html value}
 	{:else if datatype === "markdown"}
 		<MarkdownCode
 			message={value.toLocaleString()}
 			{latex_delimiters}
+			{line_breaks}
 			chatbot={false}
 		/>
 	{:else}
-		{value}
+		{editable ? value : display_value || value}
 	{/if}
 </span>
 

@@ -8,7 +8,7 @@ iris = data.iris()
 
 def scatter_plot_fn(dataset):
     if dataset == "iris":
-        return gr.ScatterPlot.update(
+        return gr.ScatterPlot(
             value=iris,
             x="petalWidth",
             y="petalLength",
@@ -21,7 +21,7 @@ def scatter_plot_fn(dataset):
             caption="",
         )
     else:
-        return gr.ScatterPlot.update(
+        return gr.ScatterPlot(
             value=cars,
             x="Horsepower",
             y="Miles_per_Gallon",
@@ -39,7 +39,7 @@ with gr.Blocks() as scatter_plot:
         with gr.Column():
             dataset = gr.Dropdown(choices=["cars", "iris"], value="cars")
         with gr.Column():
-            plot = gr.ScatterPlot(show_label=False).style(container=True)
+            plot = gr.ScatterPlot(show_label=False)
     dataset.change(scatter_plot_fn, inputs=dataset, outputs=plot)
     scatter_plot.load(fn=scatter_plot_fn, inputs=dataset, outputs=plot)
 

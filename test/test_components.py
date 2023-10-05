@@ -34,12 +34,30 @@ from gradio.deprecation import (
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
-class TestComponent:
-    def test_component_functions(self):
-        """
-        component
-        """
-        assert isinstance(gr.components.component("textarea"), gr.templates.TextArea)
+class TestGettingComponents:
+    def test_component_function(self):
+        assert isinstance(
+            gr.components.component("textarea", render=False), gr.templates.TextArea
+        )
+
+    @pytest.mark.parametrize(
+        "component, render, unrender, should_be_rendered",
+        [
+            (gr.Textbox(render=True), False, True, False),
+            (gr.Textbox(render=False), False, False, False),
+            (gr.Textbox(render=False), True, False, True),
+            ("textbox", False, False, False),
+            ("textbox", True, False, True),
+        ],
+    )
+    def test_get_component_instance_rendering(
+        self, component, render, unrender, should_be_rendered
+    ):
+        with gr.Blocks():
+            textbox = gr.components.get_component_instance(
+                component, render=render, unrender=unrender
+            )
+            assert textbox.is_rendered == should_be_rendered
 
 
 def test_raise_warnings():
@@ -106,6 +124,9 @@ class TestTextbox:
             "rtl": False,
             "text_align": None,
             "autofocus": False,
+            "selectable": False,
+            "info": None,
+            "autoscroll": True,
         }
 
     @pytest.mark.asyncio
@@ -228,6 +249,8 @@ class TestNumber:
             "visible": True,
             "interactive": None,
             "root_url": None,
+            "info": None,
+            "precision": None,
         }
 
     def test_component_functions_integer(self):
@@ -278,6 +301,8 @@ class TestNumber:
             "visible": True,
             "interactive": None,
             "root_url": None,
+            "info": None,
+            "precision": 0,
         }
 
     def test_component_functions_precision(self):
@@ -396,6 +421,7 @@ class TestSlider:
             "visible": True,
             "interactive": None,
             "root_url": None,
+            "info": None,
         }
 
     @pytest.mark.asyncio
@@ -469,6 +495,8 @@ class TestCheckbox:
             "visible": True,
             "interactive": None,
             "root_url": None,
+            "selectable": False,
+            "info": None,
         }
 
     @pytest.mark.asyncio
@@ -495,7 +523,18 @@ class TestCheckboxGroup:
         checkboxes_input = gr.CheckboxGroup(["a", "b", "c"])
         assert checkboxes_input.preprocess(["a", "c"]) == ["a", "c"]
         assert checkboxes_input.postprocess(["a", "c"]) == ["a", "c"]
-        assert checkboxes_input.serialize(["a", "c"], True) == ["a", "c"]
+        assert checkboxes_input.serialize(["a", "c"]) == ["a", "c"]
+
+        checkboxes_input = gr.CheckboxGroup(["a", "b"], type="index")
+        assert checkboxes_input.preprocess(["a"]) == [0]
+        assert checkboxes_input.preprocess(["a", "b"]) == [0, 1]
+        assert checkboxes_input.preprocess(["a", "b", "c"]) == [0, 1, None]
+
+        # When a Gradio app is loaded with gr.load, the tuples are converted to lists,
+        # so we need to test that case as well
+        checkboxgroup = gr.CheckboxGroup(["a", "b", ["c", "c full"]])  # type: ignore
+        assert checkboxgroup.choices == [("a", "a"), ("b", "b"), ("c", "c full")]
+
         checkboxes_input = gr.CheckboxGroup(
             value=["a", "c"],
             choices=["a", "b", "c"],
@@ -515,6 +554,9 @@ class TestCheckboxGroup:
             "visible": True,
             "interactive": None,
             "root_url": None,
+            "selectable": False,
+            "type": "value",
+            "info": None,
         }
         with pytest.raises(ValueError):
             gr.CheckboxGroup(["a"], type="unknown")
@@ -522,6 +564,8 @@ class TestCheckboxGroup:
         cbox = gr.CheckboxGroup(choices=["a", "b"], value="c")
         assert cbox.get_config()["value"] == ["c"]
         assert cbox.postprocess("a") == ["a"]
+        with pytest.raises(ValueError):
+            gr.CheckboxGroup().as_example("a")
 
     def test_in_interface(self):
         """
@@ -561,7 +605,21 @@ class TestRadio:
             "visible": True,
             "interactive": None,
             "root_url": None,
+            "selectable": False,
+            "type": "value",
+            "info": None,
         }
+
+        radio = gr.Radio(choices=["a", "b"], type="index")
+        assert radio.preprocess("a") == 0
+        assert radio.preprocess("b") == 1
+        assert radio.preprocess("c") is None
+
+        # When a Gradio app is loaded with gr.load, the tuples are converted to lists,
+        # so we need to test that case as well
+        radio = gr.Radio(["a", "b", ["c", "c full"]])  # type: ignore
+        assert radio.choices == [("a", "a"), ("b", "b"), ("c", "c full")]
+
         with pytest.raises(ValueError):
             gr.Radio(["a", "b"], type="unknown")
 
@@ -597,24 +655,44 @@ class TestDropdown:
         """
         Preprocess, postprocess, serialize, get_config
         """
-        dropdown_input = gr.Dropdown(["a", "b", "c"], multiselect=True)
+        dropdown_input = gr.Dropdown(["a", "b", ("c", "c full")], multiselect=True)
         assert dropdown_input.preprocess("a") == "a"
         assert dropdown_input.postprocess("a") == "a"
+        assert dropdown_input.preprocess("c full") == "c full"
+        assert dropdown_input.postprocess("c full") == "c full"
 
-        dropdown_input_multiselect = gr.Dropdown(["a", "b", "c"])
-        assert dropdown_input_multiselect.preprocess(["a", "c"]) == ["a", "c"]
-        assert dropdown_input_multiselect.postprocess(["a", "c"]) == ["a", "c"]
-        assert dropdown_input_multiselect.serialize(["a", "c"], True) == ["a", "c"]
+        # When a Gradio app is loaded with gr.load, the tuples are converted to lists,
+        # so we need to test that case as well
+        dropdown_input = gr.Dropdown(["a", "b", ["c", "c full"]])  # type: ignore
+        assert dropdown_input.choices == [("a", "a"), ("b", "b"), ("c", "c full")]
+
+        dropdown = gr.Dropdown(choices=["a", "b"], type="index")
+        assert dropdown.preprocess("a") == 0
+        assert dropdown.preprocess("b") == 1
+        assert dropdown.preprocess("c") is None
+
+        dropdown = gr.Dropdown(choices=["a", "b"], type="index", multiselect=True)
+        assert dropdown.preprocess(["a"]) == [0]
+        assert dropdown.preprocess(["a", "b"]) == [0, 1]
+        assert dropdown.preprocess(["a", "b", "c"]) == [0, 1, None]
+
+        dropdown_input_multiselect = gr.Dropdown(["a", "b", ("c", "c full")])
+        assert dropdown_input_multiselect.preprocess(["a", "c full"]) == ["a", "c full"]
+        assert dropdown_input_multiselect.postprocess(["a", "c full"]) == [
+            "a",
+            "c full",
+        ]
+        assert dropdown_input_multiselect.serialize(["a", "c full"]) == ["a", "c full"]
         dropdown_input_multiselect = gr.Dropdown(
             value=["a", "c"],
-            choices=["a", "b", "c"],
+            choices=["a", "b", ("c", "c full")],
             label="Select Your Inputs",
             multiselect=True,
             max_choices=2,
         )
         assert dropdown_input_multiselect.get_config() == {
             "allow_custom_value": False,
-            "choices": ["a", "b", "c"],
+            "choices": [("a", "a"), ("b", "b"), ("c", "c full")],
             "value": ["a", "c"],
             "name": "dropdown",
             "show_label": True,
@@ -628,7 +706,11 @@ class TestDropdown:
             "interactive": None,
             "root_url": None,
             "multiselect": True,
+            "filterable": True,
             "max_choices": 2,
+            "selectable": False,
+            "type": "value",
+            "info": None,
         }
         with pytest.raises(ValueError):
             gr.Dropdown(["a"], type="unknown")
@@ -641,11 +723,20 @@ class TestDropdown:
         """
         Interface, process
         """
-        checkboxes_input = gr.CheckboxGroup(["a", "b", "c"])
-        iface = gr.Interface(lambda x: "|".join(x), checkboxes_input, "textbox")
+        dropdown_input = gr.Dropdown(["a", "b", "c"])
+        iface = gr.Interface(lambda x: "|".join(x), dropdown_input, "textbox")
         assert iface(["a", "c"]) == "a|c"
         assert iface([]) == ""
-        _ = gr.CheckboxGroup(["a", "b", "c"], type="index")
+
+    def test_update(self):
+        update = gr.Dropdown.update(
+            choices=[("zeroth", ""), "first", "second"], label="ordinal"
+        )
+        assert update["choices"] == [
+            ("zeroth", ""),
+            ("first", "first"),
+            ("second", "second"),
+        ]
 
 
 class TestImage:
@@ -697,6 +788,8 @@ class TestImage:
             "root_url": None,
             "mirror_webcam": True,
             "selectable": False,
+            "invert_colors": False,
+            "type": "pil",
         }
         assert image_input.preprocess(None) is None
         image_input = gr.Image(invert_colors=True)
@@ -748,6 +841,11 @@ class TestImage:
         iface = gr.Interface(
             lambda x: np.sum(x), image_input, "number", interpretation="default"
         )
+
+    def test_as_example(self):
+        # test that URLs are not converted to an absolute path
+        url = "https://gradio-static-files.s3.us-west-2.amazonaws.com/header-image.jpg"
+        assert gr.Image().as_example(url) == url
 
     def test_in_interface_as_output(self):
         """
@@ -866,6 +964,8 @@ class TestAudio:
             "value": None,
             "interactive": None,
             "root_url": None,
+            "type": "numpy",
+            "format": "wav",
         }
         assert audio_input.preprocess(None) is None
         x_wav["is_example"] = True
@@ -907,6 +1007,8 @@ class TestAudio:
             "value": None,
             "interactive": None,
             "root_url": None,
+            "type": "filepath",
+            "format": "wav",
         }
         assert audio_output.deserialize(
             {
@@ -1025,6 +1127,7 @@ class TestFile:
             "root_url": None,
             "selectable": False,
             "height": None,
+            "type": "file",
         }
         assert file_input.preprocess(None) is None
         x_file["is_example"] = True
@@ -1104,6 +1207,7 @@ class TestDataframe:
         x_data = {
             "data": [["Tim", 12, False], ["Jan", 24, True]],
             "headers": ["Name", "Age", "Member"],
+            "metadata": None,
         }
         dataframe_input = gr.Dataframe(headers=["Name", "Age", "Member"])
         output = dataframe_input.preprocess(x_data)
@@ -1115,33 +1219,34 @@ class TestDataframe:
             headers=["Name", "Age", "Member"], label="Dataframe Input"
         )
         assert dataframe_input.get_config() == {
+            "value": {
+                "headers": ["Name", "Age", "Member"],
+                "data": [["", "", ""]],
+                "metadata": None,
+            },
+            "selectable": False,
             "headers": ["Name", "Age", "Member"],
-            "datatype": ["str", "str", "str"],
             "row_count": (1, "dynamic"),
             "col_count": (3, "dynamic"),
-            "value": {
-                "data": [
-                    ["", "", ""],
-                ],
-                "headers": ["Name", "Age", "Member"],
-            },
-            "name": "dataframe",
-            "show_label": True,
-            "label": "Dataframe Input",
+            "datatype": ["str", "str", "str"],
+            "type": "pandas",
             "max_rows": 20,
             "max_cols": None,
             "overflow_row_behaviour": "paginate",
-            "container": True,
-            "min_width": 160,
+            "label": "Dataframe Input",
+            "show_label": True,
             "scale": None,
+            "min_width": 160,
+            "interactive": None,
+            "visible": True,
             "elem_id": None,
             "elem_classes": None,
-            "visible": True,
-            "interactive": None,
-            "root_url": None,
             "wrap": False,
-            "height": None,
+            "root_url": None,
+            "name": "dataframe",
+            "height": 500,
             "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
+            "line_breaks": True,
         }
         dataframe_input = gr.Dataframe()
         output = dataframe_input.preprocess(x_data)
@@ -1151,33 +1256,30 @@ class TestDataframe:
 
         dataframe_output = gr.Dataframe()
         assert dataframe_output.get_config() == {
+            "value": {"headers": [1, 2, 3], "data": [["", "", ""]], "metadata": None},
+            "selectable": False,
             "headers": [1, 2, 3],
+            "row_count": (1, "dynamic"),
+            "col_count": (3, "dynamic"),
+            "datatype": ["str", "str", "str"],
+            "type": "pandas",
             "max_rows": 20,
             "max_cols": None,
             "overflow_row_behaviour": "paginate",
-            "name": "dataframe",
-            "show_label": True,
             "label": None,
-            "container": True,
-            "min_width": 160,
+            "show_label": True,
             "scale": None,
+            "min_width": 160,
+            "interactive": None,
+            "visible": True,
             "elem_id": None,
             "elem_classes": None,
-            "visible": True,
-            "datatype": ["str", "str", "str"],
-            "row_count": (1, "dynamic"),
-            "col_count": (3, "dynamic"),
-            "value": {
-                "data": [
-                    ["", "", ""],
-                ],
-                "headers": [1, 2, 3],
-            },
-            "interactive": None,
-            "root_url": None,
             "wrap": False,
-            "height": None,
+            "root_url": None,
+            "name": "dataframe",
+            "height": 500,
             "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
+            "line_breaks": True,
         }
 
     def test_postprocess(self):
@@ -1186,17 +1288,18 @@ class TestDataframe:
         """
         dataframe_output = gr.Dataframe()
         output = dataframe_output.postprocess([])
-        assert output == {"data": [[]], "headers": []}
+        assert output == {"data": [[]], "headers": [], "metadata": None}
         output = dataframe_output.postprocess(np.zeros((2, 2)))
-        assert output == {"data": [[0, 0], [0, 0]], "headers": [1, 2]}
+        assert output == {"data": [[0, 0], [0, 0]], "headers": [1, 2], "metadata": None}
         output = dataframe_output.postprocess([[1, 3, 5]])
-        assert output == {"data": [[1, 3, 5]], "headers": [1, 2, 3]}
+        assert output == {"data": [[1, 3, 5]], "headers": [1, 2, 3], "metadata": None}
         output = dataframe_output.postprocess(
             pd.DataFrame([[2, True], [3, True], [4, False]], columns=["num", "prime"])
         )
         assert output == {
             "headers": ["num", "prime"],
             "data": [[2, True], [3, True], [4, False]],
+            "metadata": None,
         }
         with pytest.raises(ValueError):
             gr.Dataframe(type="unknown")
@@ -1207,12 +1310,14 @@ class TestDataframe:
         assert output == {
             "headers": ["one", "two"],
             "data": [[2, True], [3, True]],
+            "metadata": None,
         }
         dataframe_output = gr.Dataframe(headers=["one", "two", "three"])
         output = dataframe_output.postprocess([[2, True, "ab", 4], [3, True, "cd", 5]])
         assert output == {
             "headers": ["one", "two", "three", 4],
             "data": [[2, True, "ab", 4], [3, True, "cd", 5]],
+            "metadata": None,
         }
 
     def test_dataframe_postprocess_all_types(self):
@@ -1252,6 +1357,7 @@ class TestDataframe:
                     "# Goodbye",
                 ],
             ],
+            "metadata": None,
         }
 
     def test_dataframe_postprocess_only_dates(self):
@@ -1275,6 +1381,44 @@ class TestDataframe:
                     pd.Timestamp("2022-02-16 00:00:00"),
                 ],
             ],
+            "metadata": None,
+        }
+
+    def test_dataframe_postprocess_styler(self):
+        component = gr.Dataframe()
+        df = pd.DataFrame(
+            {
+                "name": ["Adam", "Mike"] * 4,
+                "gpa": [1.1, 1.12] * 4,
+                "sat": [800, 800] * 4,
+            }
+        )
+        s = df.style.format(precision=1, decimal=",")
+        output = component.postprocess(s)
+        assert output == {
+            "data": [
+                ["Adam", 1.1, 800],
+                ["Mike", 1.12, 800],
+                ["Adam", 1.1, 800],
+                ["Mike", 1.12, 800],
+                ["Adam", 1.1, 800],
+                ["Mike", 1.12, 800],
+                ["Adam", 1.1, 800],
+                ["Mike", 1.12, 800],
+            ],
+            "headers": ["name", "gpa", "sat"],
+            "metadata": {
+                "display_value": [
+                    ["Adam", "1,1", "800"],
+                    ["Mike", "1,1", "800"],
+                    ["Adam", "1,1", "800"],
+                    ["Mike", "1,1", "800"],
+                    ["Adam", "1,1", "800"],
+                    ["Mike", "1,1", "800"],
+                    ["Adam", "1,1", "800"],
+                    ["Mike", "1,1", "800"],
+                ]
+            },
         }
 
 
@@ -1309,6 +1453,10 @@ class TestDataset:
         )
 
         assert dataset.preprocess(1) == 1
+
+        radio = gr.Radio(choices=[("name 1", "value 1"), ("name 2", "value 2")])
+        dataset = gr.Dataset(samples=[["value 1"], ["value 2"]], components=[radio])
+        assert dataset.samples == [["name 1"], ["name 2"]]
 
     def test_postprocessing(self):
         test_file_dir = Path(Path(__file__).parent, "test_files")
@@ -1372,6 +1520,7 @@ class TestVideo:
             "root_url": None,
             "mirror_webcam": True,
             "include_audio": True,
+            "format": None,
         }
         assert video_input.preprocess(None) is None
         x_video["is_example"] = True
@@ -1676,7 +1825,6 @@ class TestLabel:
             "elem_id": None,
             "elem_classes": None,
             "visible": True,
-            "interactive": None,
             "root_url": None,
             "color": None,
             "selectable": False,
@@ -1826,9 +1974,11 @@ class TestHighlightedText:
             "elem_classes": None,
             "visible": True,
             "value": None,
-            "interactive": None,
             "root_url": None,
             "selectable": False,
+            "combine_adjacent": False,
+            "adjacent_separator": "",
+            "interactive": None,
         }
 
     def test_in_interface(self):
@@ -1907,7 +2057,6 @@ class TestAnnotatedImage:
             "value": None,
             "root_url": None,
             "selectable": False,
-            "interactive": None,
         }
 
     def test_in_interface(self):
@@ -2002,7 +2151,6 @@ class TestChatbot:
             "value": [],
             "label": None,
             "show_label": True,
-            "interactive": None,
             "name": "chatbot",
             "show_share_button": False,
             "visible": True,
@@ -2015,9 +2163,15 @@ class TestChatbot:
             "root_url": None,
             "selectable": False,
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
+            "likeable": False,
             "rtl": False,
             "show_copy_button": False,
             "avatar_images": (None, None),
+            "sanitize_html": True,
+            "render_markdown": True,
+            "bubble_full_width": True,
+            "line_breaks": True,
+            "layout": None,
         }
 
 
@@ -2039,7 +2193,6 @@ class TestJSON:
             "show_label": True,
             "label": None,
             "name": "json",
-            "interactive": None,
             "root_url": None,
         }
 
@@ -2085,20 +2238,16 @@ class TestHTML:
         get_config
         """
         html_component = gr.components.HTML("#Welcome onboard", label="HTML Input")
-        assert {
-            "container": True,
-            "min_width": None,
-            "scale": None,
+        assert html_component.get_config() == {
+            "value": "#Welcome onboard",
+            "label": "HTML Input",
+            "show_label": True,
+            "visible": True,
             "elem_id": None,
             "elem_classes": None,
-            "visible": True,
-            "value": "#Welcome onboard",
-            "show_label": True,
-            "label": "HTML Input",
-            "name": "html",
-            "interactive": None,
             "root_url": None,
-        } == html_component.get_config()
+            "name": "html",
+        }
 
     def test_in_interface(self):
         """
@@ -2132,26 +2281,28 @@ class TestModel3D:
         """
         get_config
         """
-        component = gr.components.Model3D(None, label="Model")
-        assert {
-            "clearColor": [0, 0, 0, 0],
+        model_component = gr.components.Model3D(None, label="Model")
+        assert model_component.get_config() == {
             "value": None,
+            "clear_color": [0, 0, 0, 0],
             "label": "Model",
             "show_label": True,
-            "interactive": None,
-            "root_url": None,
-            "name": "model3d",
+            "container": True,
+            "scale": None,
+            "min_width": 160,
             "visible": True,
             "elem_id": None,
             "elem_classes": None,
-            "container": True,
-            "min_width": 160,
-            "scale": None,
-        } == component.get_config()
+            "root_url": None,
+            "name": "model3d",
+            "camera_position": (None, None, None),
+            "height": None,
+            "zoom_speed": 1,
+        }
 
         file = "test/test_files/Box.gltf"
-        output1 = component.postprocess(file)
-        output2 = component.postprocess(Path(file))
+        output1 = model_component.postprocess(file)
+        output2 = model_component.postprocess(Path(file))
         assert output1 == output2
 
     def test_in_interface(self):
@@ -2191,6 +2342,7 @@ class TestColorPicker:
             "interactive": None,
             "root_url": None,
             "name": "colorpicker",
+            "info": None,
         }
 
     def test_in_interface_as_input(self):
@@ -2354,6 +2506,7 @@ simple = pd.DataFrame(
 class TestScatterPlot:
     @patch.dict("sys.modules", {"bokeh": MagicMock(__version__="3.0.3")})
     def test_get_config(self):
+        print(gr.ScatterPlot().get_config())
         assert gr.ScatterPlot().get_config() == {
             "caption": None,
             "elem_id": None,
@@ -2361,6 +2514,8 @@ class TestScatterPlot:
             "interactive": None,
             "label": None,
             "name": "plot",
+            "bokeh_version": "3.0.3",
+            "show_actions_button": False,
             "root_url": None,
             "show_label": True,
             "container": True,
@@ -2368,7 +2523,27 @@ class TestScatterPlot:
             "scale": None,
             "value": None,
             "visible": True,
-            "bokeh_version": "3.0.3",
+            "x": None,
+            "y": None,
+            "color": None,
+            "size": None,
+            "shape": None,
+            "title": None,
+            "tooltip": None,
+            "x_title": None,
+            "y_title": None,
+            "color_legend_title": None,
+            "size_legend_title": None,
+            "shape_legend_title": None,
+            "color_legend_position": None,
+            "size_legend_position": None,
+            "shape_legend_position": None,
+            "height": None,
+            "width": None,
+            "x_lim": None,
+            "y_lim": None,
+            "x_label_angle": None,
+            "y_label_angle": None,
         }
 
     def test_no_color(self):
@@ -2541,6 +2716,8 @@ class TestLinePlot:
             "interactive": None,
             "label": None,
             "name": "plot",
+            "bokeh_version": "3.0.3",
+            "show_actions_button": False,
             "root_url": None,
             "show_label": True,
             "container": True,
@@ -2548,7 +2725,25 @@ class TestLinePlot:
             "scale": None,
             "value": None,
             "visible": True,
-            "bokeh_version": "3.0.3",
+            "x": None,
+            "y": None,
+            "color": None,
+            "stroke_dash": None,
+            "overlay_point": None,
+            "title": None,
+            "tooltip": None,
+            "x_title": None,
+            "y_title": None,
+            "color_legend_title": None,
+            "stroke_dash_legend_title": None,
+            "color_legend_position": None,
+            "stroke_dash_legend_position": None,
+            "height": None,
+            "width": None,
+            "x_lim": None,
+            "y_lim": None,
+            "x_label_angle": None,
+            "y_label_angle": None,
         }
 
     def test_no_color(self):
@@ -2707,6 +2902,8 @@ class TestBarPlot:
             "interactive": None,
             "label": None,
             "name": "plot",
+            "bokeh_version": "3.0.3",
+            "show_actions_button": False,
             "root_url": None,
             "show_label": True,
             "container": True,
@@ -2714,7 +2911,24 @@ class TestBarPlot:
             "scale": None,
             "value": None,
             "visible": True,
-            "bokeh_version": "3.0.3",
+            "x": None,
+            "y": None,
+            "color": None,
+            "vertical": True,
+            "group": None,
+            "title": None,
+            "tooltip": None,
+            "x_title": None,
+            "y_title": None,
+            "color_legend_title": None,
+            "group_title": None,
+            "color_legend_position": None,
+            "height": None,
+            "width": None,
+            "y_lim": None,
+            "x_label_angle": None,
+            "y_label_angle": None,
+            "sort": None,
         }
 
     def test_update_defaults_none(self):
@@ -2730,11 +2944,13 @@ class TestBarPlot:
             tooltip=["a", "b"],
             title="Made Up Bar Plot",
             x_title="Variable A",
+            sort="x",
         )
         output = plot.postprocess(simple)
         assert sorted(output.keys()) == ["chart", "plot", "type"]
         assert output["chart"] == "bar"
         config = json.loads(output["plot"])
+        assert config["encoding"]["x"]["sort"] == "x"
         assert config["encoding"]["x"]["field"] == "a"
         assert config["encoding"]["x"]["title"] == "Variable A"
         assert config["encoding"]["y"]["field"] == "b"

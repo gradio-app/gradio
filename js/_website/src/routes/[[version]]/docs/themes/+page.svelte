@@ -14,6 +14,7 @@
 	let description = data.description;
 	let components = data.components;
 	let helpers = data.helpers;
+	let modals = data.modals;
 	let routes = data.routes;
 	let headers = data.headers;
 	let method_headers = data.method_headers;
@@ -50,6 +51,16 @@
 			header_targets[target]?.classList.remove("current-nav-link");
 		}
 	}
+
+	let on_main: boolean;
+	let wheel: string = data.wheel;
+
+	$: on_main = data.on_main;
+	$: components = data.components;
+	$: helpers = data.helpers;
+	$: modals = data.modals;
+	$: routes = data.routes;
+	$: py_client = data.py_client;
 </script>
 
 <MetaTags
@@ -62,16 +73,17 @@
 <svelte:window bind:scrollY={y} />
 
 <main class="container mx-auto px-4 flex gap-4">
-	<div class="flex">
+	<div class="flex w-full">
 		<DocsNav
 			current_nav_link={"themes"}
 			{components}
 			{helpers}
+			{modals}
 			{routes}
 			{py_client}
 		/>
 
-		<div class="flex flex-col w-full min-w-full lg:w-10/12 lg:min-w-0">
+		<div class="flex flex-col w-full min-w-full lg:w-8/12 lg:min-w-0">
 			<div>
 				<p
 					class="lg:ml-10 bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 mr-2 rounded-full text-orange-800 mb-1 w-fit float-left"
@@ -87,21 +99,35 @@
 				</p>
 			</div>
 
+			{#if on_main}
+				<div class="bg-gray-100 border border-gray-200 text-gray-800 px-3 py-1 mt-4 rounded-lg lg:ml-10">
+					<p class="my-2">
+						To install Gradio from main, run the following command:
+					</p>
+					<div class="codeblock">
+						<pre class="language-bash" style="padding-right: 50px;"><code class="language-bash">pip install {wheel}</code></pre>
+					</div>
+						<p class="float-right text-sm">
+						*Note: Setting <code style="font-size: 0.85rem">share=True</code> in <code style="font-size: 0.85rem">launch()</code> will not work. 
+					</p>
+					</div>
+			{/if}
+
 			<div class="lg:ml-10 flex justify-between mt-4">
 				<a
-					href="./chatinterface"
+					href="./flagging"
 					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
-						<span class="text-orange-500">&#8592;</span> ChatInterface
+						<span class="text-orange-500">&#8592;</span> Flagging
 					</div>
 				</a>
 				<a
-					href="./components"
+					href="./python-client"
 					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
-						Components <span class="text-orange-500">&#8594;</span>
+						Python Client <span class="text-orange-500">&#8594;</span>
 					</div>
 				</a>
 			</div>
@@ -156,13 +182,13 @@
 							</div>
 
 							{#if obj.override_signature}
-								<div class="codeblock bg-gray-50 mx-auto p-3">
+								<div class="codeblock">
 									<pre><code class="code language-python"
 											>{obj.override_signature}</code
 										></pre>
 								</div>
 							{:else}
-								<div class="codeblock bg-gray-50 mx-auto p-3">
+								<div class="codeblock">
 									<pre><code class="code language-python"
 											>{obj.parent}.<span>{obj.name}&lpar;</span
 											><!--
@@ -246,7 +272,7 @@
 										><img class="anchor-img-small" src={anchor} /></a
 									>
 								</h4>
-								<div class="codeblock bg-gray-50 mx-auto p-3 mt-2">
+								<div class="codeblock">
 									<pre><code class="code language-python"
 											>{@html obj.highlighted_example}</code
 										></pre>
@@ -439,6 +465,7 @@
 															name={demo[0]}
 															code={demo[1]}
 															highlighted_code={demo[2]}
+															on_main={on_main}
 														/>
 													</div>
 												{/each}
@@ -452,27 +479,27 @@
 				</div>
 			</div>
 
-			<div class="flex justify-between my-4">
+			<div class="lg:ml-10 flex justify-between my-4">
 				<a
-					href="./chatinterface"
+					href="./flagging"
 					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
-						<span class="text-orange-500">&#8592;</span> ChatInterface
+						<span class="text-orange-500">&#8592;</span> Flagging
 					</div>
 				</a>
 				<a
-					href="./components"
+					href="./python-client"
 					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
-						Components <span class="text-orange-500">&#8594;</span>
+						Python Client <span class="text-orange-500">&#8594;</span>
 					</div>
 				</a>
 			</div>
 		</div>
 		<div
-			class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:block"
+			class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:block lg:w-2/12"
 		>
 			<div class="mx-8">
 				<a
