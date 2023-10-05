@@ -1,15 +1,62 @@
 # @gradio/app
 
+## 1.6.4
+
+### Features
+
+- [#5124](https://github.com/gradio-app/gradio/pull/5124) [`6e56a0d9b`](https://github.com/gradio-app/gradio/commit/6e56a0d9b0c863e76c69e1183d9d40196922b4cd) - Lite: Websocket queueing.  Thanks [@whitphx](https://github.com/whitphx)!
+
+## 1.6.3
+
+### Patch Changes
+
+- Updated dependencies [[`abb5e9df4`](https://github.com/gradio-app/gradio/commit/abb5e9df47989b2c56c2c312d74944678f9f2d4e), [`e842a561a`](https://github.com/gradio-app/gradio/commit/e842a561af4394f8109291ee5725bcf74743e816), [`8f0fed857`](https://github.com/gradio-app/gradio/commit/8f0fed857d156830626eb48b469d54d211a582d2), [`502054848`](https://github.com/gradio-app/gradio/commit/502054848fdbe39fc03ec42445242b4e49b7affc), [`2a5b9e03b`](https://github.com/gradio-app/gradio/commit/2a5b9e03b15ea324d641fe6982f26d81b1ca7210)]:
+  - @gradio/gallery@0.4.1
+  - @gradio/chatbot@0.5.0
+  - @gradio/dataframe@0.3.0
+  - @gradio/markdown@0.3.0
+  - @gradio/icons@0.2.0
+  - @gradio/annotatedimage@0.2.1
+  - @gradio/atoms@0.1.3
+  - @gradio/audio@0.3.6
+  - @gradio/code@0.2.1
+  - @gradio/dropdown@0.3.1
+  - @gradio/file@0.1.5
+  - @gradio/form@0.0.6
+  - @gradio/highlightedtext@0.3.2
+  - @gradio/image@0.3.1
+  - @gradio/json@0.1.1
+  - @gradio/label@0.2.1
+  - @gradio/model3d@0.2.3
+  - @gradio/plot@0.2.1
+  - @gradio/statustracker@0.2.1
+  - @gradio/textbox@0.4.1
+  - @gradio/timeseries@0.0.7
+  - @gradio/upload@0.3.1
+  - @gradio/video@0.0.10
+  - @gradio/accordion@0.1.1
+  - @gradio/box@0.0.5
+  - @gradio/checkbox@0.2.1
+  - @gradio/checkboxgroup@0.3.1
+  - @gradio/colorpicker@0.1.3
+  - @gradio/html@0.0.5
+  - @gradio/number@0.3.1
+  - @gradio/radio@0.3.1
+  - @gradio/slider@0.2.1
+  - @gradio/row@0.0.1
+  - @gradio/button@0.2.1
+  - @gradio/uploadbutton@0.0.8
+
 ## 1.6.2
 
 ### Features
 
-- [#5721](https://github.com/gradio-app/gradio/pull/5721) [`84e03fe50`](https://github.com/gradio-app/gradio/commit/84e03fe506e08f1f81bac6d504c9fba7924f2d93) - Adds copy buttons to website, and better descriptions to API Docs.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#5721](https://github.com/gradio-app/gradio/pull/5721) [`84e03fe50`](https://github.com/gradio-app/gradio/commit/84e03fe506e08f1f81bac6d504c9fba7924f2d93) - Adds copy buttons to website, and better descriptions to API Docs. Thanks [@aliabd](https://github.com/aliabd)!
 
 ### Fixes
 
-- [#5705](https://github.com/gradio-app/gradio/pull/5705) [`78e7cf516`](https://github.com/gradio-app/gradio/commit/78e7cf5163e8d205e8999428fce4c02dbdece25f) - ensure internal data has updated before dispatching `success` or `then` events.  Thanks [@pngwn](https://github.com/pngwn)!
-- [#5726](https://github.com/gradio-app/gradio/pull/5726) [`96c4b97c7`](https://github.com/gradio-app/gradio/commit/96c4b97c742311e90a87d8e8ee562c6ad765e9f0) - Adjust translation.  Thanks [@ylhsieh](https://github.com/ylhsieh)!
+- [#5705](https://github.com/gradio-app/gradio/pull/5705) [`78e7cf516`](https://github.com/gradio-app/gradio/commit/78e7cf5163e8d205e8999428fce4c02dbdece25f) - ensure internal data has updated before dispatching `success` or `then` events. Thanks [@pngwn](https://github.com/pngwn)!
+- [#5726](https://github.com/gradio-app/gradio/pull/5726) [`96c4b97c7`](https://github.com/gradio-app/gradio/commit/96c4b97c742311e90a87d8e8ee562c6ad765e9f0) - Adjust translation. Thanks [@ylhsieh](https://github.com/ylhsieh)!
 
 ## 1.6.1
 

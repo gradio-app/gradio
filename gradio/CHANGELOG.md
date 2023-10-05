@@ -1,5 +1,31 @@
 # gradio
 
+## 3.46.1
+
+### Features
+
+- [#5124](https://github.com/gradio-app/gradio/pull/5124) [`6e56a0d9b`](https://github.com/gradio-app/gradio/commit/6e56a0d9b0c863e76c69e1183d9d40196922b4cd) - Lite: Websocket queueing.  Thanks [@whitphx](https://github.com/whitphx)!
+
+### Fixes
+
+- [#5775](https://github.com/gradio-app/gradio/pull/5775) [`e2874bc3c`](https://github.com/gradio-app/gradio/commit/e2874bc3cb1397574f77dbd7f0408ed4e6792970) - fix pending chatbot message styling and ensure messages with value `None` don't render.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
+## 3.46.0
+
+### Features
+
+- [#5699](https://github.com/gradio-app/gradio/pull/5699) [`8f0fed857`](https://github.com/gradio-app/gradio/commit/8f0fed857d156830626eb48b469d54d211a582d2) - Improve chatbot accessibility and UX.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#5569](https://github.com/gradio-app/gradio/pull/5569) [`2a5b9e03b`](https://github.com/gradio-app/gradio/commit/2a5b9e03b15ea324d641fe6982f26d81b1ca7210) - Added support for pandas `Styler` object to `gr.DataFrame` (initially just sets the `display_value`).  Thanks [@abidlabs](https://github.com/abidlabs)!
+
+### Fixes
+
+- [#5735](https://github.com/gradio-app/gradio/pull/5735) [`abb5e9df4`](https://github.com/gradio-app/gradio/commit/abb5e9df47989b2c56c2c312d74944678f9f2d4e) - Ensure images with no caption download in gallery.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#5754](https://github.com/gradio-app/gradio/pull/5754) [`502054848`](https://github.com/gradio-app/gradio/commit/502054848fdbe39fc03ec42445242b4e49b7affc) - Fix Gallery `columns` and `rows` params.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#5755](https://github.com/gradio-app/gradio/pull/5755) [`e842a561a`](https://github.com/gradio-app/gradio/commit/e842a561af4394f8109291ee5725bcf74743e816) - Fix new line issue in chatbot.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#5731](https://github.com/gradio-app/gradio/pull/5731) [`c9af4f794`](https://github.com/gradio-app/gradio/commit/c9af4f794060e218193935d7213f0991a374f502) - Added timeout and error handling for frpc tunnel.  Thanks [@cansik](https://github.com/cansik)!
+- [#5766](https://github.com/gradio-app/gradio/pull/5766) [`ef96d3512`](https://github.com/gradio-app/gradio/commit/ef96d351229272738fc3c9680f7111f159590341) - Don't raise warnings when returning an updated component in a dictionary.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#5767](https://github.com/gradio-app/gradio/pull/5767) [`caf6d9c0e`](https://github.com/gradio-app/gradio/commit/caf6d9c0e1f5b867cc20f2b4f6abb5ef47503a5f) - Set share=True for all Gradio apps in Colab by default.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 3.45.2
 
 ### Features

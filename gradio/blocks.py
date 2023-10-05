@@ -731,6 +731,7 @@ class Blocks(BlockContext):
             block_config["props"].pop("type", None)
             block_config["props"].pop("name", None)
             block_config["props"].pop("selectable", None)
+            block_config["props"].pop("server_fns", None)
 
             # If a Gradio app B is loaded into a Gradio app A, and B itself loads a
             # Gradio app C, then the root_urls of the components in A need to be the
@@ -2074,8 +2075,13 @@ Received outputs:
                 # Workaround by triggering the app endpoint
                 requests.get(f"{self.local_url}startup-events", verify=ssl_verify)
             else:
-                pass
-                # TODO: Call the startup endpoint in the Wasm env too.
+                # NOTE: One benefit of the code above dispatching `startup_events()` via a self HTTP request is
+                # that `self._queue.start()` is called in another thread which is managed by the HTTP server, `uvicorn`
+                # so all the asyncio tasks created by the queue runs in an event loop in that thread and
+                # will be cancelled just by stopping the server.
+                # In contrast, in the Wasm env, we can't do that because `threading` is not supported and all async tasks will run in the same event loop, `pyodide.webloop.WebLoop` in the main thread.
+                # So we need to manually cancel them. See `self.close()`..
+                self.startup_events()
 
         utils.launch_counter()
         self.is_sagemaker = utils.sagemaker_check()
@@ -2327,6 +2333,17 @@ Received outputs:
         Closes the Interface that was launched and frees the port.
         """
         try:
+            if wasm_utils.IS_WASM:
+                # NOTE:
+                # Normally, queue-related async tasks (e.g. continuous events created by `gr.Blocks.load(..., every=interval)`, whose async tasks are started at the `/queue/join` endpoint function)
+                # are running in an event loop in the server thread,
+                # so they will be cancelled by `self.server.close()` below.
+                # However, in the Wasm env, we don't have the `server` and
+                # all async tasks are running in the same event loop, `pyodide.webloop.WebLoop` in the main thread,
+                # so we have to cancel them explicitly so that these tasks won't run after a new app is launched.
+                if self.enable_queue:
+                    self._queue._cancel_asyncio_tasks()
+                self.server_app._cancel_asyncio_tasks()
             if self.enable_queue:
                 self._queue.close()
             if self.server:
