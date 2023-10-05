@@ -15,6 +15,7 @@ from gradio import utils
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
+    Changeable,
     EventListenerMethod,
     Selectable,
 )
@@ -23,7 +24,7 @@ set_documentation_group("component")
 
 
 @document()
-class Gallery(IOComponent, GallerySerializable, Selectable):
+class Gallery(IOComponent, GallerySerializable, Changeable, Selectable):
     """
     Used to display a list of images as a gallery that can be scrolled through.
     Preprocessing: this component does *not* accept input.
@@ -50,10 +51,11 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         columns: int | tuple | None = 2,
         rows: int | tuple | None = None,
         height: int | float | None = None,
+        allow_preview: bool = True,
         preview: bool | None = None,
+        selected_index: int | None = None,
         object_fit: Literal["contain", "cover", "fill", "none", "scale-down"]
         | None = None,
-        allow_preview: bool = True,
         show_share_button: bool | None = None,
         show_download_button: bool | None = True,
         **kwargs,
@@ -73,9 +75,10 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             columns: Represents the number of images that should be shown in one row, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). If fewer than 6 are given then the last will be used for all subsequent breakpoints
             rows: Represents the number of rows in the image grid, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). If fewer than 6 are given then the last will be used for all subsequent breakpoints
             height: The height of the gallery component, in pixels. If more images are displayed than can fit in the height, a scrollbar will appear.
-            preview: If True, will display the Gallery in preview mode, which shows all of the images as thumbnails and allows the user to click on them to view them in full size.
-            object_fit: CSS object-fit property for the thumbnail images in the gallery. Can be "contain", "cover", "fill", "none", or "scale-down".
             allow_preview: If True, images in the gallery will be enlarged when they are clicked. Default is True.
+            preview: If True, Gallery will start in preview mode, which shows all of the images as thumbnails and allows the user to click on them to view them in full size. Only works if allow_preview is True.
+            selected_index: The index of the image that should be initially selected. If None, no image will be selected at start. If provided, will set Gallery to preview mode unless allow_preview is set to False.
+            object_fit: CSS object-fit property for the thumbnail images in the gallery. Can be "contain", "cover", "fill", "none", or "scale-down".
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             show_download_button: If True, will show a download button in the corner of the selected image. If False, the icon does not appear. Default is True.
 
@@ -92,6 +95,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             else show_download_button
         )
         self.select: EventListenerMethod
+        self.selected_index = selected_index
         """
         Event listener for when the user selects image within Gallery.
         Uses event data gradio.SelectData to carry `value` referring to caption of selected image, and `index` to refer to index.
