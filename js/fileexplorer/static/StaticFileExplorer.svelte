@@ -31,8 +31,6 @@
 	export let server: {
 		ls: (path: string[]) => Promise<[string[], string[]]>;
 	};
-
-	$: value && gradio.dispatch("change");
 </script>
 
 <Block
@@ -55,5 +53,11 @@
 		label={label || "FileExplorer"}
 		float={false}
 	/>
-	<DirectoryExplorer bind:value {file_count} {server} mode="static" />
+	<DirectoryExplorer
+		bind:value
+		{file_count}
+		{server}
+		mode="static"
+		on:change={() => gradio.dispatch("change")}
+	/>
 </Block>

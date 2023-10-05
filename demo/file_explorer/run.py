@@ -7,10 +7,7 @@ absolute_path = (current_file_path.parent / ".." / ".." / "gradio").resolve()
 
 
 def get_file_content(file):
-    with open(file) as f:
-        x = f.read()
-
-    return gr.Code(x, language="python")
+    return (file,)
 
 
 with gr.Blocks() as demo:
@@ -18,7 +15,7 @@ with gr.Blocks() as demo:
     submit_btn = gr.Button("Select")
     with gr.Row():
         file = gr.FileExplorer(
-            glob="**/*.abc",
+            glob="**/{components,themes}/*.py",
             # value=["themes/utils"],
             root=absolute_path,
             ignore_glob="**/__init__.py",
@@ -33,19 +30,21 @@ with gr.Blocks() as demo:
 
     gr.Markdown("---")
     gr.Markdown('### `FileExplorer` to `Code` -- `file_count="single"`')
-    submit_btn_2 = gr.Button("Select")
-    with gr.Row():
-        file_3 = gr.FileExplorer(
-            glob="**/{components,themes}/**/*.py",
-            value=["themes/utils"],
-            file_count="single",
-            root=absolute_path,
-            ignore_glob="**/__init__.py",
-        )
+    with gr.Group():
+        with gr.Row():
+            file_3 = gr.FileExplorer(
+                scale=1,
+                glob="**/{components,themes}/**/*.py",
+                value=["themes/utils"],
+                file_count="single",
+                root=absolute_path,
+                ignore_glob="**/__init__.py",
+                elem_id="file",
+            )
 
-        code = gr.Code()
+            code = gr.Code(lines=30, scale=2, language="python")
 
-    submit_btn_2.click(get_file_content, file_3, code)
+    file_3.change(get_file_content, file_3, code)
 
 
 if __name__ == "__main__":

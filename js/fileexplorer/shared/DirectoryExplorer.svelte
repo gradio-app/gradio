@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { createEventDispatcher } from "svelte";
+	import { dequal } from "dequal";
 	import FileTree from "./FileTree.svelte";
 	import { make_fs_store } from "./utils";
 	import { File } from "@gradio/icons";
@@ -10,6 +12,9 @@
 
 	export let value: string[][] = [];
 
+	const dispatch = createEventDispatcher<{
+		change: typeof value;
+	}>();
 	const tree = make_fs_store();
 
 	server.ls().then((v: any) => {
@@ -21,8 +26,13 @@
 	function set_checked_from_paths(): void {
 		value = file_count === "single" ? [value[0] || []] : value;
 		value = tree.set_checked_from_paths(value);
+		if (!dequal(value, old_value)) {
+			old_value = value;
+			dispatch("change", value);
+		}
 	}
 
+	let old_value: typeof value = [];
 	function handle_select({
 		node_indices,
 		checked
@@ -31,6 +41,12 @@
 		checked: boolean;
 	}): void {
 		value = tree.set_checked(node_indices, checked, value, file_count);
+		console.log(value, old_value);
+		if (!dequal(value, old_value)) {
+			old_value = value;
+			dispatch("change", value);
+		}
+		// dispatch("change", value);
 	}
 </script>
 

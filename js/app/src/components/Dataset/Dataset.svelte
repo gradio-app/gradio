@@ -24,7 +24,7 @@
 
 	let samples_dir: string = get_fetchable_url_or_file(null, root, root_url);
 	let page = 0;
-	$: gallery = false;
+	$: gallery = components.length < 2;
 	let paginate = samples.length > samples_per_page;
 
 	let selected_samples: any[][];

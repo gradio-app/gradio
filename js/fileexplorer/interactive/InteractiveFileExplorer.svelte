@@ -32,7 +32,7 @@
 		ls: (path: string[]) => Promise<[string[], string[]]>;
 	};
 
-	$: value && gradio.dispatch("change");
+	// $: value && gradio.dispatch("change");
 </script>
 
 <Block
@@ -53,5 +53,11 @@
 	/>
 	<StatusTracker {...loading_status} />
 
-	<DirectoryExplorer bind:value {file_count} {server} mode="interactive" />
+	<DirectoryExplorer
+		bind:value
+		{file_count}
+		{server}
+		mode="interactive"
+		on:change={() => gradio.dispatch("change")}
+	/>
 </Block>

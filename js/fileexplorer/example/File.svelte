@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { FileData } from "@gradio/upload";
 
-	export let value: string[];
+	export let value: string[] | string;
 	export let type: "gallery" | "table";
 	export let selected = false;
 </script>
@@ -11,10 +11,10 @@
 	class:gallery={type === "gallery"}
 	class:selected
 >
-	{#each value.slice(0, 3) as path}
+	{#each Array.isArray(value) ? value.slice(0, 3) : [value] as path}
 		<li><code>./{path}</code></li>
 	{/each}
-	{#if value.length > 3}
+	{#if Array.isArray(value) && value.length > 3}
 		<li class="extra">...</li>
 	{/if}
 </ul>
