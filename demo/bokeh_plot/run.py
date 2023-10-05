@@ -1,6 +1,5 @@
 import gradio as gr
 import xyzservices.providers as xyz
-from bokeh.tile_providers import get_provider
 from bokeh.models import ColumnDataSource, Whisker
 from bokeh.plotting import figure
 from bokeh.sampledata.autompg2 import autompg2 as df
@@ -10,14 +9,13 @@ from bokeh.transform import factor_cmap, jitter, factor_mark
 
 def get_plot(plot_type):
     if plot_type == "map":
-        tile_provider = get_provider(xyz.OpenStreetMap.Mapnik)
         plot = figure(
             x_range=(-2000000, 6000000),
             y_range=(-1000000, 7000000),
             x_axis_type="mercator",
             y_axis_type="mercator",
         )
-        plot.add_tile(tile_provider)
+        plot.add_tile(xyz.OpenStreetMap.Mapnik)
         return plot
     elif plot_type == "whisker":
         classes = list(sorted(df["class"].unique()))
