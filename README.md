@@ -18,6 +18,7 @@
 | [Getting Started](https://gradio.app/getting_started/)
 | [Examples](demo/)
 | [中文](readme_files/zh-cn#readme)
+| [हिन्दी](readme_files/hd-in#readme)
 
 </div>
 
