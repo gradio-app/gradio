@@ -79,9 +79,6 @@ If you're a newcomer to Gradio, we recommend getting familiar with the overall s
 - `/website`: contains the code for the Gradio website (www.gradio.app). See the README in the `/website` folder for more details
 
 
-
-- To develop the frontend app, you should also follow [js/README.md](js/README.md).
-
 ## 🚀 Run a Gradio app
 
 You can get started by creating an `app.py` file in the root:
@@ -102,14 +99,15 @@ then run:
 gradio app.py
 ```
 
-This will start the backend server in reload mode, which will watch for changes in the `gradio` folder and reload the app if changes are made. By default, Gradio will launch on port 7860.
+This will start the backend server in reload mode, which will watch for changes in the `gradio` folder and reload the app if changes are made. By default, Gradio will launch on port 7860. You can also just use `python app.py`, but this won't automatically trigger updates. 
+
 
 If you're making frontend changes, start the frontend server:
 
 ```
 pnpm dev
 ```
-This will open a separate browser tab. By default, Gradio will launch this on port 9876. Any changes to the frontend will also reload automatically in the browser. 
+This will open a separate browser tab. By default, Gradio will launch this on port 9876. Any changes to the frontend will also reload automatically in the browser. For more information about developing in the frontend, you can refer to [js/README.md](js/README.md).
 
 We also have demos of all our components in the `/gradio/demo` directory. To get our simple gradio Chatbot running locally:
 
