@@ -17,6 +17,7 @@ class TooManyRequestsError(Exception):
 
 class ModelNotFoundError(Exception):
     """Raised when the provided model doesn't exists or is not found by the provided api url."""
+    
     pass
 
 
