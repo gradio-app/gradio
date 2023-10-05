@@ -78,15 +78,45 @@ If you're a newcomer to Gradio, we recommend getting familiar with the overall s
 - `/demo`: contains demos that are used in the documentation, you can find `Gradio` examples over here.
 - `/website`: contains the code for the Gradio website (www.gradio.app). See the README in the `/website` folder for more details
 
-### 🪄 Extra tidbits
 
-- You can run gradio scripts in reload mode which will watch for changes in the `gradio` folder and reload the app if changes are made.
+
+- To develop the frontend app, you should also follow [js/README.md](js/README.md).
+
+### 🚀 Run a Gradio app
+
+You can get started by creating an `app.py` file in the root:
+
+```
+import gradio as gr
+
+with gr.Blocks() as demo:
+   gr.Button()
+    
+if __name__ == "__main__":
+   demo.launch()
+```
+
+then run:
 
 ```
 gradio app.py
 ```
 
-- To develop the frontend app, you should also follow [js/README.md](js/README.md).
+This will start the backend server in reload mode, which will watch for changes in the `gradio` folder and reload the app if changes are made.
+
+If you're making frontend changes, start the frontend server:
+
+```
+pnpm dev
+```
+Any changes to the frontend will also reload automatically in the browser. 
+
+We also have demos of all our components in the `/gradio/demo` directory. To get our simple gradio Chatbot running locally:
+
+```
+gradio demo/chatbot_simple run.py
+```
+
 
 ### 🧪 Testing
 
@@ -136,7 +166,7 @@ then serve the website build:
 pnpm preview:cdn-local
 ```
 
-This will serve a build of `gradio.js` on port `4321`. You can then navigate to `js/_website/src/routes/+layout.svelte` and replace the source of the website buid from:
+This will serve a build of `gradio.js` on port `4321`. You can then navigate to `js/_website/src/routes/+layout.svelte` and replace the source of the website build from:
 ```
 <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/{version}/gradio.js"></script>
 ```
@@ -148,7 +178,7 @@ to
 You should now be able to view a local version of the website at `http://localhost:4321`. 
 #### 📚 Component Storybook
 
-If you would like to fix or contribute something to our Storybook, you can get it running locally with:
+If you would like to fix an issue or contribute to our Storybook, you can get it running locally with:
 
 ```
 pnpm storybook
@@ -177,8 +207,13 @@ bash scripts/format_frontend.sh
 Thank you for taking the time to contribute to our project! 
 ## ❓ Need help getting started?
 
-- Browse issues with the "good first issue" label. These are issues we think are good for newcomers.
+- Browse [issues](https://github.com/gradio-app/gradio/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) with the "good first issue" label. These are issues we think are good for newcomers.
 - Ask the Gradio community in our [Discord](https://discord.com/invite/feTf9x3ZSB)
 - Raise an issue for a feature or a bug you want to tackle
 
+## 🚧 Troubleshooting
+boop
+
+
 _Could these guidelines be clearer? Feel free to open a PR to help us faciltiate open-source contributions!_
+
