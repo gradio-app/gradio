@@ -212,8 +212,28 @@ Thank you for taking the time to contribute to our project!
 - Raise an issue for a feature or a bug you want to tackle
 
 ## 🚧 Troubleshooting
-boop
+`ERROR: Error loading ASGI app. Could not import module "<filename>"`
 
+Verify that you've used the correct filename of your gradio app, and that you're in the directory of the file. 
+
+---
+
+```ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL @gradio/app@1.0.0 build:local: vite build --mode production:local --emptyOutDir "--emptyOutDir"```
+
+Delete `/node_modules` and `pnpm-lock.yaml`:
+
+```
+rm -rf node_modules/
+rm pnpm-lock.yaml
+```
+
+and run the install scripts:
+
+```
+bash scripts/install_gradio.sh
+bash scripts/build_frontend.sh
+```
+---
 
 _Could these guidelines be clearer? Feel free to open a PR to help us faciltiate open-source contributions!_
 
