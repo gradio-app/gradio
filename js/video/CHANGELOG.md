@@ -1,5 +1,16 @@
 # @gradio/video
 
+## 0.0.11
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/utils@0.1.2
+  - @gradio/atoms@0.1.4
+  - @gradio/image@0.3.2
+  - @gradio/statustracker@0.2.2
+  - @gradio/upload@0.3.2
+
 ## 0.0.10
 
 ### Patch Changes
