@@ -41,12 +41,10 @@
 		checked: boolean;
 	}): void {
 		value = tree.set_checked(node_indices, checked, value, file_count);
-		console.log(value, old_value);
 		if (!dequal(value, old_value)) {
 			old_value = value;
 			dispatch("change", value);
 		}
-		// dispatch("change", value);
 	}
 </script>
 
