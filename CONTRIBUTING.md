@@ -74,9 +74,9 @@ If you're a newcomer to Gradio, we recommend getting familiar with the overall s
   - `/gradio/blocks.py`: contains the Python source code for the core `Blocks` class
   - `/gradio/components/`: the directory that contains the Python source code for all of the Gradio components.
 - `/js`: contains the HTML/JS/CSS source code for the library ([start here for frontend changes](/js/README.md))
+  - `/js/_website`: contains the code for the Gradio website (www.gradio.app). See the README in the `/js/_website` folder for more details
 - `/test`: contains Python unit tests for the library
 - `/demo`: contains demos that are used in the documentation, you can find `Gradio` examples over here.
-- `/website`: contains the code for the Gradio website (www.gradio.app). See the README in the `/website` folder for more details
 
 
 ## 🚀 Run a Gradio app
