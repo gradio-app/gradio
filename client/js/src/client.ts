@@ -8,7 +8,8 @@ import {
 	get_space_hardware,
 	set_space_hardware,
 	set_space_timeout,
-	hardware_types
+	hardware_types,
+	resolve_root
 } from "./utils.js";
 
 import type {
@@ -45,6 +46,11 @@ type client_return = {
 		data?: unknown[],
 		event_data?: unknown
 	) => SubmitReturn;
+	component_server: (
+		component_id: number,
+		fn_name: string,
+		data: unknown[]
+	) => any;
 	view_api: (c?: Config) => Promise<ApiInfo<JsApiData>>;
 };
 
@@ -243,7 +249,8 @@ export function api_factory(
 			const return_obj = {
 				predict,
 				submit,
-				view_api
+				view_api,
+				component_server
 				// duplicate
 			};
 
@@ -422,12 +429,15 @@ export function api_factory(
 				let payload: Payload;
 				let complete: false | Record<string, any> = false;
 				const listener_map: ListenerMap<EventType> = {};
-				const url_params = new URLSearchParams(
-					window.location.search
-				).toString();
+				let url_params = ""
+				if (typeof(window) !== "undefined") {
+					url_params = new URLSearchParams(
+						window.location.search
+					).toString();
+				}
 
 				handle_blob(
-					`${http_protocol}//${host + config.path}`,
+					`${http_protocol}//${resolve_root(host, config.path, true)}`,
 					data,
 					api_info,
 					hf_token
@@ -444,7 +454,7 @@ export function api_factory(
 						});
 
 						post_data(
-							`${http_protocol}//${host + config.path}/run${
+							`${http_protocol}//${resolve_root(host, config.path, true)}/run${
 								_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
 							}${url_params ? "?" + url_params : ""}`,
 							{
@@ -512,8 +522,11 @@ export function api_factory(
 							fn_index,
 							time: new Date()
 						});
-
-						let url = new URL(`${ws_protocol}://${host}${config.path}
+						let url = new URL(`${ws_protocol}://${resolve_root(
+							host,
+							config.path,
+							true
+						)}
 							/queue/join${url_params ? "?" + url_params : ""}`);
 
 						if (jwt) {
@@ -677,7 +690,11 @@ export function api_factory(
 
 					try {
 						await fetch_implementation(
-							`${http_protocol}//${host + config.path}/reset`,
+							`${http_protocol}//${resolve_root(
+								host,
+								config.path,
+								true
+							)}/reset`,
 							{
 								headers: { "Content-Type": "application/json" },
 								method: "POST",
@@ -705,6 +722,51 @@ export function api_factory(
 					cancel,
 					destroy
 				};
+			}
+
+			async function component_server(
+				component_id: number,
+				fn_name: string,
+				data: unknown[]
+			): Promise<any> {
+				const headers: {
+					Authorization?: string;
+					"Content-Type": "application/json";
+				} = { "Content-Type": "application/json" };
+				if (hf_token) {
+					headers.Authorization = `Bearer ${hf_token}`;
+				}
+				let root_url: string;
+				let component = config.components.find(
+					(comp) => comp.id === component_id
+				);
+				if (component?.props?.root_url) {
+					root_url = component.props.root_url;
+				} else {
+					root_url = `${http_protocol}//${host + config.path}/`;
+				}
+				const response = await fetch_implementation(
+					`${root_url}component_server/`,
+					{
+						method: "POST",
+						body: JSON.stringify({
+							data: data,
+							component_id: component_id,
+							fn_name: fn_name,
+							session_hash: session_hash
+						}),
+						headers
+					}
+				);
+
+				if (!response.ok) {
+					throw new Error(
+						"Could not connect to component server: " + response.statusText
+					);
+				}
+
+				const output = await response.json();
+				return output;
 			}
 
 			async function view_api(config?: Config): Promise<ApiInfo<JsApiData>> {
@@ -1152,7 +1214,7 @@ async function resolve_config(
 	) {
 		const path = window.gradio_config.root;
 		const config = window.gradio_config;
-		config.root = endpoint + config.root;
+		config.root = resolve_root(endpoint, config.root, false);
 		return { ...config, path: path };
 	} else if (endpoint) {
 		let response = await fetch_implementation(`${endpoint}/config`, {

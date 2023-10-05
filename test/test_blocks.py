@@ -612,7 +612,15 @@ class TestBlocksPostprocessing:
         io_components = [
             c()
             for c in io_components
-            if c not in [gr.State, gr.Button, gr.ScatterPlot, gr.LinePlot, gr.BarPlot]
+            if c
+            not in [
+                gr.State,
+                gr.Button,
+                gr.ScatterPlot,
+                gr.LinePlot,
+                gr.BarPlot,
+                gr.FileExplorer,
+            ]
         ]
         with gr.Blocks() as demo:
             for component in io_components:
