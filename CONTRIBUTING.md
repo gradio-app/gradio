@@ -152,6 +152,8 @@ You can also run browser tests in the UI mode by adding the `--ui` flag:
 pnpm test:browser --ui
 ```
 
+If you have made any significant visual changes to a component, we encourage you to add a new Storybook story or amend an existing one to reflect them. You can create a new story with a `*.stories.svelte` file. 
+
 #### 🕸️ Gradio Website
 
 We also welcome any contributions to our [website](https://www.gradio.app). 
@@ -183,6 +185,7 @@ If you would like to fix an issue or contribute to our Storybook, you can get it
 ```
 pnpm storybook
 ```
+
 
 ## 📮 Submitting PRs
 
