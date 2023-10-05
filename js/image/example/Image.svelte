@@ -7,29 +7,29 @@
 	export let selected = false;
 </script>
 
-<Image
-	src={samples_dir + value}
-	class={[
-		type === "table" && "table",
-		type === "gallery" && "gallery",
-		selected && "selected"
-	]
-		.filter((c) => c)
-		.join(" ")}
-	alt=""
-/>
+<div
+	class="image-container"
+	class:table={type === "table"}
+	class:gallery={type === "gallery"}
+	class:selected
+>
+	<Image
+		src={samples_dir + value}
+		alt=""
+	/>
+</div>
 
 <style>
-	img {
+	.image-container {
 		border-radius: var(--radius-lg);
 		max-width: none;
 	}
 
-	img.selected {
+	.image-container.selected {
 		border-color: var(--border-color-accent);
 	}
 
-	.table {
+	.image-container.table {
 		margin: 0 auto;
 		border: 2px solid var(--border-color-primary);
 		border-radius: var(--radius-lg);
@@ -38,8 +38,9 @@
 		object-fit: cover;
 	}
 
-	.gallery {
+	.image-container.gallery {
 		border: 2px solid var(--border-color-primary);
+		height: var(--size-20);
 		max-height: var(--size-20);
 		object-fit: cover;
 	}
