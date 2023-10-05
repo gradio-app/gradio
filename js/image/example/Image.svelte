@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Image } from "@gradio/wasm/svelte";
+	import { Image } from "../static";
 
 	export let value: string;
 	export let samples_dir: string;
