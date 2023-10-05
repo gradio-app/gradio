@@ -629,11 +629,12 @@ class Interface(Blocks):
                         inputs=None,
                         outputs=[submit_btn, stop_btn],
                         queue=False,
+                        api_name=False,
                     ).then(
                         self.fn,
                         self.input_components,
                         self.output_components,
-                        api_name=self.api_name if i == 0 else None,
+                        api_name=self.api_name if i == 0 else False,
                         scroll_to_output=True,
                         preprocess=not (self.api_mode),
                         postprocess=not (self.api_mode),
@@ -647,6 +648,7 @@ class Interface(Blocks):
                         inputs=None,
                         outputs=extra_output,  # type: ignore
                         queue=False,
+                        api_name=False,
                     )
 
                 stop_btn.click(
@@ -655,6 +657,7 @@ class Interface(Blocks):
                     outputs=[submit_btn, stop_btn],
                     cancels=predict_events,
                     queue=False,
+                    api_name=False,
                 )
             else:
                 for i, trigger in enumerate(triggers):
@@ -663,7 +666,7 @@ class Interface(Blocks):
                             fn,
                             self.input_components,
                             self.output_components,
-                            api_name=self.api_name if i == 0 else None,
+                            api_name=self.api_name if i == 0 else False,
                             scroll_to_output=True,
                             preprocess=not (self.api_mode),
                             postprocess=not (self.api_mode),
@@ -740,6 +743,7 @@ class Interface(Blocks):
                 None,
                 flag_btn,
                 queue=False,
+                api_name=False,
             )
             flag_btn.click(
                 flag_method,
@@ -747,12 +751,10 @@ class Interface(Blocks):
                 outputs=flag_btn,
                 preprocess=False,
                 queue=False,
+                api_name=False,
             )
             clear_btn.click(
-                flag_method.reset,
-                None,
-                flag_btn,
-                queue=False,
+                flag_method.reset, None, flag_btn, queue=False, api_name=False
             )
 
     def render_examples(self):
