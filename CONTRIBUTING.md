@@ -32,7 +32,7 @@ bash scripts/build_frontend.sh
 
 -  Install development requirements
 
-(Note that it is highly recommended to use a virtual environment running **Python 3.9** since the versions are pinned)
+(Note that it is highly recommended to use a virtual environment running **Python 3.9** since the versions of Gradio's dependencies are pinned)
 
 ```
 bash scripts/install_test_requirements.sh
@@ -46,7 +46,7 @@ bash scripts/create_test_requirements.sh
 
 ### 📦 Using dev containers
 
-You can alternatively use dev containers. This is supported on all platforms (macOS/Windows/Linux).
+You can alternatively use dev containers. This is supported on all platforms (macOS/Windows/Linux), as well as on GitHub Codespaces. 
 
 Prerequisites:
 
@@ -65,14 +65,14 @@ Steps:
 
 For detailed instructions, please see the [Dev Containers tutorial](https://code.visualstudio.com/docs/devcontainers/tutorial).
 
-### 🧱 Structure of the Repository
+## 🧱 Structure of the Repository
 
 If you're a newcomer to Gradio, we recommend getting familiar with the overall structure of the repository so that you can focus on the part of the source code you'd like to contribute to.
 
 - `/gradio`: contains the Python source code for the library
   - `/gradio/interface.py`: contains the Python source code for the core `Interface` class
   - `/gradio/blocks.py`: contains the Python source code for the core `Blocks` class
-  - `/gradio/components.py`: contains the Python source code for the `components`, you can add your custom components here.
+  - `/gradio/components/`: the directory that contains the Python source code for all of the Gradio components.
 - `/js`: contains the HTML/JS/CSS source code for the library ([start here for frontend changes](/js/README.md))
 - `/test`: contains Python unit tests for the library
 - `/demo`: contains demos that are used in the documentation, you can find `Gradio` examples over here.
@@ -82,7 +82,7 @@ If you're a newcomer to Gradio, we recommend getting familiar with the overall s
 
 - To develop the frontend app, you should also follow [js/README.md](js/README.md).
 
-### 🚀 Run a Gradio app
+## 🚀 Run a Gradio app
 
 You can get started by creating an `app.py` file in the root:
 
@@ -102,39 +102,39 @@ then run:
 gradio app.py
 ```
 
-This will start the backend server in reload mode, which will watch for changes in the `gradio` folder and reload the app if changes are made.
+This will start the backend server in reload mode, which will watch for changes in the `gradio` folder and reload the app if changes are made. By default, Gradio will launch on port 7860.
 
 If you're making frontend changes, start the frontend server:
 
 ```
 pnpm dev
 ```
-Any changes to the frontend will also reload automatically in the browser. 
+This will open a separate browser tab. By default, Gradio will launch this on port 9876. Any changes to the frontend will also reload automatically in the browser. 
 
 We also have demos of all our components in the `/gradio/demo` directory. To get our simple gradio Chatbot running locally:
 
 ```
-gradio demo/chatbot_simple run.py
+gradio demo/chatbot_simple/run.py
 ```
 
 
-### 🧪 Testing
+## 🧪 Testing
 
 We use Pytest, Playwright and Vitest to test our code. 
 
-- To run all Python tests:
+- The Python tests are located in `/test`. To run these tests:
 
 ```
 bash scripts/run_all_tests.sh
 ```
 
-- To run the frontend unit tests:
+- The frontend unit tests are any defined with the filename `*.test.ts`. To run them:
 
 ```
 pnpm test
 ```
 
-- To run the browser tests:
+- Browser tests are located in `js/app/test` and are defined as `*spec.ts` files. To run browser tests:
 
 ```
 pnpm test:browser
@@ -143,7 +143,7 @@ pnpm test:browser
 To build the frontend code before running browser tests:
 
 ```
-pnpm test:browser
+pnpm test:browser:full
 ```
 
 You can also run browser tests in the UI mode by adding the `--ui` flag: 
@@ -154,7 +154,7 @@ pnpm test:browser --ui
 
 If you have made any significant visual changes to a component, we encourage you to add a new Storybook story or amend an existing one to reflect them. You can create a new story with a `*.stories.svelte` file. 
 
-#### 🕸️ Gradio Website
+## 🕸️ Gradio Website
 
 We also welcome any contributions to our [website](https://www.gradio.app). 
 
@@ -178,7 +178,7 @@ to
 ```
 
 You should now be able to view a local version of the website at `http://localhost:4321`. 
-#### 📚 Component Storybook
+## 📚 Component Storybook
 
 If you would like to fix an issue or contribute to our Storybook, you can get it running locally with:
 
