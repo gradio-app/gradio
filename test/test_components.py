@@ -2417,6 +2417,10 @@ class TestState:
         assert state.preprocess("abc") == "abc"
         assert state.stateful
 
+    def test_initial_value_deepcopy(self):
+        with pytest.raises(TypeError):
+            gr.State(value=gr)  # modules are not deepcopyable
+
     @pytest.mark.asyncio
     async def test_in_interface(self):
         def test(x, y=" def"):
