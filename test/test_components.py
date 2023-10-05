@@ -2418,9 +2418,8 @@ class TestState:
         assert state.stateful
 
     def test_initial_value_deepcopy(self):
-        with pytest.raises(TypeError) as e:
-            gr.State(value=lambda x: x)
-        assert f"The initial value of `gr.State` must be able to be deepcopied. The initial value of type {type(e.value)} cannot be deepcopied."
+        with pytest.raises(TypeError):
+            gr.State(value=gr)
 
     @pytest.mark.asyncio
     async def test_in_interface(self):
