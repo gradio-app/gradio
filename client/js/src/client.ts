@@ -8,7 +8,8 @@ import {
 	get_space_hardware,
 	set_space_hardware,
 	set_space_timeout,
-	hardware_types
+	hardware_types,
+	resolve_root
 } from "./utils.js";
 
 import type {
@@ -436,7 +437,7 @@ export function api_factory(
 				}
 
 				handle_blob(
-					`${http_protocol}//${host + config.path}`,
+					`${http_protocol}//${resolve_root(host, config.path, true)}`,
 					data,
 					api_info,
 					hf_token
@@ -453,7 +454,7 @@ export function api_factory(
 						});
 
 						post_data(
-							`${http_protocol}//${host + config.path}/run${
+							`${http_protocol}//${resolve_root(host, config.path, true)}/run${
 								_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
 							}${url_params ? "?" + url_params : ""}`,
 							{
@@ -521,8 +522,11 @@ export function api_factory(
 							fn_index,
 							time: new Date()
 						});
-
-						let url = new URL(`${ws_protocol}://${host}${config.path}
+						let url = new URL(`${ws_protocol}://${resolve_root(
+							host,
+							config.path,
+							true
+						)}
 							/queue/join${url_params ? "?" + url_params : ""}`);
 
 						if (jwt) {
@@ -686,7 +690,11 @@ export function api_factory(
 
 					try {
 						await fetch_implementation(
-							`${http_protocol}//${host + config.path}/reset`,
+							`${http_protocol}//${resolve_root(
+								host,
+								config.path,
+								true
+							)}/reset`,
 							{
 								headers: { "Content-Type": "application/json" },
 								method: "POST",
@@ -1206,7 +1214,7 @@ async function resolve_config(
 	) {
 		const path = window.gradio_config.root;
 		const config = window.gradio_config;
-		config.root = endpoint + config.root;
+		config.root = resolve_root(endpoint, config.root, false);
 		return { ...config, path: path };
 	} else if (endpoint) {
 		let response = await fetch_implementation(`${endpoint}/config`, {
