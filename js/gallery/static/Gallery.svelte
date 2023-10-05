@@ -134,7 +134,7 @@
 			if (selected_index !== null) {
 				dispatch("select", {
 					index: selected_index,
-					value: _value?.[selected_index][1]
+					value: [_value?.[selected_index][0].data, _value?.[selected_index][1]]
 				});
 			}
 		}
