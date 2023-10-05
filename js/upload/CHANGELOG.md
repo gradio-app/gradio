@@ -1,5 +1,12 @@
 # @gradio/upload
 
+## 0.3.2
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/atoms@0.1.4
+
 ## 0.3.1
 
 ### Patch Changes
