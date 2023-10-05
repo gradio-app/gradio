@@ -16,6 +16,7 @@ import ExampleTimeSeries from "@gradio/timeseries/example";
 import ExampleMarkdown from "@gradio/markdown/example";
 import ExampleHTML from "@gradio/html/example";
 import ExampleCode from "@gradio/code/example";
+import ExampleFileExplorer from "@gradio/fileexplorer/example";
 
 export const component_map = {
 	dropdown: ExampleDropdown,
@@ -35,5 +36,6 @@ export const component_map = {
 	timeseries: ExampleTimeSeries,
 	markdown: ExampleMarkdown,
 	html: ExampleHTML,
-	code: ExampleCode
+	code: ExampleCode,
+	fileexplorer: ExampleFileExplorer
 };
