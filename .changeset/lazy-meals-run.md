@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Enable API request in Node.js
+feat:ensure the client does not depend on `window` when running in a node environment
