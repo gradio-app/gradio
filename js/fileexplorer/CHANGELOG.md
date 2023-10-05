@@ -1,16 +1,10 @@
----
-"@gradio/app": minor
-"@gradio/client": minor
-"@gradio/file": minor
-"@gradio/fileexplorer": minor
-"@gradio/theme": minor
-"gradio": minor
-"gradio_client": minor
----
+# @gradio/fileexplorer
 
-highlight:
+## 0.2.0
 
-#### new `FileExplorer` component
+### Highlights
+
+#### new `FileExplorer` component ([#5672](https://github.com/gradio-app/gradio/pull/5672) [`e4a307ed6`](https://github.com/gradio-app/gradio/commit/e4a307ed6cde3bbdf4ff2f17655739addeec941e))
 
 Thanks to a new capability that allows components to communicate directly with the server _without_ passing data via the value, we have created a new `FileExplorer` component.
 
@@ -22,3 +16,4 @@ Users can then navigate the virtual filesystem and select files which will be ac
 
 For more information check the [`FileExplorer` documentation](https://gradio.app/docs/fileexplorer).
 
+ Thanks [@aliabid94](https://github.com/aliabid94)!
