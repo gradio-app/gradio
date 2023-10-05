@@ -19,16 +19,16 @@ class StateHolder:
         self.blocks = blocks
         self.capacity = blocks.state_session_capacity
 
-    def __getitem__(self, session_id: int) -> SessionState:
+    def __getitem__(self, session_id: str) -> SessionState:
         if session_id not in self.session_data:
             self.session_data[session_id] = SessionState(self.blocks)
         self.update(session_id)
         return self.session_data[session_id]
 
-    def __contains__(self, session_id: int):
+    def __contains__(self, session_id: str):
         return session_id in self.session_data
 
-    def update(self, session_id: int):
+    def update(self, session_id: str):
         with self.lock:
             if session_id in self.session_data:
                 self.session_data.move_to_end(session_id)

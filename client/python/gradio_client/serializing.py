@@ -573,6 +573,7 @@ COMPONENT_MAPPING: dict[str, type] = {
     "file": FileSerializable,
     "dataframe": JSONSerializable,
     "timeseries": JSONSerializable,
+    "fileexplorer": JSONSerializable,
     "state": SimpleSerializable,
     "button": StringSerializable,
     "uploadbutton": FileSerializable,

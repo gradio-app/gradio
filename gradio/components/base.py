@@ -58,6 +58,11 @@ class Component(Updateable, Block, Serializable):
     def __init__(self, *args, **kwargs):
         Block.__init__(self, *args, **kwargs)
         EventListener.__init__(self)
+        self.server_fns = [
+            value
+            for value in self.__class__.__dict__.values()
+            if callable(value) and getattr(value, "_is_server_fn", False)
+        ]
 
     def __str__(self):
         return self.__repr__()
@@ -111,6 +116,17 @@ class Component(Updateable, Block, Serializable):
         ):
             self.parent.variant = "compact"
         return self
+
+    def get_config(self):
+        config = super().get_config()
+        if len(self.server_fns):
+            config["server_fns"] = [fn.__name__ for fn in self.server_fns]
+        return config
+
+
+def server(fn):
+    fn._is_server_fn = True
+    return fn
 
 
 class IOComponent(Component):

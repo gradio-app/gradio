@@ -30,6 +30,7 @@ from gradio.components import (
     Dropdown,
     DuplicateButton,
     File,
+    FileExplorer,
     Gallery,
     Highlight,
     HighlightedText,
