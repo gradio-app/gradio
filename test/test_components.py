@@ -2416,7 +2416,7 @@ class TestState:
         assert state.preprocess(10) == 10
         assert state.preprocess("abc") == "abc"
         assert state.stateful
-    
+
     def test_initial_value_deepcopy(self):
         with pytest.raises(TypeError) as e:
             gr.State(value=lambda x: x)

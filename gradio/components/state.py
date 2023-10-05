@@ -40,7 +40,9 @@ class State(IOComponent, SimpleSerializable):
         try:
             self.value = deepcopy(value)
         except TypeError as err:
-            raise TypeError(f"The initial value of `gr.State` must be able to be deepcopied. The initial value of type {type(value)} cannot be deepcopied.") from err
+            raise TypeError(
+                f"The initial value of `gr.State` must be able to be deepcopied. The initial value of type {type(value)} cannot be deepcopied."
+            ) from err
         IOComponent.__init__(self, value=self.value, **kwargs)
 
 
