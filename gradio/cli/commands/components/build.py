@@ -8,7 +8,7 @@ from typing_extensions import Annotated
 import gradio
 from gradio.cli.commands.display import LivePanelDisplay
 
-# gradio_template_path = Path(gradio.__file__).parent / "templates" / "frontend"
+gradio_template_path = Path(gradio.__file__).parent / "templates" / "frontend"
 gradio_node_path = (
     Path(gradio.__file__).parent / "node" / "build" / "files" / "build-index.js"
 )
@@ -45,6 +45,8 @@ def _build(
             gradio_node_path,
             "--component-directory",
             component_directory,
+            "--root_dir",
+            gradio_template_path,
         ]
 
         pipe = subprocess.run(node_cmds, capture_output=True, text=True)
@@ -53,9 +55,7 @@ def _build(
             live.update(pipe.stderr)
         else:
             live.update(":white_check_mark: Build succeeded!")
-            live.update(
-                f":ferris_wheel: Wheel located in [orange3]{str(name / 'dist')}[/]"
-            )
+            # live.update(pipe.stdout)
         cmds = ["python", "-m", "build", str(name)]
         live.update(f":construction_worker: Building... [grey37]({' '.join(cmds)})[/]")
         pipe = subprocess.run(cmds, capture_output=True, text=True)

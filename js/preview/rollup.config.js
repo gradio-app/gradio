@@ -275,39 +275,15 @@ export default [
 		],
 		external: ["fsevents", "esbuild-wasm", "../compiler.js"]
 	},
-	// {
-	// 	input: "src/svelte.ts",
-	// 	output: {
-	// 		file: join(output_svelte_dir, "svelte.js"),
-	// 		format: "esm"
-	// 	},
-	// 	onwarn,
-	// 	external: ["./svelte-internal.js"],
-	// 	plugins: [
-	// 		node(),
-	// 		json(),
-	// 		cjs(),
-	// 		ts(),
-	// 		{
-	// 			resolveId(id) {
-	// 				// if (id === "svelte/internal/disclose-version") {
-	// 				// 	return join(svelte_dir, "svelte-disclose.js");
-	// 				// }
-
-	// 				// if (id.startsWith("svelte/")) {
-	// 				// 	return id.replace("svelte/", svelte_dir + "/svelte-") + ".js";
-	// 				// }
-	// 				// if (id === "svelte") {
-	// 				// 	return "./svelte-internal.js";
-	// 				// }
-
-	// 				if (id === "svelte/internal") {
-	// 					return "./svelte-internal.js";
-	// 				}
-	// 			}
-	// 		}
-	// 	]
-	// },
+	{
+		input: "src/svelte-submodules.ts",
+		output: {
+			file: join(output_svelte_dir, "svelte-submodules.js"),
+			format: "esm"
+		},
+		onwarn,
+		plugins: [node(), json(), cjs(), ts()]
+	},
 	// {
 	// 	input: "src/svelte-action.ts",
 	// 	output: {
@@ -379,7 +355,7 @@ export default [
 				format: "esm"
 			},
 			{
-				file: "../../gradio/node/BUILD/compiler.js",
+				file: "../../gradio/node/build/compiler.js",
 				format: "esm"
 			}
 		],

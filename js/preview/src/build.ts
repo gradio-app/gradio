@@ -38,9 +38,9 @@ export async function make_build({
 	process.env.gradio_mode = "dev";
 	const imports = generate_imports(component_dir);
 
-	// const NODE_DIR = join(root_dir, "..", "..", "node", "build");
+	// const SVELTE_PATH = join(root_dir, "..", "..", "node", "build");
 	// console.log({ root_dir });
-	// const SVELTE_DIR = join(root_dir, "assets", "svelte");
+	const SVELTE_DIR = join(root_dir, "assets", "svelte");
 
 	try {
 		const config = {
@@ -103,6 +103,15 @@ export async function make_build({
 							code: new_code,
 							map: null
 						};
+					},
+					resolveId(id) {
+						if (
+							id !== "svelte" &&
+							id !== "svelte/internal" &&
+							id.startsWith("svelte/")
+						) {
+							return join(SVELTE_DIR, "svelte-submodules.js");
+						}
 					}
 
 					// transformIndexHtml(html) {
@@ -126,7 +135,7 @@ export async function make_build({
 		const pkg_json = JSON.parse(
 			fs.readFileSync(join(component_dir, "frontend", "package.json"), "utf8")
 		);
-
+		console.log;
 		const entries = ["interactive", "example", "static"];
 
 		// fs.mkdirSync(join(NODE_DIR, "__temp"), { recursive: true });
@@ -137,28 +146,51 @@ export async function make_build({
 			// 	make_html(join(component_dir, "frontend", entry, "index.ts"))
 			// );
 
-			await build({
-				...config,
-				// root: join(NODE_DIR, "__temp"),
-
-				build: {
-					emptyOutDir: true,
-					outDir: join(
-						component_dir,
-						"backend",
-						pkg_json.name,
-						"templates",
-						entry
-					),
-					lib: {
-						entry: join(component_dir, "frontend", entry, "index.ts"),
-						fileName: "index",
-						formats: ["es"]
-					}
-				}
+			console.log({
+				Entry: join(component_dir, "frontend", entry, "index.ts")
 			});
-		}
+			console.log({
+				OutDir: join(
+					component_dir,
+					"backend",
+					pkg_json.name,
+					"templates",
+					entry
+				)
+			});
 
+			try {
+				const x = await build({
+					...config,
+					// root: join(NODE_DIR, "__temp"),
+
+					build: {
+						emptyOutDir: true,
+						outDir: join(
+							component_dir,
+							"backend",
+							pkg_json.name,
+							"templates",
+							entry
+						),
+						lib: {
+							entry: join(component_dir, "frontend", entry, "index.ts"),
+							fileName: "index.js",
+							formats: ["es"]
+						},
+						rollupOptions: {
+							output: {
+								entryFileNames: "[name].js"
+							}
+						}
+					}
+				});
+
+				console.log(JSON.stringify(x, null, 2));
+			} catch (e) {
+				console.log(e);
+			}
+		}
 		// await build({
 		// 	root: path.resolve(component_dir, "frontend", "interactive", "index.ts"),
 		// 	plugins: [],
@@ -187,7 +219,7 @@ export async function make_build({
 		// 	`[orange3]Frontend Server[/] (Go here): ${server.resolvedUrls?.local}`
 		// );
 	} catch (e) {
-		console.error(e);
+		console.log(e);
 	}
 }
 
