@@ -82,7 +82,7 @@
 	): void {
 		dispatch("select", {
 			index: [i, j],
-			value: message,
+			value: message
 		});
 	}
 
@@ -95,7 +95,7 @@
 		dispatch("like", {
 			index: [i, j],
 			value: message,
-			liked: liked,
+			liked: liked
 		});
 	}
 </script>
