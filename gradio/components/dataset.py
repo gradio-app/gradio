@@ -69,7 +69,9 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
 
         # Narrow type to IOComponent
         if not all(isinstance(c, IOComponent) for c in self._components):
-            raise ValueError("All components in a `Dataset` must be subclasses of `IOComponent`")
+            raise ValueError(
+                "All components in a `Dataset` must be subclasses of `IOComponent`"
+            )
         self._components = [c for c in self._components if isinstance(c, IOComponent)]
         for component in self._components:
             component.root_url = self.root_url

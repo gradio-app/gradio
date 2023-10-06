@@ -58,7 +58,9 @@ class RangedFileResponse(Response):
         method: str | None = None,
     ) -> None:
         if aiofiles is None:
-            raise ModuleNotFoundError("'aiofiles' must be installed to use FileResponse")
+            raise ModuleNotFoundError(
+                "'aiofiles' must be installed to use FileResponse"
+            )
         self.path = path
         self.range = range
         self.filename = filename

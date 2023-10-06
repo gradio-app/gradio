@@ -195,7 +195,7 @@ class Video(
         if is_file:
             if file_name is None:
                 raise ValueError("Received file data without a file name.")
-            fn= (
+            fn = (
                 self.make_temp_copy_if_needed
                 if client_utils.is_http_url_like(file_name)
                 else self.download_temp_copy_if_needed
@@ -274,10 +274,14 @@ class Video(
             processed_files = (self._format_video(y), None)
         elif isinstance(y, (tuple, list)):
             if len(y) != 2:
-                raise ValueError(f"Expected lists of length 2 or tuples of length 2. Received: {y}")
+                raise ValueError(
+                    f"Expected lists of length 2 or tuples of length 2. Received: {y}"
+                )
 
             if not (isinstance(y[0], (str, Path)) and isinstance(y[1], (str, Path))):
-                raise TypeError(f"If a tuple is provided, both elements must be strings or Path objects. Received: {y}")
+                raise TypeError(
+                    f"If a tuple is provided, both elements must be strings or Path objects. Received: {y}"
+                )
             video = y[0]
             subtitle = y[1]
             processed_files = (

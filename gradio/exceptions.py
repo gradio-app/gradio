@@ -11,7 +11,7 @@ class DuplicateBlockError(ValueError):
 
 class InvalidComponentError(ValueError):
     """Raised when invalid components are used."""
-    
+
     pass
 
 
@@ -23,13 +23,13 @@ class TooManyRequestsError(Exception):
 
 class ModelNotFoundError(Exception):
     """Raised when the provided model doesn't exists or is not found by the provided api url."""
-    
+
     pass
 
 
 class RenderError(Exception):
     """Raised when a component has not been rendered in the current Blocks but is expected to have been rendered."""
-    
+
     pass
 
 

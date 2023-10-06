@@ -98,12 +98,16 @@ def document_fn(fn: Callable, cls) -> tuple[str, list[dict], dict, str | None]:
             if not (line.startswith("    ") or line.strip() == ""):
                 print(line)
             if not line.startswith("    ") or line.strip() != "":
-                raise SyntaxError(f"Documentation format for {fn.__name__} has format error in line: {line}")
+                raise SyntaxError(
+                    f"Documentation format for {fn.__name__} has format error in line: {line}"
+                )
             line = line[4:]
             if mode == "parameter":
                 colon_index = line.index(": ")
                 if colon_index < -1:
-                    raise SyntaxError(f"Documentation format for {fn.__name__} has format error in line: {line}")
+                    raise SyntaxError(
+                        f"Documentation format for {fn.__name__} has format error in line: {line}"
+                    )
                 parameter = line[:colon_index]
                 parameter_doc = line[colon_index + 2 :]
                 parameters[parameter] = parameter_doc
@@ -139,7 +143,9 @@ def document_fn(fn: Callable, cls) -> tuple[str, list[dict], dict, str | None]:
                 parameter_doc["args"] = True
         parameter_docs.append(parameter_doc)
     if len(parameters) != 0:
-        raise SyntaxError(f"Documentation format for {fn.__name__} documents nonexistent parameters: {''.join(parameters.keys())}")
+        raise SyntaxError(
+            f"Documentation format for {fn.__name__} documents nonexistent parameters: {''.join(parameters.keys())}"
+        )
     if len(returns) == 0:
         return_docs = {}
     elif len(returns) == 1:
@@ -172,7 +178,9 @@ def document_cls(cls):
                 description_lines.append(line if line.strip() else "<br>")
             else:
                 if not line.startswith("    ") or line.strip():
-                    raise SyntaxError(f"Documentation format for {cls.__name__} has format error in line: {line}")
+                    raise SyntaxError(
+                        f"Documentation format for {cls.__name__} has format error in line: {line}"
+                    )
                 tags[mode].append(line[4:])
     if "example" in tags:
         example = "\n".join(tags["example"])

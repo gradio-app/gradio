@@ -206,9 +206,13 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
         processed_messages = []
         for message_pair in y:
             if not isinstance(message_pair, (tuple, list)):
-                raise TypeError(f"Expected a list of lists or list of tuples. Received: {message_pair}")
+                raise TypeError(
+                    f"Expected a list of lists or list of tuples. Received: {message_pair}"
+                )
             if len(message_pair) != 2:
-                raise TypeError(f"Expected a list of lists of length 2 or list of tuples of length 2. Received: {message_pair}")
+                raise TypeError(
+                    f"Expected a list of lists of length 2 or list of tuples of length 2. Received: {message_pair}"
+                )
             processed_messages.append(
                 [
                     self._preprocess_chat_messages(message_pair[0]),
@@ -258,9 +262,13 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
         processed_messages = []
         for message_pair in y:
             if not isinstance(message_pair, (tuple, list)):
-                raise TypeError(f"Expected a list of lists or list of tuples. Received: {message_pair}")
+                raise TypeError(
+                    f"Expected a list of lists or list of tuples. Received: {message_pair}"
+                )
             if len(message_pair) != 2:
-                raise TypeError(f"Expected a list of lists of length 2 or list of tuples of length 2. Received: {message_pair}")
+                raise TypeError(
+                    f"Expected a list of lists of length 2 or list of tuples of length 2. Received: {message_pair}"
+                )
             processed_messages.append(
                 [
                     self._postprocess_chat_messages(message_pair[0]),

@@ -94,7 +94,7 @@ class BaseReloader(ABC):
         )
 
     def swap_blocks(self, demo: Blocks):
-         self.running_app.blocks
+        assert self.running_app.blocks
         # Copy over the blocks to get new components and events but
         # not a new queue
         if hasattr(self.running_app.blocks, "_queue"):
@@ -342,9 +342,8 @@ def assert_configs_are_equivalent_besides_ids(
         if config1[key] != config2[key]:
             raise KeyError(f"Configs have different: {key}")
 
-    if len(config1["components"]) == len(
-        config2["components"]):
-            raise ValueError("# of components are different")
+    if len(config1["components"]) == len(config2["components"]):
+        raise TypeError("# of components are different")
 
     def assert_same_components(config1_id, config2_id):
         c1 = list(filter(lambda c: c["id"] == config1_id, config1["components"]))
@@ -359,7 +358,7 @@ def assert_configs_are_equivalent_besides_ids(
         c1.pop("id")
         c2 = copy.deepcopy(c2)
         c2.pop("id")
-        if c1 != c2: 
+        if c1 != c2:
             raise ValueError(f"{c1} does not match {c2}")
 
     def same_children_recursive(children1, chidren2):
@@ -380,7 +379,7 @@ def assert_configs_are_equivalent_besides_ids(
         for o1, o2 in zip(d1.pop("outputs"), d2.pop("outputs")):
             assert_same_components(o1, o2)
 
-        if d1 != d2: 
+        if d1 != d2:
             raise ValueError(f"{d1} does not match {d2}")
 
     return True
