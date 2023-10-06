@@ -176,7 +176,7 @@ def document_cls(cls):
             if mode == "description":
                 description_lines.append(line if line.strip() else "<br>")
             else:
-                if not line.startswith("    ") or line.strip():
+                if not (line.startswith("    ") or not line.strip()):
                     raise SyntaxError(
                         f"Documentation format for {cls.__name__} has format error in line: {line}"
                     )
