@@ -1,6 +1,6 @@
 ---
-"@gradio/client": minor
-"gradio": minor
+"@gradio/client": patch
+"gradio": patch
 ---
 
-feat:Fix calls to the component server so that `gr.FileExplorer` works on Spaces
+fix:Fix calls to the component server so that `gr.FileExplorer` works on Spaces
