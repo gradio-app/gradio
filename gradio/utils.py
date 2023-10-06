@@ -342,7 +342,7 @@ def assert_configs_are_equivalent_besides_ids(
         if config1[key] != config2[key]:
             raise KeyError(f"Configs have different: {key}")
 
-    if len(config1["components"]) == len(config2["components"]):
+    if len(config1["components"]) != len(config2["components"]):
         raise TypeError("# of components are different")
 
     def assert_same_components(config1_id, config2_id):

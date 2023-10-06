@@ -142,10 +142,9 @@ def document_fn(fn: Callable, cls) -> tuple[str, list[dict], dict, str | None]:
             if "args" in parameter_doc["doc"]:
                 parameter_doc["args"] = True
         parameter_docs.append(parameter_doc)
-    if len(parameters) != 0:
-        raise SyntaxError(
-            f"Documentation format for {fn.__name__} documents nonexistent parameters: {''.join(parameters.keys())}"
-        )
+    assert (
+        len(parameters) == 0
+    ), f"Documentation format for {fn.__name__} documents nonexistent parameters: {''.join(parameters.keys())}"
     if len(returns) == 0:
         return_docs = {}
     elif len(returns) == 1:

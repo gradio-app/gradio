@@ -193,17 +193,16 @@ class Video(
         )
 
         if is_file:
-            if file_name is None:
+            if file_name is  None:
                 raise ValueError("Received file data without a file name.")
-            fn = (
-                self.make_temp_copy_if_needed
-                if client_utils.is_http_url_like(file_name)
-                else self.download_temp_copy_if_needed
-            )
+            if client_utils.is_http_url_like(file_name):
+                fn = self.download_temp_copy_if_needed
+            else:
+                fn = self.make_temp_copy_if_needed
             file_name = Path(fn(file_name))
-        elif file_data is None:
-            raise ValueError("Received empty file data.")
         else:
+            if file_data is None:
+                raise ValueError("Received empty file data.")
             file_name = Path(self.base64_to_temp_file_if_needed(file_data, file_name))
 
         uploaded_format = file_name.suffix.replace(".", "")
