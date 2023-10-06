@@ -1,5 +1,15 @@
 # @gradio/app
 
+## 1.7.1
+
+### Patch Changes
+
+- Updated dependencies [[`796145e2c`](https://github.com/gradio-app/gradio/commit/796145e2c48c4087bec17f8ec0be4ceee47170cb)]:
+  - @gradio/client@0.5.1
+  - @gradio/file@0.2.1
+  - @gradio/fileexplorer@0.2.1
+  - @gradio/uploadbutton@0.0.11
+
 ## 1.7.0
 
 ### Highlights
@@ -8,7 +18,7 @@
 
 Thanks to a new capability that allows components to communicate directly with the server _without_ passing data via the value, we have created a new `FileExplorer` component.
 
-This component allows you to populate the explorer by passing a glob, but only provides the selected file(s) in your prediction function. 
+This component allows you to populate the explorer by passing a glob, but only provides the selected file(s) in your prediction function.
 
 Users can then navigate the virtual filesystem and select files which will be accessible in your predict function. This component will allow developers to build more complex spaces, with more flexible input options.
 
@@ -16,17 +26,17 @@ Users can then navigate the virtual filesystem and select files which will be ac
 
 For more information check the [`FileExplorer` documentation](https://gradio.app/docs/fileexplorer).
 
- Thanks [@aliabid94](https://github.com/aliabid94)!
+Thanks [@aliabid94](https://github.com/aliabid94)!
 
 ### Fixes
 
-- [#5794](https://github.com/gradio-app/gradio/pull/5794) [`f096c3ae1`](https://github.com/gradio-app/gradio/commit/f096c3ae168c0df00f90fe131c1e48c572e0574b) - Throw helpful error when media devices are not found.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#5794](https://github.com/gradio-app/gradio/pull/5794) [`f096c3ae1`](https://github.com/gradio-app/gradio/commit/f096c3ae168c0df00f90fe131c1e48c572e0574b) - Throw helpful error when media devices are not found. Thanks [@hannahblair](https://github.com/hannahblair)!
 
 ## 1.6.4
 
 ### Features
 
-- [#5124](https://github.com/gradio-app/gradio/pull/5124) [`6e56a0d9b`](https://github.com/gradio-app/gradio/commit/6e56a0d9b0c863e76c69e1183d9d40196922b4cd) - Lite: Websocket queueing.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#5124](https://github.com/gradio-app/gradio/pull/5124) [`6e56a0d9b`](https://github.com/gradio-app/gradio/commit/6e56a0d9b0c863e76c69e1183d9d40196922b4cd) - Lite: Websocket queueing. Thanks [@whitphx](https://github.com/whitphx)!
 
 ## 1.6.3
 
