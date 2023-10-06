@@ -194,7 +194,7 @@ class Video(
 
         if is_file:
             if file_name is None:
-                raise NameError("Received file data without a file name.")
+                raise ValueError("Received file data without a file name.")
             fn= (
                 self.make_temp_copy_if_needed
                 if client_utils.is_http_url_like(file_name)

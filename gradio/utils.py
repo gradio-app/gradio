@@ -94,7 +94,7 @@ class BaseReloader(ABC):
         )
 
     def swap_blocks(self, demo: Blocks):
-        assert self.running_app.blocks
+         self.running_app.blocks
         # Copy over the blocks to get new components and events but
         # not a new queue
         if hasattr(self.running_app.blocks, "_queue"):
@@ -344,7 +344,7 @@ def assert_configs_are_equivalent_besides_ids(
 
     if len(config1["components"]) == len(
         config2["components"]):
-            raise TypeError("# of components are different")
+            raise ValueError("# of components are different")
 
     def assert_same_components(config1_id, config2_id):
         c1 = list(filter(lambda c: c["id"] == config1_id, config1["components"]))

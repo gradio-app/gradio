@@ -771,7 +771,7 @@ class Blocks(BlockContext):
                     if not isinstance(
                         block, BlockContext
                     ):
-                        raise TypeError(f"Invalid config, Block with id {id} has children but is not a BlockContext.")
+                        raise ValueError(f"Invalid config, Block with id {id} has children but is not a BlockContext.")
                     with block:
                         iterate_over_children(children)
 

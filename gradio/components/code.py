@@ -82,7 +82,7 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         if language not in Code.languages:
-            raise TypeError(f"Language {language} not supported.")
+            raise ValueError(f"Language {language} not supported.")
 
         self.language = language
         self.lines = lines

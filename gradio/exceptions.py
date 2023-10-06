@@ -10,7 +10,7 @@ class DuplicateBlockError(ValueError):
 
 
 class InvalidComponentError(ValueError):
-    """Raised when Invalid components are passed"""
+    """Raised when invalid components are used."""
     
     pass
 
@@ -28,7 +28,7 @@ class ModelNotFoundError(Exception):
 
 
 class RenderError(Exception):
-    """Raised when frontend elements are not rendered."""
+    """Raised when a component has not been rendered in the current Blocks but is expected to have been rendered."""
     
     pass
 

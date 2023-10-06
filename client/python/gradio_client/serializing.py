@@ -308,7 +308,7 @@ class FileSerializable(Serializable):
             if x.get("is_file"):
                 filepath = x.get("name")
                 if filepath is None:
-                    raise FileExistsError(f"The 'name' field is missing in {x}")
+                    raise ValueError(f"The 'name' field is missing in {x}")
                 if root_url is not None:
                     file_name = utils.download_tmp_copy_of_file(
                         root_url + "file=" + filepath,
