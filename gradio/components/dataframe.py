@@ -280,7 +280,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
                 return self.postprocess([[]])
             if isinstance(y, np.ndarray):
                 y = y.tolist()
-            if not isinstance(y, list)
+            if not isinstance(y, list):
                 raise ValueError("output cannot be converted to list")
 
             _headers = self.headers
