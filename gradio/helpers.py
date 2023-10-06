@@ -278,6 +278,7 @@ class Examples:
                 # In the Wasm mode, the `threading` module is not supported,
                 # so `client_utils.synchronize_async` is also not available.
                 # And `self.cache()` should be waited for to complete before this method returns,
+                # (otherwise, an error "Cannot cache examples if not in a Blocks context" will be raised anyway)
                 # so `eventloop.create_task(self.cache())` is also not an option.
                 raise wasm_utils.WasmUnsupportedError(
                     "Caching examples is not supported in the Wasm mode."
