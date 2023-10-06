@@ -10,10 +10,6 @@
 		m.fn();
 	});
 
-	import("./Dynamic.svelte").then((m) => {
-		console.log(m);
-	});
-
 	export let value = "";
 	export let value_is_output = false;
 	export let lines = 1;

@@ -6,6 +6,7 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { transform } from "sucrase";
 import { viteCommonjs } from "@originjs/vite-plugin-commonjs";
 import sucrase from "@rollup/plugin-sucrase";
+import { make_html } from "./sample-html";
 
 const vite_messages_to_ignore = [
 	"Default and named imports from CSS files are deprecated."
@@ -24,27 +25,26 @@ logger.warn = (msg, options) => {
 
 interface ServerOptions {
 	component_dir: string;
-	// root_dir: string;
+	root_dir: string;
 }
 
 const RE_SVELTE_IMPORT =
 	/import\s+([\w*{},\s]+)\s+from\s+['"](svelte|svelte\/internal)['"]/g;
 
 export async function make_build({
-	component_dir // backend_port
-} // root_dir // frontend_port,
-: ServerOptions): Promise<void> {
+	component_dir, // backend_port,
+	root_dir // frontend_port,
+}: ServerOptions): Promise<void> {
 	process.env.gradio_mode = "dev";
 	const imports = generate_imports(component_dir);
 
-	// const NODE_DIR = join(root_dir, "..", "..", "node", "dev");
+	// const NODE_DIR = join(root_dir, "..", "..", "node", "build");
 	// console.log({ root_dir });
 	// const SVELTE_DIR = join(root_dir, "assets", "svelte");
 
 	try {
 		const config = {
 			// any valid user config options, plus `mode` and `configFile`
-			root: component_dir,
 
 			plugins: [
 				//@ts-ignore
@@ -123,28 +123,64 @@ export async function make_build({
 			]
 		};
 
-		await build({
-			root: path.resolve(component_dir, "frontend", "interactive", "index.ts"),
-			plugins: [],
+		const pkg_json = JSON.parse(
+			fs.readFileSync(join(component_dir, "frontend", "package.json"), "utf8")
+		);
 
-			build: {
-				outDir: path.resolve(component_dir, "interactive"),
-				rollupOptions: {
-					input: path.resolve(
+		const entries = ["interactive", "example", "static"];
+
+		// fs.mkdirSync(join(NODE_DIR, "__temp"), { recursive: true });
+		for (const entry of entries) {
+			// const c = join(component_dir, "backend", "newnewtext", "build");
+			// fs.writeFileSync(
+			// 	join(NODE_DIR, "__temp", "index.html"),
+			// 	make_html(join(component_dir, "frontend", entry, "index.ts"))
+			// );
+
+			await build({
+				...config,
+				// root: join(NODE_DIR, "__temp"),
+
+				build: {
+					emptyOutDir: true,
+					outDir: join(
 						component_dir,
-						"frontend",
-						"interactive",
-						"index.ts"
+						"backend",
+						pkg_json.name,
+						"templates",
+						entry
 					),
-					output: {
-						dir: path.resolve(component_dir, "backend", "newnewtext", "build"),
-						entryFileNames: "[name].js",
-						chunkFileNames: "[name].js",
-						format: "es"
+					lib: {
+						entry: join(component_dir, "frontend", entry, "index.ts"),
+						fileName: "index",
+						formats: ["es"]
 					}
 				}
-			}
-		});
+			});
+		}
+
+		// await build({
+		// 	root: path.resolve(component_dir, "frontend", "interactive", "index.ts"),
+		// 	plugins: [],
+
+		// 	build: {
+		// 		outDir: path.resolve(component_dir, "interactive"),
+		// 		rollupOptions: {
+		// 			input: path.resolve(
+		// 				component_dir,
+		// 				"frontend",
+		// 				"interactive",
+		// 				"index.ts"
+		// 			),
+		// 			output: {
+		// 				dir: path.resolve(component_dir, "backend", "newnewtext", "build"),
+		// 				entryFileNames: "[name].js",
+		// 				chunkFileNames: "[name].js",
+		// 				format: "es"
+		// 			}
+		// 		}
+		// 	}
+		// });
 		// await server.listen();
 
 		// console.info(

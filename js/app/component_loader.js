@@ -18,7 +18,11 @@ export async function load_component(name, mode) {
 		};
 	} catch (e) {
 		try {
-			const c = await import(/* @vite-ignore */ "/custom_component/" + name);
+			await load_css(`/custom_component/${name}/${mode}/style.css`);
+			const c = await import(
+				/* @vite-ignore */ `/custom_component/${name}/${mode}/index.js`
+			);
+			console.log(c);
 			return {
 				name,
 				component: c
@@ -35,4 +39,15 @@ export async function load_component(name, mode) {
 			throw e;
 		}
 	}
+}
+
+function load_css(url) {
+	return new Promise((resolve, reject) => {
+		const link = document.createElement("link");
+		link.rel = "stylesheet";
+		link.href = url;
+		document.head.appendChild(link);
+		link.onload = () => resolve();
+		link.onerror = () => reject();
+	});
 }

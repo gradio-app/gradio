@@ -5,6 +5,7 @@ const args = process.argv.slice(2);
 // get individual args as `--arg value` or `value`
 
 function parse_args(args: string[]): Record<string, string> {
+	console.log({ args });
 	const arg_map: Record<string, string> = {};
 	for (let i = 0; i < args.length; i++) {
 		const arg = args[i];
@@ -24,7 +25,7 @@ async function run(): Promise<void> {
 	// const [backend_port, frontend_port] = await find_free_ports(7860, 8860);
 	const options = {
 		component_dir: parsed_args["component-directory"],
-		// root_dir: parsed_args.root,
+		root_dir: parsed_args.root,
 		// frontend_port,
 		// backend_port,
 		...parsed_args
