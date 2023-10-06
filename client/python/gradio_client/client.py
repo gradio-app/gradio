@@ -677,7 +677,7 @@ class Client:
         if self.space_id:
             is_private = huggingface_hub.space_info(self.space_id).private
             if is_private and not hf_token:
-                raise TypeError(f"Since {self.space_id} is private, you must explicitly pass in hf_token "
+                raise ValueError(f"Since {self.space_id} is private, you must explicitly pass in hf_token "
                     "so that it can be added as a secret in the discord bot space.")
                 
 
