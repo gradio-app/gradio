@@ -951,9 +951,10 @@ class Endpoint:
             return data
 
     def serialize(self, *data) -> tuple:
-        assert len(data) == len(
+        if len(data) != len(
             self.serializers
-        ), f"Expected {len(self.serializers)} arguments, got {len(data)}"
+        ):
+            raise ValueError(f"Expected {len(self.serializers)} arguments, got {len(data)}")
 
         files = [
             f
@@ -967,9 +968,10 @@ class Endpoint:
         return o
 
     def deserialize(self, *data) -> tuple:
-        assert len(data) == len(
+        if len(data) != len(
             self.deserializers
-        ), f"Expected {len(self.deserializers)} outputs, got {len(data)}"
+        ):
+            raise ValueError(f"Expected {len(self.deserializers)} outputs, got {len(data)}")
         outputs = tuple(
             [
                 s.deserialize(
@@ -1020,7 +1022,7 @@ class Endpoint:
                     if component.get("serializer"):
                         serializer_name = component["serializer"]
                         if serializer_name not in serializing.SERIALIZER_MAPPING:
-                            raise TypeError( f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version.")
+                            raise ValueError( f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version.")
                         deserializer = serializing.SERIALIZER_MAPPING[serializer_name]
                     elif component_name in utils.SKIP_COMPONENTS:
                         deserializer = serializing.SimpleSerializable
