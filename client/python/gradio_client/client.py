@@ -21,7 +21,6 @@ from typing import Any, Callable, Literal
 import huggingface_hub
 import requests
 import websockets
-from gradio.exceptions import InvalidComponentError
 from huggingface_hub import CommitOperationAdd, SpaceHardware, SpaceStage
 from huggingface_hub.utils import (
     RepositoryNotFoundError,
@@ -1007,7 +1006,7 @@ class Endpoint:
                     elif component_name in serializing.COMPONENT_MAPPING:
                         serializer = serializing.COMPONENT_MAPPING[component_name]
                     else:
-                        raise InvalidComponentError(f"Unknown component: {component_name}, you may need to update your gradio_client version.")
+                        raise ValueError(f"Unknown component: {component_name}, you may need to update your gradio_client version.")
                     serializers.append(serializer())  # type: ignore
 
         outputs = self.dependency["outputs"]
@@ -1027,7 +1026,7 @@ class Endpoint:
                     elif component_name in serializing.COMPONENT_MAPPING:
                         deserializer = serializing.COMPONENT_MAPPING[component_name]
                     else:
-                        raise InvalidComponentError(f"Unknown component: {component_name}, you may need to update your gradio_client version.")
+                        raise ValueError(f"Unknown component: {component_name}, you may need to update your gradio_client version.")
                     deserializers.append(deserializer())  # type: ignore
 
         return serializers, deserializers
