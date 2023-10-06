@@ -38,6 +38,7 @@ export interface Dependency {
 	cancels: number[];
 	types: DependencyTypes;
 	collects_event_data: boolean;
+	pending_request: boolean;
 	trigger_after?: number;
 	trigger_only_on_success?: boolean;
 }

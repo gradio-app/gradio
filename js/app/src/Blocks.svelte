@@ -476,7 +476,7 @@
 		}
 
 		if (current_status === "pending" || current_status === "generating") {
-			return;
+			dep.pending_request = true;
 		}
 
 		let payload = {
@@ -510,7 +510,10 @@
 			const submission = app
 				.submit(payload.fn_index, payload.data as unknown[], payload.event_data)
 				.on("data", ({ data, fn_index }) => {
-					handle_update(data, fn_index);
+					do {
+						dep.pending_request = false;
+						handle_update(data, fn_index);
+						} while (dep.pending_request);
 				})
 				.on("status", ({ fn_index, ...status }) => {
 					//@ts-ignore
