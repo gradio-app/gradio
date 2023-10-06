@@ -2,6 +2,7 @@
 	import { format_chat_for_sharing } from "../utils";
 	import { copy } from "@gradio/utils";
 
+	import { dequal } from "dequal/lite";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import { ShareButton } from "@gradio/atoms";
 	import type { SelectData, LikeData } from "@gradio/utils";
@@ -68,7 +69,7 @@
 	});
 
 	$: {
-		if (value !== old_value) {
+		if (!dequal(value, old_value)) {
 			old_value = value;
 			dispatch("change");
 		}
@@ -81,7 +82,7 @@
 	): void {
 		dispatch("select", {
 			index: [i, j],
-			value: message,
+			value: message
 		});
 	}
 
@@ -94,7 +95,7 @@
 		dispatch("like", {
 			index: [i, j],
 			value: message,
-			liked: liked,
+			liked: liked
 		});
 	}
 </script>
