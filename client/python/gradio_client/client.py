@@ -1008,12 +1008,12 @@ class Endpoint:
                                 f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
                             )
                         serializer = serializing.SERIALIZER_MAPPING[serializer_name]
-                    else:
-                        if component_name not in serializing.COMPONENT_MAPPING:
-                            raise ValueError(
-                                f"Unknown component: {component_name}, you may need to update your gradio_client version."
-                            )
+                    elif component_name in serializing.COMPONENT_MAPPING:
                         serializer = serializing.COMPONENT_MAPPING[component_name]
+                    else:
+                        raise ValueError(
+                            f"Unknown component: {component_name}, you may need to update your gradio_client version."
+                        )
                     serializers.append(serializer())  # type: ignore
 
         outputs = self.dependency["outputs"]
@@ -1032,12 +1032,12 @@ class Endpoint:
                         deserializer = serializing.SERIALIZER_MAPPING[serializer_name]
                     elif component_name in utils.SKIP_COMPONENTS:
                         deserializer = serializing.SimpleSerializable
-                    else:
-                        if component_name not in serializing.COMPONENT_MAPPING:
-                            raise ValueError(
-                                f"Unknown component: {component_name}, you may need to update your gradio_client version."
-                            )
+                    elif component_name in serializing.COMPONENT_MAPPING:
                         deserializer = serializing.COMPONENT_MAPPING[component_name]
+                    else:
+                        raise ValueError(
+                            f"Unknown component: {component_name}, you may need to update your gradio_client version."
+                        )
                     deserializers.append(deserializer())  # type: ignore
 
         return serializers, deserializers
