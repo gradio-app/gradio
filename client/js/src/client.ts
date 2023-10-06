@@ -743,7 +743,11 @@ export function api_factory(
 				if (component?.props?.root_url) {
 					root_url = component.props.root_url;
 				} else {
-					root_url = `${http_protocol}//${host + config.path}/`;
+					root_url = `${http_protocol}//${resolve_root(
+						host,
+						config.path,
+						true
+					)}/`;
 				}
 				const response = await fetch_implementation(
 					`${root_url}component_server/`,
