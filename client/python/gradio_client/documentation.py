@@ -97,7 +97,7 @@ def document_fn(fn: Callable, cls) -> tuple[str, list[dict], dict, str | None]:
                 continue
             if not (line.startswith("    ") or line.strip() == ""):
                 print(line)
-            if not line.startswith("    ") or line.strip() != "":
+            if not (line.startswith("    ") or line.strip() == ""):
                 raise SyntaxError(
                     f"Documentation format for {fn.__name__} has format error in line: {line}"
                 )
