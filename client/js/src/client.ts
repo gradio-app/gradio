@@ -746,7 +746,7 @@ export function api_factory(
 					root_url = `${http_protocol}//${resolve_root(
 						host,
 						config.path,
-						false
+						true
 					)}/`;
 				}
 				const response = await fetch_implementation(
