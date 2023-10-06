@@ -12,6 +12,7 @@ import anyio
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
+import gradio as gr
 from gradio.blocks import Blocks
 from gradio.components import (
     Button,
@@ -394,15 +395,29 @@ class ChatInterface(Blocks):
         self,
         message: str,
         history_with_input: list[list[str | None]],
+        request: gr.Request,
         *args,
     ) -> tuple[list[list[str | None]], list[list[str | None]]]:
         history = history_with_input[:-1]
-        if self.is_async:
-            response = await self.fn(message, history, *args)
+        fn_signature = inspect.signature(self.fn)
+        if (
+            "request" in fn_signature.parameters
+            and fn_signature.parameters["request"].annotation == gr.Request
+        ):
+            if self.is_async:
+                response = await self.fn(message, history, request, *args)
+            else:
+                response = await anyio.to_thread.run_sync(
+                    self.fn, message, history, request, *args, limiter=self.limiter
+                )
         else:
-            response = await anyio.to_thread.run_sync(
-                self.fn, message, history, *args, limiter=self.limiter
-            )
+            if self.is_async:
+                response = await self.fn(message, history, *args)
+            else:
+                response = await anyio.to_thread.run_sync(
+                    self.fn, message, history, *args, limiter=self.limiter
+                )
+
         history.append([message, response])
         return history, history
 
