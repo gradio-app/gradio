@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Convert async methods in the Examples class into normal sync methods
+fix:Convert async methods in the Examples class into normal sync methods
