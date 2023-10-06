@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 0.5.1
+
+### Fixes
+
+- [#5816](https://github.com/gradio-app/gradio/pull/5816) [`796145e2c`](https://github.com/gradio-app/gradio/commit/796145e2c48c4087bec17f8ec0be4ceee47170cb) - Fix calls to the component server so that `gr.FileExplorer` works on Spaces.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.5.0
 
 ### Highlights
