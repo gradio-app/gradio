@@ -24,7 +24,7 @@ set_documentation_group("component")
 @document()
 class FileExplorer(Changeable, IOComponent, JSONSerializable):
     """
-    Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
+    Creates a file explorer component that allows users to browse and select files on the machine hosting the Gradio app.
     Preprocessing: passes the selected file or directory as a {str} path (relative to root) or {list[str}} depending on `file_count`
     Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
     Examples-format: a {str} path to a local file that populates the component.

@@ -7,7 +7,7 @@ import type { Config } from "./types.js";
  * Gradio apps on Hugging Face Spaces.
  * @param {string} base_url The base URL at which the Gradio server is hosted
  * @param {string} root_path The root path, which could be a path suffix (e.g. mounted in FastAPI app) or a full URL (e.g. hosted on Hugging Face Spaces)
- * @param {boolean} prioritize_base Whether to prioritize the base URL over the root path. This is used when both the base path and root paths are full URLs. For example, for fetching files the root path should be prioritized, but for making request, the base URL should be prioritized.
+ * @param {boolean} prioritize_base Whether to prioritize the base URL over the root path. This is used when both the base path and root paths are full URLs. For example, for fetching files the root path should be prioritized, but for making requests, the base URL should be prioritized.
  * @returns {string} the resolved URL
  */
 export function resolve_root(
