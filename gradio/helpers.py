@@ -360,10 +360,10 @@ class Examples:
         Context.root_block.dependencies.pop(index)
         Context.root_block.fns.pop(index)
 
-        async def load_example(example_id):
+        def load_example(example_id):
             processed_example = self.non_none_processed_examples[
                 example_id
-            ] + await self.load_from_cache(example_id)
+            ] + self.load_from_cache(example_id)
             return utils.resolve_singleton(processed_example)
 
         self.load_input_event = self.dataset.click(
@@ -376,7 +376,7 @@ class Examples:
             api_name=self.api_name,  # type: ignore
         )
 
-    async def load_from_cache(self, example_id: int) -> list[Any]:
+    def load_from_cache(self, example_id: int) -> list[Any]:
         """Loads a particular cached example for the interface.
         Parameters:
             example_id: The id of the example to process (zero-indexed).
