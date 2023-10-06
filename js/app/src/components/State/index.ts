@@ -1,1 +1,1 @@
-export { default } from "@gradio/state";
+export { default } from "@gradio/state/static";

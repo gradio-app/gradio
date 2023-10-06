@@ -409,6 +409,9 @@ importers:
       '@gradio/dataframe':
         specifier: workspace:^
         version: link:../dataframe
+      '@gradio/dataset':
+        specifier: workspace:^
+        version: link:../dataset
       '@gradio/dropdown':
         specifier: workspace:^
         version: link:../dropdown
@@ -762,6 +765,18 @@ importers:
       marked:
         specifier: ^7.0.0
         version: 7.0.0
+
+  js/dataset:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/upload':
+        specifier: workspace:^
+        version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
 
   js/dropdown:
     dependencies:
