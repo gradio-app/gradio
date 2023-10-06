@@ -21,6 +21,7 @@ from typing import Any, Callable, Literal
 import huggingface_hub
 import requests
 import websockets
+from gradio.exceptions import InvalidComponentError
 from huggingface_hub import CommitOperationAdd, SpaceHardware, SpaceStage
 from huggingface_hub.utils import (
     RepositoryNotFoundError,
@@ -646,9 +647,8 @@ class Client:
             raise ValueError(
                 f"Each entry in api_names must be either a string or a tuple of strings. Received {api_names}"
             )
-        assert (
-            len(api_names) == 1
-        ), "Currently only one api_name can be deployed to discord."
+        if len(api_names) != 1:
+            raise ValueError("Currently only one api_name can be deployed to discord.")
 
         for i, name in enumerate(api_names):
             if isinstance(name, str):
@@ -676,11 +676,10 @@ class Client:
         is_private = False
         if self.space_id:
             is_private = huggingface_hub.space_info(self.space_id).private
-            if is_private:
-                assert hf_token, (
-                    f"Since {self.space_id} is private, you must explicitly pass in hf_token "
-                    "so that it can be added as a secret in the discord bot space."
-                )
+            if is_private and not hf_token:
+                raise TypeError(f"Since {self.space_id} is private, you must explicitly pass in hf_token "
+                    "so that it can be added as a secret in the discord bot space.")
+                
 
         if to_id:
             if "/" in to_id:
@@ -1002,15 +1001,13 @@ class Endpoint:
                     self.input_component_types.append(component_name)
                     if component.get("serializer"):
                         serializer_name = component["serializer"]
-                        assert (
-                            serializer_name in serializing.SERIALIZER_MAPPING
-                        ), f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
+                        if serializer_name not in serializing.SERIALIZER_MAPPING:
+                            raise ValueError(f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version.")
                         serializer = serializing.SERIALIZER_MAPPING[serializer_name]
-                    else:
-                        assert (
-                            component_name in serializing.COMPONENT_MAPPING
-                        ), f"Unknown component: {component_name}, you may need to update your gradio_client version."
+                    elif component_name in serializing.COMPONENT_MAPPING:
                         serializer = serializing.COMPONENT_MAPPING[component_name]
+                    else:
+                        raise InvalidComponentError(f"Unknown component: {component_name}, you may need to update your gradio_client version.")
                     serializers.append(serializer())  # type: ignore
 
         outputs = self.dependency["outputs"]
@@ -1022,17 +1019,15 @@ class Endpoint:
                     self.output_component_types.append(component_name)
                     if component.get("serializer"):
                         serializer_name = component["serializer"]
-                        assert (
-                            serializer_name in serializing.SERIALIZER_MAPPING
-                        ), f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
+                        if serializer_name not in serializing.SERIALIZER_MAPPING:
+                            raise TypeError( f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version.")
                         deserializer = serializing.SERIALIZER_MAPPING[serializer_name]
                     elif component_name in utils.SKIP_COMPONENTS:
                         deserializer = serializing.SimpleSerializable
-                    else:
-                        assert (
-                            component_name in serializing.COMPONENT_MAPPING
-                        ), f"Unknown component: {component_name}, you may need to update your gradio_client version."
+                    elif component_name in serializing.COMPONENT_MAPPING:
                         deserializer = serializing.COMPONENT_MAPPING[component_name]
+                    else:
+                        raise InvalidComponentError(f"Unknown component: {component_name}, you may need to update your gradio_client version.")
                     deserializers.append(deserializer())  # type: ignore
 
         return serializers, deserializers
