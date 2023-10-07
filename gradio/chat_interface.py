@@ -25,6 +25,7 @@ from gradio.components import (
 )
 from gradio.events import Dependency, EventListenerMethod, on
 from gradio.helpers import create_examples as Examples  # noqa: N812
+from gradio.helpers import special_args
 from gradio.layouts import Accordion, Column, Group, Row
 from gradio.themes import ThemeClass as Theme
 from gradio.utils import SyncToAsyncIterator, async_iteration
@@ -399,24 +400,29 @@ class ChatInterface(Blocks):
         *args,
     ) -> tuple[list[list[str | None]], list[list[str | None]]]:
         history = history_with_input[:-1]
+
+        inputs = [message, history, *args]
+
         fn_signature = inspect.signature(self.fn)
-        if (
-            "request" in fn_signature.parameters
-            and fn_signature.parameters["request"].annotation == gr.Request
-        ):
-            if self.is_async:
-                response = await self.fn(message, history, request, *args)
-            else:
-                response = await anyio.to_thread.run_sync(
-                    self.fn, message, history, request, *args, limiter=self.limiter
-                )
+
+        request_param = next(
+            (
+                param_name
+                for param_name, param in fn_signature.parameters.items()
+                if param.annotation == gr.Request
+            ),
+            None,
+        )
+
+        if request_param:
+            inputs, _, _ = special_args(self.fn, inputs=inputs, request=request)
+
+        if self.is_async:
+            response = await self.fn(*inputs)
         else:
-            if self.is_async:
-                response = await self.fn(message, history, *args)
-            else:
-                response = await anyio.to_thread.run_sync(
-                    self.fn, message, history, *args, limiter=self.limiter
-                )
+            response = await anyio.to_thread.run_sync(
+                self.fn, *inputs, limiter=self.limiter
+            )
 
         history.append([message, response])
         return history, history
