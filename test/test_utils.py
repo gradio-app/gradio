@@ -115,7 +115,7 @@ def test_assert_configs_are_equivalent():
 
     assert assert_configs_are_equivalent_besides_ids(xray_config, xray_config)
     assert assert_configs_are_equivalent_besides_ids(xray_config, xray_config_diff_ids)
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         assert_configs_are_equivalent_besides_ids(xray_config, xray_config_wrong)
 
 

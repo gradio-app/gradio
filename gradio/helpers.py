@@ -525,7 +525,8 @@ class Progress(Iterable):
             ):
                 current_iterable = self.iterables.pop()
             callback(self.iterables)
-            assert current_iterable.index is not None, "Index not set."
+            if current_iterable.index is None:
+                raise IndexError("Index not set.")
             current_iterable.index += 1
             try:
                 return next(current_iterable.iterable)  # type: ignore
@@ -603,7 +604,8 @@ class Progress(Iterable):
         callback = self._progress_callback()
         if callback and len(self.iterables) > 0:
             current_iterable = self.iterables[-1]
-            assert current_iterable.index is not None, "Index not set."
+            if current_iterable.index is None:
+                raise IndexError("Index not set.")
             current_iterable.index += n
             callback(self.iterables)
         else:

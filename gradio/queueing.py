@@ -368,7 +368,8 @@ class Queue:
 
     async def call_prediction(self, events: list[Event], batch: bool):
         body = events[0].data
-        assert body is not None, "No event data"
+        if body is None:
+            raise ValueError("No event data")
         username = events[0].username
         body.event_id = events[0]._id if not batch else None
         try:

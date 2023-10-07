@@ -230,7 +230,8 @@ async def run_interpret(interface: Interface, raw_input: list):
                     nsamples=int(interface.num_shap * num_total_segments),
                     silent=True,
                 )
-                assert shap_values is not None, "SHAP values could not be calculated"
+                if shap_values is None:
+                    raise ValueError("SHAP values could not be calculated")
                 scores.append(
                     input_component.get_interpretation_scores(
                         raw_input[i],
