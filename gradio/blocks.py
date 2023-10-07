@@ -44,6 +44,7 @@ from gradio.exceptions import (
     DuplicateBlockError,
     InvalidApiNameError,
     InvalidBlockError,
+    InvalidComponentError,
 )
 from gradio.helpers import EventData, create_tracker, skip, special_args
 from gradio.state_holder import SessionState
@@ -364,9 +365,10 @@ def postprocess_update_dict(block: Block, update_dict: dict, postprocess: bool =
     attr_dict["__type__"] = "update"
     attr_dict.pop("value", None)
     if "value" in update_dict:
-        assert isinstance(
-            block, components.IOComponent
-        ), f"Component {block.__class__} does not support value"
+        if not isinstance(block, components.IOComponent):
+            raise InvalidComponentError(
+                f"Component {block.__class__} does not support value"
+            )
         if postprocess:
             attr_dict["value"] = block.postprocess(update_dict["value"])
         else:
@@ -766,9 +768,10 @@ class Blocks(BlockContext):
 
                 children = child_config.get("children")
                 if children is not None:
-                    assert isinstance(
-                        block, BlockContext
-                    ), f"Invalid config, Block with id {id} has children but is not a BlockContext."
+                    if not isinstance(block, BlockContext):
+                        raise ValueError(
+                            f"Invalid config, Block with id {id} has children but is not a BlockContext."
+                        )
                     with block:
                         iterate_over_children(children)
 
@@ -1158,7 +1161,8 @@ class Blocks(BlockContext):
             event_data: data associated with event trigger
         """
         block_fn = self.fns[fn_index]
-        assert block_fn.fn, f"function with index {fn_index} not defined."
+        if not block_fn.fn:
+            raise IndexError(f"function with index {fn_index} not defined.")
         is_generating = False
         request = requests[0] if isinstance(requests, list) else requests
         start = time.time()
@@ -1234,9 +1238,10 @@ class Blocks(BlockContext):
                 raise InvalidBlockError(
                     f"Input component with id {input_id} used in {dependency['trigger']}() event is not defined in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
                 ) from e
-            assert isinstance(
-                block, components.IOComponent
-            ), f"{block.__class__} Component with id {input_id} not a valid input component."
+            if not isinstance(block, components.IOComponent):
+                raise InvalidComponentError(
+                    f"{block.__class__} Component with id {input_id} not a valid input component."
+                )
             serialized_input = block.serialize(inputs[i])
             processed_input.append(serialized_input)
 
@@ -1253,9 +1258,10 @@ class Blocks(BlockContext):
                 raise InvalidBlockError(
                     f"Output component with id {output_id} used in {dependency['trigger']}() event not found in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
                 ) from e
-            assert isinstance(
-                block, components.IOComponent
-            ), f"{block.__class__} Component with id {output_id} not a valid output component."
+            if not isinstance(block, components.IOComponent):
+                raise InvalidComponentError(
+                    f"{block.__class__} Component with id {output_id} not a valid output component."
+                )
             deserialized = block.deserialize(
                 outputs[o],
                 save_dir=block.DEFAULT_TEMP_DIR,
@@ -1322,9 +1328,10 @@ Received inputs:
                     raise InvalidBlockError(
                         f"Input component with id {input_id} used in {dependency['trigger']}() event not found in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
                     ) from e
-                assert isinstance(
-                    block, components.Component
-                ), f"{block.__class__} Component with id {input_id} not a valid input component."
+                if not isinstance(block, components.Component):
+                    raise InvalidComponentError(
+                        f"{block.__class__} Component with id {input_id} not a valid input component."
+                    )
                 if getattr(block, "stateful", False):
                     processed_input.append(state[input_id])
                 else:
@@ -1445,9 +1452,10 @@ Received outputs:
                         postprocess=block_fn.postprocess,
                     )
                 elif block_fn.postprocess:
-                    assert isinstance(
-                        block, components.Component
-                    ), f"{block.__class__} Component with id {output_id} not a valid output component."
+                    if not isinstance(block, components.Component):
+                        raise InvalidComponentError(
+                            f"{block.__class__} Component with id {output_id} not a valid output component."
+                        )
                     prediction_value = block.postprocess(prediction_value)
                 output.append(prediction_value)
 
@@ -2005,9 +2013,8 @@ Received outputs:
         )
 
         if self.is_running:
-            assert isinstance(
-                self.local_url, str
-            ), f"Invalid local_url: {self.local_url}"
+            if not isinstance(self.local_url, str):
+                raise ValueError(f"Invalid local_url: {self.local_url}")
             if not (quiet):
                 print(
                     "Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"

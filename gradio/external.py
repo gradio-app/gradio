@@ -16,7 +16,7 @@ import gradio
 from gradio import components, utils
 from gradio.context import Context
 from gradio.deprecation import warn_deprecation
-from gradio.exceptions import Error, TooManyRequestsError
+from gradio.exceptions import Error, ModelNotFoundError, TooManyRequestsError
 from gradio.external_utils import (
     cols_to_rows,
     encode_to_base64,
@@ -83,9 +83,10 @@ def load_blocks_from_repo(
     if src is None:
         # Separate the repo type (e.g. "model") from repo name (e.g. "google/vit-base-patch16-224")
         tokens = name.split("/")
-        assert (
-            len(tokens) > 1
-        ), "Either `src` parameter must be provided, or `name` must be formatted as {src}/{repo name}"
+        if len(tokens) <= 1:
+            raise ValueError(
+                "Either `src` parameter must be provided, or `name` must be formatted as {src}/{repo name}"
+            )
         src = tokens[0]
         name = "/".join(tokens[1:])
 
@@ -95,9 +96,8 @@ def load_blocks_from_repo(
         "models": from_model,
         "spaces": from_spaces,
     }
-    assert (
-        src.lower() in factory_methods
-    ), f"parameter: src must be one of {factory_methods.keys()}"
+    if src.lower() not in factory_methods:
+        raise ValueError(f"parameter: src must be one of {factory_methods.keys()}")
 
     if hf_token is not None:
         if Context.hf_token is not None and Context.hf_token != hf_token:
@@ -145,9 +145,10 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
 
     # Checking if model exists, and if so, it gets the pipeline
     response = requests.request("GET", api_url, headers=headers)
-    assert (
-        response.status_code == 200
-    ), f"Could not find model: {model_name}. If it is a private or gated model, please provide your Hugging Face access token (https://huggingface.co/settings/tokens) as the argument for the `api_key` parameter."
+    if response.status_code != 200:
+        raise ModelNotFoundError(
+            f"Could not find model: {model_name}. If it is a private or gated model, please provide your Hugging Face access token (https://huggingface.co/settings/tokens) as the argument for the `api_key` parameter."
+        )
     p = response.json().get("pipeline_tag")
     pipelines = {
         "audio-classification": {
