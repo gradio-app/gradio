@@ -31,6 +31,7 @@ from packaging import version
 
 from gradio_client import serializing, utils
 from gradio_client.documentation import document, set_documentation_group
+from gradio_client.exceptions import SerializationSetupError
 from gradio_client.serializing import Serializable
 from gradio_client.utils import (
     Communicator,
@@ -776,7 +777,7 @@ class Endpoint:
             # and api_name is not False (meaning that the developer has explicitly disabled the API endpoint)
             self.serializers, self.deserializers = self._setup_serializers()
             self.is_valid = self.dependency["backend_fn"] and self.api_name is not False
-        except AssertionError:
+        except SerializationSetupError:
             self.is_valid = False
 
     def __repr__(self):
@@ -1004,14 +1005,14 @@ class Endpoint:
                     if component.get("serializer"):
                         serializer_name = component["serializer"]
                         if serializer_name not in serializing.SERIALIZER_MAPPING:
-                            raise ValueError(
+                            raise SerializationSetupError(
                                 f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
                             )
                         serializer = serializing.SERIALIZER_MAPPING[serializer_name]
                     elif component_name in serializing.COMPONENT_MAPPING:
                         serializer = serializing.COMPONENT_MAPPING[component_name]
                     else:
-                        raise ValueError(
+                        raise SerializationSetupError(
                             f"Unknown component: {component_name}, you may need to update your gradio_client version."
                         )
                     serializers.append(serializer())  # type: ignore
@@ -1026,7 +1027,7 @@ class Endpoint:
                     if component.get("serializer"):
                         serializer_name = component["serializer"]
                         if serializer_name not in serializing.SERIALIZER_MAPPING:
-                            raise ValueError(
+                            raise SerializationSetupError(
                                 f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
                             )
                         deserializer = serializing.SERIALIZER_MAPPING[serializer_name]
@@ -1035,7 +1036,7 @@ class Endpoint:
                     elif component_name in serializing.COMPONENT_MAPPING:
                         deserializer = serializing.COMPONENT_MAPPING[component_name]
                     else:
-                        raise ValueError(
+                        raise SerializationSetupError(
                             f"Unknown component: {component_name}, you may need to update your gradio_client version."
                         )
                     deserializers.append(deserializer())  # type: ignore
