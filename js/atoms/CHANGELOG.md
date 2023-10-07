@@ -1,5 +1,12 @@
 # @gradio/atoms
 
+## 0.1.4
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/utils@0.1.2
+
 ## 0.1.3
 
 ### Patch Changes
