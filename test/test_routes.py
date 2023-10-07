@@ -586,6 +586,31 @@ class TestPassingRequest:
         output = dict(response.json())
         assert output["data"] == ["test"]
 
+    def test_request_argument_passing(self):
+        def identity(message, req: gr.Request, history):
+            return message
+
+        app, _, _ = gr.ChatInterface(fn=identity).launch(
+            prevent_thread_lock=True,
+        )
+        client = TestClient(app)
+
+        client.post(
+            "/api/predict/",
+            json={"data": ["test", None], "fn_index": 0, "session_hash": "_"},
+        )
+        client.post(
+            "/api/predict/",
+            json={"data": [None, []], "fn_index": 1, "session_hash": "_"},
+        )
+        response = client.post(
+            "/api/predict/",
+            json={"data": [None, None], "fn_index": 2, "session_hash": "_"},
+        )
+        assert response.status_code == 200
+        output = dict(response.json())
+        assert output["data"] == [[["test", "test"]], None]
+
 
 def test_predict_route_is_blocked_if_api_open_false():
     io = Interface(lambda x: x, "text", "text", examples=[["freddy"]]).queue(
