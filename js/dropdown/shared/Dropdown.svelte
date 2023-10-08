@@ -117,6 +117,10 @@
 
 	function handle_option_selected(e: any): void {
 		selected_index = parseInt(e.detail.target.dataset.index);
+		if (isNaN(selected_index)) {
+			selected_index = null;
+			return;
+		}
 		show_options = false;
 		active_index = null;
 		filter_input.blur();
