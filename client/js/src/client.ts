@@ -259,7 +259,7 @@ export function api_factory(
 				const ws = await import("ws");
 				NodeBlob = (await import("node:buffer")).Blob;
 				//@ts-ignore
-				global.WebSocket = ws.WebSocket;
+				if (!global.WebSocket) global.WebSocket = ws.WebSocket;
 			}
 
 			const { ws_protocol, http_protocol, host, space_id } =
