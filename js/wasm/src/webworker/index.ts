@@ -314,9 +314,16 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 			}
 		}
 	} catch (error) {
+		console.error(error);
+
+		// The `error` object may contain non-serializable properties such as function,
+		// so it must be converted to a plain object before sending it to the main thread.
+		// Otherwise, the following error will be thrown:
+		// `Uncaught (in promise) DOMException: Failed to execute 'postMessage' on 'MessagePort': #<Object> could not be cloned.`
+		const cloneableError = JSON.parse(JSON.stringify(error));
 		const replyMessage: ReplyMessageError = {
 			type: "reply:error",
-			error: error as Error
+			error: cloneableError
 		};
 		messagePort.postMessage(replyMessage);
 	}
