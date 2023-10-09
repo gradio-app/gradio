@@ -118,6 +118,7 @@
 	function handle_option_selected(e: any): void {
 		selected_index = parseInt(e.detail.target.dataset.index);
 		if (isNaN(selected_index)) {
+			// This is the case when the user clicks on the scrollbar
 			selected_index = null;
 			return;
 		}
