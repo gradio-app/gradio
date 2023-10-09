@@ -544,6 +544,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      '@gradio/wasm':
+        specifier: workspace:^
+        version: link:../wasm
       extendable-media-recorder:
         specifier: ^9.0.0
         version: 9.0.0
