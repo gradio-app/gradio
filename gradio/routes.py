@@ -364,6 +364,13 @@ class App(FastAPI):
             print(location)
             if location is None:
                 raise HTTPException(status_code=404, detail="Component not found.")
+            # read directory and print contents
+
+            dir_contents = os.listdir(location["props"]["module_location"])
+
+            for item in dir_contents:
+                print(item)
+
             return FileResponse(
                 safe_join(
                     location["props"]["module_location"],
