@@ -13,10 +13,7 @@
 	class:gallery={type === "gallery"}
 	class:selected
 >
-	<Image
-		src={samples_dir + value}
-		alt=""
-	/>
+	<Image src={samples_dir + value} alt="" />
 </div>
 
 <style>
