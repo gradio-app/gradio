@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Image } from "../static";
+	import Image from "../shared/Image.svelte";
 
 	export let value: string;
 	export let samples_dir: string;
