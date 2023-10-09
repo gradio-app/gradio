@@ -604,7 +604,7 @@ class App(FastAPI):
             for input_file in files:
                 output_files.append(
                     await processing_utils.save_uploaded_file(
-                        input_file, app.uploaded_file_dir
+                        input_file, app.uploaded_file_dir, app.get_blocks().limiter
                     )
                 )
             return output_files

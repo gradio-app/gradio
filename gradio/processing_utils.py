@@ -16,8 +16,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
 import aiofiles
+import anyio
 import numpy as np
 import requests
+from anyio import CapacityLimiter
 from fastapi import UploadFile
 from gradio_client import utils as client_utils
 from PIL import Image, ImageOps, PngImagePlugin
@@ -205,7 +207,9 @@ def save_file_to_cache(file_path: str | Path, cache_dir: str) -> str:
     return full_temp_file_path
 
 
-async def save_uploaded_file(file: UploadFile, upload_dir: str) -> str:
+async def save_uploaded_file(
+    file: UploadFile, upload_dir: str, limiter: CapacityLimiter | None = None
+) -> str:
     temp_dir = secrets.token_hex(
         20
     )  # Since the full file is being uploaded anyways, there is no benefit to hashing the file.
@@ -233,7 +237,11 @@ async def save_uploaded_file(file: UploadFile, upload_dir: str) -> str:
     directory = Path(upload_dir) / sha1.hexdigest()
     directory.mkdir(exist_ok=True, parents=True)
     dest = (directory / name).resolve()
-    shutil.move(full_temp_file_path, dest)
+
+    await anyio.to_thread.run_sync(
+        shutil.move, full_temp_file_path, dest, limiter=limiter
+    )
+
     return str(dest)
 
 
