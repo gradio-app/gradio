@@ -7,13 +7,21 @@ export async function resolve_wasm_src(src: MediaSrc): Promise<MediaSrc> {
 		return src;
 	}
 
+	const url = new URL(src);
+	if (url.host !== window.location.host) {
+		return src;
+	}
+	if (url.protocol !== "http" && url.protocol !== "https") {
+		// `src` can be a data URL.
+		return src;
+	}
+
 	const maybeWorkerProxy = getWorkerProxyContext();
 	if (maybeWorkerProxy == null) {
 		// We are not in the Wasm env. Just use the src as is.
 		return src;
 	}
 
-	const url = new URL(src);
 	const path = url.pathname;
 	return maybeWorkerProxy
 		.httpRequest({
