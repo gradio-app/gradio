@@ -30,6 +30,7 @@ def set_cancel_events(
             outputs=None,
             queue=False,
             preprocess=False,
+            api_name=False,
             cancels=fn_indices_to_cancel,
         )
 
