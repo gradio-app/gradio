@@ -322,6 +322,7 @@ def move_files_to_cache(data: Any, block: Component):
                     file_name=payload.name,
                     cache_dir=block.GRADIO_CACHE,
                 )
+                payload.is_file = True
             block.temp_files.add(temp_file_path)
             payload.name = temp_file_path
         return payload.model_dump()
