@@ -311,3 +311,13 @@ class Image3D(components.Model3D):
         """
         warn_outputs_deprecation()
         super().__init__(clear_color=clear_color, label=label)
+
+
+class HighlightedTextbox(components.HighlightedTextbox):
+    def __init__(
+        self,
+        type: str = "text",
+        label: Optional[str] = None,
+    ):
+        warn_outputs_deprecation()
+        super().__init__(label=label, type=type)

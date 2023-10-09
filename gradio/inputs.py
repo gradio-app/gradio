@@ -449,3 +449,26 @@ class Image3D(components.Model3D):
         """
         warn_inputs_deprecation()
         super().__init__(label=label, optional=optional)
+
+
+class HighlightedTextbox(components.HighlightedTextbox):
+    def __init__(
+        self,
+        lines: int = 1,
+        placeholder: Optional[str] = None,
+        default: str = "",
+        numeric: Optional[bool] = False,
+        type: Optional[str] = "text",
+        label: Optional[str] = None,
+        optional: bool = False,
+    ):
+        warn_inputs_deprecation()
+        super().__init__(
+            value=default,
+            lines=lines,
+            placeholder=placeholder,
+            label=label,
+            numeric=numeric,
+            type=type,
+            optional=optional,
+        )

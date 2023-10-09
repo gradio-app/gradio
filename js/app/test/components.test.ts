@@ -33,6 +33,7 @@ import StaticTextbox from "@gradio/textbox/static";
 import StaticTimeSeries from "@gradio/timeseries/static";
 import StaticUploadButton from "@gradio/uploadbutton/static";
 import StaticVideo from "@gradio/video/static";
+import StaticHighlightedTextbox from "@gradio/highlightedtextbox/static";
 
 import InteractiveAudio from "@gradio/audio/interactive";
 import InteractiveCheckbox from "@gradio/checkbox/interactive";
@@ -49,6 +50,7 @@ import InteractiveTextbox from "@gradio/textbox/interactive";
 import InteractiveTimeSeries from "@gradio/timeseries/interactive";
 import InteractiveUploadButton from "@gradio/uploadbutton/interactive";
 import InteractiveVideo from "@gradio/video/interactive";
+import InteractiveHighlightedTextbox from "@gradio/highlightedtextbox/interactive";
 import { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status: LoadingStatus = {
@@ -123,7 +125,9 @@ const components = [
 	["InteractiveUploadButton", InteractiveUploadButton, {}],
 	["StaticUploadButton", StaticUploadButton, {}],
 	["InteractiveVideo", InteractiveVideo, {}],
-	["StaticVideo", StaticVideo, {}]
+	["StaticVideo", StaticVideo, {}],
+	["InteractiveHighlightedTextbox", InteractiveHighlightedTextbox, {}],
+	["StaticHighlightedTextbox", StaticHighlightedTextbox, {}]
 ] as const;
 
 describe("all components should apply provided class names", () => {

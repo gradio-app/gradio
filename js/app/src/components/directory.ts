@@ -138,5 +138,9 @@ export const component_map = {
 	video: {
 		static: () => import("@gradio/video/static"),
 		interactive: () => import("@gradio/video/interactive")
+	},
+	highlightedtextbox: {
+		static: () => import("@gradio/highlightedtextbox/static"),
+		interactive: () => import("@gradio/highlightedtextbox/interactive")
 	}
 };
