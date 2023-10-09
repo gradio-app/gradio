@@ -366,7 +366,8 @@ class App(FastAPI):
                 raise HTTPException(status_code=404, detail="Component not found.")
             return FileResponse(
                 safe_join(
-                    location["props"]["module_location"], f"dist/{type}/{file_name}"
+                    location["props"]["module_location"],
+                    f"templates/{type}/{file_name}",
                 )
             )
 
