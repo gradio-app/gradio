@@ -29,7 +29,6 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let allow_custom_value = false;
-	export let i18n: I18nFormatter;
 </script>
 
 <Block
@@ -59,6 +58,7 @@
 			{allow_custom_value}
 			{container}
 			{filterable}
+			i18n={gradio.i18n}
 			on:change={() => gradio.dispatch("change")}
 			on:input={() => gradio.dispatch("input")}
 			on:select={(e) => gradio.dispatch("select", e.detail)}
@@ -81,7 +81,7 @@
 			on:select={(e) => gradio.dispatch("select", e.detail)}
 			on:blur={() => gradio.dispatch("blur")}
 			on:focus={() => gradio.dispatch("focus")}
-			{i18n}
+			i18n={gradio.i18n}
 		/>
 	{/if}
 </Block>
