@@ -8,7 +8,7 @@
 </script>
 
 <div
-	class="image-container"
+	class="container"
 	class:table={type === "table"}
 	class:gallery={type === "gallery"}
 	class:selected
@@ -20,16 +20,16 @@
 </div>
 
 <style>
-	.image-container {
+	.container {
 		border-radius: var(--radius-lg);
 		max-width: none;
 	}
 
-	.image-container.selected {
+	.container.selected {
 		border-color: var(--border-color-accent);
 	}
 
-	.image-container.table {
+	.container.table {
 		margin: 0 auto;
 		border: 2px solid var(--border-color-primary);
 		border-radius: var(--radius-lg);
@@ -38,7 +38,7 @@
 		object-fit: cover;
 	}
 
-	.image-container.gallery {
+	.container.gallery {
 		border: 2px solid var(--border-color-primary);
 		height: var(--size-20);
 		max-height: var(--size-20);
