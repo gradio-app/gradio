@@ -136,6 +136,11 @@ class Block:
         self.is_rendered: bool = False
         self.constructor_args: dict
         self.state_session_capacity = 10000
+        self.is_custom_component = not (
+            self.__module__.startswith("gradio.components")
+            or self.__module__.startswith("gradio.layouts")
+            or self.__module__.startswith("gradio.templates")
+        )
 
         if render:
             self.render()
@@ -194,11 +199,12 @@ class Block:
 
         @return: class name
         """
-        return (
-            self.__class__.__base__.__name__.lower()
-            if hasattr(self, "is_template")
-            else self.__class__.__name__.lower()
-        )
+        if self.is_custom_component:
+            return self.__class__.__module__.split(".")[0]
+        elif hasattr(self, "is_template"):
+            return self.__class__.__base__.__name__.lower()
+        else:
+            return self.__class__.__name__.lower()
 
     def get_expected_parent(self) -> type[BlockContext] | None:
         return None
@@ -346,13 +352,9 @@ class Block:
             if hasattr(self, parameter.name):
                 value = getattr(self, parameter.name)
                 config[parameter.name] = value
-        custom = not (
-            self.__module__.startswith("gradio.components")
-            or self.__module__.startswith("gradio.layouts")
-            or self.__module__.startswith("gradio.templates")
-        )
-        config["custom_component"] = custom
-        if custom:
+
+        config["custom_component"] = self.is_custom_component
+        if self.is_custom_component:
             config["module_location"] = get_module_location_from_instance(self)
 
         for e in self.events:
