@@ -744,7 +744,7 @@ class TestPlot:
 
 
 class TestAudio:
-    def test_component_functions(self):
+    def test_component_functions(self, gradio_temp_dir):
         """
         Preprocess, postprocess serialize, get_config, deserialize
         type: filepath, numpy, file
@@ -755,10 +755,12 @@ class TestAudio:
         assert output1[0] == 8000
         assert output1[1].shape == (8046,)
 
-        x_wav["is_file"] = True
+        x_wav["is_file"] = False
+        x_wav["name"] = "audio_sample.wav"
+        x_wav = processing_utils.move_files_to_cache([x_wav], audio_input)[0]
         audio_input = gr.Audio(type="filepath")
         output1 = audio_input.preprocess(x_wav)
-        assert Path(output1).name == "audio_sample-0-100.wav"
+        assert Path(output1).name.endswith("audio_sample-0-100.wav")
 
         audio_input = gr.Audio(label="Upload Your Audio")
         assert audio_input.get_config() == {
@@ -1233,8 +1235,11 @@ class TestVideo:
         """
         Preprocess, serialize, deserialize, get_config
         """
-        x_video = {"video": deepcopy(media_data.BASE64_VIDEO)}
+        x_video = {"video": deepcopy(media_data.BASE64_VIDEO), "is_file": False}
         video_input = gr.Video()
+
+        x_video = processing_utils.move_files_to_cache([x_video], video_input)[0]
+
         output1 = video_input.preprocess(x_video)
         assert isinstance(output1, str)
         output2 = video_input.preprocess(x_video)
