@@ -5,8 +5,10 @@ each component. These demos are located in the `demo` directory."""
 from __future__ import annotations
 
 import abc
+import hashlib
 import json
 import os
+import sys
 import tempfile
 from abc import ABC, abstractmethod
 from enum import Enum
@@ -111,6 +113,15 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
     def has_event(cls, event: str | EventListener) -> bool:
         return event in cls.EVENTS
 
+    @property
+    def component_class_id(self) -> str:
+        module_name = self.__class__.__module__
+        module_path = sys.modules[module_name].__file__
+        module_hash = hashlib.md5(
+            f"{self.__class__.__name__}_{module_path}".encode()
+        ).hexdigest()
+        return module_hash
+
 
 class Component(ComponentBase, Block):
     """
@@ -212,12 +223,6 @@ class Component(ComponentBase, Block):
     def attach_load_event(self, callable: Callable, every: float | None):
         """Add a load event that runs `callable`, optionally every `every` seconds."""
         self.load_event_to_attach = (callable, every)
-
-    @property
-    def component_class_id(self) -> str:
-        id_ = getattr(self, "_component_class_id", None)
-        assert id_ is not None, "Component class id not set"
-        return id_
 
     def as_example(self, input_data):
         """Return the input data in a way that can be displayed by the examples dataset component in the front-end."""

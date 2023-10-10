@@ -2748,3 +2748,23 @@ def test_plot_arg_deprecation_warning():
 
     with pytest.warns(GradioUnusedKwargWarning):
         gr.File(plot=True)
+
+
+def test_component_class_ids():
+    button_id = gr.Button().component_class_id
+    textbox_id = gr.Textbox().component_class_id
+    json_id = gr.JSON().component_class_id
+    mic_id = gr.Mic().component_class_id
+    microphone_id = gr.Microphone().component_class_id
+    audio_id = gr.Audio().component_class_id
+
+    assert button_id == gr.Button().component_class_id
+    assert textbox_id == gr.Textbox().component_class_id
+    assert json_id == gr.JSON().component_class_id
+    assert mic_id == gr.Mic().component_class_id
+    assert microphone_id == gr.Microphone().component_class_id
+    assert audio_id == gr.Audio().component_class_id
+    assert mic_id == microphone_id
+
+    # Make sure that the ids are unique
+    assert len({button_id, textbox_id, json_id, microphone_id, audio_id}) == 5
