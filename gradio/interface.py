@@ -661,13 +661,13 @@ class Interface(Blocks):
                 extra_output = [submit_btn, stop_btn]
 
                 def cleanup():
-                    return [Button(visible=True), Button(visible=False)]
+                    return [Button.update(visible=True), Button.update(visible=False)]
 
                 predict_event = on(
                     triggers,
                     lambda: (
-                        Button(visible=False),
-                        Button(visible=True),
+                        submit_btn.update(visible=False),
+                        stop_btn.update(visible=True),
                     ),
                     inputs=None,
                     outputs=[submit_btn, stop_btn],
@@ -728,7 +728,7 @@ class Interface(Blocks):
             ),  # type: ignore
             _js=f"""() => {json.dumps(
                 (
-                    [Column(visible=True)]
+                    [Column.update(visible=True)]
                     if self.interface_type
                         in [
                             InterfaceTypes.STANDARD,
@@ -737,7 +737,7 @@ class Interface(Blocks):
                         ]
                     else []
                 )
-                + ([Column(visible=False)] if self.interpretation else [])
+                + ([Column.update(visible=False)] if self.interpretation else [])
             )}
             """,
         )
@@ -793,7 +793,7 @@ class Interface(Blocks):
             assert isinstance(value, str)
             flag_method = FlagMethod(self.flagging_callback, label, value)
             flag_btn.click(
-                lambda: Button(value="Saving...", interactive=False),
+                lambda: Button.update(value="Saving...", interactive=False),
                 None,
                 flag_btn,
                 queue=False,
@@ -847,8 +847,8 @@ class Interface(Blocks):
 
     async def interpret_func(self, *args):
         return await self.interpret(list(args)) + [
-            Column(visible=False),
-            Column(visible=True),
+            Column.update(visible=False),
+            Column.update(visible=True),
         ]
 
     async def interpret(self, raw_input: list[Any]) -> list[Any]:
