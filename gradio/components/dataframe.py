@@ -72,6 +72,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         height: int = 500,
         scale: int | None = None,
         min_width: int = 160,
+        max_width: dict[str, int | str] | str | None = None,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
@@ -98,7 +99,8 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             height: The maximum height of the dataframe, in pixels. If more rows are created than can fit in the height, a scrollbar will appear.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
-            min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
+            min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, tminhe min_width parameter will be respected first.
+            max_width: This parameter dynamically determines the maximum allowable width for a component based on the length of the content it contains, particularly for string content. Instead of specifying a fixed pixel value, max_width calculates the width required to display the longest string within the component without overflowing or truncating the content.
             interactive: if True, will allow users to edit the dataframe; if False, can only be used to display data. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -164,6 +166,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             show_label=show_label,
             scale=scale,
             min_width=min_width,
+            max_width=max_width,
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
@@ -190,6 +193,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         scale: int | None = None,
         min_width: int | None = None,
+        max_width: int | None = None,
         height: int | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
@@ -205,6 +209,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             "show_label": show_label,
             "scale": scale,
             "min_width": min_width,
+            "max_width": max_width,
             "height": height,
             "interactive": interactive,
             "visible": visible,
