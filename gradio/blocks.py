@@ -1484,7 +1484,7 @@ Received outputs:
                 "props": utils.delete_none(props),
             }
             block_config["skip_api"] = block.skip_api
-            block_config["component_class_id"] = block.component_class_id
+            block_config["component_class_id"] = getattr(block, "component_class_id")
             if block.is_custom_component:
                 block_config["module_location"] = get_module_location_from_instance(
                     block
