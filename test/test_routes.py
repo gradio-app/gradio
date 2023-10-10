@@ -541,10 +541,10 @@ class TestPassingRequest:
         )
         client = TestClient(app)
 
-        response = client.post("/api/predict/", json={"data": ["test"]})
+        response = client.post("/api/chat/", json={"data": ["test", None]})
         assert response.status_code == 200
         output = dict(response.json())
-        assert output["data"] == ["test"]
+        assert output["data"] == ["test", None]
 
     def test_request_get_headers(self):
         def identity(name, request: gr.Request):

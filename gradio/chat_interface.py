@@ -400,7 +400,6 @@ class ChatInterface(Blocks):
         *args,
     ) -> tuple[list[list[str | None]], list[list[str | None]]]:
         history = history_with_input[:-1]
-
         inputs, _, _ = special_args(
             self.fn, inputs=[message, history, *args], request=request
         )
@@ -419,14 +418,19 @@ class ChatInterface(Blocks):
         self,
         message: str,
         history_with_input: list[list[str | None]],
+        request: Request,
         *args,
     ) -> AsyncGenerator:
         history = history_with_input[:-1]
+        inputs, _, _ = special_args(
+            self.fn, inputs=[message, history, *args], request=request
+        )
+
         if self.is_async:
-            generator = self.fn(message, history, *args)
+            generator = self.fn(*inputs)
         else:
             generator = await anyio.to_thread.run_sync(
-                self.fn, message, history, *args, limiter=self.limiter
+                self.fn, *inputs, limiter=self.limiter
             )
             generator = SyncToAsyncIterator(generator, self.limiter)
         try:
@@ -441,25 +445,33 @@ class ChatInterface(Blocks):
             yield update, update
 
     async def _api_submit_fn(
-        self, message: str, history: list[list[str | None]], *args
+        self, message: str, history: list[list[str | None]], request: Request, *args
     ) -> tuple[str, list[list[str | None]]]:
+        inputs, _, _ = special_args(
+            self.fn, inputs=[message, history, *args], request=request
+        )
+
         if self.is_async:
-            response = await self.fn(message, history, *args)
+            response = await self.fn(*inputs)
         else:
             response = await anyio.to_thread.run_sync(
-                self.fn, message, history, *args, limiter=self.limiter
+                self.fn, *inputs, limiter=self.limiter
             )
         history.append([message, response])
         return response, history
 
     async def _api_stream_fn(
-        self, message: str, history: list[list[str | None]], *args
+        self, message: str, history: list[list[str | None]], request: Request, *args
     ) -> AsyncGenerator:
+        inputs, _, _ = special_args(
+            self.fn, inputs=[message, history, *args], request=request
+        )
+
         if self.is_async:
-            generator = self.fn(message, history, *args)
+            generator = self.fn(*inputs)
         else:
             generator = await anyio.to_thread.run_sync(
-                self.fn, message, history, *args, limiter=self.limiter
+                self.fn, *inputs, limiter=self.limiter
             )
             generator = SyncToAsyncIterator(generator, self.limiter)
         try:
