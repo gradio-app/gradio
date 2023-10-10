@@ -588,6 +588,7 @@ class TestPassingRequest:
 
     def test_request_argument_passing(self):
         def identity(message, req: gr.Request, history):
+            assert isinstance(req.client.host, str)
             return message
 
         app, _, _ = gr.ChatInterface(fn=identity).launch(

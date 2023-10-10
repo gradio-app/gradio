@@ -401,21 +401,9 @@ class ChatInterface(Blocks):
     ) -> tuple[list[list[str | None]], list[list[str | None]]]:
         history = history_with_input[:-1]
 
-        inputs = [message, history, *args]
-
-        fn_signature = inspect.signature(self.fn)
-
-        request_param = next(
-            (
-                param_name
-                for param_name, param in fn_signature.parameters.items()
-                if param.annotation == gr.Request
-            ),
-            None,
+        inputs, _, _ = special_args(
+            self.fn, inputs=[message, history, *args], request=request
         )
-
-        if request_param:
-            inputs, _, _ = special_args(self.fn, inputs=inputs, request=request)
 
         if self.is_async:
             response = await self.fn(*inputs)
