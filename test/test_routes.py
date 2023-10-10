@@ -535,7 +535,7 @@ class TestPassingRequest:
         def identity(x, y, request: gr.Request):
             assert isinstance(request.client.host, str)
             return x
-        
+
         app, _, _ = gr.ChatInterface(identity).launch(
             prevent_thread_lock=True,
         )
@@ -600,6 +600,7 @@ class TestPassingRequest:
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["test"]
+
 
 def test_predict_route_is_blocked_if_api_open_false():
     io = Interface(lambda x: x, "text", "text", examples=[["freddy"]]).queue(
