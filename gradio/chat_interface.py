@@ -483,11 +483,13 @@ class ChatInterface(Blocks):
             yield response, history + [[message, response]]
 
     async def _examples_fn(self, message: str, *args) -> list[list[str | None]]:
+        inputs, _, _ = special_args(self.fn, inputs=[message, [], *args], request=None)
+
         if self.is_async:
-            response = await self.fn(message, [], *args)
+            response = await self.fn(*inputs)
         else:
             response = await anyio.to_thread.run_sync(
-                self.fn, message, [], *args, limiter=self.limiter
+                self.fn, *inputs, limiter=self.limiter
             )
         return [[message, response]]
 
@@ -496,11 +498,13 @@ class ChatInterface(Blocks):
         message: str,
         *args,
     ) -> AsyncGenerator:
+        inputs, _, _ = special_args(self.fn, inputs=[message, [], *args], request=None)
+
         if self.is_async:
-            generator = self.fn(message, [], *args)
+            generator = self.fn(*inputs)
         else:
             generator = await anyio.to_thread.run_sync(
-                self.fn, message, [], *args, limiter=self.limiter
+                self.fn, *inputs, limiter=self.limiter
             )
             generator = SyncToAsyncIterator(generator, self.limiter)
         async for response in generator:
