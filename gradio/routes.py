@@ -366,14 +366,14 @@ class App(FastAPI):
                 raise HTTPException(status_code=404, detail="Component not found.")
             # read directory and print contents
 
-            dir_contents = os.listdir(location["props"]["module_location"])
+            dir_contents = os.listdir(location["module_location"])
 
             for item in dir_contents:
                 print(item)
 
             return FileResponse(
                 safe_join(
-                    location["props"]["module_location"],
+                    location["module_location"],
                     f"templates/{type}/{file_name}",
                 )
             )

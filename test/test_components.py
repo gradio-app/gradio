@@ -74,7 +74,6 @@ class TestTextbox:
             "rtl": False,
             "text_align": None,
             "autofocus": False,
-            "custom_component": False,
             "selectable": False,
             "info": None,
             "autoscroll": True,
@@ -158,7 +157,6 @@ class TestNumber:
             "visible": True,
             "interactive": None,
             "root_url": None,
-            "custom_component": False,
             "info": None,
             "precision": None,
         }
@@ -191,7 +189,6 @@ class TestNumber:
             "visible": True,
             "interactive": None,
             "root_url": None,
-            "custom_component": False,
             "info": None,
             "precision": 0,
         }
@@ -268,7 +265,6 @@ class TestSlider:
             "visible": True,
             "interactive": None,
             "root_url": None,
-            "custom_component": False,
             "info": None,
         }
 
@@ -327,7 +323,6 @@ class TestCheckbox:
             "visible": True,
             "interactive": None,
             "root_url": None,
-            "custom_component": False,
             "selectable": False,
             "info": None,
         }
@@ -378,7 +373,6 @@ class TestCheckboxGroup:
             "visible": True,
             "interactive": None,
             "root_url": None,
-            "custom_component": False,
             "selectable": False,
             "type": "value",
             "info": None,
@@ -429,7 +423,6 @@ class TestRadio:
             "visible": True,
             "interactive": None,
             "root_url": None,
-            "custom_component": False,
             "selectable": False,
             "type": "value",
             "info": None,
@@ -524,7 +517,6 @@ class TestDropdown:
             "multiselect": True,
             "filterable": True,
             "max_choices": 2,
-            "custom_component": False,
             "selectable": False,
             "type": "value",
             "info": None,
@@ -609,7 +601,6 @@ class TestImage:
             "root_url": None,
             "mirror_webcam": True,
             "selectable": False,
-            "custom_component": False,
             "invert_colors": False,
             "streamable": False,
             "type": "pil",
@@ -780,7 +771,6 @@ class TestAudio:
             "value": None,
             "interactive": None,
             "root_url": None,
-            "custom_component": False,
             "type": "numpy",
             "format": "wav",
             "streamable": False,
@@ -825,7 +815,6 @@ class TestAudio:
             "value": None,
             "interactive": None,
             "root_url": None,
-            "custom_component": False,
             "type": "filepath",
             "format": "wav",
             "streamable": False,
@@ -922,7 +911,6 @@ class TestFile:
             "interactive": None,
             "root_url": None,
             "selectable": False,
-            "custom_component": False,
             "height": None,
             "type": "file",
         }
@@ -1034,7 +1022,6 @@ class TestDataframe:
             "elem_id": None,
             "elem_classes": None,
             "wrap": False,
-            "custom_component": False,
             "root_url": None,
             "name": "dataframe",
             "height": None,
@@ -1067,7 +1054,6 @@ class TestDataframe:
             "elem_id": None,
             "elem_classes": None,
             "wrap": False,
-            "custom_component": False,
             "root_url": None,
             "name": "dataframe",
             "height": None,
@@ -1266,7 +1252,6 @@ class TestVideo:
             "root_url": None,
             "mirror_webcam": True,
             "include_audio": True,
-            "custom_component": False,
             "format": None,
         }
         assert video_input.preprocess(None) is None
@@ -1499,7 +1484,6 @@ class TestLabel:
             "root_url": None,
             "color": None,
             "selectable": False,
-            "custom_component": False,
         }
 
     def test_color_argument(self):
@@ -1658,7 +1642,6 @@ class TestHighlightedText:
             "value": None,
             "root_url": None,
             "selectable": False,
-            "custom_component": False,
             "combine_adjacent": False,
             "adjacent_separator": "",
             "interactive": None,
@@ -1737,7 +1720,6 @@ class TestAnnotatedImage:
             "value": None,
             "root_url": None,
             "selectable": False,
-            "custom_component": False,
         }
 
     def test_in_interface(self):
@@ -1803,7 +1785,6 @@ class TestChatbot:
             "likeable": False,
             "rtl": False,
             "show_copy_button": False,
-            "custom_component": False,
             "avatar_images": (None, None),
             "sanitize_html": True,
             "bubble_full_width": True,
@@ -1829,7 +1810,6 @@ class TestJSON:
             "label": None,
             "name": "json",
             "root_url": None,
-            "custom_component": False,
         }
 
     @pytest.mark.asyncio
@@ -1882,7 +1862,6 @@ class TestHTML:
             "elem_id": None,
             "elem_classes": None,
             "root_url": None,
-            "custom_component": False,
             "name": "html",
         }
 
@@ -1930,7 +1909,6 @@ class TestModel3D:
             "visible": True,
             "elem_id": None,
             "elem_classes": None,
-            "custom_component": False,
             "root_url": None,
             "name": "model3d",
             "camera_position": (None, None, None),
@@ -1977,7 +1955,6 @@ class TestColorPicker:
             "interactive": None,
             "root_url": None,
             "name": "colorpicker",
-            "custom_component": False,
             "info": None,
         }
 
@@ -2146,7 +2123,6 @@ class TestScatterPlot:
             "scale": None,
             "value": None,
             "visible": True,
-            "custom_component": False,
             "x": None,
             "y": None,
             "color": None,
@@ -2348,7 +2324,6 @@ class TestLinePlot:
             "scale": None,
             "value": None,
             "visible": True,
-            "custom_component": False,
             "x": None,
             "y": None,
             "color": None,
@@ -2534,7 +2509,6 @@ class TestBarPlot:
             "scale": None,
             "value": None,
             "visible": True,
-            "custom_component": False,
             "x": None,
             "y": None,
             "color": None,
@@ -2733,7 +2707,6 @@ class TestCode:
             "visible": True,
             "interactive": None,
             "root_url": None,
-            "custom_component": False,
         }
 
 
@@ -2748,3 +2721,23 @@ def test_plot_arg_deprecation_warning():
 
     with pytest.warns(GradioUnusedKwargWarning):
         gr.File(plot=True)
+
+
+def test_component_class_ids():
+    button_id = gr.Button().component_class_id
+    textbox_id = gr.Textbox().component_class_id
+    json_id = gr.JSON().component_class_id
+    mic_id = gr.Mic().component_class_id
+    microphone_id = gr.Microphone().component_class_id
+    audio_id = gr.Audio().component_class_id
+
+    assert button_id == gr.Button().component_class_id
+    assert textbox_id == gr.Textbox().component_class_id
+    assert json_id == gr.JSON().component_class_id
+    assert mic_id == gr.Mic().component_class_id
+    assert microphone_id == gr.Microphone().component_class_id
+    assert audio_id == gr.Audio().component_class_id
+    assert mic_id == microphone_id
+
+    # Make sure that the ids are unique
+    assert len({button_id, textbox_id, json_id, microphone_id, audio_id}) == 5

@@ -5,8 +5,10 @@ each component. These demos are located in the `demo` directory."""
 from __future__ import annotations
 
 import abc
+import hashlib
 import json
 import os
+import sys
 import tempfile
 from abc import ABC, abstractmethod
 from enum import Enum
@@ -109,15 +111,24 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
 
     @classmethod
     def has_event(cls, event: str | EventListener) -> bool:
-        # names = [e if isinstance(e, str) else e.event_name for e in self.EVENTS]
-        # event = event if isinstance(event, str) else event.event_name
         return event in cls.EVENTS
+
+    @property
+    def component_class_id(self) -> str:
+        module_name = self.__class__.__module__
+        module_path = sys.modules[module_name].__file__
+        module_hash = hashlib.md5(
+            f"{self.__class__.__name__}_{module_path}".encode()
+        ).hexdigest()
+        return module_hash
 
 
 class Component(ComponentBase, Block):
     """
     A base class for defining methods that all input/output components should have.
     """
+
+    TEMPLATES_DIR = "./templates/"
 
     def __init__(
         self,

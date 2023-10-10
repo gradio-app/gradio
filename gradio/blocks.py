@@ -352,11 +352,6 @@ class Block:
             if hasattr(self, parameter.name):
                 value = getattr(self, parameter.name)
                 config[parameter.name] = value
-
-        config["custom_component"] = self.is_custom_component
-        if self.is_custom_component:
-            config["module_location"] = get_module_location_from_instance(self)
-
         for e in self.events:
             to_add = e.config_data()
             if to_add:
@@ -698,7 +693,6 @@ class Blocks(BlockContext):
 
     def get_component(self, id: int) -> Component:
         comp = self.blocks[id]
-        print(comp)
         assert isinstance(comp, components.Component), f"{comp}"
         return comp
 
@@ -1490,6 +1484,13 @@ Received outputs:
                 "props": utils.delete_none(props),
             }
             block_config["skip_api"] = block.skip_api
+            block_config["component_class_id"] = getattr(
+                block, "component_class_id", None
+            )
+            if block.is_custom_component:
+                block_config["module_location"] = get_module_location_from_instance(
+                    block
+                )
             if not block.skip_api:
                 block_config["api_info"] = block.api_info()  # type: ignore
                 block_config["example_inputs"] = block.example_inputs()  # type: ignore
