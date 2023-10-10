@@ -46,7 +46,7 @@ from starlette.websockets import WebSocketState
 
 import gradio
 import gradio.ranged_response as ranged_response
-from gradio import route_utils, utils, wasm_utils
+from gradio import processing_utils, route_utils, utils, wasm_utils
 from gradio.context import Context
 from gradio.data_classes import PredictBody, ResetBody
 from gradio.deprecation import warn_deprecation
@@ -122,7 +122,7 @@ class App(FastAPI):
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
         self.uploaded_file_dir = os.environ.get("GRADIO_TEMP_DIR") or str(
-            Path(tempfile.gettempdir()) / "gradio"
+            (Path(tempfile.gettempdir()) / "gradio").resolve()
         )
         self.change_event: None | threading.Event = None
         # Allow user to manually set `docs_url` and `redoc_url`
@@ -601,11 +601,10 @@ class App(FastAPI):
             files: List[UploadFile] = File(...),
         ):
             output_files = []
-            file_manager = gradio.File()
             for input_file in files:
                 output_files.append(
-                    await file_manager.save_uploaded_file(
-                        input_file, app.uploaded_file_dir
+                    await processing_utils.save_uploaded_file(
+                        input_file, app.uploaded_file_dir, app.get_blocks().limiter
                     )
                 )
             return output_files

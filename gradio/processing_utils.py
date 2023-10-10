@@ -1,27 +1,42 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import logging
 import os
+import secrets
 import shutil
 import subprocess
 import tempfile
+import urllib.request
 import warnings
 from io import BytesIO
 from pathlib import Path
+from typing import TYPE_CHECKING, Any, Literal
 
+import aiofiles
+import anyio
 import numpy as np
+import requests
+from anyio import CapacityLimiter
+from fastapi import UploadFile
 from gradio_client import utils as client_utils
 from PIL import Image, ImageOps, PngImagePlugin
 
 from gradio import wasm_utils
+from gradio.data_classes import FileData
+
+from .utils import abspath, is_in_or_equal
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # Ignore pydub warning if ffmpeg is not installed
     from pydub import AudioSegment
 
 log = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from gradio.components.base import Component
 
 #########################
 # GENERAL
@@ -102,6 +117,217 @@ def encode_array_to_base64(image_array):
         bytes_data = output_bytes.getvalue()
     base64_str = str(base64.b64encode(bytes_data), "utf-8")
     return "data:image/png;base64," + base64_str
+
+
+def hash_file(file_path: str | Path, chunk_num_blocks: int = 128) -> str:
+    sha1 = hashlib.sha1()
+    with open(file_path, "rb") as f:
+        for chunk in iter(lambda: f.read(chunk_num_blocks * sha1.block_size), b""):
+            sha1.update(chunk)
+    return sha1.hexdigest()
+
+
+def hash_url(url: str, chunk_num_blocks: int = 128) -> str:
+    sha1 = hashlib.sha1()
+    remote = urllib.request.urlopen(url)
+    max_file_size = 100 * 1024 * 1024  # 100MB
+    total_read = 0
+    while True:
+        data = remote.read(chunk_num_blocks * sha1.block_size)
+        total_read += chunk_num_blocks * sha1.block_size
+        if not data or total_read > max_file_size:
+            break
+        sha1.update(data)
+    return sha1.hexdigest()
+
+
+def hash_bytes(bytes: bytes):
+    sha1 = hashlib.sha1()
+    sha1.update(bytes)
+    return sha1.hexdigest()
+
+
+def hash_base64(base64_encoding: str, chunk_num_blocks: int = 128) -> str:
+    sha1 = hashlib.sha1()
+    for i in range(0, len(base64_encoding), chunk_num_blocks * sha1.block_size):
+        data = base64_encoding[i : i + chunk_num_blocks * sha1.block_size]
+        sha1.update(data.encode("utf-8"))
+    return sha1.hexdigest()
+
+
+def save_pil_to_cache(
+    img: Image.Image, cache_dir: str, format: Literal["png", "jpg"] = "png"
+) -> str:
+    bytes_data = encode_pil_to_bytes(img, format)
+    temp_dir = Path(cache_dir) / hash_bytes(bytes_data)
+    temp_dir.mkdir(exist_ok=True, parents=True)
+    filename = str((temp_dir / f"image.{format}").resolve())
+    img.save(filename, pnginfo=get_pil_metadata(img))
+    return filename
+
+
+def save_img_array_to_cache(
+    arr: np.ndarray, cache_dir: str, format: Literal["png", "jpg"] = "png"
+) -> str:
+    pil_image = Image.fromarray(_convert(arr, np.uint8, force_copy=False))
+    return save_pil_to_cache(pil_image, cache_dir, format=format)
+
+
+def save_audio_to_cache(
+    data: np.ndarray, sample_rate: int, format: str, cache_dir: str
+) -> str:
+    temp_dir = Path(cache_dir) / hash_bytes(data.tobytes())
+    temp_dir.mkdir(exist_ok=True, parents=True)
+    filename = str((temp_dir / f"audio.{format}").resolve())
+    audio_to_file(sample_rate, data, filename, format=format)
+    return filename
+
+
+def save_bytes_to_cache(data: bytes, file_name: str, cache_dir: str) -> str:
+    path = Path(cache_dir) / hash_bytes(data)
+    path.mkdir(exist_ok=True, parents=True)
+    path = path / Path(file_name).name
+    path.write_bytes(data)
+    return str(path.resolve())
+
+
+def save_file_to_cache(file_path: str | Path, cache_dir: str) -> str:
+    """Returns a temporary file path for a copy of the given file path if it does
+    not already exist. Otherwise returns the path to the existing temp file."""
+    temp_dir = hash_file(file_path)
+    temp_dir = Path(cache_dir) / temp_dir
+    temp_dir.mkdir(exist_ok=True, parents=True)
+
+    name = client_utils.strip_invalid_filename_characters(Path(file_path).name)
+    full_temp_file_path = str(abspath(temp_dir / name))
+
+    if not Path(full_temp_file_path).exists():
+        shutil.copy2(file_path, full_temp_file_path)
+
+    return full_temp_file_path
+
+
+async def save_uploaded_file(
+    file: UploadFile, upload_dir: str, limiter: CapacityLimiter | None = None
+) -> str:
+    temp_dir = secrets.token_hex(
+        20
+    )  # Since the full file is being uploaded anyways, there is no benefit to hashing the file.
+    temp_dir = Path(upload_dir) / temp_dir
+    temp_dir.mkdir(exist_ok=True, parents=True)
+
+    sha1 = hashlib.sha1()
+
+    if file.filename:
+        file_name = Path(file.filename).name
+        name = client_utils.strip_invalid_filename_characters(file_name)
+    else:
+        name = f"tmp{secrets.token_hex(5)}"
+
+    full_temp_file_path = str(abspath(temp_dir / name))
+
+    async with aiofiles.open(full_temp_file_path, "wb") as output_file:
+        while True:
+            content = await file.read(100 * 1024 * 1024)
+            if not content:
+                break
+            sha1.update(content)
+            await output_file.write(content)
+
+    directory = Path(upload_dir) / sha1.hexdigest()
+    directory.mkdir(exist_ok=True, parents=True)
+    dest = (directory / name).resolve()
+
+    await anyio.to_thread.run_sync(
+        shutil.move, full_temp_file_path, dest, limiter=limiter
+    )
+
+    return str(dest)
+
+
+def save_url_to_cache(url: str, cache_dir: str) -> str:
+    """Downloads a file and makes a temporary file path for a copy if does not already
+    exist. Otherwise returns the path to the existing temp file."""
+    temp_dir = hash_url(url)
+    temp_dir = Path(cache_dir) / temp_dir
+    temp_dir.mkdir(exist_ok=True, parents=True)
+
+    name = client_utils.strip_invalid_filename_characters(Path(url).name)
+    full_temp_file_path = str(abspath(temp_dir / name))
+
+    if not Path(full_temp_file_path).exists():
+        with requests.get(url, stream=True) as r, open(full_temp_file_path, "wb") as f:
+            shutil.copyfileobj(r.raw, f)
+
+    return full_temp_file_path
+
+
+def save_base64_to_cache(
+    base64_encoding: str, cache_dir: str, file_name: str | None = None
+) -> str:
+    """Converts a base64 encoding to a file and returns the path to the file if
+    the file doesn't already exist. Otherwise returns the path to the existing file.
+    """
+    temp_dir = hash_base64(base64_encoding)
+    temp_dir = Path(cache_dir) / temp_dir
+    temp_dir.mkdir(exist_ok=True, parents=True)
+
+    guess_extension = client_utils.get_extension(base64_encoding)
+    if file_name:
+        file_name = client_utils.strip_invalid_filename_characters(file_name)
+    elif guess_extension:
+        file_name = f"file.{guess_extension}"
+    else:
+        file_name = "file"
+
+    full_temp_file_path = str(abspath(temp_dir / file_name))  # type: ignore
+
+    if not Path(full_temp_file_path).exists():
+        data, _ = client_utils.decode_base64_to_binary(base64_encoding)
+        with open(full_temp_file_path, "wb") as fb:
+            fb.write(data)
+
+    return full_temp_file_path
+
+
+def move_files_to_cache(data: Any, block: Component):
+    """Move files to cache and replace the file path with the cache path.
+
+    Runs after postprocess and before preprocess.
+
+    Args:
+        data: The input or output data for a component.
+        block: The component
+    """
+
+    def _move_to_cache(d: dict):
+        payload = FileData(**d)
+        if payload.name and (
+            client_utils.is_http_url_like(payload.name)
+            or not is_in_or_equal(payload.name, block.GRADIO_CACHE)
+        ):
+            if payload.is_file:
+                if client_utils.is_http_url_like(payload.name):
+                    temp_file_path = save_url_to_cache(
+                        payload.name, cache_dir=block.GRADIO_CACHE
+                    )
+                else:
+                    temp_file_path = save_file_to_cache(
+                        payload.name, cache_dir=block.GRADIO_CACHE
+                    )
+            else:
+                assert payload.data
+                temp_file_path = save_base64_to_cache(
+                    payload.data,
+                    file_name=payload.name,
+                    cache_dir=block.GRADIO_CACHE,
+                )
+                payload.is_file = True
+            block.temp_files.add(temp_file_path)
+            payload.name = temp_file_path
+        return payload.model_dump()
+
+    return client_utils.traverse(data, _move_to_cache, client_utils.is_file_obj)
 
 
 def resize_and_crop(img, size, crop_type="center"):

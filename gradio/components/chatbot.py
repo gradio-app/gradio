@@ -214,26 +214,17 @@ class Chatbot(Component):
 
     def _postprocess_chat_messages(
         self, chat_message: str | tuple | list | None
-    ) -> str | dict | None:
+    ) -> str | FileMessage | None:
         if chat_message is None:
             return None
         elif isinstance(chat_message, (tuple, list)):
-            file_uri = str(chat_message[0])
-            if utils.validate_url(file_uri):
-                filepath = file_uri
-            else:
-                filepath = self.make_temp_copy_if_needed(file_uri)
+            filepath = str(chat_message[0])
 
             mime_type = client_utils.get_mimetype(filepath)
-            return {
-                "file": {
-                    "name": filepath,
-                    "mime_type": mime_type,
-                    "data": None,  # These last two fields are filled in by the frontend
-                    "is_file": True,
-                },
-                "alt_text": chat_message[1] if len(chat_message) > 1 else None,
-            }
+            return FileMessage(
+                file=FileData(name=filepath, is_file=True, mime_type=mime_type),
+                alt_text=chat_message[1] if len(chat_message) > 1 else None,
+            )
         elif isinstance(chat_message, str):
             chat_message = inspect.cleandoc(chat_message)
             return chat_message

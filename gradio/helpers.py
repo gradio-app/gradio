@@ -214,8 +214,12 @@ class Examples:
                     prediction_value = component.postprocess(sample)
                     if isinstance(prediction_value, (GradioRootModel, GradioModel)):
                         prediction_value = prediction_value.model_dump()
+                    prediction_value = processing_utils.move_files_to_cache(
+                        prediction_value, component
+                    )
                     sub.append(prediction_value)
                 self.processed_examples.append(sub)
+
         self.non_none_processed_examples = [
             [ex for (ex, keep) in zip(example, input_has_examples) if keep]
             for example in self.processed_examples

@@ -71,7 +71,7 @@ class Client:
         hf_token: str | None = None,
         max_workers: int = 40,
         serialize: bool = True,
-        output_dir: str | Path | None = DEFAULT_TEMP_DIR,
+        output_dir: str | Path = DEFAULT_TEMP_DIR,
         verbose: bool = True,
     ):
         """
@@ -543,39 +543,6 @@ class Client:
     def __str__(self):
         return self.view_api(print_info=False, return_format="str")
 
-    def download_file(
-        self,
-        x: str | None,
-        save_dir: str | None = None,
-        root_url: str | None = None,
-        hf_token: str | None = None,
-    ) -> str | None:
-        if x is None:
-            return None
-        if isinstance(x, str):
-            file_name = utils.decode_base64_to_file(x, dir=save_dir).name
-        elif isinstance(x, dict):
-            if x.get("is_file"):
-                filepath = x.get("name")
-                assert filepath is not None, f"The 'name' field is missing in {x}"
-                if root_url is not None:
-                    file_name = utils.download_tmp_copy_of_file(
-                        root_url + "file=" + filepath,
-                        hf_token=hf_token,
-                        dir=save_dir,
-                    )
-                else:
-                    file_name = utils.create_tmp_copy_of_file(filepath, dir=save_dir)
-            else:
-                data = x.get("data")
-                assert data is not None, f"The 'data' field is missing in {x}"
-                file_name = utils.decode_base64_to_file(data, dir=save_dir).name
-        else:
-            raise ValueError(
-                f"A FileSerializable component can only deserialize a string or a dict, not a {type(x)}: {x}"
-            )
-        return file_name
-
     def _telemetry_thread(self) -> None:
         # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
         data = {
@@ -843,14 +810,12 @@ class Endpoint:
             component["type"] == "state",
         )
 
-    def value_is_file(self, component: dict) -> bool:
+    @staticmethod
+    def value_is_file(component: dict) -> bool:
         # Hacky for now
         if "api_info" not in component:
             return False
-        api_info = utils._json_schema_to_python_type(
-            component["api_info"], component["api_info"].get("$defs")
-        )
-        return utils.FILE_DATA in api_info
+        return utils.value_is_file(component["api_info"])
 
     def __repr__(self):
         return f"Endpoint src: {self.client.src}, api_name: {self.api_name}, fn_index: {self.fn_index}"
@@ -1008,9 +973,7 @@ class Endpoint:
         new_data = []
         for i, d in enumerate(data):
             if self.input_component_types[i].value_is_file:
-                d = utils.traverse(
-                    d, get_file, lambda s: isinstance(s, str) and Path(s).exists()
-                )
+                d = utils.traverse(d, get_file, utils.is_filepath)
             new_data.append(d)
         return file_list, new_data
 
@@ -1033,8 +996,8 @@ class Endpoint:
         data = self._add_uploaded_files_to_data(data, uploaded_files)
         data = utils.traverse(
             data,
-            lambda s: {"name": s, "is_file": True},
-            lambda s: isinstance(s, str) and utils.is_http_url_like(s),
+            lambda s: {"name": s, "is_file": True, "data": None},
+            utils.is_url,
         )
         o = tuple(data)
         return o
@@ -1042,8 +1005,8 @@ class Endpoint:
     @staticmethod
     def _download_file(
         x: dict,
-        save_dir: str | None = None,
-        root_url: str | None = None,
+        save_dir: str,
+        root_url: str,
         hf_token: str | None = None,
     ) -> str | None:
         if x is None:
@@ -1054,14 +1017,11 @@ class Endpoint:
             if x.get("is_file"):
                 filepath = x.get("name")
                 assert filepath is not None, f"The 'name' field is missing in {x}"
-                if root_url is not None:
-                    file_name = utils.download_tmp_copy_of_file(
-                        root_url + "file=" + filepath,
-                        hf_token=hf_token,
-                        dir=save_dir,
-                    )
-                else:
-                    file_name = utils.create_tmp_copy_of_file(filepath, dir=save_dir)
+                file_name = utils.download_file(
+                    root_url + "file=" + filepath,
+                    hf_token=hf_token,
+                    dir=save_dir,
+                )
             else:
                 data = x.get("data")
                 assert data is not None, f"The 'data' field is missing in {x}"
@@ -1075,18 +1035,7 @@ class Endpoint:
     def deserialize(self, *data) -> tuple:
         data_ = list(data)
 
-        def is_file(d):
-            return (
-                isinstance(d, dict)
-                and "name" in d
-                and "is_file" in d
-                and "data" in d
-                and "size" in d
-                and "orig_name" in d
-                and "mime_type" in d
-            )
-
-        data_: list[Any] = utils.traverse(data_, self.download_file, is_file)
+        data_: list[Any] = utils.traverse(data_, self.download_file, utils.is_file_obj)
         return tuple(data_)
 
     def process_predictions(self, *predictions):

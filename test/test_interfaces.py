@@ -47,7 +47,6 @@ class TestInterface:
         with pytest.raises(TypeError):
             Interface(lambda x: x, examples=1234)
 
-    @pytest.mark.xfail
     def test_partial_functions(self):
         def greet(name, formatter):
             return formatter(f"Hello {name}!")

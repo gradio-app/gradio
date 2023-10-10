@@ -135,17 +135,7 @@ class Model3D(Component):
         """
         if x is None:
             return x
-        file_name, file_data, is_file = (
-            x["name"],
-            x["data"],
-            x.get("is_file", False),
-        )
-        if is_file:
-            temp_file_path = self.make_temp_copy_if_needed(file_name)
-        else:
-            temp_file_path = self.base64_to_temp_file_if_needed(file_data, file_name)
-
-        return temp_file_path
+        return x["name"]
 
     def postprocess(self, y: str | Path | None) -> FileData | None:
         """
@@ -156,12 +146,7 @@ class Model3D(Component):
         """
         if y is None:
             return y
-        data = {
-            "name": self.make_temp_copy_if_needed(y),
-            "data": None,
-            "is_file": True,
-        }
-        return FileData(**data)
+        return FileData(name=str(y), is_file=True)
 
     def as_example(self, input_data: str | None) -> str:
         return Path(input_data).name if input_data else ""

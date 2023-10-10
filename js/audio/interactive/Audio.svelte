@@ -97,7 +97,8 @@
 			data: await blob_to_data_url(_audio_blob),
 			name: "audio.wav",
 		};
-		dispatch(event, value);
+		const detail = {...value, is_file: false}
+		dispatch(event, detail);
 	};
 
 	async function prepare_audio(): Promise<void> {
