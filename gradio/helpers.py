@@ -23,7 +23,7 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 from matplotlib import animation
 
-from gradio import components, oauth, processing_utils, routes, utils
+from gradio import components, oauth, processing_utils, routes, utils, wasm_utils
 from gradio.context import Context, LocalContext
 from gradio.exceptions import Error
 from gradio.flagging import CSVLogger
@@ -72,7 +72,7 @@ def create_examples(
         batch=batch,
         _initiated_directly=False,
     )
-    client_utils.synchronize_async(examples_obj.create)
+    examples_obj.create()
     return examples_obj
 
 
@@ -246,7 +246,7 @@ class Examples:
         self.cache_examples = cache_examples
         self.run_on_click = run_on_click
 
-    async def create(self) -> None:
+    def create(self) -> None:
         """Caches the examples if self.cache_examples is True and creates the Dataset
         component to hold the examples"""
 
@@ -274,7 +274,16 @@ class Examples:
                 )
 
         if self.cache_examples:
-            await self.cache()
+            if wasm_utils.IS_WASM:
+                # In the Wasm mode, the `threading` module is not supported,
+                # so `client_utils.synchronize_async` is also not available.
+                # And `self.cache()` should be waited for to complete before this method returns,
+                # (otherwise, an error "Cannot cache examples if not in a Blocks context" will be raised anyway)
+                # so `eventloop.create_task(self.cache())` is also not an option.
+                raise wasm_utils.WasmUnsupportedError(
+                    "Caching examples is not supported in the Wasm mode."
+                )
+            client_utils.synchronize_async(self.cache)
 
     async def cache(self) -> None:
         """
@@ -360,10 +369,10 @@ class Examples:
         Context.root_block.dependencies.pop(index)
         Context.root_block.fns.pop(index)
 
-        async def load_example(example_id):
+        def load_example(example_id):
             processed_example = self.non_none_processed_examples[
                 example_id
-            ] + await self.load_from_cache(example_id)
+            ] + self.load_from_cache(example_id)
             return utils.resolve_singleton(processed_example)
 
         self.load_input_event = self.dataset.click(
@@ -376,7 +385,7 @@ class Examples:
             api_name=self.api_name,  # type: ignore
         )
 
-    async def load_from_cache(self, example_id: int) -> list[Any]:
+    def load_from_cache(self, example_id: int) -> list[Any]:
         """Loads a particular cached example for the interface.
         Parameters:
             example_id: The id of the example to process (zero-indexed).
@@ -516,7 +525,8 @@ class Progress(Iterable):
             ):
                 current_iterable = self.iterables.pop()
             callback(self.iterables)
-            assert current_iterable.index is not None, "Index not set."
+            if current_iterable.index is None:
+                raise IndexError("Index not set.")
             current_iterable.index += 1
             try:
                 return next(current_iterable.iterable)  # type: ignore
@@ -594,7 +604,8 @@ class Progress(Iterable):
         callback = self._progress_callback()
         if callback and len(self.iterables) > 0:
             current_iterable = self.iterables[-1]
-            assert current_iterable.index is not None, "Index not set."
+            if current_iterable.index is None:
+                raise IndexError("Index not set.")
             current_iterable.index += n
             callback(self.iterables)
         else:
