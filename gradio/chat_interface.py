@@ -12,7 +12,6 @@ import anyio
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
-import gradio as gr
 from gradio.blocks import Blocks
 from gradio.components import (
     Button,
@@ -27,6 +26,7 @@ from gradio.events import Dependency, EventListenerMethod, on
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args
 from gradio.layouts import Accordion, Column, Group, Row
+from gradio.routes import Request
 from gradio.themes import ThemeClass as Theme
 from gradio.utils import SyncToAsyncIterator, async_iteration
 
@@ -396,7 +396,7 @@ class ChatInterface(Blocks):
         self,
         message: str,
         history_with_input: list[list[str | None]],
-        request: gr.Request,
+        request: Request,
         *args,
     ) -> tuple[list[list[str | None]], list[list[str | None]]]:
         history = history_with_input[:-1]
