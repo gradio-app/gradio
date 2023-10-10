@@ -334,8 +334,8 @@ class ChatInterface(Blocks):
                 for event_trigger in event_triggers:
                     event_trigger(
                         lambda: (
-                            Button.update(visible=False),
-                            Button.update(visible=True),
+                            Button(visible=False),
+                            Button(visible=True),
                         ),
                         None,
                         [self.submit_btn, self.stop_btn],
@@ -343,7 +343,7 @@ class ChatInterface(Blocks):
                         queue=False,
                     )
                 event_to_cancel.then(
-                    lambda: (Button.update(visible=True), Button.update(visible=False)),
+                    lambda: (Button(visible=True), Button(visible=False)),
                     None,
                     [self.submit_btn, self.stop_btn],
                     api_name=False,
@@ -352,14 +352,14 @@ class ChatInterface(Blocks):
             else:
                 for event_trigger in event_triggers:
                     event_trigger(
-                        lambda: Button.update(visible=True),
+                        lambda: Button(visible=True),
                         None,
                         [self.stop_btn],
                         api_name=False,
                         queue=False,
                     )
                 event_to_cancel.then(
-                    lambda: Button.update(visible=False),
+                    lambda: Button(visible=False),
                     None,
                     [self.stop_btn],
                     api_name=False,
