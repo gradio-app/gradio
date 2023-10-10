@@ -316,15 +316,24 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 	} catch (error) {
 		console.error(error);
 
-		// The `error` object may contain non-serializable properties such as function,
+		if (!(error instanceof Error)) {
+			throw error;
+		}
+
+		// The `error` object may contain non-serializable properties such as function (for example Pyodide.FS.ErrnoError which has a `.setErrno` function),
 		// so it must be converted to a plain object before sending it to the main thread.
 		// Otherwise, the following error will be thrown:
 		// `Uncaught (in promise) DOMException: Failed to execute 'postMessage' on 'MessagePort': #<Object> could not be cloned.`
-		const cloneableError = JSON.parse(JSON.stringify(error)); // Ref: https://stackoverflow.com/a/42376465/13103190
-		const replyMessage: ReplyMessageError = {
-			type: "reply:error",
-			error: cloneableError
-		};
-		messagePort.postMessage(replyMessage);
+		// Also, the JSON.stringify() and JSON.parse() approach like https://stackoverflow.com/a/42376465/13103190
+		// does not work for Error objects because the Error object is not enumerable.
+		// So we use the following approach to clone the Error object.
+		const cloneableError = new Error(error.message);
+		cloneableError.name = error.name;
+		cloneableError.stack = error.stack;
+
+		messagePort.postMessage({
+			type: "reply",
+			error: cloneableError,
+		});
 	}
 };
