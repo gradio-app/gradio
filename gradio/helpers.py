@@ -710,7 +710,7 @@ def special_args(
     inputs: list[Any] | None = None,
     request: routes.Request | None = None,
     event_data: EventData | None = None,
-):
+) -> tuple[list, int | None, int | None]:
     """
     Checks if function has special arguments Request or EventData (via annotation) or Progress (via default value).
     If inputs is provided, these values will be loaded into the inputs array.
