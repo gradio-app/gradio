@@ -5,6 +5,7 @@ import inspect
 from abc import ABCMeta
 from functools import wraps
 from pathlib import Path
+from uuid import uuid4
 
 from jinja2 import Template
 
@@ -186,6 +187,7 @@ class ComponentMeta(ABCMeta):
             attrs["EVENTS"] = new_events
         if "postprocess" in attrs:
             attrs["postprocess"] = serializes(attrs["postprocess"])
+        attrs["_component_class_id"] = str(uuid4())
 
         component_class = super().__new__(cls, name, bases, attrs)
         create_or_modify_pyi(component_class, name, events)

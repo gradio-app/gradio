@@ -109,8 +109,6 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
 
     @classmethod
     def has_event(cls, event: str | EventListener) -> bool:
-        # names = [e if isinstance(e, str) else e.event_name for e in self.EVENTS]
-        # event = event if isinstance(event, str) else event.event_name
         return event in cls.EVENTS
 
 
@@ -118,6 +116,8 @@ class Component(ComponentBase, Block):
     """
     A base class for defining methods that all input/output components should have.
     """
+
+    TEMPLATES_DIR = "./templates/"
 
     def __init__(
         self,
@@ -212,6 +212,12 @@ class Component(ComponentBase, Block):
     def attach_load_event(self, callable: Callable, every: float | None):
         """Add a load event that runs `callable`, optionally every `every` seconds."""
         self.load_event_to_attach = (callable, every)
+
+    @property
+    def component_class_id(self) -> str:
+        id_ = getattr(self, "_component_class_id", None)
+        assert id_ is not None, "Component class id not set"
+        return id_
 
     def as_example(self, input_data):
         """Return the input data in a way that can be displayed by the examples dataset component in the front-end."""
