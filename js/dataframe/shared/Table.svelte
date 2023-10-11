@@ -38,18 +38,14 @@
 	export let line_breaks = true;
 	let selected: false | [number, number] = false;
 	let display_value: string[][] | null = value?.metadata?.display_value ?? null;
-	let class_names: string[][] | null = value?.metadata?.class_names ?? null;
-	let styles: string[][] | null = value?.metadata?.id_names ?? null;
+	let styling: string[][] | null = value?.metadata?.styling ?? null;
 
 	$: {
 		if (value) {
 			headers = value.headers;
 			values = value.data;
 			display_value = value?.metadata?.display_value ?? null;
-			class_names = value?.metadata?.class_names ?? null;
-			id_names = value?.metadata?.id_names ?? null;
-			css_props = value?.css_props ?? null;
-			css_string = css_props_to_string(css_props);
+			styling = value?.metadata?.styling ?? null;
 		} else if (values === null) {
 			values = [];
 		}

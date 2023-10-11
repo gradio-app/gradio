@@ -6,17 +6,16 @@
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { afterUpdate } from "svelte";
 	import { _ } from "svelte-i18n";
-	import type { CSSProps, Headers, Data, Metadata, Datatype } from "../shared/utils";
+	import type { Headers, Data, Metadata, Datatype } from "../shared/utils";
 
 	export let headers: Headers = [];
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: { data: Data; headers: Headers; metadata: Metadata, css_props: CSSProps } = {
+	export let value: { data: Data; headers: Headers; metadata: Metadata } = {
 		data: [["", "", ""]],
 		headers: ["1", "2", "3"],
-		metadata: null,
-		css_props: null
+		metadata: null
 	};
 	export let latex_delimiters: {
 		left: string;
@@ -69,8 +68,7 @@
 				.fill("")
 				.map((_, i) => `${i + 1}`),
 
-			metadata: null,
-			css_props: null
+			metadata: null
 		};
 	}
 </script>
