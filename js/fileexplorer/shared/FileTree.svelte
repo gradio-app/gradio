@@ -47,9 +47,8 @@
 						aria-label="expand directory"
 						tabindex="0"
 						on:keydown={({ key }) =>
-							key === " " ||
-							(key === "Enter" &&
-								(tree[i].children_visible = !tree[i].children_visible))}
+							(key === " " || key === "Enter") &&
+							(tree[i].children_visible = !tree[i].children_visible)}
 						><Arrow /></span
 					>
 				{:else}
