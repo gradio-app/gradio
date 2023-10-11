@@ -966,7 +966,7 @@ with gr.Blocks(theme=theme) as demo:
                 )
                 space_name = "/".join(theme_url.split("/")[-2:])
                 return (
-                    gr.Markdown.update(
+                    gr.Markdown(
                         value=f"Theme uploaded [here!]({theme_url})! Load it as `gr.Blocks(theme='{space_name}')`",
                         visible=True,
                     ),
@@ -974,7 +974,7 @@ with gr.Blocks(theme=theme) as demo:
                 )
             except Exception as e:
                 return (
-                    gr.Markdown.update(
+                    gr.Markdown(
                         value=f"Error: {e}",
                         visible=True,
                     ),
