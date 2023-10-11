@@ -17,7 +17,24 @@
 		<Icon />
 	</span>
 
-	<label for="">{label}</label>
+
+<label
+	class:hide={!show_label}
+	class:sr-only={!show_label}
+	class:float
+	class:hide-label={disable}
+	data-testid="block-label"
+>
+	<span>
+		<Icon />
+	</span>
+	{label}
+	</label>
+
+<style>
+	label {
+		display: inline-flex;
+		
 </div>
 
 <style>
