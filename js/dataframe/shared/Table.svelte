@@ -671,6 +671,7 @@
 									{line_breaks}
 									header
 									edit={false}
+									focused={false}
 									el={null}
 								/>
 
@@ -705,6 +706,7 @@
 									datatype={Array.isArray(datatype) ? datatype[j] : datatype}
 									edit={false}
 									el={null}
+									focused={false}
 								/>
 							</div>
 						</td>
@@ -747,6 +749,7 @@
 									on:keydown={end_header_edit}
 									on:dblclick={() => edit_header(i)}
 									{select_on_focus}
+									focused={false}
 									header
 								/>
 
