@@ -781,7 +781,7 @@
 							on:touchstart={() => start_edit(index, j)}
 							on:click={() => handle_cell_click(index, j)}
 							on:dblclick={() => start_edit(index, j)}
-							style="width: var(--cell-width-{j});"
+							style={"width: var(--cell-width-{j});" + styling?.[index]?.[j] || ""}
 							class:focus={dequal(selected, [index, j])}
 						>
 							<div class="cell-wrap">
@@ -789,7 +789,6 @@
 									bind:value={data[index][j].value}
 									bind:el={els[id].input}
 									display_value={display_value?.[index]?.[j]}
-									styling={styling?.[index]?.[j] || ""}
 									{latex_delimiters}
 									{editable}
 									edit={dequal(editing, [index, j])}
