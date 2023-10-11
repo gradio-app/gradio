@@ -21,7 +21,7 @@
 	export let label: string | null = null;
 	export let headers: Headers = [];
 	let values: (string | number)[][];
-	export let value: { data: Data; headers: Headers; metadata: Metadata, css_props: CSSProps } | null;
+	export let value: { data: Data; headers: Headers; metadata: Metadata } | null;
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
 	export let latex_delimiters: {
@@ -787,6 +787,7 @@
 									styling={styling?.[index]?.[j] || ""}
 									{latex_delimiters}
 									{editable}
+									focused={dequal(selected, [index, j])}
 									edit={dequal(editing, [index, j])}
 									datatype={Array.isArray(datatype) ? datatype[j] : datatype}
 									on:blur={() => ((clear_on_focus = false), parent.focus())}
@@ -931,10 +932,8 @@
 
 	th,
 	td {
-		--ring-color: transparent;
 		position: relative;
 		outline: none;
-		box-shadow: inset 0 0 0 1px var(--ring-color);
 		padding: 0;
 	}
 
@@ -946,8 +945,7 @@
 		border-top-right-radius: var(--table-radius);
 	}
 
-	th.focus,
-	td.focus {
+	th.focus {
 		--ring-color: var(--color-accent);
 	}
 

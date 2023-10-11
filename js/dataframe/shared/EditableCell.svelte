@@ -4,6 +4,7 @@
 	import { MarkdownCode } from "@gradio/markdown";
 
 	export let edit: boolean;
+	export let focused: boolean;
 	export let value: string | number = "";
 	export let display_value: string | null = null;
 	export let styling = "";
@@ -65,6 +66,7 @@
 	tabindex="-1"
 	role="button"
 	class:edit
+	class:focused
 	on:focus|preventDefault
 	style={styling}
 >
@@ -94,6 +96,10 @@
 		outline: none;
 		border: none;
 		background: transparent;
+	}
+
+	span.focused {
+		box-shadow: inset 0 0 0 1px var(--color-accent);
 	}
 
 	span {
