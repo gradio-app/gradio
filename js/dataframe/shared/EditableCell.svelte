@@ -4,7 +4,6 @@
 	import { MarkdownCode } from "@gradio/markdown";
 
 	export let edit: boolean;
-	export let focused: boolean;
 	export let value: string | number = "";
 	export let display_value: string | null = null;
 	export let styling = "";
