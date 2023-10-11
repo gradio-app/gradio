@@ -17,7 +17,7 @@
 		<Icon />
 	</span>
 
-	{label}
+	<label>{label}</label>
 </div>
 
 <style>
