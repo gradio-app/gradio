@@ -64,7 +64,6 @@
 	tabindex="-1"
 	role="button"
 	class:edit
-	class:focused
 	on:focus|preventDefault
 	style={styling}
 >
