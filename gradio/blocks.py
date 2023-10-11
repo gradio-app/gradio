@@ -214,10 +214,13 @@ class Block:
     def get_config(self):
         config = {}
         signature = inspect.signature(self.__class__.__init__)
-        for parameter in signature.parameters.values():
-            if hasattr(self, parameter.name):
-                value = getattr(self, parameter.name)
-                config[parameter.name] = value
+        parameters = set(param.name for param in signature.parameters.values()).union(
+            set(self.constructor_args.keys())
+        )
+        for parameter in parameters:
+            if hasattr(self, parameter):
+                value = getattr(self, parameter)
+                config[parameter] = value
         return {**config, "root_url": self.root_url, "name": self.get_block_name()}
 
     @staticmethod
