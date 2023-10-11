@@ -940,8 +940,10 @@
 
 	th,
 	td {
+		--ring-color: transparent;		
 		position: relative;
 		outline: none;
+		box-shadow: inset 0 0 0 1px var(--ring-color);
 		padding: 0;
 	}
 
@@ -953,7 +955,7 @@
 		border-top-right-radius: var(--table-radius);
 	}
 
-	th.focus {
+	th.focus, td.focus {
 		--ring-color: var(--color-accent);
 	}
 

@@ -97,10 +97,6 @@
 		background: transparent;
 	}
 
-	span.focused {
-		box-shadow: inset 0 0 0 1px var(--color-accent);
-	}
-
 	span {
 		flex: 1 1 0%;
 		outline: none;
