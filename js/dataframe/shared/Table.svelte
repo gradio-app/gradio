@@ -586,16 +586,16 @@
 			return;
 		}
 
-		// sort both data and display_value in place based on the values in data
-		const tempData = [..._data];
-		const tempData2 = _display_value ? [..._display_value] : null;
-		const tempData3 = _styling ? [..._styling] : null;
+		// sort all the data and metadata based on the values in the data
+		const temp_data = [..._data];
+		const temp_display_value = _display_value ? [..._display_value] : null;
+		const temp_styling = _styling ? [..._styling] : null;
 		indices.forEach((originalIndex, sortedIndex) => {
-			_data[sortedIndex] = tempData[originalIndex];
-			if (_display_value && tempData2)
-				_display_value[sortedIndex] = tempData2[originalIndex];
-			if (_styling && tempData3)
-				_styling[sortedIndex] = tempData3[originalIndex];
+			_data[sortedIndex] = temp_data[originalIndex];
+			if (_display_value && temp_display_value)
+				_display_value[sortedIndex] = temp_display_value[originalIndex];
+			if (_styling && temp_styling)
+				_styling[sortedIndex] = temp_styling[originalIndex];
 		});
 
 		data = data;
