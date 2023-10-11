@@ -8,7 +8,6 @@
 		".": "./dist/index.js",
 		"./package.json": "./package.json"
 	},
-	"private": true,
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
