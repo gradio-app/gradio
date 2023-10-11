@@ -203,6 +203,7 @@ class Block:
         collects_event_data: bool | None = None,
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
+        trigger_mode: Literal["once", "multiple", "always_last"] = "once",
     ) -> tuple[dict[str, Any], int]:
         """
         Adds an event to the component's dependencies.
@@ -226,6 +227,7 @@ class Block:
             collects_event_data: whether to collect event data for this event
             trigger_after: if set, this event will be triggered after 'trigger_after' function index
             trigger_only_on_success: if True, this event will only be triggered if the previous event was successful (only applies if `trigger_after` is set)
+            trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` event) would allow a second submission after the pending event is complete.
         Returns: dependency information, dependency index
         """
         # Support for singular parameter
@@ -266,6 +268,9 @@ class Block:
             fn = get_continuous_fn(fn, every)
         elif every:
             raise ValueError("Cannot set a value for `every` without a `fn`.")
+
+        if event_name == "change":
+            trigger_mode = "multiple"
 
         _, progress_index, event_data_index = (
             special_args(fn) if fn else (None, None, None)
@@ -314,6 +319,7 @@ class Block:
             "collects_event_data": collects_event_data,
             "trigger_after": trigger_after,
             "trigger_only_on_success": trigger_only_on_success,
+            "trigger_mode": trigger_mode,
         }
         Context.root_block.dependencies.append(dependency)
         return dependency, len(Context.root_block.dependencies) - 1

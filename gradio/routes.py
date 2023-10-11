@@ -563,7 +563,6 @@ class App(FastAPI):
             # set the username into Event to allow using the same username for call_prediction
             event.username = app.tokens.get(token)
             event.session_hash = session_info["session_hash"]
-
             # Continuous events are not put in the queue  so that they do not
             # occupy the queue's resource as they are expected to run forever
             if blocks.dependencies[event.fn_index].get("every", 0):
@@ -575,6 +574,10 @@ class App(FastAPI):
                 )
                 set_task_name(task, event.session_hash, event.fn_index, batch=False)
             else:
+                if blocks._queue.event_queue.__len__() > 0:
+                    for queue_event in blocks._queue.event_queue:
+                        if queue_event.fn_index == event.fn_index:
+                            blocks._queue.event_queue.remove(queue_event)
                 rank = blocks._queue.push(event)
 
                 if rank is None:

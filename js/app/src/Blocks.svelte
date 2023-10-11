@@ -502,7 +502,16 @@
 				});
 		} else {
 			if (dep.backend_fn) {
-				make_prediction();
+				if (dep.trigger_mode === "once") {
+					if (!dep.pending_request) make_prediction();
+				} else if (dep.trigger_mode === "multiple") {
+					do {
+						dep.pending_request = false;
+						make_prediction();
+					} while (dep.pending_request);
+				} else if (dep.trigger_mode === "always_last") {
+					make_prediction();
+				}
 			}
 		}
 
@@ -510,10 +519,7 @@
 			const submission = app
 				.submit(payload.fn_index, payload.data as unknown[], payload.event_data)
 				.on("data", ({ data, fn_index }) => {
-					do {
-						dep.pending_request = false;
-						handle_update(data, fn_index);
-						} while (dep.pending_request);
+					handle_update(data, fn_index);
 				})
 				.on("status", ({ fn_index, ...status }) => {
 					//@ts-ignore
