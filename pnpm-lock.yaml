@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -961,9 +961,12 @@ importers:
 
   js/lite:
     devDependencies:
-      gradio:
+      '@gradio/app':
         specifier: workspace:^
-        version: link:../../gradio
+        version: link:../app
+      '@gradio/wasm':
+        specifier: workspace:^
+        version: link:../wasm
 
   js/markdown:
     dependencies:
@@ -6440,7 +6443,7 @@ packages:
     peerDependencies:
       '@sveltejs/kit': ^1.0.0
     dependencies:
-      '@sveltejs/kit': 1.16.3(svelte@3.57.0)(vite@4.3.5)
+      '@sveltejs/kit': 1.16.3(svelte@3.59.2)(vite@4.3.9)
       import-meta-resolve: 3.0.0
     dev: true
 
