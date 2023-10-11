@@ -31,8 +31,6 @@
 	export let server: {
 		ls: (path: string[]) => Promise<[string[], string[]]>;
 	};
-
-	// $: value && gradio.dispatch("change");
 </script>
 
 <Block

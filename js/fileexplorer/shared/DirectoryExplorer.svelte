@@ -35,7 +35,7 @@
 	let old_value: typeof value = [];
 	function handle_select({
 		node_indices,
-		checked
+		checked,
 	}: {
 		node_indices: number[];
 		checked: boolean;
@@ -63,7 +63,7 @@
 
 <style>
 	.file-wrap {
-		height: 100%;
-		overflow: auto;
+		height: calc(100% - 25px);
+		overflow-y: scroll;
 	}
 </style>

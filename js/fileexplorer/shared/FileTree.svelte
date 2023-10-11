@@ -21,7 +21,7 @@
 
 		dispatch("check", {
 			node_indices: [...node_indices, i],
-			checked: !tree[i].checked
+			checked: !tree[i].checked,
 		});
 	}
 </script>
@@ -44,10 +44,12 @@
 						on:click|stopPropagation={() =>
 							(tree[i].children_visible = !tree[i].children_visible)}
 						role="button"
+						aria-label="expand directory"
 						tabindex="0"
 						on:keydown={({ key }) =>
-							key === " " &&
-							(tree[i].children_visible = !tree[i].children_visible)}
+							key === " " ||
+							(key === "Enter" &&
+								(tree[i].children_visible = !tree[i].children_visible))}
 						><Arrow /></span
 					>
 				{:else}
@@ -91,8 +93,6 @@
 		display: inline-block;
 		height: 20px;
 		margin-left: -1px;
-		/* height: 20px; */
-		/* padding: 3px 3px 3px 3px; */
 		margin: 0;
 		flex-grow: 0;
 		display: inline-flex;
@@ -136,7 +136,6 @@
 	li {
 		margin-left: 0;
 		padding-left: 0;
-		/* display: flex; */
 		align-items: center;
 		margin: 8px 0;
 		font-family: var(--font-mono);
@@ -147,5 +146,8 @@
 		display: flex;
 		gap: 8px;
 		align-items: center;
+		overflow-wrap: anywhere;
+		word-break: break-word;
+		overflow-y: scroll;
 	}
 </style>
