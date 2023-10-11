@@ -11,7 +11,7 @@
 	type="checkbox"
 	on:click={() => dispatch("change", value)}
 	on:keydown={({ key }) =>
-		(key === " " || key == "Enter") && dispatch("change", value)}
+		(key === " " || key === "Enter") && dispatch("change", value)}
 	{disabled}
 	class:disabled={disabled && !value}
 />
