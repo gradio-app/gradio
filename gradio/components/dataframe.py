@@ -33,6 +33,7 @@ class DataframeData:
     data: list[list[str | int | bool]]
     headers: list[str] | list[int] | None = None
     metadata: dict[str, list[list]] | None = None
+    css_props: list[dict] | None = None
 
 
 @document()
@@ -264,10 +265,12 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
                     "Cannot display Styler object in interactive mode. Will display as a regular pandas dataframe instead."
                 )
             df: pd.DataFrame = y.data  # type: ignore
+            metadata, css_props = self.__extract_metadata(y)
             value = DataframeData(
                 headers=list(df.columns),
                 data=df.to_dict(orient="split")["data"],
-                metadata=self.__extract_metadata(y),
+                metadata=metadata,
+                css_props=css_props
             )
         elif isinstance(y, (str, pd.DataFrame)):
             df = pd.read_csv(y) if isinstance(y, str) else y
@@ -301,18 +304,25 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         return asdict(value)
 
     @staticmethod
-    def __extract_metadata(df: Styler) -> dict[str, list[list]]:
-        metadata = {"display_value": []}
+    def __extract_metadata(df: Styler) -> tuple[dict[str, list[list]], list[dict]]:
+        metadata = {"display_value": [], "class_names": [], "id_names": []}
         style_data = df._compute()._translate(None, None)  # type: ignore
         for i in range(len(style_data["body"])):
             metadata["display_value"].append([])
+            metadata["class_names"].append([])
+            metadata["id_names"].append([])
             for j in range(len(style_data["body"][i])):
+                class_name = style_data["body"][i][j]["class"]
+                id_name = style_data["body"][i][j]["id"]
+                metadata["class_names"][i].append(class_name)
+                metadata["id_names"][i].append(id_name)
                 cell_type = style_data["body"][i][j]["type"]
                 if cell_type != "td":
                     continue
                 display_value = style_data["body"][i][j]["display_value"]
                 metadata["display_value"][i].append(display_value)
-        return metadata
+        css_props = style_data.get("cellstyle", [])
+        return metadata, css_props
 
     @staticmethod
     def __process_counts(count, default=3) -> tuple[int, str]:

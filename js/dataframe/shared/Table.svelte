@@ -10,18 +10,20 @@
 	import { _ } from "svelte-i18n";
 	import VirtualTable from "./VirtualTable.svelte";
 	import type {
+		CSSProps,
 		Headers,
 		HeadersWithIDs,
 		Data,
 		Metadata,
 		Datatype
 	} from "../shared/utils";
+	import { css_props_to_string } from "../shared/utils";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
 	export let headers: Headers = [];
 	let values: (string | number)[][];
-	export let value: { data: Data; headers: Headers; metadata: Metadata } | null;
+	export let value: { data: Data; headers: Headers; metadata: Metadata, css_props: CSSProps } | null;
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
 	export let latex_delimiters: {
@@ -36,12 +38,18 @@
 	export let line_breaks = true;
 	let selected: false | [number, number] = false;
 	let display_value: string[][] | null = value?.metadata?.display_value ?? null;
+	let class_names: string[][] | null = value?.metadata?.class_names ?? null;
+	let styles: string[][] | null = value?.metadata?.id_names ?? null;
 
 	$: {
 		if (value) {
 			headers = value.headers;
 			values = value.data;
 			display_value = value?.metadata?.display_value ?? null;
+			class_names = value?.metadata?.class_names ?? null;
+			id_names = value?.metadata?.id_names ?? null;
+			css_props = value?.css_props ?? null;
+			css_string = css_props_to_string(css_props);
 		} else if (values === null) {
 			values = [];
 		}
@@ -52,6 +60,7 @@
 			data: (string | number)[][];
 			headers: string[];
 			metadata: Metadata;
+			css_props: CSSProps;
 		};
 		select: SelectData;
 	}>();
@@ -162,7 +171,8 @@
 		dispatch("change", {
 			data: data.map((r) => r.map(({ value }) => value)),
 			headers: _headers.map((h) => h.value),
-			metadata: editable ? null : { display_value: display_value }
+			metadata: editable ? null : { display_value: display_value, class_names: class_names, id_names: id_names },
+			css_props: css_props
 		});
 
 	function get_sort_status(
@@ -781,6 +791,8 @@
 									bind:value={data[index][j].value}
 									bind:el={els[id].input}
 									display_value={display_value?.[index]?.[j]}
+									class_name={class_names?.[index]?.[j]}
+									id_name={id_names?.[index]?.[j]}
 									{latex_delimiters}
 									{editable}
 									edit={dequal(editing, [index, j])}
