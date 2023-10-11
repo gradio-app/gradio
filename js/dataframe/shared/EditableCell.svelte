@@ -8,7 +8,6 @@
 	export let value: string | number = "";
 	export let display_value: string | null = null;
 	export let styling = "";
-	console.log("styling", styling);
 	export let header = false;
 	export let datatype:
 		| "str"
