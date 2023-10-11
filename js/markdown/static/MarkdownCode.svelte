@@ -111,4 +111,8 @@
 	span :global(pre) {
 		position: relative;
 	}
+
+	:global(.md ul) {
+		list-style-position: inside;
+	}
 </style>
