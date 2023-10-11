@@ -10,14 +10,12 @@
 	import { _ } from "svelte-i18n";
 	import VirtualTable from "./VirtualTable.svelte";
 	import type {
-		CSSProps,
 		Headers,
 		HeadersWithIDs,
 		Data,
 		Metadata,
 		Datatype
 	} from "../shared/utils";
-	import { css_props_to_string } from "../shared/utils";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -46,6 +44,7 @@
 			values = value.data;
 			display_value = value?.metadata?.display_value ?? null;
 			styling = value?.metadata?.styling ?? null;
+			console.log("styling", styling);
 		} else if (values === null) {
 			values = [];
 		}
@@ -56,7 +55,6 @@
 			data: (string | number)[][];
 			headers: string[];
 			metadata: Metadata;
-			css_props: CSSProps;
 		};
 		select: SelectData;
 	}>();
@@ -167,8 +165,7 @@
 		dispatch("change", {
 			data: data.map((r) => r.map(({ value }) => value)),
 			headers: _headers.map((h) => h.value),
-			metadata: editable ? null : { display_value: display_value, class_names: class_names, id_names: id_names },
-			css_props: css_props
+			metadata: editable ? null : { display_value: display_value, styling: styling }
 		});
 
 	function get_sort_status(
@@ -787,8 +784,7 @@
 									bind:value={data[index][j].value}
 									bind:el={els[id].input}
 									display_value={display_value?.[index]?.[j]}
-									class_name={class_names?.[index]?.[j]}
-									id_name={id_names?.[index]?.[j]}
+									styling={styling?.[index]?.[j] || ""}
 									{latex_delimiters}
 									{editable}
 									edit={dequal(editing, [index, j])}

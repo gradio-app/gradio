@@ -6,8 +6,8 @@
 	export let edit: boolean;
 	export let value: string | number = "";
 	export let display_value: string | null = null;
-	export let class_name: string | null = null;
-	export let id_name: string | null = null;
+	export let styling = "";
+	console.log("styling", styling);
 	export let header = false;
 	export let datatype:
 		| "str"
@@ -65,9 +65,8 @@
 	tabindex="-1"
 	role="button"
 	class:edit
-	class="{class_name}"
-	id={id_name}
 	on:focus|preventDefault
+	style={styling}
 >
 	{#if datatype === "html"}
 		{@html value}
