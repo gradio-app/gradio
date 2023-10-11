@@ -3,4 +3,4 @@
 "@gradio/wasm": patch
 ---
 
-feat:publish @gradio/wasm
+feat:fix @gradio/lite dependencies
