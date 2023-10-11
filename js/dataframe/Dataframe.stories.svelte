@@ -23,11 +23,15 @@
 <Story
 	name="Interactive dataframe"
 	args={{
-		value: {data: [
-			["Cat", 5],
-			["Horse", 3],
-			["Snake", 1]
-		], headers: ["Animal", "Votes"], metadata: null},
+		value: {
+			data: [
+				["Cat", 5],
+				["Horse", 3],
+				["Snake", 1]
+			],
+			headers: ["Animal", "Votes"],
+			metadata: null
+		},
 		label: "Animals",
 		col_count: [2, "dynamic"],
 		row_count: [3, "dynamic"]
@@ -37,11 +41,15 @@
 <Story
 	name="Static dataframe"
 	args={{
-		value: {data: [
-			["Cat", 5],
-			["Horse", 3],
-			["Snake", 1]
-			], headers: ["Animal", "Votes"], metadata: null},
+		value: {
+			data: [
+				["Cat", 5],
+				["Horse", 3],
+				["Snake", 1]
+			],
+			headers: ["Animal", "Votes"],
+			metadata: null
+		},
 		label: "Animals",
 		col_count: [2, "dynamic"],
 		row_count: [3, "dynamic"],
@@ -75,11 +83,15 @@
 <Story
 	name="Dataframe with markdown and math"
 	args={{
-		value: {data: [
-			["Linear", "$y=x$", "Has a *maximum*  of 1 root"],
-			["Quadratic", "$y=x^2$", "Has a *maximum*  of 2 roots"],
-			["Cubic", "$y=x^3$", "Has a *maximum*  of 3 roots"]
-		],		headers: ["Type", "Example", "Roots"], metadata: null},
+		value: {
+			data: [
+				["Linear", "$y=x$", "Has a *maximum*  of 1 root"],
+				["Quadratic", "$y=x^2$", "Has a *maximum*  of 2 roots"],
+				["Cubic", "$y=x^3$", "Has a *maximum*  of 3 roots"]
+			],
+			headers: ["Type", "Example", "Roots"],
+			metadata: null
+		},
 		datatype: ["str", "markdown", "markdown"],
 		latex_delimiters: [{ left: "$", right: "$", display: false }],
 		label: "Math",
@@ -100,7 +112,11 @@
 			headers: ["Math", "Reading", "Writing"],
 			metadata: {
 				styling: [
-					["background-color:teal; color: white", "1.2", "background-color:teal; color: white"],
+					[
+						"background-color:teal; color: white",
+						"1.2",
+						"background-color:teal; color: white"
+					],
 					["1", "background-color:teal; color: white", "1.21"]
 				]
 			}
