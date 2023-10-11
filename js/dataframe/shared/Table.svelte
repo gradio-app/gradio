@@ -559,6 +559,7 @@
 	function sort_data(
 		_data: typeof data,
 		_display_value: string[][] | null,
+		_styling: string[][] | null,
 		col?: number,
 		dir?: SortDirection
 	): void {
@@ -587,10 +588,12 @@
 		// sort both data and display_value in place based on the values in data
 		const tempData = [..._data];
 		const tempData2 = _display_value ? [..._display_value] : null;
+		const tempData3 = _styling ? [..._styling] : null;
 		indices.forEach((originalIndex, sortedIndex) => {
 			_data[sortedIndex] = tempData[originalIndex];
 			if (_display_value && tempData2)
 				_display_value[sortedIndex] = tempData2[originalIndex];
+			if (_styling && tempData3) _styling[sortedIndex] = tempData3[originalIndex];
 		});
 
 		data = data;
@@ -601,7 +604,7 @@
 		}
 	}
 
-	$: sort_data(data, display_value, sort_by, sort_direction);
+	$: sort_data(data, display_value, styling, sort_by, sort_direction);
 
 	$: selected_index = !!selected && selected[0];
 
