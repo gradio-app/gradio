@@ -44,7 +44,6 @@
 			values = value.data;
 			display_value = value?.metadata?.display_value ?? null;
 			styling = value?.metadata?.styling ?? null;
-			console.log("styling", styling);
 		} else if (values === null) {
 			values = [];
 		}
