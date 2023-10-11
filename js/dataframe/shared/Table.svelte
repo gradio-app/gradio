@@ -164,7 +164,9 @@
 		dispatch("change", {
 			data: data.map((r) => r.map(({ value }) => value)),
 			headers: _headers.map((h) => h.value),
-			metadata: editable ? null : { display_value: display_value, styling: styling }
+			metadata: editable
+				? null
+				: { display_value: display_value, styling: styling }
 		});
 
 	function get_sort_status(
@@ -562,10 +564,10 @@
 		col?: number,
 		dir?: SortDirection
 	): void {
-		let id = null
+		let id = null;
 		//Checks if the selected cell is still in the data
 		if (selected && selected[0] in data && selected[1] in data[selected[0]]) {
-			id = data[selected[0]][selected[1]].id
+			id = data[selected[0]][selected[1]].id;
 		}
 		if (typeof col !== "number" || !dir) {
 			return;
@@ -592,7 +594,8 @@
 			_data[sortedIndex] = tempData[originalIndex];
 			if (_display_value && tempData2)
 				_display_value[sortedIndex] = tempData2[originalIndex];
-			if (_styling && tempData3) _styling[sortedIndex] = tempData3[originalIndex];
+			if (_styling && tempData3)
+				_styling[sortedIndex] = tempData3[originalIndex];
 		});
 
 		data = data;
