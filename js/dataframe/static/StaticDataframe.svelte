@@ -5,16 +5,15 @@
 	import Table from "../shared";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import type { Headers, Data, Metadata, Datatype, CSSProps } from "../shared/utils";
+	import type { Headers, Data, Metadata, Datatype } from "../shared/utils";
 	export let headers: Headers = [];
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: { data: Data; headers: Headers; metadata: Metadata, css_props: CSSProps } = {
+	export let value: { data: Data; headers: Headers; metadata: Metadata } = {
 		data: [["", "", ""]],
 		headers: ["1", "2", "3"],
-		metadata: null,
-		css_props: null
+		metadata: null
 	};
 	let old_value: string = JSON.stringify(value);
 	export let value_is_output = false;
@@ -64,8 +63,7 @@
 			headers: Array(col_count?.[0] || 3)
 				.fill("")
 				.map((_, i) => `${i + 1}`),
-			metadata: null,
-			css_props: null
+			metadata: null
 		};
 	}
 </script>
