@@ -792,7 +792,6 @@
 									styling={styling?.[index]?.[j] || ""}
 									{latex_delimiters}
 									{editable}
-									focused={dequal(selected, [index, j])}
 									edit={dequal(editing, [index, j])}
 									datatype={Array.isArray(datatype) ? datatype[j] : datatype}
 									on:blur={() => ((clear_on_focus = false), parent.focus())}
