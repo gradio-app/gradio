@@ -13,6 +13,7 @@
 		"build": "pnpm --filter @gradio/app build:lite"
 	},
 	"devDependencies": {
-		"gradio": "workspace:^"
+		"@gradio/app": "workspace:^",
+		"@gradio/wasm": "workspace:^"
 	}
 }
