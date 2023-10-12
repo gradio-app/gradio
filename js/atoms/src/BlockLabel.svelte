@@ -6,18 +6,6 @@
 	export let float = true;
 </script>
 
-<div
-	class:hide={!show_label}
-	class:sr-only={!show_label}
-	class:float
-	class:hide-label={disable}
-	data-testid="block-label"
->
-	<span>
-		<Icon />
-	</span>
-
-
 <label
 	class:hide={!show_label}
 	class:sr-only={!show_label}
@@ -29,16 +17,10 @@
 		<Icon />
 	</span>
 	{label}
-	</label>
+</label>
 
 <style>
 	label {
-		display: inline-flex;
-		
-</div>
-
-<style>
-	div {
 		display: inline-flex;
 		align-items: center;
 		z-index: var(--layer-2);
@@ -55,16 +37,16 @@
 		font-size: var(--block-label-text-size);
 		line-height: var(--line-sm);
 	}
-	:global(.gr-group) div {
+	:global(.gr-group) label {
 		border-top-left-radius: 0;
 	}
 
-	div.float {
+	label.float {
 		position: absolute;
 		top: var(--block-label-margin);
 		left: var(--block-label-margin);
 	}
-	div:not(.float) {
+	label:not(.float) {
 		position: static;
 		margin-top: var(--block-label-margin);
 		margin-left: var(--block-label-margin);
