@@ -58,6 +58,14 @@ demos_by_category = [
                 "dir": "fake_diffusion",
             },
             {
+                "name": "Video Identity", 
+                "dir": "video_identity", 
+            },
+            {
+                "name": "Video Subtitles", 
+                "dir": "video_subtitle", 
+            },
+            {
                 "name": "Generate Tone", 
                 "dir": "generate_tone", 
             },
@@ -65,14 +73,6 @@ demos_by_category = [
                 "name": "Reverse Audio", 
                 "dir": "reverse_audio", 
             },
-            # {
-            #     "name": "Video Identity", 
-            #     "dir": "video_identity", 
-            # },
-            # {
-            #     "name": "Video Subtitles", 
-            #     "dir": "video_subtitle", 
-            # },
         ]
     },
     {
