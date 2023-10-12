@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from typer import Option
 from typing_extensions import Annotated
@@ -17,7 +17,7 @@ def main(
         str, Option(help="Discord bot token. Get one on the discord website.")
     ] = None,
     api_names: Annotated[
-        list[str], Option(help="Api names to turn into discord bots")
+        List[str], Option(help="Api names to turn into discord bots")
     ] = None,
     to_id: Annotated[
         Optional[str], Option(help="Name of the space used to host the discord bot")
