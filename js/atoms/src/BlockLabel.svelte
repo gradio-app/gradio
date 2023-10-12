@@ -7,6 +7,7 @@
 </script>
 
 <label
+	for=""
 	class:hide={!show_label}
 	class:sr-only={!show_label}
 	class:float
