@@ -45,6 +45,8 @@ def _dev(
             gradio_template_path,
             "--app",
             str(app),
+            "--mode",
+            "dev",
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
@@ -61,6 +63,7 @@ def _dev(
             .replace("Watching:", "[orange3]Watching:[/]")
             .replace("Running on local URL", "[orange3]Backend Server[/]")
         )
+
         if "[orange3]Watching:[/]" in text:
             text += f"'{str(component_directory / 'frontend').strip()}',"
         if "To create a public link" in text:

@@ -113,13 +113,11 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
     def has_event(cls, event: str | EventListener) -> bool:
         return event in cls.EVENTS
 
-    @property
-    def component_class_id(self) -> str:
-        module_name = self.__class__.__module__
+    @classmethod
+    def get_component_class_id(cls) -> str:
+        module_name = cls.__module__
         module_path = sys.modules[module_name].__file__
-        module_hash = hashlib.md5(
-            f"{self.__class__.__name__}_{module_path}".encode()
-        ).hexdigest()
+        module_hash = hashlib.md5(f"{cls.__name__}_{module_path}".encode()).hexdigest()
         return module_hash
 
 
@@ -127,8 +125,6 @@ class Component(ComponentBase, Block):
     """
     A base class for defining methods that all input/output components should have.
     """
-
-    TEMPLATES_DIR = "./templates/"
 
     def __init__(
         self,
@@ -193,6 +189,11 @@ class Component(ComponentBase, Block):
         )
         if callable(load_fn):
             self.attach_load_event(load_fn, every)
+
+        self.component_class_id = self.__class__.get_component_class_id()
+
+    TEMPLATE_DIR = "./templates/"
+    FRONTEND_DIR = "../../frontend/"
 
     def get_config(self):
         config = super().get_config()

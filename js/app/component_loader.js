@@ -1,6 +1,6 @@
 // @ts-nocheck
 
-export async function load_component(name, mode) {
+export async function load_component(api_url, name, mode, id) {
 	const comps = window.__GRADIO__CC__;
 
 	const _component_map = {
@@ -10,7 +10,9 @@ export async function load_component(name, mode) {
 	try {
 		//@ts-ignore
 		const c = await (
-			_component_map[name][mode] || _component_map[name]["static"]
+			_component_map?.[id]?.[mode] || // for dev mode custom components
+			_component_map?.[name]?.[mode] ||
+			_component_map?.[name]?.["static"]
 		)();
 		return {
 			name,
@@ -18,11 +20,10 @@ export async function load_component(name, mode) {
 		};
 	} catch (e) {
 		try {
-			await load_css(`/custom_component/${name}/${mode}/style.css`);
+			await load_css(`${api_url}/custom_component/${id}/${mode}/style.css`);
 			const c = await import(
-				/* @vite-ignore */ `/custom_component/${name}/${mode}/index.js`
+				/* @vite-ignore */ `${api_url}/custom_component/${id}/${mode}/index.js`
 			);
-			console.log(c);
 			return {
 				name,
 				component: c

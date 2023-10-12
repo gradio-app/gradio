@@ -97,17 +97,8 @@ export function generate_dev_entry({ enable }: { enable: boolean }): Plugin {
 		name: "generate-dev-entry",
 		transform(code, id) {
 			if (!enable) return;
-			let index = code.indexOf("svelte/internal");
-			// if (index > -1) {
-			// 	console.log("SVELTE INTERNAL");
-			// 	console.log(code.substring(0, index));
-			// 	// const start = code.substring(0, index).lastIndexOf("import");
-			// 	// const end = code.substring(index).indexOf(";");
-			// 	// console.log(code.substring(start, end));
-			// }
-			// console.log(code);
+
 			const new_code = code.replace(RE_SVELTE_IMPORT, (str, $1, $2) => {
-				// console.log({ $1, $2, str });
 				return `const ${$1.replace(
 					" as ",
 					": "
@@ -313,6 +304,33 @@ export function inject_component_loader(): Plugin {
 		load(id: string) {
 			if (id === resolved_v_id) {
 				return load_virtual_component_loader();
+			}
+		}
+	};
+}
+
+export function resolve_svelte(enable: boolean): Plugin {
+	return {
+		enforce: "pre",
+		name: "resolve-svelte",
+		async resolveId(id: string) {
+			if (
+				(enable && id === "./svelte/svelte.js") ||
+				id === "svelte" ||
+				id === "svelte/internal"
+			) {
+				const mod = join(
+					__dirname,
+					"..",
+					"..",
+					"gradio",
+					"templates",
+					"frontend",
+					"assets",
+					"svelte",
+					"svelte.js"
+				);
+				return { id: mod, external: "absolute" };
 			}
 		}
 	};

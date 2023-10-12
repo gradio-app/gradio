@@ -354,27 +354,29 @@ class App(FastAPI):
             static_file = safe_join(STATIC_PATH_LIB, path)
             return FileResponse(static_file)
 
-        @app.get("/custom_component/{name:path}/{type:path}/{file_name:path}")
-        def custom_component_path(name: str, type: str, file_name: str):
-            print("CUSTOM_COMPONENT_ASSET")
+        @app.get("/custom_component/{id:path}/{type:path}/{file_name:path}")
+        def custom_component_path(id: str, type: str, file_name: str):
             config = app.get_blocks().config
             components = config["components"]
-            print(components)
-            location = next((item for item in components if item["type"] == name), None)
-            print(location)
+            location = next(
+                (item for item in components if item["component_class_id"] == id), None
+            )
+
             if location is None:
                 raise HTTPException(status_code=404, detail="Component not found.")
-            # read directory and print contents
 
-            dir_contents = os.listdir(location["module_location"])
+            component_instance = app.get_blocks().get_component(location["id"])
 
-            for item in dir_contents:
-                print(item)
+            module_name = component_instance.__class__.__module__
+            module_path = sys.modules[module_name].__file__
+
+            if module_path is None or component_instance is None:
+                raise HTTPException(status_code=404, detail="Component not found.")
 
             return FileResponse(
                 safe_join(
-                    location["module_location"],
-                    f"templates/{type}/{file_name}",
+                    str(Path(module_path).parent),
+                    f"{component_instance.__class__.TEMPLATE_DIR}/{type}/{file_name}",
                 )
             )
 

@@ -32,7 +32,8 @@ import {
 	generate_cdn_entry,
 	generate_dev_entry,
 	handle_ce_css,
-	inject_component_loader
+	inject_component_loader,
+	resolve_svelte
 } from "./build_plugins";
 
 const GRADIO_VERSION = process.env.GRADIO_VERSION || "asd_stub_asd";
@@ -69,8 +70,7 @@ export default defineConfig(({ mode }) => {
 		build: {
 			sourcemap: true,
 			target: "esnext",
-			// minify: production,
-			minify: false,
+			minify: production,
 			outDir: is_lite ? resolve(__dirname, "../lite/dist") : targets[mode],
 			// To build Gradio-lite as a library, we can't use the library mode
 			// like `lib: is_lite && {}`
@@ -135,6 +135,8 @@ export default defineConfig(({ mode }) => {
 			}
 		},
 		plugins: [
+			resolve_svelte(mode === "development"),
+
 			svelte({
 				inspector: true,
 				compilerOptions: {
@@ -151,7 +153,7 @@ export default defineConfig(({ mode }) => {
 					}
 				})
 			}),
-			generate_dev_entry({ enable: true }),
+			generate_dev_entry({ enable: mode !== "development" }),
 			inject_ejs(),
 			patch_dynamic_import({
 				mode: is_cdn ? "cdn" : "local",

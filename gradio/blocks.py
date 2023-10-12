@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import inspect
 import json
 import os
@@ -89,27 +90,6 @@ BUILT_IN_THEMES: dict[str, Theme] = {
 }
 
 
-def get_module_location_from_instance(instance: Any):
-    """
-    Returns the location of the module that the instance of the class is in.
-    """
-    module_name = instance.__class__.__module__
-    module_path = sys.modules[module_name].__file__
-    print(module_path, module_name)
-    if module_path is None:
-        module_path = os.getcwd()
-    module_dir = os.path.dirname(module_path)
-    module_root = module_dir
-
-    # this doesn't work, dunno how to handle submodules
-    # if "." in module_name:
-    #     name_parts = module_name.split(".")
-    #     for _ in range(len(name_parts) - 1):
-    #         module_root = os.path.dirname(module_root)
-
-    return module_root
-
-
 class Block:
     def __init__(
         self,
@@ -136,11 +116,6 @@ class Block:
         self.is_rendered: bool = False
         self.constructor_args: dict
         self.state_session_capacity = 10000
-        self.is_custom_component = not (
-            self.__module__.startswith("gradio.components")
-            or self.__module__.startswith("gradio.layouts")
-            or self.__module__.startswith("gradio.templates")
-        )
 
         if render:
             self.render()
@@ -199,12 +174,11 @@ class Block:
 
         @return: class name
         """
-        if self.is_custom_component:
-            return self.__class__.__module__.split(".")[0]
-        elif hasattr(self, "is_template"):
-            return self.__class__.__base__.__name__.lower()
-        else:
-            return self.__class__.__name__.lower()
+        return (
+            self.__class__.__base__.__name__.lower()
+            if hasattr(self, "is_template")
+            else self.__class__.__name__.lower()
+        )
 
     def get_expected_parent(self) -> type[BlockContext] | None:
         return None
@@ -385,10 +359,21 @@ class BlockContext(Block):
         """
         self.children: list[Block] = []
         Block.__init__(self, visible=visible, render=render, **kwargs)
+        self.component_class_id = self.__class__.get_component_class_id()
+
+    TEMPLATE_DIR = "./templates/"
+    FRONTEND_DIR = "../../frontend/"
 
     @property
     def skip_api(self):
         return True
+
+    @classmethod
+    def get_component_class_id(cls) -> str:
+        module_name = cls.__module__
+        module_path = sys.modules[module_name].__file__
+        module_hash = hashlib.md5(f"{cls.__name__}_{module_path}".encode()).hexdigest()
+        return module_hash
 
     def add_child(self, child: Block):
         self.children.append(child)
@@ -1487,10 +1472,7 @@ Received outputs:
             block_config["component_class_id"] = getattr(
                 block, "component_class_id", None
             )
-            if block.is_custom_component:
-                block_config["module_location"] = get_module_location_from_instance(
-                    block
-                )
+
             if not block.skip_api:
                 block_config["api_info"] = block.api_info()  # type: ignore
                 block_config["example_inputs"] = block.example_inputs()  # type: ignore

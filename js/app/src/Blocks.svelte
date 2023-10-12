@@ -47,6 +47,7 @@
 	export let app: Awaited<ReturnType<typeof client>>;
 	export let space_id: string | null;
 	export let version: string;
+	export let api_url: string;
 
 	let loading_status = create_loading_status_store();
 
@@ -229,8 +230,11 @@
 					}
 					let _c;
 
+					const id = components.find(
+						(c) => c.type === name
+					)?.component_class_id;
 					//@ts-ignore
-					_c = load_component(name, "example");
+					_c = load_component(api_url, name, "example", id);
 
 					example_component_map.set(name, _c);
 				});
@@ -240,7 +244,12 @@
 
 			// maybe load custom
 
-			const _c = load_component(c.type, c.props.mode);
+			const _c = load_component(
+				api_url,
+				c.type,
+				c.props.mode,
+				c.component_class_id
+			);
 			_component_set.add(_c);
 			__component_map.set(`${c.type}_${c.props.mode}`, _c);
 		});
@@ -270,7 +279,12 @@
 		if (instance.props.mode === new_mode) return;
 
 		instance.props.mode = new_mode;
-		const _c = load_component(instance.type, instance.props.mode);
+		const _c = load_component(
+			api_url,
+			instance.type,
+			instance.props.mode,
+			instance.component_class_id
+		);
 		component_set.add(_c);
 		_component_map.set(
 			`${instance.type}_${instance.props.mode}`,

@@ -7,4 +7,4 @@
 "newnewtext": minor
 ---
 
-feat:Cc build
+feat: Adds the ability to build the frontend and backend of custom components in preparation for publishing to pypi using `gradio_component build`.
