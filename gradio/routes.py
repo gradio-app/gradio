@@ -48,7 +48,12 @@ import gradio
 import gradio.ranged_response as ranged_response
 from gradio import route_utils, utils, wasm_utils
 from gradio.context import Context
-from gradio.data_classes import ComponentServerBody, PredictBody, ResetBody
+from gradio.data_classes import (
+    ComponentServerBody,
+    PredictBody,
+    ResetBody,
+    QueueJoinBody,
+)
 from gradio.deprecation import warn_deprecation
 from gradio.exceptions import Error
 from gradio.oauth import attach_oauth
@@ -546,42 +551,19 @@ class App(FastAPI):
                 )
             return output
 
-        @app.websocket("/queue/join")
+        @app.post("/queue/join", dependencies=[Depends(login_check)])
         async def join_queue(
-            websocket: WebSocket,
-            token: Optional[str] = Depends(ws_login_check),
+            body: QueueJoinBody,
+            request: fastapi.Request,
+            username: str = Depends(get_current_user),
         ):
             blocks = app.get_blocks()
-            if app.auth is not None and token is None:
-                await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-                return
             if blocks._queue.server_app is None:
                 blocks._queue.set_server_app(app)
-            await websocket.accept()
-            # In order to cancel jobs, we need the session_hash and fn_index
-            # to create a unique id for each job
-            try:
-                await asyncio.wait_for(
-                    websocket.send_json({"msg": "send_hash"}), timeout=5
-                )
-            except AsyncTimeOutError:
-                return
 
-            try:
-                session_info = await asyncio.wait_for(
-                    websocket.receive_json(), timeout=5
-                )
-            except AsyncTimeOutError:
-                return
+            event = Event(body.session_hash, body.fn_index, request, username)
 
-            event = Event(
-                websocket, session_info["session_hash"], session_info["fn_index"]
-            )
-            # set the username into Event to allow using the same username for call_prediction
-            event.username = app.tokens.get(token)
-            event.session_hash = session_info["session_hash"]
-
-            # Continuous events are not put in the queue  so that they do not
+            # Continuous events are not put in the queue so that they do not
             # occupy the queue's resource as they are expected to run forever
             if blocks.dependencies[event.fn_index].get("every", 0):
                 await cancel_tasks({f"{event.session_hash}_{event.fn_index}"})

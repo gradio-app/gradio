@@ -8,6 +8,7 @@ import traceback
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import deque
 from typing import Any
+from queue import Queue as ThreadQueue
 
 import fastapi
 from typing_extensions import Literal
@@ -23,28 +24,26 @@ from gradio.data_classes import (
 from gradio.exceptions import Error
 from gradio.helpers import TrackedIterable
 from gradio.utils import run_coro_in_background, safe_get_lock, set_task_name
+from gradio.route_utils import Request
 
 
 class Event:
     def __init__(
         self,
-        websocket: fastapi.WebSocket,
         session_hash: str,
         fn_index: int,
+        request: Request,
+        username: str | None,
     ):
-        self.websocket = websocket
-        self.session_hash: str = session_hash
-        self.fn_index: int = fn_index
+        self.message_queue = ThreadQueue()
+        self.session_hash = session_hash
+        self.fn_index = fn_index
+        self.request = request
+        self.username = username
         self._id = f"{self.session_hash}_{self.fn_index}"
         self.data: PredictBody | None = None
-        self.lost_connection_time: float | None = None
-        self.username: str | None = None
         self.progress: Progress | None = None
         self.progress_pending: bool = False
-        self.log_messages: deque[LogMessage] = deque()
-
-    async def disconnect(self, code: int = 1000):
-        await self.websocket.close(code=code)
 
 
 class Queue:
@@ -168,22 +167,18 @@ class Queue:
             for event in events:
                 if event.progress_pending and event.progress:
                     event.progress_pending = False
-                    client_awake = await self.send_message(event, event.progress.dict())
-                    if not client_awake:
-                        await self.clean_event(event)
+                    self.send_message(event, event.progress.model_dump())
                 await self.send_log_updates_for_event(event)
 
             await asyncio.sleep(self.progress_update_sleep_when_free)
 
-    async def send_log_updates_for_event(self, event: Event) -> None:
+    def send_log_updates_for_event(self, event: Event) -> None:
         while True:
             try:
                 message = event.log_messages.popleft()
             except IndexError:
                 break
-            client_awake = await self.send_message(event, message.dict())
-            if not client_awake:
-                await self.clean_event(event)
+            self.send_message(event, message.dict())
 
     def set_progress(
         self,
@@ -264,7 +259,7 @@ class Queue:
             client_awake = await self.send_message(event, {"msg": "send_data"})
             if not client_awake:
                 return False
-            data, client_awake = await self.get_message(event, timeout=receive_timeout)
+            data, client_awake = await self.get_data(event, timeout=receive_timeout)
             if not client_awake:
                 # In the event, we timeout due to large data size
                 # Let the client know, otherwise will hang
@@ -320,7 +315,7 @@ class Queue:
             if None not in self.active_jobs:
                 # Add estimated amount of time for a thread to get empty
                 estimation.rank_eta += self.avg_concurrent_process_time
-        client_awake = await self.send_message(event, estimation.dict())
+        client_awake = await self.send_message(event, estimation.model_dump())
         if not client_awake:
             await self.clean_event(event)
         return estimation
@@ -553,17 +548,10 @@ class Queue:
                 # to start "from scratch"
                 await self.reset_iterators(event.session_hash, event.fn_index)
 
-    async def send_message(self, event, data: dict, timeout: float | int = 1) -> bool:
-        try:
-            await asyncio.wait_for(
-                event.websocket.send_json(data=data), timeout=timeout
-            )
-            return True
-        except Exception:
-            await self.clean_event(event)
-            return False
+    def send_message(self, event: Event, data: dict):
+        event.message_queue.put_nowait(data)
 
-    async def get_message(self, event, timeout=5) -> tuple[PredictBody | None, bool]:
+    async def get_data(self, event, timeout=5) -> tuple[PredictBody | None, bool]:
         try:
             data = await asyncio.wait_for(
                 event.websocket.receive_json(), timeout=timeout

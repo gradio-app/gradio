@@ -21,6 +21,10 @@ class PredictBody(BaseModel):
     ] = None  # dictionary of request headers, query parameters, url, etc. (used to to pass in request for queuing)
 
 
+class QueueJoinBody(BaseModel):
+    session_hash: str
+    fn_index: int
+
 class ResetBody(BaseModel):
     session_hash: str
     fn_index: int
