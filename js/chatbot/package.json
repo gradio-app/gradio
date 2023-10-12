@@ -17,7 +17,8 @@
 		"@gradio/utils": "workspace:^",
 		"@types/dompurify": "^3.0.2",
 		"@types/katex": "^0.16.0",
-		"@types/prismjs": "1.26.0"
+		"@types/prismjs": "1.26.1",
+		"dequal": "^2.0.2"
 	},
 	"main_changeset": true,
 	"exports": {

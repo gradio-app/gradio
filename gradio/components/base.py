@@ -114,6 +114,11 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
         return event in cls.EVENTS
 
 
+def server(fn):
+    fn._is_server_fn = True
+    return fn
+
+
 class Component(ComponentBase, Block):
     """
     A base class for defining methods that all input/output components should have.
@@ -137,6 +142,12 @@ class Component(ComponentBase, Block):
         every: float | None = None,
         **kwargs,
     ):
+        self.server_fns = [
+            value
+            for value in self.__class__.__dict__.values()
+            if callable(value) and getattr(value, "_is_server_fn", False)
+        ]
+
         # This gets overriden when `select` is called
 
         self.selectable = False
@@ -187,6 +198,8 @@ class Component(ComponentBase, Block):
         config = super().get_config()
         if self.info:
             config["info"] = self.info
+        if len(self.server_fns):
+            config["server_fns"] = [fn.__name__ for fn in self.server_fns]
         return config
 
     @property
@@ -283,8 +296,8 @@ class StreamingInput(metaclass=abc.ABCMeta):
         pass
 
 
-def component(cls_name: str) -> Component:
-    obj = utils.component_or_layout_class(cls_name)()
+def component(cls_name: str, render: bool) -> Component:
+    obj = utils.component_or_layout_class(cls_name)(render=render)
     if isinstance(obj, BlockContext):
         raise ValueError(f"Invalid component: {obj.__class__}")
     assert isinstance(obj, Component)
@@ -292,20 +305,21 @@ def component(cls_name: str) -> Component:
 
 
 def get_component_instance(
-    comp: str | dict | Component, render: bool | None = None
+    comp: str | dict | Component, render: bool = False, unrender: bool = False
 ) -> Component:
     """
     Returns a component instance from a string, dict, or Component object.
     Parameters:
         comp: the component to instantiate. If a string, must be the name of a component, e.g. "dropdown". If a dict, must have a "name" key, e.g. {"name": "dropdown", "choices": ["a", "b"]}. If a Component object, will be returned as is.
-        render: whether to render the component. If True, renders the component (if not already rendered). If False, *unrenders* the component (if already rendered) -- this is useful when constructing an Interface or ChatInterface inside of a Blocks. If None, does not render or unrender the component.
+        render: whether to render the component. If True, renders the component (if not already rendered). If False, does not do anything.
+        unrender: whether to unrender the component. If True, unrenders the the component (if already rendered) -- this is useful when constructing an Interface or ChatInterface inside of a Blocks. If False, does not do anything.
     """
     if isinstance(comp, str):
-        component_obj = component(comp)
+        component_obj = component(comp, render=render)
     elif isinstance(comp, dict):
         name = comp.pop("name")
         component_cls = utils.component_or_layout_class(name)
-        component_obj = component_cls(**comp)
+        component_obj = component_cls(**comp, render=render)
         if isinstance(component_obj, BlockContext):
             raise ValueError(f"Invalid component: {name}")
     elif isinstance(comp, Component):
@@ -317,7 +331,7 @@ def get_component_instance(
 
     if render and not component_obj.is_rendered:
         component_obj.render()
-    elif render is False and component_obj.is_rendered:
+    elif unrender and component_obj.is_rendered:
         component_obj.unrender()
     assert isinstance(component_obj, Component)
     return component_obj

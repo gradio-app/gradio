@@ -3,7 +3,7 @@
 		beforeUpdate,
 		afterUpdate,
 		createEventDispatcher,
-		tick
+		tick,
 	} from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Copy, Check } from "@gradio/icons";
@@ -32,6 +32,8 @@
 	let copied = false;
 	let timer: NodeJS.Timeout;
 	let can_scroll: boolean;
+	let previous_scroll_top = 0;
+	let user_has_scrolled_up = false;
 
 	$: value, el && lines !== max_lines && resize({ target: el });
 
@@ -51,7 +53,7 @@
 	});
 
 	const scroll = (): void => {
-		if (can_scroll && autoscroll) {
+		if (can_scroll && autoscroll && !user_has_scrolled_up) {
 			el.scrollTo(0, el.scrollHeight);
 		}
 	};
@@ -92,7 +94,7 @@
 		const text = target.value;
 		const index: [number, number] = [
 			target.selectionStart as number,
-			target.selectionEnd as number
+			target.selectionEnd as number,
 		];
 		dispatch("select", { value: text.substring(...index), index: index });
 	}
@@ -110,6 +112,21 @@
 		) {
 			e.preventDefault();
 			dispatch("submit");
+		}
+	}
+
+	function handle_scroll(event: Event): void {
+		const target = event.target as HTMLElement;
+		const current_scroll_top = target.scrollTop;
+		if (current_scroll_top < previous_scroll_top) {
+			user_has_scrolled_up = true;
+		}
+		previous_scroll_top = current_scroll_top;
+
+		const max_scroll_top = target.scrollHeight - target.clientHeight;
+		const user_has_scrolled_to_bottom = current_scroll_top >= max_scroll_top;
+		if (user_has_scrolled_to_bottom) {
+			user_has_scrolled_up = false;
 		}
 	}
 
@@ -154,7 +171,7 @@
 		resize({ target: _el });
 
 		return {
-			destroy: () => _el.removeEventListener("input", resize)
+			destroy: () => _el.removeEventListener("input", resize),
 		};
 	}
 </script>
@@ -217,9 +234,17 @@
 	{:else}
 		{#if show_label && show_copy_button}
 			{#if copied}
-				<button in:fade={{ duration: 300 }}><Check /></button>
+				<button
+					in:fade={{ duration: 300 }}
+					aria-label="Copied"
+					aria-roledescription="Text copied"><Check /></button
+				>
 			{:else}
-				<button on:click={handle_copy} class="copy-text"><Copy /></button>
+				<button
+					on:click={handle_copy}
+					aria-label="Copy"
+					aria-roledescription="Copy text"><Copy /></button
+				>
 			{/if}
 		{/if}
 		<textarea
@@ -237,6 +262,7 @@
 			on:blur
 			on:select={handle_select}
 			on:focus
+			on:scroll={handle_scroll}
 			style={text_align ? "text-align: " + text_align : ""}
 		/>
 	{/if}

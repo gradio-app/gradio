@@ -27,6 +27,7 @@
 	export let gradio: Gradio<{
 		change: never;
 	}>;
+	export let show_actions_button = false;
 </script>
 
 <Block
@@ -37,6 +38,7 @@
 	{container}
 	{scale}
 	{min_width}
+	allow_overflow={false}
 >
 	<BlockLabel
 		{show_label}
@@ -54,6 +56,7 @@
 		{theme_mode}
 		{caption}
 		{bokeh_version}
+		{show_actions_button}
 		on:change={() => gradio.dispatch("change")}
 	/>
 </Block>

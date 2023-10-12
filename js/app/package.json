@@ -41,6 +41,7 @@
 		"@gradio/dropdown": "workspace:^",
 		"@gradio/fallback": "workspace:^",
 		"@gradio/file": "workspace:^",
+		"@gradio/fileexplorer": "workspace:^",
 		"@gradio/form": "workspace:^",
 		"@gradio/gallery": "workspace:^",
 		"@gradio/group": "workspace:^",

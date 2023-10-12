@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/box",
-	"version": "0.0.5-beta.4",
+	"version": "0.0.6",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "./static/index.svelte",

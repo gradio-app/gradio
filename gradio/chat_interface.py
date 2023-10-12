@@ -22,9 +22,11 @@ from gradio.components import (
     Textbox,
     get_component_instance,
 )
-from gradio.events import Dependency
+from gradio.events import Dependency, on
 from gradio.helpers import create_examples as Examples  # noqa: N812
+from gradio.helpers import special_args
 from gradio.layouts import Accordion, Column, Group, Row
+from gradio.routes import Request
 from gradio.themes import ThemeClass as Theme
 from gradio.utils import SyncToAsyncIterator, async_iteration
 
@@ -119,7 +121,7 @@ class ChatInterface(Blocks):
             if not isinstance(additional_inputs, list):
                 additional_inputs = [additional_inputs]
             self.additional_inputs = [
-                get_component_instance(i, render=False) for i in additional_inputs  # type: ignore
+                get_component_instance(i) for i in additional_inputs  # type: ignore
             ]
         else:
             self.additional_inputs = []
@@ -247,8 +249,14 @@ class ChatInterface(Blocks):
 
     def _setup_events(self) -> None:
         submit_fn = self._stream_fn if self.is_generator else self._submit_fn
+        submit_triggers = (
+            [self.textbox.submit, self.submit_btn.click]
+            if self.submit_btn
+            else [self.textbox.submit]
+        )
         submit_event = (
-            self.textbox.submit(
+            on(
+                submit_triggers,
                 self._clear_and_save_textbox,
                 [self.textbox],
                 [self.textbox, self.saved_input],
@@ -269,32 +277,7 @@ class ChatInterface(Blocks):
                 api_name=False,
             )
         )
-        self._setup_stop_events(self.textbox.submit, submit_event)
-
-        if self.submit_btn:
-            click_event = (
-                self.submit_btn.click(
-                    self._clear_and_save_textbox,
-                    [self.textbox],
-                    [self.textbox, self.saved_input],
-                    api_name=False,
-                    queue=False,
-                )
-                .then(
-                    self._display_input,
-                    [self.saved_input, self.chatbot_state],
-                    [self.chatbot, self.chatbot_state],
-                    api_name=False,
-                    queue=False,
-                )
-                .then(
-                    submit_fn,
-                    [self.saved_input, self.chatbot_state] + self.additional_inputs,
-                    [self.chatbot, self.chatbot_state],
-                    api_name=False,
-                )
-            )
-            self._setup_stop_events(self.submit_btn.click, click_event)
+        self._setup_stop_events(submit_triggers, submit_event)
 
         if self.retry_btn:
             retry_event = (
@@ -319,7 +302,7 @@ class ChatInterface(Blocks):
                     api_name=False,
                 )
             )
-            self._setup_stop_events(self.retry_btn.click, retry_event)
+            self._setup_stop_events([self.retry_btn.click], retry_event)
 
         if self.undo_btn:
             self.undo_btn.click(
@@ -345,33 +328,40 @@ class ChatInterface(Blocks):
                 api_name=False,
             )
 
-    def _setup_stop_events(self, event_trigger, event_to_cancel: Dependency) -> None:
+    def _setup_stop_events(
+        self, event_triggers: list[Callable], event_to_cancel: Dependency
+    ) -> None:
         if self.stop_btn and self.is_generator:
             if self.submit_btn:
-                event_trigger(
-                    lambda: (Button.update(visible=False), Button.update(visible=True)),
-                    None,
-                    [self.submit_btn, self.stop_btn],
-                    api_name=False,
-                    queue=False,
-                )
+                for event_trigger in event_triggers:
+                    event_trigger(
+                        lambda: (
+                            Button(visible=False),
+                            Button(visible=True),
+                        ),
+                        None,
+                        [self.submit_btn, self.stop_btn],
+                        api_name=False,
+                        queue=False,
+                    )
                 event_to_cancel.then(
-                    lambda: (Button.update(visible=True), Button.update(visible=False)),
+                    lambda: (Button(visible=True), Button(visible=False)),
                     None,
                     [self.submit_btn, self.stop_btn],
                     api_name=False,
                     queue=False,
                 )
             else:
-                event_trigger(
-                    lambda: Button.update(visible=True),
-                    None,
-                    [self.stop_btn],
-                    api_name=False,
-                    queue=False,
-                )
+                for event_trigger in event_triggers:
+                    event_trigger(
+                        lambda: Button(visible=True),
+                        None,
+                        [self.stop_btn],
+                        api_name=False,
+                        queue=False,
+                    )
                 event_to_cancel.then(
-                    lambda: Button.update(visible=False),
+                    lambda: Button(visible=False),
                     None,
                     [self.stop_btn],
                     api_name=False,
@@ -408,15 +398,21 @@ class ChatInterface(Blocks):
         self,
         message: str,
         history_with_input: list[list[str | None]],
+        request: Request,
         *args,
     ) -> tuple[list[list[str | None]], list[list[str | None]]]:
         history = history_with_input[:-1]
+        inputs, _, _ = special_args(
+            self.fn, inputs=[message, history, *args], request=request
+        )
+
         if self.is_async:
-            response = await self.fn(message, history, *args)
+            response = await self.fn(*inputs)
         else:
             response = await anyio.to_thread.run_sync(
-                self.fn, message, history, *args, limiter=self.limiter
+                self.fn, *inputs, limiter=self.limiter
             )
+
         history.append([message, response])
         return history, history
 
@@ -424,14 +420,19 @@ class ChatInterface(Blocks):
         self,
         message: str,
         history_with_input: list[list[str | None]],
+        request: Request,
         *args,
     ) -> AsyncGenerator:
         history = history_with_input[:-1]
+        inputs, _, _ = special_args(
+            self.fn, inputs=[message, history, *args], request=request
+        )
+
         if self.is_async:
-            generator = self.fn(message, history, *args)
+            generator = self.fn(*inputs)
         else:
             generator = await anyio.to_thread.run_sync(
-                self.fn, message, history, *args, limiter=self.limiter
+                self.fn, *inputs, limiter=self.limiter
             )
             generator = SyncToAsyncIterator(generator, self.limiter)
         try:
@@ -446,25 +447,33 @@ class ChatInterface(Blocks):
             yield update, update
 
     async def _api_submit_fn(
-        self, message: str, history: list[list[str | None]], *args
+        self, message: str, history: list[list[str | None]], request: Request, *args
     ) -> tuple[str, list[list[str | None]]]:
+        inputs, _, _ = special_args(
+            self.fn, inputs=[message, history, *args], request=request
+        )
+
         if self.is_async:
-            response = await self.fn(message, history, *args)
+            response = await self.fn(*inputs)
         else:
             response = await anyio.to_thread.run_sync(
-                self.fn, message, history, *args, limiter=self.limiter
+                self.fn, *inputs, limiter=self.limiter
             )
         history.append([message, response])
         return response, history
 
     async def _api_stream_fn(
-        self, message: str, history: list[list[str | None]], *args
+        self, message: str, history: list[list[str | None]], request: Request, *args
     ) -> AsyncGenerator:
+        inputs, _, _ = special_args(
+            self.fn, inputs=[message, history, *args], request=request
+        )
+
         if self.is_async:
-            generator = self.fn(message, history, *args)
+            generator = self.fn(*inputs)
         else:
             generator = await anyio.to_thread.run_sync(
-                self.fn, message, history, *args, limiter=self.limiter
+                self.fn, *inputs, limiter=self.limiter
             )
             generator = SyncToAsyncIterator(generator, self.limiter)
         try:
@@ -476,11 +485,13 @@ class ChatInterface(Blocks):
             yield response, history + [[message, response]]
 
     async def _examples_fn(self, message: str, *args) -> list[list[str | None]]:
+        inputs, _, _ = special_args(self.fn, inputs=[message, [], *args], request=None)
+
         if self.is_async:
-            response = await self.fn(message, [], *args)
+            response = await self.fn(*inputs)
         else:
             response = await anyio.to_thread.run_sync(
-                self.fn, message, [], *args, limiter=self.limiter
+                self.fn, *inputs, limiter=self.limiter
             )
         return [[message, response]]
 
@@ -489,11 +500,13 @@ class ChatInterface(Blocks):
         message: str,
         *args,
     ) -> AsyncGenerator:
+        inputs, _, _ = special_args(self.fn, inputs=[message, [], *args], request=None)
+
         if self.is_async:
-            generator = self.fn(message, [], *args)
+            generator = self.fn(*inputs)
         else:
             generator = await anyio.to_thread.run_sync(
-                self.fn, message, [], *args, limiter=self.limiter
+                self.fn, *inputs, limiter=self.limiter
             )
             generator = SyncToAsyncIterator(generator, self.limiter)
         async for response in generator:

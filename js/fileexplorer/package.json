@@ -1,0 +1,28 @@
+{
+	"name": "@gradio/fileexplorer",
+	"version": "0.2.1",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"main": "./index.svelte",
+	"author": "",
+	"license": "ISC",
+	"private": true,
+	"dependencies": {
+		"@gradio/atoms": "workspace:^",
+		"@gradio/checkbox": "workspace:^",
+		"@gradio/client": "workspace:^",
+		"@gradio/file": "workspace:^",
+		"@gradio/icons": "workspace:^",
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/upload": "workspace:^",
+		"@gradio/utils": "workspace:^",
+		"dequal": "^2.0.2"
+	},
+	"main_changeset": true,
+	"exports": {
+		"./package.json": "./package.json",
+		"./interactive": "./interactive/index.ts",
+		"./static": "./static/index.ts",
+		"./example": "./example/index.ts"
+	}
+}

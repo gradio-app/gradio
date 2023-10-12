@@ -67,10 +67,11 @@ class Dataset(Component):
         self.min_width = min_width
         self._components = [get_component_instance(c) for c in components]
 
-        # Narrow type to IOComponent
+        # Narrow type to Component
         assert all(
             isinstance(c, Component) for c in self._components
-        ), "All components in a `Dataset` must be subclasses of `IOComponent`"
+        ), "All components in a `Dataset` must be subclasses of `Component`"
+        self._components = [c for c in self._components if isinstance(c, Component)]
         for component in self._components:
             component.root_url = self.root_url
 
@@ -119,6 +120,7 @@ class Dataset(Component):
         config["components"] = [
             component.get_block_name() for component in self._components
         ]
+        config["component_ids"] = [component._id for component in self._components]
         return config
 
     def preprocess(self, x: Any) -> Any:

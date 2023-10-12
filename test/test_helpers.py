@@ -73,8 +73,7 @@ class TestExamples:
         examples = gr.Examples(["hello", "hi"], gr.Textbox(), examples_per_page=2)
         assert examples.dataset.get_config()["samples_per_page"] == 2
 
-    @pytest.mark.asyncio
-    async def test_no_preprocessing(self):
+    def test_no_preprocessing(self):
         with gr.Blocks():
             image = gr.Image()
             textbox = gr.Textbox()
@@ -88,11 +87,10 @@ class TestExamples:
                 preprocess=False,
             )
 
-        prediction = await examples.load_from_cache(0)
+        prediction = examples.load_from_cache(0)
         assert utils.encode_file_to_base64(prediction[0]) == media_data.BASE64_IMAGE
 
-    @pytest.mark.asyncio
-    async def test_no_postprocessing(self):
+    def test_no_postprocessing(self):
         def im(x):
             return [
                 {
@@ -118,7 +116,7 @@ class TestExamples:
                 postprocess=False,
             )
 
-        prediction = await examples.load_from_cache(0)
+        prediction = examples.load_from_cache(0)
         file = prediction[0].root[0].image.name
         assert utils.encode_url_or_file_to_base64(
             file
@@ -184,8 +182,7 @@ def test_example_caching_relaunch(connect):
 
 @patch("gradio.helpers.CACHED_FOLDER", tempfile.mkdtemp())
 class TestProcessExamples:
-    @pytest.mark.asyncio
-    async def test_caching(self):
+    def test_caching(self):
         io = gr.Interface(
             lambda x: f"Hello {x}",
             "text",
@@ -193,7 +190,7 @@ class TestProcessExamples:
             examples=[["World"], ["Dunya"], ["Monde"]],
             cache_examples=True,
         )
-        prediction = await io.examples_handler.load_from_cache(1)
+        prediction = io.examples_handler.load_from_cache(1)
         assert prediction[0] == "Hello Dunya"
 
     def test_example_caching_relaunch(self, connect):
@@ -229,8 +226,7 @@ class TestProcessExamples:
                 "hello Eve",
             )
 
-    @pytest.mark.asyncio
-    async def test_caching_image(self):
+    def test_caching_image(self):
         io = gr.Interface(
             lambda x: x,
             "image",
@@ -238,13 +234,12 @@ class TestProcessExamples:
             examples=[["test/test_files/bus.png"]],
             cache_examples=True,
         )
-        prediction = await io.examples_handler.load_from_cache(0)
+        prediction = io.examples_handler.load_from_cache(0)
         assert utils.encode_url_or_file_to_base64(prediction[0].name).startswith(
             "data:image/png;base64,iVBORw0KGgoAAA"
         )
 
-    @pytest.mark.asyncio
-    async def test_caching_audio(self):
+    def test_caching_audio(self):
         io = gr.Interface(
             lambda x: x,
             "audio",
@@ -252,14 +247,13 @@ class TestProcessExamples:
             examples=[["test/test_files/audio_sample.wav"]],
             cache_examples=True,
         )
-        prediction = await io.examples_handler.load_from_cache(0)
+        prediction = io.examples_handler.load_from_cache(0)
         file = prediction[0].name
         assert utils.encode_url_or_file_to_base64(file).startswith(
             "data:audio/wav;base64,UklGRgA/"
         )
 
-    @pytest.mark.asyncio
-    async def test_caching_with_update(self):
+    def test_caching_with_update(self):
         io = gr.Interface(
             lambda x: gr.update(visible=False),
             "text",
@@ -267,14 +261,13 @@ class TestProcessExamples:
             examples=[["World"], ["Dunya"], ["Monde"]],
             cache_examples=True,
         )
-        prediction = await io.examples_handler.load_from_cache(1)
+        prediction = io.examples_handler.load_from_cache(1)
         assert prediction[0] == {
             "visible": False,
             "__type__": "update",
         }
 
-    @pytest.mark.asyncio
-    async def test_caching_with_mix_update(self):
+    def test_caching_with_mix_update(self):
         io = gr.Interface(
             lambda x: [gr.update(lines=4, value="hello"), "test/test_files/bus.png"],
             "text",
@@ -282,15 +275,14 @@ class TestProcessExamples:
             examples=[["World"], ["Dunya"], ["Monde"]],
             cache_examples=True,
         )
-        prediction = await io.examples_handler.load_from_cache(1)
+        prediction = io.examples_handler.load_from_cache(1)
         assert prediction[0] == {
             "lines": 4,
             "value": "hello",
             "__type__": "update",
         }
 
-    @pytest.mark.asyncio
-    async def test_caching_with_dict(self):
+    def test_caching_with_dict(self):
         text = gr.Textbox()
         out = gr.Label()
 
@@ -301,15 +293,13 @@ class TestProcessExamples:
             examples=["abc"],
             cache_examples=True,
         )
-        prediction = await io.examples_handler.load_from_cache(0)
-        assert not any(d["trigger"] == "fake_event" for d in io.config["dependencies"])
+        prediction = io.examples_handler.load_from_cache(0)
         assert prediction == [
             {"lines": 4, "__type__": "update", "mode": "static"},
             gr.Label.data_model(**{"label": "lion", "confidences": None}),
         ]
 
-    @pytest.mark.asyncio
-    async def test_caching_with_generators(self):
+    def test_caching_with_generators(self):
         def test_generator(x):
             for y in range(len(x)):
                 yield "Your output: " + x[: y + 1]
@@ -321,11 +311,10 @@ class TestProcessExamples:
             examples=["abcdef"],
             cache_examples=True,
         )
-        prediction = await io.examples_handler.load_from_cache(0)
+        prediction = io.examples_handler.load_from_cache(0)
         assert prediction[0] == "Your output: abcdef"
 
-    @pytest.mark.asyncio
-    async def test_caching_with_generators_and_streamed_output(self):
+    def test_caching_with_generators_and_streamed_output(self):
         file_dir = Path(Path(__file__).parent, "test_files")
         audio = str(file_dir / "audio_sample.wav")
 
@@ -340,15 +329,14 @@ class TestProcessExamples:
             examples=[3],
             cache_examples=True,
         )
-        prediction = await io.examples_handler.load_from_cache(0)
+        prediction = io.examples_handler.load_from_cache(0)
         len_input_audio = len(AudioSegment.from_wav(audio))
         len_output_audio = len(AudioSegment.from_wav(prediction[0].name))
         length_ratio = len_output_audio / len_input_audio
         assert round(length_ratio, 1) == 3.0  # might not be exactly 3x
         assert float(prediction[1]) == 10.0
 
-    @pytest.mark.asyncio
-    async def test_caching_with_async_generators(self):
+    def test_caching_with_async_generators(self):
         async def test_generator(x):
             for y in range(len(x)):
                 yield "Your output: " + x[: y + 1]
@@ -360,7 +348,7 @@ class TestProcessExamples:
             examples=["abcdef"],
             cache_examples=True,
         )
-        prediction = await io.examples_handler.load_from_cache(0)
+        prediction = io.examples_handler.load_from_cache(0)
         assert prediction[0] == "Your output: abcdef"
 
     def test_raise_helpful_error_message_if_providing_partial_examples(self, tmp_path):
@@ -420,8 +408,7 @@ class TestProcessExamples:
                     cache_examples=True,
                 )
 
-    @pytest.mark.asyncio
-    async def test_caching_with_batch(self):
+    def test_caching_with_batch(self):
         def trim_words(words, lens):
             trimmed_words = [word[:length] for word, length in zip(words, lens)]
             return [trimmed_words]
@@ -435,11 +422,10 @@ class TestProcessExamples:
             examples=[["hello", 3], ["hi", 4]],
             cache_examples=True,
         )
-        prediction = await io.examples_handler.load_from_cache(0)
+        prediction = io.examples_handler.load_from_cache(0)
         assert prediction == ["hel"]
 
-    @pytest.mark.asyncio
-    async def test_caching_with_batch_multiple_outputs(self):
+    def test_caching_with_batch_multiple_outputs(self):
         def trim_words(words, lens):
             trimmed_words = [word[:length] for word, length in zip(words, lens)]
             return trimmed_words, lens
@@ -453,11 +439,10 @@ class TestProcessExamples:
             examples=[["hello", 3], ["hi", 4]],
             cache_examples=True,
         )
-        prediction = await io.examples_handler.load_from_cache(0)
+        prediction = io.examples_handler.load_from_cache(0)
         assert prediction == ["hel", "3"]
 
-    @pytest.mark.asyncio
-    async def test_caching_with_non_io_component(self):
+    def test_caching_with_non_io_component(self):
         def predict(name):
             return name, gr.update(visible=True)
 
@@ -474,7 +459,7 @@ class TestProcessExamples:
                 cache_examples=True,
             )
 
-        prediction = await examples.load_from_cache(0)
+        prediction = examples.load_from_cache(0)
         assert prediction == ["John", {"visible": True, "__type__": "update"}]
 
     def test_end_to_end(self):
@@ -529,8 +514,7 @@ class TestProcessExamples:
         assert response.json()["data"] == ["Michael", "Jordan", "Michael Jordan"]
 
 
-@pytest.mark.asyncio
-async def test_multiple_file_flagging(tmp_path):
+def test_multiple_file_flagging(tmp_path):
     with patch("gradio.helpers.CACHED_FOLDER", str(tmp_path)):
         io = gr.Interface(
             fn=lambda *x: list(x),
@@ -542,14 +526,13 @@ async def test_multiple_file_flagging(tmp_path):
             examples=[["test/test_files/cheetah1.jpg", "test/test_files/bus.png"]],
             cache_examples=True,
         )
-        prediction = await io.examples_handler.load_from_cache(0)
+        prediction = io.examples_handler.load_from_cache(0)
 
         assert len(prediction[0].root) == 2
         assert all(isinstance(d, gr.FileData) for d in prediction[0].root)
 
 
-@pytest.mark.asyncio
-async def test_examples_keep_all_suffixes(tmp_path):
+def test_examples_keep_all_suffixes(tmp_path):
     with patch("gradio.helpers.CACHED_FOLDER", str(tmp_path)):
         file_1 = tmp_path / "foo.bar.txt"
         file_1.write_text("file 1")
@@ -564,10 +547,10 @@ async def test_examples_keep_all_suffixes(tmp_path):
             examples=[[str(file_1)], [str(file_2)]],
             cache_examples=True,
         )
-        prediction = await io.examples_handler.load_from_cache(0)
+        prediction = io.examples_handler.load_from_cache(0)
         assert Path(prediction[0].name).read_text() == "file 1"
         assert prediction[0].orig_name == "foo.bar.txt"
-        prediction = await io.examples_handler.load_from_cache(1)
+        prediction = io.examples_handler.load_from_cache(1)
         assert Path(prediction[0].name).read_text() == "file 2"
         assert prediction[0].orig_name == "foo.bar.txt"
 

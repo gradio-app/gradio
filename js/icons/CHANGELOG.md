@@ -1,10 +1,10 @@
 # @gradio/icons
 
-## 0.2.0-beta.0
+## 0.2.0
 
 ### Features
 
-- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`681f10c31`](https://github.com/gradio-app/gradio/commit/681f10c315a75cc8cd0473c9a0167961af7696db) - release first version.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5699](https://github.com/gradio-app/gradio/pull/5699) [`8f0fed857`](https://github.com/gradio-app/gradio/commit/8f0fed857d156830626eb48b469d54d211a582d2) - Improve chatbot accessibility and UX.  Thanks [@hannahblair](https://github.com/hannahblair)!
 
 ## 0.1.0
 

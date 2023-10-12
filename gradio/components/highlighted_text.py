@@ -62,6 +62,7 @@ class HighlightedText(Component):
         """
         Parameters:
             value: Default value to show. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            color_map: A dictionary mapping labels to colors. The colors may be specified as hex codes or by their names. For example: {"person": "red", "location": "#FFEE22"}
             show_legend: whether to show span categories in a separate legend or inline.
             combine_adjacent: If True, will merge the labels of adjacent tokens belonging to the same category.
             adjacent_separator: Specifies the separator to be used between tokens if combine_adjacent is True.

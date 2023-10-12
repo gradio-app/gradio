@@ -51,6 +51,12 @@ export interface InMessageHttpRequest extends InMessageBase {
 		request: HttpRequest;
 	};
 }
+export interface InMessageWebSocket extends InMessageBase {
+	type: "websocket";
+	data: {
+		path: string;
+	};
+}
 export interface InMessageFileWrite extends InMessageBase {
 	type: "file:write";
 	data: {
@@ -89,6 +95,7 @@ export type InMessage =
 	| InMessageInit
 	| InMessageRunPythonCode
 	| InMessageRunPythonFile
+	| InMessageWebSocket
 	| InMessageHttpRequest
 	| InMessageFileWrite
 	| InMessageFileRename

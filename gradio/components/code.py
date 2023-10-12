@@ -83,7 +83,9 @@ class Code(Component):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        assert language in Code.languages, f"Language {language} not supported."
+        if language not in Code.languages:
+            raise ValueError(f"Language {language} not supported.")
+
         self.language = language
         self.lines = lines
         super().__init__(

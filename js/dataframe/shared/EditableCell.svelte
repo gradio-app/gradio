@@ -5,6 +5,7 @@
 
 	export let edit: boolean;
 	export let value: string | number = "";
+	export let display_value: string | null = null;
 	export let header = false;
 	export let datatype:
 		| "str"
@@ -20,6 +21,8 @@
 	}[];
 	export let clear_on_focus = false;
 	export let select_on_focus = false;
+	export let line_breaks = true;
+	export let editable = true;
 
 	const dispatch = createEventDispatcher();
 
@@ -68,10 +71,11 @@
 		<MarkdownCode
 			message={value.toLocaleString()}
 			{latex_delimiters}
+			{line_breaks}
 			chatbot={false}
 		/>
 	{:else}
-		{value}
+		{editable ? value : display_value || value}
 	{/if}
 </span>
 

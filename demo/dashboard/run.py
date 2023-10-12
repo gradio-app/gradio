@@ -48,12 +48,12 @@ with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column():
             gr.Markdown("## Select libraries to display")
-            libraries = gr.CheckboxGroup(choices=LIBRARIES, label="")
+            libraries = gr.CheckboxGroup(choices=LIBRARIES, show_label=False)
         with gr.Column():
             gr.Markdown("## Select graphs to display")
-            pip = gr.CheckboxGroup(choices=["Pip", "Cumulated"], label="")
-            stars = gr.CheckboxGroup(choices=["Stars", "Week over Week"], label="")
-            issues = gr.CheckboxGroup(choices=["Issue", "Exclude org members", "week over week"], label="")
+            pip = gr.CheckboxGroup(choices=["Pip", "Cumulated"], show_label=False)
+            stars = gr.CheckboxGroup(choices=["Stars", "Week over Week"], show_label=False)
+            issues = gr.CheckboxGroup(choices=["Issue", "Exclude org members", "week over week"], show_label=False)
     with gr.Row():
         fetch = gr.Button(value="Fetch")
     with gr.Row():

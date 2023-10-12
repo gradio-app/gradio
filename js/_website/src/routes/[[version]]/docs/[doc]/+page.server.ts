@@ -16,7 +16,7 @@ const COLOR_SETS = [
 ];
 
 export async function load({ params, parent }) {
-	const { docs, components, helpers, py_client, routes, on_main, wheel, pages } = await parent();
+	const { docs, components, helpers, modals, py_client, routes, on_main, wheel, pages } = await parent();
 
 	let name = params.doc;
 	let obj;
@@ -45,10 +45,16 @@ export async function load({ params, parent }) {
 				mode = key;
 
 				if (obj.name == "Interface") {
-					obj.next_obj = "Flagging";
-				} else if (obj.name == "Blocks") {
-					obj.prev_obj = "Combining-Interfaces";
-					obj.next_obj = "Block-Layouts";
+					obj.next_obj = "ChatInterface";
+				} else if (obj.name == "ChatInterface") {
+					obj.prev_obj = "Interface";
+					obj.next_obj = "TabbedInterface";
+				}  else if (obj.name == "TabbedInterface") {
+					obj.prev_obj = "ChatInterface";
+					obj.next_obj = "Blocks";
+				}  else if (obj.name == "Blocks") {
+					obj.prev_obj = "TabbedInterface";
+					obj.next_obj = "Row";
 				}
 
 				if ("description" in obj) {
@@ -115,6 +121,7 @@ export async function load({ params, parent }) {
 		mode,
 		components,
 		helpers,
+		modals,
 		routes,
 		py_client,
 		COLOR_SETS,

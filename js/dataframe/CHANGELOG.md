@@ -1,58 +1,45 @@
 # @gradio/dataframe
 
-## 0.3.0-beta.5
-
-### Features
-
-- [#5648](https://github.com/gradio-app/gradio/pull/5648) [`c573e2339`](https://github.com/gradio-app/gradio/commit/c573e2339b86c85b378dc349de5e9223a3c3b04a) - Publish all components to npm.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
-
-## 0.3.0-beta.4
-
-### Patch Changes
-
-- Updated dependencies [[`0b4fd5b6d`](https://github.com/gradio-app/gradio/commit/0b4fd5b6db96fc95a155e5e935e17e1ab11d1161)]:
-  - @gradio/utils@0.2.0-beta.3
-  - @gradio/atoms@0.2.0-beta.3
-  - @gradio/button@0.2.0-beta.3
-  - @gradio/markdown@0.3.0-beta.4
-  - @gradio/statustracker@0.3.0-beta.4
-  - @gradio/upload@0.3.0-beta.3
-
-## 0.3.0-beta.3
-
-### Patch Changes
-
-- Updated dependencies [[`14fc612d8`](https://github.com/gradio-app/gradio/commit/14fc612d84bf6b1408eccd3a40fab41f25477571)]:
-  - @gradio/utils@0.2.0-beta.2
-  - @gradio/atoms@0.2.0-beta.2
-  - @gradio/button@0.2.0-beta.2
-  - @gradio/markdown@0.3.0-beta.3
-  - @gradio/statustracker@0.3.0-beta.3
-  - @gradio/upload@0.3.0-beta.2
-
-## 0.3.0-beta.2
-
-### Features
-
-- [#5620](https://github.com/gradio-app/gradio/pull/5620) [`c4c25ecdf`](https://github.com/gradio-app/gradio/commit/c4c25ecdf8c2fab5e3c41b519564e3b6a9ebfce3) - fix build and broken imports. Thanks [@pngwn](https://github.com/pngwn)!
-
-## 0.3.0-beta.1
+## 0.3.1
 
 ### Patch Changes
 
 - Updated dependencies []:
-  - @gradio/utils@0.2.0-beta.1
-  - @gradio/atoms@0.2.0-beta.1
-  - @gradio/button@0.2.0-beta.1
-  - @gradio/markdown@0.3.0-beta.1
-  - @gradio/statustracker@0.3.0-beta.1
-  - @gradio/upload@0.3.0-beta.1
+  - @gradio/utils@0.1.2
+  - @gradio/atoms@0.1.4
+  - @gradio/button@0.2.2
+  - @gradio/markdown@0.3.1
+  - @gradio/statustracker@0.2.2
+  - @gradio/upload@0.3.2
 
-## 0.3.0-beta.0
+## 0.3.0
 
 ### Features
 
-- [#5507](https://github.com/gradio-app/gradio/pull/5507) [`1385dc688`](https://github.com/gradio-app/gradio/commit/1385dc6881f2d8ae7a41106ec21d33e2ef04d6a9) - Custom components. Thanks [@pngwn](https://github.com/pngwn)!
+- [#5569](https://github.com/gradio-app/gradio/pull/5569) [`2a5b9e03b`](https://github.com/gradio-app/gradio/commit/2a5b9e03b15ea324d641fe6982f26d81b1ca7210) - Added support for pandas `Styler` object to `gr.DataFrame` (initially just sets the `display_value`). Thanks [@abidlabs](https://github.com/abidlabs)!
+
+### Fixes
+
+- [#5755](https://github.com/gradio-app/gradio/pull/5755) [`e842a561a`](https://github.com/gradio-app/gradio/commit/e842a561af4394f8109291ee5725bcf74743e816) - Fix new line issue in chatbot. Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
+## 0.2.5
+
+### Fixes
+
+- [#5713](https://github.com/gradio-app/gradio/pull/5713) [`c10dabd6b`](https://github.com/gradio-app/gradio/commit/c10dabd6b18b49259441eb5f956a19046f466339) - Fixes gr.select() Method Issues with Dataframe Cells. Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
+## 0.2.4
+
+### Patch Changes
+
+- Updated dependencies [[`ee8eec1e5`](https://github.com/gradio-app/gradio/commit/ee8eec1e5e544a0127e0aa68c2522a7085b8ada5)]:
+  - @gradio/markdown@0.2.2
+
+## 0.2.3
+
+### Fixes
+
+- [#5616](https://github.com/gradio-app/gradio/pull/5616) [`7c34b434a`](https://github.com/gradio-app/gradio/commit/7c34b434aae0eb85f112a1dc8d66cefc7e2296b2) - Fix width and height issues that would cut off content in `gr.DataFrame`. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 0.2.2
 
