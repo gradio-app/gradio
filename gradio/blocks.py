@@ -333,6 +333,38 @@ class BlockFunction:
         return str(self)
 
 
+def postprocess_update_dict(block: Block, update_dict: dict, postprocess: bool = True):
+    """
+    Converts a dictionary of updates into a format that can be sent to the frontend.
+    E.g. {"__type__": "generic_update", "value": "2", "interactive": False}
+    Into -> {"__type__": "update", "value": 2.0, "mode": "static"}
+    Parameters:
+        block: The Block that is being updated with this update dictionary.
+        update_dict: The original update dictionary
+        postprocess: Whether to postprocess the "value" key of the update dictionary.
+    """
+    if update_dict.get("value") is components._Keywords.NO_VALUE:
+        update_dict.pop("value")
+    interactive = update_dict.pop("interactive", None)
+    if interactive is not None:
+        update_dict["mode"] = "dynamic" if interactive else "static"
+    attr_dict = {
+        k: getattr(block, k) if hasattr(block, k) else v for k, v in update_dict.items()
+    }
+    attr_dict["__type__"] = "update"
+    attr_dict.pop("value", None)
+    if "value" in update_dict:
+        if not isinstance(block, components.IOComponent):
+            raise InvalidComponentError(
+                f"Component {block.__class__} does not support value"
+            )
+        if postprocess:
+            attr_dict["value"] = block.postprocess(update_dict["value"])
+        else:
+            attr_dict["value"] = update_dict["value"]
+    return attr_dict
+
+
 def convert_component_dict_to_list(
     outputs_ids: list[int], predictions: dict
 ) -> list | dict:
@@ -1401,9 +1433,12 @@ Received outputs:
                     args["render"] = False
                     args["_skip_init_processing"] = not block_fn.postprocess
                     state[output_id] = self.blocks[output_id].__class__(**args)
-                    interactive = prediction_value.pop("interactive", None)
-                    if interactive is not None:
-                        prediction_value["mode"] = "dynamic" if interactive else "static"
+
+                    prediction_value = postprocess_update_dict(
+                        block=state[output_id],
+                        update_dict=prediction_value,
+                        postprocess=block_fn.postprocess,
+                    )
                 elif block_fn.postprocess:
                     if not isinstance(block, components.Component):
                         raise InvalidComponentError(
