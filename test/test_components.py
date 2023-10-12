@@ -1417,7 +1417,68 @@ class TestDataframe:
                     ["Mike", "1,1", "800"],
                     ["Adam", "1,1", "800"],
                     ["Mike", "1,1", "800"],
-                ]
+                ],
+                "styling": [
+                    ["", "", ""],
+                    ["", "", ""],
+                    ["", "", ""],
+                    ["", "", ""],
+                    ["", "", ""],
+                    ["", "", ""],
+                    ["", "", ""],
+                    ["", "", ""],
+                ],
+            },
+        }
+
+        df = pd.DataFrame(
+            {
+                "A": [14, 4, 5, 4, 1],
+                "B": [5, 2, 54, 3, 2],
+                "C": [20, 20, 7, 3, 8],
+                "D": [14, 3, 6, 2, 6],
+                "E": [23, 45, 64, 32, 23],
+            }
+        )
+
+        t = df.style.highlight_max(color="lightgreen", axis=0)
+        output = component.postprocess(t)
+        assert output == {
+            "data": [
+                [14, 5, 20, 14, 23],
+                [4, 2, 20, 3, 45],
+                [5, 54, 7, 6, 64],
+                [4, 3, 3, 2, 32],
+                [1, 2, 8, 6, 23],
+            ],
+            "headers": ["A", "B", "C", "D", "E"],
+            "metadata": {
+                "display_value": [
+                    ["14", "5", "20", "14", "23"],
+                    ["4", "2", "20", "3", "45"],
+                    ["5", "54", "7", "6", "64"],
+                    ["4", "3", "3", "2", "32"],
+                    ["1", "2", "8", "6", "23"],
+                ],
+                "styling": [
+                    [
+                        "background-color: lightgreen",
+                        "",
+                        "background-color: lightgreen",
+                        "background-color: lightgreen",
+                        "",
+                    ],
+                    ["", "", "background-color: lightgreen", "", ""],
+                    [
+                        "",
+                        "background-color: lightgreen",
+                        "",
+                        "",
+                        "background-color: lightgreen",
+                    ],
+                    ["", "", "", "", ""],
+                    ["", "", "", "", ""],
+                ],
             },
         }
 

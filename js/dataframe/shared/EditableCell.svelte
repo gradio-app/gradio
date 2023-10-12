@@ -6,6 +6,7 @@
 	export let edit: boolean;
 	export let value: string | number = "";
 	export let display_value: string | null = null;
+	export let styling = "";
 	export let header = false;
 	export let datatype:
 		| "str"
@@ -64,6 +65,7 @@
 	role="button"
 	class:edit
 	on:focus|preventDefault
+	style={styling}
 >
 	{#if datatype === "html"}
 		{@html value}
