@@ -14,7 +14,7 @@ const COLOR_SETS = [
 ];
 
 export async function load({ parent }) {
-	const { docs, components, helpers, py_client, routes } = await parent();
+	const { docs, components, helpers, modals, py_client, routes, on_main, wheel } = await parent();
 
 	let objs = [
 		docs.building.simplecsvlogger,
@@ -78,10 +78,13 @@ export async function load({ parent }) {
 		description,
 		components,
 		helpers,
+		modals,
 		routes,
 		py_client,
 		COLOR_SETS,
 		headers,
-		method_headers
+		method_headers,
+		on_main,
+		wheel
 	};
 }

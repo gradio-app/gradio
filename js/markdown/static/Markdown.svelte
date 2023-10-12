@@ -11,6 +11,7 @@
 	export let min_height = false;
 	export let rtl = false;
 	export let sanitize_html = true;
+	export let line_breaks = false;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
@@ -36,6 +37,7 @@
 		message={value}
 		{latex_delimiters}
 		{sanitize_html}
+		{line_breaks}
 		chatbot={false}
 	/>
 </div>
@@ -56,6 +58,7 @@
 
 	div {
 		max-width: 100%;
+		overflow-x: auto;
 	}
 
 	.min {

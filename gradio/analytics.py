@@ -4,7 +4,6 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-import pkgutil
 import threading
 import urllib.parse
 import warnings
@@ -16,7 +15,7 @@ import requests
 import gradio
 from gradio import wasm_utils
 from gradio.context import Context
-from gradio.utils import GRADIO_VERSION
+from gradio.utils import get_package_version
 
 # For testability, we import the pyfetch function into this module scope and define a fallback coroutine object to be patched in tests.
 try:
@@ -87,10 +86,7 @@ async def _do_wasm_analytics_request(url: str, data: dict[str, Any]) -> None:
 
 def version_check():
     try:
-        version_data = pkgutil.get_data(__name__, "version.txt")
-        if not version_data:
-            raise FileNotFoundError
-        current_pkg_version = version_data.decode("ascii").strip()
+        current_pkg_version = get_package_version()
         latest_pkg_version = requests.get(url=PKG_VERSION_URL, timeout=3).json()[
             "version"
         ]
@@ -169,7 +165,14 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
     if not analytics_enabled():
         return
 
-    blocks_telemetry, inputs_telemetry, outputs_telemetry, targets_telemetry = (
+    (
+        blocks_telemetry,
+        inputs_telemetry,
+        outputs_telemetry,
+        targets_telemetry,
+        events_telemetry,
+    ) = (
+        [],
         [],
         [],
         [],
@@ -186,9 +189,12 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
     for x in blocks.dependencies:
         targets_telemetry = targets_telemetry + [
             # Sometimes the target can be the Blocks object itself, so we need to check if its in blocks.blocks
-            str(blocks.blocks[y])
+            str(blocks.blocks[y[0]])
             for y in x["targets"]
-            if y in blocks.blocks
+            if y[0] in blocks.blocks
+        ]
+        events_telemetry = events_telemetry + [
+            y[1] for y in x["targets"] if y[0] in blocks.blocks
         ]
         inputs_telemetry = inputs_telemetry + [
             str(blocks.blocks[y]) for y in x["inputs"] if y in blocks.blocks
@@ -197,7 +203,7 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
             str(blocks.blocks[y]) for y in x["outputs"] if y in blocks.blocks
         ]
     additional_data = {
-        "version": GRADIO_VERSION,
+        "version": get_package_version(),
         "is_kaggle": blocks.is_kaggle,
         "is_sagemaker": blocks.is_sagemaker,
         "using_auth": blocks.auth is not None,
@@ -213,7 +219,7 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
         else outputs_telemetry,
         "targets": targets_telemetry,
         "blocks": blocks_telemetry,
-        "events": [str(x["trigger"]) for x in blocks.dependencies],
+        "events": events_telemetry,
         "is_wasm": wasm_utils.IS_WASM,
     }
 

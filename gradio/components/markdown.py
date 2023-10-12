@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import inspect
+import warnings
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.components.base import Component, IOComponent, _Keywords
+from gradio.components.base import IOComponent, _Keywords
 from gradio.events import (
     Changeable,
 )
@@ -37,6 +38,7 @@ class Markdown(IOComponent, Changeable, StringSerializable):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         sanitize_html: bool = True,
+        line_breaks: bool = False,
         **kwargs,
     ):
         """
@@ -48,12 +50,14 @@ class Markdown(IOComponent, Changeable, StringSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             sanitize_html: If False, will disable HTML sanitization when converted from markdown. This is not recommended, as it can lead to security vulnerabilities.
+            line_breaks: If True, will enable Github-flavored Markdown line breaks in chatbot messages. If False (default), single new lines will be ignored.
         """
         self.rtl = rtl
         if latex_delimiters is None:
             latex_delimiters = [{"left": "$", "right": "$", "display": False}]
         self.latex_delimiters = latex_delimiters
         self.sanitize_html = sanitize_html
+        self.line_breaks = line_breaks
 
         IOComponent.__init__(
             self,
@@ -76,15 +80,6 @@ class Markdown(IOComponent, Changeable, StringSerializable):
         unindented_y = inspect.cleandoc(y)
         return unindented_y
 
-    def get_config(self):
-        return {
-            "value": self.value,
-            "rtl": self.rtl,
-            "latex_delimiters": self.latex_delimiters,
-            "sanitize_html": self.sanitize_html,
-            **Component.get_config(self),
-        }
-
     @staticmethod
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
@@ -92,13 +87,18 @@ class Markdown(IOComponent, Changeable, StringSerializable):
         rtl: bool | None = None,
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         sanitize_html: bool | None = None,
+        line_breaks: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Markdown(...)` instead of `return gr.Markdown.update(...)`."
+        )
         updated_config = {
             "visible": visible,
             "value": value,
             "rtl": rtl,
             "latex_delimiters": latex_delimiters,
             "sanitize_html": sanitize_html,
+            "line_breaks": line_breaks,
             "__type__": "update",
         }
         return updated_config

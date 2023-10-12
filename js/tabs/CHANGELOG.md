@@ -1,5 +1,32 @@
 # @gradio/tabs
 
+## 0.0.7
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/utils@0.1.2
+
+## 0.0.6
+
+### Features
+
+- [#5590](https://github.com/gradio-app/gradio/pull/5590) [`d1ad1f671`](https://github.com/gradio-app/gradio/commit/d1ad1f671caef9f226eb3965f39164c256d8615c) - Attach `elem_classes` selectors to layout elements, and an id to the Tab button (for targeting via CSS/JS). Thanks [@abidlabs](https://github.com/abidlabs)!
+
+## 0.0.5
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/utils@0.1.1
+
+## 0.0.4
+
+### Patch Changes
+
+- Updated dependencies [[`abf1c57d`](https://github.com/gradio-app/gradio/commit/abf1c57d7d85de0df233ee3b38aeb38b638477db)]:
+  - @gradio/utils@0.1.0
+
 ## 0.0.3
 
 ### Highlights
@@ -19,7 +46,7 @@ These improvements will be particularly beneficial to large applications.
 - Corrected an issue that was causing markdown to re-render infinitely.
 - Ensured that the `gr.3DModel` does re-render prematurely.
 
- Thanks [@pngwn](https://github.com/pngwn)!
+Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 0.0.2
 

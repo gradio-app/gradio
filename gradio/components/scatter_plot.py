@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Callable, Literal
 
 import altair as alt
@@ -96,6 +97,8 @@ class ScatterPlot(Plot):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        show_actions_button: bool = False,
+        **kwargs,
     ):
         """
         Parameters:
@@ -129,6 +132,7 @@ class ScatterPlot(Plot):
             visible: Whether the plot should be visible.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            show_actions_button: Whether to show the actions button on the top right corner of the plot.
         """
         self.x = x
         self.y = y
@@ -153,6 +157,7 @@ class ScatterPlot(Plot):
         self.height = height
         self.x_lim = x_lim
         self.y_lim = y_lim
+        self.show_actions_button = show_actions_button
         super().__init__(
             value=value,
             label=label,
@@ -164,12 +169,8 @@ class ScatterPlot(Plot):
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            **kwargs,
         )
-
-    def get_config(self):
-        config = super().get_config()
-        config["caption"] = self.caption
-        return config
 
     def get_block_name(self) -> str:
         return "plot"
@@ -273,6 +274,9 @@ class ScatterPlot(Plot):
             show_label: Whether the label should be displayed.
             visible: Whether the plot should be visible.
         """
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.ScatterPlot(...)` instead of `return gr.ScatterPlot.update(...)`."
+        )
         properties = [
             x,
             y,

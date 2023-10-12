@@ -1,5 +1,5 @@
 import type { WorkerProxy } from "@gradio/wasm";
-import { is_self_origin } from "./url";
+import { is_self_host } from "./url";
 import { mount_css as default_mount_css } from "../css";
 
 // In the Wasm mode, we use a prebuilt CSS file `/static/css/theme.css` to apply the styles in the initialization phase,
@@ -20,7 +20,7 @@ export async function wasm_proxied_mount_css(
 	const request = new Request(url_string); // Resolve a relative URL.
 	const url = new URL(request.url);
 
-	if (!is_self_origin(url)) {
+	if (!is_self_host(url)) {
 		// Fallback to the default implementation for external resources.
 		return default_mount_css(url_string, target);
 	}

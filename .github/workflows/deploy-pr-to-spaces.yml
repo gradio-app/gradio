@@ -48,9 +48,7 @@ jobs:
     - run: unzip all_demos.zip -d all_demos
     - run: cp -R all_demos/* demo/all_demos
     - name: Upload demo to spaces
-      if: >
-        github.event.workflow_run.event == 'pull_request' &&
-        github.event.workflow_run.conclusion == 'success'
+      if: github.event.workflow_run.event == 'pull_request'
       id: upload-demo
       run: |
         python scripts/upload_demo_to_space.py all_demos \
@@ -58,13 +56,15 @@ jobs:
         ${{ secrets.SPACES_DEPLOY_TOKEN }} \
         --gradio-version ${{ steps.set-outputs.outputs.gradio_version }} > url.txt
         echo "SPACE_URL=$(cat url.txt)" >> $GITHUB_OUTPUT
-    - name: Upload website demos 
+    - name: Upload Website Demos
       if: >
-        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.event == 'workflow_dispatch' &&
         github.event.workflow_run.conclusion == 'success'
+      id: upload-website-demos
       run: |
         python scripts/upload_website_demos.py --AUTH_TOKEN ${{ secrets.SPACES_DEPLOY_TOKEN }} \
         --WHEEL_URL https://gradio-builds.s3.amazonaws.com/${{ steps.set-outputs.outputs.gh_sha }}/ \
+        --GRADIO_VERSION ${{ steps.set-outputs.outputs.gradio_version }}
 
   comment-spaces-success:
     uses: "./.github/workflows/comment-queue.yml"

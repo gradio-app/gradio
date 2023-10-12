@@ -1,5 +1,215 @@
 # @gradio/app
 
+## 1.7.1
+
+### Patch Changes
+
+- Updated dependencies [[`796145e2c`](https://github.com/gradio-app/gradio/commit/796145e2c48c4087bec17f8ec0be4ceee47170cb)]:
+  - @gradio/client@0.5.1
+  - @gradio/file@0.2.1
+  - @gradio/fileexplorer@0.2.1
+  - @gradio/uploadbutton@0.0.11
+
+## 1.7.0
+
+### Highlights
+
+#### new `FileExplorer` component ([#5672](https://github.com/gradio-app/gradio/pull/5672) [`e4a307ed6`](https://github.com/gradio-app/gradio/commit/e4a307ed6cde3bbdf4ff2f17655739addeec941e))
+
+Thanks to a new capability that allows components to communicate directly with the server _without_ passing data via the value, we have created a new `FileExplorer` component.
+
+This component allows you to populate the explorer by passing a glob, but only provides the selected file(s) in your prediction function.
+
+Users can then navigate the virtual filesystem and select files which will be accessible in your predict function. This component will allow developers to build more complex spaces, with more flexible input options.
+
+![output](https://github.com/pngwn/MDsveX/assets/12937446/ef108f0b-0e84-4292-9984-9dc66b3e144d)
+
+For more information check the [`FileExplorer` documentation](https://gradio.app/docs/fileexplorer).
+
+Thanks [@aliabid94](https://github.com/aliabid94)!
+
+### Fixes
+
+- [#5794](https://github.com/gradio-app/gradio/pull/5794) [`f096c3ae1`](https://github.com/gradio-app/gradio/commit/f096c3ae168c0df00f90fe131c1e48c572e0574b) - Throw helpful error when media devices are not found. Thanks [@hannahblair](https://github.com/hannahblair)!
+
+## 1.6.4
+
+### Features
+
+- [#5124](https://github.com/gradio-app/gradio/pull/5124) [`6e56a0d9b`](https://github.com/gradio-app/gradio/commit/6e56a0d9b0c863e76c69e1183d9d40196922b4cd) - Lite: Websocket queueing. Thanks [@whitphx](https://github.com/whitphx)!
+
+## 1.6.3
+
+### Patch Changes
+
+- Updated dependencies [[`abb5e9df4`](https://github.com/gradio-app/gradio/commit/abb5e9df47989b2c56c2c312d74944678f9f2d4e), [`e842a561a`](https://github.com/gradio-app/gradio/commit/e842a561af4394f8109291ee5725bcf74743e816), [`8f0fed857`](https://github.com/gradio-app/gradio/commit/8f0fed857d156830626eb48b469d54d211a582d2), [`502054848`](https://github.com/gradio-app/gradio/commit/502054848fdbe39fc03ec42445242b4e49b7affc), [`2a5b9e03b`](https://github.com/gradio-app/gradio/commit/2a5b9e03b15ea324d641fe6982f26d81b1ca7210)]:
+  - @gradio/gallery@0.4.1
+  - @gradio/chatbot@0.5.0
+  - @gradio/dataframe@0.3.0
+  - @gradio/markdown@0.3.0
+  - @gradio/icons@0.2.0
+  - @gradio/annotatedimage@0.2.1
+  - @gradio/atoms@0.1.3
+  - @gradio/audio@0.3.6
+  - @gradio/code@0.2.1
+  - @gradio/dropdown@0.3.1
+  - @gradio/file@0.1.5
+  - @gradio/form@0.0.6
+  - @gradio/highlightedtext@0.3.2
+  - @gradio/image@0.3.1
+  - @gradio/json@0.1.1
+  - @gradio/label@0.2.1
+  - @gradio/model3d@0.2.3
+  - @gradio/plot@0.2.1
+  - @gradio/statustracker@0.2.1
+  - @gradio/textbox@0.4.1
+  - @gradio/timeseries@0.0.7
+  - @gradio/upload@0.3.1
+  - @gradio/video@0.0.10
+  - @gradio/accordion@0.1.1
+  - @gradio/box@0.0.5
+  - @gradio/checkbox@0.2.1
+  - @gradio/checkboxgroup@0.3.1
+  - @gradio/colorpicker@0.1.3
+  - @gradio/html@0.0.5
+  - @gradio/number@0.3.1
+  - @gradio/radio@0.3.1
+  - @gradio/slider@0.2.1
+  - @gradio/row@0.0.1
+  - @gradio/button@0.2.1
+  - @gradio/uploadbutton@0.0.8
+
+## 1.6.2
+
+### Features
+
+- [#5721](https://github.com/gradio-app/gradio/pull/5721) [`84e03fe50`](https://github.com/gradio-app/gradio/commit/84e03fe506e08f1f81bac6d504c9fba7924f2d93) - Adds copy buttons to website, and better descriptions to API Docs. Thanks [@aliabd](https://github.com/aliabd)!
+
+### Fixes
+
+- [#5705](https://github.com/gradio-app/gradio/pull/5705) [`78e7cf516`](https://github.com/gradio-app/gradio/commit/78e7cf5163e8d205e8999428fce4c02dbdece25f) - ensure internal data has updated before dispatching `success` or `then` events. Thanks [@pngwn](https://github.com/pngwn)!
+- [#5726](https://github.com/gradio-app/gradio/pull/5726) [`96c4b97c7`](https://github.com/gradio-app/gradio/commit/96c4b97c742311e90a87d8e8ee562c6ad765e9f0) - Adjust translation. Thanks [@ylhsieh](https://github.com/ylhsieh)!
+
+## 1.6.1
+
+### Patch Changes
+
+- Updated dependencies [[`ee8eec1e5`](https://github.com/gradio-app/gradio/commit/ee8eec1e5e544a0127e0aa68c2522a7085b8ada5)]:
+  - @gradio/markdown@0.2.2
+  - @gradio/chatbot@0.4.1
+  - @gradio/dataframe@0.2.4
+
+## 1.6.0
+
+### Features
+
+- [#5639](https://github.com/gradio-app/gradio/pull/5639) [`e1874aff8`](https://github.com/gradio-app/gradio/commit/e1874aff814d13b23f3e59ef239cc13e18ad3fa7) - Add `gr.on` listener method. Thanks [@aliabid94](https://github.com/aliabid94)!
+- [#5554](https://github.com/gradio-app/gradio/pull/5554) [`75ddeb390`](https://github.com/gradio-app/gradio/commit/75ddeb390d665d4484667390a97442081b49a423) - Accessibility Improvements. Thanks [@hannahblair](https://github.com/hannahblair)!
+
+## 1.5.4
+
+### Features
+
+- [#5514](https://github.com/gradio-app/gradio/pull/5514) [`52f783175`](https://github.com/gradio-app/gradio/commit/52f7831751b432411e109bd41add4ab286023a8e) - refactor: Use package.json for version management. Thanks [@DarhkVoyd](https://github.com/DarhkVoyd)!
+
+## 1.5.3
+
+### Fixes
+
+- [#5562](https://github.com/gradio-app/gradio/pull/5562) [`50d9747d0`](https://github.com/gradio-app/gradio/commit/50d9747d061962cff7f60a8da648bb3781794102) - chore(deps): update dependency iframe-resizer to v4.3.7. Thanks [@renovate](https://github.com/apps/renovate)!
+- [#5550](https://github.com/gradio-app/gradio/pull/5550) [`4ed5902e7`](https://github.com/gradio-app/gradio/commit/4ed5902e7dda2d95cd43e4ccaaef520ddd8eba57) - Adding basque language. Thanks [@EkhiAzur](https://github.com/EkhiAzur)!
+
+## 1.5.2
+
+### Patch Changes
+
+- Updated dependencies [[`a0cc9ac9`](https://github.com/gradio-app/gradio/commit/a0cc9ac931554e06dcb091158c9b9ac0cc580b6c)]:
+  - @gradio/dropdown@0.2.2
+
+## 1.5.1
+
+### Patch Changes
+
+- Updated dependencies [[`dc86e4a7`](https://github.com/gradio-app/gradio/commit/dc86e4a7e1c40b910c74558e6f88fddf9b3292bc), [`21f1db40`](https://github.com/gradio-app/gradio/commit/21f1db40de6d1717eba97a550e11422a457ba7e9)]:
+  - @gradio/gallery@0.3.3
+  - @gradio/image@0.2.3
+  - @gradio/dropdown@0.2.1
+  - @gradio/row@0.0.1
+  - @gradio/video@0.0.7
+
+## 1.5.0
+
+### Features
+
+- [#5505](https://github.com/gradio-app/gradio/pull/5505) [`9ee20f49`](https://github.com/gradio-app/gradio/commit/9ee20f499f62c1fe5af6b8f84918b3a334eb1c8d) - Validate i18n file names with ISO-639x. Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#5475](https://github.com/gradio-app/gradio/pull/5475) [`c60b89b0`](https://github.com/gradio-app/gradio/commit/c60b89b0a54758a27277f0a6aa20d0653647c7c8) - Adding Central Kurdish. Thanks [@Hrazhan](https://github.com/Hrazhan)!
+- [#5400](https://github.com/gradio-app/gradio/pull/5400) [`d112e261`](https://github.com/gradio-app/gradio/commit/d112e2611b0fc79ecedfaed367571f3157211387) - Allow interactive input in `gr.HighlightedText`. Thanks [@hannahblair](https://github.com/hannahblair)!
+
+## 1.4.3
+
+### Patch Changes
+
+- Updated dependencies [[`6e381c4f`](https://github.com/gradio-app/gradio/commit/6e381c4f146cc8177a4e2b8e39f914f09cd7ff0c)]:
+  - @gradio/dataframe@0.2.2
+
+## 1.4.2
+
+### Fixes
+
+- [#5447](https://github.com/gradio-app/gradio/pull/5447) [`7a4a89e5`](https://github.com/gradio-app/gradio/commit/7a4a89e5ca1dedb39e5366867501584b0c636bbb) - ensure iframe is correct size on spaces. Thanks [@pngwn](https://github.com/pngwn)!
+
+## 1.4.1
+
+### Patch Changes
+
+- Updated dependencies [[`afac0006`](https://github.com/gradio-app/gradio/commit/afac0006337ce2840cf497cd65691f2f60ee5912), [`d14d63e3`](https://github.com/gradio-app/gradio/commit/d14d63e30c4af3f9c2a664fd11b0a01943a8300c), [`26fef8c7`](https://github.com/gradio-app/gradio/commit/26fef8c7f85a006c7e25cdbed1792df19c512d02)]:
+  - @gradio/dataframe@0.2.0
+  - @gradio/markdown@0.2.0
+  - @gradio/statustracker@0.2.0
+  - @gradio/theme@0.1.0
+  - @gradio/textbox@0.2.0
+  - @gradio/client@0.3.1
+  - @gradio/chatbot@0.3.1
+  - @gradio/accordion@0.0.4
+  - @gradio/annotatedimage@0.1.2
+  - @gradio/audio@0.3.2
+  - @gradio/checkbox@0.1.3
+  - @gradio/checkboxgroup@0.1.2
+  - @gradio/code@0.1.2
+  - @gradio/colorpicker@0.1.2
+  - @gradio/dropdown@0.1.3
+  - @gradio/file@0.1.2
+  - @gradio/gallery@0.3.2
+  - @gradio/highlightedtext@0.2.3
+  - @gradio/html@0.0.4
+  - @gradio/image@0.2.2
+  - @gradio/json@0.0.5
+  - @gradio/label@0.1.2
+  - @gradio/model3d@0.2.1
+  - @gradio/number@0.2.2
+  - @gradio/plot@0.1.2
+  - @gradio/radio@0.1.2
+  - @gradio/slider@0.1.2
+  - @gradio/timeseries@0.0.5
+  - @gradio/video@0.0.6
+  - @gradio/utils@0.1.1
+  - @gradio/uploadbutton@0.0.5
+  - @gradio/row@0.0.1
+  - @gradio/atoms@0.1.2
+  - @gradio/button@0.1.3
+  - @gradio/form@0.0.5
+  - @gradio/tabitem@0.0.4
+  - @gradio/tabs@0.0.5
+  - @gradio/box@0.0.4
+  - @gradio/upload@0.2.1
+
+## 1.4.0
+
+### Features
+
+- [#5267](https://github.com/gradio-app/gradio/pull/5267) [`119c8343`](https://github.com/gradio-app/gradio/commit/119c834331bfae60d4742c8f20e9cdecdd67e8c2) - Faster reload mode. Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5373](https://github.com/gradio-app/gradio/pull/5373) [`79d8f9d8`](https://github.com/gradio-app/gradio/commit/79d8f9d891901683c5a1b7486efb44eab2478c96) - Adds `height` and `zoom_speed` parameters to `Model3D` component, as well as a button to reset the camera position. Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 1.3.2
 
 ### Patch Changes

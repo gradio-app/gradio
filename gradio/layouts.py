@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.blocks import BlockContext
+from gradio.blocks import BlockContext, Updateable
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Changeable, Selectable
 
@@ -16,7 +16,7 @@ set_documentation_group("layout")
 
 
 @document()
-class Row(BlockContext):
+class Row(Updateable, BlockContext):
     """
     Row is a layout element within Blocks that renders all children horizontally.
     Example:
@@ -34,6 +34,7 @@ class Row(BlockContext):
         variant: Literal["default", "panel", "compact"] = "default",
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: list[str] | str | None = None,
         equal_height: bool = True,
         **kwargs,
     ):
@@ -42,21 +43,16 @@ class Row(BlockContext):
             variant: row type, 'default' (no background), 'panel' (gray background color and rounded corners), or 'compact' (rounded corners and no internal gap).
             visible: If False, row will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
             equal_height: If True, makes every child element have equal height
         """
         self.variant = variant
         self.equal_height = equal_height
         if variant == "compact":
             self.allow_expected_parents = False
-        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
-
-    def get_config(self):
-        return {
-            "type": "row",
-            "variant": self.variant,
-            "equal_height": self.equal_height,
-            **super().get_config(),
-        }
+        BlockContext.__init__(
+            self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
+        )
 
     @staticmethod
     def update(
@@ -85,7 +81,7 @@ class Row(BlockContext):
 
 
 @document()
-class Column(BlockContext):
+class Column(Updateable, BlockContext):
     """
     Column is a layout element within Blocks that renders all children vertically. The widths of columns can be set through the `scale` and `min_width` parameters.
     If a certain scale results in a column narrower than min_width, the min_width parameter will win.
@@ -109,6 +105,7 @@ class Column(BlockContext):
         variant: Literal["default", "panel", "compact"] = "default",
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: list[str] | str | None = None,
         **kwargs,
     ):
         """
@@ -118,6 +115,7 @@ class Column(BlockContext):
             variant: column type, 'default' (no background), 'panel' (gray background color and rounded corners), or 'compact' (rounded corners and no internal gap).
             visible: If False, column will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         if scale != round(scale):
             warn_deprecation(
@@ -129,16 +127,9 @@ class Column(BlockContext):
         self.variant = variant
         if variant == "compact":
             self.allow_expected_parents = False
-        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
-
-    def get_config(self):
-        return {
-            "type": "column",
-            "variant": self.variant,
-            "scale": self.scale,
-            "min_width": self.min_width,
-            **super().get_config(),
-        }
+        BlockContext.__init__(
+            self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
+        )
 
     @staticmethod
     def update(
@@ -152,7 +143,7 @@ class Column(BlockContext):
         }
 
 
-class Tabs(BlockContext, Changeable, Selectable):
+class Tabs(Updateable, BlockContext, Changeable, Selectable):
     """
     Tabs is a layout element within Blocks that can contain multiple "Tab" Components.
     """
@@ -163,6 +154,7 @@ class Tabs(BlockContext, Changeable, Selectable):
         selected: int | str | None = None,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: list[str] | str | None = None,
         **kwargs,
     ):
         """
@@ -170,14 +162,14 @@ class Tabs(BlockContext, Changeable, Selectable):
             selected: The currently selected tab. Must correspond to an id passed to the one of the child TabItems. Defaults to the first TabItem.
             visible: If False, Tabs will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        BlockContext.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
+        BlockContext.__init__(
+            self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
+        )
         Changeable.__init__(self)
         Selectable.__init__(self)
         self.selected = selected
-
-    def get_config(self):
-        return {"selected": self.selected, **super(BlockContext, self).get_config()}
 
     @staticmethod
     def update(
@@ -190,7 +182,7 @@ class Tabs(BlockContext, Changeable, Selectable):
 
 
 @document()
-class Tab(BlockContext, Selectable):
+class Tab(Updateable, BlockContext, Selectable):
     """
     Tab (or its alias TabItem) is a layout element. Components defined within the Tab will be visible when this tab is selected tab.
     Example:
@@ -210,25 +202,22 @@ class Tab(BlockContext, Selectable):
         *,
         id: int | str | None = None,
         elem_id: str | None = None,
+        elem_classes: list[str] | str | None = None,
         **kwargs,
     ):
         """
         Parameters:
             label: The visual label for the tab
             id: An optional identifier for the tab, required if you wish to control the selected tab from a predict function.
-            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_id: An optional string that is assigned as the id of the <div> containing the contents of the Tab layout. The same string followed by "-button" is attached to the Tab button. Can be used for targeting CSS styles.
+            elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        BlockContext.__init__(self, elem_id=elem_id, **kwargs)
+        BlockContext.__init__(
+            self, elem_id=elem_id, elem_classes=elem_classes, **kwargs
+        )
         Selectable.__init__(self)
         self.label = label
         self.id = id
-
-    def get_config(self):
-        return {
-            "label": self.label,
-            "id": self.id,
-            **super(BlockContext, self).get_config(),
-        }
 
     def get_expected_parent(self) -> type[Tabs]:
         return Tabs
@@ -241,7 +230,7 @@ TabItem = Tab
 
 
 @document()
-class Group(BlockContext):
+class Group(Updateable, BlockContext):
     """
     Group is a layout element within Blocks which groups together children so that
     they do not have any padding or margin between them.
@@ -256,17 +245,18 @@ class Group(BlockContext):
         *,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: list[str] | str | None = None,
         **kwargs,
     ):
         """
         Parameters:
             visible: If False, group will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
-
-    def get_config(self):
-        return {"type": "group", **super().get_config()}
+        BlockContext.__init__(
+            self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
+        )
 
     @staticmethod
     def update(
@@ -278,7 +268,7 @@ class Group(BlockContext):
         }
 
 
-class Box(BlockContext):
+class Box(Updateable, BlockContext):
     """
     DEPRECATED.
     Box is a a layout element which places children in a box with rounded corners and
@@ -302,10 +292,7 @@ class Box(BlockContext):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         warnings.warn("gr.Box is deprecated. Use gr.Group instead.", DeprecationWarning)
-        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
-
-    def get_config(self):
-        return {"type": "box", **super().get_config()}
+        BlockContext.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
 
     @staticmethod
     def update(
@@ -321,7 +308,7 @@ class Box(BlockContext):
         return self
 
 
-class Form(BlockContext):
+class Form(Updateable, BlockContext):
     def __init__(self, *, scale: int = 0, min_width: int = 0, **kwargs):
         """
         Parameters:
@@ -330,26 +317,18 @@ class Form(BlockContext):
         """
         self.scale = scale
         self.min_width = min_width
-        super().__init__(**kwargs)
+        BlockContext.__init__(self, **kwargs)
 
     def add_child(self, child: Block):
         if isinstance(self.parent, Row):
             scale = getattr(child, "scale", None)
             self.scale += 1 if scale is None else scale
             self.min_width += getattr(child, "min_width", 0) or 0
-        super().add_child(child)
-
-    def get_config(self):
-        return {
-            "type": "form",
-            "scale": self.scale,
-            "min_width": self.min_width,
-            **super().get_config(),
-        }
+        BlockContext.add_child(self, child)
 
 
 @document()
-class Accordion(BlockContext):
+class Accordion(Updateable, BlockContext):
     """
     Accordion is a layout element which can be toggled to show/hide the contained content.
     Example:
@@ -364,6 +343,7 @@ class Accordion(BlockContext):
         open: bool = True,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: list[str] | str | None = None,
         **kwargs,
     ):
         """
@@ -371,18 +351,13 @@ class Accordion(BlockContext):
             label: name of accordion section.
             open: if True, accordion is open by default.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.label = label
         self.open = open
-        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
-
-    def get_config(self):
-        return {
-            "type": "accordion",
-            "open": self.open,
-            "label": self.label,
-            **super().get_config(),
-        }
+        BlockContext.__init__(
+            self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
+        )
 
     @staticmethod
     def update(

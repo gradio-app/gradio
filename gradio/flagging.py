@@ -523,4 +523,4 @@ class FlagMethod:
         return self.reset()
 
     def reset(self):
-        return gr.Button.update(value=self.label, interactive=True)
+        return gr.Button(value=self.label, interactive=True)

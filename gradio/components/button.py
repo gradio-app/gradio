@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
-from gradio.components.base import Component, IOComponent, _Keywords
+from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Clickable
 
@@ -73,19 +74,6 @@ class Button(Clickable, IOComponent, StringSerializable):
         self.icon = icon
         self.link = link
 
-    def get_config(self):
-        return {
-            "value": self.value,
-            "variant": self.variant,
-            "size": self.size,
-            "icon": self.icon,
-            "link": self.link,
-            "interactive": self.interactive,
-            "scale": self.scale,
-            "min_width": self.min_width,
-            **Component.get_config(self),
-        }
-
     @staticmethod
     def update(
         value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
@@ -98,6 +86,9 @@ class Button(Clickable, IOComponent, StringSerializable):
         scale: int | None = None,
         min_width: int | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Button(...)` instead of `return gr.Button.update(...)`."
+        )
         return {
             "variant": variant,
             "size": size,

@@ -11,7 +11,6 @@ if sys.version_info >= (3, 9):
 else:
     from importlib_resources import files
 import inspect
-import json
 import mimetypes
 import os
 import posixpath
@@ -22,10 +21,8 @@ import time
 import traceback
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import defaultdict
-from copy import deepcopy
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type
-from urllib.parse import urlparse
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type
 
 import fastapi
 import httpx
@@ -49,21 +46,32 @@ from starlette.websockets import WebSocketState
 
 import gradio
 import gradio.ranged_response as ranged_response
-from gradio import utils, wasm_utils
+from gradio import route_utils, utils, wasm_utils
 from gradio.context import Context
-from gradio.data_classes import PredictBody, ResetBody
+from gradio.data_classes import ComponentServerBody, PredictBody, ResetBody
+from gradio.deprecation import warn_deprecation
 from gradio.exceptions import Error
-from gradio.helpers import EventData
 from gradio.oauth import attach_oauth
 from gradio.queueing import Estimation, Event
-from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
+from gradio.route_utils import Request  # noqa: F401
+from gradio.state_holder import StateHolder
+from gradio.utils import (
+    cancel_tasks,
+    get_package_version,
+    run_coro_in_background,
+    set_task_name,
+)
+
+if TYPE_CHECKING:
+    from gradio.blocks import Block
+
 
 mimetypes.init()
 
 STATIC_TEMPLATE_LIB = files("gradio").joinpath("templates").as_posix()  # type: ignore
 STATIC_PATH_LIB = files("gradio").joinpath("templates", "frontend", "static").as_posix()  # type: ignore
 BUILD_PATH_LIB = files("gradio").joinpath("templates", "frontend", "assets").as_posix()  # type: ignore
-VERSION = files("gradio").joinpath("version.txt").read_text()
+VERSION = get_package_version()
 
 
 class ORJSONResponse(JSONResponse):
@@ -110,16 +118,18 @@ class App(FastAPI):
         self.tokens = {}
         self.auth = None
         self.blocks: gradio.Blocks | None = None
-        self.state_holder = {}
+        self.state_holder = StateHolder()
         self.iterators = defaultdict(dict)
         self.iterators_to_reset = defaultdict(set)
         self.lock = utils.safe_get_lock()
+        self.cookie_id = secrets.token_urlsafe(32)
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
         self.uploaded_file_dir = os.environ.get("GRADIO_TEMP_DIR") or str(
             Path(tempfile.gettempdir()) / "gradio"
         )
         self.change_event: None | threading.Event = None
+        self._asyncio_tasks: list[asyncio.Task] = []
         # Allow user to manually set `docs_url` and `redoc_url`
         # when instantiating an App; when they're not set, disable docs and redoc.
         kwargs.setdefault("docs_url", None)
@@ -137,12 +147,11 @@ class App(FastAPI):
             self.auth = None
 
         self.blocks = blocks
-        if hasattr(self.blocks, "_queue"):
-            self.blocks._queue.set_access_token(self.queue_token)
         self.cwd = os.getcwd()
         self.favicon_path = blocks.favicon_path
         self.tokens = {}
         self.root_path = blocks.root_path
+        self.state_holder.set_blocks(blocks)
 
     def get_blocks(self) -> gradio.Blocks:
         if self.blocks is None:
@@ -166,13 +175,17 @@ class App(FastAPI):
         rp_req = client.build_request("GET", url, headers=headers)
         return rp_req
 
+    def _cancel_asyncio_tasks(self):
+        for task in self._asyncio_tasks:
+            task.cancel()
+        self._asyncio_tasks = []
+
     @staticmethod
     def create_app(
         blocks: gradio.Blocks, app_kwargs: Dict[str, Any] | None = None
     ) -> App:
         app_kwargs = app_kwargs or {}
-        if not wasm_utils.IS_WASM:
-            app_kwargs.setdefault("default_response_class", ORJSONResponse)
+        app_kwargs.setdefault("default_response_class", ORJSONResponse)
         app = App(**app_kwargs)
         app.configure_app(blocks)
 
@@ -187,9 +200,9 @@ class App(FastAPI):
         @app.get("/user")
         @app.get("/user/")
         def get_current_user(request: fastapi.Request) -> Optional[str]:
-            token = request.cookies.get("access-token") or request.cookies.get(
-                "access-token-unsecure"
-            )
+            token = request.cookies.get(
+                f"access-token-{app.cookie_id}"
+            ) or request.cookies.get(f"access-token-unsecure-{app.cookie_id}")
             return app.tokens.get(token)
 
         @app.get("/login_check")
@@ -202,15 +215,15 @@ class App(FastAPI):
             )
 
         async def ws_login_check(websocket: WebSocket) -> Optional[str]:
-            token = websocket.cookies.get("access-token") or websocket.cookies.get(
-                "access-token-unsecure"
-            )
-            return token  # token is returned to allow request in queue
+            token = websocket.cookies.get(
+                f"access-token-{app.cookie_id}"
+            ) or websocket.cookies.get(f"access-token-unsecure-{app.cookie_id}")
+            return token  # token is returned to authenticate the websocket connection in the endpoint handler.
 
         @app.get("/token")
         @app.get("/token/")
         def get_token(request: fastapi.Request) -> dict:
-            token = request.cookies.get("access-token")
+            token = request.cookies.get(f"access-token-{app.cookie_id}")
             return {"token": token, "user": app.tokens.get(token)}
 
         @app.get("/app_id")
@@ -266,14 +279,16 @@ class App(FastAPI):
                 app.tokens[token] = username
                 response = JSONResponse(content={"success": True})
                 response.set_cookie(
-                    key="access-token",
+                    key=f"access-token-{app.cookie_id}",
                     value=token,
                     httponly=True,
                     samesite="none",
                     secure=True,
                 )
                 response.set_cookie(
-                    key="access-token-unsecure", value=token, httponly=True
+                    key=f"access-token-unsecure-{app.cookie_id}",
+                    value=token,
+                    httponly=True,
                 )
                 return response
             else:
@@ -297,11 +312,14 @@ class App(FastAPI):
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
-            root_path = request.scope.get("root_path", "")
-
+            root_path = (
+                request.scope.get("root_path")
+                or request.headers.get("X-Direct-Url")
+                or ""
+            )
             if app.auth is None or user is not None:
                 config = app.get_blocks().config
-                config["root"] = root_path
+                config["root"] = route_utils.strip_url(root_path)
             else:
                 config = {
                     "auth_required": True,
@@ -339,9 +357,13 @@ class App(FastAPI):
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request):
-            root_path = request.scope.get("root_path", "")
+            root_path = (
+                request.scope.get("root_path")
+                or request.headers.get("X-Direct-Url")
+                or ""
+            )
             config = app.get_blocks().config
-            config["root"] = root_path
+            config["root"] = route_utils.strip_url(root_path)
             return config
 
         @app.get("/static/{path:path}")
@@ -398,8 +420,6 @@ class App(FastAPI):
 
             if in_blocklist or is_dotfile or is_dir:
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
-            if not abs_path.exists():
-                raise HTTPException(404, f"File not found: {path_or_url}.")
 
             in_app_dir = utils.is_in_or_equal(abs_path, app.cwd)
             created_by_app = str(abs_path) in set().union(*blocks.temp_file_sets)
@@ -411,6 +431,9 @@ class App(FastAPI):
 
             if not (in_app_dir or created_by_app or in_allowlist or was_uploaded):
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
+
+            if not abs_path.exists():
+                raise HTTPException(404, f"File not found: {path_or_url}.")
 
             range_val = request.headers.get("Range", "").strip()
             if range_val.startswith("bytes=") and "-" in range_val:
@@ -477,85 +500,6 @@ class App(FastAPI):
                 app.iterators_to_reset[body.session_hash].add(body.fn_index)
             return {"success": True}
 
-        async def run_predict(
-            body: PredictBody,
-            request: Request | List[Request],
-            fn_index_inferred: int,
-        ):
-            fn_index = body.fn_index
-            session_hash = getattr(body, "session_hash", None)
-            if session_hash is not None:
-                if session_hash not in app.state_holder:
-                    app.state_holder[session_hash] = {
-                        _id: deepcopy(getattr(block, "value", None))
-                        for _id, block in app.get_blocks().blocks.items()
-                        if getattr(block, "stateful", False)
-                    }
-                session_state = app.state_holder[session_hash]
-                # The should_reset set keeps track of the fn_indices
-                # that have been cancelled. When a job is cancelled,
-                # the /reset route will mark the jobs as having been reset.
-                # That way if the cancel job finishes BEFORE the job being cancelled
-                # the job being cancelled will not overwrite the state of the iterator.
-                if fn_index in app.iterators_to_reset[session_hash]:
-                    iterators = {}
-                    app.iterators_to_reset[session_hash].remove(fn_index)
-                else:
-                    iterators = app.iterators[session_hash]
-            else:
-                session_state = {}
-                iterators = {}
-
-            event_id = getattr(body, "event_id", None)
-            raw_input = body.data
-
-            dependency = app.get_blocks().dependencies[fn_index_inferred]
-            target = dependency["targets"][0] if len(dependency["targets"]) else None
-            event_data = EventData(
-                app.get_blocks().blocks.get(target) if target else None,
-                body.event_data,
-            )
-            batch = dependency["batch"]
-            if not (body.batched) and batch:
-                raw_input = [raw_input]
-            try:
-                with utils.MatplotlibBackendMananger():
-                    output = await app.get_blocks().process_api(
-                        fn_index=fn_index_inferred,
-                        inputs=raw_input,
-                        request=request,
-                        state=session_state,
-                        iterators=iterators,
-                        session_hash=session_hash,
-                        event_id=event_id,
-                        event_data=event_data,
-                    )
-                iterator = output.pop("iterator", None)
-                if hasattr(body, "session_hash"):
-                    app.iterators[body.session_hash][fn_index] = iterator
-                if isinstance(output, Error):
-                    raise output
-            except BaseException as error:
-                iterator = iterators.get(fn_index, None)
-                if iterator is not None:  # close off any streams that are still open
-                    run_id = id(iterator)
-                    pending_streams: dict[int, list] = (
-                        app.get_blocks().pending_streams[session_hash].get(run_id, {})
-                    )
-                    for stream in pending_streams.values():
-                        stream.append(None)
-
-                show_error = app.get_blocks().show_error or isinstance(error, Error)
-                traceback.print_exc()
-                return JSONResponse(
-                    content={"error": str(error) if show_error else None},
-                    status_code=500,
-                )
-
-            if not (body.batched) and batch:
-                output["data"] = output["data"][0]
-            return output
-
         # had to use '/run' endpoint for Colab compatibility, '/api' supported for backwards compatibility
         @app.post("/run/{api_name}", dependencies=[Depends(login_check)])
         @app.post("/run/{api_name}/", dependencies=[Depends(login_check)])
@@ -567,51 +511,40 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            fn_index_inferred = None
-            if body.fn_index is None:
-                for i, fn in enumerate(app.get_blocks().dependencies):
-                    if fn["api_name"] == api_name:
-                        fn_index_inferred = i
-                        break
-                if fn_index_inferred is None:
-                    return JSONResponse(
-                        content={
-                            "error": f"This app has no endpoint /api/{api_name}/."
-                        },
-                        status_code=500,
-                    )
-            else:
-                fn_index_inferred = body.fn_index
-            if (
-                not app.get_blocks().api_open
-                and app.get_blocks().queue_enabled_for_fn(fn_index_inferred)
-                and f"Bearer {app.queue_token}" != request.headers.get("Authorization")
+            fn_index_inferred = route_utils.infer_fn_index(
+                app=app, api_name=api_name, body=body
+            )
+
+            if not app.get_blocks().api_open and app.get_blocks().queue_enabled_for_fn(
+                fn_index_inferred
             ):
                 raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Not authorized to skip the queue",
+                    status_code=status.HTTP_404_NOT_FOUND,
                 )
 
-            # If this fn_index cancels jobs, then the only input we need is the
-            # current session hash
-            if app.get_blocks().dependencies[fn_index_inferred]["cancels"]:
-                body.data = [body.session_hash]
-            if body.request:
-                if body.batched:
-                    gr_request = [
-                        Request(username=username, **req) for req in body.request
-                    ]
-                else:
-                    assert isinstance(body.request, dict)
-                    gr_request = Request(username=username, **body.request)
-            else:
-                gr_request = Request(username=username, request=request)
-            result = await run_predict(
-                body=body,
+            gr_request = route_utils.compile_gr_request(
+                app,
+                body,
                 fn_index_inferred=fn_index_inferred,
-                request=gr_request,
+                username=username,
+                request=request,
             )
-            return result
+
+            try:
+                output = await route_utils.call_process_api(
+                    app=app,
+                    body=body,
+                    gr_request=gr_request,
+                    fn_index_inferred=fn_index_inferred,
+                )
+            except BaseException as error:
+                show_error = app.get_blocks().show_error or isinstance(error, Error)
+                traceback.print_exc()
+                return JSONResponse(
+                    content={"error": str(error) if show_error else None},
+                    status_code=500,
+                )
+            return output
 
         @app.websocket("/queue/join")
         async def join_queue(
@@ -622,9 +555,8 @@ class App(FastAPI):
             if app.auth is not None and token is None:
                 await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
                 return
-            if blocks._queue.server_path is None:
-                app_url = get_server_url_from_ws_url(str(websocket.url))
-                blocks._queue.set_url(app_url)
+            if blocks._queue.server_app is None:
+                blocks._queue.set_server_app(app)
             await websocket.accept()
             # In order to cancel jobs, we need the session_hash and fn_index
             # to create a unique id for each job
@@ -645,8 +577,8 @@ class App(FastAPI):
             event = Event(
                 websocket, session_info["session_hash"], session_info["fn_index"]
             )
-            # set the token into Event to allow using the same token for call_prediction
-            event.token = token
+            # set the username into Event to allow using the same username for call_prediction
+            event.username = app.tokens.get(token)
             event.session_hash = session_info["session_hash"]
 
             # Continuous events are not put in the queue  so that they do not
@@ -659,6 +591,7 @@ class App(FastAPI):
                     blocks._queue.process_events, [event], False
                 )
                 set_task_name(task, event.session_hash, event.fn_index, batch=False)
+                app._asyncio_tasks.append(task)
             else:
                 rank = blocks._queue.push(event)
 
@@ -672,6 +605,19 @@ class App(FastAPI):
                 await asyncio.sleep(1)
                 if websocket.application_state == WebSocketState.DISCONNECTED:
                     return
+
+        @app.post("/component_server", dependencies=[Depends(login_check)])
+        @app.post("/component_server/", dependencies=[Depends(login_check)])
+        def component_server(body: ComponentServerBody):
+            state = app.state_holder[body.session_hash]
+            component_id = body.component_id
+            block: Block
+            if component_id in state:
+                block = state[component_id]
+            else:
+                block = app.get_blocks().blocks[component_id]
+            fn = getattr(block, body.fn_name)
+            return fn(body.data)
 
         @app.get(
             "/queue/status",
@@ -763,116 +709,7 @@ def get_types(cls_set: List[Type]):
     return docset, types
 
 
-def get_server_url_from_ws_url(ws_url: str):
-    ws_url_parsed = urlparse(ws_url)
-    scheme = "http" if ws_url_parsed.scheme == "ws" else "https"
-    port = f":{ws_url_parsed.port}" if ws_url_parsed.port else ""
-    return f"{scheme}://{ws_url_parsed.hostname}{port}{ws_url_parsed.path.replace('queue/join', '')}"
-
-
 set_documentation_group("routes")
-
-
-class Obj:
-    """
-    Using a class to convert dictionaries into objects. Used by the `Request` class.
-    Credit: https://www.geeksforgeeks.org/convert-nested-python-dictionary-to-object/
-    """
-
-    def __init__(self, dict_):
-        self.__dict__.update(dict_)
-        for key, value in dict_.items():
-            if isinstance(value, (dict, list)):
-                value = Obj(value)
-            setattr(self, key, value)
-
-    def __getitem__(self, item):
-        return self.__dict__[item]
-
-    def __setitem__(self, item, value):
-        self.__dict__[item] = value
-
-    def __iter__(self):
-        for key, value in self.__dict__.items():
-            if isinstance(value, Obj):
-                yield (key, dict(value))
-            else:
-                yield (key, value)
-
-    def __contains__(self, item) -> bool:
-        if item in self.__dict__:
-            return True
-        for value in self.__dict__.values():
-            if isinstance(value, Obj) and item in value:
-                return True
-        return False
-
-    def keys(self):
-        return self.__dict__.keys()
-
-    def values(self):
-        return self.__dict__.values()
-
-    def items(self):
-        return self.__dict__.items()
-
-    def __str__(self) -> str:
-        return str(self.__dict__)
-
-    def __repr__(self) -> str:
-        return str(self.__dict__)
-
-
-@document()
-class Request:
-    """
-    A Gradio request object that can be used to access the request headers, cookies,
-    query parameters and other information about the request from within the prediction
-    function. The class is a thin wrapper around the fastapi.Request class. Attributes
-    of this class include: `headers`, `client`, `query_params`, and `path_params`. If
-    auth is enabled, the `username` attribute can be used to get the logged in user.
-    Example:
-        import gradio as gr
-        def echo(name, request: gr.Request):
-            print("Request headers dictionary:", request.headers)
-            print("IP address:", request.client.host)
-            return name
-        io = gr.Interface(echo, "textbox", "textbox").launch()
-    """
-
-    def __init__(
-        self,
-        request: fastapi.Request | None = None,
-        username: str | None = None,
-        **kwargs,
-    ):
-        """
-        Can be instantiated with either a fastapi.Request or by manually passing in
-        attributes (needed for websocket-based queueing).
-        Parameters:
-            request: A fastapi.Request
-        """
-        self.request = request
-        self.username = username
-        self.kwargs: Dict = kwargs
-
-    def dict_to_obj(self, d):
-        if isinstance(d, dict):
-            return json.loads(json.dumps(d), object_hook=Obj)
-        else:
-            return d
-
-    def __getattr__(self, name):
-        if self.request:
-            return self.dict_to_obj(getattr(self.request, name))
-        else:
-            try:
-                obj = self.kwargs[name]
-            except KeyError as ke:
-                raise AttributeError(
-                    f"'Request' object has no attribute '{name}'"
-                ) from ke
-            return self.dict_to_obj(obj)
 
 
 @document()
@@ -889,7 +726,7 @@ def mount_gradio_app(
         app: The parent FastAPI application.
         blocks: The blocks object we want to mount to the parent app.
         path: The path at which the gradio application will be mounted.
-        gradio_api_url: The full url at which the gradio app will run. This is only needed if deploying to Huggingface spaces of if the websocket endpoints of your deployed app are on a different network location than the gradio app. If deploying to spaces, set gradio_api_url to 'http://localhost:7860/'
+        gradio_api_url: Deprecated and has no effect.
         app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
     Example:
         from fastapi import FastAPI
@@ -907,11 +744,12 @@ def mount_gradio_app(
     blocks.validate_queue_settings()
     gradio_app = App.create_app(blocks, app_kwargs=app_kwargs)
 
+    if gradio_api_url is not None:
+        warn_deprecation("gradio_api_url is deprecated and has not effect.")
+
     @app.on_event("startup")
     async def start_queue():
         if gradio_app.get_blocks().enable_queue:
-            if gradio_api_url:
-                gradio_app.get_blocks()._queue.set_url(gradio_api_url)
             gradio_app.get_blocks().startup_events()
 
     app.mount(path, gradio_app)

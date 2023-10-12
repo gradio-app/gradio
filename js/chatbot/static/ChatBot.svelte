@@ -2,13 +2,16 @@
 	import { format_chat_for_sharing } from "../utils";
 	import { copy } from "@gradio/utils";
 
+	import { dequal } from "dequal/lite";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import { ShareButton } from "@gradio/atoms";
-	import type { SelectData } from "@gradio/utils";
+	import type { SelectData, LikeData } from "@gradio/utils";
 	import type { FileData } from "@gradio/upload";
 	import { MarkdownCode as Markdown } from "@gradio/markdown/static";
 	import { get_fetchable_url_or_file } from "@gradio/upload";
 	import Copy from "./Copy.svelte";
+	import LikeDislike from "./LikeDislike.svelte";
+	import Pending from "./Pending.svelte";
 
 	export let value:
 		| [string | FileData | null, string | FileData | null][]
@@ -21,16 +24,19 @@
 		display: boolean;
 	}[];
 	export let pending_message = false;
-	export let feedback: string[] | null = null;
 	export let selectable = false;
+	export let likeable = false;
 	export let show_share_button = false;
 	export let rtl = false;
 	export let show_copy_button = false;
 	export let avatar_images: [string | null, string | null] = [null, null];
 	export let sanitize_html = true;
 	export let bubble_full_width = true;
+	export let render_markdown = true;
+	export let line_breaks = true;
 	export let root: string;
 	export let root_url: null | string;
+	export let layout: "bubble" | "panel" = "bubble";
 
 	let div: HTMLDivElement;
 	let autoscroll: boolean;
@@ -38,6 +44,7 @@
 	const dispatch = createEventDispatcher<{
 		change: undefined;
 		select: SelectData;
+		like: LikeData;
 	}>();
 
 	beforeUpdate(() => {
@@ -62,7 +69,7 @@
 	});
 
 	$: {
-		if (value !== old_value) {
+		if (!dequal(value, old_value)) {
 			old_value = value;
 			dispatch("change");
 		}
@@ -78,10 +85,23 @@
 			value: message
 		});
 	}
+
+	function handle_like(
+		i: number,
+		j: number,
+		message: string | FileData | null,
+		liked: boolean
+	): void {
+		dispatch("like", {
+			index: [i, j],
+			value: message,
+			liked: liked
+		});
+	}
 </script>
 
 {#if show_share_button && value !== null && value.length > 0}
-	<div class="icon-button">
+	<div class="share-button">
 		<ShareButton
 			on:error
 			on:share
@@ -91,122 +111,153 @@
 	</div>
 {/if}
 
-<div class="wrap" bind:this={div}>
-	<div class="message-wrap" use:copy>
+<div
+	class={layout === "bubble" ? "bubble-wrap" : "panel-wrap"}
+	bind:this={div}
+	role="log"
+	aria-label="chatbot conversation"
+	aria-live="polite"
+>
+	<div class="message-wrap" class:bubble-gap={layout === "bubble"} use:copy>
 		{#if value !== null}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
-					<div
-						class="message-row {j == 0 ? 'user-row' : 'bot-row'}"
-						class:hide={message === null}
-					>
-						{#if avatar_images[j] !== null}
-							<div class="avatar-container">
-								<img
-									class="avatar-image"
-									src={get_fetchable_url_or_file(
-										avatar_images[j],
-										root,
-										root_url
-									)}
-									alt="avatar-{j == 0 ? 'user' : 'bot'}"
-								/>
-							</div>
-						{/if}
-						<!-- TODO: fix-->
-						<!-- svelte-ignore a11y-no-static-element-interactions-->
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<div
-							data-testid={j == 0 ? "user" : "bot"}
-							class:latest={i === value.length - 1}
-							class="message {j == 0 ? 'user' : 'bot'}"
-							class:message-fit={!bubble_full_width}
-							class:selectable
-							on:click={() => handle_select(i, j, message)}
-							dir={rtl ? "rtl" : "ltr"}
-						>
-							{#if typeof message === "string"}
-								<Markdown
-									{message}
-									{latex_delimiters}
-									{sanitize_html}
-									on:load={scroll}
-								/>
-								{#if feedback && j == 1}
-									<div class="feedback">
-										{#each feedback as f}
-											<button>{f}</button>
-										{/each}
-									</div>
-								{/if}
+					{#if message !== null || pending_message}
+						<div class="message-row {layout} {j == 0 ? 'user-row' : 'bot-row'}">
+							{#if avatar_images[j] !== null}
+								<div class="avatar-container">
+									<img
+										class="avatar-image"
+										src={get_fetchable_url_or_file(
+											avatar_images[j],
+											root,
+											root_url
+										)}
+										alt="{j == 0 ? 'user' : 'bot'} avatar"
+									/>
+								</div>
+							{/if}
 
-								{#if show_copy_button && message}
-									<div class="icon-button">
+							<div
+								class="message {j == 0 ? 'user' : 'bot'}"
+								class:message-fit={layout === "bubble" && !bubble_full_width}
+								class:panel-full-width={layout === "panel"}
+								class:message-bubble-border={layout === "bubble"}
+								class:message-markdown-disabled={!render_markdown}
+							>
+								<button
+									data-testid={j == 0 ? "user" : "bot"}
+									class:latest={i === value.length - 1}
+									class:message-markdown-disabled={!render_markdown}
+									class:selectable
+									style:text-align="left"
+									on:click={() => handle_select(i, j, message)}
+									on:keydown={(e) => {
+										if (e.key === "Enter") {
+											handle_select(i, j, message);
+										}
+									}}
+									dir={rtl ? "rtl" : "ltr"}
+									aria-label={(j == 0 ? "user" : "bot") +
+										"'s message:' " +
+										message}
+								>
+									{#if typeof message === "string"}
+										<Markdown
+											{message}
+											{latex_delimiters}
+											{sanitize_html}
+											{render_markdown}
+											{line_breaks}
+											on:load={scroll}
+										/>
+									{:else if message !== null && message.mime_type?.includes("audio")}
+										<audio
+											data-testid="chatbot-audio"
+											controls
+											preload="metadata"
+											src={message.data}
+											title={message.alt_text}
+											on:play
+											on:pause
+											on:ended
+										/>
+									{:else if message !== null && message.mime_type?.includes("video")}
+										<video
+											data-testid="chatbot-video"
+											controls
+											src={message.data}
+											title={message.alt_text}
+											preload="auto"
+											on:play
+											on:pause
+											on:ended
+										>
+											<track kind="captions" />
+										</video>
+									{:else if message !== null && message.mime_type?.includes("image")}
+										<img
+											data-testid="chatbot-image"
+											src={message.data}
+											alt={message.alt_text}
+										/>
+									{:else if message !== null && message.data !== null}
+										<a
+											data-testid="chatbot-file"
+											href={message.data}
+											target="_blank"
+											download={window.__is_colab__
+												? null
+												: message.orig_name || message.name}
+										>
+											{message.orig_name || message.name}
+										</a>
+									{:else if pending_message && j === 1}
+										<Pending {layout} />
+									{/if}
+								</button>
+							</div>
+							{#if (likeable && j !== 0) || (show_copy_button && message && typeof message === "string")}
+								<div
+									class="message-buttons-{j == 0
+										? 'user'
+										: 'bot'} message-buttons-{layout} {avatar_images[j] !==
+										null && 'with-avatar'}"
+									class:message-buttons-fit={layout === "bubble" &&
+										!bubble_full_width}
+									class:bubble-buttons-user={layout === "bubble"}
+								>
+									{#if likeable && j == 1}
+										<LikeDislike
+											action="like"
+											handle_action={() => handle_like(i, j, message, true)}
+										/>
+										<LikeDislike
+											action="dislike"
+											handle_action={() => handle_like(i, j, message, false)}
+										/>
+									{/if}
+									{#if show_copy_button && message && typeof message === "string"}
 										<Copy value={message} />
-									</div>
-								{/if}
-							{:else if message !== null && message.mime_type?.includes("audio")}
-								<audio
-									data-testid="chatbot-audio"
-									controls
-									preload="metadata"
-									src={message.data}
-									title={message.alt_text}
-									on:play
-									on:pause
-									on:ended
-								/>
-							{:else if message !== null && message.mime_type?.includes("video")}
-								<video
-									data-testid="chatbot-video"
-									controls
-									src={message.data}
-									title={message.alt_text}
-									preload="auto"
-									on:play
-									on:pause
-									on:ended
-								>
-									<track kind="captions" />
-								</video>
-							{:else if message !== null && message.mime_type?.includes("image")}
-								<img
-									data-testid="chatbot-image"
-									src={message.data}
-									alt={message.alt_text}
-								/>
-							{:else if message !== null && message.data !== null}
-								<a
-									data-testid="chatbot-file"
-									href={message.data}
-									target="_blank"
-									download={window.__is_colab__
-										? null
-										: message.orig_name || message.name}
-								>
-									{message.orig_name || message.name}
-								</a>
+									{/if}
+								</div>
 							{/if}
 						</div>
-					</div>
+					{/if}
 				{/each}
 			{/each}
-		{/if}
-		{#if pending_message}
-			<div class="message pending">
-				<div class="dot-flashing" />
-				&nbsp;
-				<div class="dot-flashing" />
-				&nbsp;
-				<div class="dot-flashing" />
-			</div>
 		{/if}
 	</div>
 </div>
 
 <style>
-	.wrap {
+	.bubble-wrap {
 		padding: var(--block-padding);
+		width: 100%;
+		overflow-y: auto;
+	}
+
+	.panel-wrap {
 		width: 100%;
 		overflow-y: auto;
 	}
@@ -214,7 +265,11 @@
 	.message-wrap {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-xxl);
+		justify-content: space-between;
+	}
+
+	.bubble-gap {
+		gap: calc(var(--spacing-xxl) + var(--spacing-lg));
 	}
 
 	.message-wrap > div :not(.avatar-container) :global(img) {
@@ -232,39 +287,59 @@
 
 	.message {
 		position: relative;
-		align-self: flex-start;
-		border-width: 1px;
-		border-radius: var(--radius-xxl);
+		display: flex;
+		flex-direction: column;
+		align-self: flex-end;
+		text-align: left;
 		background: var(--background-fill-secondary);
-		padding: var(--spacing-xxl);
-		padding-right: calc(var(--spacing-xxl) + var(--spacing-md));
 		width: calc(100% - var(--spacing-xxl));
 		color: var(--body-text-color);
 		font-size: var(--text-lg);
 		line-height: var(--line-lg);
 		overflow-wrap: break-word;
+		overflow-x: hidden;
+		padding-right: calc(var(--spacing-xxl) + var(--spacing-md));
+		padding: calc(var(--spacing-xxl) + var(--spacing-sm));
 	}
+
+	.message-bubble-border {
+		border-width: 1px;
+		border-radius: var(--radius-xxl);
+	}
+
 	.message-fit {
 		width: fit-content !important;
 	}
-	.message-fit.user {
-		margin-left: auto;
+
+	.panel-full-width {
+		padding: calc(var(--spacing-xxl) * 2);
+		width: 100%;
 	}
+	.message-markdown-disabled {
+		white-space: pre-line;
+	}
+
+	@media (max-width: 480px) {
+		.panel-full-width {
+			padding: calc(var(--spacing-xxl) * 2);
+		}
+	}
+
 	.user {
-		align-self: flex-end;
+		align-self: flex-start;
 		border-bottom-right-radius: 0;
+		text-align: right;
 	}
 	.bot {
 		border-bottom-left-radius: 0;
-		padding-left: var(--spacing-xxl);
 	}
 
 	/* Colors */
-	.bot,
-	.pending {
+	.bot {
 		border-color: var(--border-color-primary);
 		background: var(--background-fill-secondary);
 	}
+
 	.user {
 		border-color: var(--border-color-accent-subdued);
 		background-color: var(--color-accent-soft);
@@ -272,21 +347,35 @@
 	.message-row {
 		display: flex;
 		flex-direction: row;
+		position: relative;
 	}
 
+	.message-row.panel.user-row {
+		background: var(--color-accent-soft);
+	}
+
+	.message-row.panel.bot-row {
+		background: var(--background-fill-secondary);
+	}
+
+	.message-row:last-of-type {
+		margin-bottom: var(--spacing-xxl);
+	}
+
+	.user-row.bubble {
+		flex-direction: row;
+		justify-content: flex-end;
+	}
 	@media (max-width: 480px) {
-		.user-row {
+		.user-row.bubble {
 			align-self: flex-end;
 		}
 
-		.bot-row {
+		.bot-row.bubble {
 			align-self: flex-start;
 		}
 		.message {
 			width: auto;
-		}
-		.bot {
-			padding-left: var(--spacing-xxl);
 		}
 	}
 	.avatar-container {
@@ -295,14 +384,20 @@
 		justify-content: center;
 		width: 35px;
 		height: 35px;
+		flex-shrink: 0;
 		bottom: 0;
 	}
-	.user-row > .avatar-container {
+	.user-row.bubble > .avatar-container {
 		order: 2;
 		margin-left: 10px;
 	}
-	.bot-row > .avatar-container {
+	.bot-row.bubble > .avatar-container {
 		margin-right: 10px;
+	}
+
+	.panel > .avatar-container {
+		margin-left: 25px;
+		align-self: center;
 	}
 	img.avatar-image {
 		width: 100%;
@@ -311,55 +406,53 @@
 		border-radius: 50%;
 	}
 
-	.feedback {
+	.message-buttons-user,
+	.message-buttons-bot {
+		border-radius: var(--radius-md);
 		display: flex;
+		align-items: center;
+		bottom: 0;
+		height: var(--size-7);
+		align-self: self-end;
 		position: absolute;
-		top: var(--spacing-xl);
-		right: calc(var(--spacing-xxl) + var(--spacing-xl));
-		gap: var(--spacing-lg);
-		font-size: var(--text-sm);
+		bottom: -15px;
+		margin: 2px;
+		padding-left: 5px;
+		z-index: 1;
 	}
-	.feedback button {
-		color: var(--body-text-color-subdued);
+	.message-buttons-bot {
+		left: 10px;
 	}
-	.feedback button:hover {
-		color: var(--body-text-color);
+	.message-buttons-user {
+		right: 5px;
 	}
+
+	.message-buttons-bot.message-buttons-bubble.with-avatar {
+		left: 50px;
+	}
+	.message-buttons-user.message-buttons-bubble.with-avatar {
+		right: 50px;
+	}
+
+	.message-buttons-bubble {
+		border: 1px solid var(--border-color-accent);
+		background: var(--background-fill-secondary);
+	}
+
+	.message-buttons-panel {
+		left: unset;
+		right: 0px;
+		top: 0px;
+	}
+
+	.share-button {
+		position: absolute;
+		top: 4px;
+		right: 6px;
+	}
+
 	.selectable {
 		cursor: pointer;
-	}
-
-	.pending {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		align-self: center;
-		gap: 2px;
-	}
-	.dot-flashing {
-		animation: dot-flashing 1s infinite linear alternate;
-		border-radius: 5px;
-		background-color: var(--body-text-color);
-		width: 5px;
-		height: 5px;
-		color: var(--body-text-color);
-	}
-	.dot-flashing:nth-child(2) {
-		animation-delay: 0.33s;
-	}
-	.dot-flashing:nth-child(3) {
-		animation-delay: 0.66s;
-	}
-
-	/* Small screen */
-	@media (max-width: 480px) {
-		.user {
-			align-self: flex-end;
-		}
-		.bot {
-			align-self: flex-start;
-			padding-left: var(--size-3);
-		}
 	}
 
 	@keyframes dot-flashing {
@@ -380,10 +473,6 @@
 	.message-wrap .message :global(a) {
 		color: var(--color-text-link);
 		text-decoration: underline;
-	}
-
-	.hide {
-		display: none;
 	}
 
 	.message-wrap .bot :global(table),
@@ -449,11 +538,5 @@
 
 	.message-wrap :global(pre) {
 		position: relative;
-	}
-
-	.icon-button {
-		position: absolute;
-		top: 6px;
-		right: 6px;
 	}
 </style>

@@ -11,7 +11,7 @@ from sklearn.mixture import GaussianMixture
 from sklearn.neighbors import kneighbors_graph
 from sklearn.preprocessing import StandardScaler
 
-plt.style.use('seaborn')
+plt.style.use('seaborn-v0_8')
 SEED = 0
 MAX_CLUSTERS = 10
 N_SAMPLES = 1000
@@ -20,7 +20,8 @@ FIGSIZE = 7, 7  # does not affect size in webpage
 COLORS = [
     'blue', 'orange', 'green', 'red', 'purple', 'brown', 'pink', 'gray', 'olive', 'cyan'
 ]
-assert len(COLORS) >= MAX_CLUSTERS, "Not enough different colors for all clusters"
+if len(COLORS) <= MAX_CLUSTERS:
+    raise ValueError("Not enough different colors for all clusters")
 np.random.seed(SEED)
 
 

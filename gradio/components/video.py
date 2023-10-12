@@ -131,19 +131,6 @@ class Video(
             **kwargs,
         )
 
-    def get_config(self):
-        return {
-            "source": self.source,
-            "value": self.value,
-            "height": self.height,
-            "width": self.width,
-            "mirror_webcam": self.mirror_webcam,
-            "include_audio": self.include_audio,
-            "autoplay": self.autoplay,
-            "show_share_button": self.show_share_button,
-            **IOComponent.get_config(self),
-        }
-
     @staticmethod
     def update(
         value: str
@@ -163,6 +150,9 @@ class Video(
         autoplay: bool | None = None,
         show_share_button: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Video(...)` instead of `return gr.Video.update(...)`."
+        )
         return {
             "source": source,
             "height": height,
@@ -203,14 +193,16 @@ class Video(
         )
 
         if is_file:
-            assert file_name is not None, "Received file data without a file name."
+            if file_name is None:
+                raise ValueError("Received file data without a file name.")
             if client_utils.is_http_url_like(file_name):
                 fn = self.download_temp_copy_if_needed
             else:
                 fn = self.make_temp_copy_if_needed
             file_name = Path(fn(file_name))
         else:
-            assert file_data is not None, "Received empty file data."
+            if file_data is None:
+                raise ValueError("Received empty file data.")
             file_name = Path(self.base64_to_temp_file_if_needed(file_data, file_name))
 
         uploaded_format = file_name.suffix.replace(".", "")
@@ -280,12 +272,15 @@ class Video(
         if isinstance(y, (str, Path)):
             processed_files = (self._format_video(y), None)
         elif isinstance(y, (tuple, list)):
-            assert (
-                len(y) == 2
-            ), f"Expected lists of length 2 or tuples of length 2. Received: {y}"
-            assert isinstance(y[0], (str, Path)) and isinstance(
-                y[1], (str, Path)
-            ), f"If a tuple is provided, both elements must be strings or Path objects. Received: {y}"
+            if len(y) != 2:
+                raise ValueError(
+                    f"Expected lists of length 2 or tuples of length 2. Received: {y}"
+                )
+
+            if not (isinstance(y[0], (str, Path)) and isinstance(y[1], (str, Path))):
+                raise TypeError(
+                    f"If a tuple is provided, both elements must be strings or Path objects. Received: {y}"
+                )
             video = y[0]
             subtitle = y[1]
             processed_files = (

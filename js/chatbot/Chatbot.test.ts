@@ -36,8 +36,8 @@ describe("Chatbot", () => {
 		assert.exists(user);
 	});
 
-	test("renders none messages", async () => {
-		const { getAllByTestId } = await render(Chatbot, {
+	test("null messages are not visible", async () => {
+		const { getByRole, container } = await render(Chatbot, {
 			loading_status,
 			label: "chatbot",
 			value: [[null, null]],
@@ -47,10 +47,33 @@ describe("Chatbot", () => {
 			theme_mode: "dark"
 		});
 
-		const user = getAllByTestId("user");
-		const bot = getAllByTestId("bot");
-		assert.equal(user[0].innerHTML, "");
-		assert.equal(bot[0].innerHTML, "");
+		const chatbot = getByRole("log");
+
+		const userButton = container.querySelector(".user button");
+		const botButton = container.querySelector(".bot button");
+
+		assert.notExists(userButton);
+		assert.notExists(botButton);
+
+		assert.isFalse(chatbot.innerHTML.includes("button"));
+	});
+
+	test("empty string messages are visible", async () => {
+		const { container } = await render(Chatbot, {
+			loading_status,
+			label: "chatbot",
+			value: [["", ""]],
+			root: "",
+			root_url: "",
+			latex_delimiters: [{ left: "$$", right: "$$", display: true }],
+			theme_mode: "dark"
+		});
+
+		const userButton = container.querySelector(".user button");
+		const botButton = container.querySelector(".bot button");
+
+		assert.exists(userButton);
+		assert.exists(botButton);
 	});
 
 	test("renders additional message as they are passed", async () => {

@@ -152,7 +152,10 @@ class ImgSerializable(Serializable):
     """Expects a base64 string as input/output which is serialized to a filepath."""
 
     def serialized_info(self):
-        return {"type": "string", "description": "filepath or URL to image"}
+        return {
+            "type": "string",
+            "description": "filepath on your computer (or URL) of image",
+        }
 
     def api_info(self) -> dict[str, bool | dict]:
         return {"info": serializer_types["ImgSerializable"], "serialized_info": True}
@@ -222,13 +225,19 @@ class FileSerializable(Serializable):
         }
 
     def _single_file_serialized_info(self):
-        return {"type": "string", "description": "filepath or URL to file"}
+        return {
+            "type": "string",
+            "description": "filepath on your computer (or URL) of file",
+        }
 
     def _multiple_file_serialized_info(self):
         return {
             "type": "array",
             "description": "List of filepath(s) or URL(s) to files",
-            "items": {"type": "string", "description": "filepath or URL to file"},
+            "items": {
+                "type": "string",
+                "description": "filepath on your computer (or URL) of file",
+            },
         }
 
     def _multiple_file_api_info(self):
@@ -298,7 +307,8 @@ class FileSerializable(Serializable):
         elif isinstance(x, dict):
             if x.get("is_file"):
                 filepath = x.get("name")
-                assert filepath is not None, f"The 'name' field is missing in {x}"
+                if filepath is None:
+                    raise ValueError(f"The 'name' field is missing in {x}")
                 if root_url is not None:
                     file_name = utils.download_tmp_copy_of_file(
                         root_url + "file=" + filepath,
@@ -322,7 +332,8 @@ class FileSerializable(Serializable):
                 file_name = str(path)
             else:
                 data = x.get("data")
-                assert data is not None, f"The 'data' field is missing in {x}"
+                if data is None:
+                    raise ValueError(f"The 'data' field is missing in {x}")
                 file_name = utils.decode_base64_to_file(data, dir=save_dir).name
         else:
             raise ValueError(
@@ -386,7 +397,10 @@ class FileSerializable(Serializable):
 
 class VideoSerializable(FileSerializable):
     def serialized_info(self):
-        return {"type": "string", "description": "filepath or URL to video file"}
+        return {
+            "type": "string",
+            "description": "filepath on your computer (or URL) of video file",
+        }
 
     def api_info(self) -> dict[str, dict | bool]:
         return {"info": serializer_types["FileSerializable"], "serialized_info": True}
@@ -414,7 +428,8 @@ class VideoSerializable(FileSerializable):
         version (string filepath). Optionally, save the file to the directory specified by `save_dir`
         """
         if isinstance(x, (tuple, list)):
-            assert len(x) == 2, f"Expected tuple of length 2. Received: {x}"
+            if len(x) != 2:
+                raise ValueError(f"Expected tuple of length 2. Received: {x}")
             x_as_list = [x[0], x[1]]
         else:
             raise ValueError(f"Expected tuple of length 2. Received: {x}")
@@ -561,6 +576,7 @@ COMPONENT_MAPPING: dict[str, type] = {
     "file": FileSerializable,
     "dataframe": JSONSerializable,
     "timeseries": JSONSerializable,
+    "fileexplorer": JSONSerializable,
     "state": SimpleSerializable,
     "button": StringSerializable,
     "uploadbutton": FileSerializable,

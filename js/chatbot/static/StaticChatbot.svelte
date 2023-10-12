@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Gradio, SelectData } from "@gradio/utils";
+	import type { Gradio, SelectData, LikeData } from "@gradio/utils";
 
 	import ChatBot from "./ChatBot.svelte";
 	import { Block, BlockLabel } from "@gradio/atoms";
@@ -20,11 +20,15 @@
 	export let root: string;
 	export let root_url: null | string;
 	export let selectable = false;
+	export let likeable = false;
 	export let show_share_button = false;
 	export let rtl = false;
 	export let show_copy_button = false;
 	export let sanitize_html = true;
 	export let bubble_full_width = true;
+	export let layout: "bubble" | "panel" = "bubble";
+	export let render_markdown = true;
+	export let line_breaks = true;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -35,6 +39,7 @@
 		select: SelectData;
 		share: ShareData;
 		error: string;
+		like: LikeData;
 	}>;
 	export let avatar_images: [string | null, string | null] = [null, null];
 
@@ -50,7 +55,7 @@
 					: normalise_file(user_msg, root, root_url),
 				typeof bot_msg === "string"
 					? redirect_src_url(bot_msg)
-					: normalise_file(bot_msg, root, root_url)
+					: normalise_file(bot_msg, root, root_url),
 		  ])
 		: [];
 
@@ -87,19 +92,24 @@
 		{/if}
 		<ChatBot
 			{selectable}
+			{likeable}
 			{show_share_button}
 			value={_value}
 			{latex_delimiters}
+			{render_markdown}
 			pending_message={loading_status?.status === "pending"}
 			{rtl}
 			{show_copy_button}
 			on:change={() => gradio.dispatch("change", value)}
 			on:select={(e) => gradio.dispatch("select", e.detail)}
+			on:like={(e) => gradio.dispatch("like", e.detail)}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
 			{avatar_images}
 			{sanitize_html}
 			{bubble_full_width}
+			{line_breaks}
+			{layout}
 			{root_url}
 			{root}
 		/>

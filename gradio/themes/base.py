@@ -1541,7 +1541,9 @@ class Base(ThemeClass):
         self.prose_header_text_weight = prose_header_text_weight or getattr(
             self, "prose_header_text_weight", "600"
         )
-        self.slider_color = slider_color or getattr(self, "slider_color", "auto")
+        self.slider_color = slider_color or getattr(
+            self, "slider_color", colors.blue.c600
+        )
         self.slider_color_dark = slider_color_dark or getattr(
             self, "slider_color_dark", None
         )

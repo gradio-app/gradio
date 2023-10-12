@@ -1,16 +1,11 @@
 <script lang="ts">
-	import { stable_diffusion, sketch, chat } from "../assets/demo_code";
+	import { sketch, chat } from "../assets/demo_code";
 
 	let tabs = [
 		{
 			title: "Sketch Recognition",
 			code: sketch,
 			demo: "gradio/pictionary"
-		},
-		{
-			title: "Stable Diffusion",
-			code: stable_diffusion,
-			demo: "hysts/SD-XL"
 		},
 		{
 			title: "Time Series Forecasting",
@@ -55,7 +50,7 @@
 		>
 			<div
 				class:hidden={!code}
-				class="codeblock rounded-lg bg-gray-50 shadow-inner text-sm md:text-base mx-auto max-w-5xl"
+				class="codeblock text-sm md:text-base mx-auto max-w-5xl"
 			>
 				{@html code}
 			</div>

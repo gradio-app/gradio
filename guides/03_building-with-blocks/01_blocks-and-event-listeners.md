@@ -13,6 +13,10 @@ $demo_hello_blocks
 - Next come the Components. These are the same Components used in `Interface`. However, instead of being passed to some constructor, Components are automatically added to the Blocks as they are created within the `with` clause.
 - Finally, the `click()` event listener. Event listeners define the data flow within the app. In the example above, the listener ties the two Textboxes together. The Textbox `name` acts as the input and Textbox `output` acts as the output to the `greet` method. This dataflow is triggered when the Button `greet_btn` is clicked. Like an Interface, an event listener can take multiple inputs or outputs.
 
+You can also attach event listeners using decorators - skip the `fn` argument and assign `inputs` and `outputs` directly:
+
+$code_hello_blocks_decorator
+
 ## Event Listeners and Interactivity
 
 In the example above, you'll notice that you are able to edit Textbox `name`, but not Textbox `output`. This is because any Component that acts as an input to an event listener is made interactive. However, since Textbox `output` acts only as an output, Gradio determines that it should not be made interactive. You can override the default behavior and directly configure the interactivity of a Component with the boolean `interactive` keyword argument.
@@ -118,12 +122,12 @@ Keep in mind that with dictionary returns, we still need to specify the possible
 
 ## Updating Component Configurations
 
-The return value of an event listener function is usually the updated value of the corresponding output Component. Sometimes we want to update the configuration of the Component as well, such as the visibility. In this case, we return a `gr.update()` object instead of just the update Component value.
+The return value of an event listener function is usually the updated value of the corresponding output Component. Sometimes we want to update the configuration of the Component as well, such as the visibility. In this case, we return a new Component, setting the properties we want to change.
 
-$code_blocks_essay_update
-$demo_blocks_essay_update
+$code_blocks_essay_simple
+$demo_blocks_essay_simple
 
-See how we can configure the Textbox itself through the `gr.update()` method. The `value=` argument can still be used to update the value along with Component configuration.
+See how we can configure the Textbox itself through a new `gr.Textbox()` method. The `value=` argument can still be used to update the value along with Component configuration. Any arguments we do not set will use their previous values.
 
 ## Running Events Consecutively
 
@@ -158,3 +162,21 @@ In the 2 player tic-tac-toe demo below, a user can select a cell in the `DataFra
 
 $code_tictactoe
 $demo_tictactoe
+
+## Binding Multiple Triggers to a Function
+
+Often times, you may want to bind multiple triggers to the same function. For example, you may want to allow a user to click a submit button, or press enter to submit a form. You can do this using the `gr.on` method and passing a list of triggers to the `trigger`.
+
+$code_on_listener_basic
+$demo_on_listener_basic
+
+You can use decorator syntax as well:
+
+$code_on_listener_decorator
+
+You can use `gr.on` to create "live" events by binding to the change event of all components. If you do not specify any triggers, the function will automatically bind to the change event of all input components. 
+
+$code_on_listener_live
+$demo_on_listener_live
+
+You can follow `gr.on` with `.then`, just like any regular event listener. This handy method should save you from having to write a lot of repetitive code!

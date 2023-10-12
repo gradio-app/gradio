@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
@@ -11,11 +12,7 @@ from gradio_client.serializing import (
 
 from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
-from gradio.events import (
-    Changeable,
-    EventListenerMethod,
-    Selectable,
-)
+from gradio.events import Changeable, EventListenerMethod, Selectable
 
 set_documentation_group("component")
 
@@ -24,7 +21,7 @@ set_documentation_group("component")
 class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
-    Preprocessing: this component does *not* accept input.
+    Preprocessing: passes a list of tuples as a {List[Tuple[str, float | str | None]]]} into the function. If no labels are provided, the text will be displayed as a single span.
     Postprocessing: expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels, or a {Dict} with two keys: (1) "text" whose value is the complete text, and (2) "entities", which is a list of dictionaries, each of which have the keys: "entity" (consisting of the entity label, can alternatively be called "entity_group"), "start" (the character index where the label starts), and "end" (the character index where the label ends). Entities should not overlap.
 
     Demos: diff_texts, text_analysis
@@ -49,11 +46,13 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        interactive: bool | None = None,
         **kwargs,
     ):
         """
         Parameters:
             value: Default value to show. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            color_map: A dictionary mapping labels to colors. The colors may be specified as hex codes or by their names. For example: {"person": "red", "location": "#FFEE22"}
             show_legend: whether to show span categories in a separate legend or inline.
             combine_adjacent: If True, will merge the labels of adjacent tokens belonging to the same category.
             adjacent_separator: Specifies the separator to be used between tokens if combine_adjacent is True.
@@ -66,6 +65,8 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            interactive: If True, the component will be editable, and allow user to select spans of text and label them.
+
         """
         self.color_map = color_map
         self.show_legend = show_legend
@@ -89,17 +90,9 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
             elem_id=elem_id,
             elem_classes=elem_classes,
             value=value,
+            interactive=interactive,
             **kwargs,
         )
-
-    def get_config(self):
-        return {
-            "color_map": self.color_map,
-            "show_legend": self.show_legend,
-            "value": self.value,
-            "selectable": self.selectable,
-            **IOComponent.get_config(self),
-        }
 
     @staticmethod
     def update(
@@ -115,7 +108,11 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
         scale: int | None = None,
         min_width: int | None = None,
         visible: bool | None = None,
+        interactive: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.HighlightedText(...)` instead of `return gr.HighlightedText.update(...)`."
+        )
         updated_config = {
             "color_map": color_map,
             "show_legend": show_legend,
@@ -126,6 +123,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
             "min_width": min_width,
             "visible": visible,
             "value": value,
+            "interactive": interactive,
             "__type__": "update",
         }
         return updated_config

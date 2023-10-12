@@ -1,4 +1,4 @@
-import pkgutil
+import json
 
 import gradio.components as components
 import gradio.inputs as inputs
@@ -30,6 +30,7 @@ from gradio.components import (
     Dropdown,
     DuplicateButton,
     File,
+    FileExplorer,
     Gallery,
     Highlight,
     HighlightedText,
@@ -60,7 +61,7 @@ from gradio.components import (
     component,
 )
 from gradio.deploy_space import deploy
-from gradio.events import SelectData
+from gradio.events import LikeData, SelectData, on
 from gradio.exceptions import Error
 from gradio.external import load
 from gradio.flagging import (
@@ -103,8 +104,6 @@ from gradio.templates import (
     Webcam,
 )
 from gradio.themes import Base as Theme
+from gradio.utils import get_package_version
 
-current_pkg_version = (
-    (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
-)
-__version__ = current_pkg_version
+__version__ = get_package_version()

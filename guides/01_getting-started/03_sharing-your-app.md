@@ -151,7 +151,7 @@ Note: if you use IFrames, you'll probably want to add a fixed `height` attribute
 
 You can use almost any Gradio app as an API! In the footer of a Gradio app [like this one](https://huggingface.co/spaces/gradio/hello_world), you'll see a "Use via API" link.
 
-![Use via API](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/api3.gif)
+![Use via API](https://github.com/gradio-app/gradio/blob/main/guides/assets/use_via_api.png?raw=true)
 
 This is a page that lists the endpoints that can be used to query the Gradio app, via our supported clients: either [the Python client](https://gradio.app/guides/getting-started-with-the-python-client/), or [the JavaScript client](https://gradio.app/guides/getting-started-with-the-js-client/). For each endpoint, Gradio automatically generates the parameters and their types, as well as example inputs.
 
@@ -195,11 +195,9 @@ If allows to add a _"Sign in with Hugging Face"_ button to your demo. Check out 
 for a live demo.
 
 To enable OAuth, you must set `hf_oauth: true` as a Space metadata in your README.md file. This will register your Space
-as an OAuth application on Hugging Face. You also need to include `itsdangerous` and `authlib` in a separate
-`requirements.txt` file. Next, you can use `gr.LoginButton` and `gr.LogoutButton` to add login and logout buttons to
-your Gradio app. Once a user is logged in with their HF account, you can retrieve their profile. To do so, you only
-have to add a parameter of type `gr.OAuthProfile` to any Gradio function. The user profile will be automatically
-injected as a parameter value.
+as an OAuth application on Hugging Face. Next, you can use `gr.LoginButton` and `gr.LogoutButton` to add login and logout buttons to
+your Gradio app. Once a user is logged in with their HF account, you can retrieve their profile by adding a parameter of type
+`gr.OAuthProfile` to any Gradio function. The user profile will be automatically injected as a parameter value.
 
 Here is a short example:
 
@@ -231,23 +229,24 @@ automatically logged in with a fake user profile. This allows you to debug your 
 
 ## Accessing the Network Request Directly
 
-When a user makes a prediction to your app, you may need the underlying network request, in order to get the request headers (e.g. for advanced authentication), log the client's IP address, or for other reasons. Gradio supports this in a similar manner to FastAPI: simply add a function parameter whose type hint is `gr.Request` and Gradio will pass in the network request as that parameter. Here is an example:
+When a user makes a prediction to your app, you may need the underlying network request, in order to get the request headers (e.g. for advanced authentication), log the client's IP address, getting the query parameters, or for other reasons. Gradio supports this in a similar manner to FastAPI: simply add a function parameter whose type hint is `gr.Request` and Gradio will pass in the network request as that parameter. Here is an example:
 
 ```python
 import gradio as gr
 
-def echo(name, request: gr.Request):
+def echo(text, request: gr.Request):
     if request:
         print("Request headers dictionary:", request.headers)
         print("IP address:", request.client.host)
-    return name
+        print("Query parameters:", dict(request.query_params))
+    return text
 
 io = gr.Interface(echo, "textbox", "textbox").launch()
 ```
 
 Note: if your function is called directly instead of through the UI (this happens, for
-example, when examples are cached), then `request` will be `None`. You should handle
-this case explicitly to ensure that your app does not throw any errors. That is why
+example, when examples are cached, or when the Gradio app is called via API), then `request` will be `None`. 
+You should handle this case explicitly to ensure that your app does not throw any errors. That is why
 we have the explicit check `if request`.
 
 ## Mounting Within Another FastAPI App
@@ -277,7 +276,7 @@ Gradio DOES NOT ALLOW access to:
 
 - **Dotfiles** (any files whose name begins with `'.'`) or any files that are contained in any directory whose name begins with `'.'`
 
-- **Files that you explicitly allow via the `blocked_paths` parameter in `launch()`**. You can pass in a list of additional directories or exact filepaths to the `blocked_paths` parameter in `launch()`. This parameter takes precedence over the files that Gradio exposes by default or by the `allowed_paths`.
+- **Files that you explicitly block via the `blocked_paths` parameter in `launch()`**. You can pass in a list of additional directories or exact filepaths to the `blocked_paths` parameter in `launch()`. This parameter takes precedence over the files that Gradio exposes by default or by the `allowed_paths`.
 
 - **Any other paths on the host machine**. Users should NOT be able to access other arbitrary paths on the host.
 

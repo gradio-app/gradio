@@ -11,7 +11,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio import utils
-from gradio.components.base import Component, IOComponent, _Keywords
+from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Clickable, Uploadable
 
@@ -21,7 +21,7 @@ set_documentation_group("component")
 @document()
 class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
     """
-    Used to create an upload button, when cicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set).
+    Used to create an upload button, when clicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
     Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
     Examples-format: a {str} path to a local file that populates the component.
@@ -89,20 +89,6 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             **kwargs,
         )
 
-    def get_config(self):
-        return {
-            "label": self.label,
-            "value": self.value,
-            "size": self.size,
-            "file_count": self.file_count,
-            "file_types": self.file_types,
-            "scale": self.scale,
-            "min_width": self.min_width,
-            "variant": self.variant,
-            "interactive": self.interactive,
-            **Component.get_config(self),
-        }
-
     @staticmethod
     def update(
         value: str
@@ -117,6 +103,9 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         scale: int | None = None,
         min_width: int | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.UploadButton(...)` instead of `return gr.UploadButton.update(...)`."
+        )
         return {
             "variant": variant,
             "interactive": interactive,

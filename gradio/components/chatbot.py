@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+import warnings
 from pathlib import Path
 from typing import Callable, Literal
 
@@ -16,6 +17,7 @@ from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
     Changeable,
     EventListenerMethod,
+    Likeable,
     Selectable,
 )
 
@@ -23,7 +25,7 @@ set_documentation_group("component")
 
 
 @document()
-class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
+class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
     """
     Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, tables. Also supports audio/video/image files, which are displayed in the Chatbot, and other kinds of files which are displayed as links.
     Preprocessing: passes the messages in the Chatbot as a {List[List[str | None | Tuple]]}, i.e. a list of lists. The inner list has 2 elements: the user message and the response message. See `Postprocessing` for the format of these messages.
@@ -56,7 +58,10 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         show_copy_button: bool = False,
         avatar_images: tuple[str | Path | None, str | Path | None] | None = None,
         sanitize_html: bool = True,
+        render_markdown: bool = True,
         bubble_full_width: bool = True,
+        line_breaks: bool = True,
+        layout: Literal["panel", "bubble"] | None = None,
         **kwargs,
     ):
         """
@@ -79,7 +84,10 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             show_copy_button: If True, will show a copy button for each chatbot message.
             avatar_images: Tuple of two avatar image paths or URLs for user and bot (in that order). Pass None for either the user or bot image to skip. Must be within the working directory of the Gradio app or an external URL.
             sanitize_html: If False, will disable HTML sanitization for chatbot messages. This is not recommended, as it can lead to security vulnerabilities.
+            render_markdown: If False, will disable Markdown rendering for chatbot messages.
             bubble_full_width: If False, the chat bubble will fit to the content of the message. If True (default), the chat bubble will be the full width of the component.
+            line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies if `render_markdown` is True.
+            layout: If "panel", will display the chatbot in a llm style layout. If "bubble", will display the chatbot with message bubbles, with the user and bot messages on alterating sides. Will default to "bubble".
         """
         if color_map is not None:
             warn_deprecation("The 'color_map' parameter has been deprecated.")
@@ -87,6 +95,12 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         """
         Event listener for when the user selects message from Chatbot.
         Uses event data gradio.SelectData to carry `value` referring to text of selected message, and `index` tuple to refer to [message, participant] index.
+        See EventData documentation on how to use this event data.
+        """
+        self.like: EventListenerMethod
+        """
+        Event listener for when the user likes or dislikes a message from Chatbot.
+        Uses event data gradio.LikeData to carry `value` referring to text of selected message, `index` tuple to refer to [message, participant] index, and `liked` bool which is True if the item was liked, False if disliked.
         See EventData documentation on how to use this event data.
         """
         self.height = height
@@ -100,9 +114,12 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             if show_share_button is None
             else show_share_button
         )
+        self.render_markdown = render_markdown
         self.show_copy_button = show_copy_button
         self.sanitize_html = sanitize_html
         self.bubble_full_width = bubble_full_width
+        self.line_breaks = line_breaks
+        self.layout = layout
         IOComponent.__init__(
             self,
             label=label,
@@ -117,21 +134,6 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             value=value,
             **kwargs,
         )
-
-    def get_config(self):
-        return {
-            "value": self.value,
-            "latex_delimiters": self.latex_delimiters,
-            "selectable": self.selectable,
-            "height": self.height,
-            "show_share_button": self.show_share_button,
-            "rtl": self.rtl,
-            "show_copy_button": self.show_copy_button,
-            "avatar_images": self.avatar_images,
-            "sanitize_html": self.sanitize_html,
-            "bubble_full_width": self.bubble_full_width,
-            **IOComponent.get_config(self),
-        }
 
     @staticmethod
     def update(
@@ -152,7 +154,13 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         avatar_images: tuple[str | Path | None] | None = None,
         sanitize_html: bool | None = None,
         bubble_full_width: bool | None = None,
+        layout: Literal["panel", "bubble"] | None = None,
+        render_markdown: bool | None = None,
+        line_breaks: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Chatbot(...)` instead of `return gr.Chatbot.update(...)`."
+        )
         updated_config = {
             "label": label,
             "show_label": show_label,
@@ -169,6 +177,9 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             "avatar_images": avatar_images,
             "sanitize_html": sanitize_html,
             "bubble_full_width": bubble_full_width,
+            "render_markdown": render_markdown,
+            "line_breaks": line_breaks,
+            "layout": layout,
             "__type__": "update",
         }
         return updated_config
@@ -194,12 +205,14 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             return y
         processed_messages = []
         for message_pair in y:
-            assert isinstance(
-                message_pair, (tuple, list)
-            ), f"Expected a list of lists or list of tuples. Received: {message_pair}"
-            assert (
-                len(message_pair) == 2
-            ), f"Expected a list of lists of length 2 or list of tuples of length 2. Received: {message_pair}"
+            if not isinstance(message_pair, (tuple, list)):
+                raise TypeError(
+                    f"Expected a list of lists or list of tuples. Received: {message_pair}"
+                )
+            if len(message_pair) != 2:
+                raise TypeError(
+                    f"Expected a list of lists of length 2 or list of tuples of length 2. Received: {message_pair}"
+                )
             processed_messages.append(
                 [
                     self._preprocess_chat_messages(message_pair[0]),
@@ -248,12 +261,14 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             return []
         processed_messages = []
         for message_pair in y:
-            assert isinstance(
-                message_pair, (tuple, list)
-            ), f"Expected a list of lists or list of tuples. Received: {message_pair}"
-            assert (
-                len(message_pair) == 2
-            ), f"Expected a list of lists of length 2 or list of tuples of length 2. Received: {message_pair}"
+            if not isinstance(message_pair, (tuple, list)):
+                raise TypeError(
+                    f"Expected a list of lists or list of tuples. Received: {message_pair}"
+                )
+            if len(message_pair) != 2:
+                raise TypeError(
+                    f"Expected a list of lists of length 2 or list of tuples of length 2. Received: {message_pair}"
+                )
             processed_messages.append(
                 [
                     self._postprocess_chat_messages(message_pair[0]),

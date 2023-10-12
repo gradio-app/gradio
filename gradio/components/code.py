@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Literal
 
 from gradio_client.documentation import document, set_documentation_group
@@ -80,7 +81,9 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        assert language in Code.languages, f"Language {language} not supported."
+        if language not in Code.languages:
+            raise ValueError(f"Language {language} not supported.")
+
         self.language = language
         self.lines = lines
         IOComponent.__init__(
@@ -97,14 +100,6 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
             value=value,
             **kwargs,
         )
-
-    def get_config(self):
-        return {
-            "value": self.value,
-            "language": self.language,
-            "lines": self.lines,
-            **IOComponent.get_config(self),
-        }
 
     def postprocess(self, y):
         if y is None:
@@ -143,6 +138,9 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
         | None = None,
         interactive: bool | None = None,
     ):
+        warnings.warn(
+            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Code(...)` instead of `return gr.Code.update(...)`."
+        )
         return {
             "label": label,
             "show_label": show_label,

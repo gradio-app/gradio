@@ -20,6 +20,7 @@
 	class="gradio-container gradio-container-{version}"
 	style:min-height={loaded ? "initial" : initial_height}
 	style:flex-grow={!display ? "1" : "auto"}
+	data-iframe-height
 >
 	<div class="main">
 		<slot />
@@ -38,7 +39,7 @@
 				{$_("common.hosted_on")}
 				<a class="hf" href="https://huggingface.co/spaces"
 					><span class="space-logo">
-						<img src={space_logo} alt={`Hugging Face Space }`} />
+						<img src={space_logo} alt="Hugging Face Space" />
 					</span> Spaces</a
 				>
 			</span>

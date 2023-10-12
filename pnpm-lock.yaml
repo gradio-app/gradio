@@ -193,8 +193,8 @@ importers:
         specifier: ^7.0.23
         version: 7.0.23(react-dom@18.2.0)(react@18.2.0)
       chromatic:
-        specifier: ^6.19.9
-        version: 6.19.9
+        specifier: ^7.0.0
+        version: 7.0.0
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -204,6 +204,9 @@ importers:
       storybook:
         specifier: ^7.0.23
         version: 7.0.23
+      wikidata-lang:
+        specifier: ^4.1.2
+        version: 4.1.2
 
   client/js:
     dependencies:
@@ -412,6 +415,9 @@ importers:
       '@gradio/file':
         specifier: workspace:^
         version: link:../file
+      '@gradio/fileexplorer':
+        specifier: workspace:^
+        version: link:../fileexplorer
       '@gradio/form':
         specifier: workspace:^
         version: link:../form
@@ -593,8 +599,11 @@ importers:
         specifier: ^0.16.0
         version: 0.16.0
       '@types/prismjs':
-        specifier: 1.26.0
-        version: 1.26.0
+        specifier: 1.26.1
+        version: 1.26.1
+      dequal:
+        specifier: ^2.0.2
+        version: 2.0.2
 
   js/checkbox:
     dependencies:
@@ -793,6 +802,36 @@ importers:
         specifier: workspace:^
         version: link:../utils
 
+  js/fileexplorer:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/checkbox':
+        specifier: workspace:^
+        version: link:../checkbox
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
+      '@gradio/file':
+        specifier: workspace:^
+        version: link:../file
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/upload':
+        specifier: workspace:^
+        version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+      dequal:
+        specifier: ^2.0.2
+        version: 2.0.3
+
   js/form:
     dependencies:
       '@gradio/atoms':
@@ -825,6 +864,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      dequal:
+        specifier: ^2.0.2
+        version: 2.0.2
 
   js/group: {}
 
@@ -919,6 +961,12 @@ importers:
 
   js/lite:
     devDependencies:
+      '@gradio/app':
+        specifier: workspace:^
+        version: link:../app
+      '@gradio/wasm':
+        specifier: workspace:^
+        version: link:../wasm
       gradio:
         specifier: workspace:^
         version: link:../../gradio
@@ -941,8 +989,8 @@ importers:
         specifier: ^0.16.0
         version: 0.16.0
       '@types/prismjs':
-        specifier: 1.26.0
-        version: 1.26.0
+        specifier: 1.26.1
+        version: 1.26.1
       dompurify:
         specifier: ^3.0.3
         version: 3.0.3
@@ -1218,8 +1266,8 @@ importers:
         version: 1.0.1
     devDependencies:
       pyodide:
-        specifier: ^0.23.2
-        version: 0.23.2
+        specifier: ^0.24.0
+        version: 0.24.0
 
 packages:
 
@@ -6952,6 +7000,11 @@ packages:
 
   /@types/prismjs@1.26.0:
     resolution: {integrity: sha512-ZTaqn/qSqUuAq1YwvOFQfVW1AR/oQJlLSZVustdjwI+GZ8kr0MSHBj0tsXPW1EqHubx50gtBEjbPGsdZwQwCjQ==}
+    dev: true
+
+  /@types/prismjs@1.26.1:
+    resolution: {integrity: sha512-Q7jDsRbzcNHIQje15CS/piKhu6lMLb9jwjxSfEIi4KcFKXW23GoJMkwQiJ8VObyfx+VmUaDcJxXaWN+cTCjVog==}
+    dev: false
 
   /@types/prop-types@15.7.5:
     resolution: {integrity: sha512-JCB8C6SnDoQf0cNycqd/35A7MjcnK+ZTqE7judS6o7utxUCg6imJg3QK2qzHKszlTjcj2cn+NwMB2i96ubpj7w==}
@@ -8104,8 +8157,8 @@ packages:
     resolution: {integrity: sha512-bIomtDF5KGpdogkLd9VspvFzk9KfpyyGlS8YFVZl7TGPBHL5snIOnxeshwVgPteQ9b4Eydl+pVbIyE1DcvCWgQ==}
     engines: {node: '>=10'}
 
-  /chromatic@6.19.9:
-    resolution: {integrity: sha512-UHrPbPoLnJwd063cRSO0U865VhcATykpMiHsAnNFz5EFRsBvM9wefqyS2Z6W8Ti9J7Fjrf4MV4PA+Q5k2lhFfQ==}
+  /chromatic@7.0.0:
+    resolution: {integrity: sha512-ZPHRO/6v0jAKk0G1oW+HAngQmbq+opAVkgjy3Yx5Cvxvpfv+Y7zyfBuQ8KHewoNuIqLTfvRTbKzekqbGYT+7UQ==}
     hasBin: true
     dev: true
 
@@ -12700,15 +12753,13 @@ packages:
       - utf-8-validate
     dev: true
 
-  /pyodide@0.23.2:
-    resolution: {integrity: sha512-GK4YDZVgzfAXK/7X0IiCI+142k0Ah/HwYTzDHtG8zC47dflWYuPozeFbOngShuL1M9Un5sCmHFqiH3boxJv0pQ==}
+  /pyodide@0.24.0:
+    resolution: {integrity: sha512-k2TzIbAYQ/ucme0LYv4KmxKDR15m68/3pvPKmUVtdpzn6K9Qt1NLHeZI1RErWJE6PtlQI8UA0Q21wrtu3XPUMg==}
     dependencies:
       base-64: 1.0.0
-      node-fetch: 2.6.7
       ws: 8.13.0(bufferutil@4.0.7)
     transitivePeerDependencies:
       - bufferutil
-      - encoding
       - utf-8-validate
     dev: true
 
@@ -15456,6 +15507,10 @@ packages:
     resolution: {integrity: sha512-eDMORYaPNZ4sQIuuYPDHdQvf4gyCF9rEEV/yPxGfwPkRodwEgiMUUXTx/dex+Me0wxx53S+NgUHaP7y3MGlDmg==}
     dependencies:
       string-width: 4.2.3
+
+  /wikidata-lang@4.1.2:
+    resolution: {integrity: sha512-Nw+loOQQO02cVZQCAFCaE5IWdPakX9zXLr4Pjv0GA81OyI+TPWC6iLy/0cORL6YbYde19MbRVITIHiKRv1HmFA==}
+    dev: true
 
   /word-wrap@1.2.3:
     resolution: {integrity: sha512-Hz/mrNwitNRh/HUAtM/VT/5VH+ygD6DV7mYKZAtHOrbs8U7lvPS6xf7EJKMF0uW1KJCl0H701g3ZGus+muE5vQ==}

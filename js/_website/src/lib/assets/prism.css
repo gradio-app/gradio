@@ -55,8 +55,8 @@ code[class*="language-"] ::selection {
 
 /* Code blocks */
 pre[class*="language-"] {
-	margin: 0.5em 0;
-	padding: 1em;
+	margin: 0;
+	padding: 0;
 	overflow: auto;
 }
 
@@ -67,7 +67,7 @@ pre[class*="language-"] {
 
 .prose code[class*="language-"],
 .prose pre[class*="language-"] {
-	font-size: 0.8em;
+	font-size: 0.9em;
 }
 
 /* Inline code */

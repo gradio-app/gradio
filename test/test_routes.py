@@ -3,7 +3,6 @@ import json
 import os
 import tempfile
 from contextlib import closing
-from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
@@ -382,6 +381,12 @@ class TestRoutes:
         response = test_client.get(r"/file=gradio")
         assert response.status_code == 403
 
+    def test_do_not_expose_existence_of_files_outside_working_directory(
+        self, test_client
+    ):
+        response = test_client.get(r"/file=../fake-file-that-does-not-exist.js")
+        assert response.status_code == 403  # not a 404
+
     def test_mount_gradio_app_raises_error_if_event_queued_but_queue_disabled(self):
         with gr.Blocks() as demo:
             with gr.Row():
@@ -474,8 +479,7 @@ class TestAuthenticatedRoutes:
 
 class TestQueueRoutes:
     @pytest.mark.asyncio
-    @patch("gradio.routes.get_server_url_from_ws_url", return_value="foo_url")
-    async def test_queue_join_routes_sets_url_if_none_set(self, mock_get_url):
+    async def test_queue_join_routes_sets_app_if_none_set(self):
         io = Interface(lambda x: x, "text", "text").queue()
         io.launch(prevent_thread_lock=True)
         io._queue.server_path = None
@@ -490,24 +494,7 @@ class TestQueueRoutes:
                 if msg["msg"] == "send_hash":
                     await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
                 completed = msg["msg"] == "process_completed"
-        assert io._queue.server_path == "foo_url"
-
-    @pytest.mark.parametrize(
-        "ws_url,answer",
-        [
-            ("ws://127.0.0.1:7861/queue/join", "http://127.0.0.1:7861/"),
-            (
-                "ws://127.0.0.1:7861/gradio/gradio/gradio/queue/join",
-                "http://127.0.0.1:7861/gradio/gradio/gradio/",
-            ),
-            (
-                "wss://gradio-titanic-survival.hf.space/queue/join",
-                "https://gradio-titanic-survival.hf.space/",
-            ),
-        ],
-    )
-    def test_get_server_url_from_ws_url(self, ws_url, answer):
-        assert routes.get_server_url_from_ws_url(ws_url) == answer
+        assert io._queue.server_app == io.server_app
 
 
 class TestDevMode:
@@ -529,7 +516,7 @@ class TestDevMode:
 
 
 class TestPassingRequest:
-    def test_request_included_with_regular_function(self):
+    def test_request_included_with_interface(self):
         def identity(name, request: gr.Request):
             assert isinstance(request.client.host, str)
             return name
@@ -543,6 +530,41 @@ class TestPassingRequest:
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["test"]
+
+    def test_request_included_with_chat_interface(self):
+        def identity(x, y, request: gr.Request):
+            assert isinstance(request.client.host, str)
+            return x
+
+        app, _, _ = gr.ChatInterface(identity).launch(
+            prevent_thread_lock=True,
+        )
+        client = TestClient(app)
+
+        response = client.post("/api/chat/", json={"data": ["test", None]})
+        assert response.status_code == 200
+        output = dict(response.json())
+        assert output["data"] == ["test", None]
+
+    def test_request_included_with_chat_interface_when_streaming(self):
+        def identity(x, y, request: gr.Request):
+            assert isinstance(request.client.host, str)
+            for i in range(len(x)):
+                yield x[: i + 1]
+
+        app, _, _ = (
+            gr.ChatInterface(identity)
+            .queue()
+            .launch(
+                prevent_thread_lock=True,
+            )
+        )
+        client = TestClient(app)
+
+        response = client.post("/api/chat/", json={"data": ["test", None]})
+        assert response.status_code == 200
+        output = dict(response.json())
+        assert output["data"] == ["t", None]
 
     def test_request_get_headers(self):
         def identity(name, request: gr.Request):
@@ -605,12 +627,12 @@ def test_predict_route_is_blocked_if_api_open_false():
         api_open=False
     )
     app, _, _ = io.launch(prevent_thread_lock=True)
-    assert not io.show_api
+    assert io.show_api
     client = TestClient(app)
     result = client.post(
         "/api/predict", json={"fn_index": 0, "data": [5], "session_hash": "foo"}
     )
-    assert result.status_code == 401
+    assert result.status_code == 404
 
 
 def test_predict_route_not_blocked_if_queue_disabled():
@@ -626,11 +648,11 @@ def test_predict_route_not_blocked_if_queue_disabled():
     app, _, _ = demo.queue(api_open=False).launch(
         prevent_thread_lock=True, show_api=True
     )
-    assert not demo.show_api
+    assert demo.show_api
     client = TestClient(app)
 
     result = client.post("/api/blocked", json={"data": [], "session_hash": "foo"})
-    assert result.status_code == 401
+    assert result.status_code == 404
     result = client.post(
         "/api/not_blocked", json={"data": ["freddy"], "session_hash": "foo"}
     )
@@ -649,7 +671,7 @@ def test_predict_route_not_blocked_if_routes_open():
     app, _, _ = demo.queue(api_open=True).launch(
         prevent_thread_lock=True, show_api=False
     )
-    assert demo.show_api
+    assert not demo.show_api
     client = TestClient(app)
 
     result = client.post(

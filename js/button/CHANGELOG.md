@@ -1,5 +1,42 @@
 # @gradio/button
 
+## 0.2.2
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/utils@0.1.2
+  - @gradio/upload@0.3.2
+
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/upload@0.3.1
+
+## 0.2.0
+
+### Features
+
+- [#5554](https://github.com/gradio-app/gradio/pull/5554) [`75ddeb390`](https://github.com/gradio-app/gradio/commit/75ddeb390d665d4484667390a97442081b49a423) - Accessibility Improvements. Thanks [@hannahblair](https://github.com/hannahblair)!
+
+## 0.1.3
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/utils@0.1.1
+  - @gradio/upload@0.2.1
+
+## 0.1.2
+
+### Patch Changes
+
+- Updated dependencies [[`abf1c57d`](https://github.com/gradio-app/gradio/commit/abf1c57d7d85de0df233ee3b38aeb38b638477db), [`79d8f9d8`](https://github.com/gradio-app/gradio/commit/79d8f9d891901683c5a1b7486efb44eab2478c96)]:
+  - @gradio/utils@0.1.0
+  - @gradio/upload@0.2.0
+
 ## 0.1.1
 
 ### Highlights
@@ -19,11 +56,11 @@ These improvements will be particularly beneficial to large applications.
 - Corrected an issue that was causing markdown to re-render infinitely.
 - Ensured that the `gr.3DModel` does re-render prematurely.
 
- Thanks [@pngwn](https://github.com/pngwn)!
+Thanks [@pngwn](https://github.com/pngwn)!
 
 ### Fixes
 
-- [#5285](https://github.com/gradio-app/gradio/pull/5285) [`cdfd4217`](https://github.com/gradio-app/gradio/commit/cdfd42174a9c777eaee9c1209bf8e90d8c7791f2) - Tweaks to `icon` parameter in `gr.Button()`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#5285](https://github.com/gradio-app/gradio/pull/5285) [`cdfd4217`](https://github.com/gradio-app/gradio/commit/cdfd42174a9c777eaee9c1209bf8e90d8c7791f2) - Tweaks to `icon` parameter in `gr.Button()`. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 0.1.0
 
