@@ -30,7 +30,7 @@ class Slider(
     NeighborInterpretable,
 ):
     """
-    Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
+    Creates a slider that ranges from {minimum} to {maximum} with a step size of {step}.
     Preprocessing: passes slider value as a {float} into the function.
     Postprocessing: expects an {int} or {float} returned from function and sets slider value to it as long as it is within range.
     Examples-format: A {float} or {int} representing the slider's value.
