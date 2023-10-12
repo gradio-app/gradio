@@ -811,9 +811,12 @@ def update(
         demo.launch()
     """
     kwargs["__type__"] = "update"
-    kwargs["elem_id"] = elem_id
-    kwargs["elem_classes"] = elem_classes
-    kwargs["visible"] = visible
+    if elem_id is not None:
+        kwargs["elem_id"] = elem_id
+    if elem_classes is not None:
+        kwargs["elem_classes"] = elem_classes
+    if visible is not None:
+        kwargs["visible"] = visible
     return kwargs
 
 

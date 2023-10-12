@@ -1401,6 +1401,9 @@ Received outputs:
                     args["render"] = False
                     args["_skip_init_processing"] = not block_fn.postprocess
                     state[output_id] = self.blocks[output_id].__class__(**args)
+                    interactive = prediction_value.pop("interactive", None)
+                    if interactive is not None:
+                        prediction_value["mode"] = "dynamic" if interactive else "static"
                 elif block_fn.postprocess:
                     if not isinstance(block, components.Component):
                         raise InvalidComponentError(
