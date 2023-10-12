@@ -655,7 +655,11 @@
 		role="grid"
 		tabindex="0"
 	>
-		<table bind:clientWidth={t_width} bind:this={table} class:fixed-layout={column_widths.length != 0}>
+		<table
+			bind:clientWidth={t_width}
+			bind:this={table}
+			class:fixed-layout={column_widths.length != 0}
+		>
 			{#if label && label.length !== 0}
 				<caption class="sr-only">{label}</caption>
 			{/if}

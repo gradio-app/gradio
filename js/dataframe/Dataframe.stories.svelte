@@ -136,7 +136,7 @@
 				[800, 100, 800],
 				[200, 800, 700]
 			],
-			headers: ["Narrow", "Wide", "Half"],
+			headers: ["Narrow", "Wide", "Half"]
 		},
 		label: "Test scores",
 		col_count: [3, "dynamic"],
