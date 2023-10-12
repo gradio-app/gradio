@@ -810,7 +810,7 @@ def update(
             radio.change(fn=lambda value: gr.update(value=value), inputs=radio, outputs=number)
         demo.launch()
     """
-    kwargs["__type__"] = "generic_update"
+    kwargs["__type__"] = "update"
     kwargs["elem_id"] = elem_id
     kwargs["elem_classes"] = elem_classes
     kwargs["visible"] = visible
@@ -818,7 +818,7 @@ def update(
 
 
 def skip() -> dict:
-    return {"__type__": "generic_update"}
+    return {"__type__": "update"}
 
 
 @document()
