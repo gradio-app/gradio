@@ -9,10 +9,10 @@
 		"./package.json": "./package.json",
 		"./svelte": "./svelte/index.ts"
 	},
-	"private": true,
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
+	"private": true,
 	"scripts": {
 		"dev:client": "tsc -w --incremental",
 		"dev:worker": "vite build --config vite.worker.config.js --watch --emptyOutDir=false",
