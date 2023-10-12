@@ -1202,28 +1202,6 @@ class TestSpecificUpdate:
             "__type__": "update",
         }
 
-    def test_with_generic_update(self):
-        specific_update = gr.Video.get_specific_update(
-            {
-                "visible": True,
-                "value": "test.mp4",
-                "__type__": "generic_update",
-                "interactive": True,
-                "container": None,
-                "height": None,
-                "min_width": None,
-                "scale": None,
-                "width": None,
-                "show_share_button": None,
-            }
-        )
-        assert specific_update == {
-            "visible": True,
-            "value": "test.mp4",
-            "interactive": True,
-            "__type__": "update",
-        }
-
     @pytest.mark.asyncio
     async def test_accordion_update(self):
         with gr.Blocks() as demo:

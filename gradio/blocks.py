@@ -225,15 +225,6 @@ class Block:
     def update(**kwargs) -> dict:
         return {}
 
-    @classmethod
-    def get_specific_update(cls, generic_update: dict[str, Any]) -> dict:
-        generic_update = generic_update.copy()
-        del generic_update["__type__"]
-        specific_update = cls.update(**generic_update)
-        specific_update = utils.delete_none(specific_update, skip_value=True)
-        return specific_update
-
-
 class BlockContext(Block):
     def __init__(
         self,
