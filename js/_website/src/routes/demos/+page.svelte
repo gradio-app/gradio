@@ -11,7 +11,7 @@
 				name: string;
 				dir: string;
 				code: string;
-				highlighted_code: string;
+				requirements: string[];
 			}[];
 		}[];
 	};
@@ -36,7 +36,7 @@
 			href="/getting_started">⚡ Quickstart</a
 		>.
 	</p>
-	<p class="mt-4 mb-8 text-lg text-gray-600">
+	<p class="mt-4 text-lg text-gray-600">
 		Check out more demos on <a
 			class="link text-black"
 			target="_blank"
@@ -45,7 +45,18 @@
 				class="inline-block my-0 mx-auto w-5 max-w-full pb-1"
 				src={space_logo}
 			/> Spaces</a
-		>.
+		>. 
+	</p>
+		<p class="mt-4 mb-8 text-lg text-gray-600">
+		All the demos on this page are interactive - meaning you can change the code and the embedded demo will update automatically. 
+				Use this as a space to explore and play around with Gradio. This is made possible thanks to the 
+				<a
+				class="link text-black"
+				target="_blank"
+				href="https://www.npmjs.com/package/@gradio/lite">
+				Gradio Lite 
+				</a>
+				package.
 	</p>
 	{#each data.demos_by_category as { category, demos } (category)}
 		<div class="category mb-8">
@@ -85,19 +96,12 @@
 								class:selected-demo-window={current_selection == i}
 								class="demo-content px-4"
 							>
-							{#if category == "✨ Playground"}
 								<DemosLite
 									name={demo.dir}
 									code={demo.code}
-									highlighted_code={demo.highlighted_code}
+									requirements={demo.requirements}
+
 								/>
-							{:else}
-								<Demos
-									name={demo.dir}
-									code={demo.code}
-									highlighted_code={demo.highlighted_code}
-								/>
-							{/if}
 							</div>
 						{/each}
 					</div>

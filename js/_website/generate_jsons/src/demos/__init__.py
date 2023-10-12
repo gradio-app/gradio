@@ -4,86 +4,53 @@ import os
 DIR = os.path.dirname(__file__)
 GRADIO_DEMO_DIR = os.path.abspath(os.path.join(DIR, "../../../../../demo/"))
 
-def get_code_and_description(demo_name):
+def get_code_description_and_reqs(demo_name):
     with open(os.path.join(GRADIO_DEMO_DIR, demo_name, "run.py")) as f:
         code = f.read()
     description = ""
     if os.path.exists(os.path.join(GRADIO_DEMO_DIR, demo_name, "DESCRIPTION.md")):
         with open(os.path.join(GRADIO_DEMO_DIR, demo_name, "DESCRIPTION.md")) as f:
             description = f.read()
-    return code, description
+    requirements = []
+    if os.path.exists(os.path.join(GRADIO_DEMO_DIR, demo_name, "requirements.txt")):
+        with open(os.path.join(GRADIO_DEMO_DIR, demo_name, "requirements.txt")) as f:
+            requirements = f.read().strip().split("\n")
+    return code, description, requirements
 
 
 demos_by_category = [
-    {   
-        "category": "✨ Playground",
-        "demos": [
-            {
-                "name": "Hello World",
-                "dir": "hello_world"
-            },
-            {
-                "name": "Hello Blocks",
-                "dir": "blocks_hello"
-            },
-            {
-                "name": "Using the Dataframe",
-                "dir": "filter_records"
-            },
-            {
-                "name": "Event Listeners",
-                "dir": "blocks_essay"
-            }
-
-        ]
-    },
     {
-        "category": "🖊️ Text & Natural Language Processing",
+        "category": "🖊️ Text & Form Elements",
         "demos": [
             {
                 "name": "Hello World", 
                 "dir": "hello_world", 
             },
             {
-                "name": "Text Generation", 
-                "dir": "text_generation", 
+                "name": "Hello Blocks", 
+                "dir": "hello_blocks", 
             },
             {
-                "name": "Autocomplete", 
-                "dir": "autocomplete", 
+                "name": "Sentence Builder", 
+                "dir": "sentence_builder", 
             },
             {
-                "name": "Sentiment Analysis", 
-                "dir": "sentiment_analysis", 
+                "name": "Diff Texts", 
+                "dir": "diff_texts", 
             },
-            {
-                "name": "Named Entity Recognition", 
-                "dir": "text_analysis", 
-            },
-            {
-                "name": "Multilingual Translation", 
-                "dir": "translation", 
-            }
+            
 
         ]
     },
      {
-        "category": "🖼️ Images & Computer Vision",
+        "category": "🖼️ Images, Videos & Audio",
         "demos": [
-            {
-                "name": "Image Classification", 
-                "dir": "image_classification", 
-            },
             {
                 "name": "Image Segmentation", 
                 "dir": "image_segmentation", 
             },
             {
-                "name": "Image Transformation with AnimeGAN", 
-                "dir": "animeganv2", 
-            },
-            {
-                "name": "Image Generation (Fake GAN)", 
+                "name": "GAN Gallery", 
                 "dir": "fake_gan", 
             },
             {
@@ -91,80 +58,98 @@ demos_by_category = [
                 "dir": "fake_diffusion",
             },
             {
-                "name": "3D Models", 
-                "dir": "depth_estimation", 
+                "name": "Generate Tone", 
+                "dir": "generate_tone", 
+            },
+            {
+                "name": "Reverse Audio", 
+                "dir": "reverse_audio", 
+            },
+            # {
+            #     "name": "Video Identity", 
+            #     "dir": "video_identity", 
+            # },
+            # {
+            #     "name": "Video Subtitles", 
+            #     "dir": "video_subtitle", 
+            # },
+        ]
+    },
+    {
+        "category": "📈 Dataframes & Plots",
+        "demos": [
+            {
+                "name": "Filter Records",
+                "dir": "filter_records"
+            },
+            {
+                "name": "Transpose Matrix",
+                "dir": "matrix_transpose"
+            },
+            {
+                "name": "Tax Calculator",
+                "dir": "tax_calculator"
+            },
+            {
+                "name": "Kinematics", 
+                "dir": "blocks_kinematics", 
+            },
+            {
+                "name": "Stock Forecast", 
+                "dir": "stock_forecast", 
+            },
+            {
+                "name": "Live Dashboard", 
+                "dir": "live_dashboard", 
             },
         ]
     },
     {
-        "category": "📈 Tabular Data & Plots",
+        "category": "📜 TabbedInterface, ChatInterface & Layouts",
         "demos": [
             {
-                "name": "Interactive Dashboard",
-                "dir": "dashboard"
+                "name": "Hello and Bye World", 
+                "dir": "tabbed_interface_lite", 
             },
             {
-                "name": "Dashboard with Live Updates",
-                "dir": "live_dashboard"
+                "name": "Random Chatbot", 
+                "dir": "chatinterface_random_response", 
             },
             {
-                "name": "Interactive Map of AirBnB Locations",
-                "dir": "map_airbnb"
+                "name": "Streaming Chatbot", 
+                "dir": "chatinterface_streaming_echo", 
             },
             {
-                "name": "Outbreak Forecast", 
-                "dir": "outbreak_forecast", 
-            },
-            {
-                "name": "Clustering with Scikit-Learn", 
-                "dir": "clustering", 
-            },
-            {
-                "name": "Time Series Forecasting", 
-                "dir": "timeseries-forecasting-with-prophet", 
-            },
-            {
-                "name": "Income Classification with XGBoost", 
-                "dir": "xgboost-income-prediction-with-explainability", 
-            },
-            {
-                "name": "Leaderboard", 
-                "dir": "leaderboard", 
-            },
-            {
-                "name": "Tax Calculator", 
-                "dir": "tax_calculator", 
+                "name": "Using Tab, Row, and Accordion", 
+                "dir": "blocks_flipper", 
             },
         ]
     },
     {
-        "category": "🎤 Audio & Speech",
+        "category": "🩺 Modals & Event Listeners",
         "demos": [
             {
-                "name": "Text to Speech", 
-                "dir": "neon-tts-plugin-coqui", 
+                "name": "Divide by Zero", 
+                "dir": "calculator", 
             },
             {
-                "name": "Speech to Text (ASR)", 
-                "dir": "automatic-speech-recognition", 
+                "name": "Chained Events", 
+                "dir": "blocks_chained_events", 
             },
             {
-                "name": "Musical Instrument Identification", 
-                "dir": "musical_instrument_identification", 
-            },
-            {
-                "name": "Speaker Verification", 
-                "dir": "same-person-or-different", 
-            },
+                "name": "Detecting Changes", 
+                "dir": "blocks_hello", 
+            }
         ]
-    },
+    }
 ]
 
 for category in demos_by_category:
     for demo in category["demos"]:
-        code, description = get_code_and_description(demo["dir"])
+        code, description, requirements = get_code_description_and_reqs(demo["dir"])
         demo["code"] = code
         demo["text"] = description
+        demo["requirements"] = requirements 
 
 def generate(json_path):
     with open(json_path, 'w+') as f:
