@@ -104,7 +104,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
-            wrap: if True text in table cells will wrap when appropriate, if False the table will scroll horizontally. Defaults to False.
+            wrap: If True, the text in table cells will wrap when appropriate. If False and the `column_width` parameter is not set, the column widths will expand based on the cell contents and the table may need to be horizontally scrolled. If `column_width` is set, then any overflow text will be hidden.
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies for columns of type "markdown."
             column_widths: An optional list of strings representing the width of each column. The strings should be in the format "100px" (discouraged as the table will not be responsive) or "10%". If not provided, the column widths will be automatically determined based on the content of the cells.
         """
