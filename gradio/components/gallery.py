@@ -59,10 +59,11 @@ class Gallery(Component):
         columns: int | tuple | None = 2,
         rows: int | tuple | None = None,
         height: int | float | None = None,
+        allow_preview: bool = True,
         preview: bool | None = None,
+        selected_index: int | None = None,
         object_fit: Literal["contain", "cover", "fill", "none", "scale-down"]
         | None = None,
-        allow_preview: bool = True,
         show_share_button: bool | None = None,
         show_download_button: bool | None = True,
         **kwargs,
@@ -82,15 +83,16 @@ class Gallery(Component):
             columns: Represents the number of images that should be shown in one row, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). If fewer than 6 are given then the last will be used for all subsequent breakpoints
             rows: Represents the number of rows in the image grid, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). If fewer than 6 are given then the last will be used for all subsequent breakpoints
             height: The height of the gallery component, in pixels. If more images are displayed than can fit in the height, a scrollbar will appear.
-            preview: If True, will display the Gallery in preview mode, which shows all of the images as thumbnails and allows the user to click on them to view them in full size.
-            object_fit: CSS object-fit property for the thumbnail images in the gallery. Can be "contain", "cover", "fill", "none", or "scale-down".
             allow_preview: If True, images in the gallery will be enlarged when they are clicked. Default is True.
+            preview: If True, Gallery will start in preview mode, which shows all of the images as thumbnails and allows the user to click on them to view them in full size. Only works if allow_preview is True.
+            selected_index: The index of the image that should be initially selected. If None, no image will be selected at start. If provided, will set Gallery to preview mode unless allow_preview is set to False.
+            object_fit: CSS object-fit property for the thumbnail images in the gallery. Can be "contain", "cover", "fill", "none", or "scale-down".
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             show_download_button: If True, will show a download button in the corner of the selected image. If False, the icon does not appear. Default is True.
 
         """
-        self.grid_cols = columns
-        self.grid_rows = rows
+        self.columns = columns
+        self.rows = rows
         self.height = height
         self.preview = preview
         self.object_fit = object_fit
@@ -100,6 +102,8 @@ class Gallery(Component):
             if show_download_button is None
             else show_download_button
         )
+        self.selected_index = selected_index
+
         self.show_share_button = (
             (utils.get_space() is not None)
             if show_share_button is None
@@ -149,8 +153,8 @@ class Gallery(Component):
             "min_width": min_width,
             "visible": visible,
             "value": value,
-            "grid_cols": columns,
-            "grid_rows": rows,
+            "columns": columns,
+            "rows": rows,
             "height": height,
             "preview": preview,
             "object_fit": object_fit,

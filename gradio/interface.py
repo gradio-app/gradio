@@ -26,7 +26,8 @@ from gradio.components import (
 )
 from gradio.data_classes import InterfaceTypes
 from gradio.deprecation import warn_deprecation
-from gradio.events import Events
+from gradio.events import Events, on
+from gradio.exceptions import RenderError
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_pipeline
@@ -243,10 +244,10 @@ class Interface(Blocks):
             self.cache_examples = False
 
         self.input_components = [
-            get_component_instance(i, render=False) for i in inputs  # type: ignore
+            get_component_instance(i, unrender=True) for i in inputs  # type: ignore
         ]
         self.output_components = [
-            get_component_instance(o, render=False) for o in outputs  # type: ignore
+            get_component_instance(o, unrender=True) for o in outputs  # type: ignore
         ]
 
         for component in self.input_components + self.output_components:
@@ -428,7 +429,8 @@ class Interface(Blocks):
                     stop_btn = stop_btn or stop_btn_2_out
                     flag_btns = flag_btns or flag_btns_out
 
-            assert clear_btn is not None, "Clear button not rendered"
+            if clear_btn is None:
+                raise RenderError("Clear button not rendered")
 
             self.attach_submit_events(submit_btn, stop_btn)
             self.attach_clear_events(
@@ -546,7 +548,8 @@ class Interface(Blocks):
                 if self.allow_flagging == "manual":
                     flag_btns = self.render_flag_btns()
                 elif self.allow_flagging == "auto":
-                    assert submit_btn is not None, "Submit button not rendered"
+                    if submit_btn is None:
+                        raise RenderError("Submit button not rendered")
                     flag_btns = [submit_btn]
 
                 if self.allow_duplication:
@@ -567,7 +570,8 @@ class Interface(Blocks):
     def attach_submit_events(self, submit_btn: Button | None, stop_btn: Button | None):
         if self.live:
             if self.interface_type == InterfaceTypes.OUTPUT_ONLY:
-                assert submit_btn is not None, "Submit button not rendered"
+                if submit_btn is None:
+                    raise RenderError("Submit button not rendered")
                 super().load(self.fn, None, self.output_components)
                 # For output-only interfaces, the user probably still want a "generate"
                 # button even if the Interface is live
@@ -582,28 +586,24 @@ class Interface(Blocks):
                     max_batch_size=self.max_batch_size,
                 )
             else:
+                events: list[Callable] = []
                 for component in self.input_components:
-                    if component.has_event(Events.stream) and component.streaming:  # type: ignore
-                        component.stream(  # type: ignore
-                            self.fn,
-                            self.input_components,
-                            self.output_components,
-                            api_name=self.api_name,
-                            preprocess=not (self.api_mode),
-                            postprocess=not (self.api_mode),
-                        )
-                        continue
-                    if component.has_event(Events.change):
-                        component.change(  # type: ignore
-                            self.fn,
-                            self.input_components,
-                            self.output_components,
-                            api_name=self.api_name,
-                            preprocess=not (self.api_mode),
-                            postprocess=not (self.api_mode),
-                        )
+                    if Events.stream in component.events and component.streaming:  # type: ignore
+                        events.append(component.stream)  # type: ignore
+                    elif Events.change in component.events:
+                        events.append(component.change)  # type: ignore
+                on(
+                    events,
+                    self.fn,
+                    self.input_components,
+                    self.output_components,
+                    api_name=self.api_name,
+                    preprocess=not (self.api_mode),
+                    postprocess=not (self.api_mode),
+                )
         else:
-            assert submit_btn is not None, "Submit button not rendered"
+            if submit_btn is None:
+                raise RenderError("Submit button not rendered")
             fn = self.fn
             extra_output = []
 
@@ -612,7 +612,6 @@ class Interface(Blocks):
                 for component in self.input_components
                 if component.has_event(Events.submit)
             ]
-            predict_events = []
 
             if stop_btn:
                 extra_output = [submit_btn, stop_btn]
@@ -620,60 +619,55 @@ class Interface(Blocks):
                 def cleanup():
                     return [Button.update(visible=True), Button.update(visible=False)]
 
-                for i, trigger in enumerate(triggers):
-                    predict_event = trigger(
-                        lambda: (
-                            submit_btn.update(visible=False),
-                            stop_btn.update(visible=True),
-                        ),
-                        inputs=None,
-                        outputs=[submit_btn, stop_btn],
-                        queue=False,
-                        api_name=False,
-                    ).then(
-                        self.fn,
-                        self.input_components,
-                        self.output_components,
-                        api_name=self.api_name if i == 0 else False,
-                        scroll_to_output=True,
-                        preprocess=not (self.api_mode),
-                        postprocess=not (self.api_mode),
-                        batch=self.batch,
-                        max_batch_size=self.max_batch_size,
-                    )
-                    predict_events.append(predict_event)
+                predict_event = on(
+                    triggers,
+                    lambda: (
+                        submit_btn.update(visible=False),
+                        stop_btn.update(visible=True),
+                    ),
+                    inputs=None,
+                    outputs=[submit_btn, stop_btn],
+                    queue=False,
+                ).then(
+                    self.fn,
+                    self.input_components,
+                    self.output_components,
+                    api_name=self.api_name,
+                    scroll_to_output=True,
+                    preprocess=not (self.api_mode),
+                    postprocess=not (self.api_mode),
+                    batch=self.batch,
+                    max_batch_size=self.max_batch_size,
+                )
 
-                    predict_event.then(
-                        cleanup,
-                        inputs=None,
-                        outputs=extra_output,  # type: ignore
-                        queue=False,
-                        api_name=False,
-                    )
+                predict_event.then(
+                    cleanup,
+                    inputs=None,
+                    outputs=extra_output,  # type: ignore
+                    queue=False,
+                )
 
                 stop_btn.click(
                     cleanup,
                     inputs=None,
                     outputs=[submit_btn, stop_btn],
-                    cancels=predict_events,
+                    cancels=predict_event,
                     queue=False,
                     api_name=False,
                 )
             else:
-                for i, trigger in enumerate(triggers):
-                    predict_events.append(
-                        trigger(
-                            fn,
-                            self.input_components,
-                            self.output_components,
-                            api_name=self.api_name if i == 0 else False,
-                            scroll_to_output=True,
-                            preprocess=not (self.api_mode),
-                            postprocess=not (self.api_mode),
-                            batch=self.batch,
-                            max_batch_size=self.max_batch_size,
-                        )
-                    )
+                on(
+                    triggers,
+                    fn,
+                    self.input_components,
+                    self.output_components,
+                    api_name=self.api_name,
+                    scroll_to_output=True,
+                    preprocess=not (self.api_mode),
+                    postprocess=not (self.api_mode),
+                    batch=self.batch,
+                    max_batch_size=self.max_batch_size,
+                )
 
     def attach_clear_events(
         self,

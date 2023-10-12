@@ -28,12 +28,22 @@
 <label class:disabled>
 	<input
 		bind:checked={value}
+		on:keydown={(event) => {
+			if (event.key === "Enter") {
+				value = !value;
+				dispatch("select", {
+					index: 0,
+					value: label,
+					selected: value,
+				});
+			}
+		}}
 		on:input={(evt) => {
 			value = evt.currentTarget.checked;
 			dispatch("select", {
 				index: 0,
 				value: label,
-				selected: evt.currentTarget.checked
+				selected: evt.currentTarget.checked,
 			});
 		}}
 		{disabled}
@@ -75,6 +85,12 @@
 		border-color: var(--checkbox-border-color-selected);
 		background-image: var(--checkbox-check);
 		background-color: var(--checkbox-background-color-selected);
+	}
+
+	input:checked:focus {
+		background-image: var(--checkbox-check);
+		background-color: var(--checkbox-background-color-selected);
+		border-color: var(--checkbox-border-color-focus);
 	}
 
 	input:hover {

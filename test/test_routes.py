@@ -519,7 +519,7 @@ class TestDevMode:
 
 
 class TestPassingRequest:
-    def test_request_included_with_regular_function(self):
+    def test_request_included_with_interface(self):
         def identity(name, request: gr.Request):
             assert isinstance(request.client.host, str)
             return name
@@ -533,6 +533,41 @@ class TestPassingRequest:
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["test"]
+
+    def test_request_included_with_chat_interface(self):
+        def identity(x, y, request: gr.Request):
+            assert isinstance(request.client.host, str)
+            return x
+
+        app, _, _ = gr.ChatInterface(identity).launch(
+            prevent_thread_lock=True,
+        )
+        client = TestClient(app)
+
+        response = client.post("/api/chat/", json={"data": ["test", None]})
+        assert response.status_code == 200
+        output = dict(response.json())
+        assert output["data"] == ["test", None]
+
+    def test_request_included_with_chat_interface_when_streaming(self):
+        def identity(x, y, request: gr.Request):
+            assert isinstance(request.client.host, str)
+            for i in range(len(x)):
+                yield x[: i + 1]
+
+        app, _, _ = (
+            gr.ChatInterface(identity)
+            .queue()
+            .launch(
+                prevent_thread_lock=True,
+            )
+        )
+        client = TestClient(app)
+
+        response = client.post("/api/chat/", json={"data": ["test", None]})
+        assert response.status_code == 200
+        output = dict(response.json())
+        assert output["data"] == ["t", None]
 
     def test_request_get_headers(self):
         def identity(name, request: gr.Request):

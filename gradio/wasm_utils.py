@@ -16,6 +16,8 @@ app = None
 # the Gradio's FastAPI app instance (`app`).
 def register_app(_app):
     global app
+    if app:
+        app.blocks.close()
     app = _app
 
 

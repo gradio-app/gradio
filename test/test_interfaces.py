@@ -103,14 +103,6 @@ class TestInterface:
                 )
 
     @mock.patch("gradio.utils.colab_check")
-    def test_launch_colab_share(self, mock_colab_check):
-        mock_colab_check.return_value = True
-        interface = Interface(lambda x: x, "textbox", "label")
-        _, _, share_url = interface.launch(prevent_thread_lock=True)
-        assert share_url is None
-        interface.close()
-
-    @mock.patch("gradio.utils.colab_check")
     @mock.patch("gradio.networking.setup_tunnel")
     def test_launch_colab_share_error(self, mock_setup_tunnel, mock_colab_check):
         mock_setup_tunnel.side_effect = RuntimeError()

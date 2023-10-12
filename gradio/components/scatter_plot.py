@@ -99,6 +99,7 @@ class ScatterPlot(Plot):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        show_actions_button: bool = False,
         **kwargs,
     ):
         """
@@ -133,6 +134,7 @@ class ScatterPlot(Plot):
             visible: Whether the plot should be visible.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            show_actions_button: Whether to show the actions button on the top right corner of the plot.
         """
         self.x = x
         self.y = y
@@ -157,6 +159,7 @@ class ScatterPlot(Plot):
         self.height = height
         self.x_lim = x_lim
         self.y_lim = y_lim
+        self.show_actions_button = show_actions_button
         super().__init__(
             value=value,
             label=label,

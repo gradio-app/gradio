@@ -9,15 +9,19 @@
 	import type { SelectData } from "@gradio/utils";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import VirtualTable from "./VirtualTable.svelte";
-
-	type Datatype = "str" | "markdown" | "html" | "number" | "bool" | "date";
+	import type {
+		Headers,
+		HeadersWithIDs,
+		Data,
+		Metadata,
+		Datatype
+	} from "../shared/utils";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
-	export let headers: string[] = [];
-	export let values:
-		| (string | number)[][]
-		| { data: (string | number)[][]; headers: string[] } = [[]];
+	export let headers: Headers = [];
+	let values: (string | number)[][];
+	export let value: { data: Data; headers: Headers; metadata: Metadata } | null;
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
 	export let latex_delimiters: {
@@ -29,22 +33,29 @@
 	export let editable = true;
 	export let wrap = false;
 	export let root: string;
-	export let height: number | undefined = undefined;
 	export let i18n: I18nFormatter;
 
+	export let height = 500;
+	export let line_breaks = true;
 	let selected: false | [number, number] = false;
+	let display_value: string[][] | null = value?.metadata?.display_value ?? null;
 
 	$: {
-		if (values && !Array.isArray(values)) {
-			headers = values.headers;
-			values = values.data;
+		if (value) {
+			headers = value.headers;
+			values = value.data;
+			display_value = value?.metadata?.display_value ?? null;
 		} else if (values === null) {
 			values = [];
 		}
 	}
 
 	const dispatch = createEventDispatcher<{
-		change: { data: (string | number)[][]; headers: string[] };
+		change: {
+			data: (string | number)[][];
+			headers: string[];
+			metadata: Metadata;
+		};
 		select: SelectData;
 	}>();
 
@@ -67,12 +78,10 @@
 
 	let data_binding: Record<string, (typeof data)[0][0]> = {};
 
-	type Headers = { value: string; id: string }[];
-
 	function make_id(): string {
 		return Math.random().toString(36).substring(2, 15);
 	}
-	function make_headers(_head: string[]): Headers {
+	function make_headers(_head: Headers): HeadersWithIDs {
 		let _h = _head || [];
 		if (col_count[1] === "fixed" && _h.length < col_count[0]) {
 			const fill = Array(col_count[0] - _h.length)
@@ -155,7 +164,8 @@
 	$: _headers &&
 		dispatch("change", {
 			data: data.map((r) => r.map(({ value }) => value)),
-			headers: _headers.map((h) => h.value)
+			headers: _headers.map((h) => h.value),
+			metadata: editable ? null : { display_value: display_value }
 		});
 
 	function get_sort_status(
@@ -328,7 +338,6 @@
 
 	async function handle_cell_click(i: number, j: number): Promise<void> {
 		if (dequal(editing, [i, j])) return;
-		if (dequal(selected, [i, j])) return;
 		header_edit = false;
 		selected_header = false;
 		editing = false;
@@ -529,34 +538,60 @@
 	$: cells[0] && set_cell_widths();
 	let cells: HTMLTableCellElement[] = [];
 	let parent: HTMLDivElement;
+	let table: HTMLTableElement;
 
 	function set_cell_widths(): void {
 		const widths = cells.map((el, i) => {
 			return el?.clientWidth || 0;
 		});
-
 		if (widths.length === 0) return;
 		for (let i = 0; i < widths.length; i++) {
-			parent.style.setProperty(`--cell-width-${i}`, `${widths[i]}px`);
+			parent.style.setProperty(
+				`--cell-width-${i}`,
+				`${widths[i] - scrollbar_width / widths.length}px`
+			);
 		}
 	}
 
-	let table_height: number = height || 500;
+	let table_height: number = height;
+	let scrollbar_width = 0;
 
 	function sort_data(
 		_data: typeof data,
+		_display_value: string[][] | null,
 		col?: number,
 		dir?: SortDirection
 	): void {
-		const id = selected ? data[selected[0]][selected[1]]?.id : null;
+		let id = null
+		//Checks if the selected cell is still in the data
+		if (selected && selected[0] in data && selected[1] in data[selected[0]]) {
+			id = data[selected[0]][selected[1]].id
+		}
 		if (typeof col !== "number" || !dir) {
 			return;
 		}
+		const indices = [...Array(_data.length).keys()];
+
 		if (dir === "asc") {
-			_data.sort((a, b) => (a[col].value < b[col].value ? -1 : 1));
+			indices.sort((i, j) =>
+				_data[i][col].value < _data[j][col].value ? -1 : 1
+			);
 		} else if (dir === "des") {
-			_data.sort((a, b) => (a[col].value > b[col].value ? -1 : 1));
+			indices.sort((i, j) =>
+				_data[i][col].value > _data[j][col].value ? -1 : 1
+			);
+		} else {
+			return;
 		}
+
+		// sort both data and display_value in place based on the values in data
+		const tempData = [..._data];
+		const tempData2 = _display_value ? [..._display_value] : null;
+		indices.forEach((originalIndex, sortedIndex) => {
+			_data[sortedIndex] = tempData[originalIndex];
+			if (_display_value && tempData2)
+				_display_value[sortedIndex] = tempData2[originalIndex];
+		});
 
 		data = data;
 
@@ -566,7 +601,7 @@
 		}
 	}
 
-	$: sort_data(data, sort_by, sort_direction);
+	$: sort_data(data, display_value, sort_by, sort_direction);
 
 	$: selected_index = !!selected && selected[0];
 
@@ -613,7 +648,7 @@
 		role="grid"
 		tabindex="0"
 	>
-		<table bind:clientWidth={t_width}>
+		<table bind:clientWidth={t_width} bind:this={table}>
 			{#if label && label.length !== 0}
 				<caption class="sr-only">{label}</caption>
 			{/if}
@@ -628,6 +663,7 @@
 								<EditableCell
 									{value}
 									{latex_delimiters}
+									{line_breaks}
 									header
 									edit={false}
 									el={null}
@@ -683,8 +719,9 @@
 			<VirtualTable
 				bind:items={data}
 				table_width={t_width}
-				max_height={height || 500}
+				max_height={height}
 				bind:actual_height={table_height}
+				bind:table_scrollbar_width={scrollbar_width}
 				selected={selected_index}
 			>
 				{#if label && label.length !== 0}
@@ -747,7 +784,9 @@
 								<EditableCell
 									bind:value={data[index][j].value}
 									bind:el={els[id].input}
+									display_value={display_value?.[index]?.[j]}
 									{latex_delimiters}
+									{editable}
 									edit={dequal(editing, [index, j])}
 									datatype={Array.isArray(datatype) ? datatype[j] : datatype}
 									on:blur={() => ((clear_on_focus = false), parent.focus())}
