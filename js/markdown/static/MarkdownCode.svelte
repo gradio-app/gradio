@@ -119,8 +119,4 @@
 	span:not(.chatbot) :global(ol) {
 		list-style-position: inside;
 	}
-
-	span :global(a) {
-		white-space: normal;
-	}
 </style>
