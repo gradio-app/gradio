@@ -39,7 +39,7 @@
 				{$_("common.hosted_on")}
 				<a class="hf" href="https://huggingface.co/spaces"
 					><span class="space-logo">
-						<img src={space_logo} alt={`Hugging Face Space }`} />
+						<img src={space_logo} alt="Hugging Face Space" />
 					</span> Spaces</a
 				>
 			</span>

@@ -32,7 +32,6 @@
 	export let components: ComponentMeta[];
 	export let layout: LayoutNode;
 	export let dependencies: Dependency[];
-
 	export let title = "Gradio";
 	export let analytics_enabled = false;
 	export let target: HTMLElement;
@@ -305,6 +304,20 @@
 			} else {
 				(c.props as any).mode = "static";
 			}
+
+			if ((c.props as any).server_fns) {
+				let server: Record<string, (...args: any[]) => Promise<any>> = {};
+				(c.props as any).server_fns.forEach((fn: string) => {
+					server[fn] = async (...args: any[]) => {
+						if (args.length === 1) {
+							args = args[0];
+						}
+						const result = await app.component_server(c.id, fn, args);
+						return result;
+					};
+				});
+				(c.props as any).server = server;
+			}
 			__type_for_id.set(c.id, c.props.mode);
 
 			if (c.type === "dataset") {
@@ -513,80 +526,82 @@
 					handle_update(data, fn_index);
 				})
 				.on("status", ({ fn_index, ...status }) => {
-					//@ts-ignore
-					loading_status.update({
-						...status,
-						status: status.stage,
-						progress: status.progress_data,
-						fn_index
-					});
-					if (
-						!showed_duplicate_message &&
-						space_id !== null &&
-						status.position !== undefined &&
-						status.position >= 2 &&
-						status.eta !== undefined &&
-						status.eta > SHOW_DUPLICATE_MESSAGE_ON_ETA
-					) {
-						showed_duplicate_message = true;
-						messages = [
-							new_message(DUPLICATE_MESSAGE, fn_index, "warning"),
-							...messages
-						];
-					}
-					if (
-						!showed_mobile_warning &&
-						is_mobile_device &&
-						status.eta !== undefined &&
-						status.eta > SHOW_MOBILE_QUEUE_WARNING_ON_ETA
-					) {
-						showed_mobile_warning = true;
-						messages = [
-							new_message(MOBILE_QUEUE_WARNING, fn_index, "warning"),
-							...messages
-						];
-					}
-
-					if (status.stage === "complete") {
-						dependencies.map(async (dep, i) => {
-							if (dep.trigger_after === fn_index) {
-								trigger_api_call(i);
-							}
+					tick().then(() => {
+						//@ts-ignore
+						loading_status.update({
+							...status,
+							status: status.stage,
+							progress: status.progress_data,
+							fn_index
 						});
-
-						submission.destroy();
-					}
-					if (status.broken && is_mobile_device && user_left_page) {
-						window.setTimeout(() => {
+						if (
+							!showed_duplicate_message &&
+							space_id !== null &&
+							status.position !== undefined &&
+							status.position >= 2 &&
+							status.eta !== undefined &&
+							status.eta > SHOW_DUPLICATE_MESSAGE_ON_ETA
+						) {
+							showed_duplicate_message = true;
 							messages = [
-								new_message(MOBILE_RECONNECT_MESSAGE, fn_index, "error"),
-								...messages
-							];
-						}, 0);
-						trigger_api_call(dep_index, event_data);
-						user_left_page = false;
-					} else if (status.stage === "error") {
-						if (status.message) {
-							const _message = status.message.replace(
-								MESSAGE_QUOTE_RE,
-								(_, b) => b
-							);
-							messages = [
-								new_message(_message, fn_index, "error"),
+								new_message(DUPLICATE_MESSAGE, fn_index, "warning"),
 								...messages
 							];
 						}
-						dependencies.map(async (dep, i) => {
-							if (
-								dep.trigger_after === fn_index &&
-								!dep.trigger_only_on_success
-							) {
-								trigger_api_call(i);
-							}
-						});
+						if (
+							!showed_mobile_warning &&
+							is_mobile_device &&
+							status.eta !== undefined &&
+							status.eta > SHOW_MOBILE_QUEUE_WARNING_ON_ETA
+						) {
+							showed_mobile_warning = true;
+							messages = [
+								new_message(MOBILE_QUEUE_WARNING, fn_index, "warning"),
+								...messages
+							];
+						}
 
-						submission.destroy();
-					}
+						if (status.stage === "complete") {
+							dependencies.map(async (dep, i) => {
+								if (dep.trigger_after === fn_index) {
+									trigger_api_call(i);
+								}
+							});
+
+							submission.destroy();
+						}
+						if (status.broken && is_mobile_device && user_left_page) {
+							window.setTimeout(() => {
+								messages = [
+									new_message(MOBILE_RECONNECT_MESSAGE, fn_index, "error"),
+									...messages
+								];
+							}, 0);
+							trigger_api_call(dep_index, event_data);
+							user_left_page = false;
+						} else if (status.stage === "error") {
+							if (status.message) {
+								const _message = status.message.replace(
+									MESSAGE_QUOTE_RE,
+									(_, b) => b
+								);
+								messages = [
+									new_message(_message, fn_index, "error"),
+									...messages
+								];
+							}
+							dependencies.map(async (dep, i) => {
+								if (
+									dep.trigger_after === fn_index &&
+									!dep.trigger_only_on_success
+								) {
+									trigger_api_call(i);
+								}
+							});
+
+							submission.destroy();
+						}
+					});
 				})
 				.on("log", ({ log, fn_index, level }) => {
 					messages = [new_message(log, fn_index, level), ...messages];
@@ -620,9 +635,7 @@
 
 	$: target_map = dependencies.reduce(
 		(acc, dep, i) => {
-			let { targets, trigger } = dep;
-
-			targets.forEach((id) => {
+			dep.targets.forEach(([id, trigger]) => {
 				if (!acc[id]) {
 					acc[id] = {};
 				}
@@ -654,7 +667,7 @@
 
 		// handle load triggers
 		dependencies.forEach((dep, i) => {
-			if (dep.targets.length === 0 && dep.trigger === "load") {
+			if (dep.targets.length === 1 && dep.targets[0][1] === "load") {
 				trigger_api_call(i);
 			}
 		});

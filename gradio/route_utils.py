@@ -4,6 +4,7 @@ import json
 from typing import TYPE_CHECKING, Optional, Union
 
 import fastapi
+import httpx
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio import utils
@@ -13,6 +14,7 @@ from gradio.helpers import EventData
 from gradio.state_holder import SessionState
 
 if TYPE_CHECKING:
+    from gradio.blocks import Blocks
     from gradio.routes import App
 
 set_documentation_group("routes")
@@ -78,11 +80,14 @@ class Request:
     auth is enabled, the `username` attribute can be used to get the logged in user.
     Example:
         import gradio as gr
-        def echo(name, request: gr.Request):
-            print("Request headers dictionary:", request.headers)
-            print("IP address:", request.client.host)
-            return name
+        def echo(text, request: gr.Request):
+            if request:
+                print("Request headers dictionary:", request.headers)
+                print("IP address:", request.client.host)
+                print("Query parameters:", dict(request.query_params))
+            return text
         io = gr.Interface(echo, "textbox", "textbox").launch()
+    Demos: request_ip_headers
     """
 
     def __init__(
@@ -182,22 +187,30 @@ def restore_session_state(app: App, body: PredictBody):
     return session_state, iterators
 
 
+def prepare_event_data(
+    blocks: Blocks,
+    body: PredictBody,
+    fn_index_inferred: int,
+) -> EventData:
+    dependency = blocks.dependencies[fn_index_inferred]
+    target = dependency["targets"][0] if len(dependency["targets"]) else None
+    event_data = EventData(
+        blocks.blocks.get(target[0]) if target else None,
+        body.event_data,
+    )
+    return event_data
+
+
 async def call_process_api(
     app: App,
     body: PredictBody,
     gr_request: Union[Request, list[Request]],
-    fn_index_inferred,
+    fn_index_inferred: int,
 ):
     session_state, iterators = restore_session_state(app=app, body=body)
 
     dependency = app.get_blocks().dependencies[fn_index_inferred]
-
-    target = dependency["targets"][0] if len(dependency["targets"]) else None
-    event_data = EventData(
-        app.get_blocks().blocks.get(target) if target else None,
-        body.event_data,
-    )
-
+    event_data = prepare_event_data(app.get_blocks(), body, fn_index_inferred)
     event_id = getattr(body, "event_id", None)
 
     fn_index = body.fn_index
@@ -241,3 +254,13 @@ async def call_process_api(
         output["data"] = output["data"][0]
 
     return output
+
+
+def strip_url(orig_url: str) -> str:
+    """
+    Strips the query parameters and trailing slash from a URL.
+    """
+    parsed_url = httpx.URL(orig_url)
+    stripped_url = parsed_url.copy_with(query=None)
+    stripped_url = str(stripped_url)
+    return stripped_url.rstrip("/")

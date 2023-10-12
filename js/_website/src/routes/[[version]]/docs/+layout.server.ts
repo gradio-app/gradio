@@ -30,10 +30,11 @@ export async function load({ params, url }) {
 	let docs: { [key: string]: any } = docs_json.docs;
 	let components = docs_json.docs.components;
 	let helpers = docs_json.docs.helpers;
+	let modals = docs_json.docs.modals || [];
 	let routes = docs_json.docs.routes;
 	let py_client = docs_json.docs["py-client"];
 	let js_client = docs_json.js_client;
-	let on_main = params?.version === "main";
+	let on_main = params.version === "main";
 	let wheel: string = WHEEL;
 	let pages: string[] = docs_json.pages;
 
@@ -41,6 +42,7 @@ export async function load({ params, url }) {
 		docs,
 		components,
 		helpers,
+		modals,
 		routes,
 		py_client,
 		js_client,

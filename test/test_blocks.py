@@ -61,11 +61,11 @@ class TestBlocksMethods:
         with gr.Blocks() as demo:
             # self.share is False when instantiating the class
             assert not demo.share
-            # share default is False, if share is None in colab and no queueing
+            # share default is True, if share is None in colab and queueing
             demo.launch(prevent_thread_lock=True)
-            assert not demo.share
+            assert demo.share
             demo.close()
-            # share becomes true, if share is None in colab with queueing
+            # share is also true, if share is None in colab with queueing
             demo.queue()
             demo.launch(prevent_thread_lock=True)
             assert demo.share
@@ -551,7 +551,7 @@ class TestComponentsInBlocks:
                 else:
                     assert component.load_event_to_attach
         dependencies_on_load = [
-            dep["trigger"] == "load" for dep in demo.config["dependencies"]
+            dep["targets"][0][1] == "load" for dep in demo.config["dependencies"]
         ]
         assert all(dependencies_on_load)
         assert len(dependencies_on_load) == 2
@@ -567,7 +567,9 @@ class TestComponentsInBlocks:
         )
 
         dependencies_on_load = [
-            dep for dep in interface.config["dependencies"] if dep["trigger"] == "load"
+            dep
+            for dep in interface.config["dependencies"]
+            if dep["targets"][0][1] == "load"
         ]
         assert len(dependencies_on_load) == len(io_components)
         assert all(dep["every"] == 1 for dep in dependencies_on_load)
@@ -593,6 +595,7 @@ class TestBlocksPostprocessing:
                 gr.LinePlot,
                 gr.BarPlot,
                 gr.components.Fallback,
+                gr.FileExplorer,
             ]
         ]
         with gr.Blocks() as demo:
@@ -1412,7 +1415,7 @@ class TestCancel:
 class TestEvery:
     def test_raise_exception_if_parameters_invalid(self):
         with pytest.raises(
-            ValueError, match="Cannot run change event in a batch and every 0.5 seconds"
+            ValueError, match="Cannot run event in a batch and every 0.5 seconds"
         ):
             with gr.Blocks():
                 num = gr.Number()

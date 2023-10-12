@@ -45,7 +45,7 @@
 			old_value = value;
 			gradio.dispatch("change");
 		}
-		if (value !== null) {
+		if (value) {
 			_value = {
 				image: normalise_file(value.image, root, root_url) as FileData,
 				annotations: value.annotations.map((ann) => ({
@@ -66,8 +66,8 @@
 
 	function handle_click(i: number, value: string): void {
 		gradio.dispatch("select", {
-			value: value,
-			index: i
+			value: label,
+			index: i,
 		});
 	}
 </script>
@@ -100,7 +100,6 @@
 			<Empty size="large" unpadded_box={true}><Image /></Empty>
 		{:else}
 			<div class="image-container">
-				<!-- svelte-ignore a11y-missing-attribute -->
 				<img
 					class="base-image"
 					class:fit-height={height}
@@ -109,6 +108,7 @@
 				{#each _value ? _value?.annotations : [] as ann, i}
 					<!-- svelte-ignore a11y-missing-attribute -->
 					<img
+						alt="segmentation mask identifying {label} within the uploaded file"
 						class="mask fit-height"
 						class:active={active == ann.label}
 						class:inactive={active != ann.label && active != null}
@@ -127,7 +127,7 @@
 						<!-- TODO: fix -->
 						<!-- svelte-ignore a11y-click-events-have-key-events -->
 						<!-- svelte-ignore a11y-no-static-element-interactions -->
-						<div
+						<button
 							class="legend-item"
 							style="background-color: {color_map && ann.label in color_map
 								? color_map[ann.label] + '88'
@@ -141,7 +141,7 @@
 							on:click={() => handle_click(i, ann.label)}
 						>
 							{ann.label}
-						</div>
+						</button>
 					{/each}
 				</div>
 			{/if}

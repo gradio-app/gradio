@@ -1,62 +1,51 @@
 # @gradio/chatbot
 
-## 0.4.0-beta.6
+## 0.5.2
+
+### Patch Changes
+
+- Updated dependencies [[`e4a307ed6`](https://github.com/gradio-app/gradio/commit/e4a307ed6cde3bbdf4ff2f17655739addeec941e)]:
+  - @gradio/theme@0.2.0
+  - @gradio/utils@0.1.2
+  - @gradio/atoms@0.1.4
+  - @gradio/markdown@0.3.1
+  - @gradio/statustracker@0.2.2
+  - @gradio/upload@0.3.2
+
+## 0.5.1
 
 ### Fixes
 
-- [#5593](https://github.com/gradio-app/gradio/pull/5593) [`88d43bd12`](https://github.com/gradio-app/gradio/commit/88d43bd124792d216da445adef932a2b02f5f416) - Fixes avatar image in chatbot being squashed.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#5775](https://github.com/gradio-app/gradio/pull/5775) [`e2874bc3c`](https://github.com/gradio-app/gradio/commit/e2874bc3cb1397574f77dbd7f0408ed4e6792970) - fix pending chatbot message styling and ensure messages with value `None` don't render. Thanks [@hannahblair](https://github.com/hannahblair)!
 
-## 0.4.0-beta.5
-
-### Features
-
-- [#5648](https://github.com/gradio-app/gradio/pull/5648) [`c573e2339`](https://github.com/gradio-app/gradio/commit/c573e2339b86c85b378dc349de5e9223a3c3b04a) - Publish all components to npm.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
-
-## 0.4.0-beta.4
-
-### Patch Changes
-
-- Updated dependencies [[`0b4fd5b6d`](https://github.com/gradio-app/gradio/commit/0b4fd5b6db96fc95a155e5e935e17e1ab11d1161)]:
-  - @gradio/utils@0.2.0-beta.3
-  - @gradio/atoms@0.2.0-beta.3
-  - @gradio/markdown@0.3.0-beta.4
-  - @gradio/statustracker@0.3.0-beta.4
-  - @gradio/upload@0.3.0-beta.3
-
-## 0.4.0-beta.3
-
-### Patch Changes
-
-- Updated dependencies [[`14fc612d8`](https://github.com/gradio-app/gradio/commit/14fc612d84bf6b1408eccd3a40fab41f25477571)]:
-  - @gradio/utils@0.2.0-beta.2
-  - @gradio/atoms@0.2.0-beta.2
-  - @gradio/markdown@0.3.0-beta.3
-  - @gradio/statustracker@0.3.0-beta.3
-  - @gradio/upload@0.3.0-beta.2
-
-## 0.4.0-beta.2
+## 0.5.0
 
 ### Features
 
-- [#5620](https://github.com/gradio-app/gradio/pull/5620) [`c4c25ecdf`](https://github.com/gradio-app/gradio/commit/c4c25ecdf8c2fab5e3c41b519564e3b6a9ebfce3) - fix build and broken imports. Thanks [@pngwn](https://github.com/pngwn)!
+- [#5699](https://github.com/gradio-app/gradio/pull/5699) [`8f0fed857`](https://github.com/gradio-app/gradio/commit/8f0fed857d156830626eb48b469d54d211a582d2) - Improve chatbot accessibility and UX. Thanks [@hannahblair](https://github.com/hannahblair)!
 
-## 0.4.0-beta.1
+### Fixes
+
+- [#5755](https://github.com/gradio-app/gradio/pull/5755) [`e842a561a`](https://github.com/gradio-app/gradio/commit/e842a561af4394f8109291ee5725bcf74743e816) - Fix new line issue in chatbot. Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
+## 0.4.1
 
 ### Patch Changes
 
-- Updated dependencies [[`142880ba5`](https://github.com/gradio-app/gradio/commit/142880ba589126d98da3d6a38866828864cc6b81)]:
-  - @gradio/theme@0.2.0-beta.1
-  - @gradio/utils@0.2.0-beta.1
-  - @gradio/atoms@0.2.0-beta.1
-  - @gradio/markdown@0.3.0-beta.1
-  - @gradio/statustracker@0.3.0-beta.1
-  - @gradio/upload@0.3.0-beta.1
+- Updated dependencies [[`ee8eec1e5`](https://github.com/gradio-app/gradio/commit/ee8eec1e5e544a0127e0aa68c2522a7085b8ada5)]:
+  - @gradio/markdown@0.2.2
 
-## 0.4.0-beta.0
+## 0.4.0
 
 ### Features
 
-- [#5507](https://github.com/gradio-app/gradio/pull/5507) [`1385dc688`](https://github.com/gradio-app/gradio/commit/1385dc6881f2d8ae7a41106ec21d33e2ef04d6a9) - Custom components. Thanks [@pngwn](https://github.com/pngwn)!
+- [#5671](https://github.com/gradio-app/gradio/pull/5671) [`6a36c3b78`](https://github.com/gradio-app/gradio/commit/6a36c3b786700600d3826ce1e0629cc5308ddd47) - chore(deps): update dependency @types/prismjs to v1.26.1. Thanks [@renovate](https://github.com/apps/renovate)!
+- [#5554](https://github.com/gradio-app/gradio/pull/5554) [`75ddeb390`](https://github.com/gradio-app/gradio/commit/75ddeb390d665d4484667390a97442081b49a423) - Accessibility Improvements. Thanks [@hannahblair](https://github.com/hannahblair)!
+
+### Fixes
+
+- [#5604](https://github.com/gradio-app/gradio/pull/5604) [`faad01f8e`](https://github.com/gradio-app/gradio/commit/faad01f8e10ef6d18249b1a4587477c59b74adb2) - Add `render_markdown` parameter to chatbot. Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#5593](https://github.com/gradio-app/gradio/pull/5593) [`88d43bd12`](https://github.com/gradio-app/gradio/commit/88d43bd124792d216da445adef932a2b02f5f416) - Fixes avatar image in chatbot being squashed. Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
 
 ## 0.3.2
 

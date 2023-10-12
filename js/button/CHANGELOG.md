@@ -1,5 +1,6 @@
 # @gradio/button
 
+<<<<<<< HEAD
 ## 0.2.0-beta.4
 
 ### Features
@@ -23,10 +24,14 @@
   - @gradio/upload@0.3.0-beta.2
 
 ## 0.2.0-beta.1
+=======
+## 0.2.2
+>>>>>>> main
 
 ### Patch Changes
 
 - Updated dependencies []:
+<<<<<<< HEAD
   - @gradio/utils@0.2.0-beta.1
   - @gradio/upload@0.3.0-beta.1
 
@@ -35,6 +40,23 @@
 ### Features
 
 - [#5507](https://github.com/gradio-app/gradio/pull/5507) [`1385dc688`](https://github.com/gradio-app/gradio/commit/1385dc6881f2d8ae7a41106ec21d33e2ef04d6a9) - Custom components. Thanks [@pngwn](https://github.com/pngwn)!
+=======
+  - @gradio/utils@0.1.2
+  - @gradio/upload@0.3.2
+
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/upload@0.3.1
+
+## 0.2.0
+
+### Features
+
+- [#5554](https://github.com/gradio-app/gradio/pull/5554) [`75ddeb390`](https://github.com/gradio-app/gradio/commit/75ddeb390d665d4484667390a97442081b49a423) - Accessibility Improvements. Thanks [@hannahblair](https://github.com/hannahblair)!
+>>>>>>> main
 
 ## 0.1.3
 
