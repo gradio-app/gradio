@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Change `BlocksLabel` element to use `<label>`
+feat:Change `BlockLabel` element to use `<label>`
