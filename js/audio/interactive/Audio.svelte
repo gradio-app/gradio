@@ -108,7 +108,7 @@
 			stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 		} catch (err) {
 			if (!navigator.mediaDevices) {
-				dispatch("error", $_("audio.no_device_support"));
+				dispatch("error", i18n("audio.no_device_support"));
 				return;
 			}
 			if (err instanceof DOMException && err.name == "NotAllowedError") {
@@ -175,7 +175,7 @@
 
 	async function record(): Promise<void> {
 		if (!navigator.mediaDevices) {
-			dispatch("error", $_("audio.no_device_support"));
+			dispatch("error", i18n("audio.no_device_support"));
 			return;
 		}
 		recording = true;

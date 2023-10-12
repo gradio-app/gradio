@@ -263,7 +263,7 @@ class TestClientPredictions:
 
     def test_cancel_subsequent_jobs_state_reset(self, yield_demo):
         with connect(yield_demo) as client:
-            job1 = client.submit("abcdefefadsadfs")
+            job1 = client.submit("abcdefefadsadfs", api_name="/predict")
             time.sleep(3)
             job1.cancel()
 
@@ -848,14 +848,13 @@ class TestAPIInfo:
     def test_unnamed_endpoints_use_fn_index(self, count_generator_demo):
         with connect(count_generator_demo) as client:
             info = client.view_api(return_format="str")
-            assert "fn_index=0" in info
-            assert "api_name" not in info
+            assert "fn_index" not in info
+            assert "api_name" in info
 
-    def test_api_false_endpoints_do_not_appear(self, count_generator_demo):
-        with connect(count_generator_demo) as client:
+    def test_api_false_endpoints_do_not_appear(self, count_generator_no_api):
+        with connect(count_generator_no_api) as client:
             info = client.view_api(return_format="dict")
             assert len(info["named_endpoints"]) == 0
-            assert len(info["unnamed_endpoints"]) == 2
 
     def test_api_false_endpoints_cannot_be_accessed_with_fn_index(self, increment_demo):
         with connect(increment_demo) as client:
