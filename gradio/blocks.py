@@ -225,6 +225,7 @@ class Block:
     def update(**kwargs) -> dict:
         return {}
 
+
 class BlockContext(Block):
     def __init__(
         self,
