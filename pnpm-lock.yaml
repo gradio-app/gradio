@@ -276,9 +276,6 @@ importers:
 
   js/_website:
     dependencies:
-      '@gradio/atoms':
-        specifier: workspace:^
-        version: link:../atoms
       '@gradio/code':
         specifier: workspace:^
         version: link:../code
