@@ -78,6 +78,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         elem_classes: list[str] | str | None = None,
         wrap: bool = False,
         line_breaks: bool = True,
+        column_widths: list[str] | None = None,
         **kwargs,
     ):
         """
@@ -105,7 +106,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             wrap: if True text in table cells will wrap when appropriate, if False the table will scroll horizontally. Defaults to False.
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies for columns of type "markdown."
-            column_widths: An optional list of strings representing the width of each column. The strings should be in the format "100px" (discouraged as the table will not be responsive) or "10%". If not provided, the column widths will be automatically determined based on the content of the cells. Should be the same length as the number of columns.
+            column_widths: An optional list of strings representing the width of each column. The strings should be in the format "100px" (discouraged as the table will not be responsive) or "10%". If not provided, the column widths will be automatically determined based on the content of the cells.
         """
 
         self.wrap = wrap
@@ -151,6 +152,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         self.latex_delimiters = latex_delimiters
         self.height = height
         self.line_breaks = line_breaks
+        self.column_widths = column_widths
 
         self.select: EventListenerMethod
         """

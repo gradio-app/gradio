@@ -34,7 +34,7 @@
 	export let wrap = false;
 	export let height = 500;
 	export let line_breaks = true;
-	export let column_widths: string[] = ["300px", "20%", "5%"];
+	export let column_widths: string[] = [];
 
 	let selected: false | [number, number] = false;
 	let display_value: string[][] | null = value?.metadata?.display_value ?? null;
@@ -906,6 +906,14 @@
 		line-height: var(--line-md);
 		font-family: var(--font-mono);
 		border-spacing: 0;
+	}
+
+	div:not(.no-wrap) td {
+		overflow-wrap: anywhere;
+	}
+
+	div.no-wrap td {
+		overflow-x: hidden;
 	}
 
 	table.fixed-layout {
