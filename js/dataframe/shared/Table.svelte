@@ -659,7 +659,7 @@
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
 							style="width: {column_widths[i]};"
 						>
-							<div class="cell-wrap header-cell-wrap">
+							<div class="cell-wrap">
 								<EditableCell
 									{value}
 									{latex_delimiters}
@@ -1013,10 +1013,6 @@
 		outline: none;
 		height: var(--size-full);
 		min-height: var(--size-9);
-	}
-
-	.header-cell-wrap {
-		resize: horizontal;
 	}
 
 	.controls-wrap {
