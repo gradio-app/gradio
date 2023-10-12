@@ -255,11 +255,14 @@ export function api_factory(
 			};
 
 			const transform_files = normalise_files ?? true;
-			if (typeof window === "undefined" || !("WebSocket" in window)) {
+			if (
+				(typeof window === "undefined" || !("WebSocket" in window)) &&
+				!global.Websocket
+			) {
 				const ws = await import("ws");
 				NodeBlob = (await import("node:buffer")).Blob;
 				//@ts-ignore
-				if (!global.WebSocket) global.WebSocket = ws.WebSocket;
+				global.WebSocket = ws.WebSocket;
 			}
 
 			const { ws_protocol, http_protocol, host, space_id } =
