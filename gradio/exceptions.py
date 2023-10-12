@@ -9,8 +9,26 @@ class DuplicateBlockError(ValueError):
     pass
 
 
+class InvalidComponentError(ValueError):
+    """Raised when invalid components are used."""
+
+    pass
+
+
 class TooManyRequestsError(Exception):
     """Raised when the Hugging Face API returns a 429 status code."""
+
+    pass
+
+
+class ModelNotFoundError(Exception):
+    """Raised when the provided model doesn't exists or is not found by the provided api url."""
+
+    pass
+
+
+class RenderError(Exception):
+    """Raised when a component has not been rendered in the current Blocks but is expected to have been rendered."""
 
     pass
 

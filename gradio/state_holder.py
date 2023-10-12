@@ -23,6 +23,9 @@ class StateHolder:
         self.update(session_id)
         return self.session_data[session_id]
 
+    def __contains__(self, session_id: str):
+        return session_id in self.session_data
+
     def update(self, session_id: str):
         if session_id in self.session_data:
             self.session_data.move_to_end(session_id)

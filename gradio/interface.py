@@ -28,6 +28,7 @@ from gradio.components import (
 from gradio.data_classes import InterfaceTypes
 from gradio.deprecation import warn_deprecation
 from gradio.events import Changeable, Streamable, Submittable, on
+from gradio.exceptions import RenderError
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_pipeline
@@ -449,7 +450,8 @@ class Interface(Blocks):
                     stop_btn = stop_btn or stop_btn_2_out
                     flag_btns = flag_btns or flag_btns_out
 
-            assert clear_btn is not None, "Clear button not rendered"
+            if clear_btn is None:
+                raise RenderError("Clear button not rendered")
 
             self.attach_submit_events(submit_btn, stop_btn)
             self.attach_clear_events(
@@ -586,7 +588,8 @@ class Interface(Blocks):
                 if self.allow_flagging == "manual":
                     flag_btns = self.render_flag_btns()
                 elif self.allow_flagging == "auto":
-                    assert submit_btn is not None, "Submit button not rendered"
+                    if submit_btn is None:
+                        raise RenderError("Submit button not rendered")
                     flag_btns = [submit_btn]
 
                 if self.interpretation:
@@ -611,7 +614,8 @@ class Interface(Blocks):
     def attach_submit_events(self, submit_btn: Button | None, stop_btn: Button | None):
         if self.live:
             if self.interface_type == InterfaceTypes.OUTPUT_ONLY:
-                assert submit_btn is not None, "Submit button not rendered"
+                if submit_btn is None:
+                    raise RenderError("Submit button not rendered")
                 super().load(self.fn, None, self.output_components)
                 # For output-only interfaces, the user probably still want a "generate"
                 # button even if the Interface is live
@@ -642,7 +646,8 @@ class Interface(Blocks):
                     postprocess=not (self.api_mode),
                 )
         else:
-            assert submit_btn is not None, "Submit button not rendered"
+            if submit_btn is None:
+                raise RenderError("Submit button not rendered")
             fn = self.fn
             extra_output = []
 
@@ -656,13 +661,13 @@ class Interface(Blocks):
                 extra_output = [submit_btn, stop_btn]
 
                 def cleanup():
-                    return [Button.update(visible=True), Button.update(visible=False)]
+                    return [Button(visible=True), Button(visible=False)]
 
                 predict_event = on(
                     triggers,
                     lambda: (
-                        submit_btn.update(visible=False),
-                        stop_btn.update(visible=True),
+                        Button(visible=False),
+                        Button(visible=True),
                     ),
                     inputs=None,
                     outputs=[submit_btn, stop_btn],
@@ -723,7 +728,7 @@ class Interface(Blocks):
             ),  # type: ignore
             _js=f"""() => {json.dumps(
                 (
-                    [Column.update(visible=True)]
+                    [{'variant': None, 'visible': True, '__type__': 'update'}]
                     if self.interface_type
                         in [
                             InterfaceTypes.STANDARD,
@@ -732,7 +737,7 @@ class Interface(Blocks):
                         ]
                     else []
                 )
-                + ([Column.update(visible=False)] if self.interpretation else [])
+                + ([{'variant': None, 'visible': False, '__type__': 'update'}] if self.interpretation else [])
             )}
             """,
         )
@@ -788,7 +793,7 @@ class Interface(Blocks):
             assert isinstance(value, str)
             flag_method = FlagMethod(self.flagging_callback, label, value)
             flag_btn.click(
-                lambda: Button.update(value="Saving...", interactive=False),
+                lambda: Button(value="Saving...", interactive=False),
                 None,
                 flag_btn,
                 queue=False,
@@ -842,8 +847,8 @@ class Interface(Blocks):
 
     async def interpret_func(self, *args):
         return await self.interpret(list(args)) + [
-            Column.update(visible=False),
-            Column.update(visible=True),
+            Column(visible=False),
+            Column(visible=True),
         ]
 
     async def interpret(self, raw_input: list[Any]) -> list[Any]:

@@ -1,5 +1,19 @@
 # @gradio/atoms
 
+## 0.1.4
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/utils@0.1.2
+
+## 0.1.3
+
+### Patch Changes
+
+- Updated dependencies [[`8f0fed857`](https://github.com/gradio-app/gradio/commit/8f0fed857d156830626eb48b469d54d211a582d2)]:
+  - @gradio/icons@0.2.0
+
 ## 0.1.2
 
 ### Patch Changes

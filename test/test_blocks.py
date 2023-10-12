@@ -65,11 +65,11 @@ class TestBlocksMethods:
         with gr.Blocks() as demo:
             # self.share is False when instantiating the class
             assert not demo.share
-            # share default is False, if share is None in colab and no queueing
+            # share default is True, if share is None in colab and queueing
             demo.launch(prevent_thread_lock=True)
-            assert not demo.share
+            assert demo.share
             demo.close()
-            # share becomes true, if share is None in colab with queueing
+            # share is also true, if share is None in colab with queueing
             demo.queue()
             demo.launch(prevent_thread_lock=True)
             assert demo.share
@@ -612,7 +612,15 @@ class TestBlocksPostprocessing:
         io_components = [
             c()
             for c in io_components
-            if c not in [gr.State, gr.Button, gr.ScatterPlot, gr.LinePlot, gr.BarPlot]
+            if c
+            not in [
+                gr.State,
+                gr.Button,
+                gr.ScatterPlot,
+                gr.LinePlot,
+                gr.BarPlot,
+                gr.FileExplorer,
+            ]
         ]
         with gr.Blocks() as demo:
             for component in io_components:

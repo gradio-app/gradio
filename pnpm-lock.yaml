@@ -415,6 +415,9 @@ importers:
       '@gradio/file':
         specifier: workspace:^
         version: link:../file
+      '@gradio/fileexplorer':
+        specifier: workspace:^
+        version: link:../fileexplorer
       '@gradio/form':
         specifier: workspace:^
         version: link:../form
@@ -598,6 +601,9 @@ importers:
       '@types/prismjs':
         specifier: 1.26.1
         version: 1.26.1
+      dequal:
+        specifier: ^2.0.2
+        version: 2.0.2
 
   js/checkbox:
     dependencies:
@@ -796,6 +802,36 @@ importers:
         specifier: workspace:^
         version: link:../utils
 
+  js/fileexplorer:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/checkbox':
+        specifier: workspace:^
+        version: link:../checkbox
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
+      '@gradio/file':
+        specifier: workspace:^
+        version: link:../file
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/upload':
+        specifier: workspace:^
+        version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+      dequal:
+        specifier: ^2.0.2
+        version: 2.0.3
+
   js/form:
     dependencies:
       '@gradio/atoms':
@@ -828,6 +864,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      dequal:
+        specifier: ^2.0.2
+        version: 2.0.2
 
   js/group: {}
 
@@ -922,6 +961,12 @@ importers:
 
   js/lite:
     devDependencies:
+      '@gradio/app':
+        specifier: workspace:^
+        version: link:../app
+      '@gradio/wasm':
+        specifier: workspace:^
+        version: link:../wasm
       gradio:
         specifier: workspace:^
         version: link:../../gradio

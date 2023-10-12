@@ -1,5 +1,26 @@
 # @gradio/timeseries
 
+## 0.0.8
+
+### Patch Changes
+
+- Updated dependencies [[`e4a307ed6`](https://github.com/gradio-app/gradio/commit/e4a307ed6cde3bbdf4ff2f17655739addeec941e)]:
+  - @gradio/theme@0.2.0
+  - @gradio/utils@0.1.2
+  - @gradio/atoms@0.1.4
+  - @gradio/statustracker@0.2.2
+  - @gradio/upload@0.3.2
+
+## 0.0.7
+
+### Patch Changes
+
+- Updated dependencies [[`8f0fed857`](https://github.com/gradio-app/gradio/commit/8f0fed857d156830626eb48b469d54d211a582d2)]:
+  - @gradio/icons@0.2.0
+  - @gradio/atoms@0.1.3
+  - @gradio/statustracker@0.2.1
+  - @gradio/upload@0.3.1
+
 ## 0.0.6
 
 ### Patch Changes
