@@ -38,12 +38,14 @@
 
 	let selected: false | [number, number] = false;
 	let display_value: string[][] | null = value?.metadata?.display_value ?? null;
+	let styling: string[][] | null = value?.metadata?.styling ?? null;
 
 	$: {
 		if (value) {
 			headers = value.headers;
 			values = value.data;
 			display_value = value?.metadata?.display_value ?? null;
+			styling = value?.metadata?.styling ?? null;
 		} else if (values === null) {
 			values = [];
 		}
@@ -164,7 +166,9 @@
 		dispatch("change", {
 			data: data.map((r) => r.map(({ value }) => value)),
 			headers: _headers.map((h) => h.value),
-			metadata: editable ? null : { display_value: display_value }
+			metadata: editable
+				? null
+				: { display_value: display_value, styling: styling }
 		});
 
 	function get_sort_status(
@@ -558,13 +562,14 @@
 	function sort_data(
 		_data: typeof data,
 		_display_value: string[][] | null,
+		_styling: string[][] | null,
 		col?: number,
 		dir?: SortDirection
 	): void {
-		let id = null
+		let id = null;
 		//Checks if the selected cell is still in the data
 		if (selected && selected[0] in data && selected[1] in data[selected[0]]) {
-			id = data[selected[0]][selected[1]].id
+			id = data[selected[0]][selected[1]].id;
 		}
 		if (typeof col !== "number" || !dir) {
 			return;
@@ -583,13 +588,16 @@
 			return;
 		}
 
-		// sort both data and display_value in place based on the values in data
-		const tempData = [..._data];
-		const tempData2 = _display_value ? [..._display_value] : null;
+		// sort all the data and metadata based on the values in the data
+		const temp_data = [..._data];
+		const temp_display_value = _display_value ? [..._display_value] : null;
+		const temp_styling = _styling ? [..._styling] : null;
 		indices.forEach((originalIndex, sortedIndex) => {
-			_data[sortedIndex] = tempData[originalIndex];
-			if (_display_value && tempData2)
-				_display_value[sortedIndex] = tempData2[originalIndex];
+			_data[sortedIndex] = temp_data[originalIndex];
+			if (_display_value && temp_display_value)
+				_display_value[sortedIndex] = temp_display_value[originalIndex];
+			if (_styling && temp_styling)
+				_styling[sortedIndex] = temp_styling[originalIndex];
 		});
 
 		data = data;
@@ -600,7 +608,7 @@
 		}
 	}
 
-	$: sort_data(data, display_value, sort_by, sort_direction);
+	$: sort_data(data, display_value, styling, sort_by, sort_direction);
 
 	$: selected_index = !!selected && selected[0];
 
@@ -776,7 +784,8 @@
 							on:touchstart={() => start_edit(index, j)}
 							on:click={() => handle_cell_click(index, j)}
 							on:dblclick={() => start_edit(index, j)}
-							style="width: var(--cell-width-{j});"
+							style:width="var(--cell-width-{j})"
+							style={styling?.[index]?.[j] || ""}
 							class:focus={dequal(selected, [index, j])}
 						>
 							<div class="cell-wrap">
