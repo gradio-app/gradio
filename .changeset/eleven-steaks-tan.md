@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:WIP: Add host to dev mode for vite
+feat:Add host to dev mode for vite
