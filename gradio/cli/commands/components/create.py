@@ -67,7 +67,7 @@ def _create(
     directory.mkdir(exist_ok=overwrite)
 
     if _create_utils._in_test_dir():
-        npm_install = "pnpm i --ignore-scripts"
+        npm_install = f"{shutil.which('pnpm')} i --ignore-scripts"
 
     npm_install = npm_install.strip()
     if npm_install == "npm install":
@@ -99,7 +99,7 @@ def _create(
         live.update(":art: Created frontend code", add_sleep=0.2)
 
         if install:
-            cmds = ["pip", "install", "-e", f"{str(directory)}"]
+            cmds = [shutil.which("pip"), "install", "-e", f"{str(directory)}"]
             live.update(
                 f":construction_worker: Installing python... [grey37]({' '.join(cmds)})[/]"
             )
