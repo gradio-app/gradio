@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:refactor: change to label tag where label property is accepted by com…
+feat:Change `BlocksLabel` element to use `<label>`
