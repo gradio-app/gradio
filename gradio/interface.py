@@ -588,7 +588,7 @@ class Interface(Blocks):
             else:
                 events: list[Callable] = []
                 for component in self.input_components:
-                    if Events.stream in component.events and component.streaming:
+                    if Events.stream in component.events and component.streaming:  # type: ignore
                         events.append(component.stream)  # type: ignore
                     elif Events.change in component.events:
                         events.append(component.change)  # type: ignore
