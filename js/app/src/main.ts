@@ -4,7 +4,7 @@ import "@gradio/theme/src/pollen.css";
 import "@gradio/theme/src/typography.css";
 import { client, upload_files } from "@gradio/client";
 import { mount_css } from "./css";
-import Index from "./Index.svelte";
+import type Index from "./Index.svelte";
 
 import type { ThemeMode } from "./components/types";
 
@@ -21,6 +21,7 @@ let FONTS: string | [];
 FONTS = "__FONTS_CSS__";
 
 //@ts-ignore
+let IndexComponent;
 function create_custom_element(): void {
 	const o = {
 		SvelteComponent: svelte.SvelteComponent
@@ -72,6 +73,7 @@ function create_custom_element(): void {
 		}
 
 		async connectedCallback(): Promise<void> {
+			IndexComponent = (await import("./Index.svelte")).default;
 			this.loading = true;
 
 			if (this.app) {
@@ -96,7 +98,7 @@ function create_custom_element(): void {
 
 			observer.observe(this, { childList: true });
 
-			this.app = new Index({
+			this.app = new IndexComponent({
 				target: this,
 				props: {
 					// embed source
@@ -163,7 +165,7 @@ function create_custom_element(): void {
 					this.src = new_val;
 				}
 
-				this.app = new Index({
+				this.app = new IndexComponent({
 					target: this,
 					props: {
 						// embed source

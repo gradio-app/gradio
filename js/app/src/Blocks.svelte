@@ -5,10 +5,6 @@
 	import { _ } from "svelte-i18n";
 	import type { client } from "@gradio/client";
 
-	import {
-		component_map,
-		fallback_component_map
-	} from "./components/directory";
 	import { create_loading_status_store } from "./stores";
 	import type { LoadingStatusCollection } from "./stores";
 
@@ -57,7 +53,8 @@
 		props: { mode: "static" },
 		has_modes: false,
 		instance: null as unknown as ComponentMeta["instance"],
-		component: null as unknown as ComponentMeta["component"]
+		component: null as unknown as ComponentMeta["component"],
+		component_class_id: ""
 	};
 
 	const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
