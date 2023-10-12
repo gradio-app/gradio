@@ -82,7 +82,7 @@
 	): void {
 		dispatch("select", {
 			index: [i, j],
-			value: message
+			value: message,
 		});
 	}
 
@@ -95,7 +95,7 @@
 		dispatch("like", {
 			index: [i, j],
 			value: message,
-			liked: liked
+			liked: liked,
 		});
 	}
 </script>
@@ -122,7 +122,7 @@
 		{#if value !== null}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
-					{#if message !== null || pending_message}
+					{#if (message !== null && message !== "") || pending_message}
 						<div class="message-row {layout} {j == 0 ? 'user-row' : 'bot-row'}">
 							{#if avatar_images[j] !== null}
 								<div class="avatar-container">
