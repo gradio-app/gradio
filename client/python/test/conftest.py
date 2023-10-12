@@ -204,7 +204,6 @@ def count_generator_no_api():
     return demo.queue()
 
 
-
 @pytest.fixture
 def count_generator_demo_exception():
     def count(n):

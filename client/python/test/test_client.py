@@ -270,7 +270,7 @@ class TestClientPredictions:
             assert len(job1.outputs()) < len("abcdefefadsadfs")
             assert job1.status().code == Status.CANCELLED
 
-            job2 = client.submit("abcd")
+            job2 = client.submit("abcd", api_name="/predict")
             while not job2.done():
                 time.sleep(0.1)
             # Ran all iterations from scratch
