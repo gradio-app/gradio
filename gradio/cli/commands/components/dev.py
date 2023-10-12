@@ -31,7 +31,7 @@ def _dev(
         typer.Option(
             help="The host to run the front end server on. Defaults to localhost.",
         ),
-    ] = "localhost",
+    ] = "localhost"
 ):
     component_directory = component_directory.resolve()
 
