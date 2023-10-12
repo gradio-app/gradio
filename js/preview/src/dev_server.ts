@@ -27,19 +27,20 @@ interface ServerOptions {
 	root_dir: string;
 	frontend_port: number;
 	backend_port: number;
+	host: string;
 }
 
 export async function create_server({
 	component_dir,
 	root_dir,
 	frontend_port,
-	backend_port
+	backend_port,
+	host
 }: ServerOptions): Promise<void> {
 	process.env.gradio_mode = "dev";
 	const imports = generate_imports(component_dir);
 
 	const NODE_DIR = join(root_dir, "..", "..", "node", "dev");
-
 	try {
 		const server = await createServer({
 			// any valid user config options, plus `mode` and `configFile`
@@ -64,6 +65,7 @@ export async function create_server({
 			},
 			server: {
 				port: frontend_port,
+				host: host,
 				fs: {
 					allow: [root_dir, NODE_DIR, component_dir]
 				}
@@ -146,9 +148,8 @@ export async function create_server({
 		});
 
 		await server.listen();
-
 		console.info(
-			`[orange3]Frontend Server[/] (Go here): ${server.resolvedUrls?.local}`
+			`[orange3]Frontend Server[/] (Go here): ${host == 'localhost' ? server.resolvedUrls?.local : server.resolvedUrls?.network}`
 		);
 	} catch (e) {
 		console.error(e);
