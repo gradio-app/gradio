@@ -33,8 +33,47 @@ class ComponentFiles:
     python_file_name: str = ""
     js_dir: str = ""
 
+    def __post_init__(self):
+        self.js_dir = self.js_dir or self.template.lower()
+        self.python_file_name = self.python_file_name or f"{self.template.lower()}.py"
+
 
 OVERRIDES = {
+    "AnnotatedImage": ComponentFiles(
+        template="AnnotatedImage", python_file_name="annotated_image.py"
+    ),
+    "HighlightedText": ComponentFiles(
+        template="HighlightedText", python_file_name="highlighted_text.py"
+    ),
+    "BarPlot": ComponentFiles(
+        template="BarPlot", python_file_name="bar_plot.py", js_dir="plot"
+    ),
+    "ClearButton": ComponentFiles(
+        template="ClearButton", python_file_name="clear_button.py", js_dir="button"
+    ),
+    "ColorPicker": ComponentFiles(
+        template="ColorPicker", python_file_name="color_picker.py"
+    ),
+    "DuplicateButton": ComponentFiles(
+        template="DuplicateButton",
+        python_file_name="duplicate_button.py",
+        js_dir="button",
+    ),
+    "LinePlot": ComponentFiles(
+        template="LinePlot", python_file_name="line_plot.py", js_dir="plot"
+    ),
+    "LogoutButton": ComponentFiles(
+        template="LogoutButton", python_file_name="logout_button.py", js_dir="button"
+    ),
+    "LoginButton": ComponentFiles(
+        template="LoginButton", python_file_name="login_button.py", js_dir="button"
+    ),
+    "ScatterPlot": ComponentFiles(
+        template="ScatterPlot", python_file_name="scatter_plot.py", js_dir="plot"
+    ),
+    "UploadButton": ComponentFiles(
+        template="UploadButton", python_file_name="upload_button.py"
+    ),
     "JSON": ComponentFiles(template="JSON", python_file_name="json_component.py"),
     "Row": ComponentFiles(
         template="Row",
@@ -46,7 +85,6 @@ OVERRIDES = {
                 gr.Number(value=10, interactive=True)
         """
         ),
-        python_file_name="row.py",
     ),
     "Column": ComponentFiles(
         template="Column",
@@ -58,7 +96,6 @@ OVERRIDES = {
                 gr.Number(value=10, interactive=True)
         """
         ),
-        python_file_name="column.py",
     ),
     "Tabs": ComponentFiles(
         template="Tabs",
@@ -72,7 +109,6 @@ OVERRIDES = {
                     gr.Number(value=10, interactive=True)
         """
         ),
-        python_file_name="tabs.py",
     ),
     "Group": ComponentFiles(
         template="Group",
@@ -84,7 +120,6 @@ OVERRIDES = {
                 gr.Number(value=10, interactive=True)
         """
         ),
-        python_file_name="group.py",
     ),
     "Accordion": ComponentFiles(
         template="Accordion",
@@ -96,7 +131,6 @@ OVERRIDES = {
                 gr.Number(value=10, interactive=True)
         """
         ),
-        python_file_name="accordion.py",
     ),
 }
 
@@ -134,6 +168,17 @@ def _modify_js_deps(
     return package_json
 
 
+def delete_contents(directory: str | Path) -> None:
+    """Delete all contents of a directory, but not the directory itself."""
+    path = Path(directory)
+    for child in path.glob("*"):
+        if child.is_file():
+            child.unlink()
+        elif child.is_dir():
+            delete_contents(child)
+            child.rmdir()
+
+
 def _create_frontend(name: str, component: ComponentFiles, directory: Path):
     frontend = directory / "frontend"
     frontend.mkdir(exist_ok=True)
@@ -167,7 +212,7 @@ def _create_frontend(name: str, component: ComponentFiles, directory: Path):
 
 
 def _replace_old_class_name(old_class_name: str, new_class_name: str, content: str):
-    pattern = rf"(?<=\b){re.escape(old_class_name)}(?=\b)"
+    pattern = rf"(?<=\b)(?<!\bimport\s)(?<!\.){re.escape(old_class_name)}(?=\b)"
     return re.sub(pattern, new_class_name, content)
 
 
@@ -180,7 +225,9 @@ def _create_backend(
         module = "layouts"
     else:
         raise ValueError(
-            f"Cannot find {component.template} in gradio.components or gradio.layouts"
+            f"Cannot find {component.template} in gradio.components or gradio.layouts. "
+            "Please pass in a valid component name via the --template option. "
+            "It must match the name of the python class exactly."
         )
 
     backend = directory / "backend" / package_name
@@ -204,7 +251,7 @@ def _create_backend(
 import gradio as gr
 from {package_name} import {name}
 
-{component.demo_code.format(name=name)} 
+{component.demo_code.format(name=name)}
 
 demo.launch()
 """

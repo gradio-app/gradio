@@ -61,11 +61,11 @@ class TestBlocksMethods:
         with gr.Blocks() as demo:
             # self.share is False when instantiating the class
             assert not demo.share
-            # share default is False, if share is None in colab and no queueing
+            # share default is True, if share is None in colab and queueing
             demo.launch(prevent_thread_lock=True)
-            assert not demo.share
+            assert demo.share
             demo.close()
-            # share becomes true, if share is None in colab with queueing
+            # share is also true, if share is None in colab with queueing
             demo.queue()
             demo.launch(prevent_thread_lock=True)
             assert demo.share
@@ -432,7 +432,7 @@ class TestBlocksMethods:
                 lambda x: f"Hello, {x}", inputs=input_, outputs=output, queue=True
             )
 
-        with pytest.raises(ValueError, match="The queue is enabled for event 0"):
+        with pytest.raises(ValueError, match="The queue is enabled for event lambda"):
             demo.launch(prevent_thread_lock=True)
 
         demo.close()
@@ -463,12 +463,11 @@ class TestTempFile:
             outputs=gallery,
         )
         with connect(demo) as client:
-            client.predict(3)
-            _ = client.predict(3)
+            client.predict(3, api_name="/predict")
+            _ = client.predict(3, api_name="/predict")
         # only three files created and in temp directory
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 3
 
-    @pytest.mark.xfail
     def test_no_empty_image_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         image = str(file_dir / "bus.png")
@@ -479,39 +478,35 @@ class TestTempFile:
             outputs=gr.Image(),
         )
         with connect(demo) as client:
-            _ = client.predict(image)
-            _ = client.predict(image)
-            _ = client.predict(image)
-        # only three files created
-        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
+            _ = client.predict(image, api_name="/predict")
+            _ = client.predict(image, api_name="/predict")
+            _ = client.predict(image, api_name="/predict")
+        # Upload creates a file. image preprocessing creates another one.
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
 
-    @pytest.mark.xfail
     @pytest.mark.parametrize("component", [gr.UploadButton, gr.File])
     def test_file_component_uploads(self, component, connect, gradio_temp_dir):
         code_file = str(pathlib.Path(__file__))
         demo = gr.Interface(lambda x: x.name, component(), gr.File())
         with connect(demo) as client:
-            _ = client.predict(code_file)
-            _ = client.predict(code_file)
-        # the upload route does not hash the file so 2 files from there
+            _ = client.predict(code_file, api_name="/predict")
+            _ = client.predict(code_file, api_name="/predict")
+        # the upload route hashees the files so we get 1 from there
         # We create two tempfiles (empty) because API says we return
-        # preprocess/postprocess will only create one file since we hash
-        # so 2 + 2 + 1 = 5
-        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 5
+        # preprocess/postprocess will create the same file as the upload route
+        # so 1 + 2 = 3
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 3
 
-    @pytest.mark.xfail
     def test_no_empty_video_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         video = str(file_dir / "video_sample.mp4")
         demo = gr.Interface(lambda x: x, gr.Video(type="file"), gr.Video())
         with connect(demo) as client:
-            _ = client.predict(video)
-            _ = client.predict(video)
-        # During preprocessing we compute the hash based on base64
-        # In postprocessing we compute it based on the file
-        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
+            _ = client.predict({"video": video}, api_name="/predict")
+            _ = client.predict({"video": video}, api_name="/predict")
+        # Upload route and postprocessing return the same file
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
 
-    @pytest.mark.xfail
     def test_no_empty_audio_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         audio = str(file_dir / "audio_sample.wav")
@@ -522,10 +517,9 @@ class TestTempFile:
 
         demo = gr.Interface(fn=reverse_audio, inputs=gr.Audio(), outputs=gr.Audio())
         with connect(demo) as client:
-            _ = client.predict(audio)
-            _ = client.predict(audio)
-            # During preprocessing we compute the hash based on base64
-            # In postprocessing we compute it based on the file
+            _ = client.predict(audio, api_name="/predict")
+            _ = client.predict(audio, api_name="/predict")
+            # One for upload and one for reversal
             assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
 
 
@@ -557,7 +551,7 @@ class TestComponentsInBlocks:
                 else:
                     assert component.load_event_to_attach
         dependencies_on_load = [
-            dep["trigger"] == "load" for dep in demo.config["dependencies"]
+            dep["targets"][0][1] == "load" for dep in demo.config["dependencies"]
         ]
         assert all(dependencies_on_load)
         assert len(dependencies_on_load) == 2
@@ -573,7 +567,9 @@ class TestComponentsInBlocks:
         )
 
         dependencies_on_load = [
-            dep for dep in interface.config["dependencies"] if dep["trigger"] == "load"
+            dep
+            for dep in interface.config["dependencies"]
+            if dep["targets"][0][1] == "load"
         ]
         assert len(dependencies_on_load) == len(io_components)
         assert all(dep["every"] == 1 for dep in dependencies_on_load)
@@ -599,6 +595,7 @@ class TestBlocksPostprocessing:
                 gr.LinePlot,
                 gr.BarPlot,
                 gr.components.Fallback,
+                gr.FileExplorer,
             ]
         ]
         with gr.Blocks() as demo:
@@ -881,7 +878,6 @@ class TestStateHolder:
 
 
 class TestCallFunction:
-    @pytest.mark.xfail
     @pytest.mark.asyncio
     async def test_call_regular_function(self):
         with gr.Blocks() as demo:
@@ -901,7 +897,6 @@ class TestCallFunction:
         output = await demo.call_function(0, ["Abubakar"])
         assert output["prediction"] == "Hello, Abubakar"
 
-    @pytest.mark.xfail
     @pytest.mark.asyncio
     async def test_call_multiple_functions(self):
         with gr.Blocks() as demo:
@@ -1043,7 +1038,6 @@ class TestBatchProcessing:
             demo.queue()
             demo.launch(prevent_thread_lock=True)
 
-    @pytest.mark.xfail
     @pytest.mark.asyncio
     async def test_call_regular_function(self):
         def batch_fn(x):
@@ -1062,7 +1056,6 @@ class TestBatchProcessing:
         output = demo("Abubakar")
         assert output == "Hello Abubakar"
 
-    @pytest.mark.xfail
     @pytest.mark.asyncio
     async def test_functions_multiple_parameters(self):
         def regular_fn(word1, word2):
@@ -1422,7 +1415,7 @@ class TestCancel:
 class TestEvery:
     def test_raise_exception_if_parameters_invalid(self):
         with pytest.raises(
-            ValueError, match="Cannot run change event in a batch and every 0.5 seconds"
+            ValueError, match="Cannot run event in a batch and every 0.5 seconds"
         ):
             with gr.Blocks():
                 num = gr.Number()
@@ -1505,12 +1498,12 @@ class TestGetAPIInfo:
             t5 = gr.Textbox()
             t1.change(lambda x: x, t1, t2, api_name="change1")
             t2.change(lambda x: x, t2, t3, api_name="change2")
-            t3.change(lambda x: x, t3, t4)
+            t3.change(lambda x: x, t3, t4, api_name=False)
             t4.change(lambda x: x, t4, t5, api_name=False)
 
         api_info = demo.get_api_info()
         assert len(api_info["named_endpoints"]) == 2
-        assert len(api_info["unnamed_endpoints"]) == 1
+        assert len(api_info["unnamed_endpoints"]) == 0
 
     def test_no_endpoints(self):
         with gr.Blocks() as demo:

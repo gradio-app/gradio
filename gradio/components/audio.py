@@ -33,7 +33,7 @@ class Audio(
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
     Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a 16-bit int array whose values range from -32768 to 32767), or as a {str} filepath, depending on `type`.
-    Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a float or int numpy array) or as a {str} or {pathlib.Path} filepath or URL to an audio file, or bytes for binary content (recommended for streaming)
+    Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a float or int numpy array) or as a {str} or {pathlib.Path} filepath or URL to an audio file, or bytes for binary content (recommended for streaming). Note: When converting audio data from float format to WAV, the audio is normalized by its peak value to avoid distortion or clipping in the resulting audio.
     Examples-format: a {str} filepath to a local file that contains audio.
     Demos: main_note, generate_tone, reverse_audio
     Guides: real-time-speech-recognition
@@ -194,30 +194,19 @@ class Audio(
             return x
 
         payload: AudioInputData = AudioInputData(**x)
-
-        if payload.is_file:
-            assert payload.name
-            if client_utils.is_http_url_like(payload.name):
-                temp_file_path = self.download_temp_copy_if_needed(payload.name)
-            else:
-                temp_file_path = self.make_temp_copy_if_needed(payload.name)
-        else:
-            assert payload.data
-            temp_file_path = self.base64_to_temp_file_if_needed(
-                payload.data, payload.name
-            )
-
-        sample_rate, data = processing_utils.audio_from_file(
-            temp_file_path, crop_min=payload.crop_min, crop_max=payload.crop_max
-        )
+        assert payload.name
 
         # Need a unique name for the file to avoid re-using the same audio file if
         # a user submits the same audio file twice, but with different crop min/max.
-        temp_file_path = Path(temp_file_path)
+        temp_file_path = Path(payload.name)
         output_file_name = str(
             temp_file_path.with_name(
                 f"{temp_file_path.stem}-{payload.crop_min}-{payload.crop_max}{temp_file_path.suffix}"
             )
+        )
+
+        sample_rate, data = processing_utils.audio_from_file(
+            temp_file_path, crop_min=payload.crop_min, crop_max=payload.crop_max
         )
 
         if self.type == "numpy":
@@ -236,7 +225,7 @@ class Audio(
             )
 
     def postprocess(
-        self, y: tuple[int, np.ndarray] | str | Path | None
+        self, y: tuple[int, np.ndarray] | str | Path | bytes | None
     ) -> FileData | None | bytes:
         """
         Parameters:
@@ -249,19 +238,18 @@ class Audio(
         if isinstance(y, bytes):
             if self.streaming:
                 return y
-            file_path = self.file_bytes_to_file(y, "audio")
-        elif isinstance(y, str) and client_utils.is_http_url_like(y):
-            return FileData(**{"name": y, "data": None, "is_file": True})
+            file_path = processing_utils.save_bytes_to_cache(
+                y, "audio", cache_dir=self.GRADIO_CACHE
+            )
         elif isinstance(y, tuple):
             sample_rate, data = y
-            file_path = self.audio_to_temp_file(
-                data,
-                sample_rate,
-                format=self.format,
+            file_path = processing_utils.save_audio_to_cache(
+                data, sample_rate, format=self.format, cache_dir=self.GRADIO_CACHE
             )
-            self.temp_files.add(file_path)
         else:
-            file_path = self.make_temp_copy_if_needed(y)
+            if not isinstance(y, (str, Path)):
+                raise ValueError(f"Cannot process {y} as Audio")
+            file_path = str(y)
         return FileData(**{"name": file_path, "data": None, "is_file": True})
 
     def stream_output(

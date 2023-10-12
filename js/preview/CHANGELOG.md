@@ -1,5 +1,11 @@
 # @gradio/preview
 
+## 0.1.0-beta.5
+
+### Features
+
+- [#5745](https://github.com/gradio-app/gradio/pull/5745) [`f2154eb7d`](https://github.com/gradio-app/gradio/commit/f2154eb7d871162bdf01e5f6bd903bed3a969f05) - Fix windows paths.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 0.1.0-beta.4
 
 ### Features

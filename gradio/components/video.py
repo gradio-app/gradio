@@ -43,6 +43,7 @@ class Video(Component):
     """
 
     data_model = VideoData
+    input_data_model = FileData
     EVENTS = [
         Events.change,
         Events.clear,
@@ -177,7 +178,7 @@ class Video(Component):
             "__type__": "update",
         }
 
-    def preprocess(self, x: dict | FileData) -> str | None:
+    def preprocess(self, x: dict | VideoData) -> str | None:
         """
         Parameters:
             x: A tuple of (video file data, subtitle file data) or just video file data.
@@ -186,27 +187,9 @@ class Video(Component):
         """
         if x is None:
             return None
-        data: FileData = FileData(**x) if isinstance(x, dict) else x
-        # if isinstance(x, FileData):
-        #     data = x
-        # elif isinstance(x, str):
-        #     data = FileData(name=x, is_file=True)
-        # elif isinstance(x, dict):
-        #     data = FileData(**x)
-        # else:
-        #     raise Exception(f"Cannot process type as video: {type(x)}")
-
-        if data.is_file:
-            assert data.name is not None, "Received file data without a file name."
-            if client_utils.is_http_url_like(data.name):
-                fn = self.download_temp_copy_if_needed
-            else:
-                fn = self.make_temp_copy_if_needed
-            file_name = Path(fn(data.name))
-        else:
-            assert data.data
-            file_name = Path(self.base64_to_temp_file_if_needed(data.data, data.name))
-
+        data: VideoData = VideoData(**x) if isinstance(x, dict) else x
+        assert data.video.name
+        file_name = Path(data.video.name)
         uploaded_format = file_name.suffix.replace(".", "")
         needs_formatting = self.format is not None and uploaded_format != self.format
         flip = self.source == "webcam" and self.mirror_webcam
@@ -274,12 +257,15 @@ class Video(Component):
         if isinstance(y, (str, Path)):
             processed_files = (self._format_video(y), None)
         elif isinstance(y, (tuple, list)):
-            assert (
-                len(y) == 2
-            ), f"Expected lists of length 2 or tuples of length 2. Received: {y}"
-            assert isinstance(y[0], (str, Path)) and isinstance(
-                y[1], (str, Path)
-            ), f"If a tuple is provided, both elements must be strings or Path objects. Received: {y}"
+            if len(y) != 2:
+                raise ValueError(
+                    f"Expected lists of length 2 or tuples of length 2. Received: {y}"
+                )
+
+            if not (isinstance(y[0], (str, Path)) and isinstance(y[1], (str, Path))):
+                raise TypeError(
+                    f"If a tuple is provided, both elements must be strings or Path objects. Received: {y}"
+                )
             video = y[0]
             subtitle = y[1]
             processed_files = (
@@ -320,7 +306,9 @@ class Video(Component):
 
         # For cases where the video needs to be converted to another format
         if is_url:
-            video = self.download_temp_copy_if_needed(video)
+            video = processing_utils.save_url_to_cache(
+                video, cache_dir=self.GRADIO_CACHE
+            )
         if (
             processing_utils.ffmpeg_installed()
             and not processing_utils.video_is_playable(video)
@@ -345,8 +333,6 @@ class Video(Component):
             )
             ff.run()
             video = output_file_name
-
-        video = self.make_temp_copy_if_needed(video)
 
         return FileData(name=video, data=None, is_file=True, orig_name=Path(video).name)
 
@@ -388,7 +374,7 @@ class Video(Component):
         # HTML5 only support vtt format
         if Path(subtitle).suffix == ".srt":
             temp_file = tempfile.NamedTemporaryFile(
-                delete=False, suffix=".vtt", dir=self.DEFAULT_TEMP_DIR
+                delete=False, suffix=".vtt", dir=self.GRADIO_CACHE
             )
 
             srt_to_vtt(subtitle, temp_file.name)

@@ -9,7 +9,7 @@ import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
-from gradio import utils
+from gradio import processing_utils, utils
 from gradio.components.base import Component, _Keywords
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
@@ -158,17 +158,20 @@ class AnnotatedImage(Component):
             base_img_path = base_img
             base_img = np.array(_Image.open(base_img))
         elif isinstance(base_img, np.ndarray):
-            base_file = self.img_array_to_temp_file(base_img, dir=self.DEFAULT_TEMP_DIR)
+            base_file = processing_utils.save_img_array_to_cache(
+                base_img, cache_dir=self.GRADIO_CACHE
+            )
             base_img_path = str(utils.abspath(base_file))
         elif isinstance(base_img, _Image.Image):
-            base_file = self.pil_to_temp_file(base_img, dir=self.DEFAULT_TEMP_DIR)
+            base_file = processing_utils.save_pil_to_cache(
+                base_img, cache_dir=self.GRADIO_CACHE
+            )
             base_img_path = str(utils.abspath(base_file))
             base_img = np.array(base_img)
         else:
             raise ValueError(
                 "AnnotatedImage only accepts filepaths, PIL images or numpy arrays for the base image."
             )
-        self.temp_files.add(base_img_path)
 
         sections = []
         color_map = self.color_map or {}
@@ -206,16 +209,14 @@ class AnnotatedImage(Component):
 
             colored_mask_img = _Image.fromarray((colored_mask).astype(np.uint8))
 
-            mask_file = self.pil_to_temp_file(
-                colored_mask_img, dir=self.DEFAULT_TEMP_DIR
+            mask_file = processing_utils.save_pil_to_cache(
+                colored_mask_img, cache_dir=self.GRADIO_CACHE
             )
             mask_file_path = str(utils.abspath(mask_file))
-            self.temp_files.add(mask_file_path)
             sections.append(
-                {
-                    "image": {"name": mask_file_path, "data": None, "is_file": True},
-                    "label": label,
-                }
+                Annotation(
+                    image=FileData(name=mask_file_path, is_file=True), label=label
+                )
             )
 
         return AnnotatedImageData(

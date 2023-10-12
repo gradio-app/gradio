@@ -13,7 +13,7 @@ authors = [
 ]
 keywords = ["machine learning", "reproducibility", "visualization", "gradio", "gradio custom component"]
 # Add dependencies here
-dependencies = []
+dependencies = ["gradio"]
 classifiers = [
   'Development Status :: 3 - Alpha',
   'License :: OSI Approved :: Apache Software License',

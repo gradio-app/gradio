@@ -66,8 +66,7 @@ with block:
                 step=1,
                 randomize=True,
             )
-        text.submit(infer, inputs=[text, samples, steps, scale, seed], outputs=gallery)
-        btn.click(infer, inputs=[text, samples, steps, scale, seed], outputs=gallery)
+        gr.on([text.submit, btn.click], infer, inputs=[text, samples, steps, scale, seed], outputs=gallery)
         advanced_button.click(
             None,
             [],

@@ -97,7 +97,8 @@
 			data: await blob_to_data_url(_audio_blob),
 			name: "audio.wav",
 		};
-		dispatch(event, value);
+		const detail = {...value, is_file: false}
+		dispatch(event, detail);
 	};
 
 	async function prepare_audio(): Promise<void> {
@@ -106,6 +107,10 @@
 		try {
 			stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 		} catch (err) {
+			if (!navigator.mediaDevices) {
+				dispatch("error", i18n("audio.no_device_support"));
+				return;
+			}
 			if (err instanceof DOMException && err.name == "NotAllowedError") {
 				dispatch("error", i18n("audio.allow_recording_access"));
 				return;
@@ -169,6 +174,10 @@
 	}
 
 	async function record(): Promise<void> {
+		if (!navigator.mediaDevices) {
+			dispatch("error", i18n("audio.no_device_support"));
+			return;
+		}
 		recording = true;
 		dispatch("start_recording");
 		if (!inited) await prepare_audio();

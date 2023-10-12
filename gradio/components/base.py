@@ -5,27 +5,18 @@ each component. These demos are located in the `demo` directory."""
 from __future__ import annotations
 
 import abc
-import hashlib
 import json
 import os
-import secrets
-import shutil
 import tempfile
-import urllib.request
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
 
-import aiofiles
-import numpy as np
-import requests
-from fastapi import UploadFile
-from gradio_client import utils as client_utils
 from gradio_client.documentation import set_documentation_group
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
-from gradio import processing_utils, utils
+from gradio import utils
 from gradio.blocks import Block, BlockContext
 from gradio.component_meta import ComponentMeta
 from gradio.data_classes import GradioDataModel
@@ -123,6 +114,11 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
         return event in cls.EVENTS
 
 
+def server(fn):
+    fn._is_server_fn = True
+    return fn
+
+
 class Component(ComponentBase, Block):
     """
     A base class for defining methods that all input/output components should have.
@@ -146,13 +142,19 @@ class Component(ComponentBase, Block):
         every: float | None = None,
         **kwargs,
     ):
+        self.server_fns = [
+            value
+            for value in self.__class__.__dict__.values()
+            if callable(value) and getattr(value, "_is_server_fn", False)
+        ]
+
         # This gets overriden when `select` is called
 
         self.selectable = False
         if not hasattr(self, "data_model"):
             self.data_model: type[GradioDataModel] | None = None
         self.temp_files: set[str] = set()
-        self.DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
+        self.GRADIO_CACHE = os.environ.get("GRADIO_TEMP_DIR") or str(
             Path(tempfile.gettempdir()) / "gradio"
         )
 
@@ -192,161 +194,12 @@ class Component(ComponentBase, Block):
         if callable(load_fn):
             self.attach_load_event(load_fn, every)
 
-    @staticmethod
-    def hash_file(file_path: str | Path, chunk_num_blocks: int = 128) -> str:
-        sha1 = hashlib.sha1()
-        with open(file_path, "rb") as f:
-            for chunk in iter(lambda: f.read(chunk_num_blocks * sha1.block_size), b""):
-                sha1.update(chunk)
-        return sha1.hexdigest()
-
-    @staticmethod
-    def hash_url(url: str, chunk_num_blocks: int = 128) -> str:
-        sha1 = hashlib.sha1()
-        remote = urllib.request.urlopen(url)
-        max_file_size = 100 * 1024 * 1024  # 100MB
-        total_read = 0
-        while True:
-            data = remote.read(chunk_num_blocks * sha1.block_size)
-            total_read += chunk_num_blocks * sha1.block_size
-            if not data or total_read > max_file_size:
-                break
-            sha1.update(data)
-        return sha1.hexdigest()
-
-    @staticmethod
-    def hash_bytes(bytes: bytes):
-        sha1 = hashlib.sha1()
-        sha1.update(bytes)
-        return sha1.hexdigest()
-
-    @staticmethod
-    def hash_base64(base64_encoding: str, chunk_num_blocks: int = 128) -> str:
-        sha1 = hashlib.sha1()
-        for i in range(0, len(base64_encoding), chunk_num_blocks * sha1.block_size):
-            data = base64_encoding[i : i + chunk_num_blocks * sha1.block_size]
-            sha1.update(data.encode("utf-8"))
-        return sha1.hexdigest()
-
-    def make_temp_copy_if_needed(self, file_path: str | Path) -> str:
-        """Returns a temporary file path for a copy of the given file path if it does
-        not already exist. Otherwise returns the path to the existing temp file."""
-        temp_dir = self.hash_file(file_path)
-        temp_dir = Path(self.DEFAULT_TEMP_DIR) / temp_dir
-        temp_dir.mkdir(exist_ok=True, parents=True)
-
-        name = client_utils.strip_invalid_filename_characters(Path(file_path).name)
-        full_temp_file_path = str(utils.abspath(temp_dir / name))
-
-        if not Path(full_temp_file_path).exists():
-            shutil.copy2(file_path, full_temp_file_path)
-
-        self.temp_files.add(full_temp_file_path)
-        return full_temp_file_path
-
-    async def save_uploaded_file(self, file: UploadFile, upload_dir: str) -> str:
-        temp_dir = secrets.token_hex(
-            20
-        )  # Since the full file is being uploaded anyways, there is no benefit to hashing the file.
-        temp_dir = Path(upload_dir) / temp_dir
-        temp_dir.mkdir(exist_ok=True, parents=True)
-
-        if file.filename:
-            file_name = Path(file.filename).name
-            name = client_utils.strip_invalid_filename_characters(file_name)
-        else:
-            name = f"tmp{secrets.token_hex(5)}"
-
-        full_temp_file_path = str(utils.abspath(temp_dir / name))
-
-        async with aiofiles.open(full_temp_file_path, "wb") as output_file:
-            while True:
-                content = await file.read(100 * 1024 * 1024)
-                if not content:
-                    break
-                await output_file.write(content)
-
-        return full_temp_file_path
-
-    def download_temp_copy_if_needed(self, url: str) -> str:
-        """Downloads a file and makes a temporary file path for a copy if does not already
-        exist. Otherwise returns the path to the existing temp file."""
-        temp_dir = self.hash_url(url)
-        temp_dir = Path(self.DEFAULT_TEMP_DIR) / temp_dir
-        temp_dir.mkdir(exist_ok=True, parents=True)
-
-        name = client_utils.strip_invalid_filename_characters(Path(url).name)
-        full_temp_file_path = str(utils.abspath(temp_dir / name))
-
-        if not Path(full_temp_file_path).exists():
-            with requests.get(url, stream=True) as r, open(
-                full_temp_file_path, "wb"
-            ) as f:
-                shutil.copyfileobj(r.raw, f)
-
-        self.temp_files.add(full_temp_file_path)
-        return full_temp_file_path
-
-    def base64_to_temp_file_if_needed(
-        self, base64_encoding: str, file_name: str | None = None
-    ) -> str:
-        """Converts a base64 encoding to a file and returns the path to the file if
-        the file doesn't already exist. Otherwise returns the path to the existing file.
-        """
-        temp_dir = self.hash_base64(base64_encoding)
-        temp_dir = Path(self.DEFAULT_TEMP_DIR) / temp_dir
-        temp_dir.mkdir(exist_ok=True, parents=True)
-
-        guess_extension = client_utils.get_extension(base64_encoding)
-        if file_name:
-            file_name = client_utils.strip_invalid_filename_characters(file_name)
-        elif guess_extension:
-            file_name = f"file.{guess_extension}"
-        else:
-            file_name = "file"
-
-        full_temp_file_path = str(utils.abspath(temp_dir / file_name))  # type: ignore
-
-        if not Path(full_temp_file_path).exists():
-            data, _ = client_utils.decode_base64_to_binary(base64_encoding)
-            with open(full_temp_file_path, "wb") as fb:
-                fb.write(data)
-
-        self.temp_files.add(full_temp_file_path)
-        return full_temp_file_path
-
-    def pil_to_temp_file(self, img: _Image.Image, dir: str, format="png") -> str:
-        bytes_data = processing_utils.encode_pil_to_bytes(img, format)
-        temp_dir = Path(dir) / self.hash_bytes(bytes_data)
-        temp_dir.mkdir(exist_ok=True, parents=True)
-        filename = str(temp_dir / f"image.{format}")
-        img.save(filename, pnginfo=processing_utils.get_pil_metadata(img))
-        return filename
-
-    def img_array_to_temp_file(self, arr: np.ndarray, dir: str) -> str:
-        pil_image = _Image.fromarray(
-            processing_utils._convert(arr, np.uint8, force_copy=False)
-        )
-        return self.pil_to_temp_file(pil_image, dir, format="png")
-
-    def audio_to_temp_file(self, data: np.ndarray, sample_rate: int, format: str):
-        temp_dir = Path(self.DEFAULT_TEMP_DIR) / self.hash_bytes(data.tobytes())
-        temp_dir.mkdir(exist_ok=True, parents=True)
-        filename = str(temp_dir / f"audio.{format}")
-        processing_utils.audio_to_file(sample_rate, data, filename, format=format)
-        return filename
-
-    def file_bytes_to_file(self, data: bytes, file_name: str):
-        path = Path(self.DEFAULT_TEMP_DIR) / self.hash_bytes(data)
-        path.mkdir(exist_ok=True, parents=True)
-        path = path / Path(file_name).name
-        path.write_bytes(data)
-        return path
-
     def get_config(self):
         config = super().get_config()
         if self.info:
             config["info"] = self.info
+        if len(self.server_fns):
+            config["server_fns"] = [fn.__name__ for fn in self.server_fns]
         return config
 
     @property
@@ -443,8 +296,8 @@ class StreamingInput(metaclass=abc.ABCMeta):
         pass
 
 
-def component(cls_name: str) -> Component:
-    obj = utils.component_or_layout_class(cls_name)()
+def component(cls_name: str, render: bool) -> Component:
+    obj = utils.component_or_layout_class(cls_name)(render=render)
     if isinstance(obj, BlockContext):
         raise ValueError(f"Invalid component: {obj.__class__}")
     assert isinstance(obj, Component)
@@ -452,20 +305,21 @@ def component(cls_name: str) -> Component:
 
 
 def get_component_instance(
-    comp: str | dict | Component, render: bool | None = None
+    comp: str | dict | Component, render: bool = False, unrender: bool = False
 ) -> Component:
     """
     Returns a component instance from a string, dict, or Component object.
     Parameters:
         comp: the component to instantiate. If a string, must be the name of a component, e.g. "dropdown". If a dict, must have a "name" key, e.g. {"name": "dropdown", "choices": ["a", "b"]}. If a Component object, will be returned as is.
-        render: whether to render the component. If True, renders the component (if not already rendered). If False, *unrenders* the component (if already rendered) -- this is useful when constructing an Interface or ChatInterface inside of a Blocks. If None, does not render or unrender the component.
+        render: whether to render the component. If True, renders the component (if not already rendered). If False, does not do anything.
+        unrender: whether to unrender the component. If True, unrenders the the component (if already rendered) -- this is useful when constructing an Interface or ChatInterface inside of a Blocks. If False, does not do anything.
     """
     if isinstance(comp, str):
-        component_obj = component(comp)
+        component_obj = component(comp, render=render)
     elif isinstance(comp, dict):
         name = comp.pop("name")
         component_cls = utils.component_or_layout_class(name)
-        component_obj = component_cls(**comp)
+        component_obj = component_cls(**comp, render=render)
         if isinstance(component_obj, BlockContext):
             raise ValueError(f"Invalid component: {name}")
     elif isinstance(comp, Component):
@@ -477,7 +331,7 @@ def get_component_instance(
 
     if render and not component_obj.is_rendered:
         component_obj.render()
-    elif render is False and component_obj.is_rendered:
+    elif unrender and component_obj.is_rendered:
         component_obj.unrender()
     assert isinstance(component_obj, Component)
     return component_obj

@@ -180,6 +180,31 @@ def count_generator_demo():
 
 
 @pytest.fixture
+def count_generator_no_api():
+    def count(n):
+        for i in range(int(n)):
+            time.sleep(0.5)
+            yield i
+
+    def show(n):
+        return str(list(range(int(n))))
+
+    with gr.Blocks() as demo:
+        with gr.Column():
+            num = gr.Number(value=10)
+            with gr.Row():
+                count_btn = gr.Button("Count")
+                list_btn = gr.Button("List")
+        with gr.Column():
+            out = gr.Textbox()
+
+        count_btn.click(count, num, out, api_name=False)
+        list_btn.click(show, num, out, api_name=False)
+
+    return demo.queue()
+
+
+@pytest.fixture
 def count_generator_demo_exception():
     def count(n):
         for i in range(int(n)):
@@ -349,3 +374,12 @@ def all_components():
             subclasses.append(subclass)
 
     return subclasses
+
+
+@pytest.fixture(autouse=True)
+def gradio_temp_dir(monkeypatch, tmp_path):
+    """tmp_path is unique to each test function.
+    It will be cleared automatically according to pytest docs: https://docs.pytest.org/en/6.2.x/reference.html#tmp-path
+    """
+    monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
+    return tmp_path

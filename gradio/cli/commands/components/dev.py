@@ -1,3 +1,4 @@
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -36,9 +37,13 @@ def _dev(
 
     print(f":recycle: [green]Launching[/] {app} in reload mode\n")
 
+    node = shutil.which("node")
+    if not node:
+        raise ValueError("node must be installed in order to run dev mode.")
+
     proc = subprocess.Popen(
         [
-            "node",
+            node,
             gradio_node_path,
             "--component-directory",
             component_directory,

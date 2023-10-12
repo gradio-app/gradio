@@ -33,12 +33,30 @@ from gradio.deprecation import (
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
-class TestComponent:
-    def test_component_functions(self):
-        """
-        component
-        """
-        assert isinstance(gr.components.component("textarea"), gr.templates.TextArea)
+class TestGettingComponents:
+    def test_component_function(self):
+        assert isinstance(
+            gr.components.component("textarea", render=False), gr.templates.TextArea
+        )
+
+    @pytest.mark.parametrize(
+        "component, render, unrender, should_be_rendered",
+        [
+            (gr.Textbox(render=True), False, True, False),
+            (gr.Textbox(render=False), False, False, False),
+            (gr.Textbox(render=False), True, False, True),
+            ("textbox", False, False, False),
+            ("textbox", True, False, True),
+        ],
+    )
+    def test_get_component_instance_rendering(
+        self, component, render, unrender, should_be_rendered
+    ):
+        with gr.Blocks():
+            textbox = gr.components.get_component_instance(
+                component, render=render, unrender=unrender
+            )
+            assert textbox.is_rendered == should_be_rendered
 
 
 class TestTextbox:
@@ -80,7 +98,6 @@ class TestTextbox:
             "autoscroll": True,
         }
 
-    @pytest.mark.xfail
     @pytest.mark.asyncio
     async def test_in_interface_as_input(self):
         """
@@ -89,7 +106,6 @@ class TestTextbox:
         iface = gr.Interface(lambda x: x[::-1], "textbox", "textbox")
         assert iface("Hello") == "olleH"
 
-    @pytest.mark.xfail
     def test_in_interface_as_output(self):
         """
         Interface, process
@@ -211,7 +227,6 @@ class TestNumber:
         assert numeric_input.postprocess(2.1421) == 2.14
         assert numeric_input.postprocess(None) is None
 
-    @pytest.mark.xfail
     def test_in_interface_as_input(self):
         """
         Interface, process, interpret
@@ -219,7 +234,6 @@ class TestNumber:
         iface = gr.Interface(lambda x: x**2, "number", "textbox")
         assert iface(2) == "4.0"
 
-    @pytest.mark.xfail
     def test_precision_0_in_interface(self):
         """
         Interface, process, interpret
@@ -227,7 +241,6 @@ class TestNumber:
         iface = gr.Interface(lambda x: x**2, gr.Number(precision=0), "textbox")
         assert iface(2) == "4"
 
-    @pytest.mark.xfail
     def test_in_interface_as_output(self):
         """
         Interface, process, interpret
@@ -277,7 +290,6 @@ class TestSlider:
             "info": None,
         }
 
-    @pytest.mark.xfail
     def test_in_interface(self):
         """ "
         Interface, process, interpret
@@ -338,7 +350,6 @@ class TestCheckbox:
             "info": None,
         }
 
-    @pytest.mark.xfail
     def test_in_interface(self):
         """
         Interface, process, interpret
@@ -399,7 +410,6 @@ class TestCheckboxGroup:
         with pytest.raises(ValueError):
             gr.CheckboxGroup().as_example("a")
 
-    @pytest.mark.xfail
     def test_in_interface(self):
         """
         Interface, process
@@ -456,7 +466,6 @@ class TestRadio:
         with pytest.raises(ValueError):
             gr.Radio(["a", "b"], type="unknown")
 
-    @pytest.mark.xfail
     def test_in_interface(self):
         """
         Interface, process, interpret
@@ -545,7 +554,6 @@ class TestDropdown:
         assert dropdown.get_config()["value"] == "c"
         assert dropdown.postprocess("a") == "a"
 
-    @pytest.mark.xfail
     def test_in_interface(self):
         """
         Interface, process
@@ -567,7 +575,7 @@ class TestDropdown:
 
 
 class TestImage:
-    def test_component_functions(self):
+    def test_component_functions(self, gradio_temp_dir):
         """
         Preprocess, postprocess, serialize, get_config, _segment_by_slic
         type: pil, file, filepath, numpy
@@ -585,7 +593,9 @@ class TestImage:
         assert base64 == img
         image_input = gr.Image(type="filepath")
         image_temp_filepath = image_input.preprocess(img)
-        assert image_temp_filepath in image_input.temp_files
+        assert image_temp_filepath in [
+            str(f) for f in gradio_temp_dir.glob("**/*") if f.is_file()
+        ]
 
         image_input = gr.Image(
             source="upload", tool="editor", type="pil", label="Upload Your Image"
@@ -653,7 +663,6 @@ class TestImage:
             "data:image/png;base64,"
         )
 
-    @pytest.mark.xfail
     def test_in_interface_as_input(self):
         """
         Interface, process, interpret
@@ -675,7 +684,6 @@ class TestImage:
         url = "https://gradio-static-files.s3.us-west-2.amazonaws.com/header-image.jpg"
         assert gr.Image().as_example(url) == url
 
-    @pytest.mark.xfail
     def test_in_interface_as_output(self):
         """
         Interface, process
@@ -754,7 +762,7 @@ class TestPlot:
 
 
 class TestAudio:
-    def test_component_functions(self):
+    def test_component_functions(self, gradio_temp_dir):
         """
         Preprocess, postprocess serialize, get_config, deserialize
         type: filepath, numpy, file
@@ -765,10 +773,12 @@ class TestAudio:
         assert output1[0] == 8000
         assert output1[1].shape == (8046,)
 
-        x_wav["is_file"] = True
+        x_wav["is_file"] = False
+        x_wav["name"] = "audio_sample.wav"
+        x_wav = processing_utils.move_files_to_cache([x_wav], audio_input)[0]
         audio_input = gr.Audio(type="filepath")
         output1 = audio_input.preprocess(x_wav)
-        assert Path(output1).name == "audio_sample-0-100.wav"
+        assert Path(output1).name.endswith("audio_sample-0-100.wav")
 
         audio_input = gr.Audio(label="Upload Your Audio")
         assert audio_input.get_config() == {
@@ -845,7 +855,6 @@ class TestAudio:
         output2 = audio_output.postprocess(Path(y_audio.name))
         assert output1 == output2
 
-    @pytest.mark.xfail
     def test_in_interface(self):
         def reverse_audio(audio):
             sr, data = audio
@@ -862,7 +871,6 @@ class TestAudio:
         ).ratio()
         assert similarity > 0.99
 
-    @pytest.mark.xfail
     def test_in_interface_as_output(self):
         """
         Interface, process
@@ -874,14 +882,24 @@ class TestAudio:
         iface = gr.Interface(generate_noise, "slider", "audio")
         assert iface(100).endswith(".wav")
 
-    def test_audio_preprocess_can_be_read_by_scipy(self):
-        x_wav = deepcopy(media_data.BASE64_MICROPHONE)
+    def test_audio_preprocess_can_be_read_by_scipy(self, gradio_temp_dir):
+        x_wav = {
+            "name": processing_utils.save_base64_to_cache(
+                media_data.BASE64_MICROPHONE["data"], cache_dir=gradio_temp_dir
+            ),
+            "is_file": True,
+        }
         audio_input = gr.Audio(type="filepath")
         output = audio_input.preprocess(x_wav)
         wavfile.read(output)
 
-    def test_prepost_process_to_mp3(self):
-        x_wav = deepcopy(media_data.BASE64_MICROPHONE)
+    def test_prepost_process_to_mp3(self, gradio_temp_dir):
+        x_wav = {
+            "name": processing_utils.save_base64_to_cache(
+                media_data.BASE64_MICROPHONE["data"], cache_dir=gradio_temp_dir
+            ),
+            "is_file": True,
+        }
         audio_input = gr.Audio(type="filepath", format="mp3")
         output = audio_input.preprocess(x_wav)
         assert output.endswith("mp3")
@@ -934,7 +952,7 @@ class TestFile:
 
         zero_size_file = {"name": "document.txt", "size": 0, "data": ""}
         temp_file = file_input.preprocess(zero_size_file)
-        assert os.stat(temp_file.name).st_size == 0
+        assert not Path(temp_file.name).exists()
 
         file_input = gr.File(type="binary")
         output = file_input.preprocess(x_file)
@@ -950,7 +968,6 @@ class TestFile:
         ):
             gr.File(file_types=".json")
 
-    @pytest.mark.xfail
     def test_in_interface_as_input(self):
         """
         Interface, process
@@ -963,7 +980,6 @@ class TestFile:
         iface = gr.Interface(get_size_of_file, "file", "number")
         assert iface(x_file) == 10558
 
-    @pytest.mark.xfail
     def test_as_component_as_output(self):
         """
         Interface, process
@@ -1008,6 +1024,7 @@ class TestDataframe:
         x_data = {
             "data": [["Tim", 12, False], ["Jan", 24, True]],
             "headers": ["Name", "Age", "Member"],
+            "metadata": None,
         }
         dataframe_input = gr.Dataframe(headers=["Name", "Age", "Member"])
         output = dataframe_input.preprocess(x_data)
@@ -1019,7 +1036,11 @@ class TestDataframe:
             headers=["Name", "Age", "Member"], label="Dataframe Input"
         )
         assert dataframe_input.get_config() == {
-            "value": {"headers": ["Name", "Age", "Member"], "data": [["", "", ""]]},
+            "value": {
+                "headers": ["Name", "Age", "Member"],
+                "data": [["", "", ""]],
+                "metadata": None,
+            },
             "selectable": False,
             "headers": ["Name", "Age", "Member"],
             "row_count": (1, "dynamic"),
@@ -1041,8 +1062,9 @@ class TestDataframe:
             "custom_component": False,
             "root_url": None,
             "name": "dataframe",
-            "height": None,
+            "height": 500,
             "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
+            "line_breaks": True,
         }
         dataframe_input = gr.Dataframe()
         output = dataframe_input.preprocess(x_data)
@@ -1052,7 +1074,11 @@ class TestDataframe:
 
         dataframe_output = gr.Dataframe()
         assert dataframe_output.get_config() == {
-            "value": {"headers": ["1", "2", "3"], "data": [["", "", ""]]},
+            "value": {
+                "headers": ["1", "2", "3"],
+                "data": [["", "", ""]],
+                "metadata": None,
+            },
             "selectable": False,
             "headers": ["1", "2", "3"],
             "row_count": (1, "dynamic"),
@@ -1074,8 +1100,9 @@ class TestDataframe:
             "custom_component": False,
             "root_url": None,
             "name": "dataframe",
-            "height": None,
+            "height": 500,
             "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
+            "line_breaks": True,
         }
 
     def test_postprocess(self):
@@ -1084,17 +1111,26 @@ class TestDataframe:
         """
         dataframe_output = gr.Dataframe()
         output = dataframe_output.postprocess([])
-        assert output == {"data": [[]], "headers": []}
+        assert output == {"data": [[]], "headers": [], "metadata": None}
         output = dataframe_output.postprocess(np.zeros((2, 2)))
-        assert output == {"data": [[0, 0], [0, 0]], "headers": ["1", "2"]}
+        assert output == {
+            "data": [[0, 0], [0, 0]],
+            "headers": ["1", "2"],
+            "metadata": None,
+        }
         output = dataframe_output.postprocess([[1, 3, 5]])
-        assert output == {"data": [[1, 3, 5]], "headers": ["1", "2", "3"]}
+        assert output == {
+            "data": [[1, 3, 5]],
+            "headers": ["1", "2", "3"],
+            "metadata": None,
+        }
         output = dataframe_output.postprocess(
             pd.DataFrame([[2, True], [3, True], [4, False]], columns=["num", "prime"])
         )
         assert output == {
             "headers": ["num", "prime"],
             "data": [[2, True], [3, True], [4, False]],
+            "metadata": None,
         }
         with pytest.raises(ValueError):
             gr.Dataframe(type="unknown")
@@ -1105,12 +1141,14 @@ class TestDataframe:
         assert output == {
             "headers": ["one", "two"],
             "data": [[2, True], [3, True]],
+            "metadata": None,
         }
         dataframe_output = gr.Dataframe(headers=["one", "two", "three"])
         output = dataframe_output.postprocess([[2, True, "ab", 4], [3, True, "cd", 5]])
         assert output == {
             "headers": ["one", "two", "three", "4"],
             "data": [[2, True, "ab", 4], [3, True, "cd", 5]],
+            "metadata": None,
         }
 
     def test_dataframe_postprocess_all_types(self):
@@ -1150,6 +1188,7 @@ class TestDataframe:
                     "# Goodbye",
                 ],
             ],
+            "metadata": None,
         }
 
     def test_dataframe_postprocess_only_dates(self):
@@ -1173,6 +1212,44 @@ class TestDataframe:
                     pd.Timestamp("2022-02-16 00:00:00"),
                 ],
             ],
+            "metadata": None,
+        }
+
+    def test_dataframe_postprocess_styler(self):
+        component = gr.Dataframe()
+        df = pd.DataFrame(
+            {
+                "name": ["Adam", "Mike"] * 4,
+                "gpa": [1.1, 1.12] * 4,
+                "sat": [800, 800] * 4,
+            }
+        )
+        s = df.style.format(precision=1, decimal=",")
+        output = component.postprocess(s)
+        assert output == {
+            "data": [
+                ["Adam", 1.1, 800],
+                ["Mike", 1.12, 800],
+                ["Adam", 1.1, 800],
+                ["Mike", 1.12, 800],
+                ["Adam", 1.1, 800],
+                ["Mike", 1.12, 800],
+                ["Adam", 1.1, 800],
+                ["Mike", 1.12, 800],
+            ],
+            "headers": ["name", "gpa", "sat"],
+            "metadata": {
+                "display_value": [
+                    ["Adam", "1,1", "800"],
+                    ["Mike", "1,1", "800"],
+                    ["Adam", "1,1", "800"],
+                    ["Mike", "1,1", "800"],
+                    ["Adam", "1,1", "800"],
+                    ["Mike", "1,1", "800"],
+                    ["Adam", "1,1", "800"],
+                    ["Mike", "1,1", "800"],
+                ]
+            },
         }
 
 
@@ -1208,6 +1285,10 @@ class TestDataset:
 
         assert dataset.preprocess(1) == 1
 
+        radio = gr.Radio(choices=[("name 1", "value 1"), ("name 2", "value 2")])
+        dataset = gr.Dataset(samples=[["value 1"], ["value 2"]], components=[radio])
+        assert dataset.samples == [["name 1"], ["name 2"]]
+
     def test_postprocessing(self):
         test_file_dir = Path(Path(__file__).parent, "test_files")
         bus = Path(test_file_dir, "bus.png")
@@ -1237,8 +1318,11 @@ class TestVideo:
         """
         Preprocess, serialize, deserialize, get_config
         """
-        x_video = deepcopy(media_data.BASE64_VIDEO)
+        x_video = {"video": deepcopy(media_data.BASE64_VIDEO), "is_file": False}
         video_input = gr.Video()
+
+        x_video = processing_utils.move_files_to_cache([x_video], video_input)[0]
+
         output1 = video_input.preprocess(x_video)
         assert isinstance(output1, str)
         output2 = video_input.preprocess(x_video)
@@ -1344,23 +1428,21 @@ class TestVideo:
             postprocessed_video_with_subtitle["subtitles"]["data"] = True
         assert processed_video_with_subtitle == postprocessed_video_with_subtitle
 
-    @pytest.mark.xfail
     def test_in_interface(self):
         """
         Interface, process
         """
         x_video = media_data.BASE64_VIDEO["name"]
         iface = gr.Interface(lambda x: x, "video", "playable_video")
-        assert iface(x_video).endswith(".mp4")
+        assert iface({"video": x_video})["video"].endswith(".mp4")
 
-    @pytest.mark.xfail
     def test_with_waveform(self):
         """
         Interface, process
         """
         x_audio = media_data.BASE64_AUDIO["name"]
         iface = gr.Interface(lambda x: gr.make_waveform(x), "audio", "video")
-        assert iface(x_audio).endswith(".mp4")
+        assert iface(x_audio)["video"].endswith(".mp4")
 
     def test_video_postprocess_converts_to_playable_format(self):
         test_file_dir = Path(Path(__file__).parent, "test_files")
@@ -1388,7 +1470,7 @@ class TestVideo:
     @patch("gradio.components.video.FFmpeg")
     def test_video_preprocessing_flips_video_for_webcam(self, mock_ffmpeg):
         # Ensures that the cached temp video file is not used so that ffmpeg is called for each test
-        x_video = deepcopy(media_data.BASE64_VIDEO)
+        x_video = {"video": deepcopy(media_data.BASE64_VIDEO)}
         video_input = gr.Video(source="webcam")
         _ = video_input.preprocess(x_video)
 
@@ -1433,11 +1515,13 @@ class TestVideo:
     def test_preprocess_url(self):
         output = gr.Video().preprocess(
             {
-                "name": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
-                "is_file": True,
-                "data": None,
-                "size": None,
-                "orig_name": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
+                "video": {
+                    "name": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
+                    "is_file": True,
+                    "data": None,
+                    "size": None,
+                    "orig_name": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
+                }
             }
         )
         assert Path(output).name == "a.mp4" and not client_utils.probe_url(output)
@@ -1527,7 +1611,6 @@ class TestLabel:
         )
         assert update_5["color"] == "transparent"
 
-    @pytest.mark.xfail
     def test_in_interface(self):
         """
         Interface, process
@@ -1545,16 +1628,15 @@ class TestLabel:
             }
 
         iface = gr.Interface(rgb_distribution, "image", "label")
-        output_filepath = iface(x_img)
-        with open(output_filepath) as fp:
-            assert json.load(fp) == {
-                "label": "red",
-                "confidences": [
-                    {"label": "red", "confidence": 0.44},
-                    {"label": "green", "confidence": 0.28},
-                    {"label": "blue", "confidence": 0.28},
-                ],
-            }
+        output = iface(x_img)
+        assert output == {
+            "label": "red",
+            "confidences": [
+                {"label": "red", "confidence": 0.44},
+                {"label": "green", "confidence": 0.28},
+                {"label": "blue", "confidence": 0.28},
+            ],
+        }
 
 
 class TestHighlightedText:
@@ -1670,7 +1752,6 @@ class TestHighlightedText:
             "interactive": None,
         }
 
-    @pytest.mark.xfail
     def test_in_interface(self):
         """
         Interface, process
@@ -1692,15 +1773,13 @@ class TestHighlightedText:
             return phrases
 
         iface = gr.Interface(highlight_vowels, "text", "highlight")
-        output_filepath = iface("Helloooo")
-        with open(output_filepath) as fp:
-            output = json.load(fp)
-            assert output == [
-                ["H", "non"],
-                ["e", "vowel"],
-                ["ll", "non"],
-                ["oooo", "vowel"],
-            ]
+        output = iface("Helloooo")
+        assert output == [
+            {"token": "H", "class_or_confidence": "non"},
+            {"token": "e", "class_or_confidence": "vowel"},
+            {"token": "ll", "class_or_confidence": "non"},
+            {"token": "oooo", "class_or_confidence": "vowel"},
+        ]
 
 
 class TestAnnotatedImage:
@@ -1749,7 +1828,6 @@ class TestAnnotatedImage:
             "custom_component": False,
         }
 
-    @pytest.mark.xfail
     def test_in_interface(self):
         def mask(img):
             top_left_corner = [0, 0, 20, 20]
@@ -1757,13 +1835,11 @@ class TestAnnotatedImage:
             return (img, [(top_left_corner, "left corner"), (random_mask, "random")])
 
         iface = gr.Interface(mask, "image", gr.AnnotatedImage())
-        output_json = iface("test/test_files/bus.png")
-        with open(output_json) as fp:
-            output = json.load(fp)
-            output_img, (mask1, mask1) = output
+        output = iface("test/test_files/bus.png")
+        output_img, (mask1, _) = output["image"], output["annotations"]
         input_img = PIL.Image.open("test/test_files/bus.png")
-        output_img = PIL.Image.open(output_img["name"])
-        mask1_img = PIL.Image.open(mask1[0]["name"])
+        output_img = PIL.Image.open(output_img)
+        mask1_img = PIL.Image.open(mask1["image"])
 
         assert output_img.size == input_img.size
         assert mask1_img.size == input_img.size
@@ -1818,7 +1894,10 @@ class TestChatbot:
             "custom_component": False,
             "avatar_images": (None, None),
             "sanitize_html": True,
+            "render_markdown": True,
             "bubble_full_width": True,
+            "line_breaks": True,
+            "layout": None,
         }
 
 
@@ -1898,7 +1977,6 @@ class TestHTML:
             "name": "html",
         }
 
-    @pytest.mark.xfail
     def test_in_interface(self):
         """
         Interface, process
@@ -1916,7 +1994,6 @@ class TestMarkdown:
         markdown_component = gr.Markdown("# Let's learn about $x$", label="Markdown")
         assert markdown_component.get_config()["value"] == "# Let's learn about $x$"
 
-    @pytest.mark.xfail
     def test_in_interface(self):
         """
         Interface, process
@@ -1957,7 +2034,6 @@ class TestModel3D:
         output2 = model_component.postprocess(Path(file))
         assert output1 == output2
 
-    @pytest.mark.xfail
     def test_in_interface(self):
         """
         Interface, process
@@ -1996,7 +2072,6 @@ class TestColorPicker:
             "info": None,
         }
 
-    @pytest.mark.xfail
     def test_in_interface_as_input(self):
         """
         Interface, process, interpret,
@@ -2004,7 +2079,6 @@ class TestColorPicker:
         iface = gr.Interface(lambda x: x, "colorpicker", "colorpicker")
         assert iface("#000000") == "#000000"
 
-    @pytest.mark.xfail
     def test_in_interface_as_output(self):
         """
         Interface, process
@@ -2057,6 +2131,10 @@ class TestState:
         assert state.preprocess(10) == 10
         assert state.preprocess("abc") == "abc"
         assert state.stateful
+
+    def test_initial_value_deepcopy(self):
+        with pytest.raises(TypeError):
+            gr.State(value=gr)  # modules are not deepcopyable
 
     @pytest.mark.asyncio
     async def test_in_interface(self):
@@ -2156,6 +2234,7 @@ class TestScatterPlot:
             "label": None,
             "name": "plot",
             "bokeh_version": "3.0.3",
+            "show_actions_button": False,
             "root_url": None,
             "show_label": True,
             "container": True,
@@ -2358,6 +2437,7 @@ class TestLinePlot:
             "label": None,
             "name": "plot",
             "bokeh_version": "3.0.3",
+            "show_actions_button": False,
             "root_url": None,
             "show_label": True,
             "container": True,
@@ -2544,6 +2624,7 @@ class TestBarPlot:
             "label": None,
             "name": "plot",
             "bokeh_version": "3.0.3",
+            "show_actions_button": False,
             "root_url": None,
             "show_label": True,
             "container": True,
@@ -2752,87 +2833,6 @@ class TestCode:
             "root_url": None,
             "custom_component": False,
         }
-
-
-class TestTempFileManagement:
-    def test_hash_file(self):
-        temp_file_manager = gr.File()
-        h1 = temp_file_manager.hash_file("gradio/test_data/cheetah1.jpg")
-        h2 = temp_file_manager.hash_file("gradio/test_data/cheetah1-copy.jpg")
-        h3 = temp_file_manager.hash_file("gradio/test_data/cheetah2.jpg")
-        assert h1 == h2
-        assert h1 != h3
-
-    @patch("shutil.copy2")
-    def test_make_temp_copy_if_needed(self, mock_copy):
-        temp_file_manager = gr.File()
-
-        f = temp_file_manager.make_temp_copy_if_needed("gradio/test_data/cheetah1.jpg")
-        try:  # Delete if already exists from before this test
-            os.remove(f)
-        except OSError:
-            pass
-
-        f = temp_file_manager.make_temp_copy_if_needed("gradio/test_data/cheetah1.jpg")
-        assert mock_copy.called
-        assert len(temp_file_manager.temp_files) == 1
-        assert Path(f).name == "cheetah1.jpg"
-
-        f = temp_file_manager.make_temp_copy_if_needed("gradio/test_data/cheetah1.jpg")
-        assert len(temp_file_manager.temp_files) == 1
-
-        f = temp_file_manager.make_temp_copy_if_needed(
-            "gradio/test_data/cheetah1-copy.jpg"
-        )
-        assert len(temp_file_manager.temp_files) == 2
-        assert Path(f).name == "cheetah1-copy.jpg"
-
-    def test_base64_to_temp_file_if_needed(self):
-        temp_file_manager = gr.File()
-
-        base64_file_1 = media_data.BASE64_IMAGE
-        base64_file_2 = media_data.BASE64_AUDIO["data"]
-
-        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_1)
-        try:  # Delete if already exists from before this test
-            os.remove(f)
-        except OSError:
-            pass
-
-        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_1)
-        assert len(temp_file_manager.temp_files) == 1
-
-        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_1)
-        assert len(temp_file_manager.temp_files) == 1
-
-        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_2)
-        assert len(temp_file_manager.temp_files) == 2
-
-        for file in temp_file_manager.temp_files:
-            os.remove(file)
-
-    @pytest.mark.flaky
-    @patch("shutil.copyfileobj")
-    def test_download_temp_copy_if_needed(self, mock_copy):
-        temp_file_manager = gr.File()
-        url1 = "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/test_image.png"
-        url2 = "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/cheetah1.jpg"
-
-        f = temp_file_manager.download_temp_copy_if_needed(url1)
-        try:  # Delete if already exists from before this test
-            os.remove(f)
-        except OSError:
-            pass
-
-        f = temp_file_manager.download_temp_copy_if_needed(url1)
-        assert mock_copy.called
-        assert len(temp_file_manager.temp_files) == 1
-
-        f = temp_file_manager.download_temp_copy_if_needed(url1)
-        assert len(temp_file_manager.temp_files) == 1
-
-        f = temp_file_manager.download_temp_copy_if_needed(url2)
-        assert len(temp_file_manager.temp_files) == 2
 
 
 def test_type_arg_deperecation_warning():

@@ -206,14 +206,25 @@ function find_frontend_folders(
 	return results;
 }
 
+function to_posix(_path: string): string {
+	const isExtendedLengthPath = /^\\\\\?\\/.test(_path);
+	const hasNonAscii = /[^\u0000-\u0080]+/.test(_path); // eslint-disable-line no-control-regex
+
+	if (isExtendedLengthPath || hasNonAscii) {
+		return _path;
+	}
+
+	return _path.replace(/\\/g, '/');
+}
+
 function generate_imports(component_dir: string): string {
 	const components = find_frontend_folders(component_dir);
 
 	const imports = components.reduce((acc, component) => {
 		const x = {
-			interactive: join(component.dir, "interactive"),
-			static: join(component.dir, "static"),
-			example: join(component.dir, "example")
+			interactive: to_posix(join(component.dir, "interactive")),
+			static: to_posix(join(component.dir, "static")),
+			example: to_posix(join(component.dir, "example"))
 		};
 
 		const interactive = fs.existsSync(x.interactive) ? `interactive: () => import("${x.interactive}"),\n` : ""

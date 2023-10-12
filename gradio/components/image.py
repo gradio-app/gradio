@@ -206,10 +206,9 @@ class Image(StreamingInput, Component):
         elif self.type == "numpy":
             return np.array(im)
         elif self.type == "filepath":
-            path = self.pil_to_temp_file(
-                im, dir=self.DEFAULT_TEMP_DIR, format=fmt or "png"
+            path = processing_utils.save_pil_to_cache(
+                im, cache_dir=self.GRADIO_CACHE, format=fmt or "png"  # type: ignore
             )
-            self.temp_files.add(path)
             return path
         else:
             raise ValueError(
@@ -238,7 +237,7 @@ class Image(StreamingInput, Component):
         if isinstance(x, str):
             im = processing_utils.decode_base64_to_image(x)
         else:
-            im = _Image.open(self.make_temp_copy_if_needed(x["name"]))
+            im = _Image.open(x["name"])
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
@@ -278,19 +277,13 @@ class Image(StreamingInput, Component):
         if y is None:
             return None
         if isinstance(y, np.ndarray):
-            path = self.base64_to_temp_file_if_needed(
-                processing_utils.encode_array_to_base64(y), "file.png"
+            path = processing_utils.save_img_array_to_cache(
+                y, cache_dir=self.GRADIO_CACHE
             )
         elif isinstance(y, _Image.Image):
-            path = self.base64_to_temp_file_if_needed(
-                processing_utils.encode_pil_to_base64(y), "file.png"
-            )
+            path = processing_utils.save_pil_to_cache(y, cache_dir=self.GRADIO_CACHE)
         elif isinstance(y, (str, Path)):
-            name = y if isinstance(y, str) else y.name
-            if client_utils.is_http_url_like(name):
-                path = self.download_temp_copy_if_needed(name)
-            else:
-                path = self.make_temp_copy_if_needed(name)
+            path = y if isinstance(y, str) else y.name
         else:
             raise ValueError("Cannot process this value as an Image")
         return FileData(name=path, data=None, is_file=True)

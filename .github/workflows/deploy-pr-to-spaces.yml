@@ -48,8 +48,7 @@ jobs:
     - run: unzip all_demos.zip -d all_demos
     - run: cp -R all_demos/* demo/all_demos
     - name: Upload demo to spaces
-      if: >
-        github.event.workflow_run.event == 'pull_request'
+      if: github.event.workflow_run.event == 'pull_request'
       id: upload-demo
       run: |
         python scripts/upload_demo_to_space.py all_demos \
