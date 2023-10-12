@@ -781,8 +781,8 @@
 							on:touchstart={() => start_edit(index, j)}
 							on:click={() => handle_cell_click(index, j)}
 							on:dblclick={() => start_edit(index, j)}
-							style={"width: var(--cell-width-{j});" + styling?.[index]?.[j] ||
-								""}
+							style:width="var(--cell-width-{j})"
+							style={styling?.[index]?.[j] || ""}
 							class:focus={dequal(selected, [index, j])}
 						>
 							<div class="cell-wrap">
