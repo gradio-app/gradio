@@ -336,7 +336,7 @@ class BlockFunction:
 def postprocess_update_dict(block: Block, update_dict: dict, postprocess: bool = True):
     """
     Converts a dictionary of updates into a format that can be sent to the frontend.
-    E.g. {"__type__": "generic_update", "value": "2", "interactive": False}
+    E.g. {"__type__": "update", "value": "2", "interactive": False}
     Into -> {"__type__": "update", "value": 2.0, "mode": "static"}
     Parameters:
         block: The Block that is being updated with this update dictionary.

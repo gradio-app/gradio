@@ -791,7 +791,7 @@ def special_args(
 def update(
     elem_id: str | None = None,
     elem_classes: list[str] | str | None = None,
-    visible: bool = True,
+    visible: bool | None = None,
     **kwargs,
 ) -> dict:
     """

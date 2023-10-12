@@ -1176,32 +1176,7 @@ class TestBatchProcessing:
             await demo.process_api(0, [["A", "B", "C"], ["D", "E"]], state=None)
 
 
-class TestSpecificUpdate:
-    def test_without_update(self):
-        with pytest.raises(KeyError):
-            gr.Textbox.get_specific_update({"lines": 4})
-
-    def test_with_update(self):
-        specific_update = gr.Textbox.get_specific_update(
-            {"lines": 4, "__type__": "update", "interactive": False}
-        )
-        assert specific_update == {
-            "lines": 4,
-            "value": gr.components._Keywords.NO_VALUE,
-            "interactive": False,
-            "__type__": "update",
-        }
-
-        specific_update = gr.Textbox.get_specific_update(
-            {"lines": 4, "__type__": "update", "interactive": True}
-        )
-        assert specific_update == {
-            "lines": 4,
-            "value": gr.components._Keywords.NO_VALUE,
-            "interactive": True,
-            "__type__": "update",
-        }
-
+class TestUpdate:
     @pytest.mark.asyncio
     async def test_accordion_update(self):
         with gr.Blocks() as demo:
