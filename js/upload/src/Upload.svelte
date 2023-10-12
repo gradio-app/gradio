@@ -94,10 +94,7 @@
 	}
 </script>
 
-<!-- TODO: fix -->
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<div
+<button
 	class:center
 	class:boundedheight
 	class:flex
@@ -123,17 +120,18 @@
 		webkitdirectory={file_count === "directory" || undefined}
 		mozdirectory={file_count === "directory" || undefined}
 	/>
-</div>
+</button>
 
 <style>
-	div {
+	button {
 		cursor: pointer;
 		width: var(--size-full);
 		height: var(--size-full);
 	}
 
 	.center {
-		text-align: center;
+		display: flex;
+		justify-content: center;
 	}
 	.flex {
 		display: flex;

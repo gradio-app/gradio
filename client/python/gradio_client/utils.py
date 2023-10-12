@@ -542,6 +542,8 @@ class APIInfoParseError(ValueError):
 
 
 def get_type(schema: dict):
+    if not isinstance(schema, dict):
+        breakpoint()
     if "const" in schema:
         return "const"
     if "enum" in schema:
@@ -607,10 +609,15 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
         def get_desc(v):
             return f" ({v.get('description')})" if v.get("description") else ""
 
+        if "additionalProperties" in schema:
+            return f"Dict[str, {_json_schema_to_python_type(schema['additionalProperties'], defs)}]"
+
+        props = schema.get("properties")
+
         des = ", ".join(
             [
                 f"{n}: {_json_schema_to_python_type(v, defs)}{get_desc(v)}"
-                for n, v in schema["properties"].items()
+                for n, v in props.items()
                 if n != "$defs"
             ]
         )

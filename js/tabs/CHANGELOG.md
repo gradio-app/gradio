@@ -1,5 +1,6 @@
 # @gradio/tabs
 
+<<<<<<< HEAD
 ## 0.0.6-beta.5
 
 ### Features
@@ -27,10 +28,14 @@
   - @gradio/utils@0.2.0-beta.2
 
 ## 0.0.6-beta.1
+=======
+## 0.0.7
+>>>>>>> main
 
 ### Patch Changes
 
 - Updated dependencies []:
+<<<<<<< HEAD
   - @gradio/utils@0.2.0-beta.1
 
 ## 0.0.6-beta.0
@@ -39,6 +44,15 @@
 
 - Updated dependencies [[`681f10c31`](https://github.com/gradio-app/gradio/commit/681f10c315a75cc8cd0473c9a0167961af7696db), [`1385dc688`](https://github.com/gradio-app/gradio/commit/1385dc6881f2d8ae7a41106ec21d33e2ef04d6a9)]:
   - @gradio/utils@0.2.0-beta.0
+=======
+  - @gradio/utils@0.1.2
+
+## 0.0.6
+
+### Features
+
+- [#5590](https://github.com/gradio-app/gradio/pull/5590) [`d1ad1f671`](https://github.com/gradio-app/gradio/commit/d1ad1f671caef9f226eb3965f39164c256d8615c) - Attach `elem_classes` selectors to layout elements, and an id to the Tab button (for targeting via CSS/JS). Thanks [@abidlabs](https://github.com/abidlabs)!
+>>>>>>> main
 
 ## 0.0.5
 

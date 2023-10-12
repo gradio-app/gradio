@@ -153,7 +153,7 @@
 		</div>
 	{:else}
 		<div class="table-wrap">
-			<table>
+			<table tabindex="0" role="grid">
 				<thead>
 					<tr class="tr-head">
 						{#each headers as header}

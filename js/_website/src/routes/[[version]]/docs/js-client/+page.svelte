@@ -7,10 +7,16 @@
 
 	let components = data.components;
 	let helpers = data.helpers;
+	let modals = data.modals;
 	let routes = data.routes;
 	let py_client = data.py_client;
 
 	let readme_html = data.readme_html;
+	$: components = data.components;
+	$: helpers = data.helpers;
+	$: modals = data.modals;
+	$: routes = data.routes;
+	$: py_client = data.py_client;
 </script>
 
 <MetaTags
@@ -21,16 +27,17 @@
 />
 
 <main class="container mx-auto px-4 flex gap-4">
-	<div class="flex">
+	<div class="flex w-full">
 		<DocsNav
 			current_nav_link={"js-client"}
 			{components}
 			{helpers}
+			{modals}
 			{routes}
 			{py_client}
 		/>
 
-		<div class="flex flex-col w-full min-w-full lg:w-10/12 lg:min-w-0">
+		<div class="flex flex-col w-full min-w-full lg:w-8/12 lg:min-w-0">
 			<div>
 				<p
 					class="lg:ml-10 bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 mr-2 rounded-full text-orange-800 mb-1 w-fit float-left"
@@ -63,6 +70,9 @@
 					</div>
 				</div>
 			</div>
+		</div>
+		<div class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:w-2/12 lg:block">
+
 		</div>
 	</div>
 </main>

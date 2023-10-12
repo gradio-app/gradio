@@ -2,6 +2,20 @@
 
 ## 0.6.1-beta.0
 
+## 0.7.1
+
+### Features
+
+- [#5721](https://github.com/gradio-app/gradio/pull/5721) [`84e03fe50`](https://github.com/gradio-app/gradio/commit/84e03fe506e08f1f81bac6d504c9fba7924f2d93) - Adds copy buttons to website, and better descriptions to API Docs.  Thanks [@aliabd](https://github.com/aliabd)!
+
+## 0.7.0
+
+### Features
+
+- [#5643](https://github.com/gradio-app/gradio/pull/5643) [`f661c0733`](https://github.com/gradio-app/gradio/commit/f661c0733b501f1a54a0c62af2567909c7202944) - Add the brand assets page to the website.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#5675](https://github.com/gradio-app/gradio/pull/5675) [`b619e6f6e`](https://github.com/gradio-app/gradio/commit/b619e6f6e4ca55334fb86da53790e45a8f978566) - Reorganize Docs Navbar and Fill in Gaps.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#5669](https://github.com/gradio-app/gradio/pull/5669) [`c5e969559`](https://github.com/gradio-app/gradio/commit/c5e969559612f956afcdb0c6f7b22ab8275bc49a) - Fix small issues in docs and guides.  Thanks [@aliabd](https://github.com/aliabd)!
+
 ### Fixes
 
 - [#5608](https://github.com/gradio-app/gradio/pull/5608) [`eebf9d71f`](https://github.com/gradio-app/gradio/commit/eebf9d71f90a83bd84b62c855fdcd13b086f7ad5) - Styling fixes to guides.  Thanks [@aliabd](https://github.com/aliabd)!

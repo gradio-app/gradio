@@ -21,16 +21,18 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let grid_cols: number | number[] | undefined = [2];
-	export let grid_rows: number | number[] | undefined = undefined;
+	export let columns: number | number[] | undefined = [2];
+	export let rows: number | number[] | undefined = undefined;
 	export let height: number | "auto" = "auto";
 	export let preview: boolean;
 	export let allow_preview = true;
+	export let selected_index: number | null = null;
 	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
 		"cover";
 	export let show_share_button = false;
 	export let show_download_button = false;
 	export let gradio: Gradio<{
+		change: typeof value;
 		select: SelectData;
 		share: ShareData;
 		error: string;
@@ -55,6 +57,7 @@
 		{...loading_status}
 	/>
 	<Gallery
+		on:change={() => gradio.dispatch("change", value)}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 		on:share={(e) => gradio.dispatch("share", e.detail)}
 		on:error={(e) => gradio.dispatch("error", e.detail)}
@@ -63,12 +66,13 @@
 		{show_label}
 		{root}
 		{root_url}
-		{grid_cols}
-		{grid_rows}
+		{columns}
+		{rows}
 		{height}
 		{preview}
 		{object_fit}
 		{allow_preview}
+		bind:selected_index
 		{show_share_button}
 		{show_download_button}
 		i18n={gradio.i18n}

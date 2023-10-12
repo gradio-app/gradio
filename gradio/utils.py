@@ -28,6 +28,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
+    Iterable,
     Iterator,
     Optional,
     TypeVar,
@@ -340,11 +341,11 @@ def assert_configs_are_equivalent_besides_ids(
     config2 = json.loads(json.dumps(config2))
 
     for key in root_keys:
-        assert config1[key] == config2[key], f"Configs have different: {key}"
+        if config1[key] != config2[key]:
+            raise ValueError(f"Configs have different: {key}")
 
-    assert len(config1["components"]) == len(
-        config2["components"]
-    ), "# of components are different"
+    if len(config1["components"]) != len(config2["components"]):
+        raise ValueError("# of components are different")
 
     def assert_same_components(config1_id, config2_id):
         c1 = list(filter(lambda c: c["id"] == config1_id, config1["components"]))
@@ -359,7 +360,8 @@ def assert_configs_are_equivalent_besides_ids(
         c1.pop("id")
         c2 = copy.deepcopy(c2)
         c2.pop("id")
-        assert c1 == c2, f"{c1} does not match {c2}"
+        if c1 != c2:
+            raise ValueError(f"{c1} does not match {c2}")
 
     def same_children_recursive(children1, chidren2):
         for child1, child2 in zip(children1, chidren2):
@@ -373,13 +375,14 @@ def assert_configs_are_equivalent_besides_ids(
 
     for d1, d2 in zip(config1["dependencies"], config2["dependencies"]):
         for t1, t2 in zip(d1.pop("targets"), d2.pop("targets")):
-            assert_same_components(t1, t2)
+            assert_same_components(t1[0], t2[0])
         for i1, i2 in zip(d1.pop("inputs"), d2.pop("inputs")):
             assert_same_components(i1, i2)
         for o1, o2 in zip(d1.pop("outputs"), d2.pop("outputs")):
             assert_same_components(o1, o2)
 
-        assert d1 == d2, f"{d1} does not match {d2}"
+        if d1 != d2:
+            raise ValueError(f"{d1} does not match {d2}")
 
     return True
 
@@ -605,7 +608,11 @@ def get_continuous_fn(fn: Callable, every: float) -> Callable:
 
 
 def function_wrapper(
-    f, before_fn=None, before_args=None, after_fn=None, after_args=None
+    f: Callable,
+    before_fn: Callable | None = None,
+    before_args: Iterable | None = None,
+    after_fn: Callable | None = None,
+    after_args: Iterable | None = None,
 ):
     before_args = [] if before_args is None else before_args
     after_args = [] if after_args is None else after_args

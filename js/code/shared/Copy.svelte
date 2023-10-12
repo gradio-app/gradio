@@ -27,12 +27,21 @@
 	});
 </script>
 
-<button on:click={handle_copy} title="copy">
-	<!-- {#if !copied} -->
-	<span class="copy-text" class:copied><Copy /> </span>
-	<!-- {/if} -->
+<button
+	on:click={handle_copy}
+	title="copy"
+	class:copied
+	aria-roledescription="Copy value"
+	aria-label="Copy"
+>
+	<Copy />
 	{#if copied}
-		<span class="check" transition:fade><Check /></span>
+		<span
+			class="check"
+			transition:fade
+			aria-roledescription="Value copied"
+			aria-label="Copied"><Check /></span
+		>
 	{/if}
 </button>
 

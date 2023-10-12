@@ -75,8 +75,9 @@ class Queue:
         self.max_size = max_size
         self.blocks_dependencies = blocks_dependencies
         self.continuous_tasks: list[Event] = []
+        self._asyncio_tasks: list[asyncio.Task] = []
 
-    async def start(self, ssl_verify=True):
+    def start(self):
         run_coro_in_background(self.start_processing)
         run_coro_in_background(self.start_log_and_progress_updates)
         if not self.live_updates:
@@ -87,6 +88,11 @@ class Queue:
 
     def resume(self):
         self.stopped = False
+
+    def _cancel_asyncio_tasks(self):
+        for task in self._asyncio_tasks:
+            task.cancel()
+        self._asyncio_tasks = []
 
     def set_server_app(self, app: routes.App):
         self.server_app = app
@@ -133,9 +139,21 @@ class Queue:
 
             if events:
                 self.active_jobs[self.active_jobs.index(None)] = events
-                task = run_coro_in_background(self.process_events, events, batch)
-                run_coro_in_background(self.broadcast_live_estimations)
-                set_task_name(task, events[0].session_hash, events[0].fn_index, batch)
+                process_event_task = run_coro_in_background(
+                    self.process_events, events, batch
+                )
+                set_task_name(
+                    process_event_task,
+                    events[0].session_hash,
+                    events[0].fn_index,
+                    batch,
+                )
+                broadcast_live_estimations_task = run_coro_in_background(
+                    self.broadcast_live_estimations
+                )
+
+                self._asyncio_tasks.append(process_event_task)
+                self._asyncio_tasks.append(broadcast_live_estimations_task)
 
     async def start_log_and_progress_updates(self) -> None:
         while not self.stopped:
@@ -350,7 +368,8 @@ class Queue:
 
     async def call_prediction(self, events: list[Event], batch: bool):
         body = events[0].data
-        assert body is not None, "No event data"
+        if body is None:
+            raise ValueError("No event data")
         username = events[0].username
         body.event_id = events[0]._id if not batch else None
         try:
@@ -518,7 +537,14 @@ class Queue:
                     await event.disconnect()
                 except Exception:
                     pass
-            self.active_jobs[self.active_jobs.index(events)] = None
+            try:
+                self.active_jobs[self.active_jobs.index(events)] = None
+            except ValueError:
+                # `events` can be absent from `self.active_jobs`
+                # when this coroutine is called from the `join_queue` endpoint handler in `routes.py`
+                # without putting the `events` into `self.active_jobs`.
+                # https://github.com/gradio-app/gradio/blob/f09aea34d6bd18c1e2fef80c86ab2476a6d1dd83/gradio/routes.py#L594-L596
+                pass
             for event in events:
                 await self.clean_event(event)
                 # Always reset the state of the iterator

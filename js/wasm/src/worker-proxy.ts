@@ -5,8 +5,10 @@ import type {
 	HttpRequest,
 	HttpResponse,
 	InMessage,
+	InMessageWebSocket,
 	ReplyMessage
 } from "./message-types";
+import { MessagePortWebSocket } from "./messageportwebsocket";
 
 export interface WorkerProxyOptions {
 	gradioWheelUrl: string;
@@ -113,6 +115,20 @@ export class WorkerProxy {
 		}
 
 		return response;
+	}
+
+	public openWebSocket(path: string): MessagePortWebSocket {
+		const channel = new MessageChannel();
+
+		const msg: InMessageWebSocket = {
+			type: "websocket",
+			data: {
+				path
+			}
+		};
+		this.worker.postMessage(msg, [channel.port2]);
+
+		return new MessagePortWebSocket(channel.port1);
 	}
 
 	public writeFile(

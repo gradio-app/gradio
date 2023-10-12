@@ -418,6 +418,9 @@ importers:
       '@gradio/file':
         specifier: workspace:^
         version: link:../file
+      '@gradio/fileexplorer':
+        specifier: workspace:^
+        version: link:../fileexplorer
       '@gradio/form':
         specifier: workspace:^
         version: link:../form
@@ -599,8 +602,11 @@ importers:
         specifier: ^0.16.0
         version: 0.16.0
       '@types/prismjs':
-        specifier: 1.26.0
-        version: 1.26.0
+        specifier: 1.26.1
+        version: 1.26.1
+      dequal:
+        specifier: ^2.0.2
+        version: 2.0.2
 
   js/checkbox:
     dependencies:
@@ -814,6 +820,36 @@ importers:
         specifier: workspace:^
         version: link:../utils
 
+  js/fileexplorer:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/checkbox':
+        specifier: workspace:^
+        version: link:../checkbox
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
+      '@gradio/file':
+        specifier: workspace:^
+        version: link:../file
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/upload':
+        specifier: workspace:^
+        version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+      dequal:
+        specifier: ^2.0.2
+        version: 2.0.3
+
   js/form:
     dependencies:
       '@gradio/atoms':
@@ -846,6 +882,51 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      dequal:
+        specifier: ^2.0.2
+        version: 2.0.2
+
+  js/gradio-preview/test/coolslider/frontend:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../../../../atoms
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../../../../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../../../../utils
+
+  js/gradio-preview/test/newtextbox/frontend:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../../../../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../../../../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../../../../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../../../../utils
+
+  js/gradio-preview/test/segaeditor/frontend:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../../../../atoms
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../../../../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../../../../utils
+      '@zerodevx/svelte-json-view':
+        specifier: ^1.0.7
+        version: 1.0.7(svelte@4.2.0)
 
   js/group: {}
 
@@ -962,8 +1043,8 @@ importers:
         specifier: ^0.16.0
         version: 0.16.0
       '@types/prismjs':
-        specifier: 1.26.0
-        version: 1.26.0
+        specifier: 1.26.1
+        version: 1.26.1
       dompurify:
         specifier: ^3.0.3
         version: 3.0.3
@@ -7099,6 +7180,11 @@ packages:
 
   /@types/prismjs@1.26.0:
     resolution: {integrity: sha512-ZTaqn/qSqUuAq1YwvOFQfVW1AR/oQJlLSZVustdjwI+GZ8kr0MSHBj0tsXPW1EqHubx50gtBEjbPGsdZwQwCjQ==}
+    dev: true
+
+  /@types/prismjs@1.26.1:
+    resolution: {integrity: sha512-Q7jDsRbzcNHIQje15CS/piKhu6lMLb9jwjxSfEIi4KcFKXW23GoJMkwQiJ8VObyfx+VmUaDcJxXaWN+cTCjVog==}
+    dev: false
 
   /@types/prop-types@15.7.5:
     resolution: {integrity: sha512-JCB8C6SnDoQf0cNycqd/35A7MjcnK+ZTqE7judS6o7utxUCg6imJg3QK2qzHKszlTjcj2cn+NwMB2i96ubpj7w==}

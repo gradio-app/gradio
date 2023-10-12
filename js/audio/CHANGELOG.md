@@ -1,55 +1,29 @@
 # @gradio/audio
 
-## 0.4.0-beta.5
+## 0.3.7
 
-### Features
+### Fixes
 
-- [#5648](https://github.com/gradio-app/gradio/pull/5648) [`c573e2339`](https://github.com/gradio-app/gradio/commit/c573e2339b86c85b378dc349de5e9223a3c3b04a) - Publish all components to npm.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5794](https://github.com/gradio-app/gradio/pull/5794) [`f096c3ae1`](https://github.com/gradio-app/gradio/commit/f096c3ae168c0df00f90fe131c1e48c572e0574b) - Throw helpful error when media devices are not found.  Thanks [@hannahblair](https://github.com/hannahblair)!
 
-## 0.4.0-beta.4
-
-### Patch Changes
-
-- Updated dependencies [[`0b4fd5b6d`](https://github.com/gradio-app/gradio/commit/0b4fd5b6db96fc95a155e5e935e17e1ab11d1161)]:
-  - @gradio/utils@0.2.0-beta.3
-  - @gradio/atoms@0.2.0-beta.3
-  - @gradio/button@0.2.0-beta.3
-  - @gradio/statustracker@0.3.0-beta.4
-  - @gradio/upload@0.3.0-beta.3
-
-## 0.4.0-beta.3
+## 0.3.6
 
 ### Patch Changes
 
-- Updated dependencies [[`14fc612d8`](https://github.com/gradio-app/gradio/commit/14fc612d84bf6b1408eccd3a40fab41f25477571)]:
-  - @gradio/utils@0.2.0-beta.2
-  - @gradio/atoms@0.2.0-beta.2
-  - @gradio/button@0.2.0-beta.2
-  - @gradio/statustracker@0.3.0-beta.3
-  - @gradio/upload@0.3.0-beta.2
+- Updated dependencies [[`8f0fed857`](https://github.com/gradio-app/gradio/commit/8f0fed857d156830626eb48b469d54d211a582d2)]:
+  - @gradio/icons@0.2.0
+  - @gradio/atoms@0.1.3
+  - @gradio/statustracker@0.2.1
+  - @gradio/upload@0.3.1
+  - @gradio/button@0.2.1
 
-## 0.4.0-beta.2
-
-### Features
-
-- [#5620](https://github.com/gradio-app/gradio/pull/5620) [`c4c25ecdf`](https://github.com/gradio-app/gradio/commit/c4c25ecdf8c2fab5e3c41b519564e3b6a9ebfce3) - fix build and broken imports. Thanks [@pngwn](https://github.com/pngwn)!
-
-## 0.4.0-beta.1
+## 0.3.5
 
 ### Patch Changes
 
-- Updated dependencies []:
-  - @gradio/utils@0.2.0-beta.1
-  - @gradio/atoms@0.2.0-beta.1
-  - @gradio/button@0.2.0-beta.1
-  - @gradio/statustracker@0.3.0-beta.1
-  - @gradio/upload@0.3.0-beta.1
-
-## 0.4.0-beta.0
-
-### Features
-
-- [#5507](https://github.com/gradio-app/gradio/pull/5507) [`1385dc688`](https://github.com/gradio-app/gradio/commit/1385dc6881f2d8ae7a41106ec21d33e2ef04d6a9) - Custom components. Thanks [@pngwn](https://github.com/pngwn)!
+- Updated dependencies [[`75ddeb390`](https://github.com/gradio-app/gradio/commit/75ddeb390d665d4484667390a97442081b49a423)]:
+  - @gradio/button@0.2.0
+  - @gradio/upload@0.3.0
 
 ## 0.3.4
 
