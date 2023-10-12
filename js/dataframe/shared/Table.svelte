@@ -34,6 +34,8 @@
 	export let wrap = false;
 	export let height = 500;
 	export let line_breaks = true;
+	export let column_widths: string[] = ["300px", "20%", "5%"];
+
 	let selected: false | [number, number] = false;
 	let display_value: string[][] | null = value?.metadata?.display_value ?? null;
 
@@ -645,7 +647,7 @@
 		role="grid"
 		tabindex="0"
 	>
-		<table bind:clientWidth={t_width} bind:this={table}>
+		<table bind:clientWidth={t_width} bind:this={table} class:fixed-layout={column_widths.length != 0}>
 			{#if label && label.length !== 0}
 				<caption class="sr-only">{label}</caption>
 			{/if}
@@ -655,8 +657,9 @@
 						<th
 							class:editing={header_edit === i}
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
+							style="width: {column_widths[i]};"
 						>
-							<div class="cell-wrap">
+							<div class="cell-wrap header-cell-wrap">
 								<EditableCell
 									{value}
 									{latex_delimiters}
@@ -905,6 +908,10 @@
 		border-spacing: 0;
 	}
 
+	table.fixed-layout {
+		table-layout: fixed;
+	}
+
 	thead {
 		position: sticky;
 		top: 0;
@@ -998,6 +1005,10 @@
 		outline: none;
 		height: var(--size-full);
 		min-height: var(--size-9);
+	}
+
+	.header-cell-wrap {
+		resize: horizontal;
 	}
 
 	.controls-wrap {
