@@ -4,6 +4,7 @@ export async function load_component(api_url, name, mode, id) {
 	const comps = window.__GRADIO__CC__;
 
 	const _component_map = {
+		// eslint-disable-next-line no-undef
 		...component_map,
 		...(!comps ? {} : comps)
 	};

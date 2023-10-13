@@ -17,7 +17,6 @@
 	export let show_label: boolean;
 	export let container = true;
 	export let allow_custom_value = false;
-	export let i18n: I18nFormatter;
 	export let filterable = true;
 
 	let filter_input: HTMLElement;
