@@ -7,3 +7,4 @@ __pycache__/
 *$py.class
 __tmp/*
 *.pyi
+templates/

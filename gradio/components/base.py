@@ -5,8 +5,10 @@ each component. These demos are located in the `demo` directory."""
 from __future__ import annotations
 
 import abc
+import hashlib
 import json
 import os
+import sys
 import tempfile
 from abc import ABC, abstractmethod
 from enum import Enum
@@ -109,9 +111,14 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
 
     @classmethod
     def has_event(cls, event: str | EventListener) -> bool:
-        # names = [e if isinstance(e, str) else e.event_name for e in self.EVENTS]
-        # event = event if isinstance(event, str) else event.event_name
         return event in cls.EVENTS
+
+    @classmethod
+    def get_component_class_id(cls) -> str:
+        module_name = cls.__module__
+        module_path = sys.modules[module_name].__file__
+        module_hash = hashlib.md5(f"{cls.__name__}_{module_path}".encode()).hexdigest()
+        return module_hash
 
 
 def server(fn):
@@ -193,6 +200,11 @@ class Component(ComponentBase, Block):
         )
         if callable(load_fn):
             self.attach_load_event(load_fn, every)
+
+        self.component_class_id = self.__class__.get_component_class_id()
+
+    TEMPLATE_DIR = "./templates/"
+    FRONTEND_DIR = "../../frontend/"
 
     def get_config(self):
         config = super().get_config()

@@ -1,5 +1,16 @@
-import { ChildProcess, spawn } from "node:child_process";
-import { create_server } from "./dev_server";
+import { ChildProcess, spawn, spawnSync } from "node:child_process";
+import * as net from "net";
+
+import { create_server } from "./dev";
+import { make_build } from "./build";
+import { join } from "path";
+
+export interface ComponentMeta {
+	name: string;
+	template_dir: string;
+	frontend_dir: string;
+	component_class_id: string;
+}
 
 const args = process.argv.slice(2);
 // get individual args as `--arg value` or `value`
@@ -21,49 +32,62 @@ function parse_args(args: string[]): Record<string, string> {
 const parsed_args = parse_args(args);
 
 async function run(): Promise<void> {
-	const [backend_port, frontend_port] = await find_free_ports(7860, 8860);
-	const options = {
-		component_dir: parsed_args["component-directory"],
-		root_dir: parsed_args.root,
-		frontend_port,
-		backend_port,
-		host: parsed_args.host,
-		...parsed_args
-	};
-	process.env.GRADIO_BACKEND_PORT = backend_port.toString();
+	if (parsed_args.mode === "build") {
+		await make_build({
+			component_dir: parsed_args["component-directory"],
+			root_dir: parsed_args.root
+		});
+	} else {
+		const [backend_port, frontend_port] = await find_free_ports(7860, 8860);
+		const options = {
+			component_dir: parsed_args["component-directory"],
+			root_dir: parsed_args.root,
+			frontend_port,
+			backend_port,
+			host: parsed_args.host,
+			...parsed_args
+		};
+		process.env.GRADIO_BACKEND_PORT = backend_port.toString();
 
-	const _process = spawn(
-		`gradio`,
-		[parsed_args.app, "--watch-dirs", options.component_dir],
-		{
-			shell: true,
-			stdio: "pipe",
-			cwd: process.cwd(),
-			env: {
-				...process.env,
-				GRADIO_SERVER_PORT: backend_port.toString(),
-				PYTHONUNBUFFERED: "true"
+		const _process = spawn(
+			`gradio`,
+			[parsed_args.app, "--watch-dirs", options.component_dir],
+			{
+				shell: true,
+				stdio: "pipe",
+				cwd: process.cwd(),
+				env: {
+					...process.env,
+					GRADIO_SERVER_PORT: backend_port.toString(),
+					PYTHONUNBUFFERED: "true"
+				}
 			}
+		);
+
+		_process.stdout.setEncoding("utf8");
+
+		function std_out(data: Buffer): void {
+			const _data = data.toString();
+
+			if (_data.includes("Running on")) {
+				create_server({
+					component_dir: options.component_dir,
+					root_dir: options.root_dir,
+					frontend_port,
+					backend_port,
+					host: options.host
+				});
+			}
+
+			process.stdout.write(_data);
 		}
-	);
 
-	_process.stdout.setEncoding("utf8");
-
-	function std_out(data: Buffer): void {
-		const _data = data.toString();
-
-		if (_data.includes("Running on")) {
-			const server = create_server({ ...options });
-		}
-
-		process.stdout.write(_data);
+		_process.stdout.on("data", std_out);
+		_process.stderr.on("data", std_out);
+		_process.on("exit", () => kill_process(_process));
+		_process.on("close", () => kill_process(_process));
+		_process.on("disconnect", () => kill_process(_process));
 	}
-
-	_process.stdout.on("data", std_out);
-	_process.stderr.on("data", std_out);
-	_process.on("exit", () => kill_process(_process));
-	_process.on("close", () => kill_process(_process));
-	_process.on("disconnect", () => kill_process(_process));
 }
 
 function kill_process(process: ChildProcess): void {
@@ -73,8 +97,6 @@ function kill_process(process: ChildProcess): void {
 export { create_server };
 
 run();
-
-import * as net from "net";
 
 export async function find_free_ports(
 	start_port: number,
@@ -113,4 +135,35 @@ export function is_free_port(port: number): Promise<boolean> {
 			}
 		});
 	});
+}
+
+export function examine_module(
+	component_dir: string,
+	root: string,
+	mode: "build" | "dev"
+): ComponentMeta[] {
+	const _process = spawnSync(
+		"python",
+		[join(root, "..", "..", "node", "examine.py"), "-m", mode],
+		{
+			cwd: join(component_dir, "backend"),
+			stdio: "pipe"
+		}
+	);
+
+	return _process.stdout
+		.toString()
+		.trim()
+		.split("\n")
+		.map((line) => {
+			const [name, template_dir, frontend_dir, component_class_id] =
+				line.split("~|~|~|~");
+
+			return {
+				name: name.trim(),
+				template_dir: template_dir.trim(),
+				frontend_dir: frontend_dir.trim(),
+				component_class_id: component_class_id.trim()
+			};
+		});
 }

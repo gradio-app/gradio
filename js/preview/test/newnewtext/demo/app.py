@@ -1,4 +1,3 @@
-
 import gradio as gr
 from newnewtext import NewNewText
 

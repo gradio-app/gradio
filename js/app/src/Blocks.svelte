@@ -1,12 +1,10 @@
 <script lang="ts">
+	import { load_component } from "virtual:component-loader";
+
 	import { onMount, tick } from "svelte";
 	import { _ } from "svelte-i18n";
 	import type { client } from "@gradio/client";
 
-	import {
-		component_map,
-		fallback_component_map
-	} from "./components/directory";
 	import { create_loading_status_store } from "./stores";
 	import type { LoadingStatusCollection } from "./stores";
 
@@ -44,6 +42,7 @@
 	export let app: Awaited<ReturnType<typeof client>>;
 	export let space_id: string | null;
 	export let version: string;
+	export let api_url: string;
 
 	let loading_status = create_loading_status_store();
 
@@ -53,7 +52,8 @@
 		props: { mode: "static" },
 		has_modes: false,
 		instance: null as unknown as ComponentMeta["instance"],
-		component: null as unknown as ComponentMeta["component"]
+		component: null as unknown as ComponentMeta["component"],
+		component_class_id: ""
 	};
 
 	const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
@@ -118,51 +118,6 @@
 		default: ComponentMeta["component"];
 	};
 
-	async function load_component<T extends ComponentMeta["type"]>(
-		name: T,
-		mode: ComponentMeta["props"]["mode"] | "example"
-	): Promise<{
-		name: T;
-		component: LoadedComponent;
-	}> {
-		try {
-			//@ts-ignore
-			const c = await component_map[name][mode]();
-			return {
-				name,
-				component: c as LoadedComponent
-			};
-		} catch (e) {
-			if (mode === "example") {
-				try {
-					return load_custom_component(name, "example");
-				} catch (e) {
-					return {
-						name,
-						component: await import("@gradio/fallback/example")
-					};
-				}
-			}
-			if (mode === "interactive") {
-				try {
-					const c = await component_map[name]["static"]();
-					return {
-						name,
-						component: c as LoadedComponent
-					};
-				} catch (e) {
-					console.error(`failed to load: ${name}`);
-					console.error(e);
-					throw e;
-				}
-			} else {
-				console.error(`failed to load: ${name}`);
-				console.error(e);
-				throw e;
-			}
-		}
-	}
-
 	let component_set = new Set<
 		Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
 	>();
@@ -203,50 +158,6 @@
 	export let render_complete = false;
 
 	$: components, layout, prepare_components();
-
-	async function load_custom_component<T extends ComponentMeta["type"]>(
-		name: T,
-		mode: ComponentMeta["props"]["mode"] | "example"
-	): Promise<{
-		name: T;
-		component: LoadedComponent;
-	}> {
-		const comps = "__ROOT_PATH__";
-		try {
-			if (
-				typeof comps !== "object" ||
-				!comps?.[name] ||
-				!comps?.[name]?.[mode]
-			) {
-				throw new Error(`Component ${name} not found`);
-			}
-			//@ts-ignore
-			const c = await comps[name][mode]();
-			return {
-				name,
-				component: c as LoadedComponent
-			};
-		} catch (e) {
-			if (mode === "interactive") {
-				try {
-					//@ts-ignore
-					const c = await comps[name]["static"]();
-					return {
-						name,
-						component: c as LoadedComponent
-					};
-				} catch (e) {
-					console.error(`failed to load: ${name}`);
-					console.error(e);
-					throw e;
-				}
-			} else {
-				// console.error(`failed to load: ${name}`);
-				// console.error(e);
-				throw e;
-			}
-		}
-	}
 
 	function prepare_components(): void {
 		loading_status = create_loading_status_store();
@@ -329,8 +240,11 @@
 					}
 					let _c;
 
+					const id = components.find(
+						(c) => c.type === name
+					)?.component_class_id;
 					//@ts-ignore
-					_c = load_component(name, "example");
+					_c = load_component(api_url, name, "example", id);
 
 					example_component_map.set(name, _c);
 				});
@@ -340,9 +254,12 @@
 
 			// maybe load custom
 
-			const _c = c.props.custom_component
-				? load_custom_component(c.type, c.props.mode)
-				: load_component(c.type, c.props.mode);
+			const _c = load_component(
+				api_url,
+				c.type,
+				c.props.mode,
+				c.component_class_id
+			);
 			_component_set.add(_c);
 			__component_map.set(`${c.type}_${c.props.mode}`, _c);
 		});
@@ -372,7 +289,12 @@
 		if (instance.props.mode === new_mode) return;
 
 		instance.props.mode = new_mode;
-		const _c = load_component(instance.type, instance.props.mode);
+		const _c = load_component(
+			api_url,
+			instance.type,
+			instance.props.mode,
+			instance.component_class_id
+		);
 		component_set.add(_c);
 		_component_map.set(
 			`${instance.type}_${instance.props.mode}`,

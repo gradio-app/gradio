@@ -105,6 +105,7 @@
 	let config: Config;
 	let loading_text = $_("common.loading") + "...";
 	let active_theme_mode: ThemeMode;
+	let api_url: string;
 
 	$: if (config?.app_id) {
 		app_id = config.app_id;
@@ -201,12 +202,13 @@
 		//@ts-ignore
 		const server_port = window.__GRADIO__SERVER_PORT__;
 
-		const api_url =
+		api_url =
 			BUILD_MODE === "dev" || gradio_dev_mode === "dev"
 				? `http://localhost:${
 						typeof server_port === "number" ? server_port : 7860
 				  }`
 				: host || space || src || location.origin;
+
 		app = await client(api_url, {
 			status_callback: handle_status,
 			normalise_files: false
@@ -377,6 +379,7 @@
 			show_footer={!is_embed}
 			{app_mode}
 			{version}
+			{api_url}
 		/>
 	{/if}
 </Embed>

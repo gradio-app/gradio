@@ -371,6 +371,32 @@ class App(FastAPI):
             static_file = safe_join(STATIC_PATH_LIB, path)
             return FileResponse(static_file)
 
+        @app.get("/custom_component/{id}/{type}/{file_name}")
+        def custom_component_path(id: str, type: str, file_name: str):
+            config = app.get_blocks().config
+            components = config["components"]
+            location = next(
+                (item for item in components if item["component_class_id"] == id), None
+            )
+
+            if location is None:
+                raise HTTPException(status_code=404, detail="Component not found.")
+
+            component_instance = app.get_blocks().get_component(location["id"])
+
+            module_name = component_instance.__class__.__module__
+            module_path = sys.modules[module_name].__file__
+
+            if module_path is None or component_instance is None:
+                raise HTTPException(status_code=404, detail="Component not found.")
+
+            return FileResponse(
+                safe_join(
+                    str(Path(module_path).parent),
+                    f"{component_instance.__class__.TEMPLATE_DIR}/{type}/{file_name}",
+                )
+            )
+
         @app.get("/assets/{path:path}")
         def build_resource(path: str):
             build_file = safe_join(BUILD_PATH_LIB, path)

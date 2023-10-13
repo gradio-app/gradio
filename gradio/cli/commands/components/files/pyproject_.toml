@@ -1,5 +1,9 @@
 [build-system]
-requires = ["hatchling", "hatch-requirements-txt", "hatch-fancy-pypi-readme>=22.5.0"]
+requires = [
+  "hatchling",
+  "hatch-requirements-txt",
+  "hatch-fancy-pypi-readme>=22.5.0",
+]
 build-backend = "hatchling.build"
 
 [project]
@@ -8,10 +12,14 @@ version = "0.0.1"
 description = "Python library for easily interacting with trained machine learning models"
 license = "Apache-2.0"
 requires-python = ">=3.8"
-authors = [
-  { name = "YOUR NAME", email = "YOUREMAIL@domain.com" },
+authors = [{ name = "YOUR NAME", email = "YOUREMAIL@domain.com" }]
+keywords = [
+  "machine learning",
+  "reproducibility",
+  "visualization",
+  "gradio",
+  "gradio custom component",
 ]
-keywords = ["machine learning", "reproducibility", "visualization", "gradio", "gradio custom component"]
 # Add dependencies here
 dependencies = ["gradio"]
 classifiers = [
@@ -29,11 +37,13 @@ classifiers = [
   'Topic :: Scientific/Engineering :: Visualization',
 ]
 
+[project.optional-dependencies]
+dev = ["build", "twine"]
+
 [tool.hatch.build]
-artifacts = [
-  "/backend/<<name>>/templates",
-  "*.pyi"
-]
+artifacts = ["/backend/<<name>>/templates", "*.pyi"]
+
+[tool.hatch.build.targets.wheel]
 packages = ["/backend/<<name>>"]
 
 [tool.hatch.metadata]

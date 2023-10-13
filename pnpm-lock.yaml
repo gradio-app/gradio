@@ -409,6 +409,9 @@ importers:
       '@gradio/dataframe':
         specifier: workspace:^
         version: link:../dataframe
+      '@gradio/dataset':
+        specifier: workspace:^
+        version: link:../dataset
       '@gradio/dropdown':
         specifier: workspace:^
         version: link:../dropdown
@@ -517,6 +520,9 @@ importers:
       postcss-prefix-selector:
         specifier: ^1.16.0
         version: 1.16.0(postcss@8.4.21)
+      svelte:
+        specifier: ^4.2.1
+        version: 4.2.1
 
   js/atoms:
     dependencies:
@@ -769,6 +775,18 @@ importers:
         specifier: ^7.0.0
         version: 7.0.0
 
+  js/dataset:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/upload':
+        specifier: workspace:^
+        version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+
   js/dropdown:
     dependencies:
       '@gradio/atoms':
@@ -797,7 +815,7 @@ importers:
         version: link:../utils
       '@zerodevx/svelte-json-view':
         specifier: ^1.0.7
-        version: 1.0.7(svelte@4.2.0)
+        version: 1.0.7(svelte@4.2.1)
 
   js/file:
     dependencies:
@@ -885,48 +903,6 @@ importers:
       dequal:
         specifier: ^2.0.2
         version: 2.0.2
-
-  js/gradio-preview/test/coolslider/frontend:
-    dependencies:
-      '@gradio/atoms':
-        specifier: workspace:^
-        version: link:../../../../atoms
-      '@gradio/statustracker':
-        specifier: workspace:^
-        version: link:../../../../statustracker
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../../../../utils
-
-  js/gradio-preview/test/newtextbox/frontend:
-    dependencies:
-      '@gradio/atoms':
-        specifier: workspace:^
-        version: link:../../../../atoms
-      '@gradio/icons':
-        specifier: workspace:^
-        version: link:../../../../icons
-      '@gradio/statustracker':
-        specifier: workspace:^
-        version: link:../../../../statustracker
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../../../../utils
-
-  js/gradio-preview/test/segaeditor/frontend:
-    dependencies:
-      '@gradio/atoms':
-        specifier: workspace:^
-        version: link:../../../../atoms
-      '@gradio/statustracker':
-        specifier: workspace:^
-        version: link:../../../../statustracker
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../../../../utils
-      '@zerodevx/svelte-json-view':
-        specifier: ^1.0.7
-        version: 1.0.7(svelte@4.2.0)
 
   js/group: {}
 
@@ -1135,6 +1111,9 @@ importers:
 
   js/preview:
     dependencies:
+      '@iarna/toml':
+        specifier: ^3.0.0
+        version: 3.0.0
       '@originjs/vite-plugin-commonjs':
         specifier: ^1.0.3
         version: 1.0.3
@@ -1202,6 +1181,54 @@ importers:
       vite:
         specifier: ^4.4.9
         version: 4.4.9(@types/node@20.3.1)(less@4.1.3)(lightningcss@1.21.7)(sass@1.66.1)(stylus@0.60.0)(sugarss@4.0.1)
+
+  js/preview/test/imageslider/frontend:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../../../../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../../../../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../../../../statustracker
+      '@gradio/upload':
+        specifier: workspace:^
+        version: link:../../../../upload
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../../../../utils
+      cropperjs:
+        specifier: ^1.5.12
+        version: 1.5.12
+      lazy-brush:
+        specifier: ^1.0.1
+        version: 1.0.1
+      resize-observer-polyfill:
+        specifier: ^1.5.1
+        version: 1.5.1
+
+  js/preview/test/newnewtext/frontend:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../../../../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../../../../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../../../../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../../../../utils
+
+  js/preview/test/newtext/frontend:
+    dependencies:
+      '@zerodevx/svelte-json-view':
+        specifier: ^1.0
+        version: 1.0.7(svelte@4.2.1)
 
   js/radio:
     dependencies:
@@ -1333,7 +1360,7 @@ importers:
         version: link:../theme
       svelte-i18n:
         specifier: ^3.6.0
-        version: 3.7.0(svelte@4.2.0)
+        version: 3.7.0(svelte@4.2.1)
 
   js/video:
     dependencies:
@@ -4806,6 +4833,10 @@ packages:
   /@humanwhocodes/object-schema@1.2.1:
     resolution: {integrity: sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==}
 
+  /@iarna/toml@3.0.0:
+    resolution: {integrity: sha512-td6ZUkz2oS3VeleBcN+m//Q6HlCFCPrnI0FZhrt/h4XqLEdOyYp2u21nd8MdsR+WJy5r9PTDaHTDDfhf4H4l6Q==}
+    dev: false
+
   /@istanbuljs/load-nyc-config@1.1.0:
     resolution: {integrity: sha512-VjeHSlIzpv/NyD3N0YuHfXOPDIixcA1q2ZV98wsMqcYlPmv2n3Yb2lYP9XMElnaFVXg5A7YLTeLu6V84uQDjmQ==}
     engines: {node: '>=8'}
@@ -7602,12 +7633,12 @@ packages:
       tslib: 2.6.1
     dev: true
 
-  /@zerodevx/svelte-json-view@1.0.7(svelte@4.2.0):
+  /@zerodevx/svelte-json-view@1.0.7(svelte@4.2.1):
     resolution: {integrity: sha512-yW0MV+9BCKOwzt3h86y3xDqYdI5st+Rxk+L5pa0Utq7nlPD+VvxyhL7R1gJoLxQvWwjyAvY/fyUCFTdwDyI14w==}
     peerDependencies:
       svelte: ^3.57.0 || ^4.0.0
     dependencies:
-      svelte: 4.2.0
+      svelte: 4.2.1
     dev: false
 
   /@zxing/text-encoding@0.9.0:
@@ -14635,7 +14666,7 @@ packages:
       tiny-glob: 0.2.9
     dev: false
 
-  /svelte-i18n@3.7.0(svelte@4.2.0):
+  /svelte-i18n@3.7.0(svelte@4.2.1):
     resolution: {integrity: sha512-kfdJsYsyOE9tFEVtjPXvrUaufXQnbFAI6LsX9vaQP+xm8A5Wao2qQ6pRZmIUCAvXvYQt7aXQ7hK9+NP9AlxehA==}
     engines: {node: '>= 16'}
     hasBin: true
@@ -14647,7 +14678,7 @@ packages:
       estree-walker: 2.0.2
       intl-messageformat: 9.13.0
       sade: 1.8.1
-      svelte: 4.2.0
+      svelte: 4.2.1
       tiny-glob: 0.2.9
     dev: false
 
@@ -14863,6 +14894,25 @@ packages:
       locate-character: 3.0.0
       magic-string: 0.30.1
       periscopic: 3.1.0
+
+  /svelte@4.2.1:
+    resolution: {integrity: sha512-LpLqY2Jr7cRxkrTc796/AaaoMLF/1ax7cto8Ot76wrvKQhrPmZ0JgajiWPmg9mTSDqO16SSLiD17r9MsvAPTmw==}
+    engines: {node: '>=16'}
+    dependencies:
+      '@ampproject/remapping': 2.2.1
+      '@jridgewell/sourcemap-codec': 1.4.15
+      '@jridgewell/trace-mapping': 0.3.18
+      acorn: 8.10.0
+      aria-query: 5.3.0
+      axobject-query: 3.2.1
+      code-red: 1.0.3
+      css-tree: 2.3.1
+      estree-walker: 3.0.3
+      is-reference: 3.0.1
+      locate-character: 3.0.0
+      magic-string: 0.30.1
+      periscopic: 3.1.0
+    dev: false
 
   /sveltedoc-parser@4.2.1:
     resolution: {integrity: sha512-sWJRa4qOfRdSORSVw9GhfDEwsbsYsegnDzBevUCF6k/Eis/QqCu9lJ6I0+d/E2wOWCjOhlcJ3+jl/Iur+5mmCw==}
