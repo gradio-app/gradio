@@ -5,22 +5,14 @@
 ### Patch Changes
 
 - Updated dependencies []:
-<<<<<<< HEAD
-  - @gradio/atoms@0.2.0-beta.3
-  - @gradio/statustracker@0.3.0-beta.4
-
-## 0.1.0-beta.3
-=======
   - @gradio/atoms@0.1.4
   - @gradio/statustracker@0.2.2
 
 ## 0.1.1
->>>>>>> main
 
 ### Patch Changes
 
 - Updated dependencies []:
-<<<<<<< HEAD
   - @gradio/atoms@0.2.0-beta.2
   - @gradio/statustracker@0.3.0-beta.3
 
@@ -43,7 +35,6 @@
 ### Features
 
 - [#5507](https://github.com/gradio-app/gradio/pull/5507) [`1385dc688`](https://github.com/gradio-app/gradio/commit/1385dc6881f2d8ae7a41106ec21d33e2ef04d6a9) - Custom components. Thanks [@pngwn](https://github.com/pngwn)!
-=======
   - @gradio/atoms@0.1.3
   - @gradio/statustracker@0.2.1
 
@@ -52,7 +43,6 @@
 ### Features
 
 - [#5554](https://github.com/gradio-app/gradio/pull/5554) [`75ddeb390`](https://github.com/gradio-app/gradio/commit/75ddeb390d665d4484667390a97442081b49a423) - Accessibility Improvements. Thanks [@hannahblair](https://github.com/hannahblair)!
->>>>>>> main
 
 ## 0.0.4
 

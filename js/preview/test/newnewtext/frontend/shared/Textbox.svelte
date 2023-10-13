@@ -6,6 +6,14 @@
 	import type { SelectData } from "@gradio/utils";
 	import type { ActionReturn } from "svelte/action";
 
+	import("./test").then((m) => {
+		m.fn();
+	});
+
+	import("./Dynamic.svelte").then((m) => {
+		console.log(m);
+	});
+
 	export let value = "";
 	export let value_is_output = false;
 	export let lines = 1;

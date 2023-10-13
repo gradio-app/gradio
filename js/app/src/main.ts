@@ -4,8 +4,12 @@ import "@gradio/theme/src/pollen.css";
 import "@gradio/theme/src/typography.css";
 import { client, upload_files } from "@gradio/client";
 import { mount_css } from "./css";
-import Index from "./Index.svelte";
+import type Index from "./Index.svelte";
+
 import type { ThemeMode } from "./components/types";
+
+//@ts-ignore
+import * as svelte from "./svelte/svelte.js";
 
 declare let BUILD_MODE: string;
 declare let GRADIO_VERSION: string;
@@ -16,7 +20,24 @@ let FONTS: string | [];
 
 FONTS = "__FONTS_CSS__";
 
+//@ts-ignore
+let IndexComponent;
 function create_custom_element(): void {
+	const o = {
+		SvelteComponent: svelte.SvelteComponent
+	};
+	for (const key in svelte) {
+		if (key === "SvelteComponent") continue;
+		if (key === "SvelteComponentDev") {
+			//@ts-ignore
+			o[key] = o["SvelteComponent"];
+		} else {
+			//@ts-ignore
+			o[key] = svelte[key];
+		}
+	}
+	//@ts-ignore
+	window.__gradio__svelte__internal = o;
 	class GradioApp extends HTMLElement {
 		control_page_title: string | null;
 		initial_height: string;
@@ -52,6 +73,7 @@ function create_custom_element(): void {
 		}
 
 		async connectedCallback(): Promise<void> {
+			IndexComponent = (await import("./Index.svelte")).default;
 			this.loading = true;
 
 			if (this.app) {
@@ -76,7 +98,7 @@ function create_custom_element(): void {
 
 			observer.observe(this, { childList: true });
 
-			this.app = new Index({
+			this.app = new IndexComponent({
 				target: this,
 				props: {
 					// embed source
@@ -143,7 +165,7 @@ function create_custom_element(): void {
 					this.src = new_val;
 				}
 
-				this.app = new Index({
+				this.app = new IndexComponent({
 					target: this,
 					props: {
 						// embed source

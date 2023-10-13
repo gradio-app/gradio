@@ -20,6 +20,7 @@
 		"vite": "^4.4.9"
 	},
 	"dependencies": {
+		"@iarna/toml": "^3.0.0",
 		"@originjs/vite-plugin-commonjs": "^1.0.3",
 		"@rollup/plugin-sucrase": "^5.0.1",
 		"@sveltejs/vite-plugin-svelte": "^2.4.2",

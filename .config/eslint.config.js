@@ -60,7 +60,8 @@ export default [
 			"js/app/test/**/*",
 			"**/*vite.config.ts",
 			"**/_website/**/*",
-			"**/_spaces-test/**/*"
+			"**/_spaces-test/**/*",
+			"**/preview/test/**/*"
 		]
 	},
 	{

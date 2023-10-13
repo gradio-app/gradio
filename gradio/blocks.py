@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import inspect
 import json
 import os
@@ -190,12 +191,6 @@ class Block:
             if hasattr(self, parameter.name):
                 value = getattr(self, parameter.name)
                 config[parameter.name] = value
-        custom = not (
-            self.__module__.startswith("gradio.components")
-            or self.__module__.startswith("gradio.layouts")
-            or self.__module__.startswith("gradio.templates")
-        )
-        config["custom_component"] = custom
         for e in self.events:
             to_add = e.config_data()
             if to_add:
@@ -230,9 +225,23 @@ class BlockContext(Block):
         self.children: list[Block] = []
         Block.__init__(self, visible=visible, render=render, **kwargs)
 
+    TEMPLATE_DIR = "./templates/"
+    FRONTEND_DIR = "../../frontend/"
+
     @property
     def skip_api(self):
         return True
+
+    @classmethod
+    def get_component_class_id(cls) -> str:
+        module_name = cls.__module__
+        module_path = sys.modules[module_name].__file__
+        module_hash = hashlib.md5(f"{cls.__name__}_{module_path}".encode()).hexdigest()
+        return module_hash
+
+    @property
+    def component_class_id(self):
+        return self.get_component_class_id()
 
     def add_child(self, child: Block):
         self.children.append(child)
@@ -1502,6 +1511,10 @@ Received outputs:
                 "props": utils.delete_none(props),
             }
             block_config["skip_api"] = block.skip_api
+            block_config["component_class_id"] = getattr(
+                block, "component_class_id", None
+            )
+
             if not block.skip_api:
                 block_config["api_info"] = block.api_info()  # type: ignore
                 block_config["example_inputs"] = block.example_inputs()  # type: ignore
@@ -1603,7 +1616,7 @@ Received outputs:
                 name=name, src=src, hf_token=api_key, alias=alias, **kwargs
             )
         else:
-            from gradio.events import Dependency
+            from gradio.events import Dependency, EventListenerMethod
 
             if Context.root_block is None:
                 raise AttributeError(

@@ -8,7 +8,7 @@ from typing_extensions import Annotated
 
 import gradio
 
-gradio_template_path = Path(gradio.__file__).parent / "templates" / "dev"
+gradio_template_path = Path(gradio.__file__).parent / "templates" / "frontend"
 gradio_node_path = Path(gradio.__file__).parent / "node" / "dev" / "files" / "index.js"
 
 
@@ -51,6 +51,8 @@ def _dev(
             gradio_template_path,
             "--app",
             str(app),
+            "--mode",
+            "dev",
             "--host",
             host,
         ],
@@ -69,6 +71,7 @@ def _dev(
             .replace("Watching:", "[orange3]Watching:[/]")
             .replace("Running on local URL", "[orange3]Backend Server[/]")
         )
+
         if "[orange3]Watching:[/]" in text:
             text += f"'{str(component_directory / 'frontend').strip()}',"
         if "To create a public link" in text:

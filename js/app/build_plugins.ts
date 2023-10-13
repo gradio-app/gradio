@@ -89,56 +89,26 @@ export function generate_cdn_entry({
 	};
 }
 
+const RE_SVELTE_IMPORT =
+	/import\s+([\w*{},\s]+)\s+from\s+['"](svelte|svelte\/internal)['"]/g;
+
 export function generate_dev_entry({ enable }: { enable: boolean }): Plugin {
 	return {
-		enforce: "pre",
 		name: "generate-dev-entry",
-		resolveId(id, importer) {
-			if (!enable) return;
-			if (
-				!id.includes(".svelte") &&
-				(importer?.includes("svelte") || id.includes("svelte"))
-			)
-				if (id === "svelte") {
-					return "../../../node/dev/svelte-internal.js";
-				}
-
-			if (id === "svelte/internal") {
-				return "../../../node/dev/svelte-internal.js";
-			}
-
-			if (id === "svelte/internal/disclose-version") {
-				return "../../../node/dev/svelte-disclose.js";
-			}
-		},
-		writeBundle(config, bundle) {
+		transform(code, id) {
 			if (!enable) return;
 
-			if (
-				!config.dir ||
-				!bundle["index.html"] ||
-				bundle["index.html"].type !== "asset"
-			)
-				return;
+			const new_code = code.replace(RE_SVELTE_IMPORT, (str, $1, $2) => {
+				return `const ${$1.replace(
+					" as ",
+					": "
+				)} = window.__gradio__svelte__internal;`;
+			});
 
-			const tree = parse(bundle["index.html"].source as string);
-
-			const gradio_script = tree.querySelector("script[data-gradio-mode]");
-
-			const script_location = gradio_script?.firstChild?.range;
-			if (!script_location) return;
-			const dev_script =
-				(bundle["index.html"].source as string).substring(
-					0,
-					script_location[1]
-				) +
-				`\t\twindow.__GRADIO_DEV__ = "dev"\n` +
-				(bundle["index.html"].source as string).substring(
-					script_location[1],
-					bundle["index.html"].source.length
-				);
-
-			writeFileSync(join(config.dir, "..", "dev", "index.html"), dev_script);
+			return {
+				code: new_code,
+				map: null
+			};
 		}
 	};
 }
@@ -228,6 +198,140 @@ export function handle_ce_css(): Plugin {
 			);
 
 			writeFileSync(html_location, transformed_html);
+		}
+	};
+}
+
+// generate component importsy
+
+import * as url from "url";
+const __filename = url.fileURLToPath(import.meta.url);
+const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
+
+import { readdirSync, existsSync, readFileSync, statSync } from "fs";
+
+function get_export_path(
+	path: string,
+	root: string,
+	pkg_json: Record<string, any>
+): string | undefined {
+	if (!pkg_json.exports) return undefined;
+	const _path = join(root, "..", `${pkg_json.exports[`./${path}`]}`);
+
+	return existsSync(_path) ? _path : undefined;
+}
+
+function generate_component_imports(): string {
+	const components = readdirSync(join(__dirname, ".."))
+		.map((dir) => {
+			if (!statSync(join(__dirname, "..", dir)).isDirectory()) return undefined;
+
+			const package_json_path = join(__dirname, "..", dir, "package.json");
+			if (existsSync(package_json_path)) {
+				const package_json = JSON.parse(
+					readFileSync(package_json_path, "utf8")
+				);
+
+				const interactive = get_export_path(
+					"interactive",
+					package_json_path,
+					package_json
+				);
+				const example = get_export_path(
+					"example",
+					package_json_path,
+					package_json
+				);
+				const static_dir = get_export_path(
+					"static",
+					package_json_path,
+					package_json
+				);
+
+				if (!interactive && !example && !static_dir) return undefined;
+
+				return {
+					name: package_json.name,
+					interactive,
+					example,
+					static: static_dir
+				};
+			}
+			return undefined;
+		})
+		.filter((x) => x !== undefined);
+
+	const imports = components.reduce((acc, component) => {
+		if (!component) return acc;
+
+		const interactive = component.interactive
+			? `interactive: () => import("${component.name}/interactive"),\n`
+			: "";
+		const example = component.example
+			? `example: () => import("${component.name}/example"),\n`
+			: "";
+		return `${acc}"${component.name.replace("@gradio/", "")}": {
+			${interactive}
+			${example}
+			static: () => import("${component.name}/static")
+			},\n`;
+	}, "");
+
+	return imports;
+}
+
+function load_virtual_component_loader(): string {
+	const loader_path = join(__dirname, "component_loader.js");
+	const component_map = `
+const component_map = {
+	${generate_component_imports()}
+};
+`;
+
+	return `${component_map}\n\n${readFileSync(loader_path, "utf8")}`;
+}
+
+export function inject_component_loader(): Plugin {
+	const v_id = "virtual:component-loader";
+	const resolved_v_id = "\0" + v_id;
+
+	return {
+		name: "inject-component-loader",
+		enforce: "pre",
+		resolveId(id: string) {
+			if (id === v_id) return resolved_v_id;
+		},
+		load(id: string) {
+			if (id === resolved_v_id) {
+				return load_virtual_component_loader();
+			}
+		}
+	};
+}
+
+export function resolve_svelte(enable: boolean): Plugin {
+	return {
+		enforce: "pre",
+		name: "resolve-svelte",
+		async resolveId(id: string) {
+			if (
+				(enable && id === "./svelte/svelte.js") ||
+				id === "svelte" ||
+				id === "svelte/internal"
+			) {
+				const mod = join(
+					__dirname,
+					"..",
+					"..",
+					"gradio",
+					"templates",
+					"frontend",
+					"assets",
+					"svelte",
+					"svelte.js"
+				);
+				return { id: mod, external: "absolute" };
+			}
 		}
 	};
 }

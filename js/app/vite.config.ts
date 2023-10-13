@@ -11,7 +11,9 @@ import { resolve } from "path";
 
 const version_path = resolve(__dirname, "../../gradio/package.json");
 const theme_token_path = resolve(__dirname, "../theme/src/tokens.css");
-const version_raw = JSON.parse(readFileSync(version_path, { encoding: "utf-8" })).version.trim();
+const version_raw = JSON.parse(
+	readFileSync(version_path, { encoding: "utf-8" })
+).version.trim();
 const version = version_raw.replace(/\./g, "-");
 
 const client_version_path = resolve(
@@ -29,7 +31,9 @@ import {
 	patch_dynamic_import,
 	generate_cdn_entry,
 	generate_dev_entry,
-	handle_ce_css
+	handle_ce_css,
+	inject_component_loader,
+	resolve_svelte
 } from "./build_plugins";
 
 const GRADIO_VERSION = process.env.GRADIO_VERSION || "asd_stub_asd";
@@ -44,8 +48,8 @@ export default defineConfig(({ mode }) => {
 	const targets = {
 		"production:cdn": "../../gradio/templates/cdn",
 		"production:local": "../../gradio/templates/frontend",
-		"dev:custom": "../../gradio/templates/dev",
-	}
+		"dev:custom": "../../gradio/templates/frontend"
+	};
 	const CDN_URL = mode === "production:cdn" ? CDN : "/";
 	const production =
 		mode === "production:cdn" ||
@@ -67,9 +71,7 @@ export default defineConfig(({ mode }) => {
 			sourcemap: true,
 			target: "esnext",
 			minify: production,
-			outDir: is_lite
-				? resolve(__dirname, "../lite/dist")
-				: targets[mode],
+			outDir: is_lite ? resolve(__dirname, "../lite/dist") : targets[mode],
 			// To build Gradio-lite as a library, we can't use the library mode
 			// like `lib: is_lite && {}`
 			// because it inevitably enables inlining of all the static file assets,
@@ -97,12 +99,8 @@ export default defineConfig(({ mode }) => {
 						}
 				  }
 				: {
-						external: [
-							"__REPLACE_ME_INTERACTIVE__",
-							"__REPLACE_ME_STATIC__",
-							"../../../node/dev/svelte.js",
-							"../../../node/dev/svelte-internal.js"
-						]
+						external: ["./svelte/svelte.js"],
+						makeAbsoluteExternalsRelative: false
 				  }
 		},
 
@@ -137,6 +135,8 @@ export default defineConfig(({ mode }) => {
 			}
 		},
 		plugins: [
+			resolve_svelte(mode === "development"),
+
 			svelte({
 				inspector: true,
 				compilerOptions: {
@@ -153,6 +153,7 @@ export default defineConfig(({ mode }) => {
 					}
 				})
 			}),
+			generate_dev_entry({ enable: mode !== "development" }),
 			inject_ejs(),
 			patch_dynamic_import({
 				mode: is_cdn ? "cdn" : "local",
@@ -160,8 +161,8 @@ export default defineConfig(({ mode }) => {
 				cdn_url: CDN_URL
 			}),
 			generate_cdn_entry({ enable: is_cdn, cdn_url: CDN_URL }),
-			generate_dev_entry({ enable: mode === "dev:custom" }),
-			handle_ce_css()
+			handle_ce_css(),
+			inject_component_loader()
 		],
 		test: {
 			setupFiles: [resolve(__dirname, "../../.config/setup_vite_tests.ts")],

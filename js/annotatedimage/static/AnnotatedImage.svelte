@@ -104,9 +104,9 @@
 					class="base-image"
 					class:fit-height={height}
 					src={_value ? _value.image.data : null}
+					alt="the base file that is annotated"
 				/>
 				{#each _value ? _value?.annotations : [] as ann, i}
-					<!-- svelte-ignore a11y-missing-attribute -->
 					<img
 						alt="segmentation mask identifying {label} within the uploaded file"
 						class="mask fit-height"
@@ -124,9 +124,6 @@
 			{#if show_legend && _value}
 				<div class="legend">
 					{#each _value.annotations as ann, i}
-						<!-- TODO: fix -->
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<!-- svelte-ignore a11y-no-static-element-interactions -->
 						<button
 							class="legend-item"
 							style="background-color: {color_map && ann.label in color_map
