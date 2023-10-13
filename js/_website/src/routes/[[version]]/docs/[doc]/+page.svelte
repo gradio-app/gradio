@@ -216,7 +216,7 @@
 									><img class="anchor-img-small" src={anchor} /></a
 								>
 							</h4>
-							<p class="mb-2 text-lg text-gray-600">{@html obj.description}</p>
+							<p class="mb-2 text-lg text-gray-600">{@html obj.styled_description}</p>
 						</div>
 
 						{#if mode === "components"}

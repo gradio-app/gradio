@@ -97,9 +97,19 @@ def add_guides():
 add_guides()
 
 
+def convert_inline_code_syntax(raw_string: str) -> str:
+    return (raw_string
+            .replace(
+                "{",
+                "<span class='text-orange-500' style='font-family: monospace; font-size: large;' >",
+            )
+            .replace("}", "</span>"))
+
+
 def style_types():
     for mode in docs:
         for cls in docs[mode]:
+            cls["styled_description"] = convert_inline_code_syntax(cls["description"])
             for tag in [
                 "preprocessing",
                 "postprocessing",
@@ -108,14 +118,7 @@ def style_types():
             ]:
                 if tag not in cls["tags"]:
                     continue
-                cls[tag] = (
-                    cls["tags"][tag]
-                    .replace(
-                        "{",
-                        "<span class='text-orange-500' style='font-family: monospace; font-size: large;' >",
-                    )
-                    .replace("}", "</span>")
-                )
+                cls[tag] = convert_inline_code_syntax(cls["tags"][tag])
 
 
 style_types()
