@@ -3,6 +3,7 @@ import * as fs from "fs";
 import { createServer, createLogger } from "vite";
 import { plugins, make_gradio_plugin } from "./plugins";
 import { examine_module } from "./index";
+import { parse } from "@iarna/toml";
 
 const vite_messages_to_ignore = [
 	"Default and named imports from CSS files are deprecated."
@@ -89,8 +90,11 @@ function find_frontend_folders(start_path: string): string[] {
 	dir.forEach((dir) => {
 		const filepath = join(start_path, dir);
 		if (fs.existsSync(filepath)) {
-			if (fs.existsSync(join(filepath, "pyproject.toml")))
-				results.push(filepath);
+			if (fs.existsSync(join(filepath, "pyproject.toml"))) {
+				if (parse(fs.readFileSync(join(filepath, "pyproject.toml"))).project.keywords.indexOf("gradio custom component") > -1) {
+					results.push(filepath);
+				}
+			}
 		}
 	});
 

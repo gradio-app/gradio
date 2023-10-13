@@ -45,6 +45,3 @@ artifacts = ["/backend/<<name>>/templates", "*.pyi"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["/backend/<<name>>"]
-
-[tool.hatch.metadata]
-allow-direct-references = true
