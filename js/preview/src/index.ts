@@ -74,7 +74,8 @@ async function run(): Promise<void> {
 					component_dir: options.component_dir,
 					root_dir: options.root_dir,
 					frontend_port,
-					backend_port
+					backend_port,
+					host: options.host
 				});
 			}
 

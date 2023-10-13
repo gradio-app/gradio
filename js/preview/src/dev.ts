@@ -21,13 +21,15 @@ interface ServerOptions {
 	root_dir: string;
 	frontend_port: number;
 	backend_port: number;
+	host: string;
 }
 
 export async function create_server({
 	component_dir,
 	root_dir,
 	frontend_port,
-	backend_port
+	backend_port,
+	host
 }: ServerOptions): Promise<void> {
 	process.env.gradio_mode = "dev";
 	const imports = generate_imports(component_dir, root_dir);
@@ -48,6 +50,7 @@ export async function create_server({
 			},
 			server: {
 				port: frontend_port,
+				host: host,
 				fs: {
 					allow: [root_dir, NODE_DIR, component_dir]
 				}
