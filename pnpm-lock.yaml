@@ -961,6 +961,12 @@ importers:
 
   js/lite:
     devDependencies:
+      '@gradio/app':
+        specifier: workspace:^
+        version: link:../app
+      '@gradio/wasm':
+        specifier: workspace:^
+        version: link:../wasm
       gradio:
         specifier: workspace:^
         version: link:../../gradio
