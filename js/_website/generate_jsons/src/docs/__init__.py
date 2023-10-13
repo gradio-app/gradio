@@ -1,5 +1,6 @@
 import json
 import os
+import re
 
 from gradio_client.documentation import document_cls, generate_documentation
 
@@ -97,19 +98,27 @@ def add_guides():
 add_guides()
 
 
-def convert_inline_code_syntax(raw_string: str) -> str:
-    return (raw_string
+RX_SINGLE_ASTERISK = re.compile(r'\*([^*]+?)\*')
+RX_BACKTICK = re.compile(r'`([^`]+?)`')
+
+
+def convert_inline_styles(raw_string: str) -> str:
+    output = raw_string
+    output = (output
             .replace(
                 "{",
                 "<span class='text-orange-500' style='font-family: monospace; font-size: large;' >",
             )
             .replace("}", "</span>"))
+    output = RX_SINGLE_ASTERISK.sub(r'<span class="italic font-semibold">\1</span>', output)
+    output = RX_BACKTICK.sub(r"<span class='text-orange-500' style='font-family: monospace; font-size: large;' >\1</span>", output)
+    return output
 
 
 def style_types():
     for mode in docs:
         for cls in docs[mode]:
-            cls["styled_description"] = convert_inline_code_syntax(cls["description"])
+            cls["styled_description"] = convert_inline_styles(cls["description"])
             for tag in [
                 "preprocessing",
                 "postprocessing",
@@ -118,7 +127,7 @@ def style_types():
             ]:
                 if tag not in cls["tags"]:
                     continue
-                cls[tag] = convert_inline_code_syntax(cls["tags"][tag])
+                cls[tag] = convert_inline_styles(cls["tags"][tag])
 
 
 style_types()
