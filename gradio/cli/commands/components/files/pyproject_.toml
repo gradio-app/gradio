@@ -37,6 +37,9 @@ classifiers = [
   'Topic :: Scientific/Engineering :: Visualization',
 ]
 
+[project.optional-dependencies]
+dev = ["build", "twine"]
+
 [tool.hatch.build]
 artifacts = ["/backend/<<name>>/templates", "*.pyi"]
 
