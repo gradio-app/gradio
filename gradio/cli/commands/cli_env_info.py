@@ -4,8 +4,11 @@ for the cli command 'gradio environment'
 import platform
 from importlib import metadata
 
+from rich import print
+
 
 def print_environment_info():
+    """Print Gradio environment information."""
     print("Gradio Environment Information:\n------------------------------")
     print("Operating System:", platform.system())
 

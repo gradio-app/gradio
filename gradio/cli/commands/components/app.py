@@ -4,7 +4,7 @@ from .build import _build
 from .create import _create
 from .dev import _dev
 
-app = Typer()
+app = Typer(help="Create and publish a new Gradio component")
 
 app.command("create", help="Create a new component.")(_create)
 app.command(
