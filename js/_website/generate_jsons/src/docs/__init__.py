@@ -98,18 +98,14 @@ def add_guides():
 add_guides()
 
 
+RX_CURLY_BRACKET = re.compile(r'\{([^}]+?)\}')
 RX_SINGLE_ASTERISK = re.compile(r'\*([^*]+?)\*')
 RX_BACKTICK = re.compile(r'`([^`]+?)`')
 
 
 def convert_inline_styles(raw_string: str) -> str:
     output = raw_string
-    output = (output
-            .replace(
-                "{",
-                "<span class='text-orange-500' style='font-family: monospace; font-size: large;' >",
-            )
-            .replace("}", "</span>"))
+    output = RX_CURLY_BRACKET.sub(r"<span class='text-orange-500' style='font-family: monospace; font-size: large;' >\1</span>", output)
     output = RX_SINGLE_ASTERISK.sub(r'<span class="italic font-semibold">\1</span>', output)
     output = RX_BACKTICK.sub(r"<span class='text-orange-500' style='font-family: monospace; font-size: large;' >\1</span>", output)
     return output
