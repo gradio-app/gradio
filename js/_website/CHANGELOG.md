@@ -1,7 +1,5 @@
 # website
 
-## 0.6.1-beta.0
-
 ## 0.7.1
 
 ### Features
