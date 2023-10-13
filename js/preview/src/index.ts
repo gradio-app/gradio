@@ -4,6 +4,7 @@ import * as net from "net";
 import { create_server } from "./dev";
 import { make_build } from "./build";
 import { join } from "path";
+import which from "which";
 
 export interface ComponentMeta {
 	name: string;
@@ -50,7 +51,7 @@ async function run(): Promise<void> {
 		process.env.GRADIO_BACKEND_PORT = backend_port.toString();
 
 		const _process = spawn(
-			`gradio`,
+			which.sync("gradio"),
 			[parsed_args.app, "--watch-dirs", options.component_dir],
 			{
 				shell: true,
@@ -143,7 +144,7 @@ export function examine_module(
 	mode: "build" | "dev"
 ): ComponentMeta[] {
 	const _process = spawnSync(
-		"python",
+		which.sync("python"),
 		[join(root, "..", "..", "node", "examine.py"), "-m", mode],
 		{
 			cwd: join(component_dir, "backend"),
@@ -156,9 +157,9 @@ export function examine_module(
 		.trim()
 		.split("\n")
 		.map((line) => {
-			if (line !== "~|~|~|~NOT INSTALLED~|~|~|~") {
-				const [name, template_dir, frontend_dir, component_class_id] =
+			const [name, template_dir, frontend_dir, component_class_id] =
 					line.split("~|~|~|~");
+			if (name && template_dir && frontend_dir && component_class_id) {
 				return {
 					name: name.trim(),
 					template_dir: template_dir.trim(),

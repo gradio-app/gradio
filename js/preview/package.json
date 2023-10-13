@@ -24,6 +24,7 @@
 		"@originjs/vite-plugin-commonjs": "^1.0.3",
 		"@rollup/plugin-sucrase": "^5.0.1",
 		"@sveltejs/vite-plugin-svelte": "^2.4.2",
+		"@types/which": "^3.0.0",
 		"coffeescript": "^2.7.0",
 		"css-tree": "2.3.1",
 		"esbuild-wasm": "^0.19.0",
@@ -35,6 +36,7 @@
 		"sucrase": "^3.34.0",
 		"sugarss": "^4.0.1",
 		"svelte": "^4.2.0",
+		"which": "4.0.0",
 		"yootils": "^0.3.1"
 	}
 }
