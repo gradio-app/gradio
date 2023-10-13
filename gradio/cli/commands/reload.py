@@ -101,7 +101,7 @@ def main(
     )
     # extra_args = args[1:] if len(args) == 1 or args[1].startswith("--") else args[2:]
     popen = subprocess.Popen(
-        ["python", "-u", path],
+        [sys.executable, "-u", path],
         env=dict(
             os.environ,
             GRADIO_WATCH_DIRS=",".join(watch_dirs),

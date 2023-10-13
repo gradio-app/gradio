@@ -5,18 +5,15 @@
 	import Table from "../shared";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-
-	type Headers = string[];
-	type Data = (string | number)[][];
-	type Datatype = "str" | "markdown" | "html" | "number" | "bool" | "date";
-
+	import type { Headers, Data, Metadata, Datatype } from "../shared/utils";
 	export let headers: Headers = [];
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: { data: Data; headers: Headers } = {
+	export let value: { data: Data; headers: Headers; metadata: Metadata } = {
 		data: [["", "", ""]],
-		headers: ["1", "2", "3"]
+		headers: ["1", "2", "3"],
+		metadata: null
 	};
 	let old_value: string = JSON.stringify(value);
 	export let value_is_output = false;
@@ -29,6 +26,7 @@
 	export let min_width: number | undefined = undefined;
 	export let root: string;
 
+	export let line_breaks = true;
 	export let gradio: Gradio<{
 		change: never;
 		select: SelectData;
@@ -58,7 +56,6 @@
 			handle_change();
 		}
 	}
-
 	if (
 		(Array.isArray(value) && value?.[0]?.length === 0) ||
 		value.data?.[0]?.length === 0
@@ -67,7 +64,8 @@
 			data: [Array(col_count?.[0] || 3).fill("")],
 			headers: Array(col_count?.[0] || 3)
 				.fill("")
-				.map((_, i) => `${i + 1}`)
+				.map((_, i) => `${i + 1}`),
+			metadata: null
 		};
 	}
 </script>
@@ -92,11 +90,8 @@
 		{label}
 		{row_count}
 		{col_count}
-		values={value}
+		{value}
 		{headers}
-		on:change={({ detail }) => {
-			value = detail;
-		}}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 		{wrap}
 		{datatype}
@@ -104,5 +99,6 @@
 		editable={false}
 		{height}
 		i18n={gradio.i18n}
+		{line_breaks}
 	/>
 </Block>

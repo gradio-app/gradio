@@ -22,7 +22,7 @@ import traceback
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type
 
 import fastapi
 import httpx
@@ -48,7 +48,7 @@ import gradio
 import gradio.ranged_response as ranged_response
 from gradio import processing_utils, route_utils, utils, wasm_utils
 from gradio.context import Context
-from gradio.data_classes import PredictBody, ResetBody
+from gradio.data_classes import ComponentServerBody, PredictBody, ResetBody
 from gradio.deprecation import warn_deprecation
 from gradio.exceptions import Error
 from gradio.oauth import attach_oauth
@@ -61,6 +61,10 @@ from gradio.utils import (
     run_coro_in_background,
     set_task_name,
 )
+
+if TYPE_CHECKING:
+    from gradio.blocks import Block
+
 
 mimetypes.init()
 
@@ -125,6 +129,7 @@ class App(FastAPI):
             (Path(tempfile.gettempdir()) / "gradio").resolve()
         )
         self.change_event: None | threading.Event = None
+        self._asyncio_tasks: list[asyncio.Task] = []
         # Allow user to manually set `docs_url` and `redoc_url`
         # when instantiating an App; when they're not set, disable docs and redoc.
         kwargs.setdefault("docs_url", None)
@@ -169,6 +174,11 @@ class App(FastAPI):
             headers["Authorization"] = f"Bearer {Context.hf_token}"
         rp_req = client.build_request("GET", url, headers=headers)
         return rp_req
+
+    def _cancel_asyncio_tasks(self):
+        for task in self._asyncio_tasks:
+            task.cancel()
+        self._asyncio_tasks = []
 
     @staticmethod
     def create_app(
@@ -302,11 +312,14 @@ class App(FastAPI):
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
-            root_path = request.scope.get("root_path", "")
-
+            root_path = (
+                request.scope.get("root_path")
+                or request.headers.get("X-Direct-Url")
+                or ""
+            )
             if app.auth is None or user is not None:
                 config = app.get_blocks().config
-                config["root"] = root_path
+                config["root"] = route_utils.strip_url(root_path)
             else:
                 config = {
                     "auth_required": True,
@@ -344,9 +357,13 @@ class App(FastAPI):
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request):
-            root_path = request.scope.get("root_path", "")
+            root_path = (
+                request.scope.get("root_path")
+                or request.headers.get("X-Direct-Url")
+                or ""
+            )
             config = app.get_blocks().config
-            config["root"] = root_path
+            config["root"] = route_utils.strip_url(root_path)
             return config
 
         @app.get("/static/{path:path}")
@@ -600,6 +617,7 @@ class App(FastAPI):
                     blocks._queue.process_events, [event], False
                 )
                 set_task_name(task, event.session_hash, event.fn_index, batch=False)
+                app._asyncio_tasks.append(task)
             else:
                 rank = blocks._queue.push(event)
 
@@ -613,6 +631,19 @@ class App(FastAPI):
                 await asyncio.sleep(1)
                 if websocket.application_state == WebSocketState.DISCONNECTED:
                     return
+
+        @app.post("/component_server", dependencies=[Depends(login_check)])
+        @app.post("/component_server/", dependencies=[Depends(login_check)])
+        def component_server(body: ComponentServerBody):
+            state = app.state_holder[body.session_hash]
+            component_id = body.component_id
+            block: Block
+            if component_id in state:
+                block = state[component_id]
+            else:
+                block = app.get_blocks().blocks[component_id]
+            fn = getattr(block, body.fn_name)
+            return fn(body.data)
 
         @app.get(
             "/queue/status",
@@ -630,7 +661,7 @@ class App(FastAPI):
             for input_file in files:
                 output_files.append(
                     await processing_utils.save_uploaded_file(
-                        input_file, app.uploaded_file_dir
+                        input_file, app.uploaded_file_dir, app.get_blocks().limiter
                     )
                 )
             return output_files

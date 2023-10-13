@@ -40,13 +40,19 @@
 </script>
 
 {#if value && value !== '""' && !is_empty(value)}
-	<button on:click={handle_copy}>
+	<button
+		on:click={handle_copy}
+		title="copy"
+		class={copied ? "" : "copy-text"}
+		aria-roledescription={copied ? "Copied value" : "Copy value"}
+		aria-label={copied ? "Copied" : "Copy"}
+	>
 		{#if copied}
 			<span in:fade={{ duration: 300 }}>
 				<Check />
 			</span>
 		{:else}
-			<span class="copy-text"><Copy /></span>
+			<Copy />
 		{/if}
 	</button>
 	<div class="json-holder">

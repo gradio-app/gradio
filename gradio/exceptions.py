@@ -9,8 +9,26 @@ class DuplicateBlockError(ValueError):
     pass
 
 
+class InvalidComponentError(ValueError):
+    """Raised when invalid components are used."""
+
+    pass
+
+
 class TooManyRequestsError(Exception):
     """Raised when the Hugging Face API returns a 429 status code."""
+
+    pass
+
+
+class ModelNotFoundError(Exception):
+    """Raised when the provided model doesn't exists or is not found by the provided api url."""
+
+    pass
+
+
+class RenderError(Exception):
+    """Raised when a component has not been rendered in the current Blocks but is expected to have been rendered."""
 
     pass
 
@@ -37,13 +55,20 @@ class ReloadError(ValueError):
 
 InvalidApiName = InvalidApiNameError  # backwards compatibility
 
+set_documentation_group("modals")
+
 
 @document()
 class Error(Exception):
     """
     This class allows you to pass custom error messages to the user. You can do so by raising a gr.Error("custom message") anywhere in the code, and when that line is executed the custom message will appear in a modal on the demo.
-
-    Demos: calculator
+    Example:
+        import gradio as gr
+        def divide(numerator, denominator):
+            if denominator == 0:
+                raise gr.Error("Cannot divide by zero!")
+        gr.Interface(divide, ["number", "number"], "number").launch()
+    Demos: calculator, blocks_chained_events
     """
 
     def __init__(self, message: str = "Error raised."):

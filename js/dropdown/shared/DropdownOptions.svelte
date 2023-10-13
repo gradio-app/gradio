@@ -74,8 +74,6 @@
 
 <div class="reference" bind:this={refElement} />
 {#if show_options && !disabled}
-	<!-- TODO: fix-->
-	<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 	<ul
 		class="options"
 		transition:fly={{ duration: 200, y: 5 }}
@@ -85,13 +83,11 @@
 		style:max-height={`calc(${max_height}px - var(--window-padding))`}
 		style:width={input_width + "px"}
 		bind:this={listElement}
+		role="listbox"
 	>
 		{#each filtered_indices as index}
-			<!-- TODO: fix-->
-			<!-- svelte-ignore a11y-no-noninteractive-element-to-interactive-role -->
 			<li
 				class="item"
-				role="button"
 				class:selected={selected_indices.includes(index)}
 				class:active={index === active_index}
 				class:bg-gray-100={index === active_index}
@@ -99,6 +95,8 @@
 				data-index={index}
 				aria-label={choices[index][0]}
 				data-testid="dropdown-option"
+				role="option"
+				aria-selected={selected_indices.includes(index)}
 			>
 				<span class:hide={!selected_indices.includes(index)} class="inner-item">
 					✓

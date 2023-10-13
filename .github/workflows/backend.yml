@@ -76,7 +76,7 @@ jobs:
       with:
         path: |
           gradio/templates/*
-        key: gradio-lib-front-end-${{ hashFiles('js/**')}}
+        key: gradio-lib-front-end-${{ hashFiles('js/**', 'client/js/**')}}
     - name: Install pnpm
       if: steps.frontend-cache.outputs.cache-hit != 'true'
       uses: pnpm/action-setup@v2
@@ -168,7 +168,7 @@ jobs:
       with:
         path: |
           gradio/templates/*
-        key: gradio-lib-front-end-${{ hashFiles('js/**')}}
+        key: gradio-lib-front-end-${{ hashFiles('js/**', 'client/js/**')}}
     - name: Install pnpm
       if: steps.frontend-cache.outputs.cache-hit != 'true'
       uses: pnpm/action-setup@v2
@@ -191,7 +191,6 @@ jobs:
         . venv/bin/activate
         python -m pip install -e client/python
         python -m pip install .
-        python -c "import gradio"
     - name: Install Test Dependencies (Linux)
       if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Linux'
       run: |

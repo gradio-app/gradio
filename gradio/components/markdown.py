@@ -37,6 +37,7 @@ class Markdown(Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         sanitize_html: bool = True,
+        line_breaks: bool = False,
         **kwargs,
     ):
         """
@@ -48,10 +49,12 @@ class Markdown(Component):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             sanitize_html: If False, will disable HTML sanitization when converted from markdown. This is not recommended, as it can lead to security vulnerabilities.
+            line_breaks: If True, will enable Github-flavored Markdown line breaks in chatbot messages. If False (default), single new lines will be ignored.
         """
         self.rtl = rtl
         self.latex_delimiters = latex_delimiters
         self.sanitize_html = sanitize_html
+        self.line_breaks = line_breaks
 
         super().__init__(
             visible=visible,
@@ -80,6 +83,7 @@ class Markdown(Component):
         rtl: bool | None = None,
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         sanitize_html: bool | None = None,
+        line_breaks: bool | None = None,
     ):
         warnings.warn(
             "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Markdown(...)` instead of `return gr.Markdown.update(...)`."
@@ -90,6 +94,7 @@ class Markdown(Component):
             "rtl": rtl,
             "latex_delimiters": latex_delimiters,
             "sanitize_html": sanitize_html,
+            "line_breaks": line_breaks,
             "__type__": "update",
         }
         return updated_config

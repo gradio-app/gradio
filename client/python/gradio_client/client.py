@@ -575,6 +575,11 @@ class Client:
                 raise ValueError(error_message)
         elif fn_index is not None:
             inferred_fn_index = fn_index
+            if (
+                inferred_fn_index >= len(self.endpoints)
+                or not self.endpoints[inferred_fn_index].is_valid
+            ):
+                raise ValueError(f"Invalid function index: {fn_index}.")
         else:
             valid_endpoints = [
                 e for e in self.endpoints if e.is_valid and e.api_name is not None
@@ -648,9 +653,8 @@ class Client:
             raise ValueError(
                 f"Each entry in api_names must be either a string or a tuple of strings. Received {api_names}"
             )
-        assert (
-            len(api_names) == 1
-        ), "Currently only one api_name can be deployed to discord."
+        if len(api_names) != 1:
+            raise ValueError("Currently only one api_name can be deployed to discord.")
 
         for i, name in enumerate(api_names):
             if isinstance(name, str):
@@ -674,8 +678,8 @@ class Client:
         is_private = False
         if self.space_id:
             is_private = huggingface_hub.space_info(self.space_id).private
-            if is_private:
-                assert hf_token, (
+            if is_private and not hf_token:
+                raise ValueError(
                     f"Since {self.space_id} is private, you must explicitly pass in hf_token "
                     "so that it can be added as a secret in the discord bot space."
                 )
@@ -774,8 +778,8 @@ class Endpoint:
         self.fn_index = fn_index
         self.dependency = dependency
         api_name = dependency.get("api_name")
-        self.api_name: str | None = (
-            None if (api_name is None or api_name is False) else "/" + api_name
+        self.api_name: str | Literal[False] | None = (
+            "/" + api_name if isinstance(api_name, str) else api_name
         )
         self.use_ws = self._use_websocket(self.dependency)
         self.input_component_types = [
@@ -792,12 +796,9 @@ class Endpoint:
             hf_token=self.client.hf_token,
             root_url=self.root_url,
         )
-        try:
-            # Only a real API endpoint if backend_fn is True (so not just a frontend function), serializers are valid,
-            # and api_name is not False (meaning that the developer has explicitly disabled the API endpoint)
-            self.is_valid = self.dependency["backend_fn"] and self.api_name is not False
-        except AssertionError:
-            self.is_valid = False
+        # Only a real API endpoint if backend_fn is True (so not just a frontend function), serializers are valid,
+        # and api_name is not False (meaning that the developer has explicitly disabled the API endpoint)
+        self.is_valid = self.dependency["backend_fn"] and self.api_name is not False
 
     def _get_component_type(self, component_id: int):
         component = next(

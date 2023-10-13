@@ -116,7 +116,7 @@ packaging==22.0
     #   scikit-image
     #   shap
     #   transformers
-pandas==1.3.5
+pandas==1.5.3
     # via
     #   altair
     #   shap

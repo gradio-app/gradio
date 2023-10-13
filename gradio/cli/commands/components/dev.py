@@ -26,6 +26,12 @@ def _dev(
             help="The directory with the custom component source code. By default, uses the current directory."
         ),
     ] = Path("."),
+    host: Annotated[
+        str,
+        typer.Option(
+            help="The host to run the front end server on. Defaults to localhost.",
+        ),
+    ] = "localhost",
 ):
     component_directory = component_directory.resolve()
 
@@ -47,6 +53,8 @@ def _dev(
             str(app),
             "--mode",
             "dev",
+            "--host",
+            host,
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,

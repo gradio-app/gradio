@@ -263,14 +263,14 @@ class TestClientPredictions:
 
     def test_cancel_subsequent_jobs_state_reset(self, yield_demo):
         with connect(yield_demo) as client:
-            job1 = client.submit("abcdefefadsadfs")
+            job1 = client.submit("abcdefefadsadfs", api_name="/predict")
             time.sleep(3)
             job1.cancel()
 
             assert len(job1.outputs()) < len("abcdefefadsadfs")
             assert job1.status().code == Status.CANCELLED
 
-            job2 = client.submit("abcd")
+            job2 = client.submit("abcd", api_name="/predict")
             while not job2.done():
                 time.sleep(0.1)
             # Ran all iterations from scratch
@@ -848,14 +848,18 @@ class TestAPIInfo:
     def test_unnamed_endpoints_use_fn_index(self, count_generator_demo):
         with connect(count_generator_demo) as client:
             info = client.view_api(return_format="str")
-            assert "fn_index=0" in info
-            assert "api_name" not in info
+            assert "fn_index" not in info
+            assert "api_name" in info
 
-    def test_api_false_endpoints_do_not_appear(self, count_generator_demo):
-        with connect(count_generator_demo) as client:
+    def test_api_false_endpoints_do_not_appear(self, count_generator_no_api):
+        with connect(count_generator_no_api) as client:
             info = client.view_api(return_format="dict")
             assert len(info["named_endpoints"]) == 0
-            assert len(info["unnamed_endpoints"]) == 2
+
+    def test_api_false_endpoints_cannot_be_accessed_with_fn_index(self, increment_demo):
+        with connect(increment_demo) as client:
+            with pytest.raises(ValueError):
+                client.submit(1, fn_index=2)
 
     @pytest.mark.xfail
     def test_file_io(self, file_io_demo):
@@ -874,7 +878,7 @@ class TestAPIInfo:
 
             assert inputs[1]["python_type"] == {
                 "type": "str",
-                "description": "filepath or URL to file",
+                "description": "filepath on your computer (or URL) of file",
             }
             assert isinstance(inputs[1]["example_input"], str)
 
@@ -886,7 +890,7 @@ class TestAPIInfo:
 
             assert outputs[1]["python_type"] == {
                 "type": "str",
-                "description": "filepath or URL to file",
+                "description": "filepath on your computer (or URL) of file",
             }
 
     def test_layout_components_in_output(self, hello_world_with_group):

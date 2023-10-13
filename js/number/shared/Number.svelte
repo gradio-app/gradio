@@ -46,6 +46,7 @@
 <label class="block" class:container>
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 	<input
+		aria-label={label}
 		type="number"
 		bind:value
 		min={minimum}

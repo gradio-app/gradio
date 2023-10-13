@@ -21,7 +21,7 @@ keywords = [
   "gradio custom component",
 ]
 # Add dependencies here
-dependencies = []
+dependencies = ["gradio"]
 classifiers = [
   'Development Status :: 3 - Alpha',
   'License :: OSI Approved :: Apache Software License',
