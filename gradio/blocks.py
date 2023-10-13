@@ -1616,7 +1616,7 @@ Received outputs:
                 name=name, src=src, hf_token=api_key, alias=alias, **kwargs
             )
         else:
-            from gradio.events import Dependency
+            from gradio.events import Dependency, EventListenerMethod
 
             if Context.root_block is None:
                 raise AttributeError(

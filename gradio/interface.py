@@ -588,7 +588,7 @@ class Interface(Blocks):
             else:
                 events: list[Callable] = []
                 for component in self.input_components:
-                    if Events.stream in component.events and component.streaming:  # type: ignore
+                    if component.has_event("stream") and component.streaming:  # type: ignore
                         events.append(component.stream)  # type: ignore
                     elif Events.change in component.events:
                         events.append(component.change)  # type: ignore
@@ -617,13 +617,13 @@ class Interface(Blocks):
                 extra_output = [submit_btn, stop_btn]
 
                 def cleanup():
-                    return [Button.update(visible=True), Button.update(visible=False)]
+                    return [Button(visible=True), Button(visible=False)]
 
                 predict_event = on(
                     triggers,
                     lambda: (
-                        submit_btn.update(visible=False),
-                        stop_btn.update(visible=True),
+                        Button(visible=False),
+                        Button(visible=True),
                     ),
                     inputs=None,
                     outputs=[submit_btn, stop_btn],
@@ -684,7 +684,7 @@ class Interface(Blocks):
             ),  # type: ignore
             _js=f"""() => {json.dumps(
                 (
-                    [Column.update(visible=True)]
+                    [{'variant': None, 'visible': True, '__type__': 'update'}]
                     if self.interface_type
                         in [
                             InterfaceTypes.STANDARD,
@@ -733,7 +733,7 @@ class Interface(Blocks):
             assert isinstance(value, str)
             flag_method = FlagMethod(self.flagging_callback, label, value)
             flag_btn.click(
-                lambda: Button.update(value="Saving...", interactive=False),
+                lambda: Button(value="Saving...", interactive=False),
                 None,
                 flag_btn,
                 queue=False,

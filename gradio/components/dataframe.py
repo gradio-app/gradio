@@ -299,17 +299,31 @@ class Dataframe(Component):
         return value
 
     @staticmethod
+    def __get_cell_style(cell_id: str, cell_styles: list[dict]) -> str:
+        styles_for_cell = []
+        for style in cell_styles:
+            if cell_id in style.get("selectors", []):
+                styles_for_cell.extend(style.get("props", []))
+        styles_str = "; ".join([f"{prop}: {value}" for prop, value in styles_for_cell])
+        return styles_str
+
+    @staticmethod
     def __extract_metadata(df: Styler) -> dict[str, list[list]]:
-        metadata = {"display_value": []}
+        metadata = {"display_value": [], "styling": []}
         style_data = df._compute()._translate(None, None)  # type: ignore
+        cell_styles = style_data.get("cellstyle", [])
         for i in range(len(style_data["body"])):
             metadata["display_value"].append([])
+            metadata["styling"].append([])
             for j in range(len(style_data["body"][i])):
                 cell_type = style_data["body"][i][j]["type"]
                 if cell_type != "td":
                     continue
                 display_value = style_data["body"][i][j]["display_value"]
+                cell_id = style_data["body"][i][j]["id"]
+                styles_str = Dataframe.__get_cell_style(cell_id, cell_styles)
                 metadata["display_value"][i].append(display_value)
+                metadata["styling"][i].append(styles_str)
         return metadata
 
     @staticmethod

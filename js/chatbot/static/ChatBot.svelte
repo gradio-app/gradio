@@ -11,7 +11,6 @@
 	import { get_fetchable_url_or_file } from "@gradio/upload";
 	import Copy from "./Copy.svelte";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
-	import { Like, Dislike, Check } from "@gradio/icons";
 	import LikeDislike from "./LikeDislike.svelte";
 	import Pending from "./Pending.svelte";
 
