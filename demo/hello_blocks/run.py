@@ -1,5 +1,4 @@
 import gradio as gr
-from gradio_imageslider import ImageSlider
 
 
 def greet(name):

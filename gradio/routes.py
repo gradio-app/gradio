@@ -354,7 +354,7 @@ class App(FastAPI):
             static_file = safe_join(STATIC_PATH_LIB, path)
             return FileResponse(static_file)
 
-        @app.get("/custom_component/{id:path}/{type:path}/{file_name:path}")
+        @app.get("/custom_component/{id}/{type}/{file_name}")
         def custom_component_path(id: str, type: str, file_name: str):
             config = app.get_blocks().config
             components = config["components"]

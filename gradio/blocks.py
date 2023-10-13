@@ -359,7 +359,6 @@ class BlockContext(Block):
         """
         self.children: list[Block] = []
         Block.__init__(self, visible=visible, render=render, **kwargs)
-        self.component_class_id = self.__class__.get_component_class_id()
 
     TEMPLATE_DIR = "./templates/"
     FRONTEND_DIR = "../../frontend/"
@@ -374,6 +373,10 @@ class BlockContext(Block):
         module_path = sys.modules[module_name].__file__
         module_hash = hashlib.md5(f"{cls.__name__}_{module_path}".encode()).hexdigest()
         return module_hash
+
+    @property
+    def component_class_id(self):
+        return self.get_component_class_id()
 
     def add_child(self, child: Block):
         self.children.append(child)
