@@ -574,10 +574,6 @@ class App(FastAPI):
                 )
                 set_task_name(task, event.session_hash, event.fn_index, batch=False)
             else:
-                if blocks._queue.event_queue.__len__() > 0:
-                    for queue_event in blocks._queue.event_queue:
-                        if queue_event.fn_index == event.fn_index:
-                            blocks._queue.event_queue.remove(queue_event)
                 rank = blocks._queue.push(event)
 
                 if rank is None:

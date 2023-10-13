@@ -22,6 +22,12 @@ export interface DependencyTypes {
 	generator: boolean;
 }
 
+export interface Payload {
+	fn_index: number,
+	data: unknown[],
+	event_data: unknown | null,
+}
+
 export interface Dependency {
 	trigger: string;
 	targets: number[];
@@ -42,6 +48,7 @@ export interface Dependency {
 	trigger_after?: number;
 	trigger_only_on_success?: boolean;
 	trigger_mode: "once" | "multiple" | "always_last";
+	final_event: Payload | null;
 }
 
 interface TypeDescription {

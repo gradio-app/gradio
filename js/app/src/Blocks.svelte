@@ -12,6 +12,7 @@
 
 	import type {
 		ComponentMeta,
+		Payload,
 		Dependency,
 		LayoutNode
 	} from "./components/types";
@@ -474,12 +475,11 @@
 				})
 			);
 		}
-
 		if (current_status === "pending" || current_status === "generating") {
 			dep.pending_request = true;
 		}
 
-		let payload = {
+		let payload: Payload = {
 			fn_index: dep_index,
 			data: dep.inputs.map((id) => instance_map[id].props.value),
 			event_data: dep.collects_event_data ? event_data : null
@@ -495,7 +495,7 @@
 				.then((v: unknown[]) => {
 					if (dep.backend_fn) {
 						payload.data = v;
-						make_prediction();
+						make_prediction(payload);
 					} else {
 						handle_update(v, dep_index);
 					}
@@ -503,22 +503,27 @@
 		} else {
 			if (dep.backend_fn) {
 				if (dep.trigger_mode === "once") {
-					if (!dep.pending_request) make_prediction();
+					if (!dep.pending_request) make_prediction(payload);
 				} else if (dep.trigger_mode === "multiple") {
-					do {
-						dep.pending_request = false;
-						make_prediction();
-					} while (dep.pending_request);
+					make_prediction(payload);
 				} else if (dep.trigger_mode === "always_last") {
-					make_prediction();
+					if (!dep.pending_request) {
+						make_prediction(payload);
+					} else {
+						dep.final_event = payload;
+					}
 				}
 			}
 		}
 
-		function make_prediction(): void {
+		function make_prediction(payload: Payload): void {
 			const submission = app
 				.submit(payload.fn_index, payload.data as unknown[], payload.event_data)
 				.on("data", ({ data, fn_index }) => {
+					if (dep.pending_request && dep.final_event !== null) {
+						dep.pending_request = false;
+						make_prediction(dep.final_event);
+					}
 					handle_update(data, fn_index);
 				})
 				.on("status", ({ fn_index, ...status }) => {

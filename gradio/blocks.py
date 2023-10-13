@@ -270,7 +270,7 @@ class Block:
             raise ValueError("Cannot set a value for `every` without a `fn`.")
 
         if event_name == "change":
-            trigger_mode = "multiple"
+            trigger_mode = "always_last"
 
         _, progress_index, event_data_index = (
             special_args(fn) if fn else (None, None, None)
