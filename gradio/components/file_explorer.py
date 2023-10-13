@@ -138,7 +138,7 @@ class FileExplorer(Component):
         files = [y] if isinstance(y, str) else y
 
         return FileExplorerData(
-            root=[self._strip_root(file).split(os.path.sep) for file in (files)]
+            root=[self._strip_root(file).split(os.path.sep) for file in files]
         )
 
     @server

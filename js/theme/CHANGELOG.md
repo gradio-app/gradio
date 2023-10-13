@@ -1,19 +1,5 @@
 # @gradio/theme
 
-<<<<<<< HEAD
-## 0.2.0-beta.1
-
-### Features
-
-- [#5615](https://github.com/gradio-app/gradio/pull/5615) [`142880ba5`](https://github.com/gradio-app/gradio/commit/142880ba589126d98da3d6a38866828864cc6b81) - Publish js theme.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
-
-## 0.2.0-beta.0
-
-### Features
-
-- [#5507](https://github.com/gradio-app/gradio/pull/5507) [`1385dc688`](https://github.com/gradio-app/gradio/commit/1385dc6881f2d8ae7a41106ec21d33e2ef04d6a9) - Custom components.  Thanks [@pngwn](https://github.com/pngwn)!
-- [#5589](https://github.com/gradio-app/gradio/pull/5589) [`af1b2f9ba`](https://github.com/gradio-app/gradio/commit/af1b2f9bafbacf2804fcfe68af6bb4b921442aca) - image fixes.  Thanks [@pngwn](https://github.com/pngwn)!
-=======
 ## 0.2.0
 
 ### Highlights
@@ -31,7 +17,6 @@ Users can then navigate the virtual filesystem and select files which will be ac
 For more information check the [`FileExplorer` documentation](https://gradio.app/docs/fileexplorer).
 
  Thanks [@aliabid94](https://github.com/aliabid94)!
->>>>>>> main
 
 ## 0.1.0
 
