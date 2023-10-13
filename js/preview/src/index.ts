@@ -156,14 +156,15 @@ export function examine_module(
 		.trim()
 		.split("\n")
 		.map((line) => {
-			const [name, template_dir, frontend_dir, component_class_id] =
-				line.split("~|~|~|~");
-
-			return {
-				name: name.trim(),
-				template_dir: template_dir.trim(),
-				frontend_dir: frontend_dir.trim(),
-				component_class_id: component_class_id.trim()
-			};
-		});
+			if (line !== "~|~|~|~NOT INSTALLED~|~|~|~") {
+				const [name, template_dir, frontend_dir, component_class_id] =
+					line.split("~|~|~|~");
+				return {
+					name: name.trim(),
+					template_dir: template_dir.trim(),
+					frontend_dir: frontend_dir.trim(),
+					component_class_id: component_class_id.trim()
+				};
+			}
+		}).filter(x => x !== undefined);
 }
