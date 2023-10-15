@@ -15,31 +15,55 @@ export interface WorkerProxyOptions {
 	gradioClientWheelUrl: string;
 	files: Record<string, EmscriptenFile | EmscriptenFileUrl>;
 	requirements: string[];
+	sharedWorkerMode: boolean;
 }
 
 export class WorkerProxy {
-	private worker: globalThis.Worker;
+	private worker: globalThis.Worker | globalThis.SharedWorker;
+	private postMessageTarget: globalThis.Worker | MessagePort;
 
 	constructor(options: WorkerProxyOptions) {
+		const sharedWorkerMode = options.sharedWorkerMode
+
 		console.debug("WorkerProxy.constructor(): Create a new worker.");
 		// Loading a worker here relies on Vite's support for WebWorkers (https://vitejs.dev/guide/features.html#web-workers),
 		// assuming that this module is imported from the Gradio frontend (`@gradio/app`), which is bundled with Vite.
 		// HACK: Use `CrossOriginWorkerMaker` imported as `Worker` here.
 		// Read the comment in `cross-origin-worker.ts` for the detail.
-		const workerMaker = new Worker(new URL("./webworker.js", import.meta.url));
+		const workerMaker = new Worker(
+			new URL("./webworker.js", import.meta.url),
+			{
+				/* @vite-ignore */ shared: sharedWorkerMode  // `@vite-ignore` is needed to avoid an error `Vite is unable to parse the worker options as the value is not static.`
+			}
+		);
+
 		this.worker = workerMaker.worker;
+		if (sharedWorkerMode) {
+			this.postMessageTarget = (this.worker as SharedWorker).port;
+			this.postMessageTarget.start();
+		} else {
+			this.postMessageTarget = this.worker as globalThis.Worker;
+		}
 
 		this.postMessageAsync({
-			type: "init",
+			type: "init-env",
 			data: {
 				gradioWheelUrl: options.gradioWheelUrl,
 				gradioClientWheelUrl: options.gradioClientWheelUrl,
-				files: options.files,
-				requirements: options.requirements
 			}
 		}).then(() => {
-			console.debug("WorkerProxy.constructor(): Initialization is done.");
+			console.debug("WorkerProxy.constructor(): Environment initialization is done.");
 		});
+
+		this.postMessageAsync({
+			type: "init-app",
+			data: {
+				files: options.files,
+				requirements: options.requirements,
+			}
+		}).then(() => {
+			console.debug("WorkerProxy.constructor(): App initialization is done.");
+		})
 	}
 
 	public async runPythonCode(code: string): Promise<void> {
@@ -79,7 +103,7 @@ export class WorkerProxy {
 				resolve(msg.data);
 			};
 
-			this.worker.postMessage(msg, [channel.port2]);
+			this.postMessageTarget.postMessage(msg, [channel.port2]);
 		});
 	}
 
@@ -126,7 +150,7 @@ export class WorkerProxy {
 				path
 			}
 		};
-		this.worker.postMessage(msg, [channel.port2]);
+		this.postMessageTarget.postMessage(msg, [channel.port2]);
 
 		return new MessagePortWebSocket(channel.port1);
 	}
@@ -175,6 +199,25 @@ export class WorkerProxy {
 	}
 
 	public terminate(): void {
-		this.worker.terminate();
+		if (isMessagePort(this.postMessageTarget)) {
+			console.debug("Closing the message port...");
+			this.postMessageTarget.close();
+		}
+		if (isDedicatedWorker(this.worker)) {
+			console.debug("Terminating the worker...");
+			this.worker.terminate();
+		}
 	}
+}
+
+function isDedicatedWorker(
+	obj: globalThis.Worker | SharedWorker
+): obj is globalThis.Worker {
+	return "terminate" in obj;
+}
+
+function isMessagePort(
+	obj: globalThis.Worker | MessagePort
+): obj is MessagePort {
+	return "postMessage" in obj;
 }
