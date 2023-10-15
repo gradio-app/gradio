@@ -10,7 +10,7 @@ import type {
 	ReplyMessageError,
 	ReplyMessageSuccess
 } from "../message-types";
-import { writeFileWithParents, renameWithParents } from "./file";
+import { writeFileWithParents, renameWithParents, addAppIdIfRelative } from "./file";
 import { verifyRequirements } from "./requirements";
 import { makeHttpRequest } from "./http";
 import { initWebSocket } from "./websocket";
@@ -153,9 +153,9 @@ matplotlib.use("agg")
 }
 
 async function initializeApp(
-	options: InMessageInitApp["data"]
+	appId: string,
+	options: InMessageInitApp["data"],
 ): Promise<void> {
-	// TODO: Separate the home directory for each app.
 	console.debug("Mounting files.", options.files);
 	await Promise.all(
 		Object.keys(options.files).map(async (path) => {
@@ -172,8 +172,9 @@ async function initializeApp(
 			}
 			const { opts } = options.files[path];
 
-			console.debug(`Write a file "${path}"`);
-			writeFileWithParents(pyodide, path, data, opts);
+			const appifiedPath = addAppIdIfRelative(appId, path);
+			console.debug(`Write a file "${appifiedPath}"`);
+			writeFileWithParents(pyodide, appifiedPath, data, opts);
 		})
 	);
 	console.debug("Files are mounted.");
@@ -240,7 +241,7 @@ function setupMessageHandler(
 			await envReadyPromise;
 
 			if (msg.type === "init-app") {
-				appReadyPromise = initializeApp(msg.data);
+				appReadyPromise = initializeApp(appId, msg.data);
 
 				const replyMessage: ReplyMessageSuccess = {
 					type: "reply:success",
@@ -281,7 +282,7 @@ function setupMessageHandler(
 					unload_local_modules();
 
 					set_manipulation_target_app_id(appId);
-					run_script(msg.data.path);
+					run_script(addAppIdIfRelative(appId, msg.data.path));
 
 					const replyMessage: ReplyMessageSuccess = {
 						type: "reply:success",
@@ -312,8 +313,10 @@ function setupMessageHandler(
 				case "file:write": {
 					const { path, data: fileData, opts } = msg.data;
 
-					console.debug(`Write a file "${path}"`);
-					writeFileWithParents(pyodide, path, fileData, opts);
+					const appifiedPath = addAppIdIfRelative(appId, path)
+
+					console.debug(`Write a file "${appifiedPath}"`);
+					writeFileWithParents(pyodide, appifiedPath, fileData, opts);
 
 					const replyMessage: ReplyMessageSuccess = {
 						type: "reply:success",
@@ -325,8 +328,10 @@ function setupMessageHandler(
 				case "file:rename": {
 					const { oldPath, newPath } = msg.data;
 
-					console.debug(`Rename "${oldPath}" to ${newPath}`);
-					renameWithParents(pyodide, oldPath, newPath);
+					const appifiedOldPath = addAppIdIfRelative(appId, oldPath)
+					const appifiedNewPath = addAppIdIfRelative(appId, newPath)
+					console.debug(`Rename "${appifiedOldPath}" to ${appifiedNewPath}`);
+					renameWithParents(pyodide, appifiedOldPath, appifiedNewPath);
 
 					const replyMessage: ReplyMessageSuccess = {
 						type: "reply:success",
@@ -338,8 +343,10 @@ function setupMessageHandler(
 				case "file:unlink": {
 					const { path } = msg.data;
 
-					console.debug(`Remove "${path}`);
-					pyodide.FS.unlink(path);
+					const appifiedPath = addAppIdIfRelative(appId, path)
+
+					console.debug(`Remove "${appifiedPath}`);
+					pyodide.FS.unlink(appifiedPath);
 
 					const replyMessage: ReplyMessageSuccess = {
 						type: "reply:success",
