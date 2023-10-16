@@ -61,7 +61,10 @@
 
 <style>
 	video {
-		max-width: 100%;
-		max-height: 100%;
+		position: inherit;
+		background-color: black;
+		width: var(--size-full);
+		height: var(--size-full);
+		object-fit: contain;
 	}
 </style>
