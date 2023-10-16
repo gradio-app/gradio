@@ -669,7 +669,7 @@
 						<th
 							class:editing={header_edit === i}
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
-style:width={column_widths.length ? column_widths[i] : undefined}
+							style:width={column_widths.length ? column_widths[i] : undefined}
 						>
 							<div class="cell-wrap">
 								<EditableCell
