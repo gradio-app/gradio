@@ -152,7 +152,9 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         self.latex_delimiters = latex_delimiters
         self.height = height
         self.line_breaks = line_breaks
-        self.column_widths = [w if isinstance(w, str) else f"{w}px" for w in (column_widths or [])]
+        self.column_widths = [
+            w if isinstance(w, str) else f"{w}px" for w in (column_widths or [])
+        ]
 
         self.select: EventListenerMethod
         """
