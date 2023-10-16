@@ -6,7 +6,7 @@ import { client, upload_files } from "@gradio/client";
 import { mount_css } from "./css";
 import type Index from "./Index.svelte";
 
-import type { ThemeMode } from "./components/types";
+import type { ThemeMode } from "./types";
 
 //@ts-ignore
 import * as svelte from "./svelte/svelte.js";
