@@ -1,21 +1,17 @@
 <script lang="ts">
 	import { load_component } from "virtual:component-loader";
 
-	import { onMount, tick } from "svelte";
+	import { tick } from "svelte";
 	import { _ } from "svelte-i18n";
 	import type { client } from "@gradio/client";
 
 	import { create_loading_status_store } from "./stores";
 	import type { LoadingStatusCollection } from "./stores";
 
-	import type {
-		ComponentMeta,
-		Dependency,
-		LayoutNode
-	} from "./components/types";
+	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 	import { setupi18n } from "./i18n";
 	import { ApiDocs } from "./api_docs/";
-	import type { ThemeMode } from "./components/types";
+	import type { ThemeMode } from "./types";
 	import { Toast } from "@gradio/statustracker";
 	import type { ToastMessage } from "@gradio/statustracker";
 	import type { ShareData } from "@gradio/utils";
@@ -187,7 +183,8 @@
 			props: { mode: "static" },
 			has_modes: false,
 			instance: null as unknown as ComponentMeta["instance"],
-			component: null as unknown as ComponentMeta["component"]
+			component: null as unknown as ComponentMeta["component"],
+			component_class_id: ""
 		};
 		components.push(_rootNode);
 		const _component_set = new Set<

@@ -2,11 +2,7 @@
 	import { writable } from "svelte/store";
 	import { mount_css as default_mount_css } from "./css";
 
-	import type {
-		ComponentMeta,
-		Dependency,
-		LayoutNode
-	} from "./components/types";
+	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 
 	declare let BUILD_MODE: string;
 	interface Config {
@@ -66,7 +62,7 @@
 	import { onMount, setContext } from "svelte";
 	import type { api_factory, SpaceStatus } from "@gradio/client";
 	import Embed from "./Embed.svelte";
-	import type { ThemeMode } from "./components/types";
+	import type { ThemeMode } from "./types";
 	import { StatusTracker } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
 	import { setupi18n } from "./i18n";

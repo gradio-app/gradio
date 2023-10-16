@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { Gradio } from "./gradio_helper";
 	import { onMount, createEventDispatcher, setContext } from "svelte";
-	import type { ComponentMeta } from "./components/types";
-	import type { ThemeMode } from "./components/types";
+	import type { ComponentMeta, ThemeMode } from "./types";
 
 	export let root: string;
 	export let component: ComponentMeta["component"];
