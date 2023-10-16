@@ -225,14 +225,6 @@ class Block:
     def update(**kwargs) -> dict:
         return {}
 
-    @classmethod
-    def get_specific_update(cls, generic_update: dict[str, Any]) -> dict:
-        generic_update = generic_update.copy()
-        del generic_update["__type__"]
-        specific_update = cls.update(**generic_update)
-        specific_update = utils.delete_none(specific_update, skip_value=True)
-        return specific_update
-
 
 class BlockContext(Block):
     def __init__(
@@ -344,16 +336,13 @@ class BlockFunction:
 def postprocess_update_dict(block: Block, update_dict: dict, postprocess: bool = True):
     """
     Converts a dictionary of updates into a format that can be sent to the frontend.
-    E.g. {"__type__": "generic_update", "value": "2", "interactive": False}
+    E.g. {"__type__": "update", "value": "2", "interactive": False}
     Into -> {"__type__": "update", "value": 2.0, "mode": "static"}
-
     Parameters:
         block: The Block that is being updated with this update dictionary.
         update_dict: The original update dictionary
         postprocess: Whether to postprocess the "value" key of the update dictionary.
     """
-    if update_dict.get("__type__", "") == "generic_update":
-        update_dict = block.get_specific_update(update_dict)
     if update_dict.get("value") is components._Keywords.NO_VALUE:
         update_dict.pop("value")
     interactive = update_dict.pop("interactive", None)
@@ -1445,7 +1434,6 @@ Received outputs:
                     args["_skip_init_processing"] = not block_fn.postprocess
                     state[output_id] = self.blocks[output_id].__class__(**args)
 
-                    assert isinstance(prediction_value, dict)
                     prediction_value = postprocess_update_dict(
                         block=state[output_id],
                         update_dict=prediction_value,
