@@ -311,6 +311,7 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 						};
 						messagePort.postMessage(replyMessage);
 					});
+				break;
 			}
 		}
 	} catch (error) {
