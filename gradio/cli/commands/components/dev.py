@@ -32,12 +32,6 @@ def _dev(
             help="The host to run the front end server on. Defaults to localhost.",
         ),
     ] = "localhost",
-    verbose: Annotated[
-        bool,
-        typer.Option(
-            help="Whether to print all logs to the terminal.",
-        ),
-    ] = False,
 ):
     component_directory = component_directory.resolve()
 
