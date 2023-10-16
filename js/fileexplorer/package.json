@@ -1,11 +1,12 @@
 {
 	"name": "@gradio/fileexplorer",
-	"version": "0.2.2-beta.0",
+	"version": "0.2.1",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "./index.svelte",
 	"author": "",
 	"license": "ISC",
+	"private": true,
 	"dependencies": {
 		"@gradio/atoms": "0.2.0-beta.3",
 		"@gradio/checkbox": "0.2.0-beta.5",
@@ -23,13 +24,5 @@
 		"./interactive": "./interactive/index.ts",
 		"./static": "./static/index.ts",
 		"./example": "./example/index.ts"
-	},
-	"@gradio/atoms": "0.2.0-beta.3",
-	"@gradio/checkbox": "0.2.0-beta.5",
-	"@gradio/client": "0.5.2",
-	"@gradio/file": "0.2.0-beta.5",
-	"@gradio/icons": "0.2.0-beta.0",
-	"@gradio/statustracker": "0.3.0-beta.5",
-	"@gradio/upload": "0.3.0-beta.3",
-	"@gradio/utils": "0.2.0-beta.3"
+	}
 }

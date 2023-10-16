@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/atoms",
-	"version": "0.2.0-beta.0",
+	"version": "0.1.4",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "src/index.ts",
@@ -10,7 +10,5 @@
 		"@gradio/utils": "0.2.0-beta.3",
 		"@gradio/icons": "0.2.0-beta.0"
 	},
-	"main_changeset": true,
-	"@gradio/utils": "0.2.0-beta.3",
-	"@gradio/icons": "0.2.0-beta.0"
+	"main_changeset": true
 }

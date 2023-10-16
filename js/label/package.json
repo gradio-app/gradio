@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/label",
-	"version": "0.2.3-beta.0",
+	"version": "0.2.2",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "./static/index.ts",
@@ -20,9 +20,5 @@
 		"./interactive": "./interactive/index.ts",
 		"./static": "./static/index.ts",
 		"./example": "./example/index.ts"
-	},
-	"@gradio/atoms": "0.2.0-beta.3",
-	"@gradio/icons": "0.2.0-beta.0",
-	"@gradio/statustracker": "0.3.0-beta.5",
-	"@gradio/utils": "0.2.0-beta.3"
+	}
 }

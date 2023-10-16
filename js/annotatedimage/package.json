@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/annotatedimage",
-	"version": "0.2.3-beta.0",
+	"version": "0.2.2",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "./static/index.ts",
@@ -21,10 +21,5 @@
 		"@gradio/statustracker": "0.3.0-beta.5",
 		"@gradio/upload": "0.3.0-beta.3",
 		"@gradio/utils": "0.2.0-beta.3"
-	},
-	"@gradio/atoms": "0.2.0-beta.3",
-	"@gradio/icons": "0.2.0-beta.0",
-	"@gradio/statustracker": "0.3.0-beta.5",
-	"@gradio/upload": "0.3.0-beta.3",
-	"@gradio/utils": "0.2.0-beta.3"
+	}
 }

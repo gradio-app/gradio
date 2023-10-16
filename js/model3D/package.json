@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/model3d",
-	"version": "0.2.5-beta.0",
+	"version": "0.2.4",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "./index.svelte",
@@ -23,10 +23,5 @@
 		"./interactive": "./interactive/index.ts",
 		"./static": "./static/index.ts",
 		"./example": "./example/index.ts"
-	},
-	"@gradio/atoms": "0.2.0-beta.3",
-	"@gradio/icons": "0.2.0-beta.0",
-	"@gradio/statustracker": "0.3.0-beta.5",
-	"@gradio/upload": "0.3.0-beta.3",
-	"@gradio/utils": "0.2.0-beta.3"
+	}
 }
