@@ -709,6 +709,7 @@ style:width={column_widths.length ? column_widths[i] : undefined}
 								<EditableCell
 									{value}
 									{latex_delimiters}
+									{line_breaks}
 									datatype={Array.isArray(datatype) ? datatype[j] : datatype}
 									edit={false}
 									el={null}
@@ -750,6 +751,7 @@ style:width={column_widths.length ? column_widths[i] : undefined}
 									bind:value={_headers[i].value}
 									bind:el={els[id].input}
 									{latex_delimiters}
+									{line_breaks}
 									edit={header_edit === i}
 									on:keydown={end_header_edit}
 									on:dblclick={() => edit_header(i)}
@@ -798,6 +800,7 @@ style:width={column_widths.length ? column_widths[i] : undefined}
 									bind:el={els[id].input}
 									display_value={display_value?.[index]?.[j]}
 									{latex_delimiters}
+									{line_breaks}
 									{editable}
 									edit={dequal(editing, [index, j])}
 									datatype={Array.isArray(datatype) ? datatype[j] : datatype}
