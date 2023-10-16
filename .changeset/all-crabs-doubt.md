@@ -1,5 +1,5 @@
 ---
-"@gradio/wasm": minor
+"@gradio/wasm": patch
 ---
 
-feat:Lite: Add a break statement
+fix:Lite: Add a break statement
