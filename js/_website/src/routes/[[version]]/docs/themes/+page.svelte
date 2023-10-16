@@ -4,6 +4,7 @@
 	import FunctionDoc from "$lib/components/FunctionDoc.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import anchor from "$lib/assets/img/anchor.svg";
+	import { style_formatted_text } from "$lib/text";
 	import { onDestroy } from "svelte";
 	import { page } from "$app/stores";
 
@@ -230,31 +231,31 @@
 									>
 								</h4>
 								<p class="mb-2 text-lg text-gray-600">
-									{@html obj.description}
+									{@html style_formatted_text(obj.description)}
 								</p>
 							{/if}
 
 							{#if mode === "components"}
 								<p class="mb-2 text-lg text-gray-500">
 									<span class="text-orange-500">As input: </span>
-									{@html obj.preprocessing}
+									{@html style_formatted_text(obj.tags.preprocessing)}
 								</p>
 								<p class="mb-2 text-lg text-gray-500">
 									<span class="text-orange-500">As output:</span>
-									{@html obj.postprocessing}
+									{@html style_formatted_text(obj.tags.postprocessing)}
 								</p>
-								{#if obj.examples_format}
+								{#if obj.tags.examples_format}
 									<p class="mb-2 text-lg text-gray-500">
 										<span class="text-orange-500"
 											>Format expected for examples:</span
 										>
-										{@html obj.examples_format}}
+										{@html style_formatted_text(obj.tags.examples_format)}}
 									</p>
 								{/if}
-								{#if obj.events && obj.events.length > 0}
+								{#if obj.tags.events && obj.tags.events.length > 0}
 									<p class="text-lg text-gray-500">
 										<span class="text-orange-500">Supported events:</span>
-										<em>{@html obj.events}</em>
+										<em>{@html style_formatted_text(obj.tags.events)}</em>
 									</p>
 								{/if}
 							{/if}
@@ -326,7 +327,7 @@
 														{/if}
 													</td>
 													<td class="p-3 text-gray-700 break-words">
-														<p>{param["doc"] || ""}</p>
+														<p>{@html param["doc"] ? style_formatted_text(param["doc"]) : ""}</p>
 													</td>
 												</tr>
 											{/if}

@@ -127,7 +127,7 @@
 								{/if}
 							</td>
 							<td class="p-3 text-gray-700 break-words">
-								<p>{param["doc"] || ""}</p>
+								<p>{@html param["doc"] ? style_formatted_text(param["doc"]) : ""}</p>
 							</td>
 						</tr>
 					{/if}

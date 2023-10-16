@@ -230,24 +230,24 @@
 								</h4>
 								<p class="text-lg text-gray-500">
 									<span class="text-gray-700">As input: </span>
-									{@html obj.preprocessing}
+									{@html style_formatted_text(obj.tags.preprocessing)}
 								</p>
 								<p class="text-lg text-gray-500">
 									<span class="text-gray-700">As output:</span>
-									{@html obj.postprocessing}
+									{@html style_formatted_text(obj.tags.postprocessing)}
 								</p>
-								{#if obj.examples_format}
+								{#if obj.tags.examples_format}
 									<p class="text-lg text-gray-500">
 										<span class="text-gray-700"
 											>Format expected for examples:</span
 										>
-										{@html obj.examples_format}
+										{@html style_formatted_text(obj.tags.examples_format)}
 									</p>
 								{/if}
-								{#if obj.events && obj.events.length > 0}
+								{#if obj.tags.events && obj.tags.events.length > 0}
 									<p class="text-lg text-gray-500">
 										<span class="text-gray-700">Supported events:</span>
-										<em>{@html obj.events}</em>
+										<em>{@html style_formatted_text(obj.tags.events)}</em>
 									</p>
 								{/if}
 							</div>
@@ -319,7 +319,7 @@
 														{/if}
 													</td>
 													<td class="p-3 text-gray-700 break-words">
-														<p>{param["doc"] || ""}</p>
+														<p>{@html param["doc"] ? style_formatted_text(param["doc"]) : ""}</p>
 													</td>
 												</tr>
 											{/if}
