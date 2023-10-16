@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { Gradio } from "@gradio/utils";
 	import { afterUpdate } from "svelte";
-	import { _ } from "svelte-i18n";
 
 	import type { LoadingStatus } from "@gradio/statustracker";
 
@@ -18,7 +17,7 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let label = $_("code.code");
+	export let label = gradio.i18n("code.code");
 	export let show_label = true;
 	export let loading_status: LoadingStatus;
 	export let scale: number | null = null;
@@ -49,7 +48,11 @@
 	{visible}
 	{scale}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker
+		autoscroll={gradio.autoscroll}
+		i18n={gradio.i18n}
+		{...loading_status}
+	/>
 
 	<BlockLabel Icon={CodeIcon} {show_label} {label} float={false} />
 

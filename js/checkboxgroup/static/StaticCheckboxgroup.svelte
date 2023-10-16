@@ -4,7 +4,12 @@
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { _ } from "svelte-i18n";
+
+	export let gradio: Gradio<{
+		change: never;
+		select: SelectData;
+		input: never;
+	}>;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -14,14 +19,9 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let label = $_("checkbox.checkbox_group");
+	export let label = gradio.i18n("checkbox.checkbox_group");
 	export let info: string | undefined = undefined;
 	export let show_label: boolean;
-	export let gradio: Gradio<{
-		change: never;
-		select: SelectData;
-		input: never;
-	}>;
 
 	export let loading_status: LoadingStatus;
 </script>
@@ -35,7 +35,11 @@
 	{scale}
 	{min_width}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker
+		autoscroll={gradio.autoscroll}
+		i18n={gradio.i18n}
+		{...loading_status}
+	/>
 
 	<CheckboxGroup
 		bind:value

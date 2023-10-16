@@ -4,27 +4,31 @@ from __future__ import annotations
 
 import warnings
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import Any, Callable, List, Literal, Optional
 
 import numpy as np
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import GallerySerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
-from gradio import utils
-from gradio.components.base import IOComponent, _Keywords
-from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
-from gradio.events import (
-    Changeable,
-    EventListenerMethod,
-    Selectable,
-)
+from gradio import processing_utils, utils
+from gradio.components.base import Component, _Keywords
+from gradio.data_classes import FileData, GradioModel, GradioRootModel
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
+class GalleryImage(GradioModel):
+    image: FileData
+    caption: Optional[str] = None
+
+
+class GalleryData(GradioRootModel):
+    root: List[GalleryImage]
+
+
 @document()
-class Gallery(IOComponent, GallerySerializable, Changeable, Selectable):
+class Gallery(Component):
     """
     Used to display a list of images as a gallery that can be scrolled through.
     Preprocessing: this component does *not* accept input.
@@ -32,6 +36,10 @@ class Gallery(IOComponent, GallerySerializable, Changeable, Selectable):
 
     Demos: fake_gan
     """
+
+    EVENTS = [Events.select]
+
+    data_model = GalleryData
 
     def __init__(
         self,
@@ -94,20 +102,14 @@ class Gallery(IOComponent, GallerySerializable, Changeable, Selectable):
             if show_download_button is None
             else show_download_button
         )
-        self.select: EventListenerMethod
         self.selected_index = selected_index
-        """
-        Event listener for when the user selects image within Gallery.
-        Uses event data gradio.SelectData to carry `value` referring to caption of selected image, and `index` to refer to index.
-        See EventData documentation on how to use this event data.
-        """
+
         self.show_share_button = (
             (utils.get_space() is not None)
             if show_share_button is None
             else show_share_button
         )
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -168,7 +170,7 @@ class Gallery(IOComponent, GallerySerializable, Changeable, Selectable):
         y: list[np.ndarray | _Image.Image | str]
         | list[tuple[np.ndarray | _Image.Image | str, str]]
         | None,
-    ) -> list[str]:
+    ) -> GalleryData:
         """
         Parameters:
             y: list of images, or list of (image, caption) tuples
@@ -176,68 +178,37 @@ class Gallery(IOComponent, GallerySerializable, Changeable, Selectable):
             list of string file paths to images in temp directory
         """
         if y is None:
-            return []
+            return GalleryData(root=[])
         output = []
         for img in y:
             caption = None
             if isinstance(img, (tuple, list)):
                 img, caption = img
             if isinstance(img, np.ndarray):
-                file = self.img_array_to_temp_file(img, dir=self.DEFAULT_TEMP_DIR)
+                file = processing_utils.save_img_array_to_cache(
+                    img, cache_dir=self.GRADIO_CACHE
+                )
                 file_path = str(utils.abspath(file))
-                self.temp_files.add(file_path)
             elif isinstance(img, _Image.Image):
-                file = self.pil_to_temp_file(img, dir=self.DEFAULT_TEMP_DIR)
+                file = processing_utils.save_pil_to_cache(
+                    img, cache_dir=self.GRADIO_CACHE
+                )
                 file_path = str(utils.abspath(file))
-                self.temp_files.add(file_path)
             elif isinstance(img, (str, Path)):
-                if utils.validate_url(img):
-                    file_path = img
-                else:
-                    file_path = self.make_temp_copy_if_needed(img)
+                file_path = str(img)
             else:
                 raise ValueError(f"Cannot process type as image: {type(img)}")
 
-            if caption is not None:
-                output.append(
-                    [{"name": file_path, "data": None, "is_file": True}, caption]
-                )
-            else:
-                output.append({"name": file_path, "data": None, "is_file": True})
-
-        return output
-
-    def style(
-        self,
-        *,
-        grid: int | tuple | None = None,
-        columns: int | tuple | None = None,
-        rows: int | tuple | None = None,
-        height: str | None = None,
-        container: bool | None = None,
-        preview: bool | None = None,
-        object_fit: str | None = None,
-        **kwargs,
-    ):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if grid is not None:
-            warn_deprecation(
-                "The 'grid' parameter will be deprecated. Please use 'columns' in the constructor instead.",
+            entry = GalleryImage(
+                image=FileData(name=file_path, is_file=True), caption=caption
             )
-            self.columns = grid
-        if columns is not None:
-            self.columns = columns
-        if rows is not None:
-            self.rows = rows
-        if height is not None:
-            self.height = height
-        if preview is not None:
-            self.preview = preview
-        if object_fit is not None:
-            self.object_fit = object_fit
-        if container is not None:
-            self.container = container
-        return self
+            output.append(entry)
+        return GalleryData(root=output)
+
+    def preprocess(self, x: Any) -> Any:
+        return x
+
+    def example_inputs(self) -> Any:
+        return [
+            "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+        ]

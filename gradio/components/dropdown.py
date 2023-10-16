@@ -6,31 +6,16 @@ import warnings
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import SimpleSerializable
 
-from gradio.components.base import FormComponent, IOComponent, _Keywords
+from gradio.components.base import FormComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
-from gradio.events import (
-    Changeable,
-    EventListenerMethod,
-    Focusable,
-    Inputable,
-    Selectable,
-)
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class Dropdown(
-    FormComponent,
-    Changeable,
-    Inputable,
-    Selectable,
-    Focusable,
-    IOComponent,
-    SimpleSerializable,
-):
+class Dropdown(FormComponent):
     """
     Creates a dropdown of choices from which entries can be selected.
     Preprocessing: passes the value of the selected dropdown entry as a {str} or its index as an {int} into the function, depending on `type`.
@@ -38,6 +23,8 @@ class Dropdown(
     Examples-format: a {str} representing the drop down value to select.
     Demos: sentence_builder, titanic_survival
     """
+
+    EVENTS = [Events.change, Events.input, Events.select, Events.focus, Events.blur]
 
     def __init__(
         self,
@@ -112,14 +99,7 @@ class Dropdown(
         self.allow_custom_value = allow_custom_value
         self.interpret_by_tokens = False
         self.filterable = filterable
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user selects Dropdown option.
-        Uses event data gradio.SelectData to carry `value` referring to label of selected option, and `index` to refer to index.
-        See EventData documentation on how to use this event data.
-        """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             info=info,
             every=every,
@@ -135,28 +115,24 @@ class Dropdown(
             **kwargs,
         )
 
-    def api_info(self) -> dict[str, dict | bool]:
+    def api_info(self) -> dict[str, Any]:
         if self.multiselect:
-            type = {
+            json_type = {
                 "type": "array",
-                "items": {"type": "string"},
-                "description": f"List of options from: {self.choices}",
+                "items": {"type": "string", "enum": [c[1] for c in self.choices]},
             }
         else:
-            type = {"type": "string", "description": f"Option from: {self.choices}"}
-        return {"info": type, "serialized_info": False}
+            json_type = {
+                "type": "string",
+                "enum": [c[1] for c in self.choices],
+            }
+        return json_type
 
-    def example_inputs(self) -> dict[str, Any]:
+    def example_inputs(self) -> Any:
         if self.multiselect:
-            return {
-                "raw": [self.choices[0]] if self.choices else [],
-                "serialized": [self.choices[0]] if self.choices else [],
-            }
+            return [self.choices[0][1]] if self.choices else []
         else:
-            return {
-                "raw": self.choices[0] if self.choices else None,
-                "serialized": self.choices[0] if self.choices else None,
-            }
+            return self.choices[0][1] if self.choices else None
 
     @staticmethod
     def update(
@@ -240,27 +216,6 @@ class Dropdown(
         else:
             self._warn_if_invalid_choice(y)
         return y
-
-    def set_interpret_parameters(self):
-        """
-        Calculates interpretation score of each choice by comparing the output against each of the outputs when alternative choices are selected.
-        """
-        return self
-
-    def get_interpretation_neighbors(self, x):
-        choices = list(self.choices)
-        choices.remove(x)
-        return choices, {}
-
-    def get_interpretation_scores(
-        self, x, neighbors, scores: list[float | None], **kwargs
-    ) -> list:
-        """
-        Returns:
-            Each value represents the interpretation score corresponding to each choice.
-        """
-        scores.insert(self.choices.index(x), None)
-        return scores
 
     def style(self, *, container: bool | None = None, **kwargs):
         """

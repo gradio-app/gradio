@@ -40,7 +40,11 @@
 	{scale}
 	{min_width}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker
+		autoscroll={gradio.autoscroll}
+		i18n={gradio.i18n}
+		{...loading_status}
+	/>
 
 	{#if multiselect}
 		<Multiselect
@@ -54,6 +58,7 @@
 			{allow_custom_value}
 			{filterable}
 			{container}
+			i18n={gradio.i18n}
 			on:change={() => gradio.dispatch("change")}
 			on:input={() => gradio.dispatch("input")}
 			on:select={(e) => gradio.dispatch("select", e.detail)}
@@ -72,6 +77,7 @@
 			{filterable}
 			{allow_custom_value}
 			{container}
+			i18n={gradio.i18n}
 			on:change={() => gradio.dispatch("change")}
 			on:input={() => gradio.dispatch("input")}
 			on:select={(e) => gradio.dispatch("select", e.detail)}

@@ -7,18 +7,15 @@ import warnings
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import StringSerializable
 
-from gradio.components.base import IOComponent, _Keywords
-from gradio.events import (
-    Changeable,
-)
+from gradio.components.base import Component, _Keywords
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class Markdown(IOComponent, Changeable, StringSerializable):
+class Markdown(Component):
     """
     Used to render arbitrary Markdown output. Can also render latex enclosed by dollar signs.
     Preprocessing: this component does *not* accept input.
@@ -27,6 +24,8 @@ class Markdown(IOComponent, Changeable, StringSerializable):
     Demos: blocks_hello, blocks_kinematics
     Guides: key-features
     """
+
+    EVENTS = [Events.change]
 
     def __init__(
         self,
@@ -53,14 +52,11 @@ class Markdown(IOComponent, Changeable, StringSerializable):
             line_breaks: If True, will enable Github-flavored Markdown line breaks in chatbot messages. If False (default), single new lines will be ignored.
         """
         self.rtl = rtl
-        if latex_delimiters is None:
-            latex_delimiters = [{"left": "$", "right": "$", "display": False}]
         self.latex_delimiters = latex_delimiters
         self.sanitize_html = sanitize_html
         self.line_breaks = line_breaks
 
-        IOComponent.__init__(
-            self,
+        super().__init__(
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
@@ -106,3 +102,12 @@ class Markdown(IOComponent, Changeable, StringSerializable):
     def as_example(self, input_data: str | None) -> str:
         postprocessed = self.postprocess(input_data)
         return postprocessed if postprocessed else ""
+
+    def preprocess(self, x: Any) -> Any:
+        return x
+
+    def example_inputs(self) -> Any:
+        return "# Hello!"
+
+    def api_info(self) -> dict[str, Any]:
+        return {"type": "string"}

@@ -5,27 +5,29 @@
 	import { TextHighlight } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { _ } from "svelte-i18n";
 	import { merge_elements } from "../utils";
 
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible = true;
-	export let value: [string, string | number | null][];
-	export let mode: "static" | "interactive";
-	export let show_legend: boolean;
-	export let color_map: Record<string, string> = {};
-	export let label = $_("highlighted_text.highlighted_text");
-	export let container = true;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let selectable = false;
-	export let combine_adjacent = false;
 	export let gradio: Gradio<{
 		select: SelectData;
 		change: typeof value;
 		input: never;
 	}>;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
+	export let value: {
+		token: string;
+		class_or_confidence: string | number | null;
+	}[] = [];
+	export let mode: "static" | "interactive";
+	export let show_legend: boolean;
+	export let color_map: Record<string, string> = {};
+	export let label = gradio.i18n("highlighted_text.highlighted_text");
+	export let container = true;
+	export let scale: number | null = null;
+	export let min_width: number | undefined = undefined;
+	export let selectable = false;
+	export let combine_adjacent = false;
 
 	$: if (!color_map && Object.keys(color_map).length) {
 		color_map = color_map;
@@ -49,7 +51,11 @@
 	{scale}
 	{min_width}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker
+		autoscroll={gradio.autoscroll}
+		{...loading_status}
+		i18n={gradio.i18n}
+	/>
 	{#if label}
 		<BlockLabel
 			Icon={TextHighlight}

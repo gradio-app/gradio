@@ -7,7 +7,7 @@
 	import { BaseButton } from "@gradio/button/static";
 	import EditableCell from "./EditableCell.svelte";
 	import type { SelectData } from "@gradio/utils";
-	import { _ } from "svelte-i18n";
+	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import VirtualTable from "./VirtualTable.svelte";
 	import type {
 		Headers,
@@ -32,6 +32,9 @@
 
 	export let editable = true;
 	export let wrap = false;
+	export let root: string;
+	export let i18n: I18nFormatter;
+
 	export let height = 500;
 	export let line_breaks = true;
 	let selected: false | [number, number] = false;
@@ -717,6 +720,7 @@
 			center={false}
 			boundedheight={false}
 			disable_click={true}
+			{root}
 			on:load={(e) => blob_to_string(data_uri_to_blob(e.detail.data))}
 			bind:dragging
 		>
@@ -828,7 +832,7 @@
 								d="M24.59 16.59L17 24.17V4h-2v20.17l-7.59-7.58L6 18l10 10l10-10l-1.41-1.41z"
 							/>
 						</svg>
-						{$_("dataframe.new_row")}
+						{i18n("dataframe.new_row")}
 					</BaseButton>
 				</span>
 			{/if}
@@ -854,7 +858,7 @@
 								d="m18 6l-1.43 1.393L24.15 15H4v2h20.15l-7.58 7.573L18 26l10-10L18 6z"
 							/>
 						</svg>
-						{$_("dataframe.new_column")}
+						{i18n("dataframe.new_column")}
 					</BaseButton>
 				</span>
 			{/if}

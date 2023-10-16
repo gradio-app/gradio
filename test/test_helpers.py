@@ -28,26 +28,41 @@ class TestExamples:
         assert examples.processed_examples == [["hello"]]
 
         examples = gr.Examples(["test/test_files/bus.png"], gr.Image())
-        assert examples.processed_examples == [[media_data.BASE64_IMAGE]]
+        assert (
+            utils.encode_file_to_base64(examples.processed_examples[0][0]["name"])
+            == media_data.BASE64_IMAGE
+        )
 
     def test_handle_multiple_inputs(self):
         examples = gr.Examples(
             [["hello", "test/test_files/bus.png"]], [gr.Textbox(), gr.Image()]
         )
-        assert examples.processed_examples == [["hello", media_data.BASE64_IMAGE]]
+        assert examples.processed_examples[0][0] == "hello"
+        assert (
+            utils.encode_file_to_base64(examples.processed_examples[0][1]["name"])
+            == media_data.BASE64_IMAGE
+        )
 
     def test_handle_directory(self):
         examples = gr.Examples("test/test_files/images", gr.Image())
-        assert examples.processed_examples == [
-            [media_data.BASE64_IMAGE],
-            [media_data.BASE64_IMAGE],
-        ]
+        assert len(examples.processed_examples) == 2
+        for row in examples.processed_examples:
+            for output in row:
+                assert (
+                    utils.encode_file_to_base64(output["name"])
+                    == media_data.BASE64_IMAGE
+                )
 
     def test_handle_directory_with_log_file(self):
         examples = gr.Examples(
             "test/test_files/images_log", [gr.Image(label="im"), gr.Text()]
         )
-        assert examples.processed_examples == [
+        ex = utils.traverse(
+            examples.processed_examples,
+            lambda s: utils.encode_file_to_base64(s["name"]),
+            lambda x: isinstance(x, dict) and Path(x["name"]).exists(),
+        )
+        assert ex == [
             [media_data.BASE64_IMAGE, "hello"],
             [media_data.BASE64_IMAGE, "hi"],
         ]
@@ -67,17 +82,26 @@ class TestExamples:
                 examples=["test/test_files/bus.png"],
                 inputs=image,
                 outputs=textbox,
-                fn=lambda x: x,
+                fn=lambda x: x["name"],
                 cache_examples=True,
                 preprocess=False,
             )
 
         prediction = examples.load_from_cache(0)
-        assert prediction == [media_data.BASE64_IMAGE]
+        assert utils.encode_file_to_base64(prediction[0]) == media_data.BASE64_IMAGE
 
     def test_no_postprocessing(self):
         def im(x):
-            return [media_data.BASE64_IMAGE]
+            return [
+                {
+                    "image": {
+                        "name": "test/test_files/bus.png",
+                        "data": None,
+                        "is_file": True,
+                    },
+                    "caption": "hi",
+                }
+            ]
 
         with gr.Blocks():
             text = gr.Textbox()
@@ -93,8 +117,10 @@ class TestExamples:
             )
 
         prediction = examples.load_from_cache(0)
-        file = prediction[0][0][0]["name"]
-        assert utils.encode_url_or_file_to_base64(file) == media_data.BASE64_IMAGE
+        file = prediction[0].root[0].image.name
+        assert utils.encode_url_or_file_to_base64(
+            file
+        ) == utils.encode_url_or_file_to_base64("test/test_files/bus.png")
 
 
 @patch("gradio.helpers.CACHED_FOLDER", tempfile.mkdtemp())
@@ -209,7 +235,9 @@ class TestProcessExamples:
             cache_examples=True,
         )
         prediction = io.examples_handler.load_from_cache(0)
-        assert prediction[0].startswith("data:image/png;base64,iVBORw0KGgoAAA")
+        assert utils.encode_url_or_file_to_base64(prediction[0].name).startswith(
+            "data:image/png;base64,iVBORw0KGgoAAA"
+        )
 
     def test_caching_audio(self):
         io = gr.Interface(
@@ -220,7 +248,7 @@ class TestProcessExamples:
             cache_examples=True,
         )
         prediction = io.examples_handler.load_from_cache(0)
-        file = prediction[0]["name"]
+        file = prediction[0].name
         assert utils.encode_url_or_file_to_base64(file).startswith(
             "data:audio/wav;base64,UklGRgA/"
         )
@@ -268,7 +296,7 @@ class TestProcessExamples:
         prediction = io.examples_handler.load_from_cache(0)
         assert prediction == [
             {"lines": 4, "__type__": "update", "mode": "static"},
-            {"label": "lion"},
+            gr.Label.data_model(**{"label": "lion", "confidences": None}),
         ]
 
     def test_caching_with_generators(self):
@@ -303,7 +331,7 @@ class TestProcessExamples:
         )
         prediction = io.examples_handler.load_from_cache(0)
         len_input_audio = len(AudioSegment.from_wav(audio))
-        len_output_audio = len(AudioSegment.from_wav(prediction[0]["name"]))
+        len_output_audio = len(AudioSegment.from_wav(prediction[0].name))
         length_ratio = len_output_audio / len_input_audio
         assert round(length_ratio, 1) == 3.0  # might not be exactly 3x
         assert float(prediction[1]) == 10.0
@@ -500,8 +528,8 @@ def test_multiple_file_flagging(tmp_path):
         )
         prediction = io.examples_handler.load_from_cache(0)
 
-        assert len(prediction[0]) == 2
-        assert all(isinstance(d, dict) for d in prediction[0])
+        assert len(prediction[0].root) == 2
+        assert all(isinstance(d, gr.FileData) for d in prediction[0].root)
 
 
 def test_examples_keep_all_suffixes(tmp_path):
@@ -520,11 +548,11 @@ def test_examples_keep_all_suffixes(tmp_path):
             cache_examples=True,
         )
         prediction = io.examples_handler.load_from_cache(0)
-        assert Path(prediction[0]["name"]).read_text() == "file 1"
-        assert prediction[0]["orig_name"] == "foo.bar.txt"
+        assert Path(prediction[0].name).read_text() == "file 1"
+        assert prediction[0].orig_name == "foo.bar.txt"
         prediction = io.examples_handler.load_from_cache(1)
-        assert Path(prediction[0]["name"]).read_text() == "file 2"
-        assert prediction[0]["orig_name"] == "foo.bar.txt"
+        assert Path(prediction[0].name).read_text() == "file 2"
+        assert prediction[0].orig_name == "foo.bar.txt"
 
 
 def test_make_waveform_with_spaces_in_filename():

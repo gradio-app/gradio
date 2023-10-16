@@ -6,6 +6,7 @@
 	import { uploadToHuggingFace } from "@gradio/utils";
 
 	import { Player } from "../shared";
+	import type { I18nFormatter } from "js/app/src/gradio_helper";
 
 	export let value: FileData | null = null;
 	export let subtitle: FileData | null = null;
@@ -13,6 +14,7 @@
 	export let show_label = true;
 	export let autoplay: boolean;
 	export let show_share_button = true;
+	export let i18n: I18nFormatter;
 
 	let old_value: FileData | null = null;
 	let old_subtitle: FileData | null = null;
@@ -71,6 +73,7 @@
 		</a>
 		{#if show_share_button}
 			<ShareButton
+				{i18n}
 				on:error
 				on:share
 				{value}

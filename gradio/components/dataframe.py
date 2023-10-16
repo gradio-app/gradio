@@ -3,40 +3,32 @@
 from __future__ import annotations
 
 import warnings
-from dataclasses import asdict, dataclass
-from typing import Callable, Literal
+from typing import Any, Callable, Dict, List, Literal, Optional
 
 import numpy as np
 import pandas as pd
 import semantic_version
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import JSONSerializable
 from pandas.io.formats.style import Styler
 
-from gradio.components.base import IOComponent, _Keywords
-from gradio.events import (
-    Changeable,
-    EventListenerMethod,
-    Inputable,
-    Selectable,
-)
+from gradio.components import Component, _Keywords
+from gradio.data_classes import GradioModel
+from gradio.events import Events
+
+
+class DataframeData(GradioModel):
+    headers: List[str]
+    data: List[List[Any]]
+    metadata: Optional[
+        Dict[str, List[Any]]
+    ] = None  # Optional[Dict[str, List[Any]]] = None
+
 
 set_documentation_group("component")
 
 
-@dataclass
-class DataframeData:
-    """
-    This is a dataclass to represent all the data that is sent to or received from the frontend.
-    """
-
-    data: list[list[str | int | bool]]
-    headers: list[str] | list[int] | None = None
-    metadata: dict[str, list[list]] | None = None
-
-
 @document()
-class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable):
+class Dataframe(Component):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, or {List[List]} depending on `type`
@@ -44,6 +36,10 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
     Examples-format: a {str} filepath to a csv with data, a pandas dataframe, or a list of lists (excluding headers) where each sublist is a row of data.
     Demos: filter_records, matrix_transpose, tax_calculator
     """
+
+    EVENTS = [Events.change, Events.input, Events.select]
+
+    data_model = DataframeData
 
     def __init__(
         self,
@@ -116,7 +112,9 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         self.__validate_headers(headers, self.col_count[0])
 
         self.headers = (
-            headers if headers is not None else list(range(1, self.col_count[0] + 1))
+            headers
+            if headers is not None
+            else [str(i) for i in (range(1, self.col_count[0] + 1))]
         )
         self.datatype = (
             datatype if isinstance(datatype, list) else [datatype] * self.col_count[0]
@@ -138,9 +136,13 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         column_dtypes = (
             [datatype] * self.col_count[0] if isinstance(datatype, str) else datatype
         )
-        self.empty_input = [
-            [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
-        ]
+        self.empty_input = {
+            "headers": self.headers,
+            "data": [
+                [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
+            ],
+            "metadata": None,
+        }
 
         self.max_rows = max_rows
         self.max_cols = max_cols
@@ -150,15 +152,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         self.latex_delimiters = latex_delimiters
         self.height = height
         self.line_breaks = line_breaks
-
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user selects cell within Dataframe.
-        Uses event data gradio.SelectData to carry `value` referring to value of selected cell, and `index` tuple to refer to index row and column.
-        See EventData documentation on how to use this event data.
-        """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -241,7 +235,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
     def postprocess(
         self,
         y: pd.DataFrame | Styler | np.ndarray | list | list[list] | dict | str | None,
-    ) -> dict:
+    ) -> DataframeData | dict:
         """
         Parameters:
             y: dataframe in given format
@@ -251,7 +245,14 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         if y is None:
             return self.postprocess(self.empty_input)
         if isinstance(y, dict):
-            value = DataframeData(**y)
+            return y
+        if isinstance(y, (str, pd.DataFrame)):
+            if isinstance(y, str):
+                y = pd.read_csv(y)  # type: ignore
+            return DataframeData(
+                headers=list(y.columns),  # type: ignore
+                data=y.to_dict(orient="split")["data"],  # type: ignore
+            )
         elif isinstance(y, Styler):
             if semantic_version.Version(pd.__version__) < semantic_version.Version(
                 "1.5.0"
@@ -266,14 +267,14 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             df: pd.DataFrame = y.data  # type: ignore
             value = DataframeData(
                 headers=list(df.columns),
-                data=df.to_dict(orient="split")["data"],
+                data=df.to_dict(orient="split")["data"],  # type: ignore
                 metadata=self.__extract_metadata(y),
             )
         elif isinstance(y, (str, pd.DataFrame)):
-            df = pd.read_csv(y) if isinstance(y, str) else y
+            df = pd.read_csv(y) if isinstance(y, str) else y  # type: ignore
             value = DataframeData(
                 headers=list(df.columns),
-                data=df.to_dict(orient="split")["data"],
+                data=df.to_dict(orient="split")["data"],  # type: ignore
             )
         elif isinstance(y, (np.ndarray, list)):
             if len(y) == 0:
@@ -285,20 +286,17 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
 
             _headers = self.headers
             if len(self.headers) < len(y[0]):
-                _headers = [
+                _headers: list[str] = [
                     *self.headers,
-                    *list(range(len(self.headers) + 1, len(y[0]) + 1)),
+                    *[str(i) for i in range(len(self.headers) + 1, len(y[0]) + 1)],
                 ]
             elif len(self.headers) > len(y[0]):
                 _headers = self.headers[: len(y[0])]
 
-            value = DataframeData(
-                headers=_headers,
-                data=y,
-            )
+            value = DataframeData(headers=_headers, data=y)
         else:
-            raise ValueError(f"Cannot process value as a Dataframe: {y}")
-        return asdict(value)
+            raise ValueError("Cannot process value as a Dataframe")
+        return value
 
     @staticmethod
     def __get_cell_style(cell_id: str, cell_styles: list[dict]) -> str:
@@ -354,3 +352,6 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         elif isinstance(input_data, np.ndarray):
             return input_data.tolist()
         return input_data
+
+    def example_inputs(self) -> Any:
+        return {"headers": ["a", "b"], "data": [["foo", "bar"]]}

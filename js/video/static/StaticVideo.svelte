@@ -9,13 +9,13 @@
 
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { _ } from "svelte-i18n";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: [FileData, FileData | null] | null = null;
-	let old_value: [FileData, FileData | null] | null = null;
+	export let value: { video: FileData; subtitles: FileData | null } | null =
+		null;
+	let old_value: { video: FileData; subtitles: FileData | null } | null = null;
 
 	export let label: string;
 	export let source: "upload" | "webcam";
@@ -50,8 +50,8 @@
 
 	$: {
 		if (value != null) {
-			_video = normalise_file(value[0], root, root_url);
-			_subtitle = normalise_file(value[1], root, root_url);
+			_video = normalise_file(value.video, root, root_url);
+			_subtitle = normalise_file(value.subtitles, root, root_url);
 		} else {
 			_video = null;
 			_subtitle = null;
@@ -82,7 +82,11 @@
 	{min_width}
 	allow_overflow={false}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker
+		autoscroll={gradio.autoscroll}
+		i18n={gradio.i18n}
+		{...loading_status}
+	/>
 
 	<StaticVideo
 		value={_video}
@@ -97,5 +101,6 @@
 		on:end={() => gradio.dispatch("end")}
 		on:share={({ detail }) => gradio.dispatch("share", detail)}
 		on:error={({ detail }) => gradio.dispatch("error", detail)}
+		i18n={gradio.i18n}
 	/>
 </Block>
