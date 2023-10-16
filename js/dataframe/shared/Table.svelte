@@ -49,7 +49,6 @@
 		}
 	}
 
-
 	const dispatch = createEventDispatcher<{
 		change: {
 			data: (string | number)[][];
