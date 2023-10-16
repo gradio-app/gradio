@@ -1,5 +1,11 @@
 # @gradio/lite
 
+## 0.3.2
+
+### Features
+
+- [#5868](https://github.com/gradio-app/gradio/pull/5868) [`4e0d87e9c`](https://github.com/gradio-app/gradio/commit/4e0d87e9c471fe90a344a3036d0faed9188ef6f3) - fix @gradio/lite dependencies.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.3.1
 
 ### Features
