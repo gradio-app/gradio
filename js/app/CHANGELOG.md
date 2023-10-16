@@ -1,202 +1,110 @@
 # @gradio/app
 
-## 1.6.0-beta.7
-
-### Features
-
-- [#5752](https://github.com/gradio-app/gradio/pull/5752) [`771cca273`](https://github.com/gradio-app/gradio/commit/771cca2735452a80e7888ab9ac0c893a3a9df76d) - Fix windows ci build.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
-
-## 1.6.0-beta.6
-
-### Features
-
-- [#5680](https://github.com/gradio-app/gradio/pull/5680) [`77c5ad98c`](https://github.com/gradio-app/gradio/commit/77c5ad98cf530dd45ef03c4f438105640c4b9c4c) - Fix build and file route.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
-
-## 1.6.0-beta.5
+## 1.7.1
 
 ### Patch Changes
 
-- Updated dependencies [[`c573e2339`](https://github.com/gradio-app/gradio/commit/c573e2339b86c85b378dc349de5e9223a3c3b04a)]:
-  - @gradio/audio@0.4.0-beta.5
-  - @gradio/box@0.0.5-beta.4
-  - @gradio/button@0.2.0-beta.4
-  - @gradio/chatbot@0.4.0-beta.5
-  - @gradio/checkbox@0.2.0-beta.5
-  - @gradio/checkboxgroup@0.3.0-beta.5
-  - @gradio/code@0.2.0-beta.5
-  - @gradio/colorpicker@0.2.0-beta.5
-  - @gradio/column@0.1.0-beta.1
-  - @gradio/dataframe@0.3.0-beta.5
-  - @gradio/dropdown@0.3.0-beta.5
-  - @gradio/fallback@0.2.0-beta.5
-  - @gradio/file@0.2.0-beta.5
-  - @gradio/form@0.0.6-beta.4
-  - @gradio/gallery@0.4.0-beta.5
-  - @gradio/group@0.0.2-beta.0
-  - @gradio/highlightedtext@0.4.0-beta.5
-  - @gradio/html@0.1.0-beta.5
-  - @gradio/image@0.3.0-beta.5
-  - @gradio/json@0.1.0-beta.5
-  - @gradio/label@0.2.0-beta.5
-  - @gradio/markdown@0.3.0-beta.5
-  - @gradio/model3d@0.3.0-beta.5
-  - @gradio/number@0.3.0-beta.5
-  - @gradio/plot@0.2.0-beta.5
-  - @gradio/radio@0.3.0-beta.5
-  - @gradio/row@0.0.2-beta.0
-  - @gradio/slider@0.2.0-beta.5
-  - @gradio/state@0.0.2-beta.0
-  - @gradio/tabitem@0.0.5-beta.4
-  - @gradio/tabs@0.0.6-beta.4
-  - @gradio/textbox@0.4.0-beta.5
-  - @gradio/uploadbutton@0.1.0-beta.4
-  - @gradio/video@0.1.0-beta.5
-  - @gradio/accordion@0.1.0-beta.5
-  - @gradio/statustracker@0.3.0-beta.5
-  - @gradio/annotatedimage@0.2.0-beta.5
+- Updated dependencies [[`796145e2c`](https://github.com/gradio-app/gradio/commit/796145e2c48c4087bec17f8ec0be4ceee47170cb)]:
+  - @gradio/client@0.5.1
+  - @gradio/file@0.2.1
+  - @gradio/fileexplorer@0.2.1
+  - @gradio/uploadbutton@0.0.11
 
-## 1.6.0-beta.4
+## 1.7.0
+
+### Highlights
+
+#### new `FileExplorer` component ([#5672](https://github.com/gradio-app/gradio/pull/5672) [`e4a307ed6`](https://github.com/gradio-app/gradio/commit/e4a307ed6cde3bbdf4ff2f17655739addeec941e))
+
+Thanks to a new capability that allows components to communicate directly with the server _without_ passing data via the value, we have created a new `FileExplorer` component.
+
+This component allows you to populate the explorer by passing a glob, but only provides the selected file(s) in your prediction function.
+
+Users can then navigate the virtual filesystem and select files which will be accessible in your predict function. This component will allow developers to build more complex spaces, with more flexible input options.
+
+![output](https://github.com/pngwn/MDsveX/assets/12937446/ef108f0b-0e84-4292-9984-9dc66b3e144d)
+
+For more information check the [`FileExplorer` documentation](https://gradio.app/docs/fileexplorer).
+
+Thanks [@aliabid94](https://github.com/aliabid94)!
+
+### Fixes
+
+- [#5794](https://github.com/gradio-app/gradio/pull/5794) [`f096c3ae1`](https://github.com/gradio-app/gradio/commit/f096c3ae168c0df00f90fe131c1e48c572e0574b) - Throw helpful error when media devices are not found. Thanks [@hannahblair](https://github.com/hannahblair)!
+
+## 1.6.4
+
+### Features
+
+- [#5124](https://github.com/gradio-app/gradio/pull/5124) [`6e56a0d9b`](https://github.com/gradio-app/gradio/commit/6e56a0d9b0c863e76c69e1183d9d40196922b4cd) - Lite: Websocket queueing. Thanks [@whitphx](https://github.com/whitphx)!
+
+## 1.6.3
 
 ### Patch Changes
 
-- Updated dependencies [[`0b4fd5b6d`](https://github.com/gradio-app/gradio/commit/0b4fd5b6db96fc95a155e5e935e17e1ab11d1161)]:
-  - @gradio/utils@0.2.0-beta.3
-  - @gradio/annotatedimage@0.2.0-beta.4
-  - @gradio/atoms@0.2.0-beta.3
-  - @gradio/audio@0.4.0-beta.4
-  - @gradio/button@0.2.0-beta.3
-  - @gradio/chatbot@0.4.0-beta.4
-  - @gradio/checkbox@0.2.0-beta.4
-  - @gradio/checkboxgroup@0.3.0-beta.4
-  - @gradio/code@0.2.0-beta.4
-  - @gradio/colorpicker@0.2.0-beta.4
-  - @gradio/dataframe@0.3.0-beta.4
-  - @gradio/dropdown@0.3.0-beta.4
-  - @gradio/fallback@0.2.0-beta.4
-  - @gradio/file@0.2.0-beta.4
-  - @gradio/form@0.0.6-beta.3
-  - @gradio/gallery@0.4.0-beta.4
-  - @gradio/highlightedtext@0.4.0-beta.4
-  - @gradio/html@0.1.0-beta.4
-  - @gradio/image@0.3.0-beta.4
-  - @gradio/json@0.1.0-beta.4
-  - @gradio/label@0.2.0-beta.4
-  - @gradio/markdown@0.3.0-beta.4
-  - @gradio/model3d@0.3.0-beta.4
-  - @gradio/number@0.3.0-beta.4
-  - @gradio/plot@0.2.0-beta.4
-  - @gradio/radio@0.3.0-beta.4
-  - @gradio/slider@0.2.0-beta.4
-  - @gradio/statustracker@0.3.0-beta.4
-  - @gradio/tabitem@0.0.5-beta.3
-  - @gradio/tabs@0.0.6-beta.3
-  - @gradio/textbox@0.4.0-beta.4
-  - @gradio/upload@0.3.0-beta.3
-  - @gradio/uploadbutton@0.1.0-beta.3
-  - @gradio/video@0.1.0-beta.4
-  - @gradio/accordion@0.1.0-beta.4
-  - @gradio/box@0.0.5-beta.3
+- Updated dependencies [[`abb5e9df4`](https://github.com/gradio-app/gradio/commit/abb5e9df47989b2c56c2c312d74944678f9f2d4e), [`e842a561a`](https://github.com/gradio-app/gradio/commit/e842a561af4394f8109291ee5725bcf74743e816), [`8f0fed857`](https://github.com/gradio-app/gradio/commit/8f0fed857d156830626eb48b469d54d211a582d2), [`502054848`](https://github.com/gradio-app/gradio/commit/502054848fdbe39fc03ec42445242b4e49b7affc), [`2a5b9e03b`](https://github.com/gradio-app/gradio/commit/2a5b9e03b15ea324d641fe6982f26d81b1ca7210)]:
+  - @gradio/gallery@0.4.1
+  - @gradio/chatbot@0.5.0
+  - @gradio/dataframe@0.3.0
+  - @gradio/markdown@0.3.0
+  - @gradio/icons@0.2.0
+  - @gradio/annotatedimage@0.2.1
+  - @gradio/atoms@0.1.3
+  - @gradio/audio@0.3.6
+  - @gradio/code@0.2.1
+  - @gradio/dropdown@0.3.1
+  - @gradio/file@0.1.5
+  - @gradio/form@0.0.6
+  - @gradio/highlightedtext@0.3.2
+  - @gradio/image@0.3.1
+  - @gradio/json@0.1.1
+  - @gradio/label@0.2.1
+  - @gradio/model3d@0.2.3
+  - @gradio/plot@0.2.1
+  - @gradio/statustracker@0.2.1
+  - @gradio/textbox@0.4.1
+  - @gradio/timeseries@0.0.7
+  - @gradio/upload@0.3.1
+  - @gradio/video@0.0.10
+  - @gradio/accordion@0.1.1
+  - @gradio/box@0.0.5
+  - @gradio/checkbox@0.2.1
+  - @gradio/checkboxgroup@0.3.1
+  - @gradio/colorpicker@0.1.3
+  - @gradio/html@0.0.5
+  - @gradio/number@0.3.1
+  - @gradio/radio@0.3.1
+  - @gradio/slider@0.2.1
   - @gradio/row@0.0.1
+  - @gradio/button@0.2.1
+  - @gradio/uploadbutton@0.0.8
 
-## 1.6.0-beta.3
-
-### Patch Changes
-
-- Updated dependencies [[`14fc612d8`](https://github.com/gradio-app/gradio/commit/14fc612d84bf6b1408eccd3a40fab41f25477571)]:
-  - @gradio/utils@0.2.0-beta.2
-  - @gradio/annotatedimage@0.2.0-beta.3
-  - @gradio/atoms@0.2.0-beta.2
-  - @gradio/audio@0.4.0-beta.3
-  - @gradio/button@0.2.0-beta.2
-  - @gradio/chatbot@0.4.0-beta.3
-  - @gradio/checkbox@0.2.0-beta.3
-  - @gradio/checkboxgroup@0.3.0-beta.3
-  - @gradio/code@0.2.0-beta.3
-  - @gradio/colorpicker@0.2.0-beta.3
-  - @gradio/dataframe@0.3.0-beta.3
-  - @gradio/dropdown@0.3.0-beta.3
-  - @gradio/fallback@0.2.0-beta.3
-  - @gradio/file@0.2.0-beta.3
-  - @gradio/form@0.0.6-beta.2
-  - @gradio/gallery@0.4.0-beta.3
-  - @gradio/highlightedtext@0.4.0-beta.3
-  - @gradio/html@0.1.0-beta.3
-  - @gradio/image@0.3.0-beta.3
-  - @gradio/json@0.1.0-beta.3
-  - @gradio/label@0.2.0-beta.3
-  - @gradio/markdown@0.3.0-beta.3
-  - @gradio/model3d@0.3.0-beta.3
-  - @gradio/number@0.3.0-beta.3
-  - @gradio/plot@0.2.0-beta.3
-  - @gradio/radio@0.3.0-beta.3
-  - @gradio/slider@0.2.0-beta.3
-  - @gradio/statustracker@0.3.0-beta.3
-  - @gradio/tabitem@0.0.5-beta.2
-  - @gradio/tabs@0.0.6-beta.2
-  - @gradio/textbox@0.4.0-beta.3
-  - @gradio/upload@0.3.0-beta.2
-  - @gradio/uploadbutton@0.1.0-beta.2
-  - @gradio/video@0.1.0-beta.3
-  - @gradio/accordion@0.1.0-beta.3
-  - @gradio/box@0.0.5-beta.2
-  - @gradio/row@0.0.1
-
-## 1.6.0-beta.2
+## 1.6.2
 
 ### Features
 
-- [#5620](https://github.com/gradio-app/gradio/pull/5620) [`c4c25ecdf`](https://github.com/gradio-app/gradio/commit/c4c25ecdf8c2fab5e3c41b519564e3b6a9ebfce3) - fix build and broken imports. Thanks [@pngwn](https://github.com/pngwn)!
+- [#5721](https://github.com/gradio-app/gradio/pull/5721) [`84e03fe50`](https://github.com/gradio-app/gradio/commit/84e03fe506e08f1f81bac6d504c9fba7924f2d93) - Adds copy buttons to website, and better descriptions to API Docs. Thanks [@aliabd](https://github.com/aliabd)!
 
-## 1.6.0-beta.1
+### Fixes
+
+- [#5705](https://github.com/gradio-app/gradio/pull/5705) [`78e7cf516`](https://github.com/gradio-app/gradio/commit/78e7cf5163e8d205e8999428fce4c02dbdece25f) - ensure internal data has updated before dispatching `success` or `then` events. Thanks [@pngwn](https://github.com/pngwn)!
+- [#5726](https://github.com/gradio-app/gradio/pull/5726) [`96c4b97c7`](https://github.com/gradio-app/gradio/commit/96c4b97c742311e90a87d8e8ee562c6ad765e9f0) - Adjust translation. Thanks [@ylhsieh](https://github.com/ylhsieh)!
+
+## 1.6.1
 
 ### Patch Changes
 
-- Updated dependencies [[`142880ba5`](https://github.com/gradio-app/gradio/commit/142880ba589126d98da3d6a38866828864cc6b81)]:
-  - @gradio/theme@0.2.0-beta.1
-  - @gradio/chatbot@0.4.0-beta.1
-  - @gradio/highlightedtext@0.4.0-beta.1
-  - @gradio/plot@0.2.0-beta.1
-  - @gradio/utils@0.2.0-beta.1
-  - @gradio/annotatedimage@0.2.0-beta.1
-  - @gradio/atoms@0.2.0-beta.1
-  - @gradio/audio@0.4.0-beta.1
-  - @gradio/button@0.2.0-beta.1
-  - @gradio/checkbox@0.2.0-beta.1
-  - @gradio/checkboxgroup@0.3.0-beta.1
-  - @gradio/code@0.2.0-beta.1
-  - @gradio/colorpicker@0.2.0-beta.1
-  - @gradio/dataframe@0.3.0-beta.1
-  - @gradio/dropdown@0.3.0-beta.1
-  - @gradio/fallback@0.2.0-beta.1
-  - @gradio/file@0.2.0-beta.1
-  - @gradio/form@0.0.6-beta.1
-  - @gradio/gallery@0.4.0-beta.1
-  - @gradio/html@0.1.0-beta.1
-  - @gradio/image@0.3.0-beta.1
-  - @gradio/json@0.1.0-beta.1
-  - @gradio/label@0.2.0-beta.1
-  - @gradio/markdown@0.3.0-beta.1
-  - @gradio/model3d@0.3.0-beta.1
-  - @gradio/number@0.3.0-beta.1
-  - @gradio/radio@0.3.0-beta.1
-  - @gradio/slider@0.2.0-beta.1
-  - @gradio/statustracker@0.3.0-beta.1
-  - @gradio/tabitem@0.0.5-beta.1
-  - @gradio/tabs@0.0.6-beta.1
-  - @gradio/textbox@0.4.0-beta.1
-  - @gradio/upload@0.3.0-beta.1
-  - @gradio/uploadbutton@0.1.0-beta.1
-  - @gradio/video@0.1.0-beta.1
-  - @gradio/accordion@0.1.0-beta.1
-  - @gradio/box@0.0.5-beta.1
-  - @gradio/row@0.0.1
+- Updated dependencies [[`ee8eec1e5`](https://github.com/gradio-app/gradio/commit/ee8eec1e5e544a0127e0aa68c2522a7085b8ada5)]:
+  - @gradio/markdown@0.2.2
+  - @gradio/chatbot@0.4.1
+  - @gradio/dataframe@0.2.4
 
-## 1.6.0-beta.0
+## 1.6.0
 
 ### Features
 
-- [#5507](https://github.com/gradio-app/gradio/pull/5507) [`1385dc688`](https://github.com/gradio-app/gradio/commit/1385dc6881f2d8ae7a41106ec21d33e2ef04d6a9) - Custom components. Thanks [@pngwn](https://github.com/pngwn)!
-- [#5589](https://github.com/gradio-app/gradio/pull/5589) [`af1b2f9ba`](https://github.com/gradio-app/gradio/commit/af1b2f9bafbacf2804fcfe68af6bb4b921442aca) - image fixes. Thanks [@pngwn](https://github.com/pngwn)!
+- [#5639](https://github.com/gradio-app/gradio/pull/5639) [`e1874aff8`](https://github.com/gradio-app/gradio/commit/e1874aff814d13b23f3e59ef239cc13e18ad3fa7) - Add `gr.on` listener method. Thanks [@aliabid94](https://github.com/aliabid94)!
+- [#5554](https://github.com/gradio-app/gradio/pull/5554) [`75ddeb390`](https://github.com/gradio-app/gradio/commit/75ddeb390d665d4484667390a97442081b49a423) - Accessibility Improvements. Thanks [@hannahblair](https://github.com/hannahblair)!
 
 ## 1.5.4
 

@@ -1,23 +1,34 @@
 # gradio_client
 
-## 0.6.0-beta.2
+## 0.6.0
+
+### Highlights
+
+#### new `FileExplorer` component ([#5672](https://github.com/gradio-app/gradio/pull/5672) [`e4a307ed6`](https://github.com/gradio-app/gradio/commit/e4a307ed6cde3bbdf4ff2f17655739addeec941e))
+
+Thanks to a new capability that allows components to communicate directly with the server _without_ passing data via the value, we have created a new `FileExplorer` component.
+
+This component allows you to populate the explorer by passing a glob, but only provides the selected file(s) in your prediction function. 
+
+Users can then navigate the virtual filesystem and select files which will be accessible in your predict function. This component will allow developers to build more complex spaces, with more flexible input options.
+
+![output](https://github.com/pngwn/MDsveX/assets/12937446/ef108f0b-0e84-4292-9984-9dc66b3e144d)
+
+For more information check the [`FileExplorer` documentation](https://gradio.app/docs/fileexplorer).
+
+ Thanks [@aliabid94](https://github.com/aliabid94)!
+
+## 0.5.3
 
 ### Features
 
-- [#5715](https://github.com/gradio-app/gradio/pull/5715) [`9b3d55044`](https://github.com/gradio-app/gradio/commit/9b3d5504433ed19df8f588f7b85d82700fb98c08) - Fix python unit tests for v4.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
-- [#5751](https://github.com/gradio-app/gradio/pull/5751) [`95e35cde4`](https://github.com/gradio-app/gradio/commit/95e35cde4728fc01ad2c488b1a1283958d72cda8) - Support call method.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5721](https://github.com/gradio-app/gradio/pull/5721) [`84e03fe50`](https://github.com/gradio-app/gradio/commit/84e03fe506e08f1f81bac6d504c9fba7924f2d93) - Adds copy buttons to website, and better descriptions to API Docs.  Thanks [@aliabd](https://github.com/aliabd)!
 
-## 0.6.0-beta.1
-
-### Features
-
-- [#5686](https://github.com/gradio-app/gradio/pull/5686) [`e19d333cb`](https://github.com/gradio-app/gradio/commit/e19d333cb2cde682e983ee0117e70f0d17d78842) - V4 fix typing.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
-
-## 0.6.0-beta.0
+## 0.5.2
 
 ### Features
 
-- [#5507](https://github.com/gradio-app/gradio/pull/5507) [`1385dc688`](https://github.com/gradio-app/gradio/commit/1385dc6881f2d8ae7a41106ec21d33e2ef04d6a9) - Custom components.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5653](https://github.com/gradio-app/gradio/pull/5653) [`ea0e00b20`](https://github.com/gradio-app/gradio/commit/ea0e00b207b4b90a10e9d054c4202d4e705a29ba) - Prevent Clients from accessing API endpoints that set `api_name=False`.  Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 0.5.1
 

@@ -2,7 +2,7 @@
 	import { BlockLabel, Empty, ShareButton } from "@gradio/atoms";
 	import { ModifyUpload } from "@gradio/upload";
 	import type { SelectData } from "@gradio/utils";
-
+	import { dequal } from "dequal";
 	import { createEventDispatcher } from "svelte";
 	import { tick } from "svelte";
 
@@ -18,8 +18,8 @@
 	export let root = "";
 	export let root_url: null | string = null;
 	export let value: { image: FileData; caption: string | null }[] | null = null;
-	export let grid_cols: number | number[] | undefined = [2];
-	export let grid_rows: number | number[] | undefined = undefined;
+	export let columns: number | number[] | undefined = [2];
+	export let rows: number | number[] | undefined = undefined;
 	export let height: number | "auto" = "auto";
 	export let preview: boolean;
 	export let allow_preview = true;
@@ -28,8 +28,10 @@
 	export let show_share_button = false;
 	export let show_download_button = false;
 	export let i18n: I18nFormatter;
+	export let selected_index: number | null = null;
 
 	const dispatch = createEventDispatcher<{
+		change: undefined;
 		select: SelectData;
 	}>();
 
@@ -49,31 +51,34 @@
 
 	let prevValue: { image: FileData; caption: string | null }[] | null | null =
 		value;
-	let selected_image = preview && value?.length ? 0 : null;
-	let old_selected_image: number | null = selected_image;
+	if (selected_index === null && preview && value?.length) {
+		selected_index = 0;
+	}
+	let old_selected_index: number | null = selected_index;
 
-	$: if (prevValue !== value) {
+	$: if (!dequal(prevValue, value)) {
 		// When value is falsy (clear button or first load),
 		// preview determines the selected image
 		if (was_reset) {
-			selected_image = preview && value?.length ? 0 : null;
+			selected_index = preview && value?.length ? 0 : null;
 			was_reset = false;
-			// Otherwise we keep the selected_image the same if the
+			// Otherwise we keep the selected_index the same if the
 			// gallery has at least as many elements as it did before
 		} else {
-			selected_image =
-				selected_image !== null &&
+			selected_index =
+				selected_index !== null &&
 				value !== null &&
-				selected_image < value.length
-					? selected_image
+				selected_index < value.length
+					? selected_index
 					: null;
 		}
+		dispatch("change");
 		prevValue = value;
 	}
 
 	$: previous =
-		((selected_image ?? 0) + (_value?.length ?? 0) - 1) % (_value?.length ?? 0);
-	$: next = ((selected_image ?? 0) + 1) % (_value?.length ?? 0);
+		((selected_index ?? 0) + (_value?.length ?? 0) - 1) % (_value?.length ?? 0);
+	$: next = ((selected_index ?? 0) + 1) % (_value?.length ?? 0);
 
 	function handle_preview_click(event: MouseEvent): void {
 		const element = event.target as HTMLElement;
@@ -82,9 +87,9 @@
 		const centerX = width / 2;
 
 		if (x < centerX) {
-			selected_image = previous;
+			selected_index = previous;
 		} else {
-			selected_image = next;
+			selected_index = next;
 		}
 	}
 
@@ -92,15 +97,15 @@
 		switch (e.code) {
 			case "Escape":
 				e.preventDefault();
-				selected_image = null;
+				selected_index = null;
 				break;
 			case "ArrowLeft":
 				e.preventDefault();
-				selected_image = previous;
+				selected_index = previous;
 				break;
 			case "ArrowRight":
 				e.preventDefault();
-				selected_image = next;
+				selected_index = next;
 				break;
 			default:
 				break;
@@ -116,24 +121,26 @@
 			return selected.data;
 		} else if (typeof selected === "string") {
 			return selected;
+		} else if (Array.isArray(selected)) {
+			return getHrefValue(selected[0]);
 		}
 		return "";
 	}
 
 	$: {
-		if (selected_image !== old_selected_image) {
-			old_selected_image = selected_image;
-			if (selected_image !== null) {
+		if (selected_index !== old_selected_index) {
+			old_selected_index = selected_index;
+			if (selected_index !== null) {
 				dispatch("select", {
-					index: selected_image,
-					value: _value?.[selected_image].caption
+					index: selected_index,
+					value: _value?.[selected_index]
 				});
 			}
 		}
 	}
 
 	$: if (allow_preview) {
-		scroll_to_img(selected_image);
+		scroll_to_img(selected_index);
 	}
 
 	let el: HTMLButtonElement[] = [];
@@ -157,10 +164,12 @@
 			container_width / 2 +
 			container_element.scrollLeft;
 
-		container_element?.scrollTo({
-			left: pos < 0 ? 0 : pos,
-			behavior: "smooth"
-		});
+		if (container_element && typeof container_element.scrollTo === "function") {
+			container_element.scrollTo({
+				left: pos < 0 ? 0 : pos,
+				behavior: "smooth"
+			});
+		}
 	}
 
 	let client_height = 0;
@@ -175,13 +184,12 @@
 {#if value === null || _value === null || _value.length === 0}
 	<Empty unpadded_box={true} size="large"><Image /></Empty>
 {:else}
-	{#if selected_image !== null && allow_preview}
-		<!-- svelte-ignore a11y-no-static-element-interactions -->
-		<div on:keydown={on_keydown} class="preview">
+	{#if selected_index !== null && allow_preview}
+		<button on:keydown={on_keydown} class="preview">
 			<div class="icon-buttons">
 				{#if show_download_button}
 					<a
-						href={getHrefValue(value[selected_image])}
+						href={getHrefValue(value[selected_index])}
 						target={window.__is_colab__ ? "_blank" : null}
 						download="image"
 					>
@@ -192,27 +200,30 @@
 				<ModifyUpload
 					{i18n}
 					absolute={false}
-					on:clear={() => (selected_image = null)}
+					on:clear={() => (selected_index = null)}
 				/>
 			</div>
-			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-			<img
-				data-testid="detailed-image"
+			<button
+				class="image-button"
 				on:click={(event) => handle_preview_click(event)}
-				src={_value[selected_image].image.data}
-				alt={_value[selected_image].caption || ""}
-				title={_value[selected_image].caption || null}
-				class:with-caption={!!_value[selected_image].caption}
-				style="height: calc(100% - {_value[selected_image].caption}
+				style="height: calc(100% - {_value[selected_index].caption
 					? '80px'
 					: '60px'})"
-				loading="lazy"
-			/>
-			{#if _value[selected_image].caption}
-				<div class="caption">
-					{_value[selected_image].caption}
-				</div>
+				aria-label="detailed view of selected image"
+			>
+				<img
+					data-testid="detailed-image"
+					src={_value[selected_index].image.data}
+					alt={_value[selected_index].caption || ""}
+					title={_value[selected_index].caption || null}
+					class:with-caption={!!_value[selected_index].caption}
+					loading="lazy"
+				/>
+			</button>
+			{#if _value[selected_index].caption}
+				<caption class="caption">
+					{_value[selected_index].caption}
+				</caption>
 			{/if}
 			<div
 				bind:this={container_element}
@@ -222,20 +233,21 @@
 				{#each _value as image, i}
 					<button
 						bind:this={el[i]}
-						on:click={() => (selected_image = i)}
+						on:click={() => (selected_index = i)}
 						class="thumbnail-item thumbnail-small"
-						class:selected={selected_image === i}
+						class:selected={selected_index === i}
+						aria-label={"Thumbnail " + (i + 1) + " of " + _value.length}
 					>
 						<img
 							src={image.image.data}
 							title={image.caption || null}
-							alt={image.caption || null}
+							alt=""
 							loading="lazy"
 						/>
 					</button>
 				{/each}
 			</div>
-		</div>
+		</button>
 	{/if}
 
 	<div
@@ -245,7 +257,7 @@
 	>
 		<div
 			class="grid-container"
-			style="--grid-cols:{grid_cols}; --grid-rows:{grid_rows}; --object-fit: {object_fit}; height: {height};"
+			style="--grid-cols:{columns}; --grid-rows:{rows}; --object-fit: {object_fit}; height: {height};"
 			class:pt-6={show_label}
 		>
 			{#if show_share_button}
@@ -262,8 +274,9 @@
 			{#each _value as entry, i}
 				<button
 					class="thumbnail-item thumbnail-lg"
-					class:selected={selected_image === i}
-					on:click={() => (selected_image = i)}
+					class:selected={selected_index === i}
+					on:click={() => (selected_index = i)}
+					aria-label={"Thumbnail " + (i + 1) + " of " + _value.length}
 				>
 					<img
 						alt={entry.caption || ""}
@@ -309,14 +322,19 @@
 		}
 	}
 
+	.image-button {
+		height: calc(100% - 60px);
+		width: 100%;
+		display: flex;
+	}
 	.preview img {
 		width: var(--size-full);
-		height: calc(var(--size-full) - 60px);
+		height: var(--size-full);
 		object-fit: contain;
 	}
 
 	.preview img.with-caption {
-		height: calc(var(--size-full) - 80px);
+		height: var(--size-full);
 	}
 
 	.caption {
@@ -327,6 +345,7 @@
 		text-align: center;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+		align-self: center;
 	}
 
 	.thumbnails {

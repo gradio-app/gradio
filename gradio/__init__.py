@@ -30,6 +30,7 @@ from gradio.components import (
     Dropdown,
     DuplicateButton,
     File,
+    FileExplorer,
     Gallery,
     Highlight,
     HighlightedText,
@@ -57,7 +58,7 @@ from gradio.components import (
     component,
 )
 from gradio.data_classes import FileData
-from gradio.events import EventData, LikeData, SelectData
+from gradio.events import EventData, LikeData, SelectData, on
 from gradio.exceptions import Error
 from gradio.external import load
 from gradio.flagging import (

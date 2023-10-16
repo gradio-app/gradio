@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Optional
 
 import typer
+from rich.markup import escape
 from typing_extensions import Annotated
 
 from gradio.cli.commands.display import LivePanelDisplay
@@ -38,7 +39,7 @@ def _create(
     install: Annotated[
         bool,
         typer.Option(
-            help="Whether to install the component in your current environment as a local install"
+            help="Whether to install the component in your current environment as a development install. Recommended for development."
         ),
     ] = False,
     npm_install: Annotated[
@@ -67,7 +68,7 @@ def _create(
     directory.mkdir(exist_ok=overwrite)
 
     if _create_utils._in_test_dir():
-        npm_install = "pnpm i --ignore-scripts"
+        npm_install = f"{shutil.which('pnpm')} i --ignore-scripts"
 
     npm_install = npm_install.strip()
     if npm_install == "npm install":
@@ -99,9 +100,9 @@ def _create(
         live.update(":art: Created frontend code", add_sleep=0.2)
 
         if install:
-            cmds = ["pip", "install", "-e", f"{str(directory)}"]
+            cmds = [shutil.which("pip"), "install", "-e", f"{str(directory)}[dev]"]
             live.update(
-                f":construction_worker: Installing python... [grey37]({' '.join(cmds)})[/]"
+                f":construction_worker: Installing python... [grey37]({escape(' '.join(cmds))})[/]"
             )
             pipe = subprocess.run(cmds, capture_output=True, text=True)
 

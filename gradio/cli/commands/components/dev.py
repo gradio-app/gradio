@@ -8,7 +8,7 @@ from typing_extensions import Annotated
 
 import gradio
 
-gradio_template_path = Path(gradio.__file__).parent / "templates" / "dev"
+gradio_template_path = Path(gradio.__file__).parent / "templates" / "frontend"
 gradio_node_path = Path(gradio.__file__).parent / "node" / "dev" / "files" / "index.js"
 
 
@@ -26,6 +26,12 @@ def _dev(
             help="The directory with the custom component source code. By default, uses the current directory."
         ),
     ] = Path("."),
+    host: Annotated[
+        str,
+        typer.Option(
+            help="The host to run the front end server on. Defaults to localhost.",
+        ),
+    ] = "localhost",
 ):
     component_directory = component_directory.resolve()
 
@@ -45,16 +51,21 @@ def _dev(
             gradio_template_path,
             "--app",
             str(app),
+            "--mode",
+            "dev",
+            "--host",
+            host,
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
     )
     while True:
         proc.poll()
-        if proc.returncode is not None:
-            print("Backend server failed to launch. Exiting.")
-            return
         text = proc.stdout.readline()  # type: ignore
+        err = None
+        if proc.stderr:
+            err = proc.stderr.readline()
+
         text = (
             text.decode("utf-8")
             .replace("Changes detected in:", "[orange3]Changed detected in:[/]")
@@ -66,3 +77,9 @@ def _dev(
         if "To create a public link" in text:
             continue
         print(text)
+        if err:
+            print(err.decode("utf-8"))
+
+        if proc.returncode is not None:
+            print("Backend server failed to launch. Exiting.")
+            return

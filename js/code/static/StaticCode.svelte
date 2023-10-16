@@ -24,6 +24,11 @@
 	export let label = gradio.i18n("code.code");
 	export let show_label = true;
 	export let loading_status: LoadingStatus;
+	export let scale: number | null = null;
+	export let gradio: Gradio<{
+		change: typeof value;
+		input: never;
+	}>;
 
 	let dark_mode = target.classList.contains("dark");
 
@@ -39,7 +44,14 @@
 	$: value, handle_change();
 </script>
 
-<Block variant={"solid"} padding={false} {elem_id} {elem_classes} {visible}>
+<Block
+	variant={"solid"}
+	padding={false}
+	{elem_id}
+	{elem_classes}
+	{visible}
+	{scale}
+>
 	<StatusTracker
 		autoscroll={gradio.autoscroll}
 		i18n={gradio.i18n}

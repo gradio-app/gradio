@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/app",
-	"version": "1.6.0-beta.7",
+	"version": "1.7.1",
 	"private": true,
 	"type": "module",
 	"scripts": {
@@ -38,9 +38,11 @@
 		"@gradio/colorpicker": "workspace:^",
 		"@gradio/column": "workspace:^",
 		"@gradio/dataframe": "workspace:^",
+		"@gradio/dataset": "workspace:^",
 		"@gradio/dropdown": "workspace:^",
 		"@gradio/fallback": "workspace:^",
 		"@gradio/file": "workspace:^",
+		"@gradio/fileexplorer": "workspace:^",
 		"@gradio/form": "workspace:^",
 		"@gradio/gallery": "workspace:^",
 		"@gradio/group": "workspace:^",
@@ -68,11 +70,12 @@
 		"@gradio/utils": "workspace:^",
 		"@gradio/video": "workspace:^",
 		"@gradio/wasm": "workspace:^",
+		"cross-env": "^7.0.3",
 		"d3-dsv": "^3.0.1",
 		"mime-types": "^2.1.34",
 		"postcss": "^8.4.21",
 		"postcss-prefix-selector": "^1.16.0",
-		"cross-env": "^7.0.3"
+		"svelte": "^4.2.1"
 	},
 	"msw": {
 		"workerDirectory": "public"

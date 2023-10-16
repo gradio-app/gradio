@@ -78,11 +78,10 @@
 	canonical={$page.url.pathname}
 	description="A Step-by-Step Gradio Tutorial"
 />
-<div class="container mx-auto px-4 flex gap-4 relative">
+<div class="container mx-auto px-4 flex relative w-full">
 	<div
 		bind:this={sidebar}
-		class="side-navigation h-screen leading-relaxed sticky top-0 text-md overflow-y-auto overflow-x-hidden hidden lg:block rounded-t-xl bg-gradient-to-r from-white to-gray-50"
-		style="min-width: 18%"
+		class="side-navigation h-screen leading-relaxed sticky top-0 text-md overflow-y-auto overflow-x-hidden hidden lg:block rounded-t-xl bg-gradient-to-r from-white to-gray-50 lg:w-3/12"
 	>	
 	<div class="sticky top-0 pr-2 float-right">
 		<DropDown></DropDown>
@@ -142,7 +141,7 @@
 			{/each}
 		{/each}
 	</div>
-	<div class="w-full lg:w-10/12 mx-auto">
+	<div class="w-full lg:w-8/12 mx-auto">
 		<div class="w-full flex justify-between my-4">
 			{#if prev_guide}
 				<a

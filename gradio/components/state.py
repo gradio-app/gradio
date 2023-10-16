@@ -37,7 +37,13 @@ class State(Component):
             value: the initial value (of arbitrary type) of the state. The provided argument is deepcopied. If a callable is provided, the function will be called whenever the app loads to set the initial value of the state.
         """
         self.stateful = True
-        super().__init__(value=deepcopy(value), **kwargs)
+        try:
+            self.value = deepcopy(value)
+        except TypeError as err:
+            raise TypeError(
+                f"The initial value of `gr.State` must be able to be deepcopied. The initial value of type {type(value)} cannot be deepcopied."
+            ) from err
+        super().__init__(value=self.value, **kwargs)
 
     def preprocess(self, x: Any) -> Any:
         return x

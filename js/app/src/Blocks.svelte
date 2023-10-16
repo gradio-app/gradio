@@ -1,24 +1,17 @@
 <script lang="ts">
-	import { onMount, tick } from "svelte";
+	import { load_component } from "virtual:component-loader";
+
+	import { tick } from "svelte";
 	import { _ } from "svelte-i18n";
 	import type { client } from "@gradio/client";
 
-	import {
-		component_map,
-		fallback_component_map
-	} from "./components/directory";
 	import { create_loading_status_store } from "./stores";
 	import type { LoadingStatusCollection } from "./stores";
 
-	import type {
-		ComponentMeta,
-		Payload,
-		Dependency,
-		LayoutNode
-	} from "./components/types";
+	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 	import { setupi18n } from "./i18n";
 	import { ApiDocs } from "./api_docs/";
-	import type { ThemeMode } from "./components/types";
+	import type { ThemeMode } from "./types";
 	import { Toast } from "@gradio/statustracker";
 	import type { ToastMessage } from "@gradio/statustracker";
 	import type { ShareData } from "@gradio/utils";
@@ -33,7 +26,6 @@
 	export let components: ComponentMeta[];
 	export let layout: LayoutNode;
 	export let dependencies: Dependency[];
-
 	export let title = "Gradio";
 	export let analytics_enabled = false;
 	export let target: HTMLElement;
@@ -46,6 +38,7 @@
 	export let app: Awaited<ReturnType<typeof client>>;
 	export let space_id: string | null;
 	export let version: string;
+	export let api_url: string;
 
 	let loading_status = create_loading_status_store();
 
@@ -55,7 +48,8 @@
 		props: { mode: "static" },
 		has_modes: false,
 		instance: null as unknown as ComponentMeta["instance"],
-		component: null as unknown as ComponentMeta["component"]
+		component: null as unknown as ComponentMeta["component"],
+		component_class_id: ""
 	};
 
 	const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
@@ -119,51 +113,6 @@
 	type LoadedComponent = {
 		default: ComponentMeta["component"];
 	};
-
-	async function load_component<T extends ComponentMeta["type"]>(
-		name: T,
-		mode: ComponentMeta["props"]["mode"] | "example"
-	): Promise<{
-		name: T;
-		component: LoadedComponent;
-	}> {
-		try {
-			//@ts-ignore
-			const c = await component_map[name][mode]();
-			return {
-				name,
-				component: c as LoadedComponent
-			};
-		} catch (e) {
-			if (mode === "example") {
-				try {
-					return load_custom_component(name, "example");
-				} catch (e) {
-					return {
-						name,
-						component: await import("@gradio/fallback/example")
-					};
-				}
-			}
-			if (mode === "interactive") {
-				try {
-					const c = await component_map[name]["static"]();
-					return {
-						name,
-						component: c as LoadedComponent
-					};
-				} catch (e) {
-					console.error(`failed to load: ${name}`);
-					console.error(e);
-					throw e;
-				}
-			} else {
-				console.error(`failed to load: ${name}`);
-				console.error(e);
-				throw e;
-			}
-		}
-	}
 
 	let component_set = new Set<
 		Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
@@ -278,7 +227,8 @@
 			props: { mode: "static" },
 			has_modes: false,
 			instance: null as unknown as ComponentMeta["instance"],
-			component: null as unknown as ComponentMeta["component"]
+			component: null as unknown as ComponentMeta["component"],
+			component_class_id: ""
 		};
 		components.push(_rootNode);
 		const _component_set = new Set<
@@ -306,6 +256,20 @@
 			} else {
 				(c.props as any).mode = "static";
 			}
+
+			if ((c.props as any).server_fns) {
+				let server: Record<string, (...args: any[]) => Promise<any>> = {};
+				(c.props as any).server_fns.forEach((fn: string) => {
+					server[fn] = async (...args: any[]) => {
+						if (args.length === 1) {
+							args = args[0];
+						}
+						const result = await app.component_server(c.id, fn, args);
+						return result;
+					};
+				});
+				(c.props as any).server = server;
+			}
 			__type_for_id.set(c.id, c.props.mode);
 
 			if (c.type === "dataset") {
@@ -317,8 +281,11 @@
 					}
 					let _c;
 
+					const id = components.find(
+						(c) => c.type === name
+					)?.component_class_id;
 					//@ts-ignore
-					_c = load_component(name, "example");
+					_c = load_component(api_url, name, "example", id);
 
 					example_component_map.set(name, _c);
 				});
@@ -328,9 +295,12 @@
 
 			// maybe load custom
 
-			const _c = c.props.custom_component
-				? load_custom_component(c.type, c.props.mode)
-				: load_component(c.type, c.props.mode);
+			const _c = load_component(
+				api_url,
+				c.type,
+				c.props.mode,
+				c.component_class_id
+			);
 			_component_set.add(_c);
 			__component_map.set(`${c.type}_${c.props.mode}`, _c);
 		});
@@ -360,7 +330,12 @@
 		if (instance.props.mode === new_mode) return;
 
 		instance.props.mode = new_mode;
-		const _c = load_component(instance.type, instance.props.mode);
+		const _c = load_component(
+			api_url,
+			instance.type,
+			instance.props.mode,
+			instance.component_class_id
+		);
 		component_set.add(_c);
 		_component_map.set(
 			`${instance.type}_${instance.props.mode}`,
@@ -527,80 +502,82 @@
 					handle_update(data, fn_index);
 				})
 				.on("status", ({ fn_index, ...status }) => {
-					//@ts-ignore
-					loading_status.update({
-						...status,
-						status: status.stage,
-						progress: status.progress_data,
-						fn_index
-					});
-					if (
-						!showed_duplicate_message &&
-						space_id !== null &&
-						status.position !== undefined &&
-						status.position >= 2 &&
-						status.eta !== undefined &&
-						status.eta > SHOW_DUPLICATE_MESSAGE_ON_ETA
-					) {
-						showed_duplicate_message = true;
-						messages = [
-							new_message(DUPLICATE_MESSAGE, fn_index, "warning"),
-							...messages
-						];
-					}
-					if (
-						!showed_mobile_warning &&
-						is_mobile_device &&
-						status.eta !== undefined &&
-						status.eta > SHOW_MOBILE_QUEUE_WARNING_ON_ETA
-					) {
-						showed_mobile_warning = true;
-						messages = [
-							new_message(MOBILE_QUEUE_WARNING, fn_index, "warning"),
-							...messages
-						];
-					}
-
-					if (status.stage === "complete") {
-						dependencies.map(async (dep, i) => {
-							if (dep.trigger_after === fn_index) {
-								trigger_api_call(i);
-							}
+					tick().then(() => {
+						//@ts-ignore
+						loading_status.update({
+							...status,
+							status: status.stage,
+							progress: status.progress_data,
+							fn_index
 						});
-
-						submission.destroy();
-					}
-					if (status.broken && is_mobile_device && user_left_page) {
-						window.setTimeout(() => {
+						if (
+							!showed_duplicate_message &&
+							space_id !== null &&
+							status.position !== undefined &&
+							status.position >= 2 &&
+							status.eta !== undefined &&
+							status.eta > SHOW_DUPLICATE_MESSAGE_ON_ETA
+						) {
+							showed_duplicate_message = true;
 							messages = [
-								new_message(MOBILE_RECONNECT_MESSAGE, fn_index, "error"),
-								...messages
-							];
-						}, 0);
-						trigger_api_call(dep_index, event_data);
-						user_left_page = false;
-					} else if (status.stage === "error") {
-						if (status.message) {
-							const _message = status.message.replace(
-								MESSAGE_QUOTE_RE,
-								(_, b) => b
-							);
-							messages = [
-								new_message(_message, fn_index, "error"),
+								new_message(DUPLICATE_MESSAGE, fn_index, "warning"),
 								...messages
 							];
 						}
-						dependencies.map(async (dep, i) => {
-							if (
-								dep.trigger_after === fn_index &&
-								!dep.trigger_only_on_success
-							) {
-								trigger_api_call(i);
-							}
-						});
+						if (
+							!showed_mobile_warning &&
+							is_mobile_device &&
+							status.eta !== undefined &&
+							status.eta > SHOW_MOBILE_QUEUE_WARNING_ON_ETA
+						) {
+							showed_mobile_warning = true;
+							messages = [
+								new_message(MOBILE_QUEUE_WARNING, fn_index, "warning"),
+								...messages
+							];
+						}
 
-						submission.destroy();
-					}
+						if (status.stage === "complete") {
+							dependencies.map(async (dep, i) => {
+								if (dep.trigger_after === fn_index) {
+									trigger_api_call(i);
+								}
+							});
+
+							submission.destroy();
+						}
+						if (status.broken && is_mobile_device && user_left_page) {
+							window.setTimeout(() => {
+								messages = [
+									new_message(MOBILE_RECONNECT_MESSAGE, fn_index, "error"),
+									...messages
+								];
+							}, 0);
+							trigger_api_call(dep_index, event_data);
+							user_left_page = false;
+						} else if (status.stage === "error") {
+							if (status.message) {
+								const _message = status.message.replace(
+									MESSAGE_QUOTE_RE,
+									(_, b) => b
+								);
+								messages = [
+									new_message(_message, fn_index, "error"),
+									...messages
+								];
+							}
+							dependencies.map(async (dep, i) => {
+								if (
+									dep.trigger_after === fn_index &&
+									!dep.trigger_only_on_success
+								) {
+									trigger_api_call(i);
+								}
+							});
+
+							submission.destroy();
+						}
+					});
 				})
 				.on("log", ({ log, fn_index, level }) => {
 					messages = [new_message(log, fn_index, level), ...messages];
@@ -634,9 +611,7 @@
 
 	$: target_map = dependencies.reduce(
 		(acc, dep, i) => {
-			let { targets, trigger } = dep;
-
-			targets.forEach((id) => {
+			dep.targets.forEach(([id, trigger]) => {
 				if (!acc[id]) {
 					acc[id] = {};
 				}
@@ -668,7 +643,7 @@
 
 		// handle load triggers
 		dependencies.forEach((dep, i) => {
-			if (dep.targets.length === 0 && dep.trigger === "load") {
+			if (dep.targets.length === 1 && dep.targets[0][1] === "load") {
 				trigger_api_call(i);
 			}
 		});

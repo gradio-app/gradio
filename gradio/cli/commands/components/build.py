@@ -1,16 +1,22 @@
+import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import typer
 from typing_extensions import Annotated
 
+import gradio
 from gradio.cli.commands.display import LivePanelDisplay
+
+gradio_template_path = Path(gradio.__file__).parent / "templates" / "frontend"
+gradio_node_path = Path(gradio.__file__).parent / "node" / "dev" / "files" / "index.js"
 
 
 def _build(
     path: Annotated[
-        str, typer.Argument(help="The directory of the custom component.")
-    ] = ".",
+        Path, typer.Argument(help="The directory of the custom component.")
+    ] = Path("."),
     build_frontend: Annotated[
         bool, typer.Option(help="Whether to build the frontend as well.")
     ] = True,
@@ -25,8 +31,32 @@ def _build(
         )
         if build_frontend:
             live.update(":art: Building frontend")
+            component_directory = path.resolve()
 
-        cmds = ["python", "-m", "build", str(name)]
+            node = shutil.which("node")
+            if not node:
+                raise ValueError("node must be installed in order to run dev mode.")
+
+            node_cmds = [
+                node,
+                gradio_node_path,
+                "--component-directory",
+                component_directory,
+                "--root",
+                gradio_template_path,
+                "--mode",
+                "build",
+            ]
+
+            pipe = subprocess.run(node_cmds, capture_output=True, text=True)
+            if pipe.returncode != 0:
+                live.update(":red_square: Build failed!")
+                live.update(pipe.stderr)
+                return
+            else:
+                live.update(":white_check_mark: Build succeeded!")
+
+        cmds = [sys.executable, "-m", "build", str(name)]
         live.update(f":construction_worker: Building... [grey37]({' '.join(cmds)})[/]")
         pipe = subprocess.run(cmds, capture_output=True, text=True)
         if pipe.returncode != 0:

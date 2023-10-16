@@ -1,17 +1,22 @@
 # @gradio/theme
 
-## 0.2.0-beta.1
+## 0.2.0
 
-### Features
+### Highlights
 
-- [#5615](https://github.com/gradio-app/gradio/pull/5615) [`142880ba5`](https://github.com/gradio-app/gradio/commit/142880ba589126d98da3d6a38866828864cc6b81) - Publish js theme.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+#### new `FileExplorer` component ([#5672](https://github.com/gradio-app/gradio/pull/5672) [`e4a307ed6`](https://github.com/gradio-app/gradio/commit/e4a307ed6cde3bbdf4ff2f17655739addeec941e))
 
-## 0.2.0-beta.0
+Thanks to a new capability that allows components to communicate directly with the server _without_ passing data via the value, we have created a new `FileExplorer` component.
 
-### Features
+This component allows you to populate the explorer by passing a glob, but only provides the selected file(s) in your prediction function. 
 
-- [#5507](https://github.com/gradio-app/gradio/pull/5507) [`1385dc688`](https://github.com/gradio-app/gradio/commit/1385dc6881f2d8ae7a41106ec21d33e2ef04d6a9) - Custom components.  Thanks [@pngwn](https://github.com/pngwn)!
-- [#5589](https://github.com/gradio-app/gradio/pull/5589) [`af1b2f9ba`](https://github.com/gradio-app/gradio/commit/af1b2f9bafbacf2804fcfe68af6bb4b921442aca) - image fixes.  Thanks [@pngwn](https://github.com/pngwn)!
+Users can then navigate the virtual filesystem and select files which will be accessible in your predict function. This component will allow developers to build more complex spaces, with more flexible input options.
+
+![output](https://github.com/pngwn/MDsveX/assets/12937446/ef108f0b-0e84-4292-9984-9dc66b3e144d)
+
+For more information check the [`FileExplorer` documentation](https://gradio.app/docs/fileexplorer).
+
+ Thanks [@aliabid94](https://github.com/aliabid94)!
 
 ## 0.1.0
 

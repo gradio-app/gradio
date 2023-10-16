@@ -37,7 +37,7 @@ class TestOAuthButtons:
             button = gr.LoginButton()
 
         login_event = demo.dependencies[0]
-        assert login_event["trigger"] == "click"
+        assert login_event["targets"][0][1] == "click"
         assert not login_event["backend_fn"]  # No Python code
         assert login_event["js"]  # But JS code instead
         assert login_event["inputs"] == [button._id]

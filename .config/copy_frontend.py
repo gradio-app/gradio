@@ -14,7 +14,6 @@ class BuildHook(BuildHookInterface):
             "node_modules",
             "storybook",
             "playwright-report",
-            "wasm",
             "workbench",
             "tooltils",
         ]

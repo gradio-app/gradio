@@ -257,12 +257,15 @@ class Video(Component):
         if isinstance(y, (str, Path)):
             processed_files = (self._format_video(y), None)
         elif isinstance(y, (tuple, list)):
-            assert (
-                len(y) == 2
-            ), f"Expected lists of length 2 or tuples of length 2. Received: {y}"
-            assert isinstance(y[0], (str, Path)) and isinstance(
-                y[1], (str, Path)
-            ), f"If a tuple is provided, both elements must be strings or Path objects. Received: {y}"
+            if len(y) != 2:
+                raise ValueError(
+                    f"Expected lists of length 2 or tuples of length 2. Received: {y}"
+                )
+
+            if not (isinstance(y[0], (str, Path)) and isinstance(y[1], (str, Path))):
+                raise TypeError(
+                    f"If a tuple is provided, both elements must be strings or Path objects. Received: {y}"
+                )
             video = y[0]
             subtitle = y[1]
             processed_files = (

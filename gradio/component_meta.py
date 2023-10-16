@@ -152,8 +152,6 @@ def updateable(fn):
 
 class ComponentMeta(ABCMeta):
     def __new__(cls, name, bases, attrs):
-        if name in {"Component", "ComponentBase"}:
-            return super().__new__(cls, name, bases, attrs)
         if "__init__" in attrs:
             attrs["__init__"] = updateable(attrs["__init__"])
         if "EVENTS" not in attrs:
@@ -186,7 +184,6 @@ class ComponentMeta(ABCMeta):
             attrs["EVENTS"] = new_events
         if "postprocess" in attrs:
             attrs["postprocess"] = serializes(attrs["postprocess"])
-
         component_class = super().__new__(cls, name, bases, attrs)
         create_or_modify_pyi(component_class, name, events)
         return component_class

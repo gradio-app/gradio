@@ -2,11 +2,7 @@
 	import { writable } from "svelte/store";
 	import { mount_css as default_mount_css } from "./css";
 
-	import type {
-		ComponentMeta,
-		Dependency,
-		LayoutNode
-	} from "./components/types";
+	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 
 	declare let BUILD_MODE: string;
 	interface Config {
@@ -66,10 +62,12 @@
 	import { onMount, setContext } from "svelte";
 	import type { api_factory, SpaceStatus } from "@gradio/client";
 	import Embed from "./Embed.svelte";
-	import type { ThemeMode } from "./components/types";
+	import type { ThemeMode } from "./types";
 	import { StatusTracker } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
 	import { setupi18n } from "./i18n";
+	import type { WorkerProxy } from "@gradio/wasm";
+	import { setWorkerProxyContext } from "@gradio/wasm/svelte";
 
 	setupi18n();
 
@@ -89,6 +87,10 @@
 	export let mount_css: typeof default_mount_css = default_mount_css;
 	export let client: ReturnType<typeof api_factory>["client"];
 	export let upload_files: ReturnType<typeof api_factory>["upload_files"];
+	export let worker_proxy: WorkerProxy | undefined = undefined;
+	if (worker_proxy) {
+		setWorkerProxyContext(worker_proxy);
+	}
 
 	export let space: string | null;
 	export let host: string | null;
@@ -105,6 +107,7 @@
 	let config: Config;
 	let loading_text = $_("common.loading") + "...";
 	let active_theme_mode: ThemeMode;
+	let api_url: string;
 
 	$: if (config?.app_id) {
 		app_id = config.app_id;
@@ -200,6 +203,13 @@
 		const gradio_dev_mode = window.__GRADIO_DEV__;
 		//@ts-ignore
 		const server_port = window.__GRADIO__SERVER_PORT__;
+
+		api_url =
+			BUILD_MODE === "dev" || gradio_dev_mode === "dev"
+				? `http://localhost:${
+						typeof server_port === "number" ? server_port : 7860
+				  }`
+				: host || space || src || location.origin;
 
 		const api_url =
 			BUILD_MODE === "dev" || gradio_dev_mode === "dev"
@@ -377,6 +387,7 @@
 			show_footer={!is_embed}
 			{app_mode}
 			{version}
+			{api_url}
 		/>
 	{/if}
 </Embed>
