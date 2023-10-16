@@ -1,24 +1,24 @@
 {
-	"name": "@gradio/json",
-	"version": "0.1.0-beta.5",
-	"description": "Gradio UI packages",
-	"type": "module",
-	"main": "./static/index.ts",
-	"author": "",
-	"license": "ISC",
-	"private": false,
-	"dependencies": {
-		"@gradio/atoms": "0.2.0-beta.3",
-		"@gradio/icons": "0.2.0-beta.0",
-		"@gradio/statustracker": "0.3.0-beta.5",
-		"@gradio/utils": "0.2.0-beta.3"
-	},
-	"main_changeset": true,
-	"exports": {
-		".": "./static/index.ts",
-		"./package.json": "./package.json",
-		"./interactive": "./interactive/index.ts",
-		"./static": "./static/index.ts",
-		"./example": "./example/index.ts"
-	}
+  "name": "@gradio/json",
+  "version": "0.1.0-beta.5",
+  "description": "Gradio UI packages",
+  "type": "module",
+  "main": "./static/index.ts",
+  "author": "",
+  "license": "ISC",
+  "private": false,
+  "dependencies": {
+    "@gradio/atoms": "0.2.0-beta.3",
+    "@gradio/icons": "0.2.0-beta.0",
+    "@gradio/statustracker": "0.3.0-beta.5",
+    "@gradio/utils": "0.2.0-beta.3"
+  },
+  "main_changeset": true,
+  "exports": {
+    ".": "./static/index.ts",
+    "./package.json": "./package.json",
+    "./interactive": "./interactive/index.ts",
+    "./static": "./static/index.ts",
+    "./example": "./example/index.ts"
+  }
 }

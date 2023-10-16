@@ -1,22 +1,22 @@
 {
-	"name": "@gradio/button",
-	"version": "0.2.0-beta.4",
-	"description": "Gradio UI packages",
-	"type": "module",
-	"main": "./static/index.ts",
-	"author": "",
-	"license": "ISC",
-	"private": false,
-	"dependencies": {
-		"@gradio/upload": "0.3.0-beta.3",
-		"@gradio/utils": "0.2.0-beta.3"
-	},
-	"main_changeset": true,
-	"exports": {
-		".": "./static/index.ts",
-		"./package.json": "./package.json",
-		"./interactive": "./interactive/index.ts",
-		"./static": "./static/index.ts",
-		"./example": "./example/index.ts"
-	}
+  "name": "@gradio/button",
+  "version": "0.2.0-beta.4",
+  "description": "Gradio UI packages",
+  "type": "module",
+  "main": "./static/index.ts",
+  "author": "",
+  "license": "ISC",
+  "private": false,
+  "dependencies": {
+    "@gradio/upload": "0.3.0-beta.3",
+    "@gradio/utils": "0.2.0-beta.3"
+  },
+  "main_changeset": true,
+  "exports": {
+    ".": "./static/index.ts",
+    "./package.json": "./package.json",
+    "./interactive": "./interactive/index.ts",
+    "./static": "./static/index.ts",
+    "./example": "./example/index.ts"
+  }
 }

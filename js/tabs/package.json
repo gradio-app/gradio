@@ -1,21 +1,21 @@
 {
-	"name": "@gradio/tabs",
-	"version": "0.0.6-beta.5",
-	"description": "Gradio UI packages",
-	"type": "module",
-	"main": "./static/index.ts",
-	"author": "",
-	"license": "ISC",
-	"private": false,
-	"main_changeset": true,
-	"exports": {
-		".": "./static/index.ts",
-		"./package.json": "./package.json",
-		"./interactive": "./interactive/index.ts",
-		"./static": "./static/index.ts",
-		"./example": "./example/index.ts"
-	},
-	"dependencies": {
-		"@gradio/utils": "0.2.0-beta.3"
-	}
+  "name": "@gradio/tabs",
+  "version": "0.0.6-beta.5",
+  "description": "Gradio UI packages",
+  "type": "module",
+  "main": "./static/index.ts",
+  "author": "",
+  "license": "ISC",
+  "private": false,
+  "main_changeset": true,
+  "exports": {
+    ".": "./static/index.ts",
+    "./package.json": "./package.json",
+    "./interactive": "./interactive/index.ts",
+    "./static": "./static/index.ts",
+    "./example": "./example/index.ts"
+  },
+  "dependencies": {
+    "@gradio/utils": "0.2.0-beta.3"
+  }
 }
