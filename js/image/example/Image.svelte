@@ -17,11 +17,6 @@
 </div>
 
 <style>
-	.container {
-		border-radius: var(--radius-lg);
-		max-width: none;
-	}
-
 	.container.selected {
 		border-color: var(--border-color-accent);
 	}
