@@ -59,6 +59,19 @@ OVERRIDES = {
         python_file_name="duplicate_button.py",
         js_dir="button",
     ),
+    "FileExplorer": ComponentFiles(
+        template="FileExplorer",
+        python_file_name="file_explorer.py",
+        js_dir="fileexplorer",
+        demo_code=textwrap.dedent(
+            """
+        import os
+
+        with gr.Blocks() as demo:
+            {name}(value=os.path.dirname(__file__).split(os.sep))
+    """
+        ),
+    ),
     "LinePlot": ComponentFiles(
         template="LinePlot", python_file_name="line_plot.py", js_dir="plot"
     ),
@@ -175,8 +188,7 @@ def delete_contents(directory: str | Path) -> None:
         if child.is_file():
             child.unlink()
         elif child.is_dir():
-            delete_contents(child)
-            child.rmdir()
+            shutil.rmtree(child)
 
 
 def _create_frontend(name: str, component: ComponentFiles, directory: Path):

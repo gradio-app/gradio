@@ -101,7 +101,7 @@ class FileExplorer(Component):
         )
 
     def example_inputs(self) -> Any:
-        return [["Users", "gradio", "app.py"]]
+        return ["Users", "gradio", "app.py"]
 
     def preprocess(self, x: list[list[str]] | None) -> list[str] | str | None:
         """
