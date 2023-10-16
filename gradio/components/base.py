@@ -323,6 +323,10 @@ class IOComponent(Component):
         return filename
 
     def img_array_to_temp_file(self, arr: np.ndarray, dir: str) -> str:
+        if arr.ndim not in (2, 3, 4):
+            raise ValueError(
+                "Input does not have the correct number of dimensions (2 for grayscale, 3 for RGB, 4 for RGBA)"
+            )
         pil_image = _Image.fromarray(
             processing_utils._convert(arr, np.uint8, force_copy=False)
         )
