@@ -98,6 +98,16 @@ def add_guides():
 add_guides()
 
 
+def escape_parameters(parameters):
+    new_parameters = []
+    for param in parameters:
+        param = param.copy()  # Manipulating the list item directly causes issues, so copy it first
+        param["doc"] = html.escape(param["doc"]) if param["doc"] else param["doc"]
+        new_parameters.append(param)
+    assert len(new_parameters) == len(parameters)
+    return new_parameters
+
+
 def escape_html_string_fields():
     for mode in docs:
         for cls in docs[mode]:
@@ -111,6 +121,11 @@ def escape_html_string_fields():
                 if tag not in cls["tags"]:
                     continue
                 cls["tags"][tag] = html.escape(cls["tags"][tag])
+
+            cls["parameters"] = escape_parameters(cls["parameters"])
+            for fn in cls["fns"]:
+                fn["description"] = html.escape(fn["description"])
+                fn["parameters"] = escape_parameters(fn["parameters"])
 
 
 escape_html_string_fields()
