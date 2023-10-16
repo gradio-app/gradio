@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	import type { Gradio, ShareData } from "@gradio/utils";
-	import { _ } from "svelte-i18n";
 
 	import type { FileData } from "@gradio/upload";
 	import type { LoadingStatus } from "@gradio/statustracker";
@@ -64,9 +63,14 @@
 	{scale}
 	{min_width}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker
+		autoscroll={gradio.autoscroll}
+		i18n={gradio.i18n}
+		{...loading_status}
+	/>
 
 	<StaticAudio
+		i18n={gradio.i18n}
 		{autoplay}
 		{show_label}
 		{show_download_button}

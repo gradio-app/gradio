@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import Callable, Literal
+from typing import Any, Callable, Literal
 
 import altair as alt
 import pandas as pd
@@ -11,7 +11,7 @@ from gradio_client.documentation import document, set_documentation_group
 from pandas.api.types import is_numeric_dtype
 
 from gradio.components.base import _Keywords
-from gradio.components.plot import AltairPlot, Plot
+from gradio.components.plot import AltairPlot, AltairPlotData, Plot
 
 set_documentation_group("component")
 
@@ -27,6 +27,8 @@ class ScatterPlot(Plot):
     Demos: scatter_plot
     Guides: creating-a-dashboard-from-bigquery-data
     """
+
+    data_model = AltairPlotData
 
     def __init__(
         self,
@@ -463,7 +465,9 @@ class ScatterPlot(Plot):
 
         return chart
 
-    def postprocess(self, y: pd.DataFrame | dict | None) -> dict[str, str] | None:
+    def postprocess(
+        self, y: pd.DataFrame | dict | None
+    ) -> AltairPlotData | dict | None:
         # if None or update
         if y is None or isinstance(y, dict):
             return y
@@ -495,4 +499,12 @@ class ScatterPlot(Plot):
             y_lim=self.y_lim,
         )
 
-        return {"type": "altair", "plot": chart.to_json(), "chart": "scatter"}
+        return AltairPlotData(
+            **{"type": "altair", "plot": chart.to_json(), "chart": "scatter"}
+        )
+
+    def example_inputs(self) -> Any:
+        return None
+
+    def preprocess(self, x: Any) -> Any:
+        return x

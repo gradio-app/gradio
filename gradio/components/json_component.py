@@ -4,22 +4,20 @@ from __future__ import annotations
 
 import json
 import warnings
+from pathlib import Path
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import JSONSerializable
 
-from gradio.components.base import IOComponent, _Keywords
+from gradio.components.base import Component, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
-from gradio.events import (
-    Changeable,
-)
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class JSON(Changeable, IOComponent, JSONSerializable):
+class JSON(Component):
     """
     Used to display arbitrary JSON output prettily.
     Preprocessing: this component does *not* accept input.
@@ -27,6 +25,8 @@ class JSON(Changeable, IOComponent, JSONSerializable):
 
     Demos: zip_to_json, blocks_xray
     """
+
+    EVENTS = [Events.change]
 
     def __init__(
         self,
@@ -56,8 +56,7 @@ class JSON(Changeable, IOComponent, JSONSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -110,6 +109,18 @@ class JSON(Changeable, IOComponent, JSONSerializable):
         else:
             return y
 
+    def preprocess(self, x: Any) -> Any:
+        return x
+
+    def example_inputs(self) -> Any:
+        return {"foo": "bar"}
+
+    def flag(self, x: Any, flag_dir: str | Path = "") -> str:
+        return json.dumps(x)
+
+    def read_from_flag(self, x: Any, flag_dir: str | Path | None = None):
+        return json.loads(x)
+
     def style(self, *, container: bool | None = None, **kwargs):
         """
         This method is deprecated. Please set these arguments in the constructor instead.
@@ -118,3 +129,6 @@ class JSON(Changeable, IOComponent, JSONSerializable):
         if container is not None:
             self.container = container
         return self
+
+    def api_info(self) -> dict[str, Any]:
+        return {"type": {}, "description": "any valid json"}

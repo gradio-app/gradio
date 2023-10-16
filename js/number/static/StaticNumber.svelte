@@ -4,9 +4,15 @@
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { _ } from "svelte-i18n";
 
-	export let label = $_("number.number");
+	export let gradio: Gradio<{
+		change: never;
+		input: never;
+		submit: never;
+		blur: never;
+		focus: never;
+	}>;
+	export let label = gradio.i18n("number.number");
 	export let info: string | undefined = undefined;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -21,13 +27,6 @@
 	export let loading_status: LoadingStatus;
 	export let value_is_output = false;
 	export let step: number | null = null;
-	export let gradio: Gradio<{
-		change: never;
-		input: never;
-		submit: never;
-		blur: never;
-		focus: never;
-	}>;
 </script>
 
 <Block
@@ -39,7 +38,11 @@
 	{scale}
 	{min_width}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker
+		autoscroll={gradio.autoscroll}
+		i18n={gradio.i18n}
+		{...loading_status}
+	/>
 	<Number
 		bind:value
 		bind:value_is_output

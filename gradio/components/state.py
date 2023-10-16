@@ -6,15 +6,15 @@ from copy import deepcopy
 from typing import Any
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import SimpleSerializable
 
-from gradio.components.base import IOComponent
+from gradio.components.base import Component
 
 set_documentation_group("component")
 
 
 @document()
-class State(IOComponent, SimpleSerializable):
+class State(Component):
+    EVENTS = []
     """
     Special hidden component that stores session state across runs of the demo by the
     same user. The value of the State variable is cleared when the user refreshes the page.
@@ -43,7 +43,23 @@ class State(IOComponent, SimpleSerializable):
             raise TypeError(
                 f"The initial value of `gr.State` must be able to be deepcopied. The initial value of type {type(value)} cannot be deepcopied."
             ) from err
-        IOComponent.__init__(self, value=self.value, **kwargs)
+        super().__init__(value=self.value, **kwargs)
+
+    def preprocess(self, x: Any) -> Any:
+        return x
+
+    def postprocess(self, y):
+        return y
+
+    def api_info(self) -> dict[str, Any]:
+        return {"type": {}, "description": "any valid json"}
+
+    def example_inputs(self) -> Any:
+        return None
+
+    @property
+    def skip_api(self):
+        return True
 
 
 class Variable(State):

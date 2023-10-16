@@ -8,6 +8,7 @@
 
 	import { prettyBytes, playable } from "../shared/utils";
 	import Player from "../shared/Player.svelte";
+	import type { I18nFormatter } from "@gradio/utils";
 
 	export let value: FileData | null = null;
 	export let subtitle: FileData | null = null;
@@ -17,6 +18,8 @@
 	export let mirror_webcam = false;
 	export let include_audio: boolean;
 	export let autoplay: boolean;
+	export let root: string;
+	export let i18n: I18nFormatter;
 
 	const dispatch = createEventDispatcher<{
 		change: any;
@@ -32,9 +35,9 @@
 	}>();
 
 	function handle_load({ detail }: CustomEvent<FileData | null>): void {
+		value = detail;
 		dispatch("change", detail);
 		dispatch("upload", detail!);
-		value = detail;
 	}
 
 	function handle_clear({ detail }: CustomEvent<FileData | null>): void {
@@ -50,7 +53,12 @@
 <BlockLabel {show_label} Icon={Video} label={label || "Video"} />
 {#if value === null}
 	{#if source === "upload"}
-		<Upload bind:dragging filetype="video/x-m4v,video/*" on:load={handle_load}>
+		<Upload
+			bind:dragging
+			filetype="video/x-m4v,video/*"
+			on:load={handle_load}
+			{root}
+		>
 			<slot />
 		</Upload>
 	{:else if source === "webcam"}
@@ -62,10 +70,11 @@
 			on:capture={({ detail }) => dispatch("change", detail)}
 			on:start_recording
 			on:stop_recording
+			{i18n}
 		/>
 	{/if}
 {:else}
-	<ModifyUpload on:clear={handle_clear} />
+	<ModifyUpload {i18n} on:clear={handle_clear} />
 	{#if playable()}
 		{#key value?.data}
 			<Player

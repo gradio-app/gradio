@@ -6,7 +6,7 @@
 	"main": "./static/index.ts",
 	"author": "",
 	"license": "ISC",
-	"private": true,
+	"private": false,
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
 		"@gradio/icons": "workspace:^",

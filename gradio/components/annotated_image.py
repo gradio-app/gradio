@@ -3,28 +3,34 @@
 from __future__ import annotations
 
 import warnings
-from typing import Literal
+from typing import Any, List, Literal
 
 import numpy as np
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import JSONSerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
-from gradio import utils
-from gradio.components.base import IOComponent, _Keywords
-from gradio.deprecation import warn_style_method_deprecation
-from gradio.events import (
-    EventListenerMethod,
-    Selectable,
-)
+from gradio import processing_utils, utils
+from gradio.components.base import Component, _Keywords
+from gradio.data_classes import FileData, GradioModel
+from gradio.events import Events
 
 set_documentation_group("component")
 
 _Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
 
+class Annotation(GradioModel):
+    image: FileData
+    label: str
+
+
+class AnnotatedImageData(GradioModel):
+    image: FileData
+    annotations: List[Annotation]
+
+
 @document()
-class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
+class AnnotatedImage(Component):
     """
     Displays a base image and colored subsections on top of that image. Subsections can take the from of rectangles (e.g. object detection) or masks (e.g. image segmentation).
     Preprocessing: this component does *not* accept input.
@@ -32,6 +38,10 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
 
     Demos: image_segmentation
     """
+
+    EVENTS = [Events.select]
+
+    data_model = AnnotatedImageData
 
     def __init__(
         self,
@@ -77,14 +87,7 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
         self.height = height
         self.width = width
         self.color_map = color_map
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user selects Image subsection.
-        Uses event data gradio.SelectData to carry `value` referring to selected subsection label, and `index` to refer to subsection index.
-        See EventData documentation on how to use this event data.
-        """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -141,7 +144,7 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
             np.ndarray | _Image.Image | str,
             list[tuple[np.ndarray | tuple[int, int, int, int], str]],
         ],
-    ) -> tuple[dict, list[tuple[dict, str]]] | None:
+    ) -> AnnotatedImageData | None:
         """
         Parameters:
             y: Tuple of base image and list of subsections, with each subsection a two-part tuple where the first element is a 4 element bounding box or a 0-1 confidence mask, and the second element is the label.
@@ -155,17 +158,20 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
             base_img_path = base_img
             base_img = np.array(_Image.open(base_img))
         elif isinstance(base_img, np.ndarray):
-            base_file = self.img_array_to_temp_file(base_img, dir=self.DEFAULT_TEMP_DIR)
+            base_file = processing_utils.save_img_array_to_cache(
+                base_img, cache_dir=self.GRADIO_CACHE
+            )
             base_img_path = str(utils.abspath(base_file))
         elif isinstance(base_img, _Image.Image):
-            base_file = self.pil_to_temp_file(base_img, dir=self.DEFAULT_TEMP_DIR)
+            base_file = processing_utils.save_pil_to_cache(
+                base_img, cache_dir=self.GRADIO_CACHE
+            )
             base_img_path = str(utils.abspath(base_file))
             base_img = np.array(base_img)
         else:
             raise ValueError(
                 "AnnotatedImage only accepts filepaths, PIL images or numpy arrays for the base image."
             )
-        self.temp_files.add(base_img_path)
 
         sections = []
         color_map = self.color_map or {}
@@ -203,34 +209,23 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
 
             colored_mask_img = _Image.fromarray((colored_mask).astype(np.uint8))
 
-            mask_file = self.pil_to_temp_file(
-                colored_mask_img, dir=self.DEFAULT_TEMP_DIR
+            mask_file = processing_utils.save_pil_to_cache(
+                colored_mask_img, cache_dir=self.GRADIO_CACHE
             )
             mask_file_path = str(utils.abspath(mask_file))
-            self.temp_files.add(mask_file_path)
-
             sections.append(
-                ({"name": mask_file_path, "data": None, "is_file": True}, label)
+                Annotation(
+                    image=FileData(name=mask_file_path, is_file=True), label=label
+                )
             )
 
-        return {"name": base_img_path, "data": None, "is_file": True}, sections
+        return AnnotatedImageData(
+            image=FileData(name=base_img_path, data=None, is_file=True),
+            annotations=sections,
+        )
 
-    def style(
-        self,
-        *,
-        height: int | None = None,
-        width: int | None = None,
-        color_map: dict[str, str] | None = None,
-        **kwargs,
-    ):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if height is not None:
-            self.height = height
-        if width is not None:
-            self.width = width
-        if color_map is not None:
-            self.color_map = color_map
-        return self
+    def example_inputs(self) -> Any:
+        return {}
+
+    def preprocess(self, x: Any) -> Any:
+        return x
