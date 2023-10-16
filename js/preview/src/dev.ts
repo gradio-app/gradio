@@ -3,8 +3,6 @@ import * as fs from "fs";
 import { createServer, createLogger } from "vite";
 import { plugins, make_gradio_plugin } from "./plugins";
 import { examine_module } from "./index";
-import { parse } from "@iarna/toml";
-import { which } from "which";
 
 const vite_messages_to_ignore = [
 	"Default and named imports from CSS files are deprecated."

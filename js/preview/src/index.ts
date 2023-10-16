@@ -138,6 +138,10 @@ export function is_free_port(port: number): Promise<boolean> {
 	});
 }
 
+function is_truthy<T>(value: T | null | undefined | false): value is T {
+	return value !== null && value !== undefined && value !== false;
+}
+
 export function examine_module(
 	component_dir: string,
 	root: string,
@@ -158,7 +162,7 @@ export function examine_module(
 		.split("\n")
 		.map((line) => {
 			const [name, template_dir, frontend_dir, component_class_id] =
-					line.split("~|~|~|~");
+				line.split("~|~|~|~");
 			if (name && template_dir && frontend_dir && component_class_id) {
 				return {
 					name: name.trim(),
@@ -167,5 +171,7 @@ export function examine_module(
 					component_class_id: component_class_id.trim()
 				};
 			}
-		}).filter(x => x !== undefined);
+			return false;
+		})
+		.filter(is_truthy);
 }
