@@ -11,6 +11,7 @@
 "@gradio/checkboxgroup": patch
 "@gradio/code": patch
 "@gradio/colorpicker": patch
+"@gradio/column": patch
 "@gradio/dataframe": patch
 "@gradio/dataset": patch
 "@gradio/dropdown": patch
@@ -19,28 +20,35 @@
 "@gradio/fileexplorer": patch
 "@gradio/form": patch
 "@gradio/gallery": patch
+"@gradio/group": patch
 "@gradio/highlightedtext": patch
 "@gradio/html": patch
 "@gradio/icons": patch
 "@gradio/image": patch
 "@gradio/json": patch
 "@gradio/label": patch
+"@gradio/lite": patch
 "@gradio/markdown": patch
 "@gradio/model3d": patch
 "@gradio/number": patch
 "@gradio/plot": patch
+"@gradio/preview": patch
 "@gradio/radio": patch
+"@gradio/row": patch
 "@gradio/slider": patch
+"@gradio/state": patch
 "@gradio/statustracker": patch
 "@gradio/tabitem": patch
 "@gradio/tabs": patch
 "@gradio/textbox": patch
 "@gradio/theme": patch
+"@gradio/tooltip": patch
 "@gradio/tootils": patch
 "@gradio/upload": patch
 "@gradio/uploadbutton": patch
 "@gradio/utils": patch
 "@gradio/video": patch
+"@gradio/wasm": patch
 "gradio": patch
 ---
 
