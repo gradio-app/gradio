@@ -76,7 +76,7 @@ for demo in demos:
     content = json.loads(content)
     for i, cell in enumerate(content["cells"]):
         random.seed(i)
-        cell["id"] = random.getrandbits(128)
+        cell["id"] = str(random.getrandbits(128))
 
     with open(output_notebook, "w", encoding="utf8") as f:
         f.write(json.dumps(content))
