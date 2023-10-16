@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { playable } from "../shared";
-	import { onMount } from "svelte";
+	import { playable, Video } from "../shared";
 
 	export let type: "gallery" | "table";
 	export let selected = false;
@@ -17,48 +16,50 @@
 		await video.play();
 		video.pause();
 	}
-
-	onMount(() => {
-		init();
-	});
 </script>
 
 {#if playable()}
-	<video
-		muted
-		playsinline
-		bind:this={video}
+	<div
+		class="container"
 		class:table={type === "table"}
 		class:gallery={type === "gallery"}
 		class:selected
-		on:mouseover={video.play}
-		on:mouseout={video.pause}
-		src={samples_dir + value}
-	/>
+	>
+		<Video
+			muted
+			playsinline
+			bind:node={video}
+			on:loadeddata={init}
+			on:mouseover={video.play.bind(video)}
+			on:mouseout={video.pause.bind(video)}
+			src={samples_dir + value}
+		/>
+	</div>
 {:else}
 	<div>{value}</div>
 {/if}
 
 <style>
-	video {
+	.container {
 		flex: none;
 		border: 2px solid var(--border-color-primary);
 		border-radius: var(--radius-lg);
 		max-width: none;
 	}
 
-	video:hover,
-	video.selected {
+	.container:hover,
+	.container.selected {
 		border-color: var(--border-color-accent);
 	}
-	.table {
+	.container.table {
 		margin: 0 auto;
 		width: var(--size-20);
 		height: var(--size-20);
 		object-fit: cover;
 	}
 
-	.gallery {
+	.container.gallery {
+		height: var(--size-20);
 		max-height: var(--size-20);
 		object-fit: cover;
 	}

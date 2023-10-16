@@ -13,6 +13,7 @@
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",
+		"@gradio/wasm": "workspace:^",
 		"cropperjs": "^1.5.12",
 		"lazy-brush": "^1.0.1",
 		"resize-observer-polyfill": "^1.5.1"

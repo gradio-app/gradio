@@ -132,6 +132,7 @@ export function create(options: Options): GradioAppController {
 				// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
 				app_mode: options.appMode,
 				// For Wasm mode
+				worker_proxy,
 				client,
 				upload_files,
 				mount_css: overridden_mount_css
