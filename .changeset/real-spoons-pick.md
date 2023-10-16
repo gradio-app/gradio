@@ -1,5 +1,6 @@
 ---
-"gradio": minor
+"@gradio/preview": patch
+"gradio": patch
 ---
 
-feat:Better logs in dev mode
+fix:Better logs in dev mode
