@@ -152,8 +152,8 @@ def updateable(fn):
 
 class ComponentMeta(ABCMeta):
     def __new__(cls, name, bases, attrs):
-        if name in {"Component", "ComponentBase"}:
-            return super().__new__(cls, name, bases, attrs)
+        # if name in {"Component", "ComponentBase"}:
+        #     return super().__new__(cls, name, bases, attrs)
         if "__init__" in attrs:
             attrs["__init__"] = updateable(attrs["__init__"])
         if "EVENTS" not in attrs:
