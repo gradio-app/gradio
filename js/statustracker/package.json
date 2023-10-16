@@ -15,9 +15,13 @@
 		"./example": "./example/index.ts"
 	},
 	"dependencies": {
-		"@gradio/atoms": "workspace:^",
-		"@gradio/column": "workspace:^",
-		"@gradio/icons": "workspace:^",
-		"@gradio/utils": "workspace:^"
-	}
+		"@gradio/atoms": "0.2.0-beta.3",
+		"@gradio/column": "0.1.0-beta.1",
+		"@gradio/icons": "0.2.0-beta.0",
+		"@gradio/utils": "0.2.0-beta.3"
+	},
+	"@gradio/atoms": "0.2.0-beta.3",
+	"@gradio/column": "0.1.0-beta.1",
+	"@gradio/icons": "0.2.0-beta.0",
+	"@gradio/utils": "0.2.0-beta.3"
 }

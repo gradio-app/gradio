@@ -16,8 +16,11 @@
 		"./example": "./example/index.ts"
 	},
 	"dependencies": {
-		"@gradio/column": "workspace:^",
-		"@gradio/tabs": "workspace:^",
-		"@gradio/utils": "workspace:^"
-	}
+		"@gradio/column": "0.1.0-beta.1",
+		"@gradio/tabs": "0.0.6-beta.5",
+		"@gradio/utils": "0.2.0-beta.3"
+	},
+	"@gradio/column": "0.1.0-beta.1",
+	"@gradio/tabs": "0.0.6-beta.5",
+	"@gradio/utils": "0.2.0-beta.3"
 }

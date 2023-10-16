@@ -7,8 +7,10 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
-		"@gradio/utils": "workspace:^",
-		"@gradio/icons": "workspace:^"
+		"@gradio/utils": "0.2.0-beta.3",
+		"@gradio/icons": "0.2.0-beta.0"
 	},
-	"main_changeset": true
+	"main_changeset": true,
+	"@gradio/utils": "0.2.0-beta.3",
+	"@gradio/icons": "0.2.0-beta.0"
 }

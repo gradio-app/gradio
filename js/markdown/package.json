@@ -16,9 +16,9 @@
 		"./example": "./example/index.ts"
 	},
 	"dependencies": {
-		"@gradio/atoms": "workspace:^",
-		"@gradio/statustracker": "workspace:^",
-		"@gradio/utils": "workspace:^",
+		"@gradio/atoms": "0.2.0-beta.3",
+		"@gradio/statustracker": "0.3.0-beta.5",
+		"@gradio/utils": "0.2.0-beta.3",
 		"@types/dompurify": "^3.0.2",
 		"@types/katex": "^0.16.0",
 		"@types/prismjs": "1.26.1",
@@ -27,5 +27,8 @@
 		"marked": "^7.0.0",
 		"marked-highlight": "^2.0.1",
 		"prismjs": "1.29.0"
-	}
+	},
+	"@gradio/atoms": "0.2.0-beta.3",
+	"@gradio/statustracker": "0.3.0-beta.5",
+	"@gradio/utils": "0.2.0-beta.3"
 }

@@ -22,11 +22,11 @@
 		"@codemirror/search": "^6.2.2",
 		"@codemirror/state": "^6.1.2",
 		"@codemirror/view": "^6.4.1",
-		"@gradio/atoms": "workspace:^",
-		"@gradio/icons": "workspace:^",
-		"@gradio/statustracker": "workspace:^",
-		"@gradio/upload": "workspace:^",
-		"@gradio/utils": "workspace:^",
+		"@gradio/atoms": "0.2.0-beta.3",
+		"@gradio/icons": "0.2.0-beta.0",
+		"@gradio/statustracker": "0.3.0-beta.5",
+		"@gradio/upload": "0.3.0-beta.3",
+		"@gradio/utils": "0.2.0-beta.3",
 		"@lezer/common": "^1.0.2",
 		"@lezer/highlight": "^1.1.3",
 		"@lezer/markdown": "^1.0.2",
@@ -40,5 +40,10 @@
 		"./interactive": "./interactive/index.ts",
 		"./static": "./static/index.ts",
 		"./example": "./example/index.ts"
-	}
+	},
+	"@gradio/atoms": "0.2.0-beta.3",
+	"@gradio/icons": "0.2.0-beta.0",
+	"@gradio/statustracker": "0.3.0-beta.5",
+	"@gradio/upload": "0.3.0-beta.3",
+	"@gradio/utils": "0.2.0-beta.3"
 }

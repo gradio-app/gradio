@@ -16,6 +16,7 @@
 		"./example": "./example/index.ts"
 	},
 	"dependencies": {
-		"@gradio/utils": "workspace:^"
-	}
+		"@gradio/utils": "0.2.0-beta.3"
+	},
+	"@gradio/utils": "0.2.0-beta.3"
 }

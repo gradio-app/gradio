@@ -15,9 +15,13 @@
 		"./example": "./example/index.ts"
 	},
 	"dependencies": {
-		"@gradio/button": "workspace:^",
-		"@gradio/client": "workspace:^",
-		"@gradio/upload": "workspace:^",
-		"@gradio/utils": "workspace:^"
-	}
+		"@gradio/button": "0.2.0-beta.4",
+		"@gradio/client": "0.5.2",
+		"@gradio/upload": "0.3.0-beta.3",
+		"@gradio/utils": "0.2.0-beta.3"
+	},
+	"@gradio/button": "0.2.0-beta.4",
+	"@gradio/client": "0.5.2",
+	"@gradio/upload": "0.3.0-beta.3",
+	"@gradio/utils": "0.2.0-beta.3"
 }
