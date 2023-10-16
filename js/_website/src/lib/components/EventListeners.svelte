@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { style_formatted_text } from "$lib/text";
 	export let fns: any[];
 </script>
 
@@ -46,7 +47,7 @@
 						</p>
 					</td>
 					<td class="p-3 break-words text-gray-700">
-						<p>{fn.description}</p>
+						<p>{@html style_formatted_text(fn.description)}</p>
 					</td>
 				</tr>
 			{/each}
