@@ -19,7 +19,7 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
     """
     Creates a Code editor for entering, editing or viewing code.
     Preprocessing: passes a {str} of code into the function.
-    Postprocessing: expects the function to return a {str} of code or a single-elment {tuple}: (string filepath,)
+    Postprocessing: expects the function to return a {str} of code or a single-element {tuple}: {(string_filepath,)}
     """
 
     languages = [
