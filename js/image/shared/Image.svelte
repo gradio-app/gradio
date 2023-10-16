@@ -18,5 +18,7 @@
 	img {
 		max-width: 100%;
 		max-height: 100%;
+		border-radius: var(--radius-lg);
+		max-width: none;
 	}
 </style>
