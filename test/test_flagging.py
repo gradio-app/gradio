@@ -15,9 +15,13 @@ class TestDefaultFlagging:
         with tempfile.TemporaryDirectory() as tmpdirname:
             io = gr.Interface(lambda x: x, "text", "text", flagging_dir=tmpdirname)
             io.launch(prevent_thread_lock=True)
-            row_count = io.flagging_callback.flag(["test", "test"])
+            row_count = io.flagging_callback.flag(
+                ["test", "test"], flagging_dir=tmpdirname
+            )
             assert row_count == 1  # 2 rows written including header
-            row_count = io.flagging_callback.flag(["test", "test"])
+            row_count = io.flagging_callback.flag(
+                ["test", "test"], flagging_dir=tmpdirname
+            )
             assert row_count == 2  # 3 rows written including header
         io.close()
 
@@ -33,9 +37,13 @@ class TestSimpleFlagging:
                 flagging_callback=flagging.SimpleCSVLogger(),
             )
             io.launch(prevent_thread_lock=True)
-            row_count = io.flagging_callback.flag(["test", "test"])
+            row_count = io.flagging_callback.flag(
+                ["test", "test"], flagging_dir=tmpdirname
+            )
             assert row_count == 0  # no header in SimpleCSVLogger
-            row_count = io.flagging_callback.flag(["test", "test"])
+            row_count = io.flagging_callback.flag(
+                ["test", "test"], flagging_dir=tmpdirname
+            )
             assert row_count == 1  # no header in SimpleCSVLogger
         io.close()
 
@@ -75,7 +83,9 @@ class TestHuggingFaceDatasetSaver:
             )
             row_count = io.flagging_callback.flag(["test", "test"], "")
             assert row_count == 1  # 2 rows written including header
-            row_count = io.flagging_callback.flag(["test", "test"])
+            row_count = io.flagging_callback.flag(
+                ["test", "test"], flagging_dir=tmpdirname
+            )
             assert row_count == 2  # 3 rows written including header
             for _, _, filenames in os.walk(tmpdirname):
                 for f in filenames:
@@ -107,7 +117,9 @@ class TestHuggingFaceDatasetSaver:
             )
             row_count = io.flagging_callback.flag(["test", "test"], "")
             assert row_count == 1  # 2 rows written including header
-            row_count = io.flagging_callback.flag(["test", "test"])
+            row_count = io.flagging_callback.flag(
+                ["test", "test"], flagging_dir=tmpdirname
+            )
             assert row_count == 2  # 3 rows written including header
             for _, _, filenames in os.walk(tmpdirname):
                 for f in filenames:

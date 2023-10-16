@@ -773,7 +773,7 @@ class Interface(Blocks):
 
         if self.allow_flagging == "auto":
             flag_method = FlagMethod(
-                self.flagging_callback, "", "", visual_feedback=False
+                self.flagging_callback, self.flagging_dir, "", "", visual_feedback=False
             )
             flag_btns[0].click(  # flag_btns[0] is just the "Submit" button
                 flag_method,
@@ -791,7 +791,9 @@ class Interface(Blocks):
 
         for flag_btn, (label, value) in zip(flag_btns, self.flagging_options):
             assert isinstance(value, str)
-            flag_method = FlagMethod(self.flagging_callback, label, value)
+            flag_method = FlagMethod(
+                self.flagging_callback, self.flagging_dir, label, value
+            )
             flag_btn.click(
                 lambda: Button(value="Saving...", interactive=False),
                 None,

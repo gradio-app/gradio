@@ -46,6 +46,7 @@ class FlaggingCallback(ABC):
     def flag(
         self,
         flag_data: list[Any],
+        flagging_dir: str,
         flag_option: str = "",
         username: str | None = None,
     ) -> int:
@@ -55,6 +56,7 @@ class FlaggingCallback(ABC):
         Parameters:
         interface: The Interface object that is being used to launch the flagging interface.
         flag_data: The data to be flagged.
+        flagging_dir: A string, typically containing the path to the directory where the flagging file should be storied
         flag_option (optional): In the case that flagging_options are provided, the flag option that is being used.
         username (optional): The username of the user that is flagging the data, if logged in.
         Returns:
@@ -88,6 +90,7 @@ class SimpleCSVLogger(FlaggingCallback):
     def flag(
         self,
         flag_data: list[Any],
+        flagging_dir: str,
         flag_option: str = "",
         username: str | None = None,
     ) -> int:
@@ -145,10 +148,10 @@ class CSVLogger(FlaggingCallback):
     def flag(
         self,
         flag_data: list[Any],
+        flagging_dir: str,
         flag_option: str = "",
         username: str | None = None,
     ) -> int:
-        flagging_dir = self.flagging_dir
         log_filepath = Path(flagging_dir) / "log.csv"
         is_new = not Path(log_filepath).exists()
         headers = [
@@ -293,6 +296,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
     def flag(
         self,
         flag_data: list[Any],
+        flagging_dir: str,
         flag_option: str = "",
         username: str | None = None,
     ) -> int:
@@ -498,20 +502,25 @@ class FlagMethod:
     def __init__(
         self,
         flagging_callback: FlaggingCallback,
+        flagging_dir: str,
         label: str,
         value: str,
         visual_feedback: bool = True,
     ):
         self.flagging_callback = flagging_callback
+        self.flagging_dir = flagging_dir
         self.label = label
         self.value = value
         self.__name__ = "Flag"
         self.visual_feedback = visual_feedback
 
-    def __call__(self, request: gr.Request, *flag_data):
+    def __call__(self, request: gr.Request, flagging_dir: str, *flag_data):
         try:
             self.flagging_callback.flag(
-                list(flag_data), flag_option=self.value, username=request.username
+                list(flag_data),
+                flag_option=self.value,
+                username=request.username,
+                flagging_dir=self.flagging_dir,
             )
         except Exception as e:
             print(f"Error while flagging: {e}")
