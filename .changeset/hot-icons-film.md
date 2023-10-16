@@ -21,6 +21,7 @@
 "@gradio/gallery": patch
 "@gradio/highlightedtext": patch
 "@gradio/html": patch
+"@gradio/icons": patch
 "@gradio/image": patch
 "@gradio/json": patch
 "@gradio/label": patch
@@ -34,6 +35,7 @@
 "@gradio/tabitem": patch
 "@gradio/tabs": patch
 "@gradio/textbox": patch
+"@gradio/theme": patch
 "@gradio/tootils": patch
 "@gradio/upload": patch
 "@gradio/uploadbutton": patch
