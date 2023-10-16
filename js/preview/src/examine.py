@@ -19,15 +19,11 @@ if __name__ == "__main__":
         pyproject_source = f.read()
 
     pyproject_toml = parse(pyproject_source)
-    module_name = pyproject_toml["project"]["name"]
-
-    try:
-        module = importlib.import_module(module_name)
-    except:
-        # The importer will know not to attempt to load
-        # this component if this string is returned
-        print("~|~|~|~NOT INSTALLED~|~|~|~")
+    if "gradio custom component" not in pyproject_toml["project"]["keywords"]:
         exit(0)
+    
+    module_name = pyproject_toml["project"]["name"]
+    module = importlib.import_module(module_name)
 
     artifacts: list[str] = pyproject_toml["tool"]["hatch"]["build"]["artifacts"]
 
