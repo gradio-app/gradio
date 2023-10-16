@@ -61,10 +61,9 @@ def _dev(
     )
     while True:
         proc.poll()
-        if proc.returncode is not None:
-            print("Backend server failed to launch. Exiting.")
-            return
         text = proc.stdout.readline()  # type: ignore
+        err = proc.stderr.readline()  # type: ignore
+
         text = (
             text.decode("utf-8")
             .replace("Changes detected in:", "[orange3]Changed detected in:[/]")
@@ -77,3 +76,8 @@ def _dev(
         if "To create a public link" in text:
             continue
         print(text)
+        print(err.decode("utf-8"))
+
+        if proc.returncode is not None:
+            print("Backend server failed to launch. Exiting.")
+            return
