@@ -25,7 +25,7 @@ set_documentation_group("component")
 class FileExplorer(Changeable, IOComponent, JSONSerializable):
     """
     Creates a file explorer component that allows users to browse and select files on the machine hosting the Gradio app.
-    Preprocessing: passes the selected file or directory as a {str} path (relative to root) or {list[str}} depending on `file_count`
+    Preprocessing: passes the selected file or directory as a {str} path (relative to root) or {list[str]} depending on `file_count`
     Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
     Examples-format: a {str} path to a local file that populates the component.
     Demos: zip_to_json, zip_files
