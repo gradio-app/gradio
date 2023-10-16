@@ -1,18 +1,18 @@
 {
-  "name": "@gradio/column",
-  "version": "0.1.0-beta.1",
-  "description": "Gradio UI packages",
-  "type": "module",
-  "main": "./static/index.ts",
-  "author": "",
-  "license": "ISC",
-  "main_changeset": true,
-  "private": false,
-  "exports": {
-    ".": "./static/index.ts",
-    "./package.json": "./package.json",
-    "./interactive": "./interactive/index.ts",
-    "./static": "./static/index.ts",
-    "./example": "./example/index.ts"
-  }
+	"name": "@gradio/column",
+	"version": "0.1.0-beta.1",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"main": "./static/index.ts",
+	"author": "",
+	"license": "ISC",
+	"main_changeset": true,
+	"private": false,
+	"exports": {
+		".": "./static/index.ts",
+		"./package.json": "./package.json",
+		"./interactive": "./interactive/index.ts",
+		"./static": "./static/index.ts",
+		"./example": "./example/index.ts"
+	}
 }
