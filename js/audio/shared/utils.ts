@@ -1,6 +1,6 @@
 import type { ActionReturn } from "svelte/action";
 
-interface LoadedParams {
+export interface LoadedParams {
 	crop_values?: [number, number];
 	autoplay?: boolean;
 }
