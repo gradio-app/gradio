@@ -553,6 +553,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      '@gradio/wasm':
+        specifier: workspace:^
+        version: link:../wasm
       extendable-media-recorder:
         specifier: ^9.0.0
         version: 9.0.0
@@ -958,6 +961,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      '@gradio/wasm':
+        specifier: workspace:^
+        version: link:../wasm
       cropperjs:
         specifier: ^1.5.12
         version: 1.5.12
@@ -1238,9 +1244,18 @@ importers:
 
   js/preview/test/newtext/frontend:
     dependencies:
-      '@zerodevx/svelte-json-view':
-        specifier: ^1.0
-        version: 1.0.7(svelte@4.2.1)
+      '@gradio/atoms':
+        specifier: 0.1.4
+        version: link:../../../../atoms
+      '@gradio/icons':
+        specifier: 0.2.0
+        version: link:../../../../icons
+      '@gradio/statustracker':
+        specifier: 0.2.2
+        version: link:../../../../statustracker
+      '@gradio/utils':
+        specifier: 0.1.2
+        version: link:../../../../utils
 
   js/radio:
     dependencies:
@@ -1394,6 +1409,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      '@gradio/wasm':
+        specifier: workspace:^
+        version: link:../wasm
 
   js/wasm:
     dependencies:
@@ -6648,7 +6666,7 @@ packages:
     peerDependencies:
       '@sveltejs/kit': ^1.0.0
     dependencies:
-      '@sveltejs/kit': 1.16.3(svelte@3.57.0)(vite@4.3.5)
+      '@sveltejs/kit': 1.16.3(svelte@3.59.2)(vite@4.3.9)
       import-meta-resolve: 3.0.0
     dev: true
 

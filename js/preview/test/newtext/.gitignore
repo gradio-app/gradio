@@ -1,3 +1,4 @@
+# Python build
 .eggs/
 dist/
 *.pyc
@@ -7,3 +8,4 @@ __pycache__/
 __tmp/*
 *.pyi
 node_modules
+

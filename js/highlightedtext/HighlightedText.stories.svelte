@@ -2,7 +2,6 @@
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import HighlightedText from "./shared/StaticHighlightedtext.svelte";
 	import { Gradio } from "@gradio/utils";
-	import { t } from "@storybook/theming/dist/create-c2b2ce6d";
 </script>
 
 <Meta title="Components/HighlightedText" component={HighlightedText} />

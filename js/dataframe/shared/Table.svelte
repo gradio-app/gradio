@@ -705,6 +705,7 @@
 								<EditableCell
 									{value}
 									{latex_delimiters}
+									{line_breaks}
 									datatype={Array.isArray(datatype) ? datatype[j] : datatype}
 									edit={false}
 									el={null}
@@ -747,6 +748,7 @@
 									bind:value={_headers[i].value}
 									bind:el={els[id].input}
 									{latex_delimiters}
+									{line_breaks}
 									edit={header_edit === i}
 									on:keydown={end_header_edit}
 									on:dblclick={() => edit_header(i)}

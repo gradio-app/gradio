@@ -66,6 +66,8 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
 	import { setupi18n } from "./i18n";
+	import type { WorkerProxy } from "@gradio/wasm";
+	import { setWorkerProxyContext } from "@gradio/wasm/svelte";
 
 	setupi18n();
 
@@ -85,6 +87,10 @@
 	export let mount_css: typeof default_mount_css = default_mount_css;
 	export let client: ReturnType<typeof api_factory>["client"];
 	export let upload_files: ReturnType<typeof api_factory>["upload_files"];
+	export let worker_proxy: WorkerProxy | undefined = undefined;
+	if (worker_proxy) {
+		setWorkerProxyContext(worker_proxy);
+	}
 
 	export let space: string | null;
 	export let host: string | null;

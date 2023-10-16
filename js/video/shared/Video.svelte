@@ -8,6 +8,7 @@
 
 	import { prettyBytes, playable } from "./utils";
 	import Player from "./Player.svelte";
+
 	import type { I18nFormatter } from "@gradio/utils";
 
 	export let value: FileData | null = null;

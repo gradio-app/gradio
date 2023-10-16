@@ -67,7 +67,7 @@
 	function handle_click(i: number, value: string): void {
 		gradio.dispatch("select", {
 			value: label,
-			index: i
+			index: i,
 		});
 	}
 </script>

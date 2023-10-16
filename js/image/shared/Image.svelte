@@ -76,12 +76,12 @@
 			if (source === "webcam" && initial) {
 				value = {
 					image: detail,
-					mask: null,
+					mask: null
 				};
 			} else {
 				value = {
 					image: typeof value === "string" ? value : value?.image || null,
-					mask: detail,
+					mask: detail
 				};
 			}
 		} else if (

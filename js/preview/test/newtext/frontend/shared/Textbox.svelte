@@ -27,15 +27,9 @@
 	export let autofocus = false;
 	export let text_align: "left" | "right" | undefined = undefined;
 	export let autoscroll = true;
-
 	let el: HTMLTextAreaElement | HTMLInputElement;
-	let copied = false;
-	let timer: NodeJS.Timeout;
 	let can_scroll: boolean;
 	let previous_scroll_top = 0;
-	let user_has_scrolled_up = false;
-
-	$: value, el && lines !== max_lines && resize({ target: el });
 
 	$: if (value === null) value = "";
 
@@ -67,10 +61,7 @@
 	afterUpdate(() => {
 		if (can_scroll && autoscroll) {
 			scroll();
-		}
 		value_is_output = false;
-	});
-	$: value, handle_change();
 
 	async function handle_copy(): Promise<void> {
 		if ("clipboard" in navigator) {
@@ -95,9 +86,6 @@
 		const index: [number, number] = [
 			target.selectionStart as number,
 			target.selectionEnd as number,
-		];
-		dispatch("select", { value: text.substring(...index), index: index });
-	}
 
 	async function handle_keypress(e: KeyboardEvent): Promise<void> {
 		await tick();
@@ -117,7 +105,6 @@
 
 	function handle_scroll(event: Event): void {
 		const target = event.target as HTMLElement;
-		const current_scroll_top = target.scrollTop;
 		if (current_scroll_top < previous_scroll_top) {
 			user_has_scrolled_up = true;
 		}
@@ -131,8 +118,6 @@
 	}
 
 	async function resize(
-		event: Event | { target: HTMLTextAreaElement | HTMLInputElement }
-	): Promise<void> {
 		await tick();
 		if (lines === max_lines || !container) return;
 
