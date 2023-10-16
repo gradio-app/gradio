@@ -5,27 +5,38 @@ from __future__ import annotations
 import inspect
 import warnings
 from pathlib import Path
-from typing import Callable, Literal
+from typing import Any, Callable, List, Literal, Optional, Tuple, Union
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import JSONSerializable
 
 from gradio import utils
-from gradio.components.base import IOComponent, _Keywords
+from gradio.components.base import Component, _Keywords
+from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
-from gradio.events import (
-    Changeable,
-    EventListenerMethod,
-    Likeable,
-    Selectable,
-)
+from gradio.events import Events
+
+# from pydantic import Field, TypeAdapter
 
 set_documentation_group("component")
 
 
+class FileMessage(GradioModel):
+    file: FileData
+    alt_text: Optional[str] = None
+
+
+# _Message = Annotated[List[Union[str, FileMessage, None]], Field(min_length=2, max_length=2)]
+
+# Message = TypeAdapter(_Message)
+
+
+class ChatbotData(GradioRootModel):
+    root: List[Tuple[Union[str, FileMessage, None], Union[str, FileMessage, None]]]
+
+
 @document()
-class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
+class Chatbot(Component):
     """
     Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, tables. Also supports audio/video/image files, which are displayed in the Chatbot, and other kinds of files which are displayed as links.
     Preprocessing: passes the messages in the Chatbot as a {List[List[str | None | Tuple]]}, i.e. a list of lists. The inner list has 2 elements: the user message and the response message. See `Postprocessing` for the format of these messages.
@@ -34,6 +45,9 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
     Demos: chatbot_simple, chatbot_multimodal
     Guides: creating-a-chatbot
     """
+
+    EVENTS = [Events.change, Events.select, Events.like]
+    data_model = ChatbotData
 
     def __init__(
         self,
@@ -91,18 +105,12 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
         """
         if color_map is not None:
             warn_deprecation("The 'color_map' parameter has been deprecated.")
-        self.select: EventListenerMethod
         """
         Event listener for when the user selects message from Chatbot.
         Uses event data gradio.SelectData to carry `value` referring to text of selected message, and `index` tuple to refer to [message, participant] index.
         See EventData documentation on how to use this event data.
         """
-        self.like: EventListenerMethod
-        """
-        Event listener for when the user likes or dislikes a message from Chatbot.
-        Uses event data gradio.LikeData to carry `value` referring to text of selected message, `index` tuple to refer to [message, participant] index, and `liked` bool which is True if the item was liked, False if disliked.
-        See EventData documentation on how to use this event data.
-        """
+        self.likeable = False
         self.height = height
         self.rtl = rtl
         if latex_delimiters is None:
@@ -120,8 +128,8 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
         self.bubble_full_width = bubble_full_width
         self.line_breaks = line_breaks
         self.layout = layout
-        IOComponent.__init__(
-            self,
+
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -190,10 +198,10 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
         if chat_message is None:
             return None
         elif isinstance(chat_message, dict):
-            if chat_message["alt_text"] is not None:
-                return (chat_message["name"], chat_message["alt_text"])
+            if chat_message.get("alt_text"):
+                return (chat_message["file"]["name"], chat_message["alt_text"])
             else:
-                return (chat_message["name"],)
+                return (chat_message["file"]["name"],)
         else:  # string
             return chat_message
 
@@ -223,24 +231,17 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
 
     def _postprocess_chat_messages(
         self, chat_message: str | tuple | list | None
-    ) -> str | dict | None:
+    ) -> str | FileMessage | None:
         if chat_message is None:
             return None
         elif isinstance(chat_message, (tuple, list)):
-            file_uri = str(chat_message[0])
-            if utils.validate_url(file_uri):
-                filepath = file_uri
-            else:
-                filepath = self.make_temp_copy_if_needed(file_uri)
+            filepath = str(chat_message[0])
 
             mime_type = client_utils.get_mimetype(filepath)
-            return {
-                "name": filepath,
-                "mime_type": mime_type,
-                "alt_text": chat_message[1] if len(chat_message) > 1 else None,
-                "data": None,  # These last two fields are filled in by the frontend
-                "is_file": True,
-            }
+            return FileMessage(
+                file=FileData(name=filepath, is_file=True, mime_type=mime_type),
+                alt_text=chat_message[1] if len(chat_message) > 1 else None,
+            )
         elif isinstance(chat_message, str):
             chat_message = inspect.cleandoc(chat_message)
             return chat_message
@@ -250,7 +251,7 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
     def postprocess(
         self,
         y: list[list[str | tuple[str] | tuple[str, str] | None] | tuple],
-    ) -> list[list[str | dict | None]]:
+    ) -> ChatbotData:
         """
         Parameters:
             y: List of lists representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.  It can also be a tuple whose first element is a string or pathlib.Path filepath or URL to an image/video/audio, and second (optional) element is the alt text, in which case the media file is displayed. It can also be None, in which case that message is not displayed.
@@ -258,7 +259,7 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
             List of lists representing the message and response. Each message and response will be a string of HTML, or a dictionary with media information. Or None if the message is not to be displayed.
         """
         if y is None:
-            return []
+            return ChatbotData(root=[])
         processed_messages = []
         for message_pair in y:
             if not isinstance(message_pair, (tuple, list)):
@@ -275,7 +276,7 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
                     self._postprocess_chat_messages(message_pair[1]),
                 ]
             )
-        return processed_messages
+        return ChatbotData(root=processed_messages)
 
     def style(self, height: int | None = None, **kwargs):
         """
@@ -285,3 +286,6 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
         if height is not None:
             self.height = height
         return self
+
+    def example_inputs(self) -> Any:
+        return [["Hello!", None]]

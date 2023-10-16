@@ -54,7 +54,7 @@ class DuplicateButton(Button):
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
         """
         super().__init__(
-            value,
+            value=value,
             variant=variant,
             size=size,
             icon=icon,

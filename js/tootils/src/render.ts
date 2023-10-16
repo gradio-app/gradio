@@ -14,7 +14,7 @@ import type {
 	FireObject
 } from "@testing-library/dom";
 import { spy, type Spy } from "tinyspy";
-import { Gradio } from "../../app/src/gradio_helper";
+import { Gradio } from "@gradio/utils";
 
 const containerCache = new Map();
 const componentCache = new Set();

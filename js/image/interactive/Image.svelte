@@ -3,7 +3,7 @@
 	import { createEventDispatcher, tick, onMount } from "svelte";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Image, Sketch as SketchIcon } from "@gradio/icons";
-	import type { SelectData } from "@gradio/utils";
+	import type { SelectData, I18nFormatter } from "@gradio/utils";
 	import { get_coordinates_of_clicked_image } from "../shared/utils";
 
 	import Cropper from "./Cropper.svelte";
@@ -11,13 +11,17 @@
 	import Webcam from "./Webcam.svelte";
 	import ModifySketch from "./ModifySketch.svelte";
 	import SketchSettings from "./SketchSettings.svelte";
-
-	import { Upload, ModifyUpload } from "@gradio/upload";
+	import {
+		Upload,
+		ModifyUpload,
+		type FileData,
+		normalise_file
+	} from "@gradio/upload";
 
 	export let value:
 		| null
-		| string
-		| { image: string | null; mask: string | null };
+		| { image: string | null; mask: string | null }
+		| FileData;
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
 
@@ -31,6 +35,8 @@
 	export let brush_color = "#000000";
 	export let mask_opacity;
 	export let selectable = false;
+	export let root: string;
+	export let i18n: I18nFormatter;
 
 	let sketch: Sketch;
 	let cropper: Cropper;
@@ -45,14 +51,15 @@
 
 	function handle_upload({ detail }: CustomEvent<string>): void {
 		if (tool === "color-sketch") {
-			static_image = detail;
+			static_image = normalise_file(detail, root, null)?.data;
 		} else {
 			value =
 				(source === "upload" || source === "webcam") && tool === "sketch"
-					? { image: detail, mask: null }
-					: detail;
+					? { image: normalise_file(detail, root, null), mask: null }
+					: normalise_file(detail, root, null);
 		}
-		dispatch("upload", detail);
+
+		dispatch("upload", normalise_file(detail, root, null));
 	}
 
 	function handle_clear({ detail }: CustomEvent<null>): void {
@@ -104,6 +111,13 @@
 	let dragging = false;
 
 	$: dispatch("drag", dragging);
+
+	let value_: null | FileData = null;
+
+	$: if (value !== value_) {
+		value_ = value;
+		normalise_file(value_, root, null);
+	}
 
 	function handle_image_load(event: Event): void {
 		const element = event.currentTarget as HTMLImageElement;
@@ -203,14 +217,23 @@
 			on:load={handle_upload}
 			include_file_metadata={false}
 			disable_click={!!value}
+			{root}
 		>
 			{#if (value === null && !static_image) || streaming}
 				<slot />
 			{:else if tool === "select"}
-				<Cropper bind:this={cropper} image={value} on:crop={handle_save} />
-				<ModifyUpload on:clear={(e) => (handle_clear(e), (tool = "editor"))} />
+				<Cropper
+					bind:this={cropper}
+					image={value_.data}
+					on:crop={handle_save}
+				/>
+				<ModifyUpload
+					{i18n}
+					on:clear={(e) => (handle_clear(e), (tool = "editor"))}
+				/>
 			{:else if tool === "editor"}
 				<ModifyUpload
+					{i18n}
 					on:edit={() => (tool = "select")}
 					on:clear={handle_clear}
 					editable
@@ -220,7 +243,7 @@
 				<!-- svelte-ignore a11y-click-events-have-key-events -->
 				<!-- svelte-ignore a11y-no-noninteractive-element-interactions-->
 				<img
-					src={value}
+					src={value_.data}
 					alt=""
 					class:scale-x-[-1]={source === "webcam" && mirror_webcam}
 					class:selectable
@@ -232,11 +255,12 @@
 					<img
 						bind:this={value_img}
 						class="absolute-img"
-						src={static_image || value?.image || value}
+						src={static_image || value?.image?.data || value?.data}
 						alt=""
 						on:load={handle_image_load}
 						class:webcam={source === "webcam" && mirror_webcam}
 						loading="lazy"
+						crossorigin="anonymous"
 					/>
 				{/key}
 				{#if img_width > 0}
@@ -326,10 +350,14 @@
 			/>
 		{/if}
 	{:else if tool === "select"}
-		<Cropper bind:this={cropper} image={value} on:crop={handle_save} />
-		<ModifyUpload on:clear={(e) => (handle_clear(e), (tool = "editor"))} />
+		<Cropper bind:this={cropper} image={value.data} on:crop={handle_save} />
+		<ModifyUpload
+			{i18n}
+			on:clear={(e) => (handle_clear(e), (tool = "editor"))}
+		/>
 	{:else if tool === "editor"}
 		<ModifyUpload
+			{i18n}
 			on:edit={() => (tool = "select")}
 			on:clear={handle_clear}
 			editable
@@ -338,9 +366,8 @@
 		<!-- TODO: fix -->
 		<!-- svelte-ignore a11y-click-events-have-key-events -->
 		<!-- svelte-ignore a11y-no-noninteractive-element-interactions-->
-
 		<img
-			src={value}
+			src={value_}
 			alt=""
 			class:selectable
 			class:webcam={source === "webcam" && mirror_webcam}
@@ -352,7 +379,7 @@
 			<img
 				bind:this={value_img}
 				class="absolute-img"
-				src={static_image || value?.image || value}
+				src={static_image || value_}
 				alt=""
 				on:load={handle_image_load}
 				class:webcam={source === "webcam" && mirror_webcam}
@@ -394,7 +421,7 @@
 		<!-- svelte-ignore a11y-no-noninteractive-element-interactions-->
 
 		<img
-			src={value.image || value}
+			src={value_.image || value_.data}
 			alt=""
 			class:webcam={source === "webcam" && mirror_webcam}
 			class:selectable

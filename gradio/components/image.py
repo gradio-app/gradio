@@ -11,39 +11,19 @@ import PIL
 import PIL.ImageOps
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import ImgSerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
-from gradio.components.base import IOComponent, _Keywords
-from gradio.deprecation import warn_style_method_deprecation
-from gradio.events import (
-    Changeable,
-    Clearable,
-    Editable,
-    EventListenerMethod,
-    Selectable,
-    Streamable,
-    Uploadable,
-)
-from gradio.interpretation import TokenInterpretable
+from gradio.components.base import Component, StreamingInput, _Keywords
+from gradio.data_classes import FileData
+from gradio.events import Events
 
 set_documentation_group("component")
 _Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
 
 @document()
-class Image(
-    Editable,
-    Clearable,
-    Changeable,
-    Streamable,
-    Selectable,
-    Uploadable,
-    IOComponent,
-    ImgSerializable,
-    TokenInterpretable,
-):
+class Image(StreamingInput, Component):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
     Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch` AND source is one of `upload` or `webcam`. In these cases, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
@@ -52,6 +32,16 @@ class Image(
     Demos: image_mod, image_mod_default_image
     Guides: image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, building-a-pictionary_app, create-your-own-friends-with-a-gan
     """
+
+    EVENTS = [
+        Events.edit,
+        Events.clear,
+        Events.change,
+        Events.stream,
+        Events.select,
+        Events.upload,
+    ]
+    data_model = FileData
 
     def __init__(
         self,
@@ -144,19 +134,12 @@ class Image(
         self.show_download_button = show_download_button
         if streaming and source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user clicks on a pixel within the image.
-        Uses event data gradio.SelectData to carry `index` to refer to the [x, y] coordinates of the clicked pixel.
-        See EventData documentation on how to use this event data.
-        """
         self.show_share_button = (
             (utils.get_space() is not None)
             if show_share_button is None
             else show_share_button
         )
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -170,7 +153,6 @@ class Image(
             value=value,
             **kwargs,
         )
-        TokenInterpretable.__init__(self)
 
     @staticmethod
     def update(
@@ -224,10 +206,9 @@ class Image(
         elif self.type == "numpy":
             return np.array(im)
         elif self.type == "filepath":
-            path = self.pil_to_temp_file(
-                im, dir=self.DEFAULT_TEMP_DIR, format=fmt or "png"
+            path = processing_utils.save_pil_to_cache(
+                im, cache_dir=self.GRADIO_CACHE, format=fmt or "png"  # type: ignore
             )
-            self.temp_files.add(path)
             return path
         else:
             raise ValueError(
@@ -253,8 +234,10 @@ class Image(
             assert isinstance(x, dict)
             x, mask = x["image"], x["mask"]
 
-        assert isinstance(x, str)
-        im = processing_utils.decode_base64_to_image(x)
+        if isinstance(x, str):
+            im = processing_utils.decode_base64_to_image(x)
+        else:
+            im = _Image.open(x["name"])
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
@@ -284,7 +267,7 @@ class Image(
 
     def postprocess(
         self, y: np.ndarray | _Image.Image | str | Path | None
-    ) -> str | None:
+    ) -> FileData | None:
         """
         Parameters:
             y: image as a numpy array, PIL Image, string/Path filepath, or string URL
@@ -294,125 +277,19 @@ class Image(
         if y is None:
             return None
         if isinstance(y, np.ndarray):
-            return processing_utils.encode_array_to_base64(y)
+            path = processing_utils.save_img_array_to_cache(
+                y, cache_dir=self.GRADIO_CACHE
+            )
         elif isinstance(y, _Image.Image):
-            return processing_utils.encode_pil_to_base64(y)
+            path = processing_utils.save_pil_to_cache(y, cache_dir=self.GRADIO_CACHE)
         elif isinstance(y, (str, Path)):
-            return client_utils.encode_url_or_file_to_base64(y)
+            path = y if isinstance(y, str) else y.name
         else:
             raise ValueError("Cannot process this value as an Image")
-
-    def set_interpret_parameters(self, segments: int = 16):
-        """
-        Calculates interpretation score of image subsections by splitting the image into subsections, then using a "leave one out" method to calculate the score of each subsection by whiting out the subsection and measuring the delta of the output value.
-        Parameters:
-            segments: Number of interpretation segments to split image into.
-        """
-        self.interpretation_segments = segments
-        return self
-
-    def _segment_by_slic(self, x):
-        """
-        Helper method that segments an image into superpixels using slic.
-        Parameters:
-            x: base64 representation of an image
-        """
-        x = processing_utils.decode_base64_to_image(x)
-        if self.shape is not None:
-            x = processing_utils.resize_and_crop(x, self.shape)
-        resized_and_cropped_image = np.array(x)
-        try:
-            from skimage.segmentation import slic
-        except (ImportError, ModuleNotFoundError) as err:
-            raise ValueError(
-                "Error: running this interpretation for images requires scikit-image, please install it first."
-            ) from err
-        try:
-            segments_slic = slic(
-                resized_and_cropped_image,
-                self.interpretation_segments,
-                compactness=10,
-                sigma=1,
-                start_label=1,
-            )
-        except TypeError:  # For skimage 0.16 and older
-            segments_slic = slic(
-                resized_and_cropped_image,
-                self.interpretation_segments,
-                compactness=10,
-                sigma=1,
-            )
-        return segments_slic, resized_and_cropped_image
-
-    def tokenize(self, x):
-        """
-        Segments image into tokens, masks, and leave-one-out-tokens
-        Parameters:
-            x: base64 representation of an image
-        Returns:
-            tokens: list of tokens, used by the get_masked_input() method
-            leave_one_out_tokens: list of left-out tokens, used by the get_interpretation_neighbors() method
-            masks: list of masks, used by the get_interpretation_neighbors() method
-        """
-        segments_slic, resized_and_cropped_image = self._segment_by_slic(x)
-        tokens, masks, leave_one_out_tokens = [], [], []
-        replace_color = np.mean(resized_and_cropped_image, axis=(0, 1))
-        for segment_value in np.unique(segments_slic):
-            mask = segments_slic == segment_value
-            image_screen = np.copy(resized_and_cropped_image)
-            image_screen[segments_slic == segment_value] = replace_color
-            leave_one_out_tokens.append(
-                processing_utils.encode_array_to_base64(image_screen)
-            )
-            token = np.copy(resized_and_cropped_image)
-            token[segments_slic != segment_value] = 0
-            tokens.append(token)
-            masks.append(mask)
-        return tokens, leave_one_out_tokens, masks
-
-    def get_masked_inputs(self, tokens, binary_mask_matrix):
-        masked_inputs = []
-        for binary_mask_vector in binary_mask_matrix:
-            masked_input = np.zeros_like(tokens[0], dtype=int)
-            for token, b in zip(tokens, binary_mask_vector):
-                masked_input = masked_input + token * int(b)
-            masked_inputs.append(processing_utils.encode_array_to_base64(masked_input))
-        return masked_inputs
-
-    def get_interpretation_scores(
-        self, x, neighbors, scores, masks, tokens=None, **kwargs
-    ) -> list[list[float]]:
-        """
-        Returns:
-            A 2D array representing the interpretation score of each pixel of the image.
-        """
-        x = processing_utils.decode_base64_to_image(x)
-        if self.shape is not None:
-            x = processing_utils.resize_and_crop(x, self.shape)
-        x = np.array(x)
-        output_scores = np.zeros((x.shape[0], x.shape[1]))
-
-        for score, mask in zip(scores, masks):
-            output_scores += score * mask
-
-        max_val, min_val = np.max(output_scores), np.min(output_scores)
-        if max_val > 0:
-            output_scores = (output_scores - min_val) / (max_val - min_val)
-        return output_scores.tolist()
-
-    def style(self, *, height: int | None = None, width: int | None = None, **kwargs):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if height is not None:
-            self.height = height
-        if width is not None:
-            self.width = width
-        return self
+        return FileData(name=path, data=None, is_file=True)
 
     def check_streamable(self):
-        if self.source != "webcam":
+        if self.source != "webcam" and self.streaming:
             raise ValueError("Image streaming only available if source is 'webcam'.")
 
     def as_example(self, input_data: str | Path | None) -> str:
@@ -423,3 +300,6 @@ class Image(
         if self.root_url or client_utils.is_http_url_like(input_data):
             return input_data
         return str(utils.abspath(input_data))
+
+    def example_inputs(self) -> Any:
+        return "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"

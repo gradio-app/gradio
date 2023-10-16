@@ -6,7 +6,10 @@
 	import { correct_color_map, merge_elements } from "../utils";
 	import LabelInput from "./LabelInput.svelte";
 
-	export let value: [string, string | number | null][] = [];
+	export let value: {
+		token: string;
+		class_or_confidence: string | number | null;
+	}[] = [];
 	export let show_legend = false;
 	export let color_map: Record<string, string> = {};
 	export let selectable = false;
@@ -37,32 +40,40 @@
 		if (
 			selection?.toString() &&
 			activeElementIndex !== -1 &&
-			value[activeElementIndex][0].toString().includes(selection.toString())
+			value[activeElementIndex].token.toString().includes(selection.toString())
 		) {
 			const tempFlag = Symbol();
 
-			const str = value[activeElementIndex][0];
+			const str = value[activeElementIndex].token;
 			const [before, selected, after] = [
 				str.substring(0, startIndex),
 				str.substring(startIndex, endIndex),
-				str.substring(endIndex),
+				str.substring(endIndex)
 			];
 
-			let tempValue: [string, string | number | null, symbol?][] = [
+			let tempValue: {
+				token: string;
+				class_or_confidence: string | number | null;
+				flag?: symbol;
+			}[] = [
 				...value.slice(0, activeElementIndex),
-				[before, null],
-				[selected, mode === "scores" ? 1 : "label", tempFlag], // add a temp flag to the new highlighted text element
-				[after, null],
-				...value.slice(activeElementIndex + 1),
+				{ token: before, class_or_confidence: null },
+				{
+					token: selected,
+					class_or_confidence: mode === "scores" ? 1 : "label",
+					flag: tempFlag
+				}, // add a temp flag to the new highlighted text element
+				{ token: after, class_or_confidence: null },
+				...value.slice(activeElementIndex + 1)
 			];
 
 			// store the index of the new highlighted text element and remove the flag
-			labelToEdit = tempValue.findIndex(([_, __, flag]) => flag === tempFlag);
-			tempValue[labelToEdit].pop();
+			labelToEdit = tempValue.findIndex(({ flag }) => flag === tempFlag);
+			// tempValue[labelToEdit].pop();
 
 			// remove elements with empty labels
-			tempValue = tempValue.filter((item) => item[0].trim() !== "");
-			value = tempValue as [string, string | number | null][];
+			tempValue = tempValue.filter((item) => item.token.trim() !== "");
+			value = tempValue.map(({ flag, ...rest }) => rest);
 
 			handleValueChange();
 			document.getElementById(`label-input-${labelToEdit}`)?.focus();
@@ -80,8 +91,8 @@
 	}
 
 	function removeHighlightedText(index: number): void {
-		if (index < 0 || index >= value.length) return;
-		value[index][1] = null;
+		if (!value || index < 0 || index >= value.length) return;
+		value[index].class_or_confidence = null;
 		value = merge_elements(value, "equal");
 		handleValueChange();
 		window.getSelection()?.empty();
@@ -105,13 +116,13 @@
 			color_map = {};
 		}
 		if (value.length > 0) {
-			for (let [_, label] of value) {
-				if (label !== null) {
-					if (typeof label === "string") {
+			for (let entry of value) {
+				if (entry.class_or_confidence !== null) {
+					if (typeof entry.class_or_confidence === "string") {
 						mode = "categories";
-						if (!(label in color_map)) {
+						if (!(entry.class_or_confidence in color_map)) {
 							let color = get_next_color(Object.keys(color_map).length);
-							color_map[label] = color;
+							color_map[entry.class_or_confidence] = color;
 						}
 					} else {
 						mode = "scores";
@@ -149,11 +160,11 @@
 	function handleSelect(
 		i: number,
 		text: string,
-		category: string | number | null
+		class_or_confidence: string | number | null
 	): void {
 		dispatch("select", {
 			index: i,
-			value: [text, category],
+			value: [text, class_or_confidence]
 		});
 	}
 </script>
@@ -162,23 +173,23 @@
 	{#if mode === "categories"}
 		{#if show_legend}
 			<div
-				class="category-legend"
-				data-testid="highlighted-text:category-legend"
+				class="class_or_confidence-legend"
+				data-testid="highlighted-text:class_or_confidence-legend"
 			>
 				{#if _color_map}
-					{#each Object.entries(_color_map) as [category, color], i}
+					{#each Object.entries(_color_map) as [class_or_confidence, color], i}
 						<div
 							role="button"
-							aria-roledescription="Categories of highlighted text. Hover to see text with this category highlighted."
+							aria-roledescription="Categories of highlighted text. Hover to see text with this class_or_confidence highlighted."
 							tabindex="0"
-							on:mouseover={() => handle_mouseover(category)}
-							on:focus={() => handle_mouseover(category)}
+							on:mouseover={() => handle_mouseover(class_or_confidence)}
+							on:focus={() => handle_mouseover(class_or_confidence)}
 							on:mouseout={() => handle_mouseout()}
 							on:blur={() => handle_mouseout()}
-							class="category-label"
+							class="class_or_confidence-label"
 							style={"background-color:" + color.secondary}
 						>
-							{category}
+							{class_or_confidence}
 						</div>
 					{/each}
 				{/if}
@@ -186,33 +197,33 @@
 		{/if}
 
 		<div class="textfield">
-			{#each value as [text, category], i}
-				{#each splitTextByNewline(text) as line, j}
+			{#each value as { token, class_or_confidence }, i}
+				{#each splitTextByNewline(token) as line, j}
 					{#if line.trim() !== ""}
-						<span class="text-category-container">
+						<span class="text-class_or_confidence-container">
 							<span
 								role="button"
 								tabindex="0"
 								class="textspan"
-								style:background-color={category === null ||
-								(active && active !== category)
+								style:background-color={class_or_confidence === null ||
+								(active && active !== class_or_confidence)
 									? ""
-									: category && _color_map[category]
-									? _color_map[category].secondary
+									: class_or_confidence && _color_map[class_or_confidence]
+									? _color_map[class_or_confidence].secondary
 									: ""}
-								class:no-cat={category === null ||
-									(active && active !== category)}
-								class:hl={category !== null}
+								class:no-cat={class_or_confidence === null ||
+									(active && active !== class_or_confidence)}
+								class:hl={class_or_confidence !== null}
 								class:selectable
 								on:click={() => {
-									if (category !== null) {
-										handleSelect(i, text, category);
+									if (class_or_confidence !== null) {
+										handleSelect(i, token, class_or_confidence);
 									}
 								}}
 								on:keydown={(e) => {
-									if (category !== null) {
+									if (class_or_confidence !== null) {
 										labelToEdit = i;
-										handleSelect(i, text, category);
+										handleSelect(i, token, class_or_confidence);
 									} else {
 										handleKeydownSelection(e);
 									}
@@ -221,7 +232,7 @@
 								on:mouseover={() => (activeElementIndex = i)}
 							>
 								<span
-									class:no-label={category === null}
+									class:no-label={class_or_confidence === null}
 									class="text"
 									role="button"
 									on:keydown={(e) => handleKeydownSelection(e)}
@@ -230,37 +241,37 @@
 									on:click={() => (labelToEdit = i)}
 									tabindex="0">{line}</span
 								>
-								{#if !show_legend && category !== null && labelToEdit !== i}
+								{#if !show_legend && class_or_confidence !== null && labelToEdit !== i}
 									<span
 										id={`label-tag-${i}`}
 										class="label"
 										role="button"
 										tabindex="0"
-										style:background-color={category === null ||
-										(active && active !== category)
+										style:background-color={class_or_confidence === null ||
+										(active && active !== class_or_confidence)
 											? ""
-											: _color_map[category].primary}
+											: _color_map[class_or_confidence].primary}
 										on:click={() => (labelToEdit = i)}
 										on:keydown={() => (labelToEdit = i)}
 									>
-										{category}
+										{class_or_confidence}
 									</span>
 								{/if}
-								{#if labelToEdit === i && category !== null}
+								{#if labelToEdit === i && class_or_confidence !== null}
 									&nbsp;
 									<LabelInput
 										bind:value
 										{labelToEdit}
-										{category}
+										category={class_or_confidence}
 										{active}
 										{_color_map}
 										indexOfLabel={i}
-										{text}
+										text={token}
 										{handleValueChange}
 									/>
 								{/if}
 							</span>
-							{#if category !== null}
+							{#if class_or_confidence !== null}
 								<span
 									class="label-clear-button"
 									role="button"
@@ -277,7 +288,7 @@
 							{/if}
 						</span>
 					{/if}
-					{#if j < splitTextByNewline(text).length - 1}
+					{#if j < splitTextByNewline(token).length - 1}
 						<br />
 					{/if}
 				{/each}
@@ -293,15 +304,19 @@
 		{/if}
 
 		<div class="textfield" data-testid="highlighted-text:textfield">
-			{#each value as [text, _score], i}
-				{@const score = typeof _score === "string" ? parseInt(_score) : _score}
+			{#each value as { token, class_or_confidence }, i}
+				{@const score =
+					typeof class_or_confidence === "string"
+						? parseInt(class_or_confidence)
+						: class_or_confidence}
 				<span class="score-text-container">
 					<span
 						class="textspan score-text"
 						role="button"
 						tabindex="0"
-						class:no-cat={_score === null || (active && active !== _score)}
-						class:hl={_score !== null}
+						class:no-cat={class_or_confidence === null ||
+							(active && active !== class_or_confidence)}
+						class:hl={class_or_confidence !== null}
 						on:mouseover={() => (activeElementIndex = i)}
 						on:focus={() => (activeElementIndex = i)}
 						on:click={() => (labelToEdit = i)}
@@ -316,22 +331,22 @@
 								: "239, 68, 60," + score) +
 							")"}
 					>
-						<span class="text">{text}</span>
-						{#if _score && labelToEdit === i}
+						<span class="text">{token}</span>
+						{#if class_or_confidence && labelToEdit === i}
 							<LabelInput
 								bind:value
 								{labelToEdit}
 								{_color_map}
-								category={_score}
+								category={class_or_confidence}
 								{active}
 								indexOfLabel={i}
-								{text}
+								text={token}
 								{handleValueChange}
 								isScoresMode
 							/>
 						{/if}
 					</span>
-					{#if _score && activeElementIndex === i}
+					{#if class_or_confidence && activeElementIndex === i}
 						<span
 							class="label-clear-button"
 							role="button"
@@ -369,15 +384,15 @@
 		color: var(--block-label-text-color);
 	}
 
-	.text-category-container:hover .label-clear-button,
-	.text-category-container:focus-within .label-clear-button,
+	.text-class_or_confidence-container:hover .label-clear-button,
+	.text-class_or_confidence-container:focus-within .label-clear-button,
 	.score-text-container:hover .label-clear-button,
 	.score-text-container:focus-within .label-clear-button {
 		display: inline;
 	}
 
-	.text-category-container:hover .textspan.hl,
-	.text-category-container:focus-within .textspan.hl,
+	.text-class_or_confidence-container:hover .textspan.hl,
+	.text-class_or_confidence-container:focus-within .textspan.hl,
 	.score-text:hover {
 		border-radius: var(--radius-xs) 0 0 var(--radius-xs);
 	}
@@ -399,14 +414,14 @@
 		margin-right: 0;
 	}
 
-	.category-legend {
+	.class_or_confidence-legend {
 		display: flex;
 		flex-wrap: wrap;
 		gap: var(--spacing-sm);
 		color: black;
 	}
 
-	.category-label {
+	.class_or_confidence-label {
 		cursor: pointer;
 		border-radius: var(--radius-xs);
 		padding-right: var(--size-2);

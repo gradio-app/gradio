@@ -4,8 +4,6 @@
 	import { page } from "$app/stores";
 	import { afterNavigate } from "$app/navigation";
 
-	$: console.log($page);
-
 	const links = [
 		["/embeds", "Embeds"],
 		["/client-browser", "Client-Browser"],

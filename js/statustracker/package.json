@@ -6,7 +6,6 @@
 	"main": "./index.ts",
 	"author": "",
 	"license": "ISC",
-	"private": true,
 	"main_changeset": true,
 	"exports": {
 		".": "./index.ts",
@@ -18,6 +17,7 @@
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
 		"@gradio/column": "workspace:^",
-		"@gradio/icons": "workspace:^"
+		"@gradio/icons": "workspace:^",
+		"@gradio/utils": "workspace:^"
 	}
 }

@@ -6,8 +6,8 @@ import pytest
 
 import gradio
 import gradio as gr
+from gradio.cli.commands.reload import _setup_config
 from gradio.networking import Server
-from gradio.reload import _setup_config
 
 
 def build_demo():
@@ -33,7 +33,8 @@ class TestReload:
     @pytest.fixture
     def config(self, monkeypatch, argv) -> Config:
         monkeypatch.setattr("sys.argv", ["gradio"] + argv)
-        return Config(*_setup_config())
+        name = argv[1].replace("--demo-name", "").strip() if len(argv) > 1 else "demo"
+        return Config(*_setup_config(argv[0], name))
 
     @pytest.fixture(params=[{}])
     def reloader(self, config):
@@ -43,11 +44,11 @@ class TestReload:
         reloader.close()
 
     def test_config_default_app(self, config):
-        assert config.filename == "demo.calculator.run"
+        assert config.filename == "run"
 
-    @pytest.mark.parametrize("argv", [["demo/calculator/run.py", "test"]])
+    @pytest.mark.parametrize("argv", [["demo/calculator/run.py", "--demo-name test"]])
     def test_config_custom_app(self, config):
-        assert config.filename == "demo.calculator.run"
+        assert config.filename == "run"
         assert config.demo_name == "test"
 
     def test_config_watch_gradio(self, config):

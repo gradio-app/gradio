@@ -1,0 +1,20 @@
+{
+  "name": "newtext",
+  "version": "0.0.1",
+  "description": "Custom Component",
+  "type": "module",
+  "main": "./index.svelte",
+  "author": "",
+  "license": "ISC",
+  "private": true,
+  "dependencies": {
+    "@zerodevx/svelte-json-view": "^1.0"
+  },
+  "exports": {
+    ".": "./index.svelte",
+    "./package.json": "./package.json",
+    "./interactive": "./interactive/index.ts",
+    "./static": "./static/index.ts",
+    "./example": "./example/index.ts"
+  }
+}

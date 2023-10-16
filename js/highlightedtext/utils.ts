@@ -1,7 +1,5 @@
 import { colors } from "@gradio/theme";
 
-type HighlightValueType = [string, string | number | null];
-
 export function name_to_rgba(
 	name: string,
 	a: number,
@@ -43,30 +41,36 @@ export function correct_color_map(
 }
 
 export function merge_elements(
-	value: HighlightValueType[],
+	value: { token: string; class_or_confidence: string | number | null }[],
 	mergeMode: "empty" | "equal"
-): HighlightValueType[] {
-	let result: HighlightValueType[] = [];
+): { token: string; class_or_confidence: string | number | null }[] {
+	let result: typeof value = [];
 	let tempStr: string | null = null;
 	let tempVal: string | number | null = null;
 
-	for (const [str, val] of value) {
+	for (const val of value) {
 		if (
-			(mergeMode === "empty" && val === null) ||
-			(mergeMode === "equal" && tempVal === val)
+			(mergeMode === "empty" && val.class_or_confidence === null) ||
+			(mergeMode === "equal" && tempVal === val.class_or_confidence)
 		) {
-			tempStr = tempStr ? tempStr + str : str;
+			tempStr = tempStr ? tempStr + val.token : val.token;
 		} else {
 			if (tempStr !== null) {
-				result.push([tempStr, tempVal as string | number]);
+				result.push({
+					token: tempStr,
+					class_or_confidence: tempVal
+				});
 			}
-			tempStr = str;
-			tempVal = val;
+			tempStr = val.token;
+			tempVal = val.class_or_confidence;
 		}
 	}
 
 	if (tempStr !== null) {
-		result.push([tempStr, tempVal as string | number]);
+		result.push({
+			token: tempStr,
+			class_or_confidence: tempVal
+		});
 	}
 
 	return result;

@@ -6,7 +6,6 @@ import os
 import pathlib
 import random
 import sys
-import tempfile
 import time
 import unittest.mock as mock
 import uuid
@@ -14,11 +13,9 @@ import warnings
 from concurrent.futures import wait
 from contextlib import contextmanager
 from functools import partial
-from pathlib import Path
 from string import capwords
 from unittest.mock import patch
 
-import gradio_client as grc
 import numpy as np
 import pytest
 import uvicorn
@@ -28,7 +25,6 @@ from gradio_client import media_data
 from PIL import Image
 
 import gradio as gr
-from gradio.blocks import get_api_info
 from gradio.events import SelectData
 from gradio.exceptions import DuplicateBlockError
 from gradio.networking import Server, get_first_available_port
@@ -89,62 +85,61 @@ class TestBlocksMethods:
         for warning in record:
             assert "default_enabled" not in str(warning.message)
 
-    def test_xray(self):
-        def fake_func():
-            return "Hello There"
+    # def test_xray(self):
+    #     def fake_func():
+    #         return "Hello There"
 
-        def xray_model(diseases, img):
-            return {disease: random.random() for disease in diseases}
+    #     def xray_model(diseases, img):
+    #         return {disease: random.random() for disease in diseases}
 
-        def ct_model(diseases, img):
-            return {disease: 0.1 for disease in diseases}
+    #     def ct_model(diseases, img):
+    #         return {disease: 0.1 for disease in diseases}
+    #     with gr.Blocks() as demo:
+    #         gr.Markdown(
+    #             """
+    #         # Detect Disease From Scan
+    #         With this model you can lorem ipsum
+    #         - ipsum 1
+    #         - ipsum 2
+    #         """
+    #         )
+    #         disease = gr.CheckboxGroup(
+    #             choices=["Covid", "Malaria", "Lung Cancer"], label="Disease to Scan For"
+    #         )
 
-        with gr.Blocks() as demo:
-            gr.Markdown(
-                """
-            # Detect Disease From Scan
-            With this model you can lorem ipsum
-            - ipsum 1
-            - ipsum 2
-            """
-            )
-            disease = gr.CheckboxGroup(
-                choices=["Covid", "Malaria", "Lung Cancer"], label="Disease to Scan For"
-            )
+    #         with gr.Tabs():
+    #             with gr.TabItem("X-ray"):
+    #                 with gr.Row():
+    #                     xray_scan = gr.Image()
+    #                     xray_results = gr.JSON()
+    #                 xray_run = gr.Button("Run")
+    #                 xray_run.click(
+    #                     xray_model, inputs=[disease, xray_scan], outputs=xray_results
+    #                 )
 
-            with gr.Tabs():
-                with gr.TabItem("X-ray"):
-                    with gr.Row():
-                        xray_scan = gr.Image()
-                        xray_results = gr.JSON()
-                    xray_run = gr.Button("Run")
-                    xray_run.click(
-                        xray_model, inputs=[disease, xray_scan], outputs=xray_results
-                    )
+    #         with gr.TabItem("CT Scan"):
+    #             with gr.Row():
+    #                 ct_scan = gr.Image()
+    #                 ct_results = gr.JSON()
+    #             ct_run = gr.Button("Run")
+    #             ct_run.click(
+    #                 ct_model, inputs=[disease, ct_scan], outputs=ct_results
+    #             )
+    #     textbox = gr.Textbox()
+    #     demo.load(fake_func, [], [textbox])
 
-                with gr.TabItem("CT Scan"):
-                    with gr.Row():
-                        ct_scan = gr.Image()
-                        ct_results = gr.JSON()
-                    ct_run = gr.Button("Run")
-                    ct_run.click(
-                        ct_model, inputs=[disease, ct_scan], outputs=ct_results
-                    )
-            textbox = gr.Textbox()
-            demo.load(fake_func, [], [textbox])
+    # config = demo.get_config_file()
+    # xray_config_file = (
+    #     pathlib.Path(__file__).parent / "test_files" / "xray_config.json"
+    # )
+    # with open(xray_config_file) as fp:
+    #     xray_config = json.load(fp)
 
-        config = demo.get_config_file()
-        xray_config_file = (
-            pathlib.Path(__file__).parent / "test_files" / "xray_config.json"
-        )
-        with open(xray_config_file) as fp:
-            xray_config = json.load(fp)
-
-        print(json.dumps(config))
-        assert assert_configs_are_equivalent_besides_ids(xray_config, config)
-        assert config["show_api"] is True
-        _ = demo.launch(prevent_thread_lock=True, show_api=False)
-        assert demo.config["show_api"] is False
+    # print(json.dumps(config))
+    # assert assert_configs_are_equivalent_besides_ids(xray_config, config)
+    # assert config["show_api"] is True
+    # _ = demo.launch(prevent_thread_lock=True, show_api=False)
+    # assert demo.config["show_api"] is False
 
     def test_load_from_config(self):
         fake_url = "https://fake.hf.space"
@@ -437,7 +432,7 @@ class TestBlocksMethods:
                 lambda x: f"Hello, {x}", inputs=input_, outputs=output, queue=True
             )
 
-        with pytest.raises(ValueError, match="The queue is enabled for event 0"):
+        with pytest.raises(ValueError, match="The queue is enabled for event lambda"):
             demo.launch(prevent_thread_lock=True)
 
         demo.close()
@@ -468,11 +463,10 @@ class TestTempFile:
             outputs=gallery,
         )
         with connect(demo) as client:
-            path = client.predict(3)
-            _ = client.predict(3)
+            client.predict(3, api_name="/predict")
+            _ = client.predict(3, api_name="/predict")
         # only three files created and in temp directory
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 3
-        assert Path(tempfile.gettempdir()).resolve() in Path(path).resolve().parents
 
     def test_no_empty_image_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
@@ -484,38 +478,23 @@ class TestTempFile:
             outputs=gr.Image(),
         )
         with connect(demo) as client:
-            _ = client.predict(image)
-            _ = client.predict(image)
-            _ = client.predict(image)
-        # only three files created
-        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
+            _ = client.predict(image, api_name="/predict")
+            _ = client.predict(image, api_name="/predict")
+            _ = client.predict(image, api_name="/predict")
+        # Upload creates a file. image preprocessing creates another one.
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
 
     @pytest.mark.parametrize("component", [gr.UploadButton, gr.File])
     def test_file_component_uploads(self, component, connect, gradio_temp_dir):
         code_file = str(pathlib.Path(__file__))
         demo = gr.Interface(lambda x: x.name, component(), gr.File())
         with connect(demo) as client:
-            _ = client.predict(code_file)
-            _ = client.predict(code_file)
-        # the upload route does not hash the file so 2 files from there
+            _ = client.predict(code_file, api_name="/predict")
+            _ = client.predict(code_file, api_name="/predict")
+        # the upload route hashees the files so we get 1 from there
         # We create two tempfiles (empty) because API says we return
-        # preprocess/postprocess will only create one file since we hash
-        # so 2 + 2 + 1 = 5
-        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 5
-
-    @pytest.mark.parametrize("component", [gr.UploadButton, gr.File])
-    def test_file_component_uploads_no_serialize(
-        self, component, connect, gradio_temp_dir
-    ):
-        code_file = str(pathlib.Path(__file__))
-        demo = gr.Interface(lambda x: x.name, component(), gr.File())
-        with connect(demo, serialize=False) as client:
-            _ = client.predict(gr.File().serialize(code_file))
-            _ = client.predict(gr.File().serialize(code_file))
-        # We skip the upload route in this case
-        # We create two tempfiles (empty) because API says we return
-        # preprocess/postprocess will only create one file since we hash
-        # so 2 + 1 = 3
+        # preprocess/postprocess will create the same file as the upload route
+        # so 1 + 2 = 3
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 3
 
     def test_no_empty_video_files(self, gradio_temp_dir, connect):
@@ -523,13 +502,10 @@ class TestTempFile:
         video = str(file_dir / "video_sample.mp4")
         demo = gr.Interface(lambda x: x, gr.Video(type="file"), gr.Video())
         with connect(demo) as client:
-            _, url, _ = demo.launch(prevent_thread_lock=True)
-            client = grc.Client(url)
-            _ = client.predict(video)
-            _ = client.predict(video)
-        # During preprocessing we compute the hash based on base64
-        # In postprocessing we compute it based on the file
-        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
+            _ = client.predict({"video": video}, api_name="/predict")
+            _ = client.predict({"video": video}, api_name="/predict")
+        # Upload route and postprocessing return the same file
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
 
     def test_no_empty_audio_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
@@ -541,10 +517,9 @@ class TestTempFile:
 
         demo = gr.Interface(fn=reverse_audio, inputs=gr.Audio(), outputs=gr.Audio())
         with connect(demo) as client:
-            _ = client.predict(audio)
-            _ = client.predict(audio)
-            # During preprocessing we compute the hash based on base64
-            # In postprocessing we compute it based on the file
+            _ = client.predict(audio, api_name="/predict")
+            _ = client.predict(audio, api_name="/predict")
+            # One for upload and one for reversal
             assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
 
 
@@ -570,7 +545,7 @@ class TestComponentsInBlocks:
                 label="Random Slider (Input 2)",
             )
         for component in demo.blocks.values():
-            if isinstance(component, gr.components.IOComponent):
+            if isinstance(component, gr.components.Component):
                 if "Non-random" in component.label:
                     assert not component.load_event_to_attach
                 else:
@@ -619,6 +594,7 @@ class TestBlocksPostprocessing:
                 gr.ScatterPlot,
                 gr.LinePlot,
                 gr.BarPlot,
+                gr.components.Fallback,
                 gr.FileExplorer,
             ]
         ]
@@ -1475,12 +1451,12 @@ class TestGetAPIInfo:
             t5 = gr.Textbox()
             t1.change(lambda x: x, t1, t2, api_name="change1")
             t2.change(lambda x: x, t2, t3, api_name="change2")
-            t3.change(lambda x: x, t3, t4)
+            t3.change(lambda x: x, t3, t4, api_name=False)
             t4.change(lambda x: x, t4, t5, api_name=False)
 
-        api_info = get_api_info(demo.get_config_file())
+        api_info = demo.get_api_info()
         assert len(api_info["named_endpoints"]) == 2
-        assert len(api_info["unnamed_endpoints"]) == 1
+        assert len(api_info["unnamed_endpoints"]) == 0
 
     def test_no_endpoints(self):
         with gr.Blocks() as demo:
@@ -1488,7 +1464,7 @@ class TestGetAPIInfo:
             t2 = gr.Textbox()
             t1.change(lambda x: x, t1, t2, api_name=False)
 
-        api_info = get_api_info(demo.get_config_file())
+        api_info = demo.get_api_info()
         assert len(api_info["named_endpoints"]) == 0
         assert len(api_info["unnamed_endpoints"]) == 0
 

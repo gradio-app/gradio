@@ -29,7 +29,6 @@ def fn(
     audio2,
     file,
     df1,
-    df2,
 ):
     return (
         (text1 if single_checkbox else text2)
@@ -81,7 +80,6 @@ def fn(
         os.path.join(os.path.dirname(__file__), "files/titanic.csv"),
         df1,  # Dataframe
         np.random.randint(0, 10, (4, 4)),  # Dataframe
-        df2,  # Timeseries
     )
 
 
@@ -97,7 +95,12 @@ demo = gr.Interface(
         gr.CheckboxGroup(label="CheckboxGroup", choices=CHOICES, value=CHOICES[0:2]),
         gr.Radio(label="Radio", choices=CHOICES, value=CHOICES[2]),
         gr.Dropdown(label="Dropdown", choices=CHOICES),
-        gr.Dropdown(label="Multiselect Dropdown (Max choice: 2)", choices=CHOICES, multiselect=True, max_choices=2),
+        gr.Dropdown(
+            label="Multiselect Dropdown (Max choice: 2)",
+            choices=CHOICES,
+            multiselect=True,
+            max_choices=2,
+        ),
         gr.Image(label="Image"),
         gr.Image(label="Image w/ Cropper", tool="select"),
         gr.Image(label="Sketchpad", source="canvas"),
@@ -107,7 +110,6 @@ demo = gr.Interface(
         gr.Audio(label="Microphone", source="microphone"),
         gr.File(label="File"),
         gr.Dataframe(label="Dataframe", headers=["Name", "Age", "Gender"]),
-        gr.Timeseries(x="time", y=["price", "value"], colors=["pink", "purple"]),
     ],
     outputs=[
         gr.Textbox(label="Textbox"),
@@ -115,8 +117,8 @@ demo = gr.Interface(
         gr.Audio(label="Audio"),
         gr.Image(label="Image"),
         gr.Video(label="Video"),
-        gr.HighlightedText(label="HighlightedText", 
-            color_map={"punc": "pink", "test 0": "blue"}
+        gr.HighlightedText(
+            label="HighlightedText", color_map={"punc": "pink", "test 0": "blue"}
         ),
         gr.HighlightedText(label="HighlightedText", show_legend=True),
         gr.JSON(label="JSON"),
@@ -124,7 +126,6 @@ demo = gr.Interface(
         gr.File(label="File"),
         gr.Dataframe(label="Dataframe"),
         gr.Dataframe(label="Numpy"),
-        gr.Timeseries(x="time", y=["price", "value"], label="Timeseries"),
     ],
     examples=[
         [
@@ -147,7 +148,6 @@ demo = gr.Interface(
             os.path.join(os.path.dirname(__file__), "files/cantina.wav"),
             os.path.join(os.path.dirname(__file__), "files/titanic.csv"),
             [[1, 2, 3, 4], [4, 5, 6, 7], [8, 9, 1, 2], [3, 4, 5, 6]],
-            os.path.join(os.path.dirname(__file__), "files/time.csv"),
         ]
     ]
     * 3,

@@ -4,8 +4,6 @@
 	 */
 	export let app_info;
 
-	$: console.log(app_info);
-
 	/**
 	 * @type any[]
 	 */

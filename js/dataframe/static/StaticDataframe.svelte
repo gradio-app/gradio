@@ -24,6 +24,8 @@
 	export let datatype: Datatype | Datatype[];
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+	export let root: string;
+
 	export let line_breaks = true;
 	export let gradio: Gradio<{
 		change: never;
@@ -78,8 +80,13 @@
 	{min_width}
 	allow_overflow={false}
 >
-	<StatusTracker {...loading_status} border={true} />
+	<StatusTracker
+		autoscroll={gradio.autoscroll}
+		i18n={gradio.i18n}
+		{...loading_status}
+	/>
 	<Table
+		{root}
 		{label}
 		{row_count}
 		{col_count}
@@ -91,6 +98,7 @@
 		{latex_delimiters}
 		editable={false}
 		{height}
+		i18n={gradio.i18n}
 		{line_breaks}
 	/>
 </Block>

@@ -7,7 +7,6 @@ Tests for all of the components defined in components.py. Tests are divided into
 import filecmp
 import json
 import os
-import pathlib  # noqa: F401
 import shutil
 import tempfile
 from copy import deepcopy
@@ -60,14 +59,6 @@ class TestGettingComponents:
             assert textbox.is_rendered == should_be_rendered
 
 
-def test_raise_warnings():
-    for c_type, component in zip(
-        ["inputs", "outputs"], [gr.inputs.Textbox, gr.outputs.Label]
-    ):
-        with pytest.warns(UserWarning, match=f"Usage of gradio.{c_type}"):
-            component()
-
-
 class TestTextbox:
     def test_component_functions(self):
         """
@@ -80,29 +71,6 @@ class TestTextbox:
         assert text_input.postprocess("Ali") == "Ali"
         assert text_input.postprocess(2) == "2"
         assert text_input.postprocess(2.14) == "2.14"
-        assert text_input.serialize("Hello World!", True) == "Hello World!"
-
-        assert text_input.tokenize("Hello World! Gradio speaking.") == (
-            ["Hello", "World!", "Gradio", "speaking."],
-            [
-                "World! Gradio speaking.",
-                "Hello Gradio speaking.",
-                "Hello World! speaking.",
-                "Hello World! Gradio",
-            ],
-            None,
-        )
-        text_input.interpretation_replacement = "unknown"
-        assert text_input.tokenize("Hello World! Gradio speaking.") == (
-            ["Hello", "World!", "Gradio", "speaking."],
-            [
-                "unknown World! Gradio speaking.",
-                "Hello unknown Gradio speaking.",
-                "Hello World! unknown speaking.",
-                "Hello World! Gradio unknown",
-            ],
-            None,
-        )
         assert text_input.get_config() == {
             "lines": 1,
             "max_lines": 20,
@@ -136,37 +104,6 @@ class TestTextbox:
         """
         iface = gr.Interface(lambda x: x[::-1], "textbox", "textbox")
         assert iface("Hello") == "olleH"
-        iface = gr.Interface(
-            lambda sentence: max([len(word) for word in sentence.split()]),
-            gr.Textbox(),
-            "number",
-            interpretation="default",
-        )
-        scores = await iface.interpret(
-            ["Return the length of the longest word in this sentence"]
-        )
-        assert scores[0]["interpretation"] == [
-            ("Return", 0.0),
-            (" ", 0),
-            ("the", 0.0),
-            (" ", 0),
-            ("length", 0.0),
-            (" ", 0),
-            ("of", 0.0),
-            (" ", 0),
-            ("the", 0.0),
-            (" ", 0),
-            ("longest", 0.0),
-            (" ", 0),
-            ("word", 0.0),
-            (" ", 0),
-            ("in", 0.0),
-            (" ", 0),
-            ("this", 0.0),
-            (" ", 0),
-            ("sentence", 1.0),
-            (" ", 0),
-        ]
 
     def test_in_interface_as_output(self):
         """
@@ -222,17 +159,6 @@ class TestNumber:
         assert numeric_input.postprocess(3) == 3.0
         assert numeric_input.postprocess(2.14) == 2.14
         assert numeric_input.postprocess(None) is None
-        assert numeric_input.serialize(3, True) == 3
-        numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="absolute")
-        assert numeric_input.get_interpretation_neighbors(1) == (
-            [-2.0, -1.0, 0.0, 2.0, 3.0, 4.0],
-            {},
-        )
-        numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="percent")
-        assert numeric_input.get_interpretation_neighbors(1) == (
-            [0.97, 0.98, 0.99, 1.01, 1.02, 1.03],
-            {},
-        )
         assert numeric_input.get_config() == {
             "value": None,
             "name": "number",
@@ -265,26 +191,6 @@ class TestNumber:
         assert numeric_input.postprocess(3) == 3
         assert numeric_input.postprocess(2.85) == 3
         assert numeric_input.postprocess(None) is None
-        assert numeric_input.serialize(3, True) == 3
-        numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="absolute")
-        assert numeric_input.get_interpretation_neighbors(1) == (
-            [-2.0, -1.0, 0.0, 2.0, 3.0, 4.0],
-            {},
-        )
-        numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="percent")
-        assert numeric_input.get_interpretation_neighbors(100) == (
-            [97.0, 98.0, 99.0, 101.0, 102.0, 103.0],
-            {},
-        )
-        with pytest.raises(ValueError) as error:
-            numeric_input.get_interpretation_neighbors(1)
-            assert error.msg == "Cannot generate valid set of neighbors"
-        numeric_input.set_interpret_parameters(
-            steps=3, delta=1.24, delta_type="absolute"
-        )
-        with pytest.raises(ValueError) as error:
-            numeric_input.get_interpretation_neighbors(4)
-            assert error.msg == "Cannot generate valid set of neighbors"
         assert numeric_input.get_config() == {
             "value": 42,
             "name": "number",
@@ -318,69 +224,26 @@ class TestNumber:
         assert numeric_input.postprocess(2.1421) == 2.14
         assert numeric_input.postprocess(None) is None
 
-    @pytest.mark.asyncio
-    async def test_in_interface_as_input(self):
+    def test_in_interface_as_input(self):
         """
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: x**2, "number", "textbox")
         assert iface(2) == "4.0"
-        iface = gr.Interface(
-            lambda x: x**2, "number", "number", interpretation="default"
-        )
-        scores = (await iface.interpret([2]))[0]["interpretation"]
-        assert scores == [
-            (1.94, -0.23640000000000017),
-            (1.96, -0.15840000000000032),
-            (1.98, -0.07960000000000012),
-            (2, None),
-            (2.02, 0.08040000000000003),
-            (2.04, 0.16159999999999997),
-            (2.06, 0.24359999999999982),
-        ]
 
-    @pytest.mark.asyncio
-    async def test_precision_0_in_interface(self):
+    def test_precision_0_in_interface(self):
         """
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: x**2, gr.Number(precision=0), "textbox")
         assert iface(2) == "4"
-        iface = gr.Interface(
-            lambda x: x**2, "number", gr.Number(precision=0), interpretation="default"
-        )
-        # Output gets rounded to 4 for all input so no change
-        scores = (await iface.interpret([2]))[0]["interpretation"]
-        assert scores == [
-            (1.94, 0.0),
-            (1.96, 0.0),
-            (1.98, 0.0),
-            (2, None),
-            (2.02, 0.0),
-            (2.04, 0.0),
-            (2.06, 0.0),
-        ]
 
-    @pytest.mark.asyncio
-    async def test_in_interface_as_output(self):
+    def test_in_interface_as_output(self):
         """
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: int(x) ** 2, "textbox", "number")
         assert iface(2) == 4.0
-        iface = gr.Interface(
-            lambda x: x**2, "number", "number", interpretation="default"
-        )
-        scores = (await iface.interpret([2]))[0]["interpretation"]
-        assert scores == [
-            (1.94, -0.23640000000000017),
-            (1.96, -0.15840000000000032),
-            (1.98, -0.07960000000000012),
-            (2, None),
-            (2.02, 0.08040000000000003),
-            (2.04, 0.16159999999999997),
-            (2.06, 0.24359999999999982),
-        ]
 
     def test_static(self):
         """
@@ -402,7 +265,6 @@ class TestSlider:
         assert slider_input.postprocess(3) == 3
         assert slider_input.postprocess(3) == 3
         assert slider_input.postprocess(None) == 0
-        assert slider_input.serialize(3, True) == 3
 
         slider_input = gr.Slider(10, 20, value=15, step=1, label="Slide Your Input")
         assert slider_input.get_config() == {
@@ -424,27 +286,12 @@ class TestSlider:
             "info": None,
         }
 
-    @pytest.mark.asyncio
-    async def test_in_interface(self):
+    def test_in_interface(self):
         """ "
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: x**2, "slider", "textbox")
         assert iface(2) == "4"
-        iface = gr.Interface(
-            lambda x: x**2, "slider", "number", interpretation="default"
-        )
-        scores = (await iface.interpret([2]))[0]["interpretation"]
-        assert scores == [
-            -4.0,
-            200.08163265306123,
-            812.3265306122449,
-            1832.7346938775513,
-            3261.3061224489797,
-            5098.040816326531,
-            7342.938775510205,
-            9996.0,
-        ]
 
     def test_static(self):
         """
@@ -480,7 +327,6 @@ class TestCheckbox:
         assert bool_input.preprocess(True)
         assert bool_input.postprocess(True)
         assert bool_input.postprocess(True)
-        assert bool_input.serialize(True, True)
         bool_input = gr.Checkbox(value=True, label="Check Your Input")
         assert bool_input.get_config() == {
             "value": True,
@@ -499,20 +345,12 @@ class TestCheckbox:
             "info": None,
         }
 
-    @pytest.mark.asyncio
-    async def test_in_interface(self):
+    def test_in_interface(self):
         """
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: 1 if x else 0, "checkbox", "number")
         assert iface(True) == 1
-        iface = gr.Interface(
-            lambda x: 1 if x else 0, "checkbox", "number", interpretation="default"
-        )
-        scores = (await iface.interpret([False]))[0]["interpretation"]
-        assert scores == (None, 1.0)
-        scores = (await iface.interpret([True]))[0]["interpretation"]
-        assert scores == (-1.0, None)
 
 
 class TestCheckboxGroup:
@@ -523,7 +361,6 @@ class TestCheckboxGroup:
         checkboxes_input = gr.CheckboxGroup(["a", "b", "c"])
         assert checkboxes_input.preprocess(["a", "c"]) == ["a", "c"]
         assert checkboxes_input.postprocess(["a", "c"]) == ["a", "c"]
-        assert checkboxes_input.serialize(["a", "c"]) == ["a", "c"]
 
         checkboxes_input = gr.CheckboxGroup(["a", "b"], type="index")
         assert checkboxes_input.preprocess(["a"]) == [0]
@@ -587,7 +424,6 @@ class TestRadio:
         radio_input = gr.Radio(["a", "b", "c"])
         assert radio_input.preprocess("c") == "c"
         assert radio_input.postprocess("a") == "a"
-        assert radio_input.serialize("a", True) == "a"
         radio_input = gr.Radio(
             choices=["a", "b", "c"], default="a", label="Pick Your One Input"
         )
@@ -623,21 +459,13 @@ class TestRadio:
         with pytest.raises(ValueError):
             gr.Radio(["a", "b"], type="unknown")
 
-    @pytest.mark.asyncio
-    async def test_in_interface(self):
+    def test_in_interface(self):
         """
         Interface, process, interpret
         """
         radio_input = gr.Radio(["a", "b", "c"])
         iface = gr.Interface(lambda x: 2 * x, radio_input, "textbox")
         assert iface("c") == "cc"
-        radio_input = gr.Radio(["a", "b", "c"], type="index")
-        iface = gr.Interface(
-            lambda x: 2 * x, radio_input, "number", interpretation="default"
-        )
-        assert iface("c") == 4
-        scores = (await iface.interpret(["b"]))[0]["interpretation"]
-        assert scores == [-2.0, None, 2.0]
 
     def test_update(self):
         update = gr.Radio.update(
@@ -682,7 +510,6 @@ class TestDropdown:
             "a",
             "c full",
         ]
-        assert dropdown_input_multiselect.serialize(["a", "c full"]) == ["a", "c full"]
         dropdown_input_multiselect = gr.Dropdown(
             value=["a", "c"],
             choices=["a", "b", ("c", "c full")],
@@ -740,7 +567,7 @@ class TestDropdown:
 
 
 class TestImage:
-    def test_component_functions(self):
+    def test_component_functions(self, gradio_temp_dir):
         """
         Preprocess, postprocess, serialize, get_config, _segment_by_slic
         type: pil, file, filepath, numpy
@@ -752,11 +579,15 @@ class TestImage:
         assert image_input.preprocess(img).shape == (25, 25)
         image_input = gr.Image(shape=(30, 10), type="pil")
         assert image_input.preprocess(img).size == (30, 10)
-        assert image_input.postprocess("test/test_files/bus.png") == img
-        assert image_input.serialize("test/test_files/bus.png") == img
+        base64 = client_utils.encode_file_to_base64(
+            image_input.postprocess("test/test_files/bus.png")["name"]
+        )
+        assert base64 == img
         image_input = gr.Image(type="filepath")
         image_temp_filepath = image_input.preprocess(img)
-        assert image_temp_filepath in image_input.temp_files
+        assert image_temp_filepath in [
+            str(f) for f in gradio_temp_dir.glob("**/*") if f.is_file()
+        ]
 
         image_input = gr.Image(
             source="upload", tool="editor", type="pil", label="Upload Your Image"
@@ -789,6 +620,7 @@ class TestImage:
             "mirror_webcam": True,
             "selectable": False,
             "invert_colors": False,
+            "streamable": False,
             "type": "pil",
         }
         assert image_input.preprocess(None) is None
@@ -806,22 +638,21 @@ class TestImage:
             deepcopy(media_data.BASE64_IMAGE)
         )
         image_output = gr.Image()
-        assert image_output.postprocess(y_img).startswith(
+        file = image_output.postprocess(y_img)["name"]
+        assert client_utils.encode_file_to_base64(file).startswith(
             "data:image/png;base64,iVBORw0KGgoAAA"
         )
-        assert image_output.postprocess(np.array(y_img)).startswith(
+        file = image_output.postprocess(np.array(y_img))["name"]
+        assert client_utils.encode_file_to_base64(file).startswith(
             "data:image/png;base64,iVBORw0KGgoAAA"
         )
         with pytest.raises(ValueError):
             image_output.postprocess([1, 2, 3])
         image_output = gr.Image(type="numpy")
-        assert image_output.postprocess(y_img).startswith("data:image/png;base64,")
-
-    @pytest.mark.flaky
-    def test_serialize_url(self):
-        img = "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"
-        expected = client_utils.encode_url_or_file_to_base64(img)
-        assert gr.Image().serialize(img) == expected
+        file = image_output.postprocess(y_img)["name"]
+        assert client_utils.encode_file_to_base64(file).startswith(
+            "data:image/png;base64,"
+        )
 
     def test_in_interface_as_input(self):
         """
@@ -830,7 +661,7 @@ class TestImage:
         interpretation: default, shap,
         """
         img = "test/test_files/bus.png"
-        image_input = gr.Image()
+        gr.Image()
         iface = gr.Interface(
             lambda x: PIL.Image.open(x).rotate(90, expand=True),
             gr.Image(shape=(30, 10), type="filepath"),
@@ -838,9 +669,6 @@ class TestImage:
         )
         output = iface(img)
         assert PIL.Image.open(output).size == (10, 30)
-        iface = gr.Interface(
-            lambda x: np.sum(x), image_input, "number", interpretation="default"
-        )
 
     def test_as_example(self):
         # test that URLs are not converted to an absolute path
@@ -863,7 +691,9 @@ class TestImage:
         postprocess
         """
         component = gr.Image("test/test_files/bus.png")
-        assert component.get_config().get("value") == media_data.BASE64_IMAGE
+        value = component.get_config().get("value")
+        base64 = client_utils.encode_file_to_base64(value["name"])
+        assert base64 == media_data.BASE64_IMAGE
         component = gr.Image(None)
         assert component.get_config().get("value") is None
 
@@ -923,7 +753,7 @@ class TestPlot:
 
 
 class TestAudio:
-    def test_component_functions(self):
+    def test_component_functions(self, gradio_temp_dir):
         """
         Preprocess, postprocess serialize, get_config, deserialize
         type: filepath, numpy, file
@@ -934,15 +764,12 @@ class TestAudio:
         assert output1[0] == 8000
         assert output1[1].shape == (8046,)
 
-        x_wav["is_file"] = True
+        x_wav["is_file"] = False
+        x_wav["name"] = "audio_sample.wav"
+        x_wav = processing_utils.move_files_to_cache([x_wav], audio_input)[0]
         audio_input = gr.Audio(type="filepath")
         output1 = audio_input.preprocess(x_wav)
-        assert Path(output1).name == "audio_sample-0-100.wav"
-
-        assert filecmp.cmp(
-            "test/test_files/audio_sample.wav",
-            audio_input.serialize("test/test_files/audio_sample.wav")["name"],
-        )
+        assert Path(output1).name.endswith("audio_sample-0-100.wav")
 
         audio_input = gr.Audio(label="Upload Your Audio")
         assert audio_input.get_config() == {
@@ -966,6 +793,7 @@ class TestAudio:
             "root_url": None,
             "type": "numpy",
             "format": "wav",
+            "streamable": False,
         }
         assert audio_input.preprocess(None) is None
         x_wav["is_example"] = True
@@ -1009,38 +837,12 @@ class TestAudio:
             "root_url": None,
             "type": "filepath",
             "format": "wav",
+            "streamable": False,
         }
-        assert audio_output.deserialize(
-            {
-                "name": None,
-                "data": deepcopy(media_data.BASE64_AUDIO)["data"],
-                "is_file": False,
-            }
-        ).endswith(".wav")
 
         output1 = audio_output.postprocess(y_audio.name)
         output2 = audio_output.postprocess(Path(y_audio.name))
         assert output1 == output2
-
-    def test_serialize(self):
-        audio_input = gr.Audio()
-        serialized_input = audio_input.serialize("test/test_files/audio_sample.wav")
-        assert serialized_input["data"] == media_data.BASE64_AUDIO["data"]
-        assert os.path.basename(serialized_input["name"]) == "audio_sample.wav"
-        assert serialized_input["orig_name"] == "audio_sample.wav"
-        assert not serialized_input["is_file"]
-
-    def test_tokenize(self):
-        """
-        Tokenize, get_masked_inputs
-        """
-        x_wav = deepcopy(media_data.BASE64_AUDIO)
-        audio_input = gr.Audio()
-        tokens, _, _ = audio_input.tokenize(x_wav)
-        assert len(tokens) == audio_input.interpretation_segments
-        x_new = audio_input.get_masked_inputs(tokens, [[1] * len(tokens)])[0]
-        similarity = SequenceMatcher(a=x_wav["data"], b=x_new).ratio()
-        assert similarity > 0.9
 
     def test_in_interface(self):
         def reverse_audio(audio):
@@ -1069,14 +871,24 @@ class TestAudio:
         iface = gr.Interface(generate_noise, "slider", "audio")
         assert iface(100).endswith(".wav")
 
-    def test_audio_preprocess_can_be_read_by_scipy(self):
-        x_wav = deepcopy(media_data.BASE64_MICROPHONE)
+    def test_audio_preprocess_can_be_read_by_scipy(self, gradio_temp_dir):
+        x_wav = {
+            "name": processing_utils.save_base64_to_cache(
+                media_data.BASE64_MICROPHONE["data"], cache_dir=gradio_temp_dir
+            ),
+            "is_file": True,
+        }
         audio_input = gr.Audio(type="filepath")
         output = audio_input.preprocess(x_wav)
         wavfile.read(output)
 
-    def test_prepost_process_to_mp3(self):
-        x_wav = deepcopy(media_data.BASE64_MICROPHONE)
+    def test_prepost_process_to_mp3(self, gradio_temp_dir):
+        x_wav = {
+            "name": processing_utils.save_base64_to_cache(
+                media_data.BASE64_MICROPHONE["data"], cache_dir=gradio_temp_dir
+            ),
+            "is_file": True,
+        }
         audio_input = gr.Audio(type="filepath", format="mp3")
         output = audio_input.preprocess(x_wav)
         assert output.endswith("mp3")
@@ -1095,13 +907,6 @@ class TestFile:
         file_input = gr.File()
         output = file_input.preprocess(x_file)
         assert isinstance(output, tempfile._TemporaryFileWrapper)
-        serialized = file_input.serialize("test/test_files/sample_file.pdf")
-        assert filecmp.cmp(
-            serialized["name"],
-            "test/test_files/sample_file.pdf",
-        )
-        assert serialized["orig_name"] == "sample_file.pdf"
-        assert output.orig_name == "test/test_files/sample_file.pdf"
 
         x_file["is_file"] = True
         input1 = file_input.preprocess(x_file)
@@ -1135,7 +940,7 @@ class TestFile:
 
         zero_size_file = {"name": "document.txt", "size": 0, "data": ""}
         temp_file = file_input.preprocess(zero_size_file)
-        assert os.stat(temp_file.name).st_size == 0
+        assert not Path(temp_file.name).exists()
 
         file_input = gr.File(type="binary")
         output = file_input.preprocess(x_file)
@@ -1256,9 +1061,13 @@ class TestDataframe:
 
         dataframe_output = gr.Dataframe()
         assert dataframe_output.get_config() == {
-            "value": {"headers": [1, 2, 3], "data": [["", "", ""]], "metadata": None},
+            "value": {
+                "headers": ["1", "2", "3"],
+                "data": [["", "", ""]],
+                "metadata": None,
+            },
             "selectable": False,
-            "headers": [1, 2, 3],
+            "headers": ["1", "2", "3"],
             "row_count": (1, "dynamic"),
             "col_count": (3, "dynamic"),
             "datatype": ["str", "str", "str"],
@@ -1290,9 +1099,17 @@ class TestDataframe:
         output = dataframe_output.postprocess([])
         assert output == {"data": [[]], "headers": [], "metadata": None}
         output = dataframe_output.postprocess(np.zeros((2, 2)))
-        assert output == {"data": [[0, 0], [0, 0]], "headers": [1, 2], "metadata": None}
+        assert output == {
+            "data": [[0, 0], [0, 0]],
+            "headers": ["1", "2"],
+            "metadata": None,
+        }
         output = dataframe_output.postprocess([[1, 3, 5]])
-        assert output == {"data": [[1, 3, 5]], "headers": [1, 2, 3], "metadata": None}
+        assert output == {
+            "data": [[1, 3, 5]],
+            "headers": ["1", "2", "3"],
+            "metadata": None,
+        }
         output = dataframe_output.postprocess(
             pd.DataFrame([[2, True], [3, True], [4, False]], columns=["num", "prime"])
         )
@@ -1315,7 +1132,7 @@ class TestDataframe:
         dataframe_output = gr.Dataframe(headers=["one", "two", "three"])
         output = dataframe_output.postprocess([[2, True, "ab", 4], [3, True, "cd", 5]])
         assert output == {
-            "headers": ["one", "two", "three", 4],
+            "headers": ["one", "two", "three", "4"],
             "data": [[2, True, "ab", 4], [3, True, "cd", 5]],
             "metadata": None,
         }
@@ -1548,8 +1365,11 @@ class TestVideo:
         """
         Preprocess, serialize, deserialize, get_config
         """
-        x_video = deepcopy(media_data.BASE64_VIDEO)
+        x_video = {"video": deepcopy(media_data.BASE64_VIDEO), "is_file": False}
         video_input = gr.Video()
+
+        x_video = processing_utils.move_files_to_cache([x_video], video_input)[0]
+
         output1 = video_input.preprocess(x_video)
         assert isinstance(output1, str)
         output2 = video_input.preprocess(x_video)
@@ -1591,34 +1411,20 @@ class TestVideo:
         assert output_video[-3:] == "avi"
         assert "flip" not in output_video
 
-        assert filecmp.cmp(
-            video_input.serialize(x_video["name"])[0]["name"], x_video["name"]
-        )
-
         # Output functionalities
         y_vid_path = "test/test_files/video_sample.mp4"
         subtitles_path = "test/test_files/s1.srt"
         video_output = gr.Video()
-        output1 = video_output.postprocess(y_vid_path)[0]["name"]
+        output1 = video_output.postprocess(y_vid_path)["video"]["name"]
         assert output1.endswith("mp4")
-        output2 = video_output.postprocess(y_vid_path)[0]["name"]
+        output2 = video_output.postprocess(y_vid_path)["video"]["name"]
         assert output1 == output2
         assert (
-            video_output.postprocess(y_vid_path)[0]["orig_name"] == "video_sample.mp4"
+            video_output.postprocess(y_vid_path)["video"]["orig_name"]
+            == "video_sample.mp4"
         )
         output_with_subtitles = video_output.postprocess((y_vid_path, subtitles_path))
-        assert output_with_subtitles[1]["data"].startswith("data")
-
-        assert video_output.deserialize(
-            (
-                {
-                    "name": None,
-                    "data": deepcopy(media_data.BASE64_VIDEO)["data"],
-                    "is_file": False,
-                },
-                None,
-            )
-        ).endswith(".mp4")
+        assert output_with_subtitles["subtitles"]["data"].startswith("data")
 
         p_video = gr.Video()
         video_with_subtitle = gr.Video()
@@ -1627,34 +1433,45 @@ class TestVideo:
             (Path(y_vid_path), Path(subtitles_path))
         )
 
-        processed_video = (
-            {
+        processed_video = {
+            "video": {
                 "name": "video_sample.mp4",
                 "data": None,
                 "is_file": True,
                 "orig_name": "video_sample.mp4",
+                "mime_type": None,
+                "size": None,
             },
-            None,
-        )
+            "subtitles": None,
+        }
 
-        processed_video_with_subtitle = (
-            {
+        processed_video_with_subtitle = {
+            "video": {
                 "name": "video_sample.mp4",
                 "data": None,
                 "is_file": True,
                 "orig_name": "video_sample.mp4",
+                "mime_type": None,
+                "size": None,
             },
-            {"name": None, "data": True, "is_file": False},
-        )
-        postprocessed_video[0]["name"] = os.path.basename(
-            postprocessed_video[0]["name"]
+            "subtitles": {
+                "name": None,
+                "data": True,
+                "is_file": False,
+                "mime_type": None,
+                "orig_name": None,
+                "size": None,
+            },
+        }
+        postprocessed_video["video"]["name"] = os.path.basename(
+            postprocessed_video["video"]["name"]
         )
         assert processed_video == postprocessed_video
-        postprocessed_video_with_subtitle[0]["name"] = os.path.basename(
-            postprocessed_video_with_subtitle[0]["name"]
+        postprocessed_video_with_subtitle["video"]["name"] = os.path.basename(
+            postprocessed_video_with_subtitle["video"]["name"]
         )
-        if postprocessed_video_with_subtitle[1]["data"]:
-            postprocessed_video_with_subtitle[1]["data"] = True
+        if postprocessed_video_with_subtitle["subtitles"]["data"]:
+            postprocessed_video_with_subtitle["subtitles"]["data"] = True
         assert processed_video_with_subtitle == postprocessed_video_with_subtitle
 
     def test_in_interface(self):
@@ -1663,7 +1480,7 @@ class TestVideo:
         """
         x_video = media_data.BASE64_VIDEO["name"]
         iface = gr.Interface(lambda x: x, "video", "playable_video")
-        assert iface(x_video).endswith(".mp4")
+        assert iface({"video": x_video})["video"].endswith(".mp4")
 
     def test_with_waveform(self):
         """
@@ -1671,7 +1488,7 @@ class TestVideo:
         """
         x_audio = media_data.BASE64_AUDIO["name"]
         iface = gr.Interface(lambda x: gr.make_waveform(x), "audio", "video")
-        assert iface(x_audio).endswith(".mp4")
+        assert iface(x_audio)["video"].endswith(".mp4")
 
     def test_video_postprocess_converts_to_playable_format(self):
         test_file_dir = Path(Path(__file__).parent, "test_files")
@@ -1683,7 +1500,7 @@ class TestVideo:
             assert not processing_utils.video_is_playable(bad_vid)
             shutil.copy(bad_vid, tmp_not_playable_vid.name)
             output = gr.Video().postprocess(tmp_not_playable_vid.name)
-            assert processing_utils.video_is_playable(output[0]["name"])
+            assert processing_utils.video_is_playable(output["video"]["name"])
 
         # This file has a playable codec but not a playable container
         with tempfile.NamedTemporaryFile(
@@ -1693,13 +1510,13 @@ class TestVideo:
             assert not processing_utils.video_is_playable(bad_vid)
             shutil.copy(bad_vid, tmp_not_playable_vid.name)
             output = gr.Video().postprocess(tmp_not_playable_vid.name)
-            assert processing_utils.video_is_playable(output[0]["name"])
+            assert processing_utils.video_is_playable(output["video"]["name"])
 
     @patch("pathlib.Path.exists", MagicMock(return_value=False))
     @patch("gradio.components.video.FFmpeg")
     def test_video_preprocessing_flips_video_for_webcam(self, mock_ffmpeg):
         # Ensures that the cached temp video file is not used so that ffmpeg is called for each test
-        x_video = deepcopy(media_data.BASE64_VIDEO)
+        x_video = {"video": deepcopy(media_data.BASE64_VIDEO)}
         video_input = gr.Video(source="webcam")
         _ = video_input.preprocess(x_video)
 
@@ -1744,87 +1561,16 @@ class TestVideo:
     def test_preprocess_url(self):
         output = gr.Video().preprocess(
             {
-                "name": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
-                "is_file": True,
-                "data": None,
-                "size": None,
-                "orig_name": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
+                "video": {
+                    "name": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
+                    "is_file": True,
+                    "data": None,
+                    "size": None,
+                    "orig_name": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
+                }
             }
         )
         assert Path(output).name == "a.mp4" and not client_utils.probe_url(output)
-
-
-class TestTimeseries:
-    def test_component_functions(self):
-        """
-        Preprocess, postprocess,  get_config,
-        """
-        timeseries_input = gr.Timeseries(x="time", y=["retail", "food", "other"])
-        x_timeseries = {
-            "data": [[1] + [2] * len(timeseries_input.y)] * 4,
-            "headers": [timeseries_input.x] + timeseries_input.y,
-        }
-        output = timeseries_input.preprocess(x_timeseries)
-        assert isinstance(output, pd.core.frame.DataFrame)
-
-        timeseries_input = gr.Timeseries(
-            x="time", y="retail", label="Upload Your Timeseries"
-        )
-        assert timeseries_input.get_config() == {
-            "x": "time",
-            "y": ["retail"],
-            "name": "timeseries",
-            "show_label": True,
-            "label": "Upload Your Timeseries",
-            "colors": None,
-            "container": True,
-            "min_width": 160,
-            "scale": None,
-            "elem_id": None,
-            "elem_classes": None,
-            "visible": True,
-            "value": None,
-            "interactive": None,
-            "root_url": None,
-        }
-        assert timeseries_input.preprocess(None) is None
-        x_timeseries["range"] = (0, 1)
-        assert timeseries_input.preprocess(x_timeseries) is not None
-
-        # Output functionalities
-
-        timeseries_output = gr.Timeseries(label="Disease")
-
-        assert timeseries_output.get_config() == {
-            "x": None,
-            "y": None,
-            "name": "timeseries",
-            "show_label": True,
-            "label": "Disease",
-            "colors": None,
-            "container": True,
-            "min_width": 160,
-            "scale": None,
-            "elem_id": None,
-            "elem_classes": None,
-            "visible": True,
-            "value": None,
-            "interactive": None,
-            "root_url": None,
-        }
-        data = {"Name": ["Tom", "nick", "krish", "jack"], "Age": [20, 21, 19, 18]}
-        df = pd.DataFrame(data)
-        assert timeseries_output.postprocess(df) == {
-            "headers": ["Name", "Age"],
-            "data": [["Tom", 20], ["nick", 21], ["krish", 19], ["jack", 18]],
-        }
-
-        timeseries_output = gr.Timeseries(y="Age", label="Disease")
-        output = timeseries_output.postprocess(df)
-        assert output == {
-            "headers": ["Name", "Age"],
-            "data": [["Tom", 20], ["nick", 21], ["krish", 19], ["jack", 18]],
-        }
 
 
 class TestNames:
@@ -1842,9 +1588,7 @@ class TestLabel:
         y = "happy"
         label_output = gr.Label()
         label = label_output.postprocess(y)
-        assert label == {"label": "happy"}
-        with open(label_output.deserialize(label)) as f:
-            assert json.load(f) == label
+        assert label == {"label": "happy", "confidences": None}
 
         y = {3: 0.7, 1: 0.2, 0: 0.1}
         label = label_output.postprocess(y)
@@ -1929,16 +1673,15 @@ class TestLabel:
             }
 
         iface = gr.Interface(rgb_distribution, "image", "label")
-        output_filepath = iface(x_img)
-        with open(output_filepath) as fp:
-            assert json.load(fp) == {
-                "label": "red",
-                "confidences": [
-                    {"label": "red", "confidence": 0.44},
-                    {"label": "green", "confidence": 0.28},
-                    {"label": "blue", "confidence": 0.28},
-                ],
-            }
+        output = iface(x_img)
+        assert output == {
+            "label": "red",
+            "confidences": [
+                {"label": "red", "confidence": 0.44},
+                {"label": "green", "confidence": 0.28},
+                {"label": "blue", "confidence": 0.28},
+            ],
+        }
 
 
 class TestHighlightedText:
@@ -1947,14 +1690,21 @@ class TestHighlightedText:
         postprocess
         """
         component = gr.HighlightedText()
-        result = [
+        value = [
             ("", None),
             ("Wolfgang", "PER"),
             (" lives in ", None),
             ("Berlin", "LOC"),
             ("", None),
         ]
-        result_ = component.postprocess(result)
+        result = [
+            {"token": "", "class_or_confidence": None},
+            {"token": "Wolfgang", "class_or_confidence": "PER"},
+            {"token": " lives in ", "class_or_confidence": None},
+            {"token": "Berlin", "class_or_confidence": "LOC"},
+            {"token": "", "class_or_confidence": None},
+        ]
+        result_ = component.postprocess(value)
         assert result == result_
 
         text = "Wolfgang lives in Berlin"
@@ -1982,10 +1732,10 @@ class TestHighlightedText:
         ]
         # After a merge empty entries are stripped except the leading one
         result_after_merge = [
-            ("", None),
-            ("Wolfgang", "PER"),
-            (" lives in ", None),
-            ("Berlin", "LOC"),
+            {"token": "", "class_or_confidence": None},
+            {"token": "Wolfgang", "class_or_confidence": "PER"},
+            {"token": " lives in ", "class_or_confidence": None},
+            {"token": "Berlin", "class_or_confidence": "LOC"},
         ]
         result_ = component.postprocess({"text": text, "entities": entities})
         assert result != result_
@@ -2008,14 +1758,18 @@ class TestHighlightedText:
         text = "I live there"
         entities = []
         result_ = component.postprocess({"text": text, "entities": entities})
-        assert [(text, None)] == result_
+        assert [{"token": text, "class_or_confidence": None}] == result_
 
         text = "Wolfgang"
         entities = [
             {"entity": "PER", "start": 0, "end": 8},
         ]
         result_ = component.postprocess({"text": text, "entities": entities})
-        assert [("", None), (text, "PER"), ("", None)] == result_
+        assert [
+            {"token": "", "class_or_confidence": None},
+            {"token": text, "class_or_confidence": "PER"},
+            {"token": "", "class_or_confidence": None},
+        ] == result_
 
     def test_component_functions(self):
         """
@@ -2063,15 +1817,13 @@ class TestHighlightedText:
             return phrases
 
         iface = gr.Interface(highlight_vowels, "text", "highlight")
-        output_filepath = iface("Helloooo")
-        with open(output_filepath) as fp:
-            output = json.load(fp)
-            assert output == [
-                ["H", "non"],
-                ["e", "vowel"],
-                ["ll", "non"],
-                ["oooo", "vowel"],
-            ]
+        output = iface("Helloooo")
+        assert output == [
+            {"token": "H", "class_or_confidence": "non"},
+            {"token": "e", "class_or_confidence": "vowel"},
+            {"token": "ll", "class_or_confidence": "non"},
+            {"token": "oooo", "class_or_confidence": "vowel"},
+        ]
 
 
 class TestAnnotatedImage:
@@ -2088,12 +1840,11 @@ class TestAnnotatedImage:
         input = (img, [(mask1, "mask1"), (mask2, "mask2")])
         result = component.postprocess(input)
 
-        base_img_out, (mask1_out, mask2_out) = result
-        base_img_out = PIL.Image.open(base_img_out["name"])
+        base_img_out = PIL.Image.open(result["image"]["name"])
 
-        assert mask1_out[1] == "mask1"
+        assert result["annotations"][0]["label"] == "mask1"
 
-        mask1_img_out = PIL.Image.open(mask1_out[0]["name"])
+        mask1_img_out = PIL.Image.open(result["annotations"][0]["image"]["name"])
         assert mask1_img_out.size == base_img_out.size
         mask1_array_out = np.array(mask1_img_out)
         assert np.max(mask1_array_out[40:50, 40:50]) == 255
@@ -2127,13 +1878,11 @@ class TestAnnotatedImage:
             return (img, [(top_left_corner, "left corner"), (random_mask, "random")])
 
         iface = gr.Interface(mask, "image", gr.AnnotatedImage())
-        output_json = iface("test/test_files/bus.png")
-        with open(output_json) as fp:
-            output = json.load(fp)
-            output_img, (mask1, mask1) = output
+        output = iface("test/test_files/bus.png")
+        output_img, (mask1, _) = output["image"], output["annotations"]
         input_img = PIL.Image.open("test/test_files/bus.png")
-        output_img = PIL.Image.open(output_img["name"])
-        mask1_img = PIL.Image.open(mask1[0]["name"])
+        output_img = PIL.Image.open(output_img)
+        mask1_img = PIL.Image.open(mask1["image"])
 
         assert output_img.size == input_img.size
         assert mask1_img.size == input_img.size
@@ -2146,7 +1895,7 @@ class TestChatbot:
         """
         chatbot = gr.Chatbot()
         assert chatbot.postprocess([["You are **cool**\nand fun", "so are *you*"]]) == [
-            ["You are **cool**\nand fun", "so are *you*"]
+            ("You are **cool**\nand fun", "so are *you*")
         ]
 
         multimodal_msg = [
@@ -2157,56 +1906,14 @@ class TestChatbot:
             [(Path("test/test_files/audio_sample.wav"),), "cool audio"],
             [(Path("test/test_files/bus.png"), "A bus"), "cool pic"],
         ]
-        processed_multimodal_msg = [
-            [
-                {
-                    "name": "video_sample.mp4",
-                    "mime_type": "video/mp4",
-                    "alt_text": None,
-                    "data": None,
-                    "is_file": True,
-                },
-                "cool video",
-            ],
-            [
-                {
-                    "name": "audio_sample.wav",
-                    "mime_type": "audio/wav",
-                    "alt_text": None,
-                    "data": None,
-                    "is_file": True,
-                },
-                "cool audio",
-            ],
-            [
-                {
-                    "name": "bus.png",
-                    "mime_type": "image/png",
-                    "alt_text": "A bus",
-                    "data": None,
-                    "is_file": True,
-                },
-                "cool pic",
-            ],
-        ] * 2
         postprocessed_multimodal_msg = chatbot.postprocess(multimodal_msg)
-        postprocessed_multimodal_msg_base_names = []
-        for x, y in postprocessed_multimodal_msg:
-            if isinstance(x, dict):
-                x["name"] = os.path.basename(x["name"])
-                postprocessed_multimodal_msg_base_names.append([x, y])
-        assert postprocessed_multimodal_msg_base_names == processed_multimodal_msg
-
-        preprocessed_multimodal_msg = chatbot.preprocess(processed_multimodal_msg)
-        multimodal_msg_base_names = []
-        for x, y in multimodal_msg:
-            if isinstance(x, tuple):
-                if len(x) > 1:
-                    new_x = (os.path.basename(x[0]), x[1])
-                else:
-                    new_x = (os.path.basename(x[0]),)
-                multimodal_msg_base_names.append([new_x, y])
-        assert multimodal_msg_base_names == preprocessed_multimodal_msg
+        for msg in postprocessed_multimodal_msg:
+            assert "file" in msg[0]
+            assert msg[1] in {"cool video", "cool audio", "cool pic"}
+            assert msg[0]["file"]["name"].split(".")[-1] in {"mp4", "wav", "png"}
+            assert msg[0]["file"]["is_file"]
+            if msg[0]["alt_text"]:
+                assert msg[0]["alt_text"] == "A bus"
 
         assert chatbot.get_config() == {
             "value": [],
@@ -2386,9 +2093,6 @@ class TestColorPicker:
         assert color_picker_input.postprocess("#000000") == "#000000"
         assert color_picker_input.postprocess(None) is None
         assert color_picker_input.postprocess("#FFFFFF") == "#FFFFFF"
-        assert color_picker_input.serialize("#000000", True) == "#000000"
-
-        color_picker_input.interpretation_replacement = "unknown"
 
         assert color_picker_input.get_config() == {
             "value": None,
@@ -2429,44 +2133,32 @@ class TestColorPicker:
         assert component.get_config().get("value") == "#000000"
 
 
-class TestCarousel:
-    def test_deprecation(self):
-        test_file_dir = Path(Path(__file__).parent, "test_files")
-        with pytest.raises(DeprecationWarning):
-            gr.Carousel([Path(test_file_dir, "bus.png")])
-
-    def test_deprecation_in_interface(self):
-        with pytest.raises(DeprecationWarning):
-            gr.Interface(lambda x: ["lion.jpg"], "textbox", "carousel")
-
-    def test_deprecation_in_blocks(self):
-        with pytest.raises(DeprecationWarning):
-            with gr.Blocks():
-                gr.Textbox()
-                gr.Carousel()
-
-
 class TestGallery:
     @patch("uuid.uuid4", return_value="my-uuid")
     def test_gallery(self, mock_uuid):
         gallery = gr.Gallery()
         test_file_dir = Path(Path(__file__).parent, "test_files")
-        data = [
+        [
             client_utils.encode_file_to_base64(Path(test_file_dir, "bus.png")),
             client_utils.encode_file_to_base64(Path(test_file_dir, "cheetah1.jpg")),
         ]
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            path = gallery.deserialize(data, tmpdir)
-            assert path.endswith("my-uuid")
-            data_restored = gallery.serialize(path)
-            data_restored = [d[0]["data"] for d in data_restored]
-            assert sorted(data) == sorted(data_restored)
-
         postprocessed_gallery = gallery.postprocess([Path("test/test_files/bus.png")])
-        processed_gallery = [{"name": "bus.png", "data": None, "is_file": True}]
-        postprocessed_gallery[0]["name"] = os.path.basename(
-            postprocessed_gallery[0]["name"]
+        processed_gallery = [
+            {
+                "image": {
+                    "name": "bus.png",
+                    "data": None,
+                    "is_file": True,
+                    "orig_name": None,
+                    "mime_type": None,
+                    "size": None,
+                },
+                "caption": None,
+            }
+        ]
+        postprocessed_gallery[0]["image"]["name"] = os.path.basename(
+            postprocessed_gallery[0]["image"]["name"]
         )
         assert processed_gallery == postprocessed_gallery
 
@@ -2536,7 +2228,7 @@ def test_as_example_returns_file_basename(component):
     assert component.as_example(None) == ""
 
 
-@patch("gradio.components.IOComponent.as_example")
+@patch("gradio.components.Component.as_example")
 @patch("gradio.components.Image.as_example")
 @patch("gradio.components.File.as_example")
 @patch("gradio.components.Dataframe.as_example")
@@ -3159,9 +2851,6 @@ class TestCode:
             assert code.postprocess(path) == path
             assert code.postprocess((path,)) == f.read()
 
-        assert code.serialize("def fn(a):\n  return a") == "def fn(a):\n  return a"
-        assert code.deserialize("def fn(a):\n  return a") == "def fn(a):\n  return a"
-
         assert code.get_config() == {
             "value": None,
             "language": None,
@@ -3180,87 +2869,6 @@ class TestCode:
         }
 
 
-class TestTempFileManagement:
-    def test_hash_file(self):
-        temp_file_manager = gr.File()
-        h1 = temp_file_manager.hash_file("gradio/test_data/cheetah1.jpg")
-        h2 = temp_file_manager.hash_file("gradio/test_data/cheetah1-copy.jpg")
-        h3 = temp_file_manager.hash_file("gradio/test_data/cheetah2.jpg")
-        assert h1 == h2
-        assert h1 != h3
-
-    @patch("shutil.copy2")
-    def test_make_temp_copy_if_needed(self, mock_copy):
-        temp_file_manager = gr.File()
-
-        f = temp_file_manager.make_temp_copy_if_needed("gradio/test_data/cheetah1.jpg")
-        try:  # Delete if already exists from before this test
-            os.remove(f)
-        except OSError:
-            pass
-
-        f = temp_file_manager.make_temp_copy_if_needed("gradio/test_data/cheetah1.jpg")
-        assert mock_copy.called
-        assert len(temp_file_manager.temp_files) == 1
-        assert Path(f).name == "cheetah1.jpg"
-
-        f = temp_file_manager.make_temp_copy_if_needed("gradio/test_data/cheetah1.jpg")
-        assert len(temp_file_manager.temp_files) == 1
-
-        f = temp_file_manager.make_temp_copy_if_needed(
-            "gradio/test_data/cheetah1-copy.jpg"
-        )
-        assert len(temp_file_manager.temp_files) == 2
-        assert Path(f).name == "cheetah1-copy.jpg"
-
-    def test_base64_to_temp_file_if_needed(self):
-        temp_file_manager = gr.File()
-
-        base64_file_1 = media_data.BASE64_IMAGE
-        base64_file_2 = media_data.BASE64_AUDIO["data"]
-
-        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_1)
-        try:  # Delete if already exists from before this test
-            os.remove(f)
-        except OSError:
-            pass
-
-        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_1)
-        assert len(temp_file_manager.temp_files) == 1
-
-        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_1)
-        assert len(temp_file_manager.temp_files) == 1
-
-        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_2)
-        assert len(temp_file_manager.temp_files) == 2
-
-        for file in temp_file_manager.temp_files:
-            os.remove(file)
-
-    @pytest.mark.flaky
-    @patch("shutil.copyfileobj")
-    def test_download_temp_copy_if_needed(self, mock_copy):
-        temp_file_manager = gr.File()
-        url1 = "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/test_image.png"
-        url2 = "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/cheetah1.jpg"
-
-        f = temp_file_manager.download_temp_copy_if_needed(url1)
-        try:  # Delete if already exists from before this test
-            os.remove(f)
-        except OSError:
-            pass
-
-        f = temp_file_manager.download_temp_copy_if_needed(url1)
-        assert mock_copy.called
-        assert len(temp_file_manager.temp_files) == 1
-
-        f = temp_file_manager.download_temp_copy_if_needed(url1)
-        assert len(temp_file_manager.temp_files) == 1
-
-        f = temp_file_manager.download_temp_copy_if_needed(url2)
-        assert len(temp_file_manager.temp_files) == 2
-
-
 def test_type_arg_deperecation_warning():
     with pytest.warns(GradioUnusedKwargWarning):
         gr.Video(type="filepath")
@@ -3272,3 +2880,23 @@ def test_plot_arg_deprecation_warning():
 
     with pytest.warns(GradioUnusedKwargWarning):
         gr.File(plot=True)
+
+
+def test_component_class_ids():
+    button_id = gr.Button().component_class_id
+    textbox_id = gr.Textbox().component_class_id
+    json_id = gr.JSON().component_class_id
+    mic_id = gr.Mic().component_class_id
+    microphone_id = gr.Microphone().component_class_id
+    audio_id = gr.Audio().component_class_id
+
+    assert button_id == gr.Button().component_class_id
+    assert textbox_id == gr.Textbox().component_class_id
+    assert json_id == gr.JSON().component_class_id
+    assert mic_id == gr.Mic().component_class_id
+    assert microphone_id == gr.Microphone().component_class_id
+    assert audio_id == gr.Audio().component_class_id
+    assert mic_id == microphone_id
+
+    # Make sure that the ids are unique
+    assert len({button_id, textbox_id, json_id, microphone_id, audio_id}) == 5

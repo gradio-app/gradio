@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 import warnings
-from typing import Callable, Literal
+from typing import Any, Callable, Literal
 
 import altair as alt
 import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import _Keywords
-from gradio.components.plot import AltairPlot, Plot
+from gradio.components.plot import AltairPlot, AltairPlotData, Plot
 
 set_documentation_group("component")
 
@@ -25,6 +25,8 @@ class BarPlot(Plot):
 
     Demos: bar_plot, chicago-bikeshare-dashboard
     """
+
+    data_model = AltairPlotData
 
     def __init__(
         self,
@@ -339,8 +341,8 @@ class BarPlot(Plot):
                 y,  # type: ignore
                 title=y_title,  # type: ignore
                 scale=AltairPlot.create_scale(y_lim),  # type: ignore
-                axis=alt.Axis(labelAngle=x_label_angle)
-                if x_label_angle is not None
+                axis=alt.Axis(labelAngle=y_label_angle)
+                if y_label_angle is not None
                 else alt.Axis(),
                 sort=sort if not vertical and sort is not None else None,
             ),
@@ -380,7 +382,9 @@ class BarPlot(Plot):
 
         return chart
 
-    def postprocess(self, y: pd.DataFrame | dict | None) -> dict[str, str] | None:
+    def postprocess(
+        self, y: pd.DataFrame | dict | None
+    ) -> AltairPlotData | dict | None:
         # if None or update
         if y is None or isinstance(y, dict):
             return y
@@ -409,4 +413,12 @@ class BarPlot(Plot):
             sort=self.sort,  # type: ignore
         )
 
-        return {"type": "altair", "plot": chart.to_json(), "chart": "bar"}
+        return AltairPlotData(
+            **{"type": "altair", "plot": chart.to_json(), "chart": "bar"}
+        )
+
+    def example_inputs(self) -> dict[str, Any]:
+        return {}
+
+    def preprocess(self, x: Any) -> Any:
+        return x

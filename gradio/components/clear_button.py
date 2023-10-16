@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import Literal
+from typing import Any, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
@@ -67,8 +67,19 @@ class ClearButton(Button):
 
         if isinstance(components, Component):
             components = [components]
-        clear_values = json.dumps(
-            [component.postprocess(None) for component in components]
-        )
+        none_values = []
+        for component in components:
+            none = component.postprocess(None)
+            none_values.append(none)
+        clear_values = json.dumps(none_values)
         self.click(None, [], components, _js=f"() => {clear_values}")
         return self
+
+    def postprocess(self, y):
+        return y
+
+    def preprocess(self, x: Any) -> Any:
+        return x
+
+    def example_inputs(self) -> Any:
+        return None

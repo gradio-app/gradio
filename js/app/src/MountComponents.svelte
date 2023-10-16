@@ -9,6 +9,7 @@
 	export let target: any;
 	export let theme_mode: any;
 	export let version: any;
+	export let autoscroll: boolean;
 
 	const dispatch = createEventDispatcher<{ mount: never }>();
 	onMount(() => {
@@ -27,4 +28,5 @@
 	{target}
 	{theme_mode}
 	{version}
+	{autoscroll}
 />

@@ -10,6 +10,8 @@
 	export let clear_color: [number, number, number, number] = [0, 0, 0, 0];
 	export let label = "";
 	export let show_label: boolean;
+	export let root: string;
+	export let i18n: I18nFormatter;
 	export let zoom_speed = 1;
 
 	// alpha, beta, radius
@@ -84,6 +86,7 @@
 
 	import * as BABYLON from "babylonjs";
 	import * as BABYLON_LOADERS from "babylonjs-loaders";
+	import type { I18nFormatter } from "js/utils/src";
 
 	BABYLON_LOADERS.OBJFileLoader.IMPORT_VERTEX_COLORS = true;
 
@@ -93,7 +96,12 @@
 <BlockLabel {show_label} Icon={File} label={label || "3D Model"} />
 
 {#if value === null}
-	<Upload on:load={handle_upload} filetype=".obj, .gltf, .glb" bind:dragging>
+	<Upload
+		on:load={handle_upload}
+		{root}
+		filetype=".obj, .gltf, .glb"
+		bind:dragging
+	>
 		<slot />
 	</Upload>
 {:else}
@@ -101,6 +109,7 @@
 		<ModifyUpload
 			undoable
 			on:clear={handle_clear}
+			{i18n}
 			on:undo={handle_undo}
 			absolute
 		/>

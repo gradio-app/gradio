@@ -3,26 +3,19 @@
 from __future__ import annotations
 
 import warnings
+from pathlib import Path
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import StringSerializable
 
-from gradio.components.base import IOComponent, _Keywords
-from gradio.events import (
-    Changeable,
-    Focusable,
-    Inputable,
-    Submittable,
-)
+from gradio.components.base import Component, _Keywords
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class ColorPicker(
-    Changeable, Inputable, Submittable, Focusable, IOComponent, StringSerializable
-):
+class ColorPicker(Component):
     """
     Creates a color picker for user to select a color as string input.
     Preprocessing: passes selected color value as a {str} into the function.
@@ -30,6 +23,8 @@ class ColorPicker(
     Examples-format: a {str} with a hexadecimal representation of a color, e.g. "#ff0000" for red.
     Demos: color_picker, color_generator
     """
+
+    EVENTS = [Events.change, Events.input, Events.submit, Events.focus, Events.blur]
 
     def __init__(
         self,
@@ -63,8 +58,7 @@ class ColorPicker(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             info=info,
             every=every,
@@ -80,11 +74,17 @@ class ColorPicker(
             **kwargs,
         )
 
-    def example_inputs(self) -> dict[str, Any]:
-        return {
-            "raw": "#000000",
-            "serialized": "#000000",
-        }
+    def example_inputs(self) -> str:
+        return "#000000"
+
+    def flag(self, x: Any, flag_dir: str | Path = "") -> str:
+        return x
+
+    def read_from_flag(self, x: Any, flag_dir: str | Path | None = None):
+        return x
+
+    def api_info(self) -> dict[str, Any]:
+        return {"type": "string"}
 
     @staticmethod
     def update(

@@ -14,7 +14,6 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 
-	import { _ } from "svelte-i18n";
 	import type { S } from "@storybook/theming/dist/create-c2b2ce6d";
 
 	export let elem_id = "";
@@ -121,6 +120,8 @@
 	allow_overflow={false}
 >
 	<StatusTracker
+		autoscroll={gradio.autoscroll}
+		i18n={gradio.i18n}
 		{...loading_status}
 		status={pending_upload
 			? "generating"
@@ -134,12 +135,14 @@
 		{file_count}
 		{file_types}
 		{selectable}
+		{root}
 		{height}
 		on:change={({ detail }) => (value = detail)}
 		on:drag={({ detail }) => (dragging = detail)}
 		on:clear={() => gradio.dispatch("clear")}
 		on:select={({ detail }) => gradio.dispatch("select", detail)}
+		i18n={gradio.i18n}
 	>
-		<UploadText type="file" />
+		<UploadText i18n={gradio.i18n} type="file" />
 	</FileUpload>
 </Block>

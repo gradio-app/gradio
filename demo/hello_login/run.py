@@ -1,14 +1,18 @@
 import gradio as gr
+import argparse
+import sys
 
-user_db = {"admin": "admin", "foo": "bar"}
+parser = argparse.ArgumentParser()
+parser.add_argument("--name", type=str, default="User")
+args, unknown = parser.parse_known_args()
+print(sys.argv)
 
+with gr.Blocks() as demo:
+    gr.Markdown(f"# Greetings {args.name}!")
+    inp = gr.Textbox()
+    out = gr.Textbox()
 
-def greet(name):
-    return "Hello " + name + "!!"
+    inp.change(fn=lambda x: x, inputs=inp, outputs=out)
 
-
-demo = gr.Interface(fn=greet, inputs="text", outputs="text")
 if __name__ == "__main__":
-    demo.launch(enable_queue=False,
-        auth=lambda u, p: user_db.get(u) == p,
-        auth_message="This is a welcome message")
+    demo.launch()

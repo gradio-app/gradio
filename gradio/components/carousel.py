@@ -1,12 +1,9 @@
 """gr.Carousel() component."""
 
-from gradio_client.serializing import SimpleSerializable
-
-from gradio.components.base import IOComponent
-from gradio.events import Changeable
+from gradio.components.base import Component
 
 
-class Carousel(IOComponent, Changeable, SimpleSerializable):
+class Carousel(Component):
     """
     Deprecated Component
     """

@@ -10,14 +10,22 @@
 	import { MarkdownCode as Markdown } from "@gradio/markdown/static";
 	import { get_fetchable_url_or_file } from "@gradio/upload";
 	import Copy from "./Copy.svelte";
+	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import LikeDislike from "./LikeDislike.svelte";
 	import Pending from "./Pending.svelte";
 
 	export let value:
-		| [string | FileData | null, string | FileData | null][]
+		| [
+				string | { file: FileData; alt_text: string | null } | null,
+				string | { file: FileData; alt_text: string | null } | null
+		  ][]
 		| null;
-	let old_value: [string | FileData | null, string | FileData | null][] | null =
-		null;
+	let old_value:
+		| [
+				string | { file: FileData; alt_text: string | null } | null,
+				string | { file: FileData; alt_text: string | null } | null
+		  ][]
+		| null = null;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -36,6 +44,7 @@
 	export let line_breaks = true;
 	export let root: string;
 	export let root_url: null | string;
+	export let i18n: I18nFormatter;
 	export let layout: "bubble" | "panel" = "bubble";
 
 	let div: HTMLDivElement;
@@ -78,7 +87,7 @@
 	function handle_select(
 		i: number,
 		j: number,
-		message: string | FileData | null
+		message: string | { file: FileData; alt_text: string | null } | null
 	): void {
 		dispatch("select", {
 			index: [i, j],
@@ -89,7 +98,7 @@
 	function handle_like(
 		i: number,
 		j: number,
-		message: string | FileData | null,
+		message: string | { file: FileData; alt_text: string | null } | null,
 		liked: boolean
 	): void {
 		dispatch("like", {
@@ -103,6 +112,7 @@
 {#if show_share_button && value !== null && value.length > 0}
 	<div class="share-button">
 		<ShareButton
+			{i18n}
 			on:error
 			on:share
 			formatter={format_chat_for_sharing}
@@ -171,22 +181,22 @@
 											{line_breaks}
 											on:load={scroll}
 										/>
-									{:else if message !== null && message.mime_type?.includes("audio")}
+									{:else if message !== null && message.file.mime_type?.includes("audio")}
 										<audio
 											data-testid="chatbot-audio"
 											controls
 											preload="metadata"
-											src={message.data}
+											src={message.file.data}
 											title={message.alt_text}
 											on:play
 											on:pause
 											on:ended
 										/>
-									{:else if message !== null && message.mime_type?.includes("video")}
+									{:else if message !== null && message.file.mime_type?.includes("video")}
 										<video
 											data-testid="chatbot-video"
 											controls
-											src={message.data}
+											src={message.file.data}
 											title={message.alt_text}
 											preload="auto"
 											on:play
@@ -195,22 +205,22 @@
 										>
 											<track kind="captions" />
 										</video>
-									{:else if message !== null && message.mime_type?.includes("image")}
+									{:else if message !== null && message.file.mime_type?.includes("image")}
 										<img
 											data-testid="chatbot-image"
-											src={message.data}
+											src={message.file.data}
 											alt={message.alt_text}
 										/>
-									{:else if message !== null && message.data !== null}
+									{:else if message !== null && message.file.data !== null}
 										<a
 											data-testid="chatbot-file"
-											href={message.data}
+											href={message.file.data}
 											target="_blank"
 											download={window.__is_colab__
 												? null
-												: message.orig_name || message.name}
+												: message.file.orig_name || message.file.name}
 										>
-											{message.orig_name || message.name}
+											{message.file.orig_name || message.file.name}
 										</a>
 									{:else if pending_message && j === 1}
 										<Pending {layout} />

@@ -16,6 +16,7 @@ demo = gr.Interface(
         [b],
         [c],
     ],
+    cache_examples=True
 )
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@
 
 <script lang="ts">
 	import type { Gradio } from "@gradio/utils";
-	import { _ } from "svelte-i18n";
+
 	import { UploadText } from "@gradio/atoms";
 
 	import type { FileData } from "@gradio/upload";
@@ -73,7 +73,11 @@
 	{scale}
 	{min_width}
 >
-	<StatusTracker {...loading_status} />
+	<StatusTracker
+		autoscroll={gradio.autoscroll}
+		i18n={gradio.i18n}
+		{...loading_status}
+	/>
 	<Audio
 		{label}
 		{show_label}
@@ -85,6 +89,7 @@
 		}}
 		on:drag={({ detail }) => (dragging = detail)}
 		{name}
+		{root}
 		{source}
 		{pending}
 		{streaming}
@@ -104,7 +109,8 @@
 			loading_status.status = "error";
 			gradio.dispatch("error", detail);
 		}}
+		i18n={gradio.i18n}
 	>
-		<UploadText type="audio" />
+		<UploadText i18n={gradio.i18n} type="audio" />
 	</Audio>
 </Block>

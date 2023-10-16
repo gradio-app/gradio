@@ -6,16 +6,15 @@ import warnings
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import StringSerializable
 
-from gradio.components.base import IOComponent, _Keywords
-from gradio.events import Changeable
+from gradio.components.base import Component, _Keywords
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class HTML(Changeable, IOComponent, StringSerializable):
+class HTML(Component):
     """
     Used to display arbitrary HTML output.
     Preprocessing: this component does *not* accept input.
@@ -24,6 +23,8 @@ class HTML(Changeable, IOComponent, StringSerializable):
     Demos: text_analysis
     Guides: key-features
     """
+
+    EVENTS = [Events.change]
 
     def __init__(
         self,
@@ -47,8 +48,7 @@ class HTML(Changeable, IOComponent, StringSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -58,6 +58,15 @@ class HTML(Changeable, IOComponent, StringSerializable):
             value=value,
             **kwargs,
         )
+
+    def example_inputs(self) -> Any:
+        return "<p>Hello</p>"
+
+    def preprocess(self, x: Any) -> Any:
+        return x
+
+    def postprocess(self, y):
+        return y
 
     @staticmethod
     def update(
@@ -77,3 +86,6 @@ class HTML(Changeable, IOComponent, StringSerializable):
             "__type__": "update",
         }
         return updated_config
+
+    def api_info(self) -> dict[str, Any]:
+        return {"type": "string"}

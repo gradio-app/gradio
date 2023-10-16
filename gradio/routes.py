@@ -46,7 +46,7 @@ from starlette.websockets import WebSocketState
 
 import gradio
 import gradio.ranged_response as ranged_response
-from gradio import route_utils, utils, wasm_utils
+from gradio import processing_utils, route_utils, utils, wasm_utils
 from gradio.context import Context
 from gradio.data_classes import ComponentServerBody, PredictBody, ResetBody
 from gradio.deprecation import warn_deprecation
@@ -126,7 +126,7 @@ class App(FastAPI):
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
         self.uploaded_file_dir = os.environ.get("GRADIO_TEMP_DIR") or str(
-            Path(tempfile.gettempdir()) / "gradio"
+            (Path(tempfile.gettempdir()) / "gradio").resolve()
         )
         self.change_event: None | threading.Event = None
         self._asyncio_tasks: list[asyncio.Task] = []
@@ -351,8 +351,8 @@ class App(FastAPI):
         @app.get("/info/", dependencies=[Depends(login_check)])
         @app.get("/info", dependencies=[Depends(login_check)])
         def api_info(serialize: bool = True):
-            config = app.get_blocks().config
-            return gradio.blocks.get_api_info(config, serialize)  # type: ignore
+            # config = app.get_blocks().get_api_info()
+            return app.get_blocks().get_api_info()  # type: ignore
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
@@ -370,6 +370,32 @@ class App(FastAPI):
         def static_resource(path: str):
             static_file = safe_join(STATIC_PATH_LIB, path)
             return FileResponse(static_file)
+
+        @app.get("/custom_component/{id}/{type}/{file_name}")
+        def custom_component_path(id: str, type: str, file_name: str):
+            config = app.get_blocks().config
+            components = config["components"]
+            location = next(
+                (item for item in components if item["component_class_id"] == id), None
+            )
+
+            if location is None:
+                raise HTTPException(status_code=404, detail="Component not found.")
+
+            component_instance = app.get_blocks().get_component(location["id"])
+
+            module_name = component_instance.__class__.__module__
+            module_path = sys.modules[module_name].__file__
+
+            if module_path is None or component_instance is None:
+                raise HTTPException(status_code=404, detail="Component not found.")
+
+            return FileResponse(
+                safe_join(
+                    str(Path(module_path).parent),
+                    f"{component_instance.__class__.TEMPLATE_DIR}/{type}/{file_name}",
+                )
+            )
 
         @app.get("/assets/{path:path}")
         def build_resource(path: str):
@@ -632,11 +658,10 @@ class App(FastAPI):
             files: List[UploadFile] = File(...),
         ):
             output_files = []
-            file_manager = gradio.File()
             for input_file in files:
                 output_files.append(
-                    await file_manager.save_uploaded_file(
-                        input_file, app.uploaded_file_dir
+                    await processing_utils.save_uploaded_file(
+                        input_file, app.uploaded_file_dir, app.get_blocks().limiter
                     )
                 )
             return output_files

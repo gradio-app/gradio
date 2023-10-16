@@ -1,7 +1,7 @@
 <script context="module" lang="ts">
 	import type { FileData } from "@gradio/upload";
 	import { Empty } from "@gradio/atoms";
-	import { _ } from "svelte-i18n";
+
 	export interface AudioData extends FileData {
 		crop_min?: number;
 		crop_max?: number;
@@ -15,6 +15,7 @@
 	import { Music, Download } from "@gradio/icons";
 
 	import { loaded } from "../shared/utils";
+	import type { I18nFormatter } from "js/app/src/gradio_helper";
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
@@ -42,13 +43,15 @@
 		dispatch("stop");
 		dispatch("end");
 	}
+
+	export let i18n: I18nFormatter;
 </script>
 
 <BlockLabel
 	{show_label}
 	Icon={Music}
 	float={false}
-	label={label || $_("audio.audio")}
+	label={label || i18n("audio.audio")}
 />
 {#if value !== null}
 	<div class="icon-buttons">
@@ -58,11 +61,12 @@
 				target={window.__is_colab__ ? "_blank" : null}
 				download={value.name}
 			>
-				<IconButton Icon={Download} label={$_("common.download")} />
+				<IconButton Icon={Download} label={i18n("common.download")} />
 			</a>
 		{/if}
 		{#if show_share_button}
 			<ShareButton
+				{i18n}
 				on:error
 				on:share
 				formatter={async (value) => {

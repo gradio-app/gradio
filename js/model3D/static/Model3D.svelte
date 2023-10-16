@@ -3,15 +3,16 @@
 	import { BlockLabel, IconButton } from "@gradio/atoms";
 	import { File, Download, Undo } from "@gradio/icons";
 	import { add_new_model, reset_camera_position } from "../shared/utils";
-	import { _ } from "svelte-i18n";
 	import { onMount } from "svelte";
 	import * as BABYLON from "babylonjs";
 	import * as BABYLON_LOADERS from "babylonjs-loaders";
+	import type { I18nFormatter } from "js/utils/src";
 
 	export let value: FileData | null;
 	export let clear_color: [number, number, number, number] = [0, 0, 0, 0];
 	export let label = "";
 	export let show_label: boolean;
+	export let i18n: I18nFormatter;
 	export let zoom_speed = 1;
 
 	// alpha, beta, radius
@@ -72,7 +73,11 @@
 	}
 </script>
 
-<BlockLabel {show_label} Icon={File} label={label || $_("3D_model.3d_model")} />
+<BlockLabel
+	{show_label}
+	Icon={File}
+	label={label || i18n("3D_model.3d_model")}
+/>
 {#if value}
 	<div class="model3D">
 		<div class="buttons">
@@ -82,7 +87,7 @@
 				target={window.__is_colab__ ? "_blank" : null}
 				download={window.__is_colab__ ? null : value.orig_name || value.name}
 			>
-				<IconButton Icon={Download} label={$_("common.download")} />
+				<IconButton Icon={Download} label={i18n("common.download")} />
 			</a>
 		</div>
 

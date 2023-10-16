@@ -6,21 +6,19 @@ import warnings
 from typing import Any, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import StringSerializable
 
 from gradio.components.base import (
     Component,
-    IOComponent,
     _Keywords,
     get_component_instance,
 )
-from gradio.events import Clickable, Selectable
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class Dataset(Clickable, Selectable, Component, StringSerializable):
+class Dataset(Component):
     """
     Used to create an output widget for showing datasets. Used to render the examples
     box.
@@ -28,11 +26,13 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
     Postprocessing: expects a {list} of {lists} corresponding to the dataset data.
     """
 
+    EVENTS = [Events.click, Events.select]
+
     def __init__(
         self,
         *,
         label: str | None = None,
-        components: list[IOComponent] | list[str],
+        components: list[Component] | list[str],
         samples: list[list[Any]] | None = None,
         headers: list[str] | None = None,
         type: Literal["values", "index"] = "values",
@@ -59,20 +59,19 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
         """
-        Component.__init__(
-            self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
+        super().__init__(
+            visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
         )
         self.container = container
         self.scale = scale
         self.min_width = min_width
         self._components = [get_component_instance(c) for c in components]
 
-        # Narrow type to IOComponent
-        if not all(isinstance(c, IOComponent) for c in self._components):
-            raise ValueError(
-                "All components in a `Dataset` must be subclasses of `IOComponent`"
-            )
-        self._components = [c for c in self._components if isinstance(c, IOComponent)]
+        # Narrow type to Component
+        assert all(
+            isinstance(c, Component) for c in self._components
+        ), "All components in a `Dataset` must be subclasses of `Component`"
+        self._components = [c for c in self._components if isinstance(c, Component)]
         for component in self._components:
             component.root_url = self.root_url
 
@@ -89,6 +88,10 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
         else:
             self.headers = [c.label or "" for c in self._components]
         self.samples_per_page = samples_per_page
+
+    @property
+    def skip_api(self):
+        return True
 
     @staticmethod
     def update(
@@ -134,3 +137,6 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
             "samples": samples,
             "__type__": "update",
         }
+
+    def example_inputs(self) -> Any:
+        return None

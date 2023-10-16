@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import inspect
 import json
 import os
@@ -11,9 +12,7 @@ import threading
 import time
 import warnings
 import webbrowser
-from abc import abstractmethod
 from collections import defaultdict
-from functools import wraps
 from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, Sequence, cast
@@ -21,16 +20,15 @@ from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, Sequenc
 import anyio
 import requests
 from anyio import CapacityLimiter
-from gradio_client import serializing
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
-from packaging import version
 
 from gradio import (
     analytics,
     components,
     external,
     networking,
+    processing_utils,
     queueing,
     routes,
     strings,
@@ -39,14 +37,16 @@ from gradio import (
     wasm_utils,
 )
 from gradio.context import Context
+from gradio.data_classes import FileData
 from gradio.deprecation import check_deprecated_parameters, warn_deprecation
+from gradio.events import EventData, EventListener, EventListenerMethod
 from gradio.exceptions import (
     DuplicateBlockError,
     InvalidApiNameError,
     InvalidBlockError,
     InvalidComponentError,
 )
-from gradio.helpers import EventData, create_tracker, skip, special_args
+from gradio.helpers import create_tracker, skip, special_args
 from gradio.state_holder import SessionState
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
@@ -77,8 +77,7 @@ set_documentation_group("blocks")
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
 
-    from gradio.components import Component
-    from gradio.events import EventListenerMethod
+    from gradio.components.base import Component
 
 BUILT_IN_THEMES: dict[str, Theme] = {
     t.name: t
@@ -90,42 +89,6 @@ BUILT_IN_THEMES: dict[str, Theme] = {
         themes.Glass(),
     ]
 }
-
-
-def in_event_listener():
-    from gradio.context import LocalContext
-
-    return LocalContext.in_event_listener.get()
-
-
-def updateable(fn):
-    @wraps(fn)
-    def wrapper(*args, **kwargs):
-        fn_args = inspect.getfullargspec(fn).args
-        self = args[0]
-        for i, arg in enumerate(args):
-            if i == 0 or i >= len(fn_args):  #  skip self, *args
-                continue
-            arg_name = fn_args[i]
-            kwargs[arg_name] = arg
-        self.constructor_args = kwargs
-        if in_event_listener():
-            return None
-        else:
-            return fn(self, **kwargs)
-
-    return wrapper
-
-
-updated_cls_set = set()
-
-
-class Updateable:
-    def __new__(cls, *args, **kwargs):
-        if cls not in updated_cls_set:
-            cls.__init__ = updateable(cls.__init__)
-            updated_cls_set.add(cls)
-        return super().__new__(cls)
 
 
 class Block:
@@ -159,6 +122,16 @@ class Block:
             self.render()
         check_deprecated_parameters(self.__class__.__name__, kwargs=kwargs)
 
+    @property
+    def skip_api(self):
+        return False
+
+    @property
+    def events(
+        self,
+    ) -> list[EventListener]:
+        return getattr(self, "EVENTS", [])
+
     def render(self):
         """
         Adds self into appropriate BlockContext
@@ -172,7 +145,7 @@ class Block:
         if Context.root_block is not None:
             Context.root_block.blocks[self._id] = self
             self.is_rendered = True
-            if isinstance(self, components.IOComponent):
+            if isinstance(self, components.Component):
                 Context.root_block.temp_file_sets.append(self.temp_files)
         return self
 
@@ -218,10 +191,13 @@ class Block:
             if hasattr(self, parameter.name):
                 value = getattr(self, parameter.name)
                 config[parameter.name] = value
+        for e in self.events:
+            to_add = e.config_data()
+            if to_add:
+                config = {**config, **to_add}
         return {**config, "root_url": self.root_url, "name": self.get_block_name()}
 
     @staticmethod
-    @abstractmethod
     def update(**kwargs) -> dict:
         return {}
 
@@ -240,6 +216,24 @@ class BlockContext(Block):
         """
         self.children: list[Block] = []
         Block.__init__(self, visible=visible, render=render, **kwargs)
+
+    TEMPLATE_DIR = "./templates/"
+    FRONTEND_DIR = "../../frontend/"
+
+    @property
+    def skip_api(self):
+        return True
+
+    @classmethod
+    def get_component_class_id(cls) -> str:
+        module_name = cls.__module__
+        module_path = sys.modules[module_name].__file__
+        module_hash = hashlib.md5(f"{cls.__name__}_{module_path}".encode()).hexdigest()
+        return module_hash
+
+    @property
+    def component_class_id(self):
+        return self.get_component_class_id()
 
     def add_child(self, child: Block):
         self.children.append(child)
@@ -333,7 +327,9 @@ class BlockFunction:
         return str(self)
 
 
-def postprocess_update_dict(block: Block, update_dict: dict, postprocess: bool = True):
+def postprocess_update_dict(
+    block: Component | BlockContext, update_dict: dict, postprocess: bool = True
+):
     """
     Converts a dictionary of updates into a format that can be sent to the frontend.
     E.g. {"__type__": "update", "value": "2", "interactive": False}
@@ -354,7 +350,7 @@ def postprocess_update_dict(block: Block, update_dict: dict, postprocess: bool =
     attr_dict["__type__"] = "update"
     attr_dict.pop("value", None)
     if "value" in update_dict:
-        if not isinstance(block, components.IOComponent):
+        if not isinstance(block, components.Component):
             raise InvalidComponentError(
                 f"Component {block.__class__} does not support value"
             )
@@ -390,147 +386,6 @@ def convert_component_dict_to_list(
             "Returned dictionary included some keys as Components. Either all keys must be Components to assign Component values, or return a List of values to assign output values in order."
         )
     return predictions
-
-
-def get_api_info(config: dict, serialize: bool = True):
-    """
-    Gets the information needed to generate the API docs from a Blocks config.
-    Parameters:
-        config: a Blocks config dictionary
-        serialize: If True, returns the serialized version of the typed information. If False, returns the raw version.
-    """
-    api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
-    mode = config.get("mode", None)
-    after_new_format = version.parse(config.get("version", "2.0")) > version.Version(
-        "3.28.3"
-    )
-
-    for d, dependency in enumerate(config["dependencies"]):
-        dependency_info = {"parameters": [], "returns": []}
-        skip_endpoint = False
-
-        inputs = dependency["inputs"]
-        for i in inputs:
-            for component in config["components"]:
-                if component["id"] == i:
-                    break
-            else:
-                skip_endpoint = True  # if component not found, skip endpoint
-                break
-            type = component["type"]
-            if type in client_utils.SKIP_COMPONENTS:
-                continue
-            if (
-                not component.get("serializer")
-                and type not in serializing.COMPONENT_MAPPING
-            ):
-                skip_endpoint = True  # if component not serializable, skip endpoint
-                break
-            if type in client_utils.SKIP_COMPONENTS:
-                continue
-            label = component["props"].get("label", f"parameter_{i}")
-            # The config has the most specific API info (taking into account the parameters
-            # of the component), so we use that if it exists. Otherwise, we fallback to the
-            # Serializer's API info.
-            serializer = serializing.COMPONENT_MAPPING[type]()
-            if component.get("api_info") and after_new_format:
-                info = component["api_info"]
-                example = component["example_inputs"]["serialized"]
-            else:
-                assert isinstance(serializer, serializing.Serializable)
-                info = serializer.api_info()
-                example = serializer.example_inputs()["raw"]
-            python_info = info["info"]
-            if serialize and info["serialized_info"]:
-                python_info = serializer.serialized_info()
-                if (
-                    isinstance(serializer, serializing.FileSerializable)
-                    and component["props"].get("file_count", "single") != "single"
-                ):
-                    python_info = serializer._multiple_file_serialized_info()
-
-            python_type = client_utils.json_schema_to_python_type(python_info)
-            serializer_name = serializing.COMPONENT_MAPPING[type].__name__
-            dependency_info["parameters"].append(
-                {
-                    "label": label,
-                    "type": info["info"],
-                    "python_type": {
-                        "type": python_type,
-                        "description": python_info.get("description", ""),
-                    },
-                    "component": type.capitalize(),
-                    "example_input": example,
-                    "serializer": serializer_name,
-                }
-            )
-
-        outputs = dependency["outputs"]
-        for o in outputs:
-            for component in config["components"]:
-                if component["id"] == o:
-                    break
-            else:
-                skip_endpoint = True  # if component not found, skip endpoint
-                break
-            type = component["type"]
-            if type in client_utils.SKIP_COMPONENTS:
-                continue
-            if (
-                not component.get("serializer")
-                and type not in serializing.COMPONENT_MAPPING
-            ):
-                skip_endpoint = True  # if component not serializable, skip endpoint
-                break
-            label = component["props"].get("label", f"value_{o}")
-            serializer = serializing.COMPONENT_MAPPING[type]()
-            if component.get("api_info") and after_new_format:
-                info = component["api_info"]
-                example = component["example_inputs"]["serialized"]
-            else:
-                assert isinstance(serializer, serializing.Serializable)
-                info = serializer.api_info()
-                example = serializer.example_inputs()["raw"]
-            python_info = info["info"]
-            if serialize and info["serialized_info"]:
-                python_info = serializer.serialized_info()
-                if (
-                    isinstance(serializer, serializing.FileSerializable)
-                    and component["props"].get("file_count", "single") != "single"
-                ):
-                    python_info = serializer._multiple_file_serialized_info()
-            python_type = client_utils.json_schema_to_python_type(python_info)
-            serializer_name = serializing.COMPONENT_MAPPING[type].__name__
-            dependency_info["returns"].append(
-                {
-                    "label": label,
-                    "type": info["info"],
-                    "python_type": {
-                        "type": python_type,
-                        "description": python_info.get("description", ""),
-                    },
-                    "component": type.capitalize(),
-                    "serializer": serializer_name,
-                }
-            )
-
-        if not dependency["backend_fn"]:
-            skip_endpoint = True
-
-        if skip_endpoint:
-            continue
-        if dependency["api_name"] is not None and dependency["api_name"] is not False:
-            api_info["named_endpoints"][f"/{dependency['api_name']}"] = dependency_info
-        elif (
-            dependency["api_name"] is False
-            or mode == "interface"
-            or mode == "tabbed_interface"
-        ):
-            pass  # Skip unnamed endpoints in interface mode
-        else:
-            api_info["unnamed_endpoints"][str(d)] = dependency_info
-
-    return api_info
 
 
 @document("launch", "queue", "integrate", "load")
@@ -630,7 +485,7 @@ class Blocks(BlockContext):
         else:
             os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
         super().__init__(render=False, **kwargs)
-        self.blocks: dict[int, Block] = {}
+        self.blocks: dict[int, Component | Block] = {}
         self.fns: list[BlockFunction] = []
         self.dependencies = []
         self.mode = mode
@@ -679,9 +534,14 @@ class Blocks(BlockContext):
             }
             analytics.initiated_analytics(data)
 
+    def get_component(self, id: int) -> Component:
+        comp = self.blocks[id]
+        assert isinstance(comp, components.Component), f"{comp}"
+        return comp
+
     @property
     def _is_running_in_reload_thread(self):
-        from gradio.reload import reload_thread
+        from gradio.cli.commands.reload import reload_thread
 
         return getattr(reload_thread, "running_reload", False)
 
@@ -810,7 +670,12 @@ class Blocks(BlockContext):
                 dependency.pop("status_tracker", None)
                 dependency["preprocess"] = False
                 dependency["postprocess"] = False
-
+                targets = [
+                    EventListenerMethod(
+                        t.__self__ if t.has_trigger else None, t.event_name
+                    )
+                    for t in targets
+                ]
                 dependency = blocks.set_event_trigger(
                     targets=targets, fn=fn, **dependency
                 )[0]
@@ -869,7 +734,7 @@ class Blocks(BlockContext):
         preprocess: bool = True,
         postprocess: bool = True,
         scroll_to_output: bool = False,
-        show_progress: str = "full",
+        show_progress: Literal["full", "minimal", "hidden"] | None = "full",
         api_name: str | None | Literal[False] = None,
         js: str | None = None,
         no_target: bool = False,
@@ -909,7 +774,7 @@ class Blocks(BlockContext):
         # Support for singular parameter
         _targets = [
             (
-                target.trigger._id if target.trigger and not no_target else None,
+                target.block._id if target.block and not no_target else None,
                 target.event_name,
             )
             for target in targets
@@ -1124,8 +989,8 @@ class Blocks(BlockContext):
         if batch:
             outputs = [out[0] for out in outputs]
 
-        processed_outputs = self.deserialize_data(fn_index, outputs)
-        processed_outputs = utils.resolve_singleton(processed_outputs)
+        outputs = self.deserialize_data(fn_index, outputs)
+        processed_outputs = utils.resolve_singleton(outputs)
 
         return processed_outputs
 
@@ -1220,6 +1085,9 @@ class Blocks(BlockContext):
         dependency = self.dependencies[fn_index]
         processed_input = []
 
+        def format_file(s):
+            return FileData(name=s, is_file=True).model_dump()
+
         for i, input_id in enumerate(dependency["inputs"]):
             try:
                 block = self.blocks[input_id]
@@ -1227,11 +1095,19 @@ class Blocks(BlockContext):
                 raise InvalidBlockError(
                     f"Input component with id {input_id} used in {dependency['trigger']}() event is not defined in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
                 ) from e
-            if not isinstance(block, components.IOComponent):
+            if not isinstance(block, components.Component):
                 raise InvalidComponentError(
                     f"{block.__class__} Component with id {input_id} not a valid input component."
                 )
-            serialized_input = block.serialize(inputs[i])
+            api_info = block.api_info()
+            if client_utils.value_is_file(api_info):
+                serialized_input = client_utils.traverse(
+                    inputs[i],
+                    format_file,
+                    lambda s: client_utils.is_filepath(s) or client_utils.is_url(s),
+                )
+            else:
+                serialized_input = inputs[i]
             processed_input.append(serialized_input)
 
         return processed_input
@@ -1247,15 +1123,13 @@ class Blocks(BlockContext):
                 raise InvalidBlockError(
                     f"Output component with id {output_id} used in {dependency['trigger']}() event not found in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
                 ) from e
-            if not isinstance(block, components.IOComponent):
+            if not isinstance(block, components.Component):
                 raise InvalidComponentError(
                     f"{block.__class__} Component with id {output_id} not a valid output component."
                 )
-            deserialized = block.deserialize(
-                outputs[o],
-                save_dir=block.DEFAULT_TEMP_DIR,
-                root_url=block.root_url,
-                hf_token=Context.hf_token,
+
+            deserialized = client_utils.traverse(
+                outputs[o], lambda s: s["name"], client_utils.is_file_obj
             )
             predictions.append(deserialized)
 
@@ -1326,7 +1200,10 @@ Received inputs:
                 else:
                     if input_id in state:
                         block = state[input_id]
-                    processed_input.append(block.preprocess(inputs[i]))
+                    inputs_cached = processing_utils.move_files_to_cache(
+                        inputs[i], block
+                    )
+                    processed_input.append(block.preprocess(inputs_cached))
         else:
             processed_input = inputs
         return processed_input
@@ -1445,7 +1322,8 @@ Received outputs:
                             f"{block.__class__} Component with id {output_id} not a valid output component."
                         )
                     prediction_value = block.postprocess(prediction_value)
-                output.append(prediction_value)
+                outputs_cached = processing_utils.move_files_to_cache(prediction_value, block)  # type: ignore
+                output.append(outputs_cached)
 
         return output
 
@@ -1462,11 +1340,9 @@ Received outputs:
             self.pending_streams[session_hash][run] = {}
         stream_run = self.pending_streams[session_hash][run]
 
-        from gradio.events import StreamableOutput
-
         for i, output_id in enumerate(self.dependencies[fn_index]["outputs"]):
             block = self.blocks[output_id]
-            if isinstance(block, StreamableOutput) and block.streaming:
+            if isinstance(block, components.StreamingOutput) and block.streaming:
                 first_chunk = output_id not in stream_run
                 binary_data, output_data = block.stream_output(
                     data[i], f"{session_hash}/{run}/{output_id}", first_chunk
@@ -1622,10 +1498,12 @@ Received outputs:
                 "type": block.get_block_name(),
                 "props": utils.delete_none(props),
             }
-            serializer = utils.get_serializer_name(block)
-            if serializer:
-                assert isinstance(block, serializing.Serializable)
-                block_config["serializer"] = serializer
+            block_config["skip_api"] = block.skip_api
+            block_config["component_class_id"] = getattr(
+                block, "component_class_id", None
+            )
+
+            if not block.skip_api:
                 block_config["api_info"] = block.api_info()  # type: ignore
                 block_config["example_inputs"] = block.example_inputs()  # type: ignore
             config["components"].append(block_config)
@@ -1665,7 +1543,7 @@ Received outputs:
         outputs: Component | list[Component] | None = None,
         api_name: str | None | Literal[False] = None,
         scroll_to_output: bool = False,
-        show_progress: str = "full",
+        show_progress: Literal["full", "hidden", "minimal"] | None = "full",
         queue=None,
         batch: bool = False,
         max_batch_size: int = 4,
@@ -1750,7 +1628,7 @@ Received outputs:
                 every=every,
                 no_target=True,
             )
-            return Dependency(dep, dep_index, fn)
+            return Dependency(None, dep, dep_index, fn)
 
     def clear(self):
         """Resets the layout of the Blocks object."""
@@ -2265,7 +2143,7 @@ Received outputs:
         ):
             self.block_thread()
 
-        return TupleNoPrint((self.server_app, self.local_url, self.share_url))
+        return TupleNoPrint((self.server_app, self.local_url, self.share_url))  # type: ignore
 
     def integrate(
         self,
@@ -2371,12 +2249,11 @@ Received outputs:
         if Context.root_block:
             for component in Context.root_block.blocks.values():
                 if (
-                    isinstance(component, components.IOComponent)
+                    isinstance(component, components.Component)
                     and component.load_event_to_attach
                 ):
                     load_fn, every = component.load_event_to_attach
                     # Use set_event_trigger to avoid ambiguity between load class/instance method
-                    from gradio.events import EventListenerMethod
 
                     dep = self.set_event_trigger(
                         [EventListenerMethod(self, "load")],
@@ -2406,3 +2283,96 @@ Received outputs:
         if self.dependencies[fn_index]["queue"] is None:
             return self.enable_queue
         return self.dependencies[fn_index]["queue"]
+
+    def get_api_info(self):
+        """
+        Gets the information needed to generate the API docs from a Blocks.
+        """
+        config = self.config
+        api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
+        mode = config.get("mode", None)
+
+        for d, dependency in enumerate(config["dependencies"]):
+            dependency_info = {"parameters": [], "returns": []}
+            skip_endpoint = False
+
+            inputs = dependency["inputs"]
+            for i in inputs:
+                for component in config["components"]:
+                    if component["id"] == i:
+                        break
+                else:
+                    skip_endpoint = True  # if component not found, skip endpoint
+                    break
+                type = component["type"]
+                if self.blocks[component["id"]].skip_api:
+                    continue
+                label = component["props"].get("label", f"parameter_{i}")
+                # The config has the most specific API info (taking into account the parameters
+                # of the component), so we use that if it exists. Otherwise, we fallback to the
+                # Serializer's API info.
+                info = self.get_component(component["id"]).api_info()
+                example = self.get_component(component["id"]).example_inputs()
+                python_type = client_utils.json_schema_to_python_type(info)
+                dependency_info["parameters"].append(
+                    {
+                        "label": label,
+                        "type": info,
+                        "python_type": {
+                            "type": python_type,
+                            "description": info.get("description", ""),
+                        },
+                        "component": type.capitalize(),
+                        "example_input": example,
+                    }
+                )
+
+            outputs = dependency["outputs"]
+            for o in outputs:
+                for component in config["components"]:
+                    if component["id"] == o:
+                        break
+                else:
+                    skip_endpoint = True  # if component not found, skip endpoint
+                    break
+                type = component["type"]
+                if self.blocks[component["id"]].skip_api:
+                    continue
+                label = component["props"].get("label", f"value_{o}")
+                info = self.get_component(component["id"]).api_info()
+                example = self.get_component(component["id"]).example_inputs()
+                python_type = client_utils.json_schema_to_python_type(info)
+                dependency_info["returns"].append(
+                    {
+                        "label": label,
+                        "type": info,
+                        "python_type": {
+                            "type": python_type,
+                            "description": info.get("description", ""),
+                        },
+                        "component": type.capitalize(),
+                    }
+                )
+
+            if not dependency["backend_fn"]:
+                skip_endpoint = True
+
+            if skip_endpoint:
+                continue
+            if (
+                dependency["api_name"] is not None
+                and dependency["api_name"] is not False
+            ):
+                api_info["named_endpoints"][
+                    f"/{dependency['api_name']}"
+                ] = dependency_info
+            elif (
+                dependency["api_name"] is False
+                or mode == "interface"
+                or mode == "tabbed_interface"
+            ):
+                pass  # Skip unnamed endpoints in interface mode
+            else:
+                api_info["unnamed_endpoints"][str(d)] = dependency_info
+
+        return api_info

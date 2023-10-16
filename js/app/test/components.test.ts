@@ -30,7 +30,7 @@ import StaticNumber from "@gradio/number/static";
 import StaticRadio from "@gradio/radio/static";
 import StaticSlider from "@gradio/slider/static";
 import StaticTextbox from "@gradio/textbox/static";
-import StaticTimeSeries from "@gradio/timeseries/static";
+// import StaticTimeSeries from "@gradio/timeseries/static";
 import StaticUploadButton from "@gradio/uploadbutton/static";
 import StaticVideo from "@gradio/video/static";
 
@@ -46,7 +46,7 @@ import InteractiveNumber from "@gradio/number/interactive";
 import InteractiveRadio from "@gradio/radio/interactive";
 import InteractiveSlider from "@gradio/slider/interactive";
 import InteractiveTextbox from "@gradio/textbox/interactive";
-import InteractiveTimeSeries from "@gradio/timeseries/interactive";
+// import InteractiveTimeSeries from "@gradio/timeseries/interactive";
 import InteractiveUploadButton from "@gradio/uploadbutton/interactive";
 import InteractiveVideo from "@gradio/video/interactive";
 import { LoadingStatus } from "@gradio/statustracker";
@@ -118,8 +118,8 @@ const components = [
 	["StaticSlider", StaticSlider, {}],
 	["InteractiveTextbox", InteractiveTextbox, { container: false }],
 	["StaticTextbox", StaticTextbox, { container: false }],
-	["InteractiveTimeSeries", InteractiveTimeSeries, {}],
-	["StaticTimeSeries", StaticTimeSeries, {}],
+	// ["InteractiveTimeSeries", InteractiveTimeSeries, {}],
+	// ["StaticTimeSeries", StaticTimeSeries, {}],
 	["InteractiveUploadButton", InteractiveUploadButton, {}],
 	["StaticUploadButton", StaticUploadButton, {}],
 	["InteractiveVideo", InteractiveVideo, {}],

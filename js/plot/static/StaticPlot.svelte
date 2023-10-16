@@ -7,7 +7,7 @@
 
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { _ } from "svelte-i18n";
+
 	import type { ThemeMode } from "js/app/src/components/types";
 
 	export let value: null | string = null;
@@ -40,8 +40,16 @@
 	{min_width}
 	allow_overflow={false}
 >
-	<BlockLabel {show_label} label={label || $_("plot.plot")} Icon={PlotIcon} />
-	<StatusTracker {...loading_status} />
+	<BlockLabel
+		{show_label}
+		label={label || gradio.i18n("plot.plot")}
+		Icon={PlotIcon}
+	/>
+	<StatusTracker
+		autoscroll={gradio.autoscroll}
+		i18n={gradio.i18n}
+		{...loading_status}
+	/>
 	<Plot
 		{value}
 		{target}

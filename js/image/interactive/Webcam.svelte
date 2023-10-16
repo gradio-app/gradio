@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from "svelte";
 	import { Camera, Circle, Square } from "@gradio/icons";
-	import { _ } from "svelte-i18n";
+	import type { I18nFormatter } from "js/utils/src";
 
 	let video_source: HTMLVideoElement;
 	let canvas: HTMLCanvasElement;
@@ -11,6 +11,7 @@
 	export let mode: "image" | "video" = "image";
 	export let mirror_webcam: boolean;
 	export let include_audio: boolean;
+	export let i18n: I18nFormatter;
 
 	const dispatch = createEventDispatcher<{
 		stream: undefined;
@@ -19,6 +20,7 @@
 					data: FileReader["result"];
 					name: string;
 					is_example?: boolean;
+					is_file: boolean;
 			  }
 			| string;
 		error: string;
@@ -39,7 +41,7 @@
 			video_source.play();
 		} catch (err) {
 			if (err instanceof DOMException && err.name == "NotAllowedError") {
-				dispatch("error", $_("image.allow_webcam_access"));
+				dispatch("error", i18n("image.allow_webcam_access"));
 			} else {
 				throw err;
 			}
@@ -82,6 +84,7 @@
 						data: e.target.result,
 						name: "sample." + mimeType.substring(6),
 						is_example: false,
+						is_file: false
 					});
 					dispatch("stop_recording");
 				}

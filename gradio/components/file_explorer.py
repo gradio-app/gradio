@@ -7,29 +7,32 @@ import os
 import re
 from glob import glob as glob_func
 from pathlib import Path
-from typing import Callable, Literal
+from typing import Any, Callable, List, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import JSONSerializable
 
-from gradio.components.base import IOComponent, server
-from gradio.events import (
-    Changeable,
-    EventListenerMethod,
-)
+from gradio.components.base import Component, server
+from gradio.data_classes import GradioRootModel
 
 set_documentation_group("component")
 
 
+class FileExplorerData(GradioRootModel):
+    root: List[List[str]]
+
+
 @document()
-class FileExplorer(Changeable, IOComponent, JSONSerializable):
+class FileExplorer(Component):
     """
     Creates a file explorer component that allows users to browse and select files on the machine hosting the Gradio app.
-    Preprocessing: passes the selected file or directory as a {str} path (relative to root) or {list[str]} depending on `file_count`
+    Preprocessing: passes the selected file or directory as a {str} path (relative to root) or {list[str}} depending on `file_count`
     Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
     Examples-format: a {str} path to a local file that populates the component.
     Demos: zip_to_json, zip_files
     """
+
+    EVENTS = ["change"]
+    data_model = FileExplorerData
 
     def __init__(
         self,
@@ -81,14 +84,8 @@ class FileExplorer(Changeable, IOComponent, JSONSerializable):
             )
         self.file_count = file_count
         self.height = height
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user selects file from list.
-        Uses event data gradio.SelectData to carry `value` referring to name of selected file, and `index` to refer to index.
-        See EventData documentation on how to use this event data.
-        """
-        IOComponent.__init__(
-            self,
+
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -102,6 +99,9 @@ class FileExplorer(Changeable, IOComponent, JSONSerializable):
             value=value,
             **kwargs,
         )
+
+    def example_inputs(self) -> Any:
+        return [["Users", "gradio", "app.py"]]
 
     def preprocess(self, x: list[list[str]] | None) -> list[str] | str | None:
         """
@@ -125,7 +125,7 @@ class FileExplorer(Changeable, IOComponent, JSONSerializable):
             return path[len(self.root) + 1 :]
         return path
 
-    def postprocess(self, y: str | list[str] | None) -> list[list[str]] | None:
+    def postprocess(self, y: str | list[str] | None) -> FileExplorerData | None:
         """
         Parameters:
             y: file path
@@ -137,7 +137,9 @@ class FileExplorer(Changeable, IOComponent, JSONSerializable):
 
         files = [y] if isinstance(y, str) else y
 
-        return [self._strip_root(file).split(os.path.sep) for file in (files)]
+        return FileExplorerData(
+            root=[self._strip_root(file).split(os.path.sep) for file in files]
+        )
 
     @server
     def ls(self, y=None) -> list[dict[str, str]] | None:
