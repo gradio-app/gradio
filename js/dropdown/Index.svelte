@@ -79,7 +79,6 @@
 			{filterable}
 			{allow_custom_value}
 			{container}
-			i18n={gradio.i18n}
 			on:change={() => gradio.dispatch("change")}
 			on:input={() => gradio.dispatch("input")}
 			on:select={(e) => gradio.dispatch("select", e.detail)}

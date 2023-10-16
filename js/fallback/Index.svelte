@@ -16,9 +16,7 @@
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value = false;
-	export let value_is_output = false;
-	export let label = gradio.i18n("checkbox.checkbox");
-	export let info: string | undefined = undefined;
+
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;

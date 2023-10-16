@@ -9,8 +9,7 @@
 	"main_changeset": true,
 	"exports": {
 		".": "./Index.svelte",
-		"./package.json": "./package.json",
-		"./example": "./Example.svelte"
+		"./package.json": "./package.json"
 	},
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
