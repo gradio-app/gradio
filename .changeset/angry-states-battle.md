@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Conditional global variable check to fix issue #5583
+fix:Ensure websocket polyfill doesn't load if there is already a `global.Webocket` property set
