@@ -1,0 +1,48 @@
+---
+"@gradio/accordion": patch
+"@gradio/annotatedimage": patch
+"@gradio/app": patch
+"@gradio/atoms": patch
+"@gradio/audio": patch
+"@gradio/box": patch
+"@gradio/button": patch
+"@gradio/chatbot": patch
+"@gradio/checkbox": patch
+"@gradio/checkboxgroup": patch
+"@gradio/client": patch
+"@gradio/code": patch
+"@gradio/colorpicker": patch
+"@gradio/dataframe": patch
+"@gradio/dataset": patch
+"@gradio/dropdown": patch
+"@gradio/fallback": patch
+"@gradio/file": patch
+"@gradio/fileexplorer": patch
+"@gradio/form": patch
+"@gradio/gallery": patch
+"@gradio/highlightedtext": patch
+"@gradio/html": patch
+"@gradio/image": patch
+"@gradio/json": patch
+"@gradio/label": patch
+"@gradio/lite": patch
+"@gradio/markdown": patch
+"@gradio/model3d": patch
+"@gradio/number": patch
+"@gradio/plot": patch
+"@gradio/preview": patch
+"@gradio/radio": patch
+"@gradio/slider": patch
+"@gradio/state": patch
+"@gradio/statustracker": patch
+"@gradio/textbox": patch
+"@gradio/upload": patch
+"@gradio/uploadbutton": patch
+"@gradio/video": patch
+"@gradio/wasm": patch
+"gradio": patch
+"imageslider": patch
+"newnewtext": patch
+---
+
+feat:V4: Use beta release versions for '@gradio' packages
