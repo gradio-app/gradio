@@ -26,6 +26,7 @@ from gradio.cli.commands.components.create import _create
         "ScatterPlot",
         "UploadButton",
         "JSON",
+        "FileExplorer",
     ],
 )
 def test_template_override_component(template, tmp_path):
