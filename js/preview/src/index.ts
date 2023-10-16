@@ -66,25 +66,28 @@ async function run(): Promise<void> {
 		);
 
 		_process.stdout.setEncoding("utf8");
+		_process.stderr.setEncoding("utf8");
 
-		function std_out(data: Buffer): void {
-			const _data = data.toString();
+		function std_out(mode: "stdout" | "stderr") {
+			return function (data: Buffer): void {
+				const _data = data.toString();
 
-			if (_data.includes("Running on")) {
-				create_server({
-					component_dir: options.component_dir,
-					root_dir: options.root_dir,
-					frontend_port,
-					backend_port,
-					host: options.host
-				});
-			}
+				if (_data.includes("Running on")) {
+					create_server({
+						component_dir: options.component_dir,
+						root_dir: options.root_dir,
+						frontend_port,
+						backend_port,
+						host: options.host
+					});
+				}
 
-			process.stdout.write(_data);
+				process[mode].write(_data);
+			};
 		}
 
-		_process.stdout.on("data", std_out);
-		_process.stderr.on("data", std_out);
+		_process.stdout.on("data", std_out("stdout"));
+		_process.stderr.on("data", std_out("stderr"));
 		_process.on("exit", () => kill_process(_process));
 		_process.on("close", () => kill_process(_process));
 		_process.on("disconnect", () => kill_process(_process));
