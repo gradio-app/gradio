@@ -113,8 +113,6 @@ For more information check the [`FileExplorer` documentation](https://gradio.app
 ### Fixes
 
 - [#5625](https://github.com/gradio-app/gradio/pull/5625) [`9ccc4794a`](https://github.com/gradio-app/gradio/commit/9ccc4794a72ce8319417119f6c370e7af3ffca6d) - Use ContextVar instead of threading.local().  Thanks [@cbensimon](https://github.com/cbensimon)!
-<<<<<<< HEAD
-<<<<<<< HEAD
 - [#5636](https://github.com/gradio-app/gradio/pull/5636) [`fb5964fb8`](https://github.com/gradio-app/gradio/commit/fb5964fb88082e7b956853b543c468116811cab9) - Fix bug in example cache loading event.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
 - [#5633](https://github.com/gradio-app/gradio/pull/5633) [`341402337`](https://github.com/gradio-app/gradio/commit/34140233794c29d4722020e13c2d045da642dfae) - Allow Gradio apps containing `gr.Radio()`, `gr.Checkboxgroup()`, or `gr.Dropdown()` to be loaded with `gr.load()`.  Thanks [@abidlabs](https://github.com/abidlabs)!
 - [#5593](https://github.com/gradio-app/gradio/pull/5593) [`88d43bd12`](https://github.com/gradio-app/gradio/commit/88d43bd124792d216da445adef932a2b02f5f416) - Fixes avatar image in chatbot being squashed.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
