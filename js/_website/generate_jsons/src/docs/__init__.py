@@ -114,7 +114,6 @@ def convert_inline_styles(raw_string: str) -> str:
 def style_types():
     for mode in docs:
         for cls in docs[mode]:
-            cls["styled_description"] = convert_inline_styles(cls["description"])
             for tag in [
                 "preprocessing",
                 "postprocessing",

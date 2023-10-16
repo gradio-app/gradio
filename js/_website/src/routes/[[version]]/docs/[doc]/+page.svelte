@@ -5,6 +5,7 @@
 	import EventListeners from "$lib/components/EventListeners.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import anchor from "$lib/assets/img/anchor.svg";
+	import { style_formatted_text } from "$lib/text";
 	import { onDestroy } from "svelte";
 	import { page } from "$app/stores";
 
@@ -216,7 +217,7 @@
 									><img class="anchor-img-small" src={anchor} /></a
 								>
 							</h4>
-							<p class="mb-2 text-lg text-gray-600">{@html obj.styled_description}</p>
+							<p class="mb-2 text-lg text-gray-600">{@html style_formatted_text(obj.description)}</p>
 						</div>
 
 						{#if mode === "components"}
