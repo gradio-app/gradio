@@ -1,6 +1,6 @@
+import html
 import json
 import os
-import re
 
 from gradio_client.documentation import document_cls, generate_documentation
 
@@ -98,22 +98,10 @@ def add_guides():
 add_guides()
 
 
-RX_CURLY_BRACKET = re.compile(r'\{([^}]+?)\}')
-RX_SINGLE_ASTERISK = re.compile(r'\*([^*]+?)\*')
-RX_BACKTICK = re.compile(r'`([^`]+?)`')
-
-
-def convert_inline_styles(raw_string: str) -> str:
-    output = raw_string
-    output = RX_CURLY_BRACKET.sub(r"<span class='text-orange-500' style='font-family: monospace; font-size: large;' >\1</span>", output)
-    output = RX_SINGLE_ASTERISK.sub(r'<span class="italic font-semibold">\1</span>', output)
-    output = RX_BACKTICK.sub(r"<span class='text-orange-500' style='font-family: monospace; font-size: large;' >\1</span>", output)
-    return output
-
-
-def style_types():
+def escape_html_string_fields():
     for mode in docs:
         for cls in docs[mode]:
+            cls["description"] = html.escape(cls["description"])
             for tag in [
                 "preprocessing",
                 "postprocessing",
@@ -122,10 +110,10 @@ def style_types():
             ]:
                 if tag not in cls["tags"]:
                     continue
-                cls[tag] = convert_inline_styles(cls["tags"][tag])
+                cls["tags"][tag] = html.escape(cls["tags"][tag])
 
 
-style_types()
+escape_html_string_fields()
 
 
 def override_signature(name, signature):
