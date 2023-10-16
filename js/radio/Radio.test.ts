@@ -3,7 +3,7 @@ import { test, describe, assert, afterEach } from "vitest";
 import { cleanup, render } from "@gradio/tootils";
 import event from "@testing-library/user-event";
 
-import Radio from "./interactive";
+import Radio from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status = {

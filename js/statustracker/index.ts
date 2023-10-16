@@ -1,5 +1,5 @@
-export { default as StatusTracker } from "./static/index.svelte";
-export { default as Toast } from "./static/Toast.svelte";
-export { default as Loader } from "./static/Loader.svelte";
-export type * from "./static/types";
-export { default } from "./static/index.svelte";
+export { default as StatusTracker } from "./shared/index.svelte";
+export { default as Toast } from "./shared/Toast.svelte";
+export { default as Loader } from "./shared/Loader.svelte";
+export { default } from "./shared/index.svelte";
+export type { LoadingStatus, ToastMessage } from "./shared/types";

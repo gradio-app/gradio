@@ -3,16 +3,12 @@
 	"version": "0.2.2",
 	"description": "Gradio UI packages",
 	"type": "module",
-	"main": "./index.ts",
 	"author": "",
 	"license": "ISC",
 	"main_changeset": true,
 	"exports": {
 		".": "./index.ts",
-		"./package.json": "./package.json",
-		"./interactive": "./interactive/index.ts",
-		"./static": "./static/index.ts",
-		"./example": "./example/index.ts"
+		"./package.json": "./package.json"
 	},
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",

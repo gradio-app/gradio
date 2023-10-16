@@ -4,7 +4,7 @@
 
 	import Arrow from "./ArrowIcon.svelte";
 	import Checkbox from "./Checkbox.svelte";
-	import FileIcon from "../icons/light-file.svg";
+	import FileIcon from "./light-file.svg";
 
 	export let mode: "static" | "interactive";
 	export let tree: Node[] = [];

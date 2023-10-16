@@ -1,19 +1,27 @@
 [build-system]
-requires = ["hatchling", "hatch-requirements-txt", "hatch-fancy-pypi-readme>=22.5.0"]
+requires = [
+  "hatchling",
+  "hatch-requirements-txt",
+  "hatch-fancy-pypi-readme>=22.5.0",
+]
 build-backend = "hatchling.build"
 
 [project]
-name = "newtext"
+name = "gradio_newtext"
 version = "0.0.1"
 description = "Python library for easily interacting with trained machine learning models"
 license = "Apache-2.0"
 requires-python = ">=3.8"
-authors = [
-  { name = "YOUR NAME", email = "YOUREMAIL@domain.com" },
+authors = [{ name = "YOUR NAME", email = "YOUREMAIL@domain.com" }]
+keywords = [
+  "machine learning",
+  "reproducibility",
+  "visualization",
+  "gradio",
+  "gradio custom component",
 ]
-keywords = ["machine learning", "reproducibility", "visualization"]
 # Add dependencies here
-dependencies = []
+dependencies = ["gradio"]
 classifiers = [
   'Development Status :: 3 - Alpha',
   'License :: OSI Approved :: Apache Software License',
@@ -29,12 +37,11 @@ classifiers = [
   'Topic :: Scientific/Engineering :: Visualization',
 ]
 
-[tool.hatch.build]
-artifacts = [
-  "/backend/newtext/templates",
-  "*.pyi"
-]
-packages = ["/backend/newtext"]
+[project.optional-dependencies]
+dev = ["build", "twine"]
 
-[tool.hatch.metadata]
-allow-direct-references = true
+[tool.hatch.build]
+artifacts = ["/backend/gradio_newtext/templates", "*.pyi"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["/backend/gradio_newtext"]

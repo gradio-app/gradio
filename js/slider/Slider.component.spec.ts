@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/experimental-ct-svelte";
 import type { Page, Locator } from "@playwright/test";
-import Slider from "./interactive";
+import Slider from "./Index.svelte";
 import { spy } from "tinyspy";
 
 import type { LoadingStatus } from "@gradio/statustracker";

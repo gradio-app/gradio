@@ -4,7 +4,7 @@
 	import { dequal } from "dequal/lite";
 	import { copy } from "@gradio/utils";
 	import { Upload } from "@gradio/upload";
-	import { BaseButton } from "@gradio/button/static";
+	import { BaseButton } from "@gradio/button";
 	import EditableCell from "./EditableCell.svelte";
 	import type { SelectData } from "@gradio/utils";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";

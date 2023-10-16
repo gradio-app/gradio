@@ -1,6 +1,5 @@
 import { test, expect } from "@playwright/experimental-ct-svelte";
-import Label from "./static";
-import { spy } from "tinyspy";
+import Label from "./shared/Label.svelte";
 
 import type { LoadingStatus } from "@gradio/statustracker";
 

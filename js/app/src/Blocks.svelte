@@ -237,13 +237,17 @@
 					}
 					let _c;
 
-					const id = components.find(
-						(c) => c.type === name
-					)?.component_class_id;
-					//@ts-ignore
-					_c = load_component(api_url, name, "example", id);
+					const matching_component = components.find((c) => c.type === name);
 
-					example_component_map.set(name, _c);
+					if (matching_component) {
+						_c = load_component({
+							api_url,
+							name,
+							id: matching_component.component_class_id,
+							variant: "example"
+						});
+						example_component_map.set(name, _c);
+					}
 				});
 
 				c.props.component_map = example_component_map;
@@ -251,12 +255,12 @@
 
 			// maybe load custom
 
-			const _c = load_component(
+			const _c = load_component({
 				api_url,
-				c.type,
-				c.props.mode,
-				c.component_class_id
-			);
+				name: c.type,
+				id: c.component_class_id,
+				variant: "component"
+			});
 			_component_set.add(_c);
 			__component_map.set(`${c.type}_${c.props.mode}`, _c);
 		});
@@ -276,37 +280,6 @@
 		});
 	}
 
-	async function update_interactive_mode(
-		instance: ComponentMeta,
-		mode: "dynamic" | "interactive" | "static"
-	): Promise<void> {
-		let new_mode: "interactive" | "static" =
-			mode === "dynamic" ? "interactive" : mode;
-
-		if (instance.props.mode === new_mode) return;
-
-		instance.props.mode = new_mode;
-		const _c = load_component(
-			api_url,
-			instance.type,
-			instance.props.mode,
-			instance.component_class_id
-		);
-		component_set.add(_c);
-		_component_map.set(
-			`${instance.type}_${instance.props.mode}`,
-			_c as Promise<{
-				name: ComponentMeta["type"];
-				component: LoadedComponent;
-			}>
-		);
-
-		_c.then((c) => {
-			instance.component = c.component.default;
-			rootNode = rootNode;
-		});
-	}
-
 	function handle_update(data: any, fn_index: number): void {
 		const outputs = dependencies[fn_index].outputs;
 		data?.forEach((value: any, i: number) => {
@@ -317,17 +290,9 @@
 				value !== null &&
 				value.__type__ === "update"
 			) {
-				for (const [update_key, update_value] of Object.entries(value)) {
+				for (const [update_key] of Object.entries(value)) {
 					if (update_key === "__type__") {
 						continue;
-					} else {
-						if (update_key === "mode") {
-							update_interactive_mode(
-								output,
-								update_value as "dynamic" | "static"
-							);
-						}
-						output.props[update_key] = update_value;
 					}
 				}
 			} else {

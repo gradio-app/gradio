@@ -2,7 +2,7 @@ import { test, describe, assert, afterEach, vi } from "vitest";
 import { cleanup, render } from "@gradio/tootils";
 import { setupi18n } from "../app/src/i18n";
 
-import Gallery from "./static";
+import Gallery from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status: LoadingStatus = {

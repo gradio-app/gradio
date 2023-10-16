@@ -2,7 +2,7 @@ import { test, describe, assert, afterEach } from "vitest";
 import { cleanup, fireEvent, render } from "@gradio/tootils";
 import { setupi18n } from "../app/src/i18n";
 
-import HighlightedText from "./interactive";
+import HighlightedText from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status: LoadingStatus = {
@@ -34,7 +34,8 @@ describe("HighlightedText", () => {
 					[" jumped ", "past tense verb"],
 					["over the", null],
 					["lazy dog", "object"]
-				]
+				],
+				mode: "interactive"
 			}
 		);
 
@@ -57,7 +58,8 @@ describe("HighlightedText", () => {
 				[" jumped ", "past tense verb"],
 				["over the", null],
 				["lazy dog", "object"]
-			]
+			],
+			mode: "interactive"
 		});
 
 		const mock = listen("change");

@@ -2,10 +2,8 @@ import * as fs from "fs";
 import { join } from "path";
 import { build } from "vite";
 import { plugins, make_gradio_plugin } from "./plugins";
-import path from "path";
 import { examine_module } from "./index";
 
-import { patch } from "toml-patch";
 interface BuildOptions {
 	component_dir: string;
 	root_dir: string;
@@ -24,9 +22,16 @@ export async function make_build({
 			const template_dir = comp.template_dir;
 			const source_dir = comp.frontend_dir;
 
-			const entries = ["interactive", "example", "static"];
+			const pkg = JSON.parse(
+				fs.readFileSync(join(source_dir, "package.json"), "utf-8")
+			);
 
-			for (const entry of entries) {
+			const exports: string[][] = [
+				["component", pkg.exports["."] as string],
+				["exmaple", pkg.exports["./example"] as string]
+			].filter(([_, path]) => !!path);
+
+			for (const [entry, path] of exports) {
 				try {
 					const x = await build({
 						plugins: [
@@ -37,7 +42,7 @@ export async function make_build({
 							emptyOutDir: true,
 							outDir: join(template_dir, entry),
 							lib: {
-								entry: join(source_dir, entry, "index.ts"),
+								entry: join(source_dir, path),
 								fileName: "index.js",
 								formats: ["es"]
 							},

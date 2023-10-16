@@ -1,6 +1,6 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import Gallery from "./static/";
+	import Gallery from "./shared/Gallery.svelte";
 </script>
 
 <Meta

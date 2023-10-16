@@ -1,10 +1,13 @@
 
 import gradio as gr
-from newtext import NewText
+from gradio_newtext import NewText
+
+
+example = NewText().example_inputs()
 
 with gr.Blocks() as demo:
-    NewText(interactive=True)
-    NewText(interactive=False)
-    
+    NewText(value=example, interactive=True)
+    NewText(value=example, interactive=False)
+
 
 demo.launch()

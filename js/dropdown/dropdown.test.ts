@@ -3,7 +3,7 @@ import { cleanup, render } from "@gradio/tootils";
 import event from "@testing-library/user-event";
 import { setupi18n } from "../app/src/i18n";
 
-import Dropdown from "./interactive";
+import Dropdown from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status: LoadingStatus = {
@@ -36,7 +36,8 @@ describe("Dropdown", () => {
 				["choice", "choice"],
 				["choice2", "choice2"]
 			],
-			filterable: false
+			filterable: false,
+			mode: "interactive"
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -56,7 +57,8 @@ describe("Dropdown", () => {
 				["choice", "choice"],
 				["name2", "choice2"]
 			],
-			filterable: true
+			filterable: true,
+			mode: "interactive"
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -83,7 +85,8 @@ describe("Dropdown", () => {
 				["apple", "apple"],
 				["zebra", "zebra"]
 			],
-			filterable: true
+			filterable: true,
+			mode: "interactive"
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -114,7 +117,8 @@ describe("Dropdown", () => {
 				["default", "default"],
 				["other", "other"]
 			],
-			filterable: false
+			filterable: false,
+			mode: "interactive"
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -139,7 +143,8 @@ describe("Dropdown", () => {
 				["dwight", "dwight"],
 				["michael", "michael"]
 			],
-			filterable: true
+			filterable: true,
+			mode: "interactive"
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -165,7 +170,8 @@ describe("Dropdown", () => {
 				["default", "default"],
 				["other", "other"]
 			],
-			filterable: true
+			filterable: true,
+			mode: "interactive"
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -194,7 +200,8 @@ describe("Dropdown", () => {
 				["zebra", "zebra"],
 				["pony", "pony"]
 			],
-			filterable: true
+			filterable: true,
+			mode: "interactive"
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -230,7 +237,8 @@ describe("Dropdown", () => {
 					["zebra", "zebra"],
 					["pony", "pony"]
 				],
-				filterable: true
+				filterable: true,
+				mode: "interactive"
 			}
 		);
 
@@ -273,7 +281,8 @@ describe("Dropdown", () => {
 					["zebra", "zebra"],
 					["pony", "pony"]
 				],
-				filterable: true
+				filterable: true,
+				mode: "interactive"
 			}
 		);
 
@@ -302,7 +311,8 @@ describe("Dropdown", () => {
 					["zebra", "zebra"],
 					["pony", "pony"]
 				],
-				filterable: true
+				filterable: true,
+				mode: "interactive"
 			}
 		);
 

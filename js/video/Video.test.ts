@@ -12,8 +12,8 @@ import { spy, spyOn } from "tinyspy";
 import { cleanup, render } from "@gradio/tootils";
 import { setupi18n } from "../app/src/i18n";
 
-import InteractiveVideo from "./interactive";
-import StaticVideo from "./static";
+import InteractiveVideo from "./Index.svelte";
+import StaticVideo from "./Index.svelte";
 
 import type { LoadingStatus } from "@gradio/statustracker";
 
