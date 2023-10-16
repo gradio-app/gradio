@@ -169,14 +169,6 @@
 		background-color: rgba(255, 255, 255, 0.9);
 	}
 
-	video {
-		position: inherit;
-		background-color: black;
-		width: var(--size-full);
-		height: var(--size-full);
-		object-fit: contain;
-	}
-
 	.mirror {
 		transform: scaleX(-1);
 	}

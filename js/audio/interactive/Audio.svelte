@@ -368,10 +368,4 @@
 			opacity: 0;
 		}
 	}
-
-	.container {
-		padding: var(--size-2);
-		width: var(--size-full);
-		height: var(--size-14);
-	}
 </style>
