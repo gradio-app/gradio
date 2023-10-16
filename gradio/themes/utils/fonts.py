@@ -40,6 +40,12 @@ class Font:
     def __eq__(self, other: Font) -> bool:
         return self.name == other.name and self.stylesheet() == other.stylesheet()
 
+    def __repr__(self) -> str:
+        klass = type(self)
+        class_repr = klass.__module__ + "." + klass.__qualname__
+        attrs = ", ".join([k + "=" + repr(v) for k, v in self.__dict__.items()])
+        return f"<{class_repr} ({attrs})>"
+
 
 class GoogleFont(Font):
     def __init__(self, name: str, weights: Iterable[int] = (400, 600)):
