@@ -590,7 +590,7 @@ class Interface(Blocks):
                 for component in self.input_components:
                     if component.has_event("stream") and component.streaming:  # type: ignore
                         events.append(component.stream)  # type: ignore
-                    elif Events.change in component.events:
+                    elif component.has_event("change"):
                         events.append(component.change)  # type: ignore
                 on(
                     events,

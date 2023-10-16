@@ -1,6 +1,11 @@
 {
+<<<<<<<< HEAD:js/fileexplorer/package.json
 	"name": "@gradio/fileexplorer",
 	"version": "0.2.1",
+========
+	"name": "@gradio/timeseries",
+	"version": "0.0.8",
+>>>>>>>> main:js/timeseries/package.json
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "./index.svelte",
