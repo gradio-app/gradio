@@ -31,3 +31,12 @@
 {:catch error}
 	<p style="color: red;">{error.message}</p>
 {/await}
+
+
+<style>
+	audio {
+		padding: var(--size-2);
+		width: var(--size-full);
+		height: var(--size-14);
+	}
+</style>
