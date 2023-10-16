@@ -29,7 +29,10 @@
 	export let show_download_button = false;
 	export let i18n: I18nFormatter;
 	export let selected_index: number | null = null;
+
 	const dispatch = createEventDispatcher<{
+		change: undefined;
+		select: SelectData;
 	}>();
 
 	// tracks whether the value of the gallery was reset
@@ -244,8 +247,13 @@
 					</button>
 				{/each}
 			</div>
+		</button>
 	{/if}
 
+	<div
+		bind:clientHeight={client_height}
+		class="grid-wrap"
+		class:fixed-height={!height || height == "auto"}
 	>
 		<div
 			class="grid-container"
