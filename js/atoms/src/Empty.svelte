@@ -23,6 +23,7 @@
 	class:unpadded_box
 	bind:this={el}
 	class:small_parent={parent_height}
+	aria-label="Empty value"
 >
 	<div class="icon">
 		<slot />

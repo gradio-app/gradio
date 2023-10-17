@@ -24,39 +24,29 @@
 		}
 	}
 
-	function is_empty(obj: object): boolean {
-		return (
-			obj &&
-			Object.keys(obj).length === 0 &&
-			Object.getPrototypeOf(obj) === Object.prototype
-		);
-	}
-
 	onDestroy(() => {
 		if (timer) clearTimeout(timer);
 	});
 </script>
 
-{#if value && value !== '""' && !is_empty(value)}
-	<button
-		on:click={handle_copy}
-		title="copy"
-		class={copied ? "" : "copy-text"}
-		aria-roledescription={copied ? "Copied value" : "Copy value"}
-		aria-label={copied ? "Copied" : "Copy"}
-	>
-		{#if copied}
-			<span in:fade={{ duration: 300 }}>
-				<Check />
-			</span>
-		{:else}
-			<Copy />
-		{/if}
-	</button>
-	<div class="json-holder">
-		<JSONNode {value} depth={0} />
-	</div>
-{/if}
+<button
+	on:click={handle_copy}
+	title="copy"
+	class={copied ? "" : "copy-text"}
+	aria-roledescription={copied ? "Copied value" : "Copy value"}
+	aria-label={copied ? "Copied" : "Copy"}
+>
+	{#if copied}
+		<span in:fade={{ duration: 300 }}>
+			<Check />
+		</span>
+	{:else}
+		<Copy />
+	{/if}
+</button>
+<div class="json-holder">
+	<JSONNode {value} depth={0} />
+</div>
 
 <style>
 	.json-holder {

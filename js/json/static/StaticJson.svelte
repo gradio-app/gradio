@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { Gradio } from "@gradio/utils";
-	import JSON from "./JSON.svelte";
+	import JSONComponent from "./JSON.svelte";
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import { JSON as JSONIcon } from "@gradio/icons";
+	import { Empty } from "@gradio/atoms";
 
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
@@ -29,6 +30,15 @@
 			gradio.dispatch("change");
 		}
 	}
+
+	function is_empty(obj: object): boolean {
+		return (
+			obj &&
+			Object.keys(obj).length === 0 &&
+			Object.getPrototypeOf(obj) === Object.prototype &&
+			JSON.stringify(obj) === "{}"
+		);
+	}
 </script>
 
 <Block
@@ -53,5 +63,11 @@
 
 	<StatusTracker {...loading_status} />
 
-	<JSON {value} />
+	{#if value && value !== '""' && !is_empty(value)}
+		<JSONComponent {value} />
+	{:else}
+		<Empty>
+			<JSONIcon />
+		</Empty>
+	{/if}
 </Block>
