@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { BaseButton } from "@gradio/button/static";
+	import { BaseButton } from "@gradio/button";
 	import { createEventDispatcher } from "svelte";
 	import type { FileData } from "@gradio/upload";
 

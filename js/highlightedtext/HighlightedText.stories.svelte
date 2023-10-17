@@ -1,6 +1,6 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import HighlightedText from "./static";
+	import HighlightedText from "./Index.svelte";
 	import { Gradio } from "@gradio/utils";
 </script>
 
@@ -11,14 +11,15 @@
 		value={[
 			["zebras", "+"],
 			["dogs", "-"],
-			["elephants", "+"],
+			["elephants", "+"]
 		]}
 		gradio={new Gradio(
 			0,
 			document.body,
 			"light",
 			"1.1.1",
-			"http://localhost:7860"
+			"http://localhost:7860",
+			false
 		)}
 		{...args}
 	/>
@@ -30,7 +31,7 @@
 <Story
 	name="Highlighted Text with new lines"
 	args={{
-		value: [["zebras", "+"], ["\n"], ["dogs", "-"], ["\n"], ["elephants", "+"]],
+		value: [["zebras", "+"], ["\n"], ["dogs", "-"], ["\n"], ["elephants", "+"]]
 	}}
 />
 <Story
@@ -48,9 +49,9 @@
 			["fox", "subject"],
 			[" jumped ", "past tense verb"],
 			["over the", null],
-			["lazy dog", "object"],
+			["lazy dog", "object"]
 		],
-		combine_adjacent: true,
+		combine_adjacent: true
 	}}
 />
 
@@ -64,8 +65,8 @@
 			["fox", "subject"],
 			[" jumped ", "past tense verb"],
 			["over the", null],
-			["lazy dog", "object"],
-		],
+			["lazy dog", "object"]
+		]
 	}}
 />
 
@@ -81,9 +82,9 @@
 			["jumped", "past tense verb"],
 			["\n"],
 			["over the", null],
-			["lazy dog", "object"],
+			["lazy dog", "object"]
 		],
-		combine_adjacent: true,
+		combine_adjacent: true
 	}}
 />
 
@@ -93,9 +94,9 @@
 		value: [
 			["the", -1],
 			["quick", 1],
-			["fox", 0.3],
+			["fox", 0.3]
 		],
 
-		show_legend: true,
+		show_legend: true
 	}}
 />

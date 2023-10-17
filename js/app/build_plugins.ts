@@ -216,13 +216,13 @@ function get_export_path(
 	pkg_json: Record<string, any>
 ): string | undefined {
 	if (!pkg_json.exports) return undefined;
-	const _path = join(root, "..", `${pkg_json.exports[`./${path}`]}`);
+	const _path = join(root, "..", `${pkg_json.exports[`${path}`]}`);
 
 	return existsSync(_path) ? _path : undefined;
 }
 
 function generate_component_imports(): string {
-	const components = readdirSync(join(__dirname, ".."))
+	const exports = readdirSync(join(__dirname, ".."))
 		.map((dir) => {
 			if (!statSync(join(__dirname, "..", dir)).isDirectory()) return undefined;
 
@@ -232,48 +232,34 @@ function generate_component_imports(): string {
 					readFileSync(package_json_path, "utf8")
 				);
 
-				const interactive = get_export_path(
-					"interactive",
-					package_json_path,
-					package_json
-				);
+				const component = get_export_path(".", package_json_path, package_json);
 				const example = get_export_path(
-					"example",
-					package_json_path,
-					package_json
-				);
-				const static_dir = get_export_path(
-					"static",
+					"./example",
 					package_json_path,
 					package_json
 				);
 
-				if (!interactive && !example && !static_dir) return undefined;
+				if (!component && !example) return undefined;
 
 				return {
 					name: package_json.name,
-					interactive,
-					example,
-					static: static_dir
+					component,
+					example
 				};
 			}
 			return undefined;
 		})
 		.filter((x) => x !== undefined);
 
-	const imports = components.reduce((acc, component) => {
-		if (!component) return acc;
+	const imports = exports.reduce((acc, _export) => {
+		if (!_export) return acc;
 
-		const interactive = component.interactive
-			? `interactive: () => import("${component.name}/interactive"),\n`
+		const example = _export.example
+			? `example: () => import("${_export.name}/example"),\n`
 			: "";
-		const example = component.example
-			? `example: () => import("${component.name}/example"),\n`
-			: "";
-		return `${acc}"${component.name.replace("@gradio/", "")}": {
-			${interactive}
+		return `${acc}"${_export.name.replace("@gradio/", "")}": {
 			${example}
-			static: () => import("${component.name}/static")
+			component: () => import("${_export.name}")
 			},\n`;
 	}, "");
 
@@ -287,6 +273,8 @@ const component_map = {
 	${generate_component_imports()}
 };
 `;
+
+	console.log(component_map);
 
 	return `${component_map}\n\n${readFileSync(loader_path, "utf8")}`;
 }
