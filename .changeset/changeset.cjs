@@ -239,6 +239,12 @@ const changelogFunctions = {
 				formatted_summary = handle_line(summary, prefix, suffix);
 			}
 
+			console.log({
+				name: release.name,
+				type: _type,
+				summary: formatted_summary
+			});
+
 			//@ts-ignore
 			lines[release.name][_type].push({
 				summary: formatted_summary
