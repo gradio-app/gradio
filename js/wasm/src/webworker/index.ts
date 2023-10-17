@@ -26,7 +26,7 @@ let call_asgi_app_from_js: (
 	receive: () => Promise<unknown>,
 	send: (event: any) => Promise<void>
 ) => Promise<void>;
-let run_script: (path: string) => void;
+let run_script: (path: string) => Promise<void>;
 let unload_local_modules: (target_dir_path?: string) => void;
 
 async function loadPyodideAndPackages(
@@ -218,7 +218,7 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 			case "run-python-file": {
 				unload_local_modules();
 
-				run_script(msg.data.path);
+				await run_script(msg.data.path);
 
 				const replyMessage: ReplyMessageSuccess = {
 					type: "reply:success",
@@ -334,8 +334,8 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 
 		const replyMessage: ReplyMessageError = {
 			type: "reply:error",
-			error: cloneableError,
-		}
+			error: cloneableError
+		};
 		messagePort.postMessage(replyMessage);
 	}
 };
