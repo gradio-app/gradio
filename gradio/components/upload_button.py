@@ -149,27 +149,6 @@ class UploadButton(Component):
     def postprocess(self, y):
         return super().postprocess(y)
 
-    def style(
-        self,
-        *,
-        full_width: bool | None = None,
-        size: Literal["sm", "lg"] | None = None,
-        **kwargs,
-    ):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if full_width is not None:
-            warn_deprecation(
-                "Use `scale` in place of full_width in the constructor. "
-                "scale=1 will make the button expand, whereas 0 will not."
-            )
-            self.scale = 1 if full_width else None
-        if size is not None:
-            self.size = size
-        return self
-
     @property
     def skip_api(self):
         return False

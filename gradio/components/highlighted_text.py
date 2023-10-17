@@ -167,20 +167,3 @@ class HighlightedText(Component):
 
     def preprocess(self, x: Any) -> Any:
         return super().preprocess(x)
-
-    def style(
-        self,
-        *,
-        color_map: dict[str, str] | None = None,
-        container: bool | None = None,
-        **kwargs,
-    ):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if container is not None:
-            self.container = container
-        if color_map is not None:
-            self.color_map = color_map
-        return self

@@ -96,14 +96,5 @@ class JSON(Component):
     def read_from_flag(self, x: Any, flag_dir: str | Path | None = None):
         return json.loads(x)
 
-    def style(self, *, container: bool | None = None, **kwargs):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if container is not None:
-            self.container = container
-        return self
-
     def api_info(self) -> dict[str, Any]:
         return {"type": {}, "description": "any valid json"}

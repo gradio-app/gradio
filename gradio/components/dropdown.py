@@ -177,15 +177,6 @@ class Dropdown(FormComponent):
         else:
             self._warn_if_invalid_choice(y)
         return y
-
-    def style(self, *, container: bool | None = None, **kwargs):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if container is not None:
-            self.container = container
-        return self
-
+    
     def as_example(self, input_data):
         return next((c[0] for c in self.choices if c[1] == input_data), None)

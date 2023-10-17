@@ -344,16 +344,5 @@ class Video(Component):
         subtitle_data = client_utils.encode_url_or_file_to_base64(subtitle)
         return FileData(name=None, data=subtitle_data, is_file=False)
 
-    def style(self, *, height: int | None = None, width: int | None = None, **kwargs):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if height is not None:
-            self.height = height
-        if width is not None:
-            self.width = width
-        return self
-
     def example_inputs(self) -> Any:
         return "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"
