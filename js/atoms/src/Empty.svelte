@@ -57,14 +57,6 @@
 		margin-top: 0;
 	}
 
-	/* .unpadded_box.small {
-		min-height: var(--size-32);
-	}
-
-	.unpadded_box.large {
-		min-height: var(--size-64);
-	} */
-
 	.small_parent {
 		min-height: 100% !important;
 	}
