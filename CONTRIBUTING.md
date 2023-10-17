@@ -7,7 +7,7 @@ More than 200 awesome developers have contributed to the `gradio` library, and w
 
 Prerequisites:
 
-- [Python 3.8+](https://www.python.org/downloads/)
+- [Python 3.9+](https://www.python.org/downloads/)
 - [Node.js v16.14+](https://nodejs.dev/en/download/package-manager/) (only needed if you are making changes to the frontend)
 - [pnpm 8.1+](https://pnpm.io/8.x/installation) (only needed if you are making changes to the frontend)
  
@@ -210,7 +210,7 @@ Thank you for taking the time to contribute to our project!
 
 - Browse [issues](https://github.com/gradio-app/gradio/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) with the "good first issue" label. These are issues we think are good for newcomers.
 - Ask the Gradio community in our [Discord](https://discord.com/invite/feTf9x3ZSB)
-- Raise an issue for a feature or a bug you want to tackle
+- Raise an issue for a feature or a bug you want to tackle.
 
 ## 🚧 Troubleshooting
 `ERROR: Error loading ASGI app. Could not import module "<filename>"`
