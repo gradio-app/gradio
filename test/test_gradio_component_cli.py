@@ -60,7 +60,7 @@ def test_overwrite_deletes_previous_content(tmp_path):
     _create("MyGallery", tmp_path, template="Gallery", overwrite=True)
     _create("MySlider", tmp_path, template="Slider", overwrite=True)
     assert (tmp_path / "frontend" / "interactive" / "InteractiveSlider.svelte").exists()
-    assert not (tmp_path / "frontend" / "static" / "StaticGallery.svelte").exists()
+    assert not (tmp_path / "frontend" / "shared" / "Gallery.svelte").exists()
 
 
 def test_do_not_replace_class_name_in_import_statement(tmp_path):
