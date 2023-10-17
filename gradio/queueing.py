@@ -5,9 +5,7 @@ import copy
 import json
 import time
 import traceback
-from asyncio import TimeoutError as AsyncTimeOutError
 from collections import deque
-from typing import Any
 from queue import Queue as ThreadQueue
 
 import fastapi
@@ -44,6 +42,7 @@ class Event:
         self.data: PredictBody | None = None
         self.progress: Progress | None = None
         self.progress_pending: bool = False
+        self.alive = True
 
 
 class Queue:
@@ -56,7 +55,7 @@ class Queue:
         blocks_dependencies: list,
     ):
         self.event_queue: deque[Event] = deque()
-        self.events_pending_reconnection = []
+        self.awaiting_data_events: dict[str, Event] = {}
         self.stopped = False
         self.max_thread_count = concurrency_count
         self.update_intervals = update_intervals
@@ -78,9 +77,9 @@ class Queue:
 
     def start(self):
         run_coro_in_background(self.start_processing)
-        run_coro_in_background(self.start_log_and_progress_updates)
-        if not self.live_updates:
-            run_coro_in_background(self.notify_clients)
+        # run_coro_in_background(self.start_progress_updates)
+        # if not self.live_updates:
+        #     run_coro_in_background(self.notify_clients)
 
     def close(self):
         self.stopped = True
@@ -102,6 +101,12 @@ class Queue:
             if worker is not None:
                 count += 1
         return count
+    
+    def attach_data(self, body: PredictBody):
+        event_id = body.event_id
+        if event_id in self.awaiting_data_events:
+            event = self.awaiting_data_events[event_id]
+            event.data = body
 
     def get_events_in_batch(self) -> tuple[list[Event] | None, bool]:
         if not (self.event_queue):
@@ -125,16 +130,18 @@ class Queue:
 
     async def start_processing(self) -> None:
         while not self.stopped:
-            if not self.event_queue:
+            if len(self.event_queue) == 0:
                 await asyncio.sleep(self.sleep_when_free)
                 continue
 
             if None not in self.active_jobs:
                 await asyncio.sleep(self.sleep_when_free)
                 continue
+
             # Using mutex to avoid editing a list in use
             async with self.delete_lock:
                 events, batch = self.get_events_in_batch()
+
 
             if events:
                 self.active_jobs[self.active_jobs.index(None)] = events
@@ -147,14 +154,21 @@ class Queue:
                     events[0].fn_index,
                     batch,
                 )
-                broadcast_live_estimations_task = run_coro_in_background(
-                    self.broadcast_live_estimations
-                )
-
                 self._asyncio_tasks.append(process_event_task)
-                self._asyncio_tasks.append(broadcast_live_estimations_task)
 
-    async def start_log_and_progress_updates(self) -> None:
+                if self.live_updates:
+                    broadcast_live_estimations_task = run_coro_in_background(
+                        self.broadcast_estimations
+                    )
+                    self._asyncio_tasks.append(broadcast_live_estimations_task)
+
+
+    async def start_progress_updates(self) -> None:
+        """
+        Because progress updates can be very frequent, we do not necessarily want to send a message per update. 
+        Rather, we check for progress updates at regular intervals, and send a message if there is a pending update. 
+        Consecutive updates will overwrite each other so only the most recent update will be sent.
+        """
         while not self.stopped:
             events = [
                 evt for job in self.active_jobs if job is not None for evt in job
@@ -167,18 +181,9 @@ class Queue:
             for event in events:
                 if event.progress_pending and event.progress:
                     event.progress_pending = False
-                    self.send_message(event, event.progress.model_dump())
-                await self.send_log_updates_for_event(event)
+                    self.send_message(event, "progress", event.progress.model_dump())
 
             await asyncio.sleep(self.progress_update_sleep_when_free)
-
-    def send_log_updates_for_event(self, event: Event) -> None:
-        while True:
-            try:
-                message = event.log_messages.popleft()
-            except IndexError:
-                break
-            self.send_message(event, message.dict())
 
     def set_progress(
         self,
@@ -220,7 +225,7 @@ class Queue:
                     log=log,
                     level=level,
                 )
-                event.log_messages.append(log_message)
+                self.send_message(event, "log", log_message.model_dump())
 
     def push(self, event: Event) -> int | None:
         """
@@ -236,44 +241,13 @@ class Queue:
         self.event_queue.append(event)
         return queue_len
 
+
     async def clean_event(self, event: Event) -> None:
+        event.alive = False
         if event in self.event_queue:
             async with self.delete_lock:
                 self.event_queue.remove(event)
 
-    async def broadcast_live_estimations(self) -> None:
-        """
-        Runs 2 functions sequentially instead of concurrently. Otherwise dced clients are tried to get deleted twice.
-        """
-        if self.live_updates:
-            await self.broadcast_estimations()
-
-    async def gather_event_data(self, event: Event, receive_timeout=60) -> bool:
-        """
-        Gather data for the event
-        Parameters:
-            event: the Event to gather data for
-            receive_timeout: how long to wait for data to be received from frontend
-        """
-        if not event.data:
-            client_awake = await self.send_message(event, {"msg": "send_data"})
-            if not client_awake:
-                return False
-            data, client_awake = await self.get_data(event, timeout=receive_timeout)
-            if not client_awake:
-                # In the event, we timeout due to large data size
-                # Let the client know, otherwise will hang
-                await self.send_message(
-                    event,
-                    {
-                        "msg": "process_completed",
-                        "output": {"error": "Time out uploading data to server"},
-                        "success": False,
-                    },
-                )
-                return False
-            event.data = data
-        return True
 
     async def notify_clients(self) -> None:
         """
@@ -315,9 +289,7 @@ class Queue:
             if None not in self.active_jobs:
                 # Add estimated amount of time for a thread to get empty
                 estimation.rank_eta += self.avg_concurrent_process_time
-        client_awake = await self.send_message(event, estimation.model_dump())
-        if not client_awake:
-            await self.clean_event(event)
+        self.send_message(event, "estimation", estimation.model_dump())
         return estimation
 
     def update_estimation(self, duration: float) -> None:
@@ -345,22 +317,6 @@ class Queue:
             queue_eta=self.queue_duration,
         )
 
-    def get_request_params(self, websocket: fastapi.WebSocket) -> dict[str, Any]:
-        params = {
-            "url": str(websocket.url),
-            "headers": dict(websocket.headers),
-            "query_params": dict(websocket.query_params),
-            "path_params": dict(websocket.path_params),
-            "client": {"host": websocket.client.host, "port": websocket.client.port},  # type: ignore
-        }
-        try:
-            params[
-                "session"
-            ] = websocket.session  # forward OAuth information if available
-        except Exception:
-            pass
-        return params
-
     async def call_prediction(self, events: list[Event], batch: bool):
         body = events[0].data
         if body is None:
@@ -368,17 +324,13 @@ class Queue:
         username = events[0].username
         body.event_id = events[0]._id if not batch else None
         try:
-            body.request = self.get_request_params(events[0].websocket)
+            body.request = events[0].request
         except ValueError:
             pass
 
         if batch:
             body.data = list(zip(*[event.data.data for event in events if event.data]))
-            body.request = [
-                self.get_request_params(event.websocket)
-                for event in events
-                if event.data
-            ]
+            body.request = [event.request for event in events if event.data]
             body.batched = True
 
         app = self.server_app
@@ -407,7 +359,6 @@ class Queue:
             )
         except Exception as error:
             show_error = app.get_blocks().show_error or isinstance(error, Error)
-            traceback.print_exc()
             raise Exception(str(error) if show_error else None) from error
 
         # To emulate the HTTP response from the predict API,
@@ -431,13 +382,12 @@ class Queue:
         awake_events: list[Event] = []
         try:
             for event in events:
-                client_awake = await self.gather_event_data(event)
+                client_awake = await self.get_data(event)
                 if client_awake:
-                    client_awake = await self.send_message(
-                        event, {"msg": "process_starts"}
-                    )
-                if client_awake:
+                    self.send_message(event, "process_starts")
                     awake_events.append(event)
+                else:
+                    await self.clean_event(event)
             if not awake_events:
                 return
             begin_time = time.time()
@@ -445,13 +395,14 @@ class Queue:
                 response = await self.call_prediction(awake_events, batch)
                 err = None
             except Exception as e:
+                traceback.print_exc() 
                 response = None
                 err = e
                 for event in awake_events:
-                    await self.send_message(
+                    self.send_message(
                         event,
+                        "process_completed",
                         {
-                            "msg": "process_completed",
                             "output": {
                                 "error": None
                                 if len(e.args) and e.args[0] is None
@@ -459,6 +410,7 @@ class Queue:
                             },
                             "success": False,
                         },
+                        final=True,
                     )
             if response and response.get("is_generating", False):
                 old_response = response
@@ -468,10 +420,10 @@ class Queue:
                     old_err = err
                     open_ws = []
                     for event in awake_events:
-                        open = await self.send_message(
+                        open = self.send_message(
                             event,
+                            "process_generating",
                             {
-                                "msg": "process_generating",
                                 "output": old_response,
                                 "success": old_response is not None,
                             },
@@ -493,45 +445,38 @@ class Queue:
                         relevant_response = err
                     else:
                         relevant_response = old_response or old_err
-                    await self.send_log_updates_for_event(event)
-                    await self.send_message(
+                    self.send_message(
                         event,
+                        "process_completed",
                         {
-                            "msg": "process_completed",
                             "output": {"error": str(relevant_response)}
                             if isinstance(relevant_response, Exception)
                             else relevant_response,
                             "success": relevant_response
                             and not isinstance(relevant_response, Exception),
                         },
+                        final=True,
                     )
             elif response:
                 output = copy.deepcopy(response)
                 for e, event in enumerate(awake_events):
                     if batch and "data" in output:
                         output["data"] = list(zip(*response.get("data")))[e]
-                    await self.send_log_updates_for_event(
-                        event
-                    )  # clean out pending log updates first
-                    await self.send_message(
+                    self.send_message(
                         event,
+                        "process_completed",
                         {
-                            "msg": "process_completed",
                             "output": output,
                             "success": response is not None,
                         },
+                        final=True,
                     )
             end_time = time.time()
             if response is not None:
                 self.update_estimation(end_time - begin_time)
         except Exception as e:
-            print(e)
+            traceback.print_exc()
         finally:
-            for event in awake_events:
-                try:
-                    await event.disconnect()
-                except Exception:
-                    pass
             try:
                 self.active_jobs[self.active_jobs.index(events)] = None
             except ValueError:
@@ -541,25 +486,34 @@ class Queue:
                 # https://github.com/gradio-app/gradio/blob/f09aea34d6bd18c1e2fef80c86ab2476a6d1dd83/gradio/routes.py#L594-L596
                 pass
             for event in events:
-                await self.clean_event(event)
                 # Always reset the state of the iterator
                 # If the job finished successfully, this has no effect
                 # If the job is cancelled, this will enable future runs
                 # to start "from scratch"
                 await self.reset_iterators(event.session_hash, event.fn_index)
 
-    def send_message(self, event: Event, data: dict):
-        event.message_queue.put_nowait(data)
+    def send_message(
+        self, event: Event, message_type: str, data: dict | None = None, final: bool = False
+    ):
+        data = {} if data is None else data
+        event.message_queue.put_nowait({"msg": message_type, **data})
+        if final:
+            event.message_queue.put_nowait(None)
 
-    async def get_data(self, event, timeout=5) -> tuple[PredictBody | None, bool]:
+    async def get_data(self, event: Event, timeout=5) -> bool:
+        self.awaiting_data_events[event._id] = event
         try:
-            data = await asyncio.wait_for(
-                event.websocket.receive_json(), timeout=timeout
-            )
-            return PredictBody(**data), True
-        except AsyncTimeOutError:
-            await self.clean_event(event)
-            return None, False
+            self.send_message(event, "send_data", {"event_id": event._id})
+            SLEEP_INTERVAL = 0.05
+            wait_time = 0
+            while wait_time < timeout and event.alive:
+                if event.data is not None:
+                    break
+                await asyncio.sleep(SLEEP_INTERVAL)
+                wait_time += SLEEP_INTERVAL
+        finally:
+            del self.awaiting_data_events[event._id]
+        return event.data is not None
 
     async def reset_iterators(self, session_hash: str, fn_index: int):
         # Do the same thing as the /reset route

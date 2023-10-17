@@ -155,8 +155,7 @@ def compile_gr_request(
         if body.batched:
             gr_request = [Request(username=username, **req) for req in body.request]
         else:
-            assert isinstance(body.request, dict)
-            gr_request = Request(username=username, **body.request)
+            gr_request = Request(username=username, request=body.request)
     else:
         if request is None:
             raise ValueError("request must be provided if body.request is None")
