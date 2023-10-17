@@ -223,7 +223,7 @@ const changelogFunctions = {
 				.trim()
 				.match(/^(feat|fix|highlight)\s*:\s*([^]*)/im) || [
 				,
-				false,
+				"feat",
 				changeset.summary
 			];
 
@@ -238,13 +238,6 @@ const changelogFunctions = {
 			} else {
 				formatted_summary = handle_line(summary, prefix, suffix);
 			}
-
-			console.log({
-				name: release.name,
-				type: _type,
-				summary: formatted_summary,
-				thing: lines[release.name][_type]
-			});
 
 			//@ts-ignore
 			lines[release.name][_type].push({
