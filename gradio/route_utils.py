@@ -295,7 +295,16 @@ class GradioUploadFile(UploadFile):
 
 
 class GradioMultiPartParser:
-    """Multipart parser that uses GradioUploadFile instead of UploadFile."""
+    """Vendored from starlette.MultipartParser.
+
+    Thanks starlette! 
+    
+    Made the following modifications
+        - Use GradioUploadFile instead of UploadFile
+        - Use NamedTemporaryFile instead of SpooledTemporaryFile
+        - Compute hash of data as the request is streamed
+    
+    """
 
     max_file_size = 1024 * 1024
 
