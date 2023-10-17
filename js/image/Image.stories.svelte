@@ -1,6 +1,6 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import StaticImage from "./static";
+	import StaticImage from "./Index.svelte";
 </script>
 
 <Meta

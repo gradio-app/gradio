@@ -1,6 +1,6 @@
 // @ts-nocheck
 
-export async function load_component(api_url, name, mode, id) {
+export async function load_component({ api_url, name, id, variant }) {
 	const comps = window.__GRADIO__CC__;
 
 	const _component_map = {
@@ -11,9 +11,8 @@ export async function load_component(api_url, name, mode, id) {
 	try {
 		//@ts-ignore
 		const c = await (
-			_component_map?.[id]?.[mode] || // for dev mode custom components
-			_component_map?.[name]?.[mode] ||
-			_component_map?.[name]?.["static"]
+			_component_map?.[id]?.[variant] || // for dev mode custom components
+			_component_map?.[name]?.[variant]
 		)();
 		return {
 			name,
@@ -21,16 +20,16 @@ export async function load_component(api_url, name, mode, id) {
 		};
 	} catch (e) {
 		try {
-			await load_css(`${api_url}/custom_component/${id}/${mode}/style.css`);
+			await load_css(`${api_url}/custom_component/${id}/${variant}/style.css`);
 			const c = await import(
-				/* @vite-ignore */ `${api_url}/custom_component/${id}/${mode}/index.js`
+				/* @vite-ignore */ `${api_url}/custom_component/${id}/${variant}/index.js`
 			);
 			return {
 				name,
 				component: c
 			};
 		} catch (e) {
-			if (mode === "example") {
+			if (variant === "example") {
 				return {
 					name,
 					component: await import("@gradio/fallback/example")

@@ -2,7 +2,7 @@
 
 <script lang="ts">
 	import type { Gradio, SelectData } from "@gradio/utils";
-	import TextBox from "../shared";
+	import TextBox from ".";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";

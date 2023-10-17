@@ -1,6 +1,6 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import ColorPicker from "./static/StaticColorpicker.svelte";
+	import ColorPicker from "./Index.svelte";
 </script>
 
 <Meta title="Components/Color Picker" component={ColorPicker} argTypes={{}} />

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { BaseButton } from "@gradio/button/static";
+	import { BaseButton } from "@gradio/button";
 	export let code: string;
 	let copy_text = "copy";
 

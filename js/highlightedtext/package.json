@@ -3,7 +3,6 @@
 	"version": "0.4.0-beta.5",
 	"description": "Gradio UI packages",
 	"type": "module",
-	"main": "./static/index.ts",
 	"author": "",
 	"license": "ISC",
 	"private": false,
@@ -16,10 +15,7 @@
 		"@gradio/utils": "workspace:^"
 	},
 	"exports": {
-		".": "./static/index.ts",
-		"./package.json": "./package.json",
-		"./interactive": "./interactive/index.ts",
-		"./static": "./static/index.ts",
-		"./example": "./example/index.ts"
+		".": "./Index.svelte",
+		"./package.json": "./package.json"
 	}
 }

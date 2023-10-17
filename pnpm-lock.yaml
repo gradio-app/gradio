@@ -1292,6 +1292,8 @@ importers:
         specifier: workspace:^
         version: link:../utils
 
+  js/storybook: {}
+
   js/tabitem:
     dependencies:
       '@gradio/column':

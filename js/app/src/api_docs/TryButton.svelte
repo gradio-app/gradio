@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { BaseButton } from "@gradio/button/static";
+	import { BaseButton } from "@gradio/button";
 
 	export let dependency_index: number;
 	export let run: (id: number) => Promise<void>;
