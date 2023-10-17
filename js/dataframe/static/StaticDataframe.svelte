@@ -25,6 +25,7 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let line_breaks = true;
+	export let column_widths: string[] = [];
 	export let gradio: Gradio<{
 		change: never;
 		select: SelectData;
@@ -92,5 +93,6 @@
 		editable={false}
 		{height}
 		{line_breaks}
+		{column_widths}
 	/>
 </Block>
