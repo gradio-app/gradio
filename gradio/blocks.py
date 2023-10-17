@@ -676,7 +676,6 @@ class Blocks(BlockContext):
                     )
                     for t in targets
                 ]
-                print("HIT!!!!")
                 dependency = blocks.set_event_trigger(
                     targets=targets, fn=fn, **dependency
                 )[0]
@@ -815,8 +814,6 @@ class Blocks(BlockContext):
         elif every:
             raise ValueError("Cannot set a value for `every` without a `fn`.")
 
-        print("trigger mode", trigger_mode)
-        print("event name", _targets[0][0])
         if _targets[0][0] == "change":
             trigger_mode = "always_last"
 
