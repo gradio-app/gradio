@@ -334,8 +334,8 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 
 		const replyMessage: ReplyMessageError = {
 			type: "reply:error",
-			error: cloneableError,
-		}
+			error: cloneableError
+		};
 		messagePort.postMessage(replyMessage);
 	}
 };
