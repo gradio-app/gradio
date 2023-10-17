@@ -2,7 +2,7 @@
 
 Gradio is a popular Python library for creating interactive machine learning apps. Traditionally, Gradio applications have relied on server-side infrastructure to run, which can be a hurdle for developers who need to host their applications. 
 
-Enter Gradio-lite (`@gradio/lite`): a library that leverages [Pyodide](https://pyodide.org/en/stable/) to bring Gradio directly to your browser. In this blog post, we'll explore what `@gradio/lite` is, go over some example code, and discuss the benefits it offers for running Gradio applications.
+Enter Gradio-lite (`@gradio/lite`): a library that leverages [Pyodide](https://pyodide.org/en/stable/) to bring Gradio directly to your browser. In this blog post, we'll explore what `@gradio/lite` is, go over example code, and discuss the benefits it offers for running Gradio applications.
 
 ## What is `@gradio/lite`?
 
@@ -46,6 +46,14 @@ Somewhere in the body of your HTML page (wherever you'd like the Gradio app to b
 </html>
 ```
 
+Note: you can add the `theme` attribute to the `<gradio-lite>` tag to force the theme to be dark or light (by default, it respects the system theme). E.g.
+
+```html
+<gradio-app theme="dark">
+...
+</gradio-app>
+```
+
 ### 3. Write your Gradio app inside of the tags
 
 Now, write your Gradio app as you would normally, in Python! Keep in mind that since this is Python, whitespace and indentations matter. 
@@ -75,7 +83,64 @@ And that's it! You should now be able to open your HTML page in the browser and 
 
 What if you want to create a Gradio app that spans multiple files? Or that has custom Python requirements? Both are possible with `@gradio/lite`!
 
+### Multiple Files
 
+Adding multiple files within a `@gradio/lite` app is very straightrward: use the `<gradio-file>` tag. You can have as many `<gradio-file>` tags as you want, but each one needs to have a `name` attribute and the entry point to your Gradio app should have the `entrypoint` attribute.
+
+Here's an example:
+
+```html
+<gradio-app>
+
+<gradio-file name="app.py" entrypoint>
+import gradio as gr
+from utils import add
+
+demo = gr.Interface(fn=add, inputs=["number", "number"], outputs="number")
+
+demo.launch()
+</gradio-file>
+
+<gradio-file name="utils.py" >
+def add(a, b):
+	return a + b
+</gradio-file>
+
+</gradio-app>		
+
+```
+
+### Additional Requirements
+
+If your Gradio app has additional requirements, it is usually possible to [install them in the browser using micropip](https://pyodide.org/en/stable/usage/loading-packages.html#loading-packages). We've created a wrapper to make this paticularly convenient: simply list your requirements in the same syntax as a `requirements.txt` and enclose them with `<gradio-requirements>` tags.
+
+Here, we install `transformers_js_py` to run a text classification model directly in the browser!
+
+```html
+<gradio-app>
+
+<gradio-requirements>
+transformers_js_py
+</gradio-requirements>
+
+<gradio-file name="app.py" entrypoint>
+from transformers_js import import_transformers_js
+import gradio as gr
+
+transformers = await import_transformers_js()
+pipeline = transformers.pipeline
+pipe = await pipeline('sentiment-analysis')
+
+async def classify(text):
+	return await pipe(text)
+
+demo = gr.Interface(classify, "textbox", "json")
+demo.launch()
+</gradio-file>
+
+</gradio-app>	
+
+```
 
 
 ## Benefits of Using `@gradio/lite`
@@ -91,10 +156,35 @@ Since all processing occurs within the user's browser, `@gradio/lite` enhances p
 
 ### Limitations
 
-The biggest limitation in using `@gradio/lite` is that your Gradio apps will generally take more time (usually 5-15 seconds) to load in the browser. This is because the browser needs to load the Pyiodide runtime before it can render Python code. This is 
+* Currently, the biggest limitation in using `@gradio/lite` is that your Gradio apps will generally take more time (usually 5-15 seconds) to load initially in the browser. This is because the browser needs to load the Pyiodide runtime before it can render Python code. 
+
+* Not every Python package is supported by Pyiodide. While `gradio` and many other popular packages (including `numpy`, `scikit-learn`, and `transformers-js`) can be installed in Pyiodide, if your app has many dependencies, its worth checking whether whether the dependencies are included in Pyiodide, or can be [installed with `micropip`](https://micropip.pyodide.org/en/v0.2.2/project/api.html#micropip.install).
 
 ## Try it out!
 
+You can immediately try out `@gradio/lite` by copying and pasting this code in a local `index.html` file and opening it with your browser:
+
+```html
+<html>
+	<head>
+		<script type="module" crossorigin src="https://cdn.jsdelivr.net/npm/@gradio/lite@0.3.2/dist/lite.js"></script>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@gradio/lite@0.3.2/dist/lite.css" />
+	</head>
+	<body>
+		<gradio-lite>
+		import gradio as gr
+
+		def greet(name):
+			return "Hello, " + name + "!"
+		
+		gr.Interface(greet, "textbox", "textbox")
+		</gradio-lite>
+	</body>
+</html>
+```
 
 
+We've also created a playground on the Gradio website that allows you to interactively edit code and see the results immediately! 
+
+Playground: (coming soon)
 
