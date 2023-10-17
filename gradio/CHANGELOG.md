@@ -1,5 +1,35 @@
 # gradio
 
+## 3.48.0
+
+### Features
+
+- [#5627](https://github.com/gradio-app/gradio/pull/5627) [`b67115e8e`](https://github.com/gradio-app/gradio/commit/b67115e8e6e489fffd5271ea830211863241ddc5) - Lite: Make the Examples component display media files using pseudo HTTP requests to the Wasm server.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#5821](https://github.com/gradio-app/gradio/pull/5821) [`1aa186220`](https://github.com/gradio-app/gradio/commit/1aa186220dfa8ee3621b818c4cdf4d7b9d690b40) - Lite: Fix Examples.create() to be a normal func so it can be called in the Wasm env.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#5886](https://github.com/gradio-app/gradio/pull/5886) [`121f25b2d`](https://github.com/gradio-app/gradio/commit/121f25b2d50a33e1e06721b79e20b4f5651987ba) - Lite: Fix is_self_host() to detect `127.0.0.1` as localhost as well.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#5915](https://github.com/gradio-app/gradio/pull/5915) [`e24163e15`](https://github.com/gradio-app/gradio/commit/e24163e15afdfc51ec8cb00a0dc46c2318b245be) - Added dimensionality check to avoid bad array dimensions.  Thanks [@THEGAMECHANGER416](https://github.com/THEGAMECHANGER416)!
+- [#5835](https://github.com/gradio-app/gradio/pull/5835) [`46334780d`](https://github.com/gradio-app/gradio/commit/46334780dbbb7e83f31971d45a7047ee156a0578) - Mention that audio is normalized when converting to wav in docs.  Thanks [@aileenvl](https://github.com/aileenvl)!
+- [#5877](https://github.com/gradio-app/gradio/pull/5877) [`a55b80942`](https://github.com/gradio-app/gradio/commit/a55b8094231ae462ac53f52bbdb460c1286ffabb) - Add styling (e.g. font colors and background colors) support to `gr.DataFrame` through the `pd.Styler` object.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#5819](https://github.com/gradio-app/gradio/pull/5819) [`5f1cbc436`](https://github.com/gradio-app/gradio/commit/5f1cbc4363b09302334e9bc864587f8ef398550d) - Add support for gr.Request to gr.ChatInterface.  Thanks [@DarhkVoyd](https://github.com/DarhkVoyd)!
+- [#5901](https://github.com/gradio-app/gradio/pull/5901) [`c4e3a9274`](https://github.com/gradio-app/gradio/commit/c4e3a92743a3b41edad8b45c5d5b0ccbc2674a30) - Fix curly brackets in docstrings.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#5934](https://github.com/gradio-app/gradio/pull/5934) [`8d909624f`](https://github.com/gradio-app/gradio/commit/8d909624f61a49536e3c0f71cb2d9efe91216219) - Fix styling issues with Audio, Image and Video components.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#5864](https://github.com/gradio-app/gradio/pull/5864) [`e70805d54`](https://github.com/gradio-app/gradio/commit/e70805d54cc792452545f5d8eccc1aa0212a4695) - Change `BlockLabel` element to use `<label>`.  Thanks [@aileenvl](https://github.com/aileenvl)!
+- [#5862](https://github.com/gradio-app/gradio/pull/5862) [`c07207e0b`](https://github.com/gradio-app/gradio/commit/c07207e0bc98cc32b6db629c432fadf877e451ff) - Remove deprecated `.update()` usage from Interface internals.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#5905](https://github.com/gradio-app/gradio/pull/5905) [`b450cef15`](https://github.com/gradio-app/gradio/commit/b450cef15685c934ba7c4e4d57cbed233e925fb1) - Fix type the docstring of the Code component.  Thanks [@whitphx](https://github.com/whitphx)!
+
+### Fixes
+
+- [#5840](https://github.com/gradio-app/gradio/pull/5840) [`4e62b8493`](https://github.com/gradio-app/gradio/commit/4e62b8493dfce50bafafe49f1a5deb929d822103) - Ensure websocket polyfill doesn't load if there is already a `global.Webocket` property set.  Thanks [@Jay2theWhy](https://github.com/Jay2theWhy)!
+- [#5839](https://github.com/gradio-app/gradio/pull/5839) [`b83064da0`](https://github.com/gradio-app/gradio/commit/b83064da0005ca055fc15ee478cf064bf91702a4) - Fix error when scrolling dropdown with scrollbar.  Thanks [@Kit-p](https://github.com/Kit-p)!
+- [#5822](https://github.com/gradio-app/gradio/pull/5822) [`7b63db271`](https://github.com/gradio-app/gradio/commit/7b63db27161ab538f20cf8523fc04c9c3b604a98) - Convert async methods in the Examples class into normal sync methods.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#5904](https://github.com/gradio-app/gradio/pull/5904) [`891d42e9b`](https://github.com/gradio-app/gradio/commit/891d42e9baa7ab85ede2a5eadb56c274b0ed2785) - Define Font.__repr__() to be printed in the doc in a readable format.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#5811](https://github.com/gradio-app/gradio/pull/5811) [`1d5b15a2d`](https://github.com/gradio-app/gradio/commit/1d5b15a2d24387154f2cfb40a36de25b331471d3) - Assert refactor in external.py.  Thanks [@harry-urek](https://github.com/harry-urek)!
+- [#5827](https://github.com/gradio-app/gradio/pull/5827) [`48e09ee88`](https://github.com/gradio-app/gradio/commit/48e09ee88799efa38a5cc9b1b61e462f72ec6093) - Quick fix: Chatbot change event.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#5890](https://github.com/gradio-app/gradio/pull/5890) [`c4ba832b3`](https://github.com/gradio-app/gradio/commit/c4ba832b318dad5e8bf565cfa0daf93ca188498f) - Remove deprecation warning from `gr.update` and clean up associated code.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#5897](https://github.com/gradio-app/gradio/pull/5897) [`0592c301d`](https://github.com/gradio-app/gradio/commit/0592c301df9cd949b52159c85b7042f38d113e86) - Fix Dataframe `line_breaks`.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#5878](https://github.com/gradio-app/gradio/pull/5878) [`fbce277e5`](https://github.com/gradio-app/gradio/commit/fbce277e50c5885371fd49c68adf8565c25c1d39) - Keep Markdown rendered lists within dataframe cells.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#5930](https://github.com/gradio-app/gradio/pull/5930) [`361823896`](https://github.com/gradio-app/gradio/commit/3618238960d54df65c34895f4eb69d08acc3f9b6) - Fix dataframe `line_breaks`.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 3.47.1
 
 ### Fixes
