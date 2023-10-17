@@ -5,12 +5,15 @@ import { plugins, make_gradio_plugin } from "./plugins";
 import { examine_module } from "./index";
 
 const vite_messages_to_ignore = [
-	"Default and named imports from CSS files are deprecated."
+	"Default and named imports from CSS files are deprecated.",
+	"The above dynamic import cannot be analyzed by Vite."
 ];
 
 const logger = createLogger();
 const originalWarning = logger.warn;
 logger.warn = (msg, options) => {
+	// console.log(`msg: ${msg}`);
+	// console.log(options);
 	if (vite_messages_to_ignore.some((m) => msg.includes(m))) return;
 
 	originalWarning(msg, options);
