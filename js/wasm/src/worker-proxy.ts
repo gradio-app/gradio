@@ -9,6 +9,7 @@ import type {
 	ReplyMessage
 } from "./message-types";
 import { MessagePortWebSocket } from "./messageportwebsocket";
+import { PromiseDelegate } from "./promise-delegate";
 
 export interface WorkerProxyOptions {
 	gradioWheelUrl: string;
@@ -19,6 +20,8 @@ export interface WorkerProxyOptions {
 
 export class WorkerProxy {
 	private worker: globalThis.Worker;
+
+	private firstRunPromiseDelegate = new PromiseDelegate<void>();
 
 	constructor(options: WorkerProxyOptions) {
 		console.debug("WorkerProxy.constructor(): Create a new worker.");
@@ -49,6 +52,7 @@ export class WorkerProxy {
 				code
 			}
 		});
+		this.firstRunPromiseDelegate.resolve();
 	}
 
 	public async runPythonFile(path: string): Promise<void> {
@@ -58,6 +62,7 @@ export class WorkerProxy {
 				path
 			}
 		});
+		this.firstRunPromiseDelegate.resolve();
 	}
 
 	// A wrapper for this.worker.postMessage(). Unlike that function, which
@@ -84,6 +89,12 @@ export class WorkerProxy {
 	}
 
 	public async httpRequest(request: HttpRequest): Promise<HttpResponse> {
+		// Wait for the first run to be done
+		// to avoid the "Gradio app has not been launched." error
+		// in case running the code takes long time.
+		// Ref: https://github.com/gradio-app/gradio/issues/5957
+		await this.firstRunPromiseDelegate.promise;
+
 		console.debug("WorkerProxy.httpRequest()", request);
 		const result = await this.postMessageAsync({
 			type: "http-request",
