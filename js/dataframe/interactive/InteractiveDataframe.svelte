@@ -36,6 +36,7 @@
 	export let root: string;
 
 	export let line_breaks = true;
+	export let column_widths: string[] = [];
 	export let gradio: Gradio<{
 		change: never;
 		select: SelectData;
@@ -108,5 +109,6 @@
 		{height}
 		i18n={gradio.i18n}
 		{line_breaks}
+		{column_widths}
 	/>
 </Block>

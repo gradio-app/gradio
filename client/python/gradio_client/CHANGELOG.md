@@ -1,5 +1,11 @@
 # gradio_client
 
+## 0.6.1
+
+### Fixes
+
+- [#5811](https://github.com/gradio-app/gradio/pull/5811) [`1d5b15a2d`](https://github.com/gradio-app/gradio/commit/1d5b15a2d24387154f2cfb40a36de25b331471d3) - Assert refactor in external.py.  Thanks [@harry-urek](https://github.com/harry-urek)!
+
 ## 0.6.0
 
 ### Highlights

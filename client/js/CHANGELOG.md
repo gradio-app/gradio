@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 0.5.2
+
+### Fixes
+
+- [#5840](https://github.com/gradio-app/gradio/pull/5840) [`4e62b8493`](https://github.com/gradio-app/gradio/commit/4e62b8493dfce50bafafe49f1a5deb929d822103) - Ensure websocket polyfill doesn't load if there is already a `global.Webocket` property set.  Thanks [@Jay2theWhy](https://github.com/Jay2theWhy)!
+
 ## 0.5.1
 
 ### Fixes

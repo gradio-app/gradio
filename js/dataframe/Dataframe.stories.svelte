@@ -127,3 +127,21 @@
 		editable: false
 	}}
 />
+
+<Story
+	name="Dataframe with column widths"
+	args={{
+		value: {
+			data: [
+				[800, 100, 800],
+				[200, 800, 700]
+			],
+			headers: ["Narrow", "Wide", "Half"]
+		},
+		label: "Test scores",
+		col_count: [3, "dynamic"],
+		row_count: [2, "dynamic"],
+		column_widths: ["20%", "30%", "50%"],
+		editable: false
+	}}
+/>

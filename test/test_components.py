@@ -1052,6 +1052,7 @@ class TestDataframe:
             "height": 500,
             "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
             "line_breaks": True,
+            "column_widths": [],
         }
         dataframe_input = gr.Dataframe()
         output = dataframe_input.preprocess(x_data)
@@ -1089,7 +1090,15 @@ class TestDataframe:
             "height": 500,
             "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
             "line_breaks": True,
+            "column_widths": [],
         }
+
+        dataframe_input = gr.Dataframe(column_widths=["100px", 200, "50%"])
+        assert dataframe_input.get_config()["column_widths"] == [
+            "100px",
+            "200px",
+            "50%",
+        ]
 
     def test_postprocess(self):
         """

@@ -1,5 +1,11 @@
 # @gradio/chatbot
 
+## 0.5.3
+
+### Fixes
+
+- [#5827](https://github.com/gradio-app/gradio/pull/5827) [`48e09ee88`](https://github.com/gradio-app/gradio/commit/48e09ee88799efa38a5cc9b1b61e462f72ec6093) - Quick fix: Chatbot change event.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.5.2
 
 ### Patch Changes
