@@ -7,12 +7,13 @@ declare module "*.whl" {
 
 // virtual module component type definition
 declare module "virtual:component-loader" {
-	export function load_component(
-		api_url: string,
-		name: string,
-		mode: "interactive" | "static" | "example",
-		id: string
-	): Promise<{
+	interface Args {
+		api_url: string;
+		name: string;
+		id: string;
+		variant: "component" | "example";
+	}
+	export function load_component(args: Args): Promise<{
 		name: ComponentMeta["type"];
 		component: LoadedComponent;
 	}>;
