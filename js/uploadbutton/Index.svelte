@@ -63,39 +63,20 @@
 	}
 </script>
 
-{#if mode === "static"}
-	<UploadButton
-		{elem_id}
-		{elem_classes}
-		{visible}
-		{file_count}
-		{file_types}
-		{size}
-		{scale}
-		{min_width}
-		disabled
-		{variant}
-		{label}
-		on:click={() => gradio.dispatch("click")}
-		on:load={handle_upload}
-	>
-		{gradio.i18n(label)}
-	</UploadButton>
-{:else}
-	<UploadButton
-		{elem_id}
-		{elem_classes}
-		{visible}
-		{file_count}
-		{file_types}
-		{size}
-		{scale}
-		{min_width}
-		{variant}
-		{label}
-		on:click={() => gradio.dispatch("click")}
-		on:load={handle_upload}
-	>
-		{gradio.i18n(label)}
-	</UploadButton>
-{/if}
+<UploadButton
+	{elem_id}
+	{elem_classes}
+	{visible}
+	{file_count}
+	{file_types}
+	{size}
+	{scale}
+	{min_width}
+	disabled={mode === "static"}
+	{variant}
+	{label}
+	on:click={() => gradio.dispatch("click")}
+	on:load={handle_upload}
+>
+	{gradio.i18n(label)}
+</UploadButton>
