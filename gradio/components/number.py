@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-import warnings
-from typing import Any, Callable, Literal
+from typing import Any, Callable
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.components.base import FormComponent, _Keywords
+from gradio.components.base import FormComponent
 from gradio.events import Events
 from gradio.exceptions import Error
 
@@ -42,11 +41,13 @@ class Number(FormComponent):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        render: bool = True,
+        root_url: str | None = None,
+        _skip_init_processing: bool = False,
         precision: int | None = None,
         minimum: float | None = None,
         maximum: float | None = None,
         step: float = 1,
-        **kwargs,
     ):
         """
         Parameters:
@@ -62,6 +63,9 @@ class Number(FormComponent):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
+            _skip_init_processing: If True, will skip the initial postprocessing step. Used in `gr.load()`. Should not be set manually.
             precision: Precision to round input/output to. If set to 0, will round to nearest integer and convert type to int. If None, no rounding happens.
             minimum: Minimum value. Only applied when component is used as an input. If a user provides a smaller value, a gr.Error exception is raised by the backend.
             maximum: Maximum value. Only applied when component is used as an input. If a user provides a larger value, a gr.Error exception is raised by the backend.
@@ -84,8 +88,10 @@ class Number(FormComponent):
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            render=render,
+            root_url=root_url,
+            _skip_init_processing=_skip_init_processing,
             value=value,
-            **kwargs,
         )
 
     @staticmethod

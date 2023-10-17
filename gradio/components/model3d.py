@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import warnings
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import Callable
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.components.base import Component, _Keywords
+from gradio.components.base import Component
 from gradio.data_classes import FileData
 from gradio.events import Events
 
@@ -53,7 +52,9 @@ class Model3D(Component):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        **kwargs,
+        render: bool = True,
+        root_url: str | None = None,
+        _skip_init_processing: bool = False,
     ):
         """
         Parameters:
@@ -71,6 +72,9 @@ class Model3D(Component):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
+            _skip_init_processing: If True, will skip the initial postprocessing step. Used in `gr.load()`. Should not be set manually.
         """
         self.clear_color = clear_color or [0, 0, 0, 0]
         self.camera_position = camera_position
@@ -86,8 +90,10 @@ class Model3D(Component):
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            render=render,
+            root_url=root_url,
+            _skip_init_processing=_skip_init_processing,
             value=value,
-            **kwargs,
         )
 
     def preprocess(self, x: dict[str, str] | None) -> str | None:

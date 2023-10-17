@@ -69,6 +69,9 @@ class ImageSlider(StreamingInput, Component):
         streaming: bool = False,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        render: bool = True,
+        root_url: str | None = None,
+        _skip_init_processing: bool = False,
         mirror_webcam: bool = True,
         brush_radius: float | None = None,
         brush_color: str = "#000000",
@@ -99,6 +102,9 @@ class ImageSlider(StreamingInput, Component):
             streaming: If True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'webcam'.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
+            _skip_init_processing: If True, will skip the initial postprocessing step. Used in `gr.load()`. Should not be set manually.
             mirror_webcam: If True webcam will be mirrored. Default is True.
             brush_radius: Size of the brush for Sketch. Default is None which chooses a sensible default
             brush_color: Color of the brush for Sketch as hex string. Default is "#000000".
@@ -150,6 +156,9 @@ class ImageSlider(StreamingInput, Component):
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            render=render,
+            root_url=root_url,
+            _skip_init_processing=_skip_init_processing,
             value=value,
             **kwargs,
         )

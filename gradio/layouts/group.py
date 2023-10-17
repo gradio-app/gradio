@@ -27,6 +27,9 @@ class Group(BlockContext, metaclass=ComponentMeta):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        render: bool = True,
+        root_url: str | None = None,
+        _skip_init_processing: bool = False,
         **kwargs,
     ):
         """

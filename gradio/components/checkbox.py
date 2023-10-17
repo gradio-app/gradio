@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-import warnings
-from typing import Any, Callable, Literal
+from typing import Any, Callable
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.components.base import FormComponent, _Keywords
+from gradio.components.base import FormComponent
 from gradio.events import Events
 
 set_documentation_group("component")
@@ -41,6 +40,9 @@ class Checkbox(FormComponent):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        render: bool = True,
+        root_url: str | None = None,
+        _skip_init_processing: bool = False,
     ):
         """
         Parameters:
@@ -56,6 +58,9 @@ class Checkbox(FormComponent):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
+            _skip_init_processing: If True, will skip the initial postprocessing step. Used in `gr.load()`. Should not be set manually.
         """
         super().__init__(
             label=label,
@@ -69,21 +74,11 @@ class Checkbox(FormComponent):
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            render=render,
+            root_url=root_url,
+            _skip_init_processing=_skip_init_processing,
             value=value,
         )
-
-    def get_interpretation_neighbors(self, x):
-        return [not x], {}
-
-    def get_interpretation_scores(self, x, neighbors, scores, **kwargs):
-        """
-        Returns:
-            The first value represents the interpretation score if the input is False, and the second if the input is True.
-        """
-        if x:
-            return scores[0], None
-        else:
-            return None, scores[0]
 
     def api_info(self) -> dict[str, Any]:
         return {"type": "boolean"}

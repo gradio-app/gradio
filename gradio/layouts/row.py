@@ -6,7 +6,6 @@ from gradio_client.documentation import document, set_documentation_group
 
 from gradio.blocks import BlockContext
 from gradio.component_meta import ComponentMeta
-from gradio.deprecation import warn_style_method_deprecation
 
 set_documentation_group("layout")
 
@@ -33,6 +32,9 @@ class Row(BlockContext, metaclass=ComponentMeta):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        render: bool = True,
+        root_url: str | None = None,
+        _skip_init_processing: bool = False,
         equal_height: bool = True,
         **kwargs,
     ):
@@ -60,19 +62,3 @@ class Row(BlockContext, metaclass=ComponentMeta):
             "visible": visible,
             "__type__": "update",
         }
-
-    def style(
-        self,
-        *,
-        equal_height: bool | None = None,
-        **kwargs,
-    ):
-        """
-        Styles the Row.
-        Parameters:
-            equal_height: If True, makes every child element have equal height
-        """
-        warn_style_method_deprecation()
-        if equal_height is not None:
-            self.equal_height = equal_height
-        return self

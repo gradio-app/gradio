@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+import warnings
 from typing import Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.blocks import BlockContext
 from gradio.component_meta import ComponentMeta
-from gradio.deprecation import warn_deprecation
 
 set_documentation_group("layout")
 
@@ -39,6 +39,9 @@ class Column(BlockContext, metaclass=ComponentMeta):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        render: bool = True,
+        root_url: str | None = None,
+        _skip_init_processing: bool = False,
         **kwargs,
     ):
         """
@@ -51,7 +54,7 @@ class Column(BlockContext, metaclass=ComponentMeta):
             elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         if scale != round(scale):
-            warn_deprecation(
+            warnings.warn(
                 f"'scale' value should be an integer. Using {scale} will cause issues."
             )
 

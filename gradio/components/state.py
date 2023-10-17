@@ -30,7 +30,6 @@ class State(Component):
     def __init__(
         self,
         value: Any = None,
-        **kwargs,
     ):
         """
         Parameters:
@@ -43,7 +42,7 @@ class State(Component):
             raise TypeError(
                 f"The initial value of `gr.State` must be able to be deepcopied. The initial value of type {type(value)} cannot be deepcopied."
             ) from err
-        super().__init__(value=self.value, **kwargs)
+        super().__init__(value=self.value)
 
     def preprocess(self, x: Any) -> Any:
         return x
@@ -60,13 +59,3 @@ class State(Component):
     @property
     def skip_api(self):
         return True
-
-
-class Variable(State):
-    """Variable was renamed to State. This class is kept for backwards compatibility."""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def get_block_name(self):
-        return "state"
