@@ -7,6 +7,7 @@ import { wasm_proxied_mount_css, mount_prebuilt_css } from "./css";
 import type { mount_css } from "../css";
 import Index from "../Index.svelte";
 import type { ThemeMode } from "../components/types";
+import { bootstrap_custom_element } from "./custom-element";
 
 // These imports are aliased at built time with Vite. See the `resolve.alias` config in `vite.config.ts`.
 import gradioWheel from "gradio.whl";
@@ -43,7 +44,7 @@ interface GradioAppController {
 	unmount: () => void;
 }
 
-interface Options {
+export interface Options {
 	target: HTMLElement;
 	files?: WorkerProxyOptions["files"];
 	requirements?: WorkerProxyOptions["requirements"];
@@ -168,152 +169,6 @@ export function create(options: Options): GradioAppController {
 			worker_proxy.terminate();
 		}
 	};
-}
-
-interface GradioComponentOptions {
-	info: boolean;
-	container: boolean;
-	isEmbed: boolean;
-	initialHeight?: string;
-	eager: boolean;
-	themeMode: ThemeMode | null;
-	autoScroll: boolean;
-	controlPageTitle: boolean;
-	appMode: boolean;
-}
-function parseGradioComponentOptions(gradioLiteAppElement: GradioLiteAppElement): GradioComponentOptions {
-	// Parse the options from the attributes of the <gradio-app> element.
-	// The following attributes are supported:
-	// * info: boolean
-	// * container: boolean
-	// * embed: boolean
-	// * initial-height: string
-	// * eager: boolean
-	// * theme: "light" | "dark" | null
-	// * auto-scroll: boolean
-	// * control-page-title: boolean
-	// * app-mode: boolean
-
-	const info = gradioLiteAppElement.hasAttribute("info");
-	const container = gradioLiteAppElement.hasAttribute("container");
-	const isEmbed = gradioLiteAppElement.hasAttribute("embed");
-	const initialHeight = gradioLiteAppElement.getAttribute("initial-height");
-	const eager = gradioLiteAppElement.hasAttribute("eager");
-	const themeMode = gradioLiteAppElement.getAttribute("theme");
-	const autoScroll = gradioLiteAppElement.hasAttribute("auto-scroll");
-	const controlPageTitle = gradioLiteAppElement.hasAttribute("control-page-title");
-	const appMode = gradioLiteAppElement.hasAttribute("app-mode");
-
-	return {
-		info,
-		container,
-		isEmbed,
-		initialHeight: initialHeight ?? undefined,
-		eager,
-		themeMode: (themeMode != null && ["light", "dark"].includes(themeMode)) ? themeMode as ThemeMode : null,
-		autoScroll,
-		controlPageTitle,
-		appMode,
-	};
-}
-
-interface GradioLiteAppOptions {
-	files?: WorkerProxyOptions["files"];
-	requirements?: WorkerProxyOptions["requirements"];
-	code?: string;
-	entrypoint?: string;
-}
-
-function parseGradioLiteAppOptions(gradioLiteAppElement: GradioLiteAppElement): GradioLiteAppOptions {
-	// When gradioLiteAppElement only contains text content, it is treated as the Python code.
-	if (gradioLiteAppElement.childElementCount === 0) {
-		return { code: gradioLiteAppElement.textContent ?? "" };
-	}
-
-	// When it contains child elements, parse them as options. Available child elements are:
-	// * <gradio-file />
-	//   Represents a file to be mounted in the virtual file system of the Wasm worker.
-	//   At least 1 <gradio-file> element must have the `entrypoint` attribute.
-	//   The following 2 forms are supported:
-	//   * <gradio-file name="{file name}" >{file content}</gradio-file>
-	//   * <gradio-file name="{file name}" url="{remote URL}" />
-	// * <gradio-requirements>{requirements.txt}</gradio-requirements>
-	// * <gradio-code>{Python code}</gradio-code>
-	const options: GradioLiteAppOptions = {};
-
-	const fileElements = gradioLiteAppElement.getElementsByTagName("gradio-file");
-	for (const fileElement of fileElements) {
-		const name = fileElement.getAttribute("name");
-		if (name == null) {
-			throw new Error("<gradio-file> must have the name attribute.");
-		}
-
-		const entrypoint = fileElement.hasAttribute("entrypoint");
-		const url = fileElement.getAttribute("url");
-
-		options.files ??= {};
-		if (url != null) {
-			options.files[name] = { url }
-		} else {
-			options.files[name] = { data: fileElement.textContent ?? "" }
-		}
-
-		if (entrypoint) {
-			if (options.entrypoint != null) {
-				throw new Error("Multiple entrypoints are not allowed.");
-			}
-			options.entrypoint = name;
-		}
-	}
-
-	const codeElements = gradioLiteAppElement.getElementsByTagName("gradio-code");
-	if (codeElements.length > 1) {
-		console.warn("Multiple <gradio-code> elements are found. Only the first one will be used.")
-	}
-	const firstCodeElement = codeElements[0];
-	options.code = firstCodeElement?.textContent ?? undefined;
-
-	const requirementsElements = gradioLiteAppElement.getElementsByTagName("gradio-requirements");
-	if (requirementsElements.length > 1) {
-		console.warn("Multiple <gradio-requirements> elements are found. Only the first one will be used.")
-	}
-	const firstRequirementsElement = requirementsElements[0];
-	const requirementsTxt = firstRequirementsElement?.textContent ?? "";
-	options.requirements = parseRequirementsTxt(requirementsTxt);
-
-	return options;
-}
-
-function parseRequirementsTxt(content: string): string[] {
-	return content
-		.split("\n")
-		.filter((r) => !r.startsWith("#"))
-		.map((r) => r.trim())
-		.filter((r) => r !== "");
-}
-
-class GradioLiteAppElement extends HTMLElement {
-	constructor() {
-		super();
-
-		const gradioComponentOptions = parseGradioComponentOptions(this);
-		const gradioLiteAppOptions = parseGradioLiteAppOptions(this);
-
-		this.innerHTML = "";
-
-		create({
-			target: this,  // Same as `js/app/src/main.ts`
-			code: gradioLiteAppOptions.code,
-			requirements: gradioLiteAppOptions.requirements,
-			files: gradioLiteAppOptions.files,
-			entrypoint: gradioLiteAppOptions.entrypoint,
-			...gradioComponentOptions,
-		})
-	}
-}
-
-function bootstrap_custom_element(): void {
-	customElements.define("gradio-app", GradioLiteAppElement)
 }
 
 /**
