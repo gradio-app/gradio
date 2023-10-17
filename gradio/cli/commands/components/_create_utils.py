@@ -178,6 +178,15 @@ OVERRIDES = {
         """
         ),
     ),
+    "Model3D": ComponentFiles(
+        template="Model3D",
+        demo_code=textwrap.dedent(
+            """
+        with gr.Blocks() as demo:
+            {name}()
+        """
+        ),
+    )
 }
 
 
