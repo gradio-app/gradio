@@ -12,6 +12,7 @@
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
+	"main_changeset": true,
 	"scripts": {
 		"dev:client": "tsc -w --incremental",
 		"dev:worker": "vite build --config vite.worker.config.js --watch --emptyOutDir=false",
