@@ -8,7 +8,9 @@ import { mount_css as default_mount_css } from "../css";
 const PREBUILT_CSS_URL = new URL("./theme.css", import.meta.url).href;
 const DYNAMIC_THEME_CSS_URL_PATH = "/theme.css";
 
-export async function mount_prebuilt_css(target: HTMLElement): Promise<void> {
+export function mount_prebuilt_css(
+	target: Parameters<typeof default_mount_css>[1]
+): Promise<void> {
 	return default_mount_css(PREBUILT_CSS_URL, target);
 }
 
