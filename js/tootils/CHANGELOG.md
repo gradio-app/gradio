@@ -1,10 +1,17 @@
 # @gradio/tootils
 
+## 0.1.0-beta.5
+
+### Patch Changes
+
+- Updated dependencies [[`13ed8a485`](https://github.com/gradio-app/gradio/commit/13ed8a485d5e31d7d75af87fe8654b661edcca93)]:
+  - @gradio/utils@0.2.0-beta.4
+
 ## 0.1.0-beta.4
 
 ### Features
 
-- [#5648](https://github.com/gradio-app/gradio/pull/5648) [`c573e2339`](https://github.com/gradio-app/gradio/commit/c573e2339b86c85b378dc349de5e9223a3c3b04a) - Publish all components to npm.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5648](https://github.com/gradio-app/gradio/pull/5648) [`c573e2339`](https://github.com/gradio-app/gradio/commit/c573e2339b86c85b378dc349de5e9223a3c3b04a) - Publish all components to npm. Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
 
 ## 0.1.0-beta.3
 
