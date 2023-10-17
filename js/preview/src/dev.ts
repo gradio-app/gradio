@@ -117,22 +117,23 @@ function generate_imports(component_dir: string, root: string): string {
 	});
 
 	const imports = component_entries.reduce((acc, component) => {
-		const x = {
-			interactive: to_posix(join(component.frontend_dir, "interactive")),
-			static: to_posix(join(component.frontend_dir, "static")),
-			example: to_posix(join(component.frontend_dir, "example"))
+		const pkg = JSON.parse(
+			fs.readFileSync(join(component.frontend_dir, "package.json"), "utf-8")
+		);
+
+		const exports: Record<string, string | undefined> = {
+			component: pkg.exports["."] as string,
+			exmaple: pkg.exports["./example"] as string
 		};
 
-		const interactive = fs.existsSync(x.interactive)
-			? `interactive: () => import("${x.interactive}"),\n`
-			: "";
-		const example = fs.existsSync(x.example)
-			? `example: () => import("${x.example}"),\n`
+		const example = exports.example
+			? `example: () => import("${to_posix(
+					join(component.frontend_dir, "example")
+			  )}"),\n`
 			: "";
 		return `${acc}"${component.component_class_id}": {
-			${interactive}
 			${example}
-			static: () => import("${x.static}")
+			component: () => import("${to_posix(component.frontend_dir)}")
 			},\n`;
 	}, "");
 

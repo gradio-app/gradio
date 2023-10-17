@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Form from "@gradio/form";
-	import Textbox from "@gradio/textbox/interactive";
-	import { BaseButton } from "@gradio/button/static";
+	import Textbox from "@gradio/textbox";
+	import { BaseButton } from "@gradio/button";
 	import Column from "@gradio/column";
 	import { _ } from "svelte-i18n";
 	export let root: string;
