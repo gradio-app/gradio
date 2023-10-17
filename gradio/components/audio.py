@@ -77,7 +77,7 @@ class Audio(
         autoplay: bool = False,
         show_download_button=True,
         show_share_button: bool | None = None,
-        show_edit_button: bool | None = True,        
+        show_edit_button: bool | None = True,
     ):
         """
         Parameters:

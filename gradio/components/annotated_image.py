@@ -66,9 +66,6 @@ class AnnotatedImage(Component):
         render: bool = True,
         root_url: str | None = None,
         _skip_init_processing: bool = False,
-        render: bool = True,
-        root_url: str | None = None,
-        _skip_init_processing: bool = False,
     ):
         """
         Parameters:
