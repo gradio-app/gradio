@@ -170,6 +170,53 @@ export function create(options: Options): GradioAppController {
 	};
 }
 
+interface GradioComponentOptions {
+	info: boolean;
+	container: boolean;
+	isEmbed: boolean;
+	initialHeight?: string;
+	eager: boolean;
+	themeMode: ThemeMode | null;
+	autoScroll: boolean;
+	controlPageTitle: boolean;
+	appMode: boolean;
+}
+function parseGradioComponentOptions(gradioLiteAppElement: GradioLiteAppElement): GradioComponentOptions {
+	// Parse the options from the attributes of the <gradio-app> element.
+	// The following attributes are supported:
+	// * info: boolean
+	// * container: boolean
+	// * embed: boolean
+	// * initial-height: string
+	// * eager: boolean
+	// * theme: "light" | "dark" | null
+	// * auto-scroll: boolean
+	// * control-page-title: boolean
+	// * app-mode: boolean
+
+	const info = gradioLiteAppElement.hasAttribute("info");
+	const container = gradioLiteAppElement.hasAttribute("container");
+	const isEmbed = gradioLiteAppElement.hasAttribute("embed");
+	const initialHeight = gradioLiteAppElement.getAttribute("initial-height");
+	const eager = gradioLiteAppElement.hasAttribute("eager");
+	const themeMode = gradioLiteAppElement.getAttribute("theme");
+	const autoScroll = gradioLiteAppElement.hasAttribute("auto-scroll");
+	const controlPageTitle = gradioLiteAppElement.hasAttribute("control-page-title");
+	const appMode = gradioLiteAppElement.hasAttribute("app-mode");
+
+	return {
+		info,
+		container,
+		isEmbed,
+		initialHeight: initialHeight ?? undefined,
+		eager,
+		themeMode: (themeMode != null && ["light", "dark"].includes(themeMode)) ? themeMode as ThemeMode : null,
+		autoScroll,
+		controlPageTitle,
+		appMode,
+	};
+}
+
 interface GradioLiteAppOptions {
 	files?: WorkerProxyOptions["files"];
 	requirements?: WorkerProxyOptions["requirements"];
@@ -249,25 +296,18 @@ class GradioLiteAppElement extends HTMLElement {
 	constructor() {
 		super();
 
-		const options = parseGradioLiteAppOptions(this);
+		const gradioComponentOptions = parseGradioComponentOptions(this);
+		const gradioLiteAppOptions = parseGradioLiteAppOptions(this);
 
 		this.innerHTML = "";
 
 		create({
 			target: this,  // Same as `js/app/src/main.ts`
-			code: options.code,
-			requirements: options.requirements,
-			files: options.files,
-			entrypoint: options.entrypoint,
-			info: true,
-			container: true,
-			isEmbed: false,
-			initialHeight: "300px",
-			eager: false,
-			themeMode: null,
-			autoScroll: false,
-			controlPageTitle: false,
-			appMode: true,
+			code: gradioLiteAppOptions.code,
+			requirements: gradioLiteAppOptions.requirements,
+			files: gradioLiteAppOptions.files,
+			entrypoint: gradioLiteAppOptions.entrypoint,
+			...gradioComponentOptions,
 		})
 	}
 }
