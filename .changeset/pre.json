@@ -47,7 +47,6 @@
 		"@gradio/tabs": "0.0.5",
 		"@gradio/textbox": "0.2.0",
 		"@gradio/theme": "0.1.0",
-		"@gradio/timeseries": "0.0.5",
 		"@gradio/tooltip": "0.0.1",
 		"@gradio/tootils": "0.0.2",
 		"@gradio/upload": "0.2.1",
