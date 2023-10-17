@@ -8,7 +8,6 @@ from typing import Any, Callable, Literal
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import Component, _Keywords
-from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Events
 
 set_documentation_group("component")
@@ -40,7 +39,6 @@ class Button(Component):
         elem_classes: list[str] | str | None = None,
         scale: int | None = None,
         min_width: int | None = None,
-        **kwargs,
     ):
         """
         Parameters:
@@ -64,11 +62,7 @@ class Button(Component):
             interactive=interactive,
             scale=scale,
             min_width=min_width,
-            **kwargs,
         )
-        if variant == "plain":
-            warn_deprecation("'plain' variant deprecated, using 'secondary' instead.")
-            variant = "secondary"
         self.variant = variant
         self.size = size
         self.icon = icon
@@ -105,27 +99,6 @@ class Button(Component):
             "min_width": min_width,
             "__type__": "update",
         }
-
-    def style(
-        self,
-        *,
-        full_width: bool | None = None,
-        size: Literal["sm", "lg"] | None = None,
-        **kwargs,
-    ):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if full_width is not None:
-            warn_deprecation(
-                "Use `scale` in place of full_width in the constructor. "
-                "scale=1 will make the button expand, whereas 0 will not."
-            )
-            self.scale = 1 if full_width else None
-        if size is not None:
-            self.size = size
-        return self
 
     def preprocess(self, x: Any) -> Any:
         return x

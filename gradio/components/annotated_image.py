@@ -64,7 +64,6 @@ class AnnotatedImage(Component):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        **kwargs,
     ):
         """
         Parameters:
@@ -98,7 +97,6 @@ class AnnotatedImage(Component):
             elem_id=elem_id,
             elem_classes=elem_classes,
             value=value,
-            **kwargs,
         )
 
     @staticmethod

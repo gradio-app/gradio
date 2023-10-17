@@ -76,7 +76,6 @@ class Audio(
         show_download_button=True,
         show_share_button: bool | None = None,
         show_edit_button: bool | None = True,
-        **kwargs,
     ):
         """
         Parameters:
@@ -139,7 +138,6 @@ class Audio(
             elem_id=elem_id,
             elem_classes=elem_classes,
             value=value,
-            **kwargs,
         )
 
     def example_inputs(self) -> Any:

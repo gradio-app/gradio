@@ -73,7 +73,6 @@ class BarPlot(Plot):
         elem_classes: list[str] | str | None = None,
         sort: Literal["x", "y", "-x", "-y"] | None = None,
         show_actions_button: bool = False,
-        **kwargs,
     ):
         """
         Parameters:
@@ -139,7 +138,6 @@ class BarPlot(Plot):
             elem_id=elem_id,
             elem_classes=elem_classes,
             every=every,
-            **kwargs,
         )
 
     def get_block_name(self) -> str:

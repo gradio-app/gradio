@@ -13,7 +13,6 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio import utils
 from gradio.components.base import Component, _Keywords
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
-from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Events
 
 # from pydantic import Field, TypeAdapter
@@ -54,7 +53,6 @@ class Chatbot(Component):
         value: list[list[str | tuple[str] | tuple[str | Path, str] | None]]
         | Callable
         | None = None,
-        color_map: dict[str, str] | None = None,
         *,
         label: str | None = None,
         every: float | None = None,
@@ -76,7 +74,6 @@ class Chatbot(Component):
         bubble_full_width: bool = True,
         line_breaks: bool = True,
         layout: Literal["panel", "bubble"] | None = None,
-        **kwargs,
     ):
         """
         Parameters:
@@ -102,13 +99,6 @@ class Chatbot(Component):
             bubble_full_width: If False, the chat bubble will fit to the content of the message. If True (default), the chat bubble will be the full width of the component.
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies if `render_markdown` is True.
             layout: If "panel", will display the chatbot in a llm style layout. If "bubble", will display the chatbot with message bubbles, with the user and bot messages on alterating sides. Will default to "bubble".
-        """
-        if color_map is not None:
-            warn_deprecation("The 'color_map' parameter has been deprecated.")
-        """
-        Event listener for when the user selects message from Chatbot.
-        Uses event data gradio.SelectData to carry `value` referring to text of selected message, and `index` tuple to refer to [message, participant] index.
-        See EventData documentation on how to use this event data.
         """
         self.likeable = False
         self.height = height
@@ -140,7 +130,6 @@ class Chatbot(Component):
             elem_id=elem_id,
             elem_classes=elem_classes,
             value=value,
-            **kwargs,
         )
 
     @staticmethod
@@ -277,15 +266,6 @@ class Chatbot(Component):
                 ]
             )
         return ChatbotData(root=processed_messages)
-
-    def style(self, height: int | None = None, **kwargs):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if height is not None:
-            self.height = height
-        return self
 
     def example_inputs(self) -> Any:
         return [["Hello!", None]]
