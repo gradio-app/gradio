@@ -10,6 +10,7 @@ export async function resolve_wasm_src(src: MediaSrc): Promise<MediaSrc> {
 	const url = new URL(src);
 	if (
 		url.host !== window.location.host &&
+		url.protocol !== "file:" && // Ref: https://github.com/gradio-app/gradio/issues/5942
 		url.host !== "localhost:7860" &&
 		url.host !== "127.0.0.1:7860" // Ref: https://github.com/gradio-app/gradio/blob/v3.32.0/js/app/src/Index.svelte#L194
 	) {
