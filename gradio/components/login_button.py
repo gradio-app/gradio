@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import Any, Literal
+from typing import Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
@@ -23,8 +23,8 @@ class LoginButton(Button):
 
     def __init__(
         self,
-        *,
         value: str = "Sign in with Hugging Face",
+        *,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         size: Literal["sm", "lg"] | None = None,
         icon: str
@@ -71,16 +71,16 @@ class LoginButton(Button):
 
         self.attach_load_event(self._check_login_status, None)
 
-    def _check_login_status(self, request: Request) -> dict[str, Any]:
+    def _check_login_status(self, request: Request) -> LoginButton:
         # Each time the page is refreshed or loaded, check if the user is logged in and adapt label
         session = getattr(request, "session", None) or getattr(
             request.request, "session", None
         )
         if session is None or "oauth_profile" not in session:
-            return self.update("Sign in with Hugging Face", interactive=True)
+            return LoginButton("Sign in with Hugging Face", interactive=True)
         else:
             username = session["oauth_profile"]["preferred_username"]
-            return self.update(f"Signed in as {username}", interactive=False)
+            return LoginButton(f"Signed in as {username}", interactive=False)
 
 
 # JS code to redirects to /login/huggingface if user is not logged in.

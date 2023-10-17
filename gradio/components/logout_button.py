@@ -20,8 +20,8 @@ class LogoutButton(Button):
 
     def __init__(
         self,
-        *,
         value: str = "Logout",
+        *,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         size: Literal["sm", "lg"] | None = None,
         icon: str

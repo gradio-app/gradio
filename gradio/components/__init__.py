@@ -104,7 +104,6 @@ __all__ = [
     "ScatterPlot",
     "Slider",
     "State",
-    "Variable",
     "UploadButton",
     "Video",
     "StreamingInput",
