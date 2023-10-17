@@ -242,7 +242,8 @@ const changelogFunctions = {
 			console.log({
 				name: release.name,
 				type: _type,
-				summary: formatted_summary
+				summary: formatted_summary,
+				lines: lines[release.name]
 			});
 
 			//@ts-ignore
