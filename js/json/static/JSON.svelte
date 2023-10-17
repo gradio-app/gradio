@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onDestroy } from "svelte";
 	import { fade } from "svelte/transition";
+	import { JSON as JSONIcon } from "@gradio/icons";
+	import { Empty } from "@gradio/atoms";
 	import JSONNode from "./JSONNode.svelte";
 	import { Copy, Check } from "@gradio/icons";
 
@@ -24,29 +26,43 @@
 		}
 	}
 
+	function is_empty(obj: object): boolean {
+		return (
+			obj &&
+			Object.keys(obj).length === 0 &&
+			Object.getPrototypeOf(obj) === Object.prototype
+		);
+	}
+
 	onDestroy(() => {
 		if (timer) clearTimeout(timer);
 	});
 </script>
 
-<button
-	on:click={handle_copy}
-	title="copy"
-	class={copied ? "" : "copy-text"}
-	aria-roledescription={copied ? "Copied value" : "Copy value"}
-	aria-label={copied ? "Copied" : "Copy"}
->
-	{#if copied}
-		<span in:fade={{ duration: 300 }}>
-			<Check />
-		</span>
-	{:else}
-		<Copy />
-	{/if}
-</button>
-<div class="json-holder">
-	<JSONNode {value} depth={0} />
-</div>
+{#if value && value !== '""' && !is_empty(value)}
+	<button
+		on:click={handle_copy}
+		title="copy"
+		class={copied ? "" : "copy-text"}
+		aria-roledescription={copied ? "Copied value" : "Copy value"}
+		aria-label={copied ? "Copied" : "Copy"}
+	>
+		{#if copied}
+			<span in:fade={{ duration: 300 }}>
+				<Check />
+			</span>
+		{:else}
+			<Copy />
+		{/if}
+	</button>
+	<div class="json-holder">
+		<JSONNode {value} depth={0} />
+	</div>
+{:else}
+	<Empty>
+		<JSONIcon />
+	</Empty>
+{/if}
 
 <style>
 	.json-holder {
