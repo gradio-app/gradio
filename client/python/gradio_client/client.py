@@ -818,24 +818,6 @@ class Endpoint:
             return False
         return utils.value_is_file(component["api_info"])
 
-    def _get_component_type(self, component_id: int):
-        component = next(
-            i for i in self.client.config["components"] if i["id"] == component_id
-        )
-        skip_api = component.get("skip_api", component["type"] in utils.SKIP_COMPONENTS)
-        return ComponentApiType(
-            skip_api,
-            self.value_is_file(component),
-            component["type"] == "state",
-        )
-
-    @staticmethod
-    def value_is_file(component: dict) -> bool:
-        # Hacky for now
-        if "api_info" not in component:
-            return False
-        return utils.value_is_file(component["api_info"])
-
     def __repr__(self):
         return f"Endpoint src: {self.client.src}, api_name: {self.api_name}, fn_index: {self.fn_index}"
 

@@ -9,10 +9,6 @@
 	import { Block, BlockLabel, Empty } from "@gradio/atoms";
 	import { Code as CodeIcon } from "@gradio/icons";
 
-	export let gradio: Gradio<{
-		change: typeof value;
-		input: never;
-	}>;
 	export let value = "";
 	export let value_is_output = false;
 	export let language = "";

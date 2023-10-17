@@ -1,11 +1,6 @@
 {
-<<<<<<<< HEAD:js/preview/test/newnewtext/frontend/package.json
-	"name": "newnewtext",
-	"version": "0.1.2",
-========
 	"name": "@gradio/fileexplorer",
-	"version": "0.2.1",
->>>>>>>> v4:js/fileexplorer/package.json
+	"version": "0.2.2",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "./index.svelte",
@@ -29,14 +24,5 @@
 		"./interactive": "./interactive/index.ts",
 		"./static": "./static/index.ts",
 		"./example": "./example/index.ts"
-<<<<<<<< HEAD:js/preview/test/newnewtext/frontend/package.json
-	},
-	"dependencies": {
-		"@gradio/atoms": "workspace:^",
-		"@gradio/icons": "workspace:^",
-		"@gradio/statustracker": "workspace:^",
-		"@gradio/utils": "workspace:^"
-========
->>>>>>>> v4:js/fileexplorer/package.json
 	}
 }

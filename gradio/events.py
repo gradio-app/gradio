@@ -45,7 +45,7 @@ def set_cancel_events(
 
 
 class Dependency(dict):
-    def __init__(self, trigger: Block | None, key_vals, dep_index, fn):
+    def __init__(self, trigger, key_vals, dep_index, fn):
         super().__init__(key_vals)
         self.fn = fn
         self.then = partial(
@@ -236,6 +236,7 @@ class EventListener(str):
                     return inner
 
                 return Dependency(None, {}, None, wrapper)
+
             if status_tracker:
                 warn_deprecation(
                     "The 'status_tracker' parameter has been deprecated and has no effect."

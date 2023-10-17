@@ -211,12 +211,6 @@
 				  }`
 				: host || space || src || location.origin;
 
-		const api_url =
-			BUILD_MODE === "dev" || gradio_dev_mode === "dev"
-				? `http://localhost:${
-						typeof server_port === "number" ? server_port : 7860
-				  }`
-				: host || space || src || location.origin;
 		app = await client(api_url, {
 			status_callback: handle_status,
 			normalise_files: false
