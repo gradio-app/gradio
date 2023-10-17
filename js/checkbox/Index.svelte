@@ -35,6 +35,7 @@
 	{#if info}
 		<Info>{info}</Info>
 	{/if}
+
 	<Checkbox
 		{label}
 		bind:value

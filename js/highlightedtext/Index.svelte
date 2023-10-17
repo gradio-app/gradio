@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Gradio, SelectData, I18nFormatter } from "@gradio/utils";
-	import StaticHighlightedText from "./shared/StaticHighlightedText.svelte";
-	import InteractiveHighlightedText from "./shared/InteractiveHighlightedText.svelte";
+	import StaticHighlightedText from "./shared/StaticHighlightedtext.svelte";
+	import InteractiveHighlightedText from "./shared/InteractiveHighlightedtext.svelte";
 	import { Block, BlockLabel, Empty } from "@gradio/atoms";
 	import { TextHighlight } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";

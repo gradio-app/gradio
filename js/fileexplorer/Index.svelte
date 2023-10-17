@@ -34,68 +34,35 @@
 	export let mode: "static" | "interactive" = "interactive";
 </script>
 
-{#if mode === "static"}
-	<Block
-		{visible}
-		variant={value === null ? "dashed" : "solid"}
-		border_mode={"base"}
-		padding={false}
-		{elem_id}
-		{elem_classes}
-		{container}
-		{scale}
-		{min_width}
-		allow_overflow={false}
-		{height}
-	>
-		<StatusTracker
-			{...loading_status}
-			autoscroll={gradio.autoscroll}
-			i18n={gradio.i18n}
-		/>
-		<BlockLabel
-			{show_label}
-			Icon={File}
-			label={label || "FileExplorer"}
-			float={false}
-		/>
-		<DirectoryExplorer
-			bind:value
-			{file_count}
-			{server}
-			mode="static"
-			on:change={() => gradio.dispatch("change")}
-		/>
-	</Block>
-{:else}
-	<Block
-		{visible}
-		padding={false}
-		{elem_id}
-		{elem_classes}
-		{container}
-		{scale}
-		{min_width}
-		{height}
-	>
-		<BlockLabel
-			{show_label}
-			Icon={File}
-			label={label || "FileExplorer"}
-			float={false}
-		/>
-		<StatusTracker
-			{...loading_status}
-			autoscroll={gradio.autoscroll}
-			i18n={gradio.i18n}
-		/>
-
-		<DirectoryExplorer
-			bind:value
-			{file_count}
-			{server}
-			mode="interactive"
-			on:change={() => gradio.dispatch("change")}
-		/>
-	</Block>
-{/if}
+<Block
+	{visible}
+	variant={value === null ? "dashed" : "solid"}
+	border_mode={"base"}
+	padding={false}
+	{elem_id}
+	{elem_classes}
+	{container}
+	{scale}
+	{min_width}
+	allow_overflow={false}
+	{height}
+>
+	<StatusTracker
+		{...loading_status}
+		autoscroll={gradio.autoscroll}
+		i18n={gradio.i18n}
+	/>
+	<BlockLabel
+		{show_label}
+		Icon={File}
+		label={label || "FileExplorer"}
+		float={false}
+	/>
+	<DirectoryExplorer
+		bind:value
+		{file_count}
+		{server}
+		{mode}
+		on:change={() => gradio.dispatch("change")}
+	/>
+</Block>
