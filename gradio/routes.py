@@ -15,6 +15,7 @@ import mimetypes
 import os
 import posixpath
 import secrets
+import shutil
 import tempfile
 import threading
 import time
@@ -24,11 +25,12 @@ from collections import defaultdict
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type
 
+import anyio
 import fastapi
 import httpx
 import markupsafe
 import orjson
-from fastapi import Depends, FastAPI, File, HTTPException, UploadFile, WebSocket, status
+from fastapi import Depends, FastAPI, HTTPException, WebSocket, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
     FileResponse,
@@ -38,22 +40,29 @@ from fastapi.responses import (
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
+from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 from jinja2.exceptions import TemplateNotFound
+from multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
 from starlette.responses import RedirectResponse, StreamingResponse
 from starlette.websockets import WebSocketState
 
 import gradio
 import gradio.ranged_response as ranged_response
-from gradio import processing_utils, route_utils, utils, wasm_utils
+from gradio import route_utils, utils, wasm_utils
 from gradio.context import Context
 from gradio.data_classes import ComponentServerBody, PredictBody, ResetBody
 from gradio.deprecation import warn_deprecation
 from gradio.exceptions import Error
 from gradio.oauth import attach_oauth
 from gradio.queueing import Estimation, Event
-from gradio.route_utils import Request  # noqa: F401
+from gradio.route_utils import (  # noqa: F401
+    GradioMultiPartParser,
+    GradioUploadFile,
+    MultiPartException,
+    Request,
+)
 from gradio.state_holder import StateHolder
 from gradio.utils import (
     cancel_tasks,
@@ -654,16 +663,44 @@ class App(FastAPI):
             return app.get_blocks()._queue.get_estimation()
 
         @app.post("/upload", dependencies=[Depends(login_check)])
-        async def upload_file(
-            files: List[UploadFile] = File(...),
-        ):
-            output_files = []
-            for input_file in files:
-                output_files.append(
-                    await processing_utils.save_uploaded_file(
-                        input_file, app.uploaded_file_dir, app.get_blocks().limiter
-                    )
+        async def upload_file(request: fastapi.Request):
+            content_type_header = request.headers.get("Content-Type")
+            content_type: bytes
+            content_type, _ = parse_options_header(content_type_header)
+            if content_type != b"multipart/form-data":
+                raise HTTPException(status_code=400, detail="Invalid content type.")
+
+            try:
+                multipart_parser = GradioMultiPartParser(
+                    request.headers,
+                    request.stream(),
+                    max_files=1000,
+                    max_fields=1000,
                 )
+                form = await multipart_parser.parse()
+            except MultiPartException as exc:
+                raise HTTPException(status_code=400, detail=exc.message) from exc
+
+            start = time.time()
+            output_files = []
+            for temp_file in form.values():
+                assert isinstance(temp_file, GradioUploadFile)
+                if temp_file.filename:
+                    file_name = Path(temp_file.filename).name
+                    name = client_utils.strip_invalid_filename_characters(file_name)
+                else:
+                    name = f"tmp{secrets.token_hex(5)}"
+                directory = Path(app.uploaded_file_dir) / temp_file.sha.hexdigest()
+                directory.mkdir(exist_ok=True, parents=True)
+                dest = (directory / name).resolve()
+                await anyio.to_thread.run_sync(
+                    shutil.move,
+                    temp_file.file.name,
+                    dest,
+                    limiter=app.get_blocks().limiter,
+                )
+                output_files.append(dest)
+            print(time.time() - start)
             return output_files
 
         @app.on_event("startup")
