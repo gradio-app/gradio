@@ -1,5 +1,12 @@
 # @gradio/wasm
 
+## 0.2.0-beta.1
+
+### Features
+
+- [#5963](https://github.com/gradio-app/gradio/pull/5963) [`174b73619`](https://github.com/gradio-app/gradio/commit/174b736194756e23f51bbaf6f850bac5f1ca95b5) - release wasm.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5964](https://github.com/gradio-app/gradio/pull/5964) [`5fbda0bd2`](https://github.com/gradio-app/gradio/commit/5fbda0bd2b2bbb2282249b8875d54acf87cd7e84) - Wasm release.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.2.0-beta.0
 
 ### Features
