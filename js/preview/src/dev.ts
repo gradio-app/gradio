@@ -12,8 +12,6 @@ const vite_messages_to_ignore = [
 const logger = createLogger();
 const originalWarning = logger.warn;
 logger.warn = (msg, options) => {
-	// console.log(`msg: ${msg}`);
-	// console.log(options);
 	if (vite_messages_to_ignore.some((m) => msg.includes(m))) return;
 
 	originalWarning(msg, options);
