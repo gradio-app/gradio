@@ -681,7 +681,6 @@ class App(FastAPI):
             except MultiPartException as exc:
                 raise HTTPException(status_code=400, detail=exc.message) from exc
 
-            start = time.time()
             output_files = []
             for temp_file in form.values():
                 assert isinstance(temp_file, GradioUploadFile)
@@ -700,7 +699,6 @@ class App(FastAPI):
                     limiter=app.get_blocks().limiter,
                 )
                 output_files.append(dest)
-            print(time.time() - start)
             return output_files
 
         @app.on_event("startup")
