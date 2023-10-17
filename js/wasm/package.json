@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/wasm",
-	"version": "0.1.0",
+	"version": "0.2.0-beta.1",
 	"description": "Gradio Wasm package",
 	"type": "module",
 	"main": "./dist/index.js",
@@ -12,7 +12,7 @@
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
-	"private": true,
+	"main_changeset": true,
 	"scripts": {
 		"dev:client": "tsc -w --incremental",
 		"dev:worker": "vite build --config vite.worker.config.js --watch --emptyOutDir=false",
