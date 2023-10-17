@@ -19,6 +19,7 @@ import tempfile
 import threading
 import time
 import traceback
+import json
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import defaultdict
 from pathlib import Path
@@ -66,6 +67,7 @@ from gradio.utils import (
     run_coro_in_background,
     set_task_name,
 )
+from queue import Empty as EmptyQueue
 
 if TYPE_CHECKING:
     from gradio.blocks import Block
@@ -552,7 +554,7 @@ class App(FastAPI):
             return output
 
         @app.post("/queue/join", dependencies=[Depends(login_check)])
-        async def join_queue(
+        async def queue_join(
             body: QueueJoinBody,
             request: fastapi.Request,
             username: str = Depends(get_current_user),
@@ -583,10 +585,41 @@ class App(FastAPI):
                     return
                 estimation = blocks._queue.get_estimation()
                 await blocks._queue.send_estimation(event, estimation, rank)
-            while True:
-                await asyncio.sleep(1)
-                if websocket.application_state == WebSocketState.DISCONNECTED:
-                    return
+
+            async def sse_stream(request: fastapi.Request):
+                while True:
+                    if await request.is_disconnected():
+                        blocks._queue.clean_event(event)
+                    if not event.alive:
+                        return
+
+                    CHECK_RATE = 0.05
+                    message = None
+                    try:
+                        message = event.message_queue.get_nowait()
+                        if message is None:  # end of stream marker
+                            return
+                    except EmptyQueue:
+                        await asyncio.sleep(CHECK_RATE)
+
+                    if message:
+                        yield f"data: {json.dumps(message)}\n\n"
+
+            return StreamingResponse(
+                sse_stream(request),
+                media_type="text/event-stream",
+            )
+        
+
+        @app.post("/queue/data", dependencies=[Depends(login_check)])
+        async def queue_data(
+            body: PredictBody,
+            request: fastapi.Request,
+            username: str = Depends(get_current_user),
+        ):
+            blocks = app.get_blocks()
+            blocks._queue.attach_data(body)
+
 
         @app.post("/component_server", dependencies=[Depends(login_check)])
         @app.post("/component_server/", dependencies=[Depends(login_check)])

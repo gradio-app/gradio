@@ -45,7 +45,6 @@ class InterfaceTypes(Enum):
 
 
 class Estimation(BaseModel):
-    msg: Optional[str] = "estimation"
     rank: Optional[int] = None
     queue_size: int
     avg_event_process_time: Optional[float] = None
@@ -63,11 +62,9 @@ class ProgressUnit(BaseModel):
 
 
 class Progress(BaseModel):
-    msg: str = "progress"
     progress_data: List[ProgressUnit] = []
 
 
 class LogMessage(BaseModel):
-    msg: str = "log"
     log: str
     level: Literal["info", "warning"]
