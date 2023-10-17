@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { JSON as JSONIcon } from "@gradio/icons";
+	import { Empty } from "@gradio/atoms";
+
 	export let value: any;
 	export let depth: number;
 	export let collapsed = depth > 4;
@@ -57,7 +60,11 @@
 			&#125;
 		{/if}
 	{:else if value === null}
-		<div class="json-item null">null</div>
+		<div class="json-item null">
+			<Empty>
+				<JSONIcon />
+			</Empty>
+		</div>
 	{:else if typeof value === "string"}
 		<div class="json-item string">
 			"{value}"

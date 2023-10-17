@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { onDestroy } from "svelte";
 	import { fade } from "svelte/transition";
-	import { JSON as JSONIcon } from "@gradio/icons";
-	import { Empty } from "@gradio/atoms";
 	import JSONNode from "./JSONNode.svelte";
 	import { Copy, Check } from "@gradio/icons";
 
@@ -58,10 +56,6 @@
 	<div class="json-holder">
 		<JSONNode {value} depth={0} />
 	</div>
-{:else}
-	<Empty>
-		<JSONIcon />
-	</Empty>
 {/if}
 
 <style>
