@@ -1,4 +1,6 @@
 import type { ActionReturn } from "svelte/action";
+import type WaveSurfer from "wavesurfer.js";
+import Regions from "wavesurfer.js/dist/plugins/regions.js";
 
 export interface LoadedParams {
 	crop_values?: [number, number];
@@ -42,3 +44,30 @@ export function loaded(
 		}
 	};
 }
+
+export const skipAudio = (waveform: WaveSurfer, amount: number): void => {
+	if (!waveform) return;
+	waveform.skip(amount);
+};
+
+export const addRegion = (
+	waveform: WaveSurfer,
+	waveformRegions: Regions,
+	start: number,
+	end: number
+): void => {
+	waveformRegions = waveform.registerPlugin(Regions.create());
+
+	waveformRegions.addRegion({
+		start: start,
+		end: end,
+		color: "rgba(255, 0, 0, 0.1)",
+		drag: true,
+		resize: true
+	});
+};
+
+export const getSkipRewindAmount = (audioDuration: number): number => {
+	// TODO 5 is default fraction but make this an optional prop
+	return (audioDuration / 100) * 5;
+};
