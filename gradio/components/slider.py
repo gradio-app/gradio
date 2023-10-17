@@ -114,40 +114,6 @@ class Slider(FormComponent):
             value = round(value, n_decimals)
         return value
 
-    @staticmethod
-    def update(
-        value: float | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        minimum: float | None = None,
-        maximum: float | None = None,
-        step: float | None = None,
-        label: str | None = None,
-        info: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Slider(...)` instead of `return gr.Slider.update(...)`."
-        )
-        return {
-            "minimum": minimum,
-            "maximum": maximum,
-            "step": step,
-            "label": label,
-            "info": info,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "interactive": interactive,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
-
     def postprocess(self, y: float | None) -> float | None:
         """
         Any postprocessing needed to be performed on function output.

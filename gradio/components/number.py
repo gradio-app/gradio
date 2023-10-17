@@ -108,40 +108,6 @@ class Number(FormComponent):
         else:
             return round(num, precision)
 
-    @staticmethod
-    def update(
-        value: float | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        minimum: float | None = None,
-        maximum: float | None = None,
-        step: float = 1,
-        label: str | None = None,
-        info: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Number(...)` instead of `return gr.Number.update(...)`."
-        )
-        return {
-            "label": label,
-            "info": info,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "minimum": minimum,
-            "maximum": maximum,
-            "step": step,
-            "interactive": interactive,
-            "__type__": "update",
-        }
-
     def preprocess(self, x: float | None) -> float | None:
         """
         Parameters:

@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-import warnings
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.components.base import Component, _Keywords
+from gradio.components.base import Component
 from gradio.events import Events
 
 set_documentation_group("component")
@@ -71,34 +70,6 @@ class Button(Component):
     @property
     def skip_api(self):
         return True
-
-    @staticmethod
-    def update(
-        value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        variant: Literal["primary", "secondary", "stop"] | None = None,
-        size: Literal["sm", "lg"] | None = None,
-        icon: str | None = None,
-        link: str | None = None,
-        visible: bool | None = None,
-        interactive: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Button(...)` instead of `return gr.Button.update(...)`."
-        )
-        return {
-            "variant": variant,
-            "size": size,
-            "visible": visible,
-            "value": value,
-            "icon": icon,
-            "link": link,
-            "interactive": interactive,
-            "scale": scale,
-            "min_width": min_width,
-            "__type__": "update",
-        }
 
     def preprocess(self, x: Any) -> Any:
         return x

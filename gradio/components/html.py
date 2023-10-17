@@ -68,24 +68,5 @@ class HTML(Component):
     def postprocess(self, y):
         return y
 
-    @staticmethod
-    def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        label: str | None = None,
-        show_label: bool | None = None,
-        visible: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.HTML(...)` instead of `return gr.HTML.update(...)`."
-        )
-        updated_config = {
-            "label": label,
-            "show_label": show_label,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
-        return updated_config
-
     def api_info(self) -> dict[str, Any]:
         return {"type": "string"}

@@ -94,45 +94,6 @@ class Radio(FormComponent):
     def example_inputs(self) -> Any:
         return self.choices[0][1] if self.choices else None
 
-    @staticmethod
-    def update(
-        value: str
-        | int
-        | float
-        | Literal[_Keywords.NO_VALUE]
-        | None = _Keywords.NO_VALUE,
-        choices: list[str | int | float | tuple[str, str | int | float]] | None = None,
-        label: str | None = None,
-        info: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Radio(...)` instead of `return gr.Radio.update(...)`."
-        )
-        choices = (
-            None
-            if choices is None
-            else [c if isinstance(c, tuple) else (str(c), c) for c in choices]
-        )
-        return {
-            "choices": choices,
-            "label": label,
-            "info": info,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "interactive": interactive,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
-
     def preprocess(self, x: str | int | float | None) -> str | int | float | None:
         """
         Parameters:

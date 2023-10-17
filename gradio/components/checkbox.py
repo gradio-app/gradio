@@ -41,7 +41,6 @@ class Checkbox(FormComponent):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        **kwargs,
     ):
         """
         Parameters:
@@ -71,36 +70,7 @@ class Checkbox(FormComponent):
             elem_id=elem_id,
             elem_classes=elem_classes,
             value=value,
-            **kwargs,
         )
-
-    @staticmethod
-    def update(
-        value: bool | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        label: str | None = None,
-        info: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Checkbox(...)` instead of `return gr.Checkbox.update(...)`."
-        )
-        return {
-            "label": label,
-            "info": info,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "interactive": interactive,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
 
     def get_interpretation_neighbors(self, x):
         return [not x], {}

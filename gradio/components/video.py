@@ -139,45 +139,6 @@ class Video(Component):
             **kwargs,
         )
 
-    @staticmethod
-    def update(
-        value: str
-        | tuple[str, str | None]
-        | Literal[_Keywords.NO_VALUE]
-        | None = _Keywords.NO_VALUE,
-        source: Literal["upload", "webcam"] | None = None,
-        height: int | None = None,
-        width: int | None = None,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-        autoplay: bool | None = None,
-        show_share_button: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Video(...)` instead of `return gr.Video.update(...)`."
-        )
-        return {
-            "source": source,
-            "height": height,
-            "width": width,
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "interactive": interactive,
-            "visible": visible,
-            "value": value,
-            "autoplay": autoplay,
-            "show_share_button": show_share_button,
-            "__type__": "update",
-        }
-
     def preprocess(self, x: dict | VideoData) -> str | None:
         """
         Parameters:

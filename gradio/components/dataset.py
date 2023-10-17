@@ -93,28 +93,6 @@ class Dataset(Component):
     def skip_api(self):
         return True
 
-    @staticmethod
-    def update(
-        samples: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        visible: bool | None = None,
-        label: str | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Dataset(...)` instead of `return gr.Dataset.update(...)`."
-        )
-        return {
-            "samples": samples,
-            "visible": visible,
-            "label": label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "__type__": "update",
-        }
-
     def get_config(self):
         config = super().get_config()
         config["components"] = [

@@ -117,34 +117,6 @@ class File(Component):
         self.height = height
 
     @staticmethod
-    def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        height: int | float | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.File(...)` instead of `return gr.File.update(...)`."
-        )
-        return {
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "height": height,
-            "interactive": interactive,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
-
-    @staticmethod
     def _process_single_file(
         f, type: Literal["file", "bytes", "binary"], cache_dir: str
     ) -> bytes | tempfile._TemporaryFileWrapper:

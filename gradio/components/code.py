@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import warnings
 from pathlib import Path
 from typing import Any, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.components.base import Component, _Keywords
+from gradio.components.base import Component
 from gradio.events import Events
 
 set_documentation_group("component")
@@ -67,7 +66,6 @@ class Code(Component):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        **kwargs,
     ):
         """
         Parameters:
@@ -99,7 +97,6 @@ class Code(Component):
             elem_id=elem_id,
             elem_classes=elem_classes,
             value=value,
-            **kwargs,
         )
 
     def preprocess(self, x: Any) -> Any:
@@ -122,47 +119,3 @@ class Code(Component):
 
     def example_inputs(self) -> Any:
         return "print('Hello World')"
-
-    @staticmethod
-    def update(
-        value: str
-        | tuple[str]
-        | None
-        | Literal[_Keywords.NO_VALUE] = _Keywords.NO_VALUE,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-        language: Literal[
-            "python",
-            "markdown",
-            "json",
-            "html",
-            "css",
-            "javascript",
-            "typescript",
-            "yaml",
-            "dockerfile",
-            "shell",
-            "r",
-        ]
-        | None = None,
-        interactive: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Code(...)` instead of `return gr.Code.update(...)`."
-        )
-        return {
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "language": language,
-            "interactive": interactive,
-            "__type__": "update",
-        }

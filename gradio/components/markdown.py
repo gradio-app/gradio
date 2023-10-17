@@ -76,29 +76,6 @@ class Markdown(Component):
         unindented_y = inspect.cleandoc(y)
         return unindented_y
 
-    @staticmethod
-    def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        visible: bool | None = None,
-        rtl: bool | None = None,
-        latex_delimiters: list[dict[str, str | bool]] | None = None,
-        sanitize_html: bool | None = None,
-        line_breaks: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Markdown(...)` instead of `return gr.Markdown.update(...)`."
-        )
-        updated_config = {
-            "visible": visible,
-            "value": value,
-            "rtl": rtl,
-            "latex_delimiters": latex_delimiters,
-            "sanitize_html": sanitize_html,
-            "line_breaks": line_breaks,
-            "__type__": "update",
-        }
-        return updated_config
-
     def as_example(self, input_data: str | None) -> str:
         postprocessed = self.postprocess(input_data)
         return postprocessed if postprocessed else ""

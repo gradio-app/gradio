@@ -123,48 +123,6 @@ class Gallery(Component):
             **kwargs,
         )
 
-    @staticmethod
-    def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-        columns: int | tuple | None = None,
-        rows: int | tuple | None = None,
-        height: int | float | None = None,
-        preview: bool | None = None,
-        object_fit: Literal["contain", "cover", "fill", "none", "scale-down"]
-        | None = None,
-        allow_preview: bool | None = None,
-        show_share_button: bool | None = None,
-        show_download_button: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Gallery(...)` instead of `return gr.Gallery.update(...)`."
-        )
-        updated_config = {
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "columns": columns,
-            "rows": rows,
-            "height": height,
-            "preview": preview,
-            "object_fit": object_fit,
-            "allow_preview": allow_preview,
-            "show_share_button": show_share_button,
-            "show_download_button": show_download_button,
-            "__type__": "update",
-        }
-        return updated_config
-
     def postprocess(
         self,
         y: list[np.ndarray | _Image.Image | str]

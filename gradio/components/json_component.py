@@ -70,31 +70,6 @@ class JSON(Component):
             **kwargs,
         )
 
-    @staticmethod
-    def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.JSON(...)` instead of `return gr.JSON.update(...)`."
-        )
-        updated_config = {
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
-        return updated_config
-
     def postprocess(self, y: dict | list | str | None) -> dict | list | None:
         """
         Parameters:

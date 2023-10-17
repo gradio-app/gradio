@@ -134,45 +134,6 @@ class Dropdown(FormComponent):
         else:
             return self.choices[0][1] if self.choices else None
 
-    @staticmethod
-    def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        choices: str | list[str | tuple[str, str]] | None = None,
-        label: str | None = None,
-        info: str | None = None,
-        show_label: bool | None = None,
-        filterable: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        placeholder: str | None = None,
-        visible: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Dropdown(...)` instead of `return gr.Dropdown.update(...)`."
-        )
-        choices = (
-            None
-            if choices is None
-            else [c if isinstance(c, tuple) else (str(c), c) for c in choices]
-        )
-        return {
-            "choices": choices,
-            "label": label,
-            "info": info,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "interactive": interactive,
-            "placeholder": placeholder,
-            "filterable": filterable,
-            "__type__": "update",
-        }
-
     def preprocess(
         self, x: str | int | float | list[str | int | float] | None
     ) -> str | int | float | list[str | int | float] | list[int | None] | None:

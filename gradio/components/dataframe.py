@@ -75,7 +75,6 @@ class Dataframe(Component):
         wrap: bool = False,
         line_breaks: bool = True,
         column_widths: list[str | int] | None = None,
-        **kwargs,
     ):
         """
         Parameters:
@@ -168,50 +167,8 @@ class Dataframe(Component):
             elem_id=elem_id,
             elem_classes=elem_classes,
             value=value,
-            **kwargs,
         )
 
-    @staticmethod
-    def update(
-        value: pd.DataFrame
-        | Styler
-        | np.ndarray
-        | list
-        | list[list]
-        | dict
-        | str
-        | Literal[_Keywords.NO_VALUE]
-        | None = _Keywords.NO_VALUE,
-        max_rows: int | None = None,
-        max_cols: str | None = None,
-        label: str | None = None,
-        show_label: bool | None = None,
-        latex_delimiters: list[dict[str, str | bool]] | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        height: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-        line_breaks: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Dataframe(...)` instead of `return gr.Dataframe.update(...)`."
-        )
-        return {
-            "max_rows": max_rows,
-            "max_cols": max_cols,
-            "label": label,
-            "show_label": show_label,
-            "scale": scale,
-            "min_width": min_width,
-            "height": height,
-            "interactive": interactive,
-            "visible": visible,
-            "value": value,
-            "latex_delimiters": latex_delimiters,
-            "line_breaks": line_breaks,
-            "__type__": "update",
-        }
 
     def preprocess(self, x: dict) -> pd.DataFrame | np.ndarray | list:
         """

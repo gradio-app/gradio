@@ -106,36 +106,7 @@ class UploadButton(Component):
             return [
                 "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
             ]
-
-    @staticmethod
-    def update(
-        value: str
-        | list[str]
-        | Literal[_Keywords.NO_VALUE]
-        | None = _Keywords.NO_VALUE,
-        label: str | None = None,
-        size: Literal["sm", "lg"] | None = None,
-        variant: Literal["primary", "secondary", "stop"] | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.UploadButton(...)` instead of `return gr.UploadButton.update(...)`."
-        )
-        return {
-            "variant": variant,
-            "interactive": interactive,
-            "size": size,
-            "visible": visible,
-            "value": value,
-            "scale": scale,
-            "min_width": min_width,
-            "label": label,
-            "__type__": "update",
-        }
-
+        
     def preprocess(
         self, x: list[dict[str, Any]] | None
     ) -> (

@@ -42,7 +42,6 @@ class CheckboxGroup(FormComponent):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        **kwargs,
     ):
         """
         Parameters:
@@ -87,7 +86,6 @@ class CheckboxGroup(FormComponent):
             elem_id=elem_id,
             elem_classes=elem_classes,
             value=value,
-            **kwargs,
         )
 
     def example_inputs(self) -> Any:
@@ -98,44 +96,6 @@ class CheckboxGroup(FormComponent):
             "items": {"enum": [c[1] for c in self.choices], "type": "string"},
             "title": "Checkbox Group",
             "type": "array",
-        }
-
-    @staticmethod
-    def update(
-        value: list[str | int | float]
-        | str
-        | Literal[_Keywords.NO_VALUE]
-        | None = _Keywords.NO_VALUE,
-        choices: list[str | int | float | tuple[str, str | int | float]] | None = None,
-        label: str | None = None,
-        info: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.CheckboxGroup(...)` instead of `return gr.CheckboxGroup.update(...)`."
-        )
-        choices = (
-            None
-            if choices is None
-            else [c if isinstance(c, tuple) else (str(c), c) for c in choices]
-        )
-        return {
-            "choices": choices,
-            "label": label,
-            "info": info,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "interactive": interactive,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
         }
 
     def preprocess(

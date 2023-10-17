@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import warnings
 from types import ModuleType
 from typing import Any, Callable, Literal
 
@@ -12,9 +11,8 @@ import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio import processing_utils
-from gradio.components.base import Component, _Keywords
+from gradio.components.base import Component
 from gradio.data_classes import GradioModel
-from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Events
 
 set_documentation_group("component")
@@ -98,31 +96,6 @@ class Plot(Component):
         config["bokeh_version"] = bokeh_version
         return config
 
-    @staticmethod
-    def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Plot(...)` instead of `return gr.Plot.update(...)`."
-        )
-        updated_config = {
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
-        return updated_config
-
     def preprocess(self, x: Any) -> Any:
         return x
 
@@ -153,15 +126,6 @@ class Plot(Component):
             dtype = "altair" if is_altair else "plotly"
             out_y = y.to_json()
         return PlotData(**{"type": dtype, "plot": out_y})
-
-    def style(self, container: bool | None = None):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if container is not None:
-            self.container = container
-        return self
 
 
 class AltairPlot:

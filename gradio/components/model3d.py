@@ -90,42 +90,6 @@ class Model3D(Component):
             **kwargs,
         )
 
-    @staticmethod
-    def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        camera_position: tuple[
-            int | float | None, int | float | None, int | float | None
-        ]
-        | None = None,
-        clear_color: tuple[float, float, float, float] | None = None,
-        height: int | None = None,
-        zoom_speed: float | None = None,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Model3D(...)` instead of `return gr.Model3D.update(...)`."
-        )
-        updated_config = {
-            "camera_position": camera_position,
-            "clear_color": clear_color,
-            "height": height,
-            "zoom_speed": zoom_speed,
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
-        return updated_config
-
     def preprocess(self, x: dict[str, str] | None) -> str | None:
         """
         Parameters:

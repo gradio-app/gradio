@@ -132,55 +132,6 @@ class Chatbot(Component):
             value=value,
         )
 
-    @staticmethod
-    def update(
-        value: list[list[str | tuple[str] | tuple[str, str] | None]]
-        | Literal[_Keywords.NO_VALUE]
-        | None = _Keywords.NO_VALUE,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-        height: int | None = None,
-        rtl: bool | None = None,
-        latex_delimiters: list[dict[str, str | bool]] | None = None,
-        show_share_button: bool | None = None,
-        show_copy_button: bool | None = None,
-        avatar_images: tuple[str | Path | None] | None = None,
-        sanitize_html: bool | None = None,
-        bubble_full_width: bool | None = None,
-        layout: Literal["panel", "bubble"] | None = None,
-        render_markdown: bool | None = None,
-        line_breaks: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Chatbot(...)` instead of `return gr.Chatbot.update(...)`."
-        )
-        updated_config = {
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "height": height,
-            "show_share_button": show_share_button,
-            "rtl": rtl,
-            "latex_delimiters": latex_delimiters,
-            "show_copy_button": show_copy_button,
-            "avatar_images": avatar_images,
-            "sanitize_html": sanitize_html,
-            "bubble_full_width": bubble_full_width,
-            "render_markdown": render_markdown,
-            "line_breaks": line_breaks,
-            "layout": layout,
-            "__type__": "update",
-        }
-        return updated_config
-
     def _preprocess_chat_messages(
         self, chat_message: str | dict | None
     ) -> str | tuple[str] | tuple[str, str] | None:

@@ -154,46 +154,6 @@ class Image(StreamingInput, Component):
             **kwargs,
         )
 
-    @staticmethod
-    def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        height: int | None = None,
-        width: int | None = None,
-        label: str | None = None,
-        show_label: bool | None = None,
-        show_download_button: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-        brush_radius: float | None = None,
-        brush_color: str | None = None,
-        mask_opacity: float | None = None,
-        show_share_button: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Image(...)` instead of `return gr.Image.update(...)`."
-        )
-        return {
-            "height": height,
-            "width": width,
-            "label": label,
-            "show_label": show_label,
-            "show_download_button": show_download_button,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "interactive": interactive,
-            "visible": visible,
-            "value": value,
-            "brush_radius": brush_radius,
-            "brush_color": brush_color,
-            "mask_opacity": mask_opacity,
-            "show_share_button": show_share_button,
-            "__type__": "update",
-        }
-
     def _format_image(
         self, im: _Image.Image | None
     ) -> np.ndarray | _Image.Image | str | None:

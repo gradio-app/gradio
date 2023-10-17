@@ -37,7 +37,6 @@ class ClearButton(Button):
         elem_classes: list[str] | str | None = None,
         scale: int | None = None,
         min_width: int | None = None,
-        **kwargs,
     ):
         super().__init__(
             value,
@@ -51,7 +50,6 @@ class ClearButton(Button):
             elem_classes=elem_classes,
             scale=scale,
             min_width=min_width,
-            **kwargs,
         )
         self.add(components)
 

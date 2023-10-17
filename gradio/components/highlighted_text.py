@@ -100,40 +100,6 @@ class HighlightedText(Component):
     def example_inputs(self) -> Any:
         return {"value": [{"token": "Hello", "class_or_confidence": "1"}]}
 
-    @staticmethod
-    def update(
-        value: list[tuple[str, str | float | None]]
-        | dict
-        | Literal[_Keywords.NO_VALUE]
-        | None = _Keywords.NO_VALUE,
-        color_map: dict[str, str] | None = None,
-        show_legend: bool | None = None,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-        interactive: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.HighlightedText(...)` instead of `return gr.HighlightedText.update(...)`."
-        )
-        updated_config = {
-            "color_map": color_map,
-            "show_legend": show_legend,
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "interactive": interactive,
-            "__type__": "update",
-        }
-        return updated_config
-
     def postprocess(
         self, y: list[tuple[str, str | float | None]] | dict | None
     ) -> HighlightedTextData | None:

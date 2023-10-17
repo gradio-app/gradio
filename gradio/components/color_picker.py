@@ -41,7 +41,6 @@ class ColorPicker(Component):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        **kwargs,
     ):
         """
         Parameters:
@@ -71,7 +70,6 @@ class ColorPicker(Component):
             elem_id=elem_id,
             elem_classes=elem_classes,
             value=value,
-            **kwargs,
         )
 
     def example_inputs(self) -> str:
@@ -85,34 +83,6 @@ class ColorPicker(Component):
 
     def api_info(self) -> dict[str, Any]:
         return {"type": "string"}
-
-    @staticmethod
-    def update(
-        value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        label: str | None = None,
-        info: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-        interactive: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.ColorPicker(...)` instead of `return gr.ColorPicker.update(...)`."
-        )
-        return {
-            "value": value,
-            "label": label,
-            "info": info,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "interactive": interactive,
-            "__type__": "update",
-        }
 
     def preprocess(self, x: str | None) -> str | None:
         """

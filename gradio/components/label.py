@@ -128,59 +128,6 @@ class Label(Component):
             f"Instead, got a {type(y)}"
         )
 
-    @staticmethod
-    def update(
-        value: dict[str, float]
-        | str
-        | float
-        | Literal[_Keywords.NO_VALUE]
-        | None = _Keywords.NO_VALUE,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-        color: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Label(...)` instead of `return gr.Label.update(...)`."
-        )
-        # If color is not specified (NO_VALUE) map it to None so that
-        # it gets filtered out in postprocess. This will mean the color
-        # will not be updated in the front-end
-        if color is _Keywords.NO_VALUE:
-            color = None
-        # If the color was specified by the developer as None
-        # Map is so that the color is updated to be transparent,
-        # e.g. no background default state.
-        elif color is None:
-            color = "transparent"
-        return {
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "color": color,
-            "__type__": "update",
-        }
-
-    def style(
-        self,
-        *,
-        container: bool | None = None,
-    ):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if container is not None:
-            self.container = container
-        return self
-
     def preprocess(self, x: Any) -> Any:
         return x
 

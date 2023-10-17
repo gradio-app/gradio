@@ -143,42 +143,6 @@ class Audio(
     def example_inputs(self) -> Any:
         return "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
 
-    @staticmethod
-    def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        source: Literal["upload", "microphone"] | None = None,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-        autoplay: bool | None = None,
-        show_download_button: bool | None = None,
-        show_share_button: bool | None = None,
-        show_edit_button: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Audio(...)` instead of `return gr.Audio.update(...)`."
-        )
-        return {
-            "source": source,
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "interactive": interactive,
-            "visible": visible,
-            "value": value,
-            "autoplay": autoplay,
-            "show_download_button": show_download_button,
-            "show_share_button": show_share_button,
-            "show_edit_button": show_edit_button,
-            "__type__": "update",
-        }
-
     def preprocess(
         self, x: dict[str, Any] | None
     ) -> tuple[int, np.ndarray] | str | None:
