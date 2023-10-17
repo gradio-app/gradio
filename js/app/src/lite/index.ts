@@ -170,6 +170,112 @@ export function create(options: Options): GradioAppController {
 	};
 }
 
+interface GradioLiteAppOptions {
+	files?: WorkerProxyOptions["files"];
+	requirements?: WorkerProxyOptions["requirements"];
+	code?: string;
+	entrypoint?: string;
+}
+
+function parseGradioLiteAppOptions(gradioLiteAppElement: GradioLiteAppElement): GradioLiteAppOptions {
+	// When gradioLiteAppElement only contains text content, it is treated as the Python code.
+	if (gradioLiteAppElement.childElementCount === 0) {
+		return { code: gradioLiteAppElement.textContent ?? "" };
+	}
+
+	// When it contains child elements, parse them as options. Available child elements are:
+	// * <gradio-file />
+	//   Represents a file to be mounted in the virtual file system of the Wasm worker.
+	//   At least 1 <gradio-file> element must have the `entrypoint` attribute.
+	//   The following 2 forms are supported:
+	//   * <gradio-file name="{file name}" >{file content}</gradio-file>
+	//   * <gradio-file name="{file name}" url="{remote URL}" />
+	// * <gradio-requirements>{requirements.txt}</gradio-requirements>
+	// * <gradio-code>{Python code}</gradio-code>
+	const options: GradioLiteAppOptions = {};
+
+	const fileElements = gradioLiteAppElement.getElementsByTagName("gradio-file");
+	for (const fileElement of fileElements) {
+		const name = fileElement.getAttribute("name");
+		if (name == null) {
+			throw new Error("<gradio-file> must have the name attribute.");
+		}
+
+		const entrypoint = fileElement.hasAttribute("entrypoint");
+		const url = fileElement.getAttribute("url");
+
+		options.files ??= {};
+		if (url != null) {
+			options.files[name] = { url }
+		} else {
+			options.files[name] = { data: fileElement.textContent ?? "" }
+		}
+
+		if (entrypoint) {
+			if (options.entrypoint != null) {
+				throw new Error("Multiple entrypoints are not allowed.");
+			}
+			options.entrypoint = name;
+		}
+	}
+
+	const codeElements = gradioLiteAppElement.getElementsByTagName("gradio-code");
+	if (codeElements.length > 1) {
+		console.warn("Multiple <gradio-code> elements are found. Only the first one will be used.")
+	}
+	const firstCodeElement = codeElements[0];
+	options.code = firstCodeElement?.textContent ?? undefined;
+
+	const requirementsElements = gradioLiteAppElement.getElementsByTagName("gradio-requirements");
+	if (requirementsElements.length > 1) {
+		console.warn("Multiple <gradio-requirements> elements are found. Only the first one will be used.")
+	}
+	const firstRequirementsElement = requirementsElements[0];
+	const requirementsTxt = firstRequirementsElement?.textContent ?? "";
+	options.requirements = parseRequirementsTxt(requirementsTxt);
+
+	return options;
+}
+
+function parseRequirementsTxt(content: string): string[] {
+	return content
+		.split("\n")
+		.filter((r) => !r.startsWith("#"))
+		.map((r) => r.trim())
+		.filter((r) => r !== "");
+}
+
+class GradioLiteAppElement extends HTMLElement {
+	constructor() {
+		super();
+
+		const options = parseGradioLiteAppOptions(this);
+
+		this.innerHTML = "";
+
+		create({
+			target: this,  // Same as `js/app/src/main.ts`
+			code: options.code,
+			requirements: options.requirements,
+			files: options.files,
+			entrypoint: options.entrypoint,
+			info: true,
+			container: true,
+			isEmbed: false,
+			initialHeight: "300px",
+			eager: false,
+			themeMode: null,
+			autoScroll: false,
+			controlPageTitle: false,
+			appMode: true,
+		})
+	}
+}
+
+function bootstrap_custom_element(): void {
+	customElements.define("gradio-app", GradioLiteAppElement)
+}
+
 /**
  * I'm not sure if this is a correct way to export functions from a bundle created with Vite.
  * However, at least, the library mode (https://vitejs.dev/guide/build.html#library-mode)
@@ -190,6 +296,8 @@ export function create(options: Options): GradioAppController {
  */
 // @ts-ignore
 globalThis.createGradioApp = create;
+
+bootstrap_custom_element();
 
 declare let BUILD_MODE: string;
 if (BUILD_MODE === "dev") {
