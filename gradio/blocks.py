@@ -814,7 +814,7 @@ class Blocks(BlockContext):
         elif every:
             raise ValueError("Cannot set a value for `every` without a `fn`.")
 
-        if _targets[0][0] == "change":
+        if event_name == "change":
             trigger_mode = "always_last"
 
         _, progress_index, event_data_index = (
