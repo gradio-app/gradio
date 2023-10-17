@@ -155,50 +155,6 @@
 
 	$: components, layout, prepare_components();
 
-	async function load_custom_component<T extends ComponentMeta["type"]>(
-		name: T,
-		mode: ComponentMeta["props"]["mode"] | "example"
-	): Promise<{
-		name: T;
-		component: LoadedComponent;
-	}> {
-		const comps = "__ROOT_PATH__";
-		try {
-			if (
-				typeof comps !== "object" ||
-				!comps?.[name] ||
-				!comps?.[name]?.[mode]
-			) {
-				throw new Error(`Component ${name} not found`);
-			}
-			//@ts-ignore
-			const c = await comps[name][mode]();
-			return {
-				name,
-				component: c as LoadedComponent
-			};
-		} catch (e) {
-			if (mode === "interactive") {
-				try {
-					//@ts-ignore
-					const c = await comps[name]["static"]();
-					return {
-						name,
-						component: c as LoadedComponent
-					};
-				} catch (e) {
-					console.error(`failed to load: ${name}`);
-					console.error(e);
-					throw e;
-				}
-			} else {
-				// console.error(`failed to load: ${name}`);
-				// console.error(e);
-				throw e;
-			}
-		}
-	}
-
 	function prepare_components(): void {
 		loading_status = create_loading_status_store();
 

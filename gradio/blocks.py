@@ -184,148 +184,6 @@ class Block:
     def get_expected_parent(self) -> type[BlockContext] | None:
         return None
 
-    def set_event_trigger(
-        self,
-        event_name: str,
-        fn: Callable | None,
-        inputs: Component | list[Component] | set[Component] | None,
-        outputs: Component | list[Component] | None,
-        preprocess: bool = True,
-        postprocess: bool = True,
-        scroll_to_output: bool = False,
-        show_progress: Literal["full", "hidden", "minimal"] | None = "full",
-        api_name: str | None | Literal[False] = None,
-        js: str | None = None,
-        no_target: bool = False,
-        queue: bool | None = None,
-        batch: bool = False,
-        max_batch_size: int = 4,
-        cancels: list[int] | None = None,
-        every: float | None = None,
-        collects_event_data: bool | None = None,
-        trigger_after: int | None = None,
-        trigger_only_on_success: bool = False,
-        trigger_mode: Literal["once", "multiple", "always_last"] = "once",
-    ) -> tuple[dict[str, Any], int]:
-        """
-        Adds an event to the component's dependencies.
-        Parameters:
-            event_name: event name
-            fn: Callable function
-            inputs: input list
-            outputs: output list
-            preprocess: whether to run the preprocess methods of components
-            postprocess: whether to run the postprocess methods of components
-            scroll_to_output: whether to scroll to output of dependency on trigger
-            show_progress: whether to show progress animation while running.
-            api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.
-            js: Experimental parameter (API may change): Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
-            no_target: if True, sets "targets" to [], used for Blocks "load" event
-            queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
-            batch: whether this function takes in a batch of inputs
-            max_batch_size: the maximum batch size to send to the function
-            cancels: a list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
-            every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
-            collects_event_data: whether to collect event data for this event
-            trigger_after: if set, this event will be triggered after 'trigger_after' function index
-            trigger_only_on_success: if True, this event will only be triggered if the previous event was successful (only applies if `trigger_after` is set)
-            trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` event) would allow a second submission after the pending event is complete.
-        Returns: dependency information, dependency index
-        """
-        # Support for singular parameter
-        if isinstance(inputs, set):
-            inputs_as_dict = True
-            inputs = sorted(inputs, key=lambda x: x._id)
-        else:
-            inputs_as_dict = False
-            if inputs is None:
-                inputs = []
-            elif not isinstance(inputs, list):
-                inputs = [inputs]
-
-        if isinstance(outputs, set):
-            outputs = sorted(outputs, key=lambda x: x._id)
-        else:
-            if outputs is None:
-                outputs = []
-            elif not isinstance(outputs, list):
-                outputs = [outputs]
-
-        if fn is not None and not cancels:
-            check_function_inputs_match(fn, inputs, inputs_as_dict)
-
-        if Context.root_block is None:
-            raise AttributeError(
-                f"{event_name}() and other events can only be called within a Blocks context."
-            )
-        if every is not None and every <= 0:
-            raise ValueError("Parameter every must be positive or None")
-        if every and batch:
-            raise ValueError(
-                f"Cannot run {event_name} event in a batch and every {every} seconds. "
-                "Either batch is True or every is non-zero but not both."
-            )
-
-        if every and fn:
-            fn = get_continuous_fn(fn, every)
-        elif every:
-            raise ValueError("Cannot set a value for `every` without a `fn`.")
-
-        if event_name == "change":
-            trigger_mode = "always_last"
-
-        _, progress_index, event_data_index = (
-            special_args(fn) if fn else (None, None, None)
-        )
-        Context.root_block.fns.append(
-            BlockFunction(
-                fn,
-                inputs,
-                outputs,
-                preprocess,
-                postprocess,
-                inputs_as_dict,
-                progress_index is not None,
-            )
-        )
-        if api_name is not None and api_name is not False:
-            api_name_ = utils.append_unique_suffix(
-                api_name, [dep["api_name"] for dep in Context.root_block.dependencies]
-            )
-            if api_name != api_name_:
-                warnings.warn(f"api_name {api_name} already exists, using {api_name_}")
-                api_name = api_name_
-
-        if collects_event_data is None:
-            collects_event_data = event_data_index is not None
-
-        dependency = {
-            "targets": [self._id] if not no_target else [],
-            "trigger": event_name,
-            "inputs": [block._id for block in inputs],
-            "outputs": [block._id for block in outputs],
-            "backend_fn": fn is not None,
-            "js": js,
-            "queue": False if fn is None else queue,
-            "api_name": api_name,
-            "scroll_to_output": False if utils.get_space() else scroll_to_output,
-            "show_progress": show_progress,
-            "every": every,
-            "batch": batch,
-            "max_batch_size": max_batch_size,
-            "cancels": cancels or [],
-            "types": {
-                "continuous": bool(every),
-                "generator": inspect.isgeneratorfunction(fn) or bool(every),
-            },
-            "collects_event_data": collects_event_data,
-            "trigger_after": trigger_after,
-            "trigger_only_on_success": trigger_only_on_success,
-            "trigger_mode": trigger_mode,
-        }
-        Context.root_block.dependencies.append(dependency)
-        return dependency, len(Context.root_block.dependencies) - 1
-
     def get_config(self):
         config = {}
         signature = inspect.signature(self.__class__.__init__)
@@ -818,6 +676,7 @@ class Blocks(BlockContext):
                     )
                     for t in targets
                 ]
+                print("HIT!!!!")
                 dependency = blocks.set_event_trigger(
                     targets=targets, fn=fn, **dependency
                 )[0]
@@ -888,11 +747,12 @@ class Blocks(BlockContext):
         collects_event_data: bool | None = None,
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
+        trigger_mode: Literal["once", "multiple", "always_last"] = "once",
     ) -> tuple[dict[str, Any], int]:
         """
         Adds an event to the component's dependencies.
         Parameters:
-            event_name: event name
+            targets: a list of EventListenerMethod objects that define the event trigger
             fn: Callable function
             inputs: input list
             outputs: output list
@@ -911,6 +771,7 @@ class Blocks(BlockContext):
             collects_event_data: whether to collect event data for this event
             trigger_after: if set, this event will be triggered after 'trigger_after' function index
             trigger_only_on_success: if True, this event will only be triggered if the previous event was successful (only applies if `trigger_after` is set)
+            trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` event) would allow a second submission after the pending event is complete.
         Returns: dependency information, dependency index
         """
         # Support for singular parameter
@@ -953,6 +814,11 @@ class Blocks(BlockContext):
             fn = get_continuous_fn(fn, every)
         elif every:
             raise ValueError("Cannot set a value for `every` without a `fn`.")
+
+        print("trigger mode", trigger_mode)
+        print("event name", _targets[0][0])
+        if _targets[0][0] == "change":
+            trigger_mode = "always_last"
 
         _, progress_index, event_data_index = (
             special_args(fn) if fn else (None, None, None)
@@ -1000,6 +866,7 @@ class Blocks(BlockContext):
             "collects_event_data": collects_event_data,
             "trigger_after": trigger_after,
             "trigger_only_on_success": trigger_only_on_success,
+            "trigger_mode": trigger_mode,
         }
         self.dependencies.append(dependency)
         return dependency, len(self.dependencies) - 1
