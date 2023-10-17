@@ -49,9 +49,9 @@ Somewhere in the body of your HTML page (wherever you'd like the Gradio app to b
 Note: you can add the `theme` attribute to the `<gradio-lite>` tag to force the theme to be dark or light (by default, it respects the system theme). E.g.
 
 ```html
-<gradio-app theme="dark">
+<gradio-lite theme="dark">
 ...
-</gradio-app>
+</gradio-lite>
 ```
 
 ### 3. Write your Gradio app inside of the tags
@@ -90,7 +90,7 @@ Adding multiple files within a `@gradio/lite` app is very straightrward: use the
 Here's an example:
 
 ```html
-<gradio-app>
+<gradio-lite>
 
 <gradio-file name="app.py" entrypoint>
 import gradio as gr
@@ -106,7 +106,7 @@ def add(a, b):
 	return a + b
 </gradio-file>
 
-</gradio-app>		
+</gradio-lite>		
 
 ```
 
@@ -117,7 +117,7 @@ If your Gradio app has additional requirements, it is usually possible to [insta
 Here, we install `transformers_js_py` to run a text classification model directly in the browser!
 
 ```html
-<gradio-app>
+<gradio-lite>
 
 <gradio-requirements>
 transformers_js_py
@@ -138,7 +138,7 @@ demo = gr.Interface(classify, "textbox", "json")
 demo.launch()
 </gradio-file>
 
-</gradio-app>	
+</gradio-lite>	
 
 ```
 
