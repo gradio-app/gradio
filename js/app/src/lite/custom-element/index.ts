@@ -1,4 +1,4 @@
-import { create, type Options } from ".."
+import { create, type Options } from "..";
 
 interface GradioComponentOptions {
 	info: Options["info"];
@@ -42,13 +42,13 @@ export function bootstrap_custom_element(): void {
 			this.innerHTML = "";
 
 			create({
-				target: this,  // Same as `js/app/src/main.ts`
+				target: this, // Same as `js/app/src/main.ts`
 				code: gradioLiteAppOptions.code,
 				requirements: gradioLiteAppOptions.requirements,
 				files: gradioLiteAppOptions.files,
 				entrypoint: gradioLiteAppOptions.entrypoint,
-				...gradioComponentOptions,
-			})
+				...gradioComponentOptions
+			});
 		}
 
 		parseGradioComponentOptions(): GradioComponentOptions {
@@ -80,10 +80,13 @@ export function bootstrap_custom_element(): void {
 				isEmbed,
 				initialHeight: initialHeight ?? undefined,
 				eager,
-				themeMode: (themeMode != null && ["light", "dark"].includes(themeMode)) ? themeMode as GradioComponentOptions["themeMode"] : null,
+				themeMode:
+					themeMode != null && ["light", "dark"].includes(themeMode)
+						? (themeMode as GradioComponentOptions["themeMode"])
+						: null,
 				autoScroll,
 				controlPageTitle,
-				appMode,
+				appMode
 			};
 		}
 
@@ -116,9 +119,9 @@ export function bootstrap_custom_element(): void {
 
 				options.files ??= {};
 				if (url != null) {
-					options.files[name] = { url }
+					options.files[name] = { url };
 				} else {
-					options.files[name] = { data: fileElement.textContent ?? "" }
+					options.files[name] = { data: fileElement.textContent ?? "" };
 				}
 
 				if (entrypoint) {
@@ -131,14 +134,20 @@ export function bootstrap_custom_element(): void {
 
 			const codeElements = this.getElementsByTagName("gradio-code");
 			if (codeElements.length > 1) {
-				console.warn("Multiple <gradio-code> elements are found. Only the first one will be used.")
+				console.warn(
+					"Multiple <gradio-code> elements are found. Only the first one will be used."
+				);
 			}
 			const firstCodeElement = codeElements[0];
 			options.code = firstCodeElement?.textContent ?? undefined;
 
-			const requirementsElements = this.getElementsByTagName("gradio-requirements");
+			const requirementsElements = this.getElementsByTagName(
+				"gradio-requirements"
+			);
 			if (requirementsElements.length > 1) {
-				console.warn("Multiple <gradio-requirements> elements are found. Only the first one will be used.")
+				console.warn(
+					"Multiple <gradio-requirements> elements are found. Only the first one will be used."
+				);
 			}
 			const firstRequirementsElement = requirementsElements[0];
 			const requirementsTxt = firstRequirementsElement?.textContent ?? "";
