@@ -142,6 +142,7 @@ demo.launch()
 
 ```
 
+**Try it out**: You can see this example running in this Space, which lets you run a machine learning model without internet access: https://huggingface.co/spaces/abidlabs/gradio-lite-classify 
 
 ## Benefits of Using `@gradio/lite`
 
@@ -186,5 +187,6 @@ You can immediately try out `@gradio/lite` by copying and pasting this code in a
 
 We've also created a playground on the Gradio website that allows you to interactively edit code and see the results immediately! 
 
-Playground: (coming soon)
+Playground: https://www.gradio.app/demos
 
+<center><img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/lite-logo.png" style="max-width:400px"></center>
