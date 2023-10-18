@@ -94,6 +94,10 @@
 	export let worker_proxy: WorkerProxy | undefined = undefined;
 	if (worker_proxy) {
 		setWorkerProxyContext(worker_proxy);
+
+		worker_proxy.addEventListener("progress-update", (event) => {
+			loading_text = (event as CustomEvent).detail + "...";
+		});
 	}
 
 	export let space: string | null;
