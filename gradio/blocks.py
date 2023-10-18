@@ -202,17 +202,24 @@ class Block:
 class BlockContext(Block):
     def __init__(
         self,
+        elem_id: str | None = None,
+        elem_classes: list[str] | str | None = None,
         visible: bool = True,
         render: bool = True,
-        **kwargs,
+        root_url: str | None = None,
+        _skip_init_processing: bool = False,
     ):
         """
         Parameters:
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
             visible: If False, this will be hidden but included in the Blocks config file (its visibility can later be updated).
             render: If False, this will not be included in the Blocks config file at all.
+            root_url: The remote URL that of the Gradio app that this layout belongs to. Used in `gr.load()`. Should not be set manually.
+            _skip_init_processing: If True, will skip the initial postprocessing step. Used in `gr.load()`. Should not be set manually.
         """
         self.children: list[Block] = []
-        Block.__init__(self, visible=visible, render=render, **kwargs)
+        Block.__init__(self, elem_id=elem_id, elem_classes=elem_classes, visible=visible, render=render, root_url=root_url, _skip_init_processing=_skip_init_processing)
 
     TEMPLATE_DIR = "./templates/"
     FRONTEND_DIR = "../../frontend/"
