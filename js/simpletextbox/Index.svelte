@@ -1,7 +1,7 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
-	import type { Gradio, SelectData } from "@gradio/utils";
+	import type { Gradio } from "@gradio/utils";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
