@@ -10,17 +10,19 @@
 
 	let micDevices: MediaDeviceInfo[] = [];
 	let recordButton: HTMLButtonElement;
-	let recordingButton: HTMLButtonElement;
 	let pauseButton: HTMLButtonElement;
 	let resumeButton: HTMLButtonElement;
 	let stopButton: HTMLButtonElement;
+	let stopButtonPaused: HTMLButtonElement;
 
 	onMount(() => {
 		recordButton = document.getElementById("record") as HTMLButtonElement;
-		recordingButton = document.getElementById("recording") as HTMLButtonElement;
 		pauseButton = document.getElementById("pause") as HTMLButtonElement;
 		resumeButton = document.getElementById("resume") as HTMLButtonElement;
 		stopButton = document.getElementById("stop") as HTMLButtonElement;
+		stopButtonPaused = document.getElementById(
+			"stop-paused"
+		) as HTMLButtonElement;
 
 		try {
 			RecordPlugin.getAvailableAudioDevices().then(
@@ -41,9 +43,7 @@
 		record.startMic();
 
 		recordButton.style.display = "none";
-		recordingButton.style.display = "flex";
-
-		stopButton.style.display = "block";
+		stopButton.style.display = "flex";
 		pauseButton.style.display = "block";
 	});
 
@@ -55,8 +55,6 @@
 		record.stopMic();
 
 		recordButton.style.display = "flex";
-		recordingButton.style.display = "none";
-
 		stopButton.style.display = "none";
 		pauseButton.style.display = "none";
 		recordButton.disabled = false;
@@ -65,17 +63,16 @@
 	$: record.on("record-pause", () => {
 		pauseButton.style.display = "none";
 		resumeButton.style.display = "block";
-
-		recordButton.style.display = "flex";
-		recordingButton.style.display = "none";
+		stopButton.style.display = "none";
+		stopButtonPaused.style.display = "flex";
 	});
 
 	$: record.on("record-resume", () => {
 		pauseButton.style.display = "block";
 		resumeButton.style.display = "none";
-
 		recordButton.style.display = "none";
-		recordingButton.style.display = "flex";
+		stopButton.style.display = "flex";
+		stopButtonPaused.style.display = "none";
 	});
 </script>
 
@@ -87,10 +84,9 @@
 			on:click={() => record.startRecording()}>{i18n("audio.record")}</button
 		>
 
-		<button id="recording" class="recording-button" disabled />
 		<button
 			id="stop"
-			class="stop-button"
+			class="stop-button {record.isPaused() ? 'stop-button-paused' : ''}"
 			on:click={() => {
 				if (record.isPaused()) {
 					record.resumeRecording();
@@ -100,6 +96,20 @@
 				record.stopRecording();
 			}}>{i18n("audio.stop")}</button
 		>
+
+		<button
+			id="stop-paused"
+			class="stop-button-paused"
+			on:click={() => {
+				if (record.isPaused()) {
+					record.resumeRecording();
+					record.stopRecording();
+				}
+
+				record.stopRecording();
+			}}>{i18n("audio.stop")}</button
+		>
+
 		<button
 			id="pause"
 			class="pause-button"
@@ -149,37 +159,44 @@
 		margin-right: var(--spacing-md);
 	}
 
-	.stop-button {
+	.stop-button-paused {
 		display: none;
 		height: var(--size-8);
 		width: var(--size-20);
-		border: 1px solid var(--neutral-400);
+		background-color: var(--block-background-fill);
 		border-radius: var(--radius-3xl);
-		padding: var(--spacing-xl);
-		line-height: 1px;
-		font-size: var(--text-md);
-		margin-right: var(--spacing-md);
+		align-items: center;
+		border: 1px solid var(--neutral-400);
+		margin-right: 5px;
 	}
 
-	.recording-button::before {
+	.stop-button-paused::before {
 		content: "";
 		height: var(--size-4);
 		width: var(--size-4);
 		border-radius: var(--radius-full);
 		background: var(--primary-600);
+		margin: 0 var(--spacing-xl);
+	}
+	.stop-button::before {
+		content: "";
+		height: var(--size-4);
+		width: var(--size-4);
+		border-radius: var(--radius-full);
+		background: var(--primary-600);
+		margin: 0 var(--spacing-xl);
 		animation: scaling 1800ms infinite;
 	}
 
-	.recording-button {
-		width: var(--size-8);
+	.stop-button {
+		display: none;
 		height: var(--size-8);
+		width: var(--size-20);
 		background-color: var(--block-background-fill);
 		border-radius: var(--radius-3xl);
-		display: none;
 		align-items: center;
-		justify-content: center;
 		border: 1px solid var(--primary-600);
-		margin-right: var(--spacing-md);
+		margin-right: 5px;
 	}
 
 	.record-button::before {
@@ -188,12 +205,12 @@
 		width: var(--size-4);
 		border-radius: var(--radius-full);
 		background: var(--primary-600);
-		margin: var(--spacing-md);
+		margin: 0 var(--spacing-xl);
 	}
 
 	.record-button {
 		height: var(--size-8);
-		width: var(--size-20);
+		width: var(--size-24);
 		background-color: var(--block-background-fill);
 		border-radius: var(--radius-3xl);
 		display: flex;
@@ -201,8 +218,13 @@
 		border: 1px solid var(--neutral-400);
 	}
 
-	.recording-button:disabled {
+	.stop-button:disabled {
 		cursor: not-allowed;
+	}
+
+	.record-button:disabled {
+		cursor: not-allowed;
+		opacity: 0.5;
 	}
 
 	@keyframes scaling {

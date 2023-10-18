@@ -18,7 +18,6 @@
 	import type { IBlobEvent, IMediaRecorder } from "extendable-media-recorder";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import AudioRecorder from "../recorder/AudioRecorder.svelte";
-	// import Audio from "../example/Audio.svelte";
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
