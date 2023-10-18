@@ -42,9 +42,9 @@ class HTML(Component):
         """
         Parameters:
             value: Default value. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            label: component name in interface.
+            label: The name of component.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
-            show_label: if True, will display label.
+            show_label: This parameter has no effect.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.

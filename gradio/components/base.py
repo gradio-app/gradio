@@ -150,7 +150,6 @@ class Component(ComponentBase, Block):
         _skip_init_processing: bool = False,
         load_fn: Callable | None = None,
         every: float | None = None,
-        **kwargs,
     ):
         self.server_fns = [
             value
@@ -169,7 +168,13 @@ class Component(ComponentBase, Block):
         )
 
         Block.__init__(
-            self, elem_id=elem_id, elem_classes=elem_classes, visible=visible, **kwargs
+            self,
+            elem_id=elem_id,
+            elem_classes=elem_classes,
+            visible=visible,
+            render=render,
+            root_url=root_url,
+            _skip_init_processing=_skip_init_processing,
         )
         if isinstance(self, StreamingInput):
             self.check_streamable()
@@ -215,6 +220,8 @@ class Component(ComponentBase, Block):
             config["info"] = self.info
         if len(self.server_fns):
             config["server_fns"] = [fn.__name__ for fn in self.server_fns]
+        config.pop("_skip_init_processing", None)
+        config.pop("render", None)
         return config
 
     @property
