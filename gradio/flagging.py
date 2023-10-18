@@ -217,7 +217,6 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         Parameters:
             hf_token: The HuggingFace token to use to create (and write the flagged sample to) the HuggingFace dataset (defaults to the registered one).
             dataset_name: The repo_id of the dataset to save the data to, e.g. "image-classifier-1" or "username/image-classifier-1".
-            organization: Deprecated argument. Please pass a full dataset id (e.g. 'username/dataset_name') to `dataset_name` instead.
             private: Whether the dataset should be private (defaults to False).
             info_filename: The name of the file to save the dataset info (defaults to "dataset_infos.json").
             separate_dirs: If True, each flagged item will be saved in a separate directory. This makes the flagging more robust to concurrent editing, but may be less convenient to use.
