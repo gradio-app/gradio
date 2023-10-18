@@ -1,5 +1,5 @@
 import { getWorkerProxyContext } from "./context";
-import { is_self_host } from "./host";
+import { is_self_host } from "../network/host";
 
 type MediaSrc = string | undefined | null;
 
