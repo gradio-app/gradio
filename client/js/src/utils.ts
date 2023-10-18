@@ -41,6 +41,14 @@ export function determine_protocol(endpoint: string): {
 			http_protocol: protocol as "http:" | "https:",
 			host
 		};
+	} else if (endpoint.startsWith("file:")) {
+		// This case is only expected to be used for the Wasm mode (Gradio-lite),
+		// where users can create a local HTML file using it and open the page in a browser directly via the `file:` protocol.
+		return {
+			ws_protocol: "ws",
+			http_protocol: "http:",
+			host: "lite.local"
+		};
 	}
 
 	// default to secure if no protocol is provided

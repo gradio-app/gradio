@@ -11,7 +11,8 @@ export async function resolve_wasm_src(src: MediaSrc): Promise<MediaSrc> {
 	if (
 		url.host !== window.location.host &&
 		url.host !== "localhost:7860" &&
-		url.host !== "127.0.0.1:7860" // Ref: https://github.com/gradio-app/gradio/blob/v3.32.0/js/app/src/Index.svelte#L194
+		url.host !== "127.0.0.1:7860" && // Ref: https://github.com/gradio-app/gradio/blob/v3.32.0/js/app/src/Index.svelte#L194
+		url.origin !== "http://lite.local"
 	) {
 		// `src` is not accessing a local server resource, so we don't need to proxy this request to the Wasm worker.
 		return src;
