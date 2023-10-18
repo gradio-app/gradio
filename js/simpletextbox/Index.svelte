@@ -9,7 +9,7 @@
 	import { tick } from "svelte";
 
 	export let gradio: Gradio<{
-		change: string;
+		change: never;
 		submit: never;
 		input: never;
 	}>;
@@ -27,12 +27,11 @@
 	export let mode: "static" | "interactive";
 	export let rtl = false;
 
-
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	const container = true;
 
-	function handle_change(): void {
-		gradio.dispatch("change", value);
+	function handle_change(value: string): void {
+		gradio.dispatch("change");
 		if (!value_is_output) {
 			gradio.dispatch("input");
 		}
@@ -47,10 +46,7 @@
 	}
 
 	$: if (value === null) value = "";
-
-	$: value, handle_change();
-
-
+	$: handle_change(value);
 </script>
 
 <Block
@@ -83,10 +79,9 @@
 			disabled={mode === "static"}
 			dir={rtl ? "rtl" : "ltr"}
 			on:keypress={handle_keypress}
-		>
+		/>
 	</label>
 </Block>
-
 
 <style>
 	label {

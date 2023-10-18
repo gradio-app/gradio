@@ -8,9 +8,9 @@ from gradio.events import Events
 
 class SimpleTextbox(FormComponent):
     """
-    Creates a textarea for user to enter string input or display string output.
-    Preprocessing: passes textarea value as a {str} into the function.
-    Postprocessing: expects a {str} returned from function and sets textarea value to it.
+    Creates a textbox for user to enter string input or display string output.
+    Preprocessing: passes textbox value as a {str} into the function.
+    Postprocessing: expects a {str} returned from function and sets textbox value to it.
     Examples-format: a {str} representing the textbox input.
     """
 
@@ -39,8 +39,8 @@ class SimpleTextbox(FormComponent):
     ):
         """
         Parameters:
-            value: default text to provide in textarea. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            placeholder: placeholder hint to provide behind textarea.
+            value: default text to provide in textbox. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            placeholder: placeholder hint to provide behind textbox.
             label: component name in interface.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
