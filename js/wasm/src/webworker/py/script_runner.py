@@ -1,6 +1,8 @@
+import ast
 import tokenize
 import types
 import sys
+from inspect import CO_COROUTINE
 
 # BSD 3-Clause License
 #
@@ -63,6 +65,7 @@ class modified_sys_path:
 
 
 # Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022)
+# Copyright (c) Yuichiro Tachibana (2023)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -80,9 +83,10 @@ def _new_module(name: str) -> types.ModuleType:
     return types.ModuleType(name)
 
 
-def _run_script(script_path: str) -> None:
+async def _run_script(script_path: str) -> None:
     # This function is based on the following code from Streamlit:
     # https://github.com/streamlit/streamlit/blob/1.24.0/lib/streamlit/runtime/scriptrunner/script_runner.py#L519-L554
+    # with modifications to support top-level await.
 
     with tokenize.open(script_path) as f:
         filebody = f.read()
@@ -98,7 +102,7 @@ def _run_script(script_path: str) -> None:
         # mode (as opposed to "eval" or "single").
         mode="exec",
         # Don't inherit any flags or "future" statements.
-        flags=0,
+        flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT, # Allow top-level await. Ref: https://github.com/whitphx/streamlit/commit/277dc580efb315a3e9296c9a0078c602a0904384
         dont_inherit=1,
         # Use the default optimization options.
         optimize=-1,
@@ -117,4 +121,9 @@ def _run_script(script_path: str) -> None:
     module.__dict__["__file__"] = script_path
 
     with modified_sys_path(script_path):
-        exec(bytecode, module.__dict__)
+        # Allow top-level await. Ref: https://github.com/whitphx/streamlit/commit/277dc580efb315a3e9296c9a0078c602a0904384
+        if bytecode.co_flags & CO_COROUTINE:
+            # The source code includes top-level awaits, so the compiled code object is a coroutine.
+            await eval(bytecode, module.__dict__)
+        else:
+            exec(bytecode, module.__dict__)

@@ -1,5 +1,24 @@
 # @gradio/model3d
 
+## 0.2.6
+
+### Patch Changes
+
+- Updated dependencies [[`465f58957`](https://github.com/gradio-app/gradio/commit/465f58957f70c7cf3e894beef8a117b28339e3c1)]:
+  - @gradio/atoms@0.2.1
+  - @gradio/utils@0.1.3
+  - @gradio/statustracker@0.2.4
+  - @gradio/upload@0.3.4
+
+## 0.2.5
+
+### Patch Changes
+
+- Updated dependencies [[`e70805d54`](https://github.com/gradio-app/gradio/commit/e70805d54cc792452545f5d8eccc1aa0212a4695)]:
+  - @gradio/atoms@0.2.0
+  - @gradio/statustracker@0.2.3
+  - @gradio/upload@0.3.3
+
 ## 0.2.4
 
 ### Patch Changes
