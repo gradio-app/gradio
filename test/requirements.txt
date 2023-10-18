@@ -240,6 +240,6 @@ vega-datasets==0.9.0
     # via -r requirements.in
 wcwidth==0.2.5
     # via prompt-toolkit
-
+pydantic[email]
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
