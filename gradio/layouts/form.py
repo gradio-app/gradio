@@ -35,6 +35,9 @@ class Form(BlockContext, metaclass=ComponentMeta):
         self.min_width = min_width
         BlockContext.__init__(
             self,
+            render=render,
+            root_url=root_url,
+            _skip_init_processing=_skip_init_processing,
         )
 
     def add_child(self, child: Block):
