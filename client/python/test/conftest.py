@@ -368,7 +368,7 @@ def all_components():
             classes_to_check.extend(children)
         if (
             "value" in inspect.signature(subclass).parameters
-            and subclass != gr.components.IOComponent
+            and subclass != gr.components.Component
             and not getattr(subclass, "is_template", False)
         ):
             subclasses.append(subclass)
