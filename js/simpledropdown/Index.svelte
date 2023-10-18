@@ -20,10 +20,10 @@
 		input: never;
 	}>;
 	export let mode: "static" | "interactive";
-	
+
 	const container = true;
-	let display_value: string
-	
+	let display_value: string;
+
 	function handle_change(): void {
 		gradio.dispatch("change");
 		if (!value_is_output) {
@@ -32,10 +32,9 @@
 	}
 
 	$: if (display_value) {
-		value = choices.filter((choice) => choice[0] === display_value)[0][1]
+		value = choices.filter((choice) => choice[0] === display_value)[0][1];
 	}
-	$: value, handle_change()
-
+	$: value, handle_change();
 </script>
 
 <Block
@@ -47,7 +46,6 @@
 	{scale}
 	{min_width}
 >
-
 	{#if loading_status}
 		<StatusTracker
 			autoscroll={gradio.autoscroll}
@@ -64,12 +62,7 @@
 			{/each}
 		</select>
 	</label>
-
-
-
-
 </Block>
-
 
 <style>
 	select {
@@ -77,7 +70,8 @@
 		display: block;
 		position: relative;
 		outline: none !important;
-		box-shadow: 0 0 0 var(--shadow-spread) var(--ring-color),
+		box-shadow:
+			0 0 0 var(--shadow-spread) var(--ring-color),
 			var(--shadow-inset);
 		border: var(--input-border-width) solid var(--border-color-primary);
 		border-radius: var(--radius-lg);
