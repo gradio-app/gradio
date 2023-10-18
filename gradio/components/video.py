@@ -91,7 +91,7 @@ class Video(Component):
             source: Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
             height: Height of the displayed video in pixels.
             width: Width of the displayed video in pixels.
-            label: component name in interface.
+            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.

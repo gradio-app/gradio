@@ -47,7 +47,7 @@ class Checkbox(FormComponent):
         """
         Parameters:
             value: if True, checked by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            label: component name in interface.
+            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             info: additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
