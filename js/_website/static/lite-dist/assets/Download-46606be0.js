@@ -1,2 +1,0 @@
-import{S as i,e as h,s as p,f as o,g as e,h as v,j as c,n,k as g}from"../lite.js";function m(l){let t,s;return{c(){t=o("svg"),s=o("path"),e(s,"fill","currentColor"),e(s,"d","M26 24v4H6v-4H4v4a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2v-4zm0-10l-1.41-1.41L17 20.17V2h-2v18.17l-7.59-7.58L6 14l10 10l10-10z"),e(t,"xmlns","http://www.w3.org/2000/svg"),e(t,"width","100%"),e(t,"height","100%"),e(t,"viewBox","0 0 32 32")},m(a,r){v(a,t,r),c(t,s)},p:n,i:n,o:n,d(a){a&&g(t)}}}class f extends i{constructor(t){super(),h(this,t,null,m,p,{})}}export{f as D};
-//# sourceMappingURL=Download-46606be0.js.map

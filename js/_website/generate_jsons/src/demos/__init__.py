@@ -20,7 +20,7 @@ def get_code_description_and_reqs(demo_name):
 
 demos_by_category = [
     {
-        "category": "🖊️ Text & Form Elements",
+        "category": "Text & Form Elements",
         "demos": [
             {
                 "name": "Hello World", 
@@ -43,7 +43,7 @@ demos_by_category = [
         ]
     },
      {
-        "category": "🖼️ Images, Videos & Audio",
+        "category": "Images, Videos & Audio",
         "demos": [
             {
                 "name": "Image Segmentation", 
@@ -76,7 +76,7 @@ demos_by_category = [
         ]
     },
     {
-        "category": "📈 Dataframes & Plots",
+        "category": "Dataframes & Plots",
         "demos": [
             {
                 "name": "Filter Records",
@@ -105,7 +105,7 @@ demos_by_category = [
         ]
     },
     {
-        "category": "📜 TabbedInterface, ChatInterface & Layouts",
+        "category": "TabbedInterface, ChatInterface & Layouts",
         "demos": [
             {
                 "name": "Hello and Bye World", 
@@ -126,7 +126,7 @@ demos_by_category = [
         ]
     },
     {
-        "category": "🩺 Modals & Event Listeners",
+        "category": "Modals & Event Listeners",
         "demos": [
             {
                 "name": "Divide by Zero", 

@@ -40,8 +40,8 @@
 		<a class="thin-link flex items-center gap-3" href="/guides"
 			><span>💡</span> <span>Guides</span></a
 		>
-		<a class="thin-link flex items-center gap-3" href="/demos"
-			><span>🎢</span> <span>Demos</span></a
+		<a class="thin-link flex items-center gap-3" href="/playground"
+			><span>🎢</span> <span>Playground</span></a
 		>
 		<div
 			on:mouseenter={() => (show_help_menu = true)}

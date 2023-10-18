@@ -115,6 +115,13 @@
 	@apply border-orange-500 text-orange-500;
 }
 
+/* playground */
+
+.current-playground-demo {
+	@apply text-orange-500 pl-4;
+
+}
+
 /* docs */
 .selected-demo {
 	@apply font-semibold bg-gray-50 rounded text-orange-500;
