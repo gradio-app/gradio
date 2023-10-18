@@ -1,5 +1,11 @@
 # gradio
 
+## 3.50.0
+
+### Features
+
+- [#5983](https://github.com/gradio-app/gradio/pull/5983) [`a32aabaf5`](https://github.com/gradio-app/gradio/commit/a32aabaf50b14779dec889cf539d7a3770139bac) - Lite: Show initialization progress messages.  Thanks [@whitphx](https://github.com/whitphx)!
+
 ## 3.49.0
 
 ### Features
