@@ -814,7 +814,7 @@ class Blocks(BlockContext):
         elif every:
             raise ValueError("Cannot set a value for `every` without a `fn`.")
 
-        if event_name == "change":
+        if _targets[0][1] == "change":
             trigger_mode = "always_last"
 
         _, progress_index, event_data_index = (
@@ -1616,7 +1616,6 @@ Received outputs:
                 raise AttributeError(
                     "Cannot call load() outside of a gradio.Blocks context."
                 )
-
             dep, dep_index = Context.root_block.set_event_trigger(
                 targets=[EventListenerMethod(self, "load")],
                 fn=fn,
