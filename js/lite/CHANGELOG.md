@@ -1,5 +1,11 @@
 # @gradio/lite
 
+## 0.4.0
+
+### Features
+
+- [#5975](https://github.com/gradio-app/gradio/pull/5975) [`ddd974956`](https://github.com/gradio-app/gradio/commit/ddd9749561dc7924ac7738c2ac1d21cf07518d00) - Just a small tweak to trigger a release of @gradio/lite.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.3.2
 
 ### Features
