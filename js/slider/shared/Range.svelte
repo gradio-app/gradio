@@ -153,6 +153,10 @@
 		background-repeat: no-repeat;
 	}
 
+	input[type=range]::-moz-range-track {
+		height: 10px;
+	}
+
 	input[type="range"]::-webkit-slider-thumb {
 		-webkit-appearance: none;
 		box-shadow: var(--input-shadow);
