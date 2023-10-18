@@ -113,3 +113,15 @@ export interface ReplyMessageError {
 }
 
 export type ReplyMessage = ReplyMessageSuccess | ReplyMessageError;
+
+export interface OutMessageBase {
+	type: string;
+	data: unknown;
+}
+export interface OutMessageProgressUpdate extends OutMessageBase {
+	type: "progress-update";
+	data: {
+		log: string;
+	};
+}
+export type OutMessage = OutMessageProgressUpdate;
