@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:Lite: custom element
+feat:Lite: Support the custom HTML element syntax `<gradio-lite>`
