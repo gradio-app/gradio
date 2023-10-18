@@ -30,11 +30,12 @@ class State(Component):
     def __init__(
         self,
         value: Any = None,
-        **kwargs,
+        render: bool = True,
     ):
         """
         Parameters:
             value: the initial value (of arbitrary type) of the state. The provided argument is deepcopied. If a callable is provided, the function will be called whenever the app loads to set the initial value of the state.
+            render: has no effect, but is included for consistency with other components.
         """
         self.stateful = True
         try:
@@ -43,7 +44,7 @@ class State(Component):
             raise TypeError(
                 f"The initial value of `gr.State` must be able to be deepcopied. The initial value of type {type(value)} cannot be deepcopied."
             ) from err
-        super().__init__(value=self.value, **kwargs)
+        super().__init__(value=self.value)
 
     def preprocess(self, x: Any) -> Any:
         return x
@@ -60,13 +61,3 @@ class State(Component):
     @property
     def skip_api(self):
         return True
-
-
-class Variable(State):
-    """Variable was renamed to State. This class is kept for backwards compatibility."""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def get_block_name(self):
-        return "state"

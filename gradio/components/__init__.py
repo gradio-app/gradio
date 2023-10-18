@@ -11,7 +11,6 @@ from gradio.components.base import (
     get_component_instance,
 )
 from gradio.components.button import Button
-from gradio.components.carousel import Carousel
 from gradio.components.chatbot import Chatbot
 from gradio.components.checkbox import Checkbox
 from gradio.components.checkboxgroup import CheckboxGroup
@@ -41,8 +40,7 @@ from gradio.components.plot import Plot
 from gradio.components.radio import Radio
 from gradio.components.scatter_plot import ScatterPlot
 from gradio.components.slider import Slider
-from gradio.components.state import State, Variable
-from gradio.components.status_tracker import StatusTracker
+from gradio.components.state import State
 from gradio.components.textbox import Textbox
 from gradio.components.upload_button import UploadButton
 from gradio.components.video import Video
@@ -60,7 +58,6 @@ __all__ = [
     "Audio",
     "BarPlot",
     "Button",
-    "Carousel",
     "Chatbot",
     "ClearButton",
     "Component",
@@ -107,8 +104,6 @@ __all__ = [
     "ScatterPlot",
     "Slider",
     "State",
-    "Variable",
-    "StatusTracker",
     "UploadButton",
     "Video",
     "StreamingInput",

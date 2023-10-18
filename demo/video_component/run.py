@@ -9,7 +9,7 @@ c = os.path.join(os.path.dirname(__file__), "files/b.mp4")  # Video
 
 demo = gr.Interface(
     fn=lambda x: x,
-    inputs=gr.Video(type="file"),
+    inputs=gr.Video(),
     outputs=gr.Video(),
     examples=[
         [a],

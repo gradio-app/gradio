@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-import warnings
-from typing import Any, Callable, Literal
+from typing import Any, Callable
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.components.base import FormComponent, _Keywords
+from gradio.components.base import FormComponent
 from gradio.events import Events
 
 set_documentation_group("component")
@@ -43,14 +42,16 @@ class Radio(FormComponent):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        **kwargs,
+        render: bool = True,
+        root_url: str | None = None,
+        _skip_init_processing: bool = False,
     ):
         """
         Parameters:
             choices: A list of string or numeric options to select from. An option can also be a tuple of the form (name, value), where name is the displayed name of the radio button and value is the value to be passed to the function, or returned by the function.
             value: The option selected by default. If None, no option is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
-            label: Component name in interface.
+            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             info: Additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
@@ -61,6 +62,8 @@ class Radio(FormComponent):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
         """
         self.choices = (
             # Although we expect choices to be a list of tuples, it can be a list of tuples if the Gradio app
@@ -87,51 +90,14 @@ class Radio(FormComponent):
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            render=render,
+            root_url=root_url,
+            _skip_init_processing=_skip_init_processing,
             value=value,
-            **kwargs,
         )
 
     def example_inputs(self) -> Any:
         return self.choices[0][1] if self.choices else None
-
-    @staticmethod
-    def update(
-        value: str
-        | int
-        | float
-        | Literal[_Keywords.NO_VALUE]
-        | None = _Keywords.NO_VALUE,
-        choices: list[str | int | float | tuple[str, str | int | float]] | None = None,
-        label: str | None = None,
-        info: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Radio(...)` instead of `return gr.Radio.update(...)`."
-        )
-        choices = (
-            None
-            if choices is None
-            else [c if isinstance(c, tuple) else (str(c), c) for c in choices]
-        )
-        return {
-            "choices": choices,
-            "label": label,
-            "info": info,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "interactive": interactive,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
 
     def preprocess(self, x: str | int | float | None) -> str | int | float | None:
         """

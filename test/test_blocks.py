@@ -9,7 +9,6 @@ import sys
 import time
 import unittest.mock as mock
 import uuid
-import warnings
 from concurrent.futures import wait
 from contextlib import contextmanager
 from functools import partial
@@ -70,76 +69,6 @@ class TestBlocksMethods:
             demo.launch(prevent_thread_lock=True)
             assert demo.share
             demo.close()
-
-    def test_default_enabled_deprecated(self):
-        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
-        with pytest.warns(
-            UserWarning, match="The default_enabled parameter of queue has no effect"
-        ):
-            io.queue(default_enabled=True)
-
-        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
-        with warnings.catch_warnings(record=True) as record:
-            warnings.simplefilter("always")
-            io.queue()
-        for warning in record:
-            assert "default_enabled" not in str(warning.message)
-
-    # def test_xray(self):
-    #     def fake_func():
-    #         return "Hello There"
-
-    #     def xray_model(diseases, img):
-    #         return {disease: random.random() for disease in diseases}
-
-    #     def ct_model(diseases, img):
-    #         return {disease: 0.1 for disease in diseases}
-    #     with gr.Blocks() as demo:
-    #         gr.Markdown(
-    #             """
-    #         # Detect Disease From Scan
-    #         With this model you can lorem ipsum
-    #         - ipsum 1
-    #         - ipsum 2
-    #         """
-    #         )
-    #         disease = gr.CheckboxGroup(
-    #             choices=["Covid", "Malaria", "Lung Cancer"], label="Disease to Scan For"
-    #         )
-
-    #         with gr.Tabs():
-    #             with gr.TabItem("X-ray"):
-    #                 with gr.Row():
-    #                     xray_scan = gr.Image()
-    #                     xray_results = gr.JSON()
-    #                 xray_run = gr.Button("Run")
-    #                 xray_run.click(
-    #                     xray_model, inputs=[disease, xray_scan], outputs=xray_results
-    #                 )
-
-    #         with gr.TabItem("CT Scan"):
-    #             with gr.Row():
-    #                 ct_scan = gr.Image()
-    #                 ct_results = gr.JSON()
-    #             ct_run = gr.Button("Run")
-    #             ct_run.click(
-    #                 ct_model, inputs=[disease, ct_scan], outputs=ct_results
-    #             )
-    #     textbox = gr.Textbox()
-    #     demo.load(fake_func, [], [textbox])
-
-    # config = demo.get_config_file()
-    # xray_config_file = (
-    #     pathlib.Path(__file__).parent / "test_files" / "xray_config.json"
-    # )
-    # with open(xray_config_file) as fp:
-    #     xray_config = json.load(fp)
-
-    # print(json.dumps(config))
-    # assert assert_configs_are_equivalent_besides_ids(xray_config, config)
-    # assert config["show_api"] is True
-    # _ = demo.launch(prevent_thread_lock=True, show_api=False)
-    # assert demo.config["show_api"] is False
 
     def test_load_from_config(self):
         fake_url = "https://fake.hf.space"
@@ -500,7 +429,7 @@ class TestTempFile:
     def test_no_empty_video_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         video = str(file_dir / "video_sample.mp4")
-        demo = gr.Interface(lambda x: x, gr.Video(type="file"), gr.Video())
+        demo = gr.Interface(lambda x: x, gr.Video(), gr.Video())
         with connect(demo) as client:
             _ = client.predict({"video": video}, api_name="/predict")
             _ = client.predict({"video": video}, api_name="/predict")
@@ -1158,8 +1087,8 @@ class TestUpdate:
         with gr.Blocks() as demo:
             with gr.Accordion(label="Open for greeting", open=False) as accordion:
                 gr.Textbox("Hello!")
-            open_btn = gr.Button(label="Open Accordion")
-            close_btn = gr.Button(label="Close Accordion")
+            open_btn = gr.Button("Open Accordion")
+            close_btn = gr.Button("Close Accordion")
             open_btn.click(
                 lambda: gr.Accordion(open=True, label="Open Accordion"),
                 inputs=None,

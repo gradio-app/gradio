@@ -38,7 +38,6 @@ INTERFACE_TEMPLATE = '''
             inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
             outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
             api_name: Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.
-            status_tracker: Deprecated and has no effect.
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.

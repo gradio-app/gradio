@@ -25,10 +25,6 @@ from scipy.io import wavfile
 
 import gradio as gr
 from gradio import processing_utils, utils
-from gradio.deprecation import (
-    GradioDeprecationWarning,
-    GradioUnusedKwargWarning,
-)
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -425,11 +421,11 @@ class TestRadio:
         assert radio_input.preprocess("c") == "c"
         assert radio_input.postprocess("a") == "a"
         radio_input = gr.Radio(
-            choices=["a", "b", "c"], default="a", label="Pick Your One Input"
+            choices=["a", "b", "c"], value="a", label="Pick Your One Input"
         )
         assert radio_input.get_config() == {
             "choices": [("a", "a"), ("b", "b"), ("c", "c")],
-            "value": None,
+            "value": "a",
             "name": "radio",
             "show_label": True,
             "label": "Pick Your One Input",
@@ -466,16 +462,6 @@ class TestRadio:
         radio_input = gr.Radio(["a", "b", "c"])
         iface = gr.Interface(lambda x: 2 * x, radio_input, "textbox")
         assert iface("c") == "cc"
-
-    def test_update(self):
-        update = gr.Radio.update(
-            choices=[("zeroth", ""), "first", "second"], label="ordinal"
-        )
-        assert update["choices"] == [
-            ("zeroth", ""),
-            ("first", "first"),
-            ("second", "second"),
-        ]
 
 
 class TestDropdown:
@@ -554,16 +540,6 @@ class TestDropdown:
         iface = gr.Interface(lambda x: "|".join(x), dropdown_input, "textbox")
         assert iface(["a", "c"]) == "a|c"
         assert iface([]) == ""
-
-    def test_update(self):
-        update = gr.Dropdown.update(
-            choices=[("zeroth", ""), "first", "second"], label="ordinal"
-        )
-        assert update["choices"] == [
-            ("zeroth", ""),
-            ("first", "first"),
-            ("second", "second"),
-        ]
 
 
 class TestImage:
@@ -1035,9 +1011,6 @@ class TestDataframe:
             "col_count": (3, "dynamic"),
             "datatype": ["str", "str", "str"],
             "type": "pandas",
-            "max_rows": 20,
-            "max_cols": None,
-            "overflow_row_behaviour": "paginate",
             "label": "Dataframe Input",
             "show_label": True,
             "scale": None,
@@ -1073,9 +1046,6 @@ class TestDataframe:
             "col_count": (3, "dynamic"),
             "datatype": ["str", "str", "str"],
             "type": "pandas",
-            "max_rows": 20,
-            "max_cols": None,
-            "overflow_row_behaviour": "paginate",
             "label": None,
             "show_label": True,
             "scale": None,
@@ -1647,23 +1617,6 @@ class TestLabel:
     def test_color_argument(self):
         label = gr.Label(value=-10, color="red")
         assert label.get_config()["color"] == "red"
-        update_1 = gr.Label.update(value="bad", color="brown")
-        assert update_1["color"] == "brown"
-        update_2 = gr.Label.update(value="bad", color="#ff9966")
-        assert update_2["color"] == "#ff9966"
-
-        update_3 = gr.Label.update(
-            value={"bad": 0.9, "good": 0.09, "so-so": 0.01}, color="green"
-        )
-        assert update_3["color"] == "green"
-
-        update_4 = gr.Label.update(value={"bad": 0.8, "good": 0.18, "so-so": 0.02})
-        assert update_4["color"] is None
-
-        update_5 = gr.Label.update(
-            value={"bad": 0.8, "good": 0.18, "so-so": 0.02}, color=None
-        )
-        assert update_5["color"] == "transparent"
 
     def test_in_interface(self):
         """
@@ -2206,18 +2159,6 @@ class TestState:
         result = await demo.call_function(0, [result["prediction"]])
         assert result["prediction"] == 2
 
-    @pytest.mark.asyncio
-    async def test_variable_for_backwards_compatibility(self):
-        with gr.Blocks() as demo:
-            score = gr.Variable()
-            btn = gr.Button()
-            btn.click(lambda x: x + 1, score, score)
-
-        result = await demo.call_function(0, [0])
-        assert result["prediction"] == 1
-        result = await demo.call_function(0, [result["prediction"]])
-        assert result["prediction"] == 2
-
 
 def test_dataframe_as_example_converts_dataframes():
     df_comp = gr.Dataframe()
@@ -2418,49 +2359,6 @@ class TestScatterPlot:
         assert config["encoding"]["shape"]["legend"] is None
         assert config["encoding"]["size"]["legend"] is None
 
-        output = gr.ScatterPlot.update(
-            value=cars,
-            title="Two encodings",
-            x="Horsepower",
-            y="Miles_per_Gallon",
-            color="Acceleration",
-            color_legend_position="top",
-            color_legend_title="Foo",
-            shape="Origin",
-            shape_legend_position="bottom",
-            shape_legend_title="Bar",
-            size="Acceleration",
-            size_legend_title="Accel",
-            size_legend_position="left",
-        )
-
-        config = json.loads(output["value"]["plot"])
-        assert config["encoding"]["color"]["legend"]["orient"] == "top"
-        assert config["encoding"]["shape"]["legend"]["orient"] == "bottom"
-        assert config["encoding"]["size"]["legend"]["orient"] == "left"
-
-    def test_update(self):
-        output = gr.ScatterPlot.update(value=cars, x="Horsepower", y="Miles_per_Gallon")
-        postprocessed = gr.ScatterPlot().postprocess(output["value"])
-        assert postprocessed == output["value"]
-
-    def test_update_visibility(self):
-        output = gr.ScatterPlot.update(visible=False)
-        assert not output["visible"]
-        assert output["value"] is gr.components._Keywords.NO_VALUE
-
-    def test_update_errors(self):
-        with pytest.raises(
-            ValueError, match="In order to update plot properties the value parameter"
-        ):
-            gr.ScatterPlot.update(x="foo", y="bar")
-
-        with pytest.raises(
-            ValueError,
-            match="In order to update plot properties, the x and y axis data",
-        ):
-            gr.ScatterPlot.update(value=cars, x="foo")
-
     def test_scatterplot_accepts_fn_as_value(self):
         plot = gr.ScatterPlot(
             value=lambda: cars.sample(frac=0.1, replace=False),
@@ -2541,11 +2439,6 @@ class TestLinePlot:
         assert config["height"] == 100
         assert config["width"] == 200
 
-        output = gr.LinePlot.update(stocks, x="date", y="price", height=100, width=200)
-        config = json.loads(output["value"]["plot"])
-        assert config["height"] == 100
-        assert config["width"] == 200
-
     def test_xlim_ylim(self):
         plot = gr.LinePlot(x="date", y="price", x_lim=[200, 400], y_lim=[300, 500])
         output = plot.postprocess(stocks)
@@ -2569,83 +2462,6 @@ class TestLinePlot:
             assert layer["encoding"]["color"]["type"] == "nominal"
             if layer["mark"]["type"] == "point":
                 assert layer["encoding"]["opacity"] == {}
-
-    def test_two_encodings(self):
-        output = gr.LinePlot.update(
-            value=stocks,
-            title="Two encodings",
-            x="date",
-            y="price",
-            color="symbol",
-            stroke_dash="symbol",
-            color_legend_title="Color",
-            stroke_dash_legend_title="Stroke Dash",
-        )
-        config = json.loads(output["value"]["plot"])
-        for layer in config["layer"]:
-            if layer["mark"]["type"] == "point":
-                assert layer["encoding"]["opacity"] == {"value": 0}
-            if layer["mark"]["type"] == "line":
-                assert layer["encoding"]["strokeDash"]["field"] == "symbol"
-                assert (
-                    layer["encoding"]["strokeDash"]["legend"]["title"] == "Stroke Dash"
-                )
-
-    def test_legend_position(self):
-        plot = gr.LinePlot(
-            value=stocks,
-            title="Two encodings",
-            x="date",
-            y="price",
-            color="symbol",
-            stroke_dash="symbol",
-            color_legend_position="none",
-            stroke_dash_legend_position="none",
-        )
-        output = plot.postprocess(stocks)
-        config = json.loads(output["plot"])
-        for layer in config["layer"]:
-            if layer["mark"]["type"] == "point":
-                assert layer["encoding"]["color"]["legend"] is None
-            if layer["mark"]["type"] == "line":
-                assert layer["encoding"]["strokeDash"]["legend"] is None
-                assert layer["encoding"]["color"]["legend"] is None
-
-        output = gr.LinePlot.update(
-            value=stocks,
-            title="Two encodings",
-            x="date",
-            y="price",
-            color="symbol",
-            stroke_dash="symbol",
-            color_legend_position="top-right",
-            stroke_dash_legend_position="top-left",
-        )
-
-        config = json.loads(output["value"]["plot"])
-        for layer in config["layer"]:
-            if layer["mark"]["type"] == "point":
-                assert layer["encoding"]["color"]["legend"]["orient"] == "top-right"
-            if layer["mark"]["type"] == "line":
-                assert layer["encoding"]["strokeDash"]["legend"]["orient"] == "top-left"
-                assert layer["encoding"]["color"]["legend"]["orient"] == "top-right"
-
-    def test_update_visibility(self):
-        output = gr.LinePlot.update(visible=False)
-        assert not output["visible"]
-        assert output["value"] is gr.components._Keywords.NO_VALUE
-
-    def test_update_errors(self):
-        with pytest.raises(
-            ValueError, match="In order to update plot properties the value parameter"
-        ):
-            gr.LinePlot.update(x="foo", y="bar")
-
-        with pytest.raises(
-            ValueError,
-            match="In order to update plot properties, the x and y axis data",
-        ):
-            gr.LinePlot.update(value=stocks, x="foo")
 
     def test_lineplot_accepts_fn_as_value(self):
         plot = gr.LinePlot(
@@ -2697,12 +2513,6 @@ class TestBarPlot:
             "sort": None,
         }
 
-    def test_update_defaults_none(self):
-        output = gr.BarPlot.update(simple, x="a", y="b", height=100, width=200)
-        assert all(
-            v is None for k, v in output.items() if k not in ["value", "__type__"]
-        )
-
     def test_no_color(self):
         plot = gr.BarPlot(
             x="a",
@@ -2734,11 +2544,6 @@ class TestBarPlot:
         assert config["height"] == 100
         assert config["width"] == 200
 
-        output = gr.BarPlot.update(simple, x="a", y="b", height=100, width=200)
-        config = json.loads(output["value"]["plot"])
-        assert config["height"] == 100
-        assert config["width"] == 200
-
     def test_ylim(self):
         plot = gr.BarPlot(x="a", y="b", y_lim=[15, 100])
         output = plot.postprocess(simple)
@@ -2746,7 +2551,7 @@ class TestBarPlot:
         assert config["encoding"]["y"]["scale"] == {"domain": [15, 100]}
 
     def test_horizontal(self):
-        output = gr.BarPlot.update(
+        output = gr.BarPlot(
             simple,
             x="a",
             y="b",
@@ -2756,7 +2561,7 @@ class TestBarPlot:
             tooltip=["a", "b"],
             vertical=False,
             y_lim=[20, 100],
-        )
+        ).get_config()
         assert output["value"]["chart"] == "bar"
         config = json.loads(output["value"]["plot"])
         assert config["encoding"]["x"]["field"] == "b"
@@ -2765,63 +2570,6 @@ class TestBarPlot:
 
         assert config["encoding"]["y"]["field"] == "a"
         assert config["encoding"]["y"]["title"] == "Variable A"
-
-    def test_stack_via_color(self):
-        output = gr.BarPlot.update(
-            barley,
-            x="variety",
-            y="yield",
-            color="site",
-            title="Barley Yield Data",
-            color_legend_title="Site",
-            color_legend_position="bottom",
-        )
-        config = json.loads(output["value"]["plot"])
-        assert config["encoding"]["color"]["field"] == "site"
-        assert config["encoding"]["color"]["legend"] == {
-            "title": "Site",
-            "orient": "bottom",
-        }
-        assert config["encoding"]["color"]["scale"] == {
-            "domain": [
-                "University Farm",
-                "Waseca",
-                "Morris",
-                "Crookston",
-                "Grand Rapids",
-                "Duluth",
-            ],
-            "range": [0, 1, 2, 3, 4, 5],
-        }
-
-    def test_group(self):
-        output = gr.BarPlot.update(
-            barley,
-            x="year",
-            y="yield",
-            color="year",
-            group="site",
-            title="Barley Yield by Year and Site",
-            group_title="",
-            tooltip=["yield", "site", "year"],
-        )
-        config = json.loads(output["value"]["plot"])
-        assert config["encoding"]["column"] == {"field": "site", "title": ""}
-
-    def test_group_horizontal(self):
-        output = gr.BarPlot.update(
-            barley,
-            x="year",
-            y="yield",
-            color="year",
-            group="site",
-            title="Barley Yield by Year and Site",
-            group_title="Site Title",
-            tooltip=["yield", "site", "year"],
-            vertical=False,
-        )
-        config = json.loads(output["value"]["plot"])
-        assert config["encoding"]["row"] == {"field": "site", "title": "Site Title"}
 
     def test_barplot_accepts_fn_as_value(self):
         plot = gr.BarPlot(
@@ -2876,19 +2624,6 @@ class TestCode:
             "interactive": None,
             "root_url": None,
         }
-
-
-def test_type_arg_deperecation_warning():
-    with pytest.warns(GradioUnusedKwargWarning):
-        gr.Video(type="filepath")
-
-
-def test_plot_arg_deprecation_warning():
-    with pytest.warns(GradioDeprecationWarning):
-        gr.Image(plot=True)
-
-    with pytest.warns(GradioUnusedKwargWarning):
-        gr.File(plot=True)
 
 
 def test_component_class_ids():

@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+import warnings
 from typing import Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.blocks import BlockContext
 from gradio.component_meta import ComponentMeta
-from gradio.deprecation import warn_deprecation
 
 set_documentation_group("layout")
 
@@ -39,7 +39,9 @@ class Column(BlockContext, metaclass=ComponentMeta):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        **kwargs,
+        render: bool = True,
+        root_url: str | None = None,
+        _skip_init_processing: bool = False,
     ):
         """
         Parameters:
@@ -49,9 +51,11 @@ class Column(BlockContext, metaclass=ComponentMeta):
             visible: If False, column will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
         """
         if scale != round(scale):
-            warn_deprecation(
+            warnings.warn(
                 f"'scale' value should be an integer. Using {scale} will cause issues."
             )
 
@@ -61,16 +65,11 @@ class Column(BlockContext, metaclass=ComponentMeta):
         if variant == "compact":
             self.allow_expected_parents = False
         BlockContext.__init__(
-            self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
+            self,
+            visible=visible,
+            elem_id=elem_id,
+            elem_classes=elem_classes,
+            render=render,
+            root_url=root_url,
+            _skip_init_processing=_skip_init_processing,
         )
-
-    @staticmethod
-    def update(
-        variant: str | None = None,
-        visible: bool | None = None,
-    ):
-        return {
-            "variant": variant,
-            "visible": visible,
-            "__type__": "update",
-        }

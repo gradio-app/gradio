@@ -11,9 +11,8 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio import processing_utils, utils, wasm_utils
-from gradio.components.base import Component, _Keywords
+from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel
-from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Events
 
 if not wasm_utils.IS_WASM:
@@ -77,11 +76,13 @@ class Video(Component):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        render: bool = True,
+        root_url: str | None = None,
+        _skip_init_processing: bool = False,
         mirror_webcam: bool = True,
         include_audio: bool | None = None,
         autoplay: bool = False,
         show_share_button: bool | None = None,
-        **kwargs,
     ):
         """
         Parameters:
@@ -90,7 +91,7 @@ class Video(Component):
             source: Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
             height: Height of the displayed video in pixels.
             width: Width of the displayed video in pixels.
-            label: component name in interface.
+            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
@@ -100,6 +101,8 @@ class Video(Component):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
             mirror_webcam: If True webcam will be mirrored. Default is True.
             include_audio: Whether the component should record/retain the audio track for a video. By default, audio is excluded for webcam videos and included for uploaded videos.
             autoplay: Whether to automatically play the video when the component is used as an output. Note: browsers will not autoplay video files if the user has not interacted with the page yet.
@@ -135,48 +138,11 @@ class Video(Component):
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            render=render,
+            root_url=root_url,
+            _skip_init_processing=_skip_init_processing,
             value=value,
-            **kwargs,
         )
-
-    @staticmethod
-    def update(
-        value: str
-        | tuple[str, str | None]
-        | Literal[_Keywords.NO_VALUE]
-        | None = _Keywords.NO_VALUE,
-        source: Literal["upload", "webcam"] | None = None,
-        height: int | None = None,
-        width: int | None = None,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-        autoplay: bool | None = None,
-        show_share_button: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Video(...)` instead of `return gr.Video.update(...)`."
-        )
-        return {
-            "source": source,
-            "height": height,
-            "width": width,
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "interactive": interactive,
-            "visible": visible,
-            "value": value,
-            "autoplay": autoplay,
-            "show_share_button": show_share_button,
-            "__type__": "update",
-        }
 
     def preprocess(self, x: dict | VideoData) -> str | None:
         """
@@ -382,17 +348,6 @@ class Video(Component):
 
         subtitle_data = client_utils.encode_url_or_file_to_base64(subtitle)
         return FileData(name=None, data=subtitle_data, is_file=False)
-
-    def style(self, *, height: int | None = None, width: int | None = None, **kwargs):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if height is not None:
-            self.height = height
-        if width is not None:
-            self.width = width
-        return self
 
     def example_inputs(self) -> Any:
         return "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"

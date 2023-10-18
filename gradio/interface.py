@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio import Examples, external, utils
+from gradio import Examples, utils
 from gradio.blocks import Blocks
 from gradio.components import (
     Button,
@@ -25,7 +25,6 @@ from gradio.components import (
     get_component_instance,
 )
 from gradio.data_classes import InterfaceTypes
-from gradio.deprecation import warn_deprecation
 from gradio.events import Events, on
 from gradio.exceptions import RenderError
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
@@ -69,35 +68,6 @@ class Interface(Blocks):
         :return: list of all current instances.
         """
         return list(Interface.instances)
-
-    @classmethod
-    def load(
-        cls,
-        name: str,
-        src: str | None = None,
-        api_key: str | None = None,
-        alias: str | None = None,
-        **kwargs,
-    ) -> Blocks:
-        """
-        Warning: this method will be deprecated. Use the equivalent `gradio.load()` instead. This is a class
-        method that constructs a Blocks from a Hugging Face repo. Can accept
-        model repos (if src is "models") or Space repos (if src is "spaces"). The input
-        and output components are automatically loaded from the repo.
-        Parameters:
-            name: the name of the model (e.g. "gpt2" or "facebook/bart-base") or space (e.g. "flax-community/spanish-gpt2"), can include the `src` as prefix (e.g. "models/facebook/bart-base")
-            src: the source of the model: `models` or `spaces` (or leave empty if source is provided as a prefix in `name`)
-            api_key: optional access token for loading private Hugging Face Hub models or spaces. Find your token here: https://huggingface.co/settings/tokens. Warning: only provide this if you are loading a trusted private Space as it can be read by the Space you are loading.
-            alias: optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)
-        Returns:
-            a Gradio Interface object for the given model
-        """
-        warn_deprecation(
-            "gr.Interface.load() will be deprecated. Use gr.load() instead."
-        )
-        return external.load(
-            name=name, src=src, hf_token=api_key, alias=alias, **kwargs
-        )
 
     @classmethod
     def from_pipeline(cls, pipeline: Pipeline, **kwargs) -> Interface:
@@ -180,14 +150,6 @@ class Interface(Blocks):
             **kwargs,
         )
         self.api_name: str | Literal[False] | None = api_name
-
-        if isinstance(fn, list):
-            raise DeprecationWarning(
-                "The `fn` parameter only accepts a single function, support for a list "
-                "of functions has been deprecated. Please use gradio.mix.Parallel "
-                "instead."
-            )
-
         self.interface_type = InterfaceTypes.STANDARD
         if (inputs is None or inputs == []) and (outputs is None or outputs == []):
             raise ValueError("Must provide at least one of `inputs` or `outputs`")
@@ -783,12 +745,6 @@ class Interface(Blocks):
         for component in self.output_components:
             repr += f"\n|-{component}"
         return repr
-
-    def test_launch(self) -> None:
-        """
-        Deprecated.
-        """
-        warn_deprecation("The Interface.test_launch() function is deprecated.")
 
 
 @document()
