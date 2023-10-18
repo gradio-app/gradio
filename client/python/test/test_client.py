@@ -619,7 +619,7 @@ class TestAPIInfo:
                             "label": "Age",
                             "type": {"type": "number"},
                             "python_type": {
-                                "type": "int | float",
+                                "type": "float",
                                 "description": "",
                             },
                             "component": "Slider",
@@ -630,7 +630,7 @@ class TestAPIInfo:
                             "label": "Fare (british pounds)",
                             "type": {"type": "number"},
                             "python_type": {
-                                "type": "int | float",
+                                "type": "float",
                                 "description": "",
                             },
                             "component": "Slider",
@@ -665,7 +665,7 @@ class TestAPIInfo:
                             "label": "Age",
                             "type": {"type": "number"},
                             "python_type": {
-                                "type": "int | float",
+                                "type": "float",
                                 "description": "",
                             },
                             "component": "Slider",
@@ -676,7 +676,7 @@ class TestAPIInfo:
                             "label": "Fare (british pounds)",
                             "type": {"type": "number"},
                             "python_type": {
-                                "type": "int | float",
+                                "type": "float",
                                 "description": "",
                             },
                             "component": "Slider",
@@ -711,7 +711,7 @@ class TestAPIInfo:
                             "label": "Age",
                             "type": {"type": "number"},
                             "python_type": {
-                                "type": "int | float",
+                                "type": "float",
                                 "description": "",
                             },
                             "component": "Slider",
@@ -722,7 +722,7 @@ class TestAPIInfo:
                             "label": "Fare (british pounds)",
                             "type": {"type": "number"},
                             "python_type": {
-                                "type": "int | float",
+                                "type": "float",
                                 "description": "",
                             },
                             "component": "Slider",
@@ -798,7 +798,7 @@ class TestAPIInfo:
                                 "label": "num1",
                                 "type": {"type": "number"},
                                 "python_type": {
-                                    "type": "int | float",
+                                    "type": "float",
                                     "description": "",
                                 },
                                 "component": "Number",
@@ -822,7 +822,7 @@ class TestAPIInfo:
                                 "label": "num2",
                                 "type": {"type": "number"},
                                 "python_type": {
-                                    "type": "int | float",
+                                    "type": "float",
                                     "description": "",
                                 },
                                 "component": "Number",
@@ -834,7 +834,7 @@ class TestAPIInfo:
                                 "label": "output",
                                 "type": {"type": "number"},
                                 "python_type": {
-                                    "type": "int | float",
+                                    "type": "float",
                                     "description": "",
                                 },
                                 "component": "Number",
@@ -950,7 +950,7 @@ class TestAPIInfo:
                                 "label": "count",
                                 "type": {"type": "number"},
                                 "python_type": {
-                                    "type": "int | float",
+                                    "type": "float",
                                     "description": "",
                                 },
                                 "component": "Number",
@@ -964,7 +964,7 @@ class TestAPIInfo:
                                 "label": "count",
                                 "type": {"type": "number"},
                                 "python_type": {
-                                    "type": "int | float",
+                                    "type": "float",
                                     "description": "",
                                 },
                                 "component": "Number",
@@ -978,7 +978,7 @@ class TestAPIInfo:
                                 "label": "count",
                                 "type": {"type": "number"},
                                 "python_type": {
-                                    "type": "int | float",
+                                    "type": "float",
                                     "description": "",
                                 },
                                 "component": "Number",

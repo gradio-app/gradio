@@ -160,7 +160,7 @@ def test_json_schema_to_python_type(schema):
     elif schema == "BooleanSerializable":
         answer = "bool"
     elif schema == "NumberSerializable":
-        answer = "int | float"
+        answer = "float"
     elif schema == "ImgSerializable":
         answer = "str"
     elif schema == "FileSerializable":
