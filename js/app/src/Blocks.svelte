@@ -417,7 +417,7 @@
 			const submission = app
 				.submit(payload.fn_index, payload.data as unknown[], payload.event_data)
 				.on("data", ({ data, fn_index }) => {
-					if (dep.pending_request && dep.final_event !== null && dep.final_event !== undefined) {
+					if (dep.pending_request && dep.final_event) {
 						dep.pending_request = false;
 						make_prediction(dep.final_event);
 					}
