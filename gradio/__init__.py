@@ -1,5 +1,6 @@
 import json
 
+import gradio._simple_templates
 import gradio.components as components
 import gradio.layouts as layouts
 import gradio.processing_utils
