@@ -69,6 +69,8 @@
 		flattened_guides.findIndex((guide) => guide.url === guide_page.url) - 1];
 	$: next_guide = flattened_guides[
 		flattened_guides.findIndex((guide) => guide.url === guide_page.url) + 1];
+	$: guide_names = data.guide_names;
+
 
 </script>
 
@@ -145,7 +147,7 @@
 		<div class="w-full flex justify-between my-4">
 			{#if prev_guide}
 				<a
-					href="{prev_guide.url}"
+					href="..{prev_guide.url}"
 					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
 				>	
 					<div class="flex text-lg">
@@ -158,7 +160,7 @@
 			{/if}
 			{#if next_guide}
 				<a
-					href="{next_guide.url}"
+					href="..{next_guide.url}"
 					class="text-right px-4 py-1 bg-gray-50 rounded-full max-w-1/2 hover:underline max-w-[48%]"
 				>
 				<div class="flex text-lg">
@@ -198,7 +200,7 @@
 		<div class="w-full flex justify-between my-4">
 			{#if prev_guide}
 				<a
-					href="{prev_guide.url}"
+					href="..{prev_guide.url}"
 					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
 				>	
 					<div class="flex text-lg">
@@ -211,7 +213,7 @@
 			{/if}
 			{#if next_guide}
 				<a
-					href="{next_guide.url}"
+					href="..{next_guide.url}"
 					class="text-right px-4 py-1 bg-gray-50 rounded-full max-w-1/2 hover:underline max-w-[48%]"
 				>
 				<div class="flex text-lg">
