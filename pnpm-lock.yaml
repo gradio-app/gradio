@@ -469,6 +469,9 @@ importers:
       '@gradio/row':
         specifier: workspace:^
         version: link:../row
+      '@gradio/simpletextbox':
+        specifier: workspace:^
+        version: link:../simpletextbox
       '@gradio/slider':
         specifier: workspace:^
         version: link:../slider
@@ -1262,6 +1265,21 @@ importers:
       '@gradio/image':
         specifier: workspace:^
         version: link:../image
+
+  js/simpletextbox:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
 
   js/slider:
     dependencies:
