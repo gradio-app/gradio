@@ -1,3 +1,20 @@
+/*
+ Custom element styles
+ */
+gradio-lite {
+	display: flex;
+}
+
+/*
+	To avoid FOUC of custom elements
+	Refs:
+	https://www.abeautifulsite.net/posts/flash-of-undefined-custom-elements/#the-%3Adefined-selector
+	https://github.com/pyscript/pypercard/blob/66d3550abd8e478f9389e6b87790d5985e55ef7f/static/pyscript.css#L6-L8
+	*/
+gradio-lite:not(:defined) {
+	display: none;
+}
+
 .scroll-hide {
 	-ms-overflow-style: none;
 	scrollbar-width: none;
