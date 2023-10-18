@@ -9,7 +9,7 @@ with gr.Blocks() as demo:
     )
 
     species = gr.Radio(label="Animal Class", choices=["Mammal", "Fish", "Bird"])
-    animal = gr.Dropdown(label="Animal", choices=[], allow_custom_value=True)
+    animal = gr.Dropdown(label="Animal", choices=[])
 
     with gr.Column(visible=False) as details_col:
         weight = gr.Slider(0, 20)
