@@ -1,5 +1,25 @@
 # @gradio/wasm
 
+## 0.3.0
+
+### Features
+
+- [#5983](https://github.com/gradio-app/gradio/pull/5983) [`a32aabaf5`](https://github.com/gradio-app/gradio/commit/a32aabaf50b14779dec889cf539d7a3770139bac) - Lite: Show initialization progress messages.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#5987](https://github.com/gradio-app/gradio/pull/5987) [`d8a6491a1`](https://github.com/gradio-app/gradio/commit/d8a6491a18854cb8cad6221ba96dcbd20556e806) - Specify FastAPI version for the Wasm runtime as a workaround.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#5982](https://github.com/gradio-app/gradio/pull/5982) [`ab1e5da55`](https://github.com/gradio-app/gradio/commit/ab1e5da5578d4a7cec1fe1117a8b660784a9ae30) - Lite: Fix error handling on the ASGI app.  Thanks [@whitphx](https://github.com/whitphx)!
+
+### Fixes
+
+- [#5980](https://github.com/gradio-app/gradio/pull/5980) [`686719a3b`](https://github.com/gradio-app/gradio/commit/686719a3b0bcd64479a5f3c485da4620d0747341) - Lite: Explicitly install a specific version of `anyio` to avoid version conflicts.  Thanks [@whitphx](https://github.com/whitphx)!
+
+## 0.2.0
+
+### Features
+
+- [#5956](https://github.com/gradio-app/gradio/pull/5956) [`f769876e0`](https://github.com/gradio-app/gradio/commit/f769876e0fa62336425c4e8ada5e09f38353ff01) - Apply formatter (and small refactoring) to the Lite-related frontend code.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#5972](https://github.com/gradio-app/gradio/pull/5972) [`11a300791`](https://github.com/gradio-app/gradio/commit/11a3007916071f0791844b0a37f0fb4cec69cea3) - Lite: Support opening the entrypoint HTML page directly in browser via the `file:` protocol.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#5958](https://github.com/gradio-app/gradio/pull/5958) [`6780d660b`](https://github.com/gradio-app/gradio/commit/6780d660bb8f3b969a4bd40644a49f3274a779a9) - Make the HTTP requests for the Wasm worker wait for the initial `run_code()` or `run_file()` to finish.  Thanks [@whitphx](https://github.com/whitphx)!
+
 ## 0.1.0
 
 ### Features

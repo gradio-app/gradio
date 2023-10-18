@@ -1,10 +1,22 @@
 # @gradio/chatbot
 
+## 0.5.4
+
+### Patch Changes
+
+- Updated dependencies [[`921334526`](https://github.com/gradio-app/gradio/commit/921334526ff1ed0fc75c20db5d43733004c7d6ae), [`465f58957`](https://github.com/gradio-app/gradio/commit/465f58957f70c7cf3e894beef8a117b28339e3c1)]:
+  - @gradio/theme@0.3.0
+  - @gradio/atoms@0.2.1
+  - @gradio/utils@0.1.3
+  - @gradio/markdown@0.3.3
+  - @gradio/statustracker@0.2.4
+  - @gradio/upload@0.3.4
+
 ## 0.5.3
 
 ### Fixes
 
-- [#5827](https://github.com/gradio-app/gradio/pull/5827) [`48e09ee88`](https://github.com/gradio-app/gradio/commit/48e09ee88799efa38a5cc9b1b61e462f72ec6093) - Quick fix: Chatbot change event.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#5827](https://github.com/gradio-app/gradio/pull/5827) [`48e09ee88`](https://github.com/gradio-app/gradio/commit/48e09ee88799efa38a5cc9b1b61e462f72ec6093) - Quick fix: Chatbot change event. Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
 
 ## 0.5.2
 
