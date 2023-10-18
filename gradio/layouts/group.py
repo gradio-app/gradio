@@ -41,7 +41,13 @@ class Group(BlockContext, metaclass=ComponentMeta):
             _skip_init_processing: If True, will skip the initial postprocessing step. Used in `gr.load()`. Should not be set manually.
         """
         BlockContext.__init__(
-            self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, render=render, root_url=root_url, _skip_init_processing=_skip_init_processing
+            self,
+            visible=visible,
+            elem_id=elem_id,
+            elem_classes=elem_classes,
+            render=render,
+            root_url=root_url,
+            _skip_init_processing=_skip_init_processing,
         )
 
     @staticmethod

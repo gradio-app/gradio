@@ -49,11 +49,11 @@ class Accordion(BlockContext, metaclass=ComponentMeta):
         self.label = label
         self.open = open
         BlockContext.__init__(
-            self, 
-            visible=visible, 
-            elem_id=elem_id, 
-            elem_classes=elem_classes, 
-            render=render, 
-            root_url=root_url, 
-            _skip_init_processing=_skip_init_processing
+            self,
+            visible=visible,
+            elem_id=elem_id,
+            elem_classes=elem_classes,
+            render=render,
+            root_url=root_url,
+            _skip_init_processing=_skip_init_processing,
         )

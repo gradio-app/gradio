@@ -219,7 +219,15 @@ class BlockContext(Block):
             _skip_init_processing: If True, will skip the initial postprocessing step. Used in `gr.load()`. Should not be set manually.
         """
         self.children: list[Block] = []
-        Block.__init__(self, elem_id=elem_id, elem_classes=elem_classes, visible=visible, render=render, root_url=root_url, _skip_init_processing=_skip_init_processing)
+        Block.__init__(
+            self,
+            elem_id=elem_id,
+            elem_classes=elem_classes,
+            visible=visible,
+            render=render,
+            root_url=root_url,
+            _skip_init_processing=_skip_init_processing,
+        )
 
     TEMPLATE_DIR = "./templates/"
     FRONTEND_DIR = "../../frontend/"

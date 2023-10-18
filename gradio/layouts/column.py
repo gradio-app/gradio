@@ -66,6 +66,11 @@ class Column(BlockContext, metaclass=ComponentMeta):
         if variant == "compact":
             self.allow_expected_parents = False
         BlockContext.__init__(
-            self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, render=render, root_url=root_url, _skip_init_processing=_skip_init_processing
+            self,
+            visible=visible,
+            elem_id=elem_id,
+            elem_classes=elem_classes,
+            render=render,
+            root_url=root_url,
+            _skip_init_processing=_skip_init_processing,
         )
-

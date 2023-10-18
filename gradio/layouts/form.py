@@ -17,10 +17,15 @@ set_documentation_group("layout")
 class Form(BlockContext, metaclass=ComponentMeta):
     EVENTS = []
 
-    def __init__(self, *, scale: int = 0, min_width: int = 0,         render: bool = True,
+    def __init__(
+        self,
+        *,
+        scale: int = 0,
+        min_width: int = 0,
+        render: bool = True,
         root_url: str | None = None,
         _skip_init_processing: bool = False,
-):
+    ):
         """
         Parameters:
             scale: relative width compared to adjacent Columns. For example, if Column A has scale=2, and Column B has scale=1, A will be twice as wide as B.
@@ -28,7 +33,9 @@ class Form(BlockContext, metaclass=ComponentMeta):
         """
         self.scale = scale
         self.min_width = min_width
-        BlockContext.__init__(self, )
+        BlockContext.__init__(
+            self,
+        )
 
     def add_child(self, child: Block):
         if isinstance(self.parent, Row):
