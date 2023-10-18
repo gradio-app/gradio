@@ -235,7 +235,7 @@ def _create_backend(
         module = "components"
     elif component.template in gradio.layouts.__all__:
         module = "layouts"
-    elif component.template in gradio._simple_templates.__all__: # type: ignore
+    elif component.template in gradio._simple_templates.__all__:  # type: ignore
         module = "_simple_templates"
     else:
         raise ValueError(

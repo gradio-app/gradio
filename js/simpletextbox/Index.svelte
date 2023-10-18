@@ -11,10 +11,7 @@
 	export let gradio: Gradio<{
 		change: string;
 		submit: never;
-		blur: never;
-		select: SelectData;
 		input: never;
-		focus: never;
 	}>;
 	export let label = "Textbox";
 	export let elem_id = "";
@@ -39,18 +36,6 @@
 		if (!value_is_output) {
 			gradio.dispatch("input");
 		}
-	}
-
-	function handle_select(event: Event): void {
-		const target: HTMLTextAreaElement | HTMLInputElement = event.target as
-			| HTMLTextAreaElement
-			| HTMLInputElement;
-		const text = target.value;
-		const index: [number, number] = [
-			target.selectionStart as number,
-			target.selectionEnd as number,
-		];
-		gradio.dispatch("select", { value: text.substring(...index), index: index });
 	}
 
 	async function handle_keypress(e: KeyboardEvent): Promise<void> {
@@ -98,9 +83,6 @@
 			disabled={mode === "static"}
 			dir={rtl ? "rtl" : "ltr"}
 			on:keypress={handle_keypress}
-			on:blur={() => gradio.dispatch("blur")}
-			on:select={handle_select}
-			on:focus={() => gradio.dispatch("focus")}
 		>
 	</label>
 </Block>
@@ -143,25 +125,5 @@
 
 	input::placeholder {
 		color: var(--input-placeholder-color);
-	}
-	button {
-		display: flex;
-		position: absolute;
-		top: var(--block-label-margin);
-		right: var(--block-label-margin);
-		align-items: center;
-		box-shadow: var(--shadow-drop);
-		border: 1px solid var(--color-border-primary);
-		border-top: none;
-		border-right: none;
-		border-radius: var(--block-label-right-radius);
-		background: var(--block-label-background-fill);
-		padding: 5px;
-		width: 22px;
-		height: 22px;
-		overflow: hidden;
-		color: var(--block-label-color);
-		font: var(--font-sans);
-		font-size: var(--button-small-text-size);
 	}
 </style>

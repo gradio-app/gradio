@@ -19,10 +19,7 @@ class SimpleTextbox(FormComponent):
     EVENTS = [
         Events.change,
         Events.input,
-        Events.select,
         Events.submit,
-        Events.focus,
-        Events.blur,
     ]
 
     def __init__(
