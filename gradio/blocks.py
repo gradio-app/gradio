@@ -196,6 +196,7 @@ class Block:
         config.pop("render", None)
         return {**config, "root_url": self.root_url, "name": self.get_block_name()}
 
+
 class BlockContext(Block):
     def __init__(
         self,
