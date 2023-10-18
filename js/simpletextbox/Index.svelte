@@ -30,7 +30,7 @@
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	const container = true;
 
-	function handle_change(value: string): void {
+	function handle_change(): void {
 		gradio.dispatch("change");
 		if (!value_is_output) {
 			gradio.dispatch("input");
@@ -46,7 +46,10 @@
 	}
 
 	$: if (value === null) value = "";
-	$: handle_change(value);
+
+	// When the value changes, dispatch the change event via handle_change()
+	// See the docs for an explanation: https://svelte.dev/docs/svelte-components#script-3-$-marks-a-statement-as-reactive
+	$: value, handle_change();
 </script>
 
 <Block
