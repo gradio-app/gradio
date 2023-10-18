@@ -65,7 +65,6 @@ class Number(FormComponent):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
-            _skip_init_processing: If True, will skip the initial postprocessing step. Used in `gr.load()`. Should not be set manually.
             precision: Precision to round input/output to. If set to 0, will round to nearest integer and convert type to int. If None, no rounding happens.
             minimum: Minimum value. Only applied when component is used as an input. If a user provides a smaller value, a gr.Error exception is raised by the backend.
             maximum: Maximum value. Only applied when component is used as an input. If a user provides a larger value, a gr.Error exception is raised by the backend.

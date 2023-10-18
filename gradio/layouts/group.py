@@ -38,7 +38,6 @@ class Group(BlockContext, metaclass=ComponentMeta):
             elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, this layout will not be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             root_url: The remote URL that of the Gradio app that this layout belongs to. Used in `gr.load()`. Should not be set manually.
-            _skip_init_processing: If True, will skip the initial postprocessing step. Used in `gr.load()`. Should not be set manually.
         """
         BlockContext.__init__(
             self,
