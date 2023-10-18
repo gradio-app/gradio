@@ -682,7 +682,7 @@ class App(FastAPI):
                 raise HTTPException(status_code=400, detail=exc.message) from exc
 
             output_files = []
-            for temp_file in form.values():
+            for temp_file in form.getlist("files"):
                 assert isinstance(temp_file, GradioUploadFile)
                 if temp_file.filename:
                     file_name = Path(temp_file.filename).name
