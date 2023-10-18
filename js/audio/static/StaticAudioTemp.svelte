@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { HTMLAudioAttributes } from "svelte/elements";
 	import { createEventDispatcher } from "svelte";
-	import { loaded, type LoadedParams } from "./utils";
+	import { loaded, type LoadedParams } from "../shared/utils";
 	import { resolve_wasm_src } from "@gradio/wasm/svelte";
 
 	export let src: HTMLAudioAttributes["src"] = undefined;

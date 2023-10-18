@@ -9,19 +9,12 @@
 
 <script lang="ts">
 	import { uploadToHuggingFace } from "@gradio/utils";
-<<<<<<<< HEAD:js/audio/shared/AudioPlayer.svelte
-	import { BlockLabel, ShareButton, IconButton } from "@gradio/atoms";
-	import { Music, Download } from "@gradio/icons";
 
-	import { loaded } from "./utils";
-	import type { I18nFormatter } from "js/app/src/gradio_helper";
-========
 	import { ShareButton, IconButton, BlockLabel } from "@gradio/atoms";
 	import { Download, Music } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import AudioPlayer from "../player/AudioPlayer.svelte";
 	import { createEventDispatcher } from "svelte";
->>>>>>>> a1a13c343 (replace <audio> with wavesurfer: add recording, playing and trimming, playback):js/audio/static/Audio.svelte
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
@@ -31,7 +24,6 @@
 	export let show_download_button = true;
 	export let show_share_button = false;
 	export let i18n: I18nFormatter;
-	export let interactive: boolean;
 
 	export let waveformColor: string;
 	export let waveformProgressColor: string;
@@ -90,7 +82,6 @@
 		{autoplay}
 		{waveformColor}
 		{waveformProgressColor}
-		{interactive}
 		{i18n}
 		{dispatch}
 	/>

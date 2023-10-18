@@ -6,8 +6,8 @@
 	import type { FileData } from "@gradio/upload";
 	import type { LoadingStatus } from "@gradio/statustracker";
 
-	import StaticAudio from "./shared/AudioPlayer.svelte";
-	import Audio from "./shared/InteractiveAudio.svelte";
+	import StaticAudio from "./static/StaticAudio.svelte";
+	import InteractiveAudio from "./interactive/InteractiveAudio.svelte";
 	import { StatusTracker } from "@gradio/statustracker";
 	import { Block, UploadText } from "@gradio/atoms";
 
@@ -45,11 +45,16 @@
 		stop: never;
 		end: never;
 		start_recording: never;
+		pause_recording: never; // TODO: add to docs
 		stop_recording: never;
 		upload: never;
 		clear: never;
 		share: ShareData;
 	}>;
+
+	// waveform settings
+	export let waveformColor = "#9ca3af";
+	export let waveformProgressColor = "#f97316";
 
 	let old_value: null | FileData | string = null;
 
@@ -93,6 +98,8 @@
 			value={_value}
 			name={_value?.name || "audio_file"}
 			{label}
+			{waveformColor}
+			{waveformProgressColor}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
 		/>
@@ -114,7 +121,7 @@
 			i18n={gradio.i18n}
 			{...loading_status}
 		/>
-		<Audio
+		<InteractiveAudio
 			{label}
 			{show_label}
 			value={_value}
@@ -146,8 +153,10 @@
 				gradio.dispatch("error", detail);
 			}}
 			i18n={gradio.i18n}
+			{waveformColor}
+			{waveformProgressColor}
 		>
 			<UploadText i18n={gradio.i18n} type="audio" />
-		</Audio>
+		</InteractiveAudio>
 	</Block>
 {/if}
