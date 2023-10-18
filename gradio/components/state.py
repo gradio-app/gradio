@@ -30,10 +30,12 @@ class State(Component):
     def __init__(
         self,
         value: Any = None,
+        render: bool = True,
     ):
         """
         Parameters:
             value: the initial value (of arbitrary type) of the state. The provided argument is deepcopied. If a callable is provided, the function will be called whenever the app loads to set the initial value of the state.
+            render: has no effect, but is included for consistency with other components.
         """
         self.stateful = True
         try:

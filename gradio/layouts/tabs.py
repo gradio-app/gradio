@@ -47,15 +47,6 @@ class Tabs(BlockContext, metaclass=ComponentMeta):
         )
         self.selected = selected
 
-    @staticmethod
-    def update(
-        selected: int | str | None = None,
-    ):
-        return {
-            "selected": selected,
-            "__type__": "update",
-        }
-
 
 @document()
 class Tab(BlockContext, metaclass=ComponentMeta):
@@ -76,7 +67,7 @@ class Tab(BlockContext, metaclass=ComponentMeta):
 
     def __init__(
         self,
-        label: str,
+        label: str | None = None,
         *,
         id: int | str | None = None,
         elem_id: str | None = None,

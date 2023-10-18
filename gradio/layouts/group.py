@@ -48,12 +48,3 @@ class Group(BlockContext, metaclass=ComponentMeta):
             root_url=root_url,
             _skip_init_processing=_skip_init_processing,
         )
-
-    @staticmethod
-    def update(
-        visible: bool | None = None,
-    ):
-        return {
-            "visible": visible,
-            "__type__": "update",
-        }
