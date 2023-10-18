@@ -47,9 +47,21 @@ export class WorkerProxy extends EventTarget {
 				files: options.files,
 				requirements: options.requirements
 			}
-		}).then(() => {
-			console.debug("WorkerProxy.constructor(): Initialization is done.");
-		});
+		})
+			.then(() => {
+				console.debug("WorkerProxy.constructor(): Initialization is done.");
+			})
+			.catch((error) => {
+				console.error(
+					"WorkerProxy.constructor(): Initialization failed.",
+					error
+				);
+				this.dispatchEvent(
+					new CustomEvent("initialization-error", {
+						detail: error
+					})
+				);
+			});
 	}
 
 	public async runPythonCode(code: string): Promise<void> {

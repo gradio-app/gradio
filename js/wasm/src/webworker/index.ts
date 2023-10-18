@@ -203,11 +203,21 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 		if (msg.type === "init") {
 			pyodideReadyPromise = loadPyodideAndPackages(msg.data);
 
-			const replyMessage: ReplyMessageSuccess = {
-				type: "reply:success",
-				data: null
-			};
-			messagePort.postMessage(replyMessage);
+			pyodideReadyPromise
+				.then(() => {
+					const replyMessage: ReplyMessageSuccess = {
+						type: "reply:success",
+						data: null
+					};
+					messagePort.postMessage(replyMessage);
+				})
+				.catch((error) => {
+					const replyMessage: ReplyMessageError = {
+						type: "reply:error",
+						error
+					};
+					messagePort.postMessage(replyMessage);
+				});
 			return;
 		}
 
