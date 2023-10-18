@@ -7,6 +7,7 @@ import { wasm_proxied_mount_css, mount_prebuilt_css } from "./css";
 import type { mount_css } from "../css";
 import Index from "../Index.svelte";
 import type { ThemeMode } from "../components/types";
+import { bootstrap_custom_element } from "./custom-element";
 
 // These imports are aliased at built time with Vite. See the `resolve.alias` config in `vite.config.ts`.
 import gradioWheel from "gradio.whl";
@@ -43,7 +44,7 @@ interface GradioAppController {
 	unmount: () => void;
 }
 
-interface Options {
+export interface Options {
 	target: HTMLElement;
 	files?: WorkerProxyOptions["files"];
 	requirements?: WorkerProxyOptions["requirements"];
@@ -190,6 +191,8 @@ export function create(options: Options): GradioAppController {
  */
 // @ts-ignore
 globalThis.createGradioApp = create;
+
+bootstrap_custom_element();
 
 declare let BUILD_MODE: string;
 if (BUILD_MODE === "dev") {
