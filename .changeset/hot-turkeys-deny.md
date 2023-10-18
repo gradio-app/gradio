@@ -5,4 +5,4 @@
 "gradio": minor
 ---
 
-feat:Lite opened directly in browser
+feat:Lite: Support opening the entrypoint HTML page directly in browser via the `file:` protocol
