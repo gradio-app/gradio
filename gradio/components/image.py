@@ -34,7 +34,6 @@ class Image(StreamingInput, Component):
     """
 
     EVENTS = [
-        Events.edit,
         Events.clear,
         Events.change,
         Events.stream,
@@ -47,15 +46,12 @@ class Image(StreamingInput, Component):
         self,
         value: str | _Image.Image | np.ndarray | None = None,
         *,
-        shape: tuple[int, int] | None = None,
         height: int | None = None,
         width: int | None = None,
         image_mode: Literal[
             "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
         ] = "RGB",
-        invert_colors: bool = False,
         source: Literal["upload", "webcam", "canvas"] = "upload",
-        tool: Literal["editor", "select", "sketch", "color-sketch"] | None = None,
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
         every: float | None = None,
@@ -70,9 +66,6 @@ class Image(StreamingInput, Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         mirror_webcam: bool = True,
-        brush_radius: float | None = None,
-        brush_color: str = "#000000",
-        mask_opacity: float = 0.7,
         show_share_button: bool | None = None,
         **kwargs,
     ):
@@ -85,7 +78,6 @@ class Image(StreamingInput, Component):
             image_mode: "RGB" if color, or "L" if black and white. See https://pillow.readthedocs.io/en/stable/handbook/concepts.html for other supported image modes and their meaning.
             invert_colors: whether to invert the image as a preprocessing step.
             source: Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
-            tool: Tools used for editing. "editor" allows a full screen editor (and is the default if source is "upload" or "webcam"), "select" provides a cropping and zoom tool, "sketch" allows you to create a binary sketch (and is the default if source="canvas"), and "color-sketch" allows you to created a sketch in different colors. "color-sketch" can be used with source="upload" or "webcam" to allow sketching on an image. "sketch" can also be used with "upload" or "webcam" to create a mask over an image and in that case both the image and mask are passed into the function as a dictionary with keys "image" and "mask" respectively.
             type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image.
             label: component name in interface.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
@@ -100,14 +92,9 @@ class Image(StreamingInput, Component):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             mirror_webcam: If True webcam will be mirrored. Default is True.
-            brush_radius: Size of the brush for Sketch. Default is None which chooses a sensible default
-            brush_color: Color of the brush for Sketch as hex string. Default is "#000000".
-            mask_opacity: Opacity of mask drawn on image, as a value between 0 and 1.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
-        self.brush_radius = brush_radius
-        self.brush_color = brush_color
-        self.mask_opacity = mask_opacity
+
         self.mirror_webcam = mirror_webcam
         valid_types = ["numpy", "pil", "filepath"]
         if type not in valid_types:
@@ -115,7 +102,6 @@ class Image(StreamingInput, Component):
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
             )
         self.type = type
-        self.shape = shape
         self.height = height
         self.width = width
         self.image_mode = image_mode
@@ -125,11 +111,7 @@ class Image(StreamingInput, Component):
                 f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
             )
         self.source = source
-        if tool is None:
-            self.tool = "sketch" if source == "canvas" else "editor"
-        else:
-            self.tool = tool
-        self.invert_colors = invert_colors
+
         self.streaming = streaming
         self.show_download_button = show_download_button
         if streaming and source != "webcam":
@@ -167,9 +149,6 @@ class Image(StreamingInput, Component):
         min_width: int | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
-        brush_radius: float | None = None,
-        brush_color: str | None = None,
-        mask_opacity: float | None = None,
         show_share_button: bool | None = None,
     ):
         warnings.warn(
@@ -187,9 +166,6 @@ class Image(StreamingInput, Component):
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "brush_radius": brush_radius,
-            "brush_color": brush_color,
-            "mask_opacity": mask_opacity,
             "show_share_button": show_share_button,
             "__type__": "update",
         }
@@ -217,9 +193,7 @@ class Image(StreamingInput, Component):
                 + ". Please choose from: 'numpy', 'pil', 'filepath'."
             )
 
-    def preprocess(
-        self, x: str | dict[str, str]
-    ) -> np.ndarray | _Image.Image | str | dict | None:
+    def preprocess(self, x: str) -> np.ndarray | _Image.Image | str | None:
         """
         Parameters:
             x: base64 url data, or (if tool == "sketch") a dict of image and mask base64 url data
@@ -229,11 +203,6 @@ class Image(StreamingInput, Component):
         if x is None:
             return x
 
-        mask = ""
-        if self.tool == "sketch" and self.source in ["upload", "webcam"]:
-            assert isinstance(x, dict)
-            x, mask = x["image"], x["mask"]
-
         if isinstance(x, str):
             im = processing_utils.decode_base64_to_image(x)
         else:
@@ -241,27 +210,6 @@ class Image(StreamingInput, Component):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
-        if self.shape is not None:
-            im = processing_utils.resize_and_crop(im, self.shape)
-        if self.invert_colors:
-            im = PIL.ImageOps.invert(im)
-        if (
-            self.source == "webcam"
-            and self.mirror_webcam is True
-            and self.tool != "color-sketch"
-        ):
-            im = PIL.ImageOps.mirror(im)
-
-        if self.tool == "sketch" and self.source in ["upload", "webcam"]:
-            mask_im = processing_utils.decode_base64_to_image(mask)
-
-            if mask_im.mode == "RGBA":  # whiten any opaque pixels in the mask
-                alpha_data = mask_im.getchannel("A").convert("L")
-                mask_im = _Image.merge("RGB", [alpha_data, alpha_data, alpha_data])
-            return {
-                "image": self._format_image(im),
-                "mask": self._format_image(mask_im),
-            }
 
         return self._format_image(im)
 
