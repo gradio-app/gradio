@@ -351,7 +351,7 @@ def stream_audio():
 @pytest.fixture
 def video_component():
     return gr.Interface(
-        fn=lambda x: x, inputs=gr.Video(type="file"), outputs=gr.Video()
+        fn=lambda x: x, inputs=gr.Video(), outputs=gr.Video()
     )
 
 
