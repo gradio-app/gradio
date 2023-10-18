@@ -129,5 +129,5 @@ export const makeHttpRequest = (
 			headers: headersToASGI(request.headers)
 		};
 
-		asgiApp(scope, receiveFromJs, sendToJs);
+		asgiApp(scope, receiveFromJs, sendToJs).catch(reject);
 	});
