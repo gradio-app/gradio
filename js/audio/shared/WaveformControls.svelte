@@ -47,7 +47,7 @@
 		const region = trimRegion.addRegion({
 			start: audioDuration / 4,
 			end: audioDuration / 2,
-			color: "hsla(200, 50%, 70%, 0.5)",
+			color: "hsla(15, 85%, 40%, 0.4)",
 			drag: true,
 			resize: true,
 		});
@@ -178,7 +178,7 @@
 	}
 
 	.text-button {
-		width: var(--size-20);
+		width: min-content;
 		border: 1px solid var(--neutral-400);
 		border-radius: var(--radius-3xl);
 		padding: var(--spacing-xl);
@@ -200,6 +200,7 @@
 
 	.trim {
 		color: var(--neutral-400);
+		margin-left: var(--spacing-md);
 	}
 
 	.play-pause-wrapper {

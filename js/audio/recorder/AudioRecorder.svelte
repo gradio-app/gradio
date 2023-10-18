@@ -29,17 +29,26 @@
 	export let waveformProgressColor = "#f97316";
 
 	let micWaveform: WaveSurfer;
-
 	let recordingWaveform: WaveSurfer;
 	let playing = false;
 
 	let record: Record;
 	let recordedAudio: string | null = null;
-	// let waveformRegions: Regions;
 
 	let timeRef: HTMLTimeElement;
 	let durationRef: HTMLTimeElement;
 	let audioDuration: number;
+
+	let seconds = 0;
+	let interval: NodeJS.Timeout;
+	let timing = false;
+
+	const startInterval = (): void => {
+		clearInterval(interval);
+		interval = setInterval(() => {
+			seconds++;
+		}, 1000);
+	};
 
 	const formatTime = (seconds: number): string => {
 		const minutes = Math.floor(seconds / 60);
@@ -49,9 +58,24 @@
 	};
 
 	$: record?.on("record-start", () => {
+		startInterval();
+		timing = true;
 		dispatch("start_recording");
 		let waveformCanvas = document.getElementById("mic");
 		if (waveformCanvas) waveformCanvas.style.display = "block";
+	});
+
+	$: record?.on("record-end", function () {
+		seconds = 0;
+		timing = false;
+	});
+
+	$: record?.on("record-pause", () => {
+		clearInterval(interval);
+	});
+
+	$: record?.on("record-resume", () => {
+		startInterval();
 	});
 
 	$: recordingWaveform?.on("decode", (duration: any) => {
@@ -167,15 +191,19 @@
 	<div id="mic" data-testid={label || "unlabelled" + "-audio"} />
 	<div id="recordings" />
 
-	{#if micWaveform && !recordedAudio}
-		<WaveformRecordControls bind:record {i18n} {dispatch} />
-	{/if}
-
-	{#if recordedAudio}
+	{#if timing || recordedAudio}
 		<div id="timestamps">
 			<time bind:this={timeRef} id="time">0:00</time>
-			<time bind:this={durationRef} id="duration">0:00</time>
+			{#if timing}
+				<time id="duration">{formatTime(seconds)}</time>
+			{:else}
+				<time bind:this={durationRef} id="duration">0:00</time>
+			{/if}
 		</div>
+	{/if}
+
+	{#if micWaveform && !recordedAudio}
+		<WaveformRecordControls bind:record {i18n} {dispatch} />
 	{/if}
 
 	{#if recordedAudio}
@@ -186,6 +214,7 @@
 			{i18n}
 			{clearRecording}
 			showRedo
+			interactive
 		/>
 	{/if}
 </div>
