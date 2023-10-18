@@ -300,7 +300,7 @@ def hello_world_with_state_and_accordion():
 
         def greeting(name, state):
             state += 1
-            return state, f"Hello {name}", state, gr.Accordion("Closed", open=False)
+            return state, f"Hello {name}", state, gr.Accordion(open=False)
 
         greet.click(
             greeting,
@@ -309,13 +309,13 @@ def hello_world_with_state_and_accordion():
             api_name="greeting",
         )
         open_acc.click(
-            lambda state: (state + 1, state + 1, gr.Accordion("Open", open=True)),
+            lambda state: (state + 1, state + 1, gr.Accordion(open=True)),
             [n_counts],
             [n_counts, num, accordion],
             api_name="open",
         )
         close_acc.click(
-            lambda state: (state + 1, state + 1, gr.Accordion.update(open=False)),
+            lambda state: (state + 1, state + 1, gr.Accordion(open=False)),
             [n_counts],
             [n_counts, num, accordion],
             api_name="close",
