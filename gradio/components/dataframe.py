@@ -11,7 +11,7 @@ import semantic_version
 from gradio_client.documentation import document, set_documentation_group
 from pandas.io.formats.style import Styler
 
-from gradio.components import Component, _Keywords
+from gradio.components import Component
 from gradio.data_classes import GradioModel
 from gradio.events import Events
 
@@ -58,9 +58,6 @@ class Dataframe(Component):
         col_count: int | tuple[int, str] | None = None,
         datatype: str | list[str] = "str",
         type: Literal["pandas", "numpy", "array"] = "pandas",
-        max_rows: int | None = 20,
-        max_cols: int | None = None,
-        overflow_row_behaviour: Literal["paginate", "show_ends"] = "paginate",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | None = None,
         show_label: bool | None = None,
@@ -72,10 +69,12 @@ class Dataframe(Component):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        render: bool = True,
+        root_url: str | None = None,
+        _skip_init_processing: bool = False,
         wrap: bool = False,
         line_breaks: bool = True,
         column_widths: list[str | int] | None = None,
-        **kwargs,
     ):
         """
         Parameters:
@@ -85,12 +84,9 @@ class Dataframe(Component):
             col_count: Limit number of columns for input and decide whether user can create new columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
             datatype: Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", "date", and "markdown".
             type: Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python list of lists.
-            label: component name in interface.
-            max_rows: Deprecated and has no effect. Use `row_count` instead.
-            max_cols: Deprecated and has no effect. Use `col_count` instead.
-            overflow_row_behaviour: Deprecated and has no effect.
+            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$", "right": "$", "display": False }]`, so only expressions enclosed in $ delimiters will be rendered as LaTeX, and in the same line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html). Only applies to columns whose datatype is "markdown".
-            label: component name in interface.
+            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             show_label: if True, will display label.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             height: The maximum height of the dataframe, in pixels. If more rows are created than can fit in the height, a scrollbar will appear.
@@ -100,6 +96,8 @@ class Dataframe(Component):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
             wrap: If True, the text in table cells will wrap when appropriate. If False and the `column_width` parameter is not set, the column widths will expand based on the cell contents and the table may need to be horizontally scrolled. If `column_width` is set, then any overflow text will be hidden.
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies for columns of type "markdown."
             column_widths: An optional list representing the width of each column. The elements of the list should be in the format "100px" (ints are also accepted and converted to pixel values) or "10%". If not provided, the column widths will be automatically determined based on the content of the cells. Setting this parameter will cause the browser to try to fit the table within the page width.
@@ -146,9 +144,6 @@ class Dataframe(Component):
             "metadata": None,
         }
 
-        self.max_rows = max_rows
-        self.max_cols = max_cols
-        self.overflow_row_behaviour = overflow_row_behaviour
         if latex_delimiters is None:
             latex_delimiters = [{"left": "$", "right": "$", "display": False}]
         self.latex_delimiters = latex_delimiters
@@ -167,51 +162,11 @@ class Dataframe(Component):
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            render=render,
+            root_url=root_url,
+            _skip_init_processing=_skip_init_processing,
             value=value,
-            **kwargs,
         )
-
-    @staticmethod
-    def update(
-        value: pd.DataFrame
-        | Styler
-        | np.ndarray
-        | list
-        | list[list]
-        | dict
-        | str
-        | Literal[_Keywords.NO_VALUE]
-        | None = _Keywords.NO_VALUE,
-        max_rows: int | None = None,
-        max_cols: str | None = None,
-        label: str | None = None,
-        show_label: bool | None = None,
-        latex_delimiters: list[dict[str, str | bool]] | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        height: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-        line_breaks: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Dataframe(...)` instead of `return gr.Dataframe.update(...)`."
-        )
-        return {
-            "max_rows": max_rows,
-            "max_cols": max_cols,
-            "label": label,
-            "show_label": show_label,
-            "scale": scale,
-            "min_width": min_width,
-            "height": height,
-            "interactive": interactive,
-            "visible": visible,
-            "value": value,
-            "latex_delimiters": latex_delimiters,
-            "line_breaks": line_breaks,
-            "__type__": "update",
-        }
 
     def preprocess(self, x: dict) -> pd.DataFrame | np.ndarray | list:
         """

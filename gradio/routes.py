@@ -53,7 +53,6 @@ import gradio.ranged_response as ranged_response
 from gradio import route_utils, utils, wasm_utils
 from gradio.context import Context
 from gradio.data_classes import ComponentServerBody, PredictBody, ResetBody
-from gradio.deprecation import warn_deprecation
 from gradio.exceptions import Error
 from gradio.oauth import attach_oauth
 from gradio.queueing import Estimation, Event
@@ -777,7 +776,6 @@ def mount_gradio_app(
     app: fastapi.FastAPI,
     blocks: gradio.Blocks,
     path: str,
-    gradio_api_url: str | None = None,
     app_kwargs: dict[str, Any] | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
@@ -786,7 +784,6 @@ def mount_gradio_app(
         app: The parent FastAPI application.
         blocks: The blocks object we want to mount to the parent app.
         path: The path at which the gradio application will be mounted.
-        gradio_api_url: Deprecated and has no effect.
         app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
     Example:
         from fastapi import FastAPI
@@ -803,9 +800,6 @@ def mount_gradio_app(
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()
     gradio_app = App.create_app(blocks, app_kwargs=app_kwargs)
-
-    if gradio_api_url is not None:
-        warn_deprecation("gradio_api_url is deprecated and has not effect.")
 
     @app.on_event("startup")
     async def start_queue():
