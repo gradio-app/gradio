@@ -65,6 +65,9 @@
 	}
 	$: guide_page = data.guide;
 	$: guide_slug = data.guide_slug;
+	$: flattened_guides = guide_names
+		.map((category) => category.guides)
+		.flat();
 	$: prev_guide = flattened_guides[
 		flattened_guides.findIndex((guide) => guide.url === guide_page.url) - 1];
 	$: next_guide = flattened_guides[
