@@ -109,8 +109,8 @@ export default defineConfig(({ mode }) => {
 							) {
 								return selector;
 							} else if (
-								// For the custom element <gradio-app>. See theme/src/global.css for the details.
-								/^gradio-app(\:[^\:]+)?/.test(selector)
+								// For the custom element <gradio-lite>. See theme/src/global.css for the details.
+								/^gradio-lite(\:[^\:]+)?/.test(selector)
 							) {
 								return selector;
 							}

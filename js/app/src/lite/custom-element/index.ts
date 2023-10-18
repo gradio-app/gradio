@@ -28,7 +28,9 @@ function parseRequirementsTxt(content: string): string[] {
 }
 
 export function bootstrap_custom_element(): void {
-	if (customElements.get("gradio-app")) {
+	const CUSTOM_ELEMENT_NAME = "gradio-lite";
+
+	if (customElements.get(CUSTOM_ELEMENT_NAME)) {
 		return;
 	}
 
@@ -52,7 +54,7 @@ export function bootstrap_custom_element(): void {
 		}
 
 		parseGradioComponentOptions(): GradioComponentOptions {
-			// Parse the options from the attributes of the <gradio-app> element.
+			// Parse the options from the attributes of the <gradio-lite> element.
 			// The following attributes are supported:
 			// * info: boolean
 			// * container: boolean
@@ -157,5 +159,5 @@ export function bootstrap_custom_element(): void {
 		}
 	}
 
-	customElements.define("gradio-app", GradioLiteAppElement);
+	customElements.define(CUSTOM_ELEMENT_NAME, GradioLiteAppElement);
 }
