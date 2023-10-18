@@ -1,5 +1,13 @@
 # @gradio/wasm
 
+## 0.2.0
+
+### Features
+
+- [#5956](https://github.com/gradio-app/gradio/pull/5956) [`f769876e0`](https://github.com/gradio-app/gradio/commit/f769876e0fa62336425c4e8ada5e09f38353ff01) - Apply formatter (and small refactoring) to the Lite-related frontend code.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#5972](https://github.com/gradio-app/gradio/pull/5972) [`11a300791`](https://github.com/gradio-app/gradio/commit/11a3007916071f0791844b0a37f0fb4cec69cea3) - Lite: Support opening the entrypoint HTML page directly in browser via the `file:` protocol.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#5958](https://github.com/gradio-app/gradio/pull/5958) [`6780d660b`](https://github.com/gradio-app/gradio/commit/6780d660bb8f3b969a4bd40644a49f3274a779a9) - Make the HTTP requests for the Wasm worker wait for the initial `run_code()` or `run_file()` to finish.  Thanks [@whitphx](https://github.com/whitphx)!
+
 ## 0.1.0
 
 ### Features

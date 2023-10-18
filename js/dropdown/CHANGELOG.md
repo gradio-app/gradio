@@ -1,10 +1,19 @@
 # @gradio/dropdown
 
+## 0.3.4
+
+### Patch Changes
+
+- Updated dependencies [[`465f58957`](https://github.com/gradio-app/gradio/commit/465f58957f70c7cf3e894beef8a117b28339e3c1)]:
+  - @gradio/atoms@0.2.1
+  - @gradio/utils@0.1.3
+  - @gradio/statustracker@0.2.4
+
 ## 0.3.3
 
 ### Fixes
 
-- [#5839](https://github.com/gradio-app/gradio/pull/5839) [`b83064da0`](https://github.com/gradio-app/gradio/commit/b83064da0005ca055fc15ee478cf064bf91702a4) - Fix error when scrolling dropdown with scrollbar.  Thanks [@Kit-p](https://github.com/Kit-p)!
+- [#5839](https://github.com/gradio-app/gradio/pull/5839) [`b83064da0`](https://github.com/gradio-app/gradio/commit/b83064da0005ca055fc15ee478cf064bf91702a4) - Fix error when scrolling dropdown with scrollbar. Thanks [@Kit-p](https://github.com/Kit-p)!
 
 ## 0.3.2
 

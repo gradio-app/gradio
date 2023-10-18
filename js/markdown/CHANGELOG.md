@@ -1,11 +1,20 @@
 # @gradio/markdown
 
+## 0.3.3
+
+### Patch Changes
+
+- Updated dependencies [[`465f58957`](https://github.com/gradio-app/gradio/commit/465f58957f70c7cf3e894beef8a117b28339e3c1)]:
+  - @gradio/atoms@0.2.1
+  - @gradio/utils@0.1.3
+  - @gradio/statustracker@0.2.4
+
 ## 0.3.2
 
 ### Fixes
 
-- [#5897](https://github.com/gradio-app/gradio/pull/5897) [`0592c301d`](https://github.com/gradio-app/gradio/commit/0592c301df9cd949b52159c85b7042f38d113e86) - Fix Dataframe `line_breaks`.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
-- [#5878](https://github.com/gradio-app/gradio/pull/5878) [`fbce277e5`](https://github.com/gradio-app/gradio/commit/fbce277e50c5885371fd49c68adf8565c25c1d39) - Keep Markdown rendered lists within dataframe cells.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#5897](https://github.com/gradio-app/gradio/pull/5897) [`0592c301d`](https://github.com/gradio-app/gradio/commit/0592c301df9cd949b52159c85b7042f38d113e86) - Fix Dataframe `line_breaks`. Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#5878](https://github.com/gradio-app/gradio/pull/5878) [`fbce277e5`](https://github.com/gradio-app/gradio/commit/fbce277e50c5885371fd49c68adf8565c25c1d39) - Keep Markdown rendered lists within dataframe cells. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 0.3.1
 
