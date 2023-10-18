@@ -47,7 +47,7 @@ export function determine_protocol(endpoint: string): {
 		return {
 			ws_protocol: "ws",
 			http_protocol: "http:",
-			host: "lite.local"
+			host: "lite.local" // Special fake hostname only used for this case. This matches the hostname allowed in `is_self_host()` in `js/wasm/network/host.ts`.
 		};
 	}
 
