@@ -1,6 +1,6 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import Number from "./interactive";
+	import Number from "./Index.svelte";
 </script>
 
 <Meta title="Components/Number" component={Number} />
