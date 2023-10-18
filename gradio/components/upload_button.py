@@ -37,6 +37,7 @@ class UploadButton(Component):
         label: str = "Upload a File",
         value: str | list[str] | Callable | None = None,
         *,
+        every: float | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         visible: bool = True,
         size: Literal["sm", "lg"] | None = None,
@@ -56,6 +57,7 @@ class UploadButton(Component):
         Parameters:
             label: Text to display on the button. Defaults to "Upload a File".
             value: File or list of files to upload by default.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             visible: If False, component will be hidden.
             size: Size of the button. Can be "sm" or "lg".
@@ -87,6 +89,7 @@ class UploadButton(Component):
         self.variant = variant
         super().__init__(
             label=label,
+            every=every,
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,

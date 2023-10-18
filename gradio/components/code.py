@@ -56,6 +56,7 @@ class Code(Component):
         ]
         | None = None,
         *,
+        every: float | None = None,
         lines: int = 5,
         label: str | None = None,
         interactive: bool | None = None,
@@ -73,6 +74,7 @@ class Code(Component):
         """
         Parameters:
             value: Default value to show in the code editor. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             language: The language to display the code as. Supported languages listed in `gr.Code.languages`.
             label: component name in interface.
             interactive: Whether user should be able to enter code or only view it.
@@ -94,6 +96,7 @@ class Code(Component):
         self.lines = lines
         super().__init__(
             label=label,
+            every=every,
             interactive=interactive,
             show_label=show_label,
             container=container,

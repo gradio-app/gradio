@@ -27,6 +27,7 @@ class ClearButton(Button):
         components: None | list[Component] | Component = None,
         *,
         value: str = "Clear",
+        every: float | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         size: Literal["sm", "lg"] | None = None,
         icon: str | None = None,
@@ -43,6 +44,7 @@ class ClearButton(Button):
     ):
         super().__init__(
             value,
+            every=every,
             variant=variant,
             size=size,
             icon=icon,

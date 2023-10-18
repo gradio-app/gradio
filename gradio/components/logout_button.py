@@ -22,6 +22,7 @@ class LogoutButton(Button):
         self,
         value: str = "Logout",
         *,
+        every: float | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         size: Literal["sm", "lg"] | None = None,
         icon: str
@@ -40,6 +41,7 @@ class LogoutButton(Button):
     ):
         super().__init__(
             value,
+            every=every,
             variant=variant,
             size=size,
             icon=icon,

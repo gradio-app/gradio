@@ -429,7 +429,7 @@ class TestTempFile:
     def test_no_empty_video_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         video = str(file_dir / "video_sample.mp4")
-        demo = gr.Interface(lambda x: x, gr.Video(type="file"), gr.Video())
+        demo = gr.Interface(lambda x: x, gr.Video(), gr.Video())
         with connect(demo) as client:
             _ = client.predict({"video": video}, api_name="/predict")
             _ = client.predict({"video": video}, api_name="/predict")
@@ -1087,8 +1087,8 @@ class TestUpdate:
         with gr.Blocks() as demo:
             with gr.Accordion(label="Open for greeting", open=False) as accordion:
                 gr.Textbox("Hello!")
-            open_btn = gr.Button(label="Open Accordion")
-            close_btn = gr.Button(label="Close Accordion")
+            open_btn = gr.Button("Open Accordion")
+            close_btn = gr.Button("Close Accordion")
             open_btn.click(
                 lambda: gr.Accordion(open=True, label="Open Accordion"),
                 inputs=None,

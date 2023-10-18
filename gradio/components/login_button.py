@@ -25,6 +25,7 @@ class LoginButton(Button):
         self,
         value: str = "Sign in with Hugging Face",
         *,
+        every: float | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         size: Literal["sm", "lg"] | None = None,
         icon: str
@@ -42,6 +43,7 @@ class LoginButton(Button):
     ):
         super().__init__(
             value,
+            every=every,
             variant=variant,
             size=size,
             icon=icon,

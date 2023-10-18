@@ -592,6 +592,7 @@ class Blocks(BlockContext):
             block_config["props"].pop("type", None)
             block_config["props"].pop("name", None)
             block_config["props"].pop("selectable", None)
+            block_config["props"].pop("streamable", None)
             block_config["props"].pop("server_fns", None)
 
             # If a Gradio app B is loaded into a Gradio app A, and B itself loads a
