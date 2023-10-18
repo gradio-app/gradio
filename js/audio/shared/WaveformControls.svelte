@@ -13,6 +13,8 @@
 	import WaveSurfer from "wavesurfer.js";
 	import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.js";
 
+	export let value: null | { name: string; data: string } = null;
+	export let initialValue: null | { name: string; data: string } = value;
 	export let waveform: WaveSurfer;
 	export let audioDuration: number;
 	export let i18n: I18nFormatter;
@@ -21,12 +23,14 @@
 	export let showRedo = false;
 	export let interactive = false;
 
+	export let trimmingMode = false;
+	export let trimDuration = 0;
+
 	let playbackSpeeds = [0.5, 1, 1.5, 2];
 	let playbackSpeed = playbackSpeeds[1];
 
 	let trimRegion: RegionsPlugin;
 	let activeRegion: any;
-	let trimmingMode = false;
 
 	$: trimRegion &&
 		activeRegion &&
@@ -41,7 +45,14 @@
 			activeRegion && activeRegion.play();
 		});
 
+	$: trimRegion &&
+		activeRegion &&
+		trimRegion.on("region-updated", () => {
+			trimDuration = activeRegion.end - activeRegion.start;
+		});
+
 	const addTrimRegion = (): void => {
+		if (!trimmingMode) return;
 		trimRegion = waveform.registerPlugin(RegionsPlugin.create());
 
 		const region = trimRegion.addRegion({
@@ -53,6 +64,8 @@
 		});
 		activeRegion = region;
 	};
+
+	const trimAudio = (): void => {};
 
 	$: waveform &&
 		activeRegion &&
@@ -88,11 +101,16 @@
 		}
 	};
 
-	const toggleTrimming = (): void => {
+	const toggleTrimmingMode = (): void => {
 		trimmingMode = !trimmingMode;
 
-		if (!trimmingMode) {
+		if (trimRegion || activeRegion) {
+			activeRegion = null;
+			trimRegion.destroy();
 			trimRegion.clearRegions();
+		}
+
+		if (!trimmingMode) {
 			trimRegion.destroy();
 			activeRegion = null;
 		} else {
@@ -156,7 +174,7 @@
 			{#if !trimmingMode}
 				<button
 					class="trim"
-					on:click={toggleTrimming}
+					on:click={toggleTrimmingMode}
 					style="color: {trimmingMode
 						? 'var(--primary)'
 						: 'var(--neutral-400)'}"
@@ -164,8 +182,9 @@
 					<Trim />
 				</button>
 			{:else}
-				<button class="text-button" on:click={toggleTrimming}>Trim</button>
-				<button class="text-button" on:click={toggleTrimming}>Cancel</button>
+				<button class="text-button" on:click={trimAudio}>Trim</button>
+				<button class="text-button" on:click={toggleTrimmingMode}>Cancel</button
+				>
 			{/if}
 		{/if}
 	</div>

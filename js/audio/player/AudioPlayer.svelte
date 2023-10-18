@@ -26,6 +26,7 @@
 	export let waveformColor = "#9ca3af";
 	export let waveformProgressColor = "#f97316";
 
+	let initialValue: null | { name: string; data: string } = value;
 	let container: HTMLDivElement;
 	let waveform: WaveSurfer;
 	let playing = false;
@@ -34,6 +35,9 @@
 	let durationRef: HTMLTimeElement;
 	let audioDuration: number;
 
+	let trimmingMode = false;
+	let trimDuration = 0;
+
 	const formatTime = (seconds: number): string => {
 		const minutes = Math.floor(seconds / 60);
 		const secondsRemainder = Math.round(seconds) % 60;
@@ -41,10 +45,7 @@
 		return `${minutes}:${paddedSeconds}`;
 	};
 
-	function handle_ended(): void {
-		dispatch("stop");
-		dispatch("end");
-	}
+	$: console.log("value", value, value?.data);
 
 	$: if (container !== undefined) {
 		if (waveform !== undefined) waveform.destroy();
@@ -84,7 +85,8 @@
 	);
 
 	$: waveform?.on("finish", () => {
-		handle_ended();
+		dispatch("stop");
+		dispatch("end");
 		playing = false;
 	});
 	$: waveform?.on("pause", () => {
@@ -123,15 +125,24 @@
 
 		<div class="timestamps">
 			<time bind:this={timeRef} id="time">0:00</time>
-			<time bind:this={durationRef} id="duration">0:00</time>
+			<div>
+				{#if trimmingMode}
+					<time id="trim-duration">{formatTime(trimDuration)}</time>
+				{/if}
+				<time bind:this={durationRef} id="duration">0:00</time>
+			</div>
 		</div>
 
 		<WaveformControls
+			bind:value
+			{initialValue}
 			{waveform}
 			{playing}
 			{audioDuration}
 			{i18n}
 			{interactive}
+			bind:trimmingMode
+			bind:trimDuration
 		/>
 	</div>
 {/if}
@@ -155,6 +166,11 @@
 
 	#duration {
 		color: var(--neutral-400);
+	}
+
+	#trim-duration {
+		color: var(--color-accent);
+		margin-right: var(--spacing-sm);
 	}
 	.waveform-container {
 		display: flex;
