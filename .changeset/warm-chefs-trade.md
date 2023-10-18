@@ -2,4 +2,4 @@
 "@gradio/wasm": minor
 ---
 
-feat:Lite: Error handling
+feat:Lite: Fix error handling on the ASGI app
