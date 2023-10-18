@@ -272,13 +272,13 @@ def hello_world_with_group():
             gr.Textbox("Hello!")
 
         def greeting(name):
-            return f"Hello {name}", gr.Group.update(visible=True)
+            return f"Hello {name}", gr.Group(visible=True)
 
         greet.click(
             greeting, inputs=[name], outputs=[output, group], api_name="greeting"
         )
         show_group.click(
-            lambda: gr.Group.update(visible=False), None, group, api_name="show_group"
+            lambda: gr.Group(visible=False), None, group, api_name="show_group"
         )
     return demo
 
