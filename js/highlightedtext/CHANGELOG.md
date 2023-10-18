@@ -1,5 +1,15 @@
 # @gradio/highlightedtext
 
+## 0.3.5
+
+### Patch Changes
+
+- Updated dependencies [[`921334526`](https://github.com/gradio-app/gradio/commit/921334526ff1ed0fc75c20db5d43733004c7d6ae), [`465f58957`](https://github.com/gradio-app/gradio/commit/465f58957f70c7cf3e894beef8a117b28339e3c1)]:
+  - @gradio/theme@0.3.0
+  - @gradio/atoms@0.2.1
+  - @gradio/utils@0.1.3
+  - @gradio/statustracker@0.2.4
+
 ## 0.3.4
 
 ### Patch Changes

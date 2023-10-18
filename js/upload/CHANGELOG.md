@@ -1,5 +1,12 @@
 # @gradio/upload
 
+## 0.3.4
+
+### Patch Changes
+
+- Updated dependencies [[`465f58957`](https://github.com/gradio-app/gradio/commit/465f58957f70c7cf3e894beef8a117b28339e3c1)]:
+  - @gradio/atoms@0.2.1
+
 ## 0.3.3
 
 ### Patch Changes

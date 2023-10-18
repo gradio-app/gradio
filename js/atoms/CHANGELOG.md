@@ -1,5 +1,11 @@
 # @gradio/atoms
 
+## 0.2.1
+
+### Fixes
+
+- [#5944](https://github.com/gradio-app/gradio/pull/5944) [`465f58957`](https://github.com/gradio-app/gradio/commit/465f58957f70c7cf3e894beef8a117b28339e3c1) - Show empty JSON icon when `value` is `null`.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.2.0
 
 ### Features

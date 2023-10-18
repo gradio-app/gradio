@@ -1,5 +1,12 @@
 # @gradio/tabs
 
+## 0.0.8
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/utils@0.1.3
+
 ## 0.0.7
 
 ### Patch Changes
