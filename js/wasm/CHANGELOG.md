@@ -1,5 +1,17 @@
 # @gradio/wasm
 
+## 0.3.0
+
+### Features
+
+- [#5983](https://github.com/gradio-app/gradio/pull/5983) [`a32aabaf5`](https://github.com/gradio-app/gradio/commit/a32aabaf50b14779dec889cf539d7a3770139bac) - Lite: Show initialization progress messages.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#5987](https://github.com/gradio-app/gradio/pull/5987) [`d8a6491a1`](https://github.com/gradio-app/gradio/commit/d8a6491a18854cb8cad6221ba96dcbd20556e806) - Specify FastAPI version for the Wasm runtime as a workaround.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#5982](https://github.com/gradio-app/gradio/pull/5982) [`ab1e5da55`](https://github.com/gradio-app/gradio/commit/ab1e5da5578d4a7cec1fe1117a8b660784a9ae30) - Lite: Fix error handling on the ASGI app.  Thanks [@whitphx](https://github.com/whitphx)!
+
+### Fixes
+
+- [#5980](https://github.com/gradio-app/gradio/pull/5980) [`686719a3b`](https://github.com/gradio-app/gradio/commit/686719a3b0bcd64479a5f3c485da4620d0747341) - Lite: Explicitly install a specific version of `anyio` to avoid version conflicts.  Thanks [@whitphx](https://github.com/whitphx)!
+
 ## 0.2.0
 
 ### Features

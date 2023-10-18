@@ -1,5 +1,11 @@
 # @gradio/lite
 
+## 0.4.1
+
+### Fixes
+
+- [#5988](https://github.com/gradio-app/gradio/pull/5988) [`bea931c31`](https://github.com/gradio-app/gradio/commit/bea931c31b7c19ee88c82efa6261acc13e629d71) - release lite.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.4.0
 
 ### Features
