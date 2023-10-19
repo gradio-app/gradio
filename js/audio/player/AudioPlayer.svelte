@@ -12,9 +12,11 @@
 	import { Music } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
-	import { skipAudio } from "../shared/utils";
+	import { skipAudio, trimAudioBlob } from "../shared/utils";
 	import WaveformControls from "../shared/WaveformControls.svelte";
 	import { Empty } from "@gradio/atoms";
+	// @ts-ignore
+	import audiobufferToBlob from "audiobuffer-to-blob";
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
@@ -25,8 +27,8 @@
 
 	export let waveformColor = "#9ca3af";
 	export let waveformProgressColor = "#f97316";
+	export let showMediaControls = false;
 
-	let initialValue: null | { name: string; data: string } = value;
 	let container: HTMLDivElement;
 	let waveform: WaveSurfer;
 	let playing = false;
@@ -38,6 +40,8 @@
 	let trimmingMode = false;
 	let trimDuration = 0;
 
+	let updatedAudio: string | null = null;
+
 	const formatTime = (seconds: number): string => {
 		const minutes = Math.floor(seconds / 60);
 		const secondsRemainder = Math.round(seconds) % 60;
@@ -45,15 +49,13 @@
 		return `${minutes}:${paddedSeconds}`;
 	};
 
-	$: if (container !== undefined) {
-		if (waveform !== undefined) waveform.destroy();
-		container.innerHTML = "";
+	const create_waveform = (): void => {
 		waveform = WaveSurfer.create({
 			height: 50,
 			container: container,
 			waveColor: waveformColor || "#9ca3af",
 			progressColor: waveformProgressColor || "#f97316",
-			url: value?.data,
+			url: updatedAudio || value?.data,
 			barWidth: 2,
 			barGap: 3,
 			barHeight: 4,
@@ -61,8 +63,14 @@
 			cursorColor: "#ddd5e9",
 			barRadius: 10,
 			dragToSeek: true,
+			mediaControls: showMediaControls,
 		});
+	};
 
+	$: if (container !== undefined) {
+		if (waveform !== undefined) waveform.destroy();
+		container.innerHTML = "";
+		create_waveform();
 		playing = false;
 	}
 
@@ -83,18 +91,34 @@
 	);
 
 	$: waveform?.on("finish", () => {
+		playing = false;
 		dispatch("stop");
 		dispatch("end");
-		playing = false;
 	});
 	$: waveform?.on("pause", () => {
-		dispatch("pause");
 		playing = false;
+		dispatch("pause");
 	});
 	$: waveform?.on("play", () => {
-		dispatch("play");
 		playing = true;
+		dispatch("play");
 	});
+
+	const handle_trim_audio = async (
+		start: number,
+		end: number
+	): Promise<void> => {
+		trimmingMode = false;
+		await trimAudioBlob(
+			audiobufferToBlob(waveform.getDecodedData()),
+			start,
+			end
+		).then((trimmedBlob: Blob) => {
+			updatedAudio = URL.createObjectURL(trimmedBlob);
+			waveform.destroy();
+			create_waveform();
+		});
+	};
 
 	onMount(() => {
 		window.addEventListener("keydown", (e) => {
@@ -132,13 +156,12 @@
 		</div>
 
 		<WaveformControls
-			bind:value
-			{initialValue}
 			{waveform}
 			{playing}
 			{audioDuration}
 			{i18n}
 			{interactive}
+			{handle_trim_audio}
 			bind:trimmingMode
 			bind:trimDuration
 		/>

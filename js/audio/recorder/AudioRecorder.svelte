@@ -21,28 +21,31 @@
 	export let label: string;
 	// export let autoplay: boolean;
 	export let i18n: I18nFormatter;
-	// export let interactive: boolean;
 	export let dispatch: (event: string, detail?: any) => void;
-
 	export let waveformColor = "#9ca3af";
 	export let waveformProgressColor = "#f97316";
 	export let showMediaControls = false;
 
+	// waveform
 	let micWaveform: WaveSurfer;
 	let recordingWaveform: WaveSurfer;
 	let playing = false;
 
+	// recording
 	let record: Record;
 	let recordedAudio: string | null = null;
 	let recordedBlob: Blob | null = null;
 
+	// timestamps
 	let timeRef: HTMLTimeElement;
 	let durationRef: HTMLTimeElement;
 	let audioDuration: number;
 
+	// trimming
 	let trimmingMode = false;
 	let trimDuration = 0;
 
+	// timing
 	let seconds = 0;
 	let interval: NodeJS.Timeout;
 	let timing = false;
@@ -77,6 +80,7 @@
 	});
 
 	$: record?.on("record-pause", () => {
+		dispatch("pause_recording");
 		clearInterval(interval);
 	});
 
@@ -106,11 +110,12 @@
 	});
 
 	$: recordingWaveform?.on("finish", () => {
+		dispatch("stop");
 		dispatch("end");
 		playing = false;
 	});
 
-	const clearRecording = (): void => {
+	const clear_recording = (): void => {
 		const recording = document.getElementById("recordings");
 		recordedAudio = null;
 		recordedBlob = null;
@@ -142,7 +147,7 @@
 		record = micWaveform.registerPlugin(RecordPlugin.create());
 	};
 
-	const create_recording_waveform = (url?: string): void => {
+	const create_recording_waveform = (): void => {
 		if (!recordedAudio) return;
 		recordingWaveform = WaveSurfer.create({
 			height: 50,
@@ -156,7 +161,7 @@
 			cursorColor: "#ddd5e9",
 			barRadius: 10,
 			dragToSeek: true,
-			url: url || recordedAudio,
+			url: recordedAudio,
 		});
 	};
 
@@ -242,7 +247,7 @@
 			{handle_trim_audio}
 			bind:trimDuration
 			bind:trimmingMode
-			{clearRecording}
+			{clear_recording}
 			showRedo
 		/>
 	{/if}

@@ -9,7 +9,7 @@
 	export let audioDuration: number;
 	export let i18n: I18nFormatter;
 	export let playing: boolean;
-	export let clearRecording: () => void = () => {};
+	export let clear_recording = (): void => {};
 	export let showRedo = false;
 	export let interactive = false;
 	export let handle_trim_audio: (start: number, end: number) => void;
@@ -27,7 +27,6 @@
 		activeRegion &&
 		trimRegion.on("region-in", (region) => {
 			activeRegion = region;
-			playing = true;
 		});
 
 	$: trimRegion &&
@@ -64,7 +63,8 @@
 			if (region) {
 				const start = region.start;
 				const end = region.end;
-				const newBlob = handle_trim_audio && handle_trim_audio(start, end);
+				handle_trim_audio(start, end);
+				trimmingMode = false;
 			}
 		}
 	};
@@ -75,21 +75,7 @@
 			e.stopPropagation();
 			activeRegion = region;
 			activeRegion.play();
-			playing = true;
 		});
-
-	const handlePlayPause = (): void => {
-		if (activeRegion && !playing) {
-			activeRegion.play();
-			playing = true;
-		} else if (activeRegion && playing) {
-			waveform.pause();
-			playing = false;
-		} else {
-			waveform.playPause();
-			playing = true;
-		}
-	};
 
 	const toggleTrimmingMode = (): void => {
 		trimmingMode = !trimmingMode;
@@ -131,7 +117,7 @@
 		</button>
 		<button
 			class="play-pause-button"
-			on:click={handlePlayPause}
+			on:click={() => waveform.playPause()}
 			aria-label={playing ? i18n("common.play") : i18n("common.pause")}
 		>
 			{#if playing}
@@ -152,7 +138,7 @@
 
 	<div class="settings-wrapper">
 		{#if showRedo && !trimmingMode}
-			<button class="redo" on:click={clearRecording}>
+			<button class="redo" on:click={clear_recording}>
 				<Undo />
 			</button>
 		{/if}
