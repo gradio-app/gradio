@@ -1,5 +1,19 @@
 # @gradio/json
 
+## 0.1.4
+
+### Fixes
+
+- [#5944](https://github.com/gradio-app/gradio/pull/5944) [`465f58957`](https://github.com/gradio-app/gradio/commit/465f58957f70c7cf3e894beef8a117b28339e3c1) - Show empty JSON icon when `value` is `null`.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
+## 0.1.3
+
+### Patch Changes
+
+- Updated dependencies [[`e70805d54`](https://github.com/gradio-app/gradio/commit/e70805d54cc792452545f5d8eccc1aa0212a4695)]:
+  - @gradio/atoms@0.2.0
+  - @gradio/statustracker@0.2.3
+
 ## 0.1.2
 
 ### Patch Changes

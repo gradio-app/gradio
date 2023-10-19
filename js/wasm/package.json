@@ -1,12 +1,14 @@
 {
 	"name": "@gradio/wasm",
-	"version": "0.0.4",
+	"version": "0.3.0",
 	"description": "Gradio Wasm package",
 	"type": "module",
 	"main": "./dist/index.js",
 	"exports": {
 		".": "./dist/index.js",
-		"./package.json": "./package.json"
+		"./package.json": "./package.json",
+		"./svelte": "./svelte/index.ts",
+		"./network": "./network/index.ts"
 	},
 	"keywords": [],
 	"author": "",
