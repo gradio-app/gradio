@@ -15,6 +15,8 @@
 	};
 
 	let current_selection = "Hello World";
+	let all_demos = data.demos_by_category.flatMap((category) => category.demos);
+
 </script>
 
 <MetaTags
@@ -38,8 +40,8 @@
 					package.
 	</p>
 		
-	<div class="flex w-full border-2 border-orange-200 shadow-sm rounded-xl">
-		<div class="lg:my-4 lg:overflow-y-scroll lg:ml-0 lg:p-0 lg:pb-4 lg:text-md lg:block rounded-t-xl lg:bg-gradient-to-r lg:from-white lg:to-gray-50 lg:overflow-x-clip lg:w-2/12" style="height: 70vh;">
+	<div class="flex w-full border-2 border-orange-200 shadow-sm rounded-xl p-4">
+		<div class="lg:m-4 lg:overflow-y-scroll lg:ml-0 lg:p-0 lg:pb-4 lg:text-md lg:block rounded-t-xl lg:bg-gradient-to-r lg:from-white lg:to-gray-50 lg:overflow-x-clip lg:w-2/12" style="height: 70vh;">
 			{#each data.demos_by_category as { category, demos } (category)}
 				<p class="px-4 my-2 block">{category}</p>
 				{#each demos as demo, i}	
@@ -54,23 +56,10 @@
 		</div>
 
 	<div class="flex flex-col w-full min-w-full lg:w-10/12 lg:min-w-0">
-		{#each data.demos_by_category as { category, demos } (category)}
-			{#each demos as demo, i}
-			<!-- {#if demo.name == "Hello World"} -->
-				<div
-					class:hidden={current_selection !== demo.name}
-					class="demo-content px-4"
-				>
-					<DemosLite
-						name={demo.dir}
-						code={demo.code}
-						requirements={demo.requirements}
-
-					/>
-				</div>
-			<!-- {/if} -->
-			{/each}
-		{/each}
+			<DemosLite
+				demos={all_demos}
+				current_selection={current_selection}
+			/>
 	</div>
 </main>
 

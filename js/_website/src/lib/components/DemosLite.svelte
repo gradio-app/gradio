@@ -1,65 +1,89 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { afterNavigate } from  '$app/navigation';
 	import InteractiveCode from "@gradio/code/interactive";
-	export let name: string;
-	export let code: string;
-	export let requirements: string[];
+	export let demos: {
+				name: string;
+				dir: string;
+				code: string;
+				requirements: string[];
+			}[];
+	export let current_selection: string;
 
 	let mounted = false;
 	let controller: any;
 
 	let dummy_elem: any = {classList: {contains: () => false}};
 	let dummy_gradio: any = {dispatch: (_) => {}};
+	
+	let requirements = demos.find(demo => demo.name === current_selection)?.requirements || [];
+	let code = demos.find(demo => demo.name === current_selection)?.code || "";
 
-	onMount(() => {
+	afterNavigate(() => {
 		controller = createGradioApp({
-			target: document.getElementById(name + "_demo"),
-			requirements: requirements,
-			code: code,
-			info: true,
-			container: true,
-			isEmbed: true,
-			initialHeight: "68vh",
-			eager: false,
-			themeMode: null,
-			autoScroll: false,
-			controlPageTitle: false,
-			appMode: true
-		});
-		mounted = true;
+					target: document.getElementById("lite-demo"),
+					requirements: demos[0].requirements,
+					code: demos[0].code,
+					info: true,
+					container: true,
+					isEmbed: true,
+					initialHeight: "68vh",
+					eager: false,
+					themeMode: null,
+					autoScroll: false,
+					controlPageTitle: false,
+					appMode: true
+				});
+			mounted = true;
 	});
 
-	function update(code: string) {
+	function update(code: string, requirements: string[]) {
+		try {
+			controller.run_code(code);
+			controller.install(requirements);
+		} catch (error) {
+			console.error(error);
+		}
 		controller.run_code(code);
+		controller.install(requirements);
 	}
 
+$: code = demos.find(demo => demo.name === current_selection)?.code || "";
+$: requirements = demos.find(demo => demo.name === current_selection)?.requirements || [];
 $: if (mounted) {
-	update(code);
+	update(code, requirements);
 }
+
 </script>
 
 <svelte:head>
-	<script type="module" crossorigin=true src="https://cdn.jsdelivr.net/npm/@gradio/lite@0.3.2/dist/lite.js"></script>
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@gradio/lite@0.3.2/dist/lite.css" />
+	<script type="module" crossorigin=true src="https://cdn.jsdelivr.net/npm/@gradio/lite@0.4.1/dist/lite.js"></script>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@gradio/lite@0.4.1/dist/lite.css" />
+	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css">
 </svelte:head>
-
 
 <div class="flex w-full" style="height: 70vh;">
 
-<div class="code-editor mx-auto pt-4 pr-4 w-1/2 h-full" id="{name}_code">
-	<InteractiveCode bind:value={code} language="python" label="code" target={dummy_elem} gradio={dummy_gradio} lines={10} />
+	{#each demos as demo, i}
+		<div hidden={current_selection !== demo.name}
+		class="code-editor mx-auto pt-4 pr-4 w-1/2 h-full">
+			<InteractiveCode bind:value={demos[i].code} language="python" label="code" target={dummy_elem} gradio={dummy_gradio} lines={10} />
+		</div>
+	{/each}
 
+
+	<div class="lite-demo w-1/2 h-full" id="lite-demo" />
 </div>
 
-
-{#key name}
-	<div class="w-1/2 h-full" id="{name}_demo" />
-{/key}
-
-</div>
 
 <style>
 	:global(div.code-editor div.block) {
 		height: 100%;
+	}
+	:global(div.code-editor div.block div.wrap) {
+		height: 90%;
+	}
+	:global(div.lite-demo div.gradio-container) {
+		height: 98%;
+		overflow-y: scroll;
 	}
 </style>

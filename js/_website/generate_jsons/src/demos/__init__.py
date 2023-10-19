@@ -46,32 +46,28 @@ demos_by_category = [
         "category": "Images, Videos & Audio",
         "demos": [
             {
-                "name": "Image Segmentation", 
-                "dir": "image_segmentation", 
+                "name": "Sepia Filter", 
+                "dir": "sepia_filter", 
             },
             {
-                "name": "GAN Gallery", 
-                "dir": "fake_gan", 
+                "name": "Video Identity",
+                "dir": "video_identity_2",
+            },
+            {
+                "name": "Webcam",
+                "dir": "webcam",
             },
             {
                 "name": "Iterative Output",
                 "dir": "fake_diffusion",
             },
             {
-                "name": "Video Identity", 
-                "dir": "video_identity", 
-            },
-            {
-                "name": "Video Subtitles", 
-                "dir": "video_subtitle", 
-            },
-            {
                 "name": "Generate Tone", 
                 "dir": "generate_tone", 
             },
             {
-                "name": "Reverse Audio", 
-                "dir": "reverse_audio", 
+                "name": "Reverse From Microphone", 
+                "dir": "reverse_audio_2", 
             },
         ]
     },
@@ -97,10 +93,6 @@ demos_by_category = [
             {
                 "name": "Stock Forecast", 
                 "dir": "stock_forecast", 
-            },
-            {
-                "name": "Live Dashboard", 
-                "dir": "live_dashboard", 
             },
         ]
     },
