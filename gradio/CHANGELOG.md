@@ -1,5 +1,12 @@
 # gradio
 
+## 3.50.1
+
+### Fixes
+
+- [#6005](https://github.com/gradio-app/gradio/pull/6005) [`e0ed0642a`](https://github.com/gradio-app/gradio/commit/e0ed0642ac2cb4f7ce9ee698d082607d9bab3636) - Lite: Error handling after initialization.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#6004](https://github.com/gradio-app/gradio/pull/6004) [`ec26b71df`](https://github.com/gradio-app/gradio/commit/ec26b71dfbc0b89b4554475fe465c2f6974731e2) - Update static/AudioPlayerto use ../shared/Audio instead of the native `<audio>` for Wasm support.  Thanks [@whitphx](https://github.com/whitphx)!
+
 ## 3.50.0
 
 ### Features

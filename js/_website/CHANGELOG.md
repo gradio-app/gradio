@@ -1,5 +1,11 @@
 # website
 
+## 0.8.0
+
+### Features
+
+- [#5936](https://github.com/gradio-app/gradio/pull/5936) [`b8b9f6d27`](https://github.com/gradio-app/gradio/commit/b8b9f6d27e258256584b7662d03110cc2eeb883b) - Adds a Guide on how to stylize the DataFrame component.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.7.1
 
 ### Features
