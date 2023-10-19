@@ -57,7 +57,7 @@ export class WorkerProxy extends EventTarget {
 					error
 				);
 				this.dispatchEvent(
-					new CustomEvent("initialization-error", {
+					new CustomEvent("error", {
 						detail: error
 					})
 				);
@@ -65,23 +65,43 @@ export class WorkerProxy extends EventTarget {
 	}
 
 	public async runPythonCode(code: string): Promise<void> {
-		await this.postMessageAsync({
-			type: "run-python-code",
-			data: {
-				code
-			}
-		});
-		this.firstRunPromiseDelegate.resolve();
+		this.dispatchEvent(new Event("run-start"));
+		try {
+			await this.postMessageAsync({
+				type: "run-python-code",
+				data: {
+					code
+				}
+			});
+			this.firstRunPromiseDelegate.resolve();
+		} catch (error) {
+			this.dispatchEvent(
+				new CustomEvent("error", {
+					detail: error
+				})
+			);
+			throw error;
+		}
 	}
 
 	public async runPythonFile(path: string): Promise<void> {
-		await this.postMessageAsync({
-			type: "run-python-file",
-			data: {
-				path
-			}
-		});
-		this.firstRunPromiseDelegate.resolve();
+		this.dispatchEvent(new Event("run-start"));
+		try {
+			await this.postMessageAsync({
+				type: "run-python-file",
+				data: {
+					path
+				}
+			});
+			this.firstRunPromiseDelegate.resolve();
+		} catch (error) {
+			this.dispatchEvent(
+				new CustomEvent("error", {
+					detail: error
+				})
+			);
+			throw error;
+		}
 	}
 
 	// A wrapper for this.worker.postMessage(). Unlike that function, which
@@ -186,6 +206,13 @@ export class WorkerProxy extends EventTarget {
 				data,
 				opts
 			}
+		}).catch((error) => {
+			this.dispatchEvent(
+				new CustomEvent("error", {
+					detail: error
+				})
+			);
+			throw error;
 		}) as Promise<void>;
 	}
 
@@ -196,6 +223,13 @@ export class WorkerProxy extends EventTarget {
 				oldPath,
 				newPath
 			}
+		}).catch((error) => {
+			this.dispatchEvent(
+				new CustomEvent("error", {
+					detail: error
+				})
+			);
+			throw error;
 		}) as Promise<void>;
 	}
 
@@ -205,6 +239,13 @@ export class WorkerProxy extends EventTarget {
 			data: {
 				path
 			}
+		}).catch((error) => {
+			this.dispatchEvent(
+				new CustomEvent("error", {
+					detail: error
+				})
+			);
+			throw error;
 		}) as Promise<void>;
 	}
 
@@ -214,6 +255,13 @@ export class WorkerProxy extends EventTarget {
 			data: {
 				requirements
 			}
+		}).catch((error) => {
+			this.dispatchEvent(
+				new CustomEvent("error", {
+					detail: error
+				})
+			);
+			throw error;
 		}) as Promise<void>;
 	}
 
