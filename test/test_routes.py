@@ -458,7 +458,6 @@ class TestAuthenticatedRoutes:
         app, _, _ = io.launch(
             auth=("test", "correct_password"),
             prevent_thread_lock=True,
-            enable_queue=False,
         )
         client = TestClient(app)
 

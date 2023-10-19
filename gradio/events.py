@@ -14,7 +14,6 @@ if TYPE_CHECKING:
     from gradio.blocks import Block, Component
 
 from gradio.context import Context
-from gradio.deprecation import warn_deprecation
 from gradio.utils import get_cancel_function
 
 
@@ -177,7 +176,6 @@ class EventListener(str):
             inputs: Component | list[Component] | set[Component] | None = None,
             outputs: Component | list[Component] | None = None,
             api_name: str | None | Literal[False] = None,
-            status_tracker: None = None,
             scroll_to_output: bool = False,
             show_progress: Literal["full", "minimal", "hidden"] = "full",
             queue: bool | None = None,
@@ -195,7 +193,6 @@ class EventListener(str):
                 inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
                 outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
                 api_name: Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be given the name of the python function fn. If no fn is passed in, it will be given the name 'unnamed'. If set to a string, the endpoint will be exposed in the api docs with the given name.
-                status_tracker: Deprecated and has no effect.
                 scroll_to_output: If True, will scroll to output component on completion
                 show_progress: If True, will show progress animation while pending
                 queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
@@ -216,7 +213,6 @@ class EventListener(str):
                         inputs,
                         outputs,
                         api_name,
-                        status_tracker,
                         scroll_to_output,
                         show_progress,
                         queue,
@@ -237,14 +233,6 @@ class EventListener(str):
 
                 return Dependency(None, {}, None, wrapper)
 
-            if status_tracker:
-                warn_deprecation(
-                    "The 'status_tracker' parameter has been deprecated and has no effect."
-                )
-            if _event_name == "stop":
-                warn_deprecation(
-                    "The `stop` event on Video and Audio has been deprecated and will be remove in a future version. Use `ended` instead."
-                )
             if block and "stream" in block.events:
                 block.check_streamable()  # type: ignore
             if isinstance(show_progress, bool):
