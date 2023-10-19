@@ -1,5 +1,11 @@
 # @gradio/dataframe
 
+## 0.5.0
+
+### Features
+
+- [#5894](https://github.com/gradio-app/gradio/pull/5894) [`fee3d527e`](https://github.com/gradio-app/gradio/commit/fee3d527e83a615109cf937f6ca0a37662af2bb6) - Adds `column_widths` to `gr.Dataframe` and hide overflowing text when `wrap=False`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.4.0
 
 ### Features

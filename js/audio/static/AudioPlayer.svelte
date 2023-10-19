@@ -14,6 +14,7 @@
 	import { BlockLabel, ShareButton, IconButton } from "@gradio/atoms";
 	import { Music, Download } from "@gradio/icons";
 
+	import Audio from "../shared/Audio.svelte";
 	import { loaded } from "../shared/utils";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
 
@@ -85,24 +86,21 @@
 		<Music />
 	</Empty>
 {:else}
-	<audio
-		use:loaded={{ autoplay }}
-		controls
-		preload="metadata"
-		src={value?.data}
-		on:play
-		on:pause
-		on:ended={handle_ended}
-		data-testid={`${label}-audio`}
-	/>
+	<div class="container">
+		<Audio
+			{autoplay}
+			controls
+			preload="metadata"
+			src={value?.data}
+			on:play
+			on:pause
+			on:ended={handle_ended}
+			data-testid={`${label}-audio`}
+		/>
+	</div>
 {/if}
 
 <style>
-	audio {
-		padding: var(--size-2);
-		width: var(--size-full);
-		height: var(--size-14);
-	}
 	.icon-buttons {
 		display: flex;
 		position: absolute;
