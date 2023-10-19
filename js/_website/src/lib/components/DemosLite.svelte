@@ -56,7 +56,7 @@ $: if (mounted) {
 </script>
 
 <svelte:head>
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@gradio/lite@0.4.2/dist/lite.css" />
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.css" />
 	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css">
 </svelte:head>
 
