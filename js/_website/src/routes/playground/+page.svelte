@@ -45,9 +45,9 @@
 	</p>
 		
 	<div class="flex w-full border border-gray-200 shadow-xl rounded-xl p-4 mb-3">
-		<div class="mr-4 overflow-y-scroll mb-0 p-0 pb-4 text-md block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip w-1/3 md:w-1/4 lg:w-1/12" style="height: 70vh; word-break: normal; overflow-wrap: break-word;">
+		<div class="mr-4 overflow-y-scroll mb-0 p-0 pb-4 text-md block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip w-3/12 xl:w-[12%]" style="height: 70vh; word-break: normal; overflow-wrap: break-word; white-space:nowrap">
 			{#each data.demos_by_category as { category, demos } (category)}
-				<p class="px-4 my-2 md:block hidden">{category}</p>
+				<p class="px-4 my-2">{category}</p>
 				{#each demos as demo, i}	
 					<button
 						on:click={() => (current_selection = demo.name)}
@@ -59,12 +59,10 @@
 			{/each}
 		</div>
 
-	<!-- <div class="w-2/3 md:w-11/12"> -->
 			<DemosLite
 				demos={all_demos}
 				current_selection={current_selection}
 			/>
-	<!-- </div> -->
 </main>
 
 <style>

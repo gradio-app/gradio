@@ -23,19 +23,19 @@ demos_by_category = [
         "category": "Text",
         "demos": [
             {
-                "name": "Hello", 
+                "name": "Hello World", 
                 "dir": "hello_world", 
             },
             {
-                "name": "Blocks", 
+                "name": "Hello Blocks", 
                 "dir": "hello_blocks", 
             },
             {
-                "name": "Sentences", 
+                "name": "Sentence Builder", 
                 "dir": "sentence_builder", 
             },
             {
-                "name": "Differ", 
+                "name": "Diff Texts", 
                 "dir": "diff_texts", 
             },
             
@@ -46,19 +46,19 @@ demos_by_category = [
         "category": "Media",
         "demos": [
             {
-                "name": "Filter", 
+                "name": "Sepia Filter", 
                 "dir": "sepia_filter", 
             },
             {
-                "name": "Identity",
+                "name": "Video Identity",
                 "dir": "video_identity_2",
             },
             {
-                "name": "Iteration",
+                "name": "Iterative Output",
                 "dir": "fake_diffusion",
             },
             {
-                "name": "Tones", 
+                "name": "Generate Tone", 
                 "dir": "generate_tone", 
             },
         ]
@@ -67,15 +67,15 @@ demos_by_category = [
         "category": "Tabular",
         "demos": [
             {
-                "name": "Records",
+                "name": "Filter Records",
                 "dir": "filter_records"
             },
             {
-                "name": "Matrix",
+                "name": "Transpose Matrix",
                 "dir": "matrix_transpose"
             },
             {
-                "name": "Calculator",
+                "name": "Tax Calculator",
                 "dir": "tax_calculator"
             },
             {
@@ -83,7 +83,7 @@ demos_by_category = [
                 "dir": "blocks_kinematics", 
             },
             {
-                "name": "Forecast", 
+                "name": "Stock Forecast", 
                 "dir": "stock_forecast", 
             },
         ]
@@ -92,7 +92,7 @@ demos_by_category = [
         "category": "Other",
         "demos": [
             {
-                "name": "Double", 
+                "name": "Tabbed Interface", 
                 "dir": "tabbed_interface_lite", 
             },
             {
@@ -100,7 +100,7 @@ demos_by_category = [
                 "dir": "chatinterface_random_response", 
             },
             {
-                "name": "Streaming", 
+                "name": "Streaming Chatbot", 
                 "dir": "chatinterface_streaming_echo", 
             },
             {
@@ -112,11 +112,11 @@ demos_by_category = [
                 "dir": "calculator", 
             },
             {
-                "name": "Chained", 
+                "name": "Chained Events", 
                 "dir": "blocks_chained_events", 
             },
             {
-                "name": "Changes", 
+                "name": "Change Listener", 
                 "dir": "blocks_hello", 
             }
         ]
