@@ -1,5 +1,5 @@
 ---
-"@gradio/wasm": minor
+"@gradio/wasm": patch
 ---
 
-feat:Lite fix matplotlib install postprocess
+fix:Lite fix matplotlib install postprocess

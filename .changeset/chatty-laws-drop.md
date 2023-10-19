@@ -1,7 +1,7 @@
 ---
-"@gradio/app": minor
-"@gradio/wasm": minor
-"gradio": minor
+"@gradio/app": patch
+"@gradio/wasm": patch
+"gradio": patch
 ---
 
-feat:Lite: Error handling after initialization
+fix:Lite: Error handling after initialization
