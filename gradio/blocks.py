@@ -589,10 +589,7 @@ class Blocks(BlockContext):
                 raise ValueError(f"Cannot find block with id {id}")
             cls = component_or_layout_class(block_config["type"])
 
-            block_config["props"] = utils.omit_keys(
-                block_config["props"],
-                ["type", "name", "selectable", "server_fns", "streamable"],
-            )
+            block_config["props"] = utils.recover_kwargs(block_config["props"])
 
             # If a Gradio app B is loaded into a Gradio app A, and B itself loads a
             # Gradio app C, then the root_urls of the components in A need to be the
