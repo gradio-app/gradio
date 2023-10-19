@@ -14,6 +14,7 @@
 	import { BlockLabel, ShareButton, IconButton } from "@gradio/atoms";
 	import { Music, Download } from "@gradio/icons";
 
+	import Audio from "../shared/Audio.svelte";
 	import { loaded } from "../shared/utils";
 
 	export let value: null | { name: string; data: string } = null;
@@ -81,8 +82,8 @@
 		<Music />
 	</Empty>
 {:else}
-	<audio
-		use:loaded={{ autoplay }}
+	<Audio
+		{autoplay}
 		controls
 		preload="metadata"
 		src={value?.data}
