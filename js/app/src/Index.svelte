@@ -120,6 +120,7 @@
 				load_status: "error",
 				discussions_enabled: false
 			};
+			config = undefined;
 		});
 	}
 
@@ -135,7 +136,7 @@
 	let wrapper: HTMLDivElement;
 	let ready = false;
 	let render_complete = false;
-	let config: Config;
+	let config: Config | undefined;
 	let loading_text = $_("common.loading") + "...";
 	let active_theme_mode: ThemeMode;
 
