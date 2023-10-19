@@ -421,6 +421,7 @@
 						dep.pending_request = false;
 						make_prediction(dep.final_event);
 					}
+					dep.pending_request = false;
 					handle_update(data, fn_index);
 				})
 				.on("status", ({ fn_index, ...status }) => {
