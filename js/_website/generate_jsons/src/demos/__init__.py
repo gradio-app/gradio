@@ -54,20 +54,12 @@ demos_by_category = [
                 "dir": "video_identity_2",
             },
             {
-                "name": "Webcam",
-                "dir": "webcam",
-            },
-            {
                 "name": "Iteration",
                 "dir": "fake_diffusion",
             },
             {
                 "name": "Tones", 
                 "dir": "generate_tone", 
-            },
-            {
-                "name": "Reverse", 
-                "dir": "reverse_audio_2", 
             },
         ]
     },
