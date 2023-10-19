@@ -20,6 +20,7 @@ _IGNORE = {
     "Component",
     "Form",
     "Dataset",
+    "FormComponent",
 }
 
 
