@@ -68,7 +68,7 @@ export let NodeBlob;
 
 export async function duplicate(
 	app_reference: string,
-	options: {
+	options?: {
 		hf_token: `hf_${string}`;
 		private?: boolean;
 		status_callback: SpaceStatusCallback;
@@ -120,7 +120,7 @@ export async function duplicate(
 		);
 
 		if (response.status === 409) {
-			return client(`${user}/${space_name}`, options);
+			return options ? client(`${user}/${space_name}`, options) : client(`${user}/${space_name}`);
 		}
 		const duplicated_space = await response.json();
 
@@ -157,8 +157,8 @@ interface Client {
 	) => Promise<UploadResponse>;
 	client: (
 		app_reference: string,
-		options: {
-			hf_token?: `hf_${string}`;
+		options?: {
+			hf_token: `hf_${string}`;
 			status_callback?: SpaceStatusCallback;
 			normalise_files?: boolean;
 		}
@@ -255,10 +255,7 @@ export function api_factory(
 			};
 
 			const transform_files = normalise_files ?? true;
-			if (
-				(typeof window === "undefined" || !("WebSocket" in window)) &&
-				!global.Websocket
-			) {
+			if (typeof window === "undefined" || !("WebSocket" in window)) {
 				const ws = await import("ws");
 				NodeBlob = (await import("node:buffer")).Blob;
 				//@ts-ignore
