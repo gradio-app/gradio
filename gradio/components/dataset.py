@@ -6,6 +6,7 @@ from typing import Any, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
+import gradio.utils as utils
 from gradio.components.base import (
     Component,
     get_component_instance,
@@ -66,6 +67,13 @@ class Dataset(Component):
         self.scale = scale
         self.min_width = min_width
         self._components = [get_component_instance(c) for c in components]
+        self.component_props = [
+            utils.recover_kwargs(
+                component.get_config(),
+                ["value"],
+            )
+            for component in self._components
+        ]
 
         # Narrow type to Component
         assert all(
@@ -95,10 +103,16 @@ class Dataset(Component):
 
     def get_config(self):
         config = super().get_config()
-        config["components"] = [
-            component.get_block_name() for component in self._components
-        ]
-        config["component_ids"] = [component._id for component in self._components]
+
+        config["components"] = []
+        config["component_props"] = self.component_props
+        config["component_ids"] = []
+
+        for component in self._components:
+            config["components"].append(component.get_block_name())
+
+            config["component_ids"].append(component._id)
+
         return config
 
     def preprocess(self, x: Any) -> Any:

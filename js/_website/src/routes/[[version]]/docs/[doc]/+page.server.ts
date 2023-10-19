@@ -1,8 +1,7 @@
 import Prism from "prismjs";
 import "prismjs/components/prism-python";
 import { make_slug_processor } from "$lib/utils";
-import { error } from '@sveltejs/kit';
-
+import { error } from "@sveltejs/kit";
 
 let language = "python";
 
@@ -16,7 +15,17 @@ const COLOR_SETS = [
 ];
 
 export async function load({ params, parent }) {
-	const { docs, components, helpers, modals, py_client, routes, on_main, wheel, pages } = await parent();
+	const {
+		docs,
+		components,
+		helpers,
+		modals,
+		py_client,
+		routes,
+		on_main,
+		wheel,
+		pages
+	} = await parent();
 
 	let name = params.doc;
 	let obj;
@@ -25,7 +34,7 @@ export async function load({ params, parent }) {
 	let method_headers = [];
 	const get_slug = make_slug_processor();
 
-	if (!(pages.some((p: string) => p === params.doc))) {
+	if (!pages.some((p: string) => p === params.doc)) {
 		throw error(404);
 	}
 
@@ -49,10 +58,10 @@ export async function load({ params, parent }) {
 				} else if (obj.name == "ChatInterface") {
 					obj.prev_obj = "Interface";
 					obj.next_obj = "TabbedInterface";
-				}  else if (obj.name == "TabbedInterface") {
+				} else if (obj.name == "TabbedInterface") {
 					obj.prev_obj = "ChatInterface";
 					obj.next_obj = "Blocks";
-				}  else if (obj.name == "Blocks") {
+				} else if (obj.name == "Blocks") {
 					obj.prev_obj = "TabbedInterface";
 					obj.next_obj = "Row";
 				}

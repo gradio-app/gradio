@@ -950,3 +950,12 @@ def find_user_stack_level() -> int:
         frame = frame.f_back
         n += 1
     return n
+
+
+def recover_kwargs(config: dict, additional_keys_to_ignore: list[str] | None = None):
+    not_kwargs = ["type", "name", "selectable", "server_fns", "streamable"]
+    return {
+        k: v
+        for k, v in config.items()
+        if k not in not_kwargs and k not in (additional_keys_to_ignore or [])
+    }
