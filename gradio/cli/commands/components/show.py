@@ -19,6 +19,7 @@ _IGNORE = {
     "Highlight",
     "Component",
     "Form",
+    "Dataset",
 }
 
 
