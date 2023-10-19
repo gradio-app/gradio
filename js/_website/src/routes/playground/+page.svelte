@@ -40,7 +40,7 @@
 					package.
 	</p>
 		
-	<div class="flex w-full border-2 border-orange-200 shadow-sm rounded-xl p-4">
+	<div class="flex w-full border border-gray-200 shadow-xl rounded-xl p-4 mb-3">
 		<div class="mr-4 lg:overflow-y-scroll lg:mb-0 lg:p-0 lg:pb-4 lg:text-md lg:block rounded-t-xl lg:bg-gradient-to-r lg:from-white lg:to-gray-50 lg:overflow-x-clip lg:w-1/12" style="height: 70vh; word-break: normal; overflow-wrap: break-word;">
 			{#each data.demos_by_category as { category, demos } (category)}
 				<p class="px-4 my-2 block">{category}</p>
