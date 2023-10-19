@@ -34,7 +34,7 @@
 					<a
 					class="link text-black"
 					target="_blank"
-					href="https://gradio.app/main/guides/serverless-gradio">
+					href="https://gradio.app/guides/gradio-lite">
 					Gradio Lite 
 					</a>
 					package.
