@@ -1,10 +1,17 @@
 # @gradio/audio
 
+## 0.4.4
+
+### Patch Changes
+
+- Updated dependencies [[`fa154fb81`](https://github.com/gradio-app/gradio/commit/fa154fb8180d3ebd0026d73a53067d103224fca7)]:
+  - @gradio/wasm@0.4.0
+
 ## 0.4.3
 
 ### Fixes
 
-- [#6004](https://github.com/gradio-app/gradio/pull/6004) [`ec26b71df`](https://github.com/gradio-app/gradio/commit/ec26b71dfbc0b89b4554475fe465c2f6974731e2) - Update static/AudioPlayerto use ../shared/Audio instead of the native `<audio>` for Wasm support.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#6004](https://github.com/gradio-app/gradio/pull/6004) [`ec26b71df`](https://github.com/gradio-app/gradio/commit/ec26b71dfbc0b89b4554475fe465c2f6974731e2) - Update static/AudioPlayerto use ../shared/Audio instead of the native `<audio>` for Wasm support. Thanks [@whitphx](https://github.com/whitphx)!
 
 ## 0.4.2
 

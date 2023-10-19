@@ -1,5 +1,11 @@
 # @gradio/wasm
 
+## 0.4.0
+
+### Features
+
+- [#6013](https://github.com/gradio-app/gradio/pull/6013) [`fa154fb81`](https://github.com/gradio-app/gradio/commit/fa154fb8180d3ebd0026d73a53067d103224fca7) - Add a message at the end of the Wasm worker initialization.  Thanks [@whitphx](https://github.com/whitphx)!
+
 ## 0.3.1
 
 ### Fixes

@@ -1,5 +1,11 @@
 # website
 
+## 0.9.0
+
+### Features
+
+- [#5386](https://github.com/gradio-app/gradio/pull/5386) [`0312c990f`](https://github.com/gradio-app/gradio/commit/0312c990fbe63fdf3bfa9a8f13bbc042295d49bf) - Playground v1.  Thanks [@aliabd](https://github.com/aliabd)!
+
 ## 0.8.0
 
 ### Features

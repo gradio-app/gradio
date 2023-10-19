@@ -1,5 +1,11 @@
 # gradio
 
+## 3.50.2
+
+### Fixes
+
+- [#6020](https://github.com/gradio-app/gradio/pull/6020) [`77e7843f7`](https://github.com/gradio-app/gradio/commit/77e7843f7a8dd34bf28c2341fe0d47eea17d4066) - Adds Gradio/lite Guide and Playground to the website.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 3.50.1
 
 ### Fixes
