@@ -45,7 +45,7 @@
 	</p>
 		
 	<div class="flex w-full border border-gray-200 shadow-xl rounded-xl p-4 mb-3">
-		<div class="mr-4 overflow-y-scroll mb-0 p-0 pb-4 text-md block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip w-3/12 xl:w-[12%]" style="height: 70vh; word-break: normal; overflow-wrap: break-word; white-space:nowrap">
+		<div class="mr-4 overflow-y-scroll mb-0 p-0 pb-4 text-md block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip w-3/12 xl:w-[15%]" style="height: 70vh; word-break: normal; overflow-wrap: break-word; white-space:nowrap">
 			{#each data.demos_by_category as { category, demos } (category)}
 				<p class="px-4 my-2">{category}</p>
 				{#each demos as demo, i}	
