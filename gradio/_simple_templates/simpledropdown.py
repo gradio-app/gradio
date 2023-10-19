@@ -10,7 +10,7 @@ from gradio.events import Events
 class SimpleDropdown(FormComponent):
     """
     Creates a dropdown of choices from which entries can be selected.
-    Preprocessing: passes the value of the selected dropdown entry as a {str} or its index as an {int} into the function, depending on `type`.
+    Preprocessing: Preprocessing: passes the value of the selected dropdown entry as a {str}.
     Postprocessing: expects a {str} corresponding to the value of the dropdown entry to be selected.
     Examples-format: a {str} representing the drop down value to select.
     Demos: sentence_builder, titanic_survival
@@ -38,7 +38,7 @@ class SimpleDropdown(FormComponent):
         """
         Parameters:
             choices: A list of string options to choose from. An option can also be a tuple of the form (name, value), where name is the displayed name of the dropdown choice and value is the value to be passed to the function, or returned by the function.
-            value: default value(s) selected in dropdown. If None, no value is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: default value selected in dropdown. If None, no value is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             multiselect: if True, multiple choices can be selected.
             allow_custom_value: If True, allows user to enter a custom value that is not in the list of choices.
             filterable: If True, user will be able to type into the dropdown and filter the choices by typing. Can only be set to False if `allow_custom_value` is False.
@@ -87,9 +87,9 @@ class SimpleDropdown(FormComponent):
     def preprocess(self, x: str | int | float | None) -> str | int | float | None:
         """
         Parameters:
-            x: selected choice(s)
+            x: selected choice
         Returns:
-            selected choice(s) as string or index within choice list or list of string or indices
+            selected choice
         """
         return x
 

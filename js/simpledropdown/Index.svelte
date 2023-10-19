@@ -23,6 +23,7 @@
 
 	const container = true;
 	let display_value: string;
+	let candidate: [string, string | number][];
 
 	function handle_change(): void {
 		gradio.dispatch("change");
@@ -32,8 +33,12 @@
 	}
 
 	$: if (display_value) {
-		value = choices.filter((choice) => choice[0] === display_value)[0][1];
+		candidate = choices.filter((choice) => choice[0] === display_value);
+		value = candidate.length ? candidate[0][1] : "";
 	}
+
+	// When the value changes, dispatch the change event via handle_change()
+	// See the docs for an explanation: https://svelte.dev/docs/svelte-components#script-3-$-marks-a-statement-as-reactive
 	$: value, handle_change();
 </script>
 
