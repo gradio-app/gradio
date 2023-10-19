@@ -8,7 +8,8 @@ def fake_diffusion(steps):
         time.sleep(1)
         image = np.random.random((600, 600, 3))
         yield image
-    image = "https://gradio-builds.s3.amazonaws.com/diffusion_image/cute_dog.jpg"
+    image = np.ones((1000,1000,3), np.uint8)
+    image[:] = [255, 124, 0]
     yield image
 
 

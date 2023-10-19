@@ -14,6 +14,7 @@
 		"@sveltejs/adapter-auto": "^2.0.0",
 		"@sveltejs/adapter-static": "^2.0.2",
 		"@sveltejs/kit": "^1.5.0",
+		"svelte-i18n": "^3.6.0",
 		"@tailwindcss/forms": "^0.5.0",
 		"@tailwindcss/typography": "^0.5.4",
 		"@types/node": "^20.3.2",
@@ -25,13 +26,14 @@
 		"tslib": "^2.4.1",
 		"typescript": "^5.0.0",
 		"vite": "^4.3.9"
-	},
+		},
 	"type": "module",
 	"dependencies": {
 		"@sindresorhus/slugify": "^2.2.0",
 		"@sveltejs/adapter-vercel": "^3.0.3",
 		"hast-util-to-string": "^3.0.0",
 		"mdsvex": "^0.11.0",
-		"postcss": ">=8.3.3 <9.0.0"
+		"postcss": ">=8.3.3 <9.0.0",
+		"@gradio/code": "workspace:^"
 	}
 }
