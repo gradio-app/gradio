@@ -17,6 +17,10 @@
 	let all_demos = data.demos_by_category.flatMap((category) => category.demos);
 	let current_selection = all_demos[0].name;
 
+	let show_nav = true;
+
+	$: show_nav;
+
 </script>
 
 <MetaTags
@@ -45,7 +49,13 @@
 	</p>
 		
 	<div class="flex w-full border border-gray-200 shadow-xl rounded-xl p-4 mb-3">
-		<div class="mr-4 overflow-y-scroll mb-0 p-0 pb-4 text-md block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip w-3/12 xl:w-[15%]" style="height: 70vh; word-break: normal; overflow-wrap: break-word; white-space:nowrap">
+		<div class:w-10={!show_nav} class:xl:w-10={!show_nav} class="mr-4 overflow-y-scroll mb-0 p-0 pb-4 text-md block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip w-3/12 xl:w-[15%]" style="height: 70vh; word-break: normal; overflow-wrap: break-word; white-space:nowrap">
+			<button
+						on:click={() => (show_nav = !show_nav)}
+						class="float-right p-1 px-2 text-gray-600"
+						>{#if show_nav}&larr;{:else}&rarr;{/if}</button
+					>
+			{#if show_nav}
 			{#each data.demos_by_category as { category, demos } (category)}
 				<p class="px-4 my-2">{category}</p>
 				{#each demos as demo, i}	
@@ -57,6 +67,7 @@
 					>
 				{/each}
 			{/each}
+			{/if}
 		</div>
 
 			<DemosLite
