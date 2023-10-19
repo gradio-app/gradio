@@ -9,7 +9,7 @@ from gradio.events import Events
 
 class SimpleDropdown(FormComponent):
     """
-    Creates a dropdown of choices from which entries can be selected.
+    Creates a very simple dropdown listing choices from which entries can be selected.
     Preprocessing: Preprocessing: passes the value of the selected dropdown entry as a {str}.
     Postprocessing: expects a {str} corresponding to the value of the dropdown entry to be selected.
     Examples-format: a {str} representing the drop down value to select.
