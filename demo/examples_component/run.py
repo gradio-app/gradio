@@ -9,11 +9,7 @@ def flip(i):
 with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column():
-            img_i = gr.Image(
-                label="Input Image",
-                type="pil",
-                value=os.path.join(os.path.dirname(__file__), "images/cheetah1.jpg"),
-            )
+            img_i = gr.Image(label="Input Image", type="pil")
         with gr.Column():
             img_o = gr.Image(label="Output Image")
     with gr.Row():
