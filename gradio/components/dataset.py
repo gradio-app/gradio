@@ -68,9 +68,9 @@ class Dataset(Component):
         self.min_width = min_width
         self._components = [get_component_instance(c) for c in components]
         self.component_props = [
-            utils.omit_keys(
+            utils.recover_kwargs(
                 component.get_config(),
-                ["type", "name", "selectable", "server_fns", "streamable", "value"],
+                ["value"],
             )
             for component in self._components
         ]
