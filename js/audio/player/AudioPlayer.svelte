@@ -45,8 +45,6 @@
 		return `${minutes}:${paddedSeconds}`;
 	};
 
-	$: console.log("value", value, value?.data);
-
 	$: if (container !== undefined) {
 		if (waveform !== undefined) waveform.destroy();
 		container.innerHTML = "";
@@ -126,7 +124,7 @@
 		<div class="timestamps">
 			<time bind:this={timeRef} id="time">0:00</time>
 			<div>
-				{#if trimmingMode}
+				{#if trimmingMode && trimDuration > 0}
 					<time id="trim-duration">{formatTime(trimDuration)}</time>
 				{/if}
 				<time bind:this={durationRef} id="duration">0:00</time>

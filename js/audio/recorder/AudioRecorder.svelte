@@ -11,10 +11,9 @@
 	import { onMount } from "svelte";
 	import type { I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
-	import { skipAudio } from "../shared/utils";
+	import { skipAudio, trimAudioBlob } from "../shared/utils";
 	import Record from "wavesurfer.js/dist/plugins/record.js";
 	import WaveformControls from "../shared/WaveformControls.svelte";
-	import { Empty } from "@gradio/atoms";
 	import WaveformRecordControls from "../shared/WaveformRecordControls.svelte";
 	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
 
@@ -27,6 +26,7 @@
 
 	export let waveformColor = "#9ca3af";
 	export let waveformProgressColor = "#f97316";
+	export let showMediaControls = false;
 
 	let micWaveform: WaveSurfer;
 	let recordingWaveform: WaveSurfer;
@@ -34,23 +34,27 @@
 
 	let record: Record;
 	let recordedAudio: string | null = null;
+	let recordedBlob: Blob | null = null;
 
 	let timeRef: HTMLTimeElement;
 	let durationRef: HTMLTimeElement;
 	let audioDuration: number;
 
+	let trimmingMode = false;
+	let trimDuration = 0;
+
 	let seconds = 0;
 	let interval: NodeJS.Timeout;
 	let timing = false;
 
-	const startInterval = (): void => {
+	const start_interval = (): void => {
 		clearInterval(interval);
 		interval = setInterval(() => {
 			seconds++;
 		}, 1000);
 	};
 
-	const formatTime = (seconds: number): string => {
+	const format_time = (seconds: number): string => {
 		const minutes = Math.floor(seconds / 60);
 		const secondsRemainder = Math.round(seconds) % 60;
 		const paddedSeconds = `0${secondsRemainder}`.slice(-2);
@@ -58,16 +62,18 @@
 	};
 
 	$: record?.on("record-start", () => {
-		startInterval();
+		start_interval();
 		timing = true;
 		dispatch("start_recording");
 		let waveformCanvas = document.getElementById("mic");
 		if (waveformCanvas) waveformCanvas.style.display = "block";
 	});
 
-	$: record?.on("record-end", function () {
+	$: record?.on("record-end", () => {
 		seconds = 0;
 		timing = false;
+		clearInterval(interval);
+		dispatch("stop_recording");
 	});
 
 	$: record?.on("record-pause", () => {
@@ -75,18 +81,18 @@
 	});
 
 	$: record?.on("record-resume", () => {
-		startInterval();
+		start_interval();
 	});
 
 	$: recordingWaveform?.on("decode", (duration: any) => {
 		audioDuration = duration;
-		durationRef && (durationRef.textContent = formatTime(duration));
+		durationRef && (durationRef.textContent = format_time(duration));
 	});
 
 	$: recordingWaveform?.on(
 		"timeupdate",
 		(currentTime: any) =>
-			timeRef && (timeRef.textContent = formatTime(currentTime))
+			timeRef && (timeRef.textContent = format_time(currentTime))
 	);
 
 	$: recordingWaveform?.on("pause", () => {
@@ -100,20 +106,19 @@
 	});
 
 	$: recordingWaveform?.on("finish", () => {
-		dispatch("stop_recording");
+		dispatch("end");
 		playing = false;
 	});
 
 	const clearRecording = (): void => {
 		const recording = document.getElementById("recordings");
 		recordedAudio = null;
-
+		recordedBlob = null;
 		if (recording) recording.innerHTML = "";
-
 		dispatch("clear");
 	};
 
-	const createMicWaveform = (): void => {
+	const create_mic_waveform = (): void => {
 		const recorder = document.getElementById("mic");
 
 		if (micWaveform !== undefined) micWaveform.destroy();
@@ -131,18 +136,39 @@
 			cursorColor: "#ddd5e9",
 			barRadius: 10,
 			dragToSeek: true,
+			mediaControls: showMediaControls,
 		});
 
 		record = micWaveform.registerPlugin(RecordPlugin.create());
 	};
 
+	const create_recording_waveform = (url?: string): void => {
+		if (!recordedAudio) return;
+		recordingWaveform = WaveSurfer.create({
+			height: 50,
+			container: "#recordings",
+			waveColor: waveformColor || "#9ca3af",
+			progressColor: waveformProgressColor || "#f97316",
+			barWidth: 2,
+			barGap: 3,
+			barHeight: 4,
+			cursorWidth: 2,
+			cursorColor: "#ddd5e9",
+			barRadius: 10,
+			dragToSeek: true,
+			url: url || recordedAudio,
+		});
+	};
+
 	onMount(() => {
-		createMicWaveform();
+		create_mic_waveform();
 	});
 
 	$: record &&
-		record.once("record-end", (blob) => {
+		record.on("record-end", (blob) => {
+			recordedBlob = blob;
 			recordedAudio = URL.createObjectURL(blob);
+
 			const recorder = document.getElementById("mic");
 			const recording = document.getElementById("recordings");
 
@@ -150,31 +176,26 @@
 
 			if (recording) {
 				recording.innerHTML = "";
-				recordingWaveform = WaveSurfer.create({
-					height: 50,
-					container: "#recordings",
-					waveColor: waveformColor || "#9ca3af",
-					progressColor: waveformProgressColor || "#f97316",
-					barWidth: 2,
-					barGap: 3,
-					barHeight: 4,
-					cursorWidth: 2,
-					cursorColor: "#ddd5e9",
-					barRadius: 10,
-					dragToSeek: true,
-					url: recordedAudio,
-				});
-
-				// Download link
-				// const link = container.appendChild(document.createElement("a"));
-				// Object.assign(link, {
-				// 	href: recordedUrl,
-				// 	download:
-				// 		"recording." + blob.type.split(";")[0].split("/")[1] || "webm",
-				// 	textContent: "Download recording",
-				// });
+				create_recording_waveform();
 			}
 		});
+
+	const handle_trim_audio = async (
+		start: number,
+		end: number
+	): Promise<void> => {
+		trimmingMode = false;
+		if (recordedBlob) {
+			await trimAudioBlob(recordedBlob, start, end).then(
+				(trimmedBlob: Blob) => {
+					recordedAudio = URL.createObjectURL(trimmedBlob);
+					recordedBlob = trimmedBlob;
+					recordingWaveform.destroy();
+					create_recording_waveform();
+				}
+			);
+		}
+	};
 
 	onMount(() => {
 		window.addEventListener("keydown", (e) => {
@@ -194,11 +215,16 @@
 	{#if timing || recordedAudio}
 		<div id="timestamps">
 			<time bind:this={timeRef} id="time">0:00</time>
-			{#if timing}
-				<time id="duration">{formatTime(seconds)}</time>
-			{:else}
-				<time bind:this={durationRef} id="duration">0:00</time>
-			{/if}
+			<div>
+				{#if trimmingMode && trimDuration > 0}
+					<time id="trim-duration">{format_time(trimDuration)}</time>
+				{/if}
+				{#if timing}
+					<time id="duration">{format_time(seconds)}</time>
+				{:else}
+					<time bind:this={durationRef} id="duration">0:00</time>
+				{/if}
+			</div>
 		</div>
 	{/if}
 
@@ -212,9 +238,12 @@
 			{playing}
 			{audioDuration}
 			{i18n}
+			interactive={true}
+			{handle_trim_audio}
+			bind:trimDuration
+			bind:trimmingMode
 			{clearRecording}
 			showRedo
-			interactive
 		/>
 	{/if}
 </div>
@@ -244,5 +273,10 @@
 
 	#duration {
 		color: var(--neutral-400);
+	}
+
+	#trim-duration {
+		color: var(--color-accent);
+		margin-right: var(--spacing-sm);
 	}
 </style>

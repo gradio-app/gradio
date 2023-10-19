@@ -270,10 +270,7 @@
 	}
 
 	:global(::part(region-handle)) {
-		border: none;
-	}
-
-	:global(::part(region-handle-right)) {
+		width: 5px !important;
 		border: none;
 	}
 </style>

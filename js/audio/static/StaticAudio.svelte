@@ -9,7 +9,7 @@
 
 <script lang="ts">
 	import { uploadToHuggingFace } from "@gradio/utils";
-
+	import { Empty } from "@gradio/atoms";
 	import { ShareButton, IconButton, BlockLabel } from "@gradio/atoms";
 	import { Download, Music } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
@@ -85,6 +85,10 @@
 		{i18n}
 		{dispatch}
 	/>
+{:else}
+	<Empty size="small">
+		<Music />
+	</Empty>
 {/if}
 
 <style>

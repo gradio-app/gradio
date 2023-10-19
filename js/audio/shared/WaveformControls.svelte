@@ -1,20 +1,10 @@
 <script lang="ts">
-	import {
-		Play,
-		Pause,
-		Forward,
-		Backward,
-		Undo,
-		Settings,
-		Trim,
-	} from "@gradio/icons";
+	import { Play, Pause, Forward, Backward, Undo, Trim } from "@gradio/icons";
 	import { getSkipRewindAmount } from "../shared/utils";
 	import type { I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
 	import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.js";
 
-	export let value: null | { name: string; data: string } = null;
-	export let initialValue: null | { name: string; data: string } = value;
 	export let waveform: WaveSurfer;
 	export let audioDuration: number;
 	export let i18n: I18nFormatter;
@@ -22,6 +12,7 @@
 	export let clearRecording: () => void = () => {};
 	export let showRedo = false;
 	export let interactive = false;
+	export let handle_trim_audio: (start: number, end: number) => void;
 
 	export let trimmingMode = false;
 	export let trimDuration = 0;
@@ -46,45 +37,44 @@
 		});
 
 	$: trimRegion &&
-		activeRegion &&
-		trimRegion.on("region-updated", () => {
+		trimRegion.on("region-updated", (region) => {
+			activeRegion = region;
 			trimDuration = activeRegion.end - activeRegion.start;
 		});
 
 	const addTrimRegion = (): void => {
 		if (!trimmingMode) return;
 		trimRegion = waveform.registerPlugin(RegionsPlugin.create());
-
-		const region = trimRegion.addRegion({
+		const newRegion = trimRegion.addRegion({
 			start: audioDuration / 4,
 			end: audioDuration / 2,
 			color: "hsla(15, 85%, 40%, 0.4)",
 			drag: true,
 			resize: true,
 		});
-		activeRegion = region;
+
+		activeRegion = newRegion;
+		trimDuration = activeRegion.end - activeRegion.start;
 	};
 
-	const trimAudio = (): void => {};
+	const trimAudio = (): void => {
+		if (waveform && trimRegion) {
+			const region = activeRegion;
 
-	$: waveform &&
-		activeRegion &&
-		waveform.on("interaction", (region) => {
-			activeRegion = region;
-		});
-
-	$: trimRegion &&
-		activeRegion &&
-		trimRegion.on("region-updated", (region) => {
-			activeRegion = region;
-		});
+			if (region) {
+				const start = region.start;
+				const end = region.end;
+				const newBlob = handle_trim_audio && handle_trim_audio(start, end);
+			}
+		}
+	};
 
 	$: trimRegion &&
 		activeRegion &&
 		trimRegion.on("region-clicked", (region, e) => {
 			e.stopPropagation();
 			activeRegion = region;
-			region.play();
+			activeRegion.play();
 			playing = true;
 		});
 
@@ -104,15 +94,12 @@
 	const toggleTrimmingMode = (): void => {
 		trimmingMode = !trimmingMode;
 
-		if (trimRegion || activeRegion) {
-			activeRegion = null;
-			trimRegion.destroy();
-			trimRegion.clearRegions();
-		}
-
 		if (!trimmingMode) {
-			trimRegion.destroy();
 			activeRegion = null;
+			if (trimRegion) {
+				trimRegion.destroy();
+				trimRegion.clearRegions();
+			}
 		} else {
 			addTrimRegion();
 		}
@@ -164,7 +151,7 @@
 	</div>
 
 	<div class="settings-wrapper">
-		{#if showRedo}
+		{#if showRedo && !trimmingMode}
 			<button class="redo" on:click={clearRecording}>
 				<Undo />
 			</button>
