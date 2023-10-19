@@ -1,5 +1,4 @@
 ---
-"@gradio/wasm": minor
 "website": minor
 ---
 
