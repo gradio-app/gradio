@@ -2,4 +2,4 @@
 "gradio": unknown
 ---
 
-feat:Cli command list templates
+feat:Add a cli command to list available templates
