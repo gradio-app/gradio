@@ -26,7 +26,6 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio import (
     analytics,
     components,
-    external,
     networking,
     processing_utils,
     queueing,
@@ -38,7 +37,6 @@ from gradio import (
 )
 from gradio.context import Context
 from gradio.data_classes import FileData
-from gradio.deprecation import check_deprecated_parameters, warn_deprecation
 from gradio.events import EventData, EventListener, EventListenerMethod
 from gradio.exceptions import (
     DuplicateBlockError,
@@ -78,6 +76,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
 
     from gradio.components.base import Component
+    from gradio.events import Dependency
 
 BUILT_IN_THEMES: dict[str, Theme] = {
     t.name: t
@@ -95,13 +94,12 @@ class Block:
     def __init__(
         self,
         *,
-        render: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        render: bool = True,
+        root_url: str | None = None,
+        _skip_init_processing: bool = False,
         visible: bool = True,
-        root_url: str | None = None,  # URL that is prepended to all file paths
-        _skip_init_processing: bool = False,  # Used for loading from Spaces
-        **kwargs,
     ):
         self._id = Context.id
         Context.id += 1
@@ -120,7 +118,6 @@ class Block:
 
         if render:
             self.render()
-        check_deprecated_parameters(self.__class__.__name__, kwargs=kwargs)
 
     @property
     def skip_api(self):
@@ -195,27 +192,39 @@ class Block:
             to_add = e.config_data()
             if to_add:
                 config = {**config, **to_add}
+        config.pop("_skip_init_processing", None)
+        config.pop("render", None)
         return {**config, "root_url": self.root_url, "name": self.get_block_name()}
-
-    @staticmethod
-    def update(**kwargs) -> dict:
-        return {}
 
 
 class BlockContext(Block):
     def __init__(
         self,
+        elem_id: str | None = None,
+        elem_classes: list[str] | str | None = None,
         visible: bool = True,
         render: bool = True,
-        **kwargs,
+        root_url: str | None = None,
+        _skip_init_processing: bool = False,
     ):
         """
         Parameters:
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
             visible: If False, this will be hidden but included in the Blocks config file (its visibility can later be updated).
             render: If False, this will not be included in the Blocks config file at all.
+            root_url: The remote URL that of the Gradio app that this layout belongs to. Used in `gr.load()`. Should not be set manually.
         """
         self.children: list[Block] = []
-        Block.__init__(self, visible=visible, render=render, **kwargs)
+        Block.__init__(
+            self,
+            elem_id=elem_id,
+            elem_classes=elem_classes,
+            visible=visible,
+            render=render,
+            root_url=root_url,
+            _skip_init_processing=_skip_init_processing,
+        )
 
     TEMPLATE_DIR = "./templates/"
     FRONTEND_DIR = "../../frontend/"
@@ -582,6 +591,7 @@ class Blocks(BlockContext):
             block_config["props"].pop("type", None)
             block_config["props"].pop("name", None)
             block_config["props"].pop("selectable", None)
+            block_config["props"].pop("streamable", None)
             block_config["props"].pop("server_fns", None)
 
             # If a Gradio app B is loaded into a Gradio app A, and B itself loads a
@@ -1557,37 +1567,22 @@ Received outputs:
         postprocess: bool = True,
         every: float | None = None,
         _js: str | None = None,
-        *,
-        name: str | None = None,
-        src: str | None = None,
-        api_key: str | None = None,
-        alias: str | None = None,
-        **kwargs,
-    ) -> Blocks | dict[str, Any] | None:
+    ) -> Dependency:
         """
-        For reverse compatibility reasons, this is both a class method and an instance
-        method, the two of which, confusingly, do two completely different things.
-
-        Class method: loads a demo from a Hugging Face Spaces repo and creates it locally and returns a block instance. Warning: this method will be deprecated. Use the equivalent `gradio.load()` instead.
-
-        Instance method: adds event that runs as soon as the demo loads in the browser. Example usage below.
+        Adds an event that runs as soon as the demo loads in the browser. Example usage below.
         Parameters:
-            name: Class Method - the name of the model (e.g. "gpt2" or "facebook/bart-base") or space (e.g. "flax-community/spanish-gpt2"), can include the `src` as prefix (e.g. "models/facebook/bart-base")
-            src: Class Method - the source of the model: `models` or `spaces` (or leave empty if source is provided as a prefix in `name`)
-            api_key: Class Method - optional access token for loading private Hugging Face Hub models or spaces. Find your token here: https://huggingface.co/settings/tokens. Warning: only provide this if you are loading a trusted private Space as it can be read by the Space you are loading.
-            alias: Class Method - optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)
-            fn: Instance Method - the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
-            inputs: Instance Method - List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
-            outputs: Instance Method - List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
-            api_name: Instance Method - Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.
-            scroll_to_output: Instance Method - If True, will scroll to output component on completion
-            show_progress: Instance Method - If True, will show progress animation while pending
-            queue: Instance Method - If True, will place the request on the queue, if the queue exists
-            batch: Instance Method - If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
-            max_batch_size: Instance Method - Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
-            preprocess: Instance Method - If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
-            postprocess: Instance Method - If False, will not run postprocessing of component data before returning 'fn' output to the browser.
-            every: Instance Method - Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
+            fn: The function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
+            inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
+            outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
+            api_name: Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.
+            scroll_to_output: If True, will scroll to output component on completion
+            show_progress: If True, will show progress animation while pending
+            queue: If True, will place the request on the queue, if the queue exists
+            batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
+            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
+            preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
+            postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
+            every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
         Example:
             import gradio as gr
             import datetime
@@ -1598,42 +1593,31 @@ Received outputs:
                 demo.load(get_time, inputs=None, outputs=dt)
             demo.launch()
         """
-        if self is None:
-            warn_deprecation(
-                "gr.Blocks.load() will be deprecated. Use gr.load() instead."
-            )
-            if name is None:
-                raise ValueError(
-                    "Blocks.load() requires passing parameters as keyword arguments"
-                )
-            return external.load(
-                name=name, src=src, hf_token=api_key, alias=alias, **kwargs
-            )
-        else:
-            from gradio.events import Dependency, EventListenerMethod
+        from gradio.events import Dependency, EventListenerMethod
 
-            if Context.root_block is None:
-                raise AttributeError(
-                    "Cannot call load() outside of a gradio.Blocks context."
-                )
-            dep, dep_index = Context.root_block.set_event_trigger(
-                targets=[EventListenerMethod(self, "load")],
-                fn=fn,
-                inputs=inputs,
-                outputs=outputs,
-                api_name=api_name,
-                preprocess=preprocess,
-                postprocess=postprocess,
-                scroll_to_output=scroll_to_output,
-                show_progress=show_progress,
-                js=_js,
-                queue=queue,
-                batch=batch,
-                max_batch_size=max_batch_size,
-                every=every,
-                no_target=True,
+        if Context.root_block is None:
+            raise AttributeError(
+                "Cannot call load() outside of a gradio.Blocks context."
             )
-            return Dependency(None, dep, dep_index, fn)
+
+        dep, dep_index = Context.root_block.set_event_trigger(
+            targets=[EventListenerMethod(self, "load")],
+            fn=fn,
+            inputs=inputs,
+            outputs=outputs,
+            api_name=api_name,
+            preprocess=preprocess,
+            postprocess=postprocess,
+            scroll_to_output=scroll_to_output,
+            show_progress=show_progress,
+            js=_js,
+            queue=queue,
+            batch=batch,
+            max_batch_size=max_batch_size,
+            every=every,
+            no_target=True,
+        )
+        return Dependency(None, dep, dep_index, fn)
 
     def clear(self):
         """Resets the layout of the Blocks object."""
@@ -1649,8 +1633,6 @@ Received outputs:
         self,
         concurrency_count: int = 1,
         status_update_rate: float | Literal["auto"] = "auto",
-        client_position_to_load_data: int | None = None,
-        default_enabled: bool | None = None,
         api_open: bool = True,
         max_size: int | None = None,
     ):
@@ -1659,8 +1641,6 @@ Received outputs:
         Parameters:
             concurrency_count: Number of worker threads that will be processing requests from the queue concurrently. Increasing this number will increase the rate at which requests are processed, but will also increase the memory usage of the queue.
             status_update_rate: If "auto", Queue will send status estimations to all clients whenever a job is finished. Otherwise Queue will send status at regular intervals set by this parameter as the number of seconds.
-            client_position_to_load_data: DEPRECATED. This parameter is deprecated and has no effect.
-            default_enabled: Deprecated and has no effect.
             api_open: If True, the REST routes of the backend will be open, allowing requests made directly to those endpoints to skip the queue.
             max_size: The maximum number of events the queue will store at any given moment. If the queue is full, new events will not be added and a user will receive a message saying that the queue is full. If None, the queue size will be unlimited.
         Example: (Blocks)
@@ -1674,17 +1654,8 @@ Received outputs:
             demo.queue(max_size=20)
             demo.launch()
         """
-        if default_enabled is not None:
-            warn_deprecation(
-                "The default_enabled parameter of queue has no effect and will be removed "
-                "in a future version of gradio."
-            )
         self.enable_queue = True
         self.api_open = api_open
-        if client_position_to_load_data is not None:
-            warn_deprecation(
-                "The client_position_to_load_data parameter is deprecated."
-            )
         if utils.is_zero_gpu_space():
             concurrency_count = self.max_threads
             max_size = 1 if max_size is None else max_size
@@ -1732,7 +1703,6 @@ Received outputs:
         inbrowser: bool = False,
         share: bool | None = None,
         debug: bool = False,
-        enable_queue: bool | None = None,
         max_threads: int = 40,
         auth: Callable | tuple[str, str] | list[tuple[str, str]] | None = None,
         auth_message: str | None = None,
@@ -1743,7 +1713,6 @@ Received outputs:
         show_tips: bool = False,
         height: int = 500,
         width: int | str = "100%",
-        encrypt: bool | None = None,
         favicon_path: str | None = None,
         ssl_keyfile: str | None = None,
         ssl_certfile: str | None = None,
@@ -1751,7 +1720,6 @@ Received outputs:
         ssl_verify: bool = True,
         quiet: bool = False,
         show_api: bool = True,
-        file_directories: list[str] | None = None,
         allowed_paths: list[str] | None = None,
         blocked_paths: list[str] | None = None,
         root_path: str | None = None,
@@ -1775,11 +1743,9 @@ Received outputs:
             server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT. If None, will search for an available port starting at 7860.
             server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME. If None, will use "127.0.0.1".
             show_tips: if True, will occasionally show tips about new Gradio features
-            enable_queue: DEPRECATED (use .queue() method instead.) if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
             max_threads: the maximum number of total threads that the Gradio app can generate in parallel. The default is inherited from the starlette library (currently 40). Applies whether the queue is enabled or not. But if queuing is enabled, this parameter is increaseed to be at least the concurrency_count of the queue.
             width: The width in pixels of the iframe element containing the interface (used if inline=True)
             height: The height in pixels of the iframe element containing the interface (used if inline=True)
-            encrypt: DEPRECATED. Has no effect.
             favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for the web page.
             ssl_keyfile: If a path to a file is provided, will use this as the private key file to create a local server running on https.
             ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
@@ -1787,7 +1753,6 @@ Received outputs:
             ssl_verify: If False, skips certificate validation which allows self-signed certificates to be used.
             quiet: If True, suppresses most print statements.
             show_api: If True, shows the api docs in the footer of the app. Default True.
-            file_directories: This parameter has been renamed to `allowed_paths`. It will be removed in a future version.
             allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve (in addition to the directory containing the gradio python file). Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app.
             blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default.
             root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". Can be set by environment variable GRADIO_ROOT_PATH. Defaults to "".
@@ -1840,18 +1805,6 @@ Received outputs:
             self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         else:
             self.root_path = root_path
-
-        if enable_queue is not None:
-            self.enable_queue = enable_queue
-            warn_deprecation(
-                "The `enable_queue` parameter has been deprecated. "
-                "Please use the `.queue()` method instead.",
-            )
-        if encrypt is not None:
-            warn_deprecation(
-                "The `encrypt` parameter has been deprecated and has no effect.",
-            )
-
         if self.space_id:
             self.enable_queue = self.enable_queue is not False
         else:
@@ -1861,13 +1814,6 @@ Received outputs:
 
         self.show_api = show_api
 
-        if file_directories is not None:
-            warn_deprecation(
-                "The `file_directories` parameter has been renamed to `allowed_paths`. "
-                "Please use that instead.",
-            )
-            if allowed_paths is None:
-                allowed_paths = file_directories
         self.allowed_paths = allowed_paths or []
         self.blocked_paths = blocked_paths or []
 

@@ -18,7 +18,6 @@ from gradio_client.documentation import document, set_documentation_group
 
 import gradio as gr
 from gradio import utils
-from gradio.deprecation import warn_deprecation
 
 if TYPE_CHECKING:
     from gradio.components import Component
@@ -210,25 +209,18 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         self,
         hf_token: str,
         dataset_name: str,
-        organization: str | None = None,
         private: bool = False,
         info_filename: str = "dataset_info.json",
         separate_dirs: bool = False,
-        verbose: bool = True,  # silently ignored. TODO: remove it?
     ):
         """
         Parameters:
             hf_token: The HuggingFace token to use to create (and write the flagged sample to) the HuggingFace dataset (defaults to the registered one).
             dataset_name: The repo_id of the dataset to save the data to, e.g. "image-classifier-1" or "username/image-classifier-1".
-            organization: Deprecated argument. Please pass a full dataset id (e.g. 'username/dataset_name') to `dataset_name` instead.
             private: Whether the dataset should be private (defaults to False).
             info_filename: The name of the file to save the dataset info (defaults to "dataset_infos.json").
             separate_dirs: If True, each flagged item will be saved in a separate directory. This makes the flagging more robust to concurrent editing, but may be less convenient to use.
         """
-        if organization is not None:
-            warn_deprecation(
-                "Parameter `organization` is not used anymore. Please pass a full dataset id (e.g. 'username/dataset_name') to `dataset_name` instead."
-            )
         self.hf_token = hf_token
         self.dataset_id = dataset_name  # TODO: rename parameter (but ensure backward compatibility somehow)
         self.dataset_private = private
@@ -465,30 +457,6 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         row.append(flag_option)
         row.append(username)
         return features, row
-
-
-class HuggingFaceDatasetJSONSaver(HuggingFaceDatasetSaver):
-    def __init__(
-        self,
-        hf_token: str,
-        dataset_name: str,
-        organization: str | None = None,
-        private: bool = False,
-        info_filename: str = "dataset_info.json",
-        verbose: bool = True,  # silently ignored. TODO: remove it?
-    ):
-        warn_deprecation(
-            "Callback `HuggingFaceDatasetJSONSaver` is deprecated in favor of using"
-            " `HuggingFaceDatasetSaver` and passing `separate_dirs=True` as parameter."
-        )
-        super().__init__(
-            hf_token=hf_token,
-            dataset_name=dataset_name,
-            organization=organization,
-            private=private,
-            info_filename=info_filename,
-            separate_dirs=True,
-        )
 
 
 class FlagMethod:

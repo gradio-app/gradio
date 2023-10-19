@@ -5,7 +5,6 @@ import hashlib
 import json
 import logging
 import os
-import secrets
 import shutil
 import subprocess
 import tempfile
@@ -15,12 +14,8 @@ from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
-import aiofiles
-import anyio
 import numpy as np
 import requests
-from anyio import CapacityLimiter
-from fastapi import UploadFile
 from gradio_client import utils as client_utils
 from PIL import Image, ImageOps, PngImagePlugin
 
@@ -205,44 +200,6 @@ def save_file_to_cache(file_path: str | Path, cache_dir: str) -> str:
         shutil.copy2(file_path, full_temp_file_path)
 
     return full_temp_file_path
-
-
-async def save_uploaded_file(
-    file: UploadFile, upload_dir: str, limiter: CapacityLimiter | None = None
-) -> str:
-    temp_dir = secrets.token_hex(
-        20
-    )  # Since the full file is being uploaded anyways, there is no benefit to hashing the file.
-    temp_dir = Path(upload_dir) / temp_dir
-    temp_dir.mkdir(exist_ok=True, parents=True)
-
-    sha1 = hashlib.sha1()
-
-    if file.filename:
-        file_name = Path(file.filename).name
-        name = client_utils.strip_invalid_filename_characters(file_name)
-    else:
-        name = f"tmp{secrets.token_hex(5)}"
-
-    full_temp_file_path = str(abspath(temp_dir / name))
-
-    async with aiofiles.open(full_temp_file_path, "wb") as output_file:
-        while True:
-            content = await file.read(100 * 1024 * 1024)
-            if not content:
-                break
-            sha1.update(content)
-            await output_file.write(content)
-
-    directory = Path(upload_dir) / sha1.hexdigest()
-    directory.mkdir(exist_ok=True, parents=True)
-    dest = (directory / name).resolve()
-
-    await anyio.to_thread.run_sync(
-        shutil.move, full_temp_file_path, dest, limiter=limiter
-    )
-
-    return str(dest)
 
 
 def save_url_to_cache(url: str, cache_dir: str) -> str:
