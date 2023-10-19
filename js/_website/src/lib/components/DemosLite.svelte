@@ -81,6 +81,9 @@ $: if (mounted) {
 	:global(div.code-editor div.block div.wrap) {
 		height: 90%;
 	}
+	:global(.ͼ2r .cm-gutters) {
+		background-color: white;	
+	}
 	:global(div.lite-demo div.gradio-container) {
 		height: 100%;
 		overflow-y: scroll;
