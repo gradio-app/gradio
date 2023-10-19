@@ -4,6 +4,7 @@ import pytest
 
 from gradio.cli.commands.components._create_utils import OVERRIDES
 from gradio.cli.commands.components.create import _create
+from gradio.cli.commands.components.show import _show
 
 
 @pytest.mark.parametrize(
@@ -69,3 +70,13 @@ def test_raises_if_directory_exists(tmp_path):
         ValueError, match=f"The directory {tmp_path.resolve()} already exists."
     ):
         _create("MyComponent", tmp_path)
+
+
+def test_show(capsys):
+    _show()
+    stdout, _ = capsys.readouterr()
+    assert "Form Component" in stdout
+    assert "Beginner Friendly" in stdout
+    assert "Layout" in stdout
+    assert "Dataframe" not in stdout
+    assert "Dataset" not in stdout

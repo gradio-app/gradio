@@ -29,9 +29,7 @@ def _get_table_items(module):
         gr_cls = getattr(module, name)
         if not (
             inspect.isclass(gr_cls) and issubclass(gr_cls, (Component, BlockContext))
-        ):
-            continue
-        elif name in _IGNORE:
+        ) or (name in _IGNORE):
             continue
         tags = []
         if "Simple" in name:
