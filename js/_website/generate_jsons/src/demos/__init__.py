@@ -20,22 +20,22 @@ def get_code_description_and_reqs(demo_name):
 
 demos_by_category = [
     {
-        "category": "Text & Form Elements",
+        "category": "Text",
         "demos": [
             {
-                "name": "Hello World", 
+                "name": "Hello", 
                 "dir": "hello_world", 
             },
             {
-                "name": "Hello Blocks", 
+                "name": "Blocks", 
                 "dir": "hello_blocks", 
             },
             {
-                "name": "Sentence Builder", 
+                "name": "Sentences", 
                 "dir": "sentence_builder", 
             },
             {
-                "name": "Diff Texts", 
+                "name": "Differ", 
                 "dir": "diff_texts", 
             },
             
@@ -43,14 +43,14 @@ demos_by_category = [
         ]
     },
      {
-        "category": "Images, Videos & Audio",
+        "category": "Media",
         "demos": [
             {
-                "name": "Sepia Filter", 
+                "name": "Filter", 
                 "dir": "sepia_filter", 
             },
             {
-                "name": "Video Identity",
+                "name": "Identity",
                 "dir": "video_identity_2",
             },
             {
@@ -58,32 +58,32 @@ demos_by_category = [
                 "dir": "webcam",
             },
             {
-                "name": "Iterative Output",
+                "name": "Iteration",
                 "dir": "fake_diffusion",
             },
             {
-                "name": "Generate Tone", 
+                "name": "Tones", 
                 "dir": "generate_tone", 
             },
             {
-                "name": "Reverse From Microphone", 
+                "name": "Reverse", 
                 "dir": "reverse_audio_2", 
             },
         ]
     },
     {
-        "category": "Dataframes & Plots",
+        "category": "Tabular",
         "demos": [
             {
-                "name": "Filter Records",
+                "name": "Records",
                 "dir": "filter_records"
             },
             {
-                "name": "Transpose Matrix",
+                "name": "Matrix",
                 "dir": "matrix_transpose"
             },
             {
-                "name": "Tax Calculator",
+                "name": "Calculator",
                 "dir": "tax_calculator"
             },
             {
@@ -91,45 +91,40 @@ demos_by_category = [
                 "dir": "blocks_kinematics", 
             },
             {
-                "name": "Stock Forecast", 
+                "name": "Forecast", 
                 "dir": "stock_forecast", 
             },
         ]
     },
     {
-        "category": "TabbedInterface, ChatInterface & Layouts",
+        "category": "Other",
         "demos": [
             {
-                "name": "Hello and Bye World", 
+                "name": "Double", 
                 "dir": "tabbed_interface_lite", 
             },
             {
-                "name": "Random Chatbot", 
+                "name": "Chatbot", 
                 "dir": "chatinterface_random_response", 
             },
             {
-                "name": "Streaming Chatbot", 
+                "name": "Streaming", 
                 "dir": "chatinterface_streaming_echo", 
             },
             {
-                "name": "Using Tab, Row, and Accordion", 
+                "name": "Layouts", 
                 "dir": "blocks_flipper", 
             },
-        ]
-    },
-    {
-        "category": "Modals & Event Listeners",
-        "demos": [
             {
-                "name": "Divide by Zero", 
+                "name": "Error", 
                 "dir": "calculator", 
             },
             {
-                "name": "Chained Events", 
+                "name": "Chained", 
                 "dir": "blocks_chained_events", 
             },
             {
-                "name": "Detecting Changes", 
+                "name": "Changes", 
                 "dir": "blocks_hello", 
             }
         ]

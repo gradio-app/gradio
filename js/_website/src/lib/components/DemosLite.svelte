@@ -64,7 +64,7 @@ $: if (mounted) {
 
 	{#each demos as demo, i}
 		<div hidden={current_selection !== demo.name}
-		class="code-editor mx-auto pt-4 pr-4 w-1/2 h-full">
+		class="code-editor mx-auto pr-4 w-1/2 h-full">
 			<InteractiveCode bind:value={demos[i].code} language="python" label="code" target={dummy_elem} gradio={dummy_gradio} lines={10} />
 		</div>
 	{/each}
@@ -82,7 +82,8 @@ $: if (mounted) {
 		height: 90%;
 	}
 	:global(div.lite-demo div.gradio-container) {
-		height: 98%;
+		height: 100%;
 		overflow-y: scroll;
+		margin: 0 !important;
 	}
 </style>
