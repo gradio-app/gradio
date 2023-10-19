@@ -330,9 +330,11 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 					.callKwargs(requirements, { keep_going: true })
 					.then(() => {
 						if (requirements.includes("matplotlib")) {
+							// Ref: https://github.com/streamlit/streamlit/blob/1.22.0/lib/streamlit/web/bootstrap.py#L111
+							// This backend setting is required to use matplotlib in Wasm environment.
 							return pyodide.runPythonAsync(`
-                from stlite_server.bootstrap import _fix_matplotlib_crash
-                _fix_matplotlib_crash()
+								import matplotlib
+								matplotlib.use("agg")
               `);
 						}
 					})
