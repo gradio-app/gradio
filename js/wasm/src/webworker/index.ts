@@ -192,6 +192,8 @@ matplotlib.use("agg")
 	await pyodide.runPythonAsync(unloadModulesPySource);
 	unload_local_modules = pyodide.globals.get("unload_local_modules");
 	console.debug("Python utility functions are set up.");
+
+	updateProgress("Initialization completed");
 }
 
 self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
