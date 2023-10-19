@@ -1,6 +1,6 @@
 {
 	"name": "website",
-	"version": "0.8.0",
+	"version": "0.9.0",
 	"private": true,
 	"scripts": {
 		"dev": "python generate_jsons/generate.py && vite dev",
@@ -26,7 +26,7 @@
 		"tslib": "^2.4.1",
 		"typescript": "^5.0.0",
 		"vite": "^4.3.9"
-		},
+	},
 	"type": "module",
 	"dependencies": {
 		"@sindresorhus/slugify": "^2.2.0",
