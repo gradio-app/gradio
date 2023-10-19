@@ -1,5 +1,13 @@
 # @gradio/wasm
 
+## 0.3.1
+
+### Fixes
+
+- [#6005](https://github.com/gradio-app/gradio/pull/6005) [`e0ed0642a`](https://github.com/gradio-app/gradio/commit/e0ed0642ac2cb4f7ce9ee698d082607d9bab3636) - Lite: Error handling after initialization.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#6009](https://github.com/gradio-app/gradio/pull/6009) [`0e0681fce`](https://github.com/gradio-app/gradio/commit/0e0681fce718a38fb6662e011859a3ea5c56e868) - Lite: Set `wasClean: true` on the `CloseEvent` emitted by `WebSocket.close()`.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#5998](https://github.com/gradio-app/gradio/pull/5998) [`584fd97d5`](https://github.com/gradio-app/gradio/commit/584fd97d599540c2770377fc7aecf08619f99cc8) - Lite fix matplotlib install postprocess.  Thanks [@whitphx](https://github.com/whitphx)!
+
 ## 0.3.0
 
 ### Features

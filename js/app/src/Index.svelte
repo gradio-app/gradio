@@ -98,7 +98,15 @@
 		worker_proxy.addEventListener("progress-update", (event) => {
 			loading_text = (event as CustomEvent).detail + "...";
 		});
-		worker_proxy.addEventListener("initialization-error", (event) => {
+		worker_proxy.addEventListener("run-start", (event) => {
+			status = {
+				message: "",
+				load_status: "pending",
+				status: "sleeping",
+				detail: "SLEEPING"
+			}
+		});
+		worker_proxy.addEventListener("error", (event) => {
 			const error: Error = (event as CustomEvent).detail;
 
 			// XXX: Although `status` is expected to store Space status info,
