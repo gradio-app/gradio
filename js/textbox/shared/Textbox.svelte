@@ -3,7 +3,7 @@
 		beforeUpdate,
 		afterUpdate,
 		createEventDispatcher,
-		tick,
+		tick
 	} from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Copy, Check } from "@gradio/icons";
@@ -94,7 +94,7 @@
 		const text = target.value;
 		const index: [number, number] = [
 			target.selectionStart as number,
-			target.selectionEnd as number,
+			target.selectionEnd as number
 		];
 		dispatch("select", { value: text.substring(...index), index: index });
 	}
@@ -171,7 +171,7 @@
 		resize({ target: _el });
 
 		return {
-			destroy: () => _el.removeEventListener("input", resize),
+			destroy: () => _el.removeEventListener("input", resize)
 		};
 	}
 </script>

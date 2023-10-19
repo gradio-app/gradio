@@ -274,8 +274,6 @@ const component_map = {
 };
 `;
 
-	console.log(component_map);
-
 	return `${component_map}\n\n${readFileSync(loader_path, "utf8")}`;
 }
 

@@ -34,7 +34,7 @@
 				dispatch("select", {
 					index: 0,
 					value: label,
-					selected: value,
+					selected: value
 				});
 			}
 		}}
@@ -43,7 +43,7 @@
 			dispatch("select", {
 				index: 0,
 				value: label,
-				selected: evt.currentTarget.checked,
+				selected: evt.currentTarget.checked
 			});
 		}}
 		{disabled}

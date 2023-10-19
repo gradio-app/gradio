@@ -34,7 +34,7 @@
 		try {
 			stream = await navigator.mediaDevices.getUserMedia({
 				video: true,
-				audio: include_audio,
+				audio: include_audio
 			});
 			video_source.srcObject = stream;
 			video_source.muted = true;
@@ -105,7 +105,7 @@
 				return;
 			}
 			media_recorder = new MediaRecorder(stream, {
-				mimeType: mimeType,
+				mimeType: mimeType
 			});
 			media_recorder.addEventListener("dataavailable", function (e) {
 				recorded_blobs.push(e.data);

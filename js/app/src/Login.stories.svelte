@@ -11,8 +11,8 @@
 			control: "text",
 			description: "The optional auth message to display",
 			name: "label",
-			value: "Gradio Button",
-		},
+			value: "Gradio Button"
+		}
 	}}
 />
 

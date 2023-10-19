@@ -9,7 +9,7 @@
 	let modals = data.modals;
 	let routes = data.routes;
 	let py_client = data.py_client;
-	
+
 	let on_main: boolean;
 	let wheel: string = data.wheel;
 
@@ -56,17 +56,22 @@
 			</div>
 
 			{#if on_main}
-				<div class="bg-gray-100 border border-gray-200 text-gray-800 px-3 py-1 mt-4 rounded-lg lg:ml-10">
+				<div
+					class="bg-gray-100 border border-gray-200 text-gray-800 px-3 py-1 mt-4 rounded-lg lg:ml-10"
+				>
 					<p class="my-2">
 						To install Gradio from main, run the following command:
 					</p>
 					<div class="codeblock">
-						<pre class="language-bash" style="padding-right: 50px;"><code class="language-bash">pip install {wheel}</code></pre>
+						<pre class="language-bash" style="padding-right: 50px;"><code
+								class="language-bash">pip install {wheel}</code
+							></pre>
 					</div>
-						<p class="float-right text-sm">
-						*Note: Setting <code style="font-size: 0.85rem">share=True</code> in <code style="font-size: 0.85rem">launch()</code> will not work. 
+					<p class="float-right text-sm">
+						*Note: Setting <code style="font-size: 0.85rem">share=True</code> in
+						<code style="font-size: 0.85rem">launch()</code> will not work.
 					</p>
-					</div>
+				</div>
 			{/if}
 
 			<div class="lg:ml-10 flex justify-between mt-4">
@@ -136,9 +141,9 @@
 			</div>
 		</div>
 
-		<div class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:w-2/12 lg:block">
-
-		</div>
+		<div
+			class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:w-2/12 lg:block"
+		></div>
 	</div>
 </main>
 

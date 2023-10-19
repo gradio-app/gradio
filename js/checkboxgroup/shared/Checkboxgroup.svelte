@@ -58,7 +58,7 @@
 					dispatch("select", {
 						index: i,
 						value: choice[1],
-						selected: evt.currentTarget.checked,
+						selected: evt.currentTarget.checked
 					})}
 				on:keydown={(event) => {
 					if (event.key === "Enter") {
@@ -66,7 +66,7 @@
 						dispatch("select", {
 							index: i,
 							value: choice[1],
-							selected: !value.includes(choice[1]),
+							selected: !value.includes(choice[1])
 						});
 					}
 				}}
