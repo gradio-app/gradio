@@ -26,7 +26,7 @@
 					info: true,
 					container: true,
 					isEmbed: true,
-					initialHeight: "68vh",
+					initialHeight: "100%",
 					eager: false,
 					themeMode: null,
 					autoScroll: false,
