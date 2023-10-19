@@ -326,8 +326,8 @@ importers:
         specifier: ^3.0.1
         version: 3.4.4(@babel/core@7.22.5)(less@4.1.3)(postcss@8.4.21)(svelte@3.59.2)
       svelte-i18n:
-        specifier: ^3.6.0
-        version: 3.6.0(svelte@3.59.2)
+        specifier: ^4.0.0
+        version: 4.0.0(svelte@3.59.2)
       tailwindcss:
         specifier: ^3.1.6
         version: 3.1.6(postcss@8.4.21)
@@ -4068,7 +4068,6 @@ packages:
     cpu: [arm64]
     os: [android]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/android-arm@0.17.14:
@@ -4103,7 +4102,6 @@ packages:
     cpu: [arm]
     os: [android]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/android-x64@0.17.14:
@@ -4138,7 +4136,6 @@ packages:
     cpu: [x64]
     os: [android]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/darwin-arm64@0.17.14:
@@ -4173,7 +4170,6 @@ packages:
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/darwin-x64@0.17.14:
@@ -4208,7 +4204,6 @@ packages:
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/freebsd-arm64@0.17.14:
@@ -4243,7 +4238,6 @@ packages:
     cpu: [arm64]
     os: [freebsd]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/freebsd-x64@0.17.14:
@@ -4278,7 +4272,6 @@ packages:
     cpu: [x64]
     os: [freebsd]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-arm64@0.17.14:
@@ -4313,7 +4306,6 @@ packages:
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-arm@0.17.14:
@@ -4348,7 +4340,6 @@ packages:
     cpu: [arm]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-ia32@0.17.14:
@@ -4383,7 +4374,6 @@ packages:
     cpu: [ia32]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-loong64@0.17.14:
@@ -4418,7 +4408,6 @@ packages:
     cpu: [loong64]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-mips64el@0.17.14:
@@ -4453,7 +4442,6 @@ packages:
     cpu: [mips64el]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-ppc64@0.17.14:
@@ -4488,7 +4476,6 @@ packages:
     cpu: [ppc64]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-riscv64@0.17.14:
@@ -4523,7 +4510,6 @@ packages:
     cpu: [riscv64]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-s390x@0.17.14:
@@ -4558,7 +4544,6 @@ packages:
     cpu: [s390x]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-x64@0.17.14:
@@ -4593,7 +4578,6 @@ packages:
     cpu: [x64]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/netbsd-x64@0.17.14:
@@ -4628,7 +4612,6 @@ packages:
     cpu: [x64]
     os: [netbsd]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/openbsd-x64@0.17.14:
@@ -4663,7 +4646,6 @@ packages:
     cpu: [x64]
     os: [openbsd]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/sunos-x64@0.17.14:
@@ -4698,7 +4680,6 @@ packages:
     cpu: [x64]
     os: [sunos]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/win32-arm64@0.17.14:
@@ -4733,7 +4714,6 @@ packages:
     cpu: [arm64]
     os: [win32]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/win32-ia32@0.17.14:
@@ -4768,7 +4748,6 @@ packages:
     cpu: [ia32]
     os: [win32]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/win32-x64@0.17.14:
@@ -4803,7 +4782,6 @@ packages:
     cpu: [x64]
     os: [win32]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@eslint-community/eslint-utils@4.4.0(eslint@8.46.0):
@@ -4869,39 +4847,16 @@ packages:
     resolution: {integrity: sha512-cEee/Z+I12mZcFJshKcCqC8tuX5hG3s+d+9nZ3LabqKF1vKdF41B92pJVCBggjAGORAeOzyyDDKrZwIkLffeOQ==}
     dev: true
 
-  /@formatjs/ecma402-abstract@1.11.4:
-    resolution: {integrity: sha512-EBikYFp2JCdIfGEb5G9dyCkTGDmC57KSHhRQOC3aYxoPWVZvfWCDjZwkGYHN7Lis/fmuWl906bnNTJifDQ3sXw==}
-    dependencies:
-      '@formatjs/intl-localematcher': 0.2.25
-      tslib: 2.6.1
-    dev: true
-
   /@formatjs/ecma402-abstract@1.17.2:
     resolution: {integrity: sha512-k2mTh0m+IV1HRdU0xXM617tSQTi53tVR2muvYOsBeYcUgEAyxV1FOC7Qj279th3fBVQ+Dj6muvNJZcHSPNdbKg==}
     dependencies:
       '@formatjs/intl-localematcher': 0.4.2
       tslib: 2.6.1
-    dev: false
-
-  /@formatjs/fast-memoize@1.2.1:
-    resolution: {integrity: sha512-Rg0e76nomkz3vF9IPlKeV+Qynok0r7YZjL6syLz4/urSg0IbjPZCB/iYUMNsYA643gh4mgrX3T7KEIFIxJBQeg==}
-    dependencies:
-      tslib: 2.6.1
-    dev: true
 
   /@formatjs/fast-memoize@2.2.0:
     resolution: {integrity: sha512-hnk/nY8FyrL5YxwP9e4r9dqeM6cAbo8PeU9UjyXojZMNvVad2Z06FAVHyR3Ecw6fza+0GH7vdJgiKIVXTMbSBA==}
     dependencies:
       tslib: 2.6.1
-    dev: false
-
-  /@formatjs/icu-messageformat-parser@2.1.0:
-    resolution: {integrity: sha512-Qxv/lmCN6hKpBSss2uQ8IROVnta2r9jd3ymUEIjm2UyIkUCHVcbUVRGL/KS/wv7876edvsPe+hjHVJ4z8YuVaw==}
-    dependencies:
-      '@formatjs/ecma402-abstract': 1.11.4
-      '@formatjs/icu-skeleton-parser': 1.3.6
-      tslib: 2.6.1
-    dev: true
 
   /@formatjs/icu-messageformat-parser@2.7.0:
     resolution: {integrity: sha512-7uqC4C2RqOaBQtcjqXsSpGRYVn+ckjhNga5T/otFh6MgxRrCJQqvjfbrGLpX1Lcbxdm5WH3Z2WZqt1+Tm/cn/Q==}
@@ -4909,33 +4864,17 @@ packages:
       '@formatjs/ecma402-abstract': 1.17.2
       '@formatjs/icu-skeleton-parser': 1.6.2
       tslib: 2.6.1
-    dev: false
-
-  /@formatjs/icu-skeleton-parser@1.3.6:
-    resolution: {integrity: sha512-I96mOxvml/YLrwU2Txnd4klA7V8fRhb6JG/4hm3VMNmeJo1F03IpV2L3wWt7EweqNLES59SZ4d6hVOPCSf80Bg==}
-    dependencies:
-      '@formatjs/ecma402-abstract': 1.11.4
-      tslib: 2.6.1
-    dev: true
 
   /@formatjs/icu-skeleton-parser@1.6.2:
     resolution: {integrity: sha512-VtB9Slo4ZL6QgtDFJ8Injvscf0xiDd4bIV93SOJTBjUF4xe2nAWOoSjLEtqIG+hlIs1sNrVKAaFo3nuTI4r5ZA==}
     dependencies:
       '@formatjs/ecma402-abstract': 1.17.2
       tslib: 2.6.1
-    dev: false
-
-  /@formatjs/intl-localematcher@0.2.25:
-    resolution: {integrity: sha512-YmLcX70BxoSopLFdLr1Ds99NdlTI2oWoLbaUW2M406lxOIPzE1KQhRz2fPUkq34xVZQaihCoU29h0KK7An3bhA==}
-    dependencies:
-      tslib: 2.6.1
-    dev: true
 
   /@formatjs/intl-localematcher@0.4.2:
     resolution: {integrity: sha512-BGdtJFmaNJy5An/Zan4OId/yR9Ih1OojFjcduX/xOvq798OgWSyDtd6Qd5jqJXwJs1ipe4Fxu9+cshic5Ox2tA==}
     dependencies:
       tslib: 2.6.1
-    dev: false
 
   /@humanwhocodes/config-array@0.11.10:
     resolution: {integrity: sha512-KVVjQmNUepDVGXNuoRRdmmEjruj0KfiGSbS8LVc12LMsWDQzRXJ0qdhN8L8uUigKpfEHRhlaQFY0ib1tnUbNeQ==}
@@ -6693,7 +6632,7 @@ packages:
     peerDependencies:
       '@sveltejs/kit': ^1.0.0
     dependencies:
-      '@sveltejs/kit': 1.16.3(svelte@3.59.2)(vite@4.3.9)
+      '@sveltejs/kit': 1.16.3(svelte@3.57.0)(vite@4.3.5)
       import-meta-resolve: 3.0.0
     dev: true
 
@@ -9657,7 +9596,6 @@ packages:
       '@esbuild/win32-arm64': 0.19.4
       '@esbuild/win32-ia32': 0.19.4
       '@esbuild/win32-x64': 0.19.4
-    dev: false
 
   /escalade@3.1.1:
     resolution: {integrity: sha512-k0er2gUkLf8O0zKJiAhmkTnJlTvINGv7ygDNPbeIsX/TJjGJZHuh9B2UxbsaEkmlEo9MfhrSzmhIlhRlI2GXnw==}
@@ -10839,16 +10777,6 @@ packages:
       '@formatjs/fast-memoize': 2.2.0
       '@formatjs/icu-messageformat-parser': 2.7.0
       tslib: 2.6.1
-    dev: false
-
-  /intl-messageformat@9.13.0:
-    resolution: {integrity: sha512-7sGC7QnSQGa5LZP7bXLDhVDtQOeKGeBFGHF2Y8LVBwYZoQZCgWeKoPGTa5GMG8g/TzDgeXuYJQis7Ggiw2xTOw==}
-    dependencies:
-      '@formatjs/ecma402-abstract': 1.11.4
-      '@formatjs/fast-memoize': 1.2.1
-      '@formatjs/icu-messageformat-parser': 2.1.0
-      tslib: 2.6.1
-    dev: true
 
   /ip@2.0.0:
     resolution: {integrity: sha512-WKa+XuLG1A1R0UWhl2+1XQSi+fZWMsYKffMZTTYsiZaUD8k2yDAj5atimTUD2TZkyCkNEeYE5NhFZmupOGtjYQ==}
@@ -14135,17 +14063,18 @@ packages:
     dependencies:
       svelte: 4.0.0
 
-  /svelte-i18n@3.6.0(svelte@3.59.2):
-    resolution: {integrity: sha512-qvvcMqHVCXJ5pHoQR5uGzWAW5vS3qB9mBq+W6veLZ6jkrzZGOziR+wyOUJsc59BupMh+Ae30qjOndFrRU6v5jA==}
+  /svelte-i18n@4.0.0(svelte@3.59.2):
+    resolution: {integrity: sha512-4vivjKZADUMRIhTs38JuBNy3unbnh9AFRxWFLxq62P4NHic+/BaIZZlAsvqsCdnp7IdJf5EoSiH6TNdItcjA6g==}
     engines: {node: '>= 16'}
     hasBin: true
     peerDependencies:
-      svelte: ^3.25.1
+      svelte: ^3 || ^4
     dependencies:
       cli-color: 2.0.3
       deepmerge: 4.3.1
+      esbuild: 0.19.4
       estree-walker: 2.0.2
-      intl-messageformat: 9.13.0
+      intl-messageformat: 10.5.4
       sade: 1.8.1
       svelte: 3.59.2
       tiny-glob: 0.2.9
