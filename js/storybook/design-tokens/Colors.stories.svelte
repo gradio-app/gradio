@@ -36,7 +36,7 @@
 		{ tokenName: "--neutral-700", value: "#374151" },
 		{ tokenName: "--neutral-800", value: "#1f2937" },
 		{ tokenName: "--neutral-900", value: "#111827" },
-		{ tokenName: "--neutral-950", value: "#0b0f19" },
+		{ tokenName: "--neutral-950", value: "#0b0f19" }
 	];
 </script>
 

@@ -20,7 +20,7 @@
 	export let container = true;
 	export let allow_custom_value = false;
 	export let filterable = true;
-	export let i18n: I18nFormatter
+	export let i18n: I18nFormatter;
 
 	let filter_input: HTMLElement;
 	let input_text = "";
@@ -113,7 +113,7 @@
 				typeof option_index === "number"
 					? choices_values[option_index]
 					: option_index,
-			selected: false,
+			selected: false
 		});
 	}
 
@@ -126,7 +126,7 @@
 					typeof option_index === "number"
 						? choices_values[option_index]
 						: option_index,
-				selected: true,
+				selected: true
 			});
 		}
 		if (selected_indices.length === max_choices) {
