@@ -4,6 +4,7 @@
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import { get_fetchable_url_or_file } from "@gradio/upload";
 	export let components: string[];
+	export let component_props: Record<string, any>[];
 	export let component_map: Map<
 		string,
 		Promise<{
@@ -141,6 +142,7 @@
 					{#if component_meta.length && component_map.get(components[0])}
 						<svelte:component
 							this={component_meta[0][0].component}
+							{...component_props[0]}
 							value={sample_row[0]}
 							{samples_dir}
 							type="gallery"
@@ -185,6 +187,7 @@
 									>
 										<svelte:component
 											this={component}
+											{...component_props[j]}
 											{value}
 											{samples_dir}
 											type="table"

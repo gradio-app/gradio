@@ -2178,11 +2178,13 @@ def test_as_example_returns_file_basename(component):
     assert component.as_example(None) == ""
 
 
-@patch("gradio.components.Component.as_example")
-@patch("gradio.components.Image.as_example")
-@patch("gradio.components.File.as_example")
-@patch("gradio.components.Dataframe.as_example")
-@patch("gradio.components.Model3D.as_example")
+@patch(
+    "gradio.components.Component.as_example", spec=gr.components.Component.as_example
+)
+@patch("gradio.components.Image.as_example", spec=gr.Image.as_example)
+@patch("gradio.components.File.as_example", spec=gr.File.as_example)
+@patch("gradio.components.Dataframe.as_example", spec=gr.DataFrame.as_example)
+@patch("gradio.components.Model3D.as_example", spec=gr.Model3D.as_example)
 def test_dataset_calls_as_example(*mocks):
     gr.Dataset(
         components=[gr.Dataframe(), gr.File(), gr.Image(), gr.Model3D(), gr.Textbox()],
