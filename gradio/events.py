@@ -408,6 +408,7 @@ class Events:
     stop = "stop"
     end = "end"
     start_recording = "start_recording"
+    pause_recording = "pause_recording"
     stop_recording = "stop_recording"
     focus = "focus"
     blur = "blur"

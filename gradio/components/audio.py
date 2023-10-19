@@ -47,6 +47,7 @@ class Audio(
         Events.stop,
         Events.pause,
         Events.start_recording,
+        Events.pause_recording,
         Events.stop_recording,
         Events.upload,
     ]
