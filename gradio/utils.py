@@ -950,3 +950,7 @@ def find_user_stack_level() -> int:
         frame = frame.f_back
         n += 1
     return n
+
+
+def omit_keys(config: dict, keys_to_ignore: list[str] | None = None):
+    return {k: v for k, v in config.items() if k not in keys_to_ignore}
