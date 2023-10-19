@@ -1,5 +1,11 @@
 # @gradio/app
 
+## 1.10.1
+
+### Fixes
+
+- [#6005](https://github.com/gradio-app/gradio/pull/6005) [`e0ed0642a`](https://github.com/gradio-app/gradio/commit/e0ed0642ac2cb4f7ce9ee698d082607d9bab3636) - Lite: Error handling after initialization.  Thanks [@whitphx](https://github.com/whitphx)!
+
 ## 1.10.0
 
 ### Features
