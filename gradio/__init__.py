@@ -1,5 +1,6 @@
 import json
 
+import gradio._simple_templates
 import gradio.components as components
 import gradio.layouts as layouts
 import gradio.processing_utils
@@ -16,7 +17,6 @@ from gradio.components import (
     Audio,
     BarPlot,
     Button,
-    Carousel,
     Chatbot,
     Checkbox,
     CheckboxGroup,
@@ -49,11 +49,9 @@ from gradio.components import (
     ScatterPlot,
     Slider,
     State,
-    StatusTracker,
     Text,
     Textbox,
     UploadButton,
-    Variable,
     Video,
     component,
 )
@@ -64,7 +62,6 @@ from gradio.external import load
 from gradio.flagging import (
     CSVLogger,
     FlaggingCallback,
-    HuggingFaceDatasetJSONSaver,
     HuggingFaceDatasetSaver,
     SimpleCSVLogger,
 )
@@ -79,7 +76,7 @@ from gradio.helpers import (
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.interface import Interface, TabbedInterface, close_all
 from gradio.ipython_ext import load_ipython_extension
-from gradio.layouts import Accordion, Box, Column, Group, Row, Tab, TabItem, Tabs
+from gradio.layouts import Accordion, Column, Group, Row, Tab, TabItem, Tabs
 from gradio.mix import Parallel, Series
 from gradio.oauth import OAuthProfile
 from gradio.routes import Request, mount_gradio_app

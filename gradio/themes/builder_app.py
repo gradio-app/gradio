@@ -356,12 +356,8 @@ with gr.Blocks(  # noqa: SIM117
                         height=320,
                     )
                     with gr.Row():
-                        go_btn = gr.Button(
-                            "Go", label="Primary Button", variant="primary"
-                        )
-                        clear_btn = gr.Button(
-                            "Clear", label="Secondary Button", variant="secondary"
-                        )
+                        go_btn = gr.Button("Go", variant="primary")
+                        clear_btn = gr.Button("Clear", variant="secondary")
 
                         def go(*args):
                             time.sleep(3)
@@ -383,9 +379,7 @@ with gr.Blocks(  # noqa: SIM117
                     with gr.Row():
                         btn1 = gr.Button("Button 1", size="sm")
                         btn2 = gr.UploadButton(size="sm")
-                        stop_btn = gr.Button(
-                            "Stop", label="Stop Button", variant="stop", size="sm"
-                        )
+                        stop_btn = gr.Button("Stop", variant="stop", size="sm")
 
             gr.Examples(
                 examples=[

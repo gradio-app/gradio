@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-import warnings
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.components.base import Component, _Keywords
-from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
+from gradio.components.base import Component
 from gradio.events import Events
 
 set_documentation_group("component")
@@ -30,6 +28,7 @@ class Button(Component):
         self,
         value: str | Callable = "Run",
         *,
+        every: float | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         size: Literal["sm", "lg"] | None = None,
         icon: str | None = None,
@@ -38,13 +37,16 @@ class Button(Component):
         interactive: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        render: bool = True,
+        root_url: str | None = None,
+        _skip_init_processing: bool = False,
         scale: int | None = None,
         min_width: int | None = None,
-        **kwargs,
     ):
         """
         Parameters:
             value: Default text for the button to display. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             size: Size of the button. Can be "sm" or "lg".
             icon: URL or path to the icon file to display within the button. If None, no icon will be displayed. Must be within the working directory of the Gradio app or an external URL.
@@ -53,22 +55,24 @@ class Button(Component):
             interactive: If False, the Button will be in a disabled state.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
         """
         super().__init__(
+            every=every,
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            render=render,
+            root_url=root_url,
+            _skip_init_processing=_skip_init_processing,
             value=value,
             interactive=interactive,
             scale=scale,
             min_width=min_width,
-            **kwargs,
         )
-        if variant == "plain":
-            warn_deprecation("'plain' variant deprecated, using 'secondary' instead.")
-            variant = "secondary"
         self.variant = variant
         self.size = size
         self.icon = icon
@@ -77,55 +81,6 @@ class Button(Component):
     @property
     def skip_api(self):
         return True
-
-    @staticmethod
-    def update(
-        value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        variant: Literal["primary", "secondary", "stop"] | None = None,
-        size: Literal["sm", "lg"] | None = None,
-        icon: str | None = None,
-        link: str | None = None,
-        visible: bool | None = None,
-        interactive: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Button(...)` instead of `return gr.Button.update(...)`."
-        )
-        return {
-            "variant": variant,
-            "size": size,
-            "visible": visible,
-            "value": value,
-            "icon": icon,
-            "link": link,
-            "interactive": interactive,
-            "scale": scale,
-            "min_width": min_width,
-            "__type__": "update",
-        }
-
-    def style(
-        self,
-        *,
-        full_width: bool | None = None,
-        size: Literal["sm", "lg"] | None = None,
-        **kwargs,
-    ):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if full_width is not None:
-            warn_deprecation(
-                "Use `scale` in place of full_width in the constructor. "
-                "scale=1 will make the button expand, whereas 0 will not."
-            )
-            self.scale = 1 if full_width else None
-        if size is not None:
-            self.size = size
-        return self
 
     def preprocess(self, x: Any) -> Any:
         return x

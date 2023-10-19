@@ -10,6 +10,7 @@ import json
 import os
 import sys
 import tempfile
+import warnings
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
@@ -22,7 +23,6 @@ from gradio import utils
 from gradio.blocks import Block, BlockContext
 from gradio.component_meta import ComponentMeta
 from gradio.data_classes import GradioDataModel
-from gradio.deprecation import warn_deprecation
 from gradio.events import EventListener
 from gradio.layouts import Form
 
@@ -145,9 +145,11 @@ class Component(ComponentBase, Block):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        render: bool = True,
+        root_url: str | None = None,
+        _skip_init_processing: bool = False,
         load_fn: Callable | None = None,
         every: float | None = None,
-        **kwargs,
     ):
         self.server_fns = [
             value
@@ -166,7 +168,13 @@ class Component(ComponentBase, Block):
         )
 
         Block.__init__(
-            self, elem_id=elem_id, elem_classes=elem_classes, visible=visible, **kwargs
+            self,
+            elem_id=elem_id,
+            elem_classes=elem_classes,
+            visible=visible,
+            render=render,
+            root_url=root_url,
+            _skip_init_processing=_skip_init_processing,
         )
         if isinstance(self, StreamingInput):
             self.check_streamable()
@@ -175,14 +183,14 @@ class Component(ComponentBase, Block):
         self.info = info
         if not container:
             if show_label:
-                warn_deprecation("show_label has no effect when container is False.")
+                warnings.warn("show_label has no effect when container is False.")
             show_label = False
         if show_label is None:
             show_label = True
         self.show_label = show_label
         self.container = container
         if scale is not None and scale != round(scale):
-            warn_deprecation(
+            warnings.warn(
                 f"'scale' value should be an integer. Using {scale} will cause issues."
             )
         self.scale = scale
@@ -212,6 +220,8 @@ class Component(ComponentBase, Block):
             config["info"] = self.info
         if len(self.server_fns):
             config["server_fns"] = [fn.__name__ for fn in self.server_fns]
+        config.pop("_skip_init_processing", None)
+        config.pop("render", None)
         return config
 
     @property
