@@ -60,17 +60,17 @@ $: if (mounted) {
 	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css">
 </svelte:head>
 
-<div class="flex w-full" style="height: 70vh;">
+<div class="flex flex-col md:flex-row w-full min-w-0" style="height: 70vh;">
 
 	{#each demos as demo, i}
 		<div hidden={current_selection !== demo.name}
-		class="code-editor mx-auto pr-4 w-1/2 h-full">
+		class="code-editor mx-auto md:pr-4 w-full md:w-1/2 h-1/2 mb-2 md:mb-0 md:h-full">
 			<InteractiveCode bind:value={demos[i].code} language="python" label="code" target={dummy_elem} gradio={dummy_gradio} lines={10} />
 		</div>
 	{/each}
 
 
-	<div class="lite-demo w-1/2 h-full" id="lite-demo" />
+	<div class="lite-demo w-full md:w-1/2 mx-auto h-1/2 md:h-full" id="lite-demo" />
 </div>
 
 
@@ -81,9 +81,14 @@ $: if (mounted) {
 	:global(div.code-editor div.block div.wrap) {
 		height: 90%;
 	}
-	:global(.ͼ2r .cm-gutters) {
+	:global(div.code-editor div.block .cm-gutters) {
 		background-color: white;	
 	}
+
+	:global(div.code-editor div.block .cm-content) {
+		width: 0;	
+	}
+
 	:global(div.lite-demo div.gradio-container) {
 		height: 100%;
 		overflow-y: scroll;

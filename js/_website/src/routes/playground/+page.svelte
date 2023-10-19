@@ -34,16 +34,20 @@
 					<a
 					class="link text-black"
 					target="_blank"
-					href="https://www.npmjs.com/package/@gradio/lite">
+					href="https://gradio.app/main/guides/serverless-gradio">
 					Gradio Lite 
 					</a>
 					package.
 	</p>
+
+	<p class="mt-4 mb-8 text-lg text-gray-600 md:hidden">
+		Playground renders best on desktop.
+	</p>
 		
 	<div class="flex w-full border border-gray-200 shadow-xl rounded-xl p-4 mb-3">
-		<div class="mr-4 lg:overflow-y-scroll lg:mb-0 lg:p-0 lg:pb-4 lg:text-md lg:block rounded-t-xl lg:bg-gradient-to-r lg:from-white lg:to-gray-50 lg:overflow-x-clip lg:w-1/12" style="height: 70vh; word-break: normal; overflow-wrap: break-word;">
+		<div class="mr-4 overflow-y-scroll mb-0 p-0 pb-4 text-md block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip w-1/3 md:w-1/4 lg:w-1/12" style="height: 70vh; word-break: normal; overflow-wrap: break-word;">
 			{#each data.demos_by_category as { category, demos } (category)}
-				<p class="px-4 my-2 block">{category}</p>
+				<p class="px-4 my-2 md:block hidden">{category}</p>
 				{#each demos as demo, i}	
 					<button
 						on:click={() => (current_selection = demo.name)}
@@ -55,12 +59,12 @@
 			{/each}
 		</div>
 
-	<div class="flex flex-col w-full min-w-full lg:w-11/12 lg:min-w-0">
+	<!-- <div class="w-2/3 md:w-11/12"> -->
 			<DemosLite
 				demos={all_demos}
 				current_selection={current_selection}
 			/>
-	</div>
+	<!-- </div> -->
 </main>
 
 <style>
