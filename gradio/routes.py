@@ -11,6 +11,7 @@ if sys.version_info >= (3, 9):
 else:
     from importlib_resources import files
 import inspect
+import json
 import mimetypes
 import os
 import posixpath
@@ -19,9 +20,9 @@ import tempfile
 import threading
 import time
 import traceback
-from asyncio import TimeoutError as AsyncTimeOutError
 from collections import defaultdict
 from pathlib import Path
+from queue import Empty as EmptyQueue
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type
 
 import fastapi
@@ -42,13 +43,16 @@ from gradio_client.documentation import document, set_documentation_group
 from jinja2.exceptions import TemplateNotFound
 from starlette.background import BackgroundTask
 from starlette.responses import RedirectResponse, StreamingResponse
-from starlette.websockets import WebSocketState
 
 import gradio
 import gradio.ranged_response as ranged_response
 from gradio import processing_utils, route_utils, utils, wasm_utils
 from gradio.context import Context
-from gradio.data_classes import ComponentServerBody, PredictBody, ResetBody
+from gradio.data_classes import (
+    ComponentServerBody,
+    PredictBody,
+    ResetBody,
+)
 from gradio.deprecation import warn_deprecation
 from gradio.exceptions import Error
 from gradio.oauth import attach_oauth
@@ -572,42 +576,20 @@ class App(FastAPI):
                 )
             return output
 
-        @app.websocket("/queue/join")
-        async def join_queue(
-            websocket: WebSocket,
-            token: Optional[str] = Depends(ws_login_check),
+        @app.get("/queue/join", dependencies=[Depends(login_check)])
+        async def queue_join(
+            fn_index: int,
+            session_hash: str,
+            request: fastapi.Request,
+            username: str = Depends(get_current_user),
         ):
             blocks = app.get_blocks()
-            if app.auth is not None and token is None:
-                await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-                return
             if blocks._queue.server_app is None:
                 blocks._queue.set_server_app(app)
-            await websocket.accept()
-            # In order to cancel jobs, we need the session_hash and fn_index
-            # to create a unique id for each job
-            try:
-                await asyncio.wait_for(
-                    websocket.send_json({"msg": "send_hash"}), timeout=5
-                )
-            except AsyncTimeOutError:
-                return
 
-            try:
-                session_info = await asyncio.wait_for(
-                    websocket.receive_json(), timeout=5
-                )
-            except AsyncTimeOutError:
-                return
+            event = Event(session_hash, fn_index, request, username)
 
-            event = Event(
-                websocket, session_info["session_hash"], session_info["fn_index"]
-            )
-            # set the username into Event to allow using the same username for call_prediction
-            event.username = app.tokens.get(token)
-            event.session_hash = session_info["session_hash"]
-
-            # Continuous events are not put in the queue  so that they do not
+            # Continuous events are not put in the queue so that they do not
             # occupy the queue's resource as they are expected to run forever
             if blocks.dependencies[event.fn_index].get("every", 0):
                 await cancel_tasks({f"{event.session_hash}_{event.fn_index}"})
@@ -620,17 +602,49 @@ class App(FastAPI):
                 app._asyncio_tasks.append(task)
             else:
                 rank = blocks._queue.push(event)
-
                 if rank is None:
-                    await blocks._queue.send_message(event, {"msg": "queue_full"})
-                    await event.disconnect()
+                    blocks._queue.send_message(event, "queue_full", final=True)
                     return
                 estimation = blocks._queue.get_estimation()
                 await blocks._queue.send_estimation(event, estimation, rank)
-            while True:
-                await asyncio.sleep(1)
-                if websocket.application_state == WebSocketState.DISCONNECTED:
-                    return
+
+            async def sse_stream(request: fastapi.Request):
+                while True:
+                    if await request.is_disconnected():
+                        await blocks._queue.clean_event(event)
+                    if not event.alive:
+                        return
+
+                    heartbeat_rate = 15
+                    check_rate = 0.05
+                    last_heartbeat = time.time()
+                    message = None
+                    try:
+                        message = event.message_queue.get_nowait()
+                        if message is None:  # end of stream marker
+                            return
+                    except EmptyQueue:
+                        await asyncio.sleep(check_rate)
+                        if time.time() - last_heartbeat > heartbeat_rate:
+                            message = {"msg": "heartbeat"}
+                            last_heartbeat = time.time()
+
+                    if message:
+                        yield f"data: {json.dumps(message)}\n\n"
+
+            return StreamingResponse(
+                sse_stream(request),
+                media_type="text/event-stream",
+            )
+
+        @app.post("/queue/data", dependencies=[Depends(login_check)])
+        async def queue_data(
+            body: PredictBody,
+            request: fastapi.Request,
+            username: str = Depends(get_current_user),
+        ):
+            blocks = app.get_blocks()
+            blocks._queue.attach_data(body)
 
         @app.post("/component_server", dependencies=[Depends(login_check)])
         @app.post("/component_server/", dependencies=[Depends(login_check)])

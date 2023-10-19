@@ -427,13 +427,16 @@ export function api_factory(
 				}
 
 				let websocket: WebSocket;
+				let eventSource: EventSource;
+				const MAJOR_VERSION = parseInt(config.version.split(".")[0]);
+				let protocol = MAJOR_VERSION >= 4 ? "sse" : "ws";
 
 				const _endpoint = typeof endpoint === "number" ? "/predict" : endpoint;
 				let payload: Payload;
 				let complete: false | Record<string, any> = false;
 				const listener_map: ListenerMap<EventType> = {};
 				let url_params = ""
-				if (typeof(window) !== "undefined") {
+				if (typeof (window) !== "undefined") {
 					url_params = new URLSearchParams(
 						window.location.search
 					).toString();
@@ -457,8 +460,7 @@ export function api_factory(
 						});
 
 						post_data(
-							`${http_protocol}//${resolve_root(host, config.path, true)}/run${
-								_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
+							`${http_protocol}//${resolve_root(host, config.path, true)}/run${_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
 							}${url_params ? "?" + url_params : ""}`,
 							{
 								...payload,
@@ -469,11 +471,11 @@ export function api_factory(
 							.then(([output, status_code]) => {
 								const data = transform_files
 									? transform_output(
-											output.data,
-											api_info,
-											config.root,
-											config.root_url
-									  )
+										output.data,
+										api_info,
+										config.root,
+										config.root_url
+									)
 									: output.data;
 								if (status_code == 200) {
 									fire_event({
@@ -516,7 +518,7 @@ export function api_factory(
 									time: new Date()
 								});
 							});
-					} else {
+					} else if (protocol == "ws") {
 						fire_event({
 							type: "status",
 							stage: "pending",
@@ -604,11 +606,11 @@ export function api_factory(
 									time: new Date(),
 									data: transform_files
 										? transform_output(
-												data.data,
-												api_info,
-												config.root,
-												config.root_url
-										  )
+											data.data,
+											api_info,
+											config.root,
+											config.root_url
+										)
 										: data.data,
 									endpoint: _endpoint,
 									fn_index
@@ -636,6 +638,106 @@ export function api_factory(
 								websocket.send(JSON.stringify({ hash: session_hash }))
 							);
 						}
+					} else {
+						fire_event({
+							type: "status",
+							stage: "pending",
+							queue: true,
+							endpoint: _endpoint,
+							fn_index,
+							time: new Date()
+						});
+						var params = new URLSearchParams({ "fn_index": fn_index.toString(), "session_hash": session_hash }).toString();
+						let url = new URL(`${http_protocol}//${resolve_root(
+							host,
+							config.path,
+							true
+						)}/queue/join?${params}`);
+
+						eventSource = new EventSource(url);
+
+						eventSource.onmessage = function (event) {
+							const _data = JSON.parse(event.data);
+							const { type, status, data } = handle_message(
+								_data,
+								last_status[fn_index]
+							);
+
+							if (type === "update" && status && !complete) {
+								// call 'status' listeners
+								fire_event({
+									type: "status",
+									endpoint: _endpoint,
+									fn_index,
+									time: new Date(),
+									...status
+								});
+								if (status.stage === "error") {
+									eventSource.close();
+								}
+							} else if (type === "data") {
+								let event_id = _data.event_id;
+								post_data(
+									`${http_protocol}//${resolve_root(host, config.path, true)}/queue/data`,
+									{
+										...payload,
+										session_hash,
+										event_id
+									},
+									hf_token
+								)
+
+							} else if (type === "complete") {
+								complete = status;
+							} else if (type === "log") {
+								fire_event({
+									type: "log",
+									log: data.log,
+									level: data.level,
+									endpoint: _endpoint,
+									fn_index
+								});
+							} else if (type === "generating") {
+								fire_event({
+									type: "status",
+									time: new Date(),
+									...status,
+									stage: status?.stage!,
+									queue: true,
+									endpoint: _endpoint,
+									fn_index
+								});
+							}
+							if (data) {
+								fire_event({
+									type: "data",
+									time: new Date(),
+									data: transform_files
+										? transform_output(
+											data.data,
+											api_info,
+											config.root,
+											config.root_url
+										)
+										: data.data,
+									endpoint: _endpoint,
+									fn_index
+								});
+
+								if (complete) {
+									fire_event({
+										type: "status",
+										time: new Date(),
+										...complete,
+										stage: status?.stage!,
+										queue: true,
+										endpoint: _endpoint,
+										fn_index
+									});
+									eventSource.close();
+								}
+							}
+						};
 					}
 				});
 

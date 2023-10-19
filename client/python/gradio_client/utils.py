@@ -27,6 +27,8 @@ from huggingface_hub import SpaceStage
 from websockets.legacy.protocol import WebSocketCommonProtocol
 
 API_URL = "api/predict/"
+SSE_URL = "queue/join"
+SSE_DATA_URL = "queue/data"
 WS_URL = "queue/join"
 UPLOAD_URL = "upload"
 CONFIG_URL = "config"
@@ -143,7 +145,7 @@ class ProgressUnit:
     desc: Optional[str]
 
     @classmethod
-    def from_ws_msg(cls, data: list[dict]) -> list[ProgressUnit]:
+    def from_msg(cls, data: list[dict]) -> list[ProgressUnit]:
         return [
             cls(
                 index=d.get("index"),
@@ -243,8 +245,8 @@ def is_valid_url(possible_url: str) -> bool:
 
 async def get_pred_from_ws(
     websocket: WebSocketCommonProtocol,
-    data: str,
-    hash_data: str,
+    data: dict,
+    hash_data: dict,
     helper: Communicator | None = None,
 ) -> dict[str, Any]:
     completed = False
@@ -260,9 +262,7 @@ async def get_pred_from_ws(
                         # Need to reset the iterator state since the client
                         # will not reset the session
                         async with httpx.AsyncClient() as http:
-                            reset = http.post(
-                                helper.reset_url, json=json.loads(hash_data)
-                            )
+                            reset = http.post(helper.reset_url, json=hash_data)
                             # Retrieve cancel exception from task
                             # otherwise will get nasty warning in console
                             task.cancel()
@@ -282,7 +282,7 @@ async def get_pred_from_ws(
                     success=resp.get("success"),
                     time=datetime.now(),
                     eta=resp.get("rank_eta"),
-                    progress_data=ProgressUnit.from_ws_msg(resp["progress_data"])
+                    progress_data=ProgressUnit.from_msg(resp["progress_data"])
                     if has_progress
                     else None,
                 )
@@ -297,11 +297,64 @@ async def get_pred_from_ws(
         if resp["msg"] == "queue_full":
             raise QueueError("Queue is full! Please try again.")
         if resp["msg"] == "send_hash":
-            await websocket.send(hash_data)
+            await websocket.send(json.dumps(hash_data))
         elif resp["msg"] == "send_data":
-            await websocket.send(data)
+            await websocket.send(json.dumps(data))
         completed = resp["msg"] == "process_completed"
     return resp["output"]
+
+
+async def get_pred_from_sse(
+    client: httpx.AsyncClient,
+    data: dict,
+    hash_data: dict,
+    helper: Communicator,
+    sse_url: str,
+    sse_data_url: str,
+) -> dict[str, Any]:
+    async with client.stream("GET", sse_url, params=hash_data) as response:
+        async for line in response.aiter_text():
+            if line.startswith("data:"):
+                resp = json.loads(line[5:])
+                with helper.lock:
+                    has_progress = "progress_data" in resp
+                    status_update = StatusUpdate(
+                        code=Status.msg_to_status(resp["msg"]),
+                        queue_size=resp.get("queue_size"),
+                        rank=resp.get("rank", None),
+                        success=resp.get("success"),
+                        time=datetime.now(),
+                        eta=resp.get("rank_eta"),
+                        progress_data=ProgressUnit.from_msg(resp["progress_data"])
+                        if has_progress
+                        else None,
+                    )
+                    output = resp.get("output", {}).get("data", [])
+                    if output and status_update.code != Status.FINISHED:
+                        try:
+                            result = helper.prediction_processor(*output)
+                        except Exception as e:
+                            result = [e]
+                        helper.job.outputs.append(result)
+                    helper.job.latest_status = status_update
+
+                if resp["msg"] == "queue_full":
+                    raise QueueError("Queue is full! Please try again.")
+                elif resp["msg"] == "send_data":
+                    event_id = resp["event_id"]
+                    req = requests.post(
+                        sse_data_url,
+                        json={"event_id": event_id, **data, **hash_data},
+                    )
+                    if not req.ok:
+                        raise ValueError(
+                            f"Could not send paylod to endpoint: {req.text}"
+                        )
+                elif resp["msg"] == "process_completed":
+                    return resp["output"]
+            else:
+                raise ValueError(f"Unexpected message: {line}")
+    raise ValueError("Did not receive process_completed message.")
 
 
 ########################

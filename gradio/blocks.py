@@ -1642,7 +1642,7 @@ Received outputs:
     @document()
     def queue(
         self,
-        concurrency_count: int = 1,
+        concurrency_count: int | None = None,
         status_update_rate: float | Literal["auto"] = "auto",
         client_position_to_load_data: int | None = None,
         default_enabled: bool | None = None,
@@ -1652,7 +1652,7 @@ Received outputs:
         """
         By enabling the queue you can control the rate of processed requests, let users know their position in the queue, and set a limit on maximum number of events allowed.
         Parameters:
-            concurrency_count: Number of worker threads that will be processing requests from the queue concurrently. Increasing this number will increase the rate at which requests are processed, but will also increase the memory usage of the queue.
+            concurrency_count: Number of worker threads that will be processing requests from the queue concurrently. Default is 40 when running locally, and 1 in Spaces.
             status_update_rate: If "auto", Queue will send status estimations to all clients whenever a job is finished. Otherwise Queue will send status at regular intervals set by this parameter as the number of seconds.
             client_position_to_load_data: DEPRECATED. This parameter is deprecated and has no effect.
             default_enabled: Deprecated and has no effect.
@@ -1669,6 +1669,8 @@ Received outputs:
             demo.queue(max_size=20)
             demo.launch()
         """
+        if concurrency_count is None:
+            concurrency_count = 1 if utils.get_space() is not None else 40
         if default_enabled is not None:
             warn_deprecation(
                 "The default_enabled parameter of queue has no effect and will be removed "
@@ -1727,8 +1729,6 @@ Received outputs:
         inbrowser: bool = False,
         share: bool | None = None,
         debug: bool = False,
-        enable_queue: bool | None = None,
-        max_threads: int = 40,
         auth: Callable | tuple[str, str] | list[tuple[str, str]] | None = None,
         auth_message: str | None = None,
         prevent_thread_lock: bool = False,
@@ -1738,7 +1738,6 @@ Received outputs:
         show_tips: bool = False,
         height: int = 500,
         width: int | str = "100%",
-        encrypt: bool | None = None,
         favicon_path: str | None = None,
         ssl_keyfile: str | None = None,
         ssl_certfile: str | None = None,
@@ -1770,11 +1769,8 @@ Received outputs:
             server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT. If None, will search for an available port starting at 7860.
             server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME. If None, will use "127.0.0.1".
             show_tips: if True, will occasionally show tips about new Gradio features
-            enable_queue: DEPRECATED (use .queue() method instead.) if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
-            max_threads: the maximum number of total threads that the Gradio app can generate in parallel. The default is inherited from the starlette library (currently 40). Applies whether the queue is enabled or not. But if queuing is enabled, this parameter is increaseed to be at least the concurrency_count of the queue.
             width: The width in pixels of the iframe element containing the interface (used if inline=True)
             height: The height in pixels of the iframe element containing the interface (used if inline=True)
-            encrypt: DEPRECATED. Has no effect.
             favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for the web page.
             ssl_keyfile: If a path to a file is provided, will use this as the private key file to create a local server running on https.
             ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
@@ -1836,22 +1832,7 @@ Received outputs:
         else:
             self.root_path = root_path
 
-        if enable_queue is not None:
-            self.enable_queue = enable_queue
-            warn_deprecation(
-                "The `enable_queue` parameter has been deprecated. "
-                "Please use the `.queue()` method instead.",
-            )
-        if encrypt is not None:
-            warn_deprecation(
-                "The `encrypt` parameter has been deprecated and has no effect.",
-            )
-
-        if self.space_id:
-            self.enable_queue = self.enable_queue is not False
-        else:
-            self.enable_queue = self.enable_queue is True
-        if self.enable_queue and not hasattr(self, "_queue"):
+        if not hasattr(self, "_queue"):
             self.queue()
 
         self.show_api = show_api
@@ -1874,9 +1855,6 @@ Received outputs:
         self.validate_queue_settings()
 
         self.config = self.get_config_file()
-        self.max_threads = max(
-            self._queue.max_thread_count if self.enable_queue else 0, max_threads
-        )
 
         if self.is_running:
             if not isinstance(self.local_url, str):

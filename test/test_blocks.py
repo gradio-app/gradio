@@ -19,7 +19,8 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 import uvicorn
-import websockets
+import httpx
+import requests
 from fastapi.testclient import TestClient
 from gradio_client import media_data
 from PIL import Image
@@ -387,19 +388,29 @@ class TestBlocksMethods:
         server.run_in_thread()
 
         try:
-            async with websockets.connect(f"ws://localhost:{port}/queue/join") as ws:
-                completed = False
-                while not completed:
-                    msg = json.loads(await ws.recv())
-                    if msg["msg"] == "send_data":
-                        await ws.send(json.dumps({"data": ["Victor"], "fn_index": 0}))
-                    if msg["msg"] == "send_hash":
-                        await ws.send(
-                            json.dumps({"fn_index": 0, "session_hash": "shdce"})
-                        )
-                    if msg["msg"] == "process_completed":
-                        completed = True
-                assert msg["output"]["data"][0] == "Victor"
+            completed = False
+            async with httpx.AsyncClient() as client:
+                async with client.stream(
+                    "GET",
+                    f"http://localhost:{port}/queue/join",
+                    params={"fn_index": 0, "session_hash": "shdce"},
+                ) as response:
+                    async for line in response.aiter_text():
+                        if line.startswith("data:"):
+                            msg = json.loads(line[5:])
+                        if msg["msg"] == "send_data":
+                            event_id = msg["event_id"]
+                            req = requests.post(
+                                f"http://localhost:{port}/queue/data",
+                                json={"event_id": event_id, "data": ["Victor"], "fn_index": 0},
+                            )
+                            if not req.ok:
+                                raise ValueError(
+                                    f"Could not send payload to endpoint: {req.text}"
+                                )
+                        if msg["msg"] == "process_completed":
+                            completed = True
+            assert completed and msg["output"]["data"][0] == "Victor"
         finally:
             server.close()
 
@@ -420,22 +431,6 @@ class TestBlocksMethods:
         demo.launch(prevent_thread_lock=True)
         assert len(demo.get_config_file()["dependencies"]) == 1
 
-    def test_raise_error_if_event_queued_but_queue_not_enabled(self):
-        with gr.Blocks() as demo:
-            with gr.Row():
-                with gr.Column():
-                    input_ = gr.Textbox()
-                    btn = gr.Button("Greet")
-                with gr.Column():
-                    output = gr.Textbox()
-            btn.click(
-                lambda x: f"Hello, {x}", inputs=input_, outputs=output, queue=True
-            )
-
-        with pytest.raises(ValueError, match="The queue is enabled for event lambda"):
-            demo.launch(prevent_thread_lock=True)
-
-        demo.close()
 
     def test_concurrency_count_zero_gpu(self, monkeypatch):
         monkeypatch.setenv("SPACES_ZERO_GPU", "true")
@@ -1001,24 +996,6 @@ class TestBatchProcessing:
         msg = "In order to use batching, the queue must be enabled."
 
         with pytest.raises(ValueError, match=msg):
-            demo = gr.Interface(
-                trim, ["textbox", "number"], ["textbox"], batch=True, max_batch_size=16
-            )
-            demo.launch(prevent_thread_lock=True)
-
-        with pytest.raises(ValueError, match=msg):
-            with gr.Blocks() as demo:
-                with gr.Row():
-                    word = gr.Textbox(label="word")
-                    leng = gr.Number(label="leng")
-                    output = gr.Textbox(label="Output")
-                with gr.Row():
-                    run = gr.Button()
-
-                run.click(trim, [word, leng], output, batch=True, max_batch_size=16)
-            demo.launch(prevent_thread_lock=True)
-
-        with pytest.raises(ValueError, match=msg):
             with gr.Blocks() as demo:
                 with gr.Row():
                     word = gr.Textbox(label="word")
@@ -1343,17 +1320,13 @@ class TestCancel:
             yield a
 
         msg = "Queue needs to be enabled!"
-        with pytest.raises(ValueError, match=msg):
-            gr.Interface(iteration, inputs=gr.Number(), outputs=gr.Number()).launch(
-                prevent_thread_lock=True
-            )
 
         with pytest.raises(ValueError, match=msg):
             with gr.Blocks() as demo:
                 button = gr.Button(value="Predict")
                 click = button.click(None, None, None)
                 cancel = gr.Button(value="Cancel")
-                cancel.click(None, None, None, cancels=[click])
+                cancel.click(None, None, None, cancels=[click], queue=False)
             demo.launch(prevent_thread_lock=True)
 
         with pytest.raises(ValueError, match=msg):
@@ -1393,52 +1366,34 @@ class TestEvery:
             name.change(lambda n: n + random.random(), num, num, every=0.5)
             button.click(lambda s: f"Hello, {s}!", name, greeting)
         app, _, _ = demo.queue(max_size=1).launch(prevent_thread_lock=True)
-        client = TestClient(app)
+        test_client = TestClient(app)
 
-        async with websockets.connect(
-            f"{demo.local_url.replace('http', 'ws')}queue/join"
-        ) as ws:
-            completed = False
-            while not completed:
-                msg = json.loads(await ws.recv())
-                if msg["msg"] == "send_data":
-                    await ws.send(json.dumps({"data": [0], "fn_index": 0}))
-                if msg["msg"] == "send_hash":
-                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
-                    status = client.get("/queue/status")
-                    # If the continuous event got pushed to the queue, the size would be nonzero
-                    # asserting false will terminate the test
-                    if status.json()["queue_size"] != 0:
-                        raise AssertionError()
+        async with httpx.AsyncClient() as client:
+            async with client.stream(
+                "GET",
+                f"http://localhost:{demo.server_port}/queue/join",
+                params={"fn_index": 0, "session_hash": "shdce"},
+            ) as response:
+                async for line in response.aiter_text():
+                    if line.startswith("data:"):
+                        msg = json.loads(line[5:])
                     else:
+                        raise ValueError(line)
+                    if msg["msg"] == "send_data":
+                        event_id = msg["event_id"]
+                        req = requests.post(
+                            f"http://localhost:{demo.server_port}/queue/data",
+                            json={"event_id": event_id, "data": [0], "fn_index": 0},
+                        )
+                        if not req.ok:
+                            raise ValueError(
+                                f"Could not send payload to endpoint: {req.text}"
+                            )
                         break
 
-    @pytest.mark.asyncio
-    async def test_generating_event_cancelled_if_ws_closed(self, connect, capsys):
-        def generation():
-            for i in range(10):
-                time.sleep(0.1)
-                print(f"At step {i}")
-                yield i
-            return "Hello!"
-
-        with gr.Blocks() as demo:
-            greeting = gr.Textbox()
-            button = gr.Button(value="Greet")
-            button.click(generation, None, greeting)
-
-        with connect(demo) as client:
-            job = client.submit(0, fn_index=0)
-            for i, _ in enumerate(job):
-                if i == 2:
-                    job.cancel()
-
-        await asyncio.sleep(1)
-        # If the generation function did not get cancelled
-        # it would have finished running and `At step 9` would
-        # have been printed
-        captured = capsys.readouterr()
-        assert "At step 9" not in captured.out
+        time.sleep(1)
+        status = test_client.get("/queue/status")
+        assert status.json()["queue_size"] == 0
 
 
 class TestGetAPIInfo:
@@ -1682,45 +1637,42 @@ async def test_queue_when_using_auth():
     token = resp.cookies.get(f"access-token-{demo.app.cookie_id}")
     assert token
 
-    with pytest.raises(Exception) as e:
-        async with websockets.connect(
-            f"{demo.local_url.replace('http', 'ws')}queue/join",
-        ) as ws:
-            await ws.recv()
-    assert e.type == websockets.InvalidStatusCode
+    async with httpx.AsyncClient() as client:
+        async with client.stream(
+            "GET",
+            f"http://localhost:{demo.server_port}/queue/join",
+            params={"fn_index": 0, "session_hash": "shdce"},
+        ) as response:
+            assert response.status_code == 401
 
-    async def run_ws(i):
-        async with websockets.connect(
-            f"{demo.local_url.replace('http', 'ws')}queue/join",
-            extra_headers={"Cookie": f"access-token-{demo.app.cookie_id}={token}"},
-        ) as ws:
-            while True:
-                try:
-                    msg = json.loads(await ws.recv())
-                except websockets.ConnectionClosedOK:
-                    break
-                if msg["msg"] == "send_hash":
-                    await ws.send(
-                        json.dumps({"fn_index": 0, "session_hash": "enwpitpex2q"})
-                    )
-                if msg["msg"] == "send_data":
-                    await ws.send(
-                        json.dumps(
-                            {
-                                "data": [str(i)],
-                                "fn_index": 0,
-                                "session_hash": "enwpitpex2q",
-                            }
+    async def run_with_credentials(i):
+        async with httpx.AsyncClient() as client:
+            async with client.stream(
+                "GET",
+                f"http://localhost:{demo.server_port}/queue/join",
+                params={"fn_index": 0, "session_hash": f"shdce{i}"},
+                cookies={f"access-token-{demo.app.cookie_id}": token},
+            ) as response:
+                assert response.status_code == 200
+                async for line in response.aiter_text():
+                    if line.startswith("data:"):
+                        msg = json.loads(line[5:])
+                    else:
+                        raise ValueError(line)
+                    if msg["msg"] == "send_data":
+                        event_id = msg["event_id"]
+                        req = requests.post(
+                            f"http://localhost:{demo.server_port}/queue/data",
+                            json={"event_id": event_id, "data": [str(i)], "fn_index": 0},
+                            cookies={f"access-token-{demo.app.cookie_id}": token},
                         )
-                    )
-                    msg = json.loads(await ws.recv())
-                    assert msg["msg"] == "process_starts"
-                if msg["msg"] == "process_completed":
-                    assert msg["success"]
-                    assert msg["output"]["data"] == [f"Hello {i}!"]
-                    break
-
-    await asyncio.gather(*[run_ws(i) for i in range(3)])
+                        assert req.ok
+                    if msg["msg"] == "process_completed":
+                        assert msg["success"]
+                        assert msg["output"]["data"] == [f"Hello {i}!"]
+                        break
+                                        
+    await asyncio.gather(*[run_with_credentials(i) for i in range(3)])
 
 
 def test_temp_file_sets_get_extended():

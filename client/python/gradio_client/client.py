@@ -19,6 +19,7 @@ from pathlib import Path
 from threading import Lock
 from typing import Any, Callable, Literal
 
+import httpx
 import huggingface_hub
 import requests
 import websockets
@@ -122,6 +123,8 @@ class Client:
             print(f"Loaded as API: {self.src} ✔")
 
         self.api_url = urllib.parse.urljoin(self.src, utils.API_URL)
+        self.sse_url = urllib.parse.urljoin(self.src, utils.SSE_URL)
+        self.sse_data_url = urllib.parse.urljoin(self.src, utils.SSE_DATA_URL)
         self.ws_url = urllib.parse.urljoin(
             self.src.replace("http", "ws", 1), utils.WS_URL
         )
@@ -322,7 +325,7 @@ class Client:
         inferred_fn_index = self._infer_fn_index(api_name, fn_index)
 
         helper = None
-        if self.endpoints[inferred_fn_index].use_ws:
+        if self.endpoints[inferred_fn_index].protocol in ("ws", "sse"):
             helper = Communicator(
                 Lock(),
                 JobStatus(),
@@ -781,7 +784,7 @@ class Endpoint:
         self.api_name: str | Literal[False] | None = (
             "/" + api_name if isinstance(api_name, str) else api_name
         )
-        self.use_ws = self._use_websocket(self.dependency)
+        self.protocol = self._get_protocol(self.dependency)
         self.input_component_types = [
             self._get_component_type(id_) for id_ in dependency["inputs"]
         ]
@@ -847,22 +850,23 @@ class Endpoint:
 
     def make_predict(self, helper: Communicator | None = None):
         def _predict(*data) -> tuple:
-            data = json.dumps(
-                {
-                    "data": data,
-                    "fn_index": self.fn_index,
-                    "session_hash": self.client.session_hash,
-                }
-            )
-            hash_data = json.dumps(
-                {
-                    "fn_index": self.fn_index,
-                    "session_hash": self.client.session_hash,
-                }
-            )
+            data = {
+                "data": data,
+                "fn_index": self.fn_index,
+                "session_hash": self.client.session_hash,
+            }
 
-            if self.use_ws:
+            hash_data = {
+                "fn_index": self.fn_index,
+                "session_hash": self.client.session_hash,
+            }
+
+            if self.protocol == "ws":
                 result = utils.synchronize_async(self._ws_fn, data, hash_data, helper)
+                if "error" in result:
+                    raise ValueError(result["error"])
+            elif self.protocol == "sse":
+                result = utils.synchronize_async(self._sse_fn, data, hash_data, helper)
                 if "error" in result:
                     raise ValueError(result["error"])
             else:
@@ -1045,15 +1049,21 @@ class Endpoint:
         predictions = self.reduce_singleton_output(*predictions)
         return predictions
 
-    def _use_websocket(self, dependency: dict) -> bool:
+    def _get_protocol(self, dependency: dict) -> Literal["sse", "ws", "http"]:
+        major_version = int(self.client.config["version"].split(".")[0])
+        if major_version >= 4:
+            return "sse"
         queue_enabled = self.client.config.get("enable_queue", False)
         queue_uses_websocket = version.parse(
             self.client.config.get("version", "2.0")
         ) >= version.Version("3.2")
         dependency_uses_queue = dependency.get("queue", False) is not False
-        return queue_enabled and queue_uses_websocket and dependency_uses_queue
+        if queue_enabled and queue_uses_websocket and dependency_uses_queue:
+            return "ws"
+        else:
+            return "http"
 
-    async def _ws_fn(self, data, hash_data, helper: Communicator):
+    async def _ws_fn(self, data: dict, hash_data: dict, helper: Communicator):
         async with websockets.connect(  # type: ignore
             self.client.ws_url,
             open_timeout=10,
@@ -1061,6 +1071,12 @@ class Endpoint:
             max_size=1024 * 1024 * 1024,
         ) as websocket:
             return await utils.get_pred_from_ws(websocket, data, hash_data, helper)
+
+    async def _sse_fn(self, data: dict, hash_data: dict, helper: Communicator):
+        async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=None)) as client:
+            return await utils.get_pred_from_sse(
+                client, data, hash_data, helper, self.client.sse_url, self.client.sse_data_url
+            )
 
 
 @document("result", "outputs", "status")
