@@ -2,4 +2,4 @@
 "@gradio/lite": patch
 ---
 
-release
+fix: release
