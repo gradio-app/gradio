@@ -66,14 +66,15 @@ result = client.predict(<!--
 								><!--
 			-->	# {python_type.type} {#if python_type.description}({python_type.description}){/if}<!----> in '{label}' <!--
 			-->{component} component<!--
-			--></span><!--
+			--></span
+							><!--
 		-->{/each}<!--
 
 		-->{#if named}
-		api_name="/{dependency.api_name}"<!--
+							api_name="/{dependency.api_name}"<!--
 		-->{:else}
-		fn_index={dependency_index}
-		{/if}
+							fn_index={dependency_index}
+						{/if}
 )
 print(result)</pre>
 				</div>
