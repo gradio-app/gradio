@@ -90,6 +90,33 @@
 	export let worker_proxy: WorkerProxy | undefined = undefined;
 	if (worker_proxy) {
 		setWorkerProxyContext(worker_proxy);
+
+		worker_proxy.addEventListener("progress-update", (event) => {
+			loading_text = (event as CustomEvent).detail + "...";
+		});
+		worker_proxy.addEventListener("run-start", (event) => {
+			status = {
+				message: "",
+				load_status: "pending",
+				status: "sleeping",
+				detail: "SLEEPING"
+			};
+		});
+		worker_proxy.addEventListener("error", (event) => {
+			const error: Error = (event as CustomEvent).detail;
+
+			// XXX: Although `status` is expected to store Space status info,
+			//      we are using it to store the error thrown from the Wasm runtime here
+			//      as a workaround to display the error message in the UI
+			//      without breaking the	existing code.
+			status = {
+				status: "space_error",
+				message: error.message,
+				detail: "RUNTIME_ERROR",
+				load_status: "error",
+				discussions_enabled: false
+			};
+		});
 	}
 
 	export let space: string | null;
