@@ -6,7 +6,6 @@
 	import type { SelectData } from "@gradio/utils";
 	import { afterUpdate } from "svelte";
 
-
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -38,9 +37,7 @@
 	// When the value changes, dispatch the change event via handle_change()
 	// See the docs for an explanation: https://svelte.dev/docs/svelte-components#script-3-$-marks-a-statement-as-reactive
 	$: value, handle_change();
-	$: disabled = mode === "static"
-
-
+	$: disabled = mode === "static";
 </script>
 
 <Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
@@ -83,7 +80,6 @@
 		<span class="ml-2">{label}</span>
 	</label>
 </Block>
-
 
 <style>
 	label {

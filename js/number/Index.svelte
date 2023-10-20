@@ -84,7 +84,6 @@
 	</label>
 </Block>
 
-
 <style>
 	label:not(.container),
 	label:not(.container) > input {
