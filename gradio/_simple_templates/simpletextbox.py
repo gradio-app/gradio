@@ -8,7 +8,7 @@ from gradio.events import Events
 
 class SimpleTextbox(FormComponent):
     """
-    Creates a textbox for user to enter string input or display string output.
+    Creates a very simple textbox for user to enter string input or display string output.
     Preprocessing: passes textbox value as a {str} into the function.
     Postprocessing: expects a {str} returned from function and sets textbox value to it.
     Examples-format: a {str} representing the textbox input.
