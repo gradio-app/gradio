@@ -9,5 +9,9 @@
 	"private": false,
 	"dependencies": {
 		"@gradio/utils": "workspace:^"
+	},
+	"exports": {
+		".":  "./src/index.ts",
+		"./render": "./src/render.ts"
 	}
 }

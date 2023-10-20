@@ -4,7 +4,7 @@
 	import { Copy, Check } from "@gradio/icons";
 	import { fade } from "svelte/transition";
 	// import type { SelectData } from "@gradio/utils";
-	import type { ActionReturn } from "@gradio/tootils";
+	// import type { ActionReturn } from "@gradio/tootils";
 
 	export let value = "";
 	export let value_is_output = false;

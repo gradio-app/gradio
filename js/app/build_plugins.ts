@@ -2,7 +2,7 @@ import type { Plugin } from "vite";
 import { parse, HTMLElement } from "node-html-parser";
 
 import { join } from "path";
-import { writeFileSync, cpSync } from "fs";
+import { writeFileSync } from "fs";
 
 export function inject_ejs(): Plugin {
 	return {
@@ -220,9 +220,31 @@ function get_export_path(
 	return existsSync(_path) ? _path : undefined;
 }
 
+const ignore_list = [
+	"tootils",
+	"_cdn-test",
+	"_spaces-test",
+	"_website",
+	"app",
+	"atoms",
+	"fallback",
+	"icons",
+	"lite",
+	"preview",
+	"simpledropdown",
+	"simpletextbox",
+	"storybook",
+	"theme",
+	"timeseries",
+	"tooltip",
+	"upload",
+	"utils",
+	"wasm"
+];
 function generate_component_imports(): string {
 	const exports = readdirSync(join(__dirname, ".."))
 		.map((dir) => {
+			if (ignore_list.includes(dir)) return undefined;
 			if (!statSync(join(__dirname, "..", dir)).isDirectory()) return undefined;
 
 			const package_json_path = join(__dirname, "..", dir, "package.json");
@@ -283,7 +305,13 @@ export function inject_component_loader(): Plugin {
 	return {
 		name: "inject-component-loader",
 		enforce: "pre",
-		resolveId(id: string) {
+		resolveId(id: string, importer: string) {
+			if (id.includes("playwright")) {
+				// console.log({ id, importer });
+			}
+			if (id.includes("tootils")) {
+				console.log({ id, importer });
+			}
 			if (id === v_id) return resolved_v_id;
 		},
 		load(id: string) {
