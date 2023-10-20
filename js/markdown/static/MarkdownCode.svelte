@@ -15,9 +15,11 @@
 		display: boolean;
 	}[] = [];
 	export let render_markdown = true;
-
+	export let line_breaks = true;
 	let el: HTMLSpanElement;
 	let html: string;
+
+	marked.use({ breaks: line_breaks });
 
 	DOMPurify.addHook("afterSanitizeAttributes", function (node) {
 		if ("target" in node) {
@@ -108,5 +110,16 @@
 
 	span :global(pre) {
 		position: relative;
+	}
+
+	span:not(.chatbot) :global(ul) {
+		list-style-position: inside;
+	}
+
+	span:not(.chatbot) :global(ol) {
+		list-style-position: inside;
+	}
+	span :global(p:not(:first-child)) {
+		margin-top: var(--spacing-xxl);
 	}
 </style>

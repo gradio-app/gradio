@@ -108,6 +108,11 @@ export default defineConfig(({ mode }) => {
 								fileName.indexOf(".svelte") > -1
 							) {
 								return selector;
+							} else if (
+								// For the custom element <gradio-lite>. See theme/src/global.css for the details.
+								/^gradio-lite(\:[^\:]+)?/.test(selector)
+							) {
+								return selector;
 							}
 							return prefixedSelector;
 						}

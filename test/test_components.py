@@ -1207,6 +1207,7 @@ class TestDataframe:
         x_data = {
             "data": [["Tim", 12, False], ["Jan", 24, True]],
             "headers": ["Name", "Age", "Member"],
+            "metadata": None,
         }
         dataframe_input = gr.Dataframe(headers=["Name", "Age", "Member"])
         output = dataframe_input.preprocess(x_data)
@@ -1218,7 +1219,11 @@ class TestDataframe:
             headers=["Name", "Age", "Member"], label="Dataframe Input"
         )
         assert dataframe_input.get_config() == {
-            "value": {"headers": ["Name", "Age", "Member"], "data": [["", "", ""]]},
+            "value": {
+                "headers": ["Name", "Age", "Member"],
+                "data": [["", "", ""]],
+                "metadata": None,
+            },
             "selectable": False,
             "headers": ["Name", "Age", "Member"],
             "row_count": (1, "dynamic"),
@@ -1241,6 +1246,8 @@ class TestDataframe:
             "name": "dataframe",
             "height": 500,
             "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
+            "line_breaks": True,
+            "column_widths": [],
         }
         dataframe_input = gr.Dataframe()
         output = dataframe_input.preprocess(x_data)
@@ -1250,7 +1257,7 @@ class TestDataframe:
 
         dataframe_output = gr.Dataframe()
         assert dataframe_output.get_config() == {
-            "value": {"headers": [1, 2, 3], "data": [["", "", ""]]},
+            "value": {"headers": [1, 2, 3], "data": [["", "", ""]], "metadata": None},
             "selectable": False,
             "headers": [1, 2, 3],
             "row_count": (1, "dynamic"),
@@ -1273,7 +1280,16 @@ class TestDataframe:
             "name": "dataframe",
             "height": 500,
             "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
+            "line_breaks": True,
+            "column_widths": [],
         }
+
+        dataframe_input = gr.Dataframe(column_widths=["100px", 200, "50%"])
+        assert dataframe_input.get_config()["column_widths"] == [
+            "100px",
+            "200px",
+            "50%",
+        ]
 
     def test_postprocess(self):
         """
@@ -1281,17 +1297,18 @@ class TestDataframe:
         """
         dataframe_output = gr.Dataframe()
         output = dataframe_output.postprocess([])
-        assert output == {"data": [[]], "headers": []}
+        assert output == {"data": [[]], "headers": [], "metadata": None}
         output = dataframe_output.postprocess(np.zeros((2, 2)))
-        assert output == {"data": [[0, 0], [0, 0]], "headers": [1, 2]}
+        assert output == {"data": [[0, 0], [0, 0]], "headers": [1, 2], "metadata": None}
         output = dataframe_output.postprocess([[1, 3, 5]])
-        assert output == {"data": [[1, 3, 5]], "headers": [1, 2, 3]}
+        assert output == {"data": [[1, 3, 5]], "headers": [1, 2, 3], "metadata": None}
         output = dataframe_output.postprocess(
             pd.DataFrame([[2, True], [3, True], [4, False]], columns=["num", "prime"])
         )
         assert output == {
             "headers": ["num", "prime"],
             "data": [[2, True], [3, True], [4, False]],
+            "metadata": None,
         }
         with pytest.raises(ValueError):
             gr.Dataframe(type="unknown")
@@ -1302,12 +1319,14 @@ class TestDataframe:
         assert output == {
             "headers": ["one", "two"],
             "data": [[2, True], [3, True]],
+            "metadata": None,
         }
         dataframe_output = gr.Dataframe(headers=["one", "two", "three"])
         output = dataframe_output.postprocess([[2, True, "ab", 4], [3, True, "cd", 5]])
         assert output == {
             "headers": ["one", "two", "three", 4],
             "data": [[2, True, "ab", 4], [3, True, "cd", 5]],
+            "metadata": None,
         }
 
     def test_dataframe_postprocess_all_types(self):
@@ -1347,6 +1366,7 @@ class TestDataframe:
                     "# Goodbye",
                 ],
             ],
+            "metadata": None,
         }
 
     def test_dataframe_postprocess_only_dates(self):
@@ -1370,6 +1390,105 @@ class TestDataframe:
                     pd.Timestamp("2022-02-16 00:00:00"),
                 ],
             ],
+            "metadata": None,
+        }
+
+    def test_dataframe_postprocess_styler(self):
+        component = gr.Dataframe()
+        df = pd.DataFrame(
+            {
+                "name": ["Adam", "Mike"] * 4,
+                "gpa": [1.1, 1.12] * 4,
+                "sat": [800, 800] * 4,
+            }
+        )
+        s = df.style.format(precision=1, decimal=",")
+        output = component.postprocess(s)
+        assert output == {
+            "data": [
+                ["Adam", 1.1, 800],
+                ["Mike", 1.12, 800],
+                ["Adam", 1.1, 800],
+                ["Mike", 1.12, 800],
+                ["Adam", 1.1, 800],
+                ["Mike", 1.12, 800],
+                ["Adam", 1.1, 800],
+                ["Mike", 1.12, 800],
+            ],
+            "headers": ["name", "gpa", "sat"],
+            "metadata": {
+                "display_value": [
+                    ["Adam", "1,1", "800"],
+                    ["Mike", "1,1", "800"],
+                    ["Adam", "1,1", "800"],
+                    ["Mike", "1,1", "800"],
+                    ["Adam", "1,1", "800"],
+                    ["Mike", "1,1", "800"],
+                    ["Adam", "1,1", "800"],
+                    ["Mike", "1,1", "800"],
+                ],
+                "styling": [
+                    ["", "", ""],
+                    ["", "", ""],
+                    ["", "", ""],
+                    ["", "", ""],
+                    ["", "", ""],
+                    ["", "", ""],
+                    ["", "", ""],
+                    ["", "", ""],
+                ],
+            },
+        }
+
+        df = pd.DataFrame(
+            {
+                "A": [14, 4, 5, 4, 1],
+                "B": [5, 2, 54, 3, 2],
+                "C": [20, 20, 7, 3, 8],
+                "D": [14, 3, 6, 2, 6],
+                "E": [23, 45, 64, 32, 23],
+            }
+        )
+
+        t = df.style.highlight_max(color="lightgreen", axis=0)
+        output = component.postprocess(t)
+        assert output == {
+            "data": [
+                [14, 5, 20, 14, 23],
+                [4, 2, 20, 3, 45],
+                [5, 54, 7, 6, 64],
+                [4, 3, 3, 2, 32],
+                [1, 2, 8, 6, 23],
+            ],
+            "headers": ["A", "B", "C", "D", "E"],
+            "metadata": {
+                "display_value": [
+                    ["14", "5", "20", "14", "23"],
+                    ["4", "2", "20", "3", "45"],
+                    ["5", "54", "7", "6", "64"],
+                    ["4", "3", "3", "2", "32"],
+                    ["1", "2", "8", "6", "23"],
+                ],
+                "styling": [
+                    [
+                        "background-color: lightgreen",
+                        "",
+                        "background-color: lightgreen",
+                        "background-color: lightgreen",
+                        "",
+                    ],
+                    ["", "", "background-color: lightgreen", "", ""],
+                    [
+                        "",
+                        "background-color: lightgreen",
+                        "",
+                        "",
+                        "background-color: lightgreen",
+                    ],
+                    ["", "", "", "", ""],
+                    ["", "", "", "", ""],
+                ],
+            },
         }
 
 
@@ -2121,6 +2240,8 @@ class TestChatbot:
             "sanitize_html": True,
             "render_markdown": True,
             "bubble_full_width": True,
+            "line_breaks": True,
+            "layout": None,
         }
 
 
@@ -2365,6 +2486,10 @@ class TestState:
         assert state.preprocess(10) == 10
         assert state.preprocess("abc") == "abc"
         assert state.stateful
+
+    def test_initial_value_deepcopy(self):
+        with pytest.raises(TypeError):
+            gr.State(value=gr)  # modules are not deepcopyable
 
     @pytest.mark.asyncio
     async def test_in_interface(self):

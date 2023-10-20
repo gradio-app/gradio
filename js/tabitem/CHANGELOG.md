@@ -1,10 +1,26 @@
 # @gradio/tabitem
 
+## 0.0.7
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/utils@0.1.3
+  - @gradio/tabs@0.0.8
+
+## 0.0.6
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/utils@0.1.2
+  - @gradio/tabs@0.0.7
+
 ## 0.0.5
 
 ### Features
 
-- [#5590](https://github.com/gradio-app/gradio/pull/5590) [`d1ad1f671`](https://github.com/gradio-app/gradio/commit/d1ad1f671caef9f226eb3965f39164c256d8615c) - Attach `elem_classes` selectors to layout elements, and an id to the Tab button (for targeting via CSS/JS).  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#5590](https://github.com/gradio-app/gradio/pull/5590) [`d1ad1f671`](https://github.com/gradio-app/gradio/commit/d1ad1f671caef9f226eb3965f39164c256d8615c) - Attach `elem_classes` selectors to layout elements, and an id to the Tab button (for targeting via CSS/JS). Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 0.0.4
 

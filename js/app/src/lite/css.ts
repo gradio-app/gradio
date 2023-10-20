@@ -1,5 +1,5 @@
 import type { WorkerProxy } from "@gradio/wasm";
-import { is_self_origin } from "./url";
+import { is_self_host } from "@gradio/wasm/network";
 import { mount_css as default_mount_css } from "../css";
 
 // In the Wasm mode, we use a prebuilt CSS file `/static/css/theme.css` to apply the styles in the initialization phase,
@@ -8,7 +8,9 @@ import { mount_css as default_mount_css } from "../css";
 const PREBUILT_CSS_URL = new URL("./theme.css", import.meta.url).href;
 const DYNAMIC_THEME_CSS_URL_PATH = "/theme.css";
 
-export async function mount_prebuilt_css(target: HTMLElement): Promise<void> {
+export function mount_prebuilt_css(
+	target: Parameters<typeof default_mount_css>[1]
+): Promise<void> {
 	return default_mount_css(PREBUILT_CSS_URL, target);
 }
 
@@ -20,7 +22,7 @@ export async function wasm_proxied_mount_css(
 	const request = new Request(url_string); // Resolve a relative URL.
 	const url = new URL(request.url);
 
-	if (!is_self_origin(url)) {
+	if (!is_self_host(url)) {
 		// Fallback to the default implementation for external resources.
 		return default_mount_css(url_string, target);
 	}
