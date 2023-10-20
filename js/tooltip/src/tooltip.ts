@@ -9,7 +9,7 @@ interface ActionArgs {
 export function tooltip(
 	element: HTMLElement | SVGElement,
 	{ color, text }: ActionArgs
-): ActionReturn {
+): any {
 	let tooltipComponent: Tooltip;
 	function mouse_over(event: MouseEvent): MouseEvent {
 		tooltipComponent = new Tooltip({

@@ -222,7 +222,7 @@
 					loading="lazy"
 				/>
 			</button>
-			{#if _value[selected_index].caption}
+			{#if _value[selected_index]?.caption}
 				<caption class="caption">
 					{_value[selected_index].caption}
 				</caption>

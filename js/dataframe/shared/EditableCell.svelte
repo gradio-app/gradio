@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	// import { type ActionReturn } from "@gradio/tootils";
 	import { MarkdownCode } from "@gradio/markdown";
 
 	export let edit: boolean;
@@ -30,7 +29,7 @@
 	export let el: HTMLInputElement | null;
 	$: _value = value;
 
-	function use_focus(node: HTMLInputElement): ActionReturn {
+	function use_focus(node: HTMLInputElement): any {
 		if (clear_on_focus) {
 			_value = "";
 		}

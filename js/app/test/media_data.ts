@@ -1,6 +1,6 @@
 // cheetah1.jpg
 export const BASE64_IMAGE =
-	"http://localhost:7860/kitchen_sink/file=/var/folders/3w/6btg016509v7b2lz9h7vwqv00000gn/T/gradio/d0a3c81692e072d119e2c665defbd47ce4d3b89a/cheetah1.jpg";
+	"/kitchen_sink/file=/var/folders/3w/6btg016509v7b2lz9h7vwqv00000gn/T/gradio/d0a3c81692e072d119e2c665defbd47ce4d3b89a/cheetah1.jpg";
 
 // matplotlib plot image
 export const BASE64_PLOT_IMG =

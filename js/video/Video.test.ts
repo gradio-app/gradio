@@ -39,13 +39,13 @@ describe("Video", () => {
 		const { getByTestId, queryAllByText } = await render(Video, {
 			show_label: true,
 			loading_status,
-			value: [
-				{
+			value: {
+				video: {
 					name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
 					data: null,
 					is_file: true
 				}
-			],
+			},
 			label: "Test Label",
 			root: "foo",
 			root_url: null,
@@ -68,9 +68,11 @@ describe("Video", () => {
 			show_label: false,
 			loading_status,
 			value: {
-				name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
-				data: null,
-				is_file: true
+				video: {
+					name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
+					data: null,
+					is_file: true
+				}
 			},
 			label: "Video Component",
 			root: "foo",
@@ -88,13 +90,13 @@ describe("Video", () => {
 		const { getByTestId } = await render(Video, {
 			show_label: true,
 			loading_status,
-			value: [
-				{
+			value: {
+				video: {
 					name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
 					data: null,
 					is_file: true
 				}
-			],
+			},
 			root: "foo",
 			root_url: null,
 			streaming: false,
@@ -115,13 +117,13 @@ describe("Video", () => {
 			show_label: true,
 			loading_status,
 			mode: "static",
-			value: [
-				{
+			value: {
+				video: {
 					name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
 					data: null,
 					is_file: true
 				}
-			],
+			},
 			root: "foo",
 			root_url: null,
 			streaming: false,
@@ -139,13 +141,13 @@ describe("Video", () => {
 		const { getByTestId } = await render(Video, {
 			show_label: true,
 			loading_status,
-			value: [
-				{
+			value: {
+				video: {
 					name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
 					data: null,
 					is_file: true
 				}
-			],
+			},
 			root: "foo",
 			root_url: null,
 			streaming: false,
@@ -164,13 +166,13 @@ describe("Video", () => {
 			show_label: true,
 			loading_status,
 			mode: "static",
-			value: [
-				{
+			value: {
+				video: {
 					name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
 					data: null,
 					is_file: true
 				}
-			],
+			},
 			root: "foo",
 			root_url: null,
 			streaming: false,
@@ -182,13 +184,13 @@ describe("Video", () => {
 		const fn = spyOn(startButton, "play");
 		startButton.dispatchEvent(new Event("loadeddata"));
 		component.$set({
-			value: [
-				{
+			value: {
+				video: {
 					name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
 					data: null,
 					is_file: true
 				}
-			]
+			}
 		});
 		startButton.dispatchEvent(new Event("loadeddata"));
 		assert.equal(fn.callCount, 2);
@@ -199,13 +201,13 @@ describe("Video", () => {
 			show_label: true,
 			loading_status,
 			mode: "interactive",
-			value: [
-				{
+			value: {
+				video: {
 					name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
 					data: null,
 					is_file: true
 				}
-			],
+			},
 			root: "foo",
 			root_url: null,
 			streaming: false,
@@ -217,37 +219,42 @@ describe("Video", () => {
 		const fn = spyOn(startButton, "play");
 		startButton.dispatchEvent(new Event("loadeddata"));
 		component.$set({
-			value: [
-				{
+			value: {
+				video: {
 					name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
 					data: null,
 					is_file: true
 				}
-			]
+			}
 		});
 		startButton.dispatchEvent(new Event("loadeddata"));
 		assert.equal(fn.callCount, 2);
 	});
 	test("renders video and download button", async () => {
-		const data = [
-			{
-				data: null,
+		const data = {
+			video: {
+				data: "asd",
+				name: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+				is_file: true
+			},
+			subtitles: {
+				data: "asd",
 				name: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
 				is_file: true
 			}
-		];
+		};
 		const results = await render(Video, {
 			mode: "static",
 			label: "video",
 			show_label: true,
 			value: data,
-			root: "foo"
+			root: "https://localhost:8000"
 		});
 
 		const downloadButton = results.getAllByTestId("download-div")[0];
 		expect(
 			downloadButton.getElementsByTagName("a")[0].getAttribute("href")
-		).toBe(data[0].name);
+		).toBe(data.video.name);
 		expect(
 			downloadButton.getElementsByTagName("button").length
 		).toBeGreaterThan(0);

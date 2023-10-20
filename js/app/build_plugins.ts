@@ -305,13 +305,7 @@ export function inject_component_loader(): Plugin {
 	return {
 		name: "inject-component-loader",
 		enforce: "pre",
-		resolveId(id: string, importer: string) {
-			if (id.includes("playwright")) {
-				// console.log({ id, importer });
-			}
-			if (id.includes("tootils")) {
-				console.log({ id, importer });
-			}
+		resolveId(id: string) {
 			if (id === v_id) return resolved_v_id;
 		},
 		load(id: string) {

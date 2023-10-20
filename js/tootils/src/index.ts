@@ -56,3 +56,4 @@ export interface ActionReturn<
 }
 
 export { expect } from "@playwright/test";
+export * from "./render";

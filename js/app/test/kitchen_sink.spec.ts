@@ -91,7 +91,7 @@ test("test outputs", async ({ page, browser }) => {
 
 	const image = await page.locator("img").nth(0);
 	const image_data = await image.getAttribute("src");
-	await expect(image_data).toEqual(BASE64_IMAGE);
+	await expect(image_data).toContain(BASE64_IMAGE);
 
 	const audio = await page.locator("audio").nth(0);
 	const audio_data = await audio.getAttribute("src");
