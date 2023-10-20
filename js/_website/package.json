@@ -14,7 +14,7 @@
 		"@sveltejs/adapter-auto": "^2.0.0",
 		"@sveltejs/adapter-static": "^2.0.2",
 		"@sveltejs/kit": "^1.5.0",
-		"svelte-i18n": "^3.6.0",
+		"svelte-i18n": "^4.0.0",
 		"@tailwindcss/forms": "^0.5.0",
 		"@tailwindcss/typography": "^0.5.4",
 		"@types/node": "^20.3.2",
