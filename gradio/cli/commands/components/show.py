@@ -2,8 +2,6 @@ import inspect
 
 from rich.console import Console
 from rich.table import Table
-from typer import Option
-from typing_extensions import Annotated
 
 import gradio._simple_templates
 import gradio.components
@@ -38,11 +36,11 @@ def _get_table_items(module):
             continue
         tags = []
         if "Simple" in name:
-            tags.append("[bold magenta]Beginner Friendly[/]")
+            tags.append("🌱🤝Beginner Friendly🌱🤝")
         if issubclass(gr_cls, FormComponent):
-            tags.append("[bold cyan]Form Component[/]")
+            tags.append("📝🧩Form Component📝🧩")
         if name in gradio.layouts.__all__:
-            tags.append("[bold light_coral]Layout[/]")
+            tags.append("📐Layout📐")
         doc = inspect.getdoc(gr_cls) or "No description available."
         doc = doc.split(".")[0]
         if tags:
@@ -52,14 +50,7 @@ def _get_table_items(module):
     return items
 
 
-def _show(
-    colors: Annotated[
-        bool,
-        Option(
-            help="Show colors in the table. Defaults to true. If your terminal does not support colors, use --no-colors."
-        ),
-    ] = True
-):
+def _show():
     items = (
         _get_table_items(gradio._simple_templates)
         + _get_table_items(gradio.components)
@@ -73,5 +64,5 @@ def _show(
         table.add_row(*item)
 
     console = Console()
-    with console.pager(styles=colors):
+    with console.pager():
         console.print(table)
