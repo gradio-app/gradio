@@ -1,12 +1,7 @@
 <script lang="ts">
-	import { createEventDispatcher, tick, getContext } from "svelte";
+	import { createEventDispatcher, tick } from "svelte";
 	import type { FileData } from "./types";
-	import { blobToBase64, normalise_file } from "./utils";
-	import { upload_files as default_upload_files } from "@gradio/client";
-
-	const upload_files =
-		getContext<typeof default_upload_files>("upload_files") ??
-		default_upload_files;
+	import { upload, prepareFiles } from "./utils";
 
 	export let filetype: string | null = null;
 	export let dragging = false;
@@ -33,30 +28,7 @@
 
 	async function handle_upload(file_data: FileData[]): Promise<void> {
 		await tick();
-		let files = (Array.isArray(file_data) ? file_data : [file_data]).map(
-			(file_data) => file_data.blob!
-		);
-
-		await upload_files(root, files).then(async (response) => {
-			if (response.error) {
-				(Array.isArray(file_data) ? file_data : [file_data]).forEach(
-					async (file_data, i) => {
-						file_data.data = await blobToBase64(file_data.blob!);
-						file_data.blob = undefined;
-					}
-				);
-			} else {
-				(Array.isArray(file_data) ? file_data : [file_data]).forEach((f, i) => {
-					if (response.files) {
-						f.orig_name = f.name;
-						f.name = response.files[i];
-						f.is_file = true;
-						f.blob = undefined;
-						normalise_file(f, root, null);
-					}
-				});
-			}
-		});
+		await upload(file_data, root);
 		dispatch("load", file_count === "single" ? file_data[0] : file_data);
 	}
 
@@ -68,16 +40,8 @@
 		if (file_count === "single") {
 			_files = [files[0]];
 		}
-		var all_file_data: FileData[] = [];
-		_files.forEach((f, i) => {
-			all_file_data[i] = {
-				name: f.name,
-				size: f.size,
-				data: "",
-				blob: f
-			};
-		});
-		await handle_upload(all_file_data);
+		let file_data = await prepareFiles(_files);
+		await handle_upload(file_data);
 	}
 
 	async function loadFilesFromUpload(e: Event): Promise<void> {

@@ -1,4 +1,5 @@
 import type { FileData } from "./types";
+import { upload_files } from "@gradio/client";
 
 export function normalise_file(
 	file: string | FileData | null,
@@ -85,3 +86,47 @@ export const blobToBase64 = (blob: File): Promise<string> => {
 		};
 	});
 };
+
+export async function upload(
+	file_data: FileData[],
+	root: string
+): Promise<FileData[]> {
+	let files = (Array.isArray(file_data) ? file_data : [file_data]).map(
+		(file_data) => file_data.blob!
+	);
+
+	await upload_files(root, files).then(async (response) => {
+		if (response.error) {
+			(Array.isArray(file_data) ? file_data : [file_data]).forEach(
+				async (file_data, i) => {
+					file_data.data = await blobToBase64(file_data.blob!);
+					file_data.blob = undefined;
+				}
+			);
+		} else {
+			(Array.isArray(file_data) ? file_data : [file_data]).forEach((f, i) => {
+				if (response.files) {
+					f.orig_name = f.name;
+					f.name = response.files[i];
+					f.is_file = true;
+					f.blob = undefined;
+					normalise_file(f, root, null);
+				}
+			});
+		}
+	});
+	return file_data;
+}
+
+export async function prepareFiles(files: File[]): Promise<FileData[]> {
+	var all_file_data: FileData[] = [];
+	files.forEach((f, i) => {
+		all_file_data[i] = {
+			name: f.name,
+			size: f.size,
+			data: "",
+			blob: f
+		};
+	});
+	return all_file_data;
+}

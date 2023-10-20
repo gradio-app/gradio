@@ -1,16 +1,15 @@
 <script lang="ts">
 	import type { Gradio } from "@gradio/utils";
-	import { tick, getContext } from "svelte";
+	import { tick } from "svelte";
+	import { BaseButton } from "@gradio/button";
 	import type { FileData } from "@gradio/upload";
-	import UploadButton from "./shared/UploadButton.svelte";
-	import { upload_files as default_upload_files } from "@gradio/client";
-	import { blobToBase64 } from "@gradio/upload";
+	import { upload, prepareFiles } from "@gradio/upload";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let label: string;
-	export let value: null | FileData;
+	export let value: null | FileData | FileData[];
 	export let file_count: string;
 	export let file_types: string[] = [];
 	export let root: string;
@@ -19,64 +18,92 @@
 	export let min_width: number | undefined = undefined;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let gradio: Gradio<{
-		change: FileData | null;
-		upload: FileData;
+		change: FileData | FileData[] | null;
+		upload: FileData | FileData[] | null;
 		click: never;
 	}>;
 	export let mode: "static" | "interactive";
 
-	const upload_files =
-		getContext<typeof default_upload_files>("upload_files") ??
-		default_upload_files;
+	$: disabled = mode === "static";
 
-	async function handle_upload({
-		detail
-	}: CustomEvent<FileData>): Promise<void> {
-		value = detail;
-		await tick();
-		let files = (Array.isArray(detail) ? detail : [detail]).map(
-			(file_data) => file_data.blob!
-		);
+	let hidden_upload: HTMLInputElement;
+	let accept_file_types: string | null;
 
-		upload_files(root, files).then(async (response) => {
-			if (response.error) {
-				(Array.isArray(detail) ? detail : [detail]).forEach(
-					async (file_data, i) => {
-						file_data.data = await blobToBase64(file_data.blob!);
-						file_data.blob = undefined;
-					}
-				);
-			} else {
-				(Array.isArray(detail) ? detail : [detail]).forEach((file_data, i) => {
-					if (response.files) {
-						file_data.orig_name = file_data.name;
-						file_data.name = response.files[i];
-						file_data.is_file = true;
-						file_data.blob = undefined;
-					}
-				});
+	if (file_types == null) {
+		accept_file_types = null;
+	} else {
+		file_types = file_types.map((x) => {
+			if (x.startsWith(".")) {
+				return x;
 			}
-
-			gradio.dispatch("change", value);
-			gradio.dispatch("upload", detail);
+			return x + "/*";
 		});
+		accept_file_types = file_types.join(", ");
+	}
+
+	function openFileUpload(): void {
+		hidden_upload.click();
+	}
+
+	async function loadFiles(files: FileList): Promise<void> {
+		let _files: File[] = Array.from(files);
+		if (!files.length) {
+			return;
+		}
+		if (file_count === "single") {
+			_files = [files[0]];
+		}
+		let all_file_data = await prepareFiles(_files);
+		await tick();
+		all_file_data = await upload(all_file_data, root);
+		console.log(all_file_data);
+		gradio.dispatch("change", all_file_data);
+		gradio.dispatch("upload", all_file_data);
+		value = all_file_data;
+	}
+
+	async function loadFilesFromUpload(e: Event): Promise<void> {
+		const target = e.target as HTMLInputElement;
+
+		if (!target.files) return;
+		await loadFiles(target.files);
+	}
+
+	function clearInputValue(e: Event): void {
+		const target = e.target as HTMLInputElement;
+		if (target.value) target.value = "";
 	}
 </script>
 
-<UploadButton
+<input
+	class="hide"
+	accept={accept_file_types}
+	type="file"
+	bind:this={hidden_upload}
+	on:change={loadFilesFromUpload}
+	on:click={clearInputValue}
+	multiple={file_count === "multiple" || undefined}
+	webkitdirectory={file_count === "directory" || undefined}
+	mozdirectory={file_count === "directory" || undefined}
+	data-testid="{label}-upload-button"
+/>
+
+<BaseButton
+	{size}
+	{variant}
 	{elem_id}
 	{elem_classes}
 	{visible}
-	{file_count}
-	{file_types}
-	{size}
+	on:click={openFileUpload}
 	{scale}
 	{min_width}
-	disabled={mode === "static"}
-	{variant}
-	{label}
-	on:click={() => gradio.dispatch("click")}
-	on:load={handle_upload}
+	{disabled}
 >
 	{gradio.i18n(label)}
-</UploadButton>
+</BaseButton>
+
+<style>
+	.hide {
+		display: none;
+	}
+</style>

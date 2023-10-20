@@ -4,5 +4,7 @@ export type { FileData } from "./types";
 export {
 	normalise_file,
 	get_fetchable_url_or_file,
-	blobToBase64
+	blobToBase64,
+	upload,
+	prepareFiles
 } from "./utils";

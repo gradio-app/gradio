@@ -102,7 +102,7 @@
 			on:upload={() => gradio.dispatch("upload")}
 			i18n={gradio.i18n}
 		>
-		<UploadText i18n={gradio.i18n} type="file" />
+			<UploadText i18n={gradio.i18n} type="file" />
 		</FileUpload>
 	{/if}
 </Block>
