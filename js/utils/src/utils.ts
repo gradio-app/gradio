@@ -1,4 +1,4 @@
-import { type ActionReturn } from "svelte/action";
+// import { type ActionReturn } from "@gradio/tootils";
 export interface SelectData {
 	index: number | [number, number];
 	value: any;

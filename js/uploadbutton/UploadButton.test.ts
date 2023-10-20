@@ -3,7 +3,7 @@ import { spy, spyOn } from "tinyspy";
 import { cleanup, render, wait_for_event } from "@gradio/tootils";
 import event from "@testing-library/user-event";
 import { setupi18n } from "../app/src/i18n";
-import UploadButton from "./interactive";
+import UploadButton from "./Index.svelte";
 
 describe("UploadButton", () => {
 	afterEach(() => {

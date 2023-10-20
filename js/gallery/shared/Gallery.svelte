@@ -150,7 +150,9 @@
 		if (typeof index !== "number") return;
 		await tick();
 
-		el[index].focus();
+		if (el[index] === undefined) return;
+
+		el[index]?.focus();
 
 		const { left: container_left, width: container_width } =
 			container_element.getBoundingClientRect();

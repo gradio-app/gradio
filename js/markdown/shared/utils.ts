@@ -7,7 +7,7 @@ import "prismjs/components/prism-latex";
 
 // loadLanguages(["python", "latex"]);
 
-import type { ActionReturn } from "svelte/action";
+// import { type ActionReturn } from "@gradio/tootils";
 
 const COPY_ICON_CODE = `<svg
 xmlns="http://www.w3.org/2000/svg"
