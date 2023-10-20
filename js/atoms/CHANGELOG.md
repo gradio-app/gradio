@@ -1,5 +1,31 @@
 # @gradio/atoms
 
+## 0.2.1
+
+### Fixes
+
+- [#5944](https://github.com/gradio-app/gradio/pull/5944) [`465f58957`](https://github.com/gradio-app/gradio/commit/465f58957f70c7cf3e894beef8a117b28339e3c1) - Show empty JSON icon when `value` is `null`.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
+## 0.2.0
+
+### Features
+
+- [#5864](https://github.com/gradio-app/gradio/pull/5864) [`e70805d54`](https://github.com/gradio-app/gradio/commit/e70805d54cc792452545f5d8eccc1aa0212a4695) - Change `BlockLabel` element to use `<label>`.  Thanks [@aileenvl](https://github.com/aileenvl)!
+
+## 0.1.4
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/utils@0.1.2
+
+## 0.1.3
+
+### Patch Changes
+
+- Updated dependencies [[`8f0fed857`](https://github.com/gradio-app/gradio/commit/8f0fed857d156830626eb48b469d54d211a582d2)]:
+  - @gradio/icons@0.2.0
+
 ## 0.1.2
 
 ### Patch Changes

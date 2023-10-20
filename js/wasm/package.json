@@ -1,17 +1,19 @@
 {
 	"name": "@gradio/wasm",
-	"version": "0.0.3",
+	"version": "0.4.0",
 	"description": "Gradio Wasm package",
 	"type": "module",
 	"main": "./dist/index.js",
 	"exports": {
 		".": "./dist/index.js",
-		"./package.json": "./package.json"
+		"./package.json": "./package.json",
+		"./svelte": "./svelte/index.ts",
+		"./network": "./network/index.ts"
 	},
-	"private": true,
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
+	"private": true,
 	"scripts": {
 		"dev:client": "tsc -w --incremental",
 		"dev:worker": "vite build --config vite.worker.config.js --watch --emptyOutDir=false",

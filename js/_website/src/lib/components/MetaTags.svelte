@@ -1,5 +1,4 @@
 <script lang="ts">
-	import image from "../assets/img/meta-image.png";
 	export let title = "Gradio";
 	export let description = "Build & Share Delightful Machine Learning Apps";
 	export let url: string;
@@ -18,7 +17,7 @@
 	<meta property="og:description" content={description} />
 	<meta
 		property="og:image"
-		content="https://raw.githubusercontent.com/gradio-app/gradio/main/website/homepage/src/assets/img/meta-image.png"
+		content="https://raw.githubusercontent.com/gradio-app/gradio/main/js/_website/src/lib/assets/img/header-image.jpg"
 	/>
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:creator" content="@Gradio" />
@@ -26,7 +25,7 @@
 	<meta name="twitter:description" content="{description}." />
 	<meta
 		name="twitter:image"
-		content="https://raw.githubusercontent.com/gradio-app/gradio/main/website/homepage/src/assets/img/meta-image.png"
+		content="https://raw.githubusercontent.com/gradio-app/gradio/main/js/_website/src/lib/assets/img/header-image.jpg"
 	/>
 
 	<link rel="canonical" href={canonical} />

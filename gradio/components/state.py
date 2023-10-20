@@ -37,7 +37,13 @@ class State(IOComponent, SimpleSerializable):
             value: the initial value (of arbitrary type) of the state. The provided argument is deepcopied. If a callable is provided, the function will be called whenever the app loads to set the initial value of the state.
         """
         self.stateful = True
-        IOComponent.__init__(self, value=deepcopy(value), **kwargs)
+        try:
+            self.value = deepcopy(value)
+        except TypeError as err:
+            raise TypeError(
+                f"The initial value of `gr.State` must be able to be deepcopied. The initial value of type {type(value)} cannot be deepcopied."
+            ) from err
+        IOComponent.__init__(self, value=self.value, **kwargs)
 
 
 class Variable(State):

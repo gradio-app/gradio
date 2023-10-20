@@ -26,16 +26,18 @@ def extract_instance_attr_doc(cls, attr):
             "self." + attr + " ="
         ):
             break
-    assert i is not None, f"Could not find {attr} in {cls.__name__}"
+    if i is None:
+        raise NameError(f"Could not find {attr} in {cls.__name__}")
     start_line = lines.index('"""', i)
     end_line = lines.index('"""', start_line + 1)
     for j in range(i + 1, start_line):
-        assert not lines[j].startswith("self."), (
-            f"Found another attribute before docstring for {attr} in {cls.__name__}: "
-            + lines[j]
-            + "\n start:"
-            + lines[i]
-        )
+        if lines[j].startswith("self."):
+            raise ValueError(
+                f"Found another attribute before docstring for {attr} in {cls.__name__}: "
+                + lines[j]
+                + "\n start:"
+                + lines[i]
+            )
     doc_string = " ".join(lines[start_line + 1 : end_line])
     return doc_string
 
@@ -95,15 +97,17 @@ def document_fn(fn: Callable, cls) -> tuple[str, list[dict], dict, str | None]:
                 continue
             if not (line.startswith("    ") or line.strip() == ""):
                 print(line)
-            assert (
-                line.startswith("    ") or line.strip() == ""
-            ), f"Documentation format for {fn.__name__} has format error in line: {line}"
+            if not (line.startswith("    ") or line.strip() == ""):
+                raise SyntaxError(
+                    f"Documentation format for {fn.__name__} has format error in line: {line}"
+                )
             line = line[4:]
             if mode == "parameter":
                 colon_index = line.index(": ")
-                assert (
-                    colon_index > -1
-                ), f"Documentation format for {fn.__name__} has format error in line: {line}"
+                if colon_index < -1:
+                    raise SyntaxError(
+                        f"Documentation format for {fn.__name__} has format error in line: {line}"
+                    )
                 parameter = line[:colon_index]
                 parameter_doc = line[colon_index + 2 :]
                 parameters[parameter] = parameter_doc
@@ -172,9 +176,10 @@ def document_cls(cls):
             if mode == "description":
                 description_lines.append(line if line.strip() else "<br>")
             else:
-                assert (
-                    line.startswith("    ") or not line.strip()
-                ), f"Documentation format for {cls.__name__} has format error in line: {line}"
+                if not (line.startswith("    ") or not line.strip()):
+                    raise SyntaxError(
+                        f"Documentation format for {cls.__name__} has format error in line: {line}"
+                    )
                 tags[mode].append(line[4:])
     if "example" in tags:
         example = "\n".join(tags["example"])

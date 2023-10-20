@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { Play, Pause, Maximise, Undo } from "@gradio/icons";
-	import { loaded } from "./utils";
+	import Video from "./Video.svelte";
 
 	export let src: string;
 	export let subtitle: string | null = null;
@@ -83,23 +83,24 @@
 </script>
 
 <div class="wrap">
-	<video
-		{src}
-		preload="auto"
-		on:click={play_pause}
-		on:play
-		on:pause
-		on:ended={handle_end}
-		bind:currentTime={time}
-		bind:duration
-		bind:paused
-		bind:this={video}
-		class:mirror
-		use:loaded={{ autoplay }}
-		data-testid={`${label}-player`}
-	>
-		<track kind="captions" src={subtitle} default />
-	</video>
+	<div class:mirror>
+		<Video
+			{src}
+			preload="auto"
+			{autoplay}
+			on:click={play_pause}
+			on:play
+			on:pause
+			on:ended={handle_end}
+			bind:currentTime={time}
+			bind:duration
+			bind:paused
+			bind:node={video}
+			data-testid={`${label}-player`}
+		>
+			<track kind="captions" src={subtitle} default />
+		</Video>
+	</div>
 
 	<div class="controls">
 		<div class="inner">
@@ -166,14 +167,6 @@
 
 	progress::-webkit-progress-value {
 		background-color: rgba(255, 255, 255, 0.9);
-	}
-
-	video {
-		position: inherit;
-		background-color: black;
-		width: var(--size-full);
-		height: var(--size-full);
-		object-fit: contain;
 	}
 
 	.mirror {

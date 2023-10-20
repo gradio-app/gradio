@@ -4,15 +4,15 @@
 </script>
 
 <Meta
-	title="Login Page"
+	title="Components/Login Page"
 	component={Login}
 	argTypes={{
 		auth_message: {
 			control: "text",
 			description: "The optional auth message to display",
 			name: "label",
-			value: "Gradio Button"
-		}
+			value: "Gradio Button",
+		},
 	}}
 />
 

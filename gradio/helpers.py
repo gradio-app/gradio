@@ -23,7 +23,7 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 from matplotlib import animation
 
-from gradio import components, oauth, processing_utils, routes, utils
+from gradio import components, oauth, processing_utils, routes, utils, wasm_utils
 from gradio.context import Context, LocalContext
 from gradio.exceptions import Error
 from gradio.flagging import CSVLogger
@@ -72,7 +72,7 @@ def create_examples(
         batch=batch,
         _initiated_directly=False,
     )
-    client_utils.synchronize_async(examples_obj.create)
+    examples_obj.create()
     return examples_obj
 
 
@@ -246,7 +246,7 @@ class Examples:
         self.cache_examples = cache_examples
         self.run_on_click = run_on_click
 
-    async def create(self) -> None:
+    def create(self) -> None:
         """Caches the examples if self.cache_examples is True and creates the Dataset
         component to hold the examples"""
 
@@ -274,7 +274,16 @@ class Examples:
                 )
 
         if self.cache_examples:
-            await self.cache()
+            if wasm_utils.IS_WASM:
+                # In the Wasm mode, the `threading` module is not supported,
+                # so `client_utils.synchronize_async` is also not available.
+                # And `self.cache()` should be waited for to complete before this method returns,
+                # (otherwise, an error "Cannot cache examples if not in a Blocks context" will be raised anyway)
+                # so `eventloop.create_task(self.cache())` is also not an option.
+                raise wasm_utils.WasmUnsupportedError(
+                    "Caching examples is not supported in the Wasm mode."
+                )
+            client_utils.synchronize_async(self.cache)
 
     async def cache(self) -> None:
         """
@@ -360,10 +369,10 @@ class Examples:
         Context.root_block.dependencies.pop(index)
         Context.root_block.fns.pop(index)
 
-        async def load_example(example_id):
+        def load_example(example_id):
             processed_example = self.non_none_processed_examples[
                 example_id
-            ] + await self.load_from_cache(example_id)
+            ] + self.load_from_cache(example_id)
             return utils.resolve_singleton(processed_example)
 
         self.load_input_event = self.dataset.click(
@@ -376,7 +385,7 @@ class Examples:
             api_name=self.api_name,  # type: ignore
         )
 
-    async def load_from_cache(self, example_id: int) -> list[Any]:
+    def load_from_cache(self, example_id: int) -> list[Any]:
         """Loads a particular cached example for the interface.
         Parameters:
             example_id: The id of the example to process (zero-indexed).
@@ -516,7 +525,8 @@ class Progress(Iterable):
             ):
                 current_iterable = self.iterables.pop()
             callback(self.iterables)
-            assert current_iterable.index is not None, "Index not set."
+            if current_iterable.index is None:
+                raise IndexError("Index not set.")
             current_iterable.index += 1
             try:
                 return next(current_iterable.iterable)  # type: ignore
@@ -594,7 +604,8 @@ class Progress(Iterable):
         callback = self._progress_callback()
         if callback and len(self.iterables) > 0:
             current_iterable = self.iterables[-1]
-            assert current_iterable.index is not None, "Index not set."
+            if current_iterable.index is None:
+                raise IndexError("Index not set.")
             current_iterable.index += n
             callback(self.iterables)
         else:
@@ -699,7 +710,7 @@ def special_args(
     inputs: list[Any] | None = None,
     request: routes.Request | None = None,
     event_data: EventData | None = None,
-):
+) -> tuple[list, int | None, int | None]:
     """
     Checks if function has special arguments Request or EventData (via annotation) or Progress (via default value).
     If inputs is provided, these values will be loaded into the inputs array.
@@ -777,53 +788,40 @@ def special_args(
     return inputs or [], progress_index, event_data_index
 
 
-def update(**kwargs) -> dict:
+def update(
+    elem_id: str | None = None,
+    elem_classes: list[str] | str | None = None,
+    visible: bool | None = None,
+    **kwargs,
+) -> dict:
     """
-    DEPRECATED. Updates component properties. When a function passed into a Gradio Interface or a Blocks events returns a typical value, it updates the value of the output component. But it is also possible to update the properties of an output component (such as the number of lines of a `Textbox` or the visibility of an `Image`) by returning the component's `update()` function, which takes as parameters any of the constructor parameters for that component.
-    This is a shorthand for using the update method on a component.
-    For example, rather than using gr.Number.update(...) you can just use gr.update(...).
-    Note that your editor's autocompletion will suggest proper parameters
-    if you use the update method on the component.
-    Demos: blocks_essay, blocks_update, blocks_essay_update
+    Updates a component's properties. When a function passed into a Gradio Interface or a Blocks events returns a value, it typically updates the value of the output component. But it is also possible to update the *properties* of an output component (such as the number of lines of a `Textbox` or the visibility of an `Row`) by returning a component and passing in the parameters to update in the constructor of the component. Alternatively, you can return `gr.update(...)` with any arbitrary parameters to update. (This is useful as a shorthand or if the same function can be called with different components to update.)
 
     Parameters:
-        kwargs: Key-word arguments used to update the component's properties.
+        elem_id: Use this to update the id of the component in the HTML DOM
+        elem_classes: Use this to update the classes of the component in the HTML DOM
+        visible: Use this to update the visibility of the component
+        kwargs: Any other keyword arguments to update the component's properties.
     Example:
-        # Blocks Example
         import gradio as gr
         with gr.Blocks() as demo:
             radio = gr.Radio([1, 2, 4], label="Set the value of the number")
             number = gr.Number(value=2, interactive=True)
             radio.change(fn=lambda value: gr.update(value=value), inputs=radio, outputs=number)
         demo.launch()
-
-        # Interface example
-        import gradio as gr
-        def change_textbox(choice):
-          if choice == "short":
-              return gr.Textbox.update(lines=2, visible=True)
-          elif choice == "long":
-              return gr.Textbox.update(lines=8, visible=True)
-          else:
-              return gr.Textbox.update(visible=False)
-        gr.Interface(
-          change_textbox,
-          gr.Radio(
-              ["short", "long", "none"], label="What kind of essay would you like to write?"
-          ),
-          gr.Textbox(lines=2),
-          live=True,
-        ).launch()
     """
-    warnings.warn(
-        "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Textbox(...)` instead of `return gr.update(...)"
-    )
-    kwargs["__type__"] = "generic_update"
+    kwargs["__type__"] = "update"
+    if elem_id is not None:
+        kwargs["elem_id"] = elem_id
+    if elem_classes is not None:
+        kwargs["elem_classes"] = elem_classes
+    if visible is not None:
+        kwargs["visible"] = visible
     return kwargs
 
 
 def skip() -> dict:
-    return update()
+    return {"__type__": "update"}
 
 
 @document()

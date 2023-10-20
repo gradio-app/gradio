@@ -29,7 +29,6 @@
 	export let components: ComponentMeta[];
 	export let layout: LayoutNode;
 	export let dependencies: Dependency[];
-
 	export let title = "Gradio";
 	export let analytics_enabled = false;
 	export let target: HTMLElement;
@@ -249,6 +248,20 @@
 				(c.props as any).mode = "interactive";
 			} else {
 				(c.props as any).mode = "static";
+			}
+
+			if ((c.props as any).server_fns) {
+				let server: Record<string, (...args: any[]) => Promise<any>> = {};
+				(c.props as any).server_fns.forEach((fn: string) => {
+					server[fn] = async (...args: any[]) => {
+						if (args.length === 1) {
+							args = args[0];
+						}
+						const result = await app.component_server(c.id, fn, args);
+						return result;
+					};
+				});
+				(c.props as any).server = server;
 			}
 			__type_for_id.set(c.id, c.props.mode);
 

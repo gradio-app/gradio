@@ -2,10 +2,12 @@ import "@gradio/theme";
 import { WorkerProxy, type WorkerProxyOptions } from "@gradio/wasm";
 import { api_factory } from "@gradio/client";
 import { wasm_proxied_fetch } from "./fetch";
+import { wasm_proxied_WebSocket_factory } from "./websocket";
 import { wasm_proxied_mount_css, mount_prebuilt_css } from "./css";
 import type { mount_css } from "../css";
 import Index from "../Index.svelte";
 import type { ThemeMode } from "../components/types";
+import { bootstrap_custom_element } from "./custom-element";
 
 // These imports are aliased at built time with Vite. See the `resolve.alias` config in `vite.config.ts`.
 import gradioWheel from "gradio.whl";
@@ -42,7 +44,7 @@ interface GradioAppController {
 	unmount: () => void;
 }
 
-interface Options {
+export interface Options {
 	target: HTMLElement;
 	files?: WorkerProxyOptions["files"];
 	requirements?: WorkerProxyOptions["requirements"];
@@ -91,7 +93,13 @@ export function create(options: Options): GradioAppController {
 	const overridden_fetch: typeof fetch = (input, init?) => {
 		return wasm_proxied_fetch(worker_proxy, input, init);
 	};
-	const { client, upload_files } = api_factory(overridden_fetch);
+	const WebSocket_factory = (url: URL): WebSocket => {
+		return wasm_proxied_WebSocket_factory(worker_proxy, url);
+	};
+	const { client, upload_files } = api_factory(
+		overridden_fetch,
+		WebSocket_factory
+	);
 	const overridden_mount_css: typeof mount_css = async (url, target) => {
 		return wasm_proxied_mount_css(worker_proxy, url, target);
 	};
@@ -125,6 +133,7 @@ export function create(options: Options): GradioAppController {
 				// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
 				app_mode: options.appMode,
 				// For Wasm mode
+				worker_proxy,
 				client,
 				upload_files,
 				mount_css: overridden_mount_css
@@ -182,6 +191,8 @@ export function create(options: Options): GradioAppController {
  */
 // @ts-ignore
 globalThis.createGradioApp = create;
+
+bootstrap_custom_element();
 
 declare let BUILD_MODE: string;
 if (BUILD_MODE === "dev") {

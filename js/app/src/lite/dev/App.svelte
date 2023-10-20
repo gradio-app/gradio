@@ -13,32 +13,23 @@
 	let editorFiles: EditorFile[] = [
 		{
 			name: "app.py",
-			content: `import gradio as gr
+			content: `import time
+import gradio as gr
 
-from greeting import hi
 
-def greet(name):
-    return "Hello " + name + "!"
+def greet_with_time():
+    return "Time is " + time.ctime()
 
-def upload_file(files):
-    file_paths = [file.name for file in files]
-    return file_paths
 
-with gr.Blocks(theme=gr.themes.Soft()) as demo:
-    name = gr.Textbox(label="Name")
-    output = gr.Textbox(label="Output Box")
-    greet_btn = gr.Button("Greet")
-    greet_btn.click(fn=greet, inputs=name, outputs=output, api_name="greet")
-    say_hi_btn = gr.Button("Say hi")
-    say_hi_btn.click(fn=hi, inputs=name, outputs=output, api_name="hi")
+with gr.Blocks() as demo:
+    text = gr.Markdown(f"Time is {time.time()}")
 
-    gr.File()
+    dep = demo.load(greet_with_time, None, text, every=1)
 
-    file_output = gr.File()
-    upload_button = gr.UploadButton("Click to Upload a File", file_types=["image", "video"], file_count="multiple")
-    upload_button.upload(upload_file, upload_button, file_output)
 
-demo.launch()`
+if __name__ == "__main__":
+    demo.queue().launch()
+`
 		},
 		{
 			name: "greeting.py",
