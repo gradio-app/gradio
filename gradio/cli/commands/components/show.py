@@ -1,7 +1,9 @@
 import inspect
 
-from rich import print
+from rich.console import Console
 from rich.table import Table
+from typer import Option
+from typing_extensions import Annotated
 
 import gradio._simple_templates
 import gradio.components
@@ -21,6 +23,8 @@ _IGNORE = {
     "Form",
     "Dataset",
     "FormComponent",
+    "Fallback",
+    "State",
 }
 
 
@@ -48,7 +52,14 @@ def _get_table_items(module):
     return items
 
 
-def _show():
+def _show(
+    colors: Annotated[
+        bool,
+        Option(
+            help="Show colors in the table. Defaults to true. If your terminal does not support colors, use --no-colors."
+        ),
+    ] = True
+):
     items = (
         _get_table_items(gradio._simple_templates)
         + _get_table_items(gradio.components)
@@ -61,4 +72,6 @@ def _show():
     for item in items:
         table.add_row(*item)
 
-    print(table)
+    console = Console()
+    with console.pager(styles=colors):
+        console.print(table)
