@@ -2,4 +2,4 @@
 "@gradio/lite": patch
 ---
 
-feat:fix main entrypoint
+fix:fix main entrypoint
