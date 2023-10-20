@@ -42,7 +42,7 @@ jobs:
       source_branch: ${{ steps.pr_details.outputs.source_branch }}
       pr_number: ${{ steps.pr_details.outputs.pr_number }}
     steps:
-      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - name: install dependencies
         id: install_deps
         uses: "./.github/actions/install-all-deps"
