@@ -7,7 +7,7 @@
 	import { Block, BlockTitle } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import {afterUpdate} from "svelte";
+	import { afterUpdate } from "svelte";
 
 	export let gradio: Gradio<{
 		change: never;
@@ -87,7 +87,7 @@
 			<label for={id}>
 				<BlockTitle {show_label} {info}>{label}</BlockTitle>
 			</label>
-	
+
 			<input
 				aria-label={`number input for ${label}`}
 				data-testid="number-input"
@@ -103,7 +103,7 @@
 			/>
 		</div>
 	</div>
-	
+
 	<input
 		type="range"
 		{id}
@@ -118,7 +118,6 @@
 		aria-label={`range slider for ${label}`}
 	/>
 </Block>
-
 
 <style>
 	.wrap {
