@@ -333,7 +333,7 @@ class App(FastAPI):
                     "auth_required": True,
                     "auth_message": blocks.auth_message,
                     "space_id": app.get_blocks().space_id,
-                    "root": root_path,
+                    "root": route_utils.strip_url(root_path),
                 }
 
             try:

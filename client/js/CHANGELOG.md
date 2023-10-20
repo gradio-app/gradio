@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 0.6.0
+
+### Features
+
+- [#5972](https://github.com/gradio-app/gradio/pull/5972) [`11a300791`](https://github.com/gradio-app/gradio/commit/11a3007916071f0791844b0a37f0fb4cec69cea3) - Lite: Support opening the entrypoint HTML page directly in browser via the `file:` protocol.  Thanks [@whitphx](https://github.com/whitphx)!
+
 ## 0.5.2
 
 ### Fixes

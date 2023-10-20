@@ -1,9 +1,9 @@
 {
 	"name": "@gradio/lite",
-	"version": "0.3.2",
+	"version": "0.4.3",
 	"description": "Serverless Gradio",
 	"type": "module",
-	"main": "dist/index.js",
+	"main": "dist/lite.js",
 	"author": "Gradio Team",
 	"license": "Apache-2.0",
 	"files": [
