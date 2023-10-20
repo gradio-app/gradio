@@ -96,5 +96,6 @@ export const redirects = {
 		"/guides/image-classification-with-vision-transformers",
 	"/Gradio_and_Wandb_Integration": "/guides/Gradio-and-Wandb-Integration",
 	"/image_classification_in_tensorflow":
-		"/guides/image-classification-in-tensorflow"
+		"/guides/image-classification-in-tensorflow",
+	"/demos": "/playground"
 };
