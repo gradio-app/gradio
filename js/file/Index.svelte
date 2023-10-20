@@ -95,7 +95,6 @@
 			{height}
 			on:change={({ detail }) => {
 				value = detail;
-				gradio.dispatch("change");
 			}}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:clear={() => gradio.dispatch("clear")}
