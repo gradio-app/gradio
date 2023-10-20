@@ -201,4 +201,8 @@
 		background: transparent;
 		height: 400%;
 	}
+
+	input[type=range]::-moz-range-track {
+		height: 12px;
+	}
 </style>
