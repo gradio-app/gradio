@@ -1,12 +1,3 @@
-<script context="module" lang="ts">
-	import type { FileData } from "@gradio/upload";
-
-	export interface AudioData extends FileData {
-		crop_min?: number;
-		crop_max?: number;
-	}
-</script>
-
 <script lang="ts">
 	import { onMount } from "svelte";
 	import { Music } from "@gradio/icons";
@@ -16,13 +7,17 @@
 	import WaveformControls from "../shared/WaveformControls.svelte";
 	import { Empty } from "@gradio/atoms";
 	// @ts-ignore
-	import audiobufferToBlob from "audiobuffer-to-blob";
+	import getWaveBlob from "wav-blob-util";
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
 	export let autoplay: boolean;
 	export let i18n: I18nFormatter;
-	export let dispatch: (event: string, detail?: any) => void;
+	export let dispatch: (event: any, detail?: any) => void;
+	export let dispatch_blob: (
+		blobs: Uint8Array[] | Blob[],
+		event: any
+	) => Promise<void> = () => Promise.resolve();
 	export let interactive = false;
 
 	export let waveformColor = "#9ca3af";
@@ -40,8 +35,6 @@
 	let trimmingMode = false;
 	let trimDuration = 0;
 
-	let updatedAudio: string | null = null;
-
 	const formatTime = (seconds: number): string => {
 		const minutes = Math.floor(seconds / 60);
 		const secondsRemainder = Math.round(seconds) % 60;
@@ -55,7 +48,7 @@
 			container: container,
 			waveColor: waveformColor || "#9ca3af",
 			progressColor: waveformProgressColor || "#f97316",
-			url: updatedAudio || value?.data,
+			url: value?.data,
 			barWidth: 2,
 			barGap: 3,
 			barHeight: 4,
@@ -109,16 +102,20 @@
 		end: number
 	): Promise<void> => {
 		trimmingMode = false;
-		await trimAudioBlob(
-			audiobufferToBlob(waveform.getDecodedData()),
-			start,
-			end
-		).then((trimmedBlob: Blob) => {
-			updatedAudio = URL.createObjectURL(trimmedBlob);
-			waveform.destroy();
-			create_waveform();
-		});
+		const decodedData = waveform.getDecodedData();
+		if (decodedData)
+			await trimAudioBlob(decodedData, start, end).then(
+				async (trimmedBlob: Blob) => {
+					const wavBlob = await getWaveBlob(trimmedBlob);
+					await dispatch_blob([wavBlob], "change");
+					waveform.destroy();
+					create_waveform();
+				}
+			);
+		dispatch("edit");
 	};
+
+	$: value && waveform?.load(value.data);
 
 	onMount(() => {
 		window.addEventListener("keydown", (e) => {
@@ -164,6 +161,7 @@
 			{handle_trim_audio}
 			bind:trimmingMode
 			bind:trimDuration
+			showRedo={interactive}
 		/>
 	</div>
 {/if}

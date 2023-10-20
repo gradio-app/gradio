@@ -1,21 +1,19 @@
 import type { ActionReturn } from "svelte/action";
 import type WaveSurfer from "wavesurfer.js";
 import Regions from "wavesurfer.js/dist/plugins/regions.js";
-import toWav from "audiobuffer-to-wav";
+// @ts-ignore
+import audiobufferToBlob from "audiobuffer-to-blob";
 
 export interface LoadedParams {
-	crop_values?: [number, number];
 	autoplay?: boolean;
 }
 
 export const trimAudioBlob = async (
-	blob: Blob,
+	audioBuffer: AudioBuffer,
 	start: number,
 	end: number
 ): Promise<Blob> => {
 	const audioContext = new AudioContext();
-	const arrayBuffer = await blob.arrayBuffer();
-	const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
 	const numberOfChannels = audioBuffer.numberOfChannels;
 	const sampleRate = audioBuffer.sampleRate;
@@ -38,50 +36,18 @@ export const trimAudioBlob = async (
 		}
 	}
 
-	return audioBufferToBlob(trimmedAudioBuffer);
+	return audiobufferToBlob(trimmedAudioBuffer);
 };
-
-function audioBufferToBlob(audioBuffer: AudioBuffer): Blob {
-	const wavData = toWav(audioBuffer);
-	return new Blob([new DataView(wavData)], { type: "audio/wav" });
-}
 
 export function loaded(
 	node: HTMLAudioElement,
-	{ crop_values, autoplay }: LoadedParams = {}
-): ActionReturn {
-	function clamp_playback(): void {
-		if (crop_values === undefined) return;
-
-		const start_time = (crop_values[0] / 100) * node.duration;
-		const end_time = (crop_values[1] / 100) * node.duration;
-
-		if (node.currentTime < start_time) {
-			node.currentTime = start_time;
-		}
-
-		if (node.currentTime > end_time) {
-			node.currentTime = start_time;
-			node.pause();
-		}
-	}
-
+	{ autoplay }: LoadedParams = {}
+): void {
 	async function handle_playback(): Promise<void> {
 		if (!autoplay) return;
-
 		node.pause();
 		await node.play();
 	}
-
-	node.addEventListener("loadeddata", handle_playback);
-	node.addEventListener("timeupdate", clamp_playback);
-
-	return {
-		destroy(): void {
-			node.removeEventListener("loadeddata", handle_playback);
-			node.removeEventListener("timeupdate", clamp_playback);
-		}
-	};
 }
 
 export const skipAudio = (waveform: WaveSurfer, amount: number): void => {

@@ -7,7 +7,6 @@
 	export let src: HTMLAudioAttributes["src"] = undefined;
 
 	export let autoplay: LoadedParams["autoplay"] = undefined;
-	export let crop_values: LoadedParams["crop_values"] = undefined;
 	export let controls: HTMLAudioAttributes["controls"] = undefined;
 	export let preload: HTMLAudioAttributes["preload"] = undefined;
 
@@ -25,7 +24,7 @@
 		on:pause={dispatch.bind(null, "pause")}
 		on:ended={dispatch.bind(null, "ended")}
 		bind:this={node}
-		use:loaded={{ autoplay, crop_values }}
+		use:loaded={{ autoplay }}
 		data-testid={$$props["data-testid"]}
 	/>
 {:catch error}

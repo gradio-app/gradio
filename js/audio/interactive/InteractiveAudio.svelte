@@ -1,13 +1,5 @@
-<script context="module" lang="ts">
-	import type { FileData } from "@gradio/upload";
-
-	export interface AudioData extends FileData {
-		crop_min?: number;
-		crop_max?: number;
-	}
-</script>
-
 <script lang="ts">
+	import type { FileData } from "@gradio/upload";
 	import { onDestroy, createEventDispatcher } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import { BlockLabel } from "@gradio/atoms";
@@ -25,7 +17,7 @@
 	export let show_label = true;
 	export let name = "";
 	export let source: "microphone" | "upload" | "none";
-	export let pending = false;
+	// export let pending = false;
 	export let streaming = false;
 	export let autoplay = false;
 	export let show_edit_button = true;
@@ -44,7 +36,7 @@
 	let pending_stream: Uint8Array[] = [];
 	let submit_pending_stream_on_pending_end = false;
 	// let inited = false;
-	// let crop_values: [number, number] = [0, 100];
+
 	const STREAM_TIMESLICE = 500;
 	const NUM_HEADER_BYTES = 44;
 	let audio_chunks: Blob[] = [];
@@ -65,8 +57,8 @@
 	}
 
 	const dispatch = createEventDispatcher<{
-		change: AudioData | null;
-		stream: AudioData;
+		change: FileData | null;
+		stream: FileData;
 		edit: never;
 		play: never;
 		pause: never;
@@ -77,7 +69,7 @@
 		upload: FileData;
 		clear: never;
 		start_recording: never;
-		pause_recording: never; // TODO: add to docs
+		pause_recording: never;
 		stop_recording: never;
 	}>();
 
@@ -182,23 +174,6 @@
 		value = null;
 	}
 
-	function handle_change({
-		detail: { values },
-	}: {
-		detail: { values: [number, number] };
-	}): void {
-		if (!value) return;
-
-		dispatch("change", {
-			data: value.data,
-			name,
-			crop_min: values[0],
-			crop_max: values[1],
-		});
-
-		dispatch("edit");
-	}
-
 	function handle_load({
 		detail,
 	}: {
@@ -230,6 +205,7 @@
 			{label}
 			{i18n}
 			{dispatch}
+			{dispatch_blob}
 			{waveformColor}
 			{waveformProgressColor}
 		/>
@@ -259,6 +235,7 @@
 		{autoplay}
 		{i18n}
 		{dispatch}
+		{dispatch_blob}
 		{waveformColor}
 		{waveformProgressColor}
 		interactive

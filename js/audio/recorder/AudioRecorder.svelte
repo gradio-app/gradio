@@ -1,12 +1,3 @@
-<script context="module" lang="ts">
-	import type { FileData } from "@gradio/upload";
-
-	export interface AudioData extends FileData {
-		crop_min?: number;
-		crop_max?: number;
-	}
-</script>
-
 <script lang="ts">
 	import { onMount } from "svelte";
 	import type { I18nFormatter } from "@gradio/utils";
@@ -16,12 +7,17 @@
 	import WaveformControls from "../shared/WaveformControls.svelte";
 	import WaveformRecordControls from "../shared/WaveformRecordControls.svelte";
 	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
+	// @ts-ignore
+	import getWaveBlob from "wav-blob-util";
 
-	// export let value: null | { name: string; data: string } = null;
 	export let label: string;
 	// export let autoplay: boolean;
 	export let i18n: I18nFormatter;
-	export let dispatch: (event: string, detail?: any) => void;
+	export let dispatch: (event: any, detail?: any) => void;
+	export let dispatch_blob: (
+		blobs: Uint8Array[] | Blob[],
+		event: any
+	) => Promise<void> | undefined;
 	export let waveformColor = "#9ca3af";
 	export let waveformProgressColor = "#f97316";
 	export let showMediaControls = false;
@@ -34,7 +30,6 @@
 	// recording
 	let record: Record;
 	let recordedAudio: string | null = null;
-	let recordedBlob: Blob | null = null;
 
 	// timestamps
 	let timeRef: HTMLTimeElement;
@@ -118,7 +113,6 @@
 	const clear_recording = (): void => {
 		const recording = document.getElementById("recordings");
 		recordedAudio = null;
-		recordedBlob = null;
 		if (recording) recording.innerHTML = "";
 		dispatch("clear");
 	};
@@ -171,7 +165,6 @@
 
 	$: record &&
 		record.on("record-end", (blob) => {
-			recordedBlob = blob;
 			recordedAudio = URL.createObjectURL(blob);
 
 			const recorder = document.getElementById("mic");
@@ -190,16 +183,17 @@
 		end: number
 	): Promise<void> => {
 		trimmingMode = false;
-		if (recordedBlob) {
-			await trimAudioBlob(recordedBlob, start, end).then(
-				(trimmedBlob: Blob) => {
-					recordedAudio = URL.createObjectURL(trimmedBlob);
-					recordedBlob = trimmedBlob;
+		const decodedData = recordingWaveform.getDecodedData();
+		if (decodedData)
+			await trimAudioBlob(decodedData, start, end).then(
+				async (trimmedBlob: Blob) => {
+					const wavBlob = await getWaveBlob(trimmedBlob);
+					await dispatch_blob([wavBlob], "change");
 					recordingWaveform.destroy();
 					create_recording_waveform();
 				}
 			);
-		}
+		dispatch("edit");
 	};
 
 	onMount(() => {

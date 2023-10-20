@@ -1,12 +1,3 @@
-<script context="module" lang="ts">
-	import type { FileData } from "@gradio/upload";
-
-	export interface AudioData extends FileData {
-		crop_min?: number;
-		crop_max?: number;
-	}
-</script>
-
 <script lang="ts">
 	import { uploadToHuggingFace } from "@gradio/utils";
 	import { Empty } from "@gradio/atoms";
@@ -15,6 +6,7 @@
 	import type { I18nFormatter } from "@gradio/utils";
 	import AudioPlayer from "../player/AudioPlayer.svelte";
 	import { createEventDispatcher } from "svelte";
+	import type { FileData } from "@gradio/upload";
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
@@ -29,7 +21,7 @@
 	export let waveformProgressColor: string;
 
 	const dispatch = createEventDispatcher<{
-		change: AudioData;
+		change: FileData;
 		play: undefined;
 		pause: undefined;
 		end: undefined;

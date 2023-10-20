@@ -45,7 +45,7 @@
 		stop: never;
 		end: never;
 		start_recording: never;
-		pause_recording: never; // TODO: add to docs
+		pause_recording: never;
 		stop_recording: never;
 		upload: never;
 		clear: never;
