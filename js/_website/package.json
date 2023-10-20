@@ -1,6 +1,10 @@
 {
 	"name": "website",
+<<<<<<< .merge_file_nFnCsy
 	"version": "0.7.1",
+=======
+	"version": "0.10.0",
+>>>>>>> .merge_file_HCDKaC
 	"private": true,
 	"scripts": {
 		"dev": "python generate_jsons/generate.py && vite dev",
