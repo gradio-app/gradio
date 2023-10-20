@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 set_documentation_group("flagging")
 
-
+@document()
 class FlaggingCallback(ABC):
     """
     An abstract class for defining the methods that any FlaggingCallback should have.
