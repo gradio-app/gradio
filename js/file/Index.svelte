@@ -110,28 +110,27 @@
 	}
 </script>
 
-{#if mode === "static"}
-	<Block
-		{visible}
-		variant={value === null ? "dashed" : "solid"}
-		border_mode={dragging ? "focus" : "base"}
-		padding={false}
-		{elem_id}
-		{elem_classes}
-		{container}
-		{scale}
-		{min_width}
-		allow_overflow={false}
-	>
-		<StatusTracker
-			autoscroll={gradio.autoscroll}
-			i18n={gradio.i18n}
-			{...loading_status}
-			status={pending_upload
-				? "generating"
-				: loading_status?.status || "complete"}
-		/>
-
+<Block
+	{visible}
+	variant={value === null ? "dashed" : "solid"}
+	border_mode={dragging ? "focus" : "base"}
+	padding={false}
+	{elem_id}
+	{elem_classes}
+	{container}
+	{scale}
+	{min_width}
+	allow_overflow={false}
+>
+	<StatusTracker
+		autoscroll={gradio.autoscroll}
+		i18n={gradio.i18n}
+		{...loading_status}
+		status={pending_upload
+			? "generating"
+			: loading_status?.status || "complete"}
+	/>
+	{#if mode === "static"}
 		<File
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
 			{selectable}
@@ -141,30 +140,7 @@
 			{height}
 			i18n={gradio.i18n}
 		/>
-	</Block>
-{:else}
-	<Block
-		{visible}
-		variant={value === null ? "dashed" : "solid"}
-		border_mode={dragging ? "focus" : "base"}
-		padding={false}
-		{elem_id}
-		{elem_classes}
-		{container}
-		{scale}
-		{min_width}
-		{height}
-		allow_overflow={false}
-	>
-		<StatusTracker
-			autoscroll={gradio.autoscroll}
-			i18n={gradio.i18n}
-			{...loading_status}
-			status={pending_upload
-				? "generating"
-				: loading_status?.status || "complete"}
-		/>
-
+	{:else}
 		<FileUpload
 			{label}
 			{show_label}
@@ -180,7 +156,7 @@
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
 			i18n={gradio.i18n}
 		>
-			<UploadText i18n={gradio.i18n} type="file" />
+		<UploadText i18n={gradio.i18n} type="file" />
 		</FileUpload>
-	</Block>
-{/if}
+	{/if}
+</Block>
