@@ -1,5 +1,23 @@
 # website
 
+## 0.10.0
+
+### Features
+
+- [#6021](https://github.com/gradio-app/gradio/pull/6021) [`86cff0c29`](https://github.com/gradio-app/gradio/commit/86cff0c293db776c08c1ab372d69aac7c594cfb3) - Playground: Better spacing on navbar.  Thanks [@aliabd](https://github.com/aliabd)!
+
+## 0.9.0
+
+### Features
+
+- [#5386](https://github.com/gradio-app/gradio/pull/5386) [`0312c990f`](https://github.com/gradio-app/gradio/commit/0312c990fbe63fdf3bfa9a8f13bbc042295d49bf) - Playground v1.  Thanks [@aliabd](https://github.com/aliabd)!
+
+## 0.8.0
+
+### Features
+
+- [#5936](https://github.com/gradio-app/gradio/pull/5936) [`b8b9f6d27`](https://github.com/gradio-app/gradio/commit/b8b9f6d27e258256584b7662d03110cc2eeb883b) - Adds a Guide on how to stylize the DataFrame component.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.7.1
 
 ### Features

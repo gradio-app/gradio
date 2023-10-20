@@ -5,6 +5,7 @@ import type { PyodideInterface } from "pyodide";
 import type {
 	InMessage,
 	InMessageInit,
+	OutMessage,
 	ReplyMessageError,
 	ReplyMessageSuccess
 } from "../message-types";
@@ -29,10 +30,21 @@ let call_asgi_app_from_js: (
 let run_script: (path: string) => Promise<void>;
 let unload_local_modules: (target_dir_path?: string) => void;
 
+function updateProgress(log: string): void {
+	const message: OutMessage = {
+		type: "progress-update",
+		data: {
+			log
+		}
+	};
+	self.postMessage(message);
+}
+
 async function loadPyodideAndPackages(
 	options: InMessageInit["data"]
 ): Promise<void> {
 	console.debug("Loading Pyodide.");
+	updateProgress("Loading Pyodide");
 	pyodide = await loadPyodide({
 		stdout: console.debug,
 		stderr: console.error
@@ -40,6 +52,7 @@ async function loadPyodideAndPackages(
 	console.debug("Pyodide is loaded.");
 
 	console.debug("Mounting files.", options.files);
+	updateProgress("Mounting files");
 	await Promise.all(
 		Object.keys(options.files).map(async (path) => {
 			const file = options.files[path];
@@ -62,6 +75,7 @@ async function loadPyodideAndPackages(
 	console.debug("Files are mounted.");
 
 	console.debug("Loading micropip");
+	updateProgress("Loading micropip");
 	await pyodide.loadPackage("micropip");
 	const micropip = pyodide.pyimport("micropip");
 	console.debug("micropip is loaded.");
@@ -71,20 +85,25 @@ async function loadPyodideAndPackages(
 		options.gradioClientWheelUrl
 	];
 	console.debug("Loading Gradio wheels.", gradioWheelUrls);
+	updateProgress("Loading Gradio wheels");
 	await micropip.add_mock_package("ffmpy", "0.3.0");
 	await micropip.add_mock_package("aiohttp", "3.8.4");
 	await pyodide.loadPackage(["ssl", "distutils", "setuptools"]);
+	await micropip.install(["typing-extensions>=4.8.0"]); // Typing extensions needs to be installed first otherwise the versions from the pyodide lockfile is used which is incompatible with the latest fastapi.
 	await micropip.install(["markdown-it-py[linkify]~=2.2.0"]); // On 3rd June 2023, markdown-it-py 3.0.0 has been released. The `gradio` package depends on its `>=2.0.0` version so its 3.x will be resolved. However, it conflicts with `mdit-py-plugins`'s dependency `markdown-it-py >=1.0.0,<3.0.0` and micropip currently can't resolve it. So we explicitly install the compatible version of the library here.
+	await micropip.install(["anyio==3.*"]); // `fastapi` depends on `anyio>=3.4.0,<5` so its 4.* can be installed, but it conflicts with the anyio version `httpx` depends on, `==3.*`. Seems like micropip can't resolve it for now, so we explicitly install the compatible version of the library here.
 	await micropip.install.callKwargs(gradioWheelUrls, {
 		keep_going: true
 	});
 	console.debug("Gradio wheels are loaded.");
 
-	console.debug("Install packages.", options.requirements);
+	console.debug("Installing packages.", options.requirements);
+	updateProgress("Installing packages");
 	await micropip.install.callKwargs(options.requirements, { keep_going: true });
 	console.debug("Packages are installed.");
 
-	console.debug("Mock os module methods.");
+	console.debug("Mocking os module methods.");
+	updateProgress("Mock os module methods");
 	// `os.link` is used in `aiofiles` (https://github.com/Tinche/aiofiles/blob/v23.1.0/src/aiofiles/os.py#L31),
 	// which is imported from `gradio.ranged_response` (https://github.com/gradio-app/gradio/blob/v3.32.0/gradio/ranged_response.py#L12).
 	// However, it's not available on Wasm.
@@ -95,13 +114,15 @@ os.link = lambda src, dst: None
 `);
 	console.debug("os module methods are mocked.");
 
-	console.debug("Import gradio package.");
+	console.debug("Importing gradio package.");
+	updateProgress("Importing gradio package");
 	// Importing the gradio package takes a long time, so we do it separately.
 	// This is necessary for accurate performance profiling.
 	await pyodide.runPythonAsync(`import gradio`);
 	console.debug("gradio package is imported.");
 
-	console.debug("Define a ASGI wrapper function.");
+	console.debug("Defining a ASGI wrapper function.");
+	updateProgress("Defining a ASGI wrapper function");
 	// TODO: Unlike Streamlit, user's code is executed in the global scope,
 	//       so we should not define this function in the global scope.
 	await pyodide.runPythonAsync(`
@@ -141,7 +162,8 @@ async def _call_asgi_app_from_js(scope, receive, send):
 	call_asgi_app_from_js = pyodide.globals.get("_call_asgi_app_from_js");
 	console.debug("The ASGI wrapper function is defined.");
 
-	console.debug("Mock async libraries.");
+	console.debug("Mocking async libraries.");
+	updateProgress("Mocking async libraries");
 	// FastAPI uses `anyio.to_thread.run_sync` internally which, however, doesn't work in Wasm environments where the `threading` module is not supported.
 	// So we mock `anyio.to_thread.run_sync` here not to use threads.
 	await pyodide.runPythonAsync(`
@@ -153,7 +175,8 @@ anyio.to_thread.run_sync = mocked_anyio_to_thread_run_sync
 	`);
 	console.debug("Async libraries are mocked.");
 
-	console.debug("Set matplotlib backend.");
+	console.debug("Setting matplotlib backend.");
+	updateProgress("Setting matplotlib backend");
 	// Ref: https://github.com/streamlit/streamlit/blob/1.22.0/lib/streamlit/web/bootstrap.py#L111
 	// This backend setting is required to use matplotlib in Wasm environment.
 	await pyodide.runPythonAsync(`
@@ -162,12 +185,15 @@ matplotlib.use("agg")
 `);
 	console.debug("matplotlib backend is set.");
 
-	console.debug("Set up Python utility functions.");
+	console.debug("Setting up Python utility functions.");
+	updateProgress("Setting up Python utility functions");
 	await pyodide.runPythonAsync(scriptRunnerPySource);
 	run_script = pyodide.globals.get("_run_script");
 	await pyodide.runPythonAsync(unloadModulesPySource);
 	unload_local_modules = pyodide.globals.get("unload_local_modules");
 	console.debug("Python utility functions are set up.");
+
+	updateProgress("Initialization completed");
 }
 
 self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
@@ -180,11 +206,21 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 		if (msg.type === "init") {
 			pyodideReadyPromise = loadPyodideAndPackages(msg.data);
 
-			const replyMessage: ReplyMessageSuccess = {
-				type: "reply:success",
-				data: null
-			};
-			messagePort.postMessage(replyMessage);
+			pyodideReadyPromise
+				.then(() => {
+					const replyMessage: ReplyMessageSuccess = {
+						type: "reply:success",
+						data: null
+					};
+					messagePort.postMessage(replyMessage);
+				})
+				.catch((error) => {
+					const replyMessage: ReplyMessageError = {
+						type: "reply:error",
+						error
+					};
+					messagePort.postMessage(replyMessage);
+				});
 			return;
 		}
 
@@ -296,9 +332,11 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 					.callKwargs(requirements, { keep_going: true })
 					.then(() => {
 						if (requirements.includes("matplotlib")) {
+							// Ref: https://github.com/streamlit/streamlit/blob/1.22.0/lib/streamlit/web/bootstrap.py#L111
+							// This backend setting is required to use matplotlib in Wasm environment.
 							return pyodide.runPythonAsync(`
-                from stlite_server.bootstrap import _fix_matplotlib_crash
-                _fix_matplotlib_crash()
+								import matplotlib
+								matplotlib.use("agg")
               `);
 						}
 					})

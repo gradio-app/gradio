@@ -1,5 +1,29 @@
 # @gradio/lite
 
+## 0.4.3
+
+### Fixes
+
+- [#6032](https://github.com/gradio-app/gradio/pull/6032) [`62b89b8cc`](https://github.com/gradio-app/gradio/commit/62b89b8cc21b15fcb8807847ba2f37b66c2b9b61) - fix main entrypoint.  Thanks [@pngwn](https://github.com/pngwn)!
+
+## 0.4.2
+
+### Fixes
+
+- [#6015](https://github.com/gradio-app/gradio/pull/6015) [`7315fb2fe`](https://github.com/gradio-app/gradio/commit/7315fb2fe2074ffec4dd29325cb0f18cf2f263e8) - release.  Thanks [@pngwn](https://github.com/pngwn)!
+
+## 0.4.1
+
+### Fixes
+
+- [#5988](https://github.com/gradio-app/gradio/pull/5988) [`bea931c31`](https://github.com/gradio-app/gradio/commit/bea931c31b7c19ee88c82efa6261acc13e629d71) - release lite.  Thanks [@pngwn](https://github.com/pngwn)!
+
+## 0.4.0
+
+### Features
+
+- [#5975](https://github.com/gradio-app/gradio/pull/5975) [`ddd974956`](https://github.com/gradio-app/gradio/commit/ddd9749561dc7924ac7738c2ac1d21cf07518d00) - Just a small tweak to trigger a release of @gradio/lite.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.3.2
 
 ### Features

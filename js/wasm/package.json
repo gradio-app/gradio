@@ -7,7 +7,8 @@
 	"exports": {
 		".": "./dist/index.js",
 		"./package.json": "./package.json",
-		"./svelte": "./svelte/index.ts"
+		"./svelte": "./svelte/index.ts",
+		"./network": "./network/index.ts"
 	},
 	"keywords": [],
 	"author": "",

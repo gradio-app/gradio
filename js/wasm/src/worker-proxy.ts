@@ -6,6 +6,7 @@ import type {
 	HttpResponse,
 	InMessage,
 	InMessageWebSocket,
+	OutMessage,
 	ReplyMessage
 } from "./message-types";
 import { MessagePortWebSocket } from "./messageportwebsocket";
@@ -18,12 +19,14 @@ export interface WorkerProxyOptions {
 	requirements: string[];
 }
 
-export class WorkerProxy {
+export class WorkerProxy extends EventTarget {
 	private worker: globalThis.Worker;
 
 	private firstRunPromiseDelegate = new PromiseDelegate<void>();
 
 	constructor(options: WorkerProxyOptions) {
+		super();
+
 		console.debug("WorkerProxy.constructor(): Create a new worker.");
 		// Loading a worker here relies on Vite's support for WebWorkers (https://vitejs.dev/guide/features.html#web-workers),
 		// assuming that this module is imported from the Gradio frontend (`@gradio/app`), which is bundled with Vite.
@@ -31,6 +34,10 @@ export class WorkerProxy {
 		// Read the comment in `cross-origin-worker.ts` for the detail.
 		const workerMaker = new Worker(new URL("./webworker.js", import.meta.url));
 		this.worker = workerMaker.worker;
+
+		this.worker.onmessage = (e) => {
+			this._processWorkerMessage(e.data);
+		};
 
 		this.postMessageAsync({
 			type: "init",
@@ -40,29 +47,61 @@ export class WorkerProxy {
 				files: options.files,
 				requirements: options.requirements
 			}
-		}).then(() => {
-			console.debug("WorkerProxy.constructor(): Initialization is done.");
-		});
+		})
+			.then(() => {
+				console.debug("WorkerProxy.constructor(): Initialization is done.");
+			})
+			.catch((error) => {
+				console.error(
+					"WorkerProxy.constructor(): Initialization failed.",
+					error
+				);
+				this.dispatchEvent(
+					new CustomEvent("error", {
+						detail: error
+					})
+				);
+			});
 	}
 
 	public async runPythonCode(code: string): Promise<void> {
-		await this.postMessageAsync({
-			type: "run-python-code",
-			data: {
-				code
-			}
-		});
-		this.firstRunPromiseDelegate.resolve();
+		this.dispatchEvent(new Event("run-start"));
+		try {
+			await this.postMessageAsync({
+				type: "run-python-code",
+				data: {
+					code
+				}
+			});
+			this.firstRunPromiseDelegate.resolve();
+		} catch (error) {
+			this.dispatchEvent(
+				new CustomEvent("error", {
+					detail: error
+				})
+			);
+			throw error;
+		}
 	}
 
 	public async runPythonFile(path: string): Promise<void> {
-		await this.postMessageAsync({
-			type: "run-python-file",
-			data: {
-				path
-			}
-		});
-		this.firstRunPromiseDelegate.resolve();
+		this.dispatchEvent(new Event("run-start"));
+		try {
+			await this.postMessageAsync({
+				type: "run-python-file",
+				data: {
+					path
+				}
+			});
+			this.firstRunPromiseDelegate.resolve();
+		} catch (error) {
+			this.dispatchEvent(
+				new CustomEvent("error", {
+					detail: error
+				})
+			);
+			throw error;
+		}
 	}
 
 	// A wrapper for this.worker.postMessage(). Unlike that function, which
@@ -86,6 +125,19 @@ export class WorkerProxy {
 
 			this.worker.postMessage(msg, [channel.port2]);
 		});
+	}
+
+	private _processWorkerMessage(msg: OutMessage): void {
+		switch (msg.type) {
+			case "progress-update": {
+				this.dispatchEvent(
+					new CustomEvent("progress-update", {
+						detail: msg.data.log
+					})
+				);
+				break;
+			}
+		}
 	}
 
 	public async httpRequest(request: HttpRequest): Promise<HttpResponse> {
@@ -154,6 +206,13 @@ export class WorkerProxy {
 				data,
 				opts
 			}
+		}).catch((error) => {
+			this.dispatchEvent(
+				new CustomEvent("error", {
+					detail: error
+				})
+			);
+			throw error;
 		}) as Promise<void>;
 	}
 
@@ -164,6 +223,13 @@ export class WorkerProxy {
 				oldPath,
 				newPath
 			}
+		}).catch((error) => {
+			this.dispatchEvent(
+				new CustomEvent("error", {
+					detail: error
+				})
+			);
+			throw error;
 		}) as Promise<void>;
 	}
 
@@ -173,6 +239,13 @@ export class WorkerProxy {
 			data: {
 				path
 			}
+		}).catch((error) => {
+			this.dispatchEvent(
+				new CustomEvent("error", {
+					detail: error
+				})
+			);
+			throw error;
 		}) as Promise<void>;
 	}
 
@@ -182,6 +255,13 @@ export class WorkerProxy {
 			data: {
 				requirements
 			}
+		}).catch((error) => {
+			this.dispatchEvent(
+				new CustomEvent("error", {
+					detail: error
+				})
+			);
+			throw error;
 		}) as Promise<void>;
 	}
 

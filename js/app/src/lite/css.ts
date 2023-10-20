@@ -1,5 +1,5 @@
 import type { WorkerProxy } from "@gradio/wasm";
-import { is_self_host } from "./url";
+import { is_self_host } from "@gradio/wasm/network";
 import { mount_css as default_mount_css } from "../css";
 
 // In the Wasm mode, we use a prebuilt CSS file `/static/css/theme.css` to apply the styles in the initialization phase,

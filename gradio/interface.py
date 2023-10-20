@@ -134,7 +134,7 @@ class Interface(Blocks):
             allow_flagging: one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every input the user submits will be automatically flagged (outputs are not flagged). If "manual", both the input and outputs are flagged when the user clicks flag button. This parameter can be set with environmental variable GRADIO_ALLOW_FLAGGING; otherwise defaults to "manual".
             flagging_options: if provided, allows user to select from the list of options when flagging. Only applies if allow_flagging is "manual". Can either be a list of tuples of the form (label, value), where label is the string that will be displayed on the button and value is the string that will be stored in the flagging CSV; or it can be a list of strings ["X", "Y"], in which case the values will be the list of strings and the labels will ["Flag as X", "Flag as Y"], etc.
             flagging_dir: what to name the directory where flagged data is stored.
-            flagging_callback: An instance of a subclass of FlaggingCallback which will be called when a sample is flagged. By default logs to a local CSV file.
+            flagging_callback: None or an instance of a subclass of FlaggingCallback which will be called when a sample is flagged. If set to None, an instance of gradio.flagging.CSVLogger will be created and logs will be saved to a local CSV file in flagging_dir. Default to None.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
             batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
@@ -301,8 +301,9 @@ class Interface(Blocks):
                 "flagging_options must be a list of strings or list of (string, string) tuples."
             )
 
-        if not flagging_callback:
+        if flagging_callback is None:
             flagging_callback = CSVLogger()
+
         self.flagging_callback = flagging_callback
         self.flagging_dir = flagging_dir
 
@@ -648,11 +649,11 @@ class Interface(Blocks):
                 (
                     [{'variant': None, 'visible': True, '__type__': 'update'}]
                     if self.interface_type
-                        in [
-                            InterfaceTypes.STANDARD,
-                            InterfaceTypes.INPUT_ONLY,
-                            InterfaceTypes.UNIFIED,
-                        ]
+                       in [
+                           InterfaceTypes.STANDARD,
+                           InterfaceTypes.INPUT_ONLY,
+                           InterfaceTypes.UNIFIED,
+                       ]
                     else []
                 )
             )}
