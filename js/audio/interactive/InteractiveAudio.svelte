@@ -10,32 +10,31 @@
 	import type { IBlobEvent, IMediaRecorder } from "extendable-media-recorder";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import AudioRecorder from "../recorder/AudioRecorder.svelte";
+	import type { WaveformOptions } from "../shared/types";
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
 	export let root: string;
 	export let show_label = true;
-	export let name = "";
+	// export let name = "";
 	export let source: "microphone" | "upload" | "none";
-	// export let pending = false;
+	export let pending = false;
 	export let streaming = false;
 	export let autoplay = false;
 	export let show_edit_button = true;
 	export let i18n: I18nFormatter;
-
-	// waveform settings
-	export let waveformColor = "#9ca3af";
-	export let waveformProgressColor = "#f97316";
+	export let waveformOptions: WaveformOptions;
 
 	// TODO: make use of this
 	// export let type: "normal" | "numpy" = "normal";
 
 	let recording = false;
+	let recorder: IMediaRecorder;
 	let mode = "";
 	let header: Uint8Array | undefined = undefined;
 	let pending_stream: Uint8Array[] = [];
 	let submit_pending_stream_on_pending_end = false;
-	// let inited = false;
+	let inited = false;
 
 	const STREAM_TIMESLICE = 500;
 	const NUM_HEADER_BYTES = 44;
@@ -95,77 +94,79 @@
 		dispatch(event, detail);
 	};
 
-	// TODO: implement streaming
+	async function prepare_audio(): Promise<void> {
+		let stream: MediaStream | null;
 
-	// async function prepare_audio(): Promise<void> {
-	// 	let stream: MediaStream | null;
+		try {
+			stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+		} catch (err) {
+			if (!navigator.mediaDevices) {
+				dispatch("error", i18n("audio.no_device_support"));
+				return;
+			}
+			if (err instanceof DOMException && err.name == "NotAllowedError") {
+				dispatch("error", i18n("audio.allow_recording_access"));
+				return;
+			}
+			throw err;
+		}
+		if (stream == null) return;
+		if (streaming) {
+			const [{ MediaRecorder, register }, { connect }] = await Promise.all(
+				module_promises
+			);
+			await register(await connect());
+			recorder = new MediaRecorder(stream, { mimeType: "audio/wav" });
+			recorder.addEventListener("dataavailable", handle_chunk);
+		} else {
+			recorder = new MediaRecorder(stream);
+			recorder.addEventListener("dataavailable", (event) => {
+				audio_chunks.push(event.data);
+			});
+			recorder.addEventListener("stop", async () => {
+				recording = false;
+				await dispatch_blob(audio_chunks, "change");
+				await dispatch_blob(audio_chunks, "stop_recording");
+				audio_chunks = [];
+			});
+		}
+		inited = true;
+	}
 
-	// 	if (stream == null) return;
+	async function handle_chunk(event: IBlobEvent): Promise<void> {
+		let buffer = await event.data.arrayBuffer();
+		let payload = new Uint8Array(buffer);
+		if (!header) {
+			header = new Uint8Array(buffer.slice(0, NUM_HEADER_BYTES));
+			payload = new Uint8Array(buffer.slice(NUM_HEADER_BYTES));
+		}
+		if (pending) {
+			pending_stream.push(payload);
+		} else {
+			let blobParts = [header].concat(pending_stream, [payload]);
+			dispatch_blob(blobParts, "stream");
+			pending_stream = [];
+		}
+	}
 
-	// 	if (streaming) {
-	// 		const [{ MediaRecorder, register }, { connect }] = await Promise.all(
-	// 			module_promises
-	// 		);
+	$: if (submit_pending_stream_on_pending_end && pending === false) {
+		submit_pending_stream_on_pending_end = false;
+		if (header && pending_stream) {
+			let blobParts: Uint8Array[] = [header].concat(pending_stream);
+			pending_stream = [];
+			dispatch_blob(blobParts, "stream");
+		}
+	}
 
-	// 		await register(await connect());
-
-	// 		recorder = new MediaRecorder(stream, { mimeType: "audio/wav" });
-
-	// 		recorder.addEventListener("dataavailable", handle_chunk);
-	// 	} else {
-	// 		recorder = new MediaRecorder(stream);
-
-	// 		recorder.addEventListener("dataavailable", (event) => {
-	// 			audio_chunks.push(event.data);
-	// 		});
-
-	// recorder.addEventListener("stop", async () => {
-	// 	recording = false;
-	// 	await dispatch_blob(audio_chunks, "change");
-	// 	await dispatch_blob(audio_chunks, "stop_recording");
-	// 	audio_chunks = [];
-	// });
-	// }
-
-	// 	inited = true;
-	// }
-
-	// async function handle_chunk(event: IBlobEvent): Promise<void> {
-	// 	let buffer = await event.data.arrayBuffer();
-	// 	let payload = new Uint8Array(buffer);
-	// 	if (!header) {
-	// 		header = new Uint8Array(buffer.slice(0, NUM_HEADER_BYTES));
-	// 		payload = new Uint8Array(buffer.slice(NUM_HEADER_BYTES));
-	// 	}
-	// 	if (pending) {
-	// 		pending_stream.push(payload);
-	// 	} else {
-	// 		let blobParts = [header].concat(pending_stream, [payload]);
-	// 		dispatch_blob(blobParts, "stream");
-	// 		pending_stream = [];
-	// 	}
-	// }
-
-	// $: if (submit_pending_stream_on_pending_end && pending === false) {
-	// 	submit_pending_stream_on_pending_end = false;
-	// 	if (header && pending_stream) {
-	// 		let blobParts: Uint8Array[] = [header].concat(pending_stream);
-	// 		pending_stream = [];
-	// 		dispatch_blob(blobParts, "stream");
-	// 	}
-	// }
-
-	// async function record(): Promise<void> {
-	// 	recording = true;
-	// 	dispatch("start_recording");
-	// 	if (!inited) await prepare_audio();
-	// 	header = undefined;
-	// 	if (streaming) {
-	// 		recorder.start(STREAM_TIMESLICE);
-	// 	} else {
-	// 		recorder.start();
-	// 	}
-	// }
+	async function record(): Promise<void> {
+		recording = true;
+		dispatch("start_recording");
+		if (!inited) await prepare_audio();
+		header = undefined;
+		if (streaming) {
+			recorder.start(STREAM_TIMESLICE);
+		}
+	}
 
 	function clear(): void {
 		dispatch("change", null);
@@ -201,14 +202,35 @@
 />
 {#if value === null || streaming}
 	{#if source === "microphone"}
-		<AudioRecorder
-			{label}
-			{i18n}
-			{dispatch}
-			{dispatch_blob}
-			{waveformColor}
-			{waveformProgressColor}
-		/>
+		{#if streaming}
+			<div class="mic-wrap">
+				{#if recording}
+					<button on:click={stop}>
+						<span class="record-icon">
+							<span class="pinger" />
+							<span class="dot" />
+						</span>
+						{i18n("audio.stop_recording")}
+					</button>
+				{:else}
+					<button on:click={record}>
+						<span class="record-icon">
+							<span class="dot" />
+						</span>
+						{i18n("audio.record_from_microphone")}
+					</button>
+				{/if}
+			</div>
+		{:else}
+			<AudioRecorder
+				bind:mode
+				{label}
+				{i18n}
+				{dispatch}
+				{dispatch_blob}
+				{waveformOptions}
+			/>
+		{/if}
 	{:else if source === "upload"}
 		<!-- explicitly listed out audio mimetypes due to iOS bug not recognizing audio/* -->
 		<Upload
@@ -230,14 +252,14 @@
 	/>
 
 	<AudioPlayer
+		bind:mode
 		{value}
 		{label}
 		{autoplay}
 		{i18n}
 		{dispatch}
 		{dispatch_blob}
-		{waveformColor}
-		{waveformProgressColor}
+		{waveformOptions}
 		interactive
 	/>
 {/if}

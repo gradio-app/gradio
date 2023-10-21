@@ -54,6 +54,7 @@
 		"@types/wavesurfer.js": "^6.0.10",
 		"@typescript-eslint/eslint-plugin": "^6.2.1",
 		"@typescript-eslint/parser": "^6.2.1",
+		"audiobuffer-to-blob": "^1.0.2",
 		"autoprefixer": "^10.4.4",
 		"babylonjs": "^5.17.1",
 		"babylonjs-loaders": "^5.17.1",

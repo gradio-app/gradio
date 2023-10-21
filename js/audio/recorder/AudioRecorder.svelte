@@ -12,6 +12,7 @@
 	import type { WaveformOptions } from "../shared/types";
 
 	export let label: string;
+	export let mode: string;
 	// export let autoplay: boolean;
 	export let i18n: I18nFormatter;
 	export let dispatch: (event: any, detail?: any) => void;
@@ -36,7 +37,6 @@
 	let audioDuration: number;
 
 	// trimming
-	let trimmingMode = false;
 	let trimDuration = 0;
 
 	// timing
@@ -181,7 +181,7 @@
 		start: number,
 		end: number
 	): Promise<void> => {
-		trimmingMode = false;
+		mode = "edit";
 		const decodedData = recordingWaveform.getDecodedData();
 		if (decodedData)
 			await trimAudioBlob(decodedData, start, end).then(
@@ -214,7 +214,7 @@
 		<div id="timestamps">
 			<time bind:this={timeRef} id="time">0:00</time>
 			<div>
-				{#if trimmingMode && trimDuration > 0}
+				{#if mode === "edit" && trimDuration > 0}
 					<time id="trim-duration">{format_time(trimDuration)}</time>
 				{/if}
 				{#if timing}
@@ -239,7 +239,7 @@
 			interactive={true}
 			{handle_trim_audio}
 			bind:trimDuration
-			bind:trimmingMode
+			bind:mode
 			{clear_recording}
 			showRedo
 		/>

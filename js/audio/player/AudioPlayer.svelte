@@ -20,7 +20,8 @@
 		event: any
 	) => Promise<void> = () => Promise.resolve();
 	export let interactive = false;
-	export let waveformOptions: WaveformOptions;
+	export let waveformOptions: WaveformOptions = {};
+	export let mode: string;
 
 	let container: HTMLDivElement;
 	let waveform: WaveSurfer;
@@ -30,7 +31,6 @@
 	let durationRef: HTMLTimeElement;
 	let audioDuration: number;
 
-	let trimmingMode = false;
 	let trimDuration = 0;
 
 	const formatTime = (seconds: number): string => {
@@ -99,7 +99,7 @@
 		start: number,
 		end: number
 	): Promise<void> => {
-		trimmingMode = false;
+		mode = "";
 		const decodedData = waveform.getDecodedData();
 		if (decodedData)
 			await trimAudioBlob(decodedData, start, end).then(
@@ -112,6 +112,13 @@
 			);
 		dispatch("edit");
 	};
+
+	function clear(): void {
+		dispatch("change", null);
+		dispatch("clear");
+		mode = "";
+		value = null;
+	}
 
 	$: value && waveform?.load(value.data);
 
@@ -143,7 +150,7 @@
 		<div class="timestamps">
 			<time bind:this={timeRef} id="time">0:00</time>
 			<div>
-				{#if trimmingMode && trimDuration > 0}
+				{#if mode === "edit" && trimDuration > 0}
 					<time id="trim-duration">{formatTime(trimDuration)}</time>
 				{/if}
 				<time bind:this={durationRef} id="duration">0:00</time>
@@ -157,7 +164,8 @@
 			{i18n}
 			{interactive}
 			{handle_trim_audio}
-			bind:trimmingMode
+			clear_recording={clear}
+			bind:mode
 			bind:trimDuration
 			showRedo={interactive}
 		/>

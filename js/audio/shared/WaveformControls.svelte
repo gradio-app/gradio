@@ -13,8 +13,8 @@
 	export let showRedo = false;
 	export let interactive = false;
 	export let handle_trim_audio: (start: number, end: number) => void;
+	export let mode = "";
 
-	export let trimmingMode = false;
 	export let trimDuration = 0;
 
 	let playbackSpeeds = [0.5, 1, 1.5, 2];
@@ -42,7 +42,7 @@
 		});
 
 	const addTrimRegion = (): void => {
-		if (!trimmingMode) return;
+		if (mode !== "edit") return;
 		trimRegion = waveform.registerPlugin(RegionsPlugin.create());
 		const newRegion = trimRegion.addRegion({
 			start: audioDuration / 4,
@@ -64,7 +64,7 @@
 				const start = region.start;
 				const end = region.end;
 				handle_trim_audio(start, end);
-				trimmingMode = false;
+				mode = "";
 			}
 		}
 	};
@@ -78,15 +78,19 @@
 		});
 
 	const toggleTrimmingMode = (): void => {
-		trimmingMode = !trimmingMode;
-
-		if (!trimmingMode) {
-			activeRegion = null;
-			if (trimRegion) {
-				trimRegion.destroy();
-				trimRegion.clearRegions();
-			}
+		if (mode === "edit") {
+			mode = "";
 		} else {
+			mode = "edit";
+		}
+
+		trimRegion?.getRegions().forEach((region) => {
+			region.remove();
+		});
+		trimRegion?.destroy();
+		trimRegion?.clearRegions();
+
+		if (mode === "edit") {
 			addTrimRegion();
 		}
 	};
@@ -137,18 +141,18 @@
 	</div>
 
 	<div class="settings-wrapper">
-		{#if showRedo && !trimmingMode}
+		{#if showRedo && mode === ""}
 			<button class="redo" on:click={clear_recording}>
 				<Undo />
 			</button>
 		{/if}
 
 		{#if interactive}
-			{#if !trimmingMode}
+			{#if mode === ""}
 				<button
 					class="trim"
 					on:click={toggleTrimmingMode}
-					style="color: {trimmingMode
+					style="color: {mode === 'edit'
 						? 'var(--primary)'
 						: 'var(--neutral-400)'}"
 				>
