@@ -10,7 +10,7 @@
 	import InteractiveAudio from "./interactive/InteractiveAudio.svelte";
 	import { StatusTracker } from "@gradio/statustracker";
 	import { Block, UploadText } from "@gradio/atoms";
-
+	import type { WaveformOptions } from "./shared/types";
 	import { normalise_file } from "@gradio/upload";
 
 	export let elem_id = "";
@@ -30,6 +30,7 @@
 	export let autoplay = false;
 	export let show_download_button = true;
 	export let show_share_button = false;
+	export let waveformOptions: WaveformOptions;
 
 	export let name: string;
 	export let pending: boolean;
@@ -51,10 +52,6 @@
 		clear: never;
 		share: ShareData;
 	}>;
-
-	// waveform settings
-	export let waveformColor = "#9ca3af";
-	export let waveformProgressColor = "#f97316";
 
 	let old_value: null | FileData | string = null;
 
@@ -98,8 +95,7 @@
 			value={_value}
 			name={_value?.name || "audio_file"}
 			{label}
-			{waveformColor}
-			{waveformProgressColor}
+			{waveformOptions}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
 		/>
@@ -154,8 +150,7 @@
 				gradio.dispatch("error", detail);
 			}}
 			i18n={gradio.i18n}
-			{waveformColor}
-			{waveformProgressColor}
+			{waveformOptions}
 		>
 			<UploadText i18n={gradio.i18n} type="audio" />
 		</InteractiveAudio>

@@ -8,6 +8,7 @@
 	import { Empty } from "@gradio/atoms";
 	// @ts-ignore
 	import getWaveBlob from "wav-blob-util";
+	import type { WaveformOptions } from "../shared/types";
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
@@ -19,10 +20,7 @@
 		event: any
 	) => Promise<void> = () => Promise.resolve();
 	export let interactive = false;
-
-	export let waveformColor = "#9ca3af";
-	export let waveformProgressColor = "#f97316";
-	export let showMediaControls = false;
+	export let waveformOptions: WaveformOptions;
 
 	let container: HTMLDivElement;
 	let waveform: WaveSurfer;
@@ -46,8 +44,8 @@
 		waveform = WaveSurfer.create({
 			height: 50,
 			container: container,
-			waveColor: waveformColor || "#9ca3af",
-			progressColor: waveformProgressColor || "#f97316",
+			waveColor: waveformOptions.waveformColor || "#9ca3af",
+			progressColor: waveformOptions.waveformProgressColor || "#f97316",
 			url: value?.data,
 			barWidth: 2,
 			barGap: 3,
@@ -56,7 +54,7 @@
 			cursorColor: "#ddd5e9",
 			barRadius: 10,
 			dragToSeek: true,
-			mediaControls: showMediaControls,
+			mediaControls: waveformOptions.showMediaControls,
 		});
 	};
 

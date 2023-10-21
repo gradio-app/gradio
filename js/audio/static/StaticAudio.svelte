@@ -7,7 +7,7 @@
 	import AudioPlayer from "../player/AudioPlayer.svelte";
 	import { createEventDispatcher } from "svelte";
 	import type { FileData } from "@gradio/upload";
-
+	import type { WaveformOptions } from "../shared/types";
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
 	export let name: string;
@@ -16,9 +16,7 @@
 	export let show_download_button = true;
 	export let show_share_button = false;
 	export let i18n: I18nFormatter;
-
-	export let waveformColor: string;
-	export let waveformProgressColor: string;
+	export let waveformOptions: WaveformOptions;
 
 	const dispatch = createEventDispatcher<{
 		change: FileData;
@@ -68,15 +66,7 @@
 		{/if}
 	</div>
 
-	<AudioPlayer
-		{value}
-		{label}
-		{autoplay}
-		{waveformColor}
-		{waveformProgressColor}
-		{i18n}
-		{dispatch}
-	/>
+	<AudioPlayer {value} {label} {autoplay} {i18n} {dispatch} {waveformOptions} />
 {:else}
 	<Empty size="small">
 		<Music />

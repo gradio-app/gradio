@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import Any, Callable, Literal, TypedDict
 
 import numpy as np
 import requests
@@ -17,11 +17,10 @@ from gradio.events import Events
 
 set_documentation_group("component")
 
-
-class AudioInputData(FileData):
-    crop_min: int = 0
-    crop_max: int = 100
-
+class WaveformOptions(TypedDict, total=False):
+    waveformColor: str
+    waveformProgressColor: str
+    showMediaControls: bool
 
 @document()
 class Audio(
@@ -79,6 +78,7 @@ class Audio(
         show_download_button=True,
         show_share_button: bool | None = None,
         show_edit_button: bool | None = True,
+        waveformOptions: WaveformOptions | None = None,
     ):
         """
         Parameters:
@@ -130,6 +130,7 @@ class Audio(
             if show_share_button is None
             else show_share_button
         )
+        self.waveformOptions = waveformOptions
         self.show_edit_button = show_edit_button
         super().__init__(
             label=label,
@@ -156,27 +157,27 @@ class Audio(
     ) -> tuple[int, np.ndarray] | str | None:
         """
         Parameters:
-            x: dictionary with keys "name", "data", "is_file", "crop_min", "crop_max".
+            x: dictionary with keys "name", "data", "is_file".
         Returns:
             audio in requested format
         """
         if x is None:
             return x
 
-        payload: AudioInputData = AudioInputData(**x)
+        payload: FileData = FileData(**x)
         assert payload.name
 
         # Need a unique name for the file to avoid re-using the same audio file if
-        # a user submits the same audio file twice, but with different crop min/max.
+        # a user submits the same audio file twice
         temp_file_path = Path(payload.name)
         output_file_name = str(
             temp_file_path.with_name(
-                f"{temp_file_path.stem}-{payload.crop_min}-{payload.crop_max}{temp_file_path.suffix}"
+                f"{temp_file_path.stem}-{temp_file_path.suffix}"
             )
         )
 
         sample_rate, data = processing_utils.audio_from_file(
-            temp_file_path, crop_min=payload.crop_min, crop_max=payload.crop_max
+            temp_file_path
         )
 
         if self.type == "numpy":

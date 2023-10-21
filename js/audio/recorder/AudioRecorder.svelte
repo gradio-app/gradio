@@ -9,6 +9,7 @@
 	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
 	// @ts-ignore
 	import getWaveBlob from "wav-blob-util";
+	import type { WaveformOptions } from "../shared/types";
 
 	export let label: string;
 	// export let autoplay: boolean;
@@ -18,9 +19,7 @@
 		blobs: Uint8Array[] | Blob[],
 		event: any
 	) => Promise<void> | undefined;
-	export let waveformColor = "#9ca3af";
-	export let waveformProgressColor = "#f97316";
-	export let showMediaControls = false;
+	export let waveformOptions: WaveformOptions;
 
 	// waveform
 	let micWaveform: WaveSurfer;
@@ -126,8 +125,8 @@
 		micWaveform = WaveSurfer.create({
 			height: 50,
 			container: "#mic",
-			waveColor: waveformColor || "#9ca3af",
-			progressColor: waveformProgressColor || "#f97316",
+			waveColor: waveformOptions.waveformColor || "#9ca3af",
+			progressColor: waveformOptions.waveformProgressColor || "#f97316",
 			barWidth: 2,
 			barGap: 3,
 			barHeight: 4,
@@ -135,7 +134,7 @@
 			cursorColor: "#ddd5e9",
 			barRadius: 10,
 			dragToSeek: true,
-			mediaControls: showMediaControls,
+			mediaControls: waveformOptions.showMediaControls,
 		});
 
 		record = micWaveform.registerPlugin(RecordPlugin.create());
@@ -146,8 +145,8 @@
 		recordingWaveform = WaveSurfer.create({
 			height: 50,
 			container: "#recordings",
-			waveColor: waveformColor || "#9ca3af",
-			progressColor: waveformProgressColor || "#f97316",
+			waveColor: waveformOptions.waveformColor || "#9ca3af",
+			progressColor: waveformOptions.waveformProgressColor || "#f97316",
 			barWidth: 2,
 			barGap: 3,
 			barHeight: 4,

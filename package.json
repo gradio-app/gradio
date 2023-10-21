@@ -51,7 +51,7 @@
 		"@testing-library/user-event": "^14.0.0",
 		"@types/node": "^20.3.1",
 		"@types/testing-library__jest-dom": "^5.14.6",
-		"@types/wavesurfer.js": "^6.0.8",
+		"@types/wavesurfer.js": "^6.0.10",
 		"@typescript-eslint/eslint-plugin": "^6.2.1",
 		"@typescript-eslint/parser": "^6.2.1",
 		"autoprefixer": "^10.4.4",
@@ -86,7 +86,7 @@
 		"typescript": "^5.0.0",
 		"vite": "^4.3.9",
 		"vitest": "^0.34.0",
-		"wavesurfer.js": "^7.3.8"
+		"wavesurfer.js": "^7.3.9"
 	},
 	"devDependencies": {
 		"@storybook/addon-a11y": "^7.0.24",
@@ -105,7 +105,7 @@
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"storybook": "^7.0.23",
-		"wikidata-lang": "^4.1.2",
-		"wav-blob-util": "1.0.21"
+		"wav-blob-util": "1.0.21",
+		"wikidata-lang": "^4.1.2"
 	}
 }
