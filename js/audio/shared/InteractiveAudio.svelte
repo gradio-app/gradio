@@ -67,17 +67,17 @@
 	const dispatch = createEventDispatcher<{
 		change: AudioData | null;
 		stream: AudioData;
-		edit: never;
-		play: never;
-		pause: never;
-		stop: never;
-		end: never;
+		edit?: never;
+		play?: never;
+		pause?: never;
+		stop?: never;
+		end?: never;
 		drag: boolean;
 		error: string;
 		upload: FileData;
-		clear: never;
-		start_recording: never;
-		stop_recording: never;
+		clear?: never;
+		start_recording?: never;
+		stop_recording?: never;
 	}>();
 
 	function blob_to_data_url(blob: Blob): Promise<string> {

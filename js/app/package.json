@@ -76,8 +76,7 @@
 		"d3-dsv": "^3.0.1",
 		"mime-types": "^2.1.34",
 		"postcss": "^8.4.21",
-		"postcss-prefix-selector": "^1.16.0",
-		"svelte": "^4.2.1"
+		"postcss-prefix-selector": "^1.16.0"
 	},
 	"msw": {
 		"workerDirectory": "public"
