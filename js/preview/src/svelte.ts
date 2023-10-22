@@ -13,4 +13,5 @@ export {
 	tick,
 	createEventDispatcher,
 	SvelteComponentTyped
+	// @ts-ignore
 } from "svelte/internal";

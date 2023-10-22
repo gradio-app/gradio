@@ -8,7 +8,7 @@
 		"outDir": "dist",
 		"declarationMap": true,
 		"module": "es2020",
-		"moduleResolution": "node16",
+		"moduleResolution": "bundler",
 		"skipDefaultLibCheck": true
 	}
 }

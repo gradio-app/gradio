@@ -1,8 +1,6 @@
 import { describe, test, expect, beforeAll } from "vitest";
 import { make_fs_store, type SerialisedNode } from "./utils";
 import { get } from "svelte/store";
-import exp from "constants";
-import { e } from "vitest/dist/types-3c7dbfa5";
 
 describe("fs_store", () => {
 	let store: ReturnType<typeof make_fs_store>,

@@ -11,7 +11,8 @@ const preview: Preview = {
 			document.createElement("div"),
 			"light",
 			"1.1.1",
-			"localhost:9876"
+			"localhost:9876",
+			false
 		)
 	},
 	argTypes: {

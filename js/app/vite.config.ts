@@ -45,6 +45,7 @@ const TEST_MODE = process.env.TEST_MODE || "jsdom";
 
 //@ts-ignore
 export default defineConfig(({ mode }) => {
+	console.log(mode);
 	const targets = {
 		"production:cdn": "../../gradio/templates/cdn",
 		"production:local": "../../gradio/templates/frontend",
@@ -158,7 +159,7 @@ export default defineConfig(({ mode }) => {
 					}
 				})
 			}),
-			generate_dev_entry({ enable: mode !== "development" }),
+			generate_dev_entry({ enable: mode !== "development" && mode !== "test" }),
 			inject_ejs(),
 			patch_dynamic_import({
 				mode: is_cdn ? "cdn" : "local",

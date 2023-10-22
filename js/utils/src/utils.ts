@@ -1,4 +1,3 @@
-import { type ActionReturn } from "svelte/action";
 export interface SelectData {
 	index: number | [number, number];
 	value: any;
@@ -84,7 +83,7 @@ function dataURLtoBlob(dataurl: string): Blob {
 	return new Blob([u8arr], { type: mime });
 }
 
-export function copy(node: HTMLDivElement): ActionReturn {
+export function copy(node: HTMLDivElement): any {
 	node.addEventListener("click", handle_copy);
 
 	async function handle_copy(event: MouseEvent): Promise<void> {
@@ -151,17 +150,17 @@ async function copy_to_clipboard(value: string): Promise<boolean> {
 	return copied;
 }
 
-import { format } from "svelte-i18n";
+// import { format } from "svelte-i18n";
 import { get } from "svelte/store";
 
-const x = get(format);
+// const x = get(format);
 
-export type I18nFormatter = typeof x;
+export type I18nFormatter = any;
 export class Gradio<T extends Record<string, any> = Record<string, any>> {
 	#id: number;
 	theme: string;
 	version: string;
-	i18n: typeof x;
+	i18n: I18nFormatter;
 	#el: HTMLElement;
 	root: string;
 	autoscroll: boolean;
@@ -178,7 +177,8 @@ export class Gradio<T extends Record<string, any> = Record<string, any>> {
 		this.theme = theme;
 		this.version = version;
 		this.#el = el;
-		this.i18n = get(format);
+
+		this.i18n = (x: string): string => x;
 		this.root = root;
 		this.autoscroll = autoscroll;
 	}

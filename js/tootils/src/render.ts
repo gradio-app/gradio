@@ -70,7 +70,14 @@ export async function render<
 		//@ts-ignore
 		props: {
 			...(props || {}),
-			gradio: new Gradio(id, target, "light", "2.0.0", "http://localhost:8000")
+			gradio: new Gradio(
+				id,
+				target,
+				"light",
+				"2.0.0",
+				"http://localhost:8000",
+				false
+			)
 		}
 	});
 

@@ -1,5 +1,3 @@
-import type { ActionReturn } from "svelte/action";
-
 export interface LoadedParams {
 	crop_values?: [number, number];
 	autoplay?: boolean;
@@ -8,7 +6,7 @@ export interface LoadedParams {
 export function loaded(
 	node: HTMLAudioElement,
 	{ crop_values, autoplay }: LoadedParams = {}
-): ActionReturn {
+): any {
 	function clamp_playback(): void {
 		if (crop_values === undefined) return;
 

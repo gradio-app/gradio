@@ -150,7 +150,9 @@
 		if (typeof index !== "number") return;
 		await tick();
 
-		el[index].focus();
+		if (el[index] === undefined) return;
+
+		el[index]?.focus();
 
 		const { left: container_left, width: container_width } =
 			container_element.getBoundingClientRect();
@@ -220,7 +222,7 @@
 					loading="lazy"
 				/>
 			</button>
-			{#if _value[selected_index].caption}
+			{#if _value[selected_index]?.caption}
 				<caption class="caption">
 					{_value[selected_index].caption}
 				</caption>

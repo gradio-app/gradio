@@ -41,14 +41,14 @@
 		"**/node_modules/**/*",
 		"**/venv/**/*",
 		"client/js/**",
-		"**/vite.config*"
+		"**/vite.config*",
+		".changeset/*.cjs"
 	],
 	"include": [
 		"**/*.d.ts",
 		"**/*.js",
 		"**/*.ts",
 		"**/*.svelte",
-		"client/js/**/*",
-		".changeset/*.cjs"
+		"client/js/**/*"
 	]
 }

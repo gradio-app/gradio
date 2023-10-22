@@ -3,8 +3,8 @@
 	import { BlockTitle } from "@gradio/atoms";
 	import { Copy, Check } from "@gradio/icons";
 	import { fade } from "svelte/transition";
-	import type { SelectData } from "@gradio/utils";
-	import type { ActionReturn } from "svelte/action";
+	// import type { SelectData } from "@gradio/utils";
+	// import type { ActionReturn } from "@gradio/tootils";
 
 	export let value = "";
 	export let value_is_output = false;
@@ -125,7 +125,7 @@
 	function text_area_resize(
 		_el: HTMLTextAreaElement,
 		_value: string
-	): ActionReturn | undefined {
+	): any | undefined {
 		if (lines === max_lines) return;
 		_el.style.overflowY = "scroll";
 		_el.addEventListener("input", resize);

@@ -7,8 +7,6 @@ import "prismjs/components/prism-latex";
 
 // loadLanguages(["python", "latex"]);
 
-import type { ActionReturn } from "svelte/action";
-
 const COPY_ICON_CODE = `<svg
 xmlns="http://www.w3.org/2000/svg"
 width="100%"
@@ -122,7 +120,7 @@ marked.use(
 	{ renderer }
 );
 
-export function copy(node: HTMLDivElement): ActionReturn {
+export function copy(node: HTMLDivElement): any {
 	node.addEventListener("click", handle_copy);
 
 	async function handle_copy(event: MouseEvent): Promise<void> {

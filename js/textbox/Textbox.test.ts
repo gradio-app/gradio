@@ -3,7 +3,7 @@ import { spy } from "tinyspy";
 import { cleanup, fireEvent, render, get_text, wait } from "@gradio/tootils";
 import event from "@testing-library/user-event";
 
-import Textbox from "./interactive";
+import Textbox from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status: LoadingStatus = {

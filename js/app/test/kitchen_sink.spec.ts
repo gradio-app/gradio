@@ -91,7 +91,9 @@ test("test outputs", async ({ page, browser }) => {
 
 	const image = await page.locator("img").nth(0);
 	const image_data = await image.getAttribute("src");
-	await expect(image_data).toEqual(BASE64_IMAGE);
+	await expect(image_data).toContain(
+		"gradio/d0a3c81692e072d119e2c665defbd47ce4d3b89a/cheetah1.jpg"
+	);
 
 	const audio = await page.locator("audio").nth(0);
 	const audio_data = await audio.getAttribute("src");

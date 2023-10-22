@@ -77,6 +77,4 @@ build-storybook.log
 js/storybook/theme.css
 
 # playwright
-.config/playwright
-!.config/playwright/index.html
-!.config/playwright/index.ts
+.config/playwright/.cache

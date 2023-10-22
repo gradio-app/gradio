@@ -23,10 +23,25 @@ class BuildHook(BuildHookInterface):
                 and not str(entry.name).startswith("_")
                 and not str(entry.name) in NOT_COMPONENT
             ):
+
+                def ignore(s, names):
+                    ignored = []
+                    for n in names:
+                        if (
+                            n.startswith("CHANGELOG")
+                            or n.startswith("README.md")
+                            or n.startswith("node_modules")
+                            or ".test." in n
+                            or ".stories." in n
+                            or ".spec." in n
+                        ):
+                            ignored.append(n)
+                    return ignored
+
                 shutil.copytree(
                     str(entry),
                     str(pathlib.Path("gradio") / "_frontend_code" / entry.name),
-                    ignore=lambda d, names: ["node_modules"],
+                    ignore=ignore,
                     dirs_exist_ok=True,
                 )
         shutil.copytree(

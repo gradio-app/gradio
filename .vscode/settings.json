@@ -7,6 +7,7 @@
 	"python.analysis.extraPaths": ["./gradio/themes/utils"],
 	"svelte.plugin.svelte.format.enable": true,
 	"svelte.plugin.svelte.diagnostics.enable": false,
+	"svelte.enable-ts-plugin": true,
 	"prettier.configPath": ".config/.prettierrc.json",
 	"prettier.ignorePath": ".config/.prettierignore",
 	"python.analysis.typeCheckingMode": "basic",

@@ -4,7 +4,6 @@
 	import { Copy, Check } from "@gradio/icons";
 	import { fade } from "svelte/transition";
 	import type { SelectData } from "@gradio/utils";
-	import type { ActionReturn } from "svelte/action";
 
 	import("./test").then((m) => {
 		m.fn();
@@ -129,7 +128,7 @@
 	function text_area_resize(
 		_el: HTMLTextAreaElement,
 		_value: string
-	): ActionReturn | undefined {
+	): any | undefined {
 		if (lines === max_lines) return;
 		_el.style.overflowY = "scroll";
 		_el.addEventListener("input", resize);

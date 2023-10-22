@@ -181,22 +181,22 @@
 											{line_breaks}
 											on:load={scroll}
 										/>
-									{:else if message !== null && message.file.mime_type?.includes("audio")}
+									{:else if message !== null && message.file?.mime_type?.includes("audio")}
 										<audio
 											data-testid="chatbot-audio"
 											controls
 											preload="metadata"
-											src={message.file.data}
+											src={message.file?.data}
 											title={message.alt_text}
 											on:play
 											on:pause
 											on:ended
 										/>
-									{:else if message !== null && message.file.mime_type?.includes("video")}
+									{:else if message !== null && message.file?.mime_type?.includes("video")}
 										<video
 											data-testid="chatbot-video"
 											controls
-											src={message.file.data}
+											src={message.file?.data}
 											title={message.alt_text}
 											preload="auto"
 											on:play
@@ -205,22 +205,22 @@
 										>
 											<track kind="captions" />
 										</video>
-									{:else if message !== null && message.file.mime_type?.includes("image")}
+									{:else if message !== null && message.file?.mime_type?.includes("image")}
 										<img
 											data-testid="chatbot-image"
-											src={message.file.data}
+											src={message.file?.data}
 											alt={message.alt_text}
 										/>
-									{:else if message !== null && message.file.data !== null}
+									{:else if message !== null && message.file?.data !== null}
 										<a
 											data-testid="chatbot-file"
-											href={message.file.data}
+											href={message.file?.data}
 											target="_blank"
 											download={window.__is_colab__
 												? null
-												: message.file.orig_name || message.file.name}
+												: message.file?.orig_name || message.file?.name}
 										>
-											{message.file.orig_name || message.file.name}
+											{message.file?.orig_name || message.file?.name}
 										</a>
 									{:else if pending_message && j === 1}
 										<Pending {layout} />

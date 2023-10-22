@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ComponentMeta, Dependency } from "../components/types";
+	import type { ComponentMeta, Dependency } from "../types";
 	import CopyButton from "./CopyButton.svelte";
 	import { represent_value } from "./utils";
 	import { Block } from "@gradio/atoms";

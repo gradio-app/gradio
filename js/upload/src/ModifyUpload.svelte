@@ -11,9 +11,9 @@
 	export let i18n: I18nFormatter;
 
 	const dispatch = createEventDispatcher<{
-		edit: never;
-		clear: never;
-		undo: never;
+		edit?: never;
+		clear?: never;
+		undo?: never;
 	}>();
 </script>
 

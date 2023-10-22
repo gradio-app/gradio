@@ -28,9 +28,9 @@
 		dispatch("upload", detail);
 	}
 
-	function handle_clear({ detail }: CustomEvent<null>): void {
+	function handle_clear(): void {
 		value = null;
-		dispatch("change", value);
+		dispatch("change", null);
 		dispatch("clear");
 	}
 

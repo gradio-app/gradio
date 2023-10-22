@@ -1,5 +1,3 @@
-import type { ActionReturn } from "svelte/action";
-
 export const prettyBytes = (bytes: number): string => {
 	let units = ["B", "KB", "MB", "GB", "PB"];
 	let i = 0;
@@ -22,7 +20,7 @@ export const playable = (): boolean => {
 export function loaded(
 	node: HTMLVideoElement,
 	{ autoplay }: { autoplay: boolean }
-): ActionReturn {
+): any {
 	async function handle_playback(): Promise<void> {
 		if (!autoplay) return;
 		await node.play();

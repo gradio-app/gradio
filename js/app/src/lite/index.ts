@@ -6,7 +6,7 @@ import { wasm_proxied_WebSocket_factory } from "./websocket";
 import { wasm_proxied_mount_css, mount_prebuilt_css } from "./css";
 import type { mount_css } from "../css";
 import Index from "../Index.svelte";
-import type { ThemeMode } from "../components/types";
+import type { ThemeMode } from "../types";
 import { bootstrap_custom_element } from "./custom-element";
 
 // These imports are aliased at built time with Vite. See the `resolve.alias` config in `vite.config.ts`.

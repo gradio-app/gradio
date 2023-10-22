@@ -11,7 +11,7 @@ import { spy } from "tinyspy";
 import { cleanup, render } from "@gradio/tootils";
 import { setupi18n } from "../app/src/i18n";
 
-import Image from "./interactive";
+import Image from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status = {
