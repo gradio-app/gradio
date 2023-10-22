@@ -22,16 +22,16 @@
 	export let i18n: I18nFormatter;
 
 	const dispatch = createEventDispatcher<{
-		change: any;
-		clear: undefined;
-		play: undefined;
-		pause: undefined;
-		end: undefined;
+		change: FileData | null;
+		clear?: never;
+		play?: never;
+		pause?: never;
+		end?: never;
 		drag: boolean;
 		error: string;
 		upload: FileData;
-		start_recording: undefined;
-		stop_recording: undefined;
+		start_recording?: never;
+		stop_recording?: never;
 	}>();
 
 	function handle_load({ detail }: CustomEvent<FileData | null>): void {
@@ -40,9 +40,9 @@
 		dispatch("upload", detail!);
 	}
 
-	function handle_clear({ detail }: CustomEvent<FileData | null>): void {
+	function handle_clear(): void {
 		value = null;
-		dispatch("change", detail);
+		dispatch("change", null);
 		dispatch("clear");
 	}
 
@@ -67,7 +67,7 @@
 			{include_audio}
 			mode="video"
 			on:error
-			on:capture={({ detail }) => dispatch("change", detail)}
+			on:capture={() => dispatch("change")}
 			on:start_recording
 			on:stop_recording
 			{i18n}

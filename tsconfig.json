@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-		"moduleResolution": "bundler",
+		"moduleResolution": "node",
 		"module": "es2020",
 		"lib": ["es2020", "DOM", "dom.iterable"],
 		"target": "es2020",
