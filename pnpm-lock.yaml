@@ -27,8 +27,8 @@ importers:
         specifier: ^2.2.0
         version: 2.2.0
       '@playwright/experimental-ct-svelte':
-        specifier: ^1.37.1
-        version: 1.37.1(@types/node@20.3.1)(less@4.1.3)(svelte@4.2.2)(vite@4.4.9)
+        specifier: ^1.39.0
+        version: 1.39.0(@types/node@20.3.1)(less@4.1.3)(svelte@4.2.2)(vite@4.4.9)
       '@playwright/test':
         specifier: ^1.39.0
         version: 1.39.0
@@ -5439,13 +5439,13 @@ packages:
       esbuild: 0.14.54
     dev: false
 
-  /@playwright/experimental-ct-core@1.37.1(@types/node@20.3.1)(less@4.1.3):
-    resolution: {integrity: sha512-3OmhDzrIAcVQlyVHmyaVtzcht/OUEH47uvwPh/rQmz/CrvB6zHMxH/7dIo6SCswMbCFkACepbqGmTW4HjW+yeQ==}
+  /@playwright/experimental-ct-core@1.39.0(@types/node@20.3.1)(less@4.1.3):
+    resolution: {integrity: sha512-1b/qrlB5A/CdEZns8f2RDkWFmSnGkNyec8n72iinmw07+GHsdMP8fIpazeFB0umxWfo+gPLhkjhTGdB3WXJTBw==}
     engines: {node: '>=16'}
     hasBin: true
     dependencies:
-      '@playwright/test': 1.37.1
-      playwright-core: 1.37.1
+      playwright: 1.39.0
+      playwright-core: 1.39.0
       vite: 4.5.0(@types/node@20.3.1)(less@4.1.3)
     transitivePeerDependencies:
       - '@types/node'
@@ -5457,12 +5457,12 @@ packages:
       - terser
     dev: false
 
-  /@playwright/experimental-ct-svelte@1.37.1(@types/node@20.3.1)(less@4.1.3)(svelte@4.2.2)(vite@4.4.9):
-    resolution: {integrity: sha512-UwdO4uyDkr57uh1NWe04PFuH0QKnFvb9KioY20pLswt9K1DfTemY1ql/NJFg8cWR8kZlYTxhbazFQv6iAi3JFQ==}
+  /@playwright/experimental-ct-svelte@1.39.0(@types/node@20.3.1)(less@4.1.3)(svelte@4.2.2)(vite@4.4.9):
+    resolution: {integrity: sha512-8L7BJOi19XPPrKl6NqRgC6vBlA7VRtdCe2/UeaPIrKPVtcyYwKTZwCdTIp3BRedSdsOCY4Aq2cV4iRl9qn5LTw==}
     engines: {node: '>=16'}
     hasBin: true
     dependencies:
-      '@playwright/experimental-ct-core': 1.37.1(@types/node@20.3.1)(less@4.1.3)
+      '@playwright/experimental-ct-core': 1.39.0(@types/node@20.3.1)(less@4.1.3)
       '@sveltejs/vite-plugin-svelte': 2.4.2(svelte@4.2.2)(vite@4.4.9)
     transitivePeerDependencies:
       - '@types/node'
@@ -5475,17 +5475,6 @@ packages:
       - svelte
       - terser
       - vite
-    dev: false
-
-  /@playwright/test@1.37.1:
-    resolution: {integrity: sha512-bq9zTli3vWJo8S3LwB91U0qDNQDpEXnw7knhxLM0nwDvexQAwx9tO8iKDZSqqneVq+URd/WIoz+BALMqUTgdSg==}
-    engines: {node: '>=16'}
-    hasBin: true
-    dependencies:
-      '@types/node': 20.3.2
-      playwright-core: 1.37.1
-    optionalDependencies:
-      fsevents: 2.3.2
     dev: false
 
   /@playwright/test@1.39.0:
@@ -13244,12 +13233,6 @@ packages:
       jsonc-parser: 3.2.0
       mlly: 1.4.0
       pathe: 1.1.1
-    dev: false
-
-  /playwright-core@1.37.1:
-    resolution: {integrity: sha512-17EuQxlSIYCmEMwzMqusJ2ztDgJePjrbttaefgdsiqeLWidjYz9BxXaTaZWxH1J95SHGk6tjE+dwgWILJoUZfA==}
-    engines: {node: '>=16'}
-    hasBin: true
     dev: false
 
   /playwright-core@1.39.0:

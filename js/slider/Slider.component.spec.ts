@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/experimental-ct-svelte";
 import type { Page, Locator } from "@playwright/test";
-import Slider from "./interactive";
+import Slider from "./Index.svelte";
 import { spy } from "tinyspy";
 
 import type { LoadingStatus } from "@gradio/statustracker";
@@ -58,7 +58,10 @@ test("Slider Default Value And Label rendered", async ({ mount }) => {
 			show_label: true,
 			step: 1,
 			mode: "dynamic",
-			loading_status: loading_status
+			loading_status: loading_status,
+			gradio: {
+				dispatch() {}
+			}
 		}
 	});
 	await expect(component).toContainText("My Slider");

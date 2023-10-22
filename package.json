@@ -28,7 +28,7 @@
 		"ci:version": "changeset version && pnpm i --lockfile-only && node ./.changeset/fix_changelogs.cjs",
 		"ci:publish": "pnpm publish --no-git-checks --access public -r --filter=@gradio/*",
 		"chromatic": "chromatic",
-		"test:ct": "playwright test -c ./.config/playwright-ct.config.ts",
+		"test:ct": "playwright test -c ./.config/playwright-ct.config.ts --debug --trace on",
 		"website": "pnpm --filter @gradio/website build"
 	},
 	"type": "module",
@@ -42,7 +42,7 @@
 		"@csstools/postcss-global-data": "^2.0.0",
 		"@gradio/tootils": "workspace:^",
 		"@manypkg/get-packages": "^2.2.0",
-		"@playwright/experimental-ct-svelte": "^1.37.1",
+		"@playwright/experimental-ct-svelte": "^1.39.0",
 		"@playwright/test": "^1.39.0",
 		"@sveltejs/vite-plugin-svelte": "^2.4.2",
 		"@tailwindcss/forms": "^0.5.0",
