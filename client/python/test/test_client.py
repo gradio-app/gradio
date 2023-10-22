@@ -1,3 +1,4 @@
+import json
 import pathlib
 import tempfile
 import time
@@ -51,7 +52,27 @@ class TestClientPredictions:
     @pytest.mark.flaky
     def test_numerical_to_label_space(self):
         client = Client("gradio-tests/titanic-survival")
-        label = client.predict("male", 77, 10, api_name="/predict")
+        label = json.load(
+            open(client.predict("male", 77, 10, api_name="/predict"))
+        )  # noqa: SIM115
+        assert label["label"] == "Perishes"
+        with pytest.raises(
+            ValueError,
+            match="This Gradio app might have multiple endpoints. Please specify an `api_name` or `fn_index`",
+        ):
+            client.predict("male", 77, 10)
+        with pytest.raises(
+            ValueError,
+            match="Cannot find a function with `api_name`: predict. Did you mean to use a leading slash?",
+        ):
+            client.predict("male", 77, 10, api_name="predict")
+
+    @pytest.mark.flaky
+    def test_numerical_to_label_space_v4(self):
+        client = Client("gradio-tests/titanic-survival")
+        label = json.load(
+            open(client.predict("male", 77, 10, api_name="/predict"))
+        )  # noqa: SIM115
         assert label["label"] == "Perishes"
         with pytest.raises(
             ValueError,
@@ -66,6 +87,12 @@ class TestClientPredictions:
 
     @pytest.mark.flaky
     def test_private_space(self):
+        client = Client("gradio-tests/not-actually-private-space", hf_token=HF_TOKEN)
+        output = client.predict("abc", api_name="/predict")
+        assert output == "abc"
+
+    @pytest.mark.flaky
+    def test_private_space_v4(self):
         client = Client("gradio-tests/not-actually-private-space", hf_token=HF_TOKEN)
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
@@ -293,7 +320,58 @@ class TestClientPredictions:
             assert Path(job2.result()).exists()
             assert all(Path(p).exists() for p in job2.outputs())
 
-    @pytest.mark.xfail
+    def test_upload_file_private_space_v4(self):
+        client = Client(
+            src="gradio-tests/not-actually-private-file-upload", hf_token=HF_TOKEN
+        )
+
+        with patch.object(
+            client.endpoints[0], "_upload", wraps=client.endpoints[0]._upload
+        ) as upload:
+            with patch.object(
+                client.endpoints[0], "serialize", wraps=client.endpoints[0].serialize
+            ) as serialize:
+                with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+                    f.write("Hello from private space!")
+
+                output = client.submit(
+                    1, "foo", f.name, api_name="/file_upload"
+                ).result()
+            with open(output) as f:
+                assert f.read() == "Hello from private space!"
+            upload.assert_called_once()
+            assert all(f["is_file"] for f in serialize.return_value())
+
+        with patch.object(
+            client.endpoints[1], "_upload", wraps=client.endpoints[0]._upload
+        ) as upload:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+                f.write("Hello from private space!")
+
+            with open(client.submit(f.name, api_name="/upload_btn").result()) as f:
+                assert f.read() == "Hello from private space!"
+            upload.assert_called_once()
+
+        with patch.object(
+            client.endpoints[2], "_upload", wraps=client.endpoints[0]._upload
+        ) as upload:
+            # `delete=False` is required for Windows compat
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as f1:
+                with tempfile.NamedTemporaryFile(mode="w", delete=False) as f2:
+                    f1.write("File1")
+                    f2.write("File2")
+            r1, r2 = client.submit(
+                3,
+                [f1.name, f2.name],
+                "hello",
+                api_name="/upload_multiple",
+            ).result()
+            with open(r1) as f:
+                assert f.read() == "File1"
+            with open(r2) as f:
+                assert f.read() == "File2"
+            upload.assert_called_once()
+
     @pytest.mark.flaky
     def test_upload_file_private_space(self):
         client = Client(
@@ -347,7 +425,6 @@ class TestClientPredictions:
                 assert f.read() == "File2"
             upload.assert_called_once()
 
-    @pytest.mark.xfail
     @pytest.mark.flaky
     def test_upload_file_upload_route_does_not_exist(self):
         client = Client(
@@ -402,7 +479,6 @@ class TestClientPredictions:
         finally:
             server.thread.join(timeout=1)
 
-    @pytest.mark.xfail
     def test_predict_with_space_with_api_name_false(self):
         client = Client("gradio-tests/client-bool-api-name-error")
         assert client.predict("Hello!", api_name="/run") == "Hello!"
@@ -593,7 +669,6 @@ class TestStatusUpdates:
 
 
 class TestAPIInfo:
-    @pytest.mark.xfail
     @pytest.mark.parametrize("trailing_char", ["/", ""])
     def test_test_endpoint_src(self, trailing_char):
         src = "https://gradio-calculator.hf.space" + trailing_char
@@ -618,10 +693,7 @@ class TestAPIInfo:
                         {
                             "label": "Age",
                             "type": {"type": "number"},
-                            "python_type": {
-                                "type": "float",
-                                "description": "",
-                            },
+                            "python_type": {"type": "int | float", "description": ""},
                             "component": "Slider",
                             "example_input": 5,
                             "serializer": "NumberSerializable",
@@ -629,10 +701,7 @@ class TestAPIInfo:
                         {
                             "label": "Fare (british pounds)",
                             "type": {"type": "number"},
-                            "python_type": {
-                                "type": "float",
-                                "description": "",
-                            },
+                            "python_type": {"type": "int | float", "description": ""},
                             "component": "Slider",
                             "example_input": 5,
                             "serializer": "NumberSerializable",
@@ -664,10 +733,7 @@ class TestAPIInfo:
                         {
                             "label": "Age",
                             "type": {"type": "number"},
-                            "python_type": {
-                                "type": "float",
-                                "description": "",
-                            },
+                            "python_type": {"type": "int | float", "description": ""},
                             "component": "Slider",
                             "example_input": 5,
                             "serializer": "NumberSerializable",
@@ -675,10 +741,7 @@ class TestAPIInfo:
                         {
                             "label": "Fare (british pounds)",
                             "type": {"type": "number"},
-                            "python_type": {
-                                "type": "float",
-                                "description": "",
-                            },
+                            "python_type": {"type": "int | float", "description": ""},
                             "component": "Slider",
                             "example_input": 5,
                             "serializer": "NumberSerializable",
@@ -710,10 +773,7 @@ class TestAPIInfo:
                         {
                             "label": "Age",
                             "type": {"type": "number"},
-                            "python_type": {
-                                "type": "float",
-                                "description": "",
-                            },
+                            "python_type": {"type": "int | float", "description": ""},
                             "component": "Slider",
                             "example_input": 5,
                             "serializer": "NumberSerializable",
@@ -721,10 +781,7 @@ class TestAPIInfo:
                         {
                             "label": "Fare (british pounds)",
                             "type": {"type": "number"},
-                            "python_type": {
-                                "type": "float",
-                                "description": "",
-                            },
+                            "python_type": {"type": "int | float", "description": ""},
                             "component": "Slider",
                             "example_input": 5,
                             "serializer": "NumberSerializable",
@@ -861,7 +918,6 @@ class TestAPIInfo:
             with pytest.raises(ValueError):
                 client.submit(1, fn_index=2)
 
-    @pytest.mark.xfail
     def test_file_io(self, file_io_demo):
         with connect(file_io_demo) as client:
             info = client.view_api(return_format="dict")
@@ -871,26 +927,26 @@ class TestAPIInfo:
             assert inputs[0]["type"]["type"] == "array"
             assert inputs[0]["python_type"] == {
                 "type": "List[filepath]",
-                "description": "List of filepath(s) or URL(s) to files",
+                "description": "",
             }
             assert isinstance(inputs[0]["example_input"], list)
             assert isinstance(inputs[0]["example_input"][0], str)
 
             assert inputs[1]["python_type"] == {
-                "type": "str",
-                "description": "filepath on your computer (or URL) of file",
+                "type": "filepath",
+                "description": "",
             }
             assert isinstance(inputs[1]["example_input"], str)
 
             assert outputs[0]["python_type"] == {
-                "type": "List[str]",
-                "description": "List of filepath(s) or URL(s) to files",
+                "type": "List[filepath]",
+                "description": "",
             }
             assert outputs[0]["type"]["type"] == "array"
 
             assert outputs[1]["python_type"] == {
-                "type": "str",
-                "description": "filepath on your computer (or URL) of file",
+                "type": "filepath",
+                "description": "",
             }
 
     def test_layout_components_in_output(self, hello_world_with_group):
@@ -991,8 +1047,43 @@ class TestAPIInfo:
 
 
 class TestEndpoints:
-    @pytest.mark.xfail
     def test_upload(self):
+        client = Client(
+            src="gradio-tests/not-actually-private-file-upload", hf_token=HF_TOKEN
+        )
+        response = MagicMock(status_code=200)
+        response.json.return_value = [
+            "file1",
+            "file2",
+            "file3",
+            "file4",
+            "file5",
+            "file6",
+            "file7",
+        ]
+        with patch("requests.post", MagicMock(return_value=response)):
+            with patch("builtins.open", MagicMock()):
+                with patch.object(pathlib.Path, "name") as mock_name:
+                    mock_name.side_effect = lambda x: x
+                    results = client.endpoints[0]._upload(
+                        ["pre1", ["pre2", "pre3", "pre4"], ["pre5", "pre6"], "pre7"]
+                    )
+
+        res = []
+        for re in results:
+            if isinstance(re, list):
+                res.append([r["name"] for r in re])
+            else:
+                res.append(re["name"])
+
+        assert res == [
+            "file1",
+            ["file2", "file3", "file4"],
+            ["file5", "file6"],
+            "file7",
+        ]
+
+    def test_upload_v4(self):
         client = Client(
             src="gradio-tests/not-actually-private-file-upload", hf_token=HF_TOKEN
         )

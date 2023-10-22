@@ -4,18 +4,26 @@ use the `gr.Blocks.load()` or `gr.load()` functions."""
 from __future__ import annotations
 
 import json
+import os
 import re
+import tempfile
 import warnings
+from pathlib import Path
 from typing import TYPE_CHECKING, Callable
 
 import requests
 from gradio_client import Client
+from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
 import gradio
 from gradio import components, utils
 from gradio.context import Context
-from gradio.exceptions import Error, ModelNotFoundError, TooManyRequestsError
+from gradio.exceptions import (
+    Error,
+    ModelNotFoundError,
+    TooManyRequestsError,
+)
 from gradio.external_utils import (
     cols_to_rows,
     encode_to_base64,
@@ -24,7 +32,7 @@ from gradio.external_utils import (
     rows_to_cols,
     streamline_spaces_interface,
 )
-from gradio.processing_utils import extract_base64_data, to_binary
+from gradio.processing_utils import extract_base64_data, save_base64_to_cache, to_binary
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
@@ -141,6 +149,10 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             f"Could not find model: {model_name}. If it is a private or gated model, please provide your Hugging Face access token (https://huggingface.co/settings/tokens) as the argument for the `api_key` parameter."
         )
     p = response.json().get("pipeline_tag")
+    GRADIO_CACHE = os.environ.get("GRADIO_TEMP_DIR") or str(
+        Path(tempfile.gettempdir()) / "gradio"
+    )
+
     pipelines = {
         "audio-classification": {
             # example model: ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition
@@ -311,7 +323,9 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             "inputs": components.Textbox(label="Input", render=False),
             "outputs": components.Image(label="Output", render=False),
             "preprocess": lambda x: {"inputs": x},
-            "postprocess": encode_to_base64,
+            "postprocess": lambda x: save_base64_to_cache(
+                encode_to_base64(x), cache_dir=GRADIO_CACHE, file_name="output.jpg"
+            ),
         },
         "token-classification": {
             # example model: huggingface-course/bert-finetuned-ner
@@ -329,7 +343,9 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             "outputs": components.Label(label="Label", render=False),
             "preprocess": lambda img, q: {
                 "inputs": {
-                    "image": extract_base64_data(img),  # Extract base64 data
+                    "image": extract_base64_data(
+                        client_utils.encode_url_or_file_to_base64(img["name"])
+                    ),  # Extract base64 data
                     "question": q,
                 }
             },
@@ -346,7 +362,9 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             "outputs": components.Label(label="Label", render=False),
             "preprocess": lambda img, q: {
                 "inputs": {
-                    "image": extract_base64_data(img),
+                    "image": extract_base64_data(
+                        client_utils.encode_url_or_file_to_base64(img["name"])
+                    ),
                     "question": q,
                 }
             },
@@ -498,7 +516,12 @@ def from_spaces(
 
 def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
     client = Client(space, hf_token=hf_token)
+    # if client.app_version < version.Version("4.0.0"):
+    #     raise GradioVersionIncompatible(
+    #         f"Gradio version 4.x cannot load spaces with versions less than 4.x ({client.app_version})."
+    #         "Please downgrade to version 3 to load this space.")
     predict_fns = [endpoint._predict_resolve for endpoint in client.endpoints]
+
     return gradio.Blocks.from_config(client.config, predict_fns, client.src)
 
 
