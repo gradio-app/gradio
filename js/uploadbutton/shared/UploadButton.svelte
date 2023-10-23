@@ -16,7 +16,7 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
-	export let disabled: boolean = false;
+	export let disabled = false;
 
 	const dispatch = createEventDispatcher();
 
