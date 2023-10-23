@@ -61,6 +61,10 @@ class Markdown(Component):
             line_breaks: If True, will enable Github-flavored Markdown line breaks in chatbot messages. If False (default), single new lines will be ignored.
         """
         self.rtl = rtl
+        if latex_delimiters is None:
+            latex_delimiters = [
+                {"left": "$", "right": "$", "display": False}
+            ]
         self.latex_delimiters = latex_delimiters
         self.sanitize_html = sanitize_html
         self.line_breaks = line_breaks
