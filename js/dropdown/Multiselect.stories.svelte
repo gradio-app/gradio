@@ -1,6 +1,8 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import Multiselect from "./shared/Multiselect.svelte";
+	import { format } from "svelte-i18n";
+	import { get } from "svelte/store";
 </script>
 
 <Meta
@@ -16,7 +18,7 @@
 />
 
 <Template let:args>
-	<Multiselect {...args} />
+	<Multiselect {...args} i18n={get(format)} />
 </Template>
 
 <Story

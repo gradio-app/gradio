@@ -67,16 +67,34 @@
 <Template let:args>
 	<Gallery
 		value={[
-			[
-				"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah_running.avif",
-				"A fast cheetah"
-			],
-			"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
-			"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-003.jpg",
-			"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah3.webp",
-			"https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-			"https://gradio-builds.s3.amazonaws.com/demo-files/main-qimg-0bbf31c18a22178cb7a8dd53640a3d05-lq.jpeg",
-			"https://gradio-builds.s3.amazonaws.com/demo-files/TheCheethcat.jpg"
+			{
+				image:
+					"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah_running.avif",
+				caption: "A fast cheetah"
+			},
+			{
+				image:
+					"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"
+			},
+			{
+				image:
+					"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-003.jpg"
+			},
+			{
+				image: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah3.webp"
+			},
+			{
+				image:
+					"https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg"
+			},
+			{
+				image:
+					"https://gradio-builds.s3.amazonaws.com/demo-files/main-qimg-0bbf31c18a22178cb7a8dd53640a3d05-lq.jpeg"
+			},
+			{
+				image:
+					"https://gradio-builds.s3.amazonaws.com/demo-files/TheCheethcat.jpg"
+			}
 		]}
 		{...args}
 	/>

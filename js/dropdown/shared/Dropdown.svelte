@@ -3,7 +3,7 @@
 	import { createEventDispatcher, afterUpdate } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import { DropdownArrow } from "@gradio/icons";
-	import type { I18nFormatter, SelectData } from "@gradio/utils";
+	import type { SelectData } from "@gradio/utils";
 	import { handle_filter, handle_change, handle_shared_keys } from "./utils";
 
 	export let label: string;

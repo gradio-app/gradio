@@ -70,6 +70,8 @@
 			metadata: null
 		};
 	}
+
+	console.log(gradio);
 </script>
 
 <Block
