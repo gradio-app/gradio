@@ -117,7 +117,9 @@ class File(Component):
         self.type = type
         self.height = height
 
-    def _process_single_file(self, f: dict) -> bytes | str:
+    def _process_single_file(
+        self, f: dict[str, Any]
+    ) -> bytes | str:
         file_name, data, is_file = (
             f["name"],
             f["data"],
@@ -125,6 +127,7 @@ class File(Component):
         )
         if self.type == "filepath":
             file = tempfile.NamedTemporaryFile(delete=False, dir=self.GRADIO_CACHE)
+            file.name = file_name
             return NamedString(file.name)
         elif self.type == "binary":
             if is_file:
@@ -133,17 +136,14 @@ class File(Component):
             return client_utils.decode_base64_to_binary(data)[0]
         else:
             raise ValueError(
-                "Unknown type: " + str(type) + ". Please choose from: 'filepath', 'bytes'."
+                "Unknown type: "
+                + str(type)
+                + ". Please choose from: 'filepath', 'binary'."
             )
 
     def preprocess(
         self, x: list[dict[str, Any]] | None
-    ) -> (
-        bytes
-        | str
-        | list[bytes | str]
-        | None
-    ):
+    ) -> bytes | str | list[bytes | str] | None:
         """
         Parameters:
             x: List of JSON objects with filename as 'name' property and base64 data as 'data' property

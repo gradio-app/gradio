@@ -9,9 +9,9 @@ from typing import Any, Callable, List, Literal
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import Component
-from gradio.components.file import File
 from gradio.data_classes import FileData, GradioRootModel
 from gradio.events import Events
+from gradio.utils import NamedString
 
 set_documentation_group("component")
 
@@ -49,7 +49,7 @@ class UploadButton(Component):
         render: bool = True,
         root_url: str | None = None,
         _skip_init_processing: bool = False,
-        type: Literal["filepath", "bytes"] = "file",
+        type: Literal["filepath", "bytes"] = "filepath",
         file_count: Literal["single", "multiple", "directory"] = "single",
         file_types: list[str] | None = None,
     ):
@@ -115,12 +115,36 @@ class UploadButton(Component):
                 "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
             ]
 
+    def _process_single_file(
+        self, f: dict[str, Any]
+    ) -> bytes | str:
+        file_name, data, is_file = (
+            f["name"],
+            f["data"],
+            f.get("is_file", False),
+        )
+        if self.type == "filepath":
+            file = tempfile.NamedTemporaryFile(delete=False, dir=self.GRADIO_CACHE)
+            file.name = file_name
+            return NamedString(file.name)
+        elif self.type == "binary":
+            if is_file:
+                with open(file_name, "rb") as file_data:
+                    return file_data.read()
+            return client_utils.decode_base64_to_binary(data)[0]
+        else:
+            raise ValueError(
+                "Unknown type: "
+                + str(type)
+                + ". Please choose from: 'filepath', 'binary'."
+            )
+
     def preprocess(
         self, x: list[dict[str, Any]] | None
     ) -> (
         bytes
-        | tempfile._TemporaryFileWrapper
-        | list[bytes | tempfile._TemporaryFileWrapper]
+        | str
+        | list[bytes | str]
         | None
     ):
         """
@@ -134,25 +158,23 @@ class UploadButton(Component):
 
         if self.file_count == "single":
             if isinstance(x, list):
-                return File._process_single_file(
-                    x[0], type=self.type, cache_dir=self.GRADIO_CACHE  # type: ignore
+                return self._process_single_file(
+                    x[0]
                 )
             else:
-                return File._process_single_file(
-                    x, type=self.type, cache_dir=self.GRADIO_CACHE  # type: ignore
+                return self._process_single_file(
+                    x
                 )
         else:
             if isinstance(x, list):
                 return [
-                    File._process_single_file(
-                        f, type=self.type, cache_dir=self.GRADIO_CACHE  # type: ignore
+                    self._process_single_file(
+                        f
                     )
                     for f in x
                 ]
             else:
-                return File._process_single_file(
-                    x, type=self.type, cache_dir=self.GRADIO_CACHE  # type: ignore
-                )
+                return [self._process_single_file(x)]
 
     def postprocess(self, y):
         return super().postprocess(y)
