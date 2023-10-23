@@ -887,8 +887,9 @@ class TestFile:
         x_file["is_file"] = True
         input1 = file_input.preprocess(x_file)
         input2 = file_input.preprocess(x_file)
-        assert input1.name == input2.name
-        assert Path(input1.name).name == "sample_file.pdf"
+        assert input1 == input1.name  # Testing backwards compatibility
+        assert input1 == input2
+        assert Path(input1).name == "sample_file.pdf"
 
         file_input = gr.File(label="Upload Your File")
         assert file_input.get_config() == {
@@ -971,7 +972,8 @@ class TestUploadButton:
         x_file["is_file"] = True
         input1 = upload_input.preprocess(x_file)
         input2 = upload_input.preprocess(x_file)
-        assert input1.name == input2.name
+        assert input1 == input1.name  # Testing backwards compatibility
+        assert input1 == input2
 
     def test_raises_if_file_types_is_not_list(self):
         with pytest.raises(
