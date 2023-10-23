@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-import warnings
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import (
     FormComponent,
-    _Keywords,
 )
 from gradio.events import Events
 
@@ -57,11 +55,13 @@ class Textbox(FormComponent):
         autofocus: bool = False,
         autoscroll: bool = True,
         elem_classes: list[str] | str | None = None,
+        render: bool = True,
+        root_url: str | None = None,
+        _skip_init_processing: bool = False,
         type: Literal["text", "password", "email"] = "text",
         text_align: Literal["left", "right"] | None = None,
         rtl: bool = False,
         show_copy_button: bool = False,
-        **kwargs,
     ):
         """
         Parameters:
@@ -69,7 +69,7 @@ class Textbox(FormComponent):
             lines: minimum number of line rows to provide in textarea.
             max_lines: maximum number of line rows to provide in textarea.
             placeholder: placeholder hint to provide behind textarea.
-            label: component name in interface.
+            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             info: additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
@@ -81,6 +81,8 @@ class Textbox(FormComponent):
             autofocus: If True, will focus on the textbox when the page loads. Use this carefully, as it can cause usability issues for sighted and non-sighted users.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
             type: The type of textbox. One of: 'text', 'password', 'email', Default is 'text'.
             text_align: How to align the text in the textbox, can be: "left", "right", or None (default). If None, the alignment is left if `rtl` is False, or right if `rtl` is True. Can only be changed if `type` is "text".
             rtl: If True and `type` is "text", sets the direction of the text to right-to-left (cursor appears on the left of the text). Default is False, which renders cursor on the right.
@@ -111,58 +113,14 @@ class Textbox(FormComponent):
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            render=render,
+            root_url=root_url,
+            _skip_init_processing=_skip_init_processing,
             value=value,
-            **kwargs,
         )
         self.type = type
         self.rtl = rtl
         self.text_align = text_align
-
-    @staticmethod
-    def update(
-        value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        lines: int | None = None,
-        max_lines: int | None = None,
-        placeholder: str | None = None,
-        label: str | None = None,
-        info: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-        interactive: bool | None = None,
-        type: Literal["text", "password", "email"] | None = None,
-        text_align: Literal["left", "right"] | None = None,
-        rtl: bool | None = None,
-        show_copy_button: bool | None = None,
-        autofocus: bool | None = None,
-        autoscroll: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Textbox(...)` instead of `return gr.Textbox.update(...)`."
-        )
-        return {
-            "lines": lines,
-            "max_lines": max_lines,
-            "placeholder": placeholder,
-            "label": label,
-            "info": info,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "type": type,
-            "interactive": interactive,
-            "show_copy_button": show_copy_button,
-            "autofocus": autofocus,
-            "text_align": text_align,
-            "rtl": rtl,
-            "autoscroll": autoscroll,
-            "__type__": "update",
-        }
 
     def preprocess(self, x: str | None) -> str | None:
         """

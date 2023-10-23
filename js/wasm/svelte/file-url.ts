@@ -1,4 +1,5 @@
 import { getWorkerProxyContext } from "./context";
+import { is_self_host } from "../network/host";
 
 type MediaSrc = string | undefined | null;
 
@@ -8,11 +9,7 @@ export async function resolve_wasm_src(src: MediaSrc): Promise<MediaSrc> {
 	}
 
 	const url = new URL(src);
-	if (
-		url.host !== window.location.host &&
-		url.host !== "localhost:7860" &&
-		url.host !== "127.0.0.1:7860" // Ref: https://github.com/gradio-app/gradio/blob/v3.32.0/js/app/src/Index.svelte#L194
-	) {
+	if (!is_self_host(url)) {
 		// `src` is not accessing a local server resource, so we don't need to proxy this request to the Wasm worker.
 		return src;
 	}

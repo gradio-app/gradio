@@ -115,6 +115,12 @@
 	@apply border-orange-500 text-orange-500;
 }
 
+/* playground */
+
+.current-playground-demo {
+	@apply text-orange-500 pl-4;
+}
+
 /* docs */
 .selected-demo {
 	@apply font-semibold bg-gray-50 rounded text-orange-500;
@@ -155,6 +161,12 @@ code.language-bash {
 .clipboard-button:focus {
 	@apply outline-0;
 }
+
+/* interactive banner */
+.interactive-banner {
+	@apply absolute right-0 px-1.5 pt-0.5 pb-1 m-4 -mt-1 text-sm z-[100] bg-orange-500 rounded-lg;
+}
+
 .codeblock {
 	@apply relative bg-gray-50 mx-auto p-3 mt-2;
 }

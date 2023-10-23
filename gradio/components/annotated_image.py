@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
-import warnings
-from typing import Any, List, Literal
+from typing import Any, List
 
 import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
-from gradio.components.base import Component, _Keywords
+from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
 
@@ -64,7 +63,9 @@ class AnnotatedImage(Component):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        **kwargs,
+        render: bool = True,
+        root_url: str | None = None,
+        _skip_init_processing: bool = False,
     ):
         """
         Parameters:
@@ -73,7 +74,7 @@ class AnnotatedImage(Component):
             height: Height of the displayed image.
             width: Width of the displayed image.
             color_map: A dictionary mapping labels to colors. The colors must be specified as hex codes.
-            label: component name in interface.
+            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
@@ -82,6 +83,8 @@ class AnnotatedImage(Component):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
         """
         self.show_legend = show_legend
         self.height = height
@@ -97,46 +100,11 @@ class AnnotatedImage(Component):
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            render=render,
+            root_url=root_url,
+            _skip_init_processing=_skip_init_processing,
             value=value,
-            **kwargs,
         )
-
-    @staticmethod
-    def update(
-        value: tuple[
-            np.ndarray | _Image.Image | str,
-            list[tuple[np.ndarray | tuple[int, int, int, int], str]],
-        ]
-        | Literal[_Keywords.NO_VALUE] = _Keywords.NO_VALUE,
-        show_legend: bool | None = None,
-        height: int | None = None,
-        width: int | None = None,
-        color_map: dict[str, str] | None = None,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.AnnotatedImage(...)` instead of `return gr.AnnotatedImage.update(...)`."
-        )
-        updated_config = {
-            "show_legend": show_legend,
-            "height": height,
-            "width": width,
-            "color_map": color_map,
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
-        return updated_config
 
     def postprocess(
         self,

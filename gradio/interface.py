@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio import Examples, external, utils
+from gradio import Examples, utils
 from gradio.blocks import Blocks
 from gradio.components import (
     Button,
@@ -25,7 +25,6 @@ from gradio.components import (
     get_component_instance,
 )
 from gradio.data_classes import InterfaceTypes
-from gradio.deprecation import warn_deprecation
 from gradio.events import Events, on
 from gradio.exceptions import RenderError
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
@@ -69,35 +68,6 @@ class Interface(Blocks):
         :return: list of all current instances.
         """
         return list(Interface.instances)
-
-    @classmethod
-    def load(
-        cls,
-        name: str,
-        src: str | None = None,
-        api_key: str | None = None,
-        alias: str | None = None,
-        **kwargs,
-    ) -> Blocks:
-        """
-        Warning: this method will be deprecated. Use the equivalent `gradio.load()` instead. This is a class
-        method that constructs a Blocks from a Hugging Face repo. Can accept
-        model repos (if src is "models") or Space repos (if src is "spaces"). The input
-        and output components are automatically loaded from the repo.
-        Parameters:
-            name: the name of the model (e.g. "gpt2" or "facebook/bart-base") or space (e.g. "flax-community/spanish-gpt2"), can include the `src` as prefix (e.g. "models/facebook/bart-base")
-            src: the source of the model: `models` or `spaces` (or leave empty if source is provided as a prefix in `name`)
-            api_key: optional access token for loading private Hugging Face Hub models or spaces. Find your token here: https://huggingface.co/settings/tokens. Warning: only provide this if you are loading a trusted private Space as it can be read by the Space you are loading.
-            alias: optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)
-        Returns:
-            a Gradio Interface object for the given model
-        """
-        warn_deprecation(
-            "gr.Interface.load() will be deprecated. Use gr.load() instead."
-        )
-        return external.load(
-            name=name, src=src, hf_token=api_key, alias=alias, **kwargs
-        )
 
     @classmethod
     def from_pipeline(cls, pipeline: Pipeline, **kwargs) -> Interface:
@@ -164,7 +134,7 @@ class Interface(Blocks):
             allow_flagging: one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every input the user submits will be automatically flagged (outputs are not flagged). If "manual", both the input and outputs are flagged when the user clicks flag button. This parameter can be set with environmental variable GRADIO_ALLOW_FLAGGING; otherwise defaults to "manual".
             flagging_options: if provided, allows user to select from the list of options when flagging. Only applies if allow_flagging is "manual". Can either be a list of tuples of the form (label, value), where label is the string that will be displayed on the button and value is the string that will be stored in the flagging CSV; or it can be a list of strings ["X", "Y"], in which case the values will be the list of strings and the labels will ["Flag as X", "Flag as Y"], etc.
             flagging_dir: what to name the directory where flagged data is stored.
-            flagging_callback: An instance of a subclass of FlaggingCallback which will be called when a sample is flagged. By default logs to a local CSV file.
+            flagging_callback: None or an instance of a subclass of FlaggingCallback which will be called when a sample is flagged. If set to None, an instance of gradio.flagging.CSVLogger will be created and logs will be saved to a local CSV file in flagging_dir. Default to None.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
             batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
@@ -180,14 +150,6 @@ class Interface(Blocks):
             **kwargs,
         )
         self.api_name: str | Literal[False] | None = api_name
-
-        if isinstance(fn, list):
-            raise DeprecationWarning(
-                "The `fn` parameter only accepts a single function, support for a list "
-                "of functions has been deprecated. Please use gradio.mix.Parallel "
-                "instead."
-            )
-
         self.interface_type = InterfaceTypes.STANDARD
         if (inputs is None or inputs == []) and (outputs is None or outputs == []):
             raise ValueError("Must provide at least one of `inputs` or `outputs`")
@@ -339,8 +301,9 @@ class Interface(Blocks):
                 "flagging_options must be a list of strings or list of (string, string) tuples."
             )
 
-        if not flagging_callback:
+        if flagging_callback is None:
             flagging_callback = CSVLogger()
+
         self.flagging_callback = flagging_callback
         self.flagging_dir = flagging_dir
 
@@ -686,11 +649,11 @@ class Interface(Blocks):
                 (
                     [{'variant': None, 'visible': True, '__type__': 'update'}]
                     if self.interface_type
-                        in [
-                            InterfaceTypes.STANDARD,
-                            InterfaceTypes.INPUT_ONLY,
-                            InterfaceTypes.UNIFIED,
-                        ]
+                       in [
+                           InterfaceTypes.STANDARD,
+                           InterfaceTypes.INPUT_ONLY,
+                           InterfaceTypes.UNIFIED,
+                       ]
                     else []
                 )
             )}
@@ -783,12 +746,6 @@ class Interface(Blocks):
         for component in self.output_components:
             repr += f"\n|-{component}"
         return repr
-
-    def test_launch(self) -> None:
-        """
-        Deprecated.
-        """
-        warn_deprecation("The Interface.test_launch() function is deprecated.")
 
 
 @document()

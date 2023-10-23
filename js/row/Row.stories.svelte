@@ -8,8 +8,14 @@
 
 <Template let:args>
 	<Row {...args}>
-		<Image {...args} value="https://i.ibb.co/6BgKdSj/groot.jpg" />
-		<Image {...args} value="https://i.ibb.co/6BgKdSj/groot.jpg" />
+		<Image
+			{...args}
+			value={{ name: "https://i.ibb.co/6BgKdSj/groot.jpg", is_file: true }}
+		/>
+		<Image
+			{...args}
+			value={{ name: "https://i.ibb.co/6BgKdSj/groot.jpg", is_file: true }}
+		/>
 	</Row>
 </Template>
 
