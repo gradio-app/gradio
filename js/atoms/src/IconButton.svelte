@@ -1,13 +1,18 @@
 <script lang="ts">
-	export let Icon: any;
+	import { type ComponentType } from "svelte";
+	export let Icon: ComponentType;
 	export let label = "";
 	export let show_label = false;
 	export let pending = false;
+	export let size: "small" | "large" = "small";
+	export let padded = false;
 </script>
 
-<button on:click aria-label={label} title={label} class:pending>
+<button on:click aria-label={label} title={label} class:pending class:padded>
 	{#if show_label}<span>{label}</span>{/if}
-	<div><Icon /></div>
+	<div class:small={size === "small"} class:large={size === "large"}>
+		<Icon />
+	</div>
 </button>
 
 <style>
@@ -17,16 +22,26 @@
 		align-items: center;
 		gap: 1px;
 		z-index: var(--layer-1);
+
+		border-radius: var(--radius-sm);
+		color: var(--block-label-text-color);
+		border: 1px solid transparent;
+	}
+
+	.padded {
+		padding: 2px;
+		background: var(--background-fill-primary);
+
 		box-shadow: var(--shadow-drop);
 		border: 1px solid var(--button-secondary-border-color);
-		border-radius: var(--radius-sm);
-		background: var(--background-fill-primary);
-		padding: 2px;
-		color: var(--block-label-text-color);
 	}
 
 	button:hover {
 		cursor: pointer;
+		color: var(--color-accent);
+	}
+
+	.padded:hover {
 		border: 2px solid var(--button-secondary-border-color-hover);
 		padding: 1px;
 		color: var(--block-label-text-color);
@@ -39,8 +54,16 @@
 
 	div {
 		padding: 2px;
+	}
+
+	.small {
 		width: 14px;
 		height: 14px;
+	}
+
+	.large {
+		width: 22px;
+		height: 22px;
 	}
 
 	.pending {

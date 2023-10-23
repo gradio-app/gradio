@@ -7,7 +7,7 @@
 <script lang="ts">
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import StaticImage from "./shared/ImagePreview.svelte";
-	import Image from "./shared/ImageEditor.svelte";
+	import Image from "./shared/ImageUploader.svelte";
 
 	import { Block, UploadText } from "@gradio/atoms";
 
@@ -36,14 +36,9 @@
 
 	export let mode: "static" | "interactive";
 	export let source: "canvas" | "webcam" | "upload" = "upload";
-	export let tool: "editor" | "select" | "sketch" | "color-sketch" = "editor";
 	export let streaming: boolean;
 	export let pending: boolean;
 	export let mirror_webcam: boolean;
-	export let shape: [number, number];
-	export let brush_radius: number;
-	export let brush_color: string;
-	export let mask_opacity: number;
 
 	export let gradio: Gradio<{
 		change: never;
@@ -121,14 +116,8 @@
 		/>
 
 		<Image
-			{brush_radius}
-			{brush_color}
-			{shape}
 			bind:value
-			{source}
-			{tool}
 			{selectable}
-			{mask_opacity}
 			{root}
 			on:edit={() => gradio.dispatch("edit")}
 			on:clear={() => gradio.dispatch("clear")}
@@ -142,6 +131,7 @@
 				loading_status.status = "error";
 				gradio.dispatch("error", detail);
 			}}
+			on:click={() => gradio.dispatch("error", "bad thing happened")}
 			{label}
 			{show_label}
 			{pending}
