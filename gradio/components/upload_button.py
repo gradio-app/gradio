@@ -6,6 +6,7 @@ import tempfile
 import warnings
 from typing import Any, Callable, List, Literal
 
+from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import Component
@@ -115,9 +116,7 @@ class UploadButton(Component):
                 "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
             ]
 
-    def _process_single_file(
-        self, f: dict[str, Any]
-    ) -> bytes | str:
+    def _process_single_file(self, f: dict[str, Any]) -> bytes | str:
         file_name, data, is_file = (
             f["name"],
             f["data"],
@@ -141,12 +140,7 @@ class UploadButton(Component):
 
     def preprocess(
         self, x: list[dict[str, Any]] | None
-    ) -> (
-        bytes
-        | str
-        | list[bytes | str]
-        | None
-    ):
+    ) -> bytes | str | list[bytes | str] | None:
         """
         Parameters:
             x: List of JSON objects with filename as 'name' property and base64 data as 'data' property
@@ -158,21 +152,12 @@ class UploadButton(Component):
 
         if self.file_count == "single":
             if isinstance(x, list):
-                return self._process_single_file(
-                    x[0]
-                )
+                return self._process_single_file(x[0])
             else:
-                return self._process_single_file(
-                    x
-                )
+                return self._process_single_file(x)
         else:
             if isinstance(x, list):
-                return [
-                    self._process_single_file(
-                        f
-                    )
-                    for f in x
-                ]
+                return [self._process_single_file(f) for f in x]
             else:
                 return [self._process_single_file(x)]
 

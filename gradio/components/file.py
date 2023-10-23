@@ -117,9 +117,7 @@ class File(Component):
         self.type = type
         self.height = height
 
-    def _process_single_file(
-        self, f: dict[str, Any]
-    ) -> bytes | str:
+    def _process_single_file(self, f: dict[str, Any]) -> bytes | str:
         file_name, data, is_file = (
             f["name"],
             f["data"],
