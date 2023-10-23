@@ -89,11 +89,6 @@
 				>
 					<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2">
 						<h3 class="pt-1">Code</h3>
-						<!-- <button
-					on:click={() => (show_nav = !show_nav)}
-					class="float-right text-gray-600"
-					>{#if show_nav}&larr;{:else}&rarr;{/if}</button
-				> -->
 					</div>
 
 					<InteractiveCode
@@ -127,7 +122,7 @@
 					</div>
 				</div>
 
-				<div class="lite-demo" id="lite-demo" />
+				<div class="lite-demo h-[93%]" id="lite-demo" />
 			</div>
 		</div>
 	</Slider>
