@@ -62,9 +62,7 @@ class Markdown(Component):
         """
         self.rtl = rtl
         if latex_delimiters is None:
-            latex_delimiters = [
-                {"left": "$$", "right": "$$", "display": True}
-            ]
+            latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
         self.latex_delimiters = latex_delimiters
         self.sanitize_html = sanitize_html
         self.line_breaks = line_breaks
