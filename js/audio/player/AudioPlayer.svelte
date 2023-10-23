@@ -6,8 +6,6 @@
 	import { skipAudio, trimAudioBlob } from "../shared/utils";
 	import WaveformControls from "../shared/WaveformControls.svelte";
 	import { Empty } from "@gradio/atoms";
-	// @ts-ignore
-	import getWaveBlob from "wav-blob-util";
 	import type { WaveformOptions } from "../shared/types";
 
 	export let value: null | { name: string; data: string } = null;
@@ -104,8 +102,7 @@
 		if (decodedData)
 			await trimAudioBlob(decodedData, start, end).then(
 				async (trimmedBlob: Blob) => {
-					const wavBlob = await getWaveBlob(trimmedBlob);
-					await dispatch_blob([wavBlob], "change");
+					await dispatch_blob([trimmedBlob], "change");
 					waveform.destroy();
 					create_waveform();
 				}

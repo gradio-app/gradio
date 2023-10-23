@@ -149,13 +149,7 @@
 
 		{#if interactive}
 			{#if mode === ""}
-				<button
-					class="trim"
-					on:click={toggleTrimmingMode}
-					style="color: {mode === 'edit'
-						? 'var(--primary)'
-						: 'var(--neutral-400)'}"
-				>
+				<button class="trim" on:click={toggleTrimmingMode}>
 					<Trim />
 				</button>
 			{:else}

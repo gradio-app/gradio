@@ -11,12 +11,13 @@
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import AudioRecorder from "../recorder/AudioRecorder.svelte";
 	import type { WaveformOptions } from "../shared/types";
+	import StreamAudio from "../streaming/StreamAudio.svelte";
+	import { blob_to_data_url } from "../shared/utils";
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
 	export let root: string;
 	export let show_label = true;
-	// export let name = "";
 	export let source: "microphone" | "upload" | "none";
 	export let pending = false;
 	export let streaming = false;
@@ -24,6 +25,9 @@
 	export let show_edit_button = true;
 	export let i18n: I18nFormatter;
 	export let waveformOptions: WaveformOptions;
+	export let dragging: boolean;
+
+	$: dispatch("drag", dragging);
 
 	// TODO: make use of this
 	// export let type: "normal" | "numpy" = "normal";
@@ -67,19 +71,10 @@
 		error: string;
 		upload: FileData;
 		clear: never;
-		start_recording: never;
-		pause_recording: never;
-		stop_recording: never;
+		start_recording: undefined;
+		pause_recording: undefined;
+		stop_recording: undefined;
 	}>();
-
-	function blob_to_data_url(blob: Blob): Promise<string> {
-		return new Promise((fulfill, reject) => {
-			let reader = new FileReader();
-			reader.onerror = reject;
-			reader.onload = () => fulfill(reader.result as string);
-			reader.readAsDataURL(blob);
-		});
-	}
 
 	const dispatch_blob = async (
 		blobs: Uint8Array[] | Blob[],
@@ -93,6 +88,12 @@
 		const detail = { ...value, is_file: false };
 		dispatch(event, detail);
 	};
+
+	onDestroy(() => {
+		if (streaming && recorder && recorder.state !== "inactive") {
+			recorder.stop();
+		}
+	});
 
 	async function prepare_audio(): Promise<void> {
 		let stream: MediaStream | null;
@@ -190,8 +191,19 @@
 		dispatch("upload", detail);
 	}
 
-	export let dragging = false;
-	$: dispatch("drag", dragging);
+	function stop(): void {
+		recording = false;
+
+		if (streaming) {
+			dispatch("stop_recording");
+			recorder.stop();
+			if (pending) {
+				submit_pending_stream_on_pending_end = true;
+			}
+			dispatch_blob(audio_chunks, "change");
+			dispatch("clear");
+		}
+	}
 </script>
 
 <BlockLabel
@@ -203,24 +215,7 @@
 {#if value === null || streaming}
 	{#if source === "microphone"}
 		{#if streaming}
-			<div class="mic-wrap">
-				{#if recording}
-					<button on:click={stop}>
-						<span class="record-icon">
-							<span class="pinger" />
-							<span class="dot" />
-						</span>
-						{i18n("audio.stop_recording")}
-					</button>
-				{:else}
-					<button on:click={record}>
-						<span class="record-icon">
-							<span class="dot" />
-						</span>
-						{i18n("audio.record_from_microphone")}
-					</button>
-				{/if}
-			</div>
+			<StreamAudio {record} {recording} {stop} {i18n} {waveformOptions} />
 		{:else}
 			<AudioRecorder
 				bind:mode

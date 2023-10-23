@@ -1,20 +1,27 @@
 import type { ActionReturn } from "svelte/action";
 import type WaveSurfer from "wavesurfer.js";
 import Regions from "wavesurfer.js/dist/plugins/regions.js";
-// @ts-ignore
-import audiobufferToBlob from "audiobuffer-to-blob";
+import { audioBufferToWav } from "./audioBufferToWav";
 
 export interface LoadedParams {
 	autoplay?: boolean;
+}
+
+export function blob_to_data_url(blob: Blob): Promise<string> {
+	return new Promise((fulfill, reject) => {
+		let reader = new FileReader();
+		reader.onerror = reject;
+		reader.onload = () => fulfill(reader.result as string);
+		reader.readAsDataURL(blob);
+	});
 }
 
 export const trimAudioBlob = async (
 	audioBuffer: AudioBuffer,
 	start: number,
 	end: number
-): Promise<Blob> => {
+): Promise<ArrayBuffer> => {
 	const audioContext = new AudioContext();
-
 	const numberOfChannels = audioBuffer.numberOfChannels;
 	const sampleRate = audioBuffer.sampleRate;
 
@@ -36,7 +43,7 @@ export const trimAudioBlob = async (
 		}
 	}
 
-	return audiobufferToBlob(trimmedAudioBuffer);
+	return audioBufferToWav(trimmedAudioBuffer);
 };
 
 export function loaded(

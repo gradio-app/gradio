@@ -7,27 +7,22 @@
 	import WaveformControls from "../shared/WaveformControls.svelte";
 	import WaveformRecordControls from "../shared/WaveformRecordControls.svelte";
 	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
-	// @ts-ignore
-	import getWaveBlob from "wav-blob-util";
 	import type { WaveformOptions } from "../shared/types";
 
 	export let label: string;
 	export let mode: string;
-	// export let autoplay: boolean;
 	export let i18n: I18nFormatter;
 	export let dispatch: (event: any, detail?: any) => void;
 	export let dispatch_blob: (
 		blobs: Uint8Array[] | Blob[],
-		event: any
+		event: string
 	) => Promise<void> | undefined;
 	export let waveformOptions: WaveformOptions;
 
-	// waveform
 	let micWaveform: WaveSurfer;
 	let recordingWaveform: WaveSurfer;
 	let playing = false;
 
-	// recording
 	let record: Record;
 	let recordedAudio: string | null = null;
 
@@ -35,14 +30,11 @@
 	let timeRef: HTMLTimeElement;
 	let durationRef: HTMLTimeElement;
 	let audioDuration: number;
-
-	// trimming
-	let trimDuration = 0;
-
-	// timing
 	let seconds = 0;
 	let interval: NodeJS.Timeout;
 	let timing = false;
+	// trimming
+	let trimDuration = 0;
 
 	const start_interval = (): void => {
 		clearInterval(interval);
@@ -62,7 +54,7 @@
 		start_interval();
 		timing = true;
 		dispatch("start_recording");
-		let waveformCanvas = document.getElementById("mic");
+		let waveformCanvas = document.getElementById("microphone");
 		if (waveformCanvas) waveformCanvas.style.display = "block";
 	});
 
@@ -110,51 +102,48 @@
 	});
 
 	const clear_recording = (): void => {
-		const recording = document.getElementById("recordings");
+		const recording = document.getElementById("recording");
 		recordedAudio = null;
-		if (recording) recording.innerHTML = "";
+		recording.innerHTML = "";
 		dispatch("clear");
+	};
+
+	const waveformSettings = {
+		height: 50,
+		waveColor: waveformOptions.waveformColor || "#9ca3af",
+		progressColor: waveformOptions.waveformProgressColor || "#f97316",
+		barWidth: 2,
+		barGap: 3,
+		barHeight: 4,
+		cursorWidth: 2,
+		cursorColor: "#ddd5e9",
+		barRadius: 10,
+		dragToSeek: true,
+		mediaControls: waveformOptions.showMediaControls,
 	};
 
 	const create_mic_waveform = (): void => {
 		const recorder = document.getElementById("mic");
-
 		if (micWaveform !== undefined) micWaveform.destroy();
 		if (recorder) recorder.innerHTML = "";
 
 		micWaveform = WaveSurfer.create({
-			height: 50,
-			container: "#mic",
 			waveColor: waveformOptions.waveformColor || "#9ca3af",
 			progressColor: waveformOptions.waveformProgressColor || "#f97316",
-			barWidth: 2,
-			barGap: 3,
-			barHeight: 4,
-			cursorWidth: 2,
-			cursorColor: "#ddd5e9",
-			barRadius: 10,
-			dragToSeek: true,
-			mediaControls: waveformOptions.showMediaControls,
+			container: "#microphone",
+			...waveformSettings,
 		});
 
 		record = micWaveform.registerPlugin(RecordPlugin.create());
 	};
 
 	const create_recording_waveform = (): void => {
-		if (!recordedAudio) return;
+		let recording = document.getElementById("recording");
+		if (!recordedAudio || !recording) return;
 		recordingWaveform = WaveSurfer.create({
-			height: 50,
-			container: "#recordings",
-			waveColor: waveformOptions.waveformColor || "#9ca3af",
-			progressColor: waveformOptions.waveformProgressColor || "#f97316",
-			barWidth: 2,
-			barGap: 3,
-			barHeight: 4,
-			cursorWidth: 2,
-			cursorColor: "#ddd5e9",
-			barRadius: 10,
-			dragToSeek: true,
+			container: recording,
 			url: recordedAudio,
+			...waveformSettings,
 		});
 	};
 
@@ -162,20 +151,18 @@
 		create_mic_waveform();
 	});
 
-	$: record &&
-		record.on("record-end", (blob) => {
-			recordedAudio = URL.createObjectURL(blob);
+	$: record?.on("record-end", (blob) => {
+		recordedAudio = URL.createObjectURL(blob);
 
-			const recorder = document.getElementById("mic");
-			const recording = document.getElementById("recordings");
+		const microphone = document.getElementById("microphone");
+		const recording = document.getElementById("recording");
 
-			if (recorder) recorder.style.display = "none";
-
-			if (recording) {
-				recording.innerHTML = "";
-				create_recording_waveform();
-			}
-		});
+		if (microphone) microphone.style.display = "none";
+		if (recording && recordedAudio) {
+			recording.innerHTML = "";
+			create_recording_waveform();
+		}
+	});
 
 	const handle_trim_audio = async (
 		start: number,
@@ -186,8 +173,7 @@
 		if (decodedData)
 			await trimAudioBlob(decodedData, start, end).then(
 				async (trimmedBlob: Blob) => {
-					const wavBlob = await getWaveBlob(trimmedBlob);
-					await dispatch_blob([wavBlob], "change");
+					await dispatch_blob([trimmedBlob], "change");
 					recordingWaveform.destroy();
 					create_recording_waveform();
 				}
@@ -207,8 +193,8 @@
 </script>
 
 <div class="component-wrapper">
-	<div id="mic" data-testid={label || "unlabelled" + "-audio"} />
-	<div id="recordings" />
+	<div id="microphone" data-testid={label || "unlabelled" + "-audio"} />
+	<div id="recording" />
 
 	{#if timing || recordedAudio}
 		<div id="timestamps">
@@ -247,7 +233,7 @@
 </div>
 
 <style>
-	#mic {
+	#microphone {
 		width: 100%;
 		display: none;
 	}

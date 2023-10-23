@@ -30,8 +30,7 @@
 	export let autoplay = false;
 	export let show_download_button = true;
 	export let show_share_button = false;
-	export let waveformOptions: WaveformOptions;
-
+	export let waveformOptions: WaveformOptions = {};
 	export let name: string;
 	export let pending: boolean;
 	export let streaming: boolean;
