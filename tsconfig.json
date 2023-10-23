@@ -42,7 +42,8 @@
 		"**/venv/**/*",
 		"client/js/**",
 		"**/vite.config*",
-		".changeset/*.cjs"
+		".changeset/*.cjs",
+		"**/storybook-static/**/*"
 	],
 	"include": [
 		"**/*.d.ts",

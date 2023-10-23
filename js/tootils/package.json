@@ -11,7 +11,7 @@
 		"@gradio/utils": "workspace:^"
 	},
 	"exports": {
-		".":  "./src/index.ts",
+		".": "./src/index.ts",
 		"./render": "./src/render.ts"
 	}
 }
