@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { createEventDispatcher, tick } from "svelte";
+	import { createEventDispatcher, tick, getContext } from "svelte";
 	import type { FileData } from "./types";
-	import { upload, prepareFiles } from "./utils";
+	import { upload, prepare_files } from "./utils";
+	import type { upload_files } from "client/js/dist";
 
 	export let filetype: string | null = null;
 	export let dragging = false;
@@ -11,6 +12,9 @@
 	export let file_count = "single";
 	export let disable_click = false;
 	export let root: string;
+
+	// Needed for wasm support
+	const upload_fn = getContext<typeof upload_files>("upload_files");
 
 	let hidden_upload: HTMLInputElement;
 
@@ -28,7 +32,7 @@
 
 	async function handle_upload(file_data: FileData[]): Promise<void> {
 		await tick();
-		await upload(file_data, root);
+		await upload(file_data, root, upload_fn);
 		dispatch("load", file_count === "single" ? file_data[0] : file_data);
 	}
 
@@ -40,7 +44,7 @@
 		if (file_count === "single") {
 			_files = [files[0]];
 		}
-		let file_data = await prepareFiles(_files);
+		let file_data = await prepare_files(_files);
 		await handle_upload(file_data);
 	}
 

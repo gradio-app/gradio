@@ -89,13 +89,14 @@ export const blobToBase64 = (blob: File): Promise<string> => {
 
 export async function upload(
 	file_data: FileData[],
-	root: string
+	root: string,
+	upload_fn: typeof upload_files | undefined = upload_files
 ): Promise<FileData[]> {
 	let files = (Array.isArray(file_data) ? file_data : [file_data]).map(
 		(file_data) => file_data.blob!
 	);
 
-	await upload_files(root, files).then(async (response) => {
+	await upload_fn(root, files).then(async (response) => {
 		if (response.error) {
 			(Array.isArray(file_data) ? file_data : [file_data]).forEach(
 				async (file_data, i) => {
@@ -118,7 +119,7 @@ export async function upload(
 	return file_data;
 }
 
-export async function prepareFiles(files: File[]): Promise<FileData[]> {
+export async function prepare_files(files: File[]): Promise<FileData[]> {
 	var all_file_data: FileData[] = [];
 	files.forEach((f, i) => {
 		all_file_data[i] = {

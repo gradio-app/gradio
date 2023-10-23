@@ -2,7 +2,7 @@
 	import { tick, createEventDispatcher } from "svelte";
 	import { BaseButton } from "@gradio/button";
 	import type { FileData } from "@gradio/upload";
-	import { upload, prepareFiles } from "@gradio/upload";
+	import { upload, prepare_files } from "@gradio/upload";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -47,7 +47,7 @@
 		if (file_count === "single") {
 			_files = [files[0]];
 		}
-		let all_file_data = await prepareFiles(_files);
+		let all_file_data = await prepare_files(_files);
 		await tick();
 		all_file_data = await upload(all_file_data, root);
 		dispatch("change", all_file_data);

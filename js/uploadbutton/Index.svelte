@@ -16,13 +16,21 @@
 	export let min_width: number | undefined = undefined;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let gradio: Gradio<{
-		change: FileData | FileData[] | null;
-		upload: FileData | FileData[] | null;
+		change: never;
+		upload: never;
 		click: never;
 	}>;
 	export let mode: "static" | "interactive";
 
 	$: disabled = mode === "static";
+
+	async function handle_event(
+		detail: null | FileData | FileData[],
+		event: "change" | "upload"
+	): Promise<void> {
+		value = detail;
+		gradio.dispatch(event);
+	}
 </script>
 
 <UploadButton
@@ -40,14 +48,8 @@
 	{variant}
 	{label}
 	on:click={() => gradio.dispatch("click")}
-	on:change={({ detail }) => {
-		value = detail;
-		gradio.dispatch("change", detail);
-	}}
-	on:upload={({ detail }) => {
-		value = detail;
-		gradio.dispatch("upload", detail);
-	}}
+	on:change={({ detail }) => handle_event(detail, "change")}
+	on:upload={({ detail }) => handle_event(detail, "upload")}
 >
 	{gradio.i18n(label)}
 </UploadButton>

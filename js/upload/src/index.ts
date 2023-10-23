@@ -6,5 +6,5 @@ export {
 	get_fetchable_url_or_file,
 	blobToBase64,
 	upload,
-	prepareFiles
+	prepare_files
 } from "./utils";
