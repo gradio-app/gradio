@@ -145,7 +145,9 @@ class Dataframe(Component):
         }
 
         if latex_delimiters is None:
-            latex_delimiters = [{"left": "$", "right": "$", "display": False}]
+            latex_delimiters = [
+                {"left": "$$", "right": "$$", "display": True}
+            ]
         self.latex_delimiters = latex_delimiters
         self.height = height
         self.line_breaks = line_breaks
