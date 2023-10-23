@@ -41,14 +41,15 @@
 		"**/node_modules/**/*",
 		"**/venv/**/*",
 		"client/js/**",
-		"**/vite.config*"
+		"**/vite.config*",
+		".changeset/*.cjs",
+		"**/storybook-static/**/*"
 	],
 	"include": [
 		"**/*.d.ts",
 		"**/*.js",
 		"**/*.ts",
 		"**/*.svelte",
-		"client/js/**/*",
-		".changeset/*.cjs"
+		"client/js/**/*"
 	]
 }

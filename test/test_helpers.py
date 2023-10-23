@@ -481,10 +481,42 @@ class TestProcessExamples:
         client = TestClient(app)
 
         response = client.post("/api/load_example/", json={"data": [0]})
-        assert response.json()["data"] == ["Hello,"]
+        assert response.json()["data"] == [
+            {
+                "lines": 1,
+                "max_lines": 20,
+                "show_label": True,
+                "container": True,
+                "min_width": 160,
+                "autofocus": False,
+                "autoscroll": True,
+                "elem_classes": [],
+                "rtl": False,
+                "show_copy_button": False,
+                "__type__": "update",
+                "visible": True,
+                "value": "Hello,",
+            }
+        ]
 
         response = client.post("/api/load_example/", json={"data": [1]})
-        assert response.json()["data"] == ["Michael"]
+        assert response.json()["data"] == [
+            {
+                "lines": 1,
+                "max_lines": 20,
+                "show_label": True,
+                "container": True,
+                "min_width": 160,
+                "autofocus": False,
+                "autoscroll": True,
+                "elem_classes": [],
+                "rtl": False,
+                "show_copy_button": False,
+                "__type__": "update",
+                "visible": True,
+                "value": "Michael",
+            }
+        ]
 
     def test_end_to_end_cache_examples(self):
         def concatenate(str1, str2):

@@ -157,8 +157,13 @@ class Component(ComponentBase, Block):
             if callable(value) and getattr(value, "_is_server_fn", False)
         ]
 
-        # This gets overriden when `select` is called
+        # Svelte components expect elem_classes to be a list
+        # If we don't do this, returning a new component for an
+        # update will break the frontend
+        if not elem_classes:
+            elem_classes = []
 
+        # This gets overriden when `select` is called
         self.selectable = False
         if not hasattr(self, "data_model"):
             self.data_model: type[GradioDataModel] | None = None

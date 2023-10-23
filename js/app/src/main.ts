@@ -20,8 +20,7 @@ let FONTS: string | [];
 
 FONTS = "__FONTS_CSS__";
 
-//@ts-ignore
-let IndexComponent;
+let IndexComponent: typeof Index;
 function create_custom_element(): void {
 	const o = {
 		SvelteComponent: svelte.SvelteComponent

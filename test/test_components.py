@@ -81,7 +81,7 @@ class TestTextbox:
             "min_width": 160,
             "scale": None,
             "elem_id": None,
-            "elem_classes": None,
+            "elem_classes": [],
             "visible": True,
             "interactive": None,
             "root_url": None,
@@ -199,7 +199,7 @@ class TestNumber:
             "min_width": 160,
             "scale": None,
             "elem_id": None,
-            "elem_classes": None,
+            "elem_classes": [],
             "visible": True,
             "interactive": None,
             "root_url": None,
@@ -275,7 +275,7 @@ class TestSlider:
             "min_width": 160,
             "scale": None,
             "elem_id": None,
-            "elem_classes": None,
+            "elem_classes": [],
             "visible": True,
             "interactive": None,
             "root_url": None,
@@ -333,7 +333,7 @@ class TestCheckbox:
             "min_width": 160,
             "scale": None,
             "elem_id": None,
-            "elem_classes": None,
+            "elem_classes": [],
             "visible": True,
             "interactive": None,
             "root_url": None,
@@ -383,7 +383,7 @@ class TestCheckboxGroup:
             "min_width": 160,
             "scale": None,
             "elem_id": None,
-            "elem_classes": None,
+            "elem_classes": [],
             "visible": True,
             "interactive": None,
             "root_url": None,
@@ -433,7 +433,7 @@ class TestRadio:
             "min_width": 160,
             "scale": None,
             "elem_id": None,
-            "elem_classes": None,
+            "elem_classes": [],
             "visible": True,
             "interactive": None,
             "root_url": None,
@@ -514,7 +514,7 @@ class TestDropdown:
             "min_width": 160,
             "scale": None,
             "elem_id": None,
-            "elem_classes": None,
+            "elem_classes": [],
             "visible": True,
             "interactive": None,
             "root_url": None,
@@ -588,7 +588,7 @@ class TestImage:
             "height": None,
             "width": None,
             "elem_id": None,
-            "elem_classes": None,
+            "elem_classes": [],
             "visible": True,
             "value": None,
             "interactive": None,
@@ -762,7 +762,7 @@ class TestAudio:
             "min_width": 160,
             "scale": None,
             "elem_id": None,
-            "elem_classes": None,
+            "elem_classes": [],
             "visible": True,
             "value": None,
             "interactive": None,
@@ -806,7 +806,7 @@ class TestAudio:
             "min_width": 160,
             "scale": None,
             "elem_id": None,
-            "elem_classes": None,
+            "elem_classes": [],
             "visible": True,
             "value": None,
             "interactive": None,
@@ -882,13 +882,14 @@ class TestFile:
         x_file = deepcopy(media_data.BASE64_FILE)
         file_input = gr.File()
         output = file_input.preprocess(x_file)
-        assert isinstance(output, tempfile._TemporaryFileWrapper)
+        assert isinstance(output, str)
 
         x_file["is_file"] = True
         input1 = file_input.preprocess(x_file)
         input2 = file_input.preprocess(x_file)
-        assert input1.name == input2.name
-        assert Path(input1.name).name == "sample_file.pdf"
+        assert input1 == input1.name  # Testing backwards compatibility
+        assert input1 == input2
+        assert Path(input1).name == "sample_file.pdf"
 
         file_input = gr.File(label="Upload Your File")
         assert file_input.get_config() == {
@@ -901,14 +902,14 @@ class TestFile:
             "min_width": 160,
             "scale": None,
             "elem_id": None,
-            "elem_classes": None,
+            "elem_classes": [],
             "visible": True,
             "value": None,
             "interactive": None,
             "root_url": None,
             "selectable": False,
             "height": None,
-            "type": "file",
+            "type": "filepath",
         }
         assert file_input.preprocess(None) is None
         x_file["is_example"] = True
@@ -966,12 +967,13 @@ class TestUploadButton:
         x_file = deepcopy(media_data.BASE64_FILE)
         upload_input = gr.UploadButton()
         input = upload_input.preprocess(x_file)
-        assert isinstance(input, tempfile._TemporaryFileWrapper)
+        assert isinstance(input, str)
 
         x_file["is_file"] = True
         input1 = upload_input.preprocess(x_file)
         input2 = upload_input.preprocess(x_file)
-        assert input1.name == input2.name
+        assert input1 == input1.name  # Testing backwards compatibility
+        assert input1 == input2
 
     def test_raises_if_file_types_is_not_list(self):
         with pytest.raises(
@@ -1018,7 +1020,7 @@ class TestDataframe:
             "interactive": None,
             "visible": True,
             "elem_id": None,
-            "elem_classes": None,
+            "elem_classes": [],
             "wrap": False,
             "root_url": None,
             "name": "dataframe",
@@ -1053,7 +1055,7 @@ class TestDataframe:
             "interactive": None,
             "visible": True,
             "elem_id": None,
-            "elem_classes": None,
+            "elem_classes": [],
             "wrap": False,
             "root_url": None,
             "name": "dataframe",
@@ -1373,7 +1375,7 @@ class TestVideo:
             "height": None,
             "width": None,
             "elem_id": None,
-            "elem_classes": None,
+            "elem_classes": [],
             "visible": True,
             "value": None,
             "interactive": None,
@@ -1607,7 +1609,7 @@ class TestLabel:
             "min_width": 160,
             "scale": None,
             "elem_id": None,
-            "elem_classes": None,
+            "elem_classes": [],
             "visible": True,
             "root_url": None,
             "color": None,
@@ -1748,7 +1750,7 @@ class TestHighlightedText:
             "min_width": 160,
             "scale": None,
             "elem_id": None,
-            "elem_classes": None,
+            "elem_classes": [],
             "visible": True,
             "value": None,
             "root_url": None,
@@ -1826,7 +1828,7 @@ class TestAnnotatedImage:
             "height": None,
             "width": None,
             "elem_id": None,
-            "elem_classes": None,
+            "elem_classes": [],
             "visible": True,
             "value": None,
             "root_url": None,
@@ -1885,7 +1887,7 @@ class TestChatbot:
             "show_share_button": False,
             "visible": True,
             "elem_id": None,
-            "elem_classes": None,
+            "elem_classes": [],
             "container": True,
             "min_width": 160,
             "scale": None,
@@ -1917,7 +1919,7 @@ class TestJSON:
             "min_width": 160,
             "scale": None,
             "elem_id": None,
-            "elem_classes": None,
+            "elem_classes": [],
             "visible": True,
             "value": None,
             "show_label": True,
@@ -1974,7 +1976,7 @@ class TestHTML:
             "show_label": True,
             "visible": True,
             "elem_id": None,
-            "elem_classes": None,
+            "elem_classes": [],
             "root_url": None,
             "name": "html",
         }
@@ -2022,7 +2024,7 @@ class TestModel3D:
             "min_width": 160,
             "visible": True,
             "elem_id": None,
-            "elem_classes": None,
+            "elem_classes": [],
             "root_url": None,
             "name": "model3d",
             "camera_position": (None, None, None),
@@ -2064,7 +2066,7 @@ class TestColorPicker:
             "min_width": 160,
             "scale": None,
             "elem_id": None,
-            "elem_classes": None,
+            "elem_classes": [],
             "visible": True,
             "interactive": None,
             "root_url": None,
@@ -2178,11 +2180,13 @@ def test_as_example_returns_file_basename(component):
     assert component.as_example(None) == ""
 
 
-@patch("gradio.components.Component.as_example")
-@patch("gradio.components.Image.as_example")
-@patch("gradio.components.File.as_example")
-@patch("gradio.components.Dataframe.as_example")
-@patch("gradio.components.Model3D.as_example")
+@patch(
+    "gradio.components.Component.as_example", spec=gr.components.Component.as_example
+)
+@patch("gradio.components.Image.as_example", spec=gr.Image.as_example)
+@patch("gradio.components.File.as_example", spec=gr.File.as_example)
+@patch("gradio.components.Dataframe.as_example", spec=gr.DataFrame.as_example)
+@patch("gradio.components.Model3D.as_example", spec=gr.Model3D.as_example)
 def test_dataset_calls_as_example(*mocks):
     gr.Dataset(
         components=[gr.Dataframe(), gr.File(), gr.Image(), gr.Model3D(), gr.Textbox()],
@@ -2217,7 +2221,7 @@ class TestScatterPlot:
         assert gr.ScatterPlot().get_config() == {
             "caption": None,
             "elem_id": None,
-            "elem_classes": None,
+            "elem_classes": [],
             "interactive": None,
             "label": None,
             "name": "plot",
@@ -2376,7 +2380,7 @@ class TestLinePlot:
         assert gr.LinePlot().get_config() == {
             "caption": None,
             "elem_id": None,
-            "elem_classes": None,
+            "elem_classes": [],
             "interactive": None,
             "label": None,
             "name": "plot",
@@ -2480,7 +2484,7 @@ class TestBarPlot:
         assert gr.BarPlot().get_config() == {
             "caption": None,
             "elem_id": None,
-            "elem_classes": None,
+            "elem_classes": [],
             "interactive": None,
             "label": None,
             "name": "plot",
@@ -2619,7 +2623,7 @@ class TestCode:
             "min_width": 160,
             "scale": None,
             "elem_id": None,
-            "elem_classes": None,
+            "elem_classes": [],
             "visible": True,
             "interactive": None,
             "root_url": None,
