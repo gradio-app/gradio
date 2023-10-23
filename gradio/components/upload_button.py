@@ -73,6 +73,14 @@ class UploadButton(Component):
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
             file_types: List of type of files to be uploaded. "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
         """
+        valid_types = [
+            "filepath",
+            "binary",
+        ]
+        if type not in valid_types:
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
         self.type = type
         self.file_count = file_count
         if file_count == "directory" and file_types is not None:
