@@ -372,7 +372,11 @@ class Interface(Blocks):
         Interface.instances.add(self)
 
         param_types = utils.get_type_hints(self.fn)
-        param_names = inspect.getfullargspec(self.fn)[0]
+        param_names = []
+        try:
+            param_names = inspect.getfullargspec(self.fn)[0]
+        except TypeError:
+            raise TypeError(f"TypeError: Unable to get argument names: {self.fn} is not callable.")
         if len(param_names) > 0 and inspect.ismethod(self.fn):
             param_names = param_names[1:]
         for param_name in param_names.copy():
