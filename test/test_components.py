@@ -882,7 +882,7 @@ class TestFile:
         x_file = deepcopy(media_data.BASE64_FILE)
         file_input = gr.File()
         output = file_input.preprocess(x_file)
-        assert isinstance(output, tempfile._TemporaryFileWrapper)
+        assert isinstance(output, str)
 
         x_file["is_file"] = True
         input1 = file_input.preprocess(x_file)
@@ -908,7 +908,7 @@ class TestFile:
             "root_url": None,
             "selectable": False,
             "height": None,
-            "type": "file",
+            "type": "filepath",
         }
         assert file_input.preprocess(None) is None
         x_file["is_example"] = True
@@ -966,7 +966,7 @@ class TestUploadButton:
         x_file = deepcopy(media_data.BASE64_FILE)
         upload_input = gr.UploadButton()
         input = upload_input.preprocess(x_file)
-        assert isinstance(input, tempfile._TemporaryFileWrapper)
+        assert isinstance(input, str)
 
         x_file["is_file"] = True
         input1 = upload_input.preprocess(x_file)
