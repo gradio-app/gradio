@@ -1,13 +1,9 @@
 {
 	"name": "@gradio/lite",
-<<<<<<< .merge_file_wTw1bG
 	"version": "0.3.2",
-=======
-	"version": "0.4.3",
->>>>>>> .merge_file_X8n5z1
 	"description": "Serverless Gradio",
 	"type": "module",
-	"main": "dist/lite.js",
+	"main": "dist/index.js",
 	"author": "Gradio Team",
 	"license": "Apache-2.0",
 	"files": [
