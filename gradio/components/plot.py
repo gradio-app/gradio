@@ -31,7 +31,7 @@ class AltairPlotData(PlotData):
 @document()
 class Plot(Component):
     """
-    Used to display various kinds of plots (matplotlib, plotly, or bokeh are supported)
+    Used to display various kinds of plots (matplotlib, plotly, or bokeh are supported).
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects either a {matplotlib.figure.Figure}, a {plotly.graph_objects._figure.Figure}, or a {dict} corresponding to a bokeh plot (json_item format)
 
