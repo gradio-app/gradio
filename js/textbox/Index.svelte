@@ -1,5 +1,9 @@
 <svelte:options accessors={true} />
 
+<script context="module" lang="ts">
+	export { default as BaseTextbox } from "./shared/Textbox.svelte";
+</script>
+
 <script lang="ts">
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import TextBox from "./shared/Textbox.svelte";

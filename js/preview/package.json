@@ -16,8 +16,7 @@
 		"@rollup/plugin-node-resolve": "^15.1.0",
 		"@rollup/plugin-typescript": "^11.1.2",
 		"rollup": "^3.28.0",
-		"svelte-hmr": "^0.15.3",
-		"vite": "^4.4.9"
+		"svelte-hmr": "^0.15.3"
 	},
 	"dependencies": {
 		"@originjs/vite-plugin-commonjs": "^1.0.3",
@@ -34,7 +33,6 @@
 		"stylus": "^0.60.0",
 		"sucrase": "^3.34.0",
 		"sugarss": "^4.0.1",
-		"svelte": "^4.2.0",
 		"which": "4.0.0",
 		"yootils": "^0.3.1"
 	}

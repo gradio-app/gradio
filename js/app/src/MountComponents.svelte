@@ -11,7 +11,7 @@
 	export let version: any;
 	export let autoscroll: boolean;
 
-	const dispatch = createEventDispatcher<{ mount: never }>();
+	const dispatch = createEventDispatcher<{ mount?: never }>();
 	onMount(() => {
 		dispatch("mount");
 	});
