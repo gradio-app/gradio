@@ -4,15 +4,13 @@ from __future__ import annotations
 
 import json
 import operator
-import warnings
 from pathlib import Path
-from typing import Any, Callable, List, Literal, Optional, Union
+from typing import Any, Callable, List, Optional, Union
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.components.base import Component, _Keywords
+from gradio.components.base import Component
 from gradio.data_classes import GradioModel
-from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Events
 
 set_documentation_group("component")
@@ -57,14 +55,16 @@ class Label(Component):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        render: bool = True,
+        root_url: str | None = None,
+        _skip_init_processing: bool = False,
         color: str | None = None,
-        **kwargs,
     ):
         """
         Parameters:
             value: Default value to show in the component. If a str or number is provided, simply displays the string or number. If a {Dict[str, float]} of classes and confidences is provided, displays the top class on top and the `num_top_classes` below, along with their confidence bars. If callable, the function will be called whenever the app loads to set the initial value of the component.
             num_top_classes: number of most confident classes to show.
-            label: component name in interface.
+            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
@@ -73,6 +73,8 @@ class Label(Component):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
             color: The background color of the label (either a valid css color name or hexadecimal string).
         """
         self.num_top_classes = num_top_classes
@@ -87,8 +89,10 @@ class Label(Component):
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            render=render,
+            root_url=root_url,
+            _skip_init_processing=_skip_init_processing,
             value=value,
-            **kwargs,
         )
 
     def postprocess(
@@ -127,59 +131,6 @@ class Label(Component):
             "float label, or a dictionary whose keys are labels and values are confidences. "
             f"Instead, got a {type(y)}"
         )
-
-    @staticmethod
-    def update(
-        value: dict[str, float]
-        | str
-        | float
-        | Literal[_Keywords.NO_VALUE]
-        | None = _Keywords.NO_VALUE,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-        color: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Label(...)` instead of `return gr.Label.update(...)`."
-        )
-        # If color is not specified (NO_VALUE) map it to None so that
-        # it gets filtered out in postprocess. This will mean the color
-        # will not be updated in the front-end
-        if color is _Keywords.NO_VALUE:
-            color = None
-        # If the color was specified by the developer as None
-        # Map is so that the color is updated to be transparent,
-        # e.g. no background default state.
-        elif color is None:
-            color = "transparent"
-        return {
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "color": color,
-            "__type__": "update",
-        }
-
-    def style(
-        self,
-        *,
-        container: bool | None = None,
-    ):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if container is not None:
-            self.container = container
-        return self
 
     def preprocess(self, x: Any) -> Any:
         return x

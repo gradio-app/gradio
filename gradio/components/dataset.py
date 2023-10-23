@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-import warnings
 from typing import Any, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
+import gradio.utils as utils
 from gradio.components.base import (
     Component,
-    _Keywords,
     get_component_instance,
 )
 from gradio.events import Events
@@ -40,10 +39,12 @@ class Dataset(Component):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        render: bool = True,
+        root_url: str | None = None,
+        _skip_init_processing: bool = False,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
-        **kwargs,
     ):
         """
         Parameters:
@@ -55,17 +56,24 @@ class Dataset(Component):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
         """
-        super().__init__(
-            visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
-        )
+        super().__init__(visible=visible, elem_id=elem_id, elem_classes=elem_classes)
         self.container = container
         self.scale = scale
         self.min_width = min_width
         self._components = [get_component_instance(c) for c in components]
+        self.component_props = [
+            utils.recover_kwargs(
+                component.get_config(),
+                ["value"],
+            )
+            for component in self._components
+        ]
 
         # Narrow type to Component
         assert all(
@@ -93,34 +101,18 @@ class Dataset(Component):
     def skip_api(self):
         return True
 
-    @staticmethod
-    def update(
-        samples: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        visible: bool | None = None,
-        label: str | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Dataset(...)` instead of `return gr.Dataset.update(...)`."
-        )
-        return {
-            "samples": samples,
-            "visible": visible,
-            "label": label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "__type__": "update",
-        }
-
     def get_config(self):
         config = super().get_config()
-        config["components"] = [
-            component.get_block_name() for component in self._components
-        ]
-        config["component_ids"] = [component._id for component in self._components]
+
+        config["components"] = []
+        config["component_props"] = self.component_props
+        config["component_ids"] = []
+
+        for component in self._components:
+            config["components"].append(component.get_block_name())
+
+            config["component_ids"].append(component._id)
+
         return config
 
     def preprocess(self, x: Any) -> Any:
