@@ -1,8 +1,7 @@
 ---
-"@gradio/dataframe": minor
-"@gradio/dropdown": minor
-"@gradio/storybook": minor
-"gradio": minor
+"@gradio/dropdown": patch
+"@gradio/storybook": patch
+"gradio": patch
 ---
 
-feat:fix storybook
+fix:fix storybook
