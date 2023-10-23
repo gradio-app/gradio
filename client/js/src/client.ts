@@ -458,7 +458,8 @@ export function api_factory(
 						});
 
 						post_data(
-							`${http_protocol}//${resolve_root(host, config.path, true)}/run${_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
+							`${http_protocol}//${resolve_root(host, config.path, true)}/run${
+								_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
 							}${url_params ? "?" + url_params : ""}`,
 							{
 								...payload,
@@ -469,11 +470,11 @@ export function api_factory(
 							.then(([output, status_code]) => {
 								const data = transform_files
 									? transform_output(
-										output.data,
-										api_info,
-										config.root,
-										config.root_url
-									)
+											output.data,
+											api_info,
+											config.root,
+											config.root_url
+									  )
 									: output.data;
 								if (status_code == 200) {
 									fire_event({
@@ -604,11 +605,11 @@ export function api_factory(
 									time: new Date(),
 									data: transform_files
 										? transform_output(
-											data.data,
-											api_info,
-											config.root,
-											config.root_url
-										)
+												data.data,
+												api_info,
+												config.root,
+												config.root_url
+										  )
 										: data.data,
 									endpoint: _endpoint,
 									fn_index
@@ -645,12 +646,17 @@ export function api_factory(
 							fn_index,
 							time: new Date()
 						});
-						var params = new URLSearchParams({ "fn_index": fn_index.toString(), "session_hash": session_hash }).toString();
-						let url = new URL(`${http_protocol}//${resolve_root(
-							host,
-							config.path,
-							true
-						)}/queue/join?${params}`);
+						var params = new URLSearchParams({
+							fn_index: fn_index.toString(),
+							session_hash: session_hash
+						}).toString();
+						let url = new URL(
+							`${http_protocol}//${resolve_root(
+								host,
+								config.path,
+								true
+							)}/queue/join?${params}`
+						);
 
 						eventSource = new EventSource(url);
 
@@ -676,15 +682,18 @@ export function api_factory(
 							} else if (type === "data") {
 								let event_id = _data.event_id;
 								post_data(
-									`${http_protocol}//${resolve_root(host, config.path, true)}/queue/data`,
+									`${http_protocol}//${resolve_root(
+										host,
+										config.path,
+										true
+									)}/queue/data`,
 									{
 										...payload,
 										session_hash,
 										event_id
 									},
 									hf_token
-								)
-
+								);
 							} else if (type === "complete") {
 								complete = status;
 							} else if (type === "log") {
@@ -712,11 +721,11 @@ export function api_factory(
 									time: new Date(),
 									data: transform_files
 										? transform_output(
-											data.data,
-											api_info,
-											config.root,
-											config.root_url
-										)
+												data.data,
+												api_info,
+												config.root,
+												config.root_url
+										  )
 										: data.data,
 									endpoint: _endpoint,
 									fn_index

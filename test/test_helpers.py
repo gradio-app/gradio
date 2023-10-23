@@ -8,8 +8,8 @@ import time
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
 import httpx
+import pytest
 import requests
 from gradio_client import media_data, utils
 from pydub import AudioSegment
@@ -754,7 +754,6 @@ class TestProgressBar:
                     if msg["msg"] == "process_completed":
                         break
 
-
         assert progress_updates == [
             [
                 {
@@ -810,7 +809,6 @@ class TestProgressBar:
 
         demo = gr.Interface(greet, "text", "text")
         demo.queue().launch(prevent_thread_lock=True)
-
 
         progress_updates = []
         async with httpx.AsyncClient() as client:
@@ -913,7 +911,6 @@ class TestProgressBar:
                     if msg["msg"] == "process_completed":
                         break
 
-
         assert log_messages == [
             ["Letter a", "info"],
             ["Letter b", "info"],
@@ -970,7 +967,6 @@ async def test_info_isolation(async_handler: bool):
                     if msg["msg"] == "process_completed":
                         break
         return log_messages
-
 
     alice_logs, bob_logs = await asyncio.gather(
         session_interaction("Alice"),

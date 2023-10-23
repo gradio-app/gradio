@@ -4,9 +4,9 @@ from collections import deque
 from unittest.mock import MagicMock
 
 import pytest
+from fastapi import Request
 
 from gradio.queueing import Event, Queue
-from fastapi import Request
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -108,7 +108,6 @@ class TestQueueMethods:
 
         assert await queue.get_data(mock_event)
         assert mock_event.data == {"data": ["test"], "fn": 0}
-
 
     @pytest.mark.asyncio
     async def test_gather_event_data_timeout(self, queue: Queue, mock_event: Event):
