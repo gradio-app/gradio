@@ -47,6 +47,8 @@ jobs:
         with:
           always-install-pnpm: true
           skip_build: 'true'
+      - name: build client
+        run: pnpm --filter @gradio/client build 
       - name: generate theme.css
         run: | 
           . venv/bin/activate

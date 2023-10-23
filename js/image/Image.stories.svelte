@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import StaticImage from "./Index.svelte";
 </script>
@@ -8,10 +8,14 @@
 	component={Image}
 	argTypes={{
 		value: {
-			control: "text",
+			control: "object",
 			description: "The image URL or file to display",
 			name: "value",
-			value: "https://i.ibb.co/6BgKdSj/groot.jpg"
+			value: {
+				name: "https://i.ibb.co/6BgKdSj/groot.jpg",
+				is_file: true,
+				data: null
+			}
 		},
 		show_download_button: {
 			options: [true, false],
@@ -34,7 +38,11 @@
 <Story
 	name="Static Image with label and download button"
 	args={{
-		value: "https://i.ibb.co/6BgKdSj/groot.jpg",
+		value: {
+			name: "https://i.ibb.co/6BgKdSj/groot.jpg",
+			is_file: true,
+			data: null
+		},
 		show_label: true,
 		show_download_button: true
 	}}
@@ -43,7 +51,11 @@
 <Story
 	name="Static Image with no label or download button"
 	args={{
-		value: "https://i.ibb.co/6BgKdSj/groot.jpg",
+		value: {
+			name: "https://i.ibb.co/6BgKdSj/groot.jpg",
+			is_file: true,
+			data: null
+		},
 		show_label: false,
 		show_download_button: false
 	}}
