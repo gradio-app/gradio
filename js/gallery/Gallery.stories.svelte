@@ -206,11 +206,26 @@
 		columns: 2,
 		height: 400,
 		value: [
-			"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
-			"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-003.jpg",
-			"https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-			"https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-			"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"
+			{
+				image:
+					"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"
+			},
+			{
+				image:
+					"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-003.jpg"
+			},
+			{
+				image:
+					"https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg"
+			},
+			{
+				image:
+					"https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg"
+			},
+			{
+				image:
+					"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"
+			}
 		]
 	}}
 />
@@ -222,6 +237,11 @@
 		rows: 2,
 		height: 400,
 		show_download_button: true,
-		value: ["https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"]
+		value: [
+			{
+				image:
+					"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"
+			}
+		]
 	}}
 />
