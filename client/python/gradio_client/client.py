@@ -1075,7 +1075,12 @@ class Endpoint:
     async def _sse_fn(self, data: dict, hash_data: dict, helper: Communicator):
         async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=None)) as client:
             return await utils.get_pred_from_sse(
-                client, data, hash_data, helper, self.client.sse_url, self.client.sse_data_url
+                client,
+                data,
+                hash_data,
+                helper,
+                self.client.sse_url,
+                self.client.sse_data_url,
             )
 
 

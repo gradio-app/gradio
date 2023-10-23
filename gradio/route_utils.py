@@ -153,7 +153,7 @@ def compile_gr_request(
         body.data = [body.session_hash]
     if body.request:
         if body.batched:
-            gr_request = [Request(username=username, request=req) for req in body.request]
+            gr_request = [Request(username=username, request=request)]
         else:
             gr_request = Request(username=username, request=body.request)
     else:

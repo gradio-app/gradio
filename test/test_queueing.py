@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from gradio.queueing import Event, Queue
+from fastapi import Request
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -30,8 +31,12 @@ def queue() -> Queue:
 
 @pytest.fixture()
 def mock_event() -> Event:
-    websocket = AsyncMock()
-    event = Event(websocket=websocket, session_hash="test", fn_index=0)
+    event = Event(
+        session_hash="test",
+        fn_index=0,
+        request=Request({"type": "http", "method": "GET"}),
+        username=None,
+    )
     yield event
 
 
@@ -50,24 +55,30 @@ class TestQueueMethods:
 
     @pytest.mark.asyncio
     async def test_receive(self, queue: Queue, mock_event: Event):
-        mock_event.websocket.receive_json.return_value = {"data": ["test"], "fn": 0}
-        await queue.get_message(mock_event)
-        assert mock_event.websocket.receive_json.called
+        async def add_data_to_event():
+            mock_event.data = ["test"]
+
+        asyncio.create_task(add_data_to_event())
+
+        received_data = await queue.get_data(mock_event)
+        assert received_data
 
     @pytest.mark.asyncio
     async def test_receive_timeout(self, queue: Queue, mock_event: Event):
-        async def take_too_long():
+        async def add_data_to_event():
             await asyncio.sleep(1)
+            mock_event.data = ["test"]
 
-        mock_event.websocket.receive_json = take_too_long
-        data, is_awake = await queue.get_message(mock_event, timeout=0.5)
-        assert data is None
-        assert not is_awake
+        asyncio.create_task(add_data_to_event())
+
+        received_data = await queue.get_data(mock_event, timeout=0.5)
+        assert received_data is False
 
     @pytest.mark.asyncio
     async def test_send(self, queue: Queue, mock_event: Event):
-        await queue.send_message(mock_event, {})
-        assert mock_event.websocket.send_json.called
+        queue.send_message(mock_event, "process_starts")
+        message = mock_event.message_queue.get(timeout=1)
+        assert message["msg"] == "process_starts"
 
     @pytest.mark.asyncio
     async def test_add_to_queue(self, queue: Queue, mock_event: Event):
@@ -90,18 +101,14 @@ class TestQueueMethods:
 
     @pytest.mark.asyncio
     async def test_gather_event_data(self, queue: Queue, mock_event: Event):
-        queue.send_message = AsyncMock()
-        queue.get_message = AsyncMock()
-        queue.send_message.return_value = True
-        queue.get_message.return_value = {"data": ["test"], "fn": 0}, True
+        async def add_data_to_event():
+            mock_event.data = {"data": ["test"], "fn": 0}
 
-        assert await queue.gather_event_data(mock_event)
-        assert queue.send_message.called
+        asyncio.create_task(add_data_to_event())
+
+        assert await queue.get_data(mock_event)
         assert mock_event.data == {"data": ["test"], "fn": 0}
 
-        queue.send_message.called = False
-        assert await queue.gather_event_data(mock_event)
-        assert not (queue.send_message.called)
 
     @pytest.mark.asyncio
     async def test_gather_event_data_timeout(self, queue: Queue, mock_event: Event):

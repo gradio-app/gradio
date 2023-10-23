@@ -79,12 +79,6 @@ class Queue:
         run_coro_in_background(self.start_progress_updates)
         if not self.live_updates:
             run_coro_in_background(self.notify_clients)
-        # run_coro_in_background(self.print_status)
-
-    # async def print_status(self):
-    #     while True:
-    #         print(len(self.event_queue), len([j for j in self.active_jobs if j is not None]))
-    #         await asyncio.sleep(1)
 
     def close(self):
         self.stopped = True
@@ -428,9 +422,7 @@ class Queue:
                                 "success": old_response is not None,
                             },
                         )
-                    awake_events = [
-                        event for event in awake_events if event.alive
-                    ]
+                    awake_events = [event for event in awake_events if event.alive]
                     if not awake_events:
                         return
                     try:

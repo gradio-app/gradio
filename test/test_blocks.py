@@ -16,11 +16,11 @@ from functools import partial
 from string import capwords
 from unittest.mock import patch
 
+import httpx
 import numpy as np
 import pytest
-import uvicorn
-import httpx
 import requests
+import uvicorn
 from fastapi.testclient import TestClient
 from gradio_client import media_data
 from PIL import Image
@@ -402,7 +402,11 @@ class TestBlocksMethods:
                             event_id = msg["event_id"]
                             req = requests.post(
                                 f"http://localhost:{port}/queue/data",
-                                json={"event_id": event_id, "data": ["Victor"], "fn_index": 0},
+                                json={
+                                    "event_id": event_id,
+                                    "data": ["Victor"],
+                                    "fn_index": 0,
+                                },
                             )
                             if not req.ok:
                                 raise ValueError(
@@ -430,7 +434,6 @@ class TestBlocksMethods:
             gr.Textbox(uuid.uuid4)
         demo.launch(prevent_thread_lock=True)
         assert len(demo.get_config_file()["dependencies"]) == 1
-
 
     def test_concurrency_count_zero_gpu(self, monkeypatch):
         monkeypatch.setenv("SPACES_ZERO_GPU", "true")
@@ -1663,7 +1666,11 @@ async def test_queue_when_using_auth():
                         event_id = msg["event_id"]
                         req = requests.post(
                             f"http://localhost:{demo.server_port}/queue/data",
-                            json={"event_id": event_id, "data": [str(i)], "fn_index": 0},
+                            json={
+                                "event_id": event_id,
+                                "data": [str(i)],
+                                "fn_index": 0,
+                            },
                             cookies={f"access-token-{demo.app.cookie_id}": token},
                         )
                         assert req.ok
@@ -1671,7 +1678,7 @@ async def test_queue_when_using_auth():
                         assert msg["success"]
                         assert msg["output"]["data"] == [f"Hello {i}!"]
                         break
-                                        
+
     await asyncio.gather(*[run_with_credentials(i) for i in range(3)])
 
 
