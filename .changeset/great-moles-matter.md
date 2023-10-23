@@ -2,6 +2,7 @@
 "@gradio/app": minor
 "@gradio/audio": minor
 "@gradio/icons": minor
+"@gradio/utils": minor
 "gradio": minor
 ---
 
