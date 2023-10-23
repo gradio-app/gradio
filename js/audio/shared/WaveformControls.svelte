@@ -14,6 +14,7 @@
 	export let interactive = false;
 	export let handle_trim_audio: (start: number, end: number) => void;
 	export let mode = "";
+	export let container: HTMLDivElement;
 
 	export let trimDuration = 0;
 
@@ -22,6 +23,18 @@
 
 	let trimRegion: RegionsPlugin;
 	let activeRegion: any;
+
+	let leftRegionHandle: HTMLDivElement | null;
+	let rightRegionHandle: HTMLDivElement | null;
+	let activeHandle = "";
+
+	$: leftRegionHandle?.addEventListener("focus", () => {
+		if (trimRegion) activeHandle = "left";
+	});
+
+	$: rightRegionHandle?.addEventListener("focus", () => {
+		if (trimRegion) activeHandle = "right";
+	});
 
 	$: trimRegion &&
 		activeRegion &&
@@ -54,12 +67,24 @@
 
 		activeRegion = newRegion;
 		trimDuration = activeRegion.end - activeRegion.start;
+
+		const shadowRoot = container.children[0]!.shadowRoot!;
+
+		rightRegionHandle = shadowRoot.querySelector('[data-resize="right"]');
+		leftRegionHandle = shadowRoot.querySelector('[data-resize="left"]');
+
+		if (!leftRegionHandle || !rightRegionHandle) return;
+		leftRegionHandle.setAttribute("role", "button");
+		rightRegionHandle.setAttribute("role", "button");
+		leftRegionHandle?.setAttribute("aria-label", "Drag to adjust start time");
+		rightRegionHandle?.setAttribute("aria-label", "Drag to adjust end time");
+		leftRegionHandle?.setAttribute("tabindex", "0");
+		rightRegionHandle?.setAttribute("tabindex", "0");
 	};
 
 	const trimAudio = (): void => {
 		if (waveform && trimRegion) {
 			const region = activeRegion;
-
 			if (region) {
 				const start = region.start;
 				const end = region.end;
@@ -77,29 +102,75 @@
 			activeRegion.play();
 		});
 
-	const toggleTrimmingMode = (): void => {
-		if (mode === "edit") {
-			mode = "";
-		} else {
-			mode = "edit";
-		}
-
+	const clearRegions = (): void => {
 		trimRegion?.getRegions().forEach((region) => {
 			region.remove();
 		});
 		trimRegion?.destroy();
 		trimRegion?.clearRegions();
+	};
 
+	const toggleTrimmingMode = (): void => {
+		clearRegions();
 		if (mode === "edit") {
-			addTrimRegion();
+			mode = "";
+		} else {
+			mode = "edit";
 		}
 	};
+
+	$: if (mode === "edit") {
+		addTrimRegion();
+	}
+
+	const adjustRegionHandles = (handle: string, key: string): void => {
+		let newStart;
+		let newEnd;
+
+		if (handle === "left") {
+			if (key === "ArrowLeft") {
+				newStart = activeRegion.start - 0.1;
+				newEnd = activeRegion.end;
+			} else {
+				newStart = activeRegion.start + 0.1;
+				newEnd = activeRegion.end;
+			}
+		} else {
+			if (key === "ArrowLeft") {
+				newStart = activeRegion.start;
+				newEnd = activeRegion.end - 0.1;
+			} else {
+				newStart = activeRegion.start;
+				newEnd = activeRegion.end + 0.1;
+			}
+		}
+
+		activeRegion.setOptions({
+			start: newStart,
+			end: newEnd,
+		});
+
+		trimDuration = activeRegion.end - activeRegion.start;
+	};
+
+	$: trimRegion &&
+		window.addEventListener("keydown", (e) => {
+			if (e.key === "ArrowLeft") {
+				adjustRegionHandles(activeHandle, "ArrowLeft");
+			} else if (e.key === "ArrowRight") {
+				adjustRegionHandles(activeHandle, "ArrowRight");
+			}
+		});
 </script>
 
 <div class="controls">
 	<button
 		class="playback"
-		aria-label="playback speed"
+		aria-label={`Adjust playback speed to ${
+			playbackSpeeds[
+				(playbackSpeeds.indexOf(playbackSpeed) + 1) % playbackSpeeds.length
+			]
+		}x`}
 		on:click={() => {
 			playbackSpeed =
 				playbackSpeeds[
@@ -115,6 +186,9 @@
 	<div class="play-pause-wrapper">
 		<button
 			class="rewind"
+			aria-label={`Skip backwards by ${getSkipRewindAmount(
+				audioDuration
+			)} seconds`}
 			on:click={() => waveform.skip(getSkipRewindAmount(audioDuration) * -1)}
 		>
 			<Backward />
@@ -134,6 +208,7 @@
 		</button>
 		<button
 			class="skip"
+			aria-label="Skip forward by {getSkipRewindAmount(audioDuration)} seconds"
 			on:click={() => waveform.skip(getSkipRewindAmount(audioDuration))}
 		>
 			<Forward />
@@ -142,14 +217,18 @@
 
 	<div class="settings-wrapper">
 		{#if showRedo && mode === ""}
-			<button class="redo" on:click={clear_recording}>
+			<button class="redo" aria-label="Clear audio" on:click={clear_recording}>
 				<Undo />
 			</button>
 		{/if}
 
 		{#if interactive}
 			{#if mode === ""}
-				<button class="trim" on:click={toggleTrimmingMode}>
+				<button
+					class="trim"
+					aria-label="Trim audio to selection"
+					on:click={toggleTrimmingMode}
+				>
 					<Trim />
 				</button>
 			{:else}
@@ -170,7 +249,7 @@
 	.text-button {
 		width: min-content;
 		border: 1px solid var(--neutral-400);
-		border-radius: var(--radius-3xl);
+		border-radius: var(--radius-sm);
 		padding: var(--spacing-xl);
 		line-height: 1px;
 		font-size: var(--text-md);
@@ -185,15 +264,18 @@
 		overflow: scroll;
 	}
 
-	@media (max-width: 375px) {
+	@media (max-width: 320px) {
 		.controls {
 			display: flex;
 			flex-wrap: wrap;
-			justify-content: space-around;
 		}
 
 		.controls * {
-			margin: var(--spacing-sm) 0;
+			margin: var(--spacing-sm);
+		}
+
+		.controls .text-button {
+			margin-left: 0;
 		}
 	}
 	.redo {
@@ -212,7 +294,6 @@
 	}
 	.playback {
 		border: 1px solid var(--neutral-400);
-		color: var(--neutral-400);
 		border-radius: var(--radius-sm);
 		width: 5.5ch;
 		font-weight: 300;

@@ -78,6 +78,8 @@ class Audio(
         show_download_button=True,
         show_share_button: bool | None = None,
         show_edit_button: bool | None = True,
+        min_length: int | None = None,
+        max_length: int | None = None,
         waveform_options: WaveformOptions | None = None,
     ):
         """
@@ -103,6 +105,8 @@ class Audio(
             show_download_button: If True, will show a download button in the corner of the component for saving audio. If False, icon does not appear.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             show_edit_button: If True, will show an edit icon in the corner of the component that allows user to edit the audio. If False, icon does not appear. Default is True.
+            min_length: The minimum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
+            max_length: The maximum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
             waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), show_controls (bool). Default is None, which uses the default values for these options.
         """
         valid_sources = ["upload", "microphone"]
@@ -133,6 +137,8 @@ class Audio(
         )
         self.waveform_options = waveform_options
         self.show_edit_button = show_edit_button
+        self.min_length = min_length
+        self.max_length = max_length
         super().__init__(
             label=label,
             every=every,
@@ -180,6 +186,13 @@ class Audio(
         sample_rate, data = processing_utils.audio_from_file(
             temp_file_path
         )
+
+        duration = len(data) / sample_rate
+        if self.min_length is not None and duration < self.min_length:
+            raise ValueError(f"Audio is too short, must be at least {self.min_length} seconds")
+        if self.max_length is not None and duration > self.max_length:
+            raise ValueError(f"Audio is too long, must be at most {self.max_length} seconds")
+
 
         if self.type == "numpy":
             return sample_rate, data

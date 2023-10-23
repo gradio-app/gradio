@@ -6,7 +6,6 @@
 	import { skipAudio, trimAudioBlob } from "../shared/utils";
 	import WaveformControls from "../shared/WaveformControls.svelte";
 	import { Empty } from "@gradio/atoms";
-	import type { WaveformOptions } from "../shared/types";
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
@@ -111,9 +110,9 @@
 
 	onMount(() => {
 		window.addEventListener("keydown", (e) => {
-			if (e.key === "ArrowRight") {
+			if (e.key === "ArrowRight" && mode !== "edit") {
 				skipAudio(waveform, 0.1);
-			} else if (e.key === "ArrowLeft") {
+			} else if (e.key === "ArrowLeft" && mode !== "edit") {
 				skipAudio(waveform, -0.1);
 			}
 		});
@@ -145,6 +144,7 @@
 		</div>
 
 		<WaveformControls
+			{container}
 			{waveform}
 			{playing}
 			{audioDuration}

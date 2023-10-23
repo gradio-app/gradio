@@ -146,7 +146,6 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		margin: var(--spacing-xl) 0;
 		flex-wrap: wrap;
 		overflow: hidden;
 	}
