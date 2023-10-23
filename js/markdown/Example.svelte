@@ -20,11 +20,11 @@
 	class="prose"
 >
 	<MarkdownCode
-	message={value}
-	{latex_delimiters}
-	{sanitize_html}
-	{line_breaks}
-	chatbot={false}
+		message={value}
+		{latex_delimiters}
+		{sanitize_html}
+		{line_breaks}
+		chatbot={false}
 	/>
 </div>
 
