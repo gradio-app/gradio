@@ -1,5 +1,11 @@
 # website
 
+## 0.10.0
+
+### Features
+
+- [#6021](https://github.com/gradio-app/gradio/pull/6021) [`86cff0c29`](https://github.com/gradio-app/gradio/commit/86cff0c293db776c08c1ab372d69aac7c594cfb3) - Playground: Better spacing on navbar.  Thanks [@aliabd](https://github.com/aliabd)!
+
 ## 0.9.0
 
 ### Features
