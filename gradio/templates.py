@@ -421,7 +421,7 @@ class Files(components.File):
         value: str | list[str] | Callable | None = None,
         *,
         file_count: Literal["multiple"] = "multiple",
-        type: Literal["file", "binary"] = "file",
+        type: Literal["filepath", "binary"] = "filepath",
         label: str | None = None,
         show_label: bool = True,
         interactive: bool | None = None,

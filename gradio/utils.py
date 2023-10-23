@@ -959,3 +959,16 @@ def recover_kwargs(config: dict, additional_keys_to_ignore: list[str] | None = N
         for k, v in config.items()
         if k not in not_kwargs and k not in (additional_keys_to_ignore or [])
     }
+
+
+class NamedString(str):
+    """
+    Subclass of str that includes a .name attribute equal to the value of the string itself. This class is used when returning
+    a value from the `.preprocess()` methods of the File and UploadButton components. Before Gradio 4.0, these methods returned a file
+    object which was then converted to a string filepath using the `.name` attribute. In Gradio 4.0, these methods now return a str
+    filepath directly, but to maintain backwards compatibility, we use this class instead of a regular str.
+    """
+
+    def __init__(self, *args):
+        super().__init__()
+        self.name = str(self) if args else ""
