@@ -35,7 +35,7 @@ def _get_table_items(module):
         ) or (name in _IGNORE):
             continue
         tags = []
-        if "Simple" in name:
+        if "Simple" in name or name in {"File"}:
             tags.append("🌱🤝Beginner Friendly🌱🤝")
         if issubclass(gr_cls, FormComponent):
             tags.append("📝🧩Form Component📝🧩")

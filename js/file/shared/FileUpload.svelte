@@ -39,6 +39,7 @@
 		clear: undefined;
 		drag: boolean;
 		upload: FileData[] | FileData;
+		load: FileData[] | FileData;
 		error: string;
 	}>();
 
