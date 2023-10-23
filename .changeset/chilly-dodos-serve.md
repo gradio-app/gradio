@@ -1,6 +1,6 @@
 ---
-"@gradio/video": minor
-"gradio": minor
+"@gradio/video": patch
+"gradio": patch
 ---
 
-feat:remove dupe component
+fix:remove dupe component
