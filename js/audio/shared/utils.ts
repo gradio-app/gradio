@@ -20,7 +20,7 @@ export const trimAudioBlob = async (
 	audioBuffer: AudioBuffer,
 	start: number,
 	end: number
-): Promise<ArrayBuffer> => {
+): Promise<Uint8Array> => {
 	const audioContext = new AudioContext();
 	const numberOfChannels = audioBuffer.numberOfChannels;
 	const sampleRate = audioBuffer.sampleRate;

@@ -18,9 +18,9 @@ from gradio.events import Events
 set_documentation_group("component")
 
 class WaveformOptions(TypedDict, total=False):
-    waveformColor: str
-    waveformProgressColor: str
-    showMediaControls: bool
+    waveform_color: str
+    waveform_progress_color: str
+    show_controls: bool
 
 @document()
 class Audio(
@@ -78,7 +78,7 @@ class Audio(
         show_download_button=True,
         show_share_button: bool | None = None,
         show_edit_button: bool | None = True,
-        waveformOptions: WaveformOptions | None = None,
+        waveform_options: WaveformOptions | None = None,
     ):
         """
         Parameters:
@@ -103,6 +103,7 @@ class Audio(
             show_download_button: If True, will show a download button in the corner of the component for saving audio. If False, icon does not appear.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             show_edit_button: If True, will show an edit icon in the corner of the component that allows user to edit the audio. If False, icon does not appear. Default is True.
+            waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), show_controls (bool). Default is None, which uses the default values for these options.
         """
         valid_sources = ["upload", "microphone"]
         source = source if source else ("microphone" if streaming else "upload")
@@ -130,7 +131,7 @@ class Audio(
             if show_share_button is None
             else show_share_button
         )
-        self.waveformOptions = waveformOptions
+        self.waveform_options = waveform_options
         self.show_edit_button = show_edit_button
         super().__init__(
             label=label,

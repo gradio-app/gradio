@@ -24,7 +24,7 @@
 	export let autoplay = false;
 	export let show_edit_button = true;
 	export let i18n: I18nFormatter;
-	export let waveformOptions: WaveformOptions;
+	export let waveform_settings = {};
 	export let dragging: boolean;
 
 	$: dispatch("drag", dragging);
@@ -70,7 +70,7 @@
 		drag: boolean;
 		error: string;
 		upload: FileData;
-		clear: never;
+		clear: undefined;
 		start_recording: undefined;
 		pause_recording: undefined;
 		stop_recording: undefined;
@@ -215,7 +215,7 @@
 {#if value === null || streaming}
 	{#if source === "microphone"}
 		{#if streaming}
-			<StreamAudio {record} {recording} {stop} {i18n} {waveformOptions} />
+			<StreamAudio {record} {recording} {stop} {i18n} {waveform_settings} />
 		{:else}
 			<AudioRecorder
 				bind:mode
@@ -223,7 +223,7 @@
 				{i18n}
 				{dispatch}
 				{dispatch_blob}
-				{waveformOptions}
+				{waveform_settings}
 			/>
 		{/if}
 	{:else if source === "upload"}
@@ -254,7 +254,7 @@
 		{i18n}
 		{dispatch}
 		{dispatch_blob}
-		{waveformOptions}
+		{waveform_settings}
 		interactive
 	/>
 {/if}

@@ -16,7 +16,7 @@
 	export let show_download_button = true;
 	export let show_share_button = false;
 	export let i18n: I18nFormatter;
-	export let waveformOptions: WaveformOptions;
+	export let waveform_settings = {};
 
 	const dispatch = createEventDispatcher<{
 		change: FileData;
@@ -66,7 +66,14 @@
 		{/if}
 	</div>
 
-	<AudioPlayer {value} {label} {autoplay} {i18n} {dispatch} {waveformOptions} />
+	<AudioPlayer
+		{value}
+		{label}
+		{autoplay}
+		{i18n}
+		{dispatch}
+		{waveform_settings}
+	/>
 {:else}
 	<Empty size="small">
 		<Music />

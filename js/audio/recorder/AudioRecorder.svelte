@@ -7,7 +7,6 @@
 	import WaveformControls from "../shared/WaveformControls.svelte";
 	import WaveformRecordControls from "../shared/WaveformRecordControls.svelte";
 	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
-	import type { WaveformOptions } from "../shared/types";
 
 	export let label: string;
 	export let mode: string;
@@ -15,9 +14,9 @@
 	export let dispatch: (event: any, detail?: any) => void;
 	export let dispatch_blob: (
 		blobs: Uint8Array[] | Blob[],
-		event: string
+		event: "stream" | "change" | "stop_recording"
 	) => Promise<void> | undefined;
-	export let waveformOptions: WaveformOptions;
+	export let waveform_settings = {};
 
 	let micWaveform: WaveSurfer;
 	let recordingWaveform: WaveSurfer;
@@ -104,22 +103,8 @@
 	const clear_recording = (): void => {
 		const recording = document.getElementById("recording");
 		recordedAudio = null;
-		recording.innerHTML = "";
+		if (recording) recording.innerHTML = "";
 		dispatch("clear");
-	};
-
-	const waveformSettings = {
-		height: 50,
-		waveColor: waveformOptions.waveformColor || "#9ca3af",
-		progressColor: waveformOptions.waveformProgressColor || "#f97316",
-		barWidth: 2,
-		barGap: 3,
-		barHeight: 4,
-		cursorWidth: 2,
-		cursorColor: "#ddd5e9",
-		barRadius: 10,
-		dragToSeek: true,
-		mediaControls: waveformOptions.showMediaControls,
 	};
 
 	const create_mic_waveform = (): void => {
@@ -128,10 +113,8 @@
 		if (recorder) recorder.innerHTML = "";
 
 		micWaveform = WaveSurfer.create({
-			waveColor: waveformOptions.waveformColor || "#9ca3af",
-			progressColor: waveformOptions.waveformProgressColor || "#f97316",
 			container: "#microphone",
-			...waveformSettings,
+			...waveform_settings,
 		});
 
 		record = micWaveform.registerPlugin(RecordPlugin.create());
@@ -143,7 +126,7 @@
 		recordingWaveform = WaveSurfer.create({
 			container: recording,
 			url: recordedAudio,
-			...waveformSettings,
+			...waveform_settings,
 		});
 	};
 
@@ -172,8 +155,8 @@
 		const decodedData = recordingWaveform.getDecodedData();
 		if (decodedData)
 			await trimAudioBlob(decodedData, start, end).then(
-				async (trimmedBlob: Blob) => {
-					await dispatch_blob([trimmedBlob], "change");
+				async (trimmedAudio: Uint8Array) => {
+					await dispatch_blob([trimmedAudio], "change");
 					recordingWaveform.destroy();
 					create_recording_waveform();
 				}

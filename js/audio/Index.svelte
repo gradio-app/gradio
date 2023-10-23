@@ -30,7 +30,7 @@
 	export let autoplay = false;
 	export let show_download_button = true;
 	export let show_share_button = false;
-	export let waveformOptions: WaveformOptions = {};
+	export let waveform_options: WaveformOptions = {};
 	export let name: string;
 	export let pending: boolean;
 	export let streaming: boolean;
@@ -65,6 +65,20 @@
 	}
 
 	let dragging: boolean;
+
+	const waveform_settings = {
+		height: 50,
+		waveColor: waveform_options.waveform_color || "#9ca3af",
+		progressColor: waveform_options.waveform_progress_color || "#f97316",
+		barWidth: 2,
+		barGap: 3,
+		barHeight: 4,
+		cursorWidth: 2,
+		cursorColor: "#ddd5e9",
+		barRadius: 10,
+		dragToSeek: true,
+		mediaControls: waveform_options.show_controls,
+	};
 </script>
 
 {#if mode === "static"}
@@ -94,7 +108,7 @@
 			value={_value}
 			name={_value?.name || "audio_file"}
 			{label}
-			{waveformOptions}
+			{waveform_settings}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
 		/>
@@ -126,7 +140,6 @@
 				gradio.dispatch("stream", value);
 			}}
 			on:drag={({ detail }) => (dragging = detail)}
-			{name}
 			{root}
 			{source}
 			{pending}
@@ -149,7 +162,7 @@
 				gradio.dispatch("error", detail);
 			}}
 			i18n={gradio.i18n}
-			{waveformOptions}
+			{waveform_settings}
 		>
 			<UploadText i18n={gradio.i18n} type="audio" />
 		</InteractiveAudio>

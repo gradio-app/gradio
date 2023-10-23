@@ -15,11 +15,11 @@
 	export let dispatch: (event: any, detail?: any) => void;
 	export let dispatch_blob: (
 		blobs: Uint8Array[] | Blob[],
-		event: any
+		event: "stream" | "change" | "stop_recording"
 	) => Promise<void> = () => Promise.resolve();
 	export let interactive = false;
-	export let waveformOptions: WaveformOptions = {};
-	export let mode: string;
+	export let waveform_settings = {};
+	export let mode = "";
 
 	let container: HTMLDivElement;
 	let waveform: WaveSurfer;
@@ -40,19 +40,9 @@
 
 	const create_waveform = (): void => {
 		waveform = WaveSurfer.create({
-			height: 50,
 			container: container,
-			waveColor: waveformOptions.waveformColor || "#9ca3af",
-			progressColor: waveformOptions.waveformProgressColor || "#f97316",
 			url: value?.data,
-			barWidth: 2,
-			barGap: 3,
-			barHeight: 4,
-			cursorWidth: 2,
-			cursorColor: "#ddd5e9",
-			barRadius: 10,
-			dragToSeek: true,
-			mediaControls: waveformOptions.showMediaControls,
+			...waveform_settings,
 		});
 	};
 
@@ -101,7 +91,7 @@
 		const decodedData = waveform.getDecodedData();
 		if (decodedData)
 			await trimAudioBlob(decodedData, start, end).then(
-				async (trimmedBlob: Blob) => {
+				async (trimmedBlob: Uint8Array) => {
 					await dispatch_blob([trimmedBlob], "change");
 					waveform.destroy();
 					create_waveform();

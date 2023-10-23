@@ -1,17 +1,15 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import type { I18nFormatter } from "@gradio/utils";
-	import type { WaveformOptions } from "../shared/types";
 	import WaveSurfer from "wavesurfer.js";
 	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
-	import WaveformRecordControls from "../shared/WaveformRecordControls.svelte";
 
 	export let recording = false;
 	export let paused_recording = false;
 	export let stop: () => void;
 	export let record: () => void;
 	export let i18n: I18nFormatter;
-	export let waveformOptions: WaveformOptions = {};
+	export let waveform_settings = {};
 
 	let micWaveform: WaveSurfer;
 	let waveformRecord: RecordPlugin;
@@ -24,17 +22,9 @@
 		if (micWaveform !== undefined) micWaveform.destroy();
 
 		micWaveform = WaveSurfer.create({
+			...waveform_settings,
 			height: 100,
 			container: "#microphone",
-			waveColor: waveformOptions.waveformColor || "#f97316",
-			progressColor: waveformOptions.waveformProgressColor || "#f97316",
-			barWidth: 2,
-			barGap: 3,
-			barHeight: 4,
-			cursorWidth: 2,
-			cursorColor: "#ddd5e9",
-			barRadius: 10,
-			dragToSeek: true,
 		});
 
 		waveformRecord = micWaveform.registerPlugin(RecordPlugin.create());

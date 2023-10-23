@@ -1,4 +1,4 @@
-export function audioBufferToWav(audioBuffer: AudioBuffer): ArrayBuffer {
+export function audioBufferToWav(audioBuffer: AudioBuffer): Uint8Array {
 	const numOfChan = audioBuffer.numberOfChannels;
 	const length = audioBuffer.length * numOfChan * 2 + 44;
 	const buffer = new ArrayBuffer(length);
@@ -52,5 +52,5 @@ export function audioBufferToWav(audioBuffer: AudioBuffer): ArrayBuffer {
 		}
 	}
 
-	return buffer;
+	return new Uint8Array(buffer);
 }

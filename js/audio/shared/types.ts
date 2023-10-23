@@ -1,5 +1,5 @@
 export type WaveformOptions = {
-	waveformColor?: string;
-	waveformProgressColor?: string;
-	showMediaControls?: boolean;
+	waveform_color?: string;
+	waveform_progress_color?: string;
+	show_controls?: boolean;
 };
