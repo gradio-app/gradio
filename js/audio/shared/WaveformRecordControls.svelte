@@ -147,6 +147,19 @@
 		align-items: center;
 		justify-content: space-between;
 		margin: var(--spacing-xl) 0;
+		flex-wrap: wrap;
+		overflow: hidden;
+	}
+
+	.controls select {
+		text-overflow: ellipsis;
+		margin: var(--size-2) 0;
+	}
+
+	@media (max-width: 375px) {
+		.controls select {
+			width: 100%;
+		}
 	}
 
 	.wrapper {

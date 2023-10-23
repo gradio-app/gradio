@@ -182,6 +182,19 @@
 		display: grid;
 		grid-template-columns: 1fr 1fr 1fr;
 		margin-top: 5px;
+		overflow: scroll;
+	}
+
+	@media (max-width: 375px) {
+		.controls {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: space-around;
+		}
+
+		.controls * {
+			margin: var(--spacing-sm) 0;
+		}
 	}
 	.redo {
 		width: 20px;
