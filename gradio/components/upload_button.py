@@ -22,7 +22,7 @@ set_documentation_group("component")
 class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
     """
     Used to create an upload button, when clicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set).
-    Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
+    Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List[bytes]} depending on `type`)
     Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
     Examples-format: a {str} path to a local file that populates the component.
     Demos: upload_button

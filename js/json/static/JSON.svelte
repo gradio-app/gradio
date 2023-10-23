@@ -30,7 +30,8 @@
 		return (
 			obj &&
 			Object.keys(obj).length === 0 &&
-			Object.getPrototypeOf(obj) === Object.prototype
+			Object.getPrototypeOf(obj) === Object.prototype &&
+			JSON.stringify(obj) === JSON.stringify({})
 		);
 	}
 
@@ -59,14 +60,20 @@
 		<JSONNode {value} depth={0} />
 	</div>
 {:else}
-	<Empty>
-		<JSONIcon />
-	</Empty>
+	<div class="empty-wrapper">
+		<Empty>
+			<JSONIcon />
+		</Empty>
+	</div>
 {/if}
 
 <style>
 	.json-holder {
 		padding: var(--size-2);
+	}
+
+	.empty-wrapper {
+		min-height: calc(var(--size-32) - 20px);
 	}
 	button {
 		display: flex;

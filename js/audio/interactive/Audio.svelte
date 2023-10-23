@@ -13,9 +13,9 @@
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Music } from "@gradio/icons";
+	import Audio from "../shared/Audio.svelte";
 	// @ts-ignore
 	import Range from "svelte-range-slider-pips";
-	import { loaded } from "../shared/utils";
 	import { _ } from "svelte-i18n";
 
 	import type { IBlobEvent, IMediaRecorder } from "extendable-media-recorder";
@@ -295,17 +295,20 @@
 		absolute={true}
 	/>
 
-	<audio
-		use:loaded={{ autoplay, crop_values }}
-		controls
-		bind:this={player}
-		preload="metadata"
-		src={value?.data}
-		on:play
-		on:pause
-		on:ended={handle_ended}
-		data-testid={`${label}-audio`}
-	/>
+	<div class="container">
+		<Audio
+			controls
+			{autoplay}
+			{crop_values}
+			bind:node={player}
+			preload="metadata"
+			src={value?.data}
+			on:play
+			on:pause
+			on:ended={handle_ended}
+			data-testid={`${label}-audio`}
+		/>
+	</div>
 
 	{#if mode === "edit" && player?.duration}
 		<Range
@@ -358,11 +361,5 @@
 			transform: scale(2);
 			opacity: 0;
 		}
-	}
-
-	audio {
-		padding: var(--size-2);
-		width: var(--size-full);
-		height: var(--size-14);
 	}
 </style>

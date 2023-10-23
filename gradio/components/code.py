@@ -19,7 +19,7 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
     """
     Creates a Code editor for entering, editing or viewing code.
     Preprocessing: passes a {str} of code into the function.
-    Postprocessing: expects the function to return a {str} of code or a single-elment {tuple}: (string filepath,)
+    Postprocessing: expects the function to return a {str} of code or a single-element {tuple}: {(string_filepath,)}
     """
 
     languages = [
@@ -81,7 +81,9 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        assert language in Code.languages, f"Language {language} not supported."
+        if language not in Code.languages:
+            raise ValueError(f"Language {language} not supported.")
+
         self.language = language
         self.lines = lines
         IOComponent.__init__(

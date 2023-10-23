@@ -1,5 +1,21 @@
 # @gradio/dataframe
 
+## 0.5.0
+
+### Features
+
+- [#5894](https://github.com/gradio-app/gradio/pull/5894) [`fee3d527e`](https://github.com/gradio-app/gradio/commit/fee3d527e83a615109cf937f6ca0a37662af2bb6) - Adds `column_widths` to `gr.Dataframe` and hide overflowing text when `wrap=False`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
+## 0.4.0
+
+### Features
+
+- [#5877](https://github.com/gradio-app/gradio/pull/5877) [`a55b80942`](https://github.com/gradio-app/gradio/commit/a55b8094231ae462ac53f52bbdb460c1286ffabb) - Add styling (e.g. font colors and background colors) support to `gr.DataFrame` through the `pd.Styler` object.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
+### Fixes
+
+- [#5930](https://github.com/gradio-app/gradio/pull/5930) [`361823896`](https://github.com/gradio-app/gradio/commit/3618238960d54df65c34895f4eb69d08acc3f9b6) - Fix dataframe `line_breaks`.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.3.1
 
 ### Patch Changes

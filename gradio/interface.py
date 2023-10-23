@@ -28,6 +28,7 @@ from gradio.components import (
 from gradio.data_classes import InterfaceTypes
 from gradio.deprecation import warn_deprecation
 from gradio.events import Changeable, Streamable, Submittable, on
+from gradio.exceptions import RenderError
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_pipeline
@@ -141,7 +142,7 @@ class Interface(Blocks):
         allow_flagging: str | None = None,
         flagging_options: list[str] | list[tuple[str, str]] | None = None,
         flagging_dir: str = "flagged",
-        flagging_callback: FlaggingCallback = CSVLogger(),
+        flagging_callback: FlaggingCallback | None = None,
         analytics_enabled: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
@@ -170,7 +171,7 @@ class Interface(Blocks):
             allow_flagging: one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every input the user submits will be automatically flagged (outputs are not flagged). If "manual", both the input and outputs are flagged when the user clicks flag button. This parameter can be set with environmental variable GRADIO_ALLOW_FLAGGING; otherwise defaults to "manual".
             flagging_options: if provided, allows user to select from the list of options when flagging. Only applies if allow_flagging is "manual". Can either be a list of tuples of the form (label, value), where label is the string that will be displayed on the button and value is the string that will be stored in the flagging CSV; or it can be a list of strings ["X", "Y"], in which case the values will be the list of strings and the labels will ["Flag as X", "Flag as Y"], etc.
             flagging_dir: what to name the directory where flagged data is stored.
-            flagging_callback: An instance of a subclass of FlaggingCallback which will be called when a sample is flagged. By default logs to a local CSV file.
+            flagging_callback: None or an instance of a subclass of FlaggingCallback which will be called when a sample is flagged. If set to None, an instance of gradio.flagging.CSVLogger will be created and logs will be saved to a local CSV file in flagging_dir. Default to None.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
             batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
@@ -358,6 +359,9 @@ class Interface(Blocks):
                 "flagging_options must be a list of strings or list of (string, string) tuples."
             )
 
+        if flagging_callback is None:
+            flagging_callback = CSVLogger()
+
         self.flagging_callback = flagging_callback
         self.flagging_dir = flagging_dir
         self.batch = batch
@@ -453,7 +457,8 @@ class Interface(Blocks):
                     stop_btn = stop_btn or stop_btn_2_out
                     flag_btns = flag_btns or flag_btns_out
 
-            assert clear_btn is not None, "Clear button not rendered"
+            if clear_btn is None:
+                raise RenderError("Clear button not rendered")
 
             self.attach_submit_events(submit_btn, stop_btn)
             self.attach_clear_events(
@@ -590,7 +595,8 @@ class Interface(Blocks):
                 if self.allow_flagging == "manual":
                     flag_btns = self.render_flag_btns()
                 elif self.allow_flagging == "auto":
-                    assert submit_btn is not None, "Submit button not rendered"
+                    if submit_btn is None:
+                        raise RenderError("Submit button not rendered")
                     flag_btns = [submit_btn]
 
                 if self.interpretation:
@@ -615,7 +621,8 @@ class Interface(Blocks):
     def attach_submit_events(self, submit_btn: Button | None, stop_btn: Button | None):
         if self.live:
             if self.interface_type == InterfaceTypes.OUTPUT_ONLY:
-                assert submit_btn is not None, "Submit button not rendered"
+                if submit_btn is None:
+                    raise RenderError("Submit button not rendered")
                 super().load(self.fn, None, self.output_components)
                 # For output-only interfaces, the user probably still want a "generate"
                 # button even if the Interface is live
@@ -646,7 +653,8 @@ class Interface(Blocks):
                     postprocess=not (self.api_mode),
                 )
         else:
-            assert submit_btn is not None, "Submit button not rendered"
+            if submit_btn is None:
+                raise RenderError("Submit button not rendered")
             fn = self.fn
             extra_output = []
 
@@ -660,13 +668,13 @@ class Interface(Blocks):
                 extra_output = [submit_btn, stop_btn]
 
                 def cleanup():
-                    return [Button.update(visible=True), Button.update(visible=False)]
+                    return [Button(visible=True), Button(visible=False)]
 
                 predict_event = on(
                     triggers,
                     lambda: (
-                        submit_btn.update(visible=False),
-                        stop_btn.update(visible=True),
+                        Button(visible=False),
+                        Button(visible=True),
                     ),
                     inputs=None,
                     outputs=[submit_btn, stop_btn],
@@ -727,16 +735,16 @@ class Interface(Blocks):
             ),  # type: ignore
             _js=f"""() => {json.dumps(
                 (
-                    [Column.update(visible=True)]
+                    [{'variant': None, 'visible': True, '__type__': 'update'}]
                     if self.interface_type
-                        in [
-                            InterfaceTypes.STANDARD,
-                            InterfaceTypes.INPUT_ONLY,
-                            InterfaceTypes.UNIFIED,
-                        ]
+                       in [
+                           InterfaceTypes.STANDARD,
+                           InterfaceTypes.INPUT_ONLY,
+                           InterfaceTypes.UNIFIED,
+                       ]
                     else []
                 )
-                + ([Column.update(visible=False)] if self.interpretation else [])
+                + ([{'variant': None, 'visible': False, '__type__': 'update'}] if self.interpretation else [])
             )}
             """,
         )
@@ -752,7 +760,9 @@ class Interface(Blocks):
             interpretation_btn.click(
                 self.interpret_func,
                 inputs=self.input_components + self.output_components,
-                outputs=(interpretation_set or []) + [input_component_column, interpret_component_column],  # type: ignore
+                outputs=(interpretation_set or [])
+                + [input_component_column, interpret_component_column],
+                # type: ignore
                 preprocess=False,
             )
 
@@ -792,7 +802,7 @@ class Interface(Blocks):
             assert isinstance(value, str)
             flag_method = FlagMethod(self.flagging_callback, label, value)
             flag_btn.click(
-                lambda: Button.update(value="Saving...", interactive=False),
+                lambda: Button(value="Saving...", interactive=False),
                 None,
                 flag_btn,
                 queue=False,
@@ -846,8 +856,8 @@ class Interface(Blocks):
 
     async def interpret_func(self, *args):
         return await self.interpret(list(args)) + [
-            Column.update(visible=False),
-            Column.update(visible=True),
+            Column(visible=False),
+            Column(visible=True),
         ]
 
     async def interpret(self, raw_input: list[Any]) -> list[Any]:
