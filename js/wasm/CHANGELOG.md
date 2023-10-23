@@ -1,37 +1,17 @@
 # @gradio/wasm
 
-## 0.4.0
+## 0.2.0-beta.1
 
 ### Features
 
-- [#6013](https://github.com/gradio-app/gradio/pull/6013) [`fa154fb81`](https://github.com/gradio-app/gradio/commit/fa154fb8180d3ebd0026d73a53067d103224fca7) - Add a message at the end of the Wasm worker initialization.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#5963](https://github.com/gradio-app/gradio/pull/5963) [`174b73619`](https://github.com/gradio-app/gradio/commit/174b736194756e23f51bbaf6f850bac5f1ca95b5) - release wasm.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5964](https://github.com/gradio-app/gradio/pull/5964) [`5fbda0bd2`](https://github.com/gradio-app/gradio/commit/5fbda0bd2b2bbb2282249b8875d54acf87cd7e84) - Wasm release.  Thanks [@pngwn](https://github.com/pngwn)!
 
-## 0.3.1
-
-### Fixes
-
-- [#6005](https://github.com/gradio-app/gradio/pull/6005) [`e0ed0642a`](https://github.com/gradio-app/gradio/commit/e0ed0642ac2cb4f7ce9ee698d082607d9bab3636) - Lite: Error handling after initialization.  Thanks [@whitphx](https://github.com/whitphx)!
-- [#6009](https://github.com/gradio-app/gradio/pull/6009) [`0e0681fce`](https://github.com/gradio-app/gradio/commit/0e0681fce718a38fb6662e011859a3ea5c56e868) - Lite: Set `wasClean: true` on the `CloseEvent` emitted by `WebSocket.close()`.  Thanks [@whitphx](https://github.com/whitphx)!
-- [#5998](https://github.com/gradio-app/gradio/pull/5998) [`584fd97d5`](https://github.com/gradio-app/gradio/commit/584fd97d599540c2770377fc7aecf08619f99cc8) - Lite fix matplotlib install postprocess.  Thanks [@whitphx](https://github.com/whitphx)!
-
-## 0.3.0
-
-### Features
-
-- [#5983](https://github.com/gradio-app/gradio/pull/5983) [`a32aabaf5`](https://github.com/gradio-app/gradio/commit/a32aabaf50b14779dec889cf539d7a3770139bac) - Lite: Show initialization progress messages.  Thanks [@whitphx](https://github.com/whitphx)!
-- [#5987](https://github.com/gradio-app/gradio/pull/5987) [`d8a6491a1`](https://github.com/gradio-app/gradio/commit/d8a6491a18854cb8cad6221ba96dcbd20556e806) - Specify FastAPI version for the Wasm runtime as a workaround.  Thanks [@whitphx](https://github.com/whitphx)!
-- [#5982](https://github.com/gradio-app/gradio/pull/5982) [`ab1e5da55`](https://github.com/gradio-app/gradio/commit/ab1e5da5578d4a7cec1fe1117a8b660784a9ae30) - Lite: Fix error handling on the ASGI app.  Thanks [@whitphx](https://github.com/whitphx)!
-
-### Fixes
-
-- [#5980](https://github.com/gradio-app/gradio/pull/5980) [`686719a3b`](https://github.com/gradio-app/gradio/commit/686719a3b0bcd64479a5f3c485da4620d0747341) - Lite: Explicitly install a specific version of `anyio` to avoid version conflicts.  Thanks [@whitphx](https://github.com/whitphx)!
-
-## 0.2.0
+## 0.2.0-beta.0
 
 ### Features
 
 - [#5956](https://github.com/gradio-app/gradio/pull/5956) [`f769876e0`](https://github.com/gradio-app/gradio/commit/f769876e0fa62336425c4e8ada5e09f38353ff01) - Apply formatter (and small refactoring) to the Lite-related frontend code.  Thanks [@whitphx](https://github.com/whitphx)!
-- [#5972](https://github.com/gradio-app/gradio/pull/5972) [`11a300791`](https://github.com/gradio-app/gradio/commit/11a3007916071f0791844b0a37f0fb4cec69cea3) - Lite: Support opening the entrypoint HTML page directly in browser via the `file:` protocol.  Thanks [@whitphx](https://github.com/whitphx)!
 - [#5958](https://github.com/gradio-app/gradio/pull/5958) [`6780d660b`](https://github.com/gradio-app/gradio/commit/6780d660bb8f3b969a4bd40644a49f3274a779a9) - Make the HTTP requests for the Wasm worker wait for the initial `run_code()` or `run_file()` to finish.  Thanks [@whitphx](https://github.com/whitphx)!
 
 ## 0.1.0

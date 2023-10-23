@@ -1,36 +1,28 @@
 # @gradio/app
 
-## 1.10.2
+## 1.9.0-beta.1
 
 ### Patch Changes
 
-- Updated dependencies [[`fa154fb81`](https://github.com/gradio-app/gradio/commit/fa154fb8180d3ebd0026d73a53067d103224fca7)]:
-  - @gradio/wasm@0.4.0
-  - @gradio/audio@0.4.4
-  - @gradio/image@0.4.4
-  - @gradio/video@0.1.4
-  - @gradio/gallery@0.5.5
-  - @gradio/row@0.0.1
+- Updated dependencies [[`174b73619`](https://github.com/gradio-app/gradio/commit/174b736194756e23f51bbaf6f850bac5f1ca95b5), [`5fbda0bd2`](https://github.com/gradio-app/gradio/commit/5fbda0bd2b2bbb2282249b8875d54acf87cd7e84)]:
+  - @gradio/wasm@0.2.0-beta.1
+  - @gradio/audio@0.4.0-beta.7
+  - @gradio/image@0.3.0-beta.7
+  - @gradio/video@0.1.0-beta.7
+  - @gradio/gallery@0.4.0-beta.7
+  - @gradio/row@0.1.0-beta.1
 
-## 1.10.1
+## 1.9.0-beta.0
+
+### Features
+
+- [#5960](https://github.com/gradio-app/gradio/pull/5960) [`319c30f3f`](https://github.com/gradio-app/gradio/commit/319c30f3fccf23bfe1da6c9b132a6a99d59652f7) - rererefactor frontend files. Thanks [@pngwn](https://github.com/pngwn)!
+- [#5956](https://github.com/gradio-app/gradio/pull/5956) [`f769876e0`](https://github.com/gradio-app/gradio/commit/f769876e0fa62336425c4e8ada5e09f38353ff01) - Apply formatter (and small refactoring) to the Lite-related frontend code. Thanks [@whitphx](https://github.com/whitphx)!
+- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`85ba6de13`](https://github.com/gradio-app/gradio/commit/85ba6de136a45b3e92c74e410bb27e3cbe7138d7) - Adds the ability to build the frontend and backend of custom components in preparation for publishing to pypi using `gradio_component build`. Thanks [@pngwn](https://github.com/pngwn)!
 
 ### Fixes
 
-- [#6005](https://github.com/gradio-app/gradio/pull/6005) [`e0ed0642a`](https://github.com/gradio-app/gradio/commit/e0ed0642ac2cb4f7ce9ee698d082607d9bab3636) - Lite: Error handling after initialization. Thanks [@whitphx](https://github.com/whitphx)!
-
-## 1.10.0
-
-### Features
-
-- [#5983](https://github.com/gradio-app/gradio/pull/5983) [`a32aabaf5`](https://github.com/gradio-app/gradio/commit/a32aabaf50b14779dec889cf539d7a3770139bac) - Lite: Show initialization progress messages. Thanks [@whitphx](https://github.com/whitphx)!
-
-## 1.9.0
-
-### Features
-
-- [#5953](https://github.com/gradio-app/gradio/pull/5953) [`921334526`](https://github.com/gradio-app/gradio/commit/921334526ff1ed0fc75c20db5d43733004c7d6ae) - Lite: Support the custom HTML element syntax `<gradio-lite>`. Thanks [@whitphx](https://github.com/whitphx)!
-- [#5956](https://github.com/gradio-app/gradio/pull/5956) [`f769876e0`](https://github.com/gradio-app/gradio/commit/f769876e0fa62336425c4e8ada5e09f38353ff01) - Apply formatter (and small refactoring) to the Lite-related frontend code. Thanks [@whitphx](https://github.com/whitphx)!
-- [#5972](https://github.com/gradio-app/gradio/pull/5972) [`11a300791`](https://github.com/gradio-app/gradio/commit/11a3007916071f0791844b0a37f0fb4cec69cea3) - Lite: Support opening the entrypoint HTML page directly in browser via the `file:` protocol. Thanks [@whitphx](https://github.com/whitphx)!
+- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`85ba6de13`](https://github.com/gradio-app/gradio/commit/85ba6de136a45b3e92c74e410bb27e3cbe7138d7) - Reinstate types that were removed in error in #5832. Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 1.8.0
 

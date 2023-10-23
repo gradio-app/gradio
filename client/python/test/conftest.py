@@ -272,13 +272,13 @@ def hello_world_with_group():
             gr.Textbox("Hello!")
 
         def greeting(name):
-            return f"Hello {name}", gr.Group.update(visible=True)
+            return f"Hello {name}", gr.Group(visible=True)
 
         greet.click(
             greeting, inputs=[name], outputs=[output, group], api_name="greeting"
         )
         show_group.click(
-            lambda: gr.Group.update(visible=False), None, group, api_name="show_group"
+            lambda: gr.Group(visible=False), None, group, api_name="show_group"
         )
     return demo
 
@@ -300,7 +300,7 @@ def hello_world_with_state_and_accordion():
 
         def greeting(name, state):
             state += 1
-            return state, f"Hello {name}", state, gr.Accordion.update(open=False)
+            return state, f"Hello {name}", state, gr.Accordion(open=False)
 
         greet.click(
             greeting,
@@ -309,13 +309,13 @@ def hello_world_with_state_and_accordion():
             api_name="greeting",
         )
         open_acc.click(
-            lambda state: (state + 1, state + 1, gr.Accordion.update(open=True)),
+            lambda state: (state + 1, state + 1, gr.Accordion(open=True)),
             [n_counts],
             [n_counts, num, accordion],
             api_name="open",
         )
         close_acc.click(
-            lambda state: (state + 1, state + 1, gr.Accordion.update(open=False)),
+            lambda state: (state + 1, state + 1, gr.Accordion(open=False)),
             [n_counts],
             [n_counts, num, accordion],
             api_name="close",
@@ -350,9 +350,7 @@ def stream_audio():
 
 @pytest.fixture
 def video_component():
-    return gr.Interface(
-        fn=lambda x: x, inputs=gr.Video(type="file"), outputs=gr.Video()
-    )
+    return gr.Interface(fn=lambda x: x, inputs=gr.Video(), outputs=gr.Video())
 
 
 @pytest.fixture
@@ -368,7 +366,7 @@ def all_components():
             classes_to_check.extend(children)
         if (
             "value" in inspect.signature(subclass).parameters
-            and subclass != gr.components.IOComponent
+            and subclass != gr.components.Component
             and not getattr(subclass, "is_template", False)
         ):
             subclasses.append(subclass)

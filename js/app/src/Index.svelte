@@ -100,7 +100,7 @@
 				load_status: "pending",
 				status: "sleeping",
 				detail: "SLEEPING"
-			}
+			};
 		});
 		worker_proxy.addEventListener("error", (event) => {
 			const error: Error = (event as CustomEvent).detail;

@@ -2,7 +2,7 @@ import type { Plugin } from "vite";
 import { parse, HTMLElement } from "node-html-parser";
 
 import { join } from "path";
-import { writeFileSync, cpSync } from "fs";
+import { writeFileSync } from "fs";
 
 export function inject_ejs(): Plugin {
 	return {
@@ -97,7 +97,6 @@ export function generate_dev_entry({ enable }: { enable: boolean }): Plugin {
 		name: "generate-dev-entry",
 		transform(code, id) {
 			if (!enable) return;
-
 			const new_code = code.replace(RE_SVELTE_IMPORT, (str, $1, $2) => {
 				return `const ${$1.replace(
 					" as ",
@@ -216,14 +215,36 @@ function get_export_path(
 	pkg_json: Record<string, any>
 ): string | undefined {
 	if (!pkg_json.exports) return undefined;
-	const _path = join(root, "..", `${pkg_json.exports[`./${path}`]}`);
+	const _path = join(root, "..", `${pkg_json.exports[`${path}`]}`);
 
 	return existsSync(_path) ? _path : undefined;
 }
 
+const ignore_list = [
+	"tootils",
+	"_cdn-test",
+	"_spaces-test",
+	"_website",
+	"app",
+	"atoms",
+	"fallback",
+	"icons",
+	"lite",
+	"preview",
+	"simpledropdown",
+	"simpletextbox",
+	"storybook",
+	"theme",
+	"timeseries",
+	"tooltip",
+	"upload",
+	"utils",
+	"wasm"
+];
 function generate_component_imports(): string {
-	const components = readdirSync(join(__dirname, ".."))
+	const exports = readdirSync(join(__dirname, ".."))
 		.map((dir) => {
+			if (ignore_list.includes(dir)) return undefined;
 			if (!statSync(join(__dirname, "..", dir)).isDirectory()) return undefined;
 
 			const package_json_path = join(__dirname, "..", dir, "package.json");
@@ -232,48 +253,34 @@ function generate_component_imports(): string {
 					readFileSync(package_json_path, "utf8")
 				);
 
-				const interactive = get_export_path(
-					"interactive",
-					package_json_path,
-					package_json
-				);
+				const component = get_export_path(".", package_json_path, package_json);
 				const example = get_export_path(
-					"example",
-					package_json_path,
-					package_json
-				);
-				const static_dir = get_export_path(
-					"static",
+					"./example",
 					package_json_path,
 					package_json
 				);
 
-				if (!interactive && !example && !static_dir) return undefined;
+				if (!component && !example) return undefined;
 
 				return {
 					name: package_json.name,
-					interactive,
-					example,
-					static: static_dir
+					component,
+					example
 				};
 			}
 			return undefined;
 		})
 		.filter((x) => x !== undefined);
 
-	const imports = components.reduce((acc, component) => {
-		if (!component) return acc;
+	const imports = exports.reduce((acc, _export) => {
+		if (!_export) return acc;
 
-		const interactive = component.interactive
-			? `interactive: () => import("${component.name}/interactive"),\n`
+		const example = _export.example
+			? `example: () => import("${_export.name}/example"),\n`
 			: "";
-		const example = component.example
-			? `example: () => import("${component.name}/example"),\n`
-			: "";
-		return `${acc}"${component.name.replace("@gradio/", "")}": {
-			${interactive}
+		return `${acc}"${_export.name.replace("@gradio/", "")}": {
 			${example}
-			static: () => import("${component.name}/static")
+			component: () => import("${_export.name}")
 			},\n`;
 	}, "");
 
@@ -314,8 +321,10 @@ export function resolve_svelte(enable: boolean): Plugin {
 		enforce: "pre",
 		name: "resolve-svelte",
 		async resolveId(id: string) {
+			if (!enable) return;
+
 			if (
-				(enable && id === "./svelte/svelte.js") ||
+				id === "./svelte/svelte.js" ||
 				id === "svelte" ||
 				id === "svelte/internal"
 			) {

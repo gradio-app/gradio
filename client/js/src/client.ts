@@ -435,11 +435,9 @@ export function api_factory(
 				let payload: Payload;
 				let complete: false | Record<string, any> = false;
 				const listener_map: ListenerMap<EventType> = {};
-				let url_params = ""
-				if (typeof (window) !== "undefined") {
-					url_params = new URLSearchParams(
-						window.location.search
-					).toString();
+				let url_params = "";
+				if (typeof window !== "undefined") {
+					url_params = new URLSearchParams(window.location.search).toString();
 				}
 
 				handle_blob(

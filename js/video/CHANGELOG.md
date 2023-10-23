@@ -1,40 +1,19 @@
 # @gradio/video
 
-## 0.1.4
+## 0.1.0-beta.7
 
 ### Patch Changes
 
-- Updated dependencies [[`fa154fb81`](https://github.com/gradio-app/gradio/commit/fa154fb8180d3ebd0026d73a53067d103224fca7)]:
-  - @gradio/wasm@0.4.0
-  - @gradio/image@0.4.4
+- Updated dependencies [[`174b73619`](https://github.com/gradio-app/gradio/commit/174b736194756e23f51bbaf6f850bac5f1ca95b5), [`5fbda0bd2`](https://github.com/gradio-app/gradio/commit/5fbda0bd2b2bbb2282249b8875d54acf87cd7e84)]:
+  - @gradio/wasm@0.2.0-beta.1
+  - @gradio/image@0.3.0-beta.7
 
-## 0.1.3
+## 0.1.0-beta.6
 
-### Patch Changes
+### Features
 
-- Updated dependencies [[`e0ed0642a`](https://github.com/gradio-app/gradio/commit/e0ed0642ac2cb4f7ce9ee698d082607d9bab3636), [`0e0681fce`](https://github.com/gradio-app/gradio/commit/0e0681fce718a38fb6662e011859a3ea5c56e868), [`584fd97d5`](https://github.com/gradio-app/gradio/commit/584fd97d599540c2770377fc7aecf08619f99cc8)]:
-  - @gradio/wasm@0.3.1
-  - @gradio/image@0.4.3
-
-## 0.1.2
-
-### Patch Changes
-
-- Updated dependencies [[`a32aabaf5`](https://github.com/gradio-app/gradio/commit/a32aabaf50b14779dec889cf539d7a3770139bac), [`d8a6491a1`](https://github.com/gradio-app/gradio/commit/d8a6491a18854cb8cad6221ba96dcbd20556e806), [`686719a3b`](https://github.com/gradio-app/gradio/commit/686719a3b0bcd64479a5f3c485da4620d0747341), [`ab1e5da55`](https://github.com/gradio-app/gradio/commit/ab1e5da5578d4a7cec1fe1117a8b660784a9ae30)]:
-  - @gradio/wasm@0.3.0
-  - @gradio/image@0.4.2
-
-## 0.1.1
-
-### Patch Changes
-
-- Updated dependencies [[`6780d660b`](https://github.com/gradio-app/gradio/commit/6780d660bb8f3b969a4bd40644a49f3274a779a9), [`f769876e0`](https://github.com/gradio-app/gradio/commit/f769876e0fa62336425c4e8ada5e09f38353ff01), [`11a300791`](https://github.com/gradio-app/gradio/commit/11a3007916071f0791844b0a37f0fb4cec69cea3), [`465f58957`](https://github.com/gradio-app/gradio/commit/465f58957f70c7cf3e894beef8a117b28339e3c1)]:
-  - @gradio/wasm@0.2.0
-  - @gradio/atoms@0.2.1
-  - @gradio/utils@0.1.3
-  - @gradio/image@0.4.1
-  - @gradio/statustracker@0.2.4
-  - @gradio/upload@0.3.4
+- [#5960](https://github.com/gradio-app/gradio/pull/5960) [`319c30f3f`](https://github.com/gradio-app/gradio/commit/319c30f3fccf23bfe1da6c9b132a6a99d59652f7) - rererefactor frontend files. Thanks [@pngwn](https://github.com/pngwn)!
+- [#5938](https://github.com/gradio-app/gradio/pull/5938) [`13ed8a485`](https://github.com/gradio-app/gradio/commit/13ed8a485d5e31d7d75af87fe8654b661edcca93) - V4: Use beta release versions for '@gradio' packages. Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
 
 ## 0.1.0
 

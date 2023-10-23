@@ -1,19 +1,15 @@
 {
 	"name": "@gradio/tabitem",
-	"version": "0.0.5-beta.5",
+	"version": "0.1.0-beta.6",
 	"description": "Gradio UI packages",
 	"type": "module",
-	"main": "./static/index.ts",
 	"author": "",
 	"license": "ISC",
 	"private": false,
 	"main_changeset": true,
 	"exports": {
-		".": "./static/index.ts",
-		"./package.json": "./package.json",
-		"./interactive": "./interactive/index.ts",
-		"./static": "./static/index.ts",
-		"./example": "./example/index.ts"
+		".": "./Index.svelte",
+		"./package.json": "./package.json"
 	},
 	"dependencies": {
 		"@gradio/column": "workspace:^",

@@ -194,12 +194,6 @@ class TestTabbedInterface:
         )
 
 
-class TestDeprecatedInterface:
-    def test_deprecation_notice(self):
-        with pytest.warns(Warning):
-            _ = Interface(lambda x: x, "textbox", "textbox", verbose=True)
-
-
 @pytest.mark.parametrize(
     "interface_type", ["standard", "input_only", "output_only", "unified"]
 )

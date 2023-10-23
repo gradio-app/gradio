@@ -595,8 +595,6 @@ class APIInfoParseError(ValueError):
 
 
 def get_type(schema: dict):
-    if not isinstance(schema, dict):
-        breakpoint()
     if "const" in schema:
         return "const"
     if "enum" in schema:
@@ -609,6 +607,10 @@ def get_type(schema: dict):
         return "oneOf"
     elif schema.get("anyOf"):
         return "anyOf"
+    elif schema.get("allOf"):
+        return "allOf"
+    elif "type" not in schema:
+        return {}
     else:
         raise APIInfoParseError(f"Cannot parse type for {schema}")
 
@@ -627,7 +629,7 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
         return "Any"
     type_ = get_type(schema)
     if type_ == {}:
-        if "json" in schema["description"]:
+        if "json" in schema.get("description", {}):
             return "Dict[Any, Any]"
         else:
             return "Any"
@@ -646,12 +648,17 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
     elif type_ == "boolean":
         return "bool"
     elif type_ == "number":
-        return "int | float"
+        return "float"
     elif type_ == "array":
-        items = schema.get("items")
+        items = schema.get("items", [])
         if "prefixItems" in items:
             elements = ", ".join(
                 [_json_schema_to_python_type(i, defs) for i in items["prefixItems"]]
+            )
+            return f"Tuple[{elements}]"
+        elif "prefixItems" in schema:
+            elements = ", ".join(
+                [_json_schema_to_python_type(i, defs) for i in schema["prefixItems"]]
             )
             return f"Tuple[{elements}]"
         else:
@@ -662,21 +669,26 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
         def get_desc(v):
             return f" ({v.get('description')})" if v.get("description") else ""
 
+        props = schema.get("properties", {})
+
+        des = [
+            f"{n}: {_json_schema_to_python_type(v, defs)}{get_desc(v)}"
+            for n, v in props.items()
+            if n != "$defs"
+        ]
+
         if "additionalProperties" in schema:
-            return f"Dict[str, {_json_schema_to_python_type(schema['additionalProperties'], defs)}]"
-
-        props = schema.get("properties")
-
-        des = ", ".join(
-            [
-                f"{n}: {_json_schema_to_python_type(v, defs)}{get_desc(v)}"
-                for n, v in props.items()
-                if n != "$defs"
+            des += [
+                f"str, {_json_schema_to_python_type(schema['additionalProperties'], defs)}"
             ]
-        )
+        des = ", ".join(des)
         return f"Dict({des})"
     elif type_ in ["oneOf", "anyOf"]:
         desc = " | ".join([_json_schema_to_python_type(i, defs) for i in schema[type_]])
+        return desc
+    elif type_ == "allOf":
+        data = ", ".join(_json_schema_to_python_type(i, defs) for i in schema[type_])
+        desc = f"All[{data}]"
         return desc
     else:
         raise APIInfoParseError(f"Cannot parse schema {schema}")
