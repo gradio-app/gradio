@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { Play, Pause, Maximise, Undo } from "@gradio/icons";
-	import Video from "./StaticVideo.svelte";
+	import Video from "./Video.svelte";
 
 	export let src: string;
 	export let subtitle: string | null = null;
