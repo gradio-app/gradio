@@ -55,7 +55,7 @@
 	{/if}
 
 	<BaseCheckbox
-		bind:value={value}
+		bind:value
 		{label}
 		{mode}
 		on:change={handle_change}

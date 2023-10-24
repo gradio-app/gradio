@@ -1,5 +1,4 @@
 <script lang="ts">
-
 	import type { SelectData } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
 
@@ -12,33 +11,35 @@
 		select: SelectData;
 	}>();
 
-
 	// When the value changes, dispatch the change event via handle_change()
 	// See the docs for an explanation: https://svelte.dev/docs/svelte-components#script-3-$-marks-a-statement-as-reactive
 	$: value, dispatch("change", value);
 	$: disabled = mode === "static";
 
-	async function handle_enter(event: KeyboardEvent & {currentTarget: EventTarget & HTMLInputElement;}) {
-		if (event.key === "Enter"){
+	async function handle_enter(
+		event: KeyboardEvent & { currentTarget: EventTarget & HTMLInputElement }
+	) {
+		if (event.key === "Enter") {
 			value = !value;
-			dispatch("select", {
-			index: 0,
-			value: event.currentTarget.checked,
-			selected: event.currentTarget.checked
-		});
-	}}
-
-	async function handle_input(event: Event & {currentTarget: EventTarget & HTMLInputElement;}) {
-			value = event.currentTarget.checked;
 			dispatch("select", {
 				index: 0,
 				value: event.currentTarget.checked,
 				selected: event.currentTarget.checked
 			});
 		}
+	}
+
+	async function handle_input(
+		event: Event & { currentTarget: EventTarget & HTMLInputElement }
+	) {
+		value = event.currentTarget.checked;
+		dispatch("select", {
+			index: 0,
+			value: event.currentTarget.checked,
+			selected: event.currentTarget.checked
+		});
+	}
 </script>
-
-
 
 <label class:disabled>
 	<input
@@ -52,7 +53,6 @@
 	/>
 	<span class="ml-2">{label}</span>
 </label>
-
 
 <style>
 	label {
