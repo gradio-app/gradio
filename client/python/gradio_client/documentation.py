@@ -236,6 +236,8 @@ def generate_documentation():
                         return_docs,
                         examples_doc,
                     ) = document_fn(fn, cls)
+                    if fn_name in getattr(cls, "EVENTS", []):
+                        parameter_docs = parameter_docs[1:]
                     override_signature = None
                 if instance_attribute_fn:
                     description_doc = extract_instance_attr_doc(cls, fn_name)
