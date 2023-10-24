@@ -2,7 +2,8 @@
 	import { createEventDispatcher, tick, getContext } from "svelte";
 	import type { FileData } from "./types";
 	import { upload, prepare_files } from "./utils";
-	import type { upload_files } from "client/js/dist";
+	import type { upload_files } from "@gradio/client";
+	import { _ } from "svelte-i18n";
 
 	export let filetype: string | null = null;
 	export let dragging = false;
@@ -32,11 +33,11 @@
 
 	async function handle_upload(file_data: FileData[]): Promise<void> {
 		await tick();
-		await upload(file_data, root, upload_fn);
-		dispatch("load", file_count === "single" ? file_data[0] : file_data);
+		const _file_data = await upload(file_data, root, upload_fn);
+		dispatch("load", file_count === "single" ? _file_data[0] : _file_data);
 	}
 
-	async function loadFiles(files: FileList): Promise<void> {
+	async function loadFiles(files: File[]): Promise<void> {
 		let _files: File[] = Array.from(files);
 		if (!files.length) {
 			return;
@@ -52,13 +53,38 @@
 		const target = e.target as HTMLInputElement;
 
 		if (!target.files) return;
-		await loadFiles(target.files);
+		await loadFiles(Array.from(target.files));
+	}
+
+	function is_valid_mimetype(
+		file_accept: string | null,
+		mime_type: string
+	): boolean {
+		if (!file_accept) {
+			return true;
+		}
+		if (file_accept === "*") {
+			return true;
+		}
+		if (file_accept.endsWith("/*")) {
+			return mime_type.startsWith(file_accept.slice(0, -1));
+		}
+		return file_accept === mime_type;
 	}
 
 	async function loadFilesFromDrop(e: DragEvent): Promise<void> {
 		dragging = false;
 		if (!e.dataTransfer?.files) return;
-		await loadFiles(e.dataTransfer.files);
+
+		const files_to_load = Array.from(e.dataTransfer.files).filter((f) => {
+			if (is_valid_mimetype(filetype, f.type)) {
+				return true;
+			}
+			dispatch("error", `Invalid file type only ${filetype} allowed.`);
+			return false;
+		});
+
+		await loadFiles(files_to_load);
 	}
 </script>
 

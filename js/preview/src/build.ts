@@ -2,7 +2,7 @@ import * as fs from "fs";
 import { join } from "path";
 import { build } from "vite";
 import { plugins, make_gradio_plugin } from "./plugins";
-
+import type { PreRenderedChunk } from "rollup";
 import { examine_module } from "./index";
 
 interface BuildOptions {
@@ -29,7 +29,7 @@ export async function make_build({
 
 			const exports: string[][] = [
 				["component", pkg.exports["."] as string],
-				["exmaple", pkg.exports["./example"] as string]
+				["example", pkg.exports["./example"] as string]
 			].filter(([_, path]) => !!path);
 
 			for (const [entry, path] of exports) {
@@ -43,13 +43,15 @@ export async function make_build({
 							emptyOutDir: true,
 							outDir: join(template_dir, entry),
 							lib: {
-								entry: join(source_dir, entry, "index.ts"),
+								entry: join(source_dir, path),
 								fileName: "index.js",
 								formats: ["es"]
 							},
+							minify: true,
 							rollupOptions: {
 								output: {
-									entryFileNames: "[name].js"
+									entryFileNames: (chunkInfo: PreRenderedChunk) =>
+										`${chunkInfo.name.toLocaleLowerCase()}.js`
 								}
 							}
 						}

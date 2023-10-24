@@ -2,7 +2,7 @@ import type { FileData } from "./types";
 import { upload_files } from "@gradio/client";
 
 export function normalise_file(
-	file: string | FileData | null,
+	file: FileData | null,
 	root: string,
 	root_url: string | null
 ): FileData | null;
@@ -17,20 +17,9 @@ export function normalise_file(
 	file: FileData[] | FileData | null,
 	root: string,
 	root_url: string | null
-): FileData[] | FileData | null;
-
-export function normalise_file(
-	file: FileData[] | FileData | string | null,
-	root: string,
-	root_url: string | null
 ): FileData[] | FileData | null {
 	if (file == null) return null;
-	if (typeof file === "string") {
-		return {
-			name: "file_data",
-			data: file
-		};
-	} else if (Array.isArray(file)) {
+	if (Array.isArray(file)) {
 		const normalized_file: (FileData | null)[] = [];
 
 		for (const x of file) {
@@ -42,15 +31,18 @@ export function normalise_file(
 		}
 
 		return normalized_file as FileData[];
-	} else if (file.is_file) {
-		file.data = get_fetchable_url_or_file(file.name, root, root_url);
-	} else if (file.is_stream) {
-		if (root_url == null) {
-			file.data = root + "/stream/" + file.name;
-		} else {
-			file.data = "/proxy=" + root_url + "stream/" + file.name;
-		}
 	}
+
+	if (file.is_stream) {
+		if (root_url == null) {
+			file.path = root + "/stream/" + file.path;
+		} else {
+			file.path = "/proxy=" + root_url + "stream/" + file.path;
+		}
+	} else {
+		file.path = get_fetchable_url_or_file(file.path, root, root_url);
+	}
+
 	return file;
 }
 
@@ -77,16 +69,6 @@ export function get_fetchable_url_or_file(
 	return root_url ? `/proxy=${root_url}file=${path}` : `${root}/file=${path}`;
 }
 
-export const blobToBase64 = (blob: File): Promise<string> => {
-	const reader = new FileReader();
-	reader.readAsDataURL(blob);
-	return new Promise((resolve) => {
-		reader.onloadend = (): void => {
-			resolve(reader.result as string);
-		};
-	});
-};
-
 export async function upload(
 	file_data: FileData[],
 	root: string,
@@ -98,18 +80,12 @@ export async function upload(
 
 	await upload_fn(root, files).then(async (response) => {
 		if (response.error) {
-			(Array.isArray(file_data) ? file_data : [file_data]).forEach(
-				async (file_data, i) => {
-					file_data.data = await blobToBase64(file_data.blob!);
-					file_data.blob = undefined;
-				}
-			);
+			throw new Error(response.error);
 		} else {
 			(Array.isArray(file_data) ? file_data : [file_data]).forEach((f, i) => {
 				if (response.files) {
-					f.orig_name = f.name;
-					f.name = response.files[i];
-					f.is_file = true;
+					f.orig_name = f.orig_name;
+					f.path = response.files[i];
 					f.blob = undefined;
 					normalise_file(f, root, null);
 				}
@@ -123,9 +99,9 @@ export async function prepare_files(files: File[]): Promise<FileData[]> {
 	var all_file_data: FileData[] = [];
 	files.forEach((f, i) => {
 		all_file_data[i] = {
-			name: f.name,
+			orig_name: f.name,
+			path: f.name,
 			size: f.size,
-			data: "",
 			blob: f
 		};
 	});

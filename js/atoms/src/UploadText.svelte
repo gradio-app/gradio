@@ -1,7 +1,9 @@
 <script lang="ts">
 	import type { I18nFormatter } from "@gradio/utils";
+	import { Upload } from "@gradio/icons";
 
 	export let type: "video" | "image" | "audio" | "file" | "csv" = "file";
+	export let border_mode: "base" | "focus" = "base";
 	export let i18n: I18nFormatter;
 
 	const defs = {
@@ -13,24 +15,39 @@
 	};
 </script>
 
-<div class="wrap">
+<div class="wrap" class:border_focus={border_mode === "focus"}>
+	<span><Upload /></span>
 	{i18n(defs[type])}
-	<span class="or">- {i18n("common.or")} -</span>
-	{i18n("upload_text.click_to_upload")}
 </div>
 
 <style>
 	.wrap {
+		border-width: 2px;
+		border-color: var(--block-border-color);
+		border-radius: var(--block-radius);
+		padding: var(--size-6) var(--size-8);
+		border-style: dashed;
 		display: flex;
-		flex-direction: column;
+
 		justify-content: center;
-		min-height: var(--size-60);
+		/* min-height: var(--size-60); */
 		color: var(--block-label-text-color);
 		line-height: var(--line-md);
+		font-size: var(--scale-0);
+		font-weight: var(--weight-bold);
 	}
 
-	.or {
-		color: var(--body-text-color-subdued);
+	span {
+		width: 20px;
+		margin-right: var(--spacing-xl);
+	}
+
+	.border_focus {
+		border-color: var(--color-accent);
+	}
+
+	.border_focus span {
+		color: var(--color-accent);
 	}
 
 	@media (--screen-md) {

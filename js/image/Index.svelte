@@ -97,8 +97,8 @@
 {:else}
 	<Block
 		{visible}
-		variant={value === null && source === "upload" ? "dashed" : "solid"}
-		border_mode={dragging ? "focus" : "base"}
+		variant={"solid"}
+		border_mode={"base"}
 		padding={false}
 		{elem_id}
 		{elem_classes}
@@ -132,6 +132,7 @@
 				gradio.dispatch("error", detail);
 			}}
 			on:click={() => gradio.dispatch("error", "bad thing happened")}
+			on:error
 			{label}
 			{show_label}
 			{pending}
@@ -139,7 +140,11 @@
 			{mirror_webcam}
 			i18n={gradio.i18n}
 		>
-			<UploadText i18n={gradio.i18n} type="image" />
+			<UploadText
+				i18n={gradio.i18n}
+				type="image"
+				border_mode={dragging ? "focus" : "base"}
+			/>
 		</Image>
 	</Block>
 {/if}

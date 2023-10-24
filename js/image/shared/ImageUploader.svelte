@@ -34,7 +34,7 @@
 	function handle_upload({ detail }: CustomEvent<string>): void {
 		value = normalise_file(detail, root, null);
 
-		dispatch("upload", normalise_file(detail, root, null));
+		// dispatch("upload", normalise_file(detail, root, null));
 	}
 
 	function handle_clear({ detail }: CustomEvent<null>): void {
@@ -57,7 +57,7 @@
 		change?: never;
 		stream?: never;
 		clear?: never;
-		drag?: never;
+		drag: boolean;
 		upload?: never;
 		select: SelectData;
 	}>();
@@ -66,12 +66,11 @@
 
 	$: dispatch("drag", dragging);
 
-	let value_: null | FileData = null;
+	let _value: null | FileData = null;
 
-	$: if (value !== value_) {
-		value_ = value;
-		normalise_file(value_, root, null);
-	}
+	// $: if (value !== _value) {
+	// 	_value = normalise_file(value, root, null);
+	// }
 
 	let img_height = 0;
 	let img_width = 0;
@@ -132,7 +131,7 @@
 	<Toolbar>
 		{#each sources as source}
 			<IconButton
-				on:click={() => dispatch("click")}
+				on:click={() => {}}
 				Icon={sources_meta[source].icon}
 				size="large"
 				padded={false}
@@ -143,6 +142,7 @@
 		bind:dragging
 		filetype="image/*"
 		on:load={handle_upload}
+		on:error
 		disable_click={!!value}
 		{root}
 	>
@@ -150,6 +150,9 @@
 			<slot />
 		{/if}
 	</Upload>
+	{#if _value !== null && !streaming}
+		<img src={_value.path} alt="" />
+	{/if}
 </div>
 
 <style>
