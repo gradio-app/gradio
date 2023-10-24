@@ -31,6 +31,8 @@
 	export let root: string;
 	export let i18n: I18nFormatter;
 
+	let upload: Upload;
+	let active_tool: "webcam" | null = null;
 	function handle_upload({ detail }: CustomEvent<string>): void {
 		value = normalise_file(detail, root, null);
 
@@ -67,10 +69,6 @@
 	$: dispatch("drag", dragging);
 
 	let _value: null | FileData = null;
-
-	// $: if (value !== _value) {
-	// 	_value = normalise_file(value, root, null);
-	// }
 
 	let img_height = 0;
 	let img_width = 0;
@@ -117,6 +115,22 @@
 	);
 
 	$: console.log({ sources, sources_list });
+
+	function handle_toolbar(source: (typeof sources)[number]) {
+		switch (source) {
+			case "paste":
+				upload.upload_blob();
+				break;
+			case "webcam":
+				active_tool = "webcam";
+				break;
+			case "upload":
+				upload.trigger_upload();
+				break;
+			default:
+				break;
+		}
+	}
 </script>
 
 <BlockLabel {show_label} Icon={Image} label={label || "Image"} />
@@ -131,7 +145,7 @@
 	<Toolbar>
 		{#each sources as source}
 			<IconButton
-				on:click={() => {}}
+				on:click={() => handle_toolbar(source)}
 				Icon={sources_meta[source].icon}
 				size="large"
 				padded={false}
@@ -139,6 +153,7 @@
 		{/each}
 	</Toolbar>
 	<Upload
+		bind:this={upload}
 		bind:dragging
 		filetype="image/*"
 		on:load={handle_upload}
