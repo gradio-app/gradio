@@ -259,7 +259,6 @@ class Examples:
 
         async def load_example(example_id):
             processed_example = self.non_none_processed_examples[example_id]
-            # examples = utils.resolve_singleton(processed_example)
             if len(self.inputs_with_examples) == 1:
                 return update(
                     value=processed_example[0], **self.dataset.component_props[0]
