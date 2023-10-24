@@ -25,11 +25,11 @@
 	export let pending = false;
 	export let streaming = false;
 	export let autoplay = false;
-	export let show_edit_button = true;
 	export let i18n: I18nFormatter;
 	export let waveform_settings = {};
 	export let dragging: boolean;
 	export let active_source: "microphone" | "upload";
+	export let handle_reset_value: () => void = () => {};
 
 	$: dispatch("drag", dragging);
 
@@ -227,6 +227,7 @@
 				{dispatch}
 				{dispatch_blob}
 				{waveform_settings}
+				{handle_reset_value}
 			/>
 		{/if}
 	{:else if active_source === "upload"}
@@ -245,7 +246,6 @@
 		{i18n}
 		on:clear={clear}
 		on:edit={() => (mode = "edit")}
-		editable={show_edit_button}
 		absolute={true}
 	/>
 
@@ -258,6 +258,7 @@
 		{dispatch}
 		{dispatch_blob}
 		{waveform_settings}
+		{handle_reset_value}
 		interactive
 	/>
 {/if}
@@ -296,7 +297,8 @@
 		border-radius: var(--radius-md);
 	}
 
-	.icon:hover {
-		color: var(--color-accent);
+	.icon:hover,
+	.icon:focus {
+		color: var(--secondary-50);
 	}
 </style>

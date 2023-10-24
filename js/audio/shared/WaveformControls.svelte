@@ -9,12 +9,12 @@
 	export let audioDuration: number;
 	export let i18n: I18nFormatter;
 	export let playing: boolean;
-	export let clear_recording = (): void => {};
 	export let showRedo = false;
 	export let interactive = false;
 	export let handle_trim_audio: (start: number, end: number) => void;
 	export let mode = "";
 	export let container: HTMLDivElement;
+	export let handle_reset_value: () => void;
 
 	export let trimDuration = 0;
 
@@ -201,9 +201,7 @@
 			{#if playing}
 				<Pause />
 			{:else}
-				<!-- <span style:right="-1px" style:position="relative"> -->
 				<Play />
-				<!-- </span> -->
 			{/if}
 		</button>
 		<button
@@ -219,8 +217,8 @@
 		{#if showRedo && mode === ""}
 			<button
 				class="action icon"
-				aria-label="Clear audio"
-				on:click={clear_recording}
+				aria-label="Reset audio"
+				on:click={() => handle_reset_value()}
 			>
 				<Undo />
 			</button>
@@ -290,7 +288,8 @@
 		color: var(--neutral-400);
 		margin-left: var(--spacing-md);
 	}
-	.icon:hover {
+	.icon:hover,
+	.icon:focus {
 		color: var(--secondary-50);
 		fill: var(--secondary-50);
 	}

@@ -17,6 +17,7 @@
 		event: "stream" | "change" | "stop_recording"
 	) => Promise<void> | undefined;
 	export let waveform_settings = {};
+	export let handle_reset_value: () => void;
 
 	let micWaveform: WaveSurfer;
 	let recordingWaveform: WaveSurfer;
@@ -100,13 +101,6 @@
 		dispatch("end");
 		playing = false;
 	});
-
-	const clear_recording = (): void => {
-		const recording = document.getElementById("recording");
-		recordedAudio = null;
-		if (recording) recording.innerHTML = "";
-		dispatch("clear");
-	};
 
 	const create_mic_waveform = (): void => {
 		const recorder = document.getElementById("mic");
@@ -211,8 +205,8 @@
 			{handle_trim_audio}
 			bind:trimDuration
 			bind:mode
-			{clear_recording}
 			showRedo
+			{handle_reset_value}
 		/>
 	{/if}
 </div>

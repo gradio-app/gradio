@@ -19,6 +19,7 @@
 	export let interactive = false;
 	export let waveform_settings = {};
 	export let mode = "";
+	export let handle_reset_value: () => void = () => {};
 
 	let container: HTMLDivElement;
 	let waveform: WaveSurfer;
@@ -151,10 +152,10 @@
 			{i18n}
 			{interactive}
 			{handle_trim_audio}
-			clear_recording={clear}
 			bind:mode
 			bind:trimDuration
 			showRedo={interactive}
+			{handle_reset_value}
 		/>
 	</div>
 {/if}

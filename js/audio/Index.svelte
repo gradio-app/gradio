@@ -37,7 +37,6 @@
 	export let waveform_options: WaveformOptions = {};
 	export let pending: boolean;
 	export let streaming: boolean;
-	export let show_edit_button = true;
 	export let gradio: Gradio<{
 		change: typeof value;
 		stream: typeof value;
@@ -56,10 +55,20 @@
 	}>;
 
 	let old_value: null | FileData | string = null;
-
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root, root_url);
+
 	let active_source: "microphone" | "upload";
+
+	let initial_value: null | FileData | string = value;
+
+	$: if (value && initial_value === null) {
+		initial_value = value;
+	}
+
+	const handle_reset_value = (): void => {
+		value = initial_value;
+	};
 
 	$: {
 		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
@@ -154,7 +163,7 @@
 			{pending}
 			{streaming}
 			{autoplay}
-			{show_edit_button}
+			{handle_reset_value}
 			bind:dragging
 			on:edit={() => gradio.dispatch("edit")}
 			on:play={() => gradio.dispatch("play")}
