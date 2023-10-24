@@ -57,11 +57,11 @@ export async function make_build({
 						}
 					});
 				} catch (e) {
-					console.error(e);
+					throw e;
 				}
 			}
 		}
 	} catch (e) {
-		console.error(e);
+		throw e;
 	}
 }
