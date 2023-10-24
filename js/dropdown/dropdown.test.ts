@@ -3,7 +3,7 @@ import { cleanup, render } from "@gradio/tootils";
 import event from "@testing-library/user-event";
 import { setupi18n } from "../app/src/i18n";
 
-import Dropdown from "./interactive";
+import Dropdown from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status: LoadingStatus = {

@@ -1,12 +1,11 @@
 # @gradio/tabitem
 
-## 0.0.7
+## 0.1.0-beta.6
 
-### Patch Changes
+### Features
 
-- Updated dependencies []:
-  - @gradio/utils@0.1.3
-  - @gradio/tabs@0.0.8
+- [#5960](https://github.com/gradio-app/gradio/pull/5960) [`319c30f3f`](https://github.com/gradio-app/gradio/commit/319c30f3fccf23bfe1da6c9b132a6a99d59652f7) - rererefactor frontend files.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5938](https://github.com/gradio-app/gradio/pull/5938) [`13ed8a485`](https://github.com/gradio-app/gradio/commit/13ed8a485d5e31d7d75af87fe8654b661edcca93) - V4: Use beta release versions for '@gradio' packages.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
 
 ## 0.0.6
 

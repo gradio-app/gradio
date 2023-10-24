@@ -1,20 +1,17 @@
 <script lang="ts">
-	import { onMount, tick } from "svelte";
+	import { load_component } from "virtual:component-loader";
+
+	import { tick } from "svelte";
 	import { _ } from "svelte-i18n";
 	import type { client } from "@gradio/client";
 
-	import { component_map } from "./components/directory";
-	import { create_loading_status_store, app_state } from "./stores";
+	import { create_loading_status_store } from "./stores";
 	import type { LoadingStatusCollection } from "./stores";
 
-	import type {
-		ComponentMeta,
-		Dependency,
-		LayoutNode
-	} from "./components/types";
+	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 	import { setupi18n } from "./i18n";
 	import { ApiDocs } from "./api_docs/";
-	import type { ThemeMode } from "./components/types";
+	import type { ThemeMode } from "./types";
 	import { Toast } from "@gradio/statustracker";
 	import type { ToastMessage } from "@gradio/statustracker";
 	import type { ShareData } from "@gradio/utils";
@@ -41,10 +38,9 @@
 	export let app: Awaited<ReturnType<typeof client>>;
 	export let space_id: string | null;
 	export let version: string;
+	export let api_url: string;
 
 	let loading_status = create_loading_status_store();
-
-	$: app_state.update((s) => ({ ...s, autoscroll }));
 
 	let rootNode: ComponentMeta = {
 		id: layout.id,
@@ -52,7 +48,8 @@
 		props: { mode: "static" },
 		has_modes: false,
 		instance: null as unknown as ComponentMeta["instance"],
-		component: null as unknown as ComponentMeta["component"]
+		component: null as unknown as ComponentMeta["component"],
+		component_class_id: ""
 	};
 
 	const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
@@ -116,41 +113,6 @@
 	type LoadedComponent = {
 		default: ComponentMeta["component"];
 	};
-
-	async function load_component<T extends ComponentMeta["type"]>(
-		name: T,
-		mode: ComponentMeta["props"]["mode"]
-	): Promise<{
-		name: T;
-		component: LoadedComponent;
-	}> {
-		try {
-			//@ts-ignore
-			const c = await component_map[name][mode]();
-			return {
-				name,
-				component: c as LoadedComponent
-			};
-		} catch (e) {
-			if (mode === "interactive") {
-				try {
-					const c = await component_map[name]["static"]();
-					return {
-						name,
-						component: c as LoadedComponent
-					};
-				} catch (e) {
-					console.error(`failed to load: ${name}`);
-					console.error(e);
-					throw e;
-				}
-			} else {
-				console.error(`failed to load: ${name}`);
-				console.error(e);
-				throw e;
-			}
-		}
-	}
 
 	let component_set = new Set<
 		Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
@@ -221,7 +183,8 @@
 			props: { mode: "static" },
 			has_modes: false,
 			instance: null as unknown as ComponentMeta["instance"],
-			component: null as unknown as ComponentMeta["component"]
+			component: null as unknown as ComponentMeta["component"],
+			component_class_id: ""
 		};
 		components.push(_rootNode);
 		const _component_set = new Set<
@@ -265,7 +228,38 @@
 			}
 			__type_for_id.set(c.id, c.props.mode);
 
-			const _c = load_component(c.type, c.props.mode);
+			if (c.type === "dataset") {
+				const example_component_map = new Map();
+
+				(c.props.components as string[]).forEach((name: string) => {
+					if (example_component_map.has(name)) {
+						return;
+					}
+					let _c;
+
+					const matching_component = components.find((c) => c.type === name);
+					if (matching_component) {
+						_c = load_component({
+							api_url,
+							name,
+							id: matching_component.component_class_id,
+							variant: "example"
+						});
+						example_component_map.set(name, _c);
+					}
+				});
+
+				c.props.component_map = example_component_map;
+			}
+
+			// maybe load custom
+
+			const _c = load_component({
+				api_url,
+				name: c.type,
+				id: c.component_class_id,
+				variant: "component"
+			});
 			_component_set.add(_c);
 			__component_map.set(`${c.type}_${c.props.mode}`, _c);
 		});
@@ -285,32 +279,6 @@
 		});
 	}
 
-	async function update_interactive_mode(
-		instance: ComponentMeta,
-		mode: "dynamic" | "interactive" | "static"
-	): Promise<void> {
-		let new_mode: "interactive" | "static" =
-			mode === "dynamic" ? "interactive" : mode;
-
-		if (instance.props.mode === new_mode) return;
-
-		instance.props.mode = new_mode;
-		const _c = load_component(instance.type, instance.props.mode);
-		component_set.add(_c);
-		_component_map.set(
-			`${instance.type}_${instance.props.mode}`,
-			_c as Promise<{
-				name: ComponentMeta["type"];
-				component: LoadedComponent;
-			}>
-		);
-
-		_c.then((c) => {
-			instance.component = c.component.default;
-			rootNode = rootNode;
-		});
-	}
-
 	function handle_update(data: any, fn_index: number): void {
 		const outputs = dependencies[fn_index].outputs;
 		data?.forEach((value: any, i: number) => {
@@ -325,12 +293,6 @@
 					if (update_key === "__type__") {
 						continue;
 					} else {
-						if (update_key === "mode") {
-							update_interactive_mode(
-								output,
-								update_value as "dynamic" | "static"
-							);
-						}
 						output.props[update_key] = update_value;
 					}
 				}
@@ -678,6 +640,7 @@
 				on:mount={handle_mount}
 				on:destroy={({ detail }) => handle_destroy(detail)}
 				{version}
+				{autoscroll}
 			/>
 		{/if}
 	</div>

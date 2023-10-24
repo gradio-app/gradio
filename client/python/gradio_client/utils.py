@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import hashlib
 import json
 import mimetypes
 import os
@@ -35,20 +36,6 @@ SPACE_FETCHER_URL = "https://gradio-space-api-fetcher-v2.hf.space/api"
 RESET_URL = "reset"
 SPACE_URL = "https://hf.space/{}"
 
-SKIP_COMPONENTS = {
-    "state",
-    "row",
-    "column",
-    "tabs",
-    "tab",
-    "tabitem",
-    "box",
-    "form",
-    "accordion",
-    "group",
-    "interpretation",
-    "dataset",
-}
 STATE_COMPONENT = "state"
 INVALID_RUNTIME = [
     SpaceStage.NO_APP_FILE,
@@ -322,21 +309,31 @@ async def get_pred_from_ws(
 ########################
 
 
-def download_tmp_copy_of_file(
-    url_path: str, hf_token: str | None = None, dir: str | None = None
+def download_file(
+    url_path: str,
+    dir: str,
+    hf_token: str | None = None,
 ) -> str:
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
     headers = {"Authorization": "Bearer " + hf_token} if hf_token else {}
-    directory = Path(dir or tempfile.gettempdir()) / secrets.token_hex(20)
-    directory.mkdir(exist_ok=True, parents=True)
-    file_path = directory / Path(url_path).name
+
+    sha1 = hashlib.sha1()
+    temp_dir = Path(tempfile.gettempdir()) / secrets.token_hex(20)
+    temp_dir.mkdir(exist_ok=True, parents=True)
 
     with requests.get(url_path, headers=headers, stream=True) as r:
         r.raise_for_status()
-        with open(file_path, "wb") as f:
-            shutil.copyfileobj(r.raw, f)
-    return str(file_path.resolve())
+        with open(temp_dir / Path(url_path).name, "wb") as f:
+            for chunk in r.iter_content(chunk_size=128 * sha1.block_size):
+                sha1.update(chunk)
+                f.write(chunk)
+
+    directory = Path(dir) / sha1.hexdigest()
+    directory.mkdir(exist_ok=True, parents=True)
+    dest = directory / Path(url_path).name
+    shutil.move(temp_dir / Path(url_path).name, dest)
+    return str(dest.resolve())
 
 
 def create_tmp_copy_of_file(file_path: str, dir: str | None = None) -> str:
@@ -545,26 +542,52 @@ class APIInfoParseError(ValueError):
 
 
 def get_type(schema: dict):
-    if "type" in schema:
+    if "const" in schema:
+        return "const"
+    if "enum" in schema:
+        return "enum"
+    elif "type" in schema:
         return schema["type"]
+    elif schema.get("$ref"):
+        return "$ref"
     elif schema.get("oneOf"):
         return "oneOf"
     elif schema.get("anyOf"):
         return "anyOf"
+    elif schema.get("allOf"):
+        return "allOf"
+    elif "type" not in schema:
+        return {}
     else:
         raise APIInfoParseError(f"Cannot parse type for {schema}")
 
 
+FILE_DATA = "Dict(name: str | None, data: str | None, size: int | None, is_file: bool | None, orig_name: str | None, mime_type: str | None)"
+
+
 def json_schema_to_python_type(schema: Any) -> str:
+    type_ = _json_schema_to_python_type(schema, schema.get("$defs"))
+    return type_.replace(FILE_DATA, "filepath")
+
+
+def _json_schema_to_python_type(schema: Any, defs) -> str:
     """Convert the json schema into a python type hint"""
+    if schema == {}:
+        return "Any"
     type_ = get_type(schema)
     if type_ == {}:
-        if "json" in schema["description"]:
+        if "json" in schema.get("description", {}):
             return "Dict[Any, Any]"
         else:
             return "Any"
+    elif type_ == "$ref":
+        return _json_schema_to_python_type(defs[schema["$ref"].split("/")[-1]], defs)
     elif type_ == "null":
         return "None"
+    elif type_ == "const":
+        return f"Litetal[{schema['const']}]"
+    elif type_ == "enum":
+        return f"Literal[{', '.join([str(v) for v in schema['enum']])}]"
     elif type_ == "integer":
         return "int"
     elif type_ == "string":
@@ -572,27 +595,97 @@ def json_schema_to_python_type(schema: Any) -> str:
     elif type_ == "boolean":
         return "bool"
     elif type_ == "number":
-        return "int | float"
+        return "float"
     elif type_ == "array":
-        items = schema.get("items")
+        items = schema.get("items", [])
         if "prefixItems" in items:
             elements = ", ".join(
-                [json_schema_to_python_type(i) for i in items["prefixItems"]]
+                [_json_schema_to_python_type(i, defs) for i in items["prefixItems"]]
+            )
+            return f"Tuple[{elements}]"
+        elif "prefixItems" in schema:
+            elements = ", ".join(
+                [_json_schema_to_python_type(i, defs) for i in schema["prefixItems"]]
             )
             return f"Tuple[{elements}]"
         else:
-            elements = json_schema_to_python_type(items)
+            elements = _json_schema_to_python_type(items, defs)
             return f"List[{elements}]"
     elif type_ == "object":
-        des = ", ".join(
-            [
-                f"{n}: {json_schema_to_python_type(v)} ({v.get('description')})"
-                for n, v in schema["properties"].items()
+
+        def get_desc(v):
+            return f" ({v.get('description')})" if v.get("description") else ""
+
+        props = schema.get("properties", {})
+
+        des = [
+            f"{n}: {_json_schema_to_python_type(v, defs)}{get_desc(v)}"
+            for n, v in props.items()
+            if n != "$defs"
+        ]
+
+        if "additionalProperties" in schema:
+            des += [
+                f"str, {_json_schema_to_python_type(schema['additionalProperties'], defs)}"
             ]
-        )
+        des = ", ".join(des)
         return f"Dict({des})"
     elif type_ in ["oneOf", "anyOf"]:
-        desc = " | ".join([json_schema_to_python_type(i) for i in schema[type_]])
+        desc = " | ".join([_json_schema_to_python_type(i, defs) for i in schema[type_]])
+        return desc
+    elif type_ == "allOf":
+        data = ", ".join(_json_schema_to_python_type(i, defs) for i in schema[type_])
+        desc = f"All[{data}]"
         return desc
     else:
         raise APIInfoParseError(f"Cannot parse schema {schema}")
+
+
+def traverse(json_obj: Any, func: Callable, is_root: Callable) -> Any:
+    if is_root(json_obj):
+        return func(json_obj)
+    elif isinstance(json_obj, dict):
+        new_obj = {}
+        for key, value in json_obj.items():
+            new_obj[key] = traverse(value, func, is_root)
+        return new_obj
+    elif isinstance(json_obj, (list, tuple)):
+        new_obj = []
+        for item in json_obj:
+            new_obj.append(traverse(item, func, is_root))
+        return new_obj
+    else:
+        return json_obj
+
+
+def value_is_file(api_info: dict) -> bool:
+    info = _json_schema_to_python_type(api_info, api_info.get("$defs"))
+    return FILE_DATA in info
+
+
+def is_filepath(s):
+    return isinstance(s, str) and Path(s).exists()
+
+
+def is_url(s):
+    return isinstance(s, str) and is_http_url_like(s)
+
+
+def is_file_obj(d):
+    return isinstance(d, dict) and "name" in d and "is_file" in d and "data" in d
+
+
+SKIP_COMPONENTS = {
+    "state",
+    "row",
+    "column",
+    "tabs",
+    "tab",
+    "tabitem",
+    "box",
+    "form",
+    "accordion",
+    "group",
+    "interpretation",
+    "dataset",
+}

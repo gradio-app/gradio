@@ -1,16 +1,20 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
-	import { blobToBase64 } from "./utils";
+	import { createEventDispatcher, tick, getContext } from "svelte";
+	import type { FileData } from "./types";
+	import { upload, prepare_files } from "./utils";
+	import type { upload_files } from "client/js/dist";
 
 	export let filetype: string | null = null;
-	export let include_file_metadata = true;
 	export let dragging = false;
 	export let boundedheight = true;
 	export let center = true;
 	export let flex = true;
 	export let file_count = "single";
 	export let disable_click = false;
-	export let parse_to_data_url = true;
+	export let root: string;
+
+	// Needed for wasm support
+	const upload_fn = getContext<typeof upload_files>("upload_files");
 
 	let hidden_upload: HTMLInputElement;
 
@@ -26,48 +30,22 @@
 		hidden_upload.click();
 	}
 
+	async function handle_upload(file_data: FileData[]): Promise<void> {
+		await tick();
+		await upload(file_data, root, upload_fn);
+		dispatch("load", file_count === "single" ? file_data[0] : file_data);
+	}
+
 	async function loadFiles(files: FileList): Promise<void> {
 		let _files: File[] = Array.from(files);
-		if (!files.length || !window.FileReader) {
+		if (!files.length) {
 			return;
 		}
 		if (file_count === "single") {
 			_files = [files[0]];
 		}
-
-		if (include_file_metadata) {
-			var file_metadata: { name: string; size: number }[] = _files.map((f) => ({
-				name: f.name,
-				size: f.size,
-			}));
-		}
-		var load_file_data = [];
-		var file_data: string[] | File[] = [];
-		if (parse_to_data_url) {
-			file_data = await Promise.all(_files.map((f) => blobToBase64(f)));
-		} else {
-			file_data = _files;
-		}
-		if (include_file_metadata) {
-			if (parse_to_data_url) {
-				load_file_data = file_data.map((data, i) => ({
-					data,
-					...file_metadata[i],
-				}));
-			} else {
-				load_file_data = file_data.map((data, i) => ({
-					data: "",
-					blob: data,
-					...file_metadata[i],
-				}));
-			}
-		} else {
-			load_file_data = file_data;
-		}
-		dispatch(
-			"load",
-			file_count === "single" ? load_file_data[0] : load_file_data
-		);
+		let file_data = await prepare_files(_files);
+		await handle_upload(file_data);
 	}
 
 	async function loadFilesFromUpload(e: Event): Promise<void> {

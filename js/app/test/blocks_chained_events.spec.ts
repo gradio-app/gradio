@@ -1,5 +1,4 @@
 import { test, expect } from "@gradio/tootils";
-import type { Response } from "@playwright/test";
 
 test(".success should not run if function fails", async ({ page }) => {
 	let last_iteration;

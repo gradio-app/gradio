@@ -1,12 +1,10 @@
 # @gradio/accordion
 
-## 0.1.4
+## 0.2.0-beta.0
 
-### Patch Changes
+### Features
 
-- Updated dependencies [[`465f58957`](https://github.com/gradio-app/gradio/commit/465f58957f70c7cf3e894beef8a117b28339e3c1)]:
-  - @gradio/atoms@0.2.1
-  - @gradio/statustracker@0.2.4
+- [#5960](https://github.com/gradio-app/gradio/pull/5960) [`319c30f3f`](https://github.com/gradio-app/gradio/commit/319c30f3fccf23bfe1da6c9b132a6a99d59652f7) - rererefactor frontend files.  Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 0.1.3
 

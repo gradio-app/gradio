@@ -49,7 +49,7 @@ jobs:
         test-type: ["not flaky", "flaky"]
         python-version: ["3.8"]
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.test-type == 'flaky' }}
+    continue-on-error: true
     steps:
     - uses: actions/checkout@v3
     - name: Install Python
@@ -88,7 +88,7 @@ jobs:
         node-version: 18
         cache: pnpm
         cache-dependency-path: pnpm-lock.yaml
-    - name: Build frontend
+    - name: Build Frontend
       if: steps.frontend-cache.outputs.cache-hit != 'true'
       run: |
         pnpm i --frozen-lockfile  --ignore-scripts
@@ -141,7 +141,7 @@ jobs:
         test-type: ["not flaky", "flaky"]
         python-version: ["3.8"]
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.test-type == 'flaky' }}
+    continue-on-error: true
     steps:
     - uses: actions/checkout@v3
     - name: Install Python

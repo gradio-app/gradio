@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { ComponentMeta, Dependency } from "../components/types";
-	import { BaseButton } from "@gradio/button/static";
+	import type { ComponentMeta, Dependency } from "../types";
+	import { BaseButton } from "@gradio/button";
 	import { Block } from "@gradio/atoms";
 
 	export let dependency: Dependency;
