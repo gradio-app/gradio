@@ -2,9 +2,7 @@ import json
 import os
 
 from gradio_client.documentation import document_cls, generate_documentation
-
-from gradio.events import EventListener, EventListenerMethod
-
+import gradio
 from ..guides import guides
 
 DIR = os.path.dirname(__file__)
@@ -308,7 +306,6 @@ def organize_docs(d):
 
 
 docs = organize_docs(docs)
-
 
 def generate(json_path):
     with open(json_path, "w+") as f:
