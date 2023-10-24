@@ -1,5 +1,3 @@
-import json
-
 import pytest
 
 import gradio as gr
@@ -19,14 +17,12 @@ class TestSeries:
         series = mix.Series(io1, io2)
         assert series("Hello") == "Hello World!"
 
-    @pytest.mark.xfail
     def test_with_external(self):
-        io1 = gr.load("spaces/gradio-tests/image-identity-new")
-        io2 = gr.load("spaces/gradio-tests/image-classifier-new")
+        io1 = gr.load("spaces/gradio-tests/image-identity-new-v4")
+        io2 = gr.load("spaces/gradio-tests/image-classifier-new-v4")
         series = mix.Series(io1, io2)
         try:
-            with open(series("gradio/test_data/lion.jpg")) as f:
-                assert json.load(f)["label"] == "lion"
+            assert series("gradio/test_data/lion.jpg")["label"] == "lion"
         except TooManyRequestsError:
             pass
 
@@ -52,8 +48,8 @@ class TestParallel:
 
     @pytest.mark.xfail
     def test_with_external(self):
-        io1 = gr.load("spaces/gradio-tests/english_to_spanish")
-        io2 = gr.load("spaces/gradio-tests/english2german")
+        io1 = gr.load("spaces/gradio-tests/english_to_spanish-v4")
+        io2 = gr.load("spaces/gradio-tests/english2german-v4")
         parallel = mix.Parallel(io1, io2)
         try:
             hello_es, hello_de = parallel("Hello")
