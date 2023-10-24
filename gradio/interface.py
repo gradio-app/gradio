@@ -319,7 +319,14 @@ class Interface(Blocks):
         Interface.instances.add(self)
 
         param_types = utils.get_type_hints(self.fn)
-        param_names = inspect.getfullargspec(self.fn)[0]
+        # param_names = inspect.getfullargspec(self.fn)[0]
+        param_names = []
+        try:
+            param_names = inspect.getfullargspec(self.fn)[0]
+        except TypeError:
+            # Use generic parameter names if inspect.getfullargspec fails
+            num_params = self.fn.__code__.co_argcount
+            param_names = [f"param_{i+1}" for i in range(num_params)]
         if len(param_names) > 0 and inspect.ismethod(self.fn):
             param_names = param_names[1:]
         for param_name in param_names.copy():
