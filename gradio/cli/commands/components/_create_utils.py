@@ -34,7 +34,6 @@ example = {name}().example_inputs()
 with gr.Blocks() as demo:
     {name}(),  # blank component
     {name}(value=example),  # populated component
-)
 """
 
 layout_demo_code = """
@@ -42,7 +41,6 @@ with gr.Blocks() as demo:
     with {name}():
         gr.Textbox(value="foo", interactive=True)
         gr.Number(value=10, interactive=True)
-)
 """
 
 
