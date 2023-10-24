@@ -1,3 +1,7 @@
+<script context="module" lang="ts">
+	export { default as BaseCheckbox } from "./shared/Checkbox.svelte";
+</script>
+
 <script lang="ts">
 	import type { Gradio } from "@gradio/utils";
 	import { Block, Info } from "@gradio/atoms";
@@ -5,6 +9,7 @@
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import type { SelectData } from "@gradio/utils";
 	import { afterUpdate } from "svelte";
+	import BaseCheckbox from "./shared/Checkbox.svelte";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -36,8 +41,6 @@
 
 	// When the value changes, dispatch the change event via handle_change()
 	// See the docs for an explanation: https://svelte.dev/docs/svelte-components#script-3-$-marks-a-statement-as-reactive
-	$: value, handle_change();
-	$: disabled = mode === "static";
 </script>
 
 <Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
@@ -51,87 +54,11 @@
 		<Info>{info}</Info>
 	{/if}
 
-	<label class:disabled>
-		<input
-			bind:checked={value}
-			on:keydown={(event) => {
-				if (event.key === "Enter") {
-					value = !value;
-					gradio.dispatch("select", {
-						index: 0,
-						value: label,
-						selected: value
-					});
-				}
-			}}
-			on:input={(evt) => {
-				value = evt.currentTarget.checked;
-				gradio.dispatch("select", {
-					index: 0,
-					value: label,
-					selected: evt.currentTarget.checked
-				});
-			}}
-			{disabled}
-			type="checkbox"
-			name="test"
-			data-testid="checkbox"
-		/>
-		<span class="ml-2">{label}</span>
-	</label>
+	<BaseCheckbox
+		bind:value={value}
+		{label}
+		{mode}
+		on:change={handle_change}
+		on:select={(e) => gradio.dispatch("select", e.detail)}
+	/>
 </Block>
-
-<style>
-	label {
-		display: flex;
-		align-items: center;
-		cursor: pointer;
-		color: var(--body-text-color);
-		font-weight: var(--checkbox-label-text-weight);
-		font-size: var(--checkbox-label-text-size);
-		line-height: var(--line-md);
-	}
-
-	label > * + * {
-		margin-left: var(--size-2);
-	}
-
-	input {
-		--ring-color: transparent;
-		position: relative;
-		box-shadow: var(--input-shadow);
-		border: 1px solid var(--checkbox-border-color);
-		border-radius: var(--checkbox-border-radius);
-		background-color: var(--checkbox-background-color);
-		line-height: var(--line-sm);
-	}
-
-	input:checked,
-	input:checked:hover,
-	input:checked:focus {
-		border-color: var(--checkbox-border-color-selected);
-		background-image: var(--checkbox-check);
-		background-color: var(--checkbox-background-color-selected);
-	}
-
-	input:checked:focus {
-		background-image: var(--checkbox-check);
-		background-color: var(--checkbox-background-color-selected);
-		border-color: var(--checkbox-border-color-focus);
-	}
-
-	input:hover {
-		border-color: var(--checkbox-border-color-hover);
-		background-color: var(--checkbox-background-color-hover);
-	}
-
-	input:focus {
-		border-color: var(--checkbox-border-color-focus);
-		background-color: var(--checkbox-background-color-focus);
-	}
-
-	input[disabled],
-	.disabled {
-		cursor: not-allowed;
-	}
-</style>
