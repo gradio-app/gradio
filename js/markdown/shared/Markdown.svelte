@@ -12,16 +12,15 @@
 	export let rtl = false;
 	export let sanitize_html = true;
 	export let line_breaks = false;
-
-	const dispatch = createEventDispatcher<{ change: undefined }>();
-
-	$: value, dispatch("change");
-
 	export let latex_delimiters: {
 		left: string;
 		right: string;
 		display: boolean;
 	}[];
+
+	const dispatch = createEventDispatcher<{ change: undefined }>();
+
+	$: value, dispatch("change");
 </script>
 
 <div
