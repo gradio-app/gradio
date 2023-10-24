@@ -174,13 +174,20 @@ class Dropdown(FormComponent):
         )
 
     def postprocess(self, y):
+        print("y", y, self.multiselect)
         if y is None:
             return None
         if self.multiselect:
+            print(">>>", y)
             [self._warn_if_invalid_choice(_y) for _y in y]
         else:
             self._warn_if_invalid_choice(y)
         return y
 
     def as_example(self, input_data):
+        if self.multiselect:
+            return [
+                next((c[0] for c in self.choices if c[1] == data), None)
+                for data in input_data
+            ]
         return next((c[0] for c in self.choices if c[1] == input_data), None)
