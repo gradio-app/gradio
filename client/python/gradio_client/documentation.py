@@ -54,10 +54,13 @@ def document(*fns, inherit=False):
     """
 
     def inner_doc(cls):
+        functions = list(fns)
+        if hasattr(cls, "EVENTS"):
+            functions += cls.EVENTS
         global documentation_group
         if inherit:
             classes_inherit_documentation[cls] = None
-        classes_to_document[documentation_group].append((cls, fns))
+        classes_to_document[documentation_group].append((cls, functions))
         return cls
 
     return inner_doc
