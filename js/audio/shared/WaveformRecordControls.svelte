@@ -15,6 +15,25 @@
 	let stopButton: HTMLButtonElement;
 	let stopButtonPaused: HTMLButtonElement;
 
+	$: try {
+		let tempDevices: MediaDeviceInfo[] = [];
+		RecordPlugin.getAvailableAudioDevices().then(
+			(devices: MediaDeviceInfo[]) => {
+				micDevices = devices;
+				devices.forEach((device) => {
+					if (device.deviceId) {
+						tempDevices.push(device);
+					}
+				});
+				micDevices = tempDevices;
+			}
+		);
+	} catch (err) {
+		if (err instanceof DOMException && err.name == "NotAllowedError") {
+			dispatch("error", i18n("audio.allow_recording_access"));
+		}
+		throw err;
+	}
 	onMount(() => {
 		recordButton = document.getElementById("record") as HTMLButtonElement;
 		pauseButton = document.getElementById("pause") as HTMLButtonElement;
@@ -23,20 +42,6 @@
 		stopButtonPaused = document.getElementById(
 			"stop-paused"
 		) as HTMLButtonElement;
-
-		try {
-			RecordPlugin.getAvailableAudioDevices().then(
-				(devices: MediaDeviceInfo[]) => {
-					micDevices = devices;
-				}
-			);
-		} catch (err) {
-			if (err instanceof DOMException && err.name == "NotAllowedError") {
-				dispatch("error", i18n("audio.allow_recording_access"));
-				return;
-			}
-			throw err;
-		}
 	});
 
 	$: record.on("record-start", () => {
