@@ -1,0 +1,47 @@
+[build-system]
+requires = [
+  "hatchling",
+  "hatch-requirements-txt",
+  "hatch-fancy-pypi-readme>=22.5.0",
+]
+build-backend = "hatchling.build"
+
+[project]
+name = "gradio_test"
+version = "0.0.1"
+description = "Python library for easily interacting with trained machine learning models"
+license = "Apache-2.0"
+requires-python = ">=3.8"
+authors = [{ name = "YOUR NAME", email = "YOUREMAIL@domain.com" }]
+keywords = [
+  "machine learning",
+  "reproducibility",
+  "visualization",
+  "gradio",
+  "gradio custom component",
+]
+# Add dependencies here
+dependencies = ["gradio"]
+classifiers = [
+  'Development Status :: 3 - Alpha',
+  'License :: OSI Approved :: Apache Software License',
+  'Operating System :: OS Independent',
+  'Programming Language :: Python :: 3',
+  'Programming Language :: Python :: 3 :: Only',
+  'Programming Language :: Python :: 3.8',
+  'Programming Language :: Python :: 3.9',
+  'Programming Language :: Python :: 3.10',
+  'Programming Language :: Python :: 3.11',
+  'Topic :: Scientific/Engineering',
+  'Topic :: Scientific/Engineering :: Artificial Intelligence',
+  'Topic :: Scientific/Engineering :: Visualization',
+]
+
+[project.optional-dependencies]
+dev = ["build", "twine"]
+
+[tool.hatch.build]
+artifacts = ["/backend/gradio_test/templates", "*.pyi", "backend/gradio_test/templates", "backend/gradio_test/templates"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["/backend/gradio_test"]
