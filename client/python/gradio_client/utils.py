@@ -311,50 +311,94 @@ async def get_pred_from_sse(
     helper: Communicator,
     sse_url: str,
     sse_data_url: str,
-) -> dict[str, Any]:
-    async with client.stream("GET", sse_url, params=hash_data) as response:
-        async for line in response.aiter_text():
-            if line.startswith("data:"):
-                resp = json.loads(line[5:])
-                with helper.lock:
-                    has_progress = "progress_data" in resp
-                    status_update = StatusUpdate(
-                        code=Status.msg_to_status(resp["msg"]),
-                        queue_size=resp.get("queue_size"),
-                        rank=resp.get("rank", None),
-                        success=resp.get("success"),
-                        time=datetime.now(),
-                        eta=resp.get("rank_eta"),
-                        progress_data=ProgressUnit.from_msg(resp["progress_data"])
-                        if has_progress
-                        else None,
-                    )
-                    output = resp.get("output", {}).get("data", [])
-                    if output and status_update.code != Status.FINISHED:
-                        try:
-                            result = helper.prediction_processor(*output)
-                        except Exception as e:
-                            result = [e]
-                        helper.job.outputs.append(result)
-                    helper.job.latest_status = status_update
+) -> dict[str, Any] | None:
+    done, pending = await asyncio.wait(
+        [
+            asyncio.create_task(check_for_cancel(hash_data, helper)),
+            asyncio.create_task(
+                stream_sse(client, data, hash_data, helper, sse_url, sse_data_url)
+            ),
+        ],
+        return_when=asyncio.FIRST_COMPLETED,
+    )
 
-                if resp["msg"] == "queue_full":
-                    raise QueueError("Queue is full! Please try again.")
-                elif resp["msg"] == "send_data":
-                    event_id = resp["event_id"]
-                    req = requests.post(
-                        sse_data_url,
-                        json={"event_id": event_id, **data, **hash_data},
-                    )
-                    if not req.ok:
-                        raise ValueError(
-                            f"Could not send paylod to endpoint: {req.text}"
+    for task in pending:
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+    assert len(done) == 1
+    for task in done:
+        return task.result()
+
+
+async def check_for_cancel(hash_data: dict, helper: Communicator):
+    while True:
+        await asyncio.sleep(0.05)
+        with helper.lock:
+            if helper.should_cancel:
+                break
+    async with httpx.AsyncClient() as http:
+        await http.post(helper.reset_url, json=hash_data)
+    raise CancelledError()
+
+
+async def stream_sse(
+    client: httpx.AsyncClient,
+    data: dict,
+    hash_data: dict,
+    helper: Communicator,
+    sse_url: str,
+    sse_data_url: str,
+) -> dict[str, Any]:
+    try:
+        async with client.stream("GET", sse_url, params=hash_data) as response:
+            async for line in response.aiter_text():
+                if line.startswith("data:"):
+                    resp = json.loads(line[5:])
+                    with helper.lock:
+                        has_progress = "progress_data" in resp
+                        status_update = StatusUpdate(
+                            code=Status.msg_to_status(resp["msg"]),
+                            queue_size=resp.get("queue_size"),
+                            rank=resp.get("rank", None),
+                            success=resp.get("success"),
+                            time=datetime.now(),
+                            eta=resp.get("rank_eta"),
+                            progress_data=ProgressUnit.from_msg(resp["progress_data"])
+                            if has_progress
+                            else None,
                         )
-                elif resp["msg"] == "process_completed":
-                    return resp["output"]
-            else:
-                raise ValueError(f"Unexpected message: {line}")
-    raise ValueError("Did not receive process_completed message.")
+                        output = resp.get("output", {}).get("data", [])
+                        if output and status_update.code != Status.FINISHED:
+                            try:
+                                result = helper.prediction_processor(*output)
+                            except Exception as e:
+                                result = [e]
+                            helper.job.outputs.append(result)
+                        helper.job.latest_status = status_update
+
+                    if resp["msg"] == "queue_full":
+                        raise QueueError("Queue is full! Please try again.")
+                    elif resp["msg"] == "send_data":
+                        event_id = resp["event_id"]
+                        req = requests.post(
+                            sse_data_url,
+                            json={"event_id": event_id, **data, **hash_data},
+                        )
+                        if not req.ok:
+                            raise ValueError(
+                                f"Could not send paylod to endpoint: {req.text}"
+                            )
+                    elif resp["msg"] == "process_completed":
+                        return resp["output"]
+                else:
+                    raise ValueError(f"Unexpected message: {line}")
+        raise ValueError("Did not receive process_completed message.")
+    except asyncio.CancelledError:
+        raise
 
 
 ########################

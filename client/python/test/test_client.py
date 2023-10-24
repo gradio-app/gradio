@@ -267,6 +267,7 @@ class TestClientPredictions:
             time.sleep(3)
             job1.cancel()
 
+            assert len(job1.outputs()) > 0
             assert len(job1.outputs()) < len("abcdefefadsadfs")
             assert job1.status().code == Status.CANCELLED
 

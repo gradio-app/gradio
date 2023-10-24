@@ -69,7 +69,6 @@ class TestStartServer:
             networking.INITIAL_PORT_VALUE,
             networking.INITIAL_PORT_VALUE + networking.TRY_NUM_PORTS,
         )
-        io.enable_queue = False
         _, _, local_path, _, server = networking.start_server(io, server_port=port)
         url = urllib.parse.urlparse(local_path)
         assert url.scheme == "http"

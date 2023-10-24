@@ -117,11 +117,11 @@ async def test_get_pred_from_ws():
         json.dumps({"msg": "process_completed", "output": {"data": ["result!"]}}),
     ]
     mock_ws.recv.side_effect = messages
-    data = json.dumps({"data": ["foo"], "fn_index": "foo"})
-    hash_data = json.dumps({"session_hash": "daslskdf", "fn_index": "foo"})
+    data = {"data": ["foo"], "fn_index": "foo"}
+    hash_data = {"session_hash": "daslskdf", "fn_index": "foo"}
     output = await utils.get_pred_from_ws(mock_ws, data, hash_data)
     assert output == {"data": ["result!"]}
-    mock_ws.send.assert_called_once_with(data)
+    mock_ws.send.assert_called_once_with(json.dumps(data))
 
 
 @pytest.mark.asyncio

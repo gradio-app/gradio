@@ -50,8 +50,7 @@ def connect():
             # because we should set a timeout
             # the tests that call .cancel() can get stuck
             # waiting for the thread to join
-            if demo.enable_queue:
-                demo._queue.close()
+            demo._queue.close()
             demo.is_running = False
             demo.server.should_exit = True
             demo.server.thread.join(timeout=1)

@@ -813,8 +813,7 @@ def mount_gradio_app(
 
     @app.on_event("startup")
     async def start_queue():
-        if gradio_app.get_blocks().enable_queue:
-            gradio_app.get_blocks().startup_events()
+        gradio_app.get_blocks().startup_events()
 
     app.mount(path, gradio_app)
     return app
