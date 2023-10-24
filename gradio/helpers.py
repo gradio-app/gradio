@@ -259,16 +259,14 @@ class Examples:
 
         async def load_example(example_id):
             processed_example = self.non_none_processed_examples[example_id]
-            examples = utils.resolve_singleton(processed_example)
-
-            return (
-                update(value=examples, **self.dataset.component_props[0])
-                if not isinstance(examples, list)
-                else [
-                    update(value=ex, **self.dataset.component_props[i])
-                    for i, ex in enumerate(examples)
-                ]
-            )
+            if len(self.inputs_with_examples) == 1:
+                return update(
+                    value=processed_example[0], **self.dataset.component_props[0]
+                )
+            return [
+                update(value=processed_example[i], **self.dataset.component_props[i])
+                for i in range(len(self.inputs_with_examples))
+            ]
 
         if Context.root_block:
             self.load_input_event = self.dataset.click(
