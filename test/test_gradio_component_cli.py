@@ -93,7 +93,7 @@ def test_build(tmp_path):
         install=True,
     )
     _build(tmp_path, build_frontend=True)
-    template_dir: Path = tmp_path / "backend" / "gradio_testtextbox" / "templates"
+    template_dir: Path = tmp_path.resolve() / "backend" / "gradio_testtextbox" / "templates"
     assert template_dir.exists() and template_dir.is_dir()
     assert list(template_dir.glob("**/index.js"))
     assert (tmp_path / "dist").exists() and list((tmp_path / "dist").glob("*.whl"))
