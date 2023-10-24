@@ -50,8 +50,12 @@ export async function make_build({
 							minify: true,
 							rollupOptions: {
 								output: {
-									entryFileNames: (chunkInfo: PreRenderedChunk) =>
-										`${chunkInfo.name.toLocaleLowerCase()}.js`
+									entryFileNames: (chunkInfo: PreRenderedChunk) => {
+										if (chunkInfo.isEntry) {
+											return "index.js";
+										}
+										return `${chunkInfo.name.toLocaleLowerCase()}.js`;
+									}
 								}
 							}
 						}
