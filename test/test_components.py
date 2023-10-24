@@ -1025,7 +1025,7 @@ class TestDataframe:
             "root_url": None,
             "name": "dataframe",
             "height": 500,
-            "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
+            "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
             "line_breaks": True,
             "column_widths": [],
         }
@@ -1060,7 +1060,7 @@ class TestDataframe:
             "root_url": None,
             "name": "dataframe",
             "height": 500,
-            "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
+            "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
             "line_breaks": True,
             "column_widths": [],
         }
