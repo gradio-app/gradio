@@ -1,5 +1,3 @@
-import pytest
-
 import gradio as gr
 from gradio import mix
 from gradio.external import TooManyRequestsError

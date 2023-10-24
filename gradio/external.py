@@ -525,6 +525,7 @@ def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
             f"Gradio version 4.x cannot load spaces with versions less than 4.x ({client.app_version})."
             "Please downgrade to version 3 to load this space."
         )
+    # Use end_to_end_fn here to properly upload/download all files
     predict_fns = [endpoint.make_end_to_end_fn() for endpoint in client.endpoints]
     return gradio.Blocks.from_config(client.config, predict_fns, client.src)
 

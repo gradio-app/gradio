@@ -980,6 +980,9 @@ class Endpoint:
         new_data = []
         for i, d in enumerate(data):
             if self.input_component_types[i].value_is_file:
+                # Check file dicts and filepaths to upload
+                # file dict is a corner case but still needed for completeness
+                # most users should be using filepaths
                 d = utils.traverse(
                     d, get_file, lambda s: utils.is_file_obj(s) or utils.is_filepath(s)
                 )

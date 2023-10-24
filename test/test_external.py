@@ -333,7 +333,9 @@ class TestLoadInterface:
         assert io.theme.name == "default"
         app, _, _ = io.launch(prevent_thread_lock=True)
         test_client = TestClient(app)
-        r = test_client.get("/proxy=https://gradio-tests-test-loading-examples-private-v4.hf.space/file=Bunny.obj")
+        r = test_client.get(
+            "/proxy=https://gradio-tests-test-loading-examples-private-v4.hf.space/file=Bunny.obj"
+        )
         assert r.status_code == 200
 
 
@@ -359,7 +361,8 @@ class TestLoadInterfaceWithExamples:
     def test_root_url(self):
         demo = gr.load("spaces/gradio/test-loading-examples-v4")
         assert all(
-            c["props"]["root_url"] == "https://gradio-test-loading-examples-v4.hf.space/"
+            c["props"]["root_url"]
+            == "https://gradio-test-loading-examples-v4.hf.space/"
             for c in demo.get_config_file()["components"]
         )
 

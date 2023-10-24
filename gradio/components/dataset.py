@@ -66,8 +66,13 @@ class Dataset(Component):
             component_props: This is created when the dataset is initialized. Not intended to be set manually. But we add it to init so that Datasets can be loaded from spaces with gr.load.
             component_ids: This is created when the dataset is initialized. Not intended to be set manually. But we add it to init so that Datasets can be loaded from spaces with gr.load.
         """
-        super().__init__(visible=visible, elem_id=elem_id, elem_classes=elem_classes, root_url=root_url,
-                        _skip_init_processing=_skip_init_processing)
+        super().__init__(
+            visible=visible,
+            elem_id=elem_id,
+            elem_classes=elem_classes,
+            root_url=root_url,
+            _skip_init_processing=_skip_init_processing,
+        )
         self.container = container
         self.scale = scale
         self.min_width = min_width
