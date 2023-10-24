@@ -168,6 +168,7 @@ jobs:
       with:
         path: |
           gradio/templates/*
+          gradio/node/*
         key: gradio-lib-front-end-${{ hashFiles('js/**', 'client/js/**')}}
     - name: Install pnpm
       if: steps.frontend-cache.outputs.cache-hit != 'true'
