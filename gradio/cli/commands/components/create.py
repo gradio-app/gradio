@@ -96,7 +96,9 @@ def _create(
         _create_utils._create_backend(name, component, directory, package_name)
         live.update(":snake: Created backend code", add_sleep=0.2)
 
-        _create_utils._create_frontend(name.lower(), component, directory=directory)
+        _create_utils._create_frontend(
+            name.lower(), component, directory=directory, package_name=package_name
+        )
         live.update(":art: Created frontend code", add_sleep=0.2)
 
         if install:

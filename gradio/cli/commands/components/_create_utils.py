@@ -191,7 +191,9 @@ def delete_contents(directory: str | Path) -> None:
             shutil.rmtree(child)
 
 
-def _create_frontend(name: str, component: ComponentFiles, directory: Path):
+def _create_frontend(
+    name: str, component: ComponentFiles, directory: Path, package_name: str
+):
     frontend = directory / "frontend"
     frontend.mkdir(exist_ok=True)
 
@@ -217,7 +219,7 @@ def _create_frontend(name: str, component: ComponentFiles, directory: Path):
         ignore=ignore,
     )
     source_package_json = json.loads(Path(frontend / "package.json").read_text())
-    source_package_json["name"] = name.lower()
+    source_package_json["name"] = package_name
     source_package_json = _modify_js_deps(source_package_json, "dependencies", p)
     source_package_json = _modify_js_deps(source_package_json, "devDependencies", p)
     (frontend / "package.json").write_text(json.dumps(source_package_json, indent=2))

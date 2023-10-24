@@ -35,7 +35,9 @@ def _build(
 
             node = shutil.which("node")
             if not node:
-                raise ValueError("node must be installed in order to run dev mode.")
+                raise ValueError(
+                    "node must be installed in order to run build command."
+                )
 
             node_cmds = [
                 node,
@@ -47,7 +49,6 @@ def _build(
                 "--mode",
                 "build",
             ]
-
             pipe = subprocess.run(node_cmds, capture_output=True, text=True)
             if pipe.returncode != 0:
                 live.update(":red_square: Build failed!")
