@@ -103,16 +103,17 @@
 	});
 
 	const create_mic_waveform = (): void => {
-		const recorder = document.getElementById("mic");
-		if (micWaveform !== undefined) micWaveform.destroy();
+		const recorder = document.getElementById("microphone");
 		if (recorder) recorder.innerHTML = "";
-
+		if (micWaveform !== undefined) micWaveform.destroy();
+		if (!recorder) return;
 		micWaveform = WaveSurfer.create({
-			container: "#microphone",
 			...waveform_settings,
+			container: recorder,
 		});
 
 		record = micWaveform.registerPlugin(RecordPlugin.create());
+		record.startMic();
 	};
 
 	const create_recording_waveform = (): void => {
@@ -124,10 +125,6 @@
 			...waveform_settings,
 		});
 	};
-
-	onMount(() => {
-		create_mic_waveform();
-	});
 
 	$: record?.on("record-end", (blob) => {
 		recordedAudio = URL.createObjectURL(blob);
@@ -160,6 +157,8 @@
 	};
 
 	onMount(() => {
+		create_mic_waveform();
+
 		window.addEventListener("keydown", (e) => {
 			if (e.key === "ArrowRight") {
 				skipAudio(recordingWaveform, 0.1);

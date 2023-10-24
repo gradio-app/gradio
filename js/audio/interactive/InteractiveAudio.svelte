@@ -217,6 +217,7 @@
 />
 {#if value === null || streaming}
 	{#if active_source === "microphone"}
+		<ModifyUpload {i18n} on:clear={clear} absolute={true} />
 		{#if streaming}
 			<StreamAudio {record} {recording} {stop} {i18n} {waveform_settings} />
 		{:else}
@@ -231,6 +232,7 @@
 			/>
 		{/if}
 	{:else if active_source === "upload"}
+		<ModifyUpload {i18n} on:clear={clear} absolute={true} />
 		<!-- explicitly listed out audio mimetypes due to iOS bug not recognizing audio/* -->
 		<Upload
 			filetype="audio/aac,audio/midi,audio/mpeg,audio/ogg,audio/wav,audio/x-wav,audio/opus,audio/webm,audio/flac,audio/vnd.rn-realaudio,audio/x-ms-wma,audio/x-aiff,audio/amr,audio/*"
@@ -268,12 +270,18 @@
 		<button
 			class="icon"
 			aria-label="Upload audio"
-			on:click={() => (active_source = "upload")}><UploadIcon /></button
+			on:click={() => {
+				clear();
+				active_source = "upload";
+			}}><UploadIcon /></button
 		>
 		<button
 			class="icon"
 			aria-label="Record audio"
-			on:click={() => (active_source = "microphone")}><Microphone /></button
+			on:click={() => {
+				clear();
+				active_source = "microphone";
+			}}><Microphone /></button
 		>
 	</span>
 {/if}
