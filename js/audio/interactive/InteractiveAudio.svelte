@@ -3,14 +3,13 @@
 	import { onDestroy, createEventDispatcher } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import { BlockLabel } from "@gradio/atoms";
-	import { Music } from "@gradio/icons";
+	import { Music, Microphone, Upload as UploadIcon } from "@gradio/icons";
 	import AudioPlayer from "../player/AudioPlayer.svelte";
 	import { _ } from "svelte-i18n";
 
 	import type { IBlobEvent, IMediaRecorder } from "extendable-media-recorder";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import AudioRecorder from "../recorder/AudioRecorder.svelte";
-	import type { WaveformOptions } from "../shared/types";
 	import StreamAudio from "../streaming/StreamAudio.svelte";
 	import { blob_to_data_url } from "../shared/utils";
 
@@ -18,7 +17,11 @@
 	export let label: string;
 	export let root: string;
 	export let show_label = true;
-	export let source: "microphone" | "upload" | "none";
+	export let source:
+		| ["microphone"]
+		| ["upload"]
+		| ["microphone", "upload"]
+		| ["upload", "microphone"];
 	export let pending = false;
 	export let streaming = false;
 	export let autoplay = false;
@@ -26,12 +29,12 @@
 	export let i18n: I18nFormatter;
 	export let waveform_settings = {};
 	export let dragging: boolean;
+	export let active_source: "microphone" | "upload";
 
 	$: dispatch("drag", dragging);
 
 	// TODO: make use of this
 	// export let type: "normal" | "numpy" = "normal";
-
 	let recording = false;
 	let recorder: IMediaRecorder;
 	let mode = "";
@@ -209,11 +212,11 @@
 <BlockLabel
 	{show_label}
 	Icon={Music}
-	float={source === "upload" && value === null}
+	float={active_source === "upload" && value === null}
 	label={label || i18n("audio.audio")}
 />
 {#if value === null || streaming}
-	{#if source === "microphone"}
+	{#if active_source === "microphone"}
 		{#if streaming}
 			<StreamAudio {record} {recording} {stop} {i18n} {waveform_settings} />
 		{:else}
@@ -226,7 +229,7 @@
 				{waveform_settings}
 			/>
 		{/if}
-	{:else if source === "upload"}
+	{:else if active_source === "upload"}
 		<!-- explicitly listed out audio mimetypes due to iOS bug not recognizing audio/* -->
 		<Upload
 			filetype="audio/aac,audio/midi,audio/mpeg,audio/ogg,audio/wav,audio/x-wav,audio/opus,audio/webm,audio/flac,audio/vnd.rn-realaudio,audio/x-ms-wma,audio/x-aiff,audio/amr,audio/*"
@@ -258,3 +261,42 @@
 		interactive
 	/>
 {/if}
+
+{#if source.length > 1}
+	<span class="source-selection">
+		<button
+			class="icon"
+			aria-label="Upload audio"
+			on:click={() => (active_source = "upload")}><UploadIcon /></button
+		>
+		<button
+			class="icon"
+			aria-label="Record audio"
+			on:click={() => (active_source = "microphone")}><Microphone /></button
+		>
+	</span>
+{/if}
+
+<style>
+	.source-selection {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-top: 1px solid var(--border-color-primary);
+		width: 95%;
+		margin: 0 auto;
+	}
+
+	.icon {
+		width: 22px;
+		height: 22px;
+		margin: var(--spacing-lg) var(--spacing-xs);
+		padding: var(--spacing-xs);
+		color: var(--neutral-400);
+		border-radius: var(--radius-md);
+	}
+
+	.icon:hover {
+		color: var(--color-accent);
+	}
+</style>

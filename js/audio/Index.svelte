@@ -18,7 +18,11 @@
 	export let visible = true;
 	export let mode: "static" | "interactive";
 	export let value: null | FileData | string = null;
-	export let source: "microphone" | "upload";
+	export let source:
+		| ["microphone"]
+		| ["upload"]
+		| ["microphone", "upload"]
+		| ["upload", "microphone"];
 	export let label: string;
 	export let root: string;
 	export let show_label: boolean;
@@ -55,6 +59,7 @@
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root, root_url);
+	let active_source: "microphone" | "upload";
 
 	$: {
 		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
@@ -64,6 +69,10 @@
 	}
 
 	let dragging: boolean;
+
+	$: if (source) {
+		active_source = source[0];
+	}
 
 	const waveform_settings = {
 		height: 50,
@@ -114,7 +123,7 @@
 	</Block>
 {:else}
 	<Block
-		variant={value === null && source === "upload" ? "dashed" : "solid"}
+		variant={value === null && active_source === "upload" ? "dashed" : "solid"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
 		{elem_id}
@@ -141,6 +150,7 @@
 			on:drag={({ detail }) => (dragging = detail)}
 			{root}
 			{source}
+			{active_source}
 			{pending}
 			{streaming}
 			{autoplay}

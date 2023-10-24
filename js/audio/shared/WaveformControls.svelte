@@ -28,14 +28,6 @@
 	let rightRegionHandle: HTMLDivElement | null;
 	let activeHandle = "";
 
-	$: leftRegionHandle?.addEventListener("focus", () => {
-		if (trimRegion) activeHandle = "left";
-	});
-
-	$: rightRegionHandle?.addEventListener("focus", () => {
-		if (trimRegion) activeHandle = "right";
-	});
-
 	$: trimRegion &&
 		activeRegion &&
 		trimRegion.on("region-in", (region) => {
@@ -80,6 +72,14 @@
 		rightRegionHandle?.setAttribute("aria-label", "Drag to adjust end time");
 		leftRegionHandle?.setAttribute("tabindex", "0");
 		rightRegionHandle?.setAttribute("tabindex", "0");
+
+		leftRegionHandle.addEventListener("focus", () => {
+			if (trimRegion) activeHandle = "left";
+		});
+
+		rightRegionHandle.addEventListener("focus", () => {
+			if (trimRegion) activeHandle = "right";
+		});
 	};
 
 	const trimAudio = (): void => {
@@ -129,19 +129,19 @@
 
 		if (handle === "left") {
 			if (key === "ArrowLeft") {
-				newStart = activeRegion.start - 0.1;
+				newStart = activeRegion.start - 0.05;
 				newEnd = activeRegion.end;
 			} else {
-				newStart = activeRegion.start + 0.1;
+				newStart = activeRegion.start + 0.05;
 				newEnd = activeRegion.end;
 			}
 		} else {
 			if (key === "ArrowLeft") {
 				newStart = activeRegion.start;
-				newEnd = activeRegion.end - 0.1;
+				newEnd = activeRegion.end - 0.05;
 			} else {
 				newStart = activeRegion.start;
-				newEnd = activeRegion.end + 0.1;
+				newEnd = activeRegion.end + 0.05;
 			}
 		}
 
@@ -165,7 +165,7 @@
 
 <div class="controls">
 	<button
-		class="playback"
+		class="playback icon"
 		aria-label={`Adjust playback speed to ${
 			playbackSpeeds[
 				(playbackSpeeds.indexOf(playbackSpeed) + 1) % playbackSpeeds.length
@@ -185,7 +185,7 @@
 
 	<div class="play-pause-wrapper">
 		<button
-			class="rewind"
+			class="rewind icon"
 			aria-label={`Skip backwards by ${getSkipRewindAmount(
 				audioDuration
 			)} seconds`}
@@ -194,20 +194,20 @@
 			<Backward />
 		</button>
 		<button
-			class="play-pause-button"
+			class="play-pause-button icon"
 			on:click={() => waveform.playPause()}
 			aria-label={playing ? i18n("common.play") : i18n("common.pause")}
 		>
 			{#if playing}
 				<Pause />
 			{:else}
-				<span style:right="-1px" style:position="relative">
-					<Play />
-				</span>
+				<!-- <span style:right="-1px" style:position="relative"> -->
+				<Play />
+				<!-- </span> -->
 			{/if}
 		</button>
 		<button
-			class="skip"
+			class="skip icon"
 			aria-label="Skip forward by {getSkipRewindAmount(audioDuration)} seconds"
 			on:click={() => waveform.skip(getSkipRewindAmount(audioDuration))}
 		>
@@ -217,7 +217,11 @@
 
 	<div class="settings-wrapper">
 		{#if showRedo && mode === ""}
-			<button class="redo" aria-label="Clear audio" on:click={clear_recording}>
+			<button
+				class="action icon"
+				aria-label="Clear audio"
+				on:click={clear_recording}
+			>
 				<Undo />
 			</button>
 		{/if}
@@ -225,7 +229,7 @@
 		{#if interactive}
 			{#if mode === ""}
 				<button
-					class="trim"
+					class="action icon"
 					aria-label="Trim audio to selection"
 					on:click={toggleTrimmingMode}
 				>
@@ -245,16 +249,17 @@
 		display: flex;
 		justify-self: self-end;
 	}
-
 	.text-button {
-		width: min-content;
 		border: 1px solid var(--neutral-400);
 		border-radius: var(--radius-sm);
-		padding: var(--spacing-xl);
-		line-height: 1px;
-		font-size: var(--text-md);
+		font-weight: 300;
+		font-size: var(--size-3);
+		text-align: center;
+		color: var(--neutral-400);
+		height: var(--size-5);
+		font-weight: bold;
+		padding: 0 5px;
 		margin-left: 5px;
-		font-size: var(--text-sm);
 	}
 
 	.controls {
@@ -262,6 +267,7 @@
 		grid-template-columns: 1fr 1fr 1fr;
 		margin-top: 5px;
 		overflow: scroll;
+		align-items: center;
 	}
 
 	@media (max-width: 320px) {
@@ -278,16 +284,16 @@
 			margin-left: 0;
 		}
 	}
-	.redo {
-		width: 20px;
-		color: var(--neutral-400);
-	}
-
-	.trim {
+	.action {
+		width: var(--size-5);
+		width: var(--size-5);
 		color: var(--neutral-400);
 		margin-left: var(--spacing-md);
 	}
-
+	.icon:hover {
+		color: var(--secondary-50);
+		fill: var(--secondary-50);
+	}
 	.play-pause-wrapper {
 		display: flex;
 		justify-self: center;
@@ -299,6 +305,14 @@
 		font-weight: 300;
 		font-size: var(--size-3);
 		text-align: center;
+		color: var(--neutral-400);
+		height: var(--size-5);
+		font-weight: bold;
+	}
+
+	.playback:hover {
+		color: var(--secondary-50);
+		border-color: var(--secondary-50);
 	}
 
 	.rewind,
@@ -308,18 +322,12 @@
 	}
 
 	.play-pause-button {
-		width: 30px;
-		height: 30px;
+		width: var(--size-8);
+		width: var(--size-8);
 		display: flex;
 		align-items: center;
 		justify-content: center;
-	}
-
-	.play-pause-button :global(svg) {
-		width: 30px;
-		height: 30px;
 		color: var(--neutral-400);
 		fill: var(--neutral-400);
-		position: relative;
 	}
 </style>

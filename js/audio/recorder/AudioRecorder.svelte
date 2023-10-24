@@ -21,6 +21,7 @@
 	let micWaveform: WaveSurfer;
 	let recordingWaveform: WaveSurfer;
 	let playing = false;
+	let container: HTMLDivElement;
 
 	let record: Record;
 	let recordedAudio: string | null = null;
@@ -177,7 +178,7 @@
 
 <div class="component-wrapper">
 	<div id="microphone" data-testid={label || "unlabelled" + "-audio"} />
-	<div id="recording" />
+	<div id="recording" bind:this={container} />
 
 	{#if timing || recordedAudio}
 		<div id="timestamps">
@@ -202,6 +203,7 @@
 	{#if recordedAudio}
 		<WaveformControls
 			bind:waveform={recordingWaveform}
+			{container}
 			{playing}
 			{audioDuration}
 			{i18n}

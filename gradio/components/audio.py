@@ -57,7 +57,7 @@ class Audio(
         self,
         value: str | Path | tuple[int, np.ndarray] | Callable | None = None,
         *,
-        source: Literal["upload", "microphone"] | None = None,
+        source: list[Literal["upload", "microphone"]] | None = None,
         type: Literal["numpy", "filepath"] = "numpy",
         label: str | None = None,
         every: float | None = None,
@@ -85,7 +85,7 @@ class Audio(
         """
         Parameters:
             value: A path, URL, or [sample_rate, numpy array] tuple (sample rate in Hz, audio data as a float or int numpy array) for the default value that Audio component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            source: Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
+            source: A list of sources permitted for audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input. If None, defaults to ["upload", "microphone"], or ["microphone"] if `streaming` is True.
             type: The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
@@ -109,12 +109,7 @@ class Audio(
             max_length: The maximum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
             waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), show_controls (bool). Default is None, which uses the default values for these options.
         """
-        valid_sources = ["upload", "microphone"]
-        source = source if source else ("microphone" if streaming else "upload")
-        if source not in valid_sources:
-            raise ValueError(
-                f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
-            )
+        source = list(set(source)) if source is not None else (["microphone"] if streaming else ["microphone", "upload"])
         self.source = source
         valid_types = ["numpy", "filepath"]
         if type not in valid_types:
