@@ -67,6 +67,10 @@
 	}
 
 	const handle_reset_value = (): void => {
+		if (initial_value === null || value === initial_value) {
+			return;
+		}
+
 		value = initial_value;
 	};
 
