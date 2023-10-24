@@ -1,7 +1,6 @@
 import asyncio
 import copy
 import io
-import json
 import os
 import pathlib
 import random
@@ -15,10 +14,9 @@ from functools import partial
 from string import capwords
 from unittest.mock import patch
 
-import httpx
+import gradio_client as grc
 import numpy as np
 import pytest
-import requests
 import uvicorn
 from fastapi.testclient import TestClient
 from gradio_client import media_data
@@ -317,33 +315,9 @@ class TestBlocksMethods:
         server.run_in_thread()
 
         try:
-            completed = False
-            async with httpx.AsyncClient() as client:
-                async with client.stream(
-                    "GET",
-                    f"http://localhost:{port}/queue/join",
-                    params={"fn_index": 0, "session_hash": "shdce"},
-                ) as response:
-                    async for line in response.aiter_text():
-                        if line.startswith("data:"):
-                            msg = json.loads(line[5:])
-                        if msg["msg"] == "send_data":
-                            event_id = msg["event_id"]
-                            req = requests.post(
-                                f"http://localhost:{port}/queue/data",
-                                json={
-                                    "event_id": event_id,
-                                    "data": ["Victor"],
-                                    "fn_index": 0,
-                                },
-                            )
-                            if not req.ok:
-                                raise ValueError(
-                                    f"Could not send payload to endpoint: {req.text}"
-                                )
-                        if msg["msg"] == "process_completed":
-                            completed = True
-            assert completed and msg["output"]["data"][0] == "Victor"
+            client = grc.Client(f"http://localhost:{port}")
+            result = client.predict("Victor", api_name="/predict")
+            assert result == "Victor"
         finally:
             server.close()
 
@@ -1300,32 +1274,15 @@ class TestEvery:
         app, _, _ = demo.queue(max_size=1).launch(prevent_thread_lock=True)
         test_client = TestClient(app)
 
-        async with httpx.AsyncClient() as client:
-            async with client.stream(
-                "GET",
-                f"http://localhost:{demo.server_port}/queue/join",
-                params={"fn_index": 0, "session_hash": "shdce"},
-            ) as response:
-                async for line in response.aiter_text():
-                    if line.startswith("data:"):
-                        msg = json.loads(line[5:])
-                    else:
-                        raise ValueError(line)
-                    if msg["msg"] == "send_data":
-                        event_id = msg["event_id"]
-                        req = requests.post(
-                            f"http://localhost:{demo.server_port}/queue/data",
-                            json={"event_id": event_id, "data": [0], "fn_index": 0},
-                        )
-                        if not req.ok:
-                            raise ValueError(
-                                f"Could not send payload to endpoint: {req.text}"
-                            )
-                        break
+        client = grc.Client(f"http://localhost:{demo.server_port}")
+        job = client.submit("x", fn_index=1)
 
-        time.sleep(1)
-        status = test_client.get("/queue/status")
-        assert status.json()["queue_size"] == 0
+        for _ in range(5):
+            status = test_client.get("/queue/status")
+            assert status.json()["queue_size"] == 0
+            time.sleep(0.5)
+
+        assert job.result() == "Hello, x!"
 
 
 class TestGetAPIInfo:
@@ -1527,22 +1484,6 @@ class TestAddRequests:
         assert new_event_data.value == "foo"
 
 
-def test_queue_enabled_for_fn():
-    with gr.Blocks() as demo:
-        input = gr.Textbox()
-        output = gr.Textbox()
-        number = gr.Number()
-        button = gr.Button()
-        button.click(lambda x: f"Hello, {x}!", input, output)
-        button.click(lambda: 42, None, number, queue=True)
-
-    assert not demo.queue_enabled_for_fn(0)
-    assert demo.queue_enabled_for_fn(1)
-    demo.queue()
-    assert demo.queue_enabled_for_fn(0)
-    assert demo.queue_enabled_for_fn(1)
-
-
 @pytest.mark.asyncio
 async def test_queue_when_using_auth():
     sleep_time = 1
@@ -1558,57 +1499,17 @@ async def test_queue_when_using_auth():
         button.click(say_hello, _input, _output)
     demo.queue()
     app, _, _ = demo.launch(auth=("abc", "123"), prevent_thread_lock=True)
-    client = TestClient(app)
 
-    resp = client.post(
-        f"{demo.local_url}login",
-        data={"username": "abc", "password": "123"},
-        follow_redirects=False,
-    )
-    assert resp.status_code == 200
-    token = resp.cookies.get(f"access-token-{demo.app.cookie_id}")
-    assert token
+    with pytest.raises(ValueError):
+        grc.Client(f"http://localhost:{demo.server_port}")
 
-    async with httpx.AsyncClient() as client:
-        async with client.stream(
-            "GET",
-            f"http://localhost:{demo.server_port}/queue/join",
-            params={"fn_index": 0, "session_hash": "shdce"},
-        ) as response:
-            assert response.status_code == 401
+    client = grc.Client(f"http://localhost:{demo.server_port}", auth=("abc", "123"))
+    jobs = []
+    for i in range(3):
+        jobs.append(client.submit(f"World {i}", fn_index=0))
 
-    async def run_with_credentials(i):
-        async with httpx.AsyncClient() as client:
-            async with client.stream(
-                "GET",
-                f"http://localhost:{demo.server_port}/queue/join",
-                params={"fn_index": 0, "session_hash": f"shdce{i}"},
-                cookies={f"access-token-{demo.app.cookie_id}": token},
-            ) as response:
-                assert response.status_code == 200
-                async for line in response.aiter_text():
-                    if line.startswith("data:"):
-                        msg = json.loads(line[5:])
-                    else:
-                        raise ValueError(line)
-                    if msg["msg"] == "send_data":
-                        event_id = msg["event_id"]
-                        req = requests.post(
-                            f"http://localhost:{demo.server_port}/queue/data",
-                            json={
-                                "event_id": event_id,
-                                "data": [str(i)],
-                                "fn_index": 0,
-                            },
-                            cookies={f"access-token-{demo.app.cookie_id}": token},
-                        )
-                        assert req.ok
-                    if msg["msg"] == "process_completed":
-                        assert msg["success"]
-                        assert msg["output"]["data"] == [f"Hello {i}!"]
-                        break
-
-    await asyncio.gather(*[run_with_credentials(i) for i in range(3)])
+    for i, job in enumerate(jobs):
+        assert job.result() == f"Hello World {i}!"
 
 
 def test_temp_file_sets_get_extended():

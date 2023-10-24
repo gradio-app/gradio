@@ -74,6 +74,7 @@ class Client:
         serialize: bool = True,
         output_dir: str | Path = DEFAULT_TEMP_DIR,
         verbose: bool = True,
+        auth: tuple[str, str] | None = None,
     ):
         """
         Parameters:
@@ -93,6 +94,7 @@ class Client:
             library_version=utils.__version__,
         )
         self.space_id = None
+        self.cookies: dict[str, str] = {}
         self.output_dir = (
             str(output_dir) if isinstance(output_dir, Path) else output_dir
         )
@@ -130,6 +132,8 @@ class Client:
         )
         self.upload_url = urllib.parse.urljoin(self.src, utils.UPLOAD_URL)
         self.reset_url = urllib.parse.urljoin(self.src, utils.RESET_URL)
+        if auth is not None:
+            self._login(auth)
         self.config = self._get_config()
         self._info = self._get_api_info()
         self.session_hash = str(uuid.uuid4())
@@ -366,11 +370,11 @@ class Client:
         # Versions of Gradio older than 3.29.0 returned format of the API info
         # from the /info endpoint
         if version.parse(self.config.get("version", "2.0")) > version.Version("3.36.1"):
-            r = requests.get(api_info_url, headers=self.headers)
+            r = requests.get(api_info_url, headers=self.headers, cookies=self.cookies)
             if r.ok:
                 info = r.json()
             else:
-                raise ValueError(f"Could not fetch api info for {self.src}")
+                raise ValueError(f"Could not fetch api info for {self.src}: {r.text}")
         else:
             fetch = requests.post(
                 utils.SPACE_FETCHER_URL,
@@ -379,7 +383,9 @@ class Client:
             if fetch.ok:
                 info = fetch.json()["api"]
             else:
-                raise ValueError(f"Could not fetch api info for {self.src}")
+                raise ValueError(
+                    f"Could not fetch api info for {self.src}: {fetch.text}"
+                )
 
         return info
 
@@ -602,14 +608,33 @@ class Client:
     def _space_name_to_src(self, space) -> str | None:
         return huggingface_hub.space_info(space, token=self.hf_token).host  # type: ignore
 
+    def _login(self, auth: tuple[str, str]):
+        resp = requests.post(
+            urllib.parse.urljoin(self.src, utils.LOGIN_URL),
+            data={"username": auth[0], "password": auth[1]},
+        )
+        if not resp.ok:
+            raise ValueError(f"Could not login to {self.src}")
+        self.cookies = {
+            cookie.name: cookie.value
+            for cookie in resp.cookies
+            if cookie.value is not None
+        }
+
     def _get_config(self) -> dict:
         r = requests.get(
-            urllib.parse.urljoin(self.src, utils.CONFIG_URL), headers=self.headers
+            urllib.parse.urljoin(self.src, utils.CONFIG_URL),
+            headers=self.headers,
+            cookies=self.cookies,
         )
         if r.ok:
             return r.json()
+        elif r.status_code == 401:
+            raise ValueError("Could not load {self.src}. Please login.")
         else:  # to support older versions of Gradio
-            r = requests.get(self.src, headers=self.headers)
+            r = requests.get(self.src, headers=self.headers, cookies=self.cookies)
+            if not r.ok:
+                raise ValueError(f"Could not fetch config for {self.src}")
             # some basic regex to extract the config
             result = re.search(r"window.gradio_config = (.*?);[\s]*</script>", r.text)
             try:
@@ -1081,6 +1106,7 @@ class Endpoint:
                 helper,
                 self.client.sse_url,
                 self.client.sse_data_url,
+                self.client.cookies,
             )
 
 

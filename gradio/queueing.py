@@ -5,6 +5,7 @@ import copy
 import json
 import time
 import traceback
+import uuid
 from collections import deque
 from queue import Queue as ThreadQueue
 
@@ -37,7 +38,7 @@ class Event:
         self.fn_index = fn_index
         self.request = request
         self.username = username
-        self._id = f"{self.session_hash}_{self.fn_index}"
+        self._id = uuid.uuid4().hex
         self.data: PredictBody | None = None
         self.progress: Progress | None = None
         self.progress_pending: bool = False

@@ -31,6 +31,7 @@ SSE_URL = "queue/join"
 SSE_DATA_URL = "queue/data"
 WS_URL = "queue/join"
 UPLOAD_URL = "upload"
+LOGIN_URL = "login"
 CONFIG_URL = "config"
 API_INFO_URL = "info"
 RAW_API_INFO_URL = "info?serialize=False"
@@ -311,12 +312,15 @@ async def get_pred_from_sse(
     helper: Communicator,
     sse_url: str,
     sse_data_url: str,
+    cookies: dict[str, str] | None = None,
 ) -> dict[str, Any] | None:
     done, pending = await asyncio.wait(
         [
-            asyncio.create_task(check_for_cancel(hash_data, helper)),
+            asyncio.create_task(check_for_cancel(hash_data, helper, cookies)),
             asyncio.create_task(
-                stream_sse(client, data, hash_data, helper, sse_url, sse_data_url)
+                stream_sse(
+                    client, data, hash_data, helper, sse_url, sse_data_url, cookies
+                )
             ),
         ],
         return_when=asyncio.FIRST_COMPLETED,
@@ -334,14 +338,16 @@ async def get_pred_from_sse(
         return task.result()
 
 
-async def check_for_cancel(hash_data: dict, helper: Communicator):
+async def check_for_cancel(
+    hash_data: dict, helper: Communicator, cookies: dict[str, str] | None
+):
     while True:
         await asyncio.sleep(0.05)
         with helper.lock:
             if helper.should_cancel:
                 break
     async with httpx.AsyncClient() as http:
-        await http.post(helper.reset_url, json=hash_data)
+        await http.post(helper.reset_url, json=hash_data, cookies=cookies)
     raise CancelledError()
 
 
@@ -352,9 +358,12 @@ async def stream_sse(
     helper: Communicator,
     sse_url: str,
     sse_data_url: str,
+    cookies: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     try:
-        async with client.stream("GET", sse_url, params=hash_data) as response:
+        async with client.stream(
+            "GET", sse_url, params=hash_data, cookies=cookies
+        ) as response:
             async for line in response.aiter_text():
                 if line.startswith("data:"):
                     resp = json.loads(line[5:])
@@ -387,6 +396,7 @@ async def stream_sse(
                         req = requests.post(
                             sse_data_url,
                             json={"event_id": event_id, **data, **hash_data},
+                            cookies=cookies,
                         )
                         if not req.ok:
                             raise ValueError(
