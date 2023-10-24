@@ -22,8 +22,8 @@ example = {name}().example_inputs()
 
 demo = gr.Interface(
     lambda x:x,
-    {name},  # interactive version of your component
-    {name},  # static version of your component
+    {name}(),  # interactive version of your component
+    {name}(),  # static version of your component
     # examples=[[example]],  # uncomment this line to view the "example version" of your component
 )
 """
