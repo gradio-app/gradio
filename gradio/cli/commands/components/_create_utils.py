@@ -20,9 +20,28 @@ def _in_test_dir():
 default_demo_code = """
 example = {name}().example_inputs()
 
+demo = gr.Interface(
+    lambda x:x,
+    {name}(),  # interactive version of your component
+    {name}(),  # static version of your component
+    # examples=[[example]],  # uncomment this line to view the "example version" of your component
+)
+"""
+
+static_only_demo_code = """
+example = {name}().example_inputs()
+
 with gr.Blocks() as demo:
-    {name}(value=example, interactive=True)
-    {name}(value=example, interactive=False)
+    with gr.Row():
+        {name}(label="Blank"),  # blank component
+        {name}(value=example, label="Populated"),  # populated component
+"""
+
+layout_demo_code = """
+with gr.Blocks() as demo:
+    with {name}():
+        gr.Textbox(value="foo", interactive=True)
+        gr.Number(value=10, interactive=True)
 """
 
 
@@ -40,16 +59,32 @@ class ComponentFiles:
 
 OVERRIDES = {
     "AnnotatedImage": ComponentFiles(
-        template="AnnotatedImage", python_file_name="annotated_image.py"
+        template="AnnotatedImage",
+        python_file_name="annotated_image.py",
+        demo_code=static_only_demo_code,
     ),
     "HighlightedText": ComponentFiles(
-        template="HighlightedText", python_file_name="highlighted_text.py"
+        template="HighlightedText",
+        python_file_name="highlighted_text.py",
+        demo_code=static_only_demo_code,
     ),
+    "Chatbot": ComponentFiles(template="Chatbot", demo_code=static_only_demo_code),
+    "Gallery": ComponentFiles(template="Gallery", demo_code=static_only_demo_code),
+    "HTML": ComponentFiles(template="HTML", demo_code=static_only_demo_code),
+    "Label": ComponentFiles(template="Label", demo_code=static_only_demo_code),
+    "Markdown": ComponentFiles(template="Markdown", demo_code=static_only_demo_code),
+    "Plot": ComponentFiles(template="Plot", demo_code=static_only_demo_code),
     "BarPlot": ComponentFiles(
-        template="BarPlot", python_file_name="bar_plot.py", js_dir="plot"
+        template="BarPlot",
+        python_file_name="bar_plot.py",
+        js_dir="plot",
+        demo_code=static_only_demo_code,
     ),
     "ClearButton": ComponentFiles(
-        template="ClearButton", python_file_name="clear_button.py", js_dir="button"
+        template="ClearButton",
+        python_file_name="clear_button.py",
+        js_dir="button",
+        demo_code=static_only_demo_code,
     ),
     "ColorPicker": ComponentFiles(
         template="ColorPicker", python_file_name="color_picker.py"
@@ -58,6 +93,7 @@ OVERRIDES = {
         template="DuplicateButton",
         python_file_name="duplicate_button.py",
         js_dir="button",
+        demo_code=static_only_demo_code,
     ),
     "FileExplorer": ComponentFiles(
         template="FileExplorer",
@@ -73,42 +109,46 @@ OVERRIDES = {
         ),
     ),
     "LinePlot": ComponentFiles(
-        template="LinePlot", python_file_name="line_plot.py", js_dir="plot"
+        template="LinePlot",
+        python_file_name="line_plot.py",
+        js_dir="plot",
+        demo_code=static_only_demo_code,
     ),
     "LogoutButton": ComponentFiles(
-        template="LogoutButton", python_file_name="logout_button.py", js_dir="button"
+        template="LogoutButton",
+        python_file_name="logout_button.py",
+        js_dir="button",
+        demo_code=static_only_demo_code,
     ),
     "LoginButton": ComponentFiles(
-        template="LoginButton", python_file_name="login_button.py", js_dir="button"
+        template="LoginButton",
+        python_file_name="login_button.py",
+        js_dir="button",
+        demo_code=static_only_demo_code,
     ),
     "ScatterPlot": ComponentFiles(
-        template="ScatterPlot", python_file_name="scatter_plot.py", js_dir="plot"
+        template="ScatterPlot",
+        python_file_name="scatter_plot.py",
+        js_dir="plot",
+        demo_code=static_only_demo_code,
     ),
     "UploadButton": ComponentFiles(
-        template="UploadButton", python_file_name="upload_button.py"
+        template="UploadButton",
+        python_file_name="upload_button.py",
+        demo_code=static_only_demo_code,
     ),
-    "JSON": ComponentFiles(template="JSON", python_file_name="json_component.py"),
+    "JSON": ComponentFiles(
+        template="JSON",
+        python_file_name="json_component.py",
+        demo_code=static_only_demo_code,
+    ),
     "Row": ComponentFiles(
         template="Row",
-        demo_code=textwrap.dedent(
-            """
-        with gr.Blocks() as demo:
-            with {name}():
-                gr.Textbox(value="foo", interactive=True)
-                gr.Number(value=10, interactive=True)
-        """
-        ),
+        demo_code=layout_demo_code,
     ),
     "Column": ComponentFiles(
         template="Column",
-        demo_code=textwrap.dedent(
-            """
-        with gr.Blocks() as demo:
-            with {name}():
-                gr.Textbox(value="foo", interactive=True)
-                gr.Number(value=10, interactive=True)
-        """
-        ),
+        demo_code=layout_demo_code,
     ),
     "Tabs": ComponentFiles(
         template="Tabs",
@@ -125,14 +165,7 @@ OVERRIDES = {
     ),
     "Group": ComponentFiles(
         template="Group",
-        demo_code=textwrap.dedent(
-            """
-        with gr.Blocks() as demo:
-            with {name}():
-                gr.Textbox(value="foo", interactive=True)
-                gr.Number(value=10, interactive=True)
-        """
-        ),
+        demo_code=layout_demo_code,
     ),
     "Accordion": ComponentFiles(
         template="Accordion",
@@ -191,7 +224,9 @@ def delete_contents(directory: str | Path) -> None:
             shutil.rmtree(child)
 
 
-def _create_frontend(name: str, component: ComponentFiles, directory: Path):
+def _create_frontend(
+    name: str, component: ComponentFiles, directory: Path, package_name: str
+):
     frontend = directory / "frontend"
     frontend.mkdir(exist_ok=True)
 
@@ -217,7 +252,7 @@ def _create_frontend(name: str, component: ComponentFiles, directory: Path):
         ignore=ignore,
     )
     source_package_json = json.loads(Path(frontend / "package.json").read_text())
-    source_package_json["name"] = name.lower()
+    source_package_json["name"] = package_name
     source_package_json = _modify_js_deps(source_package_json, "dependencies", p)
     source_package_json = _modify_js_deps(source_package_json, "devDependencies", p)
     (frontend / "package.json").write_text(json.dumps(source_package_json, indent=2))
