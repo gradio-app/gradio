@@ -825,6 +825,10 @@ class Blocks(BlockContext):
             trigger_mode = "always_last"
         elif trigger_mode == None:
             trigger_mode = "once"
+        elif trigger_mode not in ["once", "multiple", "always_last"]:
+            raise ValueError(
+                f"Invalid value for parameter `trigger_mode`: {trigger_mode}. Please choose from: {['once', 'multiple', 'always_last']}"
+            )
 
         _, progress_index, event_data_index = (
             special_args(fn) if fn else (None, None, None)
