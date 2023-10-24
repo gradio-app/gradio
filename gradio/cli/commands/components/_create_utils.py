@@ -32,8 +32,9 @@ static_only_demo_code = """
 example = {name}().example_inputs()
 
 with gr.Blocks() as demo:
-    {name}(),  # blank component
-    {name}(value=example),  # populated component
+    with gr.Row():
+        {name}(label="Blank"),  # blank component
+        {name}(value=example, label="Populated"),  # populated component
 """
 
 layout_demo_code = """
