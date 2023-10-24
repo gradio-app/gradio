@@ -20,9 +20,12 @@ def _in_test_dir():
 default_demo_code = """
 example = {name}().example_inputs()
 
-with gr.Blocks() as demo:
-    {name}(value=example, interactive=True)
-    {name}(value=example, interactive=False)
+gr.Interface(
+    lambda x:x,
+    {name},  # interactive version
+    {name},  # static version
+    # examples=[[example]],  # uncomment this line to view the "example version" of your component
+)
 """
 
 
