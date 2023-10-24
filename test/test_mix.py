@@ -46,7 +46,6 @@ class TestParallel:
             "Hello World 2!",
         ]
 
-    @pytest.mark.xfail
     def test_with_external(self):
         io1 = gr.load("spaces/gradio-tests/english_to_spanish-v4")
         io2 = gr.load("spaces/gradio-tests/english2german-v4")

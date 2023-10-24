@@ -184,7 +184,6 @@ class TestLoadInterface:
         with pytest.raises(GradioVersionIncompatibleError):
             gr.load("spaces/gradio-tests/english_to_spanish", title="hi")
 
-    @pytest.mark.xfail
     def test_english_to_spanish_v4(self):
         with pytest.warns(UserWarning):
             io = gr.load("spaces/gradio-tests/english_to_spanish-v4", title="hi")
@@ -292,7 +291,6 @@ class TestLoadInterface:
         except TooManyRequestsError:
             pass
 
-    @pytest.mark.xfail
     def test_private_space(self):
         hf_token = "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"  # Intentionally revealing this key for testing purposes
         io = gr.load(
@@ -301,7 +299,7 @@ class TestLoadInterface:
         try:
             output = io("abc")
             assert output == "abc"
-            assert io.theme.name == "gradio/monochrome"
+            assert io.theme.name == "default"
         except TooManyRequestsError:
             pass
 
@@ -316,7 +314,6 @@ class TestLoadInterface:
         except TooManyRequestsError:
             pass
 
-    @pytest.mark.xfail
     def test_multiple_spaces_one_private(self):
         hf_token = "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"  # Intentionally revealing this key for testing purposes
         with gr.Blocks():
@@ -328,7 +325,6 @@ class TestLoadInterface:
             )
         assert Context.hf_token == hf_token
 
-    @pytest.mark.xfail
     def test_loading_files_via_proxy_works(self):
         hf_token = "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"  # Intentionally revealing this key for testing purposes
         io = gr.load(
@@ -337,9 +333,7 @@ class TestLoadInterface:
         assert io.theme.name == "default"
         app, _, _ = io.launch(prevent_thread_lock=True)
         test_client = TestClient(app)
-        r = test_client.get(
-            "/proxy=https://gradio-tests-test-loading-examples-private.hf.space/file=Bunny.obj"
-        )
+        r = test_client.get("/proxy=https://gradio-tests-test-loading-examples-private-v4.hf.space/file=Bunny.obj")
         assert r.status_code == 200
 
 
@@ -362,11 +356,10 @@ class TestLoadInterfaceWithExamples:
                 cache_examples=True,
             )
 
-    @pytest.mark.xfail
     def test_root_url(self):
         demo = gr.load("spaces/gradio/test-loading-examples-v4")
         assert all(
-            c["props"]["root_url"] == "https://gradio-test-loading-examples.hf.space/"
+            c["props"]["root_url"] == "https://gradio-test-loading-examples-v4.hf.space/"
             for c in demo.get_config_file()["components"]
         )
 
@@ -375,7 +368,6 @@ class TestLoadInterfaceWithExamples:
         gallery = demo("test")
         assert all("caption" in d for d in gallery)
 
-    @pytest.mark.xfail
     def test_interface_with_examples(self):
         # This demo has the "fake_event" correctly removed
         demo = gr.load("spaces/gradio-tests/test-calculator-1-v4")
