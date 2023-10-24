@@ -174,11 +174,9 @@ class Dropdown(FormComponent):
         )
 
     def postprocess(self, y):
-        print("y", y, self.multiselect)
         if y is None:
             return None
         if self.multiselect:
-            print(">>>", y)
             [self._warn_if_invalid_choice(_y) for _y in y]
         else:
             self._warn_if_invalid_choice(y)
