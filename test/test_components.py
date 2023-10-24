@@ -882,13 +882,14 @@ class TestFile:
         x_file = deepcopy(media_data.BASE64_FILE)
         file_input = gr.File()
         output = file_input.preprocess(x_file)
-        assert isinstance(output, tempfile._TemporaryFileWrapper)
+        assert isinstance(output, str)
 
         x_file["is_file"] = True
         input1 = file_input.preprocess(x_file)
         input2 = file_input.preprocess(x_file)
-        assert input1.name == input2.name
-        assert Path(input1.name).name == "sample_file.pdf"
+        assert input1 == input1.name  # Testing backwards compatibility
+        assert input1 == input2
+        assert Path(input1).name == "sample_file.pdf"
 
         file_input = gr.File(label="Upload Your File")
         assert file_input.get_config() == {
@@ -908,7 +909,7 @@ class TestFile:
             "root_url": None,
             "selectable": False,
             "height": None,
-            "type": "file",
+            "type": "filepath",
         }
         assert file_input.preprocess(None) is None
         x_file["is_example"] = True
@@ -966,12 +967,13 @@ class TestUploadButton:
         x_file = deepcopy(media_data.BASE64_FILE)
         upload_input = gr.UploadButton()
         input = upload_input.preprocess(x_file)
-        assert isinstance(input, tempfile._TemporaryFileWrapper)
+        assert isinstance(input, str)
 
         x_file["is_file"] = True
         input1 = upload_input.preprocess(x_file)
         input2 = upload_input.preprocess(x_file)
-        assert input1.name == input2.name
+        assert input1 == input1.name  # Testing backwards compatibility
+        assert input1 == input2
 
     def test_raises_if_file_types_is_not_list(self):
         with pytest.raises(
@@ -1023,7 +1025,7 @@ class TestDataframe:
             "root_url": None,
             "name": "dataframe",
             "height": 500,
-            "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
+            "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
             "line_breaks": True,
             "column_widths": [],
         }
@@ -1058,7 +1060,7 @@ class TestDataframe:
             "root_url": None,
             "name": "dataframe",
             "height": 500,
-            "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
+            "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
             "line_breaks": True,
             "column_widths": [],
         }
