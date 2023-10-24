@@ -53,8 +53,8 @@ class TestClientPredictions:
     def test_numerical_to_label_space(self):
         client = Client("gradio-tests/titanic-survival")
         label = json.load(
-            open(client.predict("male", 77, 10, api_name="/predict"))
-        )  # noqa: SIM115
+            open(client.predict("male", 77, 10, api_name="/predict"))  # noqa: SIM115
+        )
         assert label["label"] == "Perishes"
         with pytest.raises(
             ValueError,
@@ -69,21 +69,9 @@ class TestClientPredictions:
 
     @pytest.mark.flaky
     def test_numerical_to_label_space_v4(self):
-        client = Client("gradio-tests/titanic-survival")
-        label = json.load(
-            open(client.predict("male", 77, 10, api_name="/predict"))
-        )  # noqa: SIM115
+        client = Client("gradio-tests/titanic-survival-v4")
+        label = client.predict("male", 77, 10, api_name="/predict")
         assert label["label"] == "Perishes"
-        with pytest.raises(
-            ValueError,
-            match="This Gradio app might have multiple endpoints. Please specify an `api_name` or `fn_index`",
-        ):
-            client.predict("male", 77, 10)
-        with pytest.raises(
-            ValueError,
-            match="Cannot find a function with `api_name`: predict. Did you mean to use a leading slash?",
-        ):
-            client.predict("male", 77, 10, api_name="predict")
 
     @pytest.mark.flaky
     def test_private_space(self):
@@ -93,7 +81,7 @@ class TestClientPredictions:
 
     @pytest.mark.flaky
     def test_private_space_v4(self):
-        client = Client("gradio-tests/not-actually-private-space", hf_token=HF_TOKEN)
+        client = Client("gradio-tests/not-actually-private-space-v4", hf_token=HF_TOKEN)
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
 
@@ -322,7 +310,7 @@ class TestClientPredictions:
 
     def test_upload_file_private_space_v4(self):
         client = Client(
-            src="gradio-tests/not-actually-private-file-upload", hf_token=HF_TOKEN
+            src="gradio-tests/not-actually-private-file-upload-v4", hf_token=HF_TOKEN
         )
 
         with patch.object(
@@ -379,51 +367,36 @@ class TestClientPredictions:
         )
 
         with patch.object(
-            client.endpoints[0], "_upload", wraps=client.endpoints[0]._upload
-        ) as upload:
-            with patch.object(
-                client.endpoints[0], "serialize", wraps=client.endpoints[0].serialize
-            ) as serialize:
-                with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
-                    f.write("Hello from private space!")
-
-                output = client.submit(
-                    1, "foo", f.name, api_name="/file_upload"
-                ).result()
-            with open(output) as f:
-                assert f.read() == "Hello from private space!"
-            upload.assert_called_once()
-            assert all(f["is_file"] for f in serialize.return_value())
-
-        with patch.object(
-            client.endpoints[1], "_upload", wraps=client.endpoints[0]._upload
-        ) as upload:
+            client.endpoints[0], "serialize", wraps=client.endpoints[0].serialize
+        ) as serialize:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
                 f.write("Hello from private space!")
 
-            with open(client.submit(f.name, api_name="/upload_btn").result()) as f:
-                assert f.read() == "Hello from private space!"
-            upload.assert_called_once()
+            output = client.submit(1, "foo", f.name, api_name="/file_upload").result()
+        with open(output) as f:
+            assert f.read() == "Hello from private space!"
+        assert all(f["is_file"] for f in serialize.return_value())
 
-        with patch.object(
-            client.endpoints[2], "_upload", wraps=client.endpoints[0]._upload
-        ) as upload:
-            # `delete=False` is required for Windows compat
-            with tempfile.NamedTemporaryFile(mode="w", delete=False) as f1:
-                with tempfile.NamedTemporaryFile(mode="w", delete=False) as f2:
-                    f1.write("File1")
-                    f2.write("File2")
-            r1, r2 = client.submit(
-                3,
-                [f1.name, f2.name],
-                "hello",
-                api_name="/upload_multiple",
-            ).result()
-            with open(r1) as f:
-                assert f.read() == "File1"
-            with open(r2) as f:
-                assert f.read() == "File2"
-            upload.assert_called_once()
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+            f.write("Hello from private space!")
+
+        with open(client.submit(f.name, api_name="/upload_btn").result()) as f:
+            assert f.read() == "Hello from private space!"
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as f1:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as f2:
+                f1.write("File1")
+                f2.write("File2")
+        r1, r2 = client.submit(
+            3,
+            [f1.name, f2.name],
+            "hello",
+            api_name="/upload_multiple",
+        ).result()
+        with open(r1) as f:
+            assert f.read() == "File1"
+        with open(r2) as f:
+            assert f.read() == "File2"
 
     @pytest.mark.flaky
     def test_upload_file_upload_route_does_not_exist(self):
@@ -1085,7 +1058,7 @@ class TestEndpoints:
 
     def test_upload_v4(self):
         client = Client(
-            src="gradio-tests/not-actually-private-file-upload", hf_token=HF_TOKEN
+            src="gradio-tests/not-actually-private-file-upload-v4", hf_token=HF_TOKEN
         )
         response = MagicMock(status_code=200)
         response.json.return_value = [

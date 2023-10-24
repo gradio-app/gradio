@@ -15,12 +15,14 @@ import requests
 from gradio_client import Client
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
+from packaging import version
 
 import gradio
 from gradio import components, utils
 from gradio.context import Context
 from gradio.exceptions import (
     Error,
+    GradioVersionIncompatibleError,
     ModelNotFoundError,
     TooManyRequestsError,
 )
@@ -149,7 +151,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             f"Could not find model: {model_name}. If it is a private or gated model, please provide your Hugging Face access token (https://huggingface.co/settings/tokens) as the argument for the `api_key` parameter."
         )
     p = response.json().get("pipeline_tag")
-    GRADIO_CACHE = os.environ.get("GRADIO_TEMP_DIR") or str(
+    GRADIO_CACHE = os.environ.get("GRADIO_TEMP_DIR") or str(  # noqa: N806
         Path(tempfile.gettempdir()) / "gradio"
     )
 
@@ -316,7 +318,9 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             "inputs": components.Textbox(label="Input", render=False),
             "outputs": components.Audio(label="Audio", render=False),
             "preprocess": lambda x: {"inputs": x},
-            "postprocess": encode_to_base64,
+            "postprocess": lambda x: save_base64_to_cache(
+                encode_to_base64(x), cache_dir=GRADIO_CACHE, file_name="output.wav"
+            ),
         },
         "text-to-image": {
             # example model: osanseviero/BigGAN-deep-128
@@ -516,12 +520,12 @@ def from_spaces(
 
 def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
     client = Client(space, hf_token=hf_token)
-    # if client.app_version < version.Version("4.0.0"):
-    #     raise GradioVersionIncompatible(
-    #         f"Gradio version 4.x cannot load spaces with versions less than 4.x ({client.app_version})."
-    #         "Please downgrade to version 3 to load this space.")
-    predict_fns = [endpoint._predict_resolve for endpoint in client.endpoints]
-
+    if client.app_version < version.Version("4.0.0"):
+        raise GradioVersionIncompatibleError(
+            f"Gradio version 4.x cannot load spaces with versions less than 4.x ({client.app_version})."
+            "Please downgrade to version 3 to load this space."
+        )
+    predict_fns = [endpoint.make_end_to_end_fn() for endpoint in client.endpoints]
     return gradio.Blocks.from_config(client.config, predict_fns, client.src)
 
 

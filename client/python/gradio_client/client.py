@@ -971,13 +971,18 @@ class Endpoint:
         file_list = []
 
         def get_file(d):
-            file_list.append(d)
+            if utils.is_file_obj(d):
+                file_list.append(d["name"])
+            else:
+                file_list.append(d)
             return ReplaceMe(len(file_list) - 1)
 
         new_data = []
         for i, d in enumerate(data):
             if self.input_component_types[i].value_is_file:
-                d = utils.traverse(d, get_file, utils.is_filepath)
+                d = utils.traverse(
+                    d, get_file, lambda s: utils.is_file_obj(s) or utils.is_filepath(s)
+                )
             new_data.append(d)
         return file_list, new_data
 
@@ -1132,7 +1137,6 @@ class EndpointV3Compatibility:
                     "session_hash": self.client.session_hash,
                 }
             )
-
             if self.use_ws:
                 result = utils.synchronize_async(self._ws_fn, data, hash_data, helper)
                 if "error" in result:

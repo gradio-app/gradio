@@ -700,7 +700,6 @@ class Blocks(BlockContext):
                 ]
                 blocks.__name__ = "Interface"
                 blocks.api_mode = True
-
         blocks.root_urls = root_urls
         return blocks
 
