@@ -753,7 +753,7 @@ class Blocks(BlockContext):
         collects_event_data: bool | None = None,
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
-        trigger_mode: Literal["once", "multiple", "always_last"] = "once",
+        trigger_mode: Literal["once", "multiple", "always_last"] | None = "once",
     ) -> tuple[dict[str, Any], int]:
         """
         Adds an event to the component's dependencies.
@@ -821,8 +821,10 @@ class Blocks(BlockContext):
         elif every:
             raise ValueError("Cannot set a value for `every` without a `fn`.")
 
-        if _targets[0][1] == "change":
+        if _targets[0][1] == "change" and trigger_mode == None:
             trigger_mode = "always_last"
+        elif trigger_mode == None:
+            trigger_mode = "once"
 
         _, progress_index, event_data_index = (
             special_args(fn) if fn else (None, None, None)
