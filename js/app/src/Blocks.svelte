@@ -11,7 +11,7 @@
 	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 	import { setupi18n } from "./i18n";
 	import { ApiDocs } from "./api_docs/";
-	import type { ThemeMode } from "./types";
+	import type { ThemeMode, Payload } from "./types";
 	import { Toast } from "@gradio/statustracker";
 	import type { ToastMessage } from "@gradio/statustracker";
 	import type { ShareData } from "@gradio/utils";
