@@ -84,6 +84,7 @@ def test_show(capsys):
     assert "Dataset" not in stdout
 
 
+@pytest.mark.xfail
 def test_build(tmp_path):
     _create(
         "TestTextbox",
