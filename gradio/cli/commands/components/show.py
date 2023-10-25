@@ -25,6 +25,8 @@ _IGNORE = {
     "State",
 }
 
+_BEGINNER_FRIENDLY = {"Slider", "Radio", "Checkbox", "Number", "CheckboxGroup", "File"}
+
 
 def _get_table_items(module):
     items = []
@@ -35,12 +37,12 @@ def _get_table_items(module):
         ) or (name in _IGNORE):
             continue
         tags = []
-        if "Simple" in name or name in {"File"}:
-            tags.append("🌱🤝Beginner Friendly🌱🤝")
+        if "Simple" in name or name in _BEGINNER_FRIENDLY:
+            tags.append(":seedling::handshake:Beginner Friendly:seedling::handshake:")
         if issubclass(gr_cls, FormComponent):
-            tags.append("📝🧩Form Component📝🧩")
+            tags.append(":pencil::jigsaw:Form Component:pencil::jigsaw:")
         if name in gradio.layouts.__all__:
-            tags.append("📐Layout📐")
+            tags.append(":triangular_ruler:Layout:triangular_ruler:")
         doc = inspect.getdoc(gr_cls) or "No description available."
         doc = doc.split(".")[0]
         if tags:

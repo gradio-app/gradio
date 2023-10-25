@@ -1,9 +1,14 @@
+<script context="module" lang="ts">
+	export { default as BaseRadio } from "./shared/Radio.svelte";
+</script>
+
 <script lang="ts">
 	import type { Gradio, SelectData } from "@gradio/utils";
-	import Radio from "./shared/Radio.svelte";
-	import { Block } from "@gradio/atoms";
+	import { afterUpdate } from "svelte";
+	import { Block, BlockTitle } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
+	import BaseRadio from "./shared/Radio.svelte";
 
 	export let gradio: Gradio<{
 		change: never;
@@ -24,6 +29,20 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let mode: "static" | "interactive";
+
+	function handle_change(): void {
+		gradio.dispatch("change");
+		if (!value_is_output) {
+			gradio.dispatch("input");
+		}
+	}
+
+	afterUpdate(() => {
+		value_is_output = false;
+	});
+	$: value, handle_change();
+
+	$: disabled = mode === "static";
 </script>
 
 <Block
@@ -41,17 +60,27 @@
 		{...loading_status}
 	/>
 
-	<Radio
-		bind:value
-		bind:value_is_output
-		{label}
-		{info}
-		{elem_id}
-		{show_label}
-		{choices}
-		disabled={mode === "static"}
-		on:change={() => gradio.dispatch("change")}
-		on:input={() => gradio.dispatch("input")}
-		on:select={(e) => gradio.dispatch("select", e.detail)}
-	/>
+	<BlockTitle {show_label} {info}>{label}</BlockTitle>
+
+	<div class="wrap">
+		{#each choices as choice, i (i)}
+			<BaseRadio
+				display_value={choice[0]}
+				internal_value={choice[1]}
+				bind:selected={value}
+				{elem_id}
+				{disabled}
+				on:input={() =>
+					gradio.dispatch("select", { value: choice[1], index: i })}
+			/>
+		{/each}
+	</div>
 </Block>
+
+<style>
+	.wrap {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--checkbox-label-gap);
+	}
+</style>

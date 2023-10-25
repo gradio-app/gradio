@@ -35,7 +35,9 @@ class SimpleTextbox(FormComponent):
         rtl: bool = False,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        **kwargs,
+        render: bool = True,
+        root_url: str | None = None,
+        _skip_init_processing: bool = False,
     ):
         """
         Parameters:
@@ -51,6 +53,8 @@ class SimpleTextbox(FormComponent):
             rtl: If True and `type` is "text", sets the direction of the text to right-to-left (cursor appears on the left of the text). Default is False, which renders cursor on the right.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
         """
         self.placeholder = placeholder
         self.rtl = rtl
@@ -65,7 +69,9 @@ class SimpleTextbox(FormComponent):
             elem_id=elem_id,
             elem_classes=elem_classes,
             value=value,
-            **kwargs,
+            render=render,
+            root_url=root_url,
+            _skip_init_processing=_skip_init_processing,
         )
 
     def preprocess(self, x: str | None) -> str | None:

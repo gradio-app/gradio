@@ -1,63 +1,33 @@
 <script lang="ts">
-	import { createEventDispatcher, afterUpdate } from "svelte";
-	import { BlockTitle } from "@gradio/atoms";
-	import type { SelectData } from "@gradio/utils";
-
-	export let value: string | number | null;
-	export let value_is_output = false;
-	export let choices: [string, string | number][];
+	import { createEventDispatcher } from "svelte";
+	export let display_value: string;
+	export let internal_value: string | number;
 	export let disabled = false;
-	export let label: string;
-	export let info: string | undefined = undefined;
-	export let show_label = true;
-	export let elem_id: string;
+	export let elem_id = "";
+	export let selected: string | number | null = null;
 
-	const dispatch = createEventDispatcher<{
-		change: string | number | null;
-		input: undefined;
-		select: SelectData;
-	}>();
+	const dispatch = createEventDispatcher<{ input: string | number }>();
 
-	function handle_change(): void {
-		dispatch("change", value);
-		if (!value_is_output) {
-			dispatch("input");
-		}
-	}
-	afterUpdate(() => {
-		value_is_output = false;
-	});
-	$: value, handle_change();
+	$: is_selected = selected === internal_value;
 </script>
 
-<BlockTitle {show_label} {info}>{label}</BlockTitle>
-
-<div class="wrap">
-	{#each choices as choice, i (i)}
-		<label
-			class:disabled
-			class:selected={value === choice[1]}
-			data-testid={`${choice[1]}-radio-label`}
-		>
-			<input
-				{disabled}
-				bind:group={value}
-				on:input={() => dispatch("select", { value: choice[1], index: i })}
-				type="radio"
-				name="radio-{elem_id}"
-				value={choice[1]}
-			/>
-			<span class="ml-2">{choice[0]}</span>
-		</label>
-	{/each}
-</div>
+<label
+	class:disabled
+	class:selected={is_selected}
+	data-testid={`${internal_value}-radio-label`}
+>
+	<input
+		{disabled}
+		type="radio"
+		name={`radio-${elem_id}`}
+		value={internal_value}
+		on:input={() => dispatch("input", internal_value)}
+		bind:group={selected}
+	/>
+	<span class="ml-2">{display_value}</span>
+</label>
 
 <style>
-	.wrap {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--checkbox-label-gap);
-	}
 	label {
 		display: flex;
 		align-items: center;
