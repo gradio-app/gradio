@@ -107,7 +107,7 @@
 				style="width: {fullscreen ? 100 : (1 - position) * 100}%"
 				class:fullscreen
 			>
-				<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2">
+				<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2 ml-2">
 					<h3 class="pt-1">Preview</h3>
 					<div class="flex">
 						{#if !fullscreen}<button
@@ -122,7 +122,7 @@
 					</div>
 				</div>
 
-				<div class="lite-demo h-[93%]" id="lite-demo" />
+				<div class="lite-demo h-[93%] pl-3" id="lite-demo" />
 			</div>
 		</div>
 	</Slider>

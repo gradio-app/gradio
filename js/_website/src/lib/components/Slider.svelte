@@ -5,6 +5,7 @@
 	export let disabled = false;
 
 	let active = false;
+	let hidden = true;
 	let el: HTMLDivElement;
 	let inner: HTMLDivElement;
 	let box: DOMRect;
@@ -25,7 +26,7 @@
 
 	function handle_mousemove(e: MouseEvent) {
 		if (!active) return;
-		px = clamp(e.clientX - offset - box.left, -10, box.width - 10);
+		px = clamp(e.clientX - offset - box.left, 100, box.width - 120);
 		position = round((px + 10) / box.width, 5);
 	}
 
@@ -41,6 +42,7 @@
 	function set_position() {
 		box = el.getBoundingClientRect();
 		px = box.width * position - 10;
+		hidden = false;
 	}
 
 	onMount(set_position);
@@ -63,7 +65,10 @@
 		role="none"
 		style="transform: translateX({px}px)"
 	>
-		<div class="inner"></div>
+		<div hidden={hidden} 
+		class="inner">
+			<div class="notches text-gray-400 select-none">&#124;&#124;</div>
+		</div>
 	</div>
 </div>
 
@@ -86,11 +91,13 @@
 	}
 
 	.inner {
-		width: 1px;
+		width: 15px;
 		height: 100%;
-		background: rgb(229, 231, 235);
+		background: #fbfcfc;
 		position: absolute;
 		left: calc((100% - 2px) / 2);
+		border-right: 1px solid rgb(229, 231, 235);
+		border-left: 1px solid rgb(229, 231, 235);
 	}
 
 	.disabled {
@@ -99,5 +106,14 @@
 
 	.disabled .inner {
 		box-shadow: none;
+	}
+
+	.notches {
+		margin: 0;
+		position: absolute;
+		top: 50%;
+  		left: 50%;		
+		transform: translate(-50%, -50%) scale(1, 2.5);
+		font-weight: bold;
 	}
 </style>
