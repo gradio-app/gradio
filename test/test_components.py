@@ -22,12 +22,11 @@ import vega_datasets
 from gradio_client import media_data
 from gradio_client import utils as client_utils
 from scipy.io import wavfile
+from typing_extensions import cast
 
 import gradio as gr
 from gradio import processing_utils, utils
 from gradio.data_classes import FileData
-
-from typing_extensions import cast
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 

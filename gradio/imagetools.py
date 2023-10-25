@@ -1,5 +1,7 @@
-from typing import Literal
+from __future__ import annotations
+
 from pathlib import Path
+from typing import Literal
 
 import numpy as np
 from PIL import Image as _Image  # using _ to minimize namespace pollution

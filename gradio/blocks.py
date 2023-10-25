@@ -1093,7 +1093,7 @@ class Blocks(BlockContext):
         processed_input = []
 
         def format_file(s):
-            return FileData(name=s, is_file=True).model_dump()
+            return FileData(path=s).model_dump()
 
         for i, input_id in enumerate(dependency["inputs"]):
             try:
@@ -1136,7 +1136,7 @@ class Blocks(BlockContext):
                 )
 
             deserialized = client_utils.traverse(
-                outputs[o], lambda s: s["name"], client_utils.is_file_obj
+                outputs[o], lambda s: s["path"], client_utils.is_file_obj
             )
             predictions.append(deserialized)
 
