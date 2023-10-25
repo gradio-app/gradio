@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { afterNavigate } from "$app/navigation";
-	import InteractiveCode from "@gradio/code/interactive";
+	import Code from "@gradio/code";
 	export let demos: {
 		name: string;
 		dir: string;
@@ -70,7 +70,7 @@
 			hidden={current_selection !== demo.name}
 			class="code-editor mx-auto md:pr-4 w-full md:w-1/2 h-1/2 mb-2 md:mb-0 md:h-full"
 		>
-			<InteractiveCode
+			<Code
 				bind:value={demos[i].code}
 				language="python"
 				label="code"

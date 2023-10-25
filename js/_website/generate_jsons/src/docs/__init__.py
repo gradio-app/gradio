@@ -2,9 +2,7 @@ import json
 import os
 
 from gradio_client.documentation import document_cls, generate_documentation
-
-from gradio.events import EventListener, EventListenerMethod
-
+import gradio
 from ..guides import guides
 
 DIR = os.path.dirname(__file__)
@@ -13,7 +11,6 @@ JS_CLIENT_README = os.path.abspath(os.path.join(DIR, "../../../../../client/js/R
 
 docs = generate_documentation()
 docs["component"].sort(key=lambda x: x["name"])
-
 
 def add_component_shortcuts():
     for component in docs["component"]:
@@ -58,23 +55,19 @@ def add_demos():
 add_demos()
 
 def create_events_matrix():
-    events = []
-    for c in EventListener.__subclasses__():
-        methods = c().__dict__
-        for m in methods: 
-            if m[:1] != '_' and isinstance(methods[m], EventListenerMethod) and m not in events: 
-                events.append(m)
+    events = set({})
     component_events = {}
     for component in docs["component"]:
         component_event_list = []
-        for event in events:
+        for event in component["class"].EVENTS:
+            events.add(event)
             for fn in component["fns"]:
                 if event == fn["name"]:
                     component_event_list.append(event)
         component_events[component["name"]] = component_event_list
     
     
-    return events, component_events
+    return list(events), component_events
 
 events, component_events = create_events_matrix()
 
@@ -313,7 +306,6 @@ def organize_docs(d):
 
 
 docs = organize_docs(docs)
-
 
 def generate(json_path):
     with open(json_path, "w+") as f:

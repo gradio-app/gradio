@@ -54,10 +54,13 @@ def document(*fns, inherit=False):
     """
 
     def inner_doc(cls):
+        functions = list(fns)
+        if hasattr(cls, "EVENTS"):
+            functions += cls.EVENTS
         global documentation_group
         if inherit:
             classes_inherit_documentation[cls] = None
-        classes_to_document[documentation_group].append((cls, fns))
+        classes_to_document[documentation_group].append((cls, functions))
         return cls
 
     return inner_doc
@@ -233,6 +236,8 @@ def generate_documentation():
                         return_docs,
                         examples_doc,
                     ) = document_fn(fn, cls)
+                    if fn_name in getattr(cls, "EVENTS", []):
+                        parameter_docs = parameter_docs[1:]
                     override_signature = None
                 if instance_attribute_fn:
                     description_doc = extract_instance_attr_doc(cls, fn_name)

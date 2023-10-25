@@ -176,8 +176,9 @@ class ComponentMeta(ABCMeta):
                 event
                 if isinstance(event, EventListener)
                 else EventListener(event_name=event)
-            )
+            ).copy()
             new_events.append(trigger)
+            trigger.set_doc(component=name)
             attrs[event] = trigger.listener
         if "EVENTS" in attrs:
             attrs["EVENTS"] = new_events
