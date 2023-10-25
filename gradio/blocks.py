@@ -196,6 +196,21 @@ class Block:
         config.pop("render", None)
         return {**config, "root_url": self.root_url, "name": self.get_block_name()}
 
+    @classmethod
+    def recover_kwargs(
+        cls, props: dict[str, Any], additional_keys: list[str] | None = None
+    ):
+        """
+        Recovers kwargs from a dict of props.
+        """
+        additional_keys = additional_keys or []
+        signature = inspect.signature(cls.__init__)
+        kwargs = {}
+        for parameter in signature.parameters.values():
+            if parameter.name in props and parameter.name not in additional_keys:
+                kwargs[parameter.name] = props[parameter.name]
+        return kwargs
+
 
 class BlockContext(Block):
     def __init__(
@@ -589,7 +604,7 @@ class Blocks(BlockContext):
                 raise ValueError(f"Cannot find block with id {id}")
             cls = component_or_layout_class(block_config["type"])
 
-            block_config["props"] = utils.recover_kwargs(block_config["props"])
+            block_config["props"] = cls.recover_kwargs(block_config["props"])
 
             # If a Gradio app B is loaded into a Gradio app A, and B itself loads a
             # Gradio app C, then the root_urls of the components in A need to be the
@@ -598,18 +613,6 @@ class Blocks(BlockContext):
                 block_config["props"]["root_url"] = f"{root_url}/"
             else:
                 root_urls.add(block_config["props"]["root_url"])
-
-            # We treat dataset components as a special case because they reference other components
-            # in the config. Instead of using the component string names, we use the component ids.
-            if (
-                block_config["type"] == "dataset"
-                and "component_ids" in block_config["props"]
-            ):
-                block_config["props"].pop("components", None)
-                block_config["props"]["components"] = [
-                    original_mapping[c] for c in block_config["props"]["component_ids"]
-                ]
-                block_config["props"].pop("component_ids", None)
 
             # Any component has already processed its initial value, so we skip that step here
             block = cls(**block_config["props"], _skip_init_processing=True)
@@ -820,9 +823,9 @@ class Blocks(BlockContext):
         elif every:
             raise ValueError("Cannot set a value for `every` without a `fn`.")
 
-        if _targets[0][1] == "change" and trigger_mode == None:
+        if _targets[0][1] == "change" and trigger_mode is None:
             trigger_mode = "always_last"
-        elif trigger_mode == None:
+        elif trigger_mode is None:
             trigger_mode = "once"
         elif trigger_mode not in ["once", "multiple", "always_last"]:
             raise ValueError(

@@ -6,7 +6,6 @@ from typing import Any, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-import gradio.utils as utils
 from gradio.components.base import (
     Component,
     get_component_instance,
@@ -45,8 +44,6 @@ class Dataset(Component):
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
-        component_props: dict[str, Any] | None = None,
-        component_ids: dict[str, Any] | None = None,
     ):
         """
         Parameters:
@@ -72,15 +69,16 @@ class Dataset(Component):
             elem_classes=elem_classes,
             root_url=root_url,
             _skip_init_processing=_skip_init_processing,
+            render=render,
         )
         self.container = container
         self.scale = scale
         self.min_width = min_width
         self._components = [get_component_instance(c) for c in components]
         self.component_props = [
-            utils.recover_kwargs(
+            component.recover_kwargs(
                 component.get_config(),
-                ["value", "component_props", "component_ids"],
+                ["value"],
             )
             for component in self._components
         ]
