@@ -821,9 +821,9 @@ class Blocks(BlockContext):
         elif every:
             raise ValueError("Cannot set a value for `every` without a `fn`.")
 
-        if _targets[0][1] == "change" and trigger_mode == None:
+        if _targets[0][1] == "change" and trigger_mode is None:
             trigger_mode = "always_last"
-        elif trigger_mode == None:
+        elif trigger_mode is None:
             trigger_mode = "once"
         elif trigger_mode not in ["once", "multiple", "always_last"]:
             raise ValueError(
