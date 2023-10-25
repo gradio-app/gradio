@@ -294,7 +294,6 @@ const component_map = {
 	${generate_component_imports()}
 };
 `;
-
 	return `${component_map}\n\n${readFileSync(loader_path, "utf8")}`;
 }
 

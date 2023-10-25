@@ -2026,6 +2026,7 @@ class TestModel3D:
             "elem_id": None,
             "elem_classes": [],
             "root_url": None,
+            "interactive": None,
             "name": "model3d",
             "camera_position": (None, None, None),
             "height": None,
