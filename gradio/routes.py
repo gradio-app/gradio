@@ -635,7 +635,6 @@ class App(FastAPI):
                             message = {"msg": "heartbeat"}
                             last_heartbeat = time.time()
 
-
                     if message:
                         print("!!1 ", message)
                         yield f"data: {json.dumps(message)}\n\n"
