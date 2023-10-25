@@ -50,10 +50,10 @@ class Image(StreamingInput, Component):
         image_mode: Literal[
             "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
         ] = "RGB",
-        sources: list[Literal["upload", "webcam", "paste"]] = [
+        sources: list[Literal["upload", "webcam", "clipboard"]] = [
             "upload",
             "webcam",
-            "paste",
+            "clipboard",
         ],  # ruff: noqa: B006
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
@@ -80,7 +80,7 @@ class Image(StreamingInput, Component):
             height: Height of the displayed image in pixels.
             width: Width of the displayed image in pixels.
             image_mode: "RGB" if color, or "L" if black and white. See https://pillow.readthedocs.io/en/stable/handbook/concepts.html for other supported image modes and their meaning.
-            sources: List of sources for the image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "paste" allows users to paste an image from the clipboard.
+            sources: List of sources for the image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "clipboard" allows users to paste an image from the clipboard.
             type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
@@ -110,7 +110,7 @@ class Image(StreamingInput, Component):
         self.height = height
         self.width = width
         self.image_mode = image_mode
-        valid_sources = ["upload", "webcam", "paste"]
+        valid_sources = ["upload", "webcam", "clipboard"]
 
         for source in sources:
             if source not in valid_sources:
@@ -156,6 +156,8 @@ class Image(StreamingInput, Component):
         """
         if x is None:
             return x
+
+        print(x)
 
         im = _Image.open(x.path)
         with warnings.catch_warnings():

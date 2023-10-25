@@ -119,7 +119,8 @@ GradioDataModel = Union[GradioModel, GradioRootModel]
 
 
 class FileData(GradioModel):
-    path: str
+    path: str  # server filepath
+    url: Optional[str] = None  # normalised server url
     size: Optional[int] = None  # size in bytes
     orig_name: Optional[str] = None  # original filename
     mime_type: Optional[str] = None
@@ -130,6 +131,7 @@ class FileData(GradioModel):
             f is None
             for f in [
                 self.path,
+                self.url,
                 self.size,
                 self.orig_name,
                 self.mime_type,
@@ -146,7 +148,7 @@ class FileData(GradioModel):
 
         assert self.path
         new_name = shutil.copy(self.path, dir)
-        new_obj["name"] = new_name
+        new_obj["path"] = new_name
         return self.__class__(**new_obj)
 
     @classmethod

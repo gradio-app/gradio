@@ -25,35 +25,36 @@
 		dragging = !dragging;
 	}
 
-	function openFileUpload(): void {
+	export function open_file_upload(): void {
 		if (disable_click) return;
 		hidden_upload.value = "";
 		hidden_upload.click();
 	}
 
-	async function handle_upload(file_data: FileData[]): Promise<void> {
+	async function handle_upload(file_data: FileData[]): Promise<FileData[]> {
 		await tick();
 		const _file_data = await upload(file_data, root, upload_fn);
 		dispatch("load", file_count === "single" ? _file_data[0] : _file_data);
+		return _file_data;
 	}
 
-	async function loadFiles(files: File[]): Promise<void> {
-		let _files: File[] = Array.from(files);
+	export async function load_files(
+		files: File[] | Blob[]
+	): Promise<FileData[] | void> {
 		if (!files.length) {
 			return;
 		}
-		if (file_count === "single") {
-			_files = [files[0]];
-		}
+
+		let _files: File[] = files.map((f) => new File([f], f.name));
+
 		let file_data = await prepare_files(_files);
-		await handle_upload(file_data);
+		return await handle_upload(file_data);
 	}
 
-	async function loadFilesFromUpload(e: Event): Promise<void> {
+	async function load_files_from_upload(e: Event): Promise<void> {
 		const target = e.target as HTMLInputElement;
-
 		if (!target.files) return;
-		await loadFiles(Array.from(target.files));
+		await load_files(Array.from(target.files));
 	}
 
 	function is_valid_mimetype(
@@ -84,7 +85,7 @@
 			return false;
 		});
 
-		await loadFiles(files_to_load);
+		await load_files(files_to_load);
 	}
 </script>
 
@@ -99,7 +100,7 @@
 	on:dragenter|preventDefault|stopPropagation
 	on:dragleave|preventDefault|stopPropagation
 	on:drop|preventDefault|stopPropagation
-	on:click={openFileUpload}
+	on:click={open_file_upload}
 	on:drop={loadFilesFromDrop}
 	on:dragenter={updateDragging}
 	on:dragleave={updateDragging}
@@ -108,7 +109,7 @@
 	<input
 		type="file"
 		bind:this={hidden_upload}
-		on:change={loadFilesFromUpload}
+		on:change={load_files_from_upload}
 		accept={filetype}
 		multiple={file_count === "multiple" || undefined}
 		webkitdirectory={file_count === "directory" || undefined}

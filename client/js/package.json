@@ -13,6 +13,7 @@
 		"./package.json": "./package.json"
 	},
 	"dependencies": {
+		"@gradio/upload": "workspace:0.3.0-beta.4",
 		"bufferutil": "^4.0.7",
 		"semiver": "^1.1.0",
 		"ws": "^8.13.0"

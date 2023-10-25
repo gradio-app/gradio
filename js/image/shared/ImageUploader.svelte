@@ -30,11 +30,13 @@
 	export let selectable = false;
 	export let root: string;
 	export let i18n: I18nFormatter;
+	let _value: null | FileData = null;
 
 	let upload: Upload;
 	let active_tool: "webcam" | null = null;
 	function handle_upload({ detail }: CustomEvent<string>): void {
-		value = normalise_file(detail, root, null);
+		value = detail;
+		_value = normalise_file(detail, root, null);
 
 		// dispatch("upload", normalise_file(detail, root, null));
 	}
@@ -67,8 +69,6 @@
 	let dragging = false;
 
 	$: dispatch("drag", dragging);
-
-	let _value: null | FileData = null;
 
 	let img_height = 0;
 	let img_width = 0;
@@ -116,16 +116,33 @@
 
 	$: console.log({ sources, sources_list });
 
-	function handle_toolbar(source: (typeof sources)[number]) {
+	async function handle_toolbar(source: (typeof sources)[number]) {
 		switch (source) {
 			case "paste":
-				upload.upload_blob();
+				navigator.clipboard.read().then(async (items) => {
+					for (let i = 0; i < items.length; i++) {
+						// Do something with the most recent item
+						const type = items[i].types.find((t) => t.startsWith("image/"));
+						console.log({ type, item_types: items[i].types });
+						if (type) {
+							items[i].getType(type).then(async (blob) => {
+								const f = await upload.load_files([
+									new File([blob], "image.png")
+								]);
+								value = f?.[0] || null;
+								console.log(f);
+							});
+							break;
+						}
+					}
+				});
+				upload.load_files([]);
 				break;
 			case "webcam":
 				active_tool = "webcam";
 				break;
 			case "upload":
-				upload.trigger_upload();
+				upload.open_file_upload();
 				break;
 			default:
 				break;
@@ -161,11 +178,11 @@
 		disable_click={!!value}
 		{root}
 	>
-		{#if value === null || streaming}
+		{#if _value === null || streaming}
 			<slot />
 		{/if}
 	</Upload>
-	{#if _value !== null && !streaming}
+	{#if _value !== null}
 		<img src={_value.path} alt="" />
 	{/if}
 </div>
@@ -178,6 +195,8 @@
 	}
 	img {
 		object-fit: contain;
+		position: absolute;
+		top: 0;
 	}
 
 	.selectable {

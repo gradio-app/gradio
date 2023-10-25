@@ -871,6 +871,7 @@ class Endpoint:
                 )
                 result = json.loads(response.content.decode("utf-8"))
             try:
+                print(result)
                 output = result["data"]
             except KeyError as ke:
                 is_public_space = (

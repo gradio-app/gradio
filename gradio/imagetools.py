@@ -41,7 +41,7 @@ def save_image(y: np.ndarray | _Image.Image | str | Path, cache_dir: str):
     elif isinstance(y, _Image.Image):
         path = processing_utils.save_pil_to_cache(y, cache_dir=cache_dir)
     elif isinstance(y, Path):
-        path = y.name
+        path = str(y)
     elif isinstance(y, str):
         path = y
     else:

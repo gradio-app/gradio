@@ -155,7 +155,7 @@ class Audio(
     ) -> tuple[int, np.ndarray] | str | None:
         """
         Parameters:
-            x: dictionary with keys "name", "data", "is_file", "crop_min", "crop_max".
+            x: dictionary with keys "path", "crop_min", "crop_max".
         Returns:
             audio in requested format
         """
@@ -163,11 +163,11 @@ class Audio(
             return x
 
         payload: AudioInputData = AudioInputData(**x)
-        assert payload.name
+        assert payload.path
 
         # Need a unique name for the file to avoid re-using the same audio file if
         # a user submits the same audio file twice, but with different crop min/max.
-        temp_file_path = Path(payload.name)
+        temp_file_path = Path(payload.path)
         output_file_name = str(
             temp_file_path.with_name(
                 f"{temp_file_path.stem}-{payload.crop_min}-{payload.crop_max}{temp_file_path.suffix}"
@@ -219,7 +219,7 @@ class Audio(
             if not isinstance(y, (str, Path)):
                 raise ValueError(f"Cannot process {y} as Audio")
             file_path = str(y)
-        return FileData(**{"name": file_path, "data": None, "is_file": True})
+        return FileData(path=file_path)
 
     def stream_output(
         self, y, output_id: str, first_chunk: bool
