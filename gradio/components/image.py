@@ -249,7 +249,7 @@ class Image(StreamingInput, Component):
         elif isinstance(y, _Image.Image):
             path = processing_utils.save_pil_to_cache(y, cache_dir=self.GRADIO_CACHE)
         elif isinstance(y, (str, Path)):
-            path = y if isinstance(y, str) else y.name
+            path = y if isinstance(y, str) else str(y)
         else:
             raise ValueError("Cannot process this value as an Image")
         return FileData(name=path, data=None, is_file=True)
