@@ -31,6 +31,7 @@ INTERFACE_TEMPLATE = '''
         postprocess: bool = True,
         cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
         every: float | None = None,
+        trigger_mode: Literal["once", "multiple", "always_last"] | None = None,
         _js: str | None = None,) -> Dependency:
         """
         Parameters:
@@ -47,6 +48,7 @@ INTERFACE_TEMPLATE = '''
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this listener is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method. Functions that have not yet run (or generators that are iterating) will be cancelled, but functions that are currently running will be allowed to finish.
             every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
+            trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` event) would allow a second submission after the pending event is complete.
         """
         ...
     {% endfor %}
