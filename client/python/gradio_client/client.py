@@ -812,7 +812,7 @@ class Endpoint:
         self.api_name: str | Literal[False] | None = (
             "/" + api_name if isinstance(api_name, str) else api_name
         )
-        self.protocol = self._get_protocol(self.dependency)
+        self.protocol = "sse"
         self.input_component_types = [
             self._get_component_type(id_) for id_ in dependency["inputs"]
         ]
@@ -889,21 +889,10 @@ class Endpoint:
                 "session_hash": self.client.session_hash,
             }
 
-            if self.protocol == "ws":
-                result = utils.synchronize_async(self._ws_fn, data, hash_data, helper)
-                if "error" in result:
-                    raise ValueError(result["error"])
-            elif self.protocol == "sse":
-                result = utils.synchronize_async(self._sse_fn, data, hash_data, helper)
-                if "error" in result:
-                    print(">>>", result)
+            result = utils.synchronize_async(self._sse_fn, data, hash_data, helper)
+            if "error" in result:
+                raise ValueError(result["error"])
 
-                    raise ValueError(result["error"])
-            else:
-                response = requests.post(
-                    self.client.api_url, headers=self.client.headers, data=data
-                )
-                result = json.loads(response.content.decode("utf-8"))
             try:
                 output = result["data"]
             except KeyError as ke:
@@ -1086,29 +1075,6 @@ class Endpoint:
         predictions = self.remove_skipped_components(*predictions)
         predictions = self.reduce_singleton_output(*predictions)
         return predictions
-
-    def _get_protocol(self, dependency: dict) -> Literal["sse", "ws", "http"]:
-        major_version = int(self.client.config["version"].split(".")[0])
-        if major_version >= 4:
-            return "sse"
-        queue_enabled = self.client.config.get("enable_queue", False)
-        queue_uses_websocket = version.parse(
-            self.client.config.get("version", "2.0")
-        ) >= version.Version("3.2")
-        dependency_uses_queue = dependency.get("queue", False) is not False
-        if queue_enabled and queue_uses_websocket and dependency_uses_queue:
-            return "ws"
-        else:
-            return "http"
-
-    async def _ws_fn(self, data: dict, hash_data: dict, helper: Communicator):
-        async with websockets.connect(  # type: ignore
-            self.client.ws_url,
-            open_timeout=10,
-            extra_headers=self.client.headers,
-            max_size=1024 * 1024 * 1024,
-        ) as websocket:
-            return await utils.get_pred_from_ws(websocket, data, hash_data, helper)
 
     async def _sse_fn(self, data: dict, hash_data: dict, helper: Communicator):
         async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=None)) as client:
