@@ -1727,10 +1727,12 @@ Received outputs:
         show_api: bool = True,
         allowed_paths: list[str] | None = None,
         blocked_paths: list[str] | None = None,
+        *,
         root_path: str | None = None,
-        _frontend: bool = True,
         app_kwargs: dict[str, Any] | None = None,
         state_session_capacity: int = 10000,
+        share_server_url: str | None = None,
+        _frontend: bool = True,    
     ) -> tuple[FastAPI, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -1763,6 +1765,7 @@ Received outputs:
             root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". Can be set by environment variable GRADIO_ROOT_PATH. Defaults to "".
             app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
             state_session_capacity: The maximum number of sessions whose information to store in memory. If the number of sessions exceeds this number, the oldest sessions will be removed. Reduce capacity to reduce memory usage when using gradio.State or returning updated components from functions. Defaults to 10000.
+            share_server_url: Use this to specify a custom FRP server for sharing Gradio apps. If not provided, will use the default FRP server at https://gradio.live. See https://github.com/huggingface/frp for more information.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
