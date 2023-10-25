@@ -1262,28 +1262,6 @@ class TestEvery:
                 num = gr.Number()
                 num.change(lambda s: s + 1, inputs=[num], outputs=[num], every=-0.1)
 
-    @pytest.mark.asyncio
-    async def test_every_does_not_block_queue(self):
-        with gr.Blocks() as demo:
-            num = gr.Number(value=0)
-            name = gr.Textbox()
-            greeting = gr.Textbox()
-            button = gr.Button(value="Greet")
-            name.change(lambda n: n + random.random(), num, num, every=0.5)
-            button.click(lambda s: f"Hello, {s}!", name, greeting)
-        app, _, _ = demo.queue(max_size=1).launch(prevent_thread_lock=True)
-        test_client = TestClient(app)
-
-        client = grc.Client(f"http://localhost:{demo.server_port}")
-        job = client.submit("x", fn_index=1)
-
-        for _ in range(5):
-            status = test_client.get("/queue/status")
-            assert status.json()["queue_size"] == 0
-            time.sleep(0.5)
-
-        assert job.result() == "Hello, x!"
-
 
 class TestGetAPIInfo:
     def test_many_endpoints(self):

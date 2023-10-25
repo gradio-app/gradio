@@ -587,7 +587,6 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            print("!!1 join")
             blocks = app.get_blocks()
             if blocks._queue.server_app is None:
                 blocks._queue.set_server_app(app)
@@ -627,7 +626,6 @@ class App(FastAPI):
                     try:
                         message = event.message_queue.get_nowait()
                         if message is None:  # end of stream marker
-                            print("!!1 end")
                             return
                     except EmptyQueue:
                         await asyncio.sleep(check_rate)
@@ -636,7 +634,6 @@ class App(FastAPI):
                             last_heartbeat = time.time()
 
                     if message:
-                        print("!!1 ", message)
                         yield f"data: {json.dumps(message)}\n\n"
 
             return StreamingResponse(

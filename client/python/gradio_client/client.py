@@ -893,6 +893,8 @@ class Endpoint:
             elif self.protocol == "sse":
                 result = utils.synchronize_async(self._sse_fn, data, hash_data, helper)
                 if "error" in result:
+                    print(">>>", result)
+
                     raise ValueError(result["error"])
             else:
                 response = requests.post(
@@ -1149,13 +1151,9 @@ class Job(Future):
         if not self.communicator:
             raise StopIteration()
 
-        with self.communicator.lock:
-            if self.communicator.job.latest_status.code == Status.FINISHED:
-                raise StopIteration()
-
         while True:
             with self.communicator.lock:
-                if len(self.communicator.job.outputs) == self._counter + 1:
+                if len(self.communicator.job.outputs) >= self._counter + 1:
                     o = self.communicator.job.outputs[self._counter]
                     self._counter += 1
                     return o

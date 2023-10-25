@@ -84,9 +84,6 @@ class Queue:
     def close(self):
         self.stopped = True
 
-    def resume(self):
-        self.stopped = False
-
     def attach_data(self, body: PredictBody):
         event_id = body.event_id
         if event_id in self.awaiting_data_events:
