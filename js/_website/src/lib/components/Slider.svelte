@@ -3,6 +3,7 @@
 
 	export let position = 0.5;
 	export let disabled = false;
+	export let show_nav = true;
 
 	let active = false;
 	let hidden = true;
@@ -46,6 +47,14 @@
 	}
 
 	onMount(set_position);
+
+	$: if (!hidden && show_nav) {
+		box = el.getBoundingClientRect();
+		px = box.width * position - 10;
+	} else if (!hidden && !show_nav) {
+		box = el.getBoundingClientRect();
+		px = box.width * position - 10;
+	}
 </script>
 
 <svelte:window

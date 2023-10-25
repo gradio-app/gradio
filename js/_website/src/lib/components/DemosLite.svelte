@@ -79,7 +79,7 @@
 	class=" absolute top-0 bottom-0 right-0"
 	style="left:{show_nav ? 200 : 37}px"
 >
-	<Slider bind:position>
+	<Slider bind:position bind:show_nav>
 		<div class=" flex-col md:flex-row min-w-0 h-full" class:flex={!fullscreen}>
 			{#each demos as demo, i}
 				<div
