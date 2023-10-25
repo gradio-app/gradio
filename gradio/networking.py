@@ -216,20 +216,25 @@ def start_server(
     return server_name, port, path_to_local_server, app, server
 
 
-def setup_tunnel(local_host: str, local_port: int, share_token: str) -> str:
-    response = requests.get(GRADIO_API_SERVER)
-    if response and response.status_code == 200:
-        try:
-            payload = response.json()[0]
-            remote_host, remote_port = payload["host"], int(payload["port"])
-            tunnel = Tunnel(
-                remote_host, remote_port, local_host, local_port, share_token
-            )
-            address = tunnel.start_tunnel()
-            return address
-        except Exception as e:
-            raise RuntimeError(str(e)) from e
-    raise RuntimeError("Could not get share link from Gradio API Server.")
+def setup_tunnel(local_host: str, local_port: int, share_token: str, share_server_address: str | None) -> str:
+    if share_server_address is None:
+        response = requests.get(GRADIO_API_SERVER)
+        if not(response and response.status_code == 200):
+            raise RuntimeError("Could not get share link from Gradio API Server.")
+        payload = response.json()[0]
+        remote_host, remote_port = payload["host"], int(payload["port"])
+    else:
+        remote_host, remote_port = share_server_address.split(":")
+        remote_port = int(remote_port)            
+    try:
+        tunnel = Tunnel(
+            remote_host, remote_port, local_host, local_port, share_token
+        )
+        address = tunnel.start_tunnel()
+        return address
+    except Exception as e:
+        raise RuntimeError(str(e)) from e
+    
 
 
 def url_ok(url: str) -> bool:
