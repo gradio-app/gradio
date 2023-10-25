@@ -27,7 +27,7 @@
 
 	function handle_mousemove(e: MouseEvent) {
 		if (!active) return;
-		px = clamp(e.clientX - offset - box.left, 100, box.width - 120);
+		px = clamp(e.clientX - offset - box.left, 100, box.width - 240);
 		position = round((px + 10) / box.width, 5);
 	}
 
