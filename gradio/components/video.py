@@ -52,6 +52,7 @@ class Video(Component):
         Events.play,
         Events.pause,
         Events.end,
+        Events.upload,
     ]
 
     def __init__(
