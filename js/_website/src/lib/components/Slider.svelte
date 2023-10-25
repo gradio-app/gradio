@@ -66,7 +66,7 @@
 <div class="wrap" bind:this={el}>
 	<slot />
 	<div
-		class="outer"
+		class="outer hidden sm:block"
 		class:disabled
 		on:mousedown={handle_mousedown}
 		on:mouseup={handle_mouseup}

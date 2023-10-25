@@ -84,11 +84,11 @@
 	style="left:{show_nav ? 200 : 37}px"
 >
 	<Slider bind:position bind:show_nav>
-		<div class=" flex-col md:flex-row min-w-0 h-full" class:flex={!fullscreen}>
+		<div class="flex-row min-w-0 h-full" class:flex={!fullscreen}>
 			{#each demos as demo, i}
 				<div
 					hidden={current_selection !== demo.name}
-					class="code-editor w-full border-r"
+					class="code-editor w-full border-r hidden sm:block"
 					style="width: {position * 100}%"
 				>
 					<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2">
@@ -107,19 +107,19 @@
 			{/each}
 
 			<div
-				class=" w-full mx-auto"
+				class="preview w-full mx-auto"
 				style="width: {fullscreen ? 100 : (1 - position) * 100}%"
 				class:fullscreen
 				bind:clientWidth={preview_width}
 			>
-				<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2 ml-2">
+				<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2 ml-0 sm:ml-2">
 					<div class="flex align-middle">
 						<h3 class="pr-2 pt-1">Preview</h3>
-						<p class="pt-1.5 text-sm text-gray-600">{preview_width - 13}px</p>
+						<p class="pt-1.5 text-sm text-gray-600 hidden sm:block">{preview_width - 13}px</p>
 						<p 
 						class:text-orange-300={lg_breakpoint}
 						class:text-gray-300={!lg_breakpoint}
-						class="pt-2 text-sm pl-2 w-6">
+						class="pt-2 text-sm pl-2 w-6  hidden sm:block">
 							<svg viewBox="0 0 110 100" xmlns="http://www.w3.org/2000/svg">
 								<rect width="50" height="100"  rx="15" fill="currentColor"/>
 								<rect x="60" width="50" height="100" rx="15" fill="currentColor" />
@@ -128,7 +128,7 @@
 						<p 
 						class:text-orange-300={!lg_breakpoint}
 						class:text-gray-300={lg_breakpoint}
-						class="pt-2 text-sm pl-2 w-6">
+						class="pt-2 text-sm pl-2 w-6  hidden sm:block">
 							<svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
 								<rect width="110" height="45"  rx="15" fill="currentColor"/>
 								<rect y="50" width="110" height="45" rx="15" fill="currentColor" />
@@ -204,4 +204,13 @@
 		z-index: 1000;
 		background-color: white;
 	}
+	/* .preview {
+			width: 100% !important;
+		} */
+	@media (max-width: 640px) {
+		.preview {
+			width: 100% !important;
+		}
+	}
+
 </style>
