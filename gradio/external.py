@@ -174,7 +174,9 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             ),
             "outputs": components.Audio(label="Output", render=False),
             "preprocess": to_binary,
-            "postprocess": encode_to_base64,
+            "postprocess": lambda x: save_base64_to_cache(
+                encode_to_base64(x), cache_dir=GRADIO_CACHE, file_name="output.wav"
+            ),
         },
         "automatic-speech-recognition": {
             # example model: facebook/wav2vec2-base-960h
