@@ -123,7 +123,9 @@ def create_or_modify_pyi(
     else:
         contents = pyi_file.read_text()
         contents = contents.replace(current_interface, new_interface.strip())
-        pyi_file.write_text(contents)
+        current_contents = pyi_file.read_text()
+        if current_contents != contents:
+            pyi_file.write_text(contents)
 
 
 def in_event_listener():
