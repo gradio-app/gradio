@@ -6,7 +6,7 @@
 	export let elem_id = "";
 	export let selected: string | number | null = null;
 
-	const dispatch = createEventDispatcher<{ input: never }>();
+	const dispatch = createEventDispatcher<{ input: string | number }>();
 
 	$: is_selected = selected === internal_value;
 </script>
@@ -19,9 +19,9 @@
 	<input
 		{disabled}
 		type="radio"
-		name="radio-{elem_id}"
+		name={`radio-${elem_id}`}
 		value={internal_value}
-		on:input={() => dispatch("input")}
+		on:input={() => dispatch("input", internal_value)}
 		bind:group={selected}
 	/>
 	<span class="ml-2">{display_value}</span>

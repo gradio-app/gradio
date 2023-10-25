@@ -18,7 +18,7 @@
 
 	async function handle_enter(
 		event: KeyboardEvent & { currentTarget: EventTarget & HTMLInputElement }
-	):  Promise<void> {
+	): Promise<void> {
 		if (event.key === "Enter") {
 			value = !value;
 			dispatch("select", {
