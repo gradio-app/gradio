@@ -273,7 +273,7 @@ def move_files_to_cache(data: Any, block: Component):
                 )
 
             block.temp_files.add(temp_file_path)
-            payload.name = temp_file_path
+            payload.path = temp_file_path
         return payload.model_dump()
 
     return client_utils.traverse(data, _move_to_cache, client_utils.is_file_obj)

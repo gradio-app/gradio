@@ -7,7 +7,6 @@ import warnings
 from pathlib import Path
 from typing import Any, Callable, List, Literal
 
-from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import Component
