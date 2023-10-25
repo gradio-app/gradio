@@ -60,8 +60,6 @@ class Dataset(Component):
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
-            component_props: This is created when the dataset is initialized. Not intended to be set manually. But we add it to init so that Datasets can be loaded from spaces with gr.load.
-            component_ids: This is created when the dataset is initialized. Not intended to be set manually. But we add it to init so that Datasets can be loaded from spaces with gr.load.
         """
         super().__init__(
             visible=visible,
