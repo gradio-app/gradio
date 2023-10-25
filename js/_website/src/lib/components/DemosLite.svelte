@@ -52,11 +52,19 @@
 		controller.install(requirements);
 	}
 
+	let timeout: any;
+
 	$: code = demos.find((demo) => demo.name === current_selection)?.code || "";
 	$: requirements =
 		demos.find((demo) => demo.name === current_selection)?.requirements || [];
+	
 	$: if (mounted) {
-		update(code, requirements);
+		if (timeout) {
+            clearTimeout(timeout);
+        }
+		timeout = setTimeout(() => {
+			update(code, requirements);
+		}, 1000);
 	}
 
 	let position = 0.5;
@@ -67,6 +75,7 @@
 	}
 	let preview_width = 100;
 	let lg_breakpoint = false;
+	
 
 	$: lg_breakpoint = preview_width - 13 >= 688;
 </script>
