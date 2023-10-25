@@ -90,4 +90,5 @@ def _create(
         )
         live.update(":art: Created frontend code", add_sleep=0.2)
 
-        _install_command(directory, live, npm_install)
+        if install:
+            _install_command(directory, live, npm_install)

@@ -6,6 +6,7 @@ import pytest
 from gradio.cli.commands.components._create_utils import OVERRIDES
 from gradio.cli.commands.components.build import _build
 from gradio.cli.commands.components.create import _create
+from gradio.cli.commands.components.install_component import _install
 from gradio.cli.commands.components.show import _show
 
 
@@ -100,3 +101,17 @@ def test_build(tmp_path):
     assert template_dir.exists() and template_dir.is_dir()
     assert list(template_dir.glob("**/index.js"))
     assert (tmp_path / "dist").exists() and list((tmp_path / "dist").glob("*.whl"))
+
+
+def test_install(tmp_path):
+    _create(
+        "TestTextbox",
+        template="Textbox",
+        directory=tmp_path,
+        overwrite=True,
+        install=False,
+    )
+
+    assert not (tmp_path / "frontend" / "node_modules").exists()
+    _install(tmp_path)
+    assert (tmp_path / "frontend" / "node_modules").exists()
