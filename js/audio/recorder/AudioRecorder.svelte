@@ -2,7 +2,7 @@
 	import { onMount } from "svelte";
 	import type { I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
-	import { skipAudio, trimAudioBlob } from "../shared/utils";
+	import { skipAudio, process_audio } from "../shared/utils";
 	import Record from "wavesurfer.js/dist/plugins/record.js";
 	import WaveformControls from "../shared/WaveformControls.svelte";
 	import WaveformRecordControls from "../shared/WaveformRecordControls.svelte";
@@ -59,11 +59,17 @@
 		if (waveformCanvas) waveformCanvas.style.display = "block";
 	});
 
-	$: record?.on("record-end", () => {
+	$: record?.on("record-end", async () => {
 		seconds = 0;
 		timing = false;
 		clearInterval(interval);
 		dispatch("stop_recording");
+
+		const decodedData = micWaveform.getDecodedData();
+		if (decodedData)
+			await process_audio(decodedData).then(async (trimmedBlob: Uint8Array) => {
+				await dispatch_blob([trimmedBlob], "change");
+			});
 	});
 
 	$: record?.on("record-pause", () => {
@@ -146,7 +152,7 @@
 		mode = "edit";
 		const decodedData = recordingWaveform.getDecodedData();
 		if (decodedData)
-			await trimAudioBlob(decodedData, start, end).then(
+			await process_audio(decodedData, start, end).then(
 				async (trimmedAudio: Uint8Array) => {
 					await dispatch_blob([trimmedAudio], "change");
 					recordingWaveform.destroy();

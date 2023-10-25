@@ -3,7 +3,7 @@
 	import { Music } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
-	import { skipAudio, trimAudioBlob } from "../shared/utils";
+	import { skipAudio, process_audio } from "../shared/utils";
 	import WaveformControls from "../shared/WaveformControls.svelte";
 	import { Empty } from "@gradio/atoms";
 
@@ -90,7 +90,7 @@
 		mode = "";
 		const decodedData = waveform.getDecodedData();
 		if (decodedData)
-			await trimAudioBlob(decodedData, start, end).then(
+			await process_audio(decodedData, start, end).then(
 				async (trimmedBlob: Uint8Array) => {
 					await dispatch_blob([trimmedBlob], "change");
 					waveform.destroy();
@@ -99,13 +99,6 @@
 			);
 		dispatch("edit");
 	};
-
-	function clear(): void {
-		dispatch("change", null);
-		dispatch("clear");
-		mode = "";
-		value = null;
-	}
 
 	$: value && waveform?.load(value.data);
 

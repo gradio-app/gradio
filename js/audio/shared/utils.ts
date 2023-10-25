@@ -16,18 +16,23 @@ export function blob_to_data_url(blob: Blob): Promise<string> {
 	});
 }
 
-export const trimAudioBlob = async (
+export const process_audio = async (
 	audioBuffer: AudioBuffer,
-	start: number,
-	end: number
+	start?: number,
+	end?: number
 ): Promise<Uint8Array> => {
 	const audioContext = new AudioContext();
 	const numberOfChannels = audioBuffer.numberOfChannels;
 	const sampleRate = audioBuffer.sampleRate;
 
-	const startOffset = Math.round(start * sampleRate);
-	const endOffset = Math.round(end * sampleRate);
-	const trimmedLength = endOffset - startOffset;
+	let trimmedLength = audioBuffer.length;
+	let startOffset = 0;
+
+	if (start && end) {
+		startOffset = Math.round(start * sampleRate);
+		const endOffset = Math.round(end * sampleRate);
+		trimmedLength = endOffset - startOffset;
+	}
 
 	const trimmedAudioBuffer = audioContext.createBuffer(
 		numberOfChannels,
