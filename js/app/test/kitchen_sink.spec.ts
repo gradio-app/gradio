@@ -36,11 +36,7 @@ test("test inputs", async ({ page }) => {
 
 test("test outputs", async ({ page, browser }) => {
 	const submit_button = await page.locator("button", { hasText: /Submit/ });
-
-	await Promise.all([
-		submit_button.click(),
-		page.waitForResponse("**/run/predict")
-	]);
+	await submit_button.click();
 
 	const textbox = await page.getByLabel("Textbox").nth(2);
 	await expect(textbox).toHaveValue(", selected:foo, bar");
