@@ -154,7 +154,7 @@
 	}
 
 	input[type=range]::-moz-range-track {
-		height: 10px;
+		height: 12px;
 	}
 
 	input[type="range"]::-webkit-slider-thumb {
