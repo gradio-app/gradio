@@ -161,7 +161,6 @@ class Audio(
         """
         if x is None:
             return x
-
         payload: AudioInputData = AudioInputData(**x)
         assert payload.name
 

@@ -53,6 +53,12 @@ class ReloadError(ValueError):
     pass
 
 
+class GradioVersionIncompatibleError(Exception):
+    """Raised when loading a 3.x space with 4.0"""
+
+    pass
+
+
 InvalidApiName = InvalidApiNameError  # backwards compatibility
 
 set_documentation_group("modals")

@@ -344,6 +344,24 @@ def create_tmp_copy_of_file(file_path: str, dir: str | None = None) -> str:
     return str(dest.resolve())
 
 
+def download_tmp_copy_of_file(
+    url_path: str, hf_token: str | None = None, dir: str | None = None
+) -> str:
+    """Kept for backwards compatibility for 3.x spaces."""
+    if dir is not None:
+        os.makedirs(dir, exist_ok=True)
+    headers = {"Authorization": "Bearer " + hf_token} if hf_token else {}
+    directory = Path(dir or tempfile.gettempdir()) / secrets.token_hex(20)
+    directory.mkdir(exist_ok=True, parents=True)
+    file_path = directory / Path(url_path).name
+
+    with requests.get(url_path, headers=headers, stream=True) as r:
+        r.raise_for_status()
+        with open(file_path, "wb") as f:
+            shutil.copyfileobj(r.raw, f)
+    return str(file_path.resolve())
+
+
 def get_mimetype(filename: str) -> str | None:
     if filename.endswith(".vtt"):
         return "text/vtt"

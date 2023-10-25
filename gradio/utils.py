@@ -952,15 +952,6 @@ def find_user_stack_level() -> int:
     return n
 
 
-def recover_kwargs(config: dict, additional_keys_to_ignore: list[str] | None = None):
-    not_kwargs = ["type", "name", "selectable", "server_fns", "streamable"]
-    return {
-        k: v
-        for k, v in config.items()
-        if k not in not_kwargs and k not in (additional_keys_to_ignore or [])
-    }
-
-
 class NamedString(str):
     """
     Subclass of str that includes a .name attribute equal to the value of the string itself. This class is used when returning
