@@ -17,11 +17,13 @@ from gradio.events import Events
 
 set_documentation_group("component")
 
+
 class WaveformOptions(TypedDict, total=False):
     waveform_color: str
     waveform_progress_color: str
     show_controls: bool
     skip_length: int
+
 
 @document()
 class Audio(
@@ -110,7 +112,11 @@ class Audio(
             max_length: The maximum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
             waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), show_controls (bool), skip_length (int). Default is None, which uses the default values for these options.
         """
-        sources = list(sources) if sources is not None else (["microphone"] if streaming else ["microphone", "upload"])
+        sources = (
+            list(sources)
+            if sources is not None
+            else (["microphone"] if streaming else ["microphone", "upload"])
+        )
         self.sources = sources
         valid_types = ["numpy", "filepath"]
         if type not in valid_types:
@@ -120,7 +126,9 @@ class Audio(
         self.type = type
         self.streaming = streaming
         if self.streaming and "microphone" not in self.sources:
-            raise ValueError("Audio streaming only available if sources includes 'microphone'.")
+            raise ValueError(
+                "Audio streaming only available if sources includes 'microphone'."
+            )
         self.format = format
         self.autoplay = autoplay
         self.show_download_button = show_download_button
@@ -172,21 +180,20 @@ class Audio(
         # a user submits the same audio file twice
         temp_file_path = Path(payload.name)
         output_file_name = str(
-            temp_file_path.with_name(
-                f"{temp_file_path.stem}-{temp_file_path.suffix}"
-            )
+            temp_file_path.with_name(f"{temp_file_path.stem}-{temp_file_path.suffix}")
         )
 
-        sample_rate, data = processing_utils.audio_from_file(
-            temp_file_path
-        )
+        sample_rate, data = processing_utils.audio_from_file(temp_file_path)
 
         duration = len(data) / sample_rate
         if self.min_length is not None and duration < self.min_length:
-            raise ValueError(f"Audio is too short, must be at least {self.min_length} seconds")
+            raise ValueError(
+                f"Audio is too short, must be at least {self.min_length} seconds"
+            )
         if self.max_length is not None and duration > self.max_length:
-            raise ValueError(f"Audio is too long, must be at most {self.max_length} seconds")
-
+            raise ValueError(
+                f"Audio is too long, must be at most {self.max_length} seconds"
+            )
 
         if self.type == "numpy":
             return sample_rate, data
@@ -269,7 +276,11 @@ class Audio(
         return Path(input_data).name if input_data else ""
 
     def check_streamable(self):
-        if self.sources is not None and "microphone" not in self.sources and self.streaming:
+        if (
+            self.sources is not None
+            and "microphone" not in self.sources
+            and self.streaming
+        ):
             raise ValueError(
                 "Audio streaming only available if source includes 'microphone'."
             )
