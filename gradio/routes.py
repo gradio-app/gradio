@@ -621,7 +621,7 @@ class App(FastAPI):
 
                     heartbeat_rate = 15
                     check_rate = 0.05
-                    last_heartbeat = time.time()
+                    last_heartbeat = time.perf_counter()
                     message = None
                     try:
                         message = event.message_queue.get_nowait()
@@ -629,7 +629,7 @@ class App(FastAPI):
                             return
                     except EmptyQueue:
                         await asyncio.sleep(check_rate)
-                        if time.time() - last_heartbeat > heartbeat_rate:
+                        if time.perf_counter() - last_heartbeat > heartbeat_rate:
                             message = {"msg": "heartbeat"}
                             last_heartbeat = time.time()
 
