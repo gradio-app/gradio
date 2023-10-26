@@ -1,5 +1,7 @@
 ---
+"@gradio/app": minor
 "@gradio/storybook": minor
+"gradio": minor
 "website": minor
 ---
 
