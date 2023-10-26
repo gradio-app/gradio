@@ -21,6 +21,7 @@ class WaveformOptions(TypedDict, total=False):
     waveform_color: str
     waveform_progress_color: str
     show_controls: bool
+    skip_length: int
 
 @document()
 class Audio(

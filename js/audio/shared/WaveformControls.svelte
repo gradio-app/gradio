@@ -6,6 +6,7 @@
 	import RegionsPlugin, {
 		type Region,
 	} from "wavesurfer.js/dist/plugins/regions.js";
+	import type { WaveformOptions } from "./types";
 
 	export let waveform: WaveSurfer;
 	export let audioDuration: number;
@@ -17,6 +18,7 @@
 	export let mode = "";
 	export let container: HTMLDivElement;
 	export let handle_reset_value: () => void;
+	export let waveform_settings: WaveformOptions = {};
 
 	export let trimDuration = 0;
 
@@ -32,14 +34,8 @@
 
 	$: trimRegion = waveform.registerPlugin(RegionsPlugin.create());
 
-	$: trimRegion?.on("region-in", (region) => {
-		activeRegion = region;
-	});
-
 	$: trimRegion?.on("region-out", (region) => {
-		if (activeRegion === region) {
-			region.play();
-		}
+		region.play();
 	});
 
 	$: trimRegion?.on("region-updated", (region) => {
@@ -50,10 +46,6 @@
 		e.stopPropagation(); // prevent triggering a click on the waveform
 		activeRegion = region;
 		region.play();
-	});
-
-	$: waveform.on("interaction", () => {
-		activeRegion = null;
 	});
 
 	const addTrimRegion = (): void => {
@@ -108,7 +100,6 @@
 		trimRegion?.getRegions().forEach((region) => {
 			region.remove();
 		});
-		trimRegion?.destroy();
 		trimRegion?.clearRegions();
 	};
 
@@ -187,9 +178,13 @@
 		<button
 			class="rewind icon"
 			aria-label={`Skip backwards by ${getSkipRewindAmount(
-				audioDuration
+				audioDuration,
+				waveform_settings.skip_length
 			)} seconds`}
-			on:click={() => waveform.skip(getSkipRewindAmount(audioDuration) * -1)}
+			on:click={() =>
+				waveform.skip(
+					getSkipRewindAmount(audioDuration, waveform_settings.skip_length) * -1
+				)}
 		>
 			<Backward />
 		</button>
@@ -206,8 +201,14 @@
 		</button>
 		<button
 			class="skip icon"
-			aria-label="Skip forward by {getSkipRewindAmount(audioDuration)} seconds"
-			on:click={() => waveform.skip(getSkipRewindAmount(audioDuration))}
+			aria-label="Skip forward by {getSkipRewindAmount(
+				audioDuration,
+				waveform_settings.skip_length
+			)} seconds"
+			on:click={() =>
+				waveform.skip(
+					getSkipRewindAmount(audioDuration, waveform_settings.skip_length)
+				)}
 		>
 			<Forward />
 		</button>
@@ -264,6 +265,12 @@
 		margin-left: 5px;
 	}
 
+	.text-button:hover,
+	.text-button:focus {
+		color: var(--color-accent);
+		border-color: var(--color-accent);
+	}
+
 	.controls {
 		display: grid;
 		grid-template-columns: 1fr 1fr 1fr;
@@ -294,8 +301,7 @@
 	}
 	.icon:hover,
 	.icon:focus {
-		color: var(--secondary-50);
-		fill: var(--secondary-50);
+		color: var(--color-accent);
 	}
 	.play-pause-wrapper {
 		display: flex;
@@ -314,8 +320,8 @@
 	}
 
 	.playback:hover {
-		color: var(--secondary-50);
-		border-color: var(--secondary-50);
+		color: var(--color-accent);
+		border-color: var(--color-accent);
 	}
 
 	.rewind,

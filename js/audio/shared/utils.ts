@@ -84,7 +84,9 @@ export const addRegion = (
 	});
 };
 
-export const getSkipRewindAmount = (audioDuration: number): number => {
-	// TODO 5 is default fraction but make this an optional prop
-	return (audioDuration / 100) * 5;
+export const getSkipRewindAmount = (
+	audioDuration: number,
+	skip_length?: number | null
+): number => {
+	return (audioDuration / 100) * (skip_length || 5);
 };
