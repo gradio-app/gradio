@@ -34,7 +34,7 @@ from gradio.cli.commands.components.show import _show
     ],
 )
 def test_template_override_component(template, tmp_path):
-    _create("MyComponent", tmp_path, template=template, overwrite=True)
+    _create("MyComponent", tmp_path, template=template, overwrite=True, install=False)
     app = (tmp_path / "demo" / "app.py").read_text()
     answer = textwrap.dedent(
         f"""
@@ -56,12 +56,18 @@ def test_raise_error_component_template_does_not_exist(tmp_path):
         match="Cannot find NonExistentComponent in gradio.components or gradio.layouts",
     ):
         _create(
-            "MyComponent", tmp_path, template="NonExistentComponent", overwrite=True
+            "MyComponent",
+            tmp_path,
+            template="NonExistentComponent",
+            overwrite=True,
+            install=False,
         )
 
 
 def test_do_not_replace_class_name_in_import_statement(tmp_path):
-    _create("MyImage", template="Image", directory=tmp_path, overwrite=True)
+    _create(
+        "MyImage", template="Image", directory=tmp_path, overwrite=True, install=False
+    )
     code = (tmp_path / "backend" / "gradio_myimage" / "myimage.py").read_text()
     assert "from PIL import Image as _Image" in code
     assert "class MyImage" in code

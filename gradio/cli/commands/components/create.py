@@ -39,7 +39,7 @@ def _create(
         typer.Option(
             help="Whether to install the component in your current environment as a development install. Recommended for development."
         ),
-    ] = False,
+    ] = True,
     npm_install: Annotated[
         str,
         typer.Option(help="NPM install command to use. Default is 'npm install'."),

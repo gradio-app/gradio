@@ -2,6 +2,7 @@ import sys
 
 import typer
 from gradio_client.cli import deploy_discord  # type: ignore
+from rich.console import Console
 
 from .commands import custom_component, deploy, print_environment_info, reload
 
@@ -27,5 +28,12 @@ def cli():
     elif args[0] in {"cc", "component"}:
         sys.argv = sys.argv[1:]
         custom_component()
+    elif args[0] in {"build", "dev", "create", "show", "publish"}:
+        try:
+            error = f"The {args[0]} command must be prefaced with `gradio cc {args[0]}` or `gradio component {args[0]}`."
+            raise ValueError(error)
+        except ValueError:
+            console = Console()
+            console.print_exception()
     else:
         typer.run(reload)
