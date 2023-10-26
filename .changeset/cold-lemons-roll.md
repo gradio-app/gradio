@@ -27,7 +27,7 @@
 "@gradio/statustracker": minor
 "@gradio/textbox": minor
 "@gradio/video": minor
-"gradio": minor
+"gradio": major
 ---
 
 feat:fix build and broken imports
