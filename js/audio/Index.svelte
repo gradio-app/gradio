@@ -18,7 +18,7 @@
 	export let visible = true;
 	export let mode: "static" | "interactive";
 	export let value: null | FileData | string = null;
-	export let source:
+	export let sources:
 		| ["microphone"]
 		| ["upload"]
 		| ["microphone", "upload"]
@@ -83,8 +83,8 @@
 
 	let dragging: boolean;
 
-	$: if (source) {
-		active_source = source[0];
+	$: if (sources) {
+		active_source = sources[0];
 	}
 
 	const waveform_settings = {
@@ -162,7 +162,7 @@
 			}}
 			on:drag={({ detail }) => (dragging = detail)}
 			{root}
-			{source}
+			{sources}
 			{active_source}
 			{pending}
 			{streaming}

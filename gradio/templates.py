@@ -385,7 +385,7 @@ class Microphone(components.Audio):
         self,
         value: str | tuple[int, np.ndarray] | Callable | None = None,
         *,
-        source: Literal["microphone"] = "microphone",
+        sources: list[Literal["upload", "microphone"]] | None = None,
         type: Literal["numpy", "filepath"] = "numpy",
         label: str | None = None,
         show_label: bool = True,
@@ -397,7 +397,7 @@ class Microphone(components.Audio):
     ):
         super().__init__(
             value=value,
-            source=source,
+            sources=sources,
             type=type,
             label=label,
             show_label=show_label,

@@ -17,7 +17,7 @@
 	export let label: string;
 	export let root: string;
 	export let show_label = true;
-	export let source:
+	export let sources:
 		| ["microphone"]
 		| ["upload"]
 		| ["microphone", "upload"]
@@ -266,7 +266,7 @@
 	/>
 {/if}
 
-{#if source.length > 1}
+{#if sources.length > 1}
 	<span class="source-selection">
 		<button
 			class="icon"
