@@ -110,8 +110,8 @@ def _publish(
             )
     if upload_pypi:
         try:
-            from twine.commands.upload import upload as twine_upload
-            from twine.settings import Settings
+            from twine.commands.upload import upload as twine_upload  # type: ignore
+            from twine.settings import Settings  # type: ignore
         except (ImportError, ModuleNotFoundError) as e:
             raise ValueError(
                 "The twine library must be installed to publish to pypi."
