@@ -44,7 +44,7 @@ def to_binary(x: str | dict) -> bytes:
         if x.get("data"):
             base64str = x["data"]
         else:
-            base64str = client_utils.encode_url_or_file_to_base64(x["name"])
+            base64str = client_utils.encode_url_or_file_to_base64(x["path"])
     else:
         base64str = x
     return base64.b64decode(extract_base64_data(base64str))
