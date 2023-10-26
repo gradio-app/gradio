@@ -140,9 +140,8 @@ class Client:
         self._info = self._get_api_info()
         self.session_hash = str(uuid.uuid4())
 
-        endpoint_class = Endpoint
-        if self.app_version < version.Version("4.0.0"):
-            endpoint_class = EndpointV3Compatibility
+        protocol = self.config.get("protocol")
+        endpoint_class = Endpoint if protocol == "sse" else EndpointV3Compatibility
         self.endpoints = [
             endpoint_class(self, fn_index, dependency)
             for fn_index, dependency in enumerate(self.config["dependencies"])

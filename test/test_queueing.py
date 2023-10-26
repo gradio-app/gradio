@@ -84,14 +84,23 @@ class TestQueueing:
         sizes = []
         while job4.status().code.value != "FINISHED":
             queue_status = test_client.get("/queue/status").json()
-            sizes.append(queue_status["queue_size"])
+            queue_size = queue_status["queue_size"]
+            if len(sizes) == 0 or queue_size != sizes[-1]:
+                sizes.append(queue_size)
             time.sleep(0.01)
+
+        time.sleep(0.1)
+        queue_status = test_client.get("/queue/status").json()
+        queue_size = queue_status["queue_size"]
+        if queue_size != sizes[-1]:
+            sizes.append(queue_size)
 
         assert max(sizes) in [
             2,
             3,
             4,
         ]  # Can be 2 - 4, depending on if the workers have picked up jobs before the queue status is checked
+        print(sizes)
         assert min(sizes) == 0
         assert sizes[-1] == 0
 

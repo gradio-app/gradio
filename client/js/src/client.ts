@@ -428,8 +428,7 @@ export function api_factory(
 
 				let websocket: WebSocket;
 				let eventSource: EventSource;
-				const MAJOR_VERSION = parseInt(config.version.split(".")[0]);
-				let protocol = MAJOR_VERSION >= 4 ? "sse" : "ws";
+				let protocol = config.protocol ?? "sse";
 
 				const _endpoint = typeof endpoint === "number" ? "/predict" : endpoint;
 				let payload: Payload;

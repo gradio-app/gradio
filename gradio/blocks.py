@@ -1500,6 +1500,7 @@ Received outputs:
             "is_colab": utils.colab_check(),
             "stylesheets": self.stylesheets,
             "theme": self.theme.name,
+            "protocol": "sse",
         }
 
         def get_layout(block):
