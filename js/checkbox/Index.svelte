@@ -1,10 +1,15 @@
+<script context="module" lang="ts">
+	export { default as BaseCheckbox } from "./shared/Checkbox.svelte";
+</script>
+
 <script lang="ts">
 	import type { Gradio } from "@gradio/utils";
-	import Checkbox from "./shared/Checkbox.svelte";
 	import { Block, Info } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import type { SelectData } from "@gradio/utils";
+	import { afterUpdate } from "svelte";
+	import BaseCheckbox from "./shared/Checkbox.svelte";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -23,6 +28,19 @@
 		input: never;
 	}>;
 	export let mode: "static" | "interactive";
+
+	function handle_change(): void {
+		gradio.dispatch("change");
+		if (!value_is_output) {
+			gradio.dispatch("input");
+		}
+	}
+	afterUpdate(() => {
+		value_is_output = false;
+	});
+
+	// When the value changes, dispatch the change event via handle_change()
+	// See the docs for an explanation: https://svelte.dev/docs/svelte-components#script-3-$-marks-a-statement-as-reactive
 </script>
 
 <Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
@@ -36,13 +54,11 @@
 		<Info>{info}</Info>
 	{/if}
 
-	<Checkbox
-		{label}
+	<BaseCheckbox
 		bind:value
-		bind:value_is_output
-		on:change={() => gradio.dispatch("change")}
-		on:input={() => gradio.dispatch("input")}
+		{label}
+		{mode}
+		on:change={handle_change}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
-		disabled={mode === "static"}
 	/>
 </Block>
