@@ -88,7 +88,14 @@
 	import * as BABYLON_LOADERS from "babylonjs-loaders";
 	import type { I18nFormatter } from "js/utils/src";
 
-	BABYLON_LOADERS.OBJFileLoader.IMPORT_VERTEX_COLORS = true;
+	$: {
+		if (
+			BABYLON_LOADERS.OBJFileLoader != undefined &&
+			!BABYLON_LOADERS.OBJFileLoader.IMPORT_VERTEX_COLORS
+		) {
+			BABYLON_LOADERS.OBJFileLoader.IMPORT_VERTEX_COLORS = true;
+		}
+	}
 
 	$: dispatch("drag", dragging);
 </script>

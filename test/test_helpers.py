@@ -496,6 +496,7 @@ class TestProcessExamples:
                 "__type__": "update",
                 "visible": True,
                 "value": "Hello,",
+                "type": "text",
             }
         ]
 
@@ -515,6 +516,7 @@ class TestProcessExamples:
                 "__type__": "update",
                 "visible": True,
                 "value": "Michael",
+                "type": "text",
             }
         ]
 

@@ -761,8 +761,9 @@
 
 	.built-with img {
 		margin-right: var(--size-1);
-		margin-left: var(--size-2);
-		width: var(--size-3);
+		margin-left: var(--size-1);
+		margin-bottom: 1px;
+		width: var(--size-4);
 	}
 
 	.api-docs {
