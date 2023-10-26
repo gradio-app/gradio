@@ -6,7 +6,7 @@ from typing_extensions import NotRequired
 
 
 class FileData(TypedDict):
-    name: str | None  # filename
+    path: str | None  # filename
     data: str | None  # base64 encoded data
     size: NotRequired[int | None]  # size in bytes
     is_file: NotRequired[

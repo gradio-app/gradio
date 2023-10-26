@@ -225,20 +225,19 @@ class Audio(
         self, y, output_id: str, first_chunk: bool
     ) -> tuple[bytes | None, Any]:
         output_file = {
-            "name": output_id,
+            "path": output_id,
             "is_stream": True,
-            "is_file": False,
         }
         if y is None:
             return None, output_file
         if isinstance(y, bytes):
             return y, output_file
-        if client_utils.is_http_url_like(y["name"]):
-            response = requests.get(y["name"])
+        if client_utils.is_http_url_like(y["path"]):
+            response = requests.get(y["path"])
             binary_data = response.content
         else:
             output_file["orig_name"] = y["orig_name"]
-            file_path = y["name"]
+            file_path = y["path"]
             is_wav = file_path.endswith(".wav")
             with open(file_path, "rb") as f:
                 binary_data = f.read()

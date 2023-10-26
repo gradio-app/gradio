@@ -930,20 +930,16 @@ class Endpoint:
                     output = [o for ix, o in enumerate(result) if indices[ix] == i]
                     res = [
                         {
-                            "is_file": True,
-                            "name": o,
+                            "path": o,
                             "orig_name": Path(f).name,
-                            "data": None,
                         }
                         for f, o in zip(fs, output)
                     ]
                 else:
                     o = next(o for ix, o in enumerate(result) if indices[ix] == i)
                     res = {
-                        "is_file": True,
-                        "name": o,
+                        "path": o,
                         "orig_name": Path(fs).name,
-                        "data": None,
                     }
                 uploaded.append(res)
         return uploaded
@@ -998,7 +994,7 @@ class Endpoint:
         data = self._add_uploaded_files_to_data(data, uploaded_files)
         data = utils.traverse(
             data,
-            lambda s: {"name": s, "is_file": True, "data": None},
+            lambda s: {"path": s},
             utils.is_url,
         )
         o = tuple(data)
@@ -1016,18 +1012,19 @@ class Endpoint:
         if isinstance(x, str):
             file_name = utils.decode_base64_to_file(x, dir=save_dir).name
         elif isinstance(x, dict):
-            if x.get("is_file"):
-                filepath = x.get("name")
-                assert filepath is not None, f"The 'name' field is missing in {x}"
+            data = x.get("data", None)
+            if data is not None:
+                assert data is not None, f"The 'data' field is missing in {x}"
+                file_name = utils.decode_base64_to_file(data, dir=save_dir).name
+            if x.get("is_file", True):
+                filepath = x.get("path")
+                assert filepath is not None, f"The 'path' field is missing in {x}"
                 file_name = utils.download_file(
                     root_url + "file=" + filepath,
                     hf_token=hf_token,
                     dir=save_dir,
                 )
-            else:
-                data = x.get("data")
-                assert data is not None, f"The 'data' field is missing in {x}"
-                file_name = utils.decode_base64_to_file(data, dir=save_dir).name
+
         else:
             raise ValueError(
                 f"A FileSerializable component can only deserialize a string or a dict, not a {type(x)}: {x}"

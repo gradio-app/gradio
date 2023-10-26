@@ -1108,6 +1108,7 @@ class Blocks(BlockContext):
                 )
             api_info = block.api_info()
             if client_utils.value_is_file(api_info):
+                print("TRUE FOR VALUE IS FILE")
                 serialized_input = client_utils.traverse(
                     inputs[i],
                     format_file,

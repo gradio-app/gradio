@@ -599,8 +599,6 @@ class TestImage:
         image_output = gr.Image(type="pil")
         processed_image = image_output.postprocess(PIL.Image.open(img["path"]))
         assert processed_image is not None
-        print("PROCESSED: ", processed_image)
-        print("IMAGE: ", img)
         if processed_image is not None:
             processed = client_utils.encode_url_or_file_to_base64(
                 cast(dict, processed_image).get("path", "")
@@ -705,7 +703,6 @@ class TestAudio:
         x_wav = processing_utils.move_files_to_cache([x_wav], audio_input)[0]
         audio_input = gr.Audio(type="filepath")
         output1 = audio_input.preprocess(x_wav)
-        print("LOG: ", output1)
         assert Path(output1).name.endswith("audio_sample-0-100.wav")
 
         audio_input = gr.Audio(label="Upload Your Audio")
@@ -1414,7 +1411,7 @@ class TestVideo:
         """
         x_video = media_data.BASE64_VIDEO["path"]
         iface = gr.Interface(lambda x: x, "video", "playable_video")
-        assert iface(x_video)["video"].endswith(".mp4")
+        assert iface({"video": x_video})["video"].endswith(".mp4")
 
     def test_with_waveform(self):
         """

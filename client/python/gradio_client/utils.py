@@ -660,6 +660,7 @@ def traverse(json_obj: Any, func: Callable, is_root: Callable) -> Any:
 
 def value_is_file(api_info: dict) -> bool:
     info = _json_schema_to_python_type(api_info, api_info.get("$defs"))
+    print("INFO", info)
     return FILE_DATA in info
 
 
