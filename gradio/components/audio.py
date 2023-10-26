@@ -109,7 +109,7 @@ class Audio(
             max_length: The maximum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
             waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), show_controls (bool). Default is None, which uses the default values for these options.
         """
-        source = list(set(source)) if source is not None else (["microphone"] if streaming else ["microphone", "upload"])
+        source = list(source) if source is not None else (["microphone"] if streaming else ["microphone", "upload"])
         self.source = source
         valid_types = ["numpy", "filepath"]
         if type not in valid_types:
