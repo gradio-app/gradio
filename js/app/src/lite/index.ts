@@ -1,4 +1,5 @@
 import "@gradio/theme";
+import type { SvelteComponent } from "svelte"
 import { WorkerProxy, type WorkerProxyOptions } from "@gradio/wasm";
 import { api_factory } from "@gradio/client";
 import { wasm_proxied_fetch } from "./fetch";
@@ -6,7 +7,8 @@ import { wasm_proxied_WebSocket_factory } from "./websocket";
 import { wasm_proxied_mount_css, mount_prebuilt_css } from "./css";
 import type { mount_css } from "../css";
 import Index from "../Index.svelte";
-import type { ThemeMode } from "../types";
+import ErrorDisplay from "./ErrorDisplay.svelte";
+import type { ThemeMode } from "../components/types";
 import { bootstrap_custom_element } from "./custom-element";
 
 // These imports are aliased at built time with Vite. See the `resolve.alias` config in `vite.config.ts`.
@@ -76,14 +78,18 @@ export function create(options: Options): GradioAppController {
 		requirements: options.requirements ?? []
 	});
 
+	worker_proxy.addEventListener("initialization-error", (event) => {
+		showError((event as CustomEvent).detail);
+	});
+
 	// Internally, the execution of `runPythonCode()` or `runPythonFile()` is queued
 	// and its promise will be resolved after the Pyodide is loaded and the worker initialization is done
 	// (see the await in the `onmessage` callback in the webworker code)
 	// So we don't await this promise because we want to mount the `Index` immediately and start the app initialization asynchronously.
 	if (options.code != null) {
-		worker_proxy.runPythonCode(options.code);
+		worker_proxy.runPythonCode(options.code).catch(showError);
 	} else if (options.entrypoint != null) {
-		worker_proxy.runPythonFile(options.entrypoint);
+		worker_proxy.runPythonFile(options.entrypoint).catch(showError)
 	} else {
 		throw new Error("Either code or entrypoint must be provided.");
 	}
@@ -104,7 +110,20 @@ export function create(options: Options): GradioAppController {
 		return wasm_proxied_mount_css(worker_proxy, url, target);
 	};
 
-	let app: Index;
+	let app: SvelteComponent;
+	function showError(error: Error): void {
+		if (app != null) {
+			app.$destroy();
+		}
+
+		app = new ErrorDisplay({
+			target: options.target,
+			props: {
+				is_embed: !options.isEmbed,
+				error,
+			}
+		});
+	}
 	function launchNewApp(): void {
 		if (app != null) {
 			app.$destroy();
@@ -144,25 +163,53 @@ export function create(options: Options): GradioAppController {
 	launchNewApp();
 
 	return {
-		run_code: async (code: string): Promise<void> => {
-			await worker_proxy.runPythonCode(code);
-			launchNewApp();
+		run_code: (code: string) => {
+			return worker_proxy.runPythonCode(code)
+				.then(launchNewApp)
+				.catch((e) => {
+					showError(e);
+					throw e;
+				})
 		},
-		run_file: async (path: string): Promise<void> => {
-			await worker_proxy.runPythonFile(path);
-			launchNewApp();
+		run_file: (path: string) => {
+			return worker_proxy.runPythonFile(path)
+				.then(launchNewApp)
+				.catch((e) => {
+					showError(e);
+					throw e;
+				})
 		},
-		write(path, data, opts) {
-			return worker_proxy.writeFile(path, data, opts);
+		write: (path, data, opts) => {
+			return worker_proxy.writeFile(path, data, opts)
+				.then(launchNewApp)
+				.catch((e) => {
+					showError(e);
+					throw e;
+				})
 		},
-		rename(old_path: string, new_path: string): Promise<void> {
-			return worker_proxy.renameFile(old_path, new_path);
+		rename: (old_path, new_path) => {
+			return worker_proxy.renameFile(old_path, new_path)
+				.then(launchNewApp)
+				.catch((e) => {
+					showError(e);
+					throw e;
+				})
 		},
-		unlink(path) {
-			return worker_proxy.unlink(path);
+		unlink: (path) => {
+			return worker_proxy.unlink(path)
+				.then(launchNewApp)
+				.catch((e) => {
+					showError(e);
+					throw e;
+				})
 		},
-		install(requirements) {
-			return worker_proxy.install(requirements);
+		install: (requirements) => {
+			return worker_proxy.install(requirements)
+				.then(launchNewApp)
+				.catch((e) => {
+					showError(e);
+					throw e;
+				})
 		},
 		unmount() {
 			app.$destroy();
