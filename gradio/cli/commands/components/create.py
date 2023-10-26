@@ -1,14 +1,12 @@
 import shutil
-import subprocess
 from pathlib import Path
 from typing import Optional
 
 import typer
-from rich.markup import escape
 from typing_extensions import Annotated
 
+from gradio.cli.commands.components.install_component import _get_npm, _install_command
 from gradio.cli.commands.display import LivePanelDisplay
-from gradio.utils import set_directory
 
 from . import _create_utils
 
@@ -41,7 +39,7 @@ def _create(
         typer.Option(
             help="Whether to install the component in your current environment as a development install. Recommended for development."
         ),
-    ] = False,
+    ] = True,
     npm_install: Annotated[
         str,
         typer.Option(help="NPM install command to use. Default is 'npm install'."),
@@ -69,17 +67,8 @@ def _create(
 
     if _create_utils._in_test_dir():
         npm_install = f"{shutil.which('pnpm')} i --ignore-scripts"
-
-    npm_install = npm_install.strip()
-    if npm_install == "npm install":
-        npm = shutil.which("npm")
-        if not npm:
-            raise ValueError(
-                "By default, the install command uses npm to install "
-                "the frontend dependencies. Please install npm or pass your own install command "
-                "via the --npm-install option."
-            )
-        npm_install = f"{npm} install"
+    else:
+        npm_install = _get_npm(npm_install)
 
     with LivePanelDisplay() as live:
         live.update(
@@ -96,32 +85,10 @@ def _create(
         _create_utils._create_backend(name, component, directory, package_name)
         live.update(":snake: Created backend code", add_sleep=0.2)
 
-        _create_utils._create_frontend(name.lower(), component, directory=directory)
+        _create_utils._create_frontend(
+            name.lower(), component, directory=directory, package_name=package_name
+        )
         live.update(":art: Created frontend code", add_sleep=0.2)
 
         if install:
-            cmds = [shutil.which("pip"), "install", "-e", f"{str(directory)}[dev]"]
-            live.update(
-                f":construction_worker: Installing python... [grey37]({escape(' '.join(cmds))})[/]"
-            )
-            pipe = subprocess.run(cmds, capture_output=True, text=True)
-
-            if pipe.returncode != 0:
-                live.update(":red_square: Python installation [bold][red]failed[/][/]")
-                live.update(pipe.stderr)
-            else:
-                live.update(":white_check_mark: Python install succeeded!")
-
-            live.update(
-                f":construction_worker: Installing javascript... [grey37]({npm_install})[/]"
-            )
-            with set_directory(directory / "frontend"):
-                pipe = subprocess.run(
-                    npm_install.split(), capture_output=True, text=True
-                )
-                if pipe.returncode != 0:
-                    live.update(":red_square: NPM install [bold][red]failed[/][/]")
-                    live.update(pipe.stdout)
-                    live.update(pipe.stderr)
-                else:
-                    live.update(":white_check_mark: NPM install succeeded!")
+            _install_command(directory, live, npm_install)

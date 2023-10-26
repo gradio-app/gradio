@@ -978,7 +978,7 @@ class TestDataframe:
             "root_url": None,
             "name": "dataframe",
             "height": 500,
-            "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
+            "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
             "line_breaks": True,
             "column_widths": [],
         }
@@ -1013,7 +1013,7 @@ class TestDataframe:
             "root_url": None,
             "name": "dataframe",
             "height": 500,
-            "latex_delimiters": [{"display": False, "left": "$", "right": "$"}],
+            "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
             "line_breaks": True,
             "column_widths": [],
         }
@@ -1973,6 +1973,7 @@ class TestModel3D:
             "elem_id": None,
             "elem_classes": [],
             "root_url": None,
+            "interactive": None,
             "name": "model3d",
             "camera_position": (None, None, None),
             "height": None,

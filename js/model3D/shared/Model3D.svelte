@@ -22,7 +22,14 @@
 		null
 	];
 
-	BABYLON_LOADERS.OBJFileLoader.IMPORT_VERTEX_COLORS = true;
+	$: {
+		if (
+			BABYLON_LOADERS.OBJFileLoader != undefined &&
+			!BABYLON_LOADERS.OBJFileLoader.IMPORT_VERTEX_COLORS
+		) {
+			BABYLON_LOADERS.OBJFileLoader.IMPORT_VERTEX_COLORS = true;
+		}
+	}
 
 	let canvas: HTMLCanvasElement;
 	let scene: BABYLON.Scene;
