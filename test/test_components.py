@@ -745,7 +745,7 @@ class TestAudio:
         x_wav = processing_utils.move_files_to_cache([x_wav], audio_input)[0]
         audio_input = gr.Audio(type="filepath")
         output1 = audio_input.preprocess(x_wav)
-        assert Path(output1).name.endswith("audio_sample-0-100.wav")
+        assert Path(output1).name.endswith("audio_sample.wav")
 
         audio_input = gr.Audio(label="Upload Your Audio")
         assert audio_input.get_config() == {
