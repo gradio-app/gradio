@@ -9,8 +9,6 @@ from rich import print
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt
-from twine.commands.upload import upload as twine_upload
-from twine.settings import Settings
 from typer import Argument, Option
 from typing_extensions import Annotated
 
@@ -38,8 +36,6 @@ WORKDIR /code
 COPY . .
 
 RUN pip install --no-cache-dir -r requirements.txt
-
-RUN chmod -R 777 /code
 
 ENV PYTHONUNBUFFERED=1 \
 	GRADIO_ALLOW_FLAGGING=never \
@@ -84,12 +80,14 @@ def _publish(
     if upload_pypi and (not pypi_username or not pypi_password):
         panel = Panel(
             "You have opted to upload to [blue]https://pypi.org/[/] but no pypi credentials have been provided.\n"
-            "If you do not have an account, register account here: [blue]{PYPI_REGISTER_URL}[/]"
+            f"If you do not have an account, register account here: [blue]{PYPI_REGISTER_URL}[/]"
         )
         print(panel)
         pypi_username = Prompt.ask(":laptop_computer: Enter your pypi username")
-        pypi_password = Prompt.ask(":closed_lock_with_key: Enter your pypi password")
+        pypi_password = Prompt.ask(":closed_lock_with_key: Enter your pypi password", password=True)
     if upload_pypi:
+        from twine.commands.upload import upload as twine_upload
+        from twine.settings import Settings
         twine_settings = Settings(username=pypi_username, password=pypi_password)
         try:
             twine_upload(twine_settings, [str(wheel_file)])
@@ -104,14 +102,14 @@ def _publish(
             "If you need additional python requirements, add a [magenta]requirements.txt[/] file to this directory."
         )
         print(panel)
-        demo_dir = Path(Prompt.ask(":hugging_face: Please enter demo directory"))
+        demo_dir = Path(Prompt.ask(":hugging_face: Please enter demo directory")).resolve()
     if upload_demo:
         assert demo_dir
         if not (demo_dir / "app.py").exists():
             raise FileNotFoundError("app.py not found in demo directory.")
         additional_reqs = [
-            "gradio-client @ git+https://github.com/gradio-app/gradio@2f760b6b95538be76d4ea91f63bf6616ff0eda60#subdirectory=client/python",
-            "https://gradio-builds.s3.amazonaws.com/2f760b6b95538be76d4ea91f63bf6616ff0eda60/gradio-3.50.2-py3-none-any.whl",
+            "https://gradio-builds.s3.amazonaws.com/4.0/attempt-03/gradio-4.0.0-py3-none-any.whl",
+            "https://gradio-builds.s3.amazonaws.com/4.0/attempt-03/gradio_client-0.7.0b0-py3-none-any.whl",
             wheel_file.name,
         ]
         if (demo_dir / "requirements.txt").exists():
@@ -144,7 +142,7 @@ def _publish(
 
             api = HfApi()
             new_space = api.create_repo(
-                repo_id=f"{package_name}-v{version}",
+                repo_id=f"{package_name}",
                 repo_type="space",
                 exist_ok=True,
                 private=False,
