@@ -18,8 +18,6 @@ export async function make_build({
 	const svelte_dir = join(root_dir, "assets", "svelte");
 
 	const module_meta = examine_module(component_dir, root_dir, "build");
-	module_meta.forEach((x) => console.log(x.name));
-	module_meta.forEach((x) => console.log(x.frontend_dir));
 	try {
 		for (const comp of module_meta) {
 			const template_dir = comp.template_dir;
@@ -37,7 +35,6 @@ export async function make_build({
 			for (const [entry, path] of exports) {
 				try {
 					const x = await build({
-						configFile: false,
 						plugins: [
 							...plugins,
 							make_gradio_plugin({ mode: "build", svelte_dir })

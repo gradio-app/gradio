@@ -34,7 +34,6 @@ const parsed_args = parse_args(args);
 
 async function run(): Promise<void> {
 	if (parsed_args.mode === "build") {
-		console.log("Building...");
 		await make_build({
 			component_dir: parsed_args["component-directory"],
 			root_dir: parsed_args.root
