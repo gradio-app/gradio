@@ -1,4 +1,5 @@
 ---
+"@gradio/preview": minor
 "gradio": minor
 ---
 
