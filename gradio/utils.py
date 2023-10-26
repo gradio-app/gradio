@@ -532,6 +532,15 @@ def set_directory(path: Path | str):
         os.chdir(origin)
 
 
+@contextmanager
+def no_raise_exception():
+    """Context manager that suppresses exceptions."""
+    try:
+        yield
+    except Exception:
+        pass
+
+
 def sanitize_value_for_csv(value: str | Number) -> str | Number:
     """
     Sanitizes a value that is being written to a CSV file to prevent CSV injection attacks.

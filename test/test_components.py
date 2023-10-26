@@ -820,6 +820,11 @@ class TestAudio:
         output2 = audio_output.postprocess(Path(y_audio.name))
         assert output1 == output2
 
+    def test_default_value_postprocess(self):
+        x_wav = deepcopy(media_data.BASE64_AUDIO)
+        audio = gr.Audio(value=x_wav["name"])
+        assert processing_utils.is_in_or_equal(audio.value["name"], audio.GRADIO_CACHE)
+
     def test_in_interface(self):
         def reverse_audio(audio):
             sr, data = audio
