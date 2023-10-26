@@ -761,7 +761,7 @@
 
 	.built-with img {
 		margin-right: var(--size-1);
-		margin-left: var(--size-2);
+		margin-left: var(--size-1);
 		width: var(--size-4);
 	}
 
