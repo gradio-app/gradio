@@ -30,7 +30,7 @@ def cli():
         custom_component()
     elif args[0] in {"build", "dev", "create", "show", "publish"}:
         try:
-            error = f"The {args[0]} command must be prefaced with `gradio cc {args[0]}` or `gradio component {args[0]}`."
+            error = f"gradio {args[0]} is not a valid command. Did you mean `gradio cc {args[0]}` or `gradio component {args[0]}`?."
             raise ValueError(error)
         except ValueError:
             console = Console()
