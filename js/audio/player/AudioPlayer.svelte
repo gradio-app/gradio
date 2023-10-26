@@ -6,6 +6,7 @@
 	import { skipAudio, process_audio } from "../shared/utils";
 	import WaveformControls from "../shared/WaveformControls.svelte";
 	import { Empty } from "@gradio/atoms";
+	import { resolve_wasm_src } from "@gradio/wasm/svelte";
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
@@ -100,7 +101,14 @@
 		dispatch("edit");
 	};
 
-	$: value && waveform?.load(value.data);
+	async function load_audio(data: any): Promise<void> {
+		await resolve_wasm_src(data).then((resolved_src) => {
+			if (!resolved_src) return;
+			return waveform?.load(resolved_src);
+		});
+	}
+
+	$: value && load_audio(value.data);
 
 	onMount(() => {
 		window.addEventListener("keydown", (e) => {
@@ -150,6 +158,7 @@
 				bind:trimDuration
 				showRedo={interactive}
 				{handle_reset_value}
+				{waveform_settings}
 			/>
 		{/if}
 	</div>

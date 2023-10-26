@@ -7,7 +7,6 @@
 	import AudioPlayer from "../player/AudioPlayer.svelte";
 	import { createEventDispatcher } from "svelte";
 	import type { FileData } from "@gradio/upload";
-	import type { WaveformOptions } from "../shared/types";
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
 	export let name: string;

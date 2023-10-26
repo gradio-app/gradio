@@ -58,7 +58,7 @@ class Audio(
         self,
         value: str | Path | tuple[int, np.ndarray] | Callable | None = None,
         *,
-        source: list[Literal["upload", "microphone"]] | None = None,
+        sources: list[Literal["upload", "microphone"]] | None = None,
         type: Literal["numpy", "filepath"] = "numpy",
         label: str | None = None,
         every: float | None = None,
@@ -86,7 +86,7 @@ class Audio(
         """
         Parameters:
             value: A path, URL, or [sample_rate, numpy array] tuple (sample rate in Hz, audio data as a float or int numpy array) for the default value that Audio component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            source: A list of sources permitted for audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input. If None, defaults to ["upload", "microphone"], or ["microphone"] if `streaming` is True.
+            sources: A list of sources permitted for audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input. If None, defaults to ["upload", "microphone"], or ["microphone"] if `streaming` is True.
             type: The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
@@ -108,10 +108,10 @@ class Audio(
             show_edit_button: If True, will show an edit icon in the corner of the component that allows user to edit the audio. If False, icon does not appear. Default is True.
             min_length: The minimum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
             max_length: The maximum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
-            waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), show_controls (bool). Default is None, which uses the default values for these options.
+            waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), show_controls (bool), skip_length (int). Default is None, which uses the default values for these options.
         """
-        source = list(source) if source is not None else (["microphone"] if streaming else ["microphone", "upload"])
-        self.source = source
+        sources = list(sources) if sources is not None else (["microphone"] if streaming else ["microphone", "upload"])
+        self.sources = sources
         valid_types = ["numpy", "filepath"]
         if type not in valid_types:
             raise ValueError(
@@ -119,10 +119,8 @@ class Audio(
             )
         self.type = type
         self.streaming = streaming
-        if streaming and source == "upload":
-            raise ValueError(
-                "Audio streaming only available if source is 'microphone'."
-            )
+        if self.streaming and "microphone" not in self.sources:
+            raise ValueError("Audio streaming only available if sources includes 'microphone'.")
         self.format = format
         self.autoplay = autoplay
         self.show_download_button = show_download_button
@@ -271,7 +269,7 @@ class Audio(
         return Path(input_data).name if input_data else ""
 
     def check_streamable(self):
-        if self.source != "microphone" and self.streaming:
+        if self.sources is not None and "microphone" not in self.sources and self.streaming:
             raise ValueError(
-                "Audio streaming only available if source is 'microphone'."
+                "Audio streaming only available if source includes 'microphone'."
             )

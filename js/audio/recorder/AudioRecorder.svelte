@@ -212,6 +212,7 @@
 			bind:mode
 			showRedo
 			{handle_reset_value}
+			{waveform_settings}
 		/>
 	{/if}
 </div>
