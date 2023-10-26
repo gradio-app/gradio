@@ -11,9 +11,6 @@
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value = false;
-	// export let value_is_output = false;
-	// export let label = "Checkbox";
-	// export let info: string | undefined = undefined;
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
@@ -26,11 +23,13 @@
 </script>
 
 <Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
-	<StatusTracker
-		autoscroll={gradio.autoscroll}
-		i18n={gradio.i18n}
-		{...loading_status}
-	/>
+	{#if loading_status}
+		<StatusTracker
+			autoscroll={gradio.autoscroll}
+			i18n={gradio.i18n}
+			{...loading_status}
+		/>
+	{/if}
 
 	<JsonView json={value} />
 </Block>

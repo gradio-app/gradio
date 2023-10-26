@@ -532,6 +532,15 @@ def set_directory(path: Path | str):
         os.chdir(origin)
 
 
+@contextmanager
+def no_raise_exception():
+    """Context manager that suppresses exceptions."""
+    try:
+        yield
+    except Exception:
+        pass
+
+
 def sanitize_value_for_csv(value: str | Number) -> str | Number:
     """
     Sanitizes a value that is being written to a CSV file to prevent CSV injection attacks.
@@ -950,15 +959,6 @@ def find_user_stack_level() -> int:
         frame = frame.f_back
         n += 1
     return n
-
-
-def recover_kwargs(config: dict, additional_keys_to_ignore: list[str] | None = None):
-    not_kwargs = ["type", "name", "selectable", "server_fns", "streamable"]
-    return {
-        k: v
-        for k, v in config.items()
-        if k not in not_kwargs and k not in (additional_keys_to_ignore or [])
-    }
 
 
 class NamedString(str):

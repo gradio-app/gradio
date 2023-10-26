@@ -11,7 +11,7 @@
 	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 	import { setupi18n } from "./i18n";
 	import { ApiDocs } from "./api_docs/";
-	import type { ThemeMode } from "./types";
+	import type { ThemeMode, Payload } from "./types";
 	import { Toast } from "@gradio/statustracker";
 	import type { ToastMessage } from "@gradio/statustracker";
 	import type { ShareData } from "@gradio/utils";
@@ -372,12 +372,11 @@
 				})
 			);
 		}
-
 		if (current_status === "pending" || current_status === "generating") {
-			return;
+			dep.pending_request = true;
 		}
 
-		let payload = {
+		let payload: Payload = {
 			fn_index: dep_index,
 			data: dep.inputs.map((id) => instance_map[id].props.value),
 			event_data: dep.collects_event_data ? event_data : null
@@ -393,21 +392,36 @@
 				.then((v: unknown[]) => {
 					if (dep.backend_fn) {
 						payload.data = v;
-						make_prediction();
+						make_prediction(payload);
 					} else {
 						handle_update(v, dep_index);
 					}
 				});
 		} else {
 			if (dep.backend_fn) {
-				make_prediction();
+				if (dep.trigger_mode === "once") {
+					if (!dep.pending_request) make_prediction(payload);
+				} else if (dep.trigger_mode === "multiple") {
+					make_prediction(payload);
+				} else if (dep.trigger_mode === "always_last") {
+					if (!dep.pending_request) {
+						make_prediction(payload);
+					} else {
+						dep.final_event = payload;
+					}
+				}
 			}
 		}
 
-		function make_prediction(): void {
+		function make_prediction(payload: Payload): void {
 			const submission = app
 				.submit(payload.fn_index, payload.data as unknown[], payload.event_data)
 				.on("data", ({ data, fn_index }) => {
+					if (dep.pending_request && dep.final_event) {
+						dep.pending_request = false;
+						make_prediction(dep.final_event);
+					}
+					dep.pending_request = false;
 					handle_update(data, fn_index);
 				})
 				.on("status", ({ fn_index, ...status }) => {
@@ -747,8 +761,9 @@
 
 	.built-with img {
 		margin-right: var(--size-1);
-		margin-left: var(--size-2);
-		width: var(--size-3);
+		margin-left: var(--size-1);
+		margin-bottom: 1px;
+		width: var(--size-4);
 	}
 
 	.api-docs {

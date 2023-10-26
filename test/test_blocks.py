@@ -1666,3 +1666,16 @@ def test_temp_file_sets_get_extended():
         demo2.render()
 
     assert demo3.temp_file_sets == demo1.temp_file_sets + demo2.temp_file_sets
+
+
+def test_recover_kwargs():
+    audio = gr.Audio(format="wav", autoplay=True)
+    props = audio.recover_kwargs(
+        {"format": "wav", "value": "foo.wav", "autoplay": False, "foo": "bar"}
+    )
+    assert props == {"format": "wav", "value": "foo.wav", "autoplay": False}
+    props = audio.recover_kwargs(
+        {"format": "wav", "value": "foo.wav", "autoplay": False, "foo": "bar"},
+        ["value"],
+    )
+    assert props == {"format": "wav", "autoplay": False}

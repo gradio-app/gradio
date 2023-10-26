@@ -12,7 +12,7 @@ def make_dir(root, path):
 
 def get_latest_release():
     with open(make_dir(GRADIO_DIR, "package.json")) as f:
-        version = json.load(f)["version"]
+        version = "3.50.2"
         with open(make_dir(WEBSITE_DIR, "src/lib/json/version.json"), "w+") as j:
             json.dump({
                 "version": version

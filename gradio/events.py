@@ -9,6 +9,7 @@ from functools import partial, wraps
 from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
 
 from gradio_client.documentation import document
+from jinja2 import Template
 
 if TYPE_CHECKING:
     from gradio.blocks import Block, Component
@@ -143,6 +144,7 @@ class EventListener(str):
         callback: Callable | None = None,
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
+        doc: str = "",
     ):
         super().__init__()
         self.has_trigger = has_trigger
@@ -152,6 +154,7 @@ class EventListener(str):
         self.trigger_after = trigger_after
         self.trigger_only_on_success = trigger_only_on_success
         self.callback = callback
+        self.doc = doc
         self.listener = self._setup(
             event_name,
             has_trigger,
@@ -159,6 +162,25 @@ class EventListener(str):
             callback,
             trigger_after,
             trigger_only_on_success,
+        )
+        if doc and self.listener.__doc__:
+            self.listener.__doc__ = doc + self.listener.__doc__
+
+    def set_doc(self, component: str):
+        if self.listener.__doc__:
+            doc = Template(self.listener.__doc__).render(component=component)
+            self.listener.__doc__ = doc
+
+    def copy(self):
+        return EventListener(
+            self.event_name,
+            self.has_trigger,
+            self.config_data,
+            self.show_progress,  # type: ignore
+            self.callback,
+            self.trigger_after,
+            self.trigger_only_on_success,
+            self.doc,
         )
 
     @staticmethod
@@ -185,6 +207,7 @@ class EventListener(str):
             postprocess: bool = True,
             cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
             every: float | None = None,
+            trigger_mode: Literal["once", "multiple", "always_last"] | None = None,
             _js: str | None = None,
         ) -> Dependency:
             """
@@ -202,6 +225,7 @@ class EventListener(str):
                 postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
                 cancels: A list of other events to cancel when this listener is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method. Functions that have not yet run (or generators that are iterating) will be cancelled, but functions that are currently running will be allowed to finish.
                 every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
+                trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` event) would allow a second submission after the pending event is complete.
             """
 
             if fn == "decorator":
@@ -222,6 +246,7 @@ class EventListener(str):
                         postprocess,
                         cancels,
                         every,
+                        trigger_mode,
                         _js,
                     )
 
@@ -262,7 +287,7 @@ class EventListener(str):
 
             if Context.root_block is None:
                 raise AttributeError(
-                    "Cannot call {self.event_name} outside of a gradio.Blocks context."
+                    f"Cannot call {_event_name} outside of a gradio.Blocks context."
                 )
 
             dep, dep_index = Context.root_block.set_event_trigger(
@@ -284,6 +309,7 @@ class EventListener(str):
                 every=every,
                 trigger_after=_trigger_after,
                 trigger_only_on_success=_trigger_only_on_success,
+                trigger_mode=trigger_mode,
             )
             set_cancel_events(
                 [EventListenerMethod(block if _has_trigger else None, _event_name)],
@@ -397,38 +423,88 @@ def on(
 
 
 class Events:
-    change = "change"
-    input = "input"
-    click = "click"
-    submit = "submit"
-    edit = "edit"
-    clear = "clear"
-    play = "play"
-    pause = "pause"
-    stop = "stop"
-    end = "end"
-    start_recording = "start_recording"
-    pause_recording = "pause_recording"
-    stop_recording = "stop_recording"
-    focus = "focus"
-    blur = "blur"
-    upload = "upload"
-    release = "release"
+    change = EventListener(
+        "change",
+        doc="Triggered when the value of the {{ component }} changes either because of user input (e.g. a user types in a textbox) OR because of a function update (e.g. an image receives a value from the output of an event trigger). See `.input()` for a listener that is only triggered by user input.",
+    )
+    input = EventListener(
+        "input",
+        doc="This listener is triggered when the user changes the value of the {{ component }}.",
+    )
+    click = EventListener("click", doc="Triggered when the {{ component }} is clicked.")
+    submit = EventListener(
+        "submit",
+        doc="This listener is triggered when the user presses the Enter key while the {{ component }} is focused.",
+    )
+    edit = EventListener(
+        "edit",
+        doc="This listener is triggered when the user edits the {{ component }} (e.g. image) using the built-in editor.",
+    )
+    clear = EventListener(
+        "clear",
+        doc="This listener is triggered when the user clears the {{ component }} using the X button for the component.",
+    )
+    play = EventListener(
+        "play",
+        doc="This listener is triggered when the user plays the media in the {{ component }}.",
+    )
+    pause = EventListener(
+        "pause",
+        doc="This listener is triggered when the media in the {{ component }} stops for any reason.",
+    )
+    stop = EventListener(
+        "stop",
+        doc="This listener is triggered when the user reaches the end of the media playing in the {{ component }}.",
+    )
+    end = EventListener(
+        "end",
+        doc="This listener is triggered when the user reaches the end of the media playing in the {{ component }}.",
+    )
+    start_recording = EventListener(
+        "start_recording",
+        doc="This listener is triggered when the user starts recording with the {{ component }}.",
+    )
+    pause_recording = EventListener(
+        "pause_recording",
+        doc="This listener is triggered when the user pauses recording with the {{ component }}.",
+    )
+    stop_recording = EventListener(
+        "stop_recording",
+        doc="This listener is triggered when the user stops recording with the {{ component }}.",
+    )
+    focus = EventListener(
+        "focus", doc="This listener is triggered when the {{ component }} is focused."
+    )
+    blur = EventListener(
+        "blur",
+        doc="This listener is triggered when the {{ component }} is unfocused/blurred.",
+    )
+    upload = EventListener(
+        "upload",
+        doc="This listener is triggered when the user uploads a file into the {{ component }}.",
+    )
+    release = EventListener(
+        "release",
+        doc="This listener is triggered when the user releases the mouse on this {{ component }}.",
+    )
     select = EventListener(
         "select",
         config_data=lambda: {"selectable": False},
         callback=lambda block: setattr(block, "selectable", True),
+        doc="Event listener for when the user selects or deselects the {{ component }}. Uses event data gradio.SelectData to carry `value` referring to the label of the {{ component }}, and `selected` to refer to state of the {{ component }}. See EventData documentation on how to use this event data",
     )
     stream = EventListener(
         "stream",
         show_progress="hidden",
         config_data=lambda: {"streamable": False},
         callback=lambda block: setattr(block, "streaming", True),
+        doc="This listener is triggered when the user streams the {{ component }}.",
     )
     like = EventListener(
         "like",
         config_data=lambda: {"likeable": False},
         callback=lambda block: setattr(block, "likeable", True),
+        doc="This listener is triggered when the user likes/dislikes from within the {{ component }}. This event has EventData of type gradio.LikeData that carries information, accessible through LikeData.index and LikeData.value. See EventData documentation on how to use this event data.",
     )
 
 

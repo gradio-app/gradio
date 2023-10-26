@@ -6,7 +6,6 @@ from typing import Any, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-import gradio.utils as utils
 from gradio.components.base import (
     Component,
     get_component_instance,
@@ -62,13 +61,20 @@ class Dataset(Component):
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
         """
-        super().__init__(visible=visible, elem_id=elem_id, elem_classes=elem_classes)
+        super().__init__(
+            visible=visible,
+            elem_id=elem_id,
+            elem_classes=elem_classes,
+            root_url=root_url,
+            _skip_init_processing=_skip_init_processing,
+            render=render,
+        )
         self.container = container
         self.scale = scale
         self.min_width = min_width
         self._components = [get_component_instance(c) for c in components]
         self.component_props = [
-            utils.recover_kwargs(
+            component.recover_kwargs(
                 component.get_config(),
                 ["value"],
             )

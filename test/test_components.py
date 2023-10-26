@@ -820,6 +820,11 @@ class TestAudio:
         output2 = audio_output.postprocess(Path(y_audio.name))
         assert output1 == output2
 
+    def test_default_value_postprocess(self):
+        x_wav = deepcopy(media_data.BASE64_AUDIO)
+        audio = gr.Audio(value=x_wav["name"])
+        assert processing_utils.is_in_or_equal(audio.value["name"], audio.GRADIO_CACHE)
+
     def test_in_interface(self):
         def reverse_audio(audio):
             sr, data = audio
@@ -2026,6 +2031,7 @@ class TestModel3D:
             "elem_id": None,
             "elem_classes": [],
             "root_url": None,
+            "interactive": None,
             "name": "model3d",
             "camera_position": (None, None, None),
             "height": None,
@@ -2648,3 +2654,11 @@ def test_component_class_ids():
 
     # Make sure that the ids are unique
     assert len({button_id, textbox_id, json_id, microphone_id, audio_id}) == 5
+
+
+def test_constructor_args():
+    assert gr.Textbox(max_lines=314).constructor_args == {"max_lines": 314}
+    assert gr.LoginButton(icon="F00.svg", value="Log in please").constructor_args == {
+        "icon": "F00.svg",
+        "value": "Log in please",
+    }
