@@ -113,7 +113,7 @@ class Block:
         self._skip_init_processing = _skip_init_processing
         self.parent: BlockContext | None = None
         self.is_rendered: bool = False
-        self.constructor_args: dict
+        self._constructor_args: dict
         self.state_session_capacity = 10000
 
         if render:
@@ -122,6 +122,16 @@ class Block:
     @property
     def skip_api(self):
         return False
+
+    @property
+    def constructor_args(self) -> dict[str, Any]:
+        """Get the arguments passed to the component's initializer.
+
+        Only set classes whose metaclass is ComponentMeta
+        """
+        # the _constructor_args list is appended based on the mro of the class
+        # so the first entry is for the bottom of the hierarchy
+        return self._constructor_args[0] if self._constructor_args else {}
 
     @property
     def events(
