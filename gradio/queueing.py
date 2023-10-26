@@ -44,6 +44,28 @@ class Event:
         self.progress_pending: bool = False
         self.alive = True
 
+    def send_message(
+        self,
+        message_type: str,
+        data: dict | None = None,
+        final: bool = False,
+    ):
+        data = {} if data is None else data
+        self.message_queue.put_nowait({"msg": message_type, **data})
+        if final:
+            self.message_queue.put_nowait(None)
+
+    async def get_data(self, timeout=5) -> bool:
+        self.send_message("send_data", {"event_id": self._id})
+        sleep_interval = 0.05
+        wait_time = 0
+        while wait_time < timeout and self.alive:
+            if self.data is not None:
+                break
+            await asyncio.sleep(sleep_interval)
+            wait_time += sleep_interval
+        return self.data is not None
+
 
 class Queue:
     def __init__(
@@ -89,6 +111,8 @@ class Queue:
         if event_id in self.awaiting_data_events:
             event = self.awaiting_data_events[event_id]
             event.data = body
+        else:
+            raise ValueError("Event not found", event_id)
 
     def _cancel_asyncio_tasks(self):
         for task in self._asyncio_tasks:
@@ -175,7 +199,7 @@ class Queue:
             for event in events:
                 if event.progress_pending and event.progress:
                     event.progress_pending = False
-                    self.send_message(event, "progress", event.progress.model_dump())
+                    event.send_message("progress", event.progress.model_dump())
 
             await asyncio.sleep(self.progress_update_sleep_when_free)
 
@@ -219,7 +243,7 @@ class Queue:
                     log=log,
                     level=level,
                 )
-                self.send_message(event, "log", log_message.model_dump())
+                event.send_message("log", log_message.model_dump())
 
     def push(self, event: Event) -> int | None:
         """
@@ -290,7 +314,7 @@ class Queue:
             if None not in self.active_jobs:
                 # Add estimated amount of time for a thread to get empty
                 estimation.rank_eta += self.avg_concurrent_process_time
-        self.send_message(event, "estimation", estimation.model_dump())
+        event.send_message("estimation", estimation.model_dump())
         return estimation
 
     def update_estimation(self, duration: float) -> None:
@@ -384,9 +408,11 @@ class Queue:
         awake_events: list[Event] = []
         try:
             for event in events:
-                client_awake = await self.get_data(event)
+                self.awaiting_data_events[event._id] = event
+                client_awake = await event.get_data()
+                del self.awaiting_data_events[event._id]
                 if client_awake:
-                    self.send_message(event, "process_starts")
+                    event.send_message("process_starts")
                     awake_events.append(event)
                 else:
                     await self.clean_event(event)
@@ -401,8 +427,7 @@ class Queue:
                 response = None
                 err = e
                 for event in awake_events:
-                    self.send_message(
-                        event,
+                    event.send_message(
                         "process_completed",
                         {
                             "output": {
@@ -421,8 +446,7 @@ class Queue:
                     old_response = response
                     old_err = err
                     for event in awake_events:
-                        self.send_message(
-                            event,
+                        event.send_message(
                             "process_generating",
                             {
                                 "output": old_response,
@@ -443,8 +467,7 @@ class Queue:
                         relevant_response = err
                     else:
                         relevant_response = old_response or old_err
-                    self.send_message(
-                        event,
+                    event.send_message(
                         "process_completed",
                         {
                             "output": {"error": str(relevant_response)}
@@ -460,8 +483,7 @@ class Queue:
                 for e, event in enumerate(awake_events):
                     if batch and "data" in output:
                         output["data"] = list(zip(*response.get("data")))[e]
-                    self.send_message(
-                        event,
+                    event.send_message(
                         "process_completed",
                         {
                             "output": output,
@@ -489,33 +511,6 @@ class Queue:
                 # If the job is cancelled, this will enable future runs
                 # to start "from scratch"
                 await self.reset_iterators(event._id)
-
-    def send_message(
-        self,
-        event: Event,
-        message_type: str,
-        data: dict | None = None,
-        final: bool = False,
-    ):
-        data = {} if data is None else data
-        event.message_queue.put_nowait({"msg": message_type, **data})
-        if final:
-            event.message_queue.put_nowait(None)
-
-    async def get_data(self, event: Event, timeout=5) -> bool:
-        self.awaiting_data_events[event._id] = event
-        try:
-            self.send_message(event, "send_data", {"event_id": event._id})
-            sleep_interval = 0.05
-            wait_time = 0
-            while wait_time < timeout and event.alive:
-                if event.data is not None:
-                    break
-                await asyncio.sleep(sleep_interval)
-                wait_time += sleep_interval
-        finally:
-            del self.awaiting_data_events[event._id]
-        return event.data is not None
 
     async def reset_iterators(self, event_id: str):
         # Do the same thing as the /reset route

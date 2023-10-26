@@ -661,7 +661,7 @@ export function api_factory(
 
 						eventSource = new EventSource(url);
 
-						eventSource.onmessage = function (event) {
+						eventSource.onmessage = async function (event) {
 							const _data = JSON.parse(event.data);
 							const { type, status, data } = handle_message(
 								_data,
@@ -682,7 +682,7 @@ export function api_factory(
 								}
 							} else if (type === "data") {
 								event_id = _data.event_id as string;
-								post_data(
+								let [_, status] = await post_data(
 									`${http_protocol}//${resolve_root(
 										host,
 										config.path,
@@ -695,6 +695,18 @@ export function api_factory(
 									},
 									hf_token
 								);
+								if (status !== 200) {
+									fire_event({
+										type: "status",
+										stage: "error",
+										message: BROKEN_CONNECTION_MSG,
+										queue: true,
+										endpoint: _endpoint,
+										fn_index,
+										time: new Date()
+									});
+									eventSource.close();
+								}
 							} else if (type === "complete") {
 								complete = status;
 							} else if (type === "log") {

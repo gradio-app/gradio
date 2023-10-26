@@ -85,7 +85,7 @@ class TestQueueing:
         while job4.status().code.value != "FINISHED":
             queue_status = test_client.get("/queue/status").json()
             sizes.append(queue_status["queue_size"])
-            time.sleep(0.05)
+            time.sleep(0.01)
 
         assert max(sizes) in [
             2,

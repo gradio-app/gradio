@@ -396,15 +396,13 @@ async def stream_sse(
                     elif resp["msg"] == "send_data":
                         event_id = resp["event_id"]
                         helper.event_id = event_id
-                        req = requests.post(
-                            sse_data_url,
-                            json={"event_id": event_id, **data, **hash_data},
-                            cookies=cookies,
-                        )
-                        if not req.ok:
-                            raise ValueError(
-                                f"Could not send paylod to endpoint: {req.text}"
+                        async with httpx.AsyncClient() as http:
+                            req = await http.post(
+                                sse_data_url,
+                                json={"event_id": event_id, **data, **hash_data},
+                                cookies=cookies,
                             )
+                            req.raise_for_status()
                     elif resp["msg"] == "process_completed":
                         return resp["output"]
                 else:
