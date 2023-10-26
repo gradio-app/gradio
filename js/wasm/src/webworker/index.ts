@@ -25,6 +25,8 @@ import unloadModulesPySource from "./py/unload_modules.py?raw";
 
 importScripts("https://cdn.jsdelivr.net/pyodide/v0.24.0/full/pyodide.js");
 
+type MessageTransceiver = DedicatedWorkerGlobalScope | MessagePort;
+
 let pyodide: PyodideInterface;
 let micropip: PyProxy;
 
@@ -38,25 +40,9 @@ let run_code: (appId: string, code: string, path?: string) => Promise<void>;
 let run_script: (appId: string, path: string) => Promise<void>;
 let unload_local_modules: (target_dir_path?: string) => void;
 
-function updateProgress(log: string): void {
-	const message: OutMessage = {
-		type: "progress-update",
-		data: {
-			log
-		}
-	};
-
-	if ("postMessage" in self) {
-		// DedicatedWorker
-		self.postMessage(message);
-	} else {
-		// SharedWorker
-		// TODO: Support progress update in SharedWorker
-	}
-}
-
 async function initializeEnvironment(
-	options: InMessageInitEnv["data"]
+	options: InMessageInitEnv["data"],
+	updateProgress: (log: string) => void,
 ): Promise<void> {
 	console.debug("Loading Pyodide.");
 	updateProgress("Loading Pyodide");
@@ -186,7 +172,8 @@ matplotlib.use("agg")
 
 async function initializeApp(
 	appId: string,
-	options: InMessageInitApp["data"]
+	options: InMessageInitApp["data"],
+	updateProgress: (log: string) => void,
 ): Promise<void> {
 	console.debug("Mounting files.", options.files);
 	updateProgress("Mounting files");
@@ -240,9 +227,18 @@ if ("postMessage" in ctx) {
 // Environment initialization is global and should be done only once, so its promise is managed in a global scope.
 let envReadyPromise: Promise<void> | undefined = undefined;
 
-type Receiver = DedicatedWorkerGlobalScope | MessagePort;
-function setupMessageHandler(receiver: Receiver): void {
+function setupMessageHandler(receiver: MessageTransceiver): void {
 	const appId = generateRandomString(8);
+
+	const updateProgress = (log: string): void => {
+		const message: OutMessage = {
+			type: "progress-update",
+			data: {
+				log
+			}
+		};
+		receiver.postMessage(message)
+	}
 
 	// App initialization is per app or receiver, so its promise is managed in this scope.
 	let appReadyPromise: Promise<void> | undefined = undefined;
@@ -258,7 +254,9 @@ function setupMessageHandler(receiver: Receiver): void {
 		try {
 			if (msg.type === "init-env") {
 				if (envReadyPromise == null) {
-					envReadyPromise = initializeEnvironment(msg.data);
+					envReadyPromise = initializeEnvironment(msg.data, updateProgress);
+				} else {
+					updateProgress("Pyodide environment initialization is ongoing in another session");
 				}
 
 				envReadyPromise
@@ -285,7 +283,7 @@ function setupMessageHandler(receiver: Receiver): void {
 			await envReadyPromise;
 
 			if (msg.type === "init-app") {
-				appReadyPromise = initializeApp(appId, msg.data);
+				appReadyPromise = initializeApp(appId, msg.data, updateProgress);
 
 				const replyMessage: ReplyMessageSuccess = {
 					type: "reply:success",
