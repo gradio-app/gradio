@@ -21,7 +21,7 @@
 		| ["microphone"]
 		| ["upload"]
 		| ["microphone", "upload"]
-		| ["upload", "microphone"];
+		| ["upload", "microphone"] = ["microphone", "upload"];
 	export let pending = false;
 	export let streaming = false;
 	export let autoplay = false;
