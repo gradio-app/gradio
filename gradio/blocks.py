@@ -16,6 +16,7 @@ from collections import defaultdict
 from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, Sequence, cast
+from urllib.parse import urlparse, urlunparse
 
 import anyio
 import requests
@@ -1732,7 +1733,8 @@ Received outputs:
         app_kwargs: dict[str, Any] | None = None,
         state_session_capacity: int = 10000,
         share_server_address: str | None = None,
-        _frontend: bool = True,    
+        share_server_protocol: Literal["http", "https"] | None = None,
+        _frontend: bool = True,
     ) -> tuple[FastAPI, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -1766,6 +1768,7 @@ Received outputs:
             app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
             state_session_capacity: The maximum number of sessions whose information to store in memory. If the number of sessions exceeds this number, the oldest sessions will be removed. Reduce capacity to reduce memory usage when using gradio.State or returning updated components from functions. Defaults to 10000.
             share_server_address: Use this to specify a custom FRP server and port for sharing Gradio apps (only applies if share=True). If not provided, will use the default FRP server at https://gradio.live. See https://github.com/huggingface/frp for more information.
+            share_server_protocol: Use this to specify the protocol to use for the share links. Defaults to "https", unless a custom share_server_address is provided, in which case it defaults to "http". If you are using a custom share_server_address and want to use https, you must set this to "https".
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -1887,6 +1890,9 @@ Received outputs:
             self.is_colab = utils.colab_check()
             self.is_kaggle = utils.kaggle_check()
             self.share_server_address = share_server_address
+            self.share_server_protocol = share_server_protocol or (
+                "http" if share_server_address is not None else "https"
+            )
 
             self.protocol = (
                 "https"
@@ -1982,11 +1988,15 @@ Received outputs:
         if self.share:
             try:
                 if self.share_url is None:
-                    self.share_url = networking.setup_tunnel(
-                        local_host=self.server_name, 
-                        local_port=self.server_port, 
-                        share_token=self.share_token, 
+                    share_url = networking.setup_tunnel(
+                        local_host=self.server_name,
+                        local_port=self.server_port,
+                        share_token=self.share_token,
                         share_server_address=self.share_server_address,
+                    )
+                    parsed_url = urlparse(share_url)
+                    self.share_url = urlunparse(
+                        (self.share_server_protocol,) + parsed_url[1:]
                     )
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
                 if not (quiet):
