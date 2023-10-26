@@ -4,6 +4,8 @@
 	import Slider from "./Slider.svelte";
 	import Fullscreen from "./icons/Fullscreen.svelte";
 	import Close from "./icons/Close.svelte";
+	import { page } from '$app/stores';
+
 
 	export let demos: {
 		name: string;
@@ -22,6 +24,17 @@
 	let requirements =
 		demos.find((demo) => demo.name === current_selection)?.requirements || [];
 	let code = demos.find((demo) => demo.name === current_selection)?.code || "";
+
+	current_selection = $page.url.searchParams.get('demo') ?? current_selection;
+	current_selection = current_selection.replaceAll("_", " ");
+
+	code = $page.url.searchParams.get('code') ?? code;
+
+	if ($page.url.searchParams.get('code')) {
+		console.log("has code");
+		demos.find((demo) => demo.name === current_selection).code = atob(code);
+		console.log(code);
+	}
 
 	afterNavigate(() => {
 		controller = createGradioApp({
@@ -54,7 +67,7 @@
 
 	let timeout: any;
 
-	$: code = demos.find((demo) => demo.name === current_selection)?.code || "";
+	// $:code = demos.find((demo) => demo.name === current_selection)?.code || "";
 	$: requirements =
 		demos.find((demo) => demo.name === current_selection)?.requirements || [];
 	
@@ -75,9 +88,22 @@
 	}
 	let preview_width = 100;
 	let lg_breakpoint = false;
+
+	let code_b64 = btoa(code);
+
+	function copy_link(demo: string) {
+		demo = demo.replaceAll(" ", "_");
+		navigator.clipboard.writeText(
+			`https://gradio.app/playground?demo=${demo}&code=${code_b64}`
+		);
+	}
+
+
+	$: code_b64 = btoa(code);
 	
 
 	$: lg_breakpoint = preview_width - 13 >= 688;
+	$: console.log(btoa(code));
 </script>
 
 <svelte:head>
@@ -102,6 +128,9 @@
 				>
 					<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2">
 						<h3 class="pt-1">Code</h3>
+						<div class="flex float-right">
+							<button on:click={() => (copy_link(demo.name))}>link</button>
+						</div>
 					</div>
 
 					<InteractiveCode

@@ -1,6 +1,8 @@
 <script lang="ts">
 	import DemosLite from "../../lib/components/DemosLite.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
+	import { page } from '$app/stores';
+
 
 	export let data: {
 		demos_by_category: {
@@ -16,6 +18,10 @@
 
 	let all_demos = data.demos_by_category.flatMap((category) => category.demos);
 	let current_selection = all_demos[0].name;
+
+	current_selection = $page.url.searchParams.get('demo') ?? current_selection;
+	current_selection = current_selection.replaceAll("_", " ");
+
 
 	let show_nav = true;
 
