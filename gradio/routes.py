@@ -607,10 +607,10 @@ class App(FastAPI):
             else:
                 rank = blocks._queue.push(event)
                 if rank is None:
-                    blocks._queue.send_message(event, "queue_full", final=True)
-                    return
-                estimation = blocks._queue.get_estimation()
-                await blocks._queue.send_estimation(event, estimation, rank)
+                    event.send_message("queue_full", final=True)
+                else:
+                    estimation = blocks._queue.get_estimation()
+                    blocks._queue.send_estimation(event, estimation, rank)
 
             async def sse_stream(request: fastapi.Request):
                 while True:
