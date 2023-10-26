@@ -8,7 +8,7 @@ from huggingface_hub import HfApi
 from rich import print
 from rich.console import Console
 from rich.panel import Panel
-from rich.prompt import Prompt
+from rich.prompt import Confirm, Prompt
 from typer import Argument, Option
 from typing_extensions import Annotated
 
@@ -48,6 +48,14 @@ CMD ["python", "app.py"]
 """
 
 
+def _ignore(s, names):
+    ignored = []
+    for n in names:
+        if "__pycache__" in n or n.startswith("dist") or n.startswith("node_modules"):
+            ignored.append(n)
+    return ignored
+
+
 def _publish(
     wheel_file: Annotated[Path, Argument(help="Path to the wheel directory.")],
     upload_pypi: Annotated[bool, Option(help="Whether to upload to PyPI.")] = True,
@@ -58,6 +66,12 @@ def _publish(
     ] = True,
     demo_dir: Annotated[
         Optional[Path], Option(help="Path to the demo directory.")
+    ] = None,
+    source_dir: Annotated[
+        Optional[Path],
+        Option(
+            help="Path to the source directory of the custom component. To share with community."
+        ),
     ] = None,
     hf_token: Annotated[
         Optional[str],
@@ -79,14 +93,17 @@ def _publish(
 
     if upload_pypi and (not pypi_username or not pypi_password):
         panel = Panel(
-            "You have opted to upload to [blue]https://pypi.org/[/] but no pypi credentials have been provided.\n"
-            f"If you do not have an account, register account here: [blue]{PYPI_REGISTER_URL}[/]"
+            "It is recommended to upload your component to pypi so that [bold][magenta]anyone[/][/] "
+            "can install it with [bold][magenta]pip install[/][/].\n\n"
+            f"A PyPi account is needed. If you do not have an account, register account here: [blue]{PYPI_REGISTER_URL}[/]",
         )
         print(panel)
-        pypi_username = Prompt.ask(":laptop_computer: Enter your pypi username")
-        pypi_password = Prompt.ask(
-            ":closed_lock_with_key: Enter your pypi password", password=True
-        )
+        upload_pypi = Confirm.ask(":snake: Upload to pypi?")
+        if upload_pypi:
+            pypi_username = Prompt.ask(":laptop_computer: Enter your pypi username")
+            pypi_password = Prompt.ask(
+                ":closed_lock_with_key: Enter your pypi password", password=True
+            )
     if upload_pypi:
         from twine.commands.upload import upload as twine_upload
         from twine.settings import Settings
@@ -98,23 +115,41 @@ def _publish(
             console.print_exception()
     if upload_demo and not demo_dir:
         panel = Panel(
-            "You have opted to upload to [blue]https://huggingface.co/spaces[/] but no demo directory has been provided.\n"
-            "Please provide the path to the [magenta]demo directory[/] for your custom component.\n"
-            "This directory should contain [magenta]all the files[/] it needs to run successfully.\n"
-            "Please make sure the gradio app is in an [magenta]app.py[/] file.\n"
-            "If you need additional python requirements, add a [magenta]requirements.txt[/] file to this directory."
+            "It is recommended you upload a demo of your component to [blue]https://huggingface.co/spaces[/] "
+            "so that anyone can try it from their browser."
         )
         print(panel)
-        demo_dir = Path(
-            Prompt.ask(":hugging_face: Please enter demo directory")
-        ).resolve()
+        upload_demo = Confirm.ask(":hugging_face: Upload demo?")
+        if upload_demo:
+            panel = Panel(
+                "Please provide the path to the [magenta]demo directory[/] for your custom component.\n\n"
+                "This directory should contain [magenta]all the files[/] it needs to run successfully.\n\n"
+                "Please make sure the gradio app is in an [magenta]app.py[/] file.\n\n"
+                "If you need additional python requirements, add a [magenta]requirements.txt[/] file to this directory."
+            )
+            print(panel)
+            demo_dir = Path(
+                Prompt.ask(":roller_coaster: Please enter demo directory")
+            ).resolve()
+    if upload_demo and not source_dir:
+        panel = Panel(
+            "It is recommended that you share your [magenta]source code[/] so that others can learn from and improve your component."
+        )
+        print(panel)
+        upload_source = Confirm.ask(":books: Would you like to share your source code?")
+        if upload_source:
+            source_dir = Path(
+                Prompt.ask(
+                    ":page_with_curl: Enter the path to the source code [magenta]directory[/] here"
+                )
+            ).resolve()
     if upload_demo:
         assert demo_dir
         if not (demo_dir / "app.py").exists():
             raise FileNotFoundError("app.py not found in demo directory.")
         additional_reqs = [
-            "https://gradio-builds.s3.amazonaws.com/4.0/attempt-03/gradio-4.0.0-py3-none-any.whl",
-            "https://gradio-builds.s3.amazonaws.com/4.0/attempt-03/gradio_client-0.7.0b0-py3-none-any.whl",
+            "https://gradio-builds.s3.amazonaws.com/4.0/attempt-05/gradio-4.0.0-py3-none-any.whl",
+            "https://gradio-builds.s3.amazonaws.com/4.0/attempt-05/gradio_client-0.7.0b0-py3-none-any.whl",
             wheel_file.name,
         ]
         if (demo_dir / "requirements.txt").exists():
@@ -131,6 +166,13 @@ def _publish(
                 str(tempdir),
                 dirs_exist_ok=True,
             )
+            if source_dir:
+                shutil.copytree(
+                    str(source_dir),
+                    str(Path(tempdir) / "src"),
+                    dirs_exist_ok=True,
+                    ignore=_ignore,
+                )
             reqs_txt = Path(tempdir) / "requirements.txt"
             reqs_txt.write_text("\n".join(reqs))
             readme = Path(tempdir) / "README.md"
@@ -167,4 +209,5 @@ def _publish(
                 token=hf_token,
                 repo_type="space",
             )
+            print("\n")
             print(f"Demo uploaded to {new_space}!")
