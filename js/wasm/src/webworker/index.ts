@@ -34,8 +34,8 @@ let call_asgi_app_from_js: (
 	receive: () => Promise<unknown>,
 	send: (event: any) => Promise<void>
 ) => Promise<void>;
-let set_manipulation_target_app_id: (app_id: string) => void;
-let run_script: (path: string) => Promise<void>;
+let run_code: (appId: string, code: string, path?: string) => Promise<void>;
+let run_script: (appId: string, path: string) => Promise<void>;
 let unload_local_modules: (target_dir_path?: string) => void;
 
 function updateProgress(log: string): void {
@@ -147,12 +147,6 @@ async def _call_asgi_app_from_js(app_id, scope, receive, send):
 	await app(scope, rcv, snd)
 `);
 	call_asgi_app_from_js = pyodide.globals.get("_call_asgi_app_from_js");
-	await pyodide.runPythonAsync(`
-_set_manipulation_target_app_id = gradio.wasm_utils.set_manipulation_target_app_id
-`);
-	set_manipulation_target_app_id = pyodide.globals.get(
-		"_set_manipulation_target_app_id"
-	);
 	console.debug("The ASGI wrapper function is defined.");
 
 	console.debug("Mocking async libraries.");
@@ -181,6 +175,7 @@ matplotlib.use("agg")
 	console.debug("Setting up Python utility functions.");
 	updateProgress("Setting up Python utility functions");
 	await pyodide.runPythonAsync(scriptRunnerPySource);
+	run_code = pyodide.globals.get("_run_code");
 	run_script = pyodide.globals.get("_run_script");
 	await pyodide.runPythonAsync(unloadModulesPySource);
 	unload_local_modules = pyodide.globals.get("unload_local_modules");
@@ -317,8 +312,7 @@ function setupMessageHandler(receiver: Receiver): void {
 				case "run-python-code": {
 					unload_local_modules();
 
-					set_manipulation_target_app_id(appId);
-					await pyodide.runPythonAsync(msg.data.code);
+					await run_code(appId, msg.data.code);
 
 					const replyMessage: ReplyMessageSuccess = {
 						type: "reply:success",
@@ -330,8 +324,7 @@ function setupMessageHandler(receiver: Receiver): void {
 				case "run-python-file": {
 					unload_local_modules();
 
-					set_manipulation_target_app_id(appId);
-					await run_script(addAppIdIfRelative(appId, msg.data.path));
+					await run_script(appId, addAppIdIfRelative(appId, msg.data.path));
 
 					const replyMessage: ReplyMessageSuccess = {
 						type: "reply:success",
