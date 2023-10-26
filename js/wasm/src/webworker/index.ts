@@ -42,7 +42,7 @@ let unload_local_modules: (target_dir_path?: string) => void;
 
 async function initializeEnvironment(
 	options: InMessageInitEnv["data"],
-	updateProgress: (log: string) => void,
+	updateProgress: (log: string) => void
 ): Promise<void> {
 	console.debug("Loading Pyodide.");
 	updateProgress("Loading Pyodide");
@@ -173,7 +173,7 @@ matplotlib.use("agg")
 async function initializeApp(
 	appId: string,
 	options: InMessageInitApp["data"],
-	updateProgress: (log: string) => void,
+	updateProgress: (log: string) => void
 ): Promise<void> {
 	console.debug("Mounting files.", options.files);
 	updateProgress("Mounting files");
@@ -237,8 +237,8 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 				log
 			}
 		};
-		receiver.postMessage(message)
-	}
+		receiver.postMessage(message);
+	};
 
 	// App initialization is per app or receiver, so its promise is managed in this scope.
 	let appReadyPromise: Promise<void> | undefined = undefined;
@@ -256,7 +256,9 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 				if (envReadyPromise == null) {
 					envReadyPromise = initializeEnvironment(msg.data, updateProgress);
 				} else {
-					updateProgress("Pyodide environment initialization is ongoing in another session");
+					updateProgress(
+						"Pyodide environment initialization is ongoing in another session"
+					);
 				}
 
 				envReadyPromise
