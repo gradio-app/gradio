@@ -1027,7 +1027,7 @@ class Endpoint:
             if data is not None:
                 assert data is not None, f"The 'data' field is missing in {x}"
                 file_name = utils.decode_base64_to_file(data, dir=save_dir).name
-            if x.get("is_file", True):
+            else:
                 filepath = x.get("path")
                 assert filepath is not None, f"The 'path' field is missing in {x}"
                 file_name = utils.download_file(

@@ -147,7 +147,7 @@ class Image(StreamingInput, Component):
             value=value,
         )
 
-    def preprocess(self, x: FileData | None) -> np.ndarray | _Image.Image | str | None:
+    def preprocess(self, x: dict | None) -> np.ndarray | _Image.Image | str | None:
         """
         Parameters:
             x: FileData containing an image path pointing to the user's image
