@@ -1081,9 +1081,9 @@ class TestEndpoints:
         res = []
         for re in results:
             if isinstance(re, list):
-                res.append([r["name"] for r in re])
+                res.append([r["path"] for r in re])
             else:
-                res.append(re["name"])
+                res.append(re["path"])
 
         assert res == [
             "file1",
