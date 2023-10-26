@@ -13,6 +13,7 @@
 	export let file_count = "single";
 	export let disable_click = false;
 	export let root: string;
+	export let hidden = false;
 
 	// Needed for wasm support
 	const upload_fn = getContext<typeof upload_files>("upload_files");
@@ -92,6 +93,7 @@
 </script>
 
 <button
+	class:hidden
 	class:center
 	class:boundedheight
 	class:flex
@@ -124,6 +126,12 @@
 		cursor: pointer;
 		width: var(--size-full);
 		height: var(--size-full);
+	}
+
+	.hidden {
+		display: none;
+		height: 0;
+		position: absolute;
 	}
 
 	.center {

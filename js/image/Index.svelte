@@ -9,8 +9,8 @@
 	import StaticImage from "./shared/ImagePreview.svelte";
 	import ImageUploader from "./shared/ImageUploader.svelte";
 
-	import { Block, UploadText } from "@gradio/atoms";
-
+	import { Block, Empty, UploadText } from "@gradio/atoms";
+	import { Image } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { FileData } from "js/upload/src";
 	import type { LoadingStatus } from "@gradio/statustracker";
@@ -33,9 +33,12 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let show_share_button = false;
-
+	export let sources: ("clipboard" | "webcam" | "upload")[] = [
+		"upload",
+		"clipboard",
+		"webcam"
+	];
 	export let mode: "static" | "interactive";
-	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let streaming: boolean;
 	export let pending: boolean;
 	export let mirror_webcam: boolean;
@@ -57,8 +60,6 @@
 
 	$: value = !value ? null : value;
 
-	const FIXED_HEIGHT = 240;
-
 	let active_tool: null | "webcam" = null;
 </script>
 
@@ -78,9 +79,11 @@
 		{min_width}
 	>
 		<StatusTracker
+			translucent={true}
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
+			show_progress="hidden"
 		/>
 		<StaticImage
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
@@ -104,7 +107,7 @@
 		padding={false}
 		{elem_id}
 		{elem_classes}
-		height={height || (active_tool === "webcam" ? undefined : FIXED_HEIGHT)}
+		height={height || undefined}
 		{width}
 		allow_overflow={false}
 		{container}
@@ -122,6 +125,7 @@
 			bind:value
 			{selectable}
 			{root}
+			{sources}
 			on:edit={() => gradio.dispatch("edit")}
 			on:clear={() => gradio.dispatch("clear")}
 			on:stream={() => gradio.dispatch("stream")}
@@ -143,12 +147,16 @@
 			{mirror_webcam}
 			i18n={gradio.i18n}
 		>
-			<UploadText
-				i18n={gradio.i18n}
-				type="image"
-				mode="short"
-				hovered={dragging}
-			/>
+			{#if sources.includes("upload")}
+				<UploadText
+					i18n={gradio.i18n}
+					type="image"
+					mode="short"
+					hovered={dragging}
+				/>
+			{:else}
+				<Empty unpadded_box={true} size="large"><Image /></Empty>
+			{/if}
 		</ImageUploader>
 	</Block>
 {/if}

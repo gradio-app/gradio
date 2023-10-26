@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, tick, onMount } from "svelte";
 	import { BlockLabel } from "@gradio/atoms";
-	import { Image, Sketch as SketchIcon } from "@gradio/icons";
+	import { Image } from "@gradio/icons";
 	import type { SelectData, I18nFormatter } from "@gradio/utils";
 	import { get_coordinates_of_clicked_image } from "./utils";
 	import {
@@ -12,20 +12,15 @@
 	import Webcam from "./Webcam.svelte";
 	import { Toolbar, IconButton } from "@gradio/atoms";
 
-	import {
-		Upload,
-		ModifyUpload,
-		type FileData,
-		normalise_file
-	} from "@gradio/upload";
+	import { Upload, type FileData, normalise_file } from "@gradio/upload";
 
 	export let value: null | FileData;
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
 
-	export let sources: ("paste" | "webcam" | "upload")[] = [
+	export let sources: ("clipboard" | "webcam" | "upload")[] = [
 		"upload",
-		"paste",
+		"clipboard",
 		"webcam"
 	];
 	export let streaming = false;
@@ -38,10 +33,8 @@
 
 	let upload: Upload;
 	export let active_tool: "webcam" | null = null;
-	function handle_upload({ detail }: CustomEvent<string>): void {
+	function handle_upload({ detail }: CustomEvent<FileData>): void {
 		value = normalise_file(detail, root, null);
-
-		// dispatch("upload", normalise_file(detail, root, null));
 	}
 
 	function handle_clear({ detail }: CustomEvent<null>): void {
@@ -49,13 +42,12 @@
 		dispatch("clear");
 	}
 
-	async function handle_save(img_blob, initial): Promise<void> {
+	async function handle_save(img_blob: Blob | any): Promise<void> {
 		// console.log(img);
 		const f = await upload.load_files([new File([img_blob], `webcam.png`)]);
 
 		value = f?.[0] || null;
-		active_tool = null;
-		// value = detail;
+		if (!streaming) active_tool = null;
 
 		await tick();
 
@@ -75,27 +67,12 @@
 
 	$: dispatch("drag", dragging);
 
-	let img_height = 0;
-	let img_width = 0;
-	let container_height = 0;
-
-	let mode;
-
-	let max_height;
-	let max_width;
-
 	function handle_click(evt: MouseEvent): void {
 		let coordinates = get_coordinates_of_clicked_image(evt);
 		if (coordinates) {
 			dispatch("select", { index: coordinates, value: null });
 		}
 	}
-
-	const sort_order = {
-		upload: 0,
-		webcam: 1,
-		paste: 2
-	};
 
 	const sources_meta = {
 		upload: {
@@ -108,7 +85,7 @@
 			label: i18n("Webcam"),
 			order: 1
 		},
-		paste: {
+		clipboard: {
 			icon: ImagePaste,
 			label: i18n("Paste"),
 			order: 2
@@ -119,19 +96,20 @@
 		(a, b) => sources_meta[a].order - sources_meta[b].order
 	);
 
-	$: console.log({ sources, sources_list });
+	$: {
+		if (sources.length === 1 && sources[0] === "webcam") {
+			active_tool = "webcam";
+		}
+	}
 
 	async function handle_toolbar(
 		source: (typeof sources)[number]
 	): Promise<void> {
-		console.log(source);
 		switch (source) {
 			case "clipboard":
 				navigator.clipboard.read().then(async (items) => {
 					for (let i = 0; i < items.length; i++) {
-						// Do something with the most recent item
 						const type = items[i].types.find((t) => t.startsWith("image/"));
-						console.log({ type, item_types: items[i].types });
 						if (type) {
 							items[i].getType(type).then(async (blob) => {
 								const f = await upload.load_files([
@@ -139,7 +117,6 @@
 								]);
 								f;
 								value = f?.[0] || null;
-								console.log({ f, value });
 							});
 							break;
 						}
@@ -160,58 +137,53 @@
 
 <BlockLabel {show_label} Icon={Image} label={label || "Image"} />
 
-<div
-	data-testid="image"
-	class="image-container"
-	bind:offsetHeight={max_height}
-	bind:offsetWidth={max_width}
->
-	<!-- {#if source === "upload"} -->
+<div data-testid="image" class="image-container">
 	<div class="upload-container">
 		<Upload
+			hidden={value !== null || active_tool === "webcam"}
 			bind:this={upload}
 			bind:dragging
 			filetype="image/*"
 			on:load={handle_upload}
 			on:error
-			disable_click={!!value || active_tool === "webcam"}
 			{root}
+			disable_click={!sources.includes("upload")}
 		>
-			{#if value === null || streaming}
-				{#if active_tool === "webcam"}
-					<Webcam
-						on:capture={(e) => handle_save(e.detail)}
-						on:clear={handle_clear}
-						on:stream={handle_save}
-						on:error
-						on:drag
-						on:upload={handle_upload}
-						on:select={({ detail }) => dispatch("select", detail)}
-						on:edit={() => (active_tool = null)}
-						{mirror_webcam}
-						{streaming}
-						mode="image"
-						include_audio={false}
-						{i18n}
-					/>
-				{:else}
-					<slot />
-				{/if}
-			{:else}
-				<img src={value.url} alt="" />
+			{#if value === null && !active_tool}
+				<slot />
 			{/if}
 		</Upload>
-	</div>
-	<Toolbar>
-		{#each sources as source}
-			<IconButton
-				on:click={() => handle_toolbar(source)}
-				Icon={sources_meta[source].icon}
-				size="large"
-				padded={false}
+		{#if active_tool === "webcam"}
+			<Webcam
+				on:capture={handle_save}
+				on:clear={handle_clear}
+				on:stream={(e) => handle_save(e.detail)}
+				on:error
+				on:drag
+				on:upload={(e) => handle_save(e.detail)}
+				{mirror_webcam}
+				{streaming}
+				mode="image"
+				include_audio={false}
+				{i18n}
 			/>
-		{/each}
-	</Toolbar>
+		{:else if value !== null && !streaming}
+			<!-- svelte-ignore a11y-click-events-have-key-events-->
+			<img src={value.url} alt={value.alt_text} on:click={handle_click} />
+		{/if}
+	</div>
+	{#if sources.length > 1 || sources.includes("clipboard")}
+		<Toolbar>
+			{#each sources_list as source}
+				<IconButton
+					on:click={() => handle_toolbar(source)}
+					Icon={sources_meta[source].icon}
+					size="large"
+					padded={false}
+				/>
+			{/each}
+		</Toolbar>
+	{/if}
 </div>
 
 <style>
@@ -219,29 +191,13 @@
 		height: auto;
 	} */
 	img {
-		object-fit: contain;
-		/* position: absolute; */
-		top: 0;
 		width: var(--size-full);
 		height: var(--size-full);
 	}
 
-	/* .selectable {
-		cursor: crosshair;
-	}
-
-	.absolute-img {
-		position: absolute;
-		opacity: 0;
-	}
-
-	.webcam {
-		transform: scaleX(-1);
-	} */
-
 	.upload-container {
 		height: 100%;
-		flex-shrink: 3;
+		flex-shrink: 1;
 		max-height: 100%;
 	}
 

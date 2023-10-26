@@ -1,7 +1,7 @@
 import gradio as gr
 
 with gr.Blocks() as demo:
-    im = gr.Image()
+    im = gr.Image(sources=["clipboard"])
     im2 = gr.Image()
     btn = gr.Button()
     btn.click(lambda x: x, outputs=im2, inputs=im)
