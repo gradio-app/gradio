@@ -45,6 +45,10 @@ with gr.Blocks() as demo:
 """
 
 
+PATTERN_RE = r"gradio-template-\w+"
+PATTERN = "gradio-template-{template}"
+
+
 @dataclasses.dataclass
 class ComponentFiles:
     template: str
@@ -299,7 +303,10 @@ def _create_backend(
     pyproject = Path(__file__).parent / "files" / "pyproject_.toml"
     pyproject_contents = pyproject.read_text()
     pyproject_dest = directory / "pyproject.toml"
-    pyproject_dest.write_text(pyproject_contents.replace("<<name>>", package_name))
+    pyproject_contents = pyproject_contents.replace("<<name>>", package_name).replace(
+        "<<template>>", PATTERN.format(template=component.template)
+    )
+    pyproject_dest.write_text(pyproject_contents)
 
     demo_dir = directory / "demo"
     demo_dir.mkdir(exist_ok=True, parents=True)

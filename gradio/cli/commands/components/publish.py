@@ -1,4 +1,5 @@
 import random
+import re
 import shutil
 import tempfile
 from pathlib import Path
@@ -12,13 +13,15 @@ from rich.prompt import Confirm, Prompt
 from typer import Argument, Option
 from typing_extensions import Annotated
 
+from gradio.cli.commands.components._create_utils import PATTERN_RE
+
 colors = ["red", "yellow", "green", "blue", "indigo", "purple", "pink", "gray"]
 
 PYPI_REGISTER_URL = "https://pypi.org/account/register/"
 
 README_CONTENTS = """
 ---
-tags: [gradio-custom-component]
+tags: [gradio-custom-component{template}]
 title: {package_name} V{version}
 colorFrom: {color_from}
 colorTo: {color_to}
@@ -80,6 +83,7 @@ def _publish(
         ),
     ] = None,
 ):
+    upload_source = source_dir is not None
     console = Console()
     wheel_file = wheel_file.resolve()
     if not wheel_file.suffix == ".whl":
@@ -176,12 +180,21 @@ def _publish(
             reqs_txt = Path(tempdir) / "requirements.txt"
             reqs_txt.write_text("\n".join(reqs))
             readme = Path(tempdir) / "README.md"
+            template = ""
+            if upload_source and source_dir:
+                match = re.search(
+                    PATTERN_RE, (source_dir / "pyproject.toml").read_text()
+                )
+                if match:
+                    template = f", {match.group(0)}"
+
             readme.write_text(
                 README_CONTENTS.format(
                     package_name=package_name,
                     version=version,
                     color_from=color_from,
                     color_to=color_to,
+                    template=template,
                 )
             )
             dockerfile = Path(tempdir) / "Dockerfile"

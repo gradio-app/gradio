@@ -19,6 +19,7 @@ keywords = [
   "visualization",
   "gradio",
   "gradio custom component",
+  "<<template>>"
 ]
 # Add dependencies here
 dependencies = ["gradio"]
