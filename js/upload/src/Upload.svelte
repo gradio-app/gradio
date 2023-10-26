@@ -31,16 +31,18 @@
 		hidden_upload.click();
 	}
 
-	async function handle_upload(file_data: FileData[]): Promise<FileData[]> {
+	async function handle_upload(
+		file_data: FileData[]
+	): Promise<(FileData | null)[]> {
 		await tick();
 		const _file_data = await upload(file_data, root, upload_fn);
-		dispatch("load", file_count === "single" ? _file_data[0] : _file_data);
-		return _file_data;
+		dispatch("load", file_count === "single" ? _file_data?.[0] : _file_data);
+		return _file_data || [];
 	}
 
 	export async function load_files(
 		files: File[] | Blob[]
-	): Promise<FileData[] | void> {
+	): Promise<(FileData | null)[] | void> {
 		if (!files.length) {
 			return;
 		}

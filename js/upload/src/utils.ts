@@ -155,7 +155,7 @@ export class FileData {
 		this.url = url;
 		this.orig_name = orig_name;
 		this.size = size;
-		this.blob = blob;
+		this.blob = url ? undefined : blob;
 		this.is_stream = is_stream;
 		this.mime_type = mime_type;
 		this.alt_text = alt_text;

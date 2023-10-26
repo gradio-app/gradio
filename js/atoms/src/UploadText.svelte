@@ -1,10 +1,11 @@
 <script lang="ts">
 	import type { I18nFormatter } from "@gradio/utils";
-	import { Upload } from "@gradio/icons";
-
+	import { Upload as UploadIcon } from "@gradio/icons";
 	export let type: "video" | "image" | "audio" | "file" | "csv" = "file";
-	export let border_mode: "base" | "focus" = "base";
 	export let i18n: I18nFormatter;
+	export let message: string | undefined = undefined;
+	export let mode: "full" | "short" = "full";
+	export let hovered = false;
 
 	const defs = {
 		image: "upload_text.drop_image",
@@ -15,44 +16,46 @@
 	};
 </script>
 
-<div class="wrap" class:border_focus={border_mode === "focus"}>
-	<span><Upload /></span>
-	{i18n(defs[type])}
+<div class="wrap">
+	<span class:hovered><UploadIcon /> </span>
+
+	{i18n(defs[type] || defs.file)}
+
+	{#if mode !== "short"}
+		<span class="or">- {i18n("common.or")} -</span>
+		{message || i18n("upload_text.click_to_upload")}
+	{/if}
 </div>
 
 <style>
 	.wrap {
-		border-width: 2px;
-		border-color: var(--block-border-color);
-		border-radius: var(--block-radius);
-		padding: var(--size-6) var(--size-8);
-		border-style: dashed;
 		display: flex;
-
+		flex-direction: column;
 		justify-content: center;
-		/* min-height: var(--size-60); */
+		align-items: center;
+		min-height: var(--size-44);
 		color: var(--block-label-text-color);
 		line-height: var(--line-md);
-		font-size: var(--scale-0);
-		font-weight: var(--weight-bold);
+		height: 100%;
+		padding-top: var(--size-3);
+	}
+
+	.or {
+		color: var(--body-text-color-subdued);
 	}
 
 	span {
-		width: 20px;
-		margin-right: var(--spacing-xl);
-	}
-
-	.border_focus {
-		border-color: var(--color-accent);
-	}
-
-	.border_focus span {
-		color: var(--color-accent);
+		width: 30px;
+		margin-bottom: var(--spacing-lg);
 	}
 
 	@media (--screen-md) {
 		.wrap {
 			font-size: var(--text-lg);
 		}
+	}
+
+	.hovered {
+		color: var(--color-accent);
 	}
 </style>

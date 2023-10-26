@@ -8,20 +8,15 @@
 <style>
 	div {
 		display: flex;
-		position: absolute;
-		bottom: var(--size-2);
-		margin: auto;
+		max-height: 100%;
 		justify-content: center;
 		gap: var(--spacing-sm);
 		z-index: var(--layer-5);
-		position: absolute;
-		bottom: var(--size-2);
-		left: 50%;
-		transform: translateX(-50%);
+		height: auto;
 		align-items: center;
 		box-shadow: var(--shadow-drop);
-		border-radius: var(--radius-sm);
-		padding: 2px 4px;
+		padding: var(--spacing-xl) 0;
 		color: var(--block-label-text-color);
+		flex-shrink: 0;
 	}
 </style>

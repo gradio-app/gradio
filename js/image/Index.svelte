@@ -7,7 +7,7 @@
 <script lang="ts">
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import StaticImage from "./shared/ImagePreview.svelte";
-	import Image from "./shared/ImageUploader.svelte";
+	import ImageUploader from "./shared/ImageUploader.svelte";
 
 	import { Block, UploadText } from "@gradio/atoms";
 
@@ -58,6 +58,8 @@
 	$: value = !value ? null : value;
 
 	const FIXED_HEIGHT = 240;
+
+	let active_tool: null | "webcam" = null;
 </script>
 
 {#if mode === "static"}
@@ -97,12 +99,12 @@
 {:else}
 	<Block
 		{visible}
-		variant={"solid"}
-		border_mode={"base"}
+		variant={value === null ? "dashed" : "solid"}
+		border_mode={dragging ? "focus" : "base"}
 		padding={false}
 		{elem_id}
 		{elem_classes}
-		height={height || (source === "webcam" ? undefined : FIXED_HEIGHT)}
+		height={height || (active_tool === "webcam" ? undefined : FIXED_HEIGHT)}
 		{width}
 		allow_overflow={false}
 		{container}
@@ -115,7 +117,8 @@
 			{...loading_status}
 		/>
 
-		<Image
+		<ImageUploader
+			bind:active_tool
 			bind:value
 			{selectable}
 			{root}
@@ -143,8 +146,9 @@
 			<UploadText
 				i18n={gradio.i18n}
 				type="image"
-				border_mode={dragging ? "focus" : "base"}
+				mode="short"
+				hovered={dragging}
 			/>
-		</Image>
+		</ImageUploader>
 	</Block>
 {/if}

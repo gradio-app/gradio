@@ -22,7 +22,7 @@
 					is_example?: boolean;
 					is_file: boolean;
 			  }
-			| string;
+			| Blob;
 		error: string;
 		start_recording: undefined;
 		stop_recording: undefined;
@@ -62,8 +62,18 @@
 				video_source.videoHeight
 			);
 
-			var data = canvas.toDataURL("image/png");
-			dispatch(streaming ? "stream" : "capture", data);
+			if (mirror_webcam) {
+				context.scale(-1, 1);
+				context.drawImage(video_source, -video_source.videoWidth, 0);
+			}
+
+			canvas.toBlob(
+				(blob) => {
+					dispatch(streaming ? "stream" : "capture", blob);
+				},
+				"image/jpeg",
+				0.8
+			);
 		}
 	}
 
