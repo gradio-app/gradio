@@ -137,19 +137,21 @@
 			</div>
 		</div>
 
-		<WaveformControls
-			{container}
-			{waveform}
-			{playing}
-			{audioDuration}
-			{i18n}
-			{interactive}
-			{handle_trim_audio}
-			bind:mode
-			bind:trimDuration
-			showRedo={interactive}
-			{handle_reset_value}
-		/>
+		{#if waveform}
+			<WaveformControls
+				{container}
+				{waveform}
+				{playing}
+				{audioDuration}
+				{i18n}
+				{interactive}
+				{handle_trim_audio}
+				bind:mode
+				bind:trimDuration
+				showRedo={interactive}
+				{handle_reset_value}
+			/>
+		{/if}
 	</div>
 {/if}
 

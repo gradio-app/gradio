@@ -199,7 +199,7 @@
 		<WaveformRecordControls bind:record {i18n} {dispatch} />
 	{/if}
 
-	{#if recordedAudio}
+	{#if recordingWaveform && recordedAudio}
 		<WaveformControls
 			bind:waveform={recordingWaveform}
 			{container}

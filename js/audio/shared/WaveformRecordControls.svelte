@@ -127,7 +127,11 @@
 		>
 	</div>
 
-	<select id="mic-select" disabled={micDevices.length === 0}>
+	<select
+		id="mic-select"
+		aria-label="Select input device"
+		disabled={micDevices.length === 0}
+	>
 		{#if micDevices.length === 0}
 			<option value="">{i18n("audio.no_microphone")}</option>
 		{:else}

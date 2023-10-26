@@ -3,7 +3,9 @@
 	import { getSkipRewindAmount } from "../shared/utils";
 	import type { I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
-	import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.js";
+	import RegionsPlugin, {
+		type Region,
+	} from "wavesurfer.js/dist/plugins/regions.js";
 
 	export let waveform: WaveSurfer;
 	export let audioDuration: number;
@@ -22,34 +24,40 @@
 	let playbackSpeed = playbackSpeeds[1];
 
 	let trimRegion: RegionsPlugin;
-	let activeRegion: any;
+	let activeRegion: Region | null = null;
 
 	let leftRegionHandle: HTMLDivElement | null;
 	let rightRegionHandle: HTMLDivElement | null;
 	let activeHandle = "";
 
-	$: trimRegion &&
-		activeRegion &&
-		trimRegion.on("region-in", (region) => {
-			activeRegion = region;
-		});
+	$: trimRegion = waveform.registerPlugin(RegionsPlugin.create());
 
-	$: trimRegion &&
-		activeRegion &&
-		trimRegion.on("region-out", () => {
-			activeRegion && activeRegion.play();
-		});
+	$: trimRegion?.on("region-in", (region) => {
+		activeRegion = region;
+	});
 
-	$: trimRegion &&
-		trimRegion.on("region-updated", (region) => {
-			activeRegion = region;
-			trimDuration = activeRegion.end - activeRegion.start;
-		});
+	$: trimRegion?.on("region-out", (region) => {
+		if (activeRegion === region) {
+			region.play();
+		}
+	});
+
+	$: trimRegion?.on("region-updated", (region) => {
+		trimDuration = region.end - region.start;
+	});
+
+	$: trimRegion?.on("region-clicked", (region, e) => {
+		e.stopPropagation(); // prevent triggering a click on the waveform
+		activeRegion = region;
+		region.play();
+	});
+
+	$: waveform.on("interaction", () => {
+		activeRegion = null;
+	});
 
 	const addTrimRegion = (): void => {
-		if (mode !== "edit") return;
-		trimRegion = waveform.registerPlugin(RegionsPlugin.create());
-		const newRegion = trimRegion.addRegion({
+		activeRegion = trimRegion.addRegion({
 			start: audioDuration / 4,
 			end: audioDuration / 2,
 			color: "hsla(15, 85%, 40%, 0.4)",
@@ -57,50 +65,44 @@
 			resize: true,
 		});
 
-		activeRegion = newRegion;
 		trimDuration = activeRegion.end - activeRegion.start;
+	};
 
+	$: if (activeRegion) {
 		const shadowRoot = container.children[0]!.shadowRoot!;
 
 		rightRegionHandle = shadowRoot.querySelector('[data-resize="right"]');
 		leftRegionHandle = shadowRoot.querySelector('[data-resize="left"]');
 
-		if (!leftRegionHandle || !rightRegionHandle) return;
-		leftRegionHandle.setAttribute("role", "button");
-		rightRegionHandle.setAttribute("role", "button");
-		leftRegionHandle?.setAttribute("aria-label", "Drag to adjust start time");
-		rightRegionHandle?.setAttribute("aria-label", "Drag to adjust end time");
-		leftRegionHandle?.setAttribute("tabindex", "0");
-		rightRegionHandle?.setAttribute("tabindex", "0");
+		if (leftRegionHandle && rightRegionHandle) {
+			leftRegionHandle.setAttribute("role", "button");
+			rightRegionHandle.setAttribute("role", "button");
+			leftRegionHandle?.setAttribute("aria-label", "Drag to adjust start time");
+			rightRegionHandle?.setAttribute("aria-label", "Drag to adjust end time");
+			leftRegionHandle?.setAttribute("tabindex", "0");
+			rightRegionHandle?.setAttribute("tabindex", "0");
 
-		leftRegionHandle.addEventListener("focus", () => {
-			if (trimRegion) activeHandle = "left";
-		});
+			leftRegionHandle.addEventListener("focus", () => {
+				if (trimRegion) activeHandle = "left";
+			});
 
-		rightRegionHandle.addEventListener("focus", () => {
-			if (trimRegion) activeHandle = "right";
-		});
-	};
+			rightRegionHandle.addEventListener("focus", () => {
+				if (trimRegion) activeHandle = "right";
+			});
+		}
+	}
 
 	const trimAudio = (): void => {
 		if (waveform && trimRegion) {
-			const region = activeRegion;
-			if (region) {
-				const start = region.start;
-				const end = region.end;
+			if (activeRegion) {
+				const start = activeRegion.start;
+				const end = activeRegion.end;
 				handle_trim_audio(start, end);
 				mode = "";
+				activeRegion = null;
 			}
 		}
 	};
-
-	$: trimRegion &&
-		activeRegion &&
-		trimRegion.on("region-clicked", (region, e) => {
-			e.stopPropagation();
-			activeRegion = region;
-			activeRegion.play();
-		});
 
 	const clearRegions = (): void => {
 		trimRegion?.getRegions().forEach((region) => {
@@ -116,17 +118,15 @@
 			mode = "";
 		} else {
 			mode = "edit";
+			addTrimRegion();
 		}
 	};
-
-	$: if (mode === "edit") {
-		addTrimRegion();
-	}
 
 	const adjustRegionHandles = (handle: string, key: string): void => {
 		let newStart;
 		let newEnd;
 
+		if (!activeRegion) return;
 		if (handle === "left") {
 			if (key === "ArrowLeft") {
 				newStart = activeRegion.start - 0.05;
@@ -218,7 +218,11 @@
 			<button
 				class="action icon"
 				aria-label="Reset audio"
-				on:click={() => handle_reset_value()}
+				on:click={() => {
+					handle_reset_value();
+					clearRegions();
+					mode = "";
+				}}
 			>
 				<Undo />
 			</button>

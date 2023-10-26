@@ -205,6 +205,7 @@
 			}
 			dispatch_blob(audio_chunks, "change");
 			dispatch("clear");
+			mode = "";
 		}
 	}
 </script>
@@ -307,6 +308,6 @@
 
 	.icon:hover,
 	.icon:focus {
-		color: var(--secondary-50);
+		color: var(--color-accent);
 	}
 </style>
