@@ -185,7 +185,7 @@ class Chatbot(Component):
 
             mime_type = client_utils.get_mimetype(filepath)
             return FileMessage(
-                file=FileData(name=filepath, is_file=True, mime_type=mime_type),
+                file=FileData(path=filepath, mime_type=mime_type),
                 alt_text=chat_message[1] if len(chat_message) > 1 else None,
             )
         elif isinstance(chat_message, str):

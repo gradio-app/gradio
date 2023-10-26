@@ -159,7 +159,7 @@ class Image(StreamingInput, Component):
 
         print(x)
 
-        im = _Image.open(x.path)
+        im = _Image.open(x["path"])
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)

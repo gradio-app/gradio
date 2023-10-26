@@ -551,7 +551,7 @@ class TestImage:
         type: pil, file, filepath, numpy
         """
 
-        img = FileData(path="test/test_files/bus.png")
+        img = dict(FileData(path="test/test_files/bus.png"))
         image_input = gr.Image()
 
         image_input = gr.Image(type="filepath")
@@ -597,7 +597,7 @@ class TestImage:
 
         # Output functionalities
         image_output = gr.Image(type="pil")
-        processed_image = image_output.postprocess(PIL.Image.open(img.path))
+        processed_image = image_output.postprocess(PIL.Image.open(img["path"]))
         assert processed_image is not None
         print("PROCESSED: ", processed_image)
         print("IMAGE: ", img)
@@ -605,7 +605,7 @@ class TestImage:
             processed = client_utils.encode_url_or_file_to_base64(
                 cast(dict, processed_image).get("path", "")
             )
-            source = client_utils.encode_url_or_file_to_base64(img.path)
+            source = client_utils.encode_url_or_file_to_base64(img["path"])
             assert processed == source
 
     def test_as_example(self):
@@ -622,7 +622,7 @@ class TestImage:
             return np.random.randint(0, 256, (height, width, 3))
 
         iface = gr.Interface(generate_noise, ["slider", "slider"], "image")
-        assert iface(10, 20)["path"].endswith(".png")
+        assert iface(10, 20).endswith(".png")
 
     def test_static(self):
         """
@@ -806,7 +806,7 @@ class TestAudio:
             return 48000, np.random.randint(-256, 256, (duration, 3)).astype(np.int16)
 
         iface = gr.Interface(generate_noise, "slider", "audio")
-        assert iface(100)["path"].endswith(".wav")
+        assert iface(100).endswith(".wav")
 
     def test_audio_preprocess_can_be_read_by_scipy(self, gradio_temp_dir):
         x_wav = {
@@ -900,7 +900,7 @@ class TestFile:
             return os.path.getsize(file_obj.name)
 
         iface = gr.Interface(get_size_of_file, "file", "number")
-        assert iface({"path": x_file}) == 10558
+        assert iface(x_file) == 10558
 
     def test_as_component_as_output(self):
         """
@@ -913,7 +913,7 @@ class TestFile:
             return "test.txt"
 
         iface = gr.Interface(write_file, "text", "file")
-        assert iface("hello world")["path"].endswith(".txt")
+        assert iface("hello world").endswith(".txt")
 
 
 class TestUploadButton:
@@ -1414,7 +1414,7 @@ class TestVideo:
         """
         x_video = media_data.BASE64_VIDEO["path"]
         iface = gr.Interface(lambda x: x, "video", "playable_video")
-        assert iface({"video": {"path": x_video}})["video"]["path"].endswith(".mp4")
+        assert iface(x_video)["video"].endswith(".mp4")
 
     def test_with_waveform(self):
         """
@@ -1422,7 +1422,7 @@ class TestVideo:
         """
         x_audio = media_data.BASE64_AUDIO["path"]
         iface = gr.Interface(lambda x: gr.make_waveform(x), "audio", "video")
-        assert iface({"video": {"path": x_audio}})["video"]["path"].endswith(".mp4")
+        assert iface(x_audio)["video"].endswith(".mp4")
 
     def test_video_postprocess_converts_to_playable_format(self):
         test_file_dir = Path(Path(__file__).parent, "test_files")
