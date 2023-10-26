@@ -109,8 +109,14 @@ def _publish(
                 ":closed_lock_with_key: Enter your pypi password", password=True
             )
     if upload_pypi:
-        from twine.commands.upload import upload as twine_upload
-        from twine.settings import Settings
+        try:
+            from twine.commands.upload import upload as twine_upload
+            from twine.settings import Settings
+        except (ImportError, ModuleNotFoundError) as e:
+            raise ValueError(
+                "The twine library must be installed to publish to pypi."
+                "Install it with pip, pip install twine."
+            ) from e
 
         twine_settings = Settings(username=pypi_username, password=pypi_password)
         try:
