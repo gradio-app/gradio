@@ -1101,6 +1101,7 @@ class EndpointV3Compatibility:
             "/" + api_name if isinstance(api_name, str) else api_name
         )
         self.use_ws = self._use_websocket(self.dependency)
+        self.protocol = "ws" if self.use_ws else "http"
         self.input_component_types = []
         self.output_component_types = []
         self.root_url = client.src + "/" if not client.src.endswith("/") else client.src

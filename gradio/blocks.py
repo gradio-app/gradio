@@ -1380,7 +1380,7 @@ Received outputs:
         inputs: list[Any],
         state: SessionState | None = None,
         request: routes.Request | list[routes.Request] | None = None,
-        iterators: dict[int, Any] | None = None,
+        iterator: AsyncIterator | None = None,
         session_hash: str | None = None,
         event_id: str | None = None,
         event_data: EventData | None = None,
@@ -1438,7 +1438,7 @@ Received outputs:
             data = list(zip(*data))
             is_generating, iterator = None, None
         else:
-            old_iterator = iterators.get(fn_index, None) if iterators else None
+            old_iterator = iterator
             if old_iterator:
                 inputs = []
             else:

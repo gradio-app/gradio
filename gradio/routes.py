@@ -21,10 +21,9 @@ import tempfile
 import threading
 import time
 import traceback
-from collections import defaultdict
 from pathlib import Path
 from queue import Empty as EmptyQueue
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type
+from typing import TYPE_CHECKING, Any, AsyncIterator, Dict, List, Optional, Type
 
 import anyio
 import fastapi
@@ -127,8 +126,8 @@ class App(FastAPI):
         self.auth = None
         self.blocks: gradio.Blocks | None = None
         self.state_holder = StateHolder()
-        self.iterators = defaultdict(dict)
-        self.iterators_to_reset = defaultdict(set)
+        self.iterators: dict[str, AsyncIterator] = {}
+        self.iterators_to_reset: set[str] = set()
         self.lock = utils.safe_get_lock()
         self.cookie_id = secrets.token_urlsafe(32)
         self.queue_token = secrets.token_urlsafe(32)
@@ -527,11 +526,12 @@ class App(FastAPI):
         @app.post("/reset/")
         @app.post("/reset")
         async def reset_iterator(body: ResetBody):
-            if body.session_hash not in app.iterators:
+            if body.event_id not in app.iterators:
                 return {"success": False}
             async with app.lock:
-                app.iterators[body.session_hash][body.fn_index] = None
-                app.iterators_to_reset[body.session_hash].add(body.fn_index)
+                del app.iterators[body.event_id]
+                app.iterators_to_reset.add(body.event_id)
+                await app.get_blocks()._queue.clean_event(body.event_id)
             return {"success": True}
 
         # had to use '/run' endpoint for Colab compatibility, '/api' supported for backwards compatibility
@@ -597,7 +597,7 @@ class App(FastAPI):
             # occupy the queue's resource as they are expected to run forever
             if blocks.dependencies[event.fn_index].get("every", 0):
                 await cancel_tasks({f"{event.session_hash}_{event.fn_index}"})
-                await blocks._queue.reset_iterators(event.session_hash, event.fn_index)
+                await blocks._queue.reset_iterators(event._id)
                 blocks._queue.continuous_tasks.append(event)
                 task = run_coro_in_background(
                     blocks._queue.process_events, [event], False

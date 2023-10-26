@@ -235,7 +235,16 @@ class Queue:
         self.event_queue.append(event)
         return queue_len
 
-    async def clean_event(self, event: Event) -> None:
+    async def clean_event(self, event: Event | str) -> None:
+        if isinstance(event, str):
+            for job_set in self.active_jobs:
+                if job_set:
+                    for job in job_set:
+                        if job._id == event:
+                            event = job
+                            break
+        if isinstance(event, str):
+            raise ValueError("Event not found", event)
         event.alive = False
         if event in self.event_queue:
             async with self.delete_lock:
@@ -479,7 +488,7 @@ class Queue:
                 # If the job finished successfully, this has no effect
                 # If the job is cancelled, this will enable future runs
                 # to start "from scratch"
-                await self.reset_iterators(event.session_hash, event.fn_index)
+                await self.reset_iterators(event._id)
 
     def send_message(
         self,
@@ -508,15 +517,15 @@ class Queue:
             del self.awaiting_data_events[event._id]
         return event.data is not None
 
-    async def reset_iterators(self, session_hash: str, fn_index: int):
+    async def reset_iterators(self, event_id: str):
         # Do the same thing as the /reset route
         app = self.server_app
         if app is None:
             raise Exception("Server app has not been set.")
-        if session_hash not in app.iterators:
+        if event_id not in app.iterators:
             # Failure, but don't raise an error
             return
         async with app.lock:
-            app.iterators[session_hash][fn_index] = None
-            app.iterators_to_reset[session_hash].add(fn_index)
+            del app.iterators[event_id]
+            app.iterators_to_reset.add(event_id)
         return

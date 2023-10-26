@@ -33,8 +33,7 @@ class PredictBody(BaseModel):
 
 
 class ResetBody(BaseModel):
-    session_hash: str
-    fn_index: int
+    event_id: str
 
 
 class ComponentServerBody(BaseModel):

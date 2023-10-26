@@ -153,7 +153,7 @@
 		background-repeat: no-repeat;
 	}
 
-	input[type=range]::-moz-range-track {
+	input[type="range"]::-moz-range-track {
 		height: 12px;
 	}
 

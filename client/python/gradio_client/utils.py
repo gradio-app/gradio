@@ -204,6 +204,7 @@ class Communicator:
     prediction_processor: Callable[..., tuple]
     reset_url: str
     should_cancel: bool = False
+    event_id: str | None = None
 
 
 ########################
@@ -316,7 +317,7 @@ async def get_pred_from_sse(
 ) -> dict[str, Any] | None:
     done, pending = await asyncio.wait(
         [
-            asyncio.create_task(check_for_cancel(hash_data, helper, cookies)),
+            asyncio.create_task(check_for_cancel(helper, cookies)),
             asyncio.create_task(
                 stream_sse(
                     client, data, hash_data, helper, sse_url, sse_data_url, cookies
@@ -338,16 +339,17 @@ async def get_pred_from_sse(
         return task.result()
 
 
-async def check_for_cancel(
-    hash_data: dict, helper: Communicator, cookies: dict[str, str] | None
-):
+async def check_for_cancel(helper: Communicator, cookies: dict[str, str] | None):
     while True:
         await asyncio.sleep(0.05)
         with helper.lock:
             if helper.should_cancel:
                 break
-    async with httpx.AsyncClient() as http:
-        await http.post(helper.reset_url, json=hash_data, cookies=cookies)
+    if helper.event_id:
+        async with httpx.AsyncClient() as http:
+            await http.post(
+                helper.reset_url, json={"event_id": helper.event_id}, cookies=cookies
+            )
     raise CancelledError()
 
 
@@ -393,6 +395,7 @@ async def stream_sse(
                         raise QueueError("Queue is full! Please try again.")
                     elif resp["msg"] == "send_data":
                         event_id = resp["event_id"]
+                        helper.event_id = event_id
                         req = requests.post(
                             sse_data_url,
                             json={"event_id": event_id, **data, **hash_data},

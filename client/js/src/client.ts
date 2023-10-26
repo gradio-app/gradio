@@ -433,6 +433,7 @@ export function api_factory(
 
 				const _endpoint = typeof endpoint === "number" ? "/predict" : endpoint;
 				let payload: Payload;
+				let event_id: string | null = null;
 				let complete: false | Record<string, any> = false;
 				const listener_map: ListenerMap<EventType> = {};
 				let url_params = "";
@@ -680,7 +681,7 @@ export function api_factory(
 									eventSource.close();
 								}
 							} else if (type === "data") {
-								let event_id = _data.event_id;
+								event_id = _data.event_id as string;
 								post_data(
 									`${http_protocol}//${resolve_root(
 										host,
@@ -792,12 +793,19 @@ export function api_factory(
 						fn_index: fn_index
 					});
 
-					if (websocket && websocket.readyState === 0) {
-						websocket.addEventListener("open", () => {
+					let cancel_request = {};
+					if (protocol === "ws") {
+						if (websocket && websocket.readyState === 0) {
+							websocket.addEventListener("open", () => {
+								websocket.close();
+							});
+						} else {
 							websocket.close();
-						});
+						}
+						cancel_request = { fn_index, session_hash };
 					} else {
-						websocket.close();
+						eventSource.close();
+						cancel_request = { event_id };
 					}
 
 					try {
@@ -810,7 +818,7 @@ export function api_factory(
 							{
 								headers: { "Content-Type": "application/json" },
 								method: "POST",
-								body: JSON.stringify({ fn_index, session_hash })
+								body: JSON.stringify(cancel_request)
 							}
 						);
 					} catch (e) {
