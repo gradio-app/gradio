@@ -84,10 +84,13 @@ def _publish(
         )
         print(panel)
         pypi_username = Prompt.ask(":laptop_computer: Enter your pypi username")
-        pypi_password = Prompt.ask(":closed_lock_with_key: Enter your pypi password", password=True)
+        pypi_password = Prompt.ask(
+            ":closed_lock_with_key: Enter your pypi password", password=True
+        )
     if upload_pypi:
         from twine.commands.upload import upload as twine_upload
         from twine.settings import Settings
+
         twine_settings = Settings(username=pypi_username, password=pypi_password)
         try:
             twine_upload(twine_settings, [str(wheel_file)])
@@ -102,7 +105,9 @@ def _publish(
             "If you need additional python requirements, add a [magenta]requirements.txt[/] file to this directory."
         )
         print(panel)
-        demo_dir = Path(Prompt.ask(":hugging_face: Please enter demo directory")).resolve()
+        demo_dir = Path(
+            Prompt.ask(":hugging_face: Please enter demo directory")
+        ).resolve()
     if upload_demo:
         assert demo_dir
         if not (demo_dir / "app.py").exists():
