@@ -1,5 +1,11 @@
 # @gradio/box
 
+## 0.1.0-beta.6
+
+### Features
+
+- [#6016](https://github.com/gradio-app/gradio/pull/6016) [`83e947676`](https://github.com/gradio-app/gradio/commit/83e947676d327ca2ab6ae2a2d710c78961c771a0) - Format js in v4 branch.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 0.1.0-beta.5
 
 ### Features
