@@ -176,7 +176,7 @@
 </script>
 
 <div class="component-wrapper">
-	<div id="microphone" data-testid={label || "unlabelled" + "-audio"} />
+	<div id="microphone" data-testid="microphone-waveform" />
 	<div id="recording" bind:this={container} />
 
 	{#if timing || recordedAudio}

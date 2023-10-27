@@ -126,13 +126,12 @@
 		<Music />
 	</Empty>
 {:else}
-	<div class="component-wrapper" data-testid={`${label || "unlabelled"}-audio`}>
+	<div
+		class="component-wrapper"
+		data-testid={label ? "waveform-" + label : "unlabelled-audio"}
+	>
 		<div class="waveform-container">
-			<div
-				id="waveform"
-				data-testid={{ label } || "unlabelled" + "-audio"}
-				bind:this={container}
-			/>
+			<div id="waveform" bind:this={container} />
 		</div>
 
 		<div class="timestamps">

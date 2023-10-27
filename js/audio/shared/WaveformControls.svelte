@@ -154,7 +154,7 @@
 		});
 </script>
 
-<div class="controls">
+<div class="controls" data-testid="waveform-controls">
 	<button
 		class="playback icon"
 		aria-label={`Adjust playback speed to ${
