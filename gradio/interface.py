@@ -646,7 +646,7 @@ class Interface(Blocks):
                 [input_component_column] if input_component_column else []
             ),  # type: ignore
             _js=f"""() => {json.dumps(
-                (
+                
                     [{'variant': None, 'visible': True, '__type__': 'update'}]
                     if self.interface_type
                        in [
@@ -655,7 +655,7 @@ class Interface(Blocks):
                            InterfaceTypes.UNIFIED,
                        ]
                     else []
-                )
+                
             )}
             """,
         )

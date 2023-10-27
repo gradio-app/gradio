@@ -11,7 +11,7 @@
 		value={[
 			{ token: "zebras", class_or_confidence: "+" },
 			{ token: "dogs", class_or_confidence: "-" },
-			{ token: "elephants", class_or_confidence: "+" }
+			{ token: "elephants", class_or_confidence: "+" },
 		]}
 		gradio={new Gradio(
 			0,
@@ -36,8 +36,8 @@
 			{ token: "\n" },
 			{ token: "dogs", class_or_confidence: "-" },
 			{ token: "\n" },
-			{ token: "elephants", class_or_confidence: "+" }
-		]
+			{ token: "elephants", class_or_confidence: "+" },
+		],
 	}}
 />
 <Story
@@ -55,9 +55,9 @@
 			{ token: "fox", class_or_confidence: "subject" },
 			{ token: " jumped ", class_or_confidence: "past tense verb" },
 			{ token: "over the", class_or_confidence: null },
-			{ token: "lazy dog", class_or_confidence: "object" }
+			{ token: "lazy dog", class_or_confidence: "object" },
 		],
-		combine_adjacent: true
+		combine_adjacent: true,
 	}}
 />
 
@@ -71,8 +71,8 @@
 			{ token: "fox", class_or_confidence: "subject" },
 			{ token: " jumped ", class_or_confidence: "past tense verb" },
 			{ token: "over the", class_or_confidence: null },
-			{ token: "lazy dog", class_or_confidence: "object" }
-		]
+			{ token: "lazy dog", class_or_confidence: "object" },
+		],
 	}}
 />
 
@@ -88,10 +88,10 @@
 			{ token: " jumped ", class_or_confidence: "past tense verb" },
 			{ token: "\n", class_or_confidence: null },
 			{ token: "over the", class_or_confidence: null },
-			{ token: "lazy dog", class_or_confidence: "object" }
+			{ token: "lazy dog", class_or_confidence: "object" },
 		],
 
-		combine_adjacent: true
+		combine_adjacent: true,
 	}}
 />
 
@@ -101,8 +101,8 @@
 		value: [
 			{ token: "the", class_or_confidence: -1 },
 			{ token: "quick", class_or_confidence: 1 },
-			{ token: "fox", class_or_confidence: 0.3 }
+			{ token: "fox", class_or_confidence: 0.3 },
 		],
-		show_legend: true
+		show_legend: true,
 	}}
 />

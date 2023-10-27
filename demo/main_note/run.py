@@ -42,7 +42,7 @@ def main_note(audio):
 
 demo = gr.Interface(
     main_note,
-    gr.Audio(source="microphone"),
+    gr.Audio(sources=["microphone"]),
     gr.Label(num_top_classes=4),
     examples=[
         [os.path.join(os.path.dirname(__file__),"audio/recording1.wav")],

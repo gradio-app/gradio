@@ -18,7 +18,7 @@ def transcribe(stream, new_chunk):
 
 demo = gr.Interface(
     transcribe,
-    ["state", gr.Audio(source="microphone", streaming=True)],
+    ["state", gr.Audio(sources=["microphone"], streaming=True)],
     ["state", "text"],
     live=True,
 )

@@ -464,6 +464,10 @@ class Events:
         "start_recording",
         doc="This listener is triggered when the user starts recording with the {{ component }}.",
     )
+    pause_recording = EventListener(
+        "pause_recording",
+        doc="This listener is triggered when the user pauses recording with the {{ component }}.",
+    )
     stop_recording = EventListener(
         "stop_recording",
         doc="This listener is triggered when the user stops recording with the {{ component }}.",

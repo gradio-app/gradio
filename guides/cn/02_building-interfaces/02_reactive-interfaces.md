@@ -15,7 +15,7 @@ $demo_calculator_live
 
 某些组件具有“流式”模式，比如麦克风模式下的 `Audio` 组件或网络摄像头模式下的 `Image` 组件。流式传输意味着数据会持续发送到后端，并且 `Interface` 函数会持续重新运行。
 
-当在 `gr.Interface(live=True)` 中同时使用 `gr.Audio(source='microphone')` 和 `gr.Audio(source='microphone', streaming=True)` 时，两者的区别在于第一个 `Component` 会在用户停止录制时自动提交数据并运行 `Interface` 函数，而第二个 `Component` 会在录制过程中持续发送数据并运行 `Interface` 函数。
+当在 `gr.Interface(live=True)` 中同时使用 `gr.Audio(sources=['microphone'])` 和 `gr.Audio(sources=['microphone'], streaming=True)` 时，两者的区别在于第一个 `Component` 会在用户停止录制时自动提交数据并运行 `Interface` 函数，而第二个 `Component` 会在录制过程中持续发送数据并运行 `Interface` 函数。
 
 以下是从网络摄像头实时流式传输图像的示例代码。
 

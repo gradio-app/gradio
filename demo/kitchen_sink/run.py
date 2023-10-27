@@ -107,7 +107,7 @@ demo = gr.Interface(
         gr.Image(label="Webcam", source="webcam"),
         gr.Video(label="Video"),
         gr.Audio(label="Audio"),
-        gr.Audio(label="Microphone", source="microphone"),
+        gr.Audio(label="Microphone", sources=["microphone"]),
         gr.File(label="File"),
         gr.Dataframe(label="Dataframe", headers=["Name", "Age", "Gender"]),
     ],
