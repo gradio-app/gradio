@@ -745,12 +745,12 @@ class TestAudio:
         x_wav = processing_utils.move_files_to_cache([x_wav], audio_input)[0]
         audio_input = gr.Audio(type="filepath")
         output1 = audio_input.preprocess(x_wav)
-        assert Path(output1).name.endswith("audio_sample-0-100.wav")
+        assert Path(output1).name.endswith("audio_sample.wav")
 
         audio_input = gr.Audio(label="Upload Your Audio")
         assert audio_input.get_config() == {
             "autoplay": False,
-            "source": "upload",
+            "sources": ["microphone", "upload"],
             "name": "audio",
             "show_download_button": True,
             "show_share_button": False,
@@ -770,6 +770,9 @@ class TestAudio:
             "type": "numpy",
             "format": "wav",
             "streamable": False,
+            "max_length": None,
+            "min_length": None,
+            "waveform_options": None,
         }
         assert audio_input.preprocess(None) is None
         x_wav["is_example"] = True
@@ -801,7 +804,8 @@ class TestAudio:
             "streaming": False,
             "show_label": True,
             "label": None,
-            "source": "upload",
+            "max_length": None,
+            "min_length": None,
             "container": True,
             "min_width": 160,
             "scale": None,
@@ -814,11 +818,18 @@ class TestAudio:
             "type": "filepath",
             "format": "wav",
             "streamable": False,
+            "sources": ["microphone", "upload"],
+            "waveform_options": None,
         }
 
         output1 = audio_output.postprocess(y_audio.name)
         output2 = audio_output.postprocess(Path(y_audio.name))
         assert output1 == output2
+
+    def test_default_value_postprocess(self):
+        x_wav = deepcopy(media_data.BASE64_AUDIO)
+        audio = gr.Audio(value=x_wav["name"])
+        assert processing_utils.is_in_or_equal(audio.value["name"], audio.GRADIO_CACHE)
 
     def test_in_interface(self):
         def reverse_audio(audio):
@@ -2649,3 +2660,11 @@ def test_component_class_ids():
 
     # Make sure that the ids are unique
     assert len({button_id, textbox_id, json_id, microphone_id, audio_id}) == 5
+
+
+def test_constructor_args():
+    assert gr.Textbox(max_lines=314).constructor_args == {"max_lines": 314}
+    assert gr.LoginButton(icon="F00.svg", value="Log in please").constructor_args == {
+        "icon": "F00.svg",
+        "value": "Log in please",
+    }

@@ -11,6 +11,7 @@ from jinja2 import Template
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import EventListener
 from gradio.exceptions import ComponentDefinitionError
+from gradio.utils import no_raise_exception
 
 INTERFACE_TEMPLATE = '''
 {{ contents }}
@@ -115,17 +116,20 @@ def create_or_modify_pyi(
             + ["from gradio.events import Dependency"]
             + lines[last_empty_line_before_class:]
         )
-        pyi_file.write_text("\n".join(lines))
+        with no_raise_exception():
+            pyi_file.write_text("\n".join(lines))
     current_interface, _ = extract_class_source_code(pyi_file.read_text(), class_name)
     if not current_interface:
-        with open(str(pyi_file), mode="a") as f:
-            f.write(new_interface)
+        with no_raise_exception():
+            with open(str(pyi_file), mode="a") as f:
+                f.write(new_interface)
     else:
         contents = pyi_file.read_text()
         contents = contents.replace(current_interface, new_interface.strip())
         current_contents = pyi_file.read_text()
         if current_contents != contents:
-            pyi_file.write_text(contents)
+            with no_raise_exception():
+                pyi_file.write_text(contents)
 
 
 def in_event_listener():
@@ -139,12 +143,14 @@ def updateable(fn):
     def wrapper(*args, **kwargs):
         fn_args = inspect.getfullargspec(fn).args
         self = args[0]
+        if not hasattr(self, "_constructor_args"):
+            self._constructor_args = []
         for i, arg in enumerate(args):
             if i == 0 or i >= len(fn_args):  #  skip self, *args
                 continue
             arg_name = fn_args[i]
             kwargs[arg_name] = arg
-        self.constructor_args = kwargs
+        self._constructor_args.append(kwargs)
         if in_event_listener():
             return None
         else:

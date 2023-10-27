@@ -287,7 +287,7 @@ class EventListener(str):
 
             if Context.root_block is None:
                 raise AttributeError(
-                    "Cannot call {self.event_name} outside of a gradio.Blocks context."
+                    f"Cannot call {_event_name} outside of a gradio.Blocks context."
                 )
 
             dep, dep_index = Context.root_block.set_event_trigger(
@@ -463,6 +463,10 @@ class Events:
     start_recording = EventListener(
         "start_recording",
         doc="This listener is triggered when the user starts recording with the {{ component }}.",
+    )
+    pause_recording = EventListener(
+        "pause_recording",
+        doc="This listener is triggered when the user pauses recording with the {{ component }}.",
     )
     stop_recording = EventListener(
         "stop_recording",
