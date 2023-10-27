@@ -123,7 +123,7 @@ async def test_get_pred_from_ws():
     hash_data = {"session_hash": "daslskdf", "fn_index": "foo"}
     output = await utils.get_pred_from_ws(mock_ws, data, hash_data)
     assert output == {"data": ["result!"]}
-    mock_ws.send.assert_called_once_with(json.dumps(data))
+    mock_ws.send.assert_called_once_with(data)
 
 
 @pytest.mark.asyncio

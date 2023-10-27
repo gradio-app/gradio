@@ -247,8 +247,8 @@ def is_valid_url(possible_url: str) -> bool:
 
 async def get_pred_from_ws(
     websocket: WebSocketCommonProtocol,
-    data: dict,
-    hash_data: dict,
+    data: str,
+    hash_data: str,
     helper: Communicator | None = None,
 ) -> dict[str, Any]:
     completed = False
@@ -264,7 +264,9 @@ async def get_pred_from_ws(
                         # Need to reset the iterator state since the client
                         # will not reset the session
                         async with httpx.AsyncClient() as http:
-                            reset = http.post(helper.reset_url, json=hash_data)
+                            reset = http.post(
+                                helper.reset_url, json=json.loads(hash_data)
+                            )
                             # Retrieve cancel exception from task
                             # otherwise will get nasty warning in console
                             task.cancel()
@@ -299,9 +301,9 @@ async def get_pred_from_ws(
         if resp["msg"] == "queue_full":
             raise QueueError("Queue is full! Please try again.")
         if resp["msg"] == "send_hash":
-            await websocket.send(json.dumps(hash_data))
+            await websocket.send(hash_data)
         elif resp["msg"] == "send_data":
-            await websocket.send(json.dumps(data))
+            await websocket.send(data)
         completed = resp["msg"] == "process_completed"
     return resp["output"]
 
