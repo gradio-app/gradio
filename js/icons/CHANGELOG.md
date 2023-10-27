@@ -1,5 +1,11 @@
 # @gradio/icons
 
+## 0.2.0-beta.2
+
+### Features
+
+- [#5966](https://github.com/gradio-app/gradio/pull/5966) [`9cad2127b`](https://github.com/gradio-app/gradio/commit/9cad2127b965023687470b3abfe620e188a9da6e) - Improve Audio Component.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.2.0-beta.1
 
 ### Features
