@@ -35,7 +35,7 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> dict:
     ):
         pipeline_info = {
             "inputs": components.Audio(
-                source="microphone",
+                sources=["microphone"],
                 type="filepath",
                 label="Input",
                 render=False,
@@ -50,7 +50,7 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> dict:
     ):
         pipeline_info = {
             "inputs": components.Audio(
-                source="microphone", type="filepath", label="Input", render=False
+                sources=["microphone"], type="filepath", label="Input", render=False
             ),
             "outputs": components.Textbox(label="Output", render=False),
             "preprocess": lambda i: {"inputs": i},

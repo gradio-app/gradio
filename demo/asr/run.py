@@ -14,7 +14,7 @@ def transcribe(audio):
 
 demo = gr.Interface(
     transcribe,
-    gr.Audio(source="microphone"),
+    gr.Audio(sources=["microphone"]),
     "text",
 )
 
