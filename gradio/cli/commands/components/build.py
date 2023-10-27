@@ -53,6 +53,7 @@ def _build(
             if pipe.returncode != 0:
                 live.update(":red_square: Build failed!")
                 live.update(pipe.stderr)
+                live.update(pipe.stdout)
                 return
             else:
                 live.update(":white_check_mark: Build succeeded!")
