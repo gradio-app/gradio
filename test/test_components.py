@@ -770,9 +770,9 @@ class TestAudio:
             "type": "numpy",
             "format": "wav",
             "streamable": False,
-            "max_length": None, 
-            "min_length": None, 
-            "waveform_options": None
+            "max_length": None,
+            "min_length": None,
+            "waveform_options": None,
         }
         assert audio_input.preprocess(None) is None
         x_wav["is_example"] = True
