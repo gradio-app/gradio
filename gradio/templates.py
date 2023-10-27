@@ -349,7 +349,7 @@ class PlayableVideo(components.Video):
         value: str | Callable | None = None,
         *,
         format: Literal["mp4"] | None = "mp4",
-        sources: list[Literal["upload", "webcam"]] = ["upload"],
+        sources: list[Literal["upload", "webcam"]] = ["upload"],  # noqa: B006
         label: str | None = None,
         show_label: bool = True,
         interactive: bool | None = None,
