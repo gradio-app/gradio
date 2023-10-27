@@ -151,7 +151,7 @@ def _publish(
             )
             print(panel)
             demo_dir_ = Prompt.ask(
-                f":roller_coaster: Please enter the path to the demo directory. Leave blank to use {(Path('.') / 'demo')} directory"
+                f":roller_coaster: Please enter the path to the demo directory. Leave blank to use: {(Path('.') / 'demo')}"
             )
             demo_dir_ = demo_dir_ or str(Path(".") / "demo")
             demo_dir = Path(demo_dir_).resolve()
