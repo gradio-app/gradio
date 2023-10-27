@@ -188,7 +188,7 @@ class Audio(
         # a user submits the same audio file twice
         temp_file_path = Path(payload.name)
         output_file_name = str(
-            temp_file_path.with_name(f"{temp_file_path.stem}-{temp_file_path.suffix}")
+            temp_file_path.with_name(f"{temp_file_path.stem}{temp_file_path.suffix}")
         )
 
         sample_rate, data = processing_utils.audio_from_file(temp_file_path)
