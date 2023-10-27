@@ -285,7 +285,6 @@ class TestClientPredictions:
             assert len(job1.outputs()) > 0
             assert len(job1.outputs()) < len("abcdefefadsadfs")
             assert job1.status().code == Status.CANCELLED
-            print(">>1 ", job1.outputs())
 
             job2 = client.submit("abcd", api_name="/predict")
             assert len(job2.outputs()) == 0
@@ -293,7 +292,6 @@ class TestClientPredictions:
                 time.sleep(0.1)
             # Ran all iterations from scratch
             assert job2.status().code == Status.FINISHED
-            print(">>>", job2.outputs())
             assert len(job2.outputs()) == 4
 
     @pytest.mark.xfail

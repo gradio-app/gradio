@@ -632,7 +632,7 @@ class Client:
         if r.ok:
             return r.json()
         elif r.status_code == 401:
-            raise ValueError("Could not load {self.src}. Please login.")
+            raise ValueError(f"Could not load {self.src}. Please login.")
         else:  # to support older versions of Gradio
             r = requests.get(self.src, headers=self.headers, cookies=self.cookies)
             if not r.ok:
