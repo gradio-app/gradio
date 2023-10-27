@@ -21,8 +21,6 @@
 "@gradio/utils": patch
 "@gradio/video": patch
 "gradio": patch
-"newnewtext": patch
-"newtext": patch
 "website": patch
 ---
 
