@@ -1726,7 +1726,7 @@ Received outputs:
         show_error: bool = False,
         server_name: str | None = None,
         server_port: int | None = None,
-        show_tips: bool = False,
+        *,
         height: int = 500,
         width: int | str = "100%",
         favicon_path: str | None = None,
@@ -1738,7 +1738,6 @@ Received outputs:
         show_api: bool = True,
         allowed_paths: list[str] | None = None,
         blocked_paths: list[str] | None = None,
-        *,
         root_path: str | None = None,
         app_kwargs: dict[str, Any] | None = None,
         state_session_capacity: int = 10000,
@@ -1761,7 +1760,6 @@ Received outputs:
             show_error: If True, any errors in the interface will be displayed in an alert modal and printed in the browser console log
             server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT. If None, will search for an available port starting at 7860.
             server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME. If None, will use "127.0.0.1".
-            show_tips: if True, will occasionally show tips about new Gradio features
             max_threads: the maximum number of total threads that the Gradio app can generate in parallel. The default is inherited from the starlette library (currently 40). Applies whether the queue is enabled or not. But if queuing is enabled, this parameter is increaseed to be at least the concurrency_count of the queue.
             width: The width in pixels of the iframe element containing the interface (used if inline=True)
             height: The height in pixels of the iframe element containing the interface (used if inline=True)
@@ -1815,7 +1813,6 @@ Received outputs:
         else:
             self.auth = auth
         self.auth_message = auth_message
-        self.show_tips = show_tips
         self.show_error = show_error
         self.height = height
         self.width = width
@@ -2101,15 +2098,12 @@ Received outputs:
                 "is_sharing_on": self.share,
                 "share_url": self.share_url,
                 "enable_queue": self.enable_queue,
-                "show_tips": self.show_tips,
                 "server_name": server_name,
                 "server_port": server_port,
                 "is_space": self.space_id is not None,
                 "mode": self.mode,
             }
             analytics.launched_analytics(self, data)
-
-        utils.show_tip(self)
 
         # Block main thread if debug==True
         if debug or int(os.getenv("GRADIO_DEBUG", 0)) == 1 and not wasm_utils.IS_WASM:
