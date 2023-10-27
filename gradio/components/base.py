@@ -25,6 +25,7 @@ from gradio.component_meta import ComponentMeta
 from gradio.data_classes import GradioDataModel
 from gradio.events import EventListener
 from gradio.layouts import Form
+from gradio.processing_utils import move_files_to_cache
 
 if TYPE_CHECKING:
     from typing import TypedDict
@@ -133,8 +134,8 @@ class Component(ComponentBase, Block):
 
     def __init__(
         self,
-        *,
         value: Any = None,
+        *,
         label: str | None = None,
         info: str | None = None,
         show_label: bool | None = None,
@@ -206,11 +207,13 @@ class Component(ComponentBase, Block):
         self.load_event: None | dict[str, Any] = None
         self.load_event_to_attach: None | tuple[Callable, float | None] = None
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = (
+        initial_value = (
             initial_value
             if self._skip_init_processing
             else self.postprocess(initial_value)
         )
+        self.value = move_files_to_cache(initial_value, self)  # type: ignore
+
         if callable(load_fn):
             self.attach_load_event(load_fn, every)
 

@@ -35,6 +35,8 @@ export async function make_build({
 			for (const [entry, path] of exports) {
 				try {
 					const x = await build({
+						root: source_dir,
+						configFile: false,
 						plugins: [
 							...plugins,
 							make_gradio_plugin({ mode: "build", svelte_dir })
