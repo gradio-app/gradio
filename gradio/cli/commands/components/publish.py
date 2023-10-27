@@ -36,7 +36,7 @@ FROM python:3.9
 
 WORKDIR /code
 
-COPY . .
+COPY --link --chown=1000 . .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -60,7 +60,11 @@ def _ignore(s, names):
 
 
 def _publish(
-    wheel_file: Annotated[Path, Argument(help="Path to the wheel directory.")],
+    dist_dir: Annotated[
+        Path,
+        Argument(help=f"Path to the wheel directory. Default is {Path('.') / 'dist'}"),
+    ] = Path(".")
+    / "dist",
     upload_pypi: Annotated[bool, Option(help="Whether to upload to PyPI.")] = True,
     pypi_username: Annotated[str, Option(help="The username for PyPI.")] = "",
     pypi_password: Annotated[str, Option(help="The password for PyPI.")] = "",
@@ -85,16 +89,22 @@ def _publish(
 ):
     upload_source = source_dir is not None
     console = Console()
-    wheel_file = wheel_file.resolve()
-    if not wheel_file.suffix == ".whl":
+    dist_dir = dist_dir.resolve()
+    if not dist_dir.exists():
         raise ValueError(
-            "Please provide a wheel file. It must end with .whl. Run `gradio cc build` to create a wheel file."
+            f"{dist_dir} does not exist. Run `gradio cc build` to create a wheel and source distribution."
         )
-    if not wheel_file.exists():
+    if not dist_dir.is_dir():
+        raise ValueError(f"{dist_dir} is not a directory")
+    distribution_files = [
+        p.resolve() for p in Path(dist_dir).glob("*") if p.suffix in {".whl", ".gz"}
+    ]
+    wheel_file = next((p for p in distribution_files if p.suffix == ".whl"), None)
+    if not wheel_file:
         raise ValueError(
-            f"{wheel_file} does not exist. Run `gradio cc build` to create a wheel file."
+            "A wheel file was not found in the distribution directory. "
+            "Run `gradio cc build` to create a wheel file."
         )
-
     if upload_pypi and (not pypi_username or not pypi_password):
         panel = Panel(
             "It is recommended to upload your component to pypi so that [bold][magenta]anyone[/][/] "
@@ -120,7 +130,9 @@ def _publish(
 
         twine_settings = Settings(username=pypi_username, password=pypi_password)
         try:
-            twine_upload(twine_settings, [str(wheel_file)])
+            twine_files = [str(p) for p in distribution_files]
+            print(f"Uploading files: {','.join(twine_files)}")
+            twine_upload(twine_settings, twine_files)
         except Exception:
             console.print_exception()
     if upload_demo and not demo_dir:
@@ -138,9 +150,12 @@ def _publish(
                 "If you need additional python requirements, add a [magenta]requirements.txt[/] file to this directory."
             )
             print(panel)
-            demo_dir = Path(
-                Prompt.ask(":roller_coaster: Please enter demo directory")
-            ).resolve()
+            demo_dir_ = Prompt.ask(
+                f":roller_coaster: Please enter the path to the demo directory. Leave blank to use {(Path('.') / 'demo')} directory"
+            )
+            demo_dir_ = demo_dir_ or str(Path(".") / "demo")
+            demo_dir = Path(demo_dir_).resolve()
+
     if upload_demo and not source_dir:
         panel = Panel(
             "It is recommended that you share your [magenta]source code[/] so that others can learn from and improve your component."
@@ -148,11 +163,11 @@ def _publish(
         print(panel)
         upload_source = Confirm.ask(":books: Would you like to share your source code?")
         if upload_source:
-            source_dir = Path(
-                Prompt.ask(
-                    ":page_with_curl: Enter the path to the source code [magenta]directory[/] here"
-                )
-            ).resolve()
+            source_dir_ = Prompt.ask(
+                ":page_with_curl: Enter the path to the source code [magenta]directory[/]. Leave blank to use current directory"
+            )
+            source_dir_ = source_dir_ or str(Path("."))
+            source_dir = Path(source_dir_).resolve()
     if upload_demo:
         assert demo_dir
         if not (demo_dir / "app.py").exists():
@@ -229,4 +244,4 @@ def _publish(
                 repo_type="space",
             )
             print("\n")
-            print(f"Demo uploaded to {new_space}!")
+            print(f"Demo uploaded to {new_space} !")

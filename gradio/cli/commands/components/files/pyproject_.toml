@@ -10,6 +10,7 @@ build-backend = "hatchling.build"
 name = "<<name>>"
 version = "0.0.1"
 description = "Python library for easily interacting with trained machine learning models"
+readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.8"
 authors = [{ name = "YOUR NAME", email = "YOUREMAIL@domain.com" }]

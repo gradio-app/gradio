@@ -292,6 +292,21 @@ def _create_backend(
             "It must match the name of the python class exactly."
         )
 
+    readme_contents = textwrap.dedent(
+        """
+# {package_name}
+A Custom Gradio component.
+
+## Example usage
+
+```python
+import gradio as gr
+from {package_name} import {name}
+```
+"""
+    ).format(package_name=package_name, name=name)
+    (directory / "README.md").write_text(readme_contents)
+
     backend = directory / "backend" / package_name
     backend.mkdir(exist_ok=True, parents=True)
 
