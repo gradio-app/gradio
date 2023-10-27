@@ -804,7 +804,8 @@ class TestAudio:
             "streaming": False,
             "show_label": True,
             "label": None,
-            "source": "upload",
+            "max_length": None,
+            "min_length": None,
             "container": True,
             "min_width": 160,
             "scale": None,
@@ -817,6 +818,8 @@ class TestAudio:
             "type": "filepath",
             "format": "wav",
             "streamable": False,
+            "sources": ["microphone", "upload"],
+            "waveform_options": None,
         }
 
         output1 = audio_output.postprocess(y_audio.name)
