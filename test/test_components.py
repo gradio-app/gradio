@@ -750,7 +750,7 @@ class TestAudio:
         audio_input = gr.Audio(label="Upload Your Audio")
         assert audio_input.get_config() == {
             "autoplay": False,
-            "sources": ["upload"],
+            "sources": ["microphone", "upload"],
             "name": "audio",
             "show_download_button": True,
             "show_share_button": False,
