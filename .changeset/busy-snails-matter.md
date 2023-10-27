@@ -1,5 +1,6 @@
 ---
 "@gradio/app": minor
+"@gradio/audio": minor
 "gradio": minor
 ---
 
