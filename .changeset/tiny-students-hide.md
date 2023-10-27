@@ -1,5 +1,0 @@
----
-"gradio": major
----
-
-release major
