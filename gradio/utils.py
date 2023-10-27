@@ -11,7 +11,6 @@ import json
 import json.decoder
 import os
 import pkgutil
-import random
 import re
 import threading
 import time
@@ -289,12 +288,6 @@ def readme_to_html(article: str) -> str:
     except requests.exceptions.RequestException:
         pass
     return article
-
-
-def show_tip(interface: gradio.Blocks) -> None:
-    if interface.show_tips and random.random() < 1.5:
-        tip: str = random.choice(en["TIPS"])
-        print(f"Tip: {tip}")
 
 
 def launch_counter() -> None:
