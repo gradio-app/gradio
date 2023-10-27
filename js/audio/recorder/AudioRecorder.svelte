@@ -8,7 +8,6 @@
 	import WaveformRecordControls from "../shared/WaveformRecordControls.svelte";
 	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
 
-	export let label: string;
 	export let mode: string;
 	export let i18n: I18nFormatter;
 	export let dispatch: (event: any, detail?: any) => void;

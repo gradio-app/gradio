@@ -224,7 +224,6 @@
 		{:else}
 			<AudioRecorder
 				bind:mode
-				{label}
 				{i18n}
 				{dispatch}
 				{dispatch_blob}
