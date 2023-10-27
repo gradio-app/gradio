@@ -18,7 +18,11 @@
 	let old_value: { video: FileData; subtitles: FileData | null } | null = null;
 
 	export let label: string;
-	export let source: "upload" | "webcam";
+	export let sources:
+		| ["webcam"]
+		| ["upload"]
+		| ["webcam", "upload"]
+		| ["upload", "webcam"];
 	export let root: string;
 	export let root_url: null | string;
 	export let show_label: boolean;
@@ -50,6 +54,12 @@
 
 	let _video: FileData | null = null;
 	let _subtitle: FileData | null = null;
+
+	let active_source: "webcam" | "upload";
+
+	$: if (sources) {
+		active_source = sources[0];
+	}
 
 	$: {
 		if (value != null) {
@@ -85,7 +95,7 @@
 {#if mode === "static"}
 	<Block
 		{visible}
-		variant={value === null && source === "upload" ? "dashed" : "solid"}
+		variant={value === null && active_source === "upload" ? "dashed" : "solid"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
 		{elem_id}
@@ -122,7 +132,7 @@
 {:else}
 	<Block
 		{visible}
-		variant={value === null && source === "upload" ? "dashed" : "solid"}
+		variant={value === null && active_source === "upload" ? "dashed" : "solid"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
 		{elem_id}
@@ -152,7 +162,8 @@
 			}}
 			{label}
 			{show_label}
-			{source}
+			{sources}
+			{active_source}
 			{mirror_webcam}
 			{include_audio}
 			{autoplay}

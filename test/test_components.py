@@ -1375,7 +1375,7 @@ class TestVideo:
         video_input = gr.Video(label="Upload Your Video")
         assert video_input.get_config() == {
             "autoplay": False,
-            "source": "upload",
+            "sources": ["upload"],
             "name": "video",
             "show_share_button": False,
             "show_label": True,

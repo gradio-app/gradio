@@ -122,7 +122,7 @@ class Audio(
             pass
         else:
             raise ValueError(
-                f"`sources` must a list consisting of elements in {valid_sources}"
+                f"`sources` must be a list consisting of elements in {valid_sources}"
             )
 
         self.sources = sources
