@@ -4,6 +4,7 @@ from .build import _build
 from .create import _create
 from .dev import _dev
 from .install_component import _install
+from .publish import _publish
 from .show import _show
 
 app = Typer(help="Create and publish a new Gradio component")
@@ -18,3 +19,4 @@ app.command("show", help="Show the list of available templates")(_show)
 app.command("install", help="Install the custom component in the current environment")(
     _install
 )
+app.command("publish", help="Publish a component to PyPI and HuggingFace Hub")(_publish)

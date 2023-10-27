@@ -45,6 +45,10 @@ with gr.Blocks() as demo:
 """
 
 
+PATTERN_RE = r"gradio-template-\w+"
+PATTERN = "gradio-template-{template}"
+
+
 @dataclasses.dataclass
 class ComponentFiles:
     template: str
@@ -288,6 +292,21 @@ def _create_backend(
             "It must match the name of the python class exactly."
         )
 
+    readme_contents = textwrap.dedent(
+        """
+# {package_name}
+A Custom Gradio component.
+
+## Example usage
+
+```python
+import gradio as gr
+from {package_name} import {name}
+```
+"""
+    ).format(package_name=package_name, name=name)
+    (directory / "README.md").write_text(readme_contents)
+
     backend = directory / "backend" / package_name
     backend.mkdir(exist_ok=True, parents=True)
 
@@ -299,7 +318,10 @@ def _create_backend(
     pyproject = Path(__file__).parent / "files" / "pyproject_.toml"
     pyproject_contents = pyproject.read_text()
     pyproject_dest = directory / "pyproject.toml"
-    pyproject_dest.write_text(pyproject_contents.replace("<<name>>", package_name))
+    pyproject_contents = pyproject_contents.replace("<<name>>", package_name).replace(
+        "<<template>>", PATTERN.format(template=component.template)
+    )
+    pyproject_dest.write_text(pyproject_contents)
 
     demo_dir = directory / "demo"
     demo_dir.mkdir(exist_ok=True, parents=True)
