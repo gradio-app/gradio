@@ -194,7 +194,7 @@ class EventListener(str):
     ):
         def event_trigger(
             block: Block | None,
-            fn: Callable | None,
+            fn: Callable | None | Literal["decorator"] = "decorator",
             inputs: Component | list[Component] | set[Component] | None = None,
             outputs: Component | list[Component] | None = None,
             api_name: str | None | Literal[False] = None,
