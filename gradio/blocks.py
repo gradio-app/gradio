@@ -1697,6 +1697,7 @@ Received outputs:
         inbrowser: bool = False,
         share: bool | None = None,
         debug: bool = False,
+        max_threads: int = 40,
         auth: Callable | tuple[str, str] | list[tuple[str, str]] | None = None,
         auth_message: str | None = None,
         prevent_thread_lock: bool = False,
@@ -1736,6 +1737,7 @@ Received outputs:
             server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT. If None, will search for an available port starting at 7860.
             server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME. If None, will use "127.0.0.1".
             show_tips: if True, will occasionally show tips about new Gradio features
+            max_threads: the maximum number of total threads that the Gradio app can generate in parallel. The default is inherited from the starlette library (currently 40). Applies whether the queue is enabled or not. But if queuing is enabled, this parameter is increaseed to be at least the concurrency_count of the queue.
             width: The width in pixels of the iframe element containing the interface (used if inline=True)
             height: The height in pixels of the iframe element containing the interface (used if inline=True)
             favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for the web page.
@@ -1811,6 +1813,7 @@ Received outputs:
         self.validate_queue_settings()
 
         self.config = self.get_config_file()
+        self.max_threads = max(self._queue.max_thread_count, max_threads)
 
         if self.is_running:
             if not isinstance(self.local_url, str):
