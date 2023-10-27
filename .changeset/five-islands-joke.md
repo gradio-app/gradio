@@ -40,8 +40,6 @@
 "@gradio/uploadbutton": minor
 "@gradio/video": minor
 "gradio": minor
-"imageslider": minor
-"newtext": minor
 "website": minor
 ---
 

@@ -40,7 +40,6 @@
 "@gradio/uploadbutton": minor
 "@gradio/video": minor
 "gradio": minor
-"newtext": minor
 ---
 
 feat:rererefactor frontend files

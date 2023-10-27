@@ -58,9 +58,6 @@
 		"@gradio/preview": "0.0.2",
 		"@gradio/dataset": "0.0.1",
 		"@gradio/fileexplorer": "0.2.2",
-		"imageslider": "0.2.0",
-		"newnewtext": "0.1.2",
-		"newtext": "0.0.1",
 		"@gradio/storybook": "0.0.1"
 	},
 	"changesets": [
