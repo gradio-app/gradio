@@ -67,10 +67,10 @@ class HTML(Component):
     def example_inputs(self) -> Any:
         return "<p>Hello</p>"
 
-    def preprocess(self, payload: Any) -> Any:
+    def preprocess(self, payload: str | None) -> str | None:
         return payload
 
-    def postprocess(self, value):
+    def postprocess(self, value: str | None) -> str | None:
         return value
 
     def api_info(self) -> dict[str, Any]:
