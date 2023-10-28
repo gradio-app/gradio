@@ -470,7 +470,7 @@ class Blocks(BlockContext):
             trigger = event.copy()
             trigger.set_doc(component="Blocks")
             setattr(cls, event.event_name, trigger.listener)
-        return super().__new__(cls, *args, **kwargs)
+        return super().__new__(cls)
 
     def __init__(
         self,
