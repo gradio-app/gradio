@@ -194,7 +194,7 @@ class EventListener(str):
     ):
         def event_trigger(
             block: Block | None,
-            fn: Callable | None,
+            fn: Callable | None | Literal["decorator"] = "decorator",
             inputs: Component | list[Component] | set[Component] | None = None,
             outputs: Component | list[Component] | None = None,
             api_name: str | None | Literal[False] = None,
@@ -505,6 +505,10 @@ class Events:
         config_data=lambda: {"likeable": False},
         callback=lambda block: setattr(block, "likeable", True),
         doc="This listener is triggered when the user likes/dislikes from within the {{ component }}. This event has EventData of type gradio.LikeData that carries information, accessible through LikeData.index and LikeData.value. See EventData documentation on how to use this event data.",
+    )
+    load = EventListener(
+        "load",
+        doc="This listener is triggered when the {{ component }} initially loads in the browser.",
     )
 
 
