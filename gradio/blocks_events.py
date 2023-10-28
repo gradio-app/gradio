@@ -22,4 +22,9 @@ class BlocksMeta(type):
 
 
 class BlocksEvents:
+    """
+    This class is used to hold the events for the Blocks component. It is populated dynamically
+    by the BlocksMeta metaclass.
+    """
+
     pass
