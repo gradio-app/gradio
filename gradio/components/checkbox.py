@@ -84,3 +84,9 @@ class Checkbox(FormComponent):
 
     def example_inputs(self) -> bool:
         return True
+
+    def preprocess(self, payload: bool | None) -> bool | None:
+        return payload
+
+    def postprocess(self, value: bool | None) -> bool | None:
+        return value
