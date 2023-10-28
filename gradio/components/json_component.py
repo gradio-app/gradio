@@ -75,12 +75,6 @@ class JSON(Component):
         )
 
     def postprocess(self, value: dict | list | str | None) -> dict | list | None:
-        """
-        Parameters:
-            value: either a string filepath to a JSON file, or a Python list or dict that can be converted to JSON
-        Returns:
-            JSON output in Python list or dict format
-        """
         if value is None:
             return None
         if isinstance(value, str):
@@ -88,7 +82,7 @@ class JSON(Component):
         else:
             return value
 
-    def preprocess(self, payload: Any) -> Any:
+    def preprocess(self, payload: dict | list | str | None) -> dict | list | str | None:
         return payload
 
     def example_inputs(self) -> Any:
