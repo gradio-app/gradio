@@ -50,7 +50,7 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
     @abstractmethod
     def preprocess(self, x: Any) -> Any:
         """
-                Convert from the web-friendly (typically JSON) value in the front-end to the format expected by the python function.
+        Convert from the web-friendly (typically JSON) value in the front-end to the format expected by the python function.
         """
         return x
 
