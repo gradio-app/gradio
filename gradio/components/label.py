@@ -114,8 +114,8 @@ class Label(Component):
             if self.num_top_classes is not None:
                 sorted_pred = sorted_pred[: self.num_top_classes]
             return LabelData(
-                label = sorted_pred[0][0],
-                confidences = [
+                label=sorted_pred[0][0],
+                confidences=[
                     LabelConfidence(label=pred[0], confidence=pred[1])
                     for pred in sorted_pred
                 ],

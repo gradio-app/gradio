@@ -308,4 +308,3 @@ class Dataframe(Component):
 
     def example_inputs(self) -> Any:
         return {"headers": ["a", "b"], "data": [["foo", "bar"]]}
-    

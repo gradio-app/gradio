@@ -115,7 +115,7 @@ class Plot(Component):
             return None
         if isinstance(value, (ModuleType, matplotlib.figure.Figure)):  # type: ignore
             dtype = "matplotlib"
-            out_y = processing_utils.encode_plot_to_base64(y)
+            out_y = processing_utils.encode_plot_to_base64(value)
         elif "bokeh" in value.__module__:
             dtype = "bokeh"
             from bokeh.embed import json_item  # type: ignore
