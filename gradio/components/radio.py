@@ -121,7 +121,7 @@ class Radio(FormComponent):
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
 
-    def postprocess(self, value):
+    def postprocess(self, value: str | int | float | None) -> str | int | float | None:
         return value
 
     def api_info(self) -> dict[str, Any]:

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import tempfile
 import warnings
+from pathlib import Path
 from typing import Any, Callable, List, Literal
 
 from gradio_client import utils as client_utils
@@ -91,6 +92,10 @@ class UploadButton(Component):
             raise ValueError(
                 f"Parameter file_types must be a list. Received {file_types.__class__.__name__}"
             )
+        if self.file_count == "multiple":
+            self.data_model = ListFiles
+        else:
+            self.data_model = FileData        
         self.size = size
         self.file_types = file_types
         self.label = label
@@ -124,21 +129,19 @@ class UploadButton(Component):
                 "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
             ]
 
-    def _process_single_file(self, f: dict[str, Any]) -> bytes | str:
-        file_name, data, is_file = (
-            f["name"],
-            f["data"],
-            f.get("is_file", False),
-        )
+    def _process_single_file(self, f: FileData) -> bytes | str:
         if self.type == "filepath":
             file = tempfile.NamedTemporaryFile(delete=False, dir=self.GRADIO_CACHE)
-            file.name = file_name
+            assert f.name
+            file.name = f.name
             return NamedString(file.name)
         elif self.type == "binary":
-            if is_file:
-                with open(file_name, "rb") as file_data:
+            if f.is_file:
+                assert f.name 
+                with open(f.name, "rb") as file_data:
                     return file_data.read()
-            return client_utils.decode_base64_to_binary(data)[0]
+            assert f.data
+            return client_utils.decode_base64_to_binary(f.data)[0]
         else:
             raise ValueError(
                 "Unknown type: "
@@ -147,30 +150,44 @@ class UploadButton(Component):
             )
 
     def preprocess(
-        self, payload: list[dict[str, Any]] | None
+        self, payload: ListFiles | FileData | None
     ) -> bytes | str | list[bytes | str] | None:
-        """
-        Parameters:
-            payload: List of JSON objects with filename as 'name' property and base64 data as 'data' property
-        Returns:
-            File objects in requested format
-        """
         if payload is None:
             return None
 
         if self.file_count == "single":
-            if isinstance(payload, list):
+            if isinstance(payload, ListFiles):
                 return self._process_single_file(payload[0])
             else:
                 return self._process_single_file(payload)
         else:
-            if isinstance(payload, list):
+            if isinstance(payload, ListFiles):
                 return [self._process_single_file(f) for f in payload]
             else:
                 return [self._process_single_file(payload)]
 
-    def postprocess(self, value):
-        return super().postprocess(value)
+    def postprocess(self, value: str | list[str] | None) -> ListFiles | FileData | None:
+        if value is None:
+            return None
+        if isinstance(value, list):
+            return ListFiles(
+                root=[
+                    FileData(
+                        name=file,
+                        orig_name=Path(file).name,
+                        size=Path(file).stat().st_size,
+                        is_file=True,
+                    )
+                    for file in value
+                ]
+            )
+        else:
+            return FileData(
+                name=value,
+                orig_name=Path(value).name,
+                size=Path(value).stat().st_size,
+                is_file=True,
+            )
 
     @property
     def skip_api(self):

@@ -114,12 +114,6 @@ class Number(FormComponent):
             return round(num, precision)
 
     def preprocess(self, payload: float | None) -> float | None:
-        """
-        Parameters:
-            payload: numeric input
-        Returns:
-            number representing function input
-        """
         if payload is None:
             return None
         elif self.minimum is not None and payload < self.minimum:
@@ -131,14 +125,6 @@ class Number(FormComponent):
         return self._round_to_precision(payload, self.precision)
 
     def postprocess(self, value: float | None) -> float | None:
-        """
-        Any postprocessing needed to be performed on function output.
-
-        Parameters:
-            value: numeric output
-        Returns:
-            number representing function output
-        """
         if value is None:
             return None
         return self._round_to_precision(value, self.precision)
