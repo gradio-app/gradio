@@ -98,12 +98,6 @@ class Label(Component):
     def postprocess(
         self, value: dict[str, float] | str | float | None
     ) -> LabelData | dict | None:
-        """
-        Parameters:
-            value: a dictionary mapping labels to confidence value, or just a string/numerical label by itself
-        Returns:
-            Object with key 'label' representing primary label, and key 'confidences' representing a list of label-confidence pairs
-        """
         if value is None or value == {}:
             return {}
         if isinstance(value, str) and value.endswith(".json") and Path(value).exists():
@@ -120,13 +114,11 @@ class Label(Component):
             if self.num_top_classes is not None:
                 sorted_pred = sorted_pred[: self.num_top_classes]
             return LabelData(
-                **{
-                    "label": sorted_pred[0][0],
-                    "confidences": [
-                        {"label": pred[0], "confidence": pred[1]}
-                        for pred in sorted_pred
-                    ],
-                }
+                label = sorted_pred[0][0],
+                confidences = [
+                    LabelConfidence(label=pred[0], confidence=pred[1])
+                    for pred in sorted_pred
+                ],
             )
         raise ValueError(
             "The `Label` output interface expects one of: a string label, or an int label, a "
@@ -134,7 +126,7 @@ class Label(Component):
             f"Instead, got a {type(value)}"
         )
 
-    def preprocess(self, payload: Any) -> Any:
+    def preprocess(self, payload: LabelConfidence | None) -> LabelConfidence | None:
         return payload
 
     def example_inputs(self) -> Any:

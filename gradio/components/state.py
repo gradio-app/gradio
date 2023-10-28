@@ -49,7 +49,7 @@ class State(Component):
     def preprocess(self, payload: Any) -> Any:
         return payload
 
-    def postprocess(self, value):
+    def postprocess(self, value: Any) -> Any:
         return value
 
     def api_info(self) -> dict[str, Any]:
