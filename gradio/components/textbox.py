@@ -132,15 +132,15 @@ class Textbox(FormComponent):
         """
         return None if x is None else str(x)
 
-    def postprocess(self, y: str | None) -> str | None:
+    def postprocess(self, value: str | None) -> str | None:
         """
-        Postproccess the function output y by converting it to a str before passing it to the frontend.
+        Postproccess the function output value by converting it to a str before passing it to the frontend.
         Parameters:
-            y: function output to postprocess.
+            value: function output to postprocess.
         Returns:
             text
         """
-        return None if y is None else str(y)
+        return None if value is None else str(value)
 
     def api_info(self) -> dict[str, Any]:
         return {"type": "string"}

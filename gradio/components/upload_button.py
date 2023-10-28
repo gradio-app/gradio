@@ -169,8 +169,8 @@ class UploadButton(Component):
             else:
                 return [self._process_single_file(x)]
 
-    def postprocess(self, y):
-        return super().postprocess(y)
+    def postprocess(self, value):
+        return super().postprocess(value)
 
     @property
     def skip_api(self):

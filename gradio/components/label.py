@@ -96,25 +96,25 @@ class Label(Component):
         )
 
     def postprocess(
-        self, y: dict[str, float] | str | float | None
+        self, value: dict[str, float] | str | float | None
     ) -> LabelData | dict | None:
         """
         Parameters:
-            y: a dictionary mapping labels to confidence value, or just a string/numerical label by itself
+            value: a dictionary mapping labels to confidence value, or just a string/numerical label by itself
         Returns:
             Object with key 'label' representing primary label, and key 'confidences' representing a list of label-confidence pairs
         """
-        if y is None or y == {}:
+        if value is None or value == {}:
             return {}
-        if isinstance(y, str) and y.endswith(".json") and Path(y).exists():
-            return LabelData(**json.loads(Path(y).read_text()))
-        if isinstance(y, (str, float, int)):
-            return LabelData(label=str(y))
-        if isinstance(y, dict):
-            if "confidences" in y and isinstance(y["confidences"], dict):
-                y = y["confidences"]
-                y = {c["label"]: c["confidence"] for c in y}
-            sorted_pred = sorted(y.items(), key=operator.itemgetter(1), reverse=True)
+        if isinstance(value, str) and value.endswith(".json") and Path(value).exists():
+            return LabelData(**json.loads(Path(value).read_text()))
+        if isinstance(value, (str, float, int)):
+            return LabelData(label=str(value))
+        if isinstance(value, dict):
+            if "confidences" in value and isinstance(value["confidences"], dict):
+                value = value["confidences"]
+                value = {c["label"]: c["confidence"] for c in value}
+            sorted_pred = sorted(value.items(), key=operator.itemgetter(1), reverse=True)
             if self.num_top_classes is not None:
                 sorted_pred = sorted_pred[: self.num_top_classes]
             return LabelData(
@@ -129,7 +129,7 @@ class Label(Component):
         raise ValueError(
             "The `Label` output interface expects one of: a string label, or an int label, a "
             "float label, or a dictionary whose keys are labels and values are confidences. "
-            f"Instead, got a {type(y)}"
+            f"Instead, got a {type(value)}"
         )
 
     def preprocess(self, x: Any) -> Any:

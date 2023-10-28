@@ -174,7 +174,7 @@ class Audio(
     ) -> tuple[int, np.ndarray] | str | None:
         """
         Parameters:
-            x: dictionary with keys "name", "data", "is_file".
+            payload: dictionary with keys "name", "data", "is_file".
         Returns:
             audio in requested format
         """
@@ -217,51 +217,51 @@ class Audio(
             )
 
     def postprocess(
-        self, y: tuple[int, np.ndarray] | str | Path | bytes | None
+        self, value: tuple[int, np.ndarray] | str | Path | bytes | None
     ) -> FileData | None | bytes:
         """
         Parameters:
-            y: audio data in either of the following formats: a tuple of (sample_rate, data), or a string filepath or URL to an audio file, or None.
+            value: audio data in either of the following formats: a tuple of (sample_rate, data), or a string filepath or URL to an audio file, or None.
         Returns:
             base64 url data
         """
-        if y is None:
+        if value is None:
             return None
-        if isinstance(y, bytes):
+        if isinstance(value, bytes):
             if self.streaming:
-                return y
+                return value
             file_path = processing_utils.save_bytes_to_cache(
-                y, "audio", cache_dir=self.GRADIO_CACHE
+                value, "audio", cache_dir=self.GRADIO_CACHE
             )
-        elif isinstance(y, tuple):
-            sample_rate, data = y
+        elif isinstance(value, tuple):
+            sample_rate, data = value
             file_path = processing_utils.save_audio_to_cache(
                 data, sample_rate, format=self.format, cache_dir=self.GRADIO_CACHE
             )
         else:
-            if not isinstance(y, (str, Path)):
-                raise ValueError(f"Cannot process {y} as Audio")
-            file_path = str(y)
+            if not isinstance(value, (str, Path)):
+                raise ValueError(f"Cannot process {value} as Audio")
+            file_path = str(value)
         return FileData(**{"name": file_path, "data": None, "is_file": True})
 
     def stream_output(
-        self, y, output_id: str, first_chunk: bool
+        self, value, output_id: str, first_chunk: bool
     ) -> tuple[bytes | None, Any]:
         output_file = {
             "name": output_id,
             "is_stream": True,
             "is_file": False,
         }
-        if y is None:
+        if value is None:
             return None, output_file
-        if isinstance(y, bytes):
-            return y, output_file
-        if client_utils.is_http_url_like(y["name"]):
-            response = requests.get(y["name"])
+        if isinstance(value, bytes):
+            return value, output_file
+        if client_utils.is_http_url_like(value["name"]):
+            response = requests.get(value["name"])
             binary_data = response.content
         else:
-            output_file["orig_name"] = y["orig_name"]
-            file_path = y["name"]
+            output_file["orig_name"] = value["orig_name"]
+            file_path = value["name"]
             is_wav = file_path.endswith(".wav")
             with open(file_path, "rb") as f:
                 binary_data = f.read()

@@ -85,8 +85,8 @@ class Button(Component):
     def preprocess(self, x: Any) -> Any:
         return x
 
-    def postprocess(self, y):
-        return y
+    def postprocess(self, value):
+        return value
 
     def example_inputs(self) -> Any:
         return None

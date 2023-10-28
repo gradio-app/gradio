@@ -294,7 +294,9 @@ class BarPlot(Plot):
         )
 
         return AltairPlotData(
-            **{"type": "altair", "plot": chart.to_json(), "chart": "bar"}
+            type="altair",
+            plot=chart.to_json(),
+            chart="bar"
         )
 
     def example_inputs(self) -> dict[str, Any]:

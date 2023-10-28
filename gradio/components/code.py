@@ -113,14 +113,14 @@ class Code(Component):
     def preprocess(self, x: Any) -> Any:
         return x
 
-    def postprocess(self, y: tuple | str | None) -> None | str:
-        if y is None:
+    def postprocess(self, value: tuple | str | None) -> None | str:
+        if value is None:
             return None
-        elif isinstance(y, tuple):
-            with open(y[0]) as file_data:
+        elif isinstance(value, tuple):
+            with open(value[0]) as file_data:
                 return file_data.read()
         else:
-            return y.strip()
+            return value.strip()
 
     def flag(self, x: Any, flag_dir: str | Path = "") -> str:
         return super().flag(x, flag_dir)

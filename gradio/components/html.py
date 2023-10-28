@@ -70,8 +70,8 @@ class HTML(Component):
     def preprocess(self, x: Any) -> Any:
         return x
 
-    def postprocess(self, y):
-        return y
+    def postprocess(self, value):
+        return value
 
     def api_info(self) -> dict[str, Any]:
         return {"type": "string"}

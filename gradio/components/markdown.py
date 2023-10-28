@@ -80,16 +80,16 @@ class Markdown(Component):
             value=value,
         )
 
-    def postprocess(self, y: str | None) -> str | None:
+    def postprocess(self, value: str | None) -> str | None:
         """
         Parameters:
-            y: markdown representation
+            value: markdown representation
         Returns:
             HTML rendering of markdown
         """
-        if y is None:
+        if value is None:
             return None
-        unindented_y = inspect.cleandoc(y)
+        unindented_y = inspect.cleandoc(value)
         return unindented_y
 
     def as_example(self, input_data: str | None) -> str:
