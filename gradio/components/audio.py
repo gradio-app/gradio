@@ -170,7 +170,7 @@ class Audio(
         return "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
 
     def preprocess(
-        self, x: dict[str, Any] | None
+        self, payload: FileData | None
     ) -> tuple[int, np.ndarray] | str | None:
         """
         Parameters:
@@ -178,12 +178,10 @@ class Audio(
         Returns:
             audio in requested format
         """
-        if x is None:
-            return x
+        if payload is None:
+            return payload
 
-        payload: FileData = FileData(**x)
         assert payload.name
-
         # Need a unique name for the file to avoid re-using the same audio file if
         # a user submits the same audio file twice
         temp_file_path = Path(payload.name)
