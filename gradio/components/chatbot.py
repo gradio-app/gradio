@@ -153,7 +153,9 @@ class Chatbot(Component):
 
     def preprocess(
         self,
-        value: list[list[str | dict | None] | tuple[str | dict | None, str | dict | None]],
+        value: list[
+            list[str | dict | None] | tuple[str | dict | None, str | dict | None]
+        ],
     ) -> list[list[str | tuple[str] | tuple[str, str] | None]]:
         if value is None:
             return value

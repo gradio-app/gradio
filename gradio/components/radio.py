@@ -113,7 +113,9 @@ class Radio(FormComponent):
                 return None
             else:
                 choice_values = [value for _, value in self.choices]
-                return choice_values.index(payload) if payload in choice_values else None
+                return (
+                    choice_values.index(payload) if payload in choice_values else None
+                )
         else:
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."

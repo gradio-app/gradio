@@ -166,7 +166,10 @@ class HighlightedText(Component):
             )
         else:
             return HighlightedTextData(
-                root=[HighlightedToken(token=o[0], class_or_confidence=o[1]) for o in value]
+                root=[
+                    HighlightedToken(token=o[0], class_or_confidence=o[1])
+                    for o in value
+                ]
             )
 
     def preprocess(self, payload: Any) -> Any:

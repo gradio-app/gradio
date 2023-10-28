@@ -125,7 +125,9 @@ class Number(FormComponent):
         elif self.minimum is not None and payload < self.minimum:
             raise Error(f"Value {payload} is less than minimum value {self.minimum}.")
         elif self.maximum is not None and payload > self.maximum:
-            raise Error(f"Value {payload} is greater than maximum value {self.maximum}.")
+            raise Error(
+                f"Value {payload} is greater than maximum value {self.maximum}."
+            )
         return self._round_to_precision(payload, self.precision)
 
     def postprocess(self, value: float | None) -> float | None:

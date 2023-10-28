@@ -293,11 +293,7 @@ class BarPlot(Plot):
             sort=self.sort,  # type: ignore
         )
 
-        return AltairPlotData(
-            type="altair",
-            plot=chart.to_json(),
-            chart="bar"
-        )
+        return AltairPlotData(type="altair", plot=chart.to_json(), chart="bar")
 
     def example_inputs(self) -> dict[str, Any]:
         return {}

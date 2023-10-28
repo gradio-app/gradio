@@ -160,7 +160,9 @@ class Dropdown(FormComponent):
                     for choice in payload
                 ]
             else:
-                return choice_values.index(payload) if payload in choice_values else None
+                return (
+                    choice_values.index(payload) if payload in choice_values else None
+                )
         else:
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."

@@ -121,7 +121,9 @@ class FileExplorer(Component):
 
         if self.file_count == "single":
             if len(payload) > 1:
-                raise ValueError(f"Expected only one file, but {len(payload)} were selected.")
+                raise ValueError(
+                    f"Expected only one file, but {len(payload)} were selected."
+                )
             return self._safe_join(payload[0])
 
         return [self._safe_join(file) for file in (payload)]
