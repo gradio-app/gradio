@@ -36,14 +36,13 @@ from gradio import (
     utils,
     wasm_utils,
 )
+from gradio.blocks_events import BlocksEvents, BlocksMeta
 from gradio.context import Context
 from gradio.data_classes import FileData
 from gradio.events import (
-    Dependency,
     EventData,
     EventListener,
     EventListenerMethod,
-    Events,
 )
 from gradio.exceptions import (
     DuplicateBlockError,
@@ -429,7 +428,7 @@ def convert_component_dict_to_list(
 
 
 @document("launch", "queue", "integrate", "load")
-class Blocks(BlockContext):
+class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     """
     Blocks is Gradio's low-level API that allows you to create more custom web
     applications and demos than Interfaces (yet still entirely in Python).
@@ -463,14 +462,6 @@ class Blocks(BlockContext):
     Demos: blocks_hello, blocks_flipper, blocks_speech_text_sentiment, generate_english_german
     Guides: blocks-and-event-listeners, controlling-layout, state-in-blocks, custom-CSS-and-JS, custom-interpretations-with-blocks, using-blocks-like-functions
     """
-
-    def __new__(cls, *args, **kwargs):
-        events = [Events.load]
-        for event in events:
-            trigger = event.copy()
-            trigger.set_doc(component="Blocks")
-            setattr(cls, event.event_name, trigger.listener)
-        return super().__new__(cls)
 
     def __init__(
         self,
@@ -2299,9 +2290,3 @@ Received outputs:
                 api_info["unnamed_endpoints"][str(d)] = dependency_info
 
         return api_info
-
-    def load(*args, **kwargs) -> Dependency:
-        """This stub is here for static typecheckers when working with the Gradio codebase. It is replaced
-        dyamically with the `.load()` event listener, so users of Gradio will have good typechecking.
-        """
-        return  # type: ignore
