@@ -14,19 +14,12 @@ from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
 
-# from pydantic import Field, TypeAdapter
-
 set_documentation_group("component")
 
 
 class FileMessage(GradioModel):
     file: FileData
     alt_text: Optional[str] = None
-
-
-# _Message = Annotated[List[Union[str, FileMessage, None]], Field(min_length=2, max_length=2)]
-
-# Message = TypeAdapter(_Message)
 
 
 class ChatbotData(GradioRootModel):
@@ -139,28 +132,28 @@ class Chatbot(Component):
         )
 
     def _preprocess_chat_messages(
-        self, chat_message: str | dict | None
-    ) -> str | tuple[str] | tuple[str, str] | None:
+        self, chat_message: str | FileMessage | None
+    ) -> str | tuple[str | None] | tuple[str | None, str] | None:
         if chat_message is None:
             return None
-        elif isinstance(chat_message, dict):
-            if chat_message.get("alt_text"):
-                return (chat_message["file"]["name"], chat_message["alt_text"])
+        elif isinstance(chat_message, FileMessage):
+            if chat_message.alt_text is not None:
+                return (chat_message.file.name, chat_message.alt_text)
             else:
-                return (chat_message["file"]["name"],)
-        else:  # string
+                return (chat_message.file.name,)
+        elif isinstance(chat_message, str):
             return chat_message
+        else:
+            raise ValueError(f"Invalid message for Chatbot component: {chat_message}")
 
     def preprocess(
         self,
-        value: list[
-            list[str | dict | None] | tuple[str | dict | None, str | dict | None]
-        ],
+        payload: ChatbotData,
     ) -> list[list[str | tuple[str] | tuple[str, str] | None]]:
-        if value is None:
-            return value
+        if payload is None:
+            return payload
         processed_messages = []
-        for message_pair in value:
+        for message_pair in payload:
             if not isinstance(message_pair, (tuple, list)):
                 raise TypeError(
                     f"Expected a list of lists or list of tuples. Received: {message_pair}"

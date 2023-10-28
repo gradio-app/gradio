@@ -111,7 +111,7 @@ class AnnotatedImage(Component):
         value: tuple[
             np.ndarray | _Image.Image | str,
             list[tuple[np.ndarray | tuple[int, int, int, int], str]],
-        ],
+        ] | None,
     ) -> AnnotatedImageData | None:
         """
         Parameters:
@@ -195,5 +195,5 @@ class AnnotatedImage(Component):
     def example_inputs(self) -> Any:
         return {}
 
-    def preprocess(self, payload: Any) -> Any:
+    def preprocess(self, payload: AnnotatedImageData | None) -> AnnotatedImageData | None:
         return payload

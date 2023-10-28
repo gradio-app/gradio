@@ -172,12 +172,6 @@ class Audio(
     def preprocess(
         self, payload: FileData | None
     ) -> tuple[int, np.ndarray] | str | None:
-        """
-        Parameters:
-            payload: dictionary with keys "name", "data", "is_file".
-        Returns:
-            audio in requested format
-        """
         if payload is None:
             return payload
 
@@ -218,7 +212,7 @@ class Audio(
 
     def postprocess(
         self, value: tuple[int, np.ndarray] | str | Path | bytes | None
-    ) -> FileData | None | bytes:
+    ) -> FileData | bytes | None:
         """
         Parameters:
             value: audio data in either of the following formats: a tuple of (sample_rate, data), or a string filepath or URL to an audio file, or None.
@@ -242,7 +236,7 @@ class Audio(
             if not isinstance(value, (str, Path)):
                 raise ValueError(f"Cannot process {value} as Audio")
             file_path = str(value)
-        return FileData(**{"name": file_path, "data": None, "is_file": True})
+        return FileData(name=file_path, data=None, is_file=True)
 
     def stream_output(
         self, value, output_id: str, first_chunk: bool
