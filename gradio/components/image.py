@@ -247,7 +247,9 @@ class Image(StreamingInput, Component):
                 value, cache_dir=self.GRADIO_CACHE
             )
         elif isinstance(value, _Image.Image):
-            path = processing_utils.save_pil_to_cache(value, cache_dir=self.GRADIO_CACHE)
+            path = processing_utils.save_pil_to_cache(
+                value, cache_dir=self.GRADIO_CACHE
+            )
         elif isinstance(value, (str, Path)):
             path = value if isinstance(value, str) else str(value)
         else:

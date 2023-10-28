@@ -194,7 +194,14 @@ class Dataframe(Component):
 
     def postprocess(
         self,
-        value: pd.DataFrame | Styler | np.ndarray | list | list[list] | dict | str | None,
+        value: pd.DataFrame
+        | Styler
+        | np.ndarray
+        | list
+        | list[list]
+        | dict
+        | str
+        | None,
     ) -> DataframeData | dict:
         """
         Parameters:

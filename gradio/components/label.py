@@ -114,7 +114,9 @@ class Label(Component):
             if "confidences" in value and isinstance(value["confidences"], dict):
                 value = value["confidences"]
                 value = {c["label"]: c["confidence"] for c in value}
-            sorted_pred = sorted(value.items(), key=operator.itemgetter(1), reverse=True)
+            sorted_pred = sorted(
+                value.items(), key=operator.itemgetter(1), reverse=True
+            )
             if self.num_top_classes is not None:
                 sorted_pred = sorted_pred[: self.num_top_classes]
             return LabelData(
