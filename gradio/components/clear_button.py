@@ -81,10 +81,10 @@ class ClearButton(Button):
         self.click(None, [], components, _js=f"() => {clear_values}")
         return self
 
-    def postprocess(self, value):
+    def postprocess(self, value: str | None) -> str | None:
         return value
 
-    def preprocess(self, payload: Any) -> Any:
+    def preprocess(self, payload: str | None) -> str | None:
         return payload
 
     def example_inputs(self) -> Any:

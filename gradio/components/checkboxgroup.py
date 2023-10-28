@@ -108,12 +108,6 @@ class CheckboxGroup(FormComponent):
     def preprocess(
         self, payload: list[str | int | float]
     ) -> list[str | int | float] | list[int | None]:
-        """
-        Parameters:
-            payload: list of selected choices
-        Returns:
-            list of selected choice values as strings or indices within choice list
-        """
         if self.type == "value":
             return payload
         elif self.type == "index":
@@ -130,12 +124,6 @@ class CheckboxGroup(FormComponent):
     def postprocess(
         self, value: list[str | int | float] | str | int | float | None
     ) -> list[str | int | float]:
-        """
-        Parameters:
-            value: List of selected choice values. If a single choice is selected, it can be passed in as a string
-        Returns:
-            List of selected choices
-        """
         if value is None:
             return []
         if not isinstance(value, list):

@@ -168,23 +168,22 @@ class Dataframe(Component):
             value=value,
         )
 
-    def preprocess(self, payload: dict) -> pd.DataFrame | np.ndarray | list:
+    def preprocess(self, payload: DataframeData) -> pd.DataFrame | np.ndarray | list:
         """
         Parameters:
             payload: Dictionary equivalent of DataframeData containing `headers`, `data`, and optionally `metadata` keys
         Returns:
             The Dataframe data in requested format
         """
-        value = DataframeData(**payload)
         if self.type == "pandas":
-            if value.headers is not None:
-                return pd.DataFrame(value.data, columns=value.headers)
+            if payload.headers is not None:
+                return pd.DataFrame(payload.data, columns=payload.headers)
             else:
-                return pd.DataFrame(value.data)
+                return pd.DataFrame(payload.data)
         if self.type == "numpy":
-            return np.array(value.data)
+            return np.array(payload.data)
         elif self.type == "array":
-            return value.data
+            return payload.data
         else:
             raise ValueError(
                 "Unknown type: "
@@ -232,14 +231,14 @@ class Dataframe(Component):
                     "Cannot display Styler object in interactive mode. Will display as a regular pandas dataframe instead."
                 )
             df: pd.DataFrame = value.data  # type: ignore
-            value = DataframeData(
+            return DataframeData(
                 headers=list(df.columns),
                 data=df.to_dict(orient="split")["data"],  # type: ignore
                 metadata=self.__extract_metadata(value),
             )
         elif isinstance(value, (str, pd.DataFrame)):
             df = pd.read_csv(value) if isinstance(value, str) else value  # type: ignore
-            value = DataframeData(
+            return DataframeData(
                 headers=list(df.columns),
                 data=df.to_dict(orient="split")["data"],  # type: ignore
             )
@@ -260,10 +259,9 @@ class Dataframe(Component):
             elif len(self.headers) > len(value[0]):
                 _headers = self.headers[: len(value[0])]
 
-            value = DataframeData(headers=_headers, data=value)
+            return DataframeData(headers=_headers, data=value)
         else:
             raise ValueError("Cannot process value as a Dataframe")
-        return value
 
     @staticmethod
     def __get_cell_style(cell_id: str, cell_styles: list[dict]) -> str:
@@ -322,3 +320,4 @@ class Dataframe(Component):
 
     def example_inputs(self) -> Any:
         return {"headers": ["a", "b"], "data": [["foo", "bar"]]}
+    
