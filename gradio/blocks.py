@@ -36,10 +36,15 @@ from gradio import (
     utils,
     wasm_utils,
 )
-from gradio.component_meta import create_or_modify_pyi
 from gradio.context import Context
 from gradio.data_classes import FileData
-from gradio.events import EventData, EventListener, EventListenerMethod, Events
+from gradio.events import (
+    Dependency,
+    EventData,
+    EventListener,
+    EventListenerMethod,
+    Events,
+)
 from gradio.exceptions import (
     DuplicateBlockError,
     InvalidApiNameError,
@@ -465,7 +470,6 @@ class Blocks(BlockContext):
             trigger = event.copy()
             trigger.set_doc(component="Blocks")
             setattr(cls, event.event_name, trigger.listener)
-            create_or_modify_pyi(Blocks, "Blocks", events)  # type: ignore
         return super().__new__(cls, *args, **kwargs)
 
     def __init__(
@@ -2295,3 +2299,9 @@ Received outputs:
                 api_info["unnamed_endpoints"][str(d)] = dependency_info
 
         return api_info
+
+    def load(*args, **kwargs) -> Dependency:
+        """This stub is here for static typecheckers when working with the Gradio codebase. It is replaced
+        dyamically with the `.load()` event listener, so users of Gradio will have good typechecking.
+        """
+        return  # type: ignore

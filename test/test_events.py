@@ -98,6 +98,7 @@ class TestEvent:
         assert demo.config["dependencies"][0]["targets"] == [
             (name._id, "submit"),
             (greet_btn._id, "click"),
+            (demo._id, "load"),
         ]
         assert demo.config["dependencies"][1]["targets"] == [
             (num1._id, "change"),
