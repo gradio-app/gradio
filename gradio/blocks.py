@@ -77,7 +77,6 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
 
     from gradio.components.base import Component
-    from gradio.events import Dependency
 
 BUILT_IN_THEMES: dict[str, Theme] = {
     t.name: t

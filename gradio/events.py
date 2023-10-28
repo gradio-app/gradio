@@ -511,6 +511,7 @@ class Events:
         doc="This listener is triggered when the {{ component }} initially loads in the browser.",
     )
 
+
 class LikeData(EventData):
     def __init__(self, target: Block | None, data: Any):
         super().__init__(target, data)
