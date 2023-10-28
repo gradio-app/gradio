@@ -184,26 +184,26 @@ class Image(StreamingInput, Component):
             )
 
     def preprocess(
-        self, x: str | dict[str, str]
+        self, payload: str | dict[str, str]
     ) -> np.ndarray | _Image.Image | str | dict | None:
         """
         Parameters:
-            x: base64 url data, or (if tool == "sketch") a dict of image and mask base64 url data
+            payload: base64 url data, or (if tool == "sketch") a dict of image and mask base64 url data
         Returns:
             image in requested format, or (if tool == "sketch") a dict of image and mask in requested format
         """
-        if x is None:
-            return x
+        if payload is None:
+            return payload
 
         mask = ""
         if self.tool == "sketch" and self.source in ["upload", "webcam"]:
-            assert isinstance(x, dict)
-            x, mask = x["image"], x["mask"]
+            assert isinstance(payload, dict)
+            payload, mask = payload["image"], payload["mask"]
 
-        if isinstance(x, str):
-            im = processing_utils.decode_base64_to_image(x)
+        if isinstance(payload, str):
+            im = processing_utils.decode_base64_to_image(payload)
         else:
-            im = _Image.open(x["name"])
+            im = _Image.open(payload["name"])
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)

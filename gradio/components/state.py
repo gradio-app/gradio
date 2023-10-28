@@ -46,8 +46,8 @@ class State(Component):
             ) from err
         super().__init__(value=self.value)
 
-    def preprocess(self, x: Any) -> Any:
-        return x
+    def preprocess(self, payload: Any) -> Any:
+        return payload
 
     def postprocess(self, value):
         return value

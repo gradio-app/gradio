@@ -109,22 +109,22 @@ class FileExplorer(Component):
     def example_inputs(self) -> Any:
         return ["Users", "gradio", "app.py"]
 
-    def preprocess(self, x: list[list[str]] | None) -> list[str] | str | None:
+    def preprocess(self, payload: list[list[str]] | None) -> list[str] | str | None:
         """
         Parameters:
-            x: File path segments as a list of list of strings for each file relative to the root.
+            payload: File path segments as a list of list of strings for each file relative to the root.
         Returns:
             File path selected, as an absolute path.
         """
-        if x is None:
+        if payload is None:
             return None
 
         if self.file_count == "single":
-            if len(x) > 1:
-                raise ValueError(f"Expected only one file, but {len(x)} were selected.")
-            return self._safe_join(x[0])
+            if len(payload) > 1:
+                raise ValueError(f"Expected only one file, but {len(payload)} were selected.")
+            return self._safe_join(payload[0])
 
-        return [self._safe_join(file) for file in (x)]
+        return [self._safe_join(file) for file in (payload)]
 
     def _strip_root(self, path):
         if path.startswith(self.root):

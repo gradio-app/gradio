@@ -110,8 +110,8 @@ class Code(Component):
             value=value,
         )
 
-    def preprocess(self, x: Any) -> Any:
-        return x
+    def preprocess(self, payload: Any) -> Any:
+        return payload
 
     def postprocess(self, value: tuple | str | None) -> None | str:
         if value is None:
@@ -122,8 +122,8 @@ class Code(Component):
         else:
             return value.strip()
 
-    def flag(self, x: Any, flag_dir: str | Path = "") -> str:
-        return super().flag(x, flag_dir)
+    def flag(self, payload: Any, flag_dir: str | Path = "") -> str:
+        return super().flag(payload, flag_dir)
 
     def api_info(self) -> dict[str, Any]:
         return {"type": "string"}

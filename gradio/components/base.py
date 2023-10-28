@@ -48,11 +48,11 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
     EVENTS: list[EventListener | str] = []
 
     @abstractmethod
-    def preprocess(self, x: Any) -> Any:
+    def preprocess(self, payload: Any) -> Any:
         """
         Any preprocessing needed to be performed on function input.
         """
-        return x
+        return payload
 
     @abstractmethod
     def postprocess(self, value):
@@ -88,7 +88,7 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
         pass
 
     @abstractmethod
-    def flag(self, x: Any | GradioDataModel, flag_dir: str | Path = "") -> str:
+    def flag(self, payload: Any | GradioDataModel, flag_dir: str | Path = "") -> str:
         """
         Write the component's value to a format that can be stored in a csv or jsonl format for flagging.
         """
@@ -97,13 +97,13 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
     @abstractmethod
     def read_from_flag(
         self,
-        x: Any,
+        payload: Any,
         flag_dir: str | Path | None = None,
     ) -> GradioDataModel | Any:
         """
         Convert the data from the csv or jsonl file into the component state.
         """
-        return x
+        return payload
 
     @property
     @abstractmethod
@@ -271,25 +271,25 @@ class Component(ComponentBase, Block):
             f"The api_info method has not been implemented for {self.get_block_name()}"
         )
 
-    def flag(self, x: Any, flag_dir: str | Path = "") -> str:
+    def flag(self, payload: Any, flag_dir: str | Path = "") -> str:
         """
         Write the component's value to a format that can be stored in a csv or jsonl format for flagging.
         """
         if self.data_model:
-            return x.copy_to_dir(flag_dir).model_dump_json()
-        return x
+            return payload.copy_to_dir(flag_dir).model_dump_json()
+        return payload
 
     def read_from_flag(
         self,
-        x: Any,
+        payload: Any,
         flag_dir: str | Path | None = None,
     ):
         """
         Convert the data from the csv or jsonl file into the component state.
         """
         if self.data_model:
-            return self.data_model.from_json(json.loads(x))
-        return x
+            return self.data_model.from_json(json.loads(payload))
+        return payload
 
 
 class FormComponent(Component):
@@ -298,8 +298,8 @@ class FormComponent(Component):
             return None
         return Form
 
-    def preprocess(self, x: Any) -> Any:
-        return x
+    def preprocess(self, payload: Any) -> Any:
+        return payload
 
     def postprocess(self, value):
         return value

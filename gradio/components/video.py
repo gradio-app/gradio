@@ -145,16 +145,16 @@ class Video(Component):
             value=value,
         )
 
-    def preprocess(self, x: dict | VideoData) -> str | None:
+    def preprocess(self, payload: dict | VideoData) -> str | None:
         """
         Parameters:
-            x: A tuple of (video file data, subtitle file data) or just video file data.
+            payload: A tuple of (video file data, subtitle file data) or just video file data.
         Returns:
             A string file path or URL to the preprocessed video. Subtitle file data is ignored.
         """
-        if x is None:
+        if payload is None:
             return None
-        data: VideoData = VideoData(**x) if isinstance(x, dict) else x
+        data: VideoData = VideoData(**payload) if isinstance(payload, dict) else payload
         assert data.video.name
         file_name = Path(data.video.name)
         uploaded_format = file_name.suffix.replace(".", "")

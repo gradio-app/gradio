@@ -99,21 +99,21 @@ class Radio(FormComponent):
     def example_inputs(self) -> Any:
         return self.choices[0][1] if self.choices else None
 
-    def preprocess(self, x: str | int | float | None) -> str | int | float | None:
+    def preprocess(self, payload: str | int | float | None) -> str | int | float | None:
         """
         Parameters:
-            x: selected choice
+            payload: selected choice
         Returns:
             value of the selected choice as string or index within choice list
         """
         if self.type == "value":
-            return x
+            return payload
         elif self.type == "index":
-            if x is None:
+            if payload is None:
                 return None
             else:
                 choice_values = [value for _, value in self.choices]
-                return choice_values.index(x) if x in choice_values else None
+                return choice_values.index(payload) if payload in choice_values else None
         else:
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."

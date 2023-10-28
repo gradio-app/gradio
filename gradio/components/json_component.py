@@ -88,17 +88,17 @@ class JSON(Component):
         else:
             return value
 
-    def preprocess(self, x: Any) -> Any:
-        return x
+    def preprocess(self, payload: Any) -> Any:
+        return payload
 
     def example_inputs(self) -> Any:
         return {"foo": "bar"}
 
-    def flag(self, x: Any, flag_dir: str | Path = "") -> str:
-        return json.dumps(x)
+    def flag(self, payload: Any, flag_dir: str | Path = "") -> str:
+        return json.dumps(payload)
 
-    def read_from_flag(self, x: Any, flag_dir: str | Path | None = None):
-        return json.loads(x)
+    def read_from_flag(self, payload: Any, flag_dir: str | Path | None = None):
+        return json.loads(payload)
 
     def api_info(self) -> dict[str, Any]:
         return {"type": {}, "description": "any valid json"}

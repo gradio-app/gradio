@@ -147,27 +147,27 @@ class UploadButton(Component):
             )
 
     def preprocess(
-        self, x: list[dict[str, Any]] | None
+        self, payload: list[dict[str, Any]] | None
     ) -> bytes | str | list[bytes | str] | None:
         """
         Parameters:
-            x: List of JSON objects with filename as 'name' property and base64 data as 'data' property
+            payload: List of JSON objects with filename as 'name' property and base64 data as 'data' property
         Returns:
             File objects in requested format
         """
-        if x is None:
+        if payload is None:
             return None
 
         if self.file_count == "single":
-            if isinstance(x, list):
-                return self._process_single_file(x[0])
+            if isinstance(payload, list):
+                return self._process_single_file(payload[0])
             else:
-                return self._process_single_file(x)
+                return self._process_single_file(payload)
         else:
-            if isinstance(x, list):
-                return [self._process_single_file(f) for f in x]
+            if isinstance(payload, list):
+                return [self._process_single_file(f) for f in payload]
             else:
-                return [self._process_single_file(x)]
+                return [self._process_single_file(payload)]
 
     def postprocess(self, value):
         return super().postprocess(value)
