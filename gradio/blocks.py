@@ -37,7 +37,7 @@ from gradio import (
     wasm_utils,
 )
 from gradio.context import Context
-from gradio.data_classes import FileData
+from gradio.data_classes import FileData, GradioDataModel
 from gradio.events import EventData, EventListener, EventListenerMethod
 from gradio.exceptions import (
     DuplicateBlockError,
@@ -1235,7 +1235,16 @@ Received inputs:
                     inputs_cached = processing_utils.move_files_to_cache(
                         inputs[i], block
                     )
-                    processed_input.append(block.preprocess(inputs_cached))
+                    if (
+                        hasattr(block, "data_model")
+                        and block.data_model is not None
+                        and issubclass(block.data_model, GradioDataModel)
+                        and isinstance(inputs_cached, dict)
+                    ):
+                        input_as_data_model = block.data_model(**inputs_cached)
+                    else:
+                        input_as_data_model = inputs_cached
+                    processed_input.append(block.preprocess(input_as_data_model))
         else:
             processed_input = inputs
         return processed_input

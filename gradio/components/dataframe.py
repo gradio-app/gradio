@@ -194,26 +194,26 @@ class Dataframe(Component):
 
     def postprocess(
         self,
-        y: pd.DataFrame | Styler | np.ndarray | list | list[list] | dict | str | None,
+        value: pd.DataFrame | Styler | np.ndarray | list | list[list] | dict | str | None,
     ) -> DataframeData | dict:
         """
         Parameters:
-            y: dataframe in given format
+            value: dataframe in given format
         Returns:
             JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
         """
-        if y is None:
+        if value is None:
             return self.postprocess(self.empty_input)
-        if isinstance(y, dict):
-            return y
-        if isinstance(y, (str, pd.DataFrame)):
-            if isinstance(y, str):
-                y = pd.read_csv(y)  # type: ignore
+        if isinstance(value, dict):
+            return value
+        if isinstance(value, (str, pd.DataFrame)):
+            if isinstance(value, str):
+                value = pd.read_csv(value)  # type: ignore
             return DataframeData(
-                headers=list(y.columns),  # type: ignore
-                data=y.to_dict(orient="split")["data"],  # type: ignore
+                headers=list(value.columns),  # type: ignore
+                data=value.to_dict(orient="split")["data"],  # type: ignore
             )
-        elif isinstance(y, Styler):
+        elif isinstance(value, Styler):
             if semantic_version.Version(pd.__version__) < semantic_version.Version(
                 "1.5.0"
             ):
@@ -224,36 +224,36 @@ class Dataframe(Component):
                 warnings.warn(
                     "Cannot display Styler object in interactive mode. Will display as a regular pandas dataframe instead."
                 )
-            df: pd.DataFrame = y.data  # type: ignore
+            df: pd.DataFrame = value.data  # type: ignore
             value = DataframeData(
                 headers=list(df.columns),
                 data=df.to_dict(orient="split")["data"],  # type: ignore
-                metadata=self.__extract_metadata(y),
+                metadata=self.__extract_metadata(value),
             )
-        elif isinstance(y, (str, pd.DataFrame)):
-            df = pd.read_csv(y) if isinstance(y, str) else y  # type: ignore
+        elif isinstance(value, (str, pd.DataFrame)):
+            df = pd.read_csv(value) if isinstance(value, str) else value  # type: ignore
             value = DataframeData(
                 headers=list(df.columns),
                 data=df.to_dict(orient="split")["data"],  # type: ignore
             )
-        elif isinstance(y, (np.ndarray, list)):
-            if len(y) == 0:
+        elif isinstance(value, (np.ndarray, list)):
+            if len(value) == 0:
                 return self.postprocess([[]])
-            if isinstance(y, np.ndarray):
-                y = y.tolist()
-            if not isinstance(y, list):
+            if isinstance(value, np.ndarray):
+                value = value.tolist()
+            if not isinstance(value, list):
                 raise ValueError("output cannot be converted to list")
 
             _headers = self.headers
-            if len(self.headers) < len(y[0]):
+            if len(self.headers) < len(value[0]):
                 _headers: list[str] = [
                     *self.headers,
-                    *[str(i) for i in range(len(self.headers) + 1, len(y[0]) + 1)],
+                    *[str(i) for i in range(len(self.headers) + 1, len(value[0]) + 1)],
                 ]
-            elif len(self.headers) > len(y[0]):
-                _headers = self.headers[: len(y[0])]
+            elif len(self.headers) > len(value[0]):
+                _headers = self.headers[: len(value[0])]
 
-            value = DataframeData(headers=_headers, data=y)
+            value = DataframeData(headers=_headers, data=value)
         else:
             raise ValueError("Cannot process value as a Dataframe")
         return value

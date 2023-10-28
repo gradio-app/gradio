@@ -232,24 +232,24 @@ class Image(StreamingInput, Component):
         return self._format_image(im)
 
     def postprocess(
-        self, y: np.ndarray | _Image.Image | str | Path | None
+        self, value: np.ndarray | _Image.Image | str | Path | None
     ) -> FileData | None:
         """
         Parameters:
-            y: image as a numpy array, PIL Image, string/Path filepath, or string URL
+            value: image as a numpy array, PIL Image, string/Path filepath, or string URL
         Returns:
             base64 url data
         """
-        if y is None:
+        if value is None:
             return None
-        if isinstance(y, np.ndarray):
+        if isinstance(value, np.ndarray):
             path = processing_utils.save_img_array_to_cache(
-                y, cache_dir=self.GRADIO_CACHE
+                value, cache_dir=self.GRADIO_CACHE
             )
-        elif isinstance(y, _Image.Image):
-            path = processing_utils.save_pil_to_cache(y, cache_dir=self.GRADIO_CACHE)
-        elif isinstance(y, (str, Path)):
-            path = y if isinstance(y, str) else str(y)
+        elif isinstance(value, _Image.Image):
+            path = processing_utils.save_pil_to_cache(value, cache_dir=self.GRADIO_CACHE)
+        elif isinstance(value, (str, Path)):
+            path = value if isinstance(value, str) else str(value)
         else:
             raise ValueError("Cannot process this value as an Image")
         return FileData(name=path, data=None, is_file=True)

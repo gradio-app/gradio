@@ -131,27 +131,27 @@ class FileExplorer(Component):
             return path[len(self.root) + 1 :]
         return path
 
-    def postprocess(self, y: str | list[str] | None) -> FileExplorerData | None:
+    def postprocess(self, value: str | list[str] | None) -> FileExplorerData | None:
         """
         Parameters:
-            y: file path
+            value: file path
         Returns:
             list representing filepath, where each string is a directory level relative to the root.
         """
-        if y is None:
+        if value is None:
             return None
 
-        files = [y] if isinstance(y, str) else y
+        files = [value] if isinstance(value, str) else value
 
         return FileExplorerData(
             root=[self._strip_root(file).split(os.path.sep) for file in files]
         )
 
     @server
-    def ls(self, y=None) -> list[dict[str, str]] | None:
+    def ls(self, value=None) -> list[dict[str, str]] | None:
         """
         Parameters:
-            y: file path as a list of strings for each directory level relative to the root.
+            value: file path as a list of strings for each directory level relative to the root.
         Returns:
             tuple of list of files in directory, then list of folders in directory
         """

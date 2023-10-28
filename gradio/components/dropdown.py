@@ -166,21 +166,21 @@ class Dropdown(FormComponent):
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
 
-    def _warn_if_invalid_choice(self, y):
-        if self.allow_custom_value or y in [value for _, value in self.choices]:
+    def _warn_if_invalid_choice(self, value):
+        if self.allow_custom_value or value in [value for _, value in self.choices]:
             return
         warnings.warn(
-            f"The value passed into gr.Dropdown() is not in the list of choices. Please update the list of choices to include: {y} or set allow_custom_value=True."
+            f"The value passed into gr.Dropdown() is not in the list of choices. Please update the list of choices to include: {value} or set allow_custom_value=True."
         )
 
-    def postprocess(self, y):
-        if y is None:
+    def postprocess(self, value):
+        if value is None:
             return None
         if self.multiselect:
-            [self._warn_if_invalid_choice(_y) for _y in y]
+            [self._warn_if_invalid_choice(_y) for _y in value]
         else:
-            self._warn_if_invalid_choice(y)
-        return y
+            self._warn_if_invalid_choice(value)
+        return value
 
     def as_example(self, input_data):
         if self.multiselect:

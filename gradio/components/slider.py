@@ -119,15 +119,15 @@ class Slider(FormComponent):
             value = round(value, n_decimals)
         return value
 
-    def postprocess(self, y: float | None) -> float | None:
+    def postprocess(self, value: float | None) -> float | None:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
-            y: numeric output
+            value: numeric output
         Returns:
             numeric output or minimum number if None
         """
-        return self.minimum if y is None else y
+        return self.minimum if value is None else value
 
     def preprocess(self, x: Any) -> Any:
         return x

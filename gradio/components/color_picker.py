@@ -104,15 +104,15 @@ class ColorPicker(Component):
         else:
             return str(x)
 
-    def postprocess(self, y: str | None) -> str | None:
+    def postprocess(self, value: str | None) -> str | None:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
-            y: text
+            value: text
         Returns:
             text
         """
-        if y is None:
+        if value is None:
             return None
         else:
-            return str(y)
+            return str(value)

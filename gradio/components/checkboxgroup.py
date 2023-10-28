@@ -128,19 +128,19 @@ class CheckboxGroup(FormComponent):
             )
 
     def postprocess(
-        self, y: list[str | int | float] | str | int | float | None
+        self, value: list[str | int | float] | str | int | float | None
     ) -> list[str | int | float]:
         """
         Parameters:
-            y: List of selected choice values. If a single choice is selected, it can be passed in as a string
+            value: List of selected choice values. If a single choice is selected, it can be passed in as a string
         Returns:
             List of selected choices
         """
-        if y is None:
+        if value is None:
             return []
-        if not isinstance(y, list):
-            y = [y]
-        return y
+        if not isinstance(value, list):
+            value = [value]
+        return value
 
     def as_example(self, input_data):
         if input_data is None:

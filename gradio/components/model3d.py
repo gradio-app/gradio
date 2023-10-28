@@ -109,16 +109,16 @@ class Model3D(Component):
             return x
         return x["name"]
 
-    def postprocess(self, y: str | Path | None) -> FileData | None:
+    def postprocess(self, value: str | Path | None) -> FileData | None:
         """
         Parameters:
-            y: path to the model
+            value: path to the model
         Returns:
             file name mapped to base64 url data
         """
-        if y is None:
-            return y
-        return FileData(name=str(y), is_file=True)
+        if value is None:
+            return value
+        return FileData(name=str(value), is_file=True)
 
     def as_example(self, input_data: str | None) -> str:
         return Path(input_data).name if input_data else ""

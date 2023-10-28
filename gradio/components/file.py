@@ -162,16 +162,16 @@ class File(Component):
             else:
                 return [self._process_single_file(x)]
 
-    def postprocess(self, y: str | list[str] | None) -> ListFiles | FileData | None:
+    def postprocess(self, value: str | list[str] | None) -> ListFiles | FileData | None:
         """
         Parameters:
-            y: file path
+            value: file path
         Returns:
             JSON object with key 'name' for filename, 'data' for base64 url, and 'size' for filesize in bytes
         """
-        if y is None:
+        if value is None:
             return None
-        if isinstance(y, list):
+        if isinstance(value, list):
             return ListFiles(
                 root=[
                     FileData(
@@ -180,14 +180,14 @@ class File(Component):
                         size=Path(file).stat().st_size,
                         is_file=True,
                     )
-                    for file in y
+                    for file in value
                 ]
             )
         else:
             return FileData(
-                name=y,
-                orig_name=Path(y).name,
-                size=Path(y).stat().st_size,
+                name=value,
+                orig_name=Path(value).name,
+                size=Path(value).stat().st_size,
                 is_file=True,
             )
 

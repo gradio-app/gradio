@@ -55,14 +55,14 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
         return x
 
     @abstractmethod
-    def postprocess(self, y):
+    def postprocess(self, value):
         """
         Any postprocessing needed to be performed on function output.
         """
-        return y
+        return value
 
     @abstractmethod
-    def as_example(self, y):
+    def as_example(self, value):
         """
         Return the input data in a way that can be displayed by the examples dataset component in the front-end.
 
@@ -301,8 +301,8 @@ class FormComponent(Component):
     def preprocess(self, x: Any) -> Any:
         return x
 
-    def postprocess(self, y):
-        return y
+    def postprocess(self, value):
+        return value
 
 
 class StreamingOutput(metaclass=abc.ABCMeta):
@@ -311,7 +311,7 @@ class StreamingOutput(metaclass=abc.ABCMeta):
         self.streaming: bool
 
     @abc.abstractmethod
-    def stream_output(self, y, output_id: str, first_chunk: bool) -> tuple[bytes, Any]:
+    def stream_output(self, value, output_id: str, first_chunk: bool) -> tuple[bytes, Any]:
         pass
 
 
