@@ -21,6 +21,11 @@ set_documentation_group("component")
 class ListFiles(GradioRootModel):
     root: List[FileData]
 
+    def __getitem__(self, index):
+        return self.root[index]
+
+    def __iter__(self):
+        return iter(self.root)
 
 @document()
 class File(Component):
@@ -117,21 +122,19 @@ class File(Component):
         self.type = type
         self.height = height
 
-    def _process_single_file(self, f: dict[str, Any]) -> bytes | str:
-        file_name, data, is_file = (
-            f["name"],
-            f["data"],
-            f.get("is_file", False),
-        )
+    def _process_single_file(self, f: FileData) -> bytes | str:
         if self.type == "filepath":
             file = tempfile.NamedTemporaryFile(delete=False, dir=self.GRADIO_CACHE)
-            file.name = file_name
+            assert f.name
+            file.name = f.name
             return NamedString(file.name)
         elif self.type == "binary":
-            if is_file:
-                with open(file_name, "rb") as file_data:
+            if f.is_file:
+                assert f.name 
+                with open(f.name, "rb") as file_data:
                     return file_data.read()
-            return client_utils.decode_base64_to_binary(data)[0]
+            assert f.data
+            return client_utils.decode_base64_to_binary(f.data)[0]
         else:
             raise ValueError(
                 "Unknown type: "
@@ -140,35 +143,23 @@ class File(Component):
             )
 
     def preprocess(
-        self, payload: list[dict[str, Any]] | None
+        self, payload: ListFiles | FileData | None
     ) -> bytes | str | list[bytes | str] | None:
-        """
-        Parameters:
-            payload: List of JSON objects with filename as 'name' property and base64 data as 'data' property
-        Returns:
-            File objects in requested format
-        """
         if payload is None:
             return None
 
         if self.file_count == "single":
-            if isinstance(payload, list):
+            if isinstance(payload, ListFiles):
                 return self._process_single_file(payload[0])
             else:
                 return self._process_single_file(payload)
         else:
-            if isinstance(payload, list):
+            if isinstance(payload, ListFiles):
                 return [self._process_single_file(f) for f in payload]
             else:
                 return [self._process_single_file(payload)]
 
     def postprocess(self, value: str | list[str] | None) -> ListFiles | FileData | None:
-        """
-        Parameters:
-            value: file path
-        Returns:
-            JSON object with key 'name' for filename, 'data' for base64 url, and 'size' for filesize in bytes
-        """
         if value is None:
             return None
         if isinstance(value, list):

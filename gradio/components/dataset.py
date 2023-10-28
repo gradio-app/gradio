@@ -121,16 +121,13 @@ class Dataset(Component):
 
         return config
 
-    def preprocess(self, payload: Any) -> Any:
-        """
-        Any preprocessing needed to be performed on function input.
-        """
+    def preprocess(self, payload: int) -> int | list[list] | None:
         if self.type == "index":
             return payload
         elif self.type == "values":
             return self.samples[payload]
 
-    def postprocess(self, samples: list[list[Any]]) -> dict:
+    def postprocess(self, samples: list[list]) -> dict:
         return {
             "samples": samples,
             "__type__": "update",

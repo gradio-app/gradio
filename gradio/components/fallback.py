@@ -5,8 +5,8 @@ class Fallback(Component):
     def preprocess(self, payload):
         return payload
 
-    def postprocess(self, payload):
-        return payload
+    def postprocess(self, value):
+        return value
 
     def example_inputs(self):
         return {"foo": "bar"}

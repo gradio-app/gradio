@@ -110,12 +110,6 @@ class FileExplorer(Component):
         return ["Users", "gradio", "app.py"]
 
     def preprocess(self, payload: list[list[str]] | None) -> list[str] | str | None:
-        """
-        Parameters:
-            payload: File path segments as a list of list of strings for each file relative to the root.
-        Returns:
-            File path selected, as an absolute path.
-        """
         if payload is None:
             return None
 
@@ -134,12 +128,6 @@ class FileExplorer(Component):
         return path
 
     def postprocess(self, value: str | list[str] | None) -> FileExplorerData | None:
-        """
-        Parameters:
-            value: file path
-        Returns:
-            list representing filepath, where each string is a directory level relative to the root.
-        """
         if value is None:
             return None
 
