@@ -348,11 +348,7 @@ class ScatterPlot(Plot):
             y_lim=self.y_lim,
         )
 
-        return AltairPlotData(
-            type="altair",
-            plot=chart.to_json(),
-            chart="scatter"
-        )
+        return AltairPlotData(type="altair", plot=chart.to_json(), chart="scatter")
 
     def example_inputs(self) -> Any:
         return None

@@ -21,6 +21,12 @@ set_documentation_group("component")
 class ListFiles(GradioRootModel):
     root: List[FileData]
 
+    def __getitem__(self, index):
+        return self.root[index]
+
+    def __iter__(self):
+        return iter(self.root)
+
 
 @document()
 class UploadButton(Component):
@@ -95,7 +101,7 @@ class UploadButton(Component):
         if self.file_count == "multiple":
             self.data_model = ListFiles
         else:
-            self.data_model = FileData        
+            self.data_model = FileData
         self.size = size
         self.file_types = file_types
         self.label = label
@@ -137,7 +143,7 @@ class UploadButton(Component):
             return NamedString(file.name)
         elif self.type == "binary":
             if f.is_file:
-                assert f.name 
+                assert f.name
                 with open(f.name, "rb") as file_data:
                     return file_data.read()
             assert f.data

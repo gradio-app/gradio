@@ -27,6 +27,7 @@ class ListFiles(GradioRootModel):
     def __iter__(self):
         return iter(self.root)
 
+
 @document()
 class File(Component):
     """
@@ -130,7 +131,7 @@ class File(Component):
             return NamedString(file.name)
         elif self.type == "binary":
             if f.is_file:
-                assert f.name 
+                assert f.name
                 with open(f.name, "rb") as file_data:
                     return file_data.read()
             assert f.data

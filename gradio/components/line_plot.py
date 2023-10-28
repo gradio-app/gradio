@@ -323,11 +323,7 @@ class LinePlot(Plot):
             width=self.width,
         )
 
-        return AltairPlotData(
-            type="altair",
-            plot=chart.to_json(),
-            chart="line"
-        )
+        return AltairPlotData(type="altair", plot=chart.to_json(), chart="line")
 
     def example_inputs(self) -> Any:
         return None

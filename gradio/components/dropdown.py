@@ -169,7 +169,9 @@ class Dropdown(FormComponent):
             f"The value passed into gr.Dropdown() is not in the list of choices. Please update the list of choices to include: {value} or set allow_custom_value=True."
         )
 
-    def postprocess(self, value: str | int | float | list[str | int | float] | None) -> str | int | float | list[str | int | float] | None:
+    def postprocess(
+        self, value: str | int | float | list[str | int | float] | None
+    ) -> str | int | float | list[str | int | float] | None:
         if value is None:
             return None
         if self.multiselect:
