@@ -506,7 +506,10 @@ class Events:
         callback=lambda block: setattr(block, "likeable", True),
         doc="This listener is triggered when the user likes/dislikes from within the {{ component }}. This event has EventData of type gradio.LikeData that carries information, accessible through LikeData.index and LikeData.value. See EventData documentation on how to use this event data.",
     )
-
+    load = EventListener(
+        "load",
+        doc="This listener is triggered when the {{ component }} initially loads in the browser.",
+    )
 
 class LikeData(EventData):
     def __init__(self, target: Block | None, data: Any):

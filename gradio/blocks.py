@@ -38,7 +38,7 @@ from gradio import (
 )
 from gradio.context import Context
 from gradio.data_classes import FileData
-from gradio.events import EventData, EventListener, EventListenerMethod
+from gradio.events import EventData, EventListener, EventListenerMethod, Events
 from gradio.exceptions import (
     DuplicateBlockError,
     InvalidApiNameError,
@@ -458,6 +458,13 @@ class Blocks(BlockContext):
     Demos: blocks_hello, blocks_flipper, blocks_speech_text_sentiment, generate_english_german
     Guides: blocks-and-event-listeners, controlling-layout, state-in-blocks, custom-CSS-and-JS, custom-interpretations-with-blocks, using-blocks-like-functions
     """
+
+    def __new__(cls, *args, **kwargs):
+        for event in [Events.load]:
+            trigger = event.copy()
+            trigger.set_doc(component="Blocks")
+            setattr(cls, event.event_name, trigger.listener)
+        return super().__new__(cls, *args, **kwargs)
 
     def __init__(
         self,
@@ -1567,73 +1574,6 @@ Received outputs:
         self.app = routes.App.create_app(self)
         self.progress_tracking = any(block_fn.tracks_progress for block_fn in self.fns)
         self.exited = True
-
-    def load(
-        self: Blocks | None = None,
-        fn: Callable | None = None,
-        inputs: Component | list[Component] | None = None,
-        outputs: Component | list[Component] | None = None,
-        api_name: str | None | Literal[False] = None,
-        scroll_to_output: bool = False,
-        show_progress: Literal["full", "hidden", "minimal"] | None = "full",
-        queue=None,
-        batch: bool = False,
-        max_batch_size: int = 4,
-        preprocess: bool = True,
-        postprocess: bool = True,
-        every: float | None = None,
-        _js: str | None = None,
-    ) -> Dependency:
-        """
-        Adds an event that runs as soon as the demo loads in the browser. Example usage below.
-        Parameters:
-            fn: The function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
-            inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
-            outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
-            api_name: Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.
-            scroll_to_output: If True, will scroll to output component on completion
-            show_progress: If True, will show progress animation while pending
-            queue: If True, will place the request on the queue, if the queue exists
-            batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
-            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
-            preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
-            postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
-            every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
-        Example:
-            import gradio as gr
-            import datetime
-            with gr.Blocks() as demo:
-                def get_time():
-                    return datetime.datetime.now().time()
-                dt = gr.Textbox(label="Current time")
-                demo.load(get_time, inputs=None, outputs=dt)
-            demo.launch()
-        """
-        from gradio.events import Dependency, EventListenerMethod
-
-        if Context.root_block is None:
-            raise AttributeError(
-                "Cannot call load() outside of a gradio.Blocks context."
-            )
-
-        dep, dep_index = Context.root_block.set_event_trigger(
-            targets=[EventListenerMethod(self, "load")],
-            fn=fn,
-            inputs=inputs,
-            outputs=outputs,
-            api_name=api_name,
-            preprocess=preprocess,
-            postprocess=postprocess,
-            scroll_to_output=scroll_to_output,
-            show_progress=show_progress,
-            js=_js,
-            queue=queue,
-            batch=batch,
-            max_batch_size=max_batch_size,
-            every=every,
-            no_target=True,
-        )
-        return Dependency(None, dep, dep_index, fn)
 
     def clear(self):
         """Resets the layout of the Blocks object."""
