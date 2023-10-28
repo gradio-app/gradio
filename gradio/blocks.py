@@ -36,6 +36,7 @@ from gradio import (
     utils,
     wasm_utils,
 )
+from gradio.component_meta import create_or_modify_pyi
 from gradio.context import Context
 from gradio.data_classes import FileData
 from gradio.events import EventData, EventListener, EventListenerMethod, Events
@@ -459,10 +460,12 @@ class Blocks(BlockContext):
     """
 
     def __new__(cls, *args, **kwargs):
-        for event in [Events.load]:
+        events = [Events.load]
+        for event in events:
             trigger = event.copy()
             trigger.set_doc(component="Blocks")
             setattr(cls, event.event_name, trigger.listener)
+            create_or_modify_pyi(Blocks, "Blocks", events)  # type: ignore
         return super().__new__(cls, *args, **kwargs)
 
     def __init__(

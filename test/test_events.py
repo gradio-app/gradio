@@ -79,7 +79,7 @@ class TestEvent:
                 return "Hello " + name + "!"
 
             gr.on(
-                triggers=[name.submit, greet_btn.click],
+                triggers=[name.submit, greet_btn.click, demo.load],
                 fn=greet,
                 inputs=name,
                 outputs=output,
