@@ -172,5 +172,7 @@ class HighlightedText(Component):
                 ]
             )
 
-    def preprocess(self, payload: Any) -> Any:
-        return super().preprocess(payload)
+    def preprocess(self, payload: HighlightedTextData | None) -> dict | None:
+        if payload is None:
+            return None
+        return payload.model_dump()

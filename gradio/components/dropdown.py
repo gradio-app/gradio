@@ -141,12 +141,6 @@ class Dropdown(FormComponent):
     def preprocess(
         self, payload: str | int | float | list[str | int | float] | None
     ) -> str | int | float | list[str | int | float] | list[int | None] | None:
-        """
-        Parameters:
-            payload: selected choice(s)
-        Returns:
-            selected choice(s) as string or index within choice list or list of string or indices
-        """
         if self.type == "value":
             return payload
         elif self.type == "index":
@@ -175,12 +169,14 @@ class Dropdown(FormComponent):
             f"The value passed into gr.Dropdown() is not in the list of choices. Please update the list of choices to include: {value} or set allow_custom_value=True."
         )
 
-    def postprocess(self, value):
+    def postprocess(self, value: str | int | float | list[str | int | float] | None) -> str | int | float | list[str | int | float] | None:
         if value is None:
             return None
         if self.multiselect:
+            assert isinstance(value, list)
             [self._warn_if_invalid_choice(_y) for _y in value]
         else:
+            assert isinstance(value, (str, int, float))
             self._warn_if_invalid_choice(value)
         return value
 

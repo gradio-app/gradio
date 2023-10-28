@@ -168,7 +168,7 @@ class Gallery(Component):
             output.append(entry)
         return GalleryData(root=output)
 
-    def preprocess(self, payload: Any) -> Any:
+    def preprocess(self, payload: GalleryData | None) -> GalleryData | None:
         return payload
 
     def example_inputs(self) -> Any:

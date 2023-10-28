@@ -169,12 +169,6 @@ class Dataframe(Component):
         )
 
     def preprocess(self, payload: DataframeData) -> pd.DataFrame | np.ndarray | list:
-        """
-        Parameters:
-            payload: Dictionary equivalent of DataframeData containing `headers`, `data`, and optionally `metadata` keys
-        Returns:
-            The Dataframe data in requested format
-        """
         if self.type == "pandas":
             if payload.headers is not None:
                 return pd.DataFrame(payload.data, columns=payload.headers)
@@ -202,12 +196,6 @@ class Dataframe(Component):
         | str
         | None,
     ) -> DataframeData | dict:
-        """
-        Parameters:
-            value: dataframe in given format
-        Returns:
-            JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
-        """
         if value is None:
             return self.postprocess(self.empty_input)
         if isinstance(value, dict):
