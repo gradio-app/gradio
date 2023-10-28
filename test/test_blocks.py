@@ -854,6 +854,22 @@ class TestCallFunction:
         assert output == "Hi, World"
 
     @pytest.mark.asyncio
+    async def test_call_decorated_functions(self):
+        with gr.Blocks() as demo:
+            name = gr.Textbox(value="Abubakar")
+            output = gr.Textbox(label="Output Box")
+            
+            @name.submit(inputs=name, outputs=output)
+            @demo.load(inputs=name, outputs=output)
+            def test(x):
+                return "Hello " + x
+            
+        output = await demo.call_function(0, ["Adam"])
+        assert output["prediction"] == "Hello Adam"
+        output = await demo.call_function(1, ["Adam"])
+        assert output["prediction"] == "Hello Adam"
+
+    @pytest.mark.asyncio
     async def test_call_generator(self):
         def generator(x):
             yield from range(x)
