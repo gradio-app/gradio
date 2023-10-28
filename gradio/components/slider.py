@@ -129,5 +129,5 @@ class Slider(FormComponent):
         """
         return self.minimum if value is None else value
 
-    def preprocess(self, x: Any) -> Any:
-        return x
+    def preprocess(self, payload: Any) -> Any:
+        return payload

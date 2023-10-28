@@ -169,5 +169,5 @@ class HighlightedText(Component):
                 root=[HighlightedToken(token=o[0], class_or_confidence=o[1]) for o in value]
             )
 
-    def preprocess(self, x: Any) -> Any:
-        return super().preprocess(x)
+    def preprocess(self, payload: Any) -> Any:
+        return super().preprocess(payload)

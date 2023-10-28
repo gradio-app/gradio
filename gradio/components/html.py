@@ -67,8 +67,8 @@ class HTML(Component):
     def example_inputs(self) -> Any:
         return "<p>Hello</p>"
 
-    def preprocess(self, x: Any) -> Any:
-        return x
+    def preprocess(self, payload: Any) -> Any:
+        return payload
 
     def postprocess(self, value):
         return value

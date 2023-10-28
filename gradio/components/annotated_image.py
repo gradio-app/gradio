@@ -195,5 +195,5 @@ class AnnotatedImage(Component):
     def example_inputs(self) -> Any:
         return {}
 
-    def preprocess(self, x: Any) -> Any:
-        return x
+    def preprocess(self, payload: Any) -> Any:
+        return payload

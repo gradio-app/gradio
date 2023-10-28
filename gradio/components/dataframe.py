@@ -168,14 +168,14 @@ class Dataframe(Component):
             value=value,
         )
 
-    def preprocess(self, x: dict) -> pd.DataFrame | np.ndarray | list:
+    def preprocess(self, payload: dict) -> pd.DataFrame | np.ndarray | list:
         """
         Parameters:
-            x: Dictionary equivalent of DataframeData containing `headers`, `data`, and optionally `metadata` keys
+            payload: Dictionary equivalent of DataframeData containing `headers`, `data`, and optionally `metadata` keys
         Returns:
             The Dataframe data in requested format
         """
-        value = DataframeData(**x)
+        value = DataframeData(**payload)
         if self.type == "pandas":
             if value.headers is not None:
                 return pd.DataFrame(value.data, columns=value.headers)

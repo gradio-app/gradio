@@ -122,15 +122,15 @@ class Textbox(FormComponent):
         self.rtl = rtl
         self.text_align = text_align
 
-    def preprocess(self, x: str | None) -> str | None:
+    def preprocess(self, payload: str | None) -> str | None:
         """
         Preprocesses input (converts it to a string) before passing it to the function.
         Parameters:
-            x: text
+            payload: text
         Returns:
             text
         """
-        return None if x is None else str(x)
+        return None if payload is None else str(payload)
 
     def postprocess(self, value: str | None) -> str | None:
         """

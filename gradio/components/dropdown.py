@@ -139,28 +139,28 @@ class Dropdown(FormComponent):
             return self.choices[0][1] if self.choices else None
 
     def preprocess(
-        self, x: str | int | float | list[str | int | float] | None
+        self, payload: str | int | float | list[str | int | float] | None
     ) -> str | int | float | list[str | int | float] | list[int | None] | None:
         """
         Parameters:
-            x: selected choice(s)
+            payload: selected choice(s)
         Returns:
             selected choice(s) as string or index within choice list or list of string or indices
         """
         if self.type == "value":
-            return x
+            return payload
         elif self.type == "index":
             choice_values = [value for _, value in self.choices]
-            if x is None:
+            if payload is None:
                 return None
             elif self.multiselect:
-                assert isinstance(x, list)
+                assert isinstance(payload, list)
                 return [
                     choice_values.index(choice) if choice in choice_values else None
-                    for choice in x
+                    for choice in payload
                 ]
             else:
-                return choice_values.index(x) if x in choice_values else None
+                return choice_values.index(payload) if payload in choice_values else None
         else:
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."

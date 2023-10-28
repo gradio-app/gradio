@@ -96,8 +96,8 @@ class Markdown(Component):
         postprocessed = self.postprocess(input_data)
         return postprocessed if postprocessed else ""
 
-    def preprocess(self, x: Any) -> Any:
-        return x
+    def preprocess(self, payload: Any) -> Any:
+        return payload
 
     def example_inputs(self) -> Any:
         return "# Hello!"

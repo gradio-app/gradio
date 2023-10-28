@@ -102,8 +102,8 @@ class Plot(Component):
         config["bokeh_version"] = bokeh_version
         return config
 
-    def preprocess(self, x: Any) -> Any:
-        return x
+    def preprocess(self, payload: Any) -> Any:
+        return payload
 
     def example_inputs(self) -> Any:
         return None

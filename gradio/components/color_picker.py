@@ -82,27 +82,27 @@ class ColorPicker(Component):
     def example_inputs(self) -> str:
         return "#000000"
 
-    def flag(self, x: Any, flag_dir: str | Path = "") -> str:
-        return x
+    def flag(self, payload: Any, flag_dir: str | Path = "") -> str:
+        return payload
 
-    def read_from_flag(self, x: Any, flag_dir: str | Path | None = None):
-        return x
+    def read_from_flag(self, payload: Any, flag_dir: str | Path | None = None):
+        return payload
 
     def api_info(self) -> dict[str, Any]:
         return {"type": "string"}
 
-    def preprocess(self, x: str | None) -> str | None:
+    def preprocess(self, payload: str | None) -> str | None:
         """
         Any preprocessing needed to be performed on function input.
         Parameters:
-            x: text
+            payload: text
         Returns:
             text
         """
-        if x is None:
+        if payload is None:
             return None
         else:
-            return str(x)
+            return str(payload)
 
     def postprocess(self, value: str | None) -> str | None:
         """

@@ -168,8 +168,8 @@ class Gallery(Component):
             output.append(entry)
         return GalleryData(root=output)
 
-    def preprocess(self, x: Any) -> Any:
-        return x
+    def preprocess(self, payload: Any) -> Any:
+        return payload
 
     def example_inputs(self) -> Any:
         return [
