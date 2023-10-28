@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from gradio.component_meta import create_or_modify_pyi
 from gradio.events import EventListener, Events
 
