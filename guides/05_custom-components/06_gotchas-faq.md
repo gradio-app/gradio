@@ -1,1 +1,0 @@
-Put a list of tips and common question about custom components.
