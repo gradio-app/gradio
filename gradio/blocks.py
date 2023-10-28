@@ -16,6 +16,7 @@ from collections import defaultdict
 from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, Sequence, cast
+from urllib.parse import urlparse, urlunparse
 
 import anyio
 import requests
@@ -1725,7 +1726,7 @@ Received outputs:
         show_error: bool = False,
         server_name: str | None = None,
         server_port: int | None = None,
-        show_tips: bool = False,
+        *,
         height: int = 500,
         width: int | str = "100%",
         favicon_path: str | None = None,
@@ -1738,9 +1739,11 @@ Received outputs:
         allowed_paths: list[str] | None = None,
         blocked_paths: list[str] | None = None,
         root_path: str | None = None,
-        _frontend: bool = True,
         app_kwargs: dict[str, Any] | None = None,
         state_session_capacity: int = 10000,
+        share_server_address: str | None = None,
+        share_server_protocol: Literal["http", "https"] | None = None,
+        _frontend: bool = True,
     ) -> tuple[FastAPI, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -1757,7 +1760,6 @@ Received outputs:
             show_error: If True, any errors in the interface will be displayed in an alert modal and printed in the browser console log
             server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT. If None, will search for an available port starting at 7860.
             server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME. If None, will use "127.0.0.1".
-            show_tips: if True, will occasionally show tips about new Gradio features
             max_threads: the maximum number of total threads that the Gradio app can generate in parallel. The default is inherited from the starlette library (currently 40). Applies whether the queue is enabled or not. But if queuing is enabled, this parameter is increaseed to be at least the concurrency_count of the queue.
             width: The width in pixels of the iframe element containing the interface (used if inline=True)
             height: The height in pixels of the iframe element containing the interface (used if inline=True)
@@ -1773,6 +1775,8 @@ Received outputs:
             root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". Can be set by environment variable GRADIO_ROOT_PATH. Defaults to "".
             app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
             state_session_capacity: The maximum number of sessions whose information to store in memory. If the number of sessions exceeds this number, the oldest sessions will be removed. Reduce capacity to reduce memory usage when using gradio.State or returning updated components from functions. Defaults to 10000.
+            share_server_address: Use this to specify a custom FRP server and port for sharing Gradio apps (only applies if share=True). If not provided, will use the default FRP server at https://gradio.live. See https://github.com/huggingface/frp for more information.
+            share_server_protocol: Use this to specify the protocol to use for the share links. Defaults to "https", unless a custom share_server_address is provided, in which case it defaults to "http". If you are using a custom share_server_address and want to use https, you must set this to "https".
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -1809,7 +1813,6 @@ Received outputs:
         else:
             self.auth = auth
         self.auth_message = auth_message
-        self.show_tips = show_tips
         self.show_error = show_error
         self.height = height
         self.width = width
@@ -1893,6 +1896,10 @@ Received outputs:
             self.is_running = True
             self.is_colab = utils.colab_check()
             self.is_kaggle = utils.kaggle_check()
+            self.share_server_address = share_server_address
+            self.share_server_protocol = share_server_protocol or (
+                "http" if share_server_address is not None else "https"
+            )
 
             self.protocol = (
                 "https"
@@ -1988,8 +1995,15 @@ Received outputs:
         if self.share:
             try:
                 if self.share_url is None:
-                    self.share_url = networking.setup_tunnel(
-                        self.server_name, self.server_port, self.share_token
+                    share_url = networking.setup_tunnel(
+                        local_host=self.server_name,
+                        local_port=self.server_port,
+                        share_token=self.share_token,
+                        share_server_address=self.share_server_address,
+                    )
+                    parsed_url = urlparse(share_url)
+                    self.share_url = urlunparse(
+                        (self.share_server_protocol,) + parsed_url[1:]
                     )
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
                 if not (quiet):
@@ -2084,15 +2098,12 @@ Received outputs:
                 "is_sharing_on": self.share,
                 "share_url": self.share_url,
                 "enable_queue": self.enable_queue,
-                "show_tips": self.show_tips,
                 "server_name": server_name,
                 "server_port": server_port,
                 "is_space": self.space_id is not None,
                 "mode": self.mode,
             }
             analytics.launched_analytics(self, data)
-
-        utils.show_tip(self)
 
         # Block main thread if debug==True
         if debug or int(os.getenv("GRADIO_DEBUG", 0)) == 1 and not wasm_utils.IS_WASM:
