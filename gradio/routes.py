@@ -455,7 +455,6 @@ class App(FastAPI):
             if in_blocklist or is_dotfile or is_dir:
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
-            in_app_dir = utils.is_in_or_equal(abs_path, app.cwd)
             created_by_app = str(abs_path) in set().union(*blocks.temp_file_sets)
             in_allowlist = any(
                 utils.is_in_or_equal(abs_path, allowed_path)
@@ -463,7 +462,7 @@ class App(FastAPI):
             )
             was_uploaded = utils.is_in_or_equal(abs_path, app.uploaded_file_dir)
 
-            if not (in_app_dir or created_by_app or in_allowlist or was_uploaded):
+            if not (created_by_app or in_allowlist or was_uploaded):
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
             if not abs_path.exists():
