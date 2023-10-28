@@ -50,14 +50,14 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
     @abstractmethod
     def preprocess(self, x: Any) -> Any:
         """
-        Any preprocessing needed to be performed on function input.
+                Convert from the web-friendly (typically JSON) value in the front-end to the format expected by the python function.
         """
         return x
 
     @abstractmethod
     def postprocess(self, y):
         """
-        Any postprocessing needed to be performed on function output.
+        Convert from the data returned by the python function to the web-friendly (typically JSON) value expected by the front-end.
         """
         return y
 
@@ -74,16 +74,14 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
     @abstractmethod
     def api_info(self) -> dict[str, list[str]]:
         """
-        The typing information for this component as a dictionary whose values are a list of 2 strings: [Python type, language-agnostic description].
-        Keys of the dictionary are: raw_input, raw_output, serialized_input, serialized_output
+        A JSON-schema representation of the value that the `preprocess` expects and the `postprocess` returns.
         """
         pass
 
     @abstractmethod
     def example_inputs(self) -> Any:
         """
-        The example inputs for this component as a dictionary whose values are example inputs compatible with this component.
-        Keys of the dictionary are: raw, serialized
+        The example inputs for this component for API usage. Must be JSON-serializable.
         """
         pass
 

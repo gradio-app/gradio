@@ -42,7 +42,6 @@ class Video(Component):
     """
 
     data_model = VideoData
-    input_data_model = FileData
     EVENTS = [
         Events.change,
         Events.clear,
