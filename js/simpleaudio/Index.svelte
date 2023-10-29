@@ -27,7 +27,6 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let autoplay = false;
-	export let show_download_button = true;
 	export let show_share_button = false;
 	export let waveform_options: WaveformOptions = {};
 	export let pending: boolean;
@@ -81,6 +80,7 @@
 	}
 
     $: interactive = mode === "interactive";
+    $: show_download_button = !interactive;
 
     $: console.log("interactive", interactive)
 
@@ -118,15 +118,15 @@
         {...loading_status}
     />
 
-    <BlockLabel {show_label} Icon={Music} float={value === null} label={label || gradio.i18n("audio.audio")} />
 	{#if value === null && interactive}
+        <BlockLabel {show_label} Icon={Music} float={value === null} label={label || gradio.i18n("audio.audio")} />
         <Upload
             bind:dragging
             filetype="audio/aac,audio/midi,audio/mpeg,audio/ogg,audio/wav,audio/x-wav,audio/opus,audio/webm,audio/flac,audio/vnd.rn-realaudio,audio/x-ms-wma,audio/x-aiff,audio/amr,audio/*"
             on:load={handle_load}
             {root}
         >
-            <UploadText i18n={gradio.i18n} type="video" />
+            <UploadText i18n={gradio.i18n} type="audio" />
         </Upload>
 	{:else}
 		{#if interactive}
@@ -142,10 +142,6 @@
                 name={value?.name || "audio_file"}
                 {label}
                 {waveform_settings}
-                on:play={() => gradio.dispatch("play")}
-                on:pause={() => gradio.dispatch("pause")}
-                on:stop={() => gradio.dispatch("stop")}
-                on:end={() => gradio.dispatch("end")}
                 on:share={(e) => gradio.dispatch("share", e.detail)}
                 on:error={(e) => gradio.dispatch("error", e.detail)}
             />
