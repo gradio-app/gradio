@@ -73,6 +73,7 @@
 		"@gradio/simpletextbox": "workspace:^",
 		"@gradio/simpledropdown": "workspace:^",
 		"@gradio/simplevideo": "workspace:^",
+		"@gradio/simpleaudio": "workspace:^",
 		"cross-env": "^7.0.3",
 		"d3-dsv": "^3.0.1",
 		"mime-types": "^2.1.34",
