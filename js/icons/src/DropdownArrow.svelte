@@ -10,7 +10,7 @@
 
 <style>
 	.dropdown-arrow {
-		fill: var(--body-text-color);
+		fill: currentColor;
 		/* margin-right: var(--size-2); */
 		/* width: var(--size-5); */
 	}

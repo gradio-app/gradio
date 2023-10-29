@@ -17,7 +17,7 @@
 </script>
 
 <div class="wrap">
-	<span class:hovered><UploadIcon /> </span>
+	<span class="icon-wrap" class:hovered><UploadIcon /> </span>
 
 	{i18n(defs[type] || defs.file)}
 
@@ -42,9 +42,10 @@
 
 	.or {
 		color: var(--body-text-color-subdued);
+		display: flex;
 	}
 
-	span {
+	.icon-wrap {
 		width: 30px;
 		margin-bottom: var(--spacing-lg);
 	}

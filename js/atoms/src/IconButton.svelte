@@ -5,7 +5,7 @@
 	export let show_label = false;
 	export let pending = false;
 	export let size: "small" | "large" = "small";
-	export let padded = false;
+	export let padded = true;
 </script>
 
 <button on:click aria-label={label} title={label} class:pending class:padded>
@@ -54,6 +54,8 @@
 
 	div {
 		padding: 2px;
+		display: flex;
+		align-items: flex-end;
 	}
 
 	.small {

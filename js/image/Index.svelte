@@ -148,7 +148,7 @@
 			i18n={gradio.i18n}
 		>
 			{#if sources.includes("upload")}
-				<UploadText i18n={gradio.i18n} type="image" />
+				<UploadText i18n={gradio.i18n} type="image" mode="short" />
 			{:else}
 				<Empty unpadded_box={true} size="large"><Image /></Empty>
 			{/if}

@@ -157,8 +157,6 @@ class Image(StreamingInput, Component):
         if x is None:
             return x
 
-        print(x)
-
         im = _Image.open(x["path"])
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")

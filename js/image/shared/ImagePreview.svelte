@@ -38,7 +38,7 @@
 </script>
 
 <BlockLabel {show_label} Icon={Image} label={label || i18n("image.image")} />
-{#if value === null}
+{#if value === null || !value.url}
 	<Empty unpadded_box={true} size="large"><Image /></Empty>
 {:else}
 	<div class="icon-buttons">
@@ -76,6 +76,7 @@
 		width: var(--size-full);
 		height: var(--size-full);
 		object-fit: contain;
+		display: block;
 	}
 
 	.selectable {

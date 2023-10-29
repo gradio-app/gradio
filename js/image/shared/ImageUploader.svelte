@@ -13,6 +13,7 @@
 	import { Toolbar, IconButton } from "@gradio/atoms";
 
 	import { Upload, type FileData, normalise_file } from "@gradio/upload";
+	import ClearImage from "./ClearImage.svelte";
 
 	export let value: null | FileData;
 	export let label: string | undefined = undefined;
@@ -29,8 +30,6 @@
 	export let selectable = false;
 	export let root: string;
 	export let i18n: I18nFormatter;
-
-	$: console.log({ selectable });
 
 	let upload: Upload;
 	export let active_tool: "webcam" | null = null;
@@ -136,6 +135,9 @@
 <BlockLabel {show_label} Icon={Image} label={label || "Image"} />
 
 <div data-testid="image" class="image-container">
+	{#if value?.url}
+		<ClearImage on:remove_image={() => (value = null)} />
+	{/if}
 	<div class="upload-container">
 		<Upload
 			hidden={value !== null || active_tool === "webcam"}
@@ -176,7 +178,7 @@
 		{/if}
 	</div>
 	{#if sources.length > 1 || sources.includes("clipboard")}
-		<Toolbar>
+		<Toolbar show_border={!value?.url}>
 			{#each sources_list as source}
 				<IconButton
 					on:click={() => handle_toolbar(source)}

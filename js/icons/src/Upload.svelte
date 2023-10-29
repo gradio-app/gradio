@@ -1,10 +1,15 @@
 <svg
 	xmlns="http://www.w3.org/2000/svg"
-	width="100%"
-	height="100%"
+	width="90%"
+	height="90%"
 	viewBox="0 0 24 24"
-	><path
-		fill="currentColor"
-		d="M4 20q-.825 0-1.413-.588T2 18V6q0-.825.588-1.413T4 4h5.175q.4 0 .763.15t.637.425L12 6h8q.825 0 1.413.588T22 8v10q0 .825-.588 1.413T20 20H4Zm0-2h16V8h-8.825l-2-2H4v12Zm0 0V6v12Zm8-1q.425 0 .713-.288T13 16v-3.2l.9.9q.275.275.7.275t.7-.275q.275-.275.275-.7t-.275-.7l-2.6-2.6q-.3-.3-.7-.3t-.7.3l-2.6 2.6q-.275.275-.275.7t.275.7q.275.275.7.275t.7-.275l.9-.9V16q0 .425.288.713T12 17Z"
-	/></svg
+	fill="none"
+	stroke="currentColor"
+	stroke-width="2"
+	stroke-linecap="round"
+	stroke-linejoin="round"
+	class="feather feather-upload"
+	><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline
+		points="17 8 12 3 7 8"
+	/><line x1="12" y1="3" x2="12" y2="15" /></svg
 >
