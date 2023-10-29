@@ -9,8 +9,10 @@
 	import type { LoadingStatus } from "@gradio/statustracker";
 
 	import { BaseStaticVideo, prettyBytes, playable } from "@gradio/video";
-	import type { I18nFormatter } from "@gradio/utils";
 	import type { Gradio } from "@gradio/utils";
+	import { tick } from "svelte";
+
+    type VideoData ={ video: FileData; subtitles: FileData | null } | null
 
 	export let gradio: Gradio<{
 		change: never;
@@ -23,8 +25,8 @@
 	}>;
 
 	export let visible: true;
-	export let value: { video: FileData; subtitles: FileData | null } | null =
-		null;
+	export let value: VideoData | null = null;
+    let previous_value = value;
 	export let label: string | undefined = undefined;
 	export let show_label = true;
 	export let autoplay: boolean;
@@ -41,31 +43,39 @@
 	export let loading_status: LoadingStatus;
 	export let show_share_button = true;
 
+    let dragging  = false;
+
 	function handle_load({ detail }: CustomEvent<FileData | null>): void {
 		if (detail != null) {
 			value = { video: detail, subtitles: null };
-			gradio.dispatch("change");
+            console.log("upload", previous_value);
 			gradio.dispatch("upload");
 		}
 	}
 
-	function handle_clear(): void {
+	async function handle_clear(): Promise<void> {
 		value = null;
 		gradio.dispatch("change");
 		gradio.dispatch("clear");
 	}
 
-	let dragging = false;
-
-	$: {
-		if (value != null) {
-			value = {
-				// @ts-ignore
-				video: normalise_file(value.video, root, root_url),
-				subtitles: normalise_file(value.subtitles, root, root_url)
-			};
+    $: {
+		if (JSON.stringify(value) !== JSON.stringify(previous_value)) {
+			previous_value = value;
+			gradio.dispatch("change");
 		}
 	}
+
+    $: {
+		if (value != null) {
+            const vid = normalise_file(value.video, root, root_url);
+            if (vid != null) {
+                value.video = vid;
+            }
+			value.subtitles = normalise_file(value.subtitles, root, root_url);
+		}
+	}
+
 	$: interactive = mode === "interactive";
 </script>
 
@@ -110,6 +120,7 @@
 					value={value?.video}
 					subtitle={value?.subtitles}
 					{show_share_button}
+                    show_download_button={!interactive}
 					on:play={() => gradio.dispatch("play")}
 					on:pause={() => gradio.dispatch("pause")}
 					on:stop={() => gradio.dispatch("stop")}
