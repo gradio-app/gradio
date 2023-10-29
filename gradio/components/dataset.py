@@ -44,6 +44,7 @@ class Dataset(Component):
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
+        selectable: bool = False,
     ):
         """
         Parameters:
@@ -60,6 +61,7 @@ class Dataset(Component):
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
+            selectable: Whether the dataset can be selected. Set automatically if the select event is used.
         """
         super().__init__(
             visible=visible,
@@ -69,6 +71,7 @@ class Dataset(Component):
             _skip_init_processing=_skip_init_processing,
             render=render,
         )
+        self.selectable = selectable
         self.container = container
         self.scale = scale
         self.min_width = min_width
