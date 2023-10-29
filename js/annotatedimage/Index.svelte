@@ -121,7 +121,7 @@
 								? null
 								: `filter: hue-rotate(${Math.round(
 										(i * 360) / _value?.annotations.length
-								)}deg);`}
+								  )}deg);`}
 						/>
 					{/await}
 				{/each}
