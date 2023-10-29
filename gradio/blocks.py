@@ -544,7 +544,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.share_url = None
         self.width = None
         self.height = None
-        self.api_open = True
+        self.api_open = False
 
         self.space_id = utils.get_space()
         self.favicon_path = None
@@ -1598,7 +1598,7 @@ Received outputs:
         self,
         concurrency_count: int = 1,
         status_update_rate: float | Literal["auto"] = "auto",
-        api_open: bool = True,
+        api_open: bool = False,
         max_size: int | None = None,
     ):
         """
