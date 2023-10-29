@@ -25,8 +25,6 @@
 		select: SelectData;
 	}>();
 
-	// $: value && dispatch("change", value.url);
-
 	$: value = normalise_file(value, root, null);
 
 	const handle_click = (evt: MouseEvent): void => {

@@ -51,6 +51,8 @@
 		pending = false;
 	}
 
+	$: value && !value.url && (value = normalise_file(value, root, null));
+
 	const dispatch = createEventDispatcher<{
 		change?: never;
 		stream?: never;
