@@ -3,6 +3,9 @@ import { cleanup, render } from "@gradio/tootils";
 import Audio from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";
 import { setupi18n } from "../app/src/i18n";
+import ResizeObserver from 'resize-observer-polyfill'
+
+global.ResizeObserver = ResizeObserver
 
 const loading_status: LoadingStatus = {
 	eta: 0,
@@ -30,6 +33,6 @@ describe("Audio", () => {
 			theme_mode: "dark"
 		});
 
-		assert.exists(getAllByTestId("music-audio"));
+		assert.exists(getAllByTestId("waveform-music"));
 	});
 });

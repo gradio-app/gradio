@@ -16,6 +16,7 @@ from collections import defaultdict
 from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, Sequence, cast
+from urllib.parse import urlparse, urlunparse
 
 import anyio
 import requests
@@ -35,9 +36,14 @@ from gradio import (
     utils,
     wasm_utils,
 )
+from gradio.blocks_events import BlocksEvents, BlocksMeta
 from gradio.context import Context
 from gradio.data_classes import FileData
-from gradio.events import EventData, EventListener, EventListenerMethod
+from gradio.events import (
+    EventData,
+    EventListener,
+    EventListenerMethod,
+)
 from gradio.exceptions import (
     DuplicateBlockError,
     InvalidApiNameError,
@@ -76,7 +82,6 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
 
     from gradio.components.base import Component
-    from gradio.events import Dependency
 
 BUILT_IN_THEMES: dict[str, Theme] = {
     t.name: t
@@ -423,7 +428,7 @@ def convert_component_dict_to_list(
 
 
 @document("launch", "queue", "integrate", "load")
-class Blocks(BlockContext):
+class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     """
     Blocks is Gradio's low-level API that allows you to create more custom web
     applications and demos than Interfaces (yet still entirely in Python).
@@ -1567,73 +1572,6 @@ Received outputs:
         self.progress_tracking = any(block_fn.tracks_progress for block_fn in self.fns)
         self.exited = True
 
-    def load(
-        self: Blocks | None = None,
-        fn: Callable | None = None,
-        inputs: Component | list[Component] | None = None,
-        outputs: Component | list[Component] | None = None,
-        api_name: str | None | Literal[False] = None,
-        scroll_to_output: bool = False,
-        show_progress: Literal["full", "hidden", "minimal"] | None = "full",
-        queue=None,
-        batch: bool = False,
-        max_batch_size: int = 4,
-        preprocess: bool = True,
-        postprocess: bool = True,
-        every: float | None = None,
-        _js: str | None = None,
-    ) -> Dependency:
-        """
-        Adds an event that runs as soon as the demo loads in the browser. Example usage below.
-        Parameters:
-            fn: The function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
-            inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
-            outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
-            api_name: Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.
-            scroll_to_output: If True, will scroll to output component on completion
-            show_progress: If True, will show progress animation while pending
-            queue: If True, will place the request on the queue, if the queue exists
-            batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
-            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
-            preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
-            postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
-            every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
-        Example:
-            import gradio as gr
-            import datetime
-            with gr.Blocks() as demo:
-                def get_time():
-                    return datetime.datetime.now().time()
-                dt = gr.Textbox(label="Current time")
-                demo.load(get_time, inputs=None, outputs=dt)
-            demo.launch()
-        """
-        from gradio.events import Dependency, EventListenerMethod
-
-        if Context.root_block is None:
-            raise AttributeError(
-                "Cannot call load() outside of a gradio.Blocks context."
-            )
-
-        dep, dep_index = Context.root_block.set_event_trigger(
-            targets=[EventListenerMethod(self, "load")],
-            fn=fn,
-            inputs=inputs,
-            outputs=outputs,
-            api_name=api_name,
-            preprocess=preprocess,
-            postprocess=postprocess,
-            scroll_to_output=scroll_to_output,
-            show_progress=show_progress,
-            js=_js,
-            queue=queue,
-            batch=batch,
-            max_batch_size=max_batch_size,
-            every=every,
-            no_target=True,
-        )
-        return Dependency(None, dep, dep_index, fn)
-
     def clear(self):
         """Resets the layout of the Blocks object."""
         self.blocks = {}
@@ -1725,7 +1663,7 @@ Received outputs:
         show_error: bool = False,
         server_name: str | None = None,
         server_port: int | None = None,
-        show_tips: bool = False,
+        *,
         height: int = 500,
         width: int | str = "100%",
         favicon_path: str | None = None,
@@ -1738,9 +1676,11 @@ Received outputs:
         allowed_paths: list[str] | None = None,
         blocked_paths: list[str] | None = None,
         root_path: str | None = None,
-        _frontend: bool = True,
         app_kwargs: dict[str, Any] | None = None,
         state_session_capacity: int = 10000,
+        share_server_address: str | None = None,
+        share_server_protocol: Literal["http", "https"] | None = None,
+        _frontend: bool = True,
     ) -> tuple[FastAPI, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -1757,7 +1697,6 @@ Received outputs:
             show_error: If True, any errors in the interface will be displayed in an alert modal and printed in the browser console log
             server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT. If None, will search for an available port starting at 7860.
             server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME. If None, will use "127.0.0.1".
-            show_tips: if True, will occasionally show tips about new Gradio features
             max_threads: the maximum number of total threads that the Gradio app can generate in parallel. The default is inherited from the starlette library (currently 40). Applies whether the queue is enabled or not. But if queuing is enabled, this parameter is increaseed to be at least the concurrency_count of the queue.
             width: The width in pixels of the iframe element containing the interface (used if inline=True)
             height: The height in pixels of the iframe element containing the interface (used if inline=True)
@@ -1773,6 +1712,8 @@ Received outputs:
             root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". Can be set by environment variable GRADIO_ROOT_PATH. Defaults to "".
             app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
             state_session_capacity: The maximum number of sessions whose information to store in memory. If the number of sessions exceeds this number, the oldest sessions will be removed. Reduce capacity to reduce memory usage when using gradio.State or returning updated components from functions. Defaults to 10000.
+            share_server_address: Use this to specify a custom FRP server and port for sharing Gradio apps (only applies if share=True). If not provided, will use the default FRP server at https://gradio.live. See https://github.com/huggingface/frp for more information.
+            share_server_protocol: Use this to specify the protocol to use for the share links. Defaults to "https", unless a custom share_server_address is provided, in which case it defaults to "http". If you are using a custom share_server_address and want to use https, you must set this to "https".
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -1809,7 +1750,6 @@ Received outputs:
         else:
             self.auth = auth
         self.auth_message = auth_message
-        self.show_tips = show_tips
         self.show_error = show_error
         self.height = height
         self.width = width
@@ -1893,6 +1833,10 @@ Received outputs:
             self.is_running = True
             self.is_colab = utils.colab_check()
             self.is_kaggle = utils.kaggle_check()
+            self.share_server_address = share_server_address
+            self.share_server_protocol = share_server_protocol or (
+                "http" if share_server_address is not None else "https"
+            )
 
             self.protocol = (
                 "https"
@@ -1988,8 +1932,15 @@ Received outputs:
         if self.share:
             try:
                 if self.share_url is None:
-                    self.share_url = networking.setup_tunnel(
-                        self.server_name, self.server_port, self.share_token
+                    share_url = networking.setup_tunnel(
+                        local_host=self.server_name,
+                        local_port=self.server_port,
+                        share_token=self.share_token,
+                        share_server_address=self.share_server_address,
+                    )
+                    parsed_url = urlparse(share_url)
+                    self.share_url = urlunparse(
+                        (self.share_server_protocol,) + parsed_url[1:]
                     )
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
                 if not (quiet):
@@ -2084,15 +2035,12 @@ Received outputs:
                 "is_sharing_on": self.share,
                 "share_url": self.share_url,
                 "enable_queue": self.enable_queue,
-                "show_tips": self.show_tips,
                 "server_name": server_name,
                 "server_port": server_port,
                 "is_space": self.space_id is not None,
                 "mode": self.mode,
             }
             analytics.launched_analytics(self, data)
-
-        utils.show_tip(self)
 
         # Block main thread if debug==True
         if debug or int(os.getenv("GRADIO_DEBUG", 0)) == 1 and not wasm_utils.IS_WASM:

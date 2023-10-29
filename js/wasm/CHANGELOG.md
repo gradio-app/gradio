@@ -1,5 +1,15 @@
 # @gradio/wasm
 
+## 0.2.0-beta.2
+
+### Features
+
+- [#6036](https://github.com/gradio-app/gradio/pull/6036) [`f2cd6cb7f`](https://github.com/gradio-app/gradio/commit/f2cd6cb7f4c118495fc4f4802363c051958bc940) - lite: install typing-extensions to avoid capping fastapi versions.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
+### Fixes
+
+- [#6076](https://github.com/gradio-app/gradio/pull/6076) [`f3f98f923`](https://github.com/gradio-app/gradio/commit/f3f98f923c9db506284b8440e18a3ac7ddd8398b) - Lite error handler.  Thanks [@whitphx](https://github.com/whitphx)!
+
 ## 0.2.0-beta.1
 
 ### Features
