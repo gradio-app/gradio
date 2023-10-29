@@ -252,7 +252,6 @@ export function api_factory(
 				submit,
 				view_api,
 				component_server
-				// duplicate
 			};
 
 			const transform_files = normalise_files ?? true;
@@ -857,13 +856,6 @@ export function api_factory(
 				if (type === "Gallery") {
 					update_object(data, file_url, path);
 				} else if (file_url) {
-					// const o = {
-					// 	is_file: true,
-					// 	name: `${file_url}`,
-					// 	data: null
-					// 	// orig_name: "file.csv"
-					// };
-
 					const file = new FileData({ path: file_url, orig_name: name });
 					update_object(data, file, path);
 				}

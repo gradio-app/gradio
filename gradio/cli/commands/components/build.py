@@ -56,7 +56,6 @@ def _build(
                 return
             else:
                 live.update(":white_check_mark: Build succeeded!")
-                live.update(pipe.stdout)
 
         cmds = [sys.executable, "-m", "build", str(name)]
         live.update(f":construction_worker: Building... [grey37]({' '.join(cmds)})[/]")

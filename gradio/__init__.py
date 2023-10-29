@@ -2,6 +2,7 @@ import json
 
 import gradio._simple_templates
 import gradio.components as components
+import gradio.image_utils
 import gradio.layouts as layouts
 import gradio.processing_utils
 import gradio.templates

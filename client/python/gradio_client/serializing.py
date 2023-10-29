@@ -282,7 +282,7 @@ class FileSerializable(Serializable):
             filename = str(Path(load_dir) / x)
             size = Path(filename).stat().st_size
         return {
-            "path": filename or None,
+            "name": filename or None,
             "data": None
             if allow_links
             else utils.encode_url_or_file_to_base64(filename),
@@ -318,12 +318,12 @@ class FileSerializable(Serializable):
                 else:
                     file_name = utils.create_tmp_copy_of_file(filepath, dir=save_dir)
             elif x.get("is_stream"):
-                assert x["path"] and root_url and save_dir
-                if not self.stream or self.stream_name != x["path"]:
+                assert x["name"] and root_url and save_dir
+                if not self.stream or self.stream_name != x["name"]:
                     self.stream = self._setup_stream(
-                        root_url + "stream/" + x["path"], hf_token=hf_token
+                        root_url + "stream/" + x["name"], hf_token=hf_token
                     )
-                    self.stream_name = x["path"]
+                    self.stream_name = x["name"]
                 chunk = next(self.stream)
                 path = Path(save_dir or tempfile.gettempdir()) / secrets.token_hex(20)
                 path.mkdir(parents=True, exist_ok=True)
