@@ -6,6 +6,7 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { type FileData, normalise_file } from "@gradio/client";
+	import { resolve_wasm_src } from "@gradio/wasm/svelte";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -100,25 +101,29 @@
 			<Empty size="large" unpadded_box={true}><Image /></Empty>
 		{:else}
 			<div class="image-container">
-				<img
-					class="base-image"
-					class:fit-height={height}
-					src={_value ? _value.image.url : null}
-					alt="the base file that is annotated"
-				/>
-				{#each _value ? _value?.annotations : [] as ann, i}
+				{#await _value ? resolve_wasm_src(_value.image.url) : null then resolved_src}
 					<img
-						alt="segmentation mask identifying {label} within the uploaded file"
-						class="mask fit-height"
-						class:active={active == ann.label}
-						class:inactive={active != ann.label && active != null}
-						src={ann.image.url}
-						style={color_map && ann.label in color_map
-							? null
-							: `filter: hue-rotate(${Math.round(
-									(i * 360) / _value?.annotations.length
-							  )}deg);`}
+						class="base-image"
+						class:fit-height={height}
+						src={resolved_src}
+						alt="the base file that is annotated"
 					/>
+				{/await}
+				{#each _value ? _value?.annotations : [] as ann, i}
+					{#await resolve_wasm_src(ann.image.url) then resolved_src}
+						<img
+							alt="segmentation mask identifying {label} within the uploaded file"
+							class="mask fit-height"
+							class:active={active == ann.label}
+							class:inactive={active != ann.label && active != null}
+							src={resolved_src}
+							style={color_map && ann.label in color_map
+								? null
+								: `filter: hue-rotate(${Math.round(
+										(i * 360) / _value?.annotations.length
+								)}deg);`}
+						/>
+					{/await}
 				{/each}
 			</div>
 			{#if show_legend && _value}
