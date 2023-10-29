@@ -111,11 +111,12 @@ class Image(StreamingInput, Component):
         self.width = width
         self.image_mode = image_mode
         valid_sources = ["upload", "webcam", "clipboard"]
-
+        if isinstance(sources, str):
+            sources = [sources]
         for source in sources:
             if source not in valid_sources:
                 raise ValueError(
-                    f"Invalid value for parameter `source`: {source}. Please choose any of: {valid_sources}"
+                    f"`sources` must a list consisting of elements in {valid_sources}"
                 )
         self.sources = sources
 
