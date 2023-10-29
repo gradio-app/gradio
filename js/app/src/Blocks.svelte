@@ -572,7 +572,7 @@
 
 		// handle load triggers
 		dependencies.forEach((dep, i) => {
-			if (dep.targets.length === 1 && dep.targets[0][1] === "load") {
+			if (dep.targets[0][1] === "load") {
 				trigger_api_call(i);
 			}
 		});

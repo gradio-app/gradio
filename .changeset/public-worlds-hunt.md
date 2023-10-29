@@ -2,7 +2,6 @@
 "@gradio/app": patch
 "@gradio/audio": patch
 "@gradio/button": patch
-"@gradio/cdn-test": patch
 "@gradio/chatbot": patch
 "@gradio/client": patch
 "@gradio/column": patch
@@ -13,7 +12,6 @@
 "@gradio/image": patch
 "@gradio/markdown": patch
 "@gradio/preview": patch
-"@gradio/spaces-test": patch
 "@gradio/storybook": patch
 "@gradio/tabs": patch
 "@gradio/textbox": patch
@@ -23,8 +21,6 @@
 "@gradio/utils": patch
 "@gradio/video": patch
 "gradio": patch
-"newnewtext": patch
-"newtext": patch
 "website": patch
 ---
 

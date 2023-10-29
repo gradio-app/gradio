@@ -1,3 +1,4 @@
+import type { ActionReturn } from "svelte/action";
 export interface SelectData {
 	index: number | [number, number];
 	value: any;
@@ -83,7 +84,7 @@ function dataURLtoBlob(dataurl: string): Blob {
 	return new Blob([u8arr], { type: mime });
 }
 
-export function copy(node: HTMLDivElement): any {
+export function copy(node: HTMLDivElement): ActionReturn {
 	node.addEventListener("click", handle_copy);
 
 	async function handle_copy(event: MouseEvent): Promise<void> {

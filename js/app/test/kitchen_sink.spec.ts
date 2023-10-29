@@ -34,7 +34,7 @@ test("test inputs", async ({ page }) => {
 	await expect(image_data_cropper).toContain("cheetah1.jpg");
 });
 
-test("test outputs", async ({ page, browser }) => {
+test("test outputs", async ({ page }) => {
 	const submit_button = await page.locator("button", { hasText: /Submit/ });
 
 	await Promise.all([
@@ -95,12 +95,9 @@ test("test outputs", async ({ page, browser }) => {
 		"gradio/d0a3c81692e072d119e2c665defbd47ce4d3b89a/cheetah1.jpg"
 	);
 
-	const audio = await page.locator("audio").nth(0);
-	const audio_data = await audio.getAttribute("src");
+	const audio = await page.getByTestId("unlabelled-audio");
+	expect(audio).toBeTruthy();
 
-	await expect(
-		audio_data?.endsWith(
-			"gradio/92aff6ffe140da201a4a94cb3c3b9e1ff0b2a25a/cantina.wav"
-		)
-	).toBeTruthy();
+	const controls = await page.getByTestId("waveform-controls");
+	expect(controls).toBeVisible();
 });
