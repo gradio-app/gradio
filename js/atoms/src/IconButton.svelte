@@ -21,7 +21,7 @@
 		justify-content: center;
 		align-items: center;
 		gap: 1px;
-		z-index: var(--layer-1);
+		z-index: var(--layer-2);
 
 		border-radius: var(--radius-sm);
 		color: var(--block-label-text-color);

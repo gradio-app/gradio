@@ -29,21 +29,18 @@
 	export let selectable = false;
 	export let root: string;
 	export let i18n: I18nFormatter;
-	let _value: null | FileData = null;
+
+	$: console.log({ selectable });
 
 	let upload: Upload;
 	export let active_tool: "webcam" | null = null;
+
 	function handle_upload({ detail }: CustomEvent<FileData>): void {
 		value = normalise_file(detail, root, null);
 	}
 
-	function handle_clear({ detail }: CustomEvent<null>): void {
-		value = null;
-		dispatch("clear");
-	}
-
 	async function handle_save(img_blob: Blob | any): Promise<void> {
-		// console.log(img);
+		pending = true;
 		const f = await upload.load_files([new File([img_blob], `webcam.png`)]);
 
 		value = f?.[0] || null;
@@ -52,6 +49,7 @@
 		await tick();
 
 		dispatch(streaming ? "stream" : "change");
+		pending = false;
 	}
 
 	const dispatch = createEventDispatcher<{
@@ -155,8 +153,7 @@
 		</Upload>
 		{#if active_tool === "webcam"}
 			<Webcam
-				on:capture={handle_save}
-				on:clear={handle_clear}
+				on:capture={(e) => handle_save(e.detail)}
 				on:stream={(e) => handle_save(e.detail)}
 				on:error
 				on:drag
@@ -169,7 +166,13 @@
 			/>
 		{:else if value !== null && !streaming}
 			<!-- svelte-ignore a11y-click-events-have-key-events-->
-			<img src={value.url} alt={value.alt_text} on:click={handle_click} />
+			<!-- svelte-ignore a11y-no-noninteractive-element-interactions-->
+			<img
+				src={value.url}
+				alt={value.alt_text}
+				on:click={handle_click}
+				class:selectable
+			/>
 		{/if}
 	</div>
 	{#if sources.length > 1 || sources.includes("clipboard")}
@@ -208,5 +211,9 @@
 		justify-content: center;
 		align-items: center;
 		max-height: 100%;
+	}
+
+	.selectable {
+		cursor: crosshair;
 	}
 </style>

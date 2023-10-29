@@ -11,7 +11,6 @@
 		max-height: 100%;
 		justify-content: center;
 		gap: var(--spacing-sm);
-		z-index: var(--layer-5);
 		height: auto;
 		align-items: center;
 		box-shadow: var(--shadow-drop);
