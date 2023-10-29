@@ -31,7 +31,7 @@ def set_cancel_events(
 
         if Context.root_block is None:
             raise AttributeError(
-                "Cannot cancel {self.event_name} outside of a gradio.Blocks context."
+                f"Cannot cancel {self.event_name} outside of a gradio.Blocks context."
             )
 
         Context.root_block.set_event_trigger(
@@ -180,7 +180,7 @@ class EventListenerMethod:
 
         if Context.root_block is None:
             raise AttributeError(
-                "Cannot call {self.event_name} outside of a gradio.Blocks context."
+                f"Cannot call {self.event_name} outside of a gradio.Blocks context."
             )
 
         dep, dep_index = Context.root_block.set_event_trigger(
