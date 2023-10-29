@@ -534,7 +534,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.share_url = None
         self.width = None
         self.height = None
-        self.api_open = False
+        self.api_open = True if utils.get_space() is None else False
 
         self.space_id = utils.get_space()
         self.favicon_path = None
@@ -1587,7 +1587,7 @@ Received outputs:
         self,
         concurrency_count: int | None = None,
         status_update_rate: float | Literal["auto"] = "auto",
-        api_open: bool = False,
+        api_open: bool | None = None,
         max_size: int | None = None,
     ):
         """
@@ -1610,7 +1610,8 @@ Received outputs:
         """
         if concurrency_count is None:
             concurrency_count = 1 if utils.get_space() else 40
-        self.api_open = api_open
+        if api_open is not None:
+            self.api_open = api_open
         if utils.is_zero_gpu_space():
             concurrency_count = self.max_threads
             max_size = 1 if max_size is None else max_size
