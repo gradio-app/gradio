@@ -829,6 +829,7 @@ class Endpoint:
         # Only a real API endpoint if backend_fn is True (so not just a frontend function), serializers are valid,
         # and api_name is not False (meaning that the developer has explicitly disabled the API endpoint)
         self.is_valid = self.dependency["backend_fn"] and self.api_name is not False
+        print(self.is_valid)
 
     def _get_component_type(self, component_id: int):
         component = next(
@@ -1112,6 +1113,7 @@ class EndpointV3Compatibility:
             self.is_valid = self.dependency["backend_fn"] and self.api_name is not False
         except SerializationSetupError:
             self.is_valid = False
+        print("v3", self.is_valid)
 
     def __repr__(self):
         return f"Endpoint src: {self.client.src}, api_name: {self.api_name}, fn_index: {self.fn_index}"

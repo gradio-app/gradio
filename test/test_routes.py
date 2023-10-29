@@ -169,7 +169,7 @@ class TestRoutes:
             btn = gr.Button()
             btn.click(batch_fn, inputs=text, outputs=text, batch=True, api_name="pred")
 
-        demo.queue()
+        demo.queue(api_open=True)
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
         response = client.post("/api/pred/", json={"data": ["test"]})
@@ -527,7 +527,7 @@ class TestPassingRequest:
 
         app, _, _ = (
             gr.ChatInterface(identity)
-            .queue()
+            .queue(api_open=True)
             .launch(
                 prevent_thread_lock=True,
             )
