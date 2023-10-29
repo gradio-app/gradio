@@ -208,7 +208,7 @@ class EventListener(str):
             cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
             every: float | None = None,
             trigger_mode: Literal["once", "multiple", "always_last"] | None = None,
-            _js: str | None = None,
+            js: str | None = None,
         ) -> Dependency:
             """
             Parameters:
@@ -247,7 +247,7 @@ class EventListener(str):
                         cancels,
                         every,
                         trigger_mode,
-                        _js,
+                        js,
                     )
 
                     @wraps(func)
@@ -302,7 +302,7 @@ class EventListener(str):
                 if show_progress is not None
                 else _show_progress,
                 api_name=api_name,
-                js=_js,
+                js=js,
                 queue=queue,
                 batch=batch,
                 max_batch_size=max_batch_size,
@@ -341,7 +341,7 @@ def on(
     postprocess: bool = True,
     cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
     every: float | None = None,
-    _js: str | None = None,
+    js: str | None = None,
 ) -> Dependency:
     """
     Parameters:
@@ -385,7 +385,7 @@ def on(
                 postprocess=postprocess,
                 cancels=cancels,
                 every=every,
-                _js=_js,
+                js=js,
             )
 
             @wraps(func)
@@ -412,7 +412,7 @@ def on(
         scroll_to_output=scroll_to_output,
         show_progress=show_progress,
         api_name=api_name,
-        js=_js,
+        js=js,
         queue=queue,
         batch=batch,
         max_batch_size=max_batch_size,

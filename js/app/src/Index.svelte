@@ -10,6 +10,8 @@
 		auth_message: string;
 		components: ComponentMeta[];
 		css: string | null;
+		js: string | null;
+		head: string | null;
 		dependencies: Dependency[];
 		dev_mode: boolean;
 		enable_queue: boolean;
@@ -163,6 +165,11 @@
 			})
 		);
 	}
+	async function add_custom_html_head(
+		head_string: string | null
+	): Promise<void> {
+		if (head_string) { document.head.append(head_string) };
+	}
 
 	function handle_darkmode(target: HTMLDivElement): "light" | "dark" {
 		let url = new URL(window.location.toString());
@@ -253,6 +260,7 @@
 		};
 
 		await mount_custom_css(wrapper, config.css);
+		await add_custom_html_head(config.head);
 		css_ready = true;
 		window.__is_colab__ = config.is_colab;
 

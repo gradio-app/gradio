@@ -39,6 +39,8 @@
 	export let space_id: string | null;
 	export let version: string;
 	export let api_url: string;
+	export let js: string | null;
+	export let head: string | null;
 
 	let loading_status = create_loading_status_store();
 
@@ -549,8 +551,12 @@
 		},
 		{} as Record<number, Record<string, number[]>>
 	);
-
 	async function handle_mount(): Promise<void> {
+		let blocks_frontend_fn = new AsyncFunction(
+					`let result = await (${js});
+					return (!Array.isArray(result)) ? [result] : result;`
+				);
+		blocks_frontend_fn();
 		await tick();
 
 		var a = target.getElementsByTagName("a");

@@ -465,6 +465,8 @@ class Blocks(BlockContext):
         mode: str = "blocks",
         title: str = "Gradio",
         css: str | None = None,
+        js: str | None = None,
+        head: str | None = None,
         **kwargs,
     ):
         """
@@ -473,7 +475,9 @@ class Blocks(BlockContext):
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
             mode: a human-friendly name for the kind of Blocks or Interface being created.
             title: The tab title to display when this is opened in a browser window.
-            css: custom css or path to custom css file to apply to entire Blocks
+            css: custom css or path to custom css file to apply to entire Blocks.
+            js: custom js or path to custom js file to run when demo is first loaded.
+            head: custom html to insert into the head of the page.
         """
         self.limiter = None
         if theme is None:
@@ -499,11 +503,17 @@ class Blocks(BlockContext):
         self.max_threads = 40
         self.pending_streams = defaultdict(dict)
         self.show_error = True
+        self.head = head
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
                 self.css = css_file.read()
         else:
             self.css = css
+        if js is not None and os.path.exists(js):
+            with open(js) as js_file:
+                self.js = js_file.read()
+        else:
+            self.js = js
 
         # For analytics_enabled and allow_flagging: (1) first check for
         # parameter, (2) check for env variable, (3) default to True/"manual"
@@ -1502,6 +1512,8 @@ Received outputs:
             "analytics_enabled": self.analytics_enabled,
             "components": [],
             "css": self.css,
+            "js": self.js,
+            "head": self.head,
             "title": self.title or "Gradio",
             "space_id": self.space_id,
             "enable_queue": getattr(self, "enable_queue", False),  # launch attributes
@@ -1581,7 +1593,6 @@ Received outputs:
         preprocess: bool = True,
         postprocess: bool = True,
         every: float | None = None,
-        _js: str | None = None,
     ) -> Dependency:
         """
         Adds an event that runs as soon as the demo loads in the browser. Example usage below.
@@ -1614,7 +1625,6 @@ Received outputs:
             raise AttributeError(
                 "Cannot call load() outside of a gradio.Blocks context."
             )
-
         dep, dep_index = Context.root_block.set_event_trigger(
             targets=[EventListenerMethod(self, "load")],
             fn=fn,
@@ -1625,7 +1635,6 @@ Received outputs:
             postprocess=postprocess,
             scroll_to_output=scroll_to_output,
             show_progress=show_progress,
-            js=_js,
             queue=queue,
             batch=batch,
             max_batch_size=max_batch_size,
