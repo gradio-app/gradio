@@ -28,9 +28,7 @@ def set_cancel_events(
         cancel_fn, fn_indices_to_cancel = get_cancel_function(cancels)
 
         if Context.root_block is None:
-            raise AttributeError(
-                "Cannot cancel {self.event_name} outside of a gradio.Blocks context."
-            )
+            raise AttributeError("Cannot cancel outside of a gradio.Blocks context.")
 
         Context.root_block.set_event_trigger(
             triggers,
