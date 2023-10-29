@@ -121,7 +121,7 @@ class Video(Component):
         if sources is None:
             sources = valid_sources
         elif isinstance(sources, str) and sources in valid_sources:
-              sources = [sources]
+            sources = [sources]
         elif isinstance(sources, list):
             pass
         else:
@@ -133,7 +133,7 @@ class Video(Component):
         self.width = width
         self.mirror_webcam = mirror_webcam
         self.include_audio = (
-            include_audio if include_audio is not None else "webcam" not in sources
+            include_audio if include_audio is not None else "upload" in sources
         )
         self.show_share_button = (
             (utils.get_space() is not None)
@@ -173,14 +173,17 @@ class Video(Component):
         file_name = Path(data.video.name)
         uploaded_format = file_name.suffix.replace(".", "")
         needs_formatting = self.format is not None and uploaded_format != self.format
-        flip = "webcam" in self.sources and self.mirror_webcam
-
+        flip = self.sources == ["webcam"] and self.mirror_webcam
         duration = processing_utils.get_video_length(file_name)
 
         if self.min_length is not None and duration < self.min_length:
-            raise ValueError(f"Video is too short, and must be at least {self.min_length} seconds")
+            raise ValueError(
+                f"Video is too short, and must be at least {self.min_length} seconds"
+            )
         if self.max_length is not None and duration > self.max_length:
-            raise ValueError(f"Video is too long, and must be at most {self.max_length} seconds")
+            raise ValueError(
+                f"Video is too long, and must be at most {self.max_length} seconds"
+            )
 
         if needs_formatting or flip:
             format = f".{self.format if needs_formatting else uploaded_format}"
@@ -261,7 +264,7 @@ class Video(Component):
                 self._format_video(video),
                 self._format_subtitle(subtitle),
             )
-            
+
         else:
             raise Exception(f"Cannot process type as video: {type(y)}")
         assert processed_files[0]
@@ -375,4 +378,3 @@ class Video(Component):
 
     def example_inputs(self) -> Any:
         return "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"
-
