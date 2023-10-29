@@ -26,21 +26,21 @@ If you want to export any additional modules, remember to modify the `package.js
 
 Your component should expose the following props that will be passed down from the parent Gradio application.
 
-```js
-	import type { LoadingStatus } from "@gradio/statustracker";
-    import type { Gradio } from "@gradio/utils";
+```
+import type { LoadingStatus } from "@gradio/statustracker";
+import type { Gradio } from "@gradio/utils";
 
-	export let gradio: Gradio<{
-		event_1: never;
-		event_2: never;
-	}>;
+export let gradio: Gradio<{
+    event_1: never;
+    event_2: never;
+}>;
 
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let loading_status: LoadingStatus | undefined = undefined;
-    export let mode: "static" | "interactive";
+export let elem_id = "";
+export let elem_classes: string[] = [];
+export let scale: number | null = null;
+export let min_width: number | undefined = undefined;
+export let loading_status: LoadingStatus | undefined = undefined;
+export let mode: "static" | "interactive";
 ```
 
 * `elem_id` and `elem_classes` allow Gradio app developers to target your component with custom css and javascript from the python `Blocks` class.
@@ -55,7 +55,7 @@ Your component should expose the following props that will be passed down from t
 
 A minimal `Index.svelte` file would look like:
 
-```javascript
+```
 <script lang="ts">
 	import type { LoadingStatus } from "@gradio/statustracker";
     import { Block } from "@gradio/atoms";
@@ -100,7 +100,7 @@ A minimal `Index.svelte` file would look like:
 
 The `Example.svelte` file should expose the following props:
 
-```js
+```
     export let value: string;
     export let type: "gallery" | "table";
     export let selected = false;
@@ -114,7 +114,7 @@ The `Example.svelte` file should expose the following props:
 
 This is the `Example.svelte` file for the code `Radio` component:
 
-```javascript
+```
 <script lang="ts">
 	export let value: string;
 	export let type: "gallery" | "table";
@@ -149,7 +149,7 @@ The `upload_files` function will upload an array of `FileData` values to the ser
 Here's an example of loading files from an `<input>` element when its value changes.
 
 
-```javascript
+```
 <script lang="ts">
 
     import type { FileData } from "@gradio/upload";
@@ -193,7 +193,7 @@ This is passed down by the parent gradio app and it's the url that the files wil
 
 For WASM support, you should get the upload function from the `Context` and pass that as the third parameter of the `upload` function.
 
-```javascript
+```
 <script lang="ts">
     import { getContext } from "svelte";
     const upload_fn = getContext<typeof upload_files>("upload_files");
