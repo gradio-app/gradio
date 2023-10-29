@@ -145,9 +145,9 @@ class Chatbot(Component):
             return None
         elif isinstance(chat_message, dict):
             if chat_message.get("alt_text"):
-                return (chat_message["file"]["name"], chat_message["alt_text"])
+                return (chat_message["file"]["path"], chat_message["alt_text"])
             else:
-                return (chat_message["file"]["name"],)
+                return (chat_message["file"]["path"],)
         else:  # string
             return chat_message
 

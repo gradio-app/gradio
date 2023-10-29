@@ -115,7 +115,10 @@ export async function upload(
 	);
 }
 
-export async function prepare_files(files: File[]): Promise<FileData[]> {
+export async function prepare_files(
+	files: File[],
+	is_stream?: boolean
+): Promise<FileData[]> {
 	return files.map(
 		(f, i) =>
 			new FileData({
@@ -123,7 +126,8 @@ export async function prepare_files(files: File[]): Promise<FileData[]> {
 				orig_name: f.name,
 				blob: f,
 				size: f.size,
-				mime_type: f.type
+				mime_type: f.type,
+				is_stream
 			})
 	);
 }

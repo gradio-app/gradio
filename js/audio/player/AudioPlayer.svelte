@@ -43,7 +43,7 @@
 	const create_waveform = (): void => {
 		waveform = WaveSurfer.create({
 			container: container,
-			url: value?.data,
+			url: value?.url,
 			...waveform_settings
 		});
 	};
@@ -102,14 +102,14 @@
 		dispatch("edit");
 	};
 
-	async function load_audio(data: any): Promise<void> {
+	async function load_audio(data: string): Promise<void> {
 		await resolve_wasm_src(data).then((resolved_src) => {
 			if (!resolved_src) return;
 			return waveform?.load(resolved_src);
 		});
 	}
 
-	$: value && load_audio(value.data);
+	$: value?.url && load_audio(value.url);
 
 	onMount(() => {
 		window.addEventListener("keydown", (e) => {
