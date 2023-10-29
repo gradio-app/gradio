@@ -139,12 +139,17 @@ This is the `Example.svelte` file for the code `Radio` component:
 ## Handling Files
 
 If your component deals with files, these files **should** be uploaded to the backend server. 
-The `@gradio/client` npm package provides the `upload_files` and `prepare_files` utility functions to help you do this.
+The `@gradio/upload` npm package provides the `upload_files`, `prepare_files`, and `normalise_file` utility functions to help you do this.
 
 The `prepare_files` function will convert the browser's `File` datatype to gradio's internal `FileData` type.
 You should use the `FileData` data in your component to keep track of uploaded files.
 
 The `upload_files` function will upload an array of `FileData` values to the server.
+
+The `normalise_file` function will generate the correct URL for your component to fetch the file from and set it to the `data` property of the `FileData.`
+
+>💡 Tip: Be sure you call `normalise_file` whenever your files are updated!
+
 
 Here's an example of loading files from an `<input>` element when its value changes.
 
@@ -153,12 +158,16 @@ Here's an example of loading files from an `<input>` element when its value chan
 <script lang="ts">
 
     import type { FileData } from "@gradio/upload";
-    import {upload, prepare_files} from "@gradio/upload";
+    import {upload, prepare_files, normalise_file } from "@gradio/upload";
     export let root;
+    export let value;
+    let uploaded_files;
+
+    $: value: normalise_file(uploaded_files, root)
 
     async function handle_upload(file_data: FileData[]): Promise<void> {
         await tick();
-        await upload(file_data, root);
+        uploaded_files = await upload(file_data, root);
     }
 
     async function loadFiles(files: FileList): Promise<void> {
@@ -189,7 +198,7 @@ Here's an example of loading files from an `<input>` element when its value chan
 ```
 
 The component exposes a prop named `root`. 
-This is passed down by the parent gradio app and it's the url that the files will be uploaded to.
+This is passed down by the parent gradio app and it's the base url that the files will be uploaded to and fetched from.
 
 For WASM support, you should get the upload function from the `Context` and pass that as the third parameter of the `upload` function.
 
