@@ -35,8 +35,7 @@
 
 	$: value &&
 		dispatch("change", {
-			name: name,
-			data: value?.data
+			name: name
 		});
 
 	function handle_ended(): void {

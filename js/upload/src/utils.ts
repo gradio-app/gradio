@@ -16,6 +16,12 @@ export function normalise_file(
 	file: FileData[] | FileData | null,
 	server_url: string, // root: string,
 	proxy_url: string | null // root_url: string | null
+): FileData[] | FileData | null;
+
+export function normalise_file(
+	file: FileData[] | FileData | null,
+	server_url: string, // root: string,
+	proxy_url: string | null // root_url: string | null
 ): FileData[] | FileData | null {
 	if (file == null) {
 		return null;

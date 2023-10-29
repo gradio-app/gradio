@@ -50,10 +50,10 @@
 {#if value === null}
 	<Empty unpadded_box={true} size="large"><Video /></Empty>
 {:else}
-	{#key value.data}
+	{#key value.path}
 		<Player
-			src={value.data}
-			subtitle={subtitle?.data}
+			src={value.path}
+			subtitle={subtitle?.path}
 			{autoplay}
 			on:play
 			on:pause
@@ -65,9 +65,9 @@
 	{/key}
 	<div class="icon-buttons" data-testid="download-div">
 		<a
-			href={value.data}
+			href={value.path}
 			target={window.__is_colab__ ? "_blank" : null}
-			download={value.orig_name || value.name}
+			download={value.orig_name || value.path}
 		>
 			<IconButton Icon={Download} label="Download" />
 		</a>
