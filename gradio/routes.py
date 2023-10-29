@@ -553,6 +553,7 @@ class App(FastAPI):
                 fn_index_inferred
             ):
                 raise HTTPException(
+                    detail="This API endpoint does not accept direct HTTP POST requests. Please join the queue to use this API.",
                     status_code=status.HTTP_404_NOT_FOUND,
                 )
 

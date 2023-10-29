@@ -20,6 +20,7 @@ authors = [
   { name = "Ahsen Khaliq", email = "team@gradio.app" },
   { name = "Pete Allen", email = "team@gradio.app" },
   { name = "Ömer Faruk Özdemir", email = "team@gradio.app" },
+  { name = "Freddy A Boulton", email = "team@gradio.app" },
 ]
 keywords = ["machine learning", "reproducibility", "visualization"]
 

@@ -159,7 +159,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         "audio-classification": {
             # example model: ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition
             "inputs": components.Audio(
-                source="upload", type="filepath", label="Input", render=False
+                sources=["upload"], type="filepath", label="Input", render=False
             ),
             "outputs": components.Label(label="Class", render=False),
             "preprocess": lambda i: to_binary,
@@ -170,7 +170,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         "audio-to-audio": {
             # example model: facebook/xm_transformer_sm_all-en
             "inputs": components.Audio(
-                source="upload", type="filepath", label="Input", render=False
+                sources=["upload"], type="filepath", label="Input", render=False
             ),
             "outputs": components.Audio(label="Output", render=False),
             "preprocess": to_binary,
@@ -181,7 +181,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         "automatic-speech-recognition": {
             # example model: facebook/wav2vec2-base-960h
             "inputs": components.Audio(
-                source="upload", type="filepath", label="Input", render=False
+                sources=["upload"], type="filepath", label="Input", render=False
             ),
             "outputs": components.Textbox(label="Output", render=False),
             "preprocess": to_binary,

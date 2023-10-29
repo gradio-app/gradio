@@ -11,7 +11,6 @@ import json
 import json.decoder
 import os
 import pkgutil
-import random
 import re
 import threading
 import time
@@ -291,12 +290,6 @@ def readme_to_html(article: str) -> str:
     return article
 
 
-def show_tip(interface: gradio.Blocks) -> None:
-    if interface.show_tips and random.random() < 1.5:
-        tip: str = random.choice(en["TIPS"])
-        print(f"Tip: {tip}")
-
-
 def launch_counter() -> None:
     try:
         if not os.path.exists(JSON_PATH):
@@ -530,6 +523,15 @@ def set_directory(path: Path | str):
         yield
     finally:
         os.chdir(origin)
+
+
+@contextmanager
+def no_raise_exception():
+    """Context manager that suppresses exceptions."""
+    try:
+        yield
+    except Exception:
+        pass
 
 
 def sanitize_value_for_csv(value: str | Number) -> str | Number:

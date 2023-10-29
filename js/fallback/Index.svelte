@@ -23,11 +23,13 @@
 </script>
 
 <Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
-	<StatusTracker
-		autoscroll={gradio.autoscroll}
-		i18n={gradio.i18n}
-		{...loading_status}
-	/>
+	{#if loading_status}
+		<StatusTracker
+			autoscroll={gradio.autoscroll}
+			i18n={gradio.i18n}
+			{...loading_status}
+		/>
+	{/if}
 
 	<JsonView json={value} />
 </Block>

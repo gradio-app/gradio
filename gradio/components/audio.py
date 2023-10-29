@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import Any, Callable, Literal, TypedDict
 
 import numpy as np
 import requests
@@ -18,9 +18,11 @@ from gradio.events import Events
 set_documentation_group("component")
 
 
-class AudioInputData(FileData):
-    crop_min: int = 0
-    crop_max: int = 100
+class WaveformOptions(TypedDict, total=False):
+    waveform_color: str
+    waveform_progress_color: str
+    show_controls: bool
+    skip_length: int
 
 
 @document()
@@ -47,6 +49,7 @@ class Audio(
         Events.stop,
         Events.pause,
         Events.start_recording,
+        Events.pause_recording,
         Events.stop_recording,
         Events.upload,
     ]
@@ -57,7 +60,7 @@ class Audio(
         self,
         value: str | Path | tuple[int, np.ndarray] | Callable | None = None,
         *,
-        source: Literal["upload", "microphone"] | None = None,
+        sources: list[Literal["upload", "microphone"]] | None = None,
         type: Literal["numpy", "filepath"] = "numpy",
         label: str | None = None,
         every: float | None = None,
@@ -78,11 +81,14 @@ class Audio(
         show_download_button=True,
         show_share_button: bool | None = None,
         show_edit_button: bool | None = True,
+        min_length: int | None = None,
+        max_length: int | None = None,
+        waveform_options: WaveformOptions | None = None,
     ):
         """
         Parameters:
             value: A path, URL, or [sample_rate, numpy array] tuple (sample rate in Hz, audio data as a float or int numpy array) for the default value that Audio component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            source: Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
+            sources: A list of sources permitted for audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input. If None, defaults to ["upload", "microphone"], or ["microphone"] if `streaming` is True.
             type: The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
@@ -102,14 +108,24 @@ class Audio(
             show_download_button: If True, will show a download button in the corner of the component for saving audio. If False, icon does not appear.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             show_edit_button: If True, will show an edit icon in the corner of the component that allows user to edit the audio. If False, icon does not appear. Default is True.
+            min_length: The minimum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
+            max_length: The maximum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
+            waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), show_controls (bool), skip_length (int). Default is None, which uses the default values for these options.
         """
-        valid_sources = ["upload", "microphone"]
-        source = source if source else ("microphone" if streaming else "upload")
-        if source not in valid_sources:
+        valid_sources: list[Literal["upload", "microphone"]] = ["microphone", "upload"]
+
+        if sources is None:
+            sources = ["microphone"] if streaming else valid_sources
+        elif isinstance(sources, str) and sources in valid_sources:
+            sources = [sources]
+        elif isinstance(sources, list):
+            pass
+        else:
             raise ValueError(
-                f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
+                f"`sources` must a list consisting of elements in {valid_sources}"
             )
-        self.source = source
+
+        self.sources = sources
         valid_types = ["numpy", "filepath"]
         if type not in valid_types:
             raise ValueError(
@@ -117,9 +133,9 @@ class Audio(
             )
         self.type = type
         self.streaming = streaming
-        if streaming and source == "upload":
+        if self.streaming and "microphone" not in self.sources:
             raise ValueError(
-                "Audio streaming only available if source is 'microphone'."
+                "Audio streaming only available if sources includes 'microphone'."
             )
         self.format = format
         self.autoplay = autoplay
@@ -129,7 +145,10 @@ class Audio(
             if show_share_button is None
             else show_share_button
         )
+        self.waveform_options = waveform_options
         self.show_edit_button = show_edit_button
+        self.min_length = min_length
+        self.max_length = max_length
         super().__init__(
             label=label,
             every=every,
@@ -161,21 +180,28 @@ class Audio(
         """
         if x is None:
             return x
-        payload: AudioInputData = AudioInputData(**x)
+
+        payload: FileData = FileData(**x)
         assert payload.path
 
         # Need a unique name for the file to avoid re-using the same audio file if
-        # a user submits the same audio file twice, but with different crop min/max.
+        # a user submits the same audio file twice
         temp_file_path = Path(payload.path)
         output_file_name = str(
-            temp_file_path.with_name(
-                f"{temp_file_path.stem}-{payload.crop_min}-{payload.crop_max}{temp_file_path.suffix}"
-            )
+            temp_file_path.with_name(f"{temp_file_path.stem}{temp_file_path.suffix}")
         )
 
-        sample_rate, data = processing_utils.audio_from_file(
-            temp_file_path, crop_min=payload.crop_min, crop_max=payload.crop_max
-        )
+        sample_rate, data = processing_utils.audio_from_file(temp_file_path)
+
+        duration = len(data) / sample_rate
+        if self.min_length is not None and duration < self.min_length:
+            raise ValueError(
+                f"Audio is too short, must be at least {self.min_length} seconds"
+            )
+        if self.max_length is not None and duration > self.max_length:
+            raise ValueError(
+                f"Audio is too long, must be at most {self.max_length} seconds"
+            )
 
         if self.type == "numpy":
             return sample_rate, data
@@ -257,7 +283,11 @@ class Audio(
         return Path(input_data).name if input_data else ""
 
     def check_streamable(self):
-        if self.source != "microphone" and self.streaming:
+        if (
+            self.sources is not None
+            and "microphone" not in self.sources
+            and self.streaming
+        ):
             raise ValueError(
-                "Audio streaming only available if source is 'microphone'."
+                "Audio streaming only available if source includes 'microphone'."
             )
