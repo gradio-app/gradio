@@ -2009,12 +2009,7 @@ Received outputs:
                 "is_google_colab": self.is_colab,
                 "is_sharing_on": self.share,
                 "share_url": self.share_url,
-<<<<<<< HEAD
                 "enable_queue": True,
-                "show_tips": self.show_tips,
-=======
-                "enable_queue": self.enable_queue,
->>>>>>> origin/v4
                 "server_name": server_name,
                 "server_port": server_port,
                 "is_space": self.space_id is not None,
