@@ -30,7 +30,7 @@
 	<p>Upload Video Here</p>
 </Video>
 
-<Player
+<BasePlayer
 	src={value.data}
 	{autoplay}
 	on:play

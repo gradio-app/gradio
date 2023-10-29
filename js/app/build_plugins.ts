@@ -234,6 +234,7 @@ const ignore_list = [
 	"simpledropdown",
 	"simpletextbox",
 	// "simplevideo",
+	// "simpleaudio",
 	"storybook",
 	"theme",
 	"timeseries",

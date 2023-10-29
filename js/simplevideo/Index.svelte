@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { Upload, ModifyUpload } from "@gradio/upload";
+	import { Upload, ModifyUpload, normalise_file } from "@gradio/upload";
 	import type { FileData } from "@gradio/upload";
-	import { normalise_file } from "@gradio/upload";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Video } from "@gradio/icons";
 	import { Block, UploadText } from "@gradio/atoms";
@@ -9,8 +8,7 @@
 	import type { LoadingStatus } from "@gradio/statustracker";
 
 	import { BaseStaticVideo, prettyBytes, playable } from "@gradio/video";
-	import type { Gradio } from "@gradio/utils";
-	import { tick } from "svelte";
+	import type { Gradio, ShareData } from "@gradio/utils";
 
     type VideoData ={ video: FileData; subtitles: FileData | null } | null
 
@@ -22,6 +20,7 @@
 		end?: never;
 		stop?: never;
 		upload: never;
+        share: ShareData;
 	}>;
 
 	export let visible: true;
@@ -48,7 +47,6 @@
 	function handle_load({ detail }: CustomEvent<FileData | null>): void {
 		if (detail != null) {
 			value = { video: detail, subtitles: null };
-            console.log("upload", previous_value);
 			gradio.dispatch("upload");
 		}
 	}
@@ -125,6 +123,7 @@
 					on:pause={() => gradio.dispatch("pause")}
 					on:stop={() => gradio.dispatch("stop")}
 					on:end={() => gradio.dispatch("end")}
+                    on:share={(e) => gradio.dispatch("share", e.detail)}
 					{label}
 					i18n={gradio.i18n}
 				/>
