@@ -471,12 +471,18 @@ importers:
       '@gradio/row':
         specifier: workspace:^
         version: link:../row
+      '@gradio/simpleaudio':
+        specifier: workspace:^
+        version: link:../simpleaudio
       '@gradio/simpledropdown':
         specifier: workspace:^
         version: link:../simpledropdown
       '@gradio/simpletextbox':
         specifier: workspace:^
         version: link:../simpletextbox
+      '@gradio/simplevideo':
+        specifier: workspace:^
+        version: link:../simplevideo
       '@gradio/slider':
         specifier: workspace:^
         version: link:../slider
@@ -1232,6 +1238,33 @@ importers:
         specifier: workspace:^
         version: link:../image
 
+  js/simpleaudio:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/audio':
+        specifier: workspace:^
+        version: link:../audio
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/image':
+        specifier: workspace:^
+        version: link:../image
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/upload':
+        specifier: workspace:^
+        version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+      '@gradio/wasm':
+        specifier: workspace:^
+        version: link:../wasm
+
   js/simpledropdown:
     dependencies:
       '@gradio/atoms':
@@ -1261,6 +1294,33 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+
+  js/simplevideo:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/image':
+        specifier: workspace:^
+        version: link:../image
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/upload':
+        specifier: workspace:^
+        version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+      '@gradio/video':
+        specifier: workspace:^
+        version: link:../video
+      '@gradio/wasm':
+        specifier: workspace:^
+        version: link:../wasm
 
   js/slider:
     dependencies:
@@ -6652,7 +6712,7 @@ packages:
       svelte: 4.2.2
       tiny-glob: 0.2.9
       undici: 5.26.4
-      vite: 4.5.0(@types/node@20.3.1)(less@4.1.3)(lightningcss@1.21.7)(sass@1.66.1)(stylus@0.60.0)(sugarss@4.0.1)
+      vite: 4.5.0(@types/node@20.3.2)(less@4.1.3)
     transitivePeerDependencies:
       - supports-color
 
@@ -16104,7 +16164,7 @@ packages:
       mlly: 1.4.0
       pathe: 1.1.1
       picocolors: 1.0.0
-      vite: 4.5.0(@types/node@20.3.1)(less@4.1.3)(lightningcss@1.21.7)(sass@1.66.1)(stylus@0.60.0)(sugarss@4.0.1)
+      vite: 4.5.0(@types/node@20.3.2)(less@4.1.3)
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -16153,6 +16213,42 @@ packages:
       sass: 1.66.1
       stylus: 0.60.0
       sugarss: 4.0.1(postcss@8.4.27)
+    optionalDependencies:
+      fsevents: 2.3.2
+
+  /vite@4.5.0(@types/node@20.3.2)(less@4.1.3):
+    resolution: {integrity: sha512-ulr8rNLA6rkyFAlVWw2q5YJ91v098AFQ2R0PRFwPzREXOUJQPtFUG0t+/ZikhaOCDqFoDhN6/v8Sq0o4araFAw==}
+    engines: {node: ^14.18.0 || >=16.0.0}
+    hasBin: true
+    peerDependencies:
+      '@types/node': '>= 14'
+      less: '*'
+      lightningcss: ^1.21.0
+      sass: '*'
+      stylus: '*'
+      sugarss: '*'
+      terser: ^5.4.0
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      less:
+        optional: true
+      lightningcss:
+        optional: true
+      sass:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      terser:
+        optional: true
+    dependencies:
+      '@types/node': 20.3.2
+      esbuild: 0.18.20
+      less: 4.1.3
+      postcss: 8.4.27
+      rollup: 3.29.0
     optionalDependencies:
       fsevents: 2.3.2
 
@@ -16220,7 +16316,7 @@ packages:
       strip-literal: 1.0.1
       tinybench: 2.5.0
       tinypool: 0.7.0
-      vite: 4.5.0(@types/node@20.3.1)(less@4.1.3)(lightningcss@1.21.7)(sass@1.66.1)(stylus@0.60.0)(sugarss@4.0.1)
+      vite: 4.5.0(@types/node@20.3.2)(less@4.1.3)
       vite-node: 0.34.6(@types/node@20.3.2)(less@4.1.3)
       why-is-node-running: 2.2.2
     transitivePeerDependencies:

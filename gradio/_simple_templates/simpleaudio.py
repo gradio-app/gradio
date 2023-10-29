@@ -61,7 +61,6 @@ class SimpleAudio(
         _skip_init_processing: bool = False,
         format: Literal["wav", "mp3"] = "wav",
         autoplay: bool = False,
-        show_download_button=True,
         show_share_button: bool | None = None,
         show_edit_button: bool | None = True,
         min_length: int | None = None,
@@ -88,7 +87,6 @@ class SimpleAudio(
             root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
             format: The file format to save audio files. Either 'wav' or 'mp3'. wav files are lossless but will tend to be larger files. mp3 files tend to be smaller. Default is wav. Applies both when this component is used as an input (when `type` is "format") and when this component is used as an output.
             autoplay: Whether to automatically play the audio when the component is used as an output. Note: browsers will not autoplay audio files if the user has not interacted with the page yet.
-            show_download_button: If True, will show a download button in the corner of the component for saving audio. If False, icon does not appear.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             show_edit_button: If True, will show an edit icon in the corner of the component that allows user to edit the audio. If False, icon does not appear. Default is True.
             min_length: The minimum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
@@ -105,7 +103,6 @@ class SimpleAudio(
         self.streaming = streaming
         self.format = format
         self.autoplay = autoplay
-        self.show_download_button = show_download_button
         self.show_share_button = (
             (utils.get_space() is not None)
             if show_share_button is None
