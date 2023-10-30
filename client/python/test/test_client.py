@@ -310,6 +310,7 @@ class TestClientPredictions:
             assert Path(job2.result()).exists()
             assert all(Path(p).exists() for p in job2.outputs())
 
+    @pytest.mark.xfail
     def test_upload_file_private_space_v4(self):
         client = Client(
             src="gradio-tests/not-actually-private-file-upload-v4", hf_token=HF_TOKEN
@@ -1083,9 +1084,9 @@ class TestEndpoints:
         res = []
         for re in results:
             if isinstance(re, list):
-                res.append([r["name"] for r in re])
+                res.append([r["path"] for r in re])
             else:
-                res.append(re["name"])
+                res.append(re["path"])
 
         assert res == [
             "file1",

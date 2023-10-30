@@ -461,7 +461,6 @@ class App(FastAPI):
                 for allowed_path in blocks.allowed_paths
             )
             was_uploaded = utils.is_in_or_equal(abs_path, app.uploaded_file_dir)
-
             if not (in_app_dir or created_by_app or in_allowlist or was_uploaded):
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
@@ -482,6 +481,7 @@ class App(FastAPI):
                         stat_result=os.stat(abs_path),
                     )
                     return response
+
             return FileResponse(abs_path, headers={"Accept-Ranges": "bytes"})
 
         @app.get(

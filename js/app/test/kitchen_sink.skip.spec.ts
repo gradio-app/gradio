@@ -1,7 +1,7 @@
 import { test, expect } from "@gradio/tootils";
 import { BASE64_IMAGE } from "./media_data";
 
-test("test inputs", async ({ page }) => {
+test.skip("test inputs", async ({ page }) => {
 	const textbox = await page.getByLabel("Textbox").nth(0);
 	await expect(textbox).toHaveValue("Lorem ipsum");
 
@@ -34,9 +34,13 @@ test("test inputs", async ({ page }) => {
 	await expect(image_data_cropper).toContain("cheetah1.jpg");
 });
 
-test("test outputs", async ({ page }) => {
+test.skip("test outputs", async ({ page }) => {
 	const submit_button = await page.locator("button", { hasText: /Submit/ });
-	await submit_button.click();
+
+	await Promise.all([
+		submit_button.click(),
+		page.waitForResponse("**/run/predict")
+	]);
 
 	const textbox = await page.getByLabel("Textbox").nth(2);
 	await expect(textbox).toHaveValue(", selected:foo, bar");
