@@ -9,6 +9,9 @@ import "prismjs/components/prism-json";
 import "prismjs/components/prism-typescript";
 import "prismjs/components/prism-csv";
 import "prismjs/components/prism-markup";
+import { error } from "@sveltejs/kit";
+
+export const prerender = true;
 
 function plugin() {
 	return function transform(tree: any) {
@@ -45,12 +48,17 @@ function highlight(code: string, lang: string | undefined) {
 	return highlighted;
 }
 
-export async function load({ parent }) {
-	const { components, helpers, modals, py_client, routes, js_client, on_main, wheel } = await parent();
+export async function load({ params, parent }) {
+	const {
+		js,
+		js_pages,
+	} = await parent();
 
+	let name = params.jsdoc;
 	const guide_slug = [];
 
 	const get_slug = make_slug_processor();
+
 	function plugin() {
 		return function transform(tree: any) {
 			tree.children.forEach((n: any) => {
@@ -94,20 +102,24 @@ export async function load({ parent }) {
 		};
 	}
 
-	const compiled = await compile(js_client, {
-		rehypePlugins: [plugin],
-		highlight: {
-			highlighter: highlight
+	let readme_html;
+
+	for (const key in js) {
+		if (key == name) {
+			const compiled = await compile(js[key], {
+				rehypePlugins: [plugin],
+				highlight: {
+					highlighter: highlight
+				}
+			});
+			
+			readme_html = await compiled?.code;
 		}
-	});
-	let readme_html = await compiled?.code;
+	}
 
 	return {
+		name,
 		readme_html,
-		components,
-		helpers,
-		modals,
-		routes,
-		py_client
+		js_pages,
 	};
 }

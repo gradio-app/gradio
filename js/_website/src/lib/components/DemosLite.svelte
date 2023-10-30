@@ -97,7 +97,7 @@
 			{#each demos as demo, i}
 				<div
 					hidden={current_selection !== demo.name}
-					class="code-editor w-full border-r hidden sm:block"
+					class="code-editor w-full border-r"
 					style="width: {position * 100}%"
 				>
 					<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2">
