@@ -31,7 +31,7 @@
 	export let autoplay: boolean;
 	export let root: string;
 	export let root_url: string;
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let height: number | undefined;
@@ -73,8 +73,6 @@
 			value.subtitles = normalise_file(value.subtitles, root, root_url);
 		}
 	}
-
-	$: interactive = mode === "interactive";
 </script>
 
 <Block
