@@ -154,7 +154,6 @@ class Video(Component):
         """
         if x is None:
             return None
-        print(x)
         data: VideoData = VideoData(**x) if isinstance(x, dict) else x
         assert data.video.path
         file_name = Path(data.video.path)

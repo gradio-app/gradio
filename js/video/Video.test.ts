@@ -232,7 +232,7 @@ describe("Video", () => {
 		const downloadButton = results.getAllByTestId("download-div")[0];
 		expect(
 			downloadButton.getElementsByTagName("a")[0].getAttribute("href")
-		).toBe(data.video.url);
+		).toBe(data.video.path);
 		expect(
 			downloadButton.getElementsByTagName("button").length
 		).toBeGreaterThan(0);
