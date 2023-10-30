@@ -20,7 +20,7 @@ const create_camera = (
 	}
 	helperCamera.lowerRadiusLimit = 0.1;
 	const updateCameraSensibility = (): void => {
-		helperCamera.wheelPrecision = (150 * zoom_speed) / helperCamera.radius;
+		helperCamera.wheelPrecision = 250 / (helperCamera.radius * zoom_speed);
 		helperCamera.panningSensibility = (10000 * pan_speed) / helperCamera.radius;
 	};
 	updateCameraSensibility();
