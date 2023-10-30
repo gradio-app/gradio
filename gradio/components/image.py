@@ -190,8 +190,7 @@ class Image(StreamingInput, Component):
     def as_example(self, input_data: str | Path | None) -> str | None:
         if input_data is None:
             return None
-        absolute_path = str(utils.abspath(input_data))
-        return processing_utils.move_resource_to_block_cache(absolute_path, self)
+        return processing_utils.move_resource_to_block_cache(input_data, self)
 
     def example_inputs(self) -> Any:
         return "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
