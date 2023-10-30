@@ -2,6 +2,7 @@ import json
 
 import gradio._simple_templates
 import gradio.components as components
+import gradio.image_utils
 import gradio.layouts as layouts
 import gradio.processing_utils
 import gradio.templates
@@ -82,19 +83,18 @@ from gradio.oauth import OAuthProfile
 from gradio.routes import Request, mount_gradio_app
 from gradio.templates import (
     Files,
-    ImageMask,
-    ImagePaint,
+    # ImageMask,
+    # ImagePaint,
     List,
     Matrix,
     Mic,
     Microphone,
     Numpy,
-    Paint,
-    Pil,
+    # Paint,
+    # Pil,
     PlayableVideo,
-    Sketchpad,
+    # Sketchpad,
     TextArea,
-    Webcam,
 )
 from gradio.themes import Base as Theme
 from gradio.utils import get_package_version

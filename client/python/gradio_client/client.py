@@ -804,7 +804,6 @@ class Endpoint:
         # Only a real API endpoint if backend_fn is True (so not just a frontend function), serializers are valid,
         # and api_name is not False (meaning that the developer has explicitly disabled the API endpoint)
         self.is_valid = self.dependency["backend_fn"] and self.api_name is not False
-        print(self.is_valid)
 
     def _get_component_type(self, component_id: int):
         component = next(
@@ -935,20 +934,16 @@ class Endpoint:
                     output = [o for ix, o in enumerate(result) if indices[ix] == i]
                     res = [
                         {
-                            "is_file": True,
-                            "name": o,
+                            "path": o,
                             "orig_name": Path(f).name,
-                            "data": None,
                         }
                         for f, o in zip(fs, output)
                     ]
                 else:
                     o = next(o for ix, o in enumerate(result) if indices[ix] == i)
                     res = {
-                        "is_file": True,
-                        "name": o,
+                        "path": o,
                         "orig_name": Path(fs).name,
-                        "data": None,
                     }
                 uploaded.append(res)
         return uploaded
@@ -1011,7 +1006,7 @@ class Endpoint:
         data = self._add_uploaded_files_to_data(data, uploaded_files)
         data = utils.traverse(
             data,
-            lambda s: {"name": s, "is_file": True, "data": None},
+            lambda s: {"path": s},
             utils.is_url,
         )
         o = tuple(data)
@@ -1029,18 +1024,14 @@ class Endpoint:
         if isinstance(x, str):
             file_name = utils.decode_base64_to_file(x, dir=save_dir).name
         elif isinstance(x, dict):
-            if x.get("is_file"):
-                filepath = x.get("name")
-                assert filepath is not None, f"The 'name' field is missing in {x}"
-                file_name = utils.download_file(
-                    root_url + "file=" + filepath,
-                    hf_token=hf_token,
-                    dir=save_dir,
-                )
-            else:
-                data = x.get("data")
-                assert data is not None, f"The 'data' field is missing in {x}"
-                file_name = utils.decode_base64_to_file(data, dir=save_dir).name
+            filepath = x.get("path")
+            assert filepath is not None, f"The 'path' field is missing in {x}"
+            file_name = utils.download_file(
+                root_url + "file=" + filepath,
+                hf_token=hf_token,
+                dir=save_dir,
+            )
+
         else:
             raise ValueError(
                 f"A FileSerializable component can only deserialize a string or a dict, not a {type(x)}: {x}"
@@ -1100,7 +1091,6 @@ class EndpointV3Compatibility:
             self.is_valid = self.dependency["backend_fn"] and self.api_name is not False
         except SerializationSetupError:
             self.is_valid = False
-        print("v3", self.is_valid)
 
     def __repr__(self):
         return f"Endpoint src: {self.client.src}, api_name: {self.api_name}, fn_index: {self.fn_index}"

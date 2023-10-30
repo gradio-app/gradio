@@ -534,7 +534,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.share_url = None
         self.width = None
         self.height = None
-        self.api_open = True
+        self.api_open = False
 
         self.space_id = utils.get_space()
         self.favicon_path = None
@@ -1122,7 +1122,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         processed_input = []
 
         def format_file(s):
-            return FileData(name=s, is_file=True).model_dump()
+            return FileData(path=s).model_dump()
 
         for i, input_id in enumerate(dependency["inputs"]):
             try:
@@ -1165,7 +1165,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 )
 
             deserialized = client_utils.traverse(
-                outputs[o], lambda s: s["name"], client_utils.is_file_obj
+                outputs[o], lambda s: s["path"], client_utils.is_file_obj
             )
             predictions.append(deserialized)
 
@@ -1586,7 +1586,7 @@ Received outputs:
         self,
         concurrency_count: int = 1,
         status_update_rate: float | Literal["auto"] = "auto",
-        api_open: bool = True,
+        api_open: bool = False,
         max_size: int | None = None,
     ):
         """
