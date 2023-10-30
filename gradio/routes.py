@@ -245,7 +245,7 @@ class App(FastAPI):
                     if await request.is_disconnected():
                         return
 
-                    if app.change_event.is_set():
+                    if app.change_event and app.change_event.is_set():
                         app.change_event.clear()
                         yield """data: CHANGE\n\n"""
 
