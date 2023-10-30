@@ -96,7 +96,7 @@ class BaseReloader(ABC):
         # Copy over the blocks to get new components and events but
         # not a new queue
         if self.running_app.blocks._queue:
-            self.running_app.blocks._queue.blocks_dependencies = demo.dependencies
+            self.running_app.blocks._queue.blocks_fns = demo.fns
             demo._queue = self.running_app.blocks._queue
         self.running_app.blocks = demo
 
