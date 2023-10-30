@@ -471,18 +471,12 @@ importers:
       '@gradio/row':
         specifier: workspace:^
         version: link:../row
-      '@gradio/simpleaudio':
-        specifier: workspace:^
-        version: link:../simpleaudio
       '@gradio/simpledropdown':
         specifier: workspace:^
         version: link:../simpledropdown
       '@gradio/simpletextbox':
         specifier: workspace:^
         version: link:../simpletextbox
-      '@gradio/simplevideo':
-        specifier: workspace:^
-        version: link:../simplevideo
       '@gradio/slider':
         specifier: workspace:^
         version: link:../slider
@@ -1259,36 +1253,6 @@ importers:
         specifier: workspace:^
         version: link:../image
 
-  js/simpleaudio:
-    dependencies:
-      '@gradio/atoms':
-        specifier: workspace:^
-        version: link:../atoms
-      '@gradio/audio':
-        specifier: workspace:^
-        version: link:../audio
-      '@gradio/client':
-        specifier: workspace:^
-        version: link:../../client/js
-      '@gradio/icons':
-        specifier: workspace:^
-        version: link:../icons
-      '@gradio/image':
-        specifier: workspace:^
-        version: link:../image
-      '@gradio/statustracker':
-        specifier: workspace:^
-        version: link:../statustracker
-      '@gradio/upload':
-        specifier: workspace:^
-        version: link:../upload
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../utils
-      '@gradio/wasm':
-        specifier: workspace:^
-        version: link:../wasm
-
   js/simpledropdown:
     dependencies:
       '@gradio/atoms':
@@ -1318,36 +1282,6 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
-
-  js/simplevideo:
-    dependencies:
-      '@gradio/atoms':
-        specifier: workspace:^
-        version: link:../atoms
-      '@gradio/client':
-        specifier: workspace:^
-        version: link:../../client/js
-      '@gradio/icons':
-        specifier: workspace:^
-        version: link:../icons
-      '@gradio/image':
-        specifier: workspace:^
-        version: link:../image
-      '@gradio/statustracker':
-        specifier: workspace:^
-        version: link:../statustracker
-      '@gradio/upload':
-        specifier: workspace:^
-        version: link:../upload
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../utils
-      '@gradio/video':
-        specifier: workspace:^
-        version: link:../video
-      '@gradio/wasm':
-        specifier: workspace:^
-        version: link:../wasm
 
   js/slider:
     dependencies:

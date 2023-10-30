@@ -18,8 +18,6 @@
 "@gradio/markdown": minor
 "@gradio/model3d": minor
 "@gradio/radio": minor
-"@gradio/simpleaudio": minor
-"@gradio/simplevideo": minor
 "@gradio/statustracker": minor
 "@gradio/textbox": minor
 "@gradio/upload": minor
@@ -27,6 +25,7 @@
 "@gradio/video": minor
 "gradio": minor
 "gradio_test": minor
+"website": minor
 ---
 
 feat:JS Component Documentation
