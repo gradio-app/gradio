@@ -172,7 +172,7 @@
 				style="left: {leftHandlePosition}%; right: {100 - rightHandlePosition}%"
 			/>
 
-			{#each thumbnails as thumbnail, i (thumbnail)}
+			{#each thumbnails as thumbnail, i (i)}
 				<img src={thumbnail} alt={`frame-${i}`} draggable="false" />
 			{/each}
 			<button
