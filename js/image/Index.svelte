@@ -94,7 +94,7 @@
 			{label}
 			{show_label}
 			{show_download_button}
-			selecatble={_selectable}
+			selectable={_selectable}
 			{show_share_button}
 			i18n={gradio.i18n}
 		/>
