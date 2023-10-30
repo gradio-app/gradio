@@ -121,3 +121,30 @@ def test_install(tmp_path):
     assert not (tmp_path / "frontend" / "node_modules").exists()
     _install(tmp_path)
     assert (tmp_path / "frontend" / "node_modules").exists()
+
+
+def test_fallback_template_app(tmp_path):
+    _create(
+        "SimpleComponent2",
+        directory=tmp_path,
+        overwrite=True,
+        install=False,
+    )
+    app = (tmp_path / "demo" / "app.py").read_text()
+    answer = textwrap.dedent(
+        """
+
+import gradio as gr
+from gradio_simplecomponent2 import SimpleComponent2
+
+
+with gr.Blocks() as demo:
+    gr.Markdown("# Change the value (keep it JSON) and the front-end will update automatically.")
+    SimpleComponent2(value={"message": "Hello from Gradio!"}, label="Static")
+
+
+demo.launch()
+
+"""
+    )
+    assert app.strip() == answer.strip()
