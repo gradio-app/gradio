@@ -8,7 +8,7 @@ from typing import Any, Literal
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components import Button, Component
-from gradio.data_classes import GradioDataModel
+from gradio.data_classes import GradioModel, GradioRootModel
 
 set_documentation_group("component")
 
@@ -77,7 +77,7 @@ class ClearButton(Button):
         none_values = []
         for component in components:
             none = component.postprocess(None)
-            if isinstance(none, GradioDataModel):
+            if isinstance(none, (GradioModel, GradioRootModel)):
                 none = none.model_dump()
                 print(none)
             none_values.append(none)
