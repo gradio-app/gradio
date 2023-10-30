@@ -1,4 +1,4 @@
-import type { FileData } from "@gradio/upload";
+import type { FileData } from "@gradio/client";
 import * as BABYLON from "babylonjs";
 
 const create_camera = (

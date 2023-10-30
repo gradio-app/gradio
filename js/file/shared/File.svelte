@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { FileData } from "@gradio/upload";
+	import type { FileData } from "@gradio/client";
 	import { BlockLabel, Empty } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
 	import FilePreview from "./FilePreview.svelte";

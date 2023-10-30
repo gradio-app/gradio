@@ -7,11 +7,10 @@
 	import { get_coordinates_of_clicked_image } from "./utils";
 
 	import { Image } from "@gradio/icons";
-	import { type FileData, normalise_file } from "@gradio/upload";
+	import { type FileData, normalise_file } from "@gradio/client";
 	import type { I18nFormatter } from "@gradio/utils";
 
 	export let value: null | FileData;
-	// let value_: null | FileData;
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
 	export let show_download_button = true;

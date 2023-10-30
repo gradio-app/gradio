@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { FileData } from "@gradio/upload";
 	import { onDestroy, createEventDispatcher } from "svelte";
-	import { Upload, ModifyUpload, upload, prepare_files } from "@gradio/upload";
+	import { Upload, ModifyUpload } from "@gradio/upload";
+	import { upload, prepare_files, type FileData } from "@gradio/client";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Music, Microphone, Upload as UploadIcon } from "@gradio/icons";
 	import AudioPlayer from "../player/AudioPlayer.svelte";

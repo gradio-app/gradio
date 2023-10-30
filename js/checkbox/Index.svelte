@@ -27,7 +27,7 @@
 		select: SelectData;
 		input: never;
 	}>;
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 
 	function handle_change(): void {
 		gradio.dispatch("change");
@@ -57,7 +57,7 @@
 	<BaseCheckbox
 		bind:value
 		{label}
-		{mode}
+		{interactive}
 		on:change={handle_change}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 	/>
