@@ -8,6 +8,7 @@ from typing import Any, Literal
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components import Button, Component
+from gradio.data_classes import GradioDataModel
 
 set_documentation_group("component")
 
@@ -76,6 +77,9 @@ class ClearButton(Button):
         none_values = []
         for component in components:
             none = component.postprocess(None)
+            if isinstance(none, GradioDataModel):
+                none = none.model_dump()
+                print(none)
             none_values.append(none)
         clear_values = json.dumps(none_values)
         self.click(None, [], components, _js=f"() => {clear_values}")
