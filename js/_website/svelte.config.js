@@ -12,12 +12,17 @@ const config = {
 
 	kit: {
 		prerender: {
+			crawl: true,
 			entries: [
 				"*",
 				`/${version}/docs`,
 				`/${version}/guides`,
+				`/${version}/docs/js`,
+				`/${version}/docs/js/storybook`,
+				`/${version}/docs/js/`,
 				`/main/docs`,
-				`/main/guides`
+				`/main/guides`,
+				`/main/docs/js`
 				// "/main/docs/interface"
 			]
 		},
