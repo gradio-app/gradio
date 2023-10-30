@@ -10,8 +10,6 @@
 
 	export let data: any = {};
 
-	let docs_type = "python";
-
 	let name: string = data.name;
 	let obj = data.obj;
 	let mode = data.mode;
@@ -70,7 +68,6 @@
 	$: routes = data.routes;
 	$: py_client = data.py_client;
 
-	$: console.log(docs_type);
 </script>
 
 <MetaTags
@@ -91,7 +88,6 @@
 			{modals}
 			{routes}
 			{py_client}
-			{docs_type}
 		/>
 
 		<div class="flex flex-col w-full min-w-full lg:w-8/12 lg:min-w-0">
