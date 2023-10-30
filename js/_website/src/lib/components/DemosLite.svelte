@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { afterNavigate } from "$app/navigation";
-	import InteractiveCode from "@gradio/code/interactive";
+	import Code from "@gradio/code";
 	import Slider from "./Slider.svelte";
 	import Fullscreen from "./icons/Fullscreen.svelte";
 	import Close from "./icons/Close.svelte";
@@ -104,7 +104,7 @@
 						<h3 class="pt-1">Code</h3>
 					</div>
 
-					<InteractiveCode
+					<Code
 						bind:value={demos[i].code}
 						label=""
 						language="python"

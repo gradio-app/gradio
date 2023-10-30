@@ -2,11 +2,7 @@
 	import { writable } from "svelte/store";
 	import { mount_css as default_mount_css } from "./css";
 
-	import type {
-		ComponentMeta,
-		Dependency,
-		LayoutNode
-	} from "./components/types";
+	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 
 	declare let BUILD_MODE: string;
 	interface Config {
@@ -66,7 +62,7 @@
 	import { onMount, setContext } from "svelte";
 	import type { api_factory, SpaceStatus } from "@gradio/client";
 	import Embed from "./Embed.svelte";
-	import type { ThemeMode } from "./components/types";
+	import type { ThemeMode } from "./types";
 	import { StatusTracker } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
 	import { setupi18n } from "./i18n";
@@ -115,6 +111,7 @@
 	let config: Config;
 	let loading_text = $_("common.loading") + "...";
 	let active_theme_mode: ThemeMode;
+	let api_url: string;
 
 	$: if (config?.app_id) {
 		app_id = config.app_id;
@@ -206,9 +203,16 @@
 			active_theme_mode = handle_darkmode(wrapper);
 		}
 
-		const api_url =
-			BUILD_MODE === "dev"
-				? "http://localhost:7860"
+		//@ts-ignore
+		const gradio_dev_mode = window.__GRADIO_DEV__;
+		//@ts-ignore
+		const server_port = window.__GRADIO__SERVER_PORT__;
+
+		api_url =
+			BUILD_MODE === "dev" || gradio_dev_mode === "dev"
+				? `http://localhost:${
+						typeof server_port === "number" ? server_port : 7860
+				  }`
 				: host || space || src || location.origin;
 
 		app = await client(api_url, {
@@ -240,7 +244,6 @@
 							status_callback: handle_status,
 							normalise_files: false
 						});
-						app.config.root = app.config.path;
 						config = app.config;
 						window.__gradio_space__ = config.space_id;
 					}
@@ -337,6 +340,8 @@
 			queue_size={null}
 			translucent={true}
 			{loading_text}
+			i18n={$_}
+			{autoscroll}
 		>
 			<!-- todo: translate message text -->
 			<div class="error" slot="error">
@@ -380,6 +385,7 @@
 			show_footer={!is_embed}
 			{app_mode}
 			{version}
+			{api_url}
 		/>
 	{/if}
 </Embed>

@@ -1,14 +1,18 @@
 # @gradio/uploadbutton
 
-## 0.0.13
+## 0.1.0-beta.6
 
-### Patch Changes
+### Features
 
-- Updated dependencies [[`11a300791`](https://github.com/gradio-app/gradio/commit/11a3007916071f0791844b0a37f0fb4cec69cea3)]:
-  - @gradio/client@0.6.0
-  - @gradio/utils@0.1.3
-  - @gradio/upload@0.3.4
-  - @gradio/button@0.2.4
+- [#6016](https://github.com/gradio-app/gradio/pull/6016) [`83e947676`](https://github.com/gradio-app/gradio/commit/83e947676d327ca2ab6ae2a2d710c78961c771a0) - Format js in v4 branch.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6044](https://github.com/gradio-app/gradio/pull/6044) [`9053c95a1`](https://github.com/gradio-app/gradio/commit/9053c95a10de12aef572018ee37c71106d2da675) - Simplify File Component.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
+## 0.1.0-beta.5
+
+### Features
+
+- [#5960](https://github.com/gradio-app/gradio/pull/5960) [`319c30f3f`](https://github.com/gradio-app/gradio/commit/319c30f3fccf23bfe1da6c9b132a6a99d59652f7) - rererefactor frontend files.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5938](https://github.com/gradio-app/gradio/pull/5938) [`13ed8a485`](https://github.com/gradio-app/gradio/commit/13ed8a485d5e31d7d75af87fe8654b661edcca93) - V4: Use beta release versions for '@gradio' packages.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
 
 ## 0.0.12
 

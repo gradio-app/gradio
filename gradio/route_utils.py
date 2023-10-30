@@ -1,11 +1,17 @@
 from __future__ import annotations
 
+import hashlib
 import json
-from typing import TYPE_CHECKING, Optional, Union
+from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
+from typing import TYPE_CHECKING, AsyncGenerator, BinaryIO, List, Optional, Tuple, Union
 
 import fastapi
 import httpx
+import multipart
 from gradio_client.documentation import document, set_documentation_group
+from multipart.multipart import parse_options_header
+from starlette.datastructures import FormData, Headers, UploadFile
+from starlette.formparsers import MultiPartException, MultipartPart
 
 from gradio import utils
 from gradio.data_classes import PredictBody
@@ -264,3 +270,198 @@ def strip_url(orig_url: str) -> str:
     stripped_url = parsed_url.copy_with(query=None)
     stripped_url = str(stripped_url)
     return stripped_url.rstrip("/")
+
+
+def _user_safe_decode(src: bytes, codec: str) -> str:
+    try:
+        return src.decode(codec)
+    except (UnicodeDecodeError, LookupError):
+        return src.decode("latin-1")
+
+
+class GradioUploadFile(UploadFile):
+    """UploadFile with a sha attribute."""
+
+    def __init__(
+        self,
+        file: BinaryIO,
+        *,
+        size: int | None = None,
+        filename: str | None = None,
+        headers: Headers | None = None,
+    ) -> None:
+        super().__init__(file, size=size, filename=filename, headers=headers)
+        self.sha = hashlib.sha1()
+
+
+class GradioMultiPartParser:
+    """Vendored from starlette.MultipartParser.
+
+    Thanks starlette!
+
+    Made the following modifications
+        - Use GradioUploadFile instead of UploadFile
+        - Use NamedTemporaryFile instead of SpooledTemporaryFile
+        - Compute hash of data as the request is streamed
+
+    """
+
+    max_file_size = 1024 * 1024
+
+    def __init__(
+        self,
+        headers: Headers,
+        stream: AsyncGenerator[bytes, None],
+        *,
+        max_files: Union[int, float] = 1000,
+        max_fields: Union[int, float] = 1000,
+    ) -> None:
+        assert (
+            multipart is not None
+        ), "The `python-multipart` library must be installed to use form parsing."
+        self.headers = headers
+        self.stream = stream
+        self.max_files = max_files
+        self.max_fields = max_fields
+        self.items: List[Tuple[str, Union[str, UploadFile]]] = []
+        self._current_files = 0
+        self._current_fields = 0
+        self._current_partial_header_name: bytes = b""
+        self._current_partial_header_value: bytes = b""
+        self._current_part = MultipartPart()
+        self._charset = ""
+        self._file_parts_to_write: List[Tuple[MultipartPart, bytes]] = []
+        self._file_parts_to_finish: List[MultipartPart] = []
+        self._files_to_close_on_error: List[_TemporaryFileWrapper] = []
+
+    def on_part_begin(self) -> None:
+        self._current_part = MultipartPart()
+
+    def on_part_data(self, data: bytes, start: int, end: int) -> None:
+        message_bytes = data[start:end]
+        if self._current_part.file is None:
+            self._current_part.data += message_bytes
+        else:
+            self._file_parts_to_write.append((self._current_part, message_bytes))
+
+    def on_part_end(self) -> None:
+        if self._current_part.file is None:
+            self.items.append(
+                (
+                    self._current_part.field_name,
+                    _user_safe_decode(self._current_part.data, self._charset),
+                )
+            )
+        else:
+            self._file_parts_to_finish.append(self._current_part)
+            # The file can be added to the items right now even though it's not
+            # finished yet, because it will be finished in the `parse()` method, before
+            # self.items is used in the return value.
+            self.items.append((self._current_part.field_name, self._current_part.file))
+
+    def on_header_field(self, data: bytes, start: int, end: int) -> None:
+        self._current_partial_header_name += data[start:end]
+
+    def on_header_value(self, data: bytes, start: int, end: int) -> None:
+        self._current_partial_header_value += data[start:end]
+
+    def on_header_end(self) -> None:
+        field = self._current_partial_header_name.lower()
+        if field == b"content-disposition":
+            self._current_part.content_disposition = self._current_partial_header_value
+        self._current_part.item_headers.append(
+            (field, self._current_partial_header_value)
+        )
+        self._current_partial_header_name = b""
+        self._current_partial_header_value = b""
+
+    def on_headers_finished(self) -> None:
+        disposition, options = parse_options_header(
+            self._current_part.content_disposition
+        )
+        try:
+            self._current_part.field_name = _user_safe_decode(
+                options[b"name"], self._charset
+            )
+        except KeyError as e:
+            raise MultiPartException(
+                'The Content-Disposition header field "name" must be ' "provided."
+            ) from e
+        if b"filename" in options:
+            self._current_files += 1
+            if self._current_files > self.max_files:
+                raise MultiPartException(
+                    f"Too many files. Maximum number of files is {self.max_files}."
+                )
+            filename = _user_safe_decode(options[b"filename"], self._charset)
+            tempfile = NamedTemporaryFile(delete=False)
+            self._files_to_close_on_error.append(tempfile)
+            self._current_part.file = GradioUploadFile(
+                file=tempfile,  # type: ignore[arg-type]
+                size=0,
+                filename=filename,
+                headers=Headers(raw=self._current_part.item_headers),
+            )
+        else:
+            self._current_fields += 1
+            if self._current_fields > self.max_fields:
+                raise MultiPartException(
+                    f"Too many fields. Maximum number of fields is {self.max_fields}."
+                )
+            self._current_part.file = None
+
+    def on_end(self) -> None:
+        pass
+
+    async def parse(self) -> FormData:
+        # Parse the Content-Type header to get the multipart boundary.
+        _, params = parse_options_header(self.headers["Content-Type"])
+        charset = params.get(b"charset", "utf-8")
+        if type(charset) == bytes:
+            charset = charset.decode("latin-1")
+        self._charset = charset
+        try:
+            boundary = params[b"boundary"]
+        except KeyError as e:
+            raise MultiPartException("Missing boundary in multipart.") from e
+
+        # Callbacks dictionary.
+        callbacks = {
+            "on_part_begin": self.on_part_begin,
+            "on_part_data": self.on_part_data,
+            "on_part_end": self.on_part_end,
+            "on_header_field": self.on_header_field,
+            "on_header_value": self.on_header_value,
+            "on_header_end": self.on_header_end,
+            "on_headers_finished": self.on_headers_finished,
+            "on_end": self.on_end,
+        }
+
+        # Create the parser.
+        parser = multipart.MultipartParser(boundary, callbacks)
+        try:
+            # Feed the parser with data from the request.
+            async for chunk in self.stream:
+                parser.write(chunk)
+                # Write file data, it needs to use await with the UploadFile methods
+                # that call the corresponding file methods *in a threadpool*,
+                # otherwise, if they were called directly in the callback methods above
+                # (regular, non-async functions), that would block the event loop in
+                # the main thread.
+                for part, data in self._file_parts_to_write:
+                    assert part.file  # for type checkers
+                    await part.file.write(data)
+                    part.file.sha.update(data)  # type: ignore
+                for part in self._file_parts_to_finish:
+                    assert part.file  # for type checkers
+                    await part.file.seek(0)
+                self._file_parts_to_write.clear()
+                self._file_parts_to_finish.clear()
+        except MultiPartException as exc:
+            # Close all the files if there was an error.
+            for file in self._files_to_close_on_error:
+                file.close()
+            raise exc
+
+        parser.finalize()
+        return FormData(self.items)

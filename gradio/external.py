@@ -4,19 +4,28 @@ use the `gr.Blocks.load()` or `gr.load()` functions."""
 from __future__ import annotations
 
 import json
+import os
 import re
+import tempfile
 import warnings
+from pathlib import Path
 from typing import TYPE_CHECKING, Callable
 
 import requests
 from gradio_client import Client
+from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
+from packaging import version
 
 import gradio
 from gradio import components, utils
 from gradio.context import Context
-from gradio.deprecation import warn_deprecation
-from gradio.exceptions import Error, ModelNotFoundError, TooManyRequestsError
+from gradio.exceptions import (
+    Error,
+    GradioVersionIncompatibleError,
+    ModelNotFoundError,
+    TooManyRequestsError,
+)
 from gradio.external_utils import (
     cols_to_rows,
     encode_to_base64,
@@ -25,7 +34,7 @@ from gradio.external_utils import (
     rows_to_cols,
     streamline_spaces_interface,
 )
-from gradio.processing_utils import extract_base64_data, to_binary
+from gradio.processing_utils import extract_base64_data, save_base64_to_cache, to_binary
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
@@ -39,7 +48,6 @@ set_documentation_group("helpers")
 def load(
     name: str,
     src: str | None = None,
-    api_key: str | None = None,
     hf_token: str | None = None,
     alias: str | None = None,
     **kwargs,
@@ -51,7 +59,6 @@ def load(
     Parameters:
         name: the name of the model (e.g. "gpt2" or "facebook/bart-base") or space (e.g. "flax-community/spanish-gpt2"), can include the `src` as prefix (e.g. "models/facebook/bart-base")
         src: the source of the model: `models` or `spaces` (or leave empty if source is provided as a prefix in `name`)
-        api_key: Deprecated. Please use the `hf_token` parameter instead.
         hf_token: optional access token for loading private Hugging Face Hub models or spaces. Find your token here: https://huggingface.co/settings/tokens.  Warning: only provide this if you are loading a trusted private Space as it can be read by the Space you are loading.
         alias: optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)
     Returns:
@@ -61,12 +68,6 @@ def load(
         demo = gr.load("gradio/question-answering", src="spaces")
         demo.launch()
     """
-    if hf_token is None and api_key:
-        warn_deprecation(
-            "The `api_key` parameter will be deprecated. "
-            "Please use the `hf_token` parameter going forward."
-        )
-        hf_token = api_key
     return load_blocks_from_repo(
         name=name, src=src, hf_token=hf_token, alias=alias, **kwargs
     )
@@ -150,11 +151,15 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             f"Could not find model: {model_name}. If it is a private or gated model, please provide your Hugging Face access token (https://huggingface.co/settings/tokens) as the argument for the `api_key` parameter."
         )
     p = response.json().get("pipeline_tag")
+    GRADIO_CACHE = os.environ.get("GRADIO_TEMP_DIR") or str(  # noqa: N806
+        Path(tempfile.gettempdir()) / "gradio"
+    )
+
     pipelines = {
         "audio-classification": {
             # example model: ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition
             "inputs": components.Audio(
-                source="upload", type="filepath", label="Input", render=False
+                sources=["upload"], type="filepath", label="Input", render=False
             ),
             "outputs": components.Label(label="Class", render=False),
             "preprocess": lambda i: to_binary,
@@ -165,16 +170,18 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         "audio-to-audio": {
             # example model: facebook/xm_transformer_sm_all-en
             "inputs": components.Audio(
-                source="upload", type="filepath", label="Input", render=False
+                sources=["upload"], type="filepath", label="Input", render=False
             ),
             "outputs": components.Audio(label="Output", render=False),
             "preprocess": to_binary,
-            "postprocess": encode_to_base64,
+            "postprocess": lambda x: save_base64_to_cache(
+                encode_to_base64(x), cache_dir=GRADIO_CACHE, file_name="output.wav"
+            ),
         },
         "automatic-speech-recognition": {
             # example model: facebook/wav2vec2-base-960h
             "inputs": components.Audio(
-                source="upload", type="filepath", label="Input", render=False
+                sources=["upload"], type="filepath", label="Input", render=False
             ),
             "outputs": components.Textbox(label="Output", render=False),
             "preprocess": to_binary,
@@ -313,14 +320,18 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             "inputs": components.Textbox(label="Input", render=False),
             "outputs": components.Audio(label="Audio", render=False),
             "preprocess": lambda x: {"inputs": x},
-            "postprocess": encode_to_base64,
+            "postprocess": lambda x: save_base64_to_cache(
+                encode_to_base64(x), cache_dir=GRADIO_CACHE, file_name="output.wav"
+            ),
         },
         "text-to-image": {
             # example model: osanseviero/BigGAN-deep-128
             "inputs": components.Textbox(label="Input", render=False),
             "outputs": components.Image(label="Output", render=False),
             "preprocess": lambda x: {"inputs": x},
-            "postprocess": encode_to_base64,
+            "postprocess": lambda x: save_base64_to_cache(
+                encode_to_base64(x), cache_dir=GRADIO_CACHE, file_name="output.jpg"
+            ),
         },
         "token-classification": {
             # example model: huggingface-course/bert-finetuned-ner
@@ -338,7 +349,9 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             "outputs": components.Label(label="Label", render=False),
             "preprocess": lambda img, q: {
                 "inputs": {
-                    "image": extract_base64_data(img),  # Extract base64 data
+                    "image": extract_base64_data(
+                        client_utils.encode_url_or_file_to_base64(img["path"])
+                    ),  # Extract base64 data
                     "question": q,
                 }
             },
@@ -355,7 +368,9 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             "outputs": components.Label(label="Label", render=False),
             "preprocess": lambda img, q: {
                 "inputs": {
-                    "image": extract_base64_data(img),
+                    "image": extract_base64_data(
+                        client_utils.encode_url_or_file_to_base64(img["path"])
+                    ),
                     "question": q,
                 }
             },
@@ -507,7 +522,13 @@ def from_spaces(
 
 def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
     client = Client(space, hf_token=hf_token)
-    predict_fns = [endpoint._predict_resolve for endpoint in client.endpoints]
+    if client.app_version < version.Version("4.0.0"):
+        raise GradioVersionIncompatibleError(
+            f"Gradio version 4.x cannot load spaces with versions less than 4.x ({client.app_version})."
+            "Please downgrade to version 3 to load this space."
+        )
+    # Use end_to_end_fn here to properly upload/download all files
+    predict_fns = [endpoint.make_end_to_end_fn() for endpoint in client.endpoints]
     return gradio.Blocks.from_config(client.config, predict_fns, client.src)
 
 

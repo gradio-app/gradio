@@ -1,6 +1,6 @@
 import { test, describe, assert, afterEach } from "vitest";
 import { cleanup, render } from "@gradio/tootils";
-import Chatbot from "./static";
+import Chatbot from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";
 import type { FileData } from "@gradio/upload";
 
@@ -25,8 +25,7 @@ describe("Chatbot", () => {
 			value: [["user message one", "bot message one"]],
 			root: "",
 			root_url: "",
-			latex_delimiters: [{ left: "$$", right: "$$", display: true }],
-			theme_mode: "dark"
+			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
 		});
 
 		const bot = getAllByTestId("user")[0];
@@ -43,8 +42,7 @@ describe("Chatbot", () => {
 			value: [[null, null]],
 			root: "",
 			root_url: "",
-			latex_delimiters: [{ left: "$$", right: "$$", display: true }],
-			theme_mode: "dark"
+			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
 		});
 
 		const chatbot = getByRole("log");
@@ -65,8 +63,7 @@ describe("Chatbot", () => {
 			value: [["", ""]],
 			root: "",
 			root_url: "",
-			latex_delimiters: [{ left: "$$", right: "$$", display: true }],
-			theme_mode: "dark"
+			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
 		});
 
 		const userButton = container.querySelector(".user button");
@@ -83,8 +80,7 @@ describe("Chatbot", () => {
 			value: [["user message one", "bot message one"]],
 			root: "",
 			root_url: "",
-			latex_delimiters: [{ left: "$$", right: "$$", display: true }],
-			theme_mode: "dark"
+			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
 		});
 
 		await component.$set({
@@ -105,25 +101,24 @@ describe("Chatbot", () => {
 	});
 
 	test("renders image bot and user messages", async () => {
-		const { component, getAllByTestId } = await render(Chatbot, {
+		const { component, getAllByTestId, debug } = await render(Chatbot, {
 			loading_status,
 			label: "chatbot",
 			value: undefined,
 			root: "",
 			root_url: "",
-			latex_delimiters: [],
-			theme_mode: "dark"
+			latex_delimiters: []
 		});
 
 		let value: [string | FileData | null, string | FileData | null][] = Array(
 			2
 		).fill([
 			{
-				name: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah1.jpg",
-				mime_type: "image/jpeg",
-				alt_text: null,
-				data: null,
-				is_file: true
+				file: {
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah1.jpg",
+					mime_type: "image/jpeg",
+					alt_text: null
+				}
 			}
 		]);
 
@@ -132,6 +127,7 @@ describe("Chatbot", () => {
 		});
 
 		const image = getAllByTestId("chatbot-image") as HTMLImageElement[];
+		debug(image[0]);
 		assert.isTrue(image[0].src.includes("cheetah1.jpg"));
 		assert.isTrue(image[1].src.includes("cheetah1.jpg"));
 	});
@@ -148,11 +144,11 @@ describe("Chatbot", () => {
 		let value: Array<[string | FileData | null, string | FileData | null]> =
 			Array(2).fill([
 				{
-					name: "https://gradio-builds.s3.amazonaws.com/demo-files/video_sample.mp4",
-					mime_type: "video/mp4",
-					alt_text: null,
-					data: null,
-					is_file: true
+					file: {
+						path: "https://gradio-builds.s3.amazonaws.com/demo-files/video_sample.mp4",
+						mime_type: "video/mp4",
+						alt_text: null
+					}
 				}
 			]);
 		await component.$set({
@@ -176,11 +172,11 @@ describe("Chatbot", () => {
 
 		let value = Array(2).fill([
 			{
-				name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
-				mime_type: "audio/wav",
-				alt_text: null,
-				data: null,
-				is_file: true
+				file: {
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
+					mime_type: "audio/wav",
+					alt_text: null
+				}
 			}
 		]);
 
@@ -199,17 +195,16 @@ describe("Chatbot", () => {
 			label: "chatbot",
 			root: "",
 			root_url: "",
-			latex_delimiters: [],
-			theme_mode: "dark"
+			latex_delimiters: []
 		});
 
 		let value = Array(2).fill([
 			{
-				name: "https://gradio-builds.s3.amazonaws.com/demo-files/titanic.csv",
-				mime_type: "text/csv",
-				alt_text: null,
-				data: "https://gradio-builds.s3.amazonaws.com/demo-files/titanic.csv",
-				is_file: true
+				file: {
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/titanic.csv",
+					mime_type: "text/csv",
+					alt_text: null
+				}
 			}
 		]);
 

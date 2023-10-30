@@ -7,29 +7,32 @@ import os
 import re
 from glob import glob as glob_func
 from pathlib import Path
-from typing import Callable, Literal
+from typing import Any, Callable, List, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import JSONSerializable
 
-from gradio.components.base import IOComponent, server
-from gradio.events import (
-    Changeable,
-    EventListenerMethod,
-)
+from gradio.components.base import Component, server
+from gradio.data_classes import GradioRootModel
 
 set_documentation_group("component")
 
 
+class FileExplorerData(GradioRootModel):
+    root: List[List[str]]
+
+
 @document()
-class FileExplorer(Changeable, IOComponent, JSONSerializable):
+class FileExplorer(Component):
     """
     Creates a file explorer component that allows users to browse and select files on the machine hosting the Gradio app.
-    Preprocessing: passes the selected file or directory as a {str} path (relative to root) or {list[str]} depending on `file_count`
+    Preprocessing: passes the selected file or directory as a {str} path (relative to root) or {list[str}} depending on `file_count`
     Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
     Examples-format: a {str} path to a local file that populates the component.
     Demos: zip_to_json, zip_files
     """
+
+    EVENTS = ["change"]
+    data_model = FileExplorerData
 
     def __init__(
         self,
@@ -50,7 +53,9 @@ class FileExplorer(Changeable, IOComponent, JSONSerializable):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        **kwargs,
+        render: bool = True,
+        root_url: str | None = None,
+        _skip_init_processing: bool = False,
     ):
         """
         Parameters:
@@ -59,7 +64,7 @@ class FileExplorer(Changeable, IOComponent, JSONSerializable):
             file_count: Whether to allow single or multiple files to be selected. If "single", the component will return a single absolute file path as a string. If "multiple", the component will return a list of absolute file paths as a list of strings.
             root: Path to root directory to select files from. If not provided, defaults to current working directory.
             ignore_glob: The glob-tyle pattern that will be used to exclude files from the list. For example, "*.py" will exclude all .py files from the list. See the Python glob documentation at https://docs.python.org/3/library/glob.html for more information.
-            label: Component name in interface.
+            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
@@ -70,6 +75,8 @@ class FileExplorer(Changeable, IOComponent, JSONSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
         """
         self.root = os.path.abspath(root)
         self.glob = glob
@@ -81,14 +88,8 @@ class FileExplorer(Changeable, IOComponent, JSONSerializable):
             )
         self.file_count = file_count
         self.height = height
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user selects file from list.
-        Uses event data gradio.SelectData to carry `value` referring to name of selected file, and `index` to refer to index.
-        See EventData documentation on how to use this event data.
-        """
-        IOComponent.__init__(
-            self,
+
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -99,9 +100,14 @@ class FileExplorer(Changeable, IOComponent, JSONSerializable):
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            render=render,
+            root_url=root_url,
+            _skip_init_processing=_skip_init_processing,
             value=value,
-            **kwargs,
         )
+
+    def example_inputs(self) -> Any:
+        return ["Users", "gradio", "app.py"]
 
     def preprocess(self, x: list[list[str]] | None) -> list[str] | str | None:
         """
@@ -125,7 +131,7 @@ class FileExplorer(Changeable, IOComponent, JSONSerializable):
             return path[len(self.root) + 1 :]
         return path
 
-    def postprocess(self, y: str | list[str] | None) -> list[list[str]] | None:
+    def postprocess(self, y: str | list[str] | None) -> FileExplorerData | None:
         """
         Parameters:
             y: file path
@@ -137,7 +143,9 @@ class FileExplorer(Changeable, IOComponent, JSONSerializable):
 
         files = [y] if isinstance(y, str) else y
 
-        return [self._strip_root(file).split(os.path.sep) for file in (files)]
+        return FileExplorerData(
+            root=[self._strip_root(file).split(os.path.sep) for file in files]
+        )
 
     @server
     def ls(self, y=None) -> list[dict[str, str]] | None:

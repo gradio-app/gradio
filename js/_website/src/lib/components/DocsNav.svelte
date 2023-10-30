@@ -130,10 +130,9 @@
 	<a
 		class:current-nav-link={current_nav_link == "tabbedinterface"}
 		class="thin-link px-4 block"
-		href="./tabbedinterface/"
-		>TabbedInterface</a
+		href="./tabbedinterface/">TabbedInterface</a
 	>
-	
+
 	<a
 		class:current-nav-link={current_nav_link == "blocks"}
 		class="thin-link px-4 block"

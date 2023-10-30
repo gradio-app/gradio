@@ -76,8 +76,8 @@ def similarity_fn(path1, path2):
 
 
 inputs = [
-    gr.Audio(source="microphone", type="filepath", optional=True, label="Speaker #1"),
-    gr.Audio(source="microphone", type="filepath", optional=True, label="Speaker #2"),
+    gr.Audio(sources=["microphone"], type="filepath", optional=True, label="Speaker #1"),
+    gr.Audio(sources=["microphone"], type="filepath", optional=True, label="Speaker #2"),
 ]
 output = gr.HTML(label="")
 

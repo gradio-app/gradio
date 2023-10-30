@@ -119,7 +119,6 @@
 
 .current-playground-demo {
 	@apply text-orange-500 pl-4;
-
 }
 
 /* docs */
@@ -165,7 +164,7 @@ code.language-bash {
 
 /* interactive banner */
 .interactive-banner {
-	@apply absolute right-0 px-1.5 pt-0.5 pb-1 m-4 -mt-1 text-sm z-[100] bg-orange-500 rounded-lg ;
+	@apply absolute right-0 px-1.5 pt-0.5 pb-1 m-4 -mt-1 text-sm z-[100] bg-orange-500 rounded-lg;
 }
 
 .codeblock {

@@ -15,6 +15,7 @@ import mimetypes
 import os
 import posixpath
 import secrets
+import shutil
 import tempfile
 import threading
 import time
@@ -24,11 +25,12 @@ from collections import defaultdict
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type
 
+import anyio
 import fastapi
 import httpx
 import markupsafe
 import orjson
-from fastapi import Depends, FastAPI, File, HTTPException, UploadFile, WebSocket, status
+from fastapi import Depends, FastAPI, HTTPException, WebSocket, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
     FileResponse,
@@ -38,8 +40,10 @@ from fastapi.responses import (
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
+from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 from jinja2.exceptions import TemplateNotFound
+from multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
 from starlette.responses import RedirectResponse, StreamingResponse
 from starlette.websockets import WebSocketState
@@ -49,11 +53,15 @@ import gradio.ranged_response as ranged_response
 from gradio import route_utils, utils, wasm_utils
 from gradio.context import Context
 from gradio.data_classes import ComponentServerBody, PredictBody, ResetBody
-from gradio.deprecation import warn_deprecation
 from gradio.exceptions import Error
 from gradio.oauth import attach_oauth
 from gradio.queueing import Estimation, Event
-from gradio.route_utils import Request  # noqa: F401
+from gradio.route_utils import (  # noqa: F401
+    GradioMultiPartParser,
+    GradioUploadFile,
+    MultiPartException,
+    Request,
+)
 from gradio.state_holder import StateHolder
 from gradio.utils import (
     cancel_tasks,
@@ -126,7 +134,7 @@ class App(FastAPI):
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
         self.uploaded_file_dir = os.environ.get("GRADIO_TEMP_DIR") or str(
-            Path(tempfile.gettempdir()) / "gradio"
+            (Path(tempfile.gettempdir()) / "gradio").resolve()
         )
         self.change_event: None | threading.Event = None
         self._asyncio_tasks: list[asyncio.Task] = []
@@ -351,8 +359,8 @@ class App(FastAPI):
         @app.get("/info/", dependencies=[Depends(login_check)])
         @app.get("/info", dependencies=[Depends(login_check)])
         def api_info(serialize: bool = True):
-            config = app.get_blocks().config
-            return gradio.blocks.get_api_info(config, serialize)  # type: ignore
+            # config = app.get_blocks().get_api_info()
+            return app.get_blocks().get_api_info()  # type: ignore
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
@@ -370,6 +378,32 @@ class App(FastAPI):
         def static_resource(path: str):
             static_file = safe_join(STATIC_PATH_LIB, path)
             return FileResponse(static_file)
+
+        @app.get("/custom_component/{id}/{type}/{file_name}")
+        def custom_component_path(id: str, type: str, file_name: str):
+            config = app.get_blocks().config
+            components = config["components"]
+            location = next(
+                (item for item in components if item["component_class_id"] == id), None
+            )
+
+            if location is None:
+                raise HTTPException(status_code=404, detail="Component not found.")
+
+            component_instance = app.get_blocks().get_component(location["id"])
+
+            module_name = component_instance.__class__.__module__
+            module_path = sys.modules[module_name].__file__
+
+            if module_path is None or component_instance is None:
+                raise HTTPException(status_code=404, detail="Component not found.")
+
+            return FileResponse(
+                safe_join(
+                    str(Path(module_path).parent),
+                    f"{component_instance.__class__.TEMPLATE_DIR}/{type}/{file_name}",
+                )
+            )
 
         @app.get("/assets/{path:path}")
         def build_resource(path: str):
@@ -428,7 +462,6 @@ class App(FastAPI):
                 for allowed_path in blocks.allowed_paths
             )
             was_uploaded = utils.is_in_or_equal(abs_path, app.uploaded_file_dir)
-
             if not (in_app_dir or created_by_app or in_allowlist or was_uploaded):
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
@@ -449,6 +482,7 @@ class App(FastAPI):
                         stat_result=os.stat(abs_path),
                     )
                     return response
+
             return FileResponse(abs_path, headers={"Accept-Ranges": "bytes"})
 
         @app.get(
@@ -519,6 +553,7 @@ class App(FastAPI):
                 fn_index_inferred
             ):
                 raise HTTPException(
+                    detail="This API endpoint does not accept direct HTTP POST requests. Please join the queue to use this API.",
                     status_code=status.HTTP_404_NOT_FOUND,
                 )
 
@@ -628,17 +663,42 @@ class App(FastAPI):
             return app.get_blocks()._queue.get_estimation()
 
         @app.post("/upload", dependencies=[Depends(login_check)])
-        async def upload_file(
-            files: List[UploadFile] = File(...),
-        ):
-            output_files = []
-            file_manager = gradio.File()
-            for input_file in files:
-                output_files.append(
-                    await file_manager.save_uploaded_file(
-                        input_file, app.uploaded_file_dir
-                    )
+        async def upload_file(request: fastapi.Request):
+            content_type_header = request.headers.get("Content-Type")
+            content_type: bytes
+            content_type, _ = parse_options_header(content_type_header)
+            if content_type != b"multipart/form-data":
+                raise HTTPException(status_code=400, detail="Invalid content type.")
+
+            try:
+                multipart_parser = GradioMultiPartParser(
+                    request.headers,
+                    request.stream(),
+                    max_files=1000,
+                    max_fields=1000,
                 )
+                form = await multipart_parser.parse()
+            except MultiPartException as exc:
+                raise HTTPException(status_code=400, detail=exc.message) from exc
+
+            output_files = []
+            for temp_file in form.getlist("files"):
+                assert isinstance(temp_file, GradioUploadFile)
+                if temp_file.filename:
+                    file_name = Path(temp_file.filename).name
+                    name = client_utils.strip_invalid_filename_characters(file_name)
+                else:
+                    name = f"tmp{secrets.token_hex(5)}"
+                directory = Path(app.uploaded_file_dir) / temp_file.sha.hexdigest()
+                directory.mkdir(exist_ok=True, parents=True)
+                dest = (directory / name).resolve()
+                await anyio.to_thread.run_sync(
+                    shutil.move,
+                    temp_file.file.name,
+                    dest,
+                    limiter=app.get_blocks().limiter,
+                )
+                output_files.append(dest)
             return output_files
 
         @app.on_event("startup")
@@ -717,7 +777,6 @@ def mount_gradio_app(
     app: fastapi.FastAPI,
     blocks: gradio.Blocks,
     path: str,
-    gradio_api_url: str | None = None,
     app_kwargs: dict[str, Any] | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
@@ -726,7 +785,6 @@ def mount_gradio_app(
         app: The parent FastAPI application.
         blocks: The blocks object we want to mount to the parent app.
         path: The path at which the gradio application will be mounted.
-        gradio_api_url: Deprecated and has no effect.
         app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
     Example:
         from fastapi import FastAPI
@@ -743,9 +801,6 @@ def mount_gradio_app(
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()
     gradio_app = App.create_app(blocks, app_kwargs=app_kwargs)
-
-    if gradio_api_url is not None:
-        warn_deprecation("gradio_api_url is deprecated and has not effect.")
 
     @app.on_event("startup")
     async def start_queue():

@@ -54,7 +54,8 @@
 			><span>💡</span> <span>Guides</span></a
 		>
 		<a class="thin-link flex items-center gap-3" href="/playground"
-			><span>🎢</span> <span>Playground<sup class="text-orange-500">NEW</sup></span></a
+			><span>🎢</span>
+			<span>Playground<sup class="text-orange-500">NEW</sup></span></a
 		>
 		<div
 			on:mouseenter={() => (show_help_menu = true)}

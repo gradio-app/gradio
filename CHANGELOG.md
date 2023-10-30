@@ -1,36 +1,80 @@
 # gradio
 
-## 3.50.2
-
-### Fixes
-
-- [#6020](https://github.com/gradio-app/gradio/pull/6020) [`77e7843f7`](https://github.com/gradio-app/gradio/commit/77e7843f7a8dd34bf28c2341fe0d47eea17d4066) - Adds Gradio/lite Guide and Playground to the website.  Thanks [@abidlabs](https://github.com/abidlabs)!
-
-## 3.50.1
-
-### Fixes
-
-- [#6005](https://github.com/gradio-app/gradio/pull/6005) [`e0ed0642a`](https://github.com/gradio-app/gradio/commit/e0ed0642ac2cb4f7ce9ee698d082607d9bab3636) - Lite: Error handling after initialization.  Thanks [@whitphx](https://github.com/whitphx)!
-- [#6004](https://github.com/gradio-app/gradio/pull/6004) [`ec26b71df`](https://github.com/gradio-app/gradio/commit/ec26b71dfbc0b89b4554475fe465c2f6974731e2) - Update static/AudioPlayerto use ../shared/Audio instead of the native `<audio>` for Wasm support.  Thanks [@whitphx](https://github.com/whitphx)!
-
-## 3.50.0
+## 4.0.0-beta.14
 
 ### Features
 
-- [#5983](https://github.com/gradio-app/gradio/pull/5983) [`a32aabaf5`](https://github.com/gradio-app/gradio/commit/a32aabaf50b14779dec889cf539d7a3770139bac) - Lite: Show initialization progress messages.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#6082](https://github.com/gradio-app/gradio/pull/6082) [`037e5af33`](https://github.com/gradio-app/gradio/commit/037e5af3363c5b321b95efc955ee8d6ec0f4504e) - WIP: Fix docs.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6071](https://github.com/gradio-app/gradio/pull/6071) [`f08da1a6f`](https://github.com/gradio-app/gradio/commit/f08da1a6f288f6ab8ec40534d5a9e2c64bed4b3b) - Fixes markdown rendering in examples.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#5970](https://github.com/gradio-app/gradio/pull/5970) [`0c571c044`](https://github.com/gradio-app/gradio/commit/0c571c044035989d6fe33fc01fee63d1780635cb) - Add json schema unit tests.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6016](https://github.com/gradio-app/gradio/pull/6016) [`83e947676`](https://github.com/gradio-app/gradio/commit/83e947676d327ca2ab6ae2a2d710c78961c771a0) - Format js in v4 branch.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6093](https://github.com/gradio-app/gradio/pull/6093) [`fadc057bb`](https://github.com/gradio-app/gradio/commit/fadc057bb7016f90dd94049c79fc10d38150c561) - V4: Fix constructor_args.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5966](https://github.com/gradio-app/gradio/pull/5966) [`9cad2127b`](https://github.com/gradio-app/gradio/commit/9cad2127b965023687470b3abfe620e188a9da6e) - Improve Audio Component.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6014](https://github.com/gradio-app/gradio/pull/6014) [`cad537aac`](https://github.com/gradio-app/gradio/commit/cad537aac57998560c9f44a37499be734de66349) - pass props to example components and to example outputs.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5955](https://github.com/gradio-app/gradio/pull/5955) [`825c9cddc`](https://github.com/gradio-app/gradio/commit/825c9cddc83a09457d8c85ebeecb4bc705572d82) - Fix dev mode model3D.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6107](https://github.com/gradio-app/gradio/pull/6107) [`9a40de7bf`](https://github.com/gradio-app/gradio/commit/9a40de7bff5844c8a135e73c7d175eb02b63a966) - Fix: Move to cache in init postprocess + Fallback Fixes.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6018](https://github.com/gradio-app/gradio/pull/6018) [`184834d02`](https://github.com/gradio-app/gradio/commit/184834d02d448bff387eeb3aef64d9517962f146) - Add a cli command to list available templates.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6092](https://github.com/gradio-app/gradio/pull/6092) [`11d67ae75`](https://github.com/gradio-app/gradio/commit/11d67ae7529e0838565e4131b185c413489c5aa6) - Add a stand-alone install command and tidy-up the fallback template.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6026](https://github.com/gradio-app/gradio/pull/6026) [`338969af2`](https://github.com/gradio-app/gradio/commit/338969af290de032f9cdc204dab8a50be3bf3cc5) - V4: Single-file implementation of form components.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6114](https://github.com/gradio-app/gradio/pull/6114) [`39227b6fa`](https://github.com/gradio-app/gradio/commit/39227b6fac274d5f5b301bc14039571c1bfe510c) - Try to trigger a major beta release.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6060](https://github.com/gradio-app/gradio/pull/6060) [`447dfe06b`](https://github.com/gradio-app/gradio/commit/447dfe06bf19324d88696eb646fd1c5f1c4e86ed) - Clean up backend of `File` and `UploadButton` and change the return type of `preprocess()` from TemporaryFIle to string filepath.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6073](https://github.com/gradio-app/gradio/pull/6073) [`abff6fb75`](https://github.com/gradio-app/gradio/commit/abff6fb758bd310053a23c938bf1dd8fbdc5d333) - Fix remaining xfail tests in backend.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6089](https://github.com/gradio-app/gradio/pull/6089) [`cd8146ba0`](https://github.com/gradio-app/gradio/commit/cd8146ba053fbcb56cf5052e658e4570d457fb8a) - Update logos for v4.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#5961](https://github.com/gradio-app/gradio/pull/5961) [`be2ed5e13`](https://github.com/gradio-app/gradio/commit/be2ed5e13222cbe5013b63b36685987518034a76) - File upload optimization.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5968](https://github.com/gradio-app/gradio/pull/5968) [`6b0bb5e6a`](https://github.com/gradio-app/gradio/commit/6b0bb5e6a252ce8c4ef38455a9f56f1dcda56ab0) - Removes deprecated arguments and parameters from v4.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6027](https://github.com/gradio-app/gradio/pull/6027) [`de18102b8`](https://github.com/gradio-app/gradio/commit/de18102b8ca38c1d6d6edfa8c0571b81089166bb) - V4: Fix component update bug.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5996](https://github.com/gradio-app/gradio/pull/5996) [`9cf40f76f`](https://github.com/gradio-app/gradio/commit/9cf40f76fed1c0f84b5a5336a9b0100f8a9b4ee3) - V4: Simple dropdown.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5990](https://github.com/gradio-app/gradio/pull/5990) [`85056de5c`](https://github.com/gradio-app/gradio/commit/85056de5cd4e90a10cbfcefab74037dbc622b26b) - V4: Simple textbox.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6044](https://github.com/gradio-app/gradio/pull/6044) [`9053c95a1`](https://github.com/gradio-app/gradio/commit/9053c95a10de12aef572018ee37c71106d2da675) - Simplify File Component.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6077](https://github.com/gradio-app/gradio/pull/6077) [`35a227fbf`](https://github.com/gradio-app/gradio/commit/35a227fbfb0b0eb11806c0382c5f6910dc9777cf) - Proposal: sample demo for custom components should be a `gr.Interface`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6079](https://github.com/gradio-app/gradio/pull/6079) [`3b2d9eaa3`](https://github.com/gradio-app/gradio/commit/3b2d9eaa3e84de3e4a0799e4585a94510d665f26) - fix cc build.  Thanks [@pngwn](https://github.com/pngwn)!
 
-## 3.49.0
+### Fixes
+
+- [#6067](https://github.com/gradio-app/gradio/pull/6067) [`bf38e5f06`](https://github.com/gradio-app/gradio/commit/bf38e5f06a7039be913614901c308794fea83ae0) - remove dupe component.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#6065](https://github.com/gradio-app/gradio/pull/6065) [`7d07001e8`](https://github.com/gradio-app/gradio/commit/7d07001e8e7ca9cbd2251632667b3a043de49f49) - fix storybook.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5826](https://github.com/gradio-app/gradio/pull/5826) [`ce036c5d4`](https://github.com/gradio-app/gradio/commit/ce036c5d47e741e29812654bcc641ea6be876504) - Pending events behavior.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#6046](https://github.com/gradio-app/gradio/pull/6046) [`dbb7de5e0`](https://github.com/gradio-app/gradio/commit/dbb7de5e02c53fee05889d696d764d212cb96c74) - fix tests.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#6042](https://github.com/gradio-app/gradio/pull/6042) [`e27997fe6`](https://github.com/gradio-app/gradio/commit/e27997fe6c2bcfebc7015fc26100cee9625eb13a) - Fix `root` when user is unauthenticated so that login page appears correctly.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6076](https://github.com/gradio-app/gradio/pull/6076) [`f3f98f923`](https://github.com/gradio-app/gradio/commit/f3f98f923c9db506284b8440e18a3ac7ddd8398b) - Lite error handler.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#5984](https://github.com/gradio-app/gradio/pull/5984) [`66549d8d2`](https://github.com/gradio-app/gradio/commit/66549d8d256b1845c8c5efa0384695b36cb46eab) - Fixes: slider bar are too thin on FireFox.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
+## 3.45.0-beta.13
 
 ### Features
 
-- [#5953](https://github.com/gradio-app/gradio/pull/5953) [`921334526`](https://github.com/gradio-app/gradio/commit/921334526ff1ed0fc75c20db5d43733004c7d6ae) - Lite: Support the custom HTML element syntax `<gradio-lite>`.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#5964](https://github.com/gradio-app/gradio/pull/5964) [`5fbda0bd2`](https://github.com/gradio-app/gradio/commit/5fbda0bd2b2bbb2282249b8875d54acf87cd7e84) - Wasm release.  Thanks [@pngwn](https://github.com/pngwn)!
+
+## 3.45.0-beta.12
+
+### Features
+
+- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`85ba6de13`](https://github.com/gradio-app/gradio/commit/85ba6de136a45b3e92c74e410bb27e3cbe7138d7) - V4: Some misc fixes.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5960](https://github.com/gradio-app/gradio/pull/5960) [`319c30f3f`](https://github.com/gradio-app/gradio/commit/319c30f3fccf23bfe1da6c9b132a6a99d59652f7) - rererefactor frontend files.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`85ba6de13`](https://github.com/gradio-app/gradio/commit/85ba6de136a45b3e92c74e410bb27e3cbe7138d7) - Add host to dev mode for vite.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`d2314e53b`](https://github.com/gradio-app/gradio/commit/d2314e53bc088ff6f307a122a9a01bafcdcff5c2) - BugFix: Make FileExplorer Component Templateable.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`85ba6de13`](https://github.com/gradio-app/gradio/commit/85ba6de136a45b3e92c74e410bb27e3cbe7138d7) - Use tags to identify custom component dirs and ignore uninstalled components.  Thanks [@pngwn](https://github.com/pngwn)!
 - [#5956](https://github.com/gradio-app/gradio/pull/5956) [`f769876e0`](https://github.com/gradio-app/gradio/commit/f769876e0fa62336425c4e8ada5e09f38353ff01) - Apply formatter (and small refactoring) to the Lite-related frontend code.  Thanks [@whitphx](https://github.com/whitphx)!
-- [#5972](https://github.com/gradio-app/gradio/pull/5972) [`11a300791`](https://github.com/gradio-app/gradio/commit/11a3007916071f0791844b0a37f0fb4cec69cea3) - Lite: Support opening the entrypoint HTML page directly in browser via the `file:` protocol.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#5938](https://github.com/gradio-app/gradio/pull/5938) [`13ed8a485`](https://github.com/gradio-app/gradio/commit/13ed8a485d5e31d7d75af87fe8654b661edcca93) - V4: Use beta release versions for '@gradio' packages.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`85ba6de13`](https://github.com/gradio-app/gradio/commit/85ba6de136a45b3e92c74e410bb27e3cbe7138d7) - Adds the ability to build the frontend and backend of custom components in preparation for publishing to pypi using `gradio_component build`.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`85ba6de13`](https://github.com/gradio-app/gradio/commit/85ba6de136a45b3e92c74e410bb27e3cbe7138d7) - Fix deployed demos on v4 branch.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`85ba6de13`](https://github.com/gradio-app/gradio/commit/85ba6de136a45b3e92c74e410bb27e3cbe7138d7) - Set api=False for cancel events.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`85ba6de13`](https://github.com/gradio-app/gradio/commit/85ba6de136a45b3e92c74e410bb27e3cbe7138d7) - Use full path to executables in CLI.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5949](https://github.com/gradio-app/gradio/pull/5949) [`1c390f101`](https://github.com/gradio-app/gradio/commit/1c390f10199142a41722ba493a0c86b58245da15) - Merge main again.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`85ba6de13`](https://github.com/gradio-app/gradio/commit/85ba6de136a45b3e92c74e410bb27e3cbe7138d7) - Simplify how files are handled in components in 4.0.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`85ba6de13`](https://github.com/gradio-app/gradio/commit/85ba6de136a45b3e92c74e410bb27e3cbe7138d7) - Name Endpoints if api_name is None.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5937](https://github.com/gradio-app/gradio/pull/5937) [`dcf13d750`](https://github.com/gradio-app/gradio/commit/dcf13d750b1465f905e062a1368ba754446cc23f) - V4: Update Component pyi file.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`85ba6de13`](https://github.com/gradio-app/gradio/commit/85ba6de136a45b3e92c74e410bb27e3cbe7138d7) - Rename gradio_component to gradio component.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`85ba6de13`](https://github.com/gradio-app/gradio/commit/85ba6de136a45b3e92c74e410bb27e3cbe7138d7) - V4: Use async version of shutil in upload route.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`85ba6de13`](https://github.com/gradio-app/gradio/commit/85ba6de136a45b3e92c74e410bb27e3cbe7138d7) - V4: Set cache dir for some component tests.  Thanks [@pngwn](https://github.com/pngwn)!
 - [#5894](https://github.com/gradio-app/gradio/pull/5894) [`fee3d527e`](https://github.com/gradio-app/gradio/commit/fee3d527e83a615109cf937f6ca0a37662af2bb6) - Adds `column_widths` to `gr.Dataframe` and hide overflowing text when `wrap=False`.  Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ### Fixes
 
+- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`85ba6de13`](https://github.com/gradio-app/gradio/commit/85ba6de136a45b3e92c74e410bb27e3cbe7138d7) - Better logs in dev mode.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5946](https://github.com/gradio-app/gradio/pull/5946) [`d0cc6b136`](https://github.com/gradio-app/gradio/commit/d0cc6b136fd59121f74d0c5a1a4b51740ffaa838) - fixup.  Thanks [@pngwn](https://github.com/pngwn)!
 - [#5944](https://github.com/gradio-app/gradio/pull/5944) [`465f58957`](https://github.com/gradio-app/gradio/commit/465f58957f70c7cf3e894beef8a117b28339e3c1) - Show empty JSON icon when `value` is `null`.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`85ba6de13`](https://github.com/gradio-app/gradio/commit/85ba6de136a45b3e92c74e410bb27e3cbe7138d7) - Reinstate types that were removed in error in #5832.  Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 3.48.0
 

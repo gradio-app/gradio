@@ -1,11 +1,20 @@
 # @gradio/statustracker
 
-## 0.2.4
+## 0.3.0-beta.7
 
 ### Patch Changes
 
-- Updated dependencies [[`465f58957`](https://github.com/gradio-app/gradio/commit/465f58957f70c7cf3e894beef8a117b28339e3c1)]:
-  - @gradio/atoms@0.2.1
+- Updated dependencies [[`83e947676`](https://github.com/gradio-app/gradio/commit/83e947676d327ca2ab6ae2a2d710c78961c771a0), [`9cad2127b`](https://github.com/gradio-app/gradio/commit/9cad2127b965023687470b3abfe620e188a9da6e), [`dbb7de5e0`](https://github.com/gradio-app/gradio/commit/dbb7de5e02c53fee05889d696d764d212cb96c74)]:
+  - @gradio/column@0.1.0-beta.3
+  - @gradio/icons@0.2.0-beta.2
+  - @gradio/utils@0.2.0-beta.5
+  - @gradio/atoms@0.2.0-beta.5
+
+## 0.3.0-beta.6
+
+### Features
+
+- [#5938](https://github.com/gradio-app/gradio/pull/5938) [`13ed8a485`](https://github.com/gradio-app/gradio/commit/13ed8a485d5e31d7d75af87fe8654b661edcca93) - V4: Use beta release versions for '@gradio' packages. Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
 
 ## 0.2.3
 

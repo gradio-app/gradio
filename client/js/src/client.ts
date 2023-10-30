@@ -22,9 +22,10 @@ import type {
 	UploadResponse,
 	Status,
 	SpaceStatus,
-	SpaceStatusCallback,
-	FileData
+	SpaceStatusCallback
 } from "./types.js";
+
+import { FileData, normalise_file } from "@gradio/upload/utils";
 
 import type { Config } from "./types.js";
 
@@ -251,7 +252,6 @@ export function api_factory(
 				submit,
 				view_api,
 				component_server
-				// duplicate
 			};
 
 			const transform_files = normalise_files ?? true;
@@ -432,11 +432,9 @@ export function api_factory(
 				let payload: Payload;
 				let complete: false | Record<string, any> = false;
 				const listener_map: ListenerMap<EventType> = {};
-				let url_params = ""
-				if (typeof(window) !== "undefined") {
-					url_params = new URLSearchParams(
-						window.location.search
-					).toString();
+				let url_params = "";
+				if (typeof window !== "undefined") {
+					url_params = new URLSearchParams(window.location.search).toString();
 				}
 
 				handle_blob(
@@ -845,28 +843,21 @@ export function api_factory(
 		);
 
 		return Promise.all(
-			blob_refs.map(async ({ path, blob, data, type }) => {
+			blob_refs.map(async ({ path, blob, type }) => {
 				if (blob) {
 					const file_url = (await upload_files(endpoint, [blob], token))
 						.files[0];
-					return { path, file_url, type };
+					return { path, file_url, type, name: blob?.name };
 				}
-				return { path, base64: data, type };
+				return { path, type };
 			})
 		).then((r) => {
-			r.forEach(({ path, file_url, base64, type }) => {
-				if (base64) {
-					update_object(data, base64, path);
-				} else if (type === "Gallery") {
+			r.forEach(({ path, file_url, type, name }) => {
+				if (type === "Gallery") {
 					update_object(data, file_url, path);
 				} else if (file_url) {
-					const o = {
-						is_file: true,
-						name: `${file_url}`,
-						data: null
-						// orig_name: "file.csv"
-					};
-					update_object(data, o, path);
+					const file = new FileData({ path: file_url, orig_name: name });
+					update_object(data, file, path);
 				}
 			});
 
@@ -895,55 +886,11 @@ function transform_output(
 					? [normalise_file(img[0], root_url, remote_url), img[1]]
 					: [normalise_file(img, root_url, remote_url), null];
 			});
-		} else if (typeof d === "object" && d?.is_file) {
+		} else if (typeof d === "object" && d.path) {
 			return normalise_file(d, root_url, remote_url);
 		}
 		return d;
 	});
-}
-
-function normalise_file(
-	file: FileData[],
-	root: string,
-	root_url: string | null
-): FileData[];
-function normalise_file(
-	file: FileData | string,
-	root: string,
-	root_url: string | null
-): FileData;
-function normalise_file(
-	file: null,
-	root: string,
-	root_url: string | null
-): null;
-function normalise_file(file, root, root_url): FileData[] | FileData | null {
-	if (file == null) return null;
-	if (typeof file === "string") {
-		return {
-			name: "file_data",
-			data: file
-		};
-	} else if (Array.isArray(file)) {
-		const normalized_file: (FileData | null)[] = [];
-
-		for (const x of file) {
-			if (x === null) {
-				normalized_file.push(null);
-			} else {
-				normalized_file.push(normalise_file(x, root, root_url));
-			}
-		}
-
-		return normalized_file as FileData[];
-	} else if (file.is_file) {
-		if (!root_url) {
-			file.data = root + "/file=" + file.name;
-		} else {
-			file.data = "/proxy=" + root_url + "file=" + file.name;
-		}
-	}
-	return file;
 }
 
 interface ApiData {
@@ -1112,7 +1059,6 @@ export async function walk_and_store_blobs(
 ): Promise<
 	{
 		path: string[];
-		data: string | false;
 		type: string;
 		blob: Blob | false;
 	}[]
@@ -1144,28 +1090,9 @@ export async function walk_and_store_blobs(
 			{
 				path: path,
 				blob: is_image ? false : new NodeBlob([param]),
-				data: is_image ? `${param.toString("base64")}` : false,
 				type
 			}
 		];
-	} else if (
-		param instanceof Blob ||
-		(typeof window !== "undefined" && param instanceof File)
-	) {
-		if (type === "Image") {
-			let data;
-
-			if (typeof window !== "undefined") {
-				// browser
-				data = await image_to_data_uri(param);
-			} else {
-				const buffer = await param.arrayBuffer();
-				data = Buffer.from(buffer).toString("base64");
-			}
-
-			return [{ path, data, type, blob: false }];
-		}
-		return [{ path: path, blob: param, type, data: false }];
 	} else if (typeof param === "object") {
 		let blob_refs = [];
 		for (let key in param) {
