@@ -25,7 +25,7 @@
 					class:selectable
 					on:click={() =>
 						dispatch("select", {
-							value: file.orig_name || file.name,
+							value: file.orig_name,
 							index: i
 						})}
 				>
@@ -34,13 +34,11 @@
 					</td>
 
 					<td class="download">
-						{#if file.data}
+						{#if file.url}
 							<a
-								href={file.data}
+								href={file.url}
 								target="_blank"
-								download={window.__is_colab__
-									? null
-									: file.orig_name || file.name}
+								download={window.__is_colab__ ? null : file.orig_name}
 							>
 								{@html display_file_size(file)}&nbsp;&#8675;
 							</a>

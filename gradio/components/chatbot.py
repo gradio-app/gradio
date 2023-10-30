@@ -145,9 +145,9 @@ class Chatbot(Component):
             return None
         elif isinstance(chat_message, dict):
             if chat_message.get("alt_text"):
-                return (chat_message["file"]["name"], chat_message["alt_text"])
+                return (chat_message["file"]["path"], chat_message["alt_text"])
             else:
-                return (chat_message["file"]["name"],)
+                return (chat_message["file"]["path"],)
         else:  # string
             return chat_message
 
@@ -185,7 +185,7 @@ class Chatbot(Component):
 
             mime_type = client_utils.get_mimetype(filepath)
             return FileMessage(
-                file=FileData(name=filepath, is_file=True, mime_type=mime_type),
+                file=FileData(path=filepath, mime_type=mime_type),
                 alt_text=chat_message[1] if len(chat_message) > 1 else None,
             )
         elif isinstance(chat_message, str):

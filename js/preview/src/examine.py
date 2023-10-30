@@ -10,7 +10,6 @@ from gradio.blocks import BlockContext
 from gradio.components import Component
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(description="Description of your program")
     parser.add_argument("-m", "--mode", help="Build mode or dev mode")
     args = parser.parse_args()
@@ -21,12 +20,11 @@ if __name__ == "__main__":
     pyproject_toml = parse(pyproject_source)
     if "gradio custom component" not in pyproject_toml["project"]["keywords"]:
         exit(0)
-    
+
     module_name = pyproject_toml["project"]["name"]
     module = importlib.import_module(module_name)
 
     artifacts: list[str] = pyproject_toml["tool"]["hatch"]["build"]["artifacts"]
-
 
     def get_relative_path(path):
         return (
@@ -34,7 +32,6 @@ if __name__ == "__main__":
             .replace(os.path.abspath(os.getcwd()), "")
             .lstrip("/")
         )
-
 
     for name in dir(module):
         value = getattr(module, name)
