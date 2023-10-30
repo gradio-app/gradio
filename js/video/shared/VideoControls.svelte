@@ -148,7 +148,7 @@
 		display: grid;
 		grid-template-columns: 1fr 1fr;
 		margin: var(--spacing-lg);
-		overflow: scroll;
+		overflow: hidden;
 		text-align: left;
 	}
 
