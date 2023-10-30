@@ -2,7 +2,6 @@
 	import { Undo, Trim } from "@gradio/icons";
 	import VideoTimeline from "./VideoTimeline.svelte";
 	import { trimVideo } from "./utils";
-	import type { FileData } from "@gradio/client";
 
 	export let videoElement: HTMLVideoElement;
 
@@ -26,6 +25,8 @@
 	let dragStart = 0;
 	let dragEnd = 0;
 
+	let loading = false;
+
 	const toggleTrimmingMode = (): void => {
 		if (mode === "edit") {
 			mode = "";
@@ -36,67 +37,78 @@
 	};
 </script>
 
-{#if mode === "edit"}
-	<div class="timeline-wrapper">
-		<VideoTimeline
-			{videoElement}
-			bind:dragStart
-			bind:dragEnd
-			bind:trimmedDuration
-		/>
-	</div>
-{/if}
-<div class="controls" data-testid="waveform-controls">
-	{#if mode === "edit" && trimmedDuration !== null}
-		<time>{formatTime(trimmedDuration)}</time>
-	{:else}
-		<div />
+<div class="container">
+	{#if mode === "edit"}
+		<div class="timeline-wrapper">
+			<VideoTimeline
+				{videoElement}
+				bind:dragStart
+				bind:dragEnd
+				bind:trimmedDuration
+			/>
+		</div>
 	{/if}
 
-	<div class="play-pause-wrapper" />
-
-	<div class="settings-wrapper">
-		{#if showRedo && mode === ""}
-			<button
-				class="action icon"
-				aria-label="Reset audio"
-				on:click={() => {
-					handle_reset_value();
-					mode = "";
-				}}
-			>
-				<Undo />
-			</button>
+	<div class="controls" data-testid="waveform-controls">
+		{#if mode === "edit" && trimmedDuration !== null}
+			<time>{formatTime(trimmedDuration)}</time>
+		{:else}
+			<div />
 		{/if}
 
-		{#if interactive}
-			{#if mode === ""}
+		<div class="settings-wrapper">
+			{#if showRedo && mode === ""}
 				<button
 					class="action icon"
-					aria-label="Trim audio to selection"
-					on:click={toggleTrimmingMode}
-				>
-					<Trim />
-				</button>
-			{:else}
-				<button
-					class="text-button"
+					disabled={loading}
+					aria-label="Reset video to initial value"
 					on:click={() => {
-						// set to loading state
+						handle_reset_value();
 						mode = "";
-						trimVideo(dragStart, dragEnd, videoElement).then((videoBlob) => {
-							handle_trim_video(videoBlob);
-						});
-					}}>Trim</button
+					}}
 				>
-				<button class="text-button" on:click={toggleTrimmingMode}>Cancel</button
-				>
+					<Undo />
+				</button>
 			{/if}
-		{/if}
+
+			{#if interactive}
+				{#if mode === ""}
+					<button
+						disabled={loading}
+						class="action icon"
+						aria-label="Trim video to selection"
+						on:click={toggleTrimmingMode}
+					>
+						<Trim />
+					</button>
+				{:else}
+					<button
+						class="text-button"
+						on:click={() => {
+							mode = "";
+							loading = true;
+							trimVideo(dragStart, dragEnd, videoElement)
+								.then((videoBlob) => {
+									handle_trim_video(videoBlob);
+								})
+								.then(() => {
+									loading = false;
+								});
+						}}>Trim</button
+					>
+					<button class="text-button" on:click={toggleTrimmingMode}
+						>Cancel</button
+					>
+				{/if}
+			{/if}
+		</div>
 	</div>
 </div>
 
 <style>
+	.container {
+		width: 100%;
+	}
 	time {
 		color: var(--color-accent);
 		font-weight: bold;
@@ -134,7 +146,7 @@
 
 	.controls {
 		display: grid;
-		grid-template-columns: 1fr 1fr 1fr;
+		grid-template-columns: 1fr 1fr;
 		margin: var(--spacing-lg);
 		overflow: scroll;
 		text-align: left;
@@ -160,8 +172,23 @@
 		color: var(--neutral-400);
 		margin-left: var(--spacing-md);
 	}
+
+	.action:disabled {
+		cursor: not-allowed;
+		color: var(--border-color-accent-subdued);
+	}
+
+	.action:disabled:hover {
+		color: var(--border-color-accent-subdued);
+	}
+
 	.icon:hover,
 	.icon:focus {
 		color: var(--color-accent);
+	}
+
+	.container {
+		display: flex;
+		flex-direction: column;
 	}
 </style>

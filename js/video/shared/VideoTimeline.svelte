@@ -150,7 +150,11 @@
 </script>
 
 <div class="container">
-	{#if thumbnails.length === numberOfThumbnails}
+	{#if thumbnails.length !== numberOfThumbnails}
+		<div class="load-wrap">
+			<span aria-label="loading timeline" class="loader" />
+		</div>
+	{:else}
 		<div id="timeline" class="thumbnail-wrapper">
 			<button
 				class="handle left"
@@ -188,6 +192,41 @@
 </div>
 
 <style>
+	.load-wrap {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 100%;
+	}
+	.loader {
+		display: flex;
+		position: relative;
+		background-color: var(--border-color-accent-subdued);
+		animation: shadowPulse 2s linear infinite;
+		box-shadow: -24px 0 var(--border-color-accent-subdued),
+			24px 0 var(--border-color-accent-subdued);
+		margin: var(--spacing-md);
+		border-radius: 50%;
+		width: 10px;
+		height: 10px;
+		scale: 0.5;
+	}
+
+	@keyframes shadowPulse {
+		33% {
+			box-shadow: -24px 0 var(--border-color-accent-subdued), 24px 0 #fff;
+			background: #fff;
+		}
+		66% {
+			box-shadow: -24px 0 #fff, 24px 0 #fff;
+			background: var(--border-color-accent-subdued);
+		}
+		100% {
+			box-shadow: -24px 0 #fff, 24px 0 var(--border-color-accent-subdued);
+			background: #fff;
+		}
+	}
+
 	.container {
 		display: flex;
 		flex-direction: column;
