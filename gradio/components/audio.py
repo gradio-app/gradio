@@ -80,7 +80,6 @@ class Audio(
         autoplay: bool = False,
         show_download_button=True,
         show_share_button: bool | None = None,
-        show_edit_button: bool | None = True,
         min_length: int | None = None,
         max_length: int | None = None,
         waveform_options: WaveformOptions | None = None,
@@ -107,7 +106,6 @@ class Audio(
             autoplay: Whether to automatically play the audio when the component is used as an output. Note: browsers will not autoplay audio files if the user has not interacted with the page yet.
             show_download_button: If True, will show a download button in the corner of the component for saving audio. If False, icon does not appear.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
-            show_edit_button: If True, will show an edit icon in the corner of the component that allows user to edit the audio. If False, icon does not appear. Default is True.
             min_length: The minimum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
             max_length: The maximum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
             waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), show_controls (bool), skip_length (int). Default is None, which uses the default values for these options.
@@ -146,7 +144,6 @@ class Audio(
             else show_share_button
         )
         self.waveform_options = waveform_options
-        self.show_edit_button = show_edit_button
         self.min_length = min_length
         self.max_length = max_length
         super().__init__(
