@@ -1644,7 +1644,7 @@ Received outputs:
         self,
         inline: bool | None = None,
         inbrowser: bool = False,
-        share: bool = False,
+        share: bool | None = None,
         debug: bool = False,
         max_threads: int = 40,
         auth: Callable | tuple[str, str] | list[tuple[str, str]] | None = None,
@@ -1679,7 +1679,7 @@ Received outputs:
         Parameters:
             inline: whether to display in the interface inline in an iframe. Defaults to True in python notebooks; False otherwise.
             inbrowser: whether to automatically launch the interface in a new tab on the default browser.
-            share: whether to create a publicly shareable link for the interface. Creates an SSH tunnel to make your UI accessible from anywhere. If not provided, it is set to False by default. When localhost is not accessible, setting share=False is not supported.
+            share: whether to create a publicly shareable link for the interface. Creates an SSH tunnel to make your UI accessible from anywhere. If not provided, it is set to False by default every time, except when running in Google Colab. When localhost is not accessible (e.g. Google Colab), setting share=False is not supported.
             debug: if True, blocks the main thread from running. If running in Google Colab, this is needed to print the errors in the cell output.
             auth: If provided, username and password (or list of username-password tuples) required to access interface. Can also provide function that takes username and password and returns True if valid login.
             auth_message: If provided, HTML message provided on login page.
@@ -1849,7 +1849,29 @@ Received outputs:
 
         utils.launch_counter()
         self.is_sagemaker = utils.sagemaker_check()
-        self.share = share
+        if share is None:
+            if self.is_colab:
+                if not quiet:
+                    print(
+                        "Setting queue=True in a Colab notebook requires sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                    )
+                self.share = True
+            elif self.is_kaggle:
+                if not quiet:
+                    print(
+                        "Kaggle notebooks require sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                    )
+                self.share = True
+            elif self.is_sagemaker:
+                if not quiet:
+                    print(
+                        "Sagemaker notebooks may require sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                    )
+                self.share = True
+            else:
+                self.share = False
+        else:
+            self.share = share
 
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.
