@@ -48,7 +48,6 @@ demo = gr.Interface(
         [os.path.join(os.path.dirname(__file__),"audio/recording1.wav")],
         [os.path.join(os.path.dirname(__file__),"audio/cantina.wav")],
     ],
-    interpretation="default",
 )
 
 if __name__ == "__main__":
