@@ -20,6 +20,7 @@ import numpy as np
 import PIL
 import PIL.Image
 from gradio_client import utils as client_utils
+from gradio_client.client import DEFAULT_TEMP_DIR
 from gradio_client.documentation import document, set_documentation_group
 from matplotlib import animation
 
@@ -33,7 +34,7 @@ from gradio.flagging import CSVLogger
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio.components import Component
 
-CACHED_FOLDER = "gradio_cached_examples"
+CACHED_FOLDER = Path(DEFAULT_TEMP_DIR) / "cached_examples"
 LOG_FILE = "log.csv"
 
 set_documentation_group("helpers")

@@ -32,6 +32,7 @@ from huggingface_hub.utils import (
 from packaging import version
 
 from gradio_client import serializing, utils
+from gradio_client.client import DEFAULT_TEMP_DIR
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.exceptions import SerializationSetupError
 from gradio_client.utils import (
@@ -44,9 +45,6 @@ from gradio_client.utils import (
 set_documentation_group("py-client")
 
 
-DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
-    Path(tempfile.gettempdir()) / "gradio"
-)
 
 
 @document("predict", "submit", "view_api", "duplicate", "deploy_discord")
