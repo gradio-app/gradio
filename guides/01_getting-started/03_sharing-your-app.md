@@ -264,17 +264,13 @@ Note that this approach also allows you run your Gradio apps on custom paths (`h
 
 Sharing your Gradio app with others (by hosting it on Spaces, on your own server, or through temporary share links) **exposes** certain files on the host machine to users of your Gradio app.
 
-In particular, Gradio apps ALLOW users to access to three kinds of files:
+In particular, Gradio apps ALLOW users to access to two kinds of files:
 
-- **Files in the same directory (or a subdirectory) of where the Gradio script is launched from.** For example, if the path to your gradio scripts is `/home/usr/scripts/project/app.py` and you launch it from `/home/usr/scripts/project/`, then users of your shared Gradio app will be able to access any files inside `/home/usr/scripts/project/`. This is done so that you can easily reference these files in your Gradio app (e.g. for your app's `examples`).
-
-- **Temporary files created by Gradio.** These are files that are created by Gradio as part of running your prediction function. For example, if your prediction function returns a video file, then Gradio will save that video to a temporary file and then send the path to the temporary file to the front end. You can customize the location of temporary files created by Gradio by setting the environment variable `GRADIO_TEMP_DIR` to an absolute path, such as `/home/usr/scripts/project/temp/`.
+- **Cached files created by Gradio.** These are files that are created by Gradio as part of running your prediction function. For example, if your prediction function returns a video file, then Gradio will save that video to a cache on your device and then send the path to the file to the front end. You can customize the location of cache files created by Gradio by setting the environment variable `GRADIO_TEMP_DIR` to an absolute path, such as `/home/usr/scripts/project/temp/`.
 
 - **Files that you explicitly allow via the `allowed_paths` parameter in `launch()`**. This parameter allows you to pass in a list of additional directories or exact filepaths you'd like to allow users to have access to. (By default, this parameter is an empty list).
 
 Gradio DOES NOT ALLOW access to:
-
-- **Dotfiles** (any files whose name begins with `'.'`) or any files that are contained in any directory whose name begins with `'.'`
 
 - **Files that you explicitly block via the `blocked_paths` parameter in `launch()`**. You can pass in a list of additional directories or exact filepaths to the `blocked_paths` parameter in `launch()`. This parameter takes precedence over the files that Gradio exposes by default or by the `allowed_paths`.
 
