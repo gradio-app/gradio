@@ -10,6 +10,7 @@ from typing import Any, Callable, Literal, Optional
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
+import gradio as gr
 from gradio import processing_utils, utils, wasm_utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel
@@ -177,11 +178,11 @@ class Video(Component):
         duration = processing_utils.get_video_length(file_name)
 
         if self.min_length is not None and duration < self.min_length:
-            raise ValueError(
+            raise gr.Error(
                 f"Video is too short, and must be at least {self.min_length} seconds"
             )
         if self.max_length is not None and duration > self.max_length:
-            raise ValueError(
+            raise gr.Error(
                 f"Video is too long, and must be at most {self.max_length} seconds"
             )
         if needs_formatting or flip:

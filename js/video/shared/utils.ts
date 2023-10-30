@@ -73,7 +73,7 @@ export async function trimVideo(
 		const blobUrl = await toBlobURL(videoUrl, mimeType);
 		const response = await fetch(blobUrl);
 		const vidBlob = await response.blob();
-		const type = mimeType.split("/")[1] || "mp4";
+		const type = getVideoExtensionFromMimeType(mimeType) || "mp4";
 		const inputName = `input.${type}`;
 		const outputName = `output.${type}`;
 
@@ -89,6 +89,8 @@ export async function trimVideo(
 			startTime.toString(),
 			"-to",
 			endTime.toString(),
+			"-c:v",
+			"copy",
 			"-c:a",
 			"copy",
 			outputName
@@ -105,3 +107,40 @@ export async function trimVideo(
 		console.error("Error initializing FFmpeg:", error);
 	}
 }
+
+const getVideoExtensionFromMimeType = (mimeType: string): string | null => {
+	const videoMimeToExtensionMap: { [key: string]: string } = {
+		"video/mp4": "mp4",
+		"video/webm": "webm",
+		"video/ogg": "ogv",
+		"video/quicktime": "mov",
+		"video/x-msvideo": "avi",
+		"video/x-matroska": "mkv",
+		"video/mpeg": "mpeg",
+		"video/3gpp": "3gp",
+		"video/3gpp2": "3g2",
+		"video/h261": "h261",
+		"video/h263": "h263",
+		"video/h264": "h264",
+		"video/jpeg": "jpgv",
+		"video/jpm": "jpm",
+		"video/mj2": "mj2",
+		"video/mpv": "mpv",
+		"video/vnd.ms-playready.media.pyv": "pyv",
+		"video/vnd.uvvu.mp4": "uvu",
+		"video/vnd.vivo": "viv",
+		"video/x-f4v": "f4v",
+		"video/x-fli": "fli",
+		"video/x-flv": "flv",
+		"video/x-m4v": "m4v",
+		"video/x-ms-asf": "asf",
+		"video/x-ms-wm": "wm",
+		"video/x-ms-wmv": "wmv",
+		"video/x-ms-wmx": "wmx",
+		"video/x-ms-wvx": "wvx",
+		"video/x-sgi-movie": "movie",
+		"video/x-smv": "smv"
+	};
+
+	return videoMimeToExtensionMap[mimeType] || null;
+};
