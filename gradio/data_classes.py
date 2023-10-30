@@ -9,12 +9,16 @@ from abc import ABC, abstractmethod
 from enum import Enum, auto
 from typing import Any, List, Optional, Union
 
+from fastapi import Request
 from gradio_client.utils import traverse
 from pydantic import BaseModel, RootModel, ValidationError
 from typing_extensions import Literal
 
 
 class PredictBody(BaseModel):
+    class Config:
+        arbitrary_types_allowed = True
+
     session_hash: Optional[str] = None
     event_id: Optional[str] = None
     data: List[Any]
@@ -24,13 +28,12 @@ class PredictBody(BaseModel):
         bool
     ] = False  # Whether the data is a batch of samples (i.e. called from the queue if batch=True) or a single sample (i.e. called from the UI)
     request: Optional[
-        Union[dict, List[dict]]
+        Request
     ] = None  # dictionary of request headers, query parameters, url, etc. (used to to pass in request for queuing)
 
 
 class ResetBody(BaseModel):
-    session_hash: str
-    fn_index: int
+    event_id: str
 
 
 class ComponentServerBody(BaseModel):
@@ -48,7 +51,6 @@ class InterfaceTypes(Enum):
 
 
 class Estimation(BaseModel):
-    msg: Optional[str] = "estimation"
     rank: Optional[int] = None
     queue_size: int
     avg_event_process_time: Optional[float] = None
@@ -66,12 +68,10 @@ class ProgressUnit(BaseModel):
 
 
 class Progress(BaseModel):
-    msg: str = "progress"
     progress_data: List[ProgressUnit] = []
 
 
 class LogMessage(BaseModel):
-    msg: str = "log"
     log: str
     level: Literal["info", "warning"]
 

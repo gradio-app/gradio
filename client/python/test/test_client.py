@@ -69,7 +69,7 @@ class TestClientPredictions:
 
     @pytest.mark.flaky
     def test_numerical_to_label_space_v4(self):
-        client = Client("gradio-tests/titanic-survival-v4")
+        client = Client("gradio-tests/titanic-survivalv4-sse")
         label = client.predict("male", 77, 10, api_name="/predict")
         assert label["label"] == "Perishes"
 
@@ -81,7 +81,9 @@ class TestClientPredictions:
 
     @pytest.mark.flaky
     def test_private_space_v4(self):
-        client = Client("gradio-tests/not-actually-private-space-v4", hf_token=HF_TOKEN)
+        client = Client(
+            "gradio-tests/not-actually-private-spacev4-sse", hf_token=HF_TOKEN
+        )
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
 
@@ -120,18 +122,6 @@ class TestClientPredictions:
             assert sorted([s.code for s in statuses if s]) == [
                 s.code for s in statuses if s
             ]
-
-    @pytest.mark.flaky
-    def test_job_status_queue_disabled(self, sentiment_classification_demo):
-        with connect(sentiment_classification_demo) as client:
-            statuses = []
-            job = client.submit("I love the gradio python client", api_name="/classify")
-            while not job.done():
-                time.sleep(0.02)
-                statuses.append(job.status())
-            statuses.append(job.status())
-            assert all(s.code in [Status.PROCESSING, Status.FINISHED] for s in statuses)
-            assert not any(s.progress_data for s in statuses)
 
     @pytest.mark.flaky
     def test_intermediate_outputs(self, count_generator_demo):
@@ -282,10 +272,12 @@ class TestClientPredictions:
             time.sleep(3)
             job1.cancel()
 
+            assert len(job1.outputs()) > 0
             assert len(job1.outputs()) < len("abcdefefadsadfs")
             assert job1.status().code == Status.CANCELLED
 
             job2 = client.submit("abcd", api_name="/predict")
+            assert len(job2.outputs()) == 0
             while not job2.done():
                 time.sleep(0.1)
             # Ran all iterations from scratch
@@ -311,7 +303,7 @@ class TestClientPredictions:
     @pytest.mark.xfail
     def test_upload_file_private_space_v4(self):
         client = Client(
-            src="gradio-tests/not-actually-private-file-upload-v4", hf_token=HF_TOKEN
+            src="gradio-tests/not-actually-private-file-uploadv4-sse", hf_token=HF_TOKEN
         )
 
         with patch.object(
@@ -1059,7 +1051,7 @@ class TestEndpoints:
 
     def test_upload_v4(self):
         client = Client(
-            src="gradio-tests/not-actually-private-file-upload-v4", hf_token=HF_TOKEN
+            src="gradio-tests/not-actually-private-file-uploadv4-sse", hf_token=HF_TOKEN
         )
         response = MagicMock(status_code=200)
         response.json.return_value = [

@@ -8,8 +8,9 @@ import time
 from pathlib import Path
 from unittest.mock import patch
 
+import httpx
 import pytest
-import websockets
+import requests
 from gradio_client import media_data, utils
 from pydub import AudioSegment
 from starlette.testclient import TestClient
@@ -660,22 +661,35 @@ class TestProgressBar:
             button.click(greet, name, greeting)
         demo.queue(max_size=1).launch(prevent_thread_lock=True)
 
-        async with websockets.connect(
-            f"{demo.local_url.replace('http', 'ws')}queue/join"
-        ) as ws:
-            completed = False
-            progress_updates = []
-            while not completed:
-                msg = json.loads(await ws.recv())
-                if msg["msg"] == "send_data":
-                    await ws.send(json.dumps({"data": [0], "fn_index": 0}))
-                if msg["msg"] == "send_hash":
-                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
-                if msg["msg"] == "progress":
-                    progress_updates.append(msg["progress_data"])
-                if msg["msg"] == "process_completed":
-                    completed = True
-                    break
+        progress_updates = []
+        async with httpx.AsyncClient() as client:
+            async with client.stream(
+                "GET",
+                f"http://localhost:{demo.server_port}/queue/join",
+                params={"fn_index": 0, "session_hash": "shdce"},
+            ) as response:
+                async for line in response.aiter_text():
+                    if line.startswith("data:"):
+                        msg = json.loads(line[5:])
+                    if msg["msg"] == "send_data":
+                        event_id = msg["event_id"]
+                        req = requests.post(
+                            f"http://localhost:{demo.server_port}/queue/data",
+                            json={
+                                "event_id": event_id,
+                                "data": [0],
+                                "fn_index": 0,
+                            },
+                        )
+                        if not req.ok:
+                            raise ValueError(
+                                f"Could not send payload to endpoint: {req.text}"
+                            )
+                    if msg["msg"] == "progress":
+                        progress_updates.append(msg["progress_data"])
+                    if msg["msg"] == "process_completed":
+                        break
+
         assert progress_updates == [
             [
                 {
@@ -713,24 +727,35 @@ class TestProgressBar:
             button.click(greet, name, greeting)
         demo.queue(max_size=1).launch(prevent_thread_lock=True)
 
-        async with websockets.connect(
-            f"{demo.local_url.replace('http', 'ws')}queue/join"
-        ) as ws:
-            completed = False
-            progress_updates = []
-            while not completed:
-                msg = json.loads(await ws.recv())
-                if msg["msg"] == "send_data":
-                    await ws.send(json.dumps({"data": [0], "fn_index": 0}))
-                if msg["msg"] == "send_hash":
-                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
-                if (
-                    msg["msg"] == "progress" and msg["progress_data"]
-                ):  # Ignore empty lists which sometimes appear on Windows
-                    progress_updates.append(msg["progress_data"])
-                if msg["msg"] == "process_completed":
-                    completed = True
-                    break
+        progress_updates = []
+        async with httpx.AsyncClient() as client:
+            async with client.stream(
+                "GET",
+                f"http://localhost:{demo.server_port}/queue/join",
+                params={"fn_index": 0, "session_hash": "shdce"},
+            ) as response:
+                async for line in response.aiter_text():
+                    if line.startswith("data:"):
+                        msg = json.loads(line[5:])
+                    if msg["msg"] == "send_data":
+                        event_id = msg["event_id"]
+                        req = requests.post(
+                            f"http://localhost:{demo.server_port}/queue/data",
+                            json={
+                                "event_id": event_id,
+                                "data": [0],
+                                "fn_index": 0,
+                            },
+                        )
+                        if not req.ok:
+                            raise ValueError(
+                                f"Could not send payload to endpoint: {req.text}"
+                            )
+                    if msg["msg"] == "progress":
+                        progress_updates.append(msg["progress_data"])
+                    if msg["msg"] == "process_completed":
+                        break
+
         assert progress_updates == [
             [
                 {
@@ -787,24 +812,35 @@ class TestProgressBar:
         demo = gr.Interface(greet, "text", "text")
         demo.queue().launch(prevent_thread_lock=True)
 
-        async with websockets.connect(
-            f"{demo.local_url.replace('http', 'ws')}queue/join"
-        ) as ws:
-            completed = False
-            progress_updates = []
-            while not completed:
-                msg = json.loads(await ws.recv())
-                if msg["msg"] == "send_data":
-                    await ws.send(json.dumps({"data": ["abc"], "fn_index": 0}))
-                if msg["msg"] == "send_hash":
-                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
-                if (
-                    msg["msg"] == "progress" and msg["progress_data"]
-                ):  # Ignore empty lists which sometimes appear on Windows
-                    progress_updates.append(msg["progress_data"])
-                if msg["msg"] == "process_completed":
-                    completed = True
-                    break
+        progress_updates = []
+        async with httpx.AsyncClient() as client:
+            async with client.stream(
+                "GET",
+                f"http://localhost:{demo.server_port}/queue/join",
+                params={"fn_index": 0, "session_hash": "shdce"},
+            ) as response:
+                async for line in response.aiter_text():
+                    if line.startswith("data:"):
+                        msg = json.loads(line[5:])
+                    if msg["msg"] == "send_data":
+                        event_id = msg["event_id"]
+                        req = requests.post(
+                            f"http://localhost:{demo.server_port}/queue/data",
+                            json={
+                                "event_id": event_id,
+                                "data": ["abc"],
+                                "fn_index": 0,
+                            },
+                        )
+                        if not req.ok:
+                            raise ValueError(
+                                f"Could not send payload to endpoint: {req.text}"
+                            )
+                    if msg["msg"] == "progress":
+                        progress_updates.append(msg["progress_data"])
+                    if msg["msg"] == "process_completed":
+                        break
+
         assert progress_updates == [
             [
                 {
@@ -848,24 +884,35 @@ class TestProgressBar:
         demo = gr.Interface(greet, "text", "text")
         demo.queue().launch(prevent_thread_lock=True)
 
-        async with websockets.connect(
-            f"{demo.local_url.replace('http', 'ws')}queue/join"
-        ) as ws:
-            completed = False
-            log_messages = []
-            while not completed:
-                msg = json.loads(await ws.recv())
-                if msg["msg"] == "send_data":
-                    await ws.send(json.dumps({"data": ["abc"], "fn_index": 0}))
-                if msg["msg"] == "send_hash":
-                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
-                if (
-                    msg["msg"] == "log"
-                ):  # Ignore empty lists which sometimes appear on Windows
-                    log_messages.append([msg["log"], msg["level"]])
-                if msg["msg"] == "process_completed":
-                    completed = True
-                    break
+        log_messages = []
+        async with httpx.AsyncClient() as client:
+            async with client.stream(
+                "GET",
+                f"http://localhost:{demo.server_port}/queue/join",
+                params={"fn_index": 0, "session_hash": "shdce"},
+            ) as response:
+                async for line in response.aiter_text():
+                    if line.startswith("data:"):
+                        msg = json.loads(line[5:])
+                    if msg["msg"] == "send_data":
+                        event_id = msg["event_id"]
+                        req = requests.post(
+                            f"http://localhost:{demo.server_port}/queue/data",
+                            json={
+                                "event_id": event_id,
+                                "data": ["abc"],
+                                "fn_index": 0,
+                            },
+                        )
+                        if not req.ok:
+                            raise ValueError(
+                                f"Could not send payload to endpoint: {req.text}"
+                            )
+                    if msg["msg"] == "log":
+                        log_messages.append([msg["log"], msg["level"]])
+                    if msg["msg"] == "process_completed":
+                        break
+
         assert log_messages == [
             ["Letter a", "info"],
             ["Letter b", "info"],
@@ -892,21 +939,36 @@ async def test_info_isolation(async_handler: bool):
 
     async def session_interaction(name, delay=0):
         await asyncio.sleep(delay)
-        async with websockets.connect(
-            f"{demo.local_url.replace('http', 'ws')}queue/join"
-        ) as ws:
-            log_messages = []
-            while True:
-                msg = json.loads(await ws.recv())
-                if msg["msg"] == "send_data":
-                    await ws.send(json.dumps({"data": [name], "fn_index": 0}))
-                if msg["msg"] == "send_hash":
-                    await ws.send(json.dumps({"fn_index": 0, "session_hash": name}))
-                if msg["msg"] == "log":
-                    log_messages.append(msg["log"])
-                if msg["msg"] == "process_completed":
-                    break
-            return log_messages
+
+        log_messages = []
+        async with httpx.AsyncClient() as client:
+            async with client.stream(
+                "GET",
+                f"http://localhost:{demo.server_port}/queue/join",
+                params={"fn_index": 0, "session_hash": name},
+            ) as response:
+                async for line in response.aiter_text():
+                    if line.startswith("data:"):
+                        msg = json.loads(line[5:])
+                    if msg["msg"] == "send_data":
+                        event_id = msg["event_id"]
+                        req = requests.post(
+                            f"http://localhost:{demo.server_port}/queue/data",
+                            json={
+                                "event_id": event_id,
+                                "data": [name],
+                                "fn_index": 0,
+                            },
+                        )
+                        if not req.ok:
+                            raise ValueError(
+                                f"Could not send payload to endpoint: {req.text}"
+                            )
+                    if msg["msg"] == "log":
+                        log_messages.append(msg["log"])
+                    if msg["msg"] == "process_completed":
+                        break
+        return log_messages
 
     alice_logs, bob_logs = await asyncio.gather(
         session_interaction("Alice"),

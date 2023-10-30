@@ -3,5 +3,8 @@ import { redirect } from "@sveltejs/kit";
 export const prerender = true;
 
 export function load({ params }) {
-	throw redirect(302, `./js/accordion`);
+	if (params?.version)
+		throw redirect(302, `/${params?.version}/docs/js/accordion`);
+
+	throw redirect(302, `/docs/js/accordion`);
 }

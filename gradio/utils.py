@@ -95,7 +95,7 @@ class BaseReloader(ABC):
         assert self.running_app.blocks
         # Copy over the blocks to get new components and events but
         # not a new queue
-        if hasattr(self.running_app.blocks, "_queue"):
+        if self.running_app.blocks._queue:
             self.running_app.blocks._queue.blocks_dependencies = demo.dependencies
             demo._queue = self.running_app.blocks._queue
         self.running_app.blocks = demo

@@ -14,7 +14,6 @@ demo = gr.Interface(
     fn=sentiment_analysis, 
     inputs=gr.Textbox(placeholder="Enter a positive or negative sentence here..."), 
     outputs="label", 
-    interpretation="default",
     examples=[["This is wonderful!"]])
 
 demo.launch()

@@ -18,6 +18,7 @@ export interface Config {
 	show_api: boolean;
 	stylesheets: string[];
 	path: string;
+	protocol?: "sse" | "ws";
 }
 
 export interface Payload {

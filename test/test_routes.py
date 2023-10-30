@@ -1,15 +1,14 @@
 """Contains tests for networking.py and app.py"""
 import functools
-import json
 import os
 import tempfile
 from contextlib import closing
 
+import gradio_client as grc
 import numpy as np
 import pandas as pd
 import pytest
 import starlette.routing
-import websockets
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from gradio_client import media_data
@@ -360,27 +359,6 @@ class TestRoutes:
         response = test_client.get(r"/file=../fake-file-that-does-not-exist.js")
         assert response.status_code == 403  # not a 404
 
-    def test_mount_gradio_app_raises_error_if_event_queued_but_queue_disabled(self):
-        with gr.Blocks() as demo:
-            with gr.Row():
-                with gr.Column():
-                    input_ = gr.Textbox()
-                    btn = gr.Button("Greet")
-                with gr.Column():
-                    output = gr.Textbox()
-            btn.click(
-                lambda x: f"Hello, {x}",
-                inputs=input_,
-                outputs=output,
-                queue=True,
-                api_name="greet",
-            )
-
-        with pytest.raises(ValueError, match="The queue is enabled for event greet"):
-            demo.launch(prevent_thread_lock=True)
-
-        demo.close()
-
     def test_proxy_route_is_restricted_to_load_urls(self):
         gr.context.Context.hf_token = "abcdef"
         app = routes.App()
@@ -455,17 +433,10 @@ class TestQueueRoutes:
         io = Interface(lambda x: x, "text", "text").queue()
         io.launch(prevent_thread_lock=True)
         io._queue.server_path = None
-        async with websockets.connect(
-            f"{io.local_url.replace('http', 'ws')}queue/join"
-        ) as ws:
-            completed = False
-            while not completed:
-                msg = json.loads(await ws.recv())
-                if msg["msg"] == "send_data":
-                    await ws.send(json.dumps({"data": ["foo"], "fn_index": 0}))
-                if msg["msg"] == "send_hash":
-                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
-                completed = msg["msg"] == "process_completed"
+
+        client = grc.Client(io.local_url)
+        client.predict("test")
+
         assert io._queue.server_app == io.server_app
 
 
