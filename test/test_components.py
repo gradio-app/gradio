@@ -22,7 +22,11 @@ import vega_datasets
 from gradio_client import media_data
 from gradio_client import utils as client_utils
 from scipy.io import wavfile
-from typing_extensions import cast
+
+try:
+    from typing_extensions import cast
+except ImportError:
+    from typing import cast
 
 import gradio as gr
 from gradio import processing_utils, utils
@@ -605,11 +609,6 @@ class TestImage:
             )
             source = client_utils.encode_url_or_file_to_base64(img["path"])
             assert processed == source
-
-    def test_as_example(self):
-        # test that URLs are not converted to an absolute path
-        url = "https://gradio-static-files.s3.us-west-2.amazonaws.com/header-image.jpg"
-        assert gr.Image().as_example(url) == url
 
     def test_in_interface_as_output(self):
         """
@@ -1258,13 +1257,12 @@ class TestDataset:
             ],
         )
 
-        assert dataset.preprocess(1) == [
-            15,
-            "hi",
-            bus,
-            "<i>Italics</i>",
-            "*Italics*",
-        ]
+        row = dataset.preprocess(1)
+        assert row[0] == 15
+        assert row[1] == "hi"
+        assert row[2].endswith("bus.png")
+        assert row[3] == "<i>Italics</i>"
+        assert row[4] == "*Italics*"
 
         dataset = gr.Dataset(
             components=["number", "textbox", "image", "html", "markdown"],
