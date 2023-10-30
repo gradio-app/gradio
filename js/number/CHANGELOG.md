@@ -1,5 +1,11 @@
 # @gradio/number
 
+## 0.3.0-beta.8
+
+### Features
+
+- [#6149](https://github.com/gradio-app/gradio/pull/6149) [`90318b1dd`](https://github.com/gradio-app/gradio/commit/90318b1dd118ae08a695a50e7c556226234ab6dc) - swap `mode` on the frontned to `interactive` to match the backend.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.3.0-beta.7
 
 ### Features

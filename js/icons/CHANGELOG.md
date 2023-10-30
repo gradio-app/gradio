@@ -1,5 +1,11 @@
 # @gradio/icons
 
+## 0.2.0-beta.3
+
+### Features
+
+- [#6094](https://github.com/gradio-app/gradio/pull/6094) [`c476bd5a5`](https://github.com/gradio-app/gradio/commit/c476bd5a5b70836163b9c69bf4bfe068b17fbe13) - Image v4.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.2.0-beta.2
 
 ### Features
