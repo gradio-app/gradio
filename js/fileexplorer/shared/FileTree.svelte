@@ -6,7 +6,7 @@
 	import Checkbox from "./Checkbox.svelte";
 	import FileIcon from "../icons/light-file.svg";
 
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 	export let tree: Node[] = [];
 	export let icons: any = {};
 	export let node_indices: number[] = [];
@@ -31,7 +31,7 @@
 		<li>
 			<span class="wrap">
 				<Checkbox
-					disabled={mode === "static" ||
+					disabled={!interactive ||
 						(type === "folder" && file_count === "single")}
 					bind:value={checked}
 					on:change={() => dispatch_change(i)}
@@ -63,7 +63,7 @@
 					{icons}
 					on:check
 					node_indices={[...node_indices, i]}
-					{mode}
+					{interactive}
 					{file_count}
 				/>
 			{/if}

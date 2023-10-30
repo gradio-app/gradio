@@ -20,9 +20,9 @@
 		upload: never;
 		click: never;
 	}>;
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 
-	$: disabled = mode === "static";
+	$: disabled = !interactive;
 
 	async function handle_event(
 		detail: null | FileData | FileData[],

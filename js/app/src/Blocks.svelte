@@ -47,7 +47,7 @@
 	let rootNode: ComponentMeta = {
 		id: layout.id,
 		type: "column",
-		props: { mode: "static" },
+		props: { interactive: false },
 		has_modes: false,
 		instance: null as unknown as ComponentMeta["instance"],
 		component: null as unknown as ComponentMeta["component"],
@@ -121,16 +121,16 @@
 	>();
 
 	let _component_map = new Map<
-		`${ComponentMeta["type"]}_${ComponentMeta["props"]["mode"]}`,
+		`${ComponentMeta["type"]}_${ComponentMeta["props"]["interactive"]}`,
 		Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
 	>();
 
 	async function walk_layout(
 		node: LayoutNode,
-		type_map: Map<number, ComponentMeta["props"]["mode"]>,
+		type_map: Map<number, ComponentMeta["props"]["interactive"]>,
 		instance_map: { [id: number]: ComponentMeta },
 		component_map: Map<
-			`${ComponentMeta["type"]}_${ComponentMeta["props"]["mode"]}`,
+			`${ComponentMeta["type"]}_${ComponentMeta["props"]["interactive"]}`,
 			Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
 		>
 	): Promise<void> {
@@ -138,7 +138,7 @@
 		let instance = instance_map[node.id];
 
 		const _component = (await component_map.get(
-			`${instance.type}_${type_map.get(node.id) || "static"}`
+			`${instance.type}_${type_map.get(node.id) || "false"}`
 		))!.component;
 		instance.component = _component.default;
 
@@ -182,7 +182,7 @@
 		const _rootNode: typeof rootNode = {
 			id: layout.id,
 			type: "column",
-			props: { mode: "static" },
+			props: { interactive: false },
 			has_modes: false,
 			instance: null as unknown as ComponentMeta["instance"],
 			component: null as unknown as ComponentMeta["component"],
@@ -193,10 +193,13 @@
 			Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
 		>();
 		const __component_map = new Map<
-			`${ComponentMeta["type"]}_${ComponentMeta["props"]["mode"]}`,
+			`${ComponentMeta["type"]}_${ComponentMeta["props"]["interactive"]}`,
 			Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
 		>();
-		const __type_for_id = new Map<number, ComponentMeta["props"]["mode"]>();
+		const __type_for_id = new Map<
+			number,
+			ComponentMeta["props"]["interactive"]
+		>();
 		const _instance_map = components.reduce(
 			(acc, next) => {
 				acc[next.id] = next;
@@ -206,13 +209,13 @@
 		);
 		components.forEach((c) => {
 			if ((c.props as any).interactive === false) {
-				(c.props as any).mode = "static";
+				(c.props as any).interactive = false;
 			} else if ((c.props as any).interactive === true) {
-				(c.props as any).mode = "interactive";
+				(c.props as any).interactive = true;
 			} else if (dynamic_ids.has(c.id)) {
-				(c.props as any).mode = "interactive";
+				(c.props as any).interactive = true;
 			} else {
-				(c.props as any).mode = "static";
+				(c.props as any).interactive = false;
 			}
 
 			if ((c.props as any).server_fns) {
@@ -228,7 +231,7 @@
 				});
 				(c.props as any).server = server;
 			}
-			__type_for_id.set(c.id, c.props.mode);
+			__type_for_id.set(c.id, c.props.interactive);
 
 			if (c.type === "dataset") {
 				const example_component_map = new Map();
@@ -263,7 +266,7 @@
 				variant: "component"
 			});
 			_component_set.add(_c);
-			__component_map.set(`${c.type}_${c.props.mode}`, _c);
+			__component_map.set(`${c.type}_${c.props.interactive}`, _c);
 		});
 
 		Promise.all(Array.from(_component_set)).then(() => {
