@@ -16,10 +16,11 @@
 		"@gradio/utils": "workspace:^",
 		"@gradio/wasm": "workspace:^"
 	},
-	"main_changeset": true,
 	"exports": {
-		".": "./Index.svelte",
+		".": "./index.ts",
 		"./example": "./Example.svelte",
 		"./package.json": "./package.json"
-	}
+	},
+	"main": "index.ts",
+	"main_changeset": true
 }

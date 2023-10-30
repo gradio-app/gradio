@@ -28,7 +28,7 @@ def cli():
     elif args[0] in {"cc", "component"}:
         sys.argv = sys.argv[1:]
         custom_component()
-    elif args[0] in {"build", "dev", "create", "show", "publish"}:
+    elif args[0] in {"build", "dev", "create", "show", "publish", "install"}:
         try:
             error = f"gradio {args[0]} is not a valid command. Did you mean `gradio cc {args[0]}` or `gradio component {args[0]}`?."
             raise ValueError(error)
