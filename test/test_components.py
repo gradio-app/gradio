@@ -30,7 +30,9 @@ except ImportError:
 
 import gradio as gr
 from gradio import processing_utils, utils
+from gradio.components.plot import PlotData, AltairPlotData
 from gradio.data_classes import FileData
+
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -621,7 +623,7 @@ class TestImage:
         """
         component = gr.Image("test/test_files/bus.png")
         value = component.get_config().get("value")
-        base64 = client_utils.encode_file_to_base64(value["path"])
+        base64 = client_utils.encode_file_to_base64(value.path)
         assert base64 == media_data.BASE64_IMAGE
         component = gr.Image(None)
         assert component.get_config().get("value") is None
@@ -677,8 +679,8 @@ class TestPlot:
             )
         )
         out = gr.Plot().postprocess(chart)
-        assert isinstance(out["plot"], str)
-        assert out["plot"] == chart.to_json()
+        assert isinstance(out, PlotData)
+        assert out.plot == chart.to_json()
 
 
 class TestAudio:
