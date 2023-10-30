@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, tick, getContext } from "svelte";
-	import type { FileData } from "./types";
-	import { upload, prepare_files } from "./utils";
-	import type { upload_files } from "@gradio/client";
+	import type { FileData } from "@gradio/client";
+	import { upload_files, upload, prepare_files } from "@gradio/client";
 	import { _ } from "svelte-i18n";
 
 	export let filetype: string | null = null;

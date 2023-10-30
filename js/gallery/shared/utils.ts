@@ -1,5 +1,5 @@
 import { uploadToHuggingFace } from "@gradio/utils";
-import type { FileData } from "@gradio/upload";
+import type { FileData } from "@gradio/client";
 
 export async function format_gallery_for_sharing(
 	value: [FileData, string | null][] | null

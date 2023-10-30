@@ -3,7 +3,7 @@
 <script lang="ts">
 	import type { Gradio, ShareData } from "@gradio/utils";
 
-	import type { FileData } from "@gradio/upload";
+	import type { FileData } from "@gradio/client";
 	import type { LoadingStatus } from "@gradio/statustracker";
 
 	import StaticAudio from "./static/StaticAudio.svelte";
@@ -11,7 +11,7 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import { Block, UploadText } from "@gradio/atoms";
 	import type { WaveformOptions } from "./shared/types";
-	import { normalise_file } from "@gradio/upload";
+	import { normalise_file } from "@gradio/client";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
