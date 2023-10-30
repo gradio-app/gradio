@@ -21,19 +21,18 @@
 	autoscroll={false}
 >
 	<div class="error" slot="error">
-	{#if error}
-	{#if error.message}
-		<p class="error-name">
-			{error.message}
-		</p>
-	{/if}
-	{#if error.stack}
-		<pre class="error-stack"><code>{error.stack}</code></pre>
-	{/if}
-	{/if}
+		{#if error}
+			{#if error.message}
+				<p class="error-name">
+					{error.message}
+				</p>
+			{/if}
+			{#if error.stack}
+				<pre class="error-stack"><code>{error.stack}</code></pre>
+			{/if}
+		{/if}
 	</div>
 </StatusTracker>
-
 
 <style>
 	.error {

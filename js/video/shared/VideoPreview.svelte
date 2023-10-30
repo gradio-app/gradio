@@ -14,6 +14,7 @@
 	export let show_label = true;
 	export let autoplay: boolean;
 	export let show_share_button = true;
+	export let show_download_button = true;
 	export let i18n: I18nFormatter;
 
 	let old_value: FileData | null = null;
@@ -64,13 +65,15 @@
 		/>
 	{/key}
 	<div class="icon-buttons" data-testid="download-div">
-		<a
-			href={value.url}
-			target={window.__is_colab__ ? "_blank" : null}
-			download={value.orig_name || value.url}
-		>
-			<IconButton Icon={Download} label="Download" />
-		</a>
+		{#if show_download_button}
+			<a
+				href={value.url}
+				target={window.__is_colab__ ? "_blank" : null}
+				download={value.orig_name || value.path}
+			>
+				<IconButton Icon={Download} label="Download" />
+			</a>
+		{/if}
 		{#if show_share_button}
 			<ShareButton
 				{i18n}

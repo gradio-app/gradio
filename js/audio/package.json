@@ -21,8 +21,9 @@
 		"svelte-range-slider-pips": "^2.0.1"
 	},
 	"main_changeset": true,
+	"main": "index.ts",
 	"exports": {
-		".": "./Index.svelte",
+		".": "./index.ts",
 		"./example": "./Example.svelte",
 		"./package.json": "./package.json"
 	}

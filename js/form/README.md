@@ -1,11 +1,14 @@
-# `@gradio/button`
+# `@gradio/form`
 
 ```html
 <script>
-	import { Button } from "@gradio/button";
+	import { Form } from "@gradio/form";
 </script>
+```
 
-<button type="primary|secondary" href="string" on:click="{e.detail === href}">
-	content
-</button>
+Form
+```javascript
+	export let visible = true;
+	export let scale: number | null = null;
+	export let min_width = 0;
 ```

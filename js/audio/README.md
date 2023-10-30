@@ -1,6 +1,6 @@
 # `@gradio/audio`
 
-```svelte
+```html
 <script>
 	import { BaseStaticAudio, BaseInteractiveAudio, BasePlayer, BaseExample } from "@gradio/audio";
 </script>

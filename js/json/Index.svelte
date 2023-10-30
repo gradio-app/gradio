@@ -1,3 +1,7 @@
+<script lang="ts" context="module">
+	export { default as BaseJSON } from "./shared/JSON.svelte";
+</script>
+
 <script lang="ts">
 	import type { Gradio } from "@gradio/utils";
 	import JSON from "./shared/JSON.svelte";
