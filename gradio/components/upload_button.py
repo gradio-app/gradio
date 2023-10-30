@@ -138,9 +138,8 @@ class UploadButton(Component):
         file_name = f.path
         if self.type == "filepath":
             file = tempfile.NamedTemporaryFile(delete=False, dir=self.GRADIO_CACHE)
-            assert f.name
-            file.name = f.name
-            return NamedString(file.name)
+            file.name = file_name
+            return NamedString(file_name)
         elif self.type == "binary":
             with open(file_name, "rb") as file_data:
                 return file_data.read()
@@ -175,20 +174,18 @@ class UploadButton(Component):
             return ListFiles(
                 root=[
                     FileData(
-                        name=file,
+                        path=file,
                         orig_name=Path(file).name,
                         size=Path(file).stat().st_size,
-                        is_file=True,
                     )
                     for file in value
                 ]
             )
         else:
             return FileData(
-                name=value,
+                path=value,
                 orig_name=Path(value).name,
                 size=Path(value).stat().st_size,
-                is_file=True,
             )
 
     @property

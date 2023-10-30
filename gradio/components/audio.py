@@ -233,9 +233,9 @@ class Audio(
                 data, sample_rate, format=self.format, cache_dir=self.GRADIO_CACHE
             )
         else:
-            if not isinstance(y, (str, Path)):
-                raise ValueError(f"Cannot process {y} as Audio")
-            file_path = str(y)
+            if not isinstance(value, (str, Path)):
+                raise ValueError(f"Cannot process {value} as Audio")
+            file_path = str(value)
         return FileData(path=file_path)
 
     def stream_output(
