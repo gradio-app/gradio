@@ -8,6 +8,7 @@ from ..guides import guides
 DIR = os.path.dirname(__file__)
 DEMOS_DIR = os.path.abspath(os.path.join(DIR, "../../../../../demo"))
 JS_CLIENT_README = os.path.abspath(os.path.join(DIR, "../../../../../client/js/README.md"))
+JS_DIR = os.path.abspath(os.path.join(DIR, "../../../../../js/"))
 
 docs = generate_documentation()
 docs["component"].sort(key=lambda x: x["name"])
@@ -267,7 +268,6 @@ def organize_docs(d):
             organized["py-client"][cls]["prev_obj"] = organized["py-client"][
                 c_keys[len(c_keys) - 2]
             ]["name"]
-            organized["py-client"][cls]["next_obj"] = "JS-Client"
         else:
             organized["py-client"][cls]["prev_obj"] = organized["py-client"][
                 c_keys[i - 1]
@@ -300,9 +300,28 @@ def organize_docs(d):
     organized["events_matrix"] = component_events
     organized["events"] = events
 
+    js = {}
+    js_pages = []
+
+    for js_component in os.listdir(JS_DIR):
+        if not js_component.startswith("_") and js_component not in ["app", "highlighted-text", "playground", "preview", "upload-button"]:
+            if os.path.exists(os.path.join(JS_DIR, js_component, "README.md")):
+                with open(os.path.join(JS_DIR, js_component, "README.md")) as f:
+                    readme_content = f.read()
+                js[js_component] = readme_content
+                js_pages.append(js_component)
+
+
     with open(JS_CLIENT_README) as f:
         readme_content = f.read()
-    return {"docs": organized, "pages": pages, "js_client": readme_content}
+    js_pages.append("js-client")
+
+    js["js-client"] = readme_content
+
+    js_pages.sort()
+
+
+    return {"docs": organized, "pages": pages, "js": js, "js_pages": js_pages}
 
 
 docs = organize_docs(docs)

@@ -57,7 +57,7 @@ test("Slider Default Value And Label rendered", async ({ mount }) => {
 			label: "My Slider",
 			show_label: true,
 			step: 1,
-			mode: "dynamic",
+			interactive: true,
 			loading_status: loading_status,
 			gradio: {
 				dispatch() {}
@@ -82,7 +82,7 @@ test("Slider respects show_label", async ({ mount, page }) => {
 			label: "My Slider",
 			show_label: false,
 			step: 1,
-			mode: "dynamic",
+			interactive: true,
 			loading_status: loading_status,
 			gradio: {
 				dispatch() {}
@@ -101,7 +101,7 @@ test("Slider Maximum/Minimum values", async ({ mount, page }) => {
 			label: "My Slider",
 			show_label: true,
 			step: 1,
-			mode: "dynamic",
+			interactive: true,
 			loading_status: loading_status,
 			gradio: {
 				dispatch() {}
@@ -150,7 +150,7 @@ test("Slider Change event", async ({ mount, page }) => {
 			label: "My Slider",
 			show_label: true,
 			step: 1,
-			mode: "dynamic",
+			interactive: true,
 			loading_status: loading_status,
 			gradio: {
 				dispatch: event

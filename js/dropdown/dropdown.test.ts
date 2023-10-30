@@ -36,7 +36,8 @@ describe("Dropdown", () => {
 				["choice", "choice"],
 				["choice2", "choice2"]
 			],
-			filterable: false
+			filterable: false,
+			interactive: false
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -56,7 +57,8 @@ describe("Dropdown", () => {
 				["choice", "choice"],
 				["name2", "choice2"]
 			],
-			filterable: true
+			filterable: true,
+			interactive: true
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -83,7 +85,8 @@ describe("Dropdown", () => {
 				["apple", "apple"],
 				["zebra", "zebra"]
 			],
-			filterable: true
+			filterable: true,
+			interactive: true
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -114,7 +117,8 @@ describe("Dropdown", () => {
 				["default", "default"],
 				["other", "other"]
 			],
-			filterable: false
+			filterable: false,
+			interactive: true
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -139,7 +143,8 @@ describe("Dropdown", () => {
 				["dwight", "dwight"],
 				["michael", "michael"]
 			],
-			filterable: true
+			filterable: true,
+			interactive: true
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -165,7 +170,8 @@ describe("Dropdown", () => {
 				["default", "default"],
 				["other", "other"]
 			],
-			filterable: true
+			filterable: true,
+			interactive: true
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -194,7 +200,8 @@ describe("Dropdown", () => {
 				["zebra", "zebra"],
 				["pony", "pony"]
 			],
-			filterable: true
+			filterable: true,
+			interactive: true
 		});
 
 		const item: HTMLInputElement = getByLabelText(
@@ -230,7 +237,8 @@ describe("Dropdown", () => {
 					["zebra", "zebra"],
 					["pony", "pony"]
 				],
-				filterable: true
+				filterable: true,
+				interactive: true
 			}
 		);
 
@@ -273,7 +281,8 @@ describe("Dropdown", () => {
 					["zebra", "zebra"],
 					["pony", "pony"]
 				],
-				filterable: true
+				filterable: true,
+				interactive: true
 			}
 		);
 
@@ -302,7 +311,8 @@ describe("Dropdown", () => {
 					["zebra", "zebra"],
 					["pony", "pony"]
 				],
-				filterable: true
+				filterable: true,
+				interactive: true
 			}
 		);
 

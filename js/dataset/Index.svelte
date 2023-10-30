@@ -2,7 +2,7 @@
 	import { Block } from "@gradio/atoms";
 	import type { SvelteComponent, ComponentType } from "svelte";
 	import type { Gradio, SelectData } from "@gradio/utils";
-	import { get_fetchable_url_or_file } from "@gradio/upload";
+	import { get_fetchable_url_or_file } from "@gradio/client";
 	export let components: string[];
 	export let component_props: Record<string, any>[];
 	export let component_map: Map<

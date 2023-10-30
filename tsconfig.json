@@ -20,7 +20,8 @@
 		"outDir": "dist",
 		"baseUrl": ".",
 		"paths": {
-			"./pure": ["./pure.js"]
+			"./pure": ["./pure.js"],
+			"@gradio/client": ["./client/js/src/index.ts"]
 		}
 	},
 	"exclude": [

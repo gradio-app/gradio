@@ -7,8 +7,7 @@
 	import { tick } from "svelte";
 
 	import { Download, Image } from "@gradio/icons";
-	import type { FileData } from "@gradio/upload";
-	import { normalise_file } from "@gradio/upload";
+	import { normalise_file, type FileData } from "@gradio/client";
 	import { format_gallery_for_sharing } from "./utils";
 	import { IconButton } from "@gradio/atoms";
 	import type { I18nFormatter } from "@gradio/utils";

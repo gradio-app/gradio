@@ -24,7 +24,7 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let value_is_output = false;
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 	export let rtl = false;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
@@ -79,7 +79,7 @@
 			bind:value
 			bind:this={el}
 			{placeholder}
-			disabled={mode === "static"}
+			disabled={!interactive}
 			dir={rtl ? "rtl" : "ltr"}
 			on:keypress={handle_keypress}
 		/>

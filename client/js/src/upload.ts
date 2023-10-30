@@ -1,4 +1,4 @@
-import { upload_files } from "@gradio/client";
+import { upload_files } from "./client";
 
 export function normalise_file(
 	file: FileData | null,

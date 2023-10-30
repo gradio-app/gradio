@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { FileData } from "@gradio/upload";
+	import type { FileData } from "@gradio/client";
 	import { BlockLabel, IconButton } from "@gradio/atoms";
 	import { File, Download, Undo } from "@gradio/icons";
 	import { add_new_model, reset_camera_position } from "./utils";

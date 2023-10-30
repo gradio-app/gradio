@@ -51,7 +51,7 @@ describe("Video", () => {
 			pending: false,
 			name: "bar",
 			source: "upload",
-			mode: "interactive"
+			interactive: true
 		});
 		let vid = getByTestId("Test Label-player") as HTMLVideoElement;
 		assert.equal(
@@ -77,7 +77,7 @@ describe("Video", () => {
 			pending: false,
 			name: "bar",
 			source: "upload",
-			mode: "interactive"
+			interactive: true
 		});
 		assert.equal(queryAllByText("Video Component").length, 1);
 	});
@@ -97,7 +97,7 @@ describe("Video", () => {
 			pending: false,
 			name: "bar",
 			source: "upload",
-			mode: "static"
+			interactive: false
 		});
 		let vid = getByTestId("test-player") as HTMLVideoElement;
 		assert.equal(
@@ -110,7 +110,7 @@ describe("Video", () => {
 		const { getByTestId } = await render(Video, {
 			show_label: true,
 			loading_status,
-			mode: "static",
+			interactive: false,
 			value: {
 				video: {
 					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
@@ -155,7 +155,7 @@ describe("Video", () => {
 		const { component, getByTestId } = await render(Video, {
 			show_label: true,
 			loading_status,
-			mode: "static",
+			interactive: false,
 			value: {
 				video: {
 					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
@@ -186,7 +186,7 @@ describe("Video", () => {
 		const { component, getByTestId } = await render(Video, {
 			show_label: true,
 			loading_status,
-			mode: "interactive",
+			interactive: true,
 			value: {
 				video: {
 					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
@@ -222,7 +222,7 @@ describe("Video", () => {
 			}
 		};
 		const results = await render(Video, {
-			mode: "static",
+			interactive: false,
 			label: "video",
 			show_label: true,
 			value: data,
@@ -242,7 +242,7 @@ describe("Video", () => {
 		const { component, listen } = await render(Video, {
 			show_label: true,
 			loading_status,
-			mode: "interactive",
+			interactive: true,
 			value: [
 				{
 					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"

@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { tick, createEventDispatcher } from "svelte";
 	import { BaseButton } from "@gradio/button";
-	import type { FileData } from "@gradio/upload";
-	import { upload, prepare_files } from "@gradio/upload";
+	import { upload, prepare_files, type FileData } from "@gradio/client";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];

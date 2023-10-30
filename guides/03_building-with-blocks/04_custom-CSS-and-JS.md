@@ -15,7 +15,7 @@ with gr.Blocks(theme=gr.themes.Glass()):
 
 Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. You can extend these themes or create your own themes from scratch - see the [Theming guide](/guides/theming-guide) for more details.
 
-For additional styling ability, you can pass any CSS to your app using the `css=` kwarg.
+For additional styling ability, you can pass any CSS to your app using the `css=` kwarg. You can either the filepath to a CSS file, or a string of CSS code.
 
 The base class for the Gradio app is `gradio-container`, so here's an example that changes the background color of the Gradio app:
 
@@ -31,7 +31,8 @@ with gr.Blocks(css=".gradio-container {background: url('file=clouds.jpg')}") as 
     ...
 ```
 
-You can also pass the filepath to a CSS file to the `css` argument.
+Note: By default, files in the host machine are not accessible to users running the Gradio app. As a result, you should make sure that any referenced files (such as `clouds.jpg` here) are either URLs or allowed via the `allow_list` parameter in `launch()`. Read more in our [section on Security and File Access](/guides/sharing-your-app#security-and-file-access).
+
 
 ## The `elem_id` and `elem_classes` Arguments
 

@@ -12,7 +12,7 @@
 	import { Block, Empty, UploadText } from "@gradio/atoms";
 	import { Image } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { FileData } from "js/upload/src";
+	import type { FileData } from "@gradio/client";
 	import type { LoadingStatus } from "@gradio/statustracker";
 
 	export let elem_id = "";
@@ -38,7 +38,7 @@
 		"clipboard",
 		"webcam"
 	];
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 	export let streaming: boolean;
 	export let pending: boolean;
 	export let mirror_webcam: boolean;
@@ -55,7 +55,7 @@
 		share: ShareData;
 	}>;
 
-	$: value, gradio.dispatch("change");
+	$: value?.url && gradio.dispatch("change");
 	let dragging: boolean;
 
 	$: value = !value ? null : value;
@@ -63,7 +63,7 @@
 	let active_tool: null | "webcam" = null;
 </script>
 
-{#if mode === "static"}
+{#if !interactive}
 	<Block
 		{visible}
 		variant={"solid"}
