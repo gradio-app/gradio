@@ -275,7 +275,7 @@ class TestColorPicker(unittest.TestCase):
 
 	export let loading_status: LoadingStatus;
 
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 </script>
 
 <Block
@@ -293,7 +293,7 @@ class TestColorPicker(unittest.TestCase):
 		{show_label}
 		on:change
 		on:submit
-		disabled={mode === "static"}
+		disabled={!interactive}
 	/>
 </Block>
 ```

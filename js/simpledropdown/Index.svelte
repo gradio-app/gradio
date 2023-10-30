@@ -19,7 +19,7 @@
 		change: string;
 		input: never;
 	}>;
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 
 	const container = true;
 	let display_value: string;
@@ -61,7 +61,7 @@
 
 	<label class:container>
 		<BlockTitle {show_label} info={undefined}>{label}</BlockTitle>
-		<select disabled={mode === "static"} bind:value={display_value}>
+		<select disabled={!interactive} bind:value={display_value}>
 			{#each choices as choice}
 				<option>{choice[0]}</option>
 			{/each}

@@ -38,7 +38,7 @@
 		"clipboard",
 		"webcam"
 	];
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 	export let streaming: boolean;
 	export let pending: boolean;
 	export let mirror_webcam: boolean;
@@ -63,7 +63,7 @@
 	let active_tool: null | "webcam" = null;
 </script>
 
-{#if mode === "static"}
+{#if !interactive}
 	<Block
 		{visible}
 		variant={"solid"}
