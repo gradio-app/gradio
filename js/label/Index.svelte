@@ -1,3 +1,7 @@
+<script context="module" lang="ts">
+	export { default as BaseLabel } from "./shared/Label.svelte";
+</script>
+
 <script lang="ts">
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import Label from "./shared/Label.svelte";

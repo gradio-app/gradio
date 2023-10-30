@@ -1,3 +1,7 @@
+<script lang="ts" context="module">
+	export { default as BaseUploadButton } from "./shared/UploadButton.svelte";
+</script>
+
 <script lang="ts">
 	import type { Gradio } from "@gradio/utils";
 	import type { FileData } from "@gradio/client";

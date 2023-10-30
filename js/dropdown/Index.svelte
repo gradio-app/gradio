@@ -1,3 +1,9 @@
+<script context="module" lang="ts">
+	export { default as BaseDropdown } from "./shared/Dropdown.svelte";
+	export { default as BaseMultiselect } from "./shared/Multiselect.svelte";
+	export { default as BaseExample } from "./Example.svelte";
+</script>
+
 <script lang="ts">
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import Multiselect from "./shared/Multiselect.svelte";

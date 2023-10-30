@@ -1,3 +1,7 @@
+<script context="module" lang="ts">
+	export { default as BaseGallery } from "./shared/Gallery.svelte";
+</script>
+
 <script lang="ts">
 	import type { Gradio, ShareData, SelectData } from "@gradio/utils";
 	import { Block } from "@gradio/atoms";
