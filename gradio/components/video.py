@@ -184,7 +184,6 @@ class Video(Component):
             raise ValueError(
                 f"Video is too long, and must be at most {self.max_length} seconds"
             )
-
         if needs_formatting or flip:
             format = f".{self.format if needs_formatting else uploaded_format}"
             output_options = ["-vf", "hflip", "-c:a", "copy"] if flip else []
@@ -193,8 +192,9 @@ class Video(Component):
             output_file_name = str(
                 file_name.with_name(f"{file_name.stem}{flip_suffix}{format}")
             )
-            if Path(output_file_name).exists():
-                return output_file_name
+            output_filepath = Path(output_file_name)
+            if output_filepath.exists():
+                return str(output_filepath.resolve())
             if wasm_utils.IS_WASM:
                 raise wasm_utils.WasmUnsupportedError(
                     "Video formatting is not supported in the Wasm mode."
@@ -204,7 +204,7 @@ class Video(Component):
                 outputs={output_file_name: output_options},
             )
             ff.run()
-            return output_file_name
+            return str(output_filepath.resolve())
         elif not self.include_audio:
             output_file_name = str(file_name.with_name(f"muted_{file_name.name}"))
             if Path(output_file_name).exists():

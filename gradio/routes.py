@@ -442,7 +442,6 @@ class App(FastAPI):
                 return RedirectResponse(
                     url=path_or_url, status_code=status.HTTP_302_FOUND
                 )
-
             abs_path = utils.abspath(path_or_url)
 
             in_blocklist = any(
