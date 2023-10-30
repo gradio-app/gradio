@@ -46,7 +46,7 @@ with gr.Blocks() as demo:
 
 fallback_code = """
 with gr.Blocks() as demo:
-    gr.Markdown("# Change the value (keep it JSON) and the the front-end update automatically.")
+    gr.Markdown("# Change the value (keep it JSON) and the front-end will update automatically.")
     {name}(value={{"message": "Hello from Gradio!"}}, label="Static")
 """
 
