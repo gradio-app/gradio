@@ -89,6 +89,7 @@
 	{#if playable()}
 		{#key value?.url}
 			<Player
+				{root}
 				interactive
 				{autoplay}
 				src={value.url}

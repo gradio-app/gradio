@@ -24,7 +24,7 @@
 		dragging = null;
 	};
 
-	const drag = (event: { clientX: number }): void => {
+	const drag = (event: { clientX: number }, distance?: number): void => {
 		if (dragging) {
 			const timeline = document.getElementById("timeline");
 
@@ -32,6 +32,17 @@
 
 			const rect = timeline.getBoundingClientRect();
 			let newPercentage = ((event.clientX - rect.left) / rect.width) * 100;
+
+			if (distance) {
+				// Move handle based on arrow key press
+				newPercentage =
+					dragging === "left"
+						? leftHandlePosition + distance
+						: rightHandlePosition + distance;
+			} else {
+				// Move handle based on mouse drag
+				newPercentage = ((event.clientX - rect.left) / rect.width) * 100;
+			}
 
 			newPercentage = Math.max(0, Math.min(newPercentage, 100)); // Keep within 0 and 100
 
@@ -59,6 +70,19 @@
 			// Trigger Svelte to update the DOM by assigning the value to itself
 			leftHandlePosition = leftHandlePosition;
 			rightHandlePosition = rightHandlePosition;
+		}
+	};
+
+	const moveHandle = (e: KeyboardEvent): void => {
+		if (dragging) {
+			// Calculate the movement distance as a percentage of the video duration
+			const distance = (1 / videoDuration) * 100;
+
+			if (e.key === "ArrowLeft") {
+				drag({ clientX: 0 }, -distance);
+			} else if (e.key === "ArrowRight") {
+				drag({ clientX: 0 }, distance);
+			}
 		}
 	};
 
@@ -109,6 +133,10 @@
 	});
 
 	onDestroy(() => {
+		window.removeEventListener("mousemove", drag);
+		window.removeEventListener("mouseup", stopDragging);
+		window.removeEventListener("keydown", moveHandle);
+
 		if (intervalId) {
 			clearInterval(intervalId);
 		}
@@ -117,16 +145,22 @@
 	onMount(() => {
 		window.addEventListener("mousemove", drag);
 		window.addEventListener("mouseup", stopDragging);
+		window.addEventListener("keydown", moveHandle);
 	});
 </script>
 
 <div class="container">
 	{#if thumbnails.length === numberOfThumbnails}
 		<div id="timeline" class="thumbnail-wrapper">
-			<!-- todo - add accessibility -->
-			<div
+			<button
 				class="handle left"
 				on:mousedown={() => startDragging("left")}
+				on:blur={stopDragging}
+				on:keydown={(e) => {
+					if (e.key === "ArrowLeft") {
+						startDragging("left");
+					}
+				}}
 				style="left: {leftHandlePosition}%;"
 			/>
 
@@ -138,9 +172,15 @@
 			{#each thumbnails as thumbnail, i (thumbnail)}
 				<img src={thumbnail} alt={`frame-${i}`} draggable="false" />
 			{/each}
-			<div
+			<button
 				class="handle right"
 				on:mousedown={() => startDragging("right")}
+				on:blur={stopDragging}
+				on:keydown={(e) => {
+					if (e.key === "ArrowRight") {
+						startDragging("right");
+					}
+				}}
 				style="left: {rightHandlePosition}%;"
 			/>
 		</div>

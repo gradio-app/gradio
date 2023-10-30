@@ -2,7 +2,7 @@
 	import { Undo, Trim } from "@gradio/icons";
 	import VideoTimeline from "./VideoTimeline.svelte";
 	import { trimVideo } from "./utils";
-	import type { FileData } from "@gradio/upload";
+	import type { FileData } from "@gradio/client";
 
 	export let videoElement: HTMLVideoElement;
 
@@ -10,7 +10,7 @@
 	export let interactive = true;
 	export let mode = "";
 	export let handle_reset_value: () => void;
-	export let handle_trim_video: (video: FileData) => void;
+	export let handle_trim_video: (videoBlob: Blob) => void;
 
 	$: if (mode === "edit" && trimmedDuration === null && videoElement)
 		trimmedDuration = videoElement.duration;
@@ -82,9 +82,10 @@
 				<button
 					class="text-button"
 					on:click={() => {
-						trimVideo(dragStart, dragEnd, videoElement).then((video) => {
-							handle_trim_video(video);
-							mode = "";
+						// set to loading state
+						mode = "";
+						trimVideo(dragStart, dragEnd, videoElement).then((videoBlob) => {
+							handle_trim_video(videoBlob);
 						});
 					}}>Trim</button
 				>

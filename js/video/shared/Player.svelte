@@ -3,8 +3,10 @@
 	import { Play, Pause, Maximise, Undo } from "@gradio/icons";
 	import Video from "./Video.svelte";
 	import VideoControls from "./VideoControls.svelte";
-	import type { FileData } from "@gradio/upload";
+	import type { FileData } from "@gradio/client";
+	import { prepare_files, upload } from "@gradio/client";
 
+	export let root = "";
 	export let src: string;
 	export let subtitle: string | null = null;
 	export let mirror: boolean;
@@ -82,8 +84,12 @@
 		dispatch("end");
 	}
 
-	const handle_trim_video = (video: FileData): void => {
-		handle_change(video);
+	const handle_trim_video = async (videoBlob: Blob): Promise<void> => {
+		let _video_blob = new File([videoBlob], "video");
+		const val = await prepare_files([_video_blob]);
+		let value = ((await upload(val, root))?.filter(Boolean) as FileData[])[0];
+
+		handle_change(value);
 	};
 
 	function open_full_screen(): void {

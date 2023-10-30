@@ -1,6 +1,6 @@
 import { toBlobURL } from "@ffmpeg/util";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
-import type { FileData } from "@gradio/upload";
+import { lookup } from "mrmime";
 
 export const prettyBytes = (bytes: number): string => {
 	let units = ["B", "KB", "MB", "GB", "PB"];
@@ -65,19 +65,17 @@ export async function trimVideo(
 	endTime: number,
 	videoElement: HTMLVideoElement
 ): Promise<any> {
-	let downloadFileExtension = "mp4";
-
 	try {
 		const ffmpeg: FFmpeg = await loadFfmpeg();
 
 		const videoUrl = videoElement.src;
-		const mimeType = videoElement.currentSrc.split(":")[1].split(";")[0];
+		const mimeType = lookup(videoElement.src) || "video/mp4";
 		const blobUrl = await toBlobURL(videoUrl, mimeType);
 		const response = await fetch(blobUrl);
 		const vidBlob = await response.blob();
-		const type = vidBlob.type.split("/")[1];
+		const type = mimeType.split("/")[1] || "mp4";
 		const inputName = `input.${type}`;
-		const outputName = `output.${downloadFileExtension}`;
+		const outputName = `output.${type}`;
 
 		await ffmpeg.writeFile(
 			inputName,
@@ -100,23 +98,11 @@ export async function trimVideo(
 
 		await ffmpeg.exec(command);
 		const outputData = await ffmpeg.readFile(outputName);
-
 		const outputBlob = new Blob([outputData], {
-			type: `video/${downloadFileExtension}`
+			type: `video/${type}`
 		});
 
-		const dataUrl = await blob_to_data_url(outputBlob);
-
-		const fileData: FileData = {
-			name: `trimmed_video.${downloadFileExtension}`,
-			orig_name: `original_video.${downloadFileExtension}`,
-			size: outputBlob.size,
-			data: dataUrl,
-			is_file: true,
-			mime_type: `video/${downloadFileExtension}`
-		};
-
-		return fileData;
+		return outputBlob;
 	} catch (error) {
 		console.error("Error initializing FFmpeg:", error);
 	}
