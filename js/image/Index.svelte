@@ -12,7 +12,7 @@
 	import { Block, Empty, UploadText } from "@gradio/atoms";
 	import { Image } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { FileData } from "js/upload/src";
+	import type { FileData } from "@gradio/client";
 	import type { LoadingStatus } from "@gradio/statustracker";
 
 	export let elem_id = "";

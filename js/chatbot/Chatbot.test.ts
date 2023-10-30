@@ -2,7 +2,7 @@ import { test, describe, assert, afterEach } from "vitest";
 import { cleanup, render } from "@gradio/tootils";
 import Chatbot from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";
-import type { FileData } from "@gradio/upload";
+// import type { FileData } from "@gradio/client";
 
 const loading_status: LoadingStatus = {
 	eta: 0,

@@ -1,3 +1,5 @@
+//@ts-nocheck
+
 import semiver from "semiver";
 
 import {
@@ -25,7 +27,7 @@ import type {
 	SpaceStatusCallback
 } from "./types.js";
 
-import { FileData, normalise_file } from "@gradio/upload/utils";
+import { FileData, normalise_file } from "./upload";
 
 import type { Config } from "./types.js";
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { get_fetchable_url_or_file } from "@gradio/upload";
+	import { get_fetchable_url_or_file } from "@gradio/client";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
