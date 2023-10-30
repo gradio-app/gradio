@@ -38,7 +38,7 @@ class Image(StreamingInput, Component):
         Events.select,
         Events.upload,
     ]
-    
+
     data_model = FileData
 
     def __init__(
