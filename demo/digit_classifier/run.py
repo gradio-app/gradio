@@ -23,7 +23,6 @@ demo = gr.Interface(
     im,
     gr.Label(num_top_classes=3),
     live=True,
-    interpretation="default",
     capture_session=True,
 )
 

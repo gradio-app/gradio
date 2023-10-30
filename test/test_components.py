@@ -24,6 +24,11 @@ from gradio_client import utils as client_utils
 from scipy.io import wavfile
 from typing_extensions import cast
 
+try:
+    from typing_extensions import cast
+except ImportError:
+    from typing import cast
+
 import gradio as gr
 from gradio import processing_utils, utils
 from gradio.data_classes import FileData
@@ -98,7 +103,7 @@ class TestTextbox:
     @pytest.mark.asyncio
     async def test_in_interface_as_input(self):
         """
-        Interface, process, interpret,
+        Interface, process
         """
         iface = gr.Interface(lambda x: x[::-1], "textbox", "textbox")
         assert iface("Hello") == "olleH"
@@ -147,7 +152,7 @@ class TestTextbox:
 class TestNumber:
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, set_interpret_parameters, get_interpretation_neighbors, get_config
+        Preprocess, postprocess, serialize, get_config
 
         """
         numeric_input = gr.Number(elem_id="num", elem_classes="first")
@@ -179,7 +184,7 @@ class TestNumber:
 
     def test_component_functions_integer(self):
         """
-        Preprocess, postprocess, serialize, set_interpret_parameters, get_interpretation_neighbors, get_template_context
+        Preprocess, postprocess, serialize, get_template_context
 
         """
         numeric_input = gr.Number(precision=0, value=42)
@@ -211,7 +216,7 @@ class TestNumber:
 
     def test_component_functions_precision(self):
         """
-        Preprocess, postprocess, serialize, set_interpret_parameters, get_interpretation_neighbors, get_template_context
+        Preprocess, postprocess, serialize, get_template_context
 
         """
         numeric_input = gr.Number(precision=2, value=42.3428)
@@ -224,21 +229,21 @@ class TestNumber:
 
     def test_in_interface_as_input(self):
         """
-        Interface, process, interpret
+        Interface, process
         """
         iface = gr.Interface(lambda x: x**2, "number", "textbox")
         assert iface(2) == "4.0"
 
     def test_precision_0_in_interface(self):
         """
-        Interface, process, interpret
+        Interface, process
         """
         iface = gr.Interface(lambda x: x**2, gr.Number(precision=0), "textbox")
         assert iface(2) == "4"
 
     def test_in_interface_as_output(self):
         """
-        Interface, process, interpret
+        Interface, process
         """
         iface = gr.Interface(lambda x: int(x) ** 2, "textbox", "number")
         assert iface(2) == 4.0
@@ -286,7 +291,7 @@ class TestSlider:
 
     def test_in_interface(self):
         """ "
-        Interface, process, interpret
+        Interface, process
         """
         iface = gr.Interface(lambda x: x**2, "slider", "textbox")
         assert iface(2) == "4"
@@ -345,7 +350,7 @@ class TestCheckbox:
 
     def test_in_interface(self):
         """
-        Interface, process, interpret
+        Interface, process
         """
         iface = gr.Interface(lambda x: 1 if x else 0, "checkbox", "number")
         assert iface(True) == 1
@@ -459,7 +464,7 @@ class TestRadio:
 
     def test_in_interface(self):
         """
-        Interface, process, interpret
+        Interface, process
         """
         radio_input = gr.Radio(["a", "b", "c"])
         iface = gr.Interface(lambda x: 2 * x, radio_input, "textbox")
@@ -606,11 +611,6 @@ class TestImage:
             source = client_utils.encode_url_or_file_to_base64(img["path"])
             assert processed == source
 
-    def test_as_example(self):
-        # test that URLs are not converted to an absolute path
-        url = "https://gradio-static-files.s3.us-west-2.amazonaws.com/header-image.jpg"
-        assert gr.Image().as_example(url) == url
-
     def test_in_interface_as_output(self):
         """
         Interface, process
@@ -712,7 +712,6 @@ class TestAudio:
             "name": "audio",
             "show_download_button": True,
             "show_share_button": False,
-            "show_edit_button": True,
             "streaming": False,
             "show_label": True,
             "label": "Upload Your Audio",
@@ -758,7 +757,6 @@ class TestAudio:
             "name": "audio",
             "show_download_button": True,
             "show_share_button": False,
-            "show_edit_button": True,
             "streaming": False,
             "show_label": True,
             "label": None,
@@ -1258,13 +1256,12 @@ class TestDataset:
             ],
         )
 
-        assert dataset.preprocess(1) == [
-            15,
-            "hi",
-            bus,
-            "<i>Italics</i>",
-            "*Italics*",
-        ]
+        row = dataset.preprocess(1)
+        assert row[0] == 15
+        assert row[1] == "hi"
+        assert row[2].endswith("bus.png")
+        assert row[3] == "<i>Italics</i>"
+        assert row[4] == "*Italics*"
 
         dataset = gr.Dataset(
             components=["number", "textbox", "image", "html", "markdown"],
@@ -2035,7 +2032,7 @@ class TestColorPicker:
 
     def test_in_interface_as_input(self):
         """
-        Interface, process, interpret,
+        Interface, process
         """
         iface = gr.Interface(lambda x: x, "colorpicker", "colorpicker")
         assert iface("#000000") == "#000000"

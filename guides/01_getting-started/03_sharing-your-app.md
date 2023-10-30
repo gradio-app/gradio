@@ -8,9 +8,9 @@ How to share your Gradio app:
 4. [Embedding with web components](#embedding-with-web-components)
 5. [Using the API page](#api-page)
 6. [Adding authentication to the page](#authentication)
-7. [Accessing Network Requests](#accessing-the-network-request-directly)
+7. [Accessing network requests](#accessing-the-network-request-directly)
 8. [Mounting within FastAPI](#mounting-within-another-fast-api-app)
-9. [Security](#security-and-file-access)
+9. [Security and file access](#security-and-file-access)
 
 ## Sharing Demos
 
@@ -266,15 +266,14 @@ Sharing your Gradio app with others (by hosting it on Spaces, on your own server
 
 In particular, Gradio apps ALLOW users to access to three kinds of files:
 
-- **Files in the same directory (or a subdirectory) of where the Gradio script is launched from.** For example, if the path to your gradio scripts is `/home/usr/scripts/project/app.py` and you launch it from `/home/usr/scripts/project/`, then users of your shared Gradio app will be able to access any files inside `/home/usr/scripts/project/`. This is done so that you can easily reference these files in your Gradio app (e.g. for your app's `examples`).
+- **Temporary files created by Gradio.** These are files that are created by Gradio as part of running your prediction function. For example, if your prediction function returns a video file, then Gradio will save that video to a temporary cache on your device and then send the path to the file to the front end. You can customize the location of cache files created by Gradio by setting the environment variable `GRADIO_TEMP_DIR` to an absolute path, such as `/home/usr/scripts/project/temp/`.
 
-- **Temporary files created by Gradio.** These are files that are created by Gradio as part of running your prediction function. For example, if your prediction function returns a video file, then Gradio will save that video to a temporary file and then send the path to the temporary file to the front end. You can customize the location of temporary files created by Gradio by setting the environment variable `GRADIO_TEMP_DIR` to an absolute path, such as `/home/usr/scripts/project/temp/`.
+
+- **Cached examples created by Gradio.** These are files that are created by Gradio as part of caching examples for faster runtimes, if you set `cache_examples=True` in `gr.Interface()` or in `gr.Examples()`. These files are saved in the `gradio_cached_examples/` subdirectory within your app's working directory.
 
 - **Files that you explicitly allow via the `allowed_paths` parameter in `launch()`**. This parameter allows you to pass in a list of additional directories or exact filepaths you'd like to allow users to have access to. (By default, this parameter is an empty list).
 
 Gradio DOES NOT ALLOW access to:
-
-- **Dotfiles** (any files whose name begins with `'.'`) or any files that are contained in any directory whose name begins with `'.'`
 
 - **Files that you explicitly block via the `blocked_paths` parameter in `launch()`**. You can pass in a list of additional directories or exact filepaths to the `blocked_paths` parameter in `launch()`. This parameter takes precedence over the files that Gradio exposes by default or by the `allowed_paths`.
 

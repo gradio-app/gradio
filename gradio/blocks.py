@@ -460,7 +460,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         demo.launch()
     Demos: blocks_hello, blocks_flipper, blocks_speech_text_sentiment, generate_english_german
-    Guides: blocks-and-event-listeners, controlling-layout, state-in-blocks, custom-CSS-and-JS, custom-interpretations-with-blocks, using-blocks-like-functions
+    Guides: blocks-and-event-listeners, controlling-layout, state-in-blocks, custom-CSS-and-JS, using-blocks-like-functions
     """
 
     def __init__(
@@ -504,7 +504,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.stylesheets = theme._stylesheets
         self.encrypt = False
         self.share = False
-        self.enable_queue = None
+        self.enable_queue = True
         self.max_threads = 40
         self.pending_streams = defaultdict(dict)
         self.show_error = True
@@ -544,7 +544,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.share_url = None
         self.width = None
         self.height = None
-        self.api_open = False
+        self.api_open = utils.get_space() is None
 
         self.space_id = utils.get_space()
         self.favicon_path = None
@@ -582,6 +582,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 "version": get_package_version(),
             }
             analytics.initiated_analytics(data)
+
+        self.queue()
 
     def get_component(self, id: int) -> Component:
         comp = self.blocks[id]
@@ -1100,8 +1102,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             prediction = None
 
         if inspect.isgeneratorfunction(fn) or inspect.isasyncgenfunction(fn):
-            if not self.enable_queue:
-                raise ValueError("Need to enable queue to use generators.")
             try:
                 if iterator is None:
                     iterator = cast(AsyncIterator[Any], prediction)
@@ -1405,7 +1405,7 @@ Received outputs:
         inputs: list[Any],
         state: SessionState | None = None,
         request: routes.Request | list[routes.Request] | None = None,
-        iterators: dict[int, Any] | None = None,
+        iterator: AsyncIterator | None = None,
         session_hash: str | None = None,
         event_id: str | None = None,
         event_data: EventData | None = None,
@@ -1463,7 +1463,7 @@ Received outputs:
             data = list(zip(*data))
             is_generating, iterator = None, None
         else:
-            old_iterator = iterators.get(fn_index, None) if iterators else None
+            old_iterator = iterator
             if old_iterator:
                 inputs = []
             else:
@@ -1521,12 +1521,13 @@ Received outputs:
             "head": self.head,
             "title": self.title or "Gradio",
             "space_id": self.space_id,
-            "enable_queue": getattr(self, "enable_queue", False),  # launch attributes
+            "enable_queue": True,  # launch attributes
             "show_error": getattr(self, "show_error", False),
             "show_api": self.show_api,
             "is_colab": utils.colab_check(),
             "stylesheets": self.stylesheets,
             "theme": self.theme.name,
+            "protocol": "sse",
         }
 
         def get_layout(block):
@@ -1596,15 +1597,15 @@ Received outputs:
     @document()
     def queue(
         self,
-        concurrency_count: int = 1,
+        concurrency_count: int | None = None,
         status_update_rate: float | Literal["auto"] = "auto",
-        api_open: bool = False,
+        api_open: bool | None = None,
         max_size: int | None = None,
     ):
         """
         By enabling the queue you can control the rate of processed requests, let users know their position in the queue, and set a limit on maximum number of events allowed.
         Parameters:
-            concurrency_count: Number of worker threads that will be processing requests from the queue concurrently. Increasing this number will increase the rate at which requests are processed, but will also increase the memory usage of the queue.
+            concurrency_count: Number of worker threads that will be processing requests from the queue concurrently. Default is 40 when running locally, and 1 in Spaces.
             status_update_rate: If "auto", Queue will send status estimations to all clients whenever a job is finished. Otherwise Queue will send status at regular intervals set by this parameter as the number of seconds.
             api_open: If True, the REST routes of the backend will be open, allowing requests made directly to those endpoints to skip the queue.
             max_size: The maximum number of events the queue will store at any given moment. If the queue is full, new events will not be added and a user will receive a message saying that the queue is full. If None, the queue size will be unlimited.
@@ -1619,8 +1620,10 @@ Received outputs:
             demo.queue(max_size=20)
             demo.launch()
         """
-        self.enable_queue = True
-        self.api_open = api_open
+        if concurrency_count is None:
+            concurrency_count = 1 if utils.get_space() else 40
+        if api_open is not None:
+            self.api_open = api_open
         if utils.is_zero_gpu_space():
             concurrency_count = self.max_threads
             max_size = 1 if max_size is None else max_size
@@ -1636,17 +1639,7 @@ Received outputs:
         return self
 
     def validate_queue_settings(self):
-        if not self.enable_queue and self.progress_tracking:
-            raise ValueError("Progress tracking requires queuing to be enabled.")
-
-        for fn_index, dep in enumerate(self.dependencies):
-            if not self.enable_queue and self.queue_enabled_for_fn(fn_index):
-                raise ValueError(
-                    f"The queue is enabled for event {dep['api_name'] if dep['api_name'] else fn_index} "
-                    "but the queue has not been enabled for the app. Please call .queue() "
-                    "on your app. Consult https://gradio.app/docs/#blocks-queue for information on how "
-                    "to configure the queue."
-                )
+        for dep in self.dependencies:
             for i in dep["cancels"]:
                 if not self.queue_enabled_for_fn(i):
                     raise ValueError(
@@ -1656,10 +1649,7 @@ Received outputs:
                         "another event without enabling the queue. Both can be solved by calling .queue() "
                         "before .launch()"
                     )
-            if dep["batch"] and (
-                dep["queue"] is False
-                or (dep["queue"] is None and not self.enable_queue)
-            ):
+            if dep["batch"] and dep["queue"] is False:
                 raise ValueError("In order to use batching, the queue must be enabled.")
 
     def launch(
@@ -1772,12 +1762,6 @@ Received outputs:
             self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         else:
             self.root_path = root_path
-        if self.space_id:
-            self.enable_queue = self.enable_queue is not False
-        else:
-            self.enable_queue = self.enable_queue is True
-        if self.enable_queue and not hasattr(self, "_queue"):
-            self.queue()
 
         self.show_api = show_api
 
@@ -1792,9 +1776,7 @@ Received outputs:
         self.validate_queue_settings()
 
         self.config = self.get_config_file()
-        self.max_threads = max(
-            self._queue.max_thread_count if self.enable_queue else 0, max_threads
-        )
+        self.max_threads = max(self._queue.max_thread_count, max_threads)
 
         if self.is_running:
             if not isinstance(self.local_url, str):
@@ -1862,8 +1844,7 @@ Received outputs:
                     )
                 )
 
-            if self.enable_queue:
-                self._queue.set_server_app(self.server_app)
+            self._queue.set_server_app(self.server_app)
 
             if not wasm_utils.IS_WASM:
                 # Cannot run async functions in background other than app's scope.
@@ -1916,18 +1897,13 @@ Received outputs:
                 "When localhost is not accessible, a shareable link must be created. Please set share=True or check your proxy settings to allow access to localhost."
             )
 
-        if self.is_colab:
-            if not quiet:
-                if debug:
-                    print(strings.en["COLAB_DEBUG_TRUE"])
-                else:
-                    print(strings.en["COLAB_DEBUG_FALSE"])
-                if not self.share:
-                    print(strings.en["COLAB_WARNING"].format(self.server_port))
-            if self.enable_queue and not self.share:
-                raise ValueError(
-                    "When using queueing in Colab, a shareable link must be created. Please set share=True."
-                )
+        if self.is_colab and not quiet:
+            if debug:
+                print(strings.en["COLAB_DEBUG_TRUE"])
+            else:
+                print(strings.en["COLAB_DEBUG_FALSE"])
+            if not self.share:
+                print(strings.en["COLAB_WARNING"].format(self.server_port))
 
         if self.share:
             if self.space_id:
@@ -2046,7 +2022,7 @@ Received outputs:
                 "is_google_colab": self.is_colab,
                 "is_sharing_on": self.share,
                 "share_url": self.share_url,
-                "enable_queue": self.enable_queue,
+                "enable_queue": True,
                 "server_name": server_name,
                 "server_port": server_port,
                 "is_space": self.space_id is not None,
@@ -2140,11 +2116,9 @@ Received outputs:
                 # However, in the Wasm env, we don't have the `server` and
                 # all async tasks are running in the same event loop, `pyodide.webloop.WebLoop` in the main thread,
                 # so we have to cancel them explicitly so that these tasks won't run after a new app is launched.
-                if self.enable_queue:
-                    self._queue._cancel_asyncio_tasks()
+                self._queue._cancel_asyncio_tasks()
                 self.server_app._cancel_asyncio_tasks()
-            if self.enable_queue:
-                self._queue.close()
+            self._queue.close()
             if self.server:
                 self.server.close()
             self.is_running = False
@@ -2198,17 +2172,13 @@ Received outputs:
 
     def startup_events(self):
         """Events that should be run when the app containing this block starts up."""
-
-        if self.enable_queue:
-            self._queue.start()
-            # So that processing can resume in case the queue was stopped
-            self._queue.stopped = False
+        self._queue.start()
+        # So that processing can resume in case the queue was stopped
+        self._queue.stopped = False
         self.create_limiter()
 
     def queue_enabled_for_fn(self, fn_index: int):
-        if self.dependencies[fn_index]["queue"] is None:
-            return self.enable_queue
-        return self.dependencies[fn_index]["queue"]
+        return self.dependencies[fn_index]["queue"] is not False
 
     def get_api_info(self):
         """
