@@ -28,6 +28,7 @@ from gradio.components.gallery import Gallery
 from gradio.components.highlighted_text import HighlightedText
 from gradio.components.html import HTML
 from gradio.components.image import Image
+from gradio.components.image_editor import ImageEditor
 from gradio.components.json_component import JSON
 from gradio.components.label import Label
 from gradio.components.line_plot import LinePlot
@@ -108,4 +109,5 @@ __all__ = [
     "Video",
     "StreamingInput",
     "StreamingOutput",
+    "ImageEditor",
 ]
