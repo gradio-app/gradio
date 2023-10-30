@@ -10,7 +10,8 @@
 	import type { WaveformOptions } from "@gradio/audio";
 	import { StatusTracker } from "@gradio/statustracker";
 	import { Block, UploadText, BlockLabel } from "@gradio/atoms";
-	import { Upload, ModifyUpload, normalise_file } from "@gradio/upload";
+	import { normalise_file } from "@gradio/client";
+	import { Upload, ModifyUpload} from "@gradio/upload";
 	import { Music } from "@gradio/icons";
 
 	export let elem_id = "";

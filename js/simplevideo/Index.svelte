@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Upload, ModifyUpload, normalise_file } from "@gradio/upload";
+	import { Upload, ModifyUpload } from "@gradio/upload";
+	import { normalise_file } from "@gradio/client";
 	import type { FileData } from "@gradio/upload";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Video } from "@gradio/icons";
