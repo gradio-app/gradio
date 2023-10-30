@@ -104,6 +104,8 @@ The `Example.svelte` file should expose the following props:
     export let value: string;
     export let type: "gallery" | "table";
     export let selected = false;
+    export let samples_dir: string;
+    export let index: number;
 ```
 
 * `value`: The example value that should be displayed.
@@ -111,6 +113,12 @@ The `Example.svelte` file should expose the following props:
 * `type`: It is a variable that can be either "gallery" or "table" depending on how the examples are displayed. The "gallery" form is used when the examples correspond to a single input component, while the "table" form is used when a user has multiple input components, and the examples need to populate all of them. 
 
 * `selected` You can also adjust how the examples are displayed if a user "selects" a particular example by using the selected variable.
+
+* `samples_dir`: A URL to prepend to `value` if your example is fetching a file from the server
+
+* `index`: The current index of the selected value.
+
+* Any additional props your "non-example" component takes!
 
 This is the `Example.svelte` file for the code `Radio` component:
 
@@ -202,7 +210,7 @@ This is passed down by the parent gradio app and it's the base url that the file
 
 For WASM support, you should get the upload function from the `Context` and pass that as the third parameter of the `upload` function.
 
-```
+```typescript
 <script lang="ts">
     import { getContext } from "svelte";
     const upload_fn = getContext<typeof upload_files>("upload_files");
