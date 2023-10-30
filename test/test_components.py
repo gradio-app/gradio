@@ -24,9 +24,9 @@ from gradio_client import utils as client_utils
 from scipy.io import wavfile
 
 try:
-    from typing_extensions import cast
+    pass
 except ImportError:
-    from typing import cast
+    pass
 
 import gradio as gr
 from gradio import processing_utils, utils
