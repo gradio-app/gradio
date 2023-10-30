@@ -7,12 +7,11 @@ from pathlib import Path
 from typing import Any, Iterable, Literal, cast
 
 import numpy as np
-from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 import gradio.image_utils as image_utils
-from gradio import utils
+from gradio import processing_utils, utils
 from gradio.components.base import Component, StreamingInput
 from gradio.data_classes import FileData
 from gradio.events import Events
@@ -188,14 +187,11 @@ class Image(StreamingInput, Component):
                 "Image streaming only available if sources is ['webcam']. Streaming not supported with multiple sources."
             )
 
-    def as_example(self, input_data: str | Path | None) -> str:
+    def as_example(self, input_data: str | Path | None) -> str | None:
         if input_data is None:
-            return ""
-        input_data = str(input_data)
-        # If an externally hosted image or a URL, don't convert to absolute path
-        if self.root_url or client_utils.is_http_url_like(input_data):
-            return input_data
-        return str(utils.abspath(input_data))
+            return None
+        absolute_path = str(utils.abspath(input_data))
+        return processing_utils.move_resource_to_block_cache(absolute_path, self)
 
     def example_inputs(self) -> Any:
         return "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"

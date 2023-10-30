@@ -247,6 +247,27 @@ def save_base64_to_cache(
     return full_temp_file_path
 
 
+def move_resource_to_block_cache(url_or_file_path: str, block: Component) -> str:
+    """Moves a file or downloads a file from a url to a block's cache directory, adds
+    to to the block's temp_files, and returns the path to the file in cache. This
+    ensures that the file is accessible to the Block and can be served to users.
+    """
+    if client_utils.is_http_url_like(url_or_file_path) or not is_in_or_equal(
+        url_or_file_path, block.GRADIO_CACHE
+    ):
+        if client_utils.is_http_url_like(url_or_file_path):
+            temp_file_path = save_url_to_cache(
+                url_or_file_path, cache_dir=block.GRADIO_CACHE
+            )
+        else:
+            temp_file_path = save_file_to_cache(
+                url_or_file_path, cache_dir=block.GRADIO_CACHE
+            )
+        block.temp_files.add(temp_file_path)
+        return temp_file_path
+    return url_or_file_path
+
+
 def move_files_to_cache(data: Any, block: Component):
     """Move files to cache and replace the file path with the cache path.
 
@@ -259,20 +280,8 @@ def move_files_to_cache(data: Any, block: Component):
 
     def _move_to_cache(d: dict):
         payload = FileData(**d)
-        if client_utils.is_http_url_like(payload.path) or not is_in_or_equal(
-            payload.path, block.GRADIO_CACHE
-        ):
-            if client_utils.is_http_url_like(payload.path):
-                temp_file_path = save_url_to_cache(
-                    payload.path, cache_dir=block.GRADIO_CACHE
-                )
-            else:
-                temp_file_path = save_file_to_cache(
-                    payload.path, cache_dir=block.GRADIO_CACHE
-                )
-
-            block.temp_files.add(temp_file_path)
-            payload.path = temp_file_path
+        temp_file_path = move_resource_to_block_cache(payload.path, block)
+        payload.path = temp_file_path
         return payload.model_dump()
 
     return client_utils.traverse(data, _move_to_cache, client_utils.is_file_obj)

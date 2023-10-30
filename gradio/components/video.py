@@ -351,3 +351,9 @@ class Video(Component):
 
     def example_inputs(self) -> Any:
         return "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"
+
+    def as_example(self, input_data: str | Path | None) -> str | None:
+        if input_data is None:
+            return None
+        absolute_path = str(utils.abspath(input_data))
+        return processing_utils.move_resource_to_block_cache(absolute_path, self)
