@@ -1,3 +1,11 @@
+<script context="module" lang="ts">
+	export { default as BaseCode } from "./shared/Code.svelte";
+	export { default as BaseCopy } from "./shared/Copy.svelte";
+	export { default as BaseDownload } from "./shared/Download.svelte";
+	export { default as BaseWidget } from "./shared/Widgets.svelte";
+	export { default as BaseExample } from "./Example.svelte";
+</script>
+
 <script lang="ts">
 	import type { Gradio } from "@gradio/utils";
 	import { afterUpdate } from "svelte";

@@ -1,5 +1,11 @@
 <svelte:options accessors={true} />
 
+<script context="module" lang="ts">
+	export { default as BaseColorPicker } from "./shared/Colorpicker.svelte";
+	export { default as BaseExample } from "./Example.svelte";
+</script>
+
+
 <script lang="ts">
 	import type { Gradio } from "@gradio/utils";
 	import Colorpicker from "./shared/Colorpicker.svelte";

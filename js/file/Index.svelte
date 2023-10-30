@@ -2,6 +2,9 @@
 
 <script context="module" lang="ts">
 	export { default as FilePreview } from "./shared/FilePreview.svelte";
+	export { default as BaseFileUpload } from "./shared/FileUpload.svelte";
+	export { default as BaseFile } from "./shared/File.svelte";
+	export { default as BaseExample} from "./Example.svelte";
 </script>
 
 <script lang="ts">

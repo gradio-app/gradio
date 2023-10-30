@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-	export { default as BaseButton } from "./shared/ChatBot.svelte";
+	export { default as BaseChatBot } from "./shared/ChatBot.svelte";
 </script>
 
 <script lang="ts">
