@@ -57,28 +57,28 @@ class TestRoutes:
         assert response.status_code == 200
 
     def test_upload_path(self, test_client):
-        with open("test/test_files/alphabet.txt") as f:
+        with open("test/test_files/alphabet.txt", "rb") as f:
             response = test_client.post("/upload", files={"files": f})
         assert response.status_code == 200
         file = response.json()[0]
         assert "alphabet" in file
         assert file.endswith(".txt")
-        with open(file) as saved_file:
-            assert saved_file.read() == "abcdefghijklmnopqrstuvwxyz"
+        with open(file, "rb") as saved_file:
+            assert saved_file.read() == b"abcdefghijklmnopqrstuvwxyz"
 
     def test_custom_upload_path(self, gradio_temp_dir):
         io = Interface(lambda x: x + x, "text", "text")
         app, _, _ = io.launch(prevent_thread_lock=True)
         test_client = TestClient(app)
-        with open("test/test_files/alphabet.txt") as f:
+        with open("test/test_files/alphabet.txt", "rb") as f:
             response = test_client.post("/upload", files={"files": f})
         assert response.status_code == 200
         file = response.json()[0]
         assert "alphabet" in file
         assert file.startswith(str(gradio_temp_dir))
         assert file.endswith(".txt")
-        with open(file) as saved_file:
-            assert saved_file.read() == "abcdefghijklmnopqrstuvwxyz"
+        with open(file, "rb") as saved_file:
+            assert saved_file.read() == b"abcdefghijklmnopqrstuvwxyz"
 
     def test_predict_route(self, test_client):
         response = test_client.post(
@@ -302,7 +302,7 @@ class TestRoutes:
             prevent_thread_lock=True
         )
         client = TestClient(app)
-        with open("test/test_files/alphabet.txt") as f:
+        with open("test/test_files/alphabet.txt", "rb") as f:
             file_response = test_client.post("/upload", files={"files": f})
         response = client.post(
             "/api/predict/",

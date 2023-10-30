@@ -62,6 +62,7 @@ class Textbox(FormComponent):
         text_align: Literal["left", "right"] | None = None,
         rtl: bool = False,
         show_copy_button: bool = False,
+        _selectable: bool = False,
     ):
         """
         Parameters:
@@ -89,6 +90,7 @@ class Textbox(FormComponent):
             show_copy_button: If True, includes a copy button to copy the text in the textbox. Only applies if show_label is True.
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
         """
+        self._selectable = _selectable
         if type not in ["text", "password", "email"]:
             raise ValueError('`type` must be one of "text", "password", or "email".')
 
