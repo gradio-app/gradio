@@ -4,7 +4,7 @@
 	import Gallery from "./shared/Gallery.svelte";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { FileData } from "@gradio/upload";
+	import type { FileData } from "@gradio/client";
 
 	export let loading_status: LoadingStatus;
 	export let show_label: boolean;

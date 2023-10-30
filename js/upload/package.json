@@ -15,7 +15,6 @@
 	},
 	"main_changeset": true,
 	"exports": {
-		".": "./src/index.ts",
-		"./utils": "./src/utils.ts"
+		".": "./src/index.ts"
 	}
 }
