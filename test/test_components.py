@@ -1324,7 +1324,7 @@ class TestVideo:
         video_input = gr.Video(label="Upload Your Video")
         assert video_input.get_config() == {
             "autoplay": False,
-            "source": "upload",
+            "sources": ["webcam", "upload"],
             "name": "video",
             "show_share_button": False,
             "show_label": True,
@@ -1343,6 +1343,8 @@ class TestVideo:
             "mirror_webcam": True,
             "include_audio": True,
             "format": None,
+            "min_length": None,
+            "max_length": None,
         }
         assert video_input.preprocess(None) is None
         x_video["is_example"] = True
@@ -1455,7 +1457,7 @@ class TestVideo:
     def test_video_preprocessing_flips_video_for_webcam(self, mock_ffmpeg):
         # Ensures that the cached temp video file is not used so that ffmpeg is called for each test
         x_video = {"video": deepcopy(media_data.BASE64_VIDEO)}
-        video_input = gr.Video(source="webcam")
+        video_input = gr.Video(sources=["webcam"])
         _ = video_input.preprocess(x_video)
 
         # Dict mapping filename to FFmpeg options
@@ -1465,19 +1467,19 @@ class TestVideo:
 
         mock_ffmpeg.reset_mock()
         _ = gr.Video(
-            source="webcam", mirror_webcam=False, include_audio=True
+            sources=["webcam"], mirror_webcam=False, include_audio=True
         ).preprocess(x_video)
         mock_ffmpeg.assert_not_called()
 
         mock_ffmpeg.reset_mock()
-        _ = gr.Video(source="upload", format="mp4", include_audio=True).preprocess(
+        _ = gr.Video(sources=["upload"], format="mp4", include_audio=True).preprocess(
             x_video
         )
         mock_ffmpeg.assert_not_called()
 
         mock_ffmpeg.reset_mock()
         output_file = gr.Video(
-            source="webcam", mirror_webcam=True, format="avi"
+            sources=["webcam"], mirror_webcam=True, format="avi"
         ).preprocess(x_video)
         output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
         assert "hflip" in list(output_params.values())[0]
@@ -1487,7 +1489,7 @@ class TestVideo:
 
         mock_ffmpeg.reset_mock()
         output_file = gr.Video(
-            source="webcam", mirror_webcam=False, format="avi", include_audio=False
+            sources=["webcam"], mirror_webcam=False, format="avi", include_audio=False
         ).preprocess(x_video)
         output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
         assert list(output_params.values())[0] == ["-an"]

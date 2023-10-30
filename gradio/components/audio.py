@@ -120,7 +120,7 @@ class Audio(
             pass
         else:
             raise ValueError(
-                f"`sources` must a list consisting of elements in {valid_sources}"
+                f"`sources` must be a list consisting of elements in {valid_sources}"
             )
 
         self.sources = sources
@@ -193,11 +193,11 @@ class Audio(
         duration = len(data) / sample_rate
         if self.min_length is not None and duration < self.min_length:
             raise ValueError(
-                f"Audio is too short, must be at least {self.min_length} seconds"
+                f"Audio is too short, and must be at least {self.min_length} seconds"
             )
         if self.max_length is not None and duration > self.max_length:
             raise ValueError(
-                f"Audio is too long, must be at most {self.max_length} seconds"
+                f"Audio is too long, and must be at most {self.max_length} seconds"
             )
 
         if self.type == "numpy":

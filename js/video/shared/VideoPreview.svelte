@@ -62,6 +62,7 @@
 			on:end
 			mirror={false}
 			{label}
+			interactive={false}
 		/>
 	{/key}
 	<div class="icon-buttons" data-testid="download-div">
