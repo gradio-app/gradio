@@ -26,7 +26,7 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let selectable = false;
+	export let _selectable = false;
 	export let combine_adjacent = false;
 	export let mode: "static" | "interactive";
 
@@ -77,7 +77,7 @@
 		{#if value}
 			<StaticHighlightedText
 				on:select={({ detail }) => gradio.dispatch("select", detail)}
-				{selectable}
+				selectable={_selectable}
 				{value}
 				{show_legend}
 				{color_map}

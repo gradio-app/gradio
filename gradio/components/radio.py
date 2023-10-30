@@ -44,7 +44,7 @@ class Radio(FormComponent):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         root_url: str | None = None,
-        selectable: bool = False,
+        _selectable: bool = False,
         _skip_init_processing: bool = False,
     ):
         """
@@ -65,7 +65,7 @@ class Radio(FormComponent):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
-            selectable: Whether the radio buttons can be selected. Set automatically if the select event is used.
+            _selectable: Whether the radio buttons can be selected. Set automatically if the select event is used.
         """
         self.choices = (
             # Although we expect choices to be a list of tuples, it can be a list of tuples if the Gradio app
@@ -80,6 +80,7 @@ class Radio(FormComponent):
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
             )
         self.type = type
+        self._selectable = _selectable
         super().__init__(
             label=label,
             info=info,

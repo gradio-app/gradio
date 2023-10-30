@@ -59,7 +59,7 @@ class Label(Component):
         root_url: str | None = None,
         _skip_init_processing: bool = False,
         color: str | None = None,
-        selectable: bool = False,
+        _selectable: bool = False,
     ):
         """
         Parameters:
@@ -77,9 +77,9 @@ class Label(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
             color: The background color of the label (either a valid css color name or hexadecimal string).
-            selectable: Whether the label can be selected. Set automatically if the select event is used.
+            _selectable: Whether the label can be selected. Set automatically if the select event is used.
         """
-        self.selectable = selectable
+        self._selectable = _selectable
         self.num_top_classes = num_top_classes
         self.color = color
         super().__init__(

@@ -44,7 +44,7 @@ class CheckboxGroup(FormComponent):
         render: bool = True,
         root_url: str | None = None,
         _skip_init_processing: bool = False,
-        selectable: bool = False,
+        _selectable: bool = False,
     ):
         """
         Parameters:
@@ -64,9 +64,9 @@ class CheckboxGroup(FormComponent):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
-            selectable: Whether the select event is used. Set automatically.
+            _selectable: Whether the checkbox emits the select event. Set automatically when the select event is used.
         """
-        self.selectable = selectable
+        self._selectable = _selectable
         self.choices = (
             # Although we expect choices to be a list of tuples, it can be a list of tuples if the Gradio app
             # is loaded with gr.load() since Python tuples are converted to lists in JSON.
