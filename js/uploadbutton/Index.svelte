@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Gradio } from "@gradio/utils";
-	import type { FileData } from "@gradio/upload";
+	import type { FileData } from "@gradio/client";
 	import UploadButton from "./shared/UploadButton.svelte";
 
 	export let elem_id = "";

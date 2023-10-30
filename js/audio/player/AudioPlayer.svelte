@@ -7,7 +7,7 @@
 	import WaveformControls from "../shared/WaveformControls.svelte";
 	import { Empty } from "@gradio/atoms";
 	import { resolve_wasm_src } from "@gradio/wasm/svelte";
-	import type { FileData } from "js/upload/src";
+	import type { FileData } from "@gradio/client";
 
 	export let value: null | FileData = null;
 	export let label: string;

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { FileData } from "@gradio/upload";
+	import type { FileData } from "@gradio/client";
 	import { display_file_name, display_file_size } from "./utils";
 	import { createEventDispatcher } from "svelte";
 	import type { I18nFormatter, SelectData } from "@gradio/utils";
