@@ -85,7 +85,7 @@
 	}
 
 	const handle_trim_video = async (videoBlob: Blob): Promise<void> => {
-		let _video_blob = new File([videoBlob], "video");
+		let _video_blob = new File([videoBlob], "video.mp4");
 		const val = await prepare_files([_video_blob]);
 		let value = ((await upload(val, root))?.filter(Boolean) as FileData[])[0];
 
