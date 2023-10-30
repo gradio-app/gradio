@@ -31,7 +31,8 @@ export const format_chat_for_sharing = async (
 							}
 						}
 					} else {
-						const file_url = await uploadToHuggingFace(message.data, "url");
+						if (!message?.url) return "";
+						const file_url = await uploadToHuggingFace(message.url, "url");
 						if (message.mime_type?.includes("audio")) {
 							html_content = `<audio controls src="${file_url}"></audio>`;
 						} else if (message.mime_type?.includes("video")) {

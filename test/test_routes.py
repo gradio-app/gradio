@@ -170,7 +170,7 @@ class TestRoutes:
             btn = gr.Button()
             btn.click(batch_fn, inputs=text, outputs=text, batch=True, api_name="pred")
 
-        demo.queue()
+        demo.queue(api_open=True)
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
         response = client.post("/api/pred/", json={"data": ["test"]})
@@ -298,27 +298,27 @@ class TestRoutes:
         io.close()
         os.remove(tmp_file.name)
 
-    def test_get_file_created_by_app(self):
+    def test_get_file_created_by_app(self, test_client):
         app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
             prevent_thread_lock=True
         )
         client = TestClient(app)
+        with open("test/test_files/alphabet.txt") as f:
+            file_response = test_client.post("/upload", files={"files": f})
         response = client.post(
             "/api/predict/",
             json={
                 "data": [
                     {
-                        "data": media_data.BASE64_IMAGE,
-                        "name": "bus.png",
-                        "is_file": False,
-                        "size": len(media_data.BASE64_IMAGE),
+                        "path": file_response.json()[0],
+                        "size": os.path.getsize("test/test_files/alphabet.txt"),
                     }
                 ],
                 "fn_index": 0,
                 "session_hash": "_",
             },
         ).json()
-        created_file = response["data"][0]["name"]
+        created_file = response["data"][0]["path"]
         file_response = client.get(f"/file={created_file}")
         assert file_response.is_success
 
@@ -556,7 +556,7 @@ class TestPassingRequest:
 
         app, _, _ = (
             gr.ChatInterface(identity)
-            .queue()
+            .queue(api_open=True)
             .launch(
                 prevent_thread_lock=True,
             )

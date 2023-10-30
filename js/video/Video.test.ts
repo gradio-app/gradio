@@ -41,9 +41,7 @@ describe("Video", () => {
 			loading_status,
 			value: {
 				video: {
-					name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
-					data: null,
-					is_file: true
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
 				}
 			},
 			label: "Test Label",
@@ -69,9 +67,7 @@ describe("Video", () => {
 			loading_status,
 			value: {
 				video: {
-					name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
-					data: null,
-					is_file: true
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
 				}
 			},
 			label: "Video Component",
@@ -92,9 +88,7 @@ describe("Video", () => {
 			loading_status,
 			value: {
 				video: {
-					name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
-					data: null,
-					is_file: true
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
 				}
 			},
 			root: "foo",
@@ -119,9 +113,7 @@ describe("Video", () => {
 			mode: "static",
 			value: {
 				video: {
-					name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
-					data: null,
-					is_file: true
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
 				}
 			},
 			root: "foo",
@@ -143,9 +135,7 @@ describe("Video", () => {
 			loading_status,
 			value: {
 				video: {
-					name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
-					data: null,
-					is_file: true
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
 				}
 			},
 			root: "foo",
@@ -168,9 +158,7 @@ describe("Video", () => {
 			mode: "static",
 			value: {
 				video: {
-					name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
-					data: null,
-					is_file: true
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
 				}
 			},
 			root: "foo",
@@ -186,9 +174,7 @@ describe("Video", () => {
 		component.$set({
 			value: {
 				video: {
-					name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
-					data: null,
-					is_file: true
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
 				}
 			}
 		});
@@ -203,9 +189,7 @@ describe("Video", () => {
 			mode: "interactive",
 			value: {
 				video: {
-					name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
-					data: null,
-					is_file: true
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
 				}
 			},
 			root: "foo",
@@ -221,9 +205,7 @@ describe("Video", () => {
 		component.$set({
 			value: {
 				video: {
-					name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
-					data: null,
-					is_file: true
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
 				}
 			}
 		});
@@ -233,14 +215,10 @@ describe("Video", () => {
 	test("renders video and download button", async () => {
 		const data = {
 			video: {
-				data: "asd",
-				name: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-				is_file: true
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 			},
 			subtitles: {
-				data: "asd",
-				name: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-				is_file: true
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 			}
 		};
 		const results = await render(Video, {
@@ -254,7 +232,7 @@ describe("Video", () => {
 		const downloadButton = results.getAllByTestId("download-div")[0];
 		expect(
 			downloadButton.getElementsByTagName("a")[0].getAttribute("href")
-		).toBe(data.video.name);
+		).toBe(data.video.path);
 		expect(
 			downloadButton.getElementsByTagName("button").length
 		).toBeGreaterThan(0);
@@ -267,9 +245,7 @@ describe("Video", () => {
 			mode: "interactive",
 			value: [
 				{
-					name: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					data: null,
-					is_file: true
+					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 				}
 			],
 			root: "foo",
@@ -284,9 +260,7 @@ describe("Video", () => {
 
 		(component.value = [
 			{
-				name: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/b.mp4",
-				data: null,
-				is_file: true
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/b.mp4"
 			}
 		]),
 			assert.equal(mock.callCount, 1);
