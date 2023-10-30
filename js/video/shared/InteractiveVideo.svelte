@@ -76,11 +76,11 @@
 {:else}
 	<ModifyUpload {i18n} on:clear={handle_clear} />
 	{#if playable()}
-		{#key value?.data}
+		{#key value?.path}
 			<Player
 				{autoplay}
-				src={value.data}
-				subtitle={subtitle?.data}
+				src={value.path}
+				subtitle={subtitle?.path}
 				on:play
 				on:pause
 				on:stop
@@ -90,7 +90,7 @@
 			/>
 		{/key}
 	{:else if value.size}
-		<div class="file-name">{value.name}</div>
+		<div class="file-name">{value.orig_name || value.path}</div>
 		<div class="file-size">
 			{prettyBytes(value.size)}
 		</div>

@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -219,6 +219,9 @@ importers:
 
   client/js:
     dependencies:
+      '@gradio/upload':
+        specifier: workspace:^
+        version: link:../../js/upload
       bufferutil:
         specifier: ^4.0.7
         version: 4.0.7
