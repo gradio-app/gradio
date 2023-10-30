@@ -27,6 +27,7 @@
 "@gradio/video": minor
 "gradio": minor
 "gradio_test": minor
+"website": minor
 ---
 
 feat:JS Component Documentation
