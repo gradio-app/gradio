@@ -44,6 +44,12 @@ with gr.Blocks() as demo:
         gr.Number(value=10, interactive=True)
 """
 
+fallback_code = """
+with gr.Blocks() as demo:
+    gr.Markdown("# Change the value (keep it JSON) and the front-end will update automatically.")
+    {name}(value={{"message": "Hello from Gradio!"}}, label="Static")
+"""
+
 
 PATTERN_RE = r"gradio-template-\w+"
 PATTERN = "gradio-template-{template}"
@@ -77,6 +83,7 @@ OVERRIDES = {
     "HTML": ComponentFiles(template="HTML", demo_code=static_only_demo_code),
     "Label": ComponentFiles(template="Label", demo_code=static_only_demo_code),
     "Markdown": ComponentFiles(template="Markdown", demo_code=static_only_demo_code),
+    "Fallback": ComponentFiles(template="Fallback", demo_code=fallback_code),
     "Plot": ComponentFiles(template="Plot", demo_code=static_only_demo_code),
     "BarPlot": ComponentFiles(
         template="BarPlot",
