@@ -18,8 +18,6 @@
 "@gradio/markdown": minor
 "@gradio/model3d": minor
 "@gradio/radio": minor
-"@gradio/simpleaudio": minor
-"@gradio/simplevideo": minor
 "@gradio/statustracker": minor
 "@gradio/textbox": minor
 "@gradio/upload": minor
