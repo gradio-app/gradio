@@ -16,8 +16,8 @@ class TestSeries:
         assert series("Hello") == "Hello World!"
 
     def test_with_external(self):
-        io1 = gr.load("spaces/gradio-tests/image-identity-new-v4sse")
-        io2 = gr.load("spaces/gradio-tests/image-classifier-new-v4sse")
+        io1 = gr.load("spaces/gradio-tests/image-identity-newv4-sse")
+        io2 = gr.load("spaces/gradio-tests/image-classifier-newv4-sse")
         series = mix.Series(io1, io2)
         try:
             assert series("gradio/test_data/lion.jpg")["label"] == "lion"
@@ -45,8 +45,8 @@ class TestParallel:
         ]
 
     def test_with_external(self):
-        io1 = gr.load("spaces/gradio-tests/english_to_spanish-v4sse")
-        io2 = gr.load("spaces/gradio-tests/english2german-v4sse")
+        io1 = gr.load("spaces/gradio-tests/english_to_spanishv4-sse")
+        io2 = gr.load("spaces/gradio-tests/english2germanv4-sse")
         parallel = mix.Parallel(io1, io2)
         try:
             hello_es, hello_de = parallel("Hello")

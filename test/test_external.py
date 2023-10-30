@@ -186,7 +186,7 @@ class TestLoadInterface:
 
     def test_english_to_spanish_v4(self):
         with pytest.warns(UserWarning):
-            io = gr.load("spaces/gradio-tests/english_to_spanish-v4sse", title="hi")
+            io = gr.load("spaces/gradio-tests/english_to_spanishv4-sse", title="hi")
         assert isinstance(io.input_components[0], gr.Textbox)
         assert isinstance(io.output_components[0], gr.Textbox)
 
@@ -217,7 +217,7 @@ class TestLoadInterface:
             gr.load("spaces/gradio-tests/titanic-survival")
 
     def test_numerical_to_label_space(self):
-        io = gr.load("spaces/gradio-tests/titanic-survival-v4sse")
+        io = gr.load("spaces/gradio-tests/titanic-survivalv4-sse")
         try:
             assert io.theme.name == "soft"
             assert io("male", 77, 10)["label"] == "Perishes"
@@ -294,7 +294,7 @@ class TestLoadInterface:
     def test_private_space(self):
         hf_token = "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"  # Intentionally revealing this key for testing purposes
         io = gr.load(
-            "spaces/gradio-tests/not-actually-private-space-v4sse", hf_token=hf_token
+            "spaces/gradio-tests/not-actually-private-spacev4-sse", hf_token=hf_token
         )
         try:
             output = io("abc")
@@ -307,7 +307,7 @@ class TestLoadInterface:
     def test_private_space_audio(self):
         hf_token = "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"  # Intentionally revealing this key for testing purposes
         io = gr.load(
-            "spaces/gradio-tests/not-actually-private-space-audio-v4sse",
+            "spaces/gradio-tests/not-actually-private-space-audiov4-sse",
             hf_token=hf_token,
         )
         try:
@@ -320,24 +320,24 @@ class TestLoadInterface:
         hf_token = "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"  # Intentionally revealing this key for testing purposes
         with gr.Blocks():
             gr.load(
-                "spaces/gradio-tests/not-actually-private-space-v4sse",
+                "spaces/gradio-tests/not-actually-private-spacev4-sse",
                 hf_token=hf_token,
             )
             gr.load(
-                "spaces/gradio/test-loading-examples-v4sse",
+                "spaces/gradio/test-loading-examplesv4-sse",
             )
         assert Context.hf_token == hf_token
 
     def test_loading_files_via_proxy_works(self):
         hf_token = "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"  # Intentionally revealing this key for testing purposes
         io = gr.load(
-            "spaces/gradio-tests/test-loading-examples-private-v4sse", hf_token=hf_token
+            "spaces/gradio-tests/test-loading-examples-privatev4-sse", hf_token=hf_token
         )
         assert io.theme.name == "default"
         app, _, _ = io.launch(prevent_thread_lock=True)
         test_client = TestClient(app)
         r = test_client.get(
-            "/proxy=https://gradio-tests-test-loading-examples-private-v4sse.hf.space/file=Bunny.obj"
+            "/proxy=https://gradio-tests-test-loading-examples-privatev4-sse.hf.space/file=Bunny.obj"
         )
         assert r.status_code == 200
 
@@ -362,25 +362,25 @@ class TestLoadInterfaceWithExamples:
             )
 
     def test_root_url(self):
-        demo = gr.load("spaces/gradio/test-loading-examples-v4")
+        demo = gr.load("spaces/gradio/test-loading-examplesv4-sse")
         assert all(
             c["props"]["root_url"]
-            == "https://gradio-test-loading-examples-v4sse.hf.space/"
+            == "https://gradio-test-loading-examplesv4-sse.hf.space/"
             for c in demo.get_config_file()["components"]
         )
 
     def test_root_url_deserialization(self):
-        demo = gr.load("spaces/gradio/simple_gallery-v4sse")
+        demo = gr.load("spaces/gradio/simple_galleryv4-sse")
         gallery = demo("test")
         assert all("caption" in d for d in gallery)
 
     def test_interface_with_examples(self):
         # This demo has the "fake_event" correctly removed
-        demo = gr.load("spaces/gradio-tests/test-calculator-1-v4sse")
+        demo = gr.load("spaces/gradio-tests/test-calculator-1v4-sse")
         assert demo(2, "add", 3) == 5
 
         # This demo still has the "fake_event". both should work
-        demo = gr.load("spaces/gradio-tests/test-calculator-2-v4sse")
+        demo = gr.load("spaces/gradio-tests/test-calculator-2v4-sse")
         assert demo(2, "add", 4) == 6
 
 
@@ -452,13 +452,13 @@ def check_dataset(config, readme_examples):
 
 @pytest.mark.xfail
 def test_load_blocks_with_default_values():
-    io = gr.load("spaces/gradio-tests/min-dalle-v4sse")
+    io = gr.load("spaces/gradio-tests/min-dallev4-sse")
     assert isinstance(io.get_config_file()["components"][0]["props"]["value"], list)
 
-    io = gr.load("spaces/gradio-tests/min-dalle-later-v4sse")
+    io = gr.load("spaces/gradio-tests/min-dalle-laterv4-sse")
     assert isinstance(io.get_config_file()["components"][0]["props"]["value"], list)
 
-    io = gr.load("spaces/gradio-tests/dataframe_load-v4sse")
+    io = gr.load("spaces/gradio-tests/dataframe_loadv4-sse")
     assert io.get_config_file()["components"][0]["props"]["value"] == {
         "headers": ["a", "b"],
         "data": [[1, 4], [2, 5], [3, 6]],
@@ -485,14 +485,14 @@ def test_can_load_tabular_model_with_different_widget_data(hypothetical_readme):
 
 
 def test_raise_value_error_when_api_name_invalid():
-    demo = gr.load(name="spaces/gradio/hello_world-v4sse")
+    demo = gr.load(name="spaces/gradio/hello_worldv4-sse")
     with pytest.raises(InvalidApiNameError):
         demo("freddy", api_name="route does not exist")
 
 
 def test_use_api_name_in_call_method():
     # Interface
-    demo = gr.load(name="spaces/gradio/hello_world-v4sse")
+    demo = gr.load(name="spaces/gradio/hello_worldv4-sse")
     assert demo("freddy", api_name="predict") == "Hello freddy!"
 
     # Blocks demo with multiple functions

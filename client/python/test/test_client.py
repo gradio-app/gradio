@@ -69,7 +69,7 @@ class TestClientPredictions:
 
     @pytest.mark.flaky
     def test_numerical_to_label_space_v4(self):
-        client = Client("gradio-tests/titanic-survival-v4see")
+        client = Client("gradio-tests/titanic-survivalv4-sse")
         label = client.predict("male", 77, 10, api_name="/predict")
         assert label["label"] == "Perishes"
 
@@ -82,7 +82,7 @@ class TestClientPredictions:
     @pytest.mark.flaky
     def test_private_space_v4(self):
         client = Client(
-            "gradio-tests/not-actually-private-space-v4sse", hf_token=HF_TOKEN
+            "gradio-tests/not-actually-private-spacev4-sse", hf_token=HF_TOKEN
         )
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"

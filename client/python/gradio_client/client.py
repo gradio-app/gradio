@@ -334,12 +334,7 @@ class Client:
 
         helper = None
         if self.endpoints[inferred_fn_index].protocol in ("ws", "sse"):
-            helper = Communicator(
-                Lock(),
-                JobStatus(),
-                self.endpoints[inferred_fn_index].process_predictions,
-                self.reset_url,
-            )
+            helper = self.endpoints[inferred_fn_index].helper
         end_to_end_fn = self.endpoints[inferred_fn_index].make_end_to_end_fn(helper)
         future = self.executor.submit(end_to_end_fn, *args)
 
@@ -829,6 +824,18 @@ class Endpoint:
         # Only a real API endpoint if backend_fn is True (so not just a frontend function), serializers are valid,
         # and api_name is not False (meaning that the developer has explicitly disabled the API endpoint)
         self.is_valid = self.dependency["backend_fn"] and self.api_name is not False
+        self._helper = Communicator(
+            Lock(),
+            JobStatus(),
+            self.process_predictions,
+            self.client.reset_url,
+        )
+
+    @property
+    def helper(self):
+        if self.protocol in ("ws", "sse"):
+            return self._helper
+        return None
 
     def _get_component_type(self, component_id: int):
         component = next(
@@ -1097,6 +1104,12 @@ class EndpointV3Compatibility:
         self.output_component_types = []
         self.root_url = client.src + "/" if not client.src.endswith("/") else client.src
         self.is_continuous = dependency.get("types", {}).get("continuous", False)
+        self._helper = Communicator(
+            Lock(),
+            JobStatus(),
+            self.process_predictions,
+            self.client.reset_url,
+        )
         try:
             # Only a real API endpoint if backend_fn is True (so not just a frontend function), serializers are valid,
             # and api_name is not False (meaning that the developer has explicitly disabled the API endpoint)
@@ -1104,6 +1117,12 @@ class EndpointV3Compatibility:
             self.is_valid = self.dependency["backend_fn"] and self.api_name is not False
         except SerializationSetupError:
             self.is_valid = False
+
+    @property
+    def helper(self):
+        if self.protocol in ("ws", "sse"):
+            return self._helper
+        return None
 
     def __repr__(self):
         return f"Endpoint src: {self.client.src}, api_name: {self.api_name}, fn_index: {self.fn_index}"
