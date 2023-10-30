@@ -227,9 +227,10 @@ For WASM support, you should get the upload function from the `Context` and pass
 You can save yourself some code by using Gradio's core components in your own custom component.
 It will also make it a lot easier to match Gradio's design system.
 
-<Freddy to point to docs here>
+[Svelte Component Documentation](https://gradio.app/main/docs/js)
 
 
 
 ## Matching Gradio Core's Design System
-<Hannah and Ali Abid to elaborate>
+
+[Story Book Link](https://gradio.app/main/docs/js/storybook)
