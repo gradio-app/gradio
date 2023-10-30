@@ -396,9 +396,7 @@ class Interface(Blocks):
                 raise RenderError("Clear button not rendered")
 
             self.attach_submit_events(submit_btn, stop_btn)
-            self.attach_clear_events(
-                clear_btn, input_component_column
-            )
+            self.attach_clear_events(clear_btn, input_component_column)
             if duplicate_btn is not None:
                 duplicate_btn.activate()
 
