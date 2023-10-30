@@ -44,12 +44,11 @@
 		mounted = true;
 	});
 
-	$: ({ data, name } = value || {
-		data: undefined,
-		name: undefined
+	$: ({ path } = value || {
+		path: undefined
 	});
 
-	$: canvas && mounted && data != null && name && dispose();
+	$: canvas && mounted && path && dispose();
 
 	function dispose(): void {
 		if (scene && !scene.isDisposed) {
@@ -90,9 +89,9 @@
 		<div class="buttons">
 			<IconButton Icon={Undo} label="Undo" on:click={() => handle_undo()} />
 			<a
-				href={value.data}
+				href={value.path}
 				target={window.__is_colab__ ? "_blank" : null}
-				download={window.__is_colab__ ? null : value.orig_name || value.name}
+				download={window.__is_colab__ ? null : value.orig_name || value.path}
 			>
 				<IconButton Icon={Download} label={i18n("common.download")} />
 			</a>

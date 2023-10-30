@@ -182,13 +182,11 @@ class AnnotatedImage(Component):
             )
             mask_file_path = str(utils.abspath(mask_file))
             sections.append(
-                Annotation(
-                    image=FileData(name=mask_file_path, is_file=True), label=label
-                )
+                Annotation(image=FileData(path=mask_file_path), label=label)
             )
 
         return AnnotatedImageData(
-            image=FileData(name=base_img_path, data=None, is_file=True),
+            image=FileData(path=base_img_path),
             annotations=sections,
         )
 

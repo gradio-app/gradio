@@ -162,9 +162,7 @@ class Gallery(Component):
             else:
                 raise ValueError(f"Cannot process type as image: {type(img)}")
 
-            entry = GalleryImage(
-                image=FileData(name=file_path, is_file=True), caption=caption
-            )
+            entry = GalleryImage(image=FileData(path=file_path), caption=caption)
             output.append(entry)
         return GalleryData(root=output)
 

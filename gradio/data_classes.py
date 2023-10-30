@@ -119,10 +119,9 @@ GradioDataModel = Union[GradioModel, GradioRootModel]
 
 
 class FileData(GradioModel):
-    name: Optional[str] = None
-    data: Optional[str] = None  # base64 encoded data
+    path: str  # server filepath
+    url: Optional[str] = None  # normalised server url
     size: Optional[int] = None  # size in bytes
-    is_file: Optional[bool] = None
     orig_name: Optional[str] = None  # original filename
     mime_type: Optional[str] = None
 
@@ -131,10 +130,9 @@ class FileData(GradioModel):
         return all(
             f is None
             for f in [
-                self.name,
-                self.data,
+                self.path,
+                self.url,
                 self.size,
-                self.is_file,
                 self.orig_name,
                 self.mime_type,
             ]
@@ -142,15 +140,15 @@ class FileData(GradioModel):
 
     @classmethod
     def from_path(cls, path: str) -> FileData:
-        return cls(name=path, is_file=True)
+        return cls(path=path)
 
     def _copy_to_dir(self, dir: str) -> FileData:
         pathlib.Path(dir).mkdir(exist_ok=True)
         new_obj = dict(self)
-        if self.is_file:
-            assert self.name
-            new_name = shutil.copy(self.name, dir)
-            new_obj["name"] = new_name
+
+        assert self.path
+        new_name = shutil.copy(self.path, dir)
+        new_obj["path"] = new_name
         return self.__class__(**new_obj)
 
     @classmethod

@@ -350,7 +350,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             "preprocess": lambda img, q: {
                 "inputs": {
                     "image": extract_base64_data(
-                        client_utils.encode_url_or_file_to_base64(img["name"])
+                        client_utils.encode_url_or_file_to_base64(img["path"])
                     ),  # Extract base64 data
                     "question": q,
                 }
@@ -369,7 +369,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             "preprocess": lambda img, q: {
                 "inputs": {
                     "image": extract_base64_data(
-                        client_utils.encode_url_or_file_to_base64(img["name"])
+                        client_utils.encode_url_or_file_to_base64(img["path"])
                     ),
                     "question": q,
                 }

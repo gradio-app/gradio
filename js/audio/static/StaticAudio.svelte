@@ -7,9 +7,8 @@
 	import AudioPlayer from "../player/AudioPlayer.svelte";
 	import { createEventDispatcher } from "svelte";
 	import type { FileData } from "@gradio/upload";
-	export let value: null | { name: string; data: string } = null;
+	export let value: null | FileData = null;
 	export let label: string;
-	export let name: string;
 	export let show_label = true;
 	export let autoplay: boolean;
 	export let show_download_button = true;
@@ -25,11 +24,7 @@
 		stop: undefined;
 	}>();
 
-	$: value &&
-		dispatch("change", {
-			name: name,
-			data: value?.data,
-		});
+	$: value && dispatch("change", value);
 </script>
 
 <BlockLabel
@@ -43,9 +38,9 @@
 	<div class="icon-buttons">
 		{#if show_download_button}
 			<a
-				href={value.data}
+				href={value.url}
 				target={window.__is_colab__ ? "_blank" : null}
-				download={value.name}
+				download={value.url}
 			>
 				<IconButton Icon={Download} label={i18n("common.download")} />
 			</a>
@@ -57,7 +52,7 @@
 				on:share
 				formatter={async (value) => {
 					if (!value) return "";
-					let url = await uploadToHuggingFace(value.data, "url");
+					let url = await uploadToHuggingFace(value.url, "url");
 					return `<audio controls src="${url}"></audio>`;
 				}}
 				{value}

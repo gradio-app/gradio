@@ -53,14 +53,9 @@ export const add_new_model = (
 
 	if (!value) return scene;
 	let url: string;
-	if (value.is_file) {
-		url = value.data;
-	} else {
-		let base64_model_content = value.data;
-		let raw_content = BABYLON.Tools.DecodeBase64(base64_model_content);
-		let blob = new Blob([raw_content]);
-		url = URL.createObjectURL(blob);
-	}
+
+	url = value.url!;
+
 	BABYLON.SceneLoader.ShowLoadingScreen = false;
 	BABYLON.SceneLoader.Append(
 		url,
@@ -69,7 +64,7 @@ export const add_new_model = (
 		() => create_camera(scene, camera_position, zoom_speed),
 		undefined,
 		undefined,
-		"." + value.name.split(".")[1]
+		"." + value.path.split(".")[1]
 	);
 	return scene;
 };

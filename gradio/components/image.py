@@ -4,16 +4,15 @@ from __future__ import annotations
 
 import warnings
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Iterable, Literal, cast
 
 import numpy as np
-import PIL
-import PIL.ImageOps
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
-from gradio import processing_utils, utils
+import gradio.image_utils as image_utils
+from gradio import utils
 from gradio.components.base import Component, StreamingInput
 from gradio.data_classes import FileData
 from gradio.events import Events
@@ -25,8 +24,8 @@ _Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 @document()
 class Image(StreamingInput, Component):
     """
-    Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
-    Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch` AND source is one of `upload` or `webcam`. In these cases, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
+    Creates an image component that can be used to upload images (as an input) or display images (as an output).
+    Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type`.
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} or {pathlib.Path} filepath to an image and displays the image.
     Examples-format: a {str} local filepath or URL to an image.
     Demos: image_mod, image_mod_default_image
@@ -34,7 +33,6 @@ class Image(StreamingInput, Component):
     """
 
     EVENTS = [
-        Events.edit,
         Events.clear,
         Events.change,
         Events.stream,
@@ -47,15 +45,16 @@ class Image(StreamingInput, Component):
         self,
         value: str | _Image.Image | np.ndarray | None = None,
         *,
-        shape: tuple[int, int] | None = None,
         height: int | None = None,
         width: int | None = None,
         image_mode: Literal[
             "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
         ] = "RGB",
-        invert_colors: bool = False,
-        source: Literal["upload", "webcam", "canvas"] = "upload",
-        tool: Literal["editor", "select", "sketch", "color-sketch"] | None = None,
+        sources: Iterable[Literal["upload", "webcam", "clipboard"]] = (
+            "upload",
+            "webcam",
+            "clipboard",
+        ),
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
         every: float | None = None,
@@ -73,21 +72,15 @@ class Image(StreamingInput, Component):
         root_url: str | None = None,
         _skip_init_processing: bool = False,
         mirror_webcam: bool = True,
-        brush_radius: float | None = None,
-        brush_color: str = "#000000",
-        mask_opacity: float = 0.7,
         show_share_button: bool | None = None,
     ):
         """
         Parameters:
             value: A PIL Image, numpy array, path or URL for the default value that Image component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            shape: (width, height) shape to crop and resize image when passed to function. If None, matches input image size. Pass None for either width or height to only crop and resize the other.
             height: Height of the displayed image in pixels.
             width: Width of the displayed image in pixels.
             image_mode: "RGB" if color, or "L" if black and white. See https://pillow.readthedocs.io/en/stable/handbook/concepts.html for other supported image modes and their meaning.
-            invert_colors: whether to invert the image as a preprocessing step.
-            source: Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
-            tool: Tools used for editing. "editor" allows a full screen editor (and is the default if source is "upload" or "webcam"), "select" provides a cropping and zoom tool, "sketch" allows you to create a binary sketch (and is the default if source="canvas"), and "color-sketch" allows you to created a sketch in different colors. "color-sketch" can be used with source="upload" or "webcam" to allow sketching on an image. "sketch" can also be used with "upload" or "webcam" to create a mask over an image and in that case both the image and mask are passed into the function as a dictionary with keys "image" and "mask" respectively.
+            sources: List of sources for the image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "clipboard" allows users to paste an image from the clipboard.
             type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
@@ -104,14 +97,9 @@ class Image(StreamingInput, Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
             mirror_webcam: If True webcam will be mirrored. Default is True.
-            brush_radius: Size of the brush for Sketch. Default is None which chooses a sensible default
-            brush_color: Color of the brush for Sketch as hex string. Default is "#000000".
-            mask_opacity: Opacity of mask drawn on image, as a value between 0 and 1.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
-        self.brush_radius = brush_radius
-        self.brush_color = brush_color
-        self.mask_opacity = mask_opacity
+
         self.mirror_webcam = mirror_webcam
         valid_types = ["numpy", "pil", "filepath"]
         if type not in valid_types:
@@ -119,25 +107,25 @@ class Image(StreamingInput, Component):
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
             )
         self.type = type
-        self.shape = shape
         self.height = height
         self.width = width
         self.image_mode = image_mode
-        valid_sources = ["upload", "webcam", "canvas"]
-        if source not in valid_sources:
-            raise ValueError(
-                f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
-            )
-        self.source = source
-        if tool is None:
-            self.tool = "sketch" if source == "canvas" else "editor"
-        else:
-            self.tool = tool
-        self.invert_colors = invert_colors
+        valid_sources = ["upload", "webcam", "clipboard"]
+        if isinstance(sources, str):
+            sources = [sources]
+        for source in sources:
+            if source not in valid_sources:
+                raise ValueError(
+                    f"`sources` must a list consisting of elements in {valid_sources}"
+                )
+        self.sources = sources
+
         self.streaming = streaming
         self.show_download_button = show_download_button
-        if streaming and source != "webcam":
-            raise ValueError("Image streaming only available if source is 'webcam'.")
+        if streaming and sources != ("webcam"):
+            raise ValueError(
+                "Image streaming only available if sources is ['webcam']. Streaming not supported with multiple sources."
+            )
         self.show_share_button = (
             (utils.get_space() is not None)
             if show_share_button is None
@@ -160,76 +148,24 @@ class Image(StreamingInput, Component):
             value=value,
         )
 
-    def _format_image(
-        self, im: _Image.Image | None
-    ) -> np.ndarray | _Image.Image | str | None:
-        """Helper method to format an image based on self.type"""
-        if im is None:
-            return im
-        fmt = im.format
-        if self.type == "pil":
-            return im
-        elif self.type == "numpy":
-            return np.array(im)
-        elif self.type == "filepath":
-            path = processing_utils.save_pil_to_cache(
-                im, cache_dir=self.GRADIO_CACHE, format=fmt or "png"  # type: ignore
-            )
-            return path
-        else:
-            raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'numpy', 'pil', 'filepath'."
-            )
-
-    def preprocess(
-        self, x: str | dict[str, str]
-    ) -> np.ndarray | _Image.Image | str | dict | None:
+    def preprocess(self, x: dict | None) -> np.ndarray | _Image.Image | str | None:
         """
         Parameters:
-            x: base64 url data, or (if tool == "sketch") a dict of image and mask base64 url data
+            x: FileData containing an image path pointing to the user's image
         Returns:
             image in requested format, or (if tool == "sketch") a dict of image and mask in requested format
         """
         if x is None:
             return x
 
-        mask = ""
-        if self.tool == "sketch" and self.source in ["upload", "webcam"]:
-            assert isinstance(x, dict)
-            x, mask = x["image"], x["mask"]
-
-        if isinstance(x, str):
-            im = processing_utils.decode_base64_to_image(x)
-        else:
-            im = _Image.open(x["name"])
+        im = _Image.open(x["path"])
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
-        if self.shape is not None:
-            im = processing_utils.resize_and_crop(im, self.shape)
-        if self.invert_colors:
-            im = PIL.ImageOps.invert(im)
-        if (
-            self.source == "webcam"
-            and self.mirror_webcam is True
-            and self.tool != "color-sketch"
-        ):
-            im = PIL.ImageOps.mirror(im)
 
-        if self.tool == "sketch" and self.source in ["upload", "webcam"]:
-            mask_im = processing_utils.decode_base64_to_image(mask)
-
-            if mask_im.mode == "RGBA":  # whiten any opaque pixels in the mask
-                alpha_data = mask_im.getchannel("A").convert("L")
-                mask_im = _Image.merge("RGB", [alpha_data, alpha_data, alpha_data])
-            return {
-                "image": self._format_image(im),
-                "mask": self._format_image(mask_im),
-            }
-
-        return self._format_image(im)
+        return image_utils.format_image(
+            im, cast(Literal["numpy", "pil", "filepath"], self.type), self.GRADIO_CACHE
+        )
 
     def postprocess(
         self, y: np.ndarray | _Image.Image | str | Path | None
@@ -242,21 +178,14 @@ class Image(StreamingInput, Component):
         """
         if y is None:
             return None
-        if isinstance(y, np.ndarray):
-            path = processing_utils.save_img_array_to_cache(
-                y, cache_dir=self.GRADIO_CACHE
-            )
-        elif isinstance(y, _Image.Image):
-            path = processing_utils.save_pil_to_cache(y, cache_dir=self.GRADIO_CACHE)
-        elif isinstance(y, (str, Path)):
-            path = y if isinstance(y, str) else str(y)
-        else:
-            raise ValueError("Cannot process this value as an Image")
-        return FileData(name=path, data=None, is_file=True)
+
+        return FileData(path=image_utils.save_image(y, self.GRADIO_CACHE))
 
     def check_streamable(self):
-        if self.source != "webcam" and self.streaming:
-            raise ValueError("Image streaming only available if source is 'webcam'.")
+        if self.streaming and self.sources != ("webcam"):
+            raise ValueError(
+                "Image streaming only available if sources is ['webcam']. Streaming not supported with multiple sources."
+            )
 
     def as_example(self, input_data: str | Path | None) -> str:
         if input_data is None:

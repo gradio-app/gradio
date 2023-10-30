@@ -103,7 +103,7 @@
 				<img
 					class="base-image"
 					class:fit-height={height}
-					src={_value ? _value.image.data : null}
+					src={_value ? _value.image.url : null}
 					alt="the base file that is annotated"
 				/>
 				{#each _value ? _value?.annotations : [] as ann, i}
@@ -112,7 +112,7 @@
 						class="mask fit-height"
 						class:active={active == ann.label}
 						class:inactive={active != ann.label && active != null}
-						src={ann.image.data}
+						src={ann.image.url}
 						style={color_map && ann.label in color_map
 							? null
 							: `filter: hue-rotate(${Math.round(

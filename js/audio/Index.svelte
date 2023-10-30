@@ -17,7 +17,7 @@
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let mode: "static" | "interactive";
-	export let value: null | FileData | string = null;
+	export let value: null | FileData = null;
 	export let sources:
 		| ["microphone"]
 		| ["upload"]
@@ -60,7 +60,7 @@
 
 	let active_source: "microphone" | "upload";
 
-	let initial_value: null | FileData | string = value;
+	let initial_value: null | FileData = value;
 
 	$: if (value && initial_value === null) {
 		initial_value = value;
@@ -98,7 +98,7 @@
 		cursorColor: "#ddd5e9",
 		barRadius: 10,
 		dragToSeek: true,
-		mediaControls: waveform_options.show_controls,
+		mediaControls: waveform_options.show_controls
 	};
 </script>
 
@@ -127,7 +127,6 @@
 			{show_download_button}
 			{show_share_button}
 			value={_value}
-			name={_value?.name || "audio_file"}
 			{label}
 			{waveform_settings}
 			on:share={(e) => gradio.dispatch("share", e.detail)}

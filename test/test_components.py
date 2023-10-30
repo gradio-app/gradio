@@ -22,9 +22,11 @@ import vega_datasets
 from gradio_client import media_data
 from gradio_client import utils as client_utils
 from scipy.io import wavfile
+from typing_extensions import cast
 
 import gradio as gr
 from gradio import processing_utils, utils
+from gradio.data_classes import FileData
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -548,34 +550,20 @@ class TestImage:
         Preprocess, postprocess, serialize, get_config, _segment_by_slic
         type: pil, file, filepath, numpy
         """
-        img = deepcopy(media_data.BASE64_IMAGE)
+
+        img = dict(FileData(path="test/test_files/bus.png"))
         image_input = gr.Image()
-        assert image_input.preprocess(img).shape == (68, 61, 3)
-        image_input = gr.Image(shape=(25, 25), image_mode="L")
-        assert image_input.preprocess(img).shape == (25, 25)
-        image_input = gr.Image(shape=(30, 10), type="pil")
-        assert image_input.preprocess(img).size == (30, 10)
-        base64 = client_utils.encode_file_to_base64(
-            image_input.postprocess("test/test_files/bus.png")["name"]
-        )
-        assert base64 == img
+
         image_input = gr.Image(type="filepath")
         image_temp_filepath = image_input.preprocess(img)
         assert image_temp_filepath in [
             str(f) for f in gradio_temp_dir.glob("**/*") if f.is_file()
         ]
 
-        image_input = gr.Image(
-            source="upload", tool="editor", type="pil", label="Upload Your Image"
-        )
+        image_input = gr.Image(type="pil", label="Upload Your Image")
         assert image_input.get_config() == {
-            "brush_radius": None,
-            "brush_color": "#000000",
-            "mask_opacity": 0.7,
             "image_mode": "RGB",
-            "shape": None,
-            "source": "upload",
-            "tool": "editor",
+            "sources": ("upload", "webcam", "clipboard"),
             "name": "image",
             "show_share_button": False,
             "show_download_button": True,
@@ -595,56 +583,28 @@ class TestImage:
             "root_url": None,
             "mirror_webcam": True,
             "selectable": False,
-            "invert_colors": False,
             "streamable": False,
             "type": "pil",
         }
         assert image_input.preprocess(None) is None
-        image_input = gr.Image(invert_colors=True)
+        image_input = gr.Image()
         assert image_input.preprocess(img) is not None
         image_input.preprocess(img)
         file_image = gr.Image(type="filepath")
         assert isinstance(file_image.preprocess(img), str)
         with pytest.raises(ValueError):
             gr.Image(type="unknown")
-        image_input.shape = (30, 10)
 
         # Output functionalities
-        y_img = gr.processing_utils.decode_base64_to_image(
-            deepcopy(media_data.BASE64_IMAGE)
-        )
-        image_output = gr.Image()
-        file = image_output.postprocess(y_img)["name"]
-        assert client_utils.encode_file_to_base64(file).startswith(
-            "data:image/png;base64,iVBORw0KGgoAAA"
-        )
-        file = image_output.postprocess(np.array(y_img))["name"]
-        assert client_utils.encode_file_to_base64(file).startswith(
-            "data:image/png;base64,iVBORw0KGgoAAA"
-        )
-        with pytest.raises(ValueError):
-            image_output.postprocess([1, 2, 3])
-        image_output = gr.Image(type="numpy")
-        file = image_output.postprocess(y_img)["name"]
-        assert client_utils.encode_file_to_base64(file).startswith(
-            "data:image/png;base64,"
-        )
-
-    def test_in_interface_as_input(self):
-        """
-        Interface, process, interpret
-        type: file
-        interpretation: default, shap,
-        """
-        img = "test/test_files/bus.png"
-        gr.Image()
-        iface = gr.Interface(
-            lambda x: PIL.Image.open(x).rotate(90, expand=True),
-            gr.Image(shape=(30, 10), type="filepath"),
-            "image",
-        )
-        output = iface(img)
-        assert PIL.Image.open(output).size == (10, 30)
+        image_output = gr.Image(type="pil")
+        processed_image = image_output.postprocess(PIL.Image.open(img["path"]))
+        assert processed_image is not None
+        if processed_image is not None:
+            processed = client_utils.encode_url_or_file_to_base64(
+                cast(dict, processed_image).get("path", "")
+            )
+            source = client_utils.encode_url_or_file_to_base64(img["path"])
+            assert processed == source
 
     def test_as_example(self):
         # test that URLs are not converted to an absolute path
@@ -668,7 +628,7 @@ class TestImage:
         """
         component = gr.Image("test/test_files/bus.png")
         value = component.get_config().get("value")
-        base64 = client_utils.encode_file_to_base64(value["name"])
+        base64 = client_utils.encode_file_to_base64(value["path"])
         assert base64 == media_data.BASE64_IMAGE
         component = gr.Image(None)
         assert component.get_config().get("value") is None
@@ -740,8 +700,6 @@ class TestAudio:
         assert output1[0] == 8000
         assert output1[1].shape == (8046,)
 
-        x_wav["is_file"] = False
-        x_wav["name"] = "audio_sample.wav"
         x_wav = processing_utils.move_files_to_cache([x_wav], audio_input)[0]
         audio_input = gr.Audio(type="filepath")
         output1 = audio_input.preprocess(x_wav)
@@ -794,7 +752,7 @@ class TestAudio:
             deepcopy(media_data.BASE64_AUDIO)["data"]
         )
         audio_output = gr.Audio(type="filepath")
-        assert filecmp.cmp(y_audio.name, audio_output.postprocess(y_audio.name)["name"])
+        assert filecmp.cmp(y_audio.name, audio_output.postprocess(y_audio.name)["path"])
         assert audio_output.get_config() == {
             "autoplay": False,
             "name": "audio",
@@ -828,8 +786,8 @@ class TestAudio:
 
     def test_default_value_postprocess(self):
         x_wav = deepcopy(media_data.BASE64_AUDIO)
-        audio = gr.Audio(value=x_wav["name"])
-        assert processing_utils.is_in_or_equal(audio.value["name"], audio.GRADIO_CACHE)
+        audio = gr.Audio(value=x_wav["path"])
+        assert processing_utils.is_in_or_equal(audio.value["path"], audio.GRADIO_CACHE)
 
     def test_in_interface(self):
         def reverse_audio(audio):
@@ -860,10 +818,9 @@ class TestAudio:
 
     def test_audio_preprocess_can_be_read_by_scipy(self, gradio_temp_dir):
         x_wav = {
-            "name": processing_utils.save_base64_to_cache(
+            "path": processing_utils.save_base64_to_cache(
                 media_data.BASE64_MICROPHONE["data"], cache_dir=gradio_temp_dir
             ),
-            "is_file": True,
         }
         audio_input = gr.Audio(type="filepath")
         output = audio_input.preprocess(x_wav)
@@ -871,10 +828,9 @@ class TestAudio:
 
     def test_prepost_process_to_mp3(self, gradio_temp_dir):
         x_wav = {
-            "name": processing_utils.save_base64_to_cache(
+            "path": processing_utils.save_base64_to_cache(
                 media_data.BASE64_MICROPHONE["data"], cache_dir=gradio_temp_dir
             ),
-            "is_file": True,
         }
         audio_input = gr.Audio(type="filepath", format="mp3")
         output = audio_input.preprocess(x_wav)
@@ -882,7 +838,7 @@ class TestAudio:
         output = audio_input.postprocess(
             (48000, np.random.randint(-256, 256, (5, 3)).astype(np.int16))
         )
-        assert output["name"].endswith("mp3")
+        assert output["path"].endswith("mp3")
 
 
 class TestFile:
@@ -892,12 +848,11 @@ class TestFile:
         """
         x_file = deepcopy(media_data.BASE64_FILE)
         file_input = gr.File()
-        output = file_input.preprocess(x_file)
+        output = file_input.preprocess({"path": x_file["path"]})
         assert isinstance(output, str)
 
-        x_file["is_file"] = True
-        input1 = file_input.preprocess(x_file)
-        input2 = file_input.preprocess(x_file)
+        input1 = file_input.preprocess({"path": x_file["path"]})
+        input2 = file_input.preprocess({"path": x_file["path"]})
         assert input1 == input1.name  # Testing backwards compatibility
         assert input1 == input2
         assert Path(input1).name == "sample_file.pdf"
@@ -923,10 +878,9 @@ class TestFile:
             "type": "filepath",
         }
         assert file_input.preprocess(None) is None
-        x_file["is_example"] = True
         assert file_input.preprocess(x_file) is not None
 
-        zero_size_file = {"name": "document.txt", "size": 0, "data": ""}
+        zero_size_file = {"path": "document.txt", "size": 0}
         temp_file = file_input.preprocess(zero_size_file)
         assert not Path(temp_file.name).exists()
 
@@ -948,7 +902,7 @@ class TestFile:
         """
         Interface, process
         """
-        x_file = media_data.BASE64_FILE["name"]
+        x_file = media_data.BASE64_FILE["path"]
 
         def get_size_of_file(file_obj):
             return os.path.getsize(file_obj.name)
@@ -977,12 +931,11 @@ class TestUploadButton:
         """
         x_file = deepcopy(media_data.BASE64_FILE)
         upload_input = gr.UploadButton()
-        input = upload_input.preprocess(x_file)
+        input = upload_input.preprocess({"path": x_file})
         assert isinstance(input, str)
 
-        x_file["is_file"] = True
-        input1 = upload_input.preprocess(x_file)
-        input2 = upload_input.preprocess(x_file)
+        input1 = upload_input.preprocess({"path": x_file})
+        input2 = upload_input.preprocess({"path": x_file})
         assert input1 == input1.name  # Testing backwards compatibility
         assert input1 == input2
 
@@ -1357,7 +1310,7 @@ class TestVideo:
         """
         Preprocess, serialize, deserialize, get_config
         """
-        x_video = {"video": deepcopy(media_data.BASE64_VIDEO), "is_file": False}
+        x_video = {"video": {"path": deepcopy(media_data.BASE64_VIDEO)["path"]}}
         video_input = gr.Video()
 
         x_video = processing_utils.move_files_to_cache([x_video], video_input)[0]
@@ -1407,16 +1360,16 @@ class TestVideo:
         y_vid_path = "test/test_files/video_sample.mp4"
         subtitles_path = "test/test_files/s1.srt"
         video_output = gr.Video()
-        output1 = video_output.postprocess(y_vid_path)["video"]["name"]
+        output1 = video_output.postprocess(y_vid_path)["video"]["path"]
         assert output1.endswith("mp4")
-        output2 = video_output.postprocess(y_vid_path)["video"]["name"]
+        output2 = video_output.postprocess(y_vid_path)["video"]["path"]
         assert output1 == output2
         assert (
             video_output.postprocess(y_vid_path)["video"]["orig_name"]
             == "video_sample.mp4"
         )
         output_with_subtitles = video_output.postprocess((y_vid_path, subtitles_path))
-        assert output_with_subtitles["subtitles"]["data"].startswith("data")
+        assert output_with_subtitles["subtitles"]["path"].endswith(".vtt")
 
         p_video = gr.Video()
         video_with_subtitle = gr.Video()
@@ -1427,50 +1380,47 @@ class TestVideo:
 
         processed_video = {
             "video": {
-                "name": "video_sample.mp4",
-                "data": None,
-                "is_file": True,
+                "path": "video_sample.mp4",
                 "orig_name": "video_sample.mp4",
                 "mime_type": None,
                 "size": None,
+                "url": None,
             },
             "subtitles": None,
         }
 
         processed_video_with_subtitle = {
             "video": {
-                "name": "video_sample.mp4",
-                "data": None,
-                "is_file": True,
+                "path": "video_sample.mp4",
                 "orig_name": "video_sample.mp4",
                 "mime_type": None,
                 "size": None,
+                "url": None,
             },
             "subtitles": {
-                "name": None,
-                "data": True,
-                "is_file": False,
+                "path": "s1.srt",
                 "mime_type": None,
                 "orig_name": None,
                 "size": None,
+                "url": None,
             },
         }
-        postprocessed_video["video"]["name"] = os.path.basename(
-            postprocessed_video["video"]["name"]
+        postprocessed_video["video"]["path"] = os.path.basename(
+            postprocessed_video["video"]["path"]
         )
         assert processed_video == postprocessed_video
-        postprocessed_video_with_subtitle["video"]["name"] = os.path.basename(
-            postprocessed_video_with_subtitle["video"]["name"]
+        postprocessed_video_with_subtitle["video"]["path"] = os.path.basename(
+            postprocessed_video_with_subtitle["video"]["path"]
         )
-        if postprocessed_video_with_subtitle["subtitles"]["data"]:
-            postprocessed_video_with_subtitle["subtitles"]["data"] = True
+        if postprocessed_video_with_subtitle["subtitles"]["path"]:
+            postprocessed_video_with_subtitle["subtitles"]["path"] = "s1.srt"
         assert processed_video_with_subtitle == postprocessed_video_with_subtitle
 
     def test_in_interface(self):
         """
         Interface, process
         """
-        x_video = media_data.BASE64_VIDEO["name"]
+        x_video = media_data.BASE64_VIDEO["path"]
         iface = gr.Interface(lambda x: x, "video", "playable_video")
         assert iface({"video": x_video})["video"].endswith(".mp4")
 
@@ -1478,7 +1428,7 @@ class TestVideo:
         """
         Interface, process
         """
-        x_audio = media_data.BASE64_AUDIO["name"]
+        x_audio = media_data.BASE64_AUDIO["path"]
         iface = gr.Interface(lambda x: gr.make_waveform(x), "audio", "video")
         assert iface(x_audio)["video"].endswith(".mp4")
 
@@ -1492,7 +1442,7 @@ class TestVideo:
             assert not processing_utils.video_is_playable(bad_vid)
             shutil.copy(bad_vid, tmp_not_playable_vid.name)
             output = gr.Video().postprocess(tmp_not_playable_vid.name)
-            assert processing_utils.video_is_playable(output["video"]["name"])
+            assert processing_utils.video_is_playable(output["video"]["path"])
 
         # This file has a playable codec but not a playable container
         with tempfile.NamedTemporaryFile(
@@ -1502,7 +1452,7 @@ class TestVideo:
             assert not processing_utils.video_is_playable(bad_vid)
             shutil.copy(bad_vid, tmp_not_playable_vid.name)
             output = gr.Video().postprocess(tmp_not_playable_vid.name)
-            assert processing_utils.video_is_playable(output["video"]["name"])
+            assert processing_utils.video_is_playable(output["video"]["path"])
 
     @patch("pathlib.Path.exists", MagicMock(return_value=False))
     @patch("gradio.components.video.FFmpeg")
@@ -1554,9 +1504,7 @@ class TestVideo:
         output = gr.Video().preprocess(
             {
                 "video": {
-                    "name": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
-                    "is_file": True,
-                    "data": None,
+                    "path": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
                     "size": None,
                     "orig_name": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
                 }
@@ -1815,11 +1763,11 @@ class TestAnnotatedImage:
         input = (img, [(mask1, "mask1"), (mask2, "mask2")])
         result = component.postprocess(input)
 
-        base_img_out = PIL.Image.open(result["image"]["name"])
+        base_img_out = PIL.Image.open(result["image"]["path"])
 
         assert result["annotations"][0]["label"] == "mask1"
 
-        mask1_img_out = PIL.Image.open(result["annotations"][0]["image"]["name"])
+        mask1_img_out = PIL.Image.open(result["annotations"][0]["image"]["path"])
         assert mask1_img_out.size == base_img_out.size
         mask1_array_out = np.array(mask1_img_out)
         assert np.max(mask1_array_out[40:50, 40:50]) == 255
@@ -1885,8 +1833,7 @@ class TestChatbot:
         for msg in postprocessed_multimodal_msg:
             assert "file" in msg[0]
             assert msg[1] in {"cool video", "cool audio", "cool pic"}
-            assert msg[0]["file"]["name"].split(".")[-1] in {"mp4", "wav", "png"}
-            assert msg[0]["file"]["is_file"]
+            assert msg[0]["file"]["path"].split(".")[-1] in {"mp4", "wav", "png"}
             if msg[0]["alt_text"]:
                 assert msg[0]["alt_text"] == "A bus"
 
@@ -2123,18 +2070,17 @@ class TestGallery:
         processed_gallery = [
             {
                 "image": {
-                    "name": "bus.png",
-                    "data": None,
-                    "is_file": True,
+                    "path": "bus.png",
                     "orig_name": None,
                     "mime_type": None,
                     "size": None,
+                    "url": None,
                 },
                 "caption": None,
             }
         ]
-        postprocessed_gallery[0]["image"]["name"] = os.path.basename(
-            postprocessed_gallery[0]["image"]["name"]
+        postprocessed_gallery[0]["image"]["path"] = os.path.basename(
+            postprocessed_gallery[0]["image"]["path"]
         )
         assert processed_gallery == postprocessed_gallery
 

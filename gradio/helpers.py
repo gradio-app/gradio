@@ -457,9 +457,7 @@ def merge_generated_values_into_output(
                 f.write(binary_data)
 
             output[output_index] = {
-                "name": temp_file.name,
-                "is_file": True,
-                "data": None,
+                "path": temp_file.name,
             }
 
     return output

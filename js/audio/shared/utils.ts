@@ -1,4 +1,3 @@
-import type { ActionReturn } from "svelte/action";
 import type WaveSurfer from "wavesurfer.js";
 import Regions from "wavesurfer.js/dist/plugins/regions.js";
 import { audioBufferToWav } from "./audioBufferToWav";
