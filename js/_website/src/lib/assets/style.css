@@ -202,3 +202,7 @@ code.language-bash {
 .tip code {
 	@apply text-orange-700 
 }
+
+.tip a {
+	@apply text-orange-700
+}

@@ -26,7 +26,7 @@ If you want to export any additional modules, remember to modify the `package.js
 
 Your component should expose the following props that will be passed down from the parent Gradio application.
 
-```
+```ts
 import type { LoadingStatus } from "@gradio/statustracker";
 import type { Gradio } from "@gradio/utils";
 
