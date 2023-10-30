@@ -7,11 +7,10 @@
 	import { get_coordinates_of_clicked_image } from "./utils";
 
 	import { Image } from "@gradio/icons";
-	import { type FileData, normalise_file } from "@gradio/upload";
+	import { type FileData, normalise_file } from "@gradio/client";
 	import type { I18nFormatter } from "@gradio/utils";
 
 	export let value: null | FileData;
-	let value_: null | FileData;
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
 	export let show_download_button = true;
@@ -25,12 +24,7 @@
 		select: SelectData;
 	}>();
 
-	$: value && dispatch("change", value.data);
-
-	$: if (value !== value_) {
-		value_ = value;
-		normalise_file(value_, root, null);
-	}
+	$: value = normalise_file(value, root, null);
 
 	const handle_click = (evt: MouseEvent): void => {
 		let coordinates = get_coordinates_of_clicked_image(evt);
@@ -41,13 +35,13 @@
 </script>
 
 <BlockLabel {show_label} Icon={Image} label={label || i18n("image.image")} />
-{#if value_ === null}
+{#if value === null || !value.url}
 	<Empty unpadded_box={true} size="large"><Image /></Empty>
 {:else}
 	<div class="icon-buttons">
 		{#if show_download_button}
 			<a
-				href={value_.data}
+				href={value.url}
 				target={window.__is_colab__ ? "_blank" : null}
 				download={"image"}
 			>
@@ -69,15 +63,17 @@
 		{/if}
 	</div>
 	<button on:click={handle_click}>
-		<img src={value_.data} alt="" class:selectable loading="lazy" />
+		<img src={value.url} alt="" class:selectable loading="lazy" />
 	</button>
 {/if}
 
 <style>
-	img {
+	img,
+	button {
 		width: var(--size-full);
 		height: var(--size-full);
 		object-fit: contain;
+		display: block;
 	}
 
 	.selectable {

@@ -5,7 +5,7 @@
 	import { Image } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { type FileData, normalise_file } from "@gradio/upload";
+	import { type FileData, normalise_file } from "@gradio/client";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -103,7 +103,7 @@
 				<img
 					class="base-image"
 					class:fit-height={height}
-					src={_value ? _value.image.data : null}
+					src={_value ? _value.image.url : null}
 					alt="the base file that is annotated"
 				/>
 				{#each _value ? _value?.annotations : [] as ann, i}
@@ -112,7 +112,7 @@
 						class="mask fit-height"
 						class:active={active == ann.label}
 						class:inactive={active != ann.label && active != null}
-						src={ann.image.data}
+						src={ann.image.url}
 						style={color_map && ann.label in color_map
 							? null
 							: `filter: hue-rotate(${Math.round(

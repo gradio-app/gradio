@@ -1,4 +1,4 @@
-import type { FileData } from "@gradio/upload";
+import type { FileData } from "@gradio/client";
 
 export const prettyBytes = (bytes: number): string => {
 	let units = ["B", "KB", "MB", "GB", "PB"];
@@ -13,7 +13,7 @@ export const prettyBytes = (bytes: number): string => {
 
 export const display_file_name = (value: FileData): string => {
 	var str: string;
-	str = value.orig_name || value.name;
+	str = value.orig_name;
 	const max_length = 30;
 
 	if (str.length > max_length) {

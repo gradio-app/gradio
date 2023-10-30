@@ -31,7 +31,7 @@
 	export let server: {
 		ls: (path: string[]) => Promise<[string[], string[]]>;
 	};
-	export let mode: "static" | "interactive" = "interactive";
+	export let interactive: boolean;
 </script>
 
 <Block
@@ -62,7 +62,7 @@
 		bind:value
 		{file_count}
 		{server}
-		{mode}
+		{interactive}
 		on:change={() => gradio.dispatch("change")}
 	/>
 </Block>

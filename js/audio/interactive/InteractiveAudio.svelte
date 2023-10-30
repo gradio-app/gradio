@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { FileData } from "@gradio/upload";
 	import { onDestroy, createEventDispatcher } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
+	import { upload, prepare_files, type FileData } from "@gradio/client";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Music, Microphone, Upload as UploadIcon } from "@gradio/icons";
 	import AudioPlayer from "../player/AudioPlayer.svelte";
@@ -11,9 +11,8 @@
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import AudioRecorder from "../recorder/AudioRecorder.svelte";
 	import StreamAudio from "../streaming/StreamAudio.svelte";
-	import { blob_to_data_url } from "../shared/utils";
 
-	export let value: null | { name: string; data: string } = null;
+	export let value: null | FileData = null;
 	export let label: string;
 	export let root: string;
 	export let show_label = true;
@@ -54,7 +53,7 @@
 	function get_modules(): void {
 		module_promises = [
 			import("extendable-media-recorder"),
-			import("extendable-media-recorder-wav-encoder"),
+			import("extendable-media-recorder-wav-encoder")
 		];
 	}
 
@@ -83,13 +82,11 @@
 		blobs: Uint8Array[] | Blob[],
 		event: "stream" | "change" | "stop_recording"
 	): Promise<void> => {
-		let _audio_blob = new Blob(blobs, { type: "audio/wav" });
-		value = {
-			data: await blob_to_data_url(_audio_blob),
-			name: "audio.wav",
-		};
-		const detail = { ...value, is_file: false };
-		dispatch(event, detail);
+		let _audio_blob = new File(blobs, "audio.wav");
+		const val = await prepare_files([_audio_blob], event === "stream");
+		value = ((await upload(val, root))?.filter(Boolean) as FileData[])[0];
+
+		dispatch(event, value);
 	};
 
 	onDestroy(() => {
@@ -179,16 +176,7 @@
 		value = null;
 	}
 
-	function handle_load({
-		detail,
-	}: {
-		detail: {
-			data: string;
-			name: string;
-			size: number;
-			is_example: boolean;
-		};
-	}): void {
+	function handle_load({ detail }: { detail: FileData }): void {
 		value = detail;
 		dispatch("change", detail);
 		dispatch("upload", detail);

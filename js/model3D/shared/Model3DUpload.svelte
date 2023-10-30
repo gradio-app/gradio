@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, tick, onMount } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
-	import type { FileData } from "@gradio/upload";
+	import type { FileData } from "@gradio/client";
 	import { BlockLabel } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
 	import { add_new_model, reset_camera_position } from "./utils";
@@ -45,13 +45,11 @@
 		mounted = true;
 	});
 
-	$: ({ data, is_file, name } = value || {
-		data: undefined,
-		is_file: undefined,
-		name: undefined
+	$: ({ path } = value || {
+		path: undefined
 	});
 
-	$: canvas && mounted && data != null && is_file && reset_scene();
+	$: canvas && mounted && path != null && reset_scene();
 
 	async function handle_upload({
 		detail

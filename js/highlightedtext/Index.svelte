@@ -26,9 +26,9 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let selectable = false;
+	export let _selectable = false;
 	export let combine_adjacent = false;
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 
 	$: if (!color_map && Object.keys(color_map).length) {
 		color_map = color_map;
@@ -48,7 +48,7 @@
 	}
 </script>
 
-{#if mode === "static"}
+{#if !interactive}
 	<Block
 		variant={"solid"}
 		test_id="highlighted-text"
@@ -77,7 +77,7 @@
 		{#if value}
 			<StaticHighlightedText
 				on:select={({ detail }) => gradio.dispatch("select", detail)}
-				{selectable}
+				selectable={_selectable}
 				{value}
 				{show_legend}
 				{color_map}
@@ -90,7 +90,7 @@
 	</Block>
 {:else}
 	<Block
-		variant={mode === "interactive" ? "dashed" : "solid"}
+		variant={interactive ? "dashed" : "solid"}
 		test_id="highlighted-text"
 		{visible}
 		{elem_id}
@@ -118,7 +118,7 @@
 			<InteractiveHighlightedText
 				bind:value
 				on:change={() => gradio.dispatch("change")}
-				{selectable}
+				selectable={_selectable}
 				{show_legend}
 				{color_map}
 			/>

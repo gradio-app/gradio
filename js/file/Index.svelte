@@ -8,8 +8,7 @@
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import File from "./shared/File.svelte";
 	import FileUpload from "./shared/FileUpload.svelte";
-	import type { FileData } from "@gradio/upload";
-	import { normalise_file } from "@gradio/upload";
+	import { normalise_file, type FileData } from "@gradio/client";
 	import { Block, UploadText } from "@gradio/atoms";
 
 	import { StatusTracker } from "@gradio/statustracker";
@@ -20,14 +19,14 @@
 	export let visible = true;
 	export let value: null | FileData | FileData[];
 
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 	export let root: string;
 	export let label: string;
 	export let show_label: boolean;
 	export let height: number | undefined = undefined;
 
 	export let root_url: null | string;
-	export let selectable = false;
+	export let _selectable = false;
 	export let loading_status: LoadingStatus;
 	export let container = true;
 	export let scale: number | null = null;
@@ -73,10 +72,10 @@
 			? "generating"
 			: loading_status?.status || "complete"}
 	/>
-	{#if mode === "static"}
+	{#if !interactive}
 		<File
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
-			{selectable}
+			selectable={_selectable}
 			value={_value}
 			{label}
 			{show_label}
@@ -90,7 +89,7 @@
 			value={_value}
 			{file_count}
 			{file_types}
-			{selectable}
+			selectable={_selectable}
 			{root}
 			{height}
 			on:change={({ detail }) => {

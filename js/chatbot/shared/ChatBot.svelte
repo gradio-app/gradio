@@ -6,9 +6,8 @@
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import { ShareButton } from "@gradio/atoms";
 	import type { SelectData, LikeData } from "@gradio/utils";
-	import type { FileData } from "@gradio/upload";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
-	import { get_fetchable_url_or_file } from "@gradio/upload";
+	import { get_fetchable_url_or_file, type FileData } from "@gradio/client";
 	import Copy from "./Copy.svelte";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import LikeDislike from "./LikeDislike.svelte";
@@ -186,7 +185,7 @@
 											data-testid="chatbot-audio"
 											controls
 											preload="metadata"
-											src={message.file?.data}
+											src={message.file?.url}
 											title={message.alt_text}
 											on:play
 											on:pause
@@ -196,7 +195,7 @@
 										<video
 											data-testid="chatbot-video"
 											controls
-											src={message.file?.data}
+											src={message.file?.url}
 											title={message.alt_text}
 											preload="auto"
 											on:play
@@ -208,19 +207,19 @@
 									{:else if message !== null && message.file?.mime_type?.includes("image")}
 										<img
 											data-testid="chatbot-image"
-											src={message.file?.data}
+											src={message.file?.url}
 											alt={message.alt_text}
 										/>
-									{:else if message !== null && message.file?.data !== null}
+									{:else if message !== null && message.file?.url !== null}
 										<a
 											data-testid="chatbot-file"
-											href={message.file?.data}
+											href={message.file?.url}
 											target="_blank"
 											download={window.__is_colab__
 												? null
-												: message.file?.orig_name || message.file?.name}
+												: message.file?.orig_name || message.file?.path}
 										>
-											{message.file?.orig_name || message.file?.name}
+											{message.file?.orig_name || message.file?.path}
 										</a>
 									{:else if pending_message && j === 1}
 										<Pending {layout} />

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, afterUpdate, tick } from "svelte";
 	import { BlockLabel, Empty, IconButton, ShareButton } from "@gradio/atoms";
-	import type { FileData } from "@gradio/upload";
+	import type { FileData } from "@gradio/client";
 	import { Video, Download } from "@gradio/icons";
 	import { uploadToHuggingFace } from "@gradio/utils";
 
@@ -47,13 +47,13 @@
 </script>
 
 <BlockLabel {show_label} Icon={Video} label={label || "Video"} />
-{#if value === null}
+{#if value === null || value.url === undefined}
 	<Empty unpadded_box={true} size="large"><Video /></Empty>
 {:else}
-	{#key value.data}
+	{#key value.url}
 		<Player
-			src={value.data}
-			subtitle={subtitle?.data}
+			src={value.url}
+			subtitle={subtitle?.url}
 			{autoplay}
 			on:play
 			on:pause
@@ -65,9 +65,9 @@
 	{/key}
 	<div class="icon-buttons" data-testid="download-div">
 		<a
-			href={value.data}
+			href={value.url}
 			target={window.__is_colab__ ? "_blank" : null}
-			download={value.orig_name || value.name}
+			download={value.orig_name || value.url}
 		>
 			<IconButton Icon={Download} label="Download" />
 		</a>

@@ -21,8 +21,7 @@ from PIL import Image, ImageOps, PngImagePlugin
 
 from gradio import wasm_utils
 from gradio.data_classes import FileData
-
-from .utils import abspath, is_in_or_equal
+from gradio.utils import abspath, is_in_or_equal
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # Ignore pydub warning if ffmpeg is not installed
@@ -44,7 +43,7 @@ def to_binary(x: str | dict) -> bytes:
         if x.get("data"):
             base64str = x["data"]
         else:
-            base64str = client_utils.encode_url_or_file_to_base64(x["name"])
+            base64str = client_utils.encode_url_or_file_to_base64(x["path"])
     else:
         base64str = x
     return base64.b64decode(extract_base64_data(base64str))
@@ -247,6 +246,32 @@ def save_base64_to_cache(
     return full_temp_file_path
 
 
+def move_resource_to_block_cache(url_or_file_path: str | Path, block: Component) -> str:
+    """Moves a file or downloads a file from a url to a block's cache directory, adds
+    to to the block's temp_files, and returns the path to the file in cache. This
+    ensures that the file is accessible to the Block and can be served to users.
+    """
+    if isinstance(url_or_file_path, Path):
+        url_or_file_path = str(url_or_file_path)
+
+    if client_utils.is_http_url_like(url_or_file_path):
+        temp_file_path = save_url_to_cache(
+            url_or_file_path, cache_dir=block.GRADIO_CACHE
+        )
+        block.temp_files.add(temp_file_path)
+    else:
+        url_or_file_path = str(abspath(url_or_file_path))
+        if not is_in_or_equal(url_or_file_path, block.GRADIO_CACHE):
+            temp_file_path = save_file_to_cache(
+                url_or_file_path, cache_dir=block.GRADIO_CACHE
+            )
+            block.temp_files.add(temp_file_path)
+        else:
+            temp_file_path = url_or_file_path
+
+    return temp_file_path
+
+
 def move_files_to_cache(data: Any, block: Component):
     """Move files to cache and replace the file path with the cache path.
 
@@ -259,29 +284,8 @@ def move_files_to_cache(data: Any, block: Component):
 
     def _move_to_cache(d: dict):
         payload = FileData(**d)
-        if payload.name and (
-            client_utils.is_http_url_like(payload.name)
-            or not is_in_or_equal(payload.name, block.GRADIO_CACHE)
-        ):
-            if payload.is_file:
-                if client_utils.is_http_url_like(payload.name):
-                    temp_file_path = save_url_to_cache(
-                        payload.name, cache_dir=block.GRADIO_CACHE
-                    )
-                else:
-                    temp_file_path = save_file_to_cache(
-                        payload.name, cache_dir=block.GRADIO_CACHE
-                    )
-            else:
-                assert payload.data
-                temp_file_path = save_base64_to_cache(
-                    payload.data,
-                    file_name=payload.name,
-                    cache_dir=block.GRADIO_CACHE,
-                )
-                payload.is_file = True
-            block.temp_files.add(temp_file_path)
-            payload.name = temp_file_path
+        temp_file_path = move_resource_to_block_cache(payload.path, block)
+        payload.path = temp_file_path
         return payload.model_dump()
 
     return client_utils.traverse(data, _move_to_cache, client_utils.is_file_obj)

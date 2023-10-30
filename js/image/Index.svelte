@@ -7,12 +7,12 @@
 <script lang="ts">
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import StaticImage from "./shared/ImagePreview.svelte";
-	import Image from "./shared/ImageEditor.svelte";
+	import ImageUploader from "./shared/ImageUploader.svelte";
 
-	import { Block, UploadText } from "@gradio/atoms";
-
+	import { Block, Empty, UploadText } from "@gradio/atoms";
+	import { Image } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { FileData } from "js/upload/src";
+	import type { FileData } from "@gradio/client";
 	import type { LoadingStatus } from "@gradio/statustracker";
 
 	export let elem_id = "";
@@ -27,23 +27,21 @@
 	export let height: number | undefined;
 	export let width: number | undefined;
 
-	export let selectable = false;
+	export let _selectable = false;
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let show_share_button = false;
-
-	export let mode: "static" | "interactive";
-	export let source: "canvas" | "webcam" | "upload" = "upload";
-	export let tool: "editor" | "select" | "sketch" | "color-sketch" = "editor";
+	export let sources: ("clipboard" | "webcam" | "upload")[] = [
+		"upload",
+		"clipboard",
+		"webcam"
+	];
+	export let interactive: boolean;
 	export let streaming: boolean;
 	export let pending: boolean;
 	export let mirror_webcam: boolean;
-	export let shape: [number, number];
-	export let brush_radius: number;
-	export let brush_color: string;
-	export let mask_opacity: number;
 
 	export let gradio: Gradio<{
 		change: never;
@@ -57,18 +55,54 @@
 		share: ShareData;
 	}>;
 
-	$: value, gradio.dispatch("change");
+	$: value?.url && gradio.dispatch("change");
 	let dragging: boolean;
 
 	$: value = !value ? null : value;
 
-	const FIXED_HEIGHT = 240;
+	let active_tool: null | "webcam" = null;
 </script>
 
-{#if mode === "static"}
+{#if !interactive}
 	<Block
 		{visible}
 		variant={"solid"}
+		border_mode={dragging ? "focus" : "base"}
+		padding={false}
+		{elem_id}
+		{elem_classes}
+		height={height || undefined}
+		{width}
+		allow_overflow={false}
+		{container}
+		{scale}
+		{min_width}
+	>
+		<StatusTracker
+			translucent={true}
+			autoscroll={gradio.autoscroll}
+			i18n={gradio.i18n}
+			{...loading_status}
+			show_progress="hidden"
+		/>
+		<StaticImage
+			on:select={({ detail }) => gradio.dispatch("select", detail)}
+			on:share={({ detail }) => gradio.dispatch("share", detail)}
+			on:error={({ detail }) => gradio.dispatch("error", detail)}
+			{root}
+			{value}
+			{label}
+			{show_label}
+			{show_download_button}
+			selectable={_selectable}
+			{show_share_button}
+			i18n={gradio.i18n}
+		/>
+	</Block>
+{:else}
+	<Block
+		{visible}
+		variant={value === null ? "dashed" : "solid"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
 		{elem_id}
@@ -85,51 +119,13 @@
 			i18n={gradio.i18n}
 			{...loading_status}
 		/>
-		<StaticImage
-			on:select={({ detail }) => gradio.dispatch("select", detail)}
-			on:share={({ detail }) => gradio.dispatch("share", detail)}
-			on:error={({ detail }) => gradio.dispatch("error", detail)}
-			{root}
-			{value}
-			{label}
-			{show_label}
-			{show_download_button}
-			{selectable}
-			{show_share_button}
-			i18n={gradio.i18n}
-		/>
-	</Block>
-{:else}
-	<Block
-		{visible}
-		variant={value === null && source === "upload" ? "dashed" : "solid"}
-		border_mode={dragging ? "focus" : "base"}
-		padding={false}
-		{elem_id}
-		{elem_classes}
-		height={height || (source === "webcam" ? undefined : FIXED_HEIGHT)}
-		{width}
-		allow_overflow={false}
-		{container}
-		{scale}
-		{min_width}
-	>
-		<StatusTracker
-			autoscroll={gradio.autoscroll}
-			i18n={gradio.i18n}
-			{...loading_status}
-		/>
 
-		<Image
-			{brush_radius}
-			{brush_color}
-			{shape}
+		<ImageUploader
+			bind:active_tool
 			bind:value
-			{source}
-			{tool}
-			{selectable}
-			{mask_opacity}
+			selectable={_selectable}
 			{root}
+			{sources}
 			on:edit={() => gradio.dispatch("edit")}
 			on:clear={() => gradio.dispatch("clear")}
 			on:stream={() => gradio.dispatch("stream")}
@@ -142,6 +138,8 @@
 				loading_status.status = "error";
 				gradio.dispatch("error", detail);
 			}}
+			on:click={() => gradio.dispatch("error", "bad thing happened")}
+			on:error
 			{label}
 			{show_label}
 			{pending}
@@ -149,7 +147,11 @@
 			{mirror_webcam}
 			i18n={gradio.i18n}
 		>
-			<UploadText i18n={gradio.i18n} type="image" />
-		</Image>
+			{#if sources.includes("upload")}
+				<UploadText i18n={gradio.i18n} type="image" mode="short" />
+			{:else}
+				<Empty unpadded_box={true} size="large"><Image /></Empty>
+			{/if}
+		</ImageUploader>
 	</Block>
 {/if}
