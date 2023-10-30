@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
-	import type { FileData } from "@gradio/upload";
+	import type { FileData } from "@gradio/client";
 	import { BlockLabel } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
 

@@ -6,7 +6,8 @@
 	import type { I18nFormatter } from "@gradio/utils";
 	import AudioPlayer from "../player/AudioPlayer.svelte";
 	import { createEventDispatcher } from "svelte";
-	import type { FileData } from "@gradio/upload";
+	import type { FileData } from "@gradio/client";
+
 	export let value: null | FileData = null;
 	export let label: string;
 	export let show_label = true;

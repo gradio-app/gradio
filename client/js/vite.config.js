@@ -18,16 +18,16 @@ export default defineConfig({
 		}
 	},
 	plugins: [
-		svelte(),
-		{
-			name: "resolve-gradio-client",
-			enforce: "pre",
-			resolveId(id) {
-				if (id === "@gradio/client") {
-					return path.join(__dirname, "src", "index.ts");
-				}
-			}
-		}
+		svelte()
+		// {
+		// 	name: "resolve-gradio-client",
+		// 	enforce: "pre",
+		// 	resolveId(id) {
+		// 		if (id === "@gradio/client") {
+		// 			return path.join(__dirname, "src", "index.ts");
+		// 		}
+		// 	}
+		// }
 	],
 
 	ssr: {

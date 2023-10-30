@@ -92,7 +92,7 @@ export async function process_endpoint(
 				space_id: app_reference,
 				...determine_protocol(_host)
 			};
-		} catch (e) {
+		} catch (e: any) {
 			throw new Error("Space metadata could not be loaded." + e.message);
 		}
 	}
@@ -167,7 +167,7 @@ export async function get_space_hardware(
 		const { hardware } = await res.json();
 
 		return hardware;
-	} catch (e) {
+	} catch (e: any) {
 		throw new Error(e.message);
 	}
 }
@@ -196,7 +196,7 @@ export async function set_space_hardware(
 		const { hardware } = await res.json();
 
 		return hardware;
-	} catch (e) {
+	} catch (e: any) {
 		throw new Error(e.message);
 	}
 }
@@ -225,7 +225,7 @@ export async function set_space_timeout(
 		const { hardware } = await res.json();
 
 		return hardware;
-	} catch (e) {
+	} catch (e: any) {
 		throw new Error(e.message);
 	}
 }

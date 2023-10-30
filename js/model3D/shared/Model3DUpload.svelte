@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, tick, onMount } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
-	import type { FileData } from "@gradio/upload";
+	import type { FileData } from "@gradio/client";
 	import { BlockLabel } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
 	import { add_new_model, reset_camera_position } from "./utils";

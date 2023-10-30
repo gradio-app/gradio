@@ -1,4 +1,4 @@
-import type { FileData } from "@gradio/upload";
+import type { FileData } from "@gradio/client";
 import { uploadToHuggingFace } from "@gradio/utils";
 
 export const format_chat_for_sharing = async (

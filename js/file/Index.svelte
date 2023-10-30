@@ -8,8 +8,7 @@
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import File from "./shared/File.svelte";
 	import FileUpload from "./shared/FileUpload.svelte";
-	import type { FileData } from "@gradio/upload";
-	import { normalise_file } from "@gradio/upload";
+	import { normalise_file, type FileData } from "@gradio/client";
 	import { Block, UploadText } from "@gradio/atoms";
 
 	import { StatusTracker } from "@gradio/statustracker";

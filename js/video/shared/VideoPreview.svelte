@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, afterUpdate, tick } from "svelte";
 	import { BlockLabel, Empty, IconButton, ShareButton } from "@gradio/atoms";
-	import type { FileData } from "@gradio/upload";
+	import type { FileData } from "@gradio/client";
 	import { Video, Download } from "@gradio/icons";
 	import { uploadToHuggingFace } from "@gradio/utils";
 
