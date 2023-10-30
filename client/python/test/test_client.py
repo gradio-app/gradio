@@ -303,7 +303,7 @@ class TestClientPredictions:
     @pytest.mark.xfail
     def test_upload_file_private_space_v4(self):
         client = Client(
-            src="gradio-tests/not-actually-private-file-upload-v4sse", hf_token=HF_TOKEN
+            src="gradio-tests/not-actually-private-file-uploadv4-sse", hf_token=HF_TOKEN
         )
 
         with patch.object(
@@ -1051,7 +1051,7 @@ class TestEndpoints:
 
     def test_upload_v4(self):
         client = Client(
-            src="gradio-tests/not-actually-private-file-upload-v4sse", hf_token=HF_TOKEN
+            src="gradio-tests/not-actually-private-file-uploadv4-sse", hf_token=HF_TOKEN
         )
         response = MagicMock(status_code=200)
         response.json.return_value = [
