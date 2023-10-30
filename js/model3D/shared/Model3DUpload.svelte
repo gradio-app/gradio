@@ -45,13 +45,11 @@
 		mounted = true;
 	});
 
-	$: ({ data, is_file, name } = value || {
-		data: undefined,
-		is_file: undefined,
-		name: undefined
+	$: ({ path } = value || {
+		path: undefined
 	});
 
-	$: canvas && mounted && data != null && is_file && reset_scene();
+	$: canvas && mounted && path != null && reset_scene();
 
 	async function handle_upload({
 		detail

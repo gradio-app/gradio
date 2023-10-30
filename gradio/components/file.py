@@ -7,7 +7,6 @@ import warnings
 from pathlib import Path
 from typing import Any, Callable, List, Literal
 
-from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import Component
@@ -60,6 +59,7 @@ class File(Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         root_url: str | None = None,
+        _selectable: bool = False,
         _skip_init_processing: bool = False,
     ):
         """
@@ -82,6 +82,7 @@ class File(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
         """
+        self._selectable = _selectable
         self.file_count = file_count
         if self.file_count == "multiple":
             self.data_model = ListFiles
@@ -123,19 +124,16 @@ class File(Component):
         self.type = type
         self.height = height
 
-    def _process_single_file(self, f: FileData) -> bytes | str:
+    def _process_single_file(self, f: FileData) -> bytes | NamedString:
+        file_name = f.path
         if self.type == "filepath":
             file = tempfile.NamedTemporaryFile(delete=False, dir=self.GRADIO_CACHE)
             assert f.name
             file.name = f.name
             return NamedString(file.name)
         elif self.type == "binary":
-            if f.is_file:
-                assert f.name
-                with open(f.name, "rb") as file_data:
-                    return file_data.read()
-            assert f.data
-            return client_utils.decode_base64_to_binary(f.data)[0]
+            with open(file_name, "rb") as file_data:
+                return file_data.read()
         else:
             raise ValueError(
                 "Unknown type: "
@@ -145,10 +143,9 @@ class File(Component):
 
     def preprocess(
         self, payload: ListFiles | FileData | None
-    ) -> bytes | str | list[bytes | str] | None:
+    ) -> bytes | NamedString | list[bytes | NamedString] | None:
         if payload is None:
             return None
-
         if self.file_count == "single":
             if isinstance(payload, ListFiles):
                 return self._process_single_file(payload[0])
@@ -167,20 +164,18 @@ class File(Component):
             return ListFiles(
                 root=[
                     FileData(
-                        name=file,
+                        path=file,
                         orig_name=Path(file).name,
                         size=Path(file).stat().st_size,
-                        is_file=True,
                     )
                     for file in value
                 ]
             )
         else:
             return FileData(
-                name=value,
-                orig_name=Path(value).name,
-                size=Path(value).stat().st_size,
-                is_file=True,
+                path=y,
+                orig_name=Path(y).name,
+                size=Path(y).stat().st_size,
             )
 
     def as_example(self, input_data: str | list | None) -> str:

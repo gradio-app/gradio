@@ -13,5 +13,9 @@
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^"
 	},
-	"main_changeset": true
+	"main_changeset": true,
+	"exports": {
+		".": "./src/index.ts",
+		"./utils": "./src/utils.ts"
+	}
 }

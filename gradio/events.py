@@ -28,9 +28,7 @@ def set_cancel_events(
         cancel_fn, fn_indices_to_cancel = get_cancel_function(cancels)
 
         if Context.root_block is None:
-            raise AttributeError(
-                "Cannot cancel {self.event_name} outside of a gradio.Blocks context."
-            )
+            raise AttributeError("Cannot cancel outside of a gradio.Blocks context.")
 
         Context.root_block.set_event_trigger(
             triggers,
@@ -119,7 +117,7 @@ class SelectData(EventData):
         """
         The value of the selected item.
         """
-        self.selected: bool = data.get("selected", True)
+        self.selected: bool = data.get("_selected", True)
         """
         True if the item was selected, False if deselected.
         """
@@ -194,7 +192,7 @@ class EventListener(str):
     ):
         def event_trigger(
             block: Block | None,
-            fn: Callable | None,
+            fn: Callable | None | Literal["decorator"] = "decorator",
             inputs: Component | list[Component] | set[Component] | None = None,
             outputs: Component | list[Component] | None = None,
             api_name: str | None | Literal[False] = None,
@@ -489,7 +487,6 @@ class Events:
     )
     select = EventListener(
         "select",
-        config_data=lambda: {"selectable": False},
         callback=lambda block: setattr(block, "selectable", True),
         doc="Event listener for when the user selects or deselects the {{ component }}. Uses event data gradio.SelectData to carry `value` referring to the label of the {{ component }}, and `selected` to refer to state of the {{ component }}. See EventData documentation on how to use this event data",
     )
@@ -505,6 +502,10 @@ class Events:
         config_data=lambda: {"likeable": False},
         callback=lambda block: setattr(block, "likeable", True),
         doc="This listener is triggered when the user likes/dislikes from within the {{ component }}. This event has EventData of type gradio.LikeData that carries information, accessible through LikeData.index and LikeData.value. See EventData documentation on how to use this event data.",
+    )
+    load = EventListener(
+        "load",
+        doc="This listener is triggered when the {{ component }} initially loads in the browser.",
     )
 
 

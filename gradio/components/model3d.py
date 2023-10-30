@@ -101,12 +101,12 @@ class Model3D(Component):
     def preprocess(self, payload: FileData | None) -> str | None:
         if payload is None:
             return payload
-        return payload.name
+        return payload.path
 
     def postprocess(self, value: str | Path | None) -> FileData | None:
         if value is None:
             return value
-        return FileData(name=str(value), is_file=True)
+        return FileData(path=str(value))
 
     def as_example(self, input_data: str | None) -> str:
         return Path(input_data).name if input_data else ""

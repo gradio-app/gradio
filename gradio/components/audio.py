@@ -175,10 +175,10 @@ class Audio(
         if payload is None:
             return payload
 
-        assert payload.name
+        assert payload.path
         # Need a unique name for the file to avoid re-using the same audio file if
         # a user submits the same audio file twice
-        temp_file_path = Path(payload.name)
+        temp_file_path = Path(payload.path)
         output_file_name = str(
             temp_file_path.with_name(f"{temp_file_path.stem}{temp_file_path.suffix}")
         )
@@ -233,29 +233,28 @@ class Audio(
                 data, sample_rate, format=self.format, cache_dir=self.GRADIO_CACHE
             )
         else:
-            if not isinstance(value, (str, Path)):
-                raise ValueError(f"Cannot process {value} as Audio")
-            file_path = str(value)
-        return FileData(name=file_path, data=None, is_file=True)
+            if not isinstance(y, (str, Path)):
+                raise ValueError(f"Cannot process {y} as Audio")
+            file_path = str(y)
+        return FileData(path=file_path)
 
     def stream_output(
         self, value, output_id: str, first_chunk: bool
     ) -> tuple[bytes | None, Any]:
         output_file = {
-            "name": output_id,
+            "path": output_id,
             "is_stream": True,
-            "is_file": False,
         }
         if value is None:
             return None, output_file
         if isinstance(value, bytes):
             return value, output_file
-        if client_utils.is_http_url_like(value["name"]):
-            response = requests.get(value["name"])
+        if client_utils.is_http_url_like(value["path"]):
+            response = requests.get(value["path"])
             binary_data = response.content
         else:
             output_file["orig_name"] = value["orig_name"]
-            file_path = value["name"]
+            file_path = value["path"]
             is_wav = file_path.endswith(".wav")
             with open(file_path, "rb") as f:
                 binary_data = f.read()

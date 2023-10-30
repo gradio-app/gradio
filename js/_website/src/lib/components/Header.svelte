@@ -11,6 +11,7 @@
 	// $: selected_version === version && is_versioned && goto("/guides/quickstart");
 </script>
 
+<div>
 <!-- 4.0 Launch BANNER  -->
 <div class="relative isolate flex items-center gap-x-6 overflow-hidden bg-gradient-to-r from-white via-yellow-200 to-white px-6 py-2 sm:px-3.5 sm:before:flex-1">
 	<div class="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -110,4 +111,5 @@
 			<img src={github_black} class="w-6" alt="Github logo" />
 		</a>
 	</nav>
+</div>
 </div>

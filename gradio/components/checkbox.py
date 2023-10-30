@@ -43,6 +43,7 @@ class Checkbox(FormComponent):
         render: bool = True,
         root_url: str | None = None,
         _skip_init_processing: bool = False,
+        _selectable: bool = False,
     ):
         """
         Parameters:
@@ -61,6 +62,7 @@ class Checkbox(FormComponent):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
         """
+        self._selectable = _selectable
         super().__init__(
             label=label,
             info=info,
