@@ -1,5 +1,5 @@
 import "@gradio/theme";
-import type { SvelteComponent } from "svelte"
+import type { SvelteComponent } from "svelte";
 import { WorkerProxy, type WorkerProxyOptions } from "@gradio/wasm";
 import { api_factory } from "@gradio/client";
 import { wasm_proxied_fetch } from "./fetch";
@@ -89,7 +89,7 @@ export function create(options: Options): GradioAppController {
 	if (options.code != null) {
 		worker_proxy.runPythonCode(options.code).catch(showError);
 	} else if (options.entrypoint != null) {
-		worker_proxy.runPythonFile(options.entrypoint).catch(showError)
+		worker_proxy.runPythonFile(options.entrypoint).catch(showError);
 	} else {
 		throw new Error("Either code or entrypoint must be provided.");
 	}
@@ -120,7 +120,7 @@ export function create(options: Options): GradioAppController {
 			target: options.target,
 			props: {
 				is_embed: !options.isEmbed,
-				error,
+				error
 			}
 		});
 	}
@@ -164,52 +164,58 @@ export function create(options: Options): GradioAppController {
 
 	return {
 		run_code: (code: string) => {
-			return worker_proxy.runPythonCode(code)
+			return worker_proxy
+				.runPythonCode(code)
 				.then(launchNewApp)
 				.catch((e) => {
 					showError(e);
 					throw e;
-				})
+				});
 		},
 		run_file: (path: string) => {
-			return worker_proxy.runPythonFile(path)
+			return worker_proxy
+				.runPythonFile(path)
 				.then(launchNewApp)
 				.catch((e) => {
 					showError(e);
 					throw e;
-				})
+				});
 		},
 		write: (path, data, opts) => {
-			return worker_proxy.writeFile(path, data, opts)
+			return worker_proxy
+				.writeFile(path, data, opts)
 				.then(launchNewApp)
 				.catch((e) => {
 					showError(e);
 					throw e;
-				})
+				});
 		},
 		rename: (old_path, new_path) => {
-			return worker_proxy.renameFile(old_path, new_path)
+			return worker_proxy
+				.renameFile(old_path, new_path)
 				.then(launchNewApp)
 				.catch((e) => {
 					showError(e);
 					throw e;
-				})
+				});
 		},
 		unlink: (path) => {
-			return worker_proxy.unlink(path)
+			return worker_proxy
+				.unlink(path)
 				.then(launchNewApp)
 				.catch((e) => {
 					showError(e);
 					throw e;
-				})
+				});
 		},
 		install: (requirements) => {
-			return worker_proxy.install(requirements)
+			return worker_proxy
+				.install(requirements)
 				.then(launchNewApp)
 				.catch((e) => {
 					showError(e);
 					throw e;
-				})
+				});
 		},
 		unmount() {
 			app.$destroy();
