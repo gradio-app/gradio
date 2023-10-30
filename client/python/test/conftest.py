@@ -133,6 +133,7 @@ def cancel_from_client_demo():
 @pytest.fixture
 def sentiment_classification_demo():
     def classifier(text):
+        time.sleep(1)
         return {label: random.random() for label in ["POSITIVE", "NEGATIVE", "NEUTRAL"]}
 
     def sleep_for_test():

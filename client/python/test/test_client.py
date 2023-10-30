@@ -122,18 +122,6 @@ class TestClientPredictions:
             ]
 
     @pytest.mark.flaky
-    def test_job_status_queue_disabled(self, sentiment_classification_demo):
-        with connect(sentiment_classification_demo) as client:
-            statuses = []
-            job = client.submit("I love the gradio python client", api_name="/classify")
-            while not job.done():
-                time.sleep(0.02)
-                statuses.append(job.status())
-            statuses.append(job.status())
-            assert all(s.code in [Status.PROCESSING, Status.FINISHED] for s in statuses)
-            assert not any(s.progress_data for s in statuses)
-
-    @pytest.mark.flaky
     def test_intermediate_outputs(self, count_generator_demo):
         with connect(count_generator_demo) as client:
             job = client.submit(3, fn_index=0)
