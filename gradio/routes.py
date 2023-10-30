@@ -53,6 +53,7 @@ from gradio import route_utils, utils, wasm_utils
 from gradio.context import Context
 from gradio.data_classes import ComponentServerBody, PredictBody, ResetBody
 from gradio.exceptions import Error
+from gradio.helpers import CACHED_FOLDER
 from gradio.oauth import attach_oauth
 from gradio.queueing import Estimation, Event
 from gradio.route_utils import (  # noqa: F401
@@ -447,8 +448,13 @@ class App(FastAPI):
                 for allowed_path in blocks.allowed_paths
             )
             was_uploaded = utils.is_in_or_equal(abs_path, app.uploaded_file_dir)
+            is_cached_example = utils.is_in_or_equal(
+                abs_path, utils.abspath(CACHED_FOLDER)
+            )
 
-            if not (created_by_app or in_allowlist or was_uploaded):
+            if not (
+                created_by_app or in_allowlist or was_uploaded or is_cached_example
+            ):
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
             if not abs_path.exists():
