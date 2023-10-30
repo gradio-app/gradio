@@ -149,7 +149,9 @@ class Image(StreamingInput, Component):
             value=value,
         )
 
-    def preprocess(self, payload: FileData | None) -> np.ndarray | _Image.Image | str | None:
+    def preprocess(
+        self, payload: FileData | None
+    ) -> np.ndarray | _Image.Image | str | None:
         if payload is None:
             return payload
         im = _Image.open(payload.path)

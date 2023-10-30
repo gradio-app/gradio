@@ -1163,9 +1163,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 output = outputs[o].model_dump()
             else:
                 output = outputs[o]
-                
+
             deserialized = client_utils.traverse(
-                outputs[o], lambda s: s["path"], client_utils.is_file_obj
+                output, lambda s: s["path"], client_utils.is_file_obj
             )
             print("deserialized", deserialized)
             predictions.append(deserialized)
