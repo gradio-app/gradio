@@ -4,7 +4,7 @@
 <script>
 	import { BaseJSON } from "@gradio/json";
 </script>
-
+```
 
 BaseJSON
 ```html

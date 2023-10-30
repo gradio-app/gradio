@@ -1,4 +1,4 @@
-# `@gradio/button`
+# `@gradio/video`
 
 ```javascript
 <script>

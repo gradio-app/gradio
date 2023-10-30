@@ -1,4 +1,4 @@
-# `@gradio/button`
+# `@gradio/atoms`
 
 ```html
 <script lang="ts">
