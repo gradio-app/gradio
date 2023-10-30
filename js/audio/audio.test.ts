@@ -3,9 +3,9 @@ import { cleanup, render } from "@gradio/tootils";
 import Audio from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";
 import { setupi18n } from "../app/src/i18n";
-import ResizeObserver from 'resize-observer-polyfill'
+import ResizeObserver from "resize-observer-polyfill";
 
-global.ResizeObserver = ResizeObserver
+global.ResizeObserver = ResizeObserver;
 
 const loading_status: LoadingStatus = {
 	eta: 0,
@@ -27,7 +27,11 @@ describe("Audio", () => {
 		const { getAllByTestId } = await render(Audio, {
 			loading_status,
 			label: "music",
-			value: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+			value: {
+				url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+				path: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+				orig_name: "SoundHelix-Song-1.mp3"
+			},
 			root: "",
 			root_url: "",
 			theme_mode: "dark"

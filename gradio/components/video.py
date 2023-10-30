@@ -153,9 +153,10 @@ class Video(Component):
         """
         if x is None:
             return None
+        print(x)
         data: VideoData = VideoData(**x) if isinstance(x, dict) else x
-        assert data.video.name
-        file_name = Path(data.video.name)
+        assert data.video.path
+        file_name = Path(data.video.path)
         uploaded_format = file_name.suffix.replace(".", "")
         needs_formatting = self.format is not None and uploaded_format != self.format
         flip = self.source == "webcam" and self.mirror_webcam
@@ -268,7 +269,7 @@ class Video(Component):
 
         # For cases where the video is a URL and does not need to be converted to another format, we can just return the URL
         if is_url and not (conversion_needed):
-            return FileData(name=video, is_file=True)
+            return FileData(path=video)
 
         # For cases where the video needs to be converted to another format
         if is_url:
@@ -300,7 +301,7 @@ class Video(Component):
             ff.run()
             video = output_file_name
 
-        return FileData(name=video, data=None, is_file=True, orig_name=Path(video).name)
+        return FileData(path=video, orig_name=Path(video).name)
 
     def _format_subtitle(self, subtitle: str | Path | None) -> FileData | None:
         """
@@ -346,8 +347,7 @@ class Video(Component):
             srt_to_vtt(subtitle, temp_file.name)
             subtitle = temp_file.name
 
-        subtitle_data = client_utils.encode_url_or_file_to_base64(subtitle)
-        return FileData(name=None, data=subtitle_data, is_file=False)
+        return FileData(path=str(subtitle))
 
     def example_inputs(self) -> Any:
         return "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"

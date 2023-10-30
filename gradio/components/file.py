@@ -7,7 +7,6 @@ import warnings
 from pathlib import Path
 from typing import Any, Callable, List, Literal
 
-from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import Component
@@ -117,21 +116,16 @@ class File(Component):
         self.type = type
         self.height = height
 
-    def _process_single_file(self, f: dict[str, Any]) -> bytes | str:
-        file_name, data, is_file = (
-            f["name"],
-            f["data"],
-            f.get("is_file", False),
-        )
+    def _process_single_file(self, f: dict[str, Any]) -> bytes | NamedString:
+        file_name = f["path"]
+
         if self.type == "filepath":
             file = tempfile.NamedTemporaryFile(delete=False, dir=self.GRADIO_CACHE)
             file.name = file_name
             return NamedString(file.name)
         elif self.type == "binary":
-            if is_file:
-                with open(file_name, "rb") as file_data:
-                    return file_data.read()
-            return client_utils.decode_base64_to_binary(data)[0]
+            with open(file_name, "rb") as file_data:
+                return file_data.read()
         else:
             raise ValueError(
                 "Unknown type: "
@@ -140,8 +134,8 @@ class File(Component):
             )
 
     def preprocess(
-        self, x: list[dict[str, Any]] | None
-    ) -> bytes | str | list[bytes | str] | None:
+        self, x: list[dict[str, Any]] | dict[str, Any] | None
+    ) -> bytes | NamedString | list[bytes | NamedString] | None:
         """
         Parameters:
             x: List of JSON objects with filename as 'name' property and base64 data as 'data' property
@@ -175,20 +169,18 @@ class File(Component):
             return ListFiles(
                 root=[
                     FileData(
-                        name=file,
+                        path=file,
                         orig_name=Path(file).name,
                         size=Path(file).stat().st_size,
-                        is_file=True,
                     )
                     for file in y
                 ]
             )
         else:
             return FileData(
-                name=y,
+                path=y,
                 orig_name=Path(y).name,
                 size=Path(y).stat().st_size,
-                is_file=True,
             )
 
     def as_example(self, input_data: str | list | None) -> str:
