@@ -530,11 +530,11 @@ def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
         )
     # Use end_to_end_fn here to properly upload/download all files
     predict_fns = []
-    for endpoint in client.endpoints:
+    for fn_index, endpoint in enumerate(client.endpoints):
         assert isinstance(endpoint, Endpoint)
         helper = None
         if endpoint.protocol in ("ws", "sse"):
-            helper = endpoint.helper
+            helper = client.new_helper(fn_index)
         predict_fns.append(endpoint.make_end_to_end_fn(helper))
     return gradio.Blocks.from_config(client.config, predict_fns, client.src)
 

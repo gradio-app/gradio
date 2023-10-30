@@ -100,7 +100,6 @@ def yield_demo():
     def spell(x):
         for i in range(len(x)):
             time.sleep(0.5)
-            print(">>>>>", x[:i])
             yield x[:i]
 
     return gr.Interface(spell, "textbox", "textbox")
