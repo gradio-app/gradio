@@ -9,6 +9,7 @@
 	export let py_client: any;
 
 	export let current_nav_link = "";
+	export let docs_type = "python";
 
 	let show_nav = false;
 	let searchTerm = "";
@@ -104,6 +105,14 @@
 			autocomplete="off"
 		/>
 		<DropDown></DropDown>
+		<select
+		bind:value={docs_type}
+		class="rounded-md border-gray-200 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0 text-xs mt-2 py-1 pl-2 pr-7 font-mono"
+		>
+			<option value="js">js</option>
+			<option value="python">python</option>
+		</select>
+
 	</div>
 
 	<p class="font-semibold px-4 my-2 block">Building Demos</p>
