@@ -25,10 +25,14 @@ with gr.Blocks() as demo:
 
     def reset_bounds(minimum, maximum):
         return gr.Number(minimum=minimum, maximum=maximum)
-    
-    minimum_slider.change(reset_bounds, [minimum_slider, maximum_slider], outputs=num)
-    maximum_slider.change(reset_bounds, [minimum_slider, maximum_slider], outputs=num)
-    num.submit(lambda x:x, num, out)
+
+    gr.on(
+        [minimum_slider.change, maximum_slider.change],
+        reset_bounds,
+        [minimum_slider, maximum_slider],
+        outputs=num,
+    )
+    num.submit(lambda x: x, num, out)
 
 
 if __name__ == "__main__":
