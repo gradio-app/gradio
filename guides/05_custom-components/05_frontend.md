@@ -2,7 +2,7 @@
 
 This guide will cover everything you need to know to implement your custom component's front-end.
 
->💡 Tip: Gradio components use svelte. Writing svelte is fun! If you're not familiar, check out the interactive [guide](https://learn.svelte.dev/tutorial/welcome-to-svelte)
+Tip: Gradio components use svelte. Writing svelte is fun! If you're not familiar, check out the interactive [guide](https://learn.svelte.dev/tutorial/welcome-to-svelte)
 
 ## The directory structure 
 
@@ -26,7 +26,7 @@ If you want to export any additional modules, remember to modify the `package.js
 
 Your component should expose the following props that will be passed down from the parent Gradio application.
 
-```
+```ts
 import type { LoadingStatus } from "@gradio/statustracker";
 import type { Gradio } from "@gradio/utils";
 
@@ -148,7 +148,7 @@ The `upload_files` function will upload an array of `FileData` values to the ser
 
 The `normalise_file` function will generate the correct URL for your component to fetch the file from and set it to the `data` property of the `FileData.`
 
->💡 Tip: Be sure you call `normalise_file` whenever your files are updated!
+Tip: Be sure you call `normalise_file` whenever your files are updated!
 
 
 Here's an example of loading files from an `<input>` element when its value changes.

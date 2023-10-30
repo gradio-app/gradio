@@ -4,7 +4,7 @@ In this section, we discuss a few important concepts when it comes to components
 It's important to understand these concepts when developing your own component.
 Otherwise, your component may behave very different to other Gradio components!
 
->💡 Tip:  you can skip this section if you are familiar with the internals of the Gradio library, such as each component's preprocess and postprocess methods.
+Tip:  you can skip this section if you are familiar with the internals of the Gradio library, such as each component's preprocess and postprocess methods.
 
 ## Interactive vs Static
 
@@ -83,7 +83,7 @@ This will create a Gradio app which has an `Image` component as the input and th
 In the frontend, the Image component will actually **upload** the file to the server and send the **filepath** but this is converted to a `numpy` array before it is sent to a user's function. 
 Conversely, when the user returns a `numpy` array from their function, the numpy array is converted to a file so that it can be sent to the frontend and displayed by the `Image` component.
 
->💡 Tip: By default, the `Image` component sends numpy arrays to the python function because it is a common choice for machine learning engineers, though the Image component also supports other formats using the `type` parameter.  Read the docs [here](https://www.gradio.app/docs/image) to learn more.
+Tip: By default, the `Image` component sends numpy arrays to the python function because it is a common choice for machine learning engineers, though the Image component also supports other formats using the `type` parameter.  Read the docs [here](https://www.gradio.app/docs/image) to learn more.
 
 Each component does two conversions:
 

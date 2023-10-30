@@ -25,7 +25,7 @@ The Custom Components workflow consists of 4 steps: create, dev, build, and publ
 
 Each of these steps is done via the Custom Component CLI. You can invoke it with `gradio cc` or `gradio component`
 
-> 💡 Tip: Run `gradio cc --help` to get a help menu of all available commands. You can also append `--help` to any command name to bring up a help page for that command, e.g. `gradio cc create --help`.
+Tip: Run `gradio cc --help` to get a help menu of all available commands. You can also append `--help` to any command name to bring up a help page for that command, e.g. `gradio cc create --help`.
 
 ## 1. create
 
@@ -41,7 +41,7 @@ Instead of `SimpleTextbox`, you can use any Gradio component as a template.
 `SimpleTextbox` is actually a special component that a stripped-down version of the `Textbox` component that makes it particularly useful when creating your first custom component.
 Some other components that are good if you are starting out: `SimpleDropdown` or `File`.
 
-> 💡 Tip: Run `gradio cc show` to get a list of available component templates.
+Tip: Run `gradio cc show` to get a list of available component templates.
 
 The `create` command will:
 
@@ -75,7 +75,7 @@ Click on that link to launch the demo app in hot reload mode.
 Now, you can start making changes to the backend and frontend you'll see the results reflected live in the sample app!
 We'll go through a real example in a later guide.
 
-> 💡 Tip: You don't have to run dev mode from your custom component directory. The first argument to `dev` mode is the path to the directory. By default it uses the current directoy.
+Tip: You don't have to run dev mode from your custom component directory. The first argument to `dev` mode is the path to the directory. By default it uses the current directoy.
 
 ## 3. build
 
