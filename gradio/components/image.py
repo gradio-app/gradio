@@ -149,14 +149,13 @@ class Image(StreamingInput, Component):
             value=value,
         )
 
-    def preprocess(self, x: FileData) -> np.ndarray | _Image.Image | str | None:
+    def preprocess(self, payload: FileData) -> np.ndarray | _Image.Image | str | None:
         if payload is None:
             return payload
-        im = _Image.open(x.path)
+        im = _Image.open(payload.path)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
-
         return image_utils.format_image(
             im, cast(Literal["numpy", "pil", "filepath"], self.type), self.GRADIO_CACHE
         )

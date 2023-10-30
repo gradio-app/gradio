@@ -124,13 +124,12 @@ class File(Component):
         self.type = type
         self.height = height
 
-    def _process_single_file(self, f: FileData) -> bytes | NamedString:
+    def _process_single_file(self, f: FileData) -> NamedString | bytes:
         file_name = f.path
         if self.type == "filepath":
             file = tempfile.NamedTemporaryFile(delete=False, dir=self.GRADIO_CACHE)
-            assert f.name
-            file.name = f.name
-            return NamedString(file.name)
+            file.name = file_name
+            return NamedString(file_name)
         elif self.type == "binary":
             with open(file_name, "rb") as file_data:
                 return file_data.read()
@@ -173,9 +172,9 @@ class File(Component):
             )
         else:
             return FileData(
-                path=y,
-                orig_name=Path(y).name,
-                size=Path(y).stat().st_size,
+                path=value,
+                orig_name=Path(value).name,
+                size=Path(value).stat().st_size,
             )
 
     def as_example(self, input_data: str | list | None) -> str:
