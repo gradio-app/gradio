@@ -51,7 +51,7 @@
 </script>
 
 <BlockLabel {show_label} Icon={Video} label={label || "Video"} />
-{#if value === null}
+{#if value === null || value.url === undefined}
 	{#if source === "upload"}
 		<Upload
 			bind:dragging
@@ -76,11 +76,11 @@
 {:else}
 	<ModifyUpload {i18n} on:clear={handle_clear} />
 	{#if playable()}
-		{#key value?.path}
+		{#key value?.url}
 			<Player
 				{autoplay}
-				src={value.path}
-				subtitle={subtitle?.path}
+				src={value.url}
+				subtitle={subtitle?.url}
 				on:play
 				on:pause
 				on:stop
@@ -90,7 +90,7 @@
 			/>
 		{/key}
 	{:else if value.size}
-		<div class="file-name">{value.orig_name || value.path}</div>
+		<div class="file-name">{value.orig_name || value.url}</div>
 		<div class="file-size">
 			{prettyBytes(value.size)}
 		</div>
