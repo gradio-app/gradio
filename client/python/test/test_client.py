@@ -69,7 +69,7 @@ class TestClientPredictions:
 
     @pytest.mark.flaky
     def test_numerical_to_label_space_v4(self):
-        client = Client("gradio-tests/titanic-survival-v4")
+        client = Client("gradio-tests/titanic-survivalv4-sse")
         label = client.predict("male", 77, 10, api_name="/predict")
         assert label["label"] == "Perishes"
 
@@ -81,7 +81,9 @@ class TestClientPredictions:
 
     @pytest.mark.flaky
     def test_private_space_v4(self):
-        client = Client("gradio-tests/not-actually-private-space-v4", hf_token=HF_TOKEN)
+        client = Client(
+            "gradio-tests/not-actually-private-spacev4-sse", hf_token=HF_TOKEN
+        )
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
 
@@ -301,7 +303,7 @@ class TestClientPredictions:
     @pytest.mark.xfail
     def test_upload_file_private_space_v4(self):
         client = Client(
-            src="gradio-tests/not-actually-private-file-upload-v4", hf_token=HF_TOKEN
+            src="gradio-tests/not-actually-private-file-uploadv4-sse", hf_token=HF_TOKEN
         )
 
         with patch.object(
@@ -1049,7 +1051,7 @@ class TestEndpoints:
 
     def test_upload_v4(self):
         client = Client(
-            src="gradio-tests/not-actually-private-file-upload-v4", hf_token=HF_TOKEN
+            src="gradio-tests/not-actually-private-file-uploadv4-sse", hf_token=HF_TOKEN
         )
         response = MagicMock(status_code=200)
         response.json.return_value = [

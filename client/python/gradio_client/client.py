@@ -304,6 +304,14 @@ class Client:
             )
         return self.submit(*args, api_name=api_name, fn_index=fn_index).result()
 
+    def new_helper(self, fn_index: int) -> Communicator:
+        return Communicator(
+            Lock(),
+            JobStatus(),
+            self.endpoints[fn_index].process_predictions,
+            self.reset_url,
+        )
+
     def submit(
         self,
         *args,
@@ -334,12 +342,7 @@ class Client:
 
         helper = None
         if self.endpoints[inferred_fn_index].protocol in ("ws", "sse"):
-            helper = Communicator(
-                Lock(),
-                JobStatus(),
-                self.endpoints[inferred_fn_index].process_predictions,
-                self.reset_url,
-            )
+            helper = self.new_helper(inferred_fn_index)
         end_to_end_fn = self.endpoints[inferred_fn_index].make_end_to_end_fn(helper)
         future = self.executor.submit(end_to_end_fn, *args)
 
