@@ -1108,7 +1108,6 @@ class EndpointV3Compatibility:
         except SerializationSetupError:
             self.is_valid = False
 
-
     def __repr__(self):
         return f"Endpoint src: {self.client.src}, api_name: {self.api_name}, fn_index: {self.fn_index}"
 
