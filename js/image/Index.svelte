@@ -55,7 +55,7 @@
 		share: ShareData;
 	}>;
 
-	$: value, gradio.dispatch("change");
+	$: value?.url && gradio.dispatch("change");
 	let dragging: boolean;
 
 	$: value = !value ? null : value;
