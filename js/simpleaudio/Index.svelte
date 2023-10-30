@@ -3,14 +3,13 @@
 <script lang="ts">
 	import type { Gradio, ShareData } from "@gradio/utils";
 
-	import type { FileData } from "@gradio/upload";
 	import type { LoadingStatus } from "@gradio/statustracker";
 
 	import { BaseStaticAudio } from "@gradio/audio";
 	import type { WaveformOptions } from "@gradio/audio";
 	import { StatusTracker } from "@gradio/statustracker";
 	import { Block, UploadText, BlockLabel } from "@gradio/atoms";
-	import { normalise_file } from "@gradio/client";
+	import { type FileData, normalise_file } from "@gradio/client";
 	import { Upload, ModifyUpload} from "@gradio/upload";
 	import { Music } from "@gradio/icons";
 

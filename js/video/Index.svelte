@@ -110,7 +110,7 @@
 			{show_label}
 			{autoplay}
 			{show_share_button}
-			show_download_button="{true};"
+			show_download_button={true}
 			on:play={() => gradio.dispatch("play")}
 			on:pause={() => gradio.dispatch("pause")}
 			on:stop={() => gradio.dispatch("stop")}
