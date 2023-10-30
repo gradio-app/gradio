@@ -34,6 +34,7 @@
 		"codemirror": "^6.0.1"
 	},
 	"main_changeset": true,
+	"main": "./Index.svelte",
 	"exports": {
 		".": "./Index.svelte",
 		"./example": "./Example.svelte",
