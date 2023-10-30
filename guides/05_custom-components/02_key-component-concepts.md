@@ -86,15 +86,15 @@ Tip: By default, the `Image` component sends numpy arrays to the python function
 
 Each component does two conversions:
 
-1. `preprocess`: Converts the `value` from the format sent by the front-end to the format expected by the python function. This usually involves going from a web-friendly **JSON** structure to a **python-native** data structure, like a `numpy` array or `PIL` image. The `Audio`, `Image` components are good examples of `preprocess` methods.
+1. `preprocess`: Converts the `value` from the format sent by the frontend to the format expected by the python function. This usually involves going from a web-friendly **JSON** structure to a **python-native** data structure, like a `numpy` array or `PIL` image. The `Audio`, `Image` components are good examples of `preprocess` methods.
 
-2. `postprocess`: Converts the value returned by the python function to the format expected by the front-end. This usually involves going from a **python-native** data-structure, like a `PIL` image to a **JSON** structure.
+2. `postprocess`: Converts the value returned by the python function to the format expected by the frontend. This usually involves going from a **python-native** data-structure, like a `PIL` image to a **JSON** structure.
 
 ### What you need to remember
 
 * Every component must implement `preprocess` and `postprocess` methods. In the rare event that no conversion needs to happen, simply return the value as-is. `Textbox` and `Number` are examples of this. 
 
-* As a component author, **YOU** control the format of the data displayed in the front-end as well as the format of the data someone using your component will receive. Think of an ergonomic data-structure a **python** developer will find intuitive, and control the conversion from a **Web-friendly JSON** data structure (and vice-versa) with `preprocess` and `postprocess.`
+* As a component author, **YOU** control the format of the data displayed in the frontend as well as the format of the data someone using your component will receive. Think of an ergonomic data-structure a **python** developer will find intuitive, and control the conversion from a **Web-friendly JSON** data structure (and vice-versa) with `preprocess` and `postprocess.`
 
 ## The "Example Version" of a Component
 

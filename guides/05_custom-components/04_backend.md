@@ -43,14 +43,14 @@ They handle the conversion from the data sent by the frontend to the format expe
     @abstractmethod
     def preprocess(self, x: Any) -> Any:
         """
-        Convert from the web-friendly (typically JSON) value in the front-end to the format expected by the python function.
+        Convert from the web-friendly (typically JSON) value in the frontend to the format expected by the python function.
         """
         return x
 
     @abstractmethod
     def postprocess(self, y):
         """
-        Convert from the data returned by the python function to the web-friendly (typically JSON) value expected by the front-end.
+        Convert from the data returned by the python function to the web-friendly (typically JSON) value expected by the frontend.
         """
         return y
 ```
@@ -136,7 +136,7 @@ def read_from_flag(
 
 ## The `data_model`
 
-The `data_model` is how you define the expected data format your component's value will be stored in the front-end.
+The `data_model` is how you define the expected data format your component's value will be stored in the frontend.
 It specifies the data format your `preprocess` method expects and the format the `postprocess` method returns.
 It is not necessary to define a `data_model` for your component but it greatly simplifies the process of creating a custom component.
 If you define a custom component you only need to implement three methods - `preprocess`, `postprocess`, and `example_inputs`!
@@ -160,7 +160,7 @@ By adding these four lines of code, your component automatically implements the 
 It also has the added benefit of self-documenting your code.
 Anyone who reads your component code will know exactly the data it expects.
 
-Tip: If your component expects files to be uploaded from the front-end, your must use the `FileData` model! It will be explained in the following section. 
+Tip: If your component expects files to be uploaded from the frontend, your must use the `FileData` model! It will be explained in the following section. 
 
 Tip: Read the pydantic docs [here](https://docs.pydantic.dev/latest/concepts/models/#basic-model-usage)
 
@@ -183,11 +183,11 @@ Tip: Use classes from the python typing library to type your models. So `List` i
 
 ## Handling Files
 
-If your component expects uploaded files as input, or returns saved files to the front-end, you **MUST** use the `FileData` to type the files in your `data_model`.
+If your component expects uploaded files as input, or returns saved files to the frontend, you **MUST** use the `FileData` to type the files in your `data_model`.
 
 When you use the `FileData`:
 
-* Gradio knows to that it should allow serving this file to the front-end. Gradio automatically blocks requests to serve arbitrary files in the computer running the server.
+* Gradio knows to that it should allow serving this file to the frontend. Gradio automatically blocks requests to serve arbitrary files in the computer running the server.
 
 * Gradio will automatically place the file in a cache so that duplicate copies of the file don't get saved.
 

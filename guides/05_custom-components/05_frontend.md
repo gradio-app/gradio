@@ -1,6 +1,6 @@
 # The Frontend 🌐⭐️
 
-This guide will cover everything you need to know to implement your custom component's front-end.
+This guide will cover everything you need to know to implement your custom component's frontend.
 
 Tip: Gradio components use svelte. Writing svelte is fun! If you're not familiar, check out the interactive [guide](https://learn.svelte.dev/tutorial/welcome-to-svelte)
 
