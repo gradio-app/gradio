@@ -308,6 +308,11 @@ def organize_docs(d):
 
     for js_component in os.listdir(JS_DIR):
         if not js_component.startswith("_") and js_component not in ["app", "highlighted-text", "playground", "preview", "upload-button"]:
+            if os.path.exists(os.path.join(JS_DIR, js_component, "package.json")):
+                with open(os.path.join(JS_DIR, js_component, "package.json")) as f:
+                    package_json = json.load(f)
+                    if package_json.get("private", False):
+                        continue
             if os.path.exists(os.path.join(JS_DIR, js_component, "README.md")):
                 with open(os.path.join(JS_DIR, js_component, "README.md")) as f:
                     readme_content = f.read()
