@@ -563,7 +563,7 @@ class TestImage:
         image_input = gr.Image(type="pil", label="Upload Your Image")
         assert image_input.get_config() == {
             "image_mode": "RGB",
-            "sources": ["upload", "webcam", "clipboard"],
+            "sources": ("upload", "webcam", "clipboard"),
             "name": "image",
             "show_share_button": False,
             "show_download_button": True,
@@ -786,8 +786,8 @@ class TestAudio:
 
     def test_default_value_postprocess(self):
         x_wav = deepcopy(media_data.BASE64_AUDIO)
-        audio = gr.Audio(value=x_wav["name"])
-        assert processing_utils.is_in_or_equal(audio.value["name"], audio.GRADIO_CACHE)
+        audio = gr.Audio(value=x_wav["path"])
+        assert processing_utils.is_in_or_equal(audio.value["path"], audio.GRADIO_CACHE)
 
     def test_in_interface(self):
         def reverse_audio(audio):
