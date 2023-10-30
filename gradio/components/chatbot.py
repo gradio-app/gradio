@@ -24,11 +24,6 @@ class FileMessage(GradioModel):
     alt_text: Optional[str] = None
 
 
-# _Message = Annotated[List[Union[str, FileMessage, None]], Field(min_length=2, max_length=2)]
-
-# Message = TypeAdapter(_Message)
-
-
 class ChatbotData(GradioRootModel):
     root: List[Tuple[Union[str, FileMessage, None], Union[str, FileMessage, None]]]
 
@@ -76,6 +71,7 @@ class Chatbot(Component):
         bubble_full_width: bool = True,
         line_breaks: bool = True,
         layout: Literal["panel", "bubble"] | None = None,
+        _selectable: bool = False,
     ):
         """
         Parameters:
@@ -121,6 +117,7 @@ class Chatbot(Component):
         self.bubble_full_width = bubble_full_width
         self.line_breaks = line_breaks
         self.layout = layout
+        self._selectable = _selectable
 
         super().__init__(
             label=label,
@@ -145,9 +142,9 @@ class Chatbot(Component):
             return None
         elif isinstance(chat_message, dict):
             if chat_message.get("alt_text"):
-                return (chat_message["file"]["name"], chat_message["alt_text"])
+                return (chat_message["file"]["path"], chat_message["alt_text"])
             else:
-                return (chat_message["file"]["name"],)
+                return (chat_message["file"]["path"],)
         else:  # string
             return chat_message
 
@@ -185,7 +182,7 @@ class Chatbot(Component):
 
             mime_type = client_utils.get_mimetype(filepath)
             return FileMessage(
-                file=FileData(name=filepath, is_file=True, mime_type=mime_type),
+                file=FileData(path=filepath, mime_type=mime_type),
                 alt_text=chat_message[1] if len(chat_message) > 1 else None,
             )
         elif isinstance(chat_message, str):

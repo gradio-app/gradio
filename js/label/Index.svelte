@@ -24,7 +24,7 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let show_label = true;
-	export let selectable = false;
+	export let _selectable = false;
 
 	$: ({ confidences, label: _label } = value);
 	$: _label, confidences, gradio.dispatch("change");
@@ -51,7 +51,7 @@
 	{#if _label !== undefined && _label !== null}
 		<Label
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
-			{selectable}
+			selectable={_selectable}
 			{value}
 			{color}
 		/>

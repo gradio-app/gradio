@@ -31,7 +31,7 @@ with gr.Blocks() as demo:
             echo = gr.Textbox(label="Echo")
     with gr.Row():
         with gr.Column():
-            image = gr.Image(source="webcam", tool="editor", label="Cancel on edit", interactive=True)
+            image = gr.Image(sources=["webcam"], tool="editor", label="Cancel on edit", interactive=True)
         with gr.Column():
             video = gr.Video(sources=["webcam"], label="Cancel on play", interactive=True)
 

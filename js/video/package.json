@@ -8,6 +8,7 @@
 	"private": false,
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
+		"@gradio/client": "workspace:^",
 		"@gradio/icons": "workspace:^",
 		"@gradio/image": "workspace:^",
 		"@gradio/statustracker": "workspace:^",

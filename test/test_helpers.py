@@ -29,7 +29,7 @@ class TestExamples:
 
         examples = gr.Examples(["test/test_files/bus.png"], gr.Image())
         assert (
-            utils.encode_file_to_base64(examples.processed_examples[0][0]["name"])
+            utils.encode_file_to_base64(examples.processed_examples[0][0]["path"])
             == media_data.BASE64_IMAGE
         )
 
@@ -39,7 +39,7 @@ class TestExamples:
         )
         assert examples.processed_examples[0][0] == "hello"
         assert (
-            utils.encode_file_to_base64(examples.processed_examples[0][1]["name"])
+            utils.encode_file_to_base64(examples.processed_examples[0][1]["path"])
             == media_data.BASE64_IMAGE
         )
 
@@ -49,7 +49,7 @@ class TestExamples:
         for row in examples.processed_examples:
             for output in row:
                 assert (
-                    utils.encode_file_to_base64(output["name"])
+                    utils.encode_file_to_base64(output["path"])
                     == media_data.BASE64_IMAGE
                 )
 
@@ -59,8 +59,8 @@ class TestExamples:
         )
         ex = utils.traverse(
             examples.processed_examples,
-            lambda s: utils.encode_file_to_base64(s["name"]),
-            lambda x: isinstance(x, dict) and Path(x["name"]).exists(),
+            lambda s: utils.encode_file_to_base64(s["path"]),
+            lambda x: isinstance(x, dict) and Path(x["path"]).exists(),
         )
         assert ex == [
             [media_data.BASE64_IMAGE, "hello"],
@@ -82,7 +82,7 @@ class TestExamples:
                 examples=["test/test_files/bus.png"],
                 inputs=image,
                 outputs=textbox,
-                fn=lambda x: x["name"],
+                fn=lambda x: x["path"],
                 cache_examples=True,
                 preprocess=False,
             )
@@ -95,9 +95,7 @@ class TestExamples:
             return [
                 {
                     "image": {
-                        "name": "test/test_files/bus.png",
-                        "data": None,
-                        "is_file": True,
+                        "path": "test/test_files/bus.png",
                     },
                     "caption": "hi",
                 }
@@ -117,7 +115,7 @@ class TestExamples:
             )
 
         prediction = examples.load_from_cache(0)
-        file = prediction[0].root[0].image.name
+        file = prediction[0].root[0].image.path
         assert utils.encode_url_or_file_to_base64(
             file
         ) == utils.encode_url_or_file_to_base64("test/test_files/bus.png")
@@ -235,7 +233,7 @@ class TestProcessExamples:
             cache_examples=True,
         )
         prediction = io.examples_handler.load_from_cache(0)
-        assert utils.encode_url_or_file_to_base64(prediction[0].name).startswith(
+        assert utils.encode_url_or_file_to_base64(prediction[0].path).startswith(
             "data:image/png;base64,iVBORw0KGgoAAA"
         )
 
@@ -248,7 +246,7 @@ class TestProcessExamples:
             cache_examples=True,
         )
         prediction = io.examples_handler.load_from_cache(0)
-        file = prediction[0].name
+        file = prediction[0].path
         assert utils.encode_url_or_file_to_base64(file).startswith(
             "data:audio/wav;base64,UklGRgA/"
         )
@@ -331,7 +329,7 @@ class TestProcessExamples:
         )
         prediction = io.examples_handler.load_from_cache(0)
         len_input_audio = len(AudioSegment.from_wav(audio))
-        len_output_audio = len(AudioSegment.from_wav(prediction[0].name))
+        len_output_audio = len(AudioSegment.from_wav(prediction[0].path))
         length_ratio = len_output_audio / len_input_audio
         assert round(length_ratio, 1) == 3.0  # might not be exactly 3x
         assert float(prediction[1]) == 10.0
@@ -553,8 +551,8 @@ def test_multiple_file_flagging(tmp_path):
         io = gr.Interface(
             fn=lambda *x: list(x),
             inputs=[
-                gr.Image(source="upload", type="filepath", label="frame 1"),
-                gr.Image(source="upload", type="filepath", label="frame 2"),
+                gr.Image(type="filepath", label="frame 1"),
+                gr.Image(type="filepath", label="frame 2"),
             ],
             outputs=[gr.Files()],
             examples=[["test/test_files/cheetah1.jpg", "test/test_files/bus.png"]],
@@ -582,11 +580,13 @@ def test_examples_keep_all_suffixes(tmp_path):
             cache_examples=True,
         )
         prediction = io.examples_handler.load_from_cache(0)
-        assert Path(prediction[0].name).read_text() == "file 1"
+        assert Path(prediction[0].path).read_text() == "file 1"
         assert prediction[0].orig_name == "foo.bar.txt"
+        assert prediction[0].path.endswith("foo.bar.txt")
         prediction = io.examples_handler.load_from_cache(1)
-        assert Path(prediction[0].name).read_text() == "file 2"
+        assert Path(prediction[0].path).read_text() == "file 2"
         assert prediction[0].orig_name == "foo.bar.txt"
+        assert prediction[0].path.endswith("foo.bar.txt")
 
 
 def test_make_waveform_with_spaces_in_filename():

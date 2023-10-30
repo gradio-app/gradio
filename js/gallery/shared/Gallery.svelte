@@ -7,8 +7,7 @@
 	import { tick } from "svelte";
 
 	import { Download, Image } from "@gradio/icons";
-	import type { FileData } from "@gradio/upload";
-	import { normalise_file } from "@gradio/upload";
+	import { normalise_file, type FileData } from "@gradio/client";
 	import { format_gallery_for_sharing } from "./utils";
 	import { IconButton } from "@gradio/atoms";
 	import type { I18nFormatter } from "@gradio/utils";
@@ -118,7 +117,7 @@
 
 	function getHrefValue(selected: any): string {
 		if (isFileData(selected)) {
-			return selected.data;
+			return selected.path;
 		} else if (typeof selected === "string") {
 			return selected;
 		} else if (Array.isArray(selected)) {
@@ -215,7 +214,7 @@
 			>
 				<img
 					data-testid="detailed-image"
-					src={_value[selected_index].image.data}
+					src={_value[selected_index].image.path}
 					alt={_value[selected_index].caption || ""}
 					title={_value[selected_index].caption || null}
 					class:with-caption={!!_value[selected_index].caption}
@@ -241,7 +240,7 @@
 						aria-label={"Thumbnail " + (i + 1) + " of " + _value.length}
 					>
 						<img
-							src={image.image.data}
+							src={image.image.path}
 							title={image.caption || null}
 							alt=""
 							loading="lazy"
@@ -284,7 +283,7 @@
 						alt={entry.caption || ""}
 						src={typeof entry.image === "string"
 							? entry.image
-							: entry.image.data}
+							: entry.image.url}
 						loading="lazy"
 					/>
 					{#if entry.caption}

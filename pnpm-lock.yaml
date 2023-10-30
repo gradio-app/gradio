@@ -357,6 +357,9 @@ importers:
       '@gradio/atoms':
         specifier: workspace:^
         version: link:../atoms
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
@@ -549,6 +552,9 @@ importers:
       '@gradio/button':
         specifier: workspace:^
         version: link:../button
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
@@ -585,6 +591,9 @@ importers:
 
   js/button:
     dependencies:
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
       '@gradio/upload':
         specifier: workspace:^
         version: link:../upload
@@ -597,6 +606,9 @@ importers:
       '@gradio/atoms':
         specifier: workspace:^
         version: link:../atoms
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
@@ -794,6 +806,9 @@ importers:
       '@gradio/atoms':
         specifier: workspace:^
         version: link:../atoms
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
       '@gradio/upload':
         specifier: workspace:^
         version: link:../upload
@@ -899,6 +914,9 @@ importers:
       '@gradio/atoms':
         specifier: workspace:^
         version: link:../atoms
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
@@ -957,6 +975,9 @@ importers:
       '@gradio/atoms':
         specifier: workspace:^
         version: link:../atoms
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
@@ -1065,6 +1086,9 @@ importers:
       '@gradio/atoms':
         specifier: workspace:^
         version: link:../atoms
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
@@ -1386,6 +1410,9 @@ importers:
       '@gradio/atoms':
         specifier: workspace:^
         version: link:../atoms
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons

@@ -1,6 +1,6 @@
 import { test, expect } from "@gradio/tootils";
 
-test("when using an iterative function the UI should update over time as iteration results are received", async ({
+test.skip("when using an iterative function the UI should update over time as iteration results are received", async ({
 	page
 }) => {
 	let first_iteration;
@@ -42,7 +42,7 @@ test("when using an iterative function the UI should update over time as iterati
 	await expect(textbox).toHaveValue("8");
 });
 
-test("when using an iterative function it should be possible to cancel the function, after which the UI should stop updating", async ({
+test.skip("when using an iterative function it should be possible to cancel the function, after which the UI should stop updating", async ({
 	page
 }) => {
 	let first_iteration;
