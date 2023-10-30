@@ -27,7 +27,7 @@
 <Story
 	name="Number in disabled state"
 	args={{
-		mode: "static"
+		interactive: false
 	}}
 />
 

@@ -321,7 +321,7 @@ describe("ColorPicker", () => {
 		const { getByDisplayValue } = render(ColorPicker, {
 			loading_status,
 			show_label: true,
-			mode: "dynamic",
+			interactive: true,
 			value: "#000000",
 			label: "ColorPicker"
 		});
@@ -334,7 +334,7 @@ describe("ColorPicker", () => {
 		const { component, getByDisplayValue } = render(ColorPicker, {
 			loading_status,
 			show_label: true,
-			mode: "dynamic",
+			interactive: true,
 			value: "#000000",
 			label: "ColorPicker"
 		});

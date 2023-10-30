@@ -41,8 +41,6 @@
 		value_is_output = false;
 	});
 	$: value, handle_change();
-
-	$: console.log({ interactive });
 </script>
 
 <Block
