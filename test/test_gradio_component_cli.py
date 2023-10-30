@@ -139,7 +139,7 @@ from gradio_simplecomponent2 import SimpleComponent2
 
 
 with gr.Blocks() as demo:
-    gr.Markdown("# Change the value (keep it JSON) and the the front-end update automatically.")
+    gr.Markdown("# Change the value (keep it JSON) and the front-end will update automatically.")
     SimpleComponent2(value={"message": "Hello from Gradio!"}, label="Static")
 
 
