@@ -90,7 +90,7 @@ class TestTextbox:
             "rtl": False,
             "text_align": None,
             "autofocus": False,
-            "selectable": False,
+            "_selectable": False,
             "info": None,
             "autoscroll": True,
         }
@@ -339,7 +339,7 @@ class TestCheckbox:
             "visible": True,
             "interactive": None,
             "root_url": None,
-            "selectable": False,
+            "_selectable": False,
             "info": None,
         }
 
@@ -389,7 +389,7 @@ class TestCheckboxGroup:
             "visible": True,
             "interactive": None,
             "root_url": None,
-            "selectable": False,
+            "_selectable": False,
             "type": "value",
             "info": None,
         }
@@ -439,7 +439,7 @@ class TestRadio:
             "visible": True,
             "interactive": None,
             "root_url": None,
-            "selectable": False,
+            "_selectable": False,
             "type": "value",
             "info": None,
         }
@@ -523,7 +523,7 @@ class TestDropdown:
             "multiselect": True,
             "filterable": True,
             "max_choices": 2,
-            "selectable": False,
+            "_selectable": False,
             "type": "value",
             "info": None,
         }
@@ -582,7 +582,7 @@ class TestImage:
             "interactive": None,
             "root_url": None,
             "mirror_webcam": True,
-            "selectable": False,
+            "_selectable": False,
             "streamable": False,
             "type": "pil",
         }
@@ -873,7 +873,7 @@ class TestFile:
             "value": None,
             "interactive": None,
             "root_url": None,
-            "selectable": False,
+            "_selectable": False,
             "height": None,
             "type": "filepath",
         }
@@ -971,7 +971,7 @@ class TestDataframe:
                 "data": [["", "", ""]],
                 "metadata": None,
             },
-            "selectable": False,
+            "_selectable": False,
             "headers": ["Name", "Age", "Member"],
             "row_count": (1, "dynamic"),
             "col_count": (3, "dynamic"),
@@ -1006,7 +1006,7 @@ class TestDataframe:
                 "data": [["", "", ""]],
                 "metadata": None,
             },
-            "selectable": False,
+            "_selectable": False,
             "headers": ["1", "2", "3"],
             "row_count": (1, "dynamic"),
             "col_count": (3, "dynamic"),
@@ -1572,7 +1572,7 @@ class TestLabel:
             "visible": True,
             "root_url": None,
             "color": None,
-            "selectable": False,
+            "_selectable": False,
         }
 
     def test_color_argument(self):
@@ -1713,7 +1713,7 @@ class TestHighlightedText:
             "visible": True,
             "value": None,
             "root_url": None,
-            "selectable": False,
+            "_selectable": False,
             "combine_adjacent": False,
             "adjacent_separator": "",
             "interactive": None,
@@ -1791,7 +1791,7 @@ class TestAnnotatedImage:
             "visible": True,
             "value": None,
             "root_url": None,
-            "selectable": False,
+            "_selectable": False,
         }
 
     def test_in_interface(self):
@@ -1851,7 +1851,7 @@ class TestChatbot:
             "scale": None,
             "height": None,
             "root_url": None,
-            "selectable": False,
+            "_selectable": False,
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
             "likeable": False,
             "rtl": False,

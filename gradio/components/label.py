@@ -59,6 +59,7 @@ class Label(Component):
         root_url: str | None = None,
         _skip_init_processing: bool = False,
         color: str | None = None,
+        _selectable: bool = False,
     ):
         """
         Parameters:
@@ -77,6 +78,7 @@ class Label(Component):
             root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
             color: The background color of the label (either a valid css color name or hexadecimal string).
         """
+        self._selectable = _selectable
         self.num_top_classes = num_top_classes
         self.color = color
         super().__init__(

@@ -206,7 +206,7 @@ class Block:
         for e in self.events:
             to_add = e.config_data()
             if to_add:
-                config = {**config, **to_add}
+                config = {**to_add, **config}
         config.pop("_skip_init_processing", None)
         config.pop("render", None)
         return {**config, "root_url": self.root_url, "name": self.get_block_name()}

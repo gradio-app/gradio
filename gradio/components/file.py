@@ -53,6 +53,7 @@ class File(Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         root_url: str | None = None,
+        _selectable: bool = False,
         _skip_init_processing: bool = False,
     ):
         """
@@ -75,6 +76,7 @@ class File(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
         """
+        self._selectable = _selectable
         self.file_count = file_count
         if self.file_count == "multiple":
             self.data_model = ListFiles
