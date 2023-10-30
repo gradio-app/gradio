@@ -44,7 +44,6 @@
 		<Markdown
 			min_height={loading_status && loading_status.status !== "complete"}
 			{value}
-			{elem_id}
 			{elem_classes}
 			{visible}
 			{rtl}

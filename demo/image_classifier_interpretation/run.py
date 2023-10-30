@@ -21,7 +21,7 @@ image = gr.Image(shape=(224, 224))
 label = gr.Label(num_top_classes=3)
 
 demo = gr.Interface(
-    fn=classify_image, inputs=image, outputs=label, interpretation="default"
+    fn=classify_image, inputs=image, outputs=label
 )
 
 if __name__ == "__main__":

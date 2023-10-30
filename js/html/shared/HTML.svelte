@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let value: string;
 	export let visible = true;
@@ -14,7 +13,6 @@
 <div
 	class="prose {elem_classes.join(' ')}"
 	class:min={min_height}
-	id={elem_id}
 	class:hide={!visible}
 >
 	{@html value}

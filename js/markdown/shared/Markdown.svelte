@@ -4,7 +4,6 @@
 
 	import MarkdownCode from "./MarkdownCode.svelte";
 
-	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value: string;
@@ -24,7 +23,6 @@
 </script>
 
 <div
-	id={elem_id}
 	class:min={min_height}
 	class="prose {elem_classes.join(' ')}"
 	class:hide={!visible}
