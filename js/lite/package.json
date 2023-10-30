@@ -9,6 +9,7 @@
 	"files": [
 		"dist"
 	],
+	"private": true,
 	"scripts": {
 		"build": "pnpm --filter @gradio/app build:lite"
 	},
