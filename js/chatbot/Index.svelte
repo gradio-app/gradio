@@ -1,3 +1,7 @@
+<script context="module" lang="ts">
+	export { default as BaseButton } from "./shared/ChatBot.svelte";
+</script>
+
 <script lang="ts">
 	import type { Gradio, SelectData, LikeData } from "@gradio/utils";
 
