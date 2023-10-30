@@ -10,7 +10,7 @@
 	import { BaseStaticVideo, prettyBytes, playable } from "@gradio/video";
 	import type { Gradio, ShareData } from "@gradio/utils";
 
-    type VideoData ={ video: FileData; subtitles: FileData | null } | null
+	type VideoData = { video: FileData; subtitles: FileData | null } | null;
 
 	export let gradio: Gradio<{
 		change: never;
@@ -20,12 +20,12 @@
 		end?: never;
 		stop?: never;
 		upload: never;
-        share: ShareData;
+		share: ShareData;
 	}>;
 
 	export let visible: true;
 	export let value: VideoData | null = null;
-    let previous_value = value;
+	let previous_value = value;
 	export let label: string | undefined = undefined;
 	export let show_label = true;
 	export let autoplay: boolean;
@@ -42,7 +42,7 @@
 	export let loading_status: LoadingStatus;
 	export let show_share_button = true;
 
-    let dragging  = false;
+	let dragging = false;
 
 	function handle_load({ detail }: CustomEvent<FileData | null>): void {
 		if (detail != null) {
@@ -57,19 +57,19 @@
 		gradio.dispatch("clear");
 	}
 
-    $: {
+	$: {
 		if (JSON.stringify(value) !== JSON.stringify(previous_value)) {
 			previous_value = value;
 			gradio.dispatch("change");
 		}
 	}
 
-    $: {
+	$: {
 		if (value != null) {
-            const vid = normalise_file(value.video, root, root_url);
-            if (vid != null) {
-                value.video = vid;
-            }
+			const vid = normalise_file(value.video, root, root_url);
+			if (vid != null) {
+				value.video = vid;
+			}
 			value.subtitles = normalise_file(value.subtitles, root, root_url);
 		}
 	}
@@ -118,12 +118,12 @@
 					value={value?.video}
 					subtitle={value?.subtitles}
 					{show_share_button}
-                    show_download_button={!interactive}
+					show_download_button={!interactive}
 					on:play={() => gradio.dispatch("play")}
 					on:pause={() => gradio.dispatch("pause")}
 					on:stop={() => gradio.dispatch("stop")}
 					on:end={() => gradio.dispatch("end")}
-                    on:share={(e) => gradio.dispatch("share", e.detail)}
+					on:share={(e) => gradio.dispatch("share", e.detail)}
 					{label}
 					i18n={gradio.i18n}
 				/>

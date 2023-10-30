@@ -5,7 +5,6 @@
 	export { default as BaseExample } from "./Example.svelte";
 </script>
 
-
 <script lang="ts">
 	import type { Gradio } from "@gradio/utils";
 	import Colorpicker from "./shared/Colorpicker.svelte";
