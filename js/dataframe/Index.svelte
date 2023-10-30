@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
-	export {default as BaseDataFrame} from "./shared/Table.svelte";
-	export {default as BaseExample} from "./Example.svelte";
+	export { default as BaseDataFrame } from "./shared/Table.svelte";
+	export { default as BaseExample } from "./Example.svelte";
 </script>
 
 <script lang="ts">
@@ -98,7 +98,7 @@
 		{row_count}
 		{col_count}
 		{value}
-	{headers}
+		{headers}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 		{wrap}
 		{datatype}

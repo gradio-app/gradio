@@ -2,6 +2,7 @@
 
 <script context="module" lang="ts">
 	export { default as BaseTextbox } from "./shared/Textbox.svelte";
+	export { default as BaseExample } from "./Example.svelte";
 </script>
 
 <script lang="ts">

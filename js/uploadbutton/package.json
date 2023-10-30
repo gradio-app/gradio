@@ -11,6 +11,7 @@
 		".": "./Index.svelte",
 		"./package.json": "./package.json"
 	},
+	"main": "./Index.svelte",
 	"dependencies": {
 		"@gradio/button": "workspace:^",
 		"@gradio/client": "workspace:^",

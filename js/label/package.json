@@ -13,6 +13,7 @@
 		"@gradio/utils": "workspace:^"
 	},
 	"main_changeset": true,
+	"main": "./Index.svelte",
 	"exports": {
 		".": "./Index.svelte",
 		"./package.json": "./package.json"
