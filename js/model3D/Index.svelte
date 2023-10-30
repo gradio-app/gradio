@@ -32,7 +32,7 @@
 		null,
 		null
 	];
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root, root_url);
@@ -40,7 +40,7 @@
 	let dragging = false;
 </script>
 
-{#if mode === "static"}
+{#if !interactive}
 	<Block
 		{visible}
 		variant={value === null ? "dashed" : "solid"}

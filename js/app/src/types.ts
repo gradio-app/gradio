@@ -11,7 +11,7 @@ export interface ComponentMeta {
 	type: string;
 	id: number;
 	has_modes: boolean;
-	props: Record<string, unknown> & { mode: "interactive" | "static" };
+	props: Record<string, unknown> & { interactive: boolean };
 	instance: SvelteComponent;
 	component: ComponentType<SvelteComponent>;
 	documentation?: Documentation;
