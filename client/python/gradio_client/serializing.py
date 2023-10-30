@@ -571,7 +571,7 @@ COMPONENT_MAPPING: dict[str, type] = {
     "checkboxgroup": ListStringSerializable,
     "radio": StringSerializable,
     "dropdown": SimpleSerializable,
-    "image": ImgSerializable,
+    "image": FileSerializable,
     "video": FileSerializable,
     "audio": FileSerializable,
     "file": FileSerializable,
