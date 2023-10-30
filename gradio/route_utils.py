@@ -104,7 +104,7 @@ class Request:
     ):
         """
         Can be instantiated with either a fastapi.Request or by manually passing in
-        attributes (needed for websocket-based queueing).
+        attributes (needed for queueing).
         Parameters:
             request: A fastapi.Request
         """
@@ -159,10 +159,9 @@ def compile_gr_request(
         body.data = [body.session_hash]
     if body.request:
         if body.batched:
-            gr_request = [Request(username=username, **req) for req in body.request]
+            gr_request = [Request(username=username, request=request)]
         else:
-            assert isinstance(body.request, dict)
-            gr_request = Request(username=username, **body.request)
+            gr_request = Request(username=username, request=body.request)
     else:
         if request is None:
             raise ValueError("request must be provided if body.request is None")
@@ -172,7 +171,7 @@ def compile_gr_request(
 
 
 def restore_session_state(app: App, body: PredictBody):
-    fn_index = body.fn_index
+    event_id = body.event_id
     session_hash = getattr(body, "session_hash", None)
     if session_hash is not None:
         session_state = app.state_holder[session_hash]
@@ -181,16 +180,18 @@ def restore_session_state(app: App, body: PredictBody):
         # the /reset route will mark the jobs as having been reset.
         # That way if the cancel job finishes BEFORE the job being cancelled
         # the job being cancelled will not overwrite the state of the iterator.
-        if fn_index in app.iterators_to_reset[session_hash]:
-            iterators = {}
-            app.iterators_to_reset[session_hash].remove(fn_index)
+        if event_id is None:
+            iterator = None
+        elif event_id in app.iterators_to_reset:
+            iterator = None
+            app.iterators_to_reset.remove(event_id)
         else:
-            iterators = app.iterators[session_hash]
+            iterator = app.iterators.get(event_id)
     else:
         session_state = SessionState(app.get_blocks())
-        iterators = {}
+        iterator = None
 
-    return session_state, iterators
+    return session_state, iterator
 
 
 def prepare_event_data(
@@ -213,13 +214,12 @@ async def call_process_api(
     gr_request: Union[Request, list[Request]],
     fn_index_inferred: int,
 ):
-    session_state, iterators = restore_session_state(app=app, body=body)
+    session_state, iterator = restore_session_state(app=app, body=body)
 
     dependency = app.get_blocks().dependencies[fn_index_inferred]
     event_data = prepare_event_data(app.get_blocks(), body, fn_index_inferred)
-    event_id = getattr(body, "event_id", None)
+    event_id = body.event_id
 
-    fn_index = body.fn_index
     session_hash = getattr(body, "session_hash", None)
     inputs = body.data
 
@@ -234,19 +234,19 @@ async def call_process_api(
                 inputs=inputs,
                 request=gr_request,
                 state=session_state,
-                iterators=iterators,
+                iterator=iterator,
                 session_hash=session_hash,
                 event_id=event_id,
                 event_data=event_data,
                 in_event_listener=True,
             )
         iterator = output.pop("iterator", None)
-        if hasattr(body, "session_hash"):
-            app.iterators[body.session_hash][fn_index] = iterator
+        if event_id is not None:
+            app.iterators[event_id] = iterator
         if isinstance(output, Error):
             raise output
     except BaseException:
-        iterator = iterators.get(fn_index, None)
+        iterator = app.iterators.get(event_id) if event_id is not None else None
         if iterator is not None:  # close off any streams that are still open
             run_id = id(iterator)
             pending_streams: dict[int, list] = (

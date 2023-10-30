@@ -102,7 +102,7 @@ def yield_demo():
             time.sleep(0.5)
             yield x[:i]
 
-    return gr.Interface(spell, "textbox", "textbox").queue()
+    return gr.Interface(spell, "textbox", "textbox")
 
 
 @pytest.fixture
@@ -132,6 +132,7 @@ def cancel_from_client_demo():
 @pytest.fixture
 def sentiment_classification_demo():
     def classifier(text):
+        time.sleep(1)
         return {label: random.random() for label in ["POSITIVE", "NEGATIVE", "NEUTRAL"]}
 
     def sleep_for_test():

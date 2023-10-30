@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Callable
 import requests
 from gradio_client import Client
 from gradio_client import utils as client_utils
+from gradio_client.client import Endpoint
 from gradio_client.documentation import document, set_documentation_group
 from packaging import version
 
@@ -522,13 +523,19 @@ def from_spaces(
 
 def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
     client = Client(space, hf_token=hf_token)
-    if client.app_version < version.Version("4.0.0"):
+    if client.app_version < version.Version("4.0.0b14"):
         raise GradioVersionIncompatibleError(
             f"Gradio version 4.x cannot load spaces with versions less than 4.x ({client.app_version})."
             "Please downgrade to version 3 to load this space."
         )
     # Use end_to_end_fn here to properly upload/download all files
-    predict_fns = [endpoint.make_end_to_end_fn() for endpoint in client.endpoints]
+    predict_fns = []
+    for fn_index, endpoint in enumerate(client.endpoints):
+        assert isinstance(endpoint, Endpoint)
+        helper = None
+        if endpoint.protocol in ("ws", "sse"):
+            helper = client.new_helper(fn_index)
+        predict_fns.append(endpoint.make_end_to_end_fn(helper))
     return gradio.Blocks.from_config(client.config, predict_fns, client.src)
 
 
