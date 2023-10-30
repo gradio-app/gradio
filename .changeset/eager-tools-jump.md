@@ -11,10 +11,22 @@
 "@gradio/dropdown": minor
 "@gradio/file": minor
 "@gradio/gallery": minor
+"@gradio/highlightedtext": minor
+"@gradio/image": minor
+"@gradio/json": minor
+"@gradio/label": minor
+"@gradio/markdown": minor
+"@gradio/model3d": minor
+"@gradio/radio": minor
 "@gradio/simpleaudio": minor
 "@gradio/simplevideo": minor
+"@gradio/statustracker": minor
+"@gradio/textbox": minor
+"@gradio/upload": minor
+"@gradio/uploadbutton": minor
 "@gradio/video": minor
 "gradio": minor
+"gradio_test": minor
 ---
 
 feat:JS Component Documentation

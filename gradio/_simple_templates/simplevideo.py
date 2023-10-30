@@ -139,12 +139,6 @@ class SimpleVideo(Component):
             output_options = []
             output_options += ["-an"] if not self.include_audio else []
             output_file_name = str(file_name.with_name(f"{file_name.stem}{format}"))
-            if Path(output_file_name).exists():
-                return output_file_name
-            if wasm_utils.IS_WASM:
-                raise wasm_utils.WasmUnsupportedError(
-                    "Video formatting is not supported in the Wasm mode."
-                )
             ff = FFmpeg(
                 inputs={str(file_name): None},
                 outputs={output_file_name: output_options},
