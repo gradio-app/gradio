@@ -53,7 +53,7 @@
 	{#key value.url}
 		<Player
 			src={value.url}
-			subtitle={subtitle?.path}
+			subtitle={subtitle?.url}
 			{autoplay}
 			on:play
 			on:pause
@@ -65,9 +65,9 @@
 	{/key}
 	<div class="icon-buttons" data-testid="download-div">
 		<a
-			href={value.path}
+			href={value.url}
 			target={window.__is_colab__ ? "_blank" : null}
-			download={value.orig_name || value.path}
+			download={value.orig_name || value.url}
 		>
 			<IconButton Icon={Download} label="Download" />
 		</a>
