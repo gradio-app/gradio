@@ -44,6 +44,7 @@ class Dataset(Component):
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
+        _selectable: bool = False,
     ):
         """
         Parameters:
@@ -69,6 +70,7 @@ class Dataset(Component):
             _skip_init_processing=_skip_init_processing,
             render=render,
         )
+        self._selectable = _selectable
         self.container = container
         self.scale = scale
         self.min_width = min_width

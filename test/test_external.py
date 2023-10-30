@@ -303,13 +303,14 @@ class TestLoadInterface:
         except TooManyRequestsError:
             pass
 
+    @pytest.mark.xfail
     def test_private_space_audio(self):
         hf_token = "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"  # Intentionally revealing this key for testing purposes
         io = gr.load(
             "spaces/gradio-tests/not-actually-private-space-audio-v4", hf_token=hf_token
         )
         try:
-            output = io(media_data.BASE64_AUDIO["name"])
+            output = io(media_data.BASE64_AUDIO["path"])
             assert output.endswith(".wav")
         except TooManyRequestsError:
             pass

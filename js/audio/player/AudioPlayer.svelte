@@ -7,8 +7,9 @@
 	import WaveformControls from "../shared/WaveformControls.svelte";
 	import { Empty } from "@gradio/atoms";
 	import { resolve_wasm_src } from "@gradio/wasm/svelte";
+	import type { FileData } from "js/upload/src";
 
-	export let value: null | { name: string; data: string } = null;
+	export let value: null | FileData = null;
 	export let label: string;
 	export let autoplay: boolean;
 	export let i18n: I18nFormatter;
@@ -42,8 +43,8 @@
 	const create_waveform = (): void => {
 		waveform = WaveSurfer.create({
 			container: container,
-			url: value?.data,
-			...waveform_settings,
+			url: value?.url,
+			...waveform_settings
 		});
 	};
 
@@ -101,14 +102,14 @@
 		dispatch("edit");
 	};
 
-	async function load_audio(data: any): Promise<void> {
+	async function load_audio(data: string): Promise<void> {
 		await resolve_wasm_src(data).then((resolved_src) => {
 			if (!resolved_src) return;
 			return waveform?.load(resolved_src);
 		});
 	}
 
-	$: value && load_audio(value.data);
+	$: value?.url && load_audio(value.url);
 
 	onMount(() => {
 		window.addEventListener("keydown", (e) => {

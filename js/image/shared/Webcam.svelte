@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { createEventDispatcher, onMount } from "svelte";
-	import { Camera, Circle, Square } from "@gradio/icons";
+	import { createEventDispatcher, onMount, tick } from "svelte";
+	import { Camera, Circle, Square, DropdownArrow } from "@gradio/icons";
 	import type { I18nFormatter } from "js/utils/src";
 
 	let video_source: HTMLVideoElement;
@@ -22,7 +22,7 @@
 					is_example?: boolean;
 					is_file: boolean;
 			  }
-			| string;
+			| Blob;
 		error: string;
 		start_recording: undefined;
 		stop_recording: undefined;
@@ -30,10 +30,10 @@
 
 	onMount(() => (canvas = document.createElement("canvas")));
 
-	async function access_webcam(): Promise<void> {
+	async function access_webcam(device_id?: string): Promise<void> {
 		try {
 			stream = await navigator.mediaDevices.getUserMedia({
-				video: true,
+				video: device_id ? { deviceId: { exact: device_id } } : true,
 				audio: include_audio
 			});
 			video_source.srcObject = stream;
@@ -62,8 +62,18 @@
 				video_source.videoHeight
 			);
 
-			var data = canvas.toDataURL("image/png");
-			dispatch(streaming ? "stream" : "capture", data);
+			if (mirror_webcam) {
+				context.scale(-1, 1);
+				context.drawImage(video_source, -video_source.videoWidth, 0);
+			}
+
+			canvas.toBlob(
+				(blob) => {
+					dispatch(streaming ? "stream" : "capture", blob);
+				},
+				"image/png",
+				0.8
+			);
 		}
 	}
 
@@ -124,6 +134,46 @@
 			}
 		}, 500);
 	}
+
+	async function select_source(): Promise<void> {
+		const devices = await navigator.mediaDevices.enumerateDevices();
+		video_sources = devices.filter((device) => device.kind === "videoinput");
+		options_open = true;
+	}
+
+	let video_sources: MediaDeviceInfo[] = [];
+	async function selectVideoSource(device_id: string): Promise<void> {
+		await access_webcam(device_id);
+		options_open = false;
+	}
+
+	let options_open = false;
+
+	export function click_outside(node: Node, cb: any): any {
+		const handle_click = (event: MouseEvent): void => {
+			if (
+				node &&
+				!node.contains(event.target as Node) &&
+				!event.defaultPrevented
+			) {
+				cb(event);
+			}
+		};
+
+		document.addEventListener("click", handle_click, true);
+
+		return {
+			destroy() {
+				document.removeEventListener("click", handle_click, true);
+			}
+		};
+	}
+
+	function handle_click_outside(event: MouseEvent): void {
+		event.preventDefault();
+		event.stopPropagation();
+		options_open = false;
+	}
 </script>
 
 <div class="wrap">
@@ -131,26 +181,59 @@
 	<!-- need to suppress for video streaming https://github.com/sveltejs/svelte/issues/5967 -->
 	<video bind:this={video_source} class:flip={mirror_webcam} />
 	{#if !streaming}
-		<button
-			on:click={mode === "image" ? take_picture : take_recording}
-			aria-label={mode === "image" ? "capture photo" : "start recording"}
-		>
-			{#if mode === "video"}
-				{#if recording}
-					<div class="icon" title="stop recording">
-						<Square />
-					</div>
+		<div class:capture={!recording} class="button-wrap">
+			<button
+				on:click={mode === "image" ? take_picture : take_recording}
+				aria-label={mode === "image" ? "capture photo" : "start recording"}
+			>
+				{#if mode === "video"}
+					{#if recording}
+						<div class="icon" title="stop recording">
+							<Square />
+						</div>
+					{:else}
+						<div class="icon" title="start recording">
+							<Circle />
+						</div>
+					{/if}
 				{:else}
-					<div class="icon" title="start recording">
-						<Circle />
+					<div class="icon" title="capture photo">
+						<Camera />
 					</div>
 				{/if}
-			{:else}
-				<div class="icon" title="capture photo">
-					<Camera />
-				</div>
+			</button>
+
+			{#if !recording}
+				<button
+					on:click={select_source}
+					aria-label={mode === "image" ? "capture photo" : "start recording"}
+				>
+					<div class="icon" title="select video source">
+						<DropdownArrow />
+					</div>
+
+					{#if options_open}
+						<div class="select-wrap" use:click_outside={handle_click_outside}>
+							<!-- svelte-ignore a11y-click-events-have-key-events-->
+							<!-- svelte-ignore a11y-no-static-element-interactions-->
+							<span
+								class="inset-icon"
+								on:click|stopPropagation={() => (options_open = false)}
+							>
+								<DropdownArrow />
+							</span>
+							{#each video_sources as source}
+								<!-- svelte-ignore a11y-click-events-have-key-events-->
+								<!-- svelte-ignore a11y-no-static-element-interactions-->
+								<div on:click={() => selectVideoSource(source.deviceId)}>
+									{source.label}
+								</div>
+							{/each}
+						</div>
+					{/if}
+				</button>
 			{/if}
-		</button>
+		</div>
 	{/if}
 </div>
 
@@ -167,7 +250,7 @@
 		height: var(--size-full);
 	}
 
-	button {
+	.button-wrap {
 		display: flex;
 		position: absolute;
 		right: 0px;
@@ -180,7 +263,15 @@
 		border-radius: var(--radius-xl);
 		background-color: rgba(0, 0, 0, 0.9);
 		width: var(--size-10);
-		height: var(--size-10);
+		height: var(--size-8);
+		padding: var(--size-2-5);
+		padding-right: var(--size-1);
+		z-index: var(--layer-3);
+	}
+
+	.capture {
+		width: var(--size-14);
+		transform: translateX(var(--size-2-5));
 	}
 
 	@media (--screen-md) {
@@ -197,12 +288,60 @@
 
 	.icon {
 		opacity: 0.8;
-		width: 50%;
-		height: 50%;
+		width: 100%;
+		height: 100%;
 		color: white;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
 	}
 
 	.flip {
 		transform: scaleX(-1);
+	}
+
+	.select-wrap {
+		-webkit-appearance: none;
+		-moz-appearance: none;
+		appearance: none;
+		background-color: transparent;
+		border: none;
+		width: auto;
+		font-size: 1rem;
+		/* padding: 0.5rem; */
+		width: max-content;
+		position: absolute;
+		top: 0;
+		right: 0;
+		background-color: var(--block-background-fill);
+		box-shadow: var(--shadow-drop-lg);
+		border-radius: var(--radius-xl);
+		z-index: var(--layer-top);
+		border: 1px solid var(--border-color-accent);
+		text-align: left;
+		overflow: hidden;
+	}
+
+	.select-wrap > div {
+		padding: 0.25rem 0.5rem;
+		border-bottom: 1px solid var(--border-color-accent);
+		padding-right: var(--size-8);
+	}
+
+	.select-wrap > div:hover {
+		background-color: var(--color-accent);
+	}
+
+	.select-wrap > div:last-child {
+		border: none;
+	}
+
+	.inset-icon {
+		position: absolute;
+		top: 5px;
+		right: -6.5px;
+		width: var(--size-10);
+		height: var(--size-5);
+		opacity: 0.8;
 	}
 </style>

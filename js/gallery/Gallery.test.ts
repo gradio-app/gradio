@@ -35,9 +35,7 @@ describe("Gallery", () => {
 			value: [
 				{
 					image: {
-						data: "asd",
-						name: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-						is_file: true
+						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 					}
 				}
 			]
@@ -60,9 +58,7 @@ describe("Gallery", () => {
 			value: [
 				{
 					image: {
-						data: "asd",
-						name: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-						is_file: true
+						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 					}
 				}
 			]
@@ -73,9 +69,7 @@ describe("Gallery", () => {
 			value: [
 				{
 					image: {
-						data: "asd",
-						name: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-						is_file: true
+						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 					}
 				}
 			]

@@ -7,7 +7,6 @@ import warnings
 from pathlib import Path
 from typing import Any, Callable, List, Literal
 
-from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import Component
@@ -135,19 +134,16 @@ class UploadButton(Component):
                 "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
             ]
 
-    def _process_single_file(self, f: FileData) -> bytes | str:
+    def _process_single_file(self, f: FileData) -> bytes | NamedString:
+        file_name = f.path
         if self.type == "filepath":
             file = tempfile.NamedTemporaryFile(delete=False, dir=self.GRADIO_CACHE)
             assert f.name
             file.name = f.name
             return NamedString(file.name)
         elif self.type == "binary":
-            if f.is_file:
-                assert f.name
-                with open(f.name, "rb") as file_data:
-                    return file_data.read()
-            assert f.data
-            return client_utils.decode_base64_to_binary(f.data)[0]
+            with open(file_name, "rb") as file_data:
+                return file_data.read()
         else:
             raise ValueError(
                 "Unknown type: "
@@ -157,7 +153,7 @@ class UploadButton(Component):
 
     def preprocess(
         self, payload: ListFiles | FileData | None
-    ) -> bytes | str | list[bytes | str] | None:
+    ) -> bytes | NamedString | list[bytes | NamedString] | None:
         if payload is None:
             return None
 

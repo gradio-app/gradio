@@ -58,17 +58,21 @@
 		if (waveformCanvas) waveformCanvas.style.display = "block";
 	});
 
-	$: record?.on("record-end", async () => {
+	$: record?.on("record-end", async (blob) => {
 		seconds = 0;
 		timing = false;
 		clearInterval(interval);
 		dispatch("stop_recording");
+		const array_buffer = await blob.arrayBuffer();
+		const context = new AudioContext();
+		const audio_buffer = await context.decodeAudioData(array_buffer);
 
-		const decodedData = micWaveform.getDecodedData();
-		if (decodedData)
-			await process_audio(decodedData).then(async (trimmedBlob: Uint8Array) => {
-				await dispatch_blob([trimmedBlob], "change");
-			});
+		if (audio_buffer)
+			await process_audio(audio_buffer).then(
+				async (trimmedBlob: Uint8Array) => {
+					await dispatch_blob([trimmedBlob], "change");
+				}
+			);
 	});
 
 	$: record?.on("record-pause", () => {
@@ -114,7 +118,7 @@
 		if (!recorder) return;
 		micWaveform = WaveSurfer.create({
 			...waveform_settings,
-			container: recorder,
+			container: recorder
 		});
 
 		record = micWaveform.registerPlugin(RecordPlugin.create());
@@ -127,7 +131,7 @@
 		recordingWaveform = WaveSurfer.create({
 			container: recording,
 			url: recordedAudio,
-			...waveform_settings,
+			...waveform_settings
 		});
 	};
 

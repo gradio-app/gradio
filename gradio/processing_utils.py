@@ -44,7 +44,7 @@ def to_binary(x: str | dict) -> bytes:
         if x.get("data"):
             base64str = x["data"]
         else:
-            base64str = client_utils.encode_url_or_file_to_base64(x["name"])
+            base64str = client_utils.encode_url_or_file_to_base64(x["path"])
     else:
         base64str = x
     return base64.b64decode(extract_base64_data(base64str))
@@ -259,29 +259,20 @@ def move_files_to_cache(data: Any, block: Component):
 
     def _move_to_cache(d: dict):
         payload = FileData(**d)
-        if payload.name and (
-            client_utils.is_http_url_like(payload.name)
-            or not is_in_or_equal(payload.name, block.GRADIO_CACHE)
+        if client_utils.is_http_url_like(payload.path) or not is_in_or_equal(
+            payload.path, block.GRADIO_CACHE
         ):
-            if payload.is_file:
-                if client_utils.is_http_url_like(payload.name):
-                    temp_file_path = save_url_to_cache(
-                        payload.name, cache_dir=block.GRADIO_CACHE
-                    )
-                else:
-                    temp_file_path = save_file_to_cache(
-                        payload.name, cache_dir=block.GRADIO_CACHE
-                    )
-            else:
-                assert payload.data
-                temp_file_path = save_base64_to_cache(
-                    payload.data,
-                    file_name=payload.name,
-                    cache_dir=block.GRADIO_CACHE,
+            if client_utils.is_http_url_like(payload.path):
+                temp_file_path = save_url_to_cache(
+                    payload.path, cache_dir=block.GRADIO_CACHE
                 )
-                payload.is_file = True
+            else:
+                temp_file_path = save_file_to_cache(
+                    payload.path, cache_dir=block.GRADIO_CACHE
+                )
+
             block.temp_files.add(temp_file_path)
-            payload.name = temp_file_path
+            payload.path = temp_file_path
         return payload.model_dump()
 
     return client_utils.traverse(data, _move_to_cache, client_utils.is_file_obj)

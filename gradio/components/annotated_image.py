@@ -65,6 +65,7 @@ class AnnotatedImage(Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         root_url: str | None = None,
+        _selectable: bool = False,
         _skip_init_processing: bool = False,
     ):
         """
@@ -90,6 +91,7 @@ class AnnotatedImage(Component):
         self.height = height
         self.width = width
         self.color_map = color_map
+        self._selectable = _selectable
         super().__init__(
             label=label,
             every=every,
@@ -183,13 +185,11 @@ class AnnotatedImage(Component):
             )
             mask_file_path = str(utils.abspath(mask_file))
             sections.append(
-                Annotation(
-                    image=FileData(name=mask_file_path, is_file=True), label=label
-                )
+                Annotation(image=FileData(path=mask_file_path), label=label)
             )
 
         return AnnotatedImageData(
-            image=FileData(name=base_img_path, data=None, is_file=True),
+            image=FileData(path=base_img_path),
             annotations=sections,
         )
 
