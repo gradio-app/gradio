@@ -233,8 +233,6 @@ const ignore_list = [
 	"preview",
 	"simpledropdown",
 	"simpletextbox",
-	// "simplevideo",
-	// "simpleaudio",
 	"storybook",
 	"theme",
 	"timeseries",
