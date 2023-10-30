@@ -118,7 +118,7 @@
 			<InteractiveHighlightedText
 				bind:value
 				on:change={() => gradio.dispatch("change")}
-				{selectable}
+				selectable={_selectable}
 				{show_legend}
 				{color_map}
 			/>
