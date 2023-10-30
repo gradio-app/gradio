@@ -361,7 +361,7 @@ class Interface(Blocks):
                 None,
                 None,
             )
-            input_component_column, interpret_component_column = None, None
+            input_component_column = None
 
             with Row(equal_height=False):
                 if self.interface_type in [
@@ -397,7 +397,7 @@ class Interface(Blocks):
 
             self.attach_submit_events(submit_btn, stop_btn)
             self.attach_clear_events(
-                clear_btn, input_component_column, interpret_component_column
+                clear_btn, input_component_column
             )
             if duplicate_btn is not None:
                 duplicate_btn.activate()
@@ -636,7 +636,6 @@ class Interface(Blocks):
         self,
         clear_btn: ClearButton,
         input_component_column: Column | None,
-        interpret_component_column: Column | None,
     ):
         clear_btn.add(self.input_components + self.output_components)
         clear_btn.click(

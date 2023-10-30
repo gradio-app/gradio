@@ -102,7 +102,7 @@ class TestTextbox:
     @pytest.mark.asyncio
     async def test_in_interface_as_input(self):
         """
-        Interface, process, interpret,
+        Interface, process
         """
         iface = gr.Interface(lambda x: x[::-1], "textbox", "textbox")
         assert iface("Hello") == "olleH"
@@ -151,7 +151,7 @@ class TestTextbox:
 class TestNumber:
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, set_interpret_parameters, get_interpretation_neighbors, get_config
+        Preprocess, postprocess, serialize, get_config
 
         """
         numeric_input = gr.Number(elem_id="num", elem_classes="first")
@@ -183,7 +183,7 @@ class TestNumber:
 
     def test_component_functions_integer(self):
         """
-        Preprocess, postprocess, serialize, set_interpret_parameters, get_interpretation_neighbors, get_template_context
+        Preprocess, postprocess, serialize, get_template_context
 
         """
         numeric_input = gr.Number(precision=0, value=42)
@@ -215,7 +215,7 @@ class TestNumber:
 
     def test_component_functions_precision(self):
         """
-        Preprocess, postprocess, serialize, set_interpret_parameters, get_interpretation_neighbors, get_template_context
+        Preprocess, postprocess, serialize, get_template_context
 
         """
         numeric_input = gr.Number(precision=2, value=42.3428)
@@ -228,21 +228,21 @@ class TestNumber:
 
     def test_in_interface_as_input(self):
         """
-        Interface, process, interpret
+        Interface, process
         """
         iface = gr.Interface(lambda x: x**2, "number", "textbox")
         assert iface(2) == "4.0"
 
     def test_precision_0_in_interface(self):
         """
-        Interface, process, interpret
+        Interface, process
         """
         iface = gr.Interface(lambda x: x**2, gr.Number(precision=0), "textbox")
         assert iface(2) == "4"
 
     def test_in_interface_as_output(self):
         """
-        Interface, process, interpret
+        Interface, process
         """
         iface = gr.Interface(lambda x: int(x) ** 2, "textbox", "number")
         assert iface(2) == 4.0
@@ -290,7 +290,7 @@ class TestSlider:
 
     def test_in_interface(self):
         """ "
-        Interface, process, interpret
+        Interface, process
         """
         iface = gr.Interface(lambda x: x**2, "slider", "textbox")
         assert iface(2) == "4"
@@ -349,7 +349,7 @@ class TestCheckbox:
 
     def test_in_interface(self):
         """
-        Interface, process, interpret
+        Interface, process
         """
         iface = gr.Interface(lambda x: 1 if x else 0, "checkbox", "number")
         assert iface(True) == 1
@@ -463,7 +463,7 @@ class TestRadio:
 
     def test_in_interface(self):
         """
-        Interface, process, interpret
+        Interface, process
         """
         radio_input = gr.Radio(["a", "b", "c"])
         iface = gr.Interface(lambda x: 2 * x, radio_input, "textbox")
@@ -2033,7 +2033,7 @@ class TestColorPicker:
 
     def test_in_interface_as_input(self):
         """
-        Interface, process, interpret,
+        Interface, process
         """
         iface = gr.Interface(lambda x: x, "colorpicker", "colorpicker")
         assert iface("#000000") == "#000000"
