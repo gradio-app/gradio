@@ -10,8 +10,10 @@
 "@gradio/dataframe": minor
 "@gradio/dropdown": minor
 "@gradio/file": minor
+"@gradio/form": minor
 "@gradio/gallery": minor
 "@gradio/highlightedtext": minor
+"@gradio/html": minor
 "@gradio/image": minor
 "@gradio/json": minor
 "@gradio/label": minor
@@ -20,8 +22,10 @@
 "@gradio/radio": minor
 "@gradio/statustracker": minor
 "@gradio/textbox": minor
+"@gradio/tooltip": minor
 "@gradio/upload": minor
 "@gradio/uploadbutton": minor
+"@gradio/utils": minor
 "@gradio/video": minor
 "gradio": minor
 "gradio_test": minor
