@@ -104,7 +104,7 @@ class Request:
     ):
         """
         Can be instantiated with either a fastapi.Request or by manually passing in
-        attributes (needed for websocket-based queueing).
+        attributes (needed for queueing).
         Parameters:
             request: A fastapi.Request
         """

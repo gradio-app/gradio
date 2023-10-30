@@ -534,7 +534,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.share_url = None
         self.width = None
         self.height = None
-        self.api_open = True if utils.get_space() is None else False
+        self.api_open = utils.get_space() is None
 
         self.space_id = utils.get_space()
         self.favicon_path = None

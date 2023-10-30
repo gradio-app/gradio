@@ -30,7 +30,7 @@ import fastapi
 import httpx
 import markupsafe
 import orjson
-from fastapi import Depends, FastAPI, HTTPException, WebSocket, status
+from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
     FileResponse,
@@ -221,12 +221,6 @@ class App(FastAPI):
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
             )
 
-        async def ws_login_check(websocket: WebSocket) -> Optional[str]:
-            token = websocket.cookies.get(
-                f"access-token-{app.cookie_id}"
-            ) or websocket.cookies.get(f"access-token-unsecure-{app.cookie_id}")
-            return token  # token is returned to authenticate the websocket connection in the endpoint handler.
-
         @app.get("/token")
         @app.get("/token/")
         def get_token(request: fastapi.Request) -> dict:
@@ -238,38 +232,32 @@ class App(FastAPI):
         def app_id(request: fastapi.Request) -> dict:
             return {"app_id": app.get_blocks().app_id}
 
-        async def send_ping_periodically(websocket: WebSocket):
-            while True:
-                await websocket.send_text("PING")
-                await asyncio.sleep(1)
+        @app.get("/dev/reload", dependencies=[Depends(login_check)])
+        async def notify_changes(
+            request: fastapi.Request,
+        ):
+            async def reload_checker(request: fastapi.Request):
+                heartbeat_rate = 15
+                check_rate = 0.05
+                last_heartbeat = time.perf_counter()
 
-        async def listen_for_changes(websocket: WebSocket):
-            assert app.change_event
-            while True:
-                if app.change_event.is_set():
-                    await websocket.send_text("CHANGE")
-                    app.change_event.clear()
-                await asyncio.sleep(0.1)  # Short sleep to not make this a tight loop
+                while True:
+                    if await request.is_disconnected():
+                        return
 
-        @app.websocket("/dev/reload")
-        async def notify_changes(websocket: WebSocket):
-            await websocket.accept()
+                    if app.change_event.is_set():
+                        app.change_event.clear()
+                        yield """data: CHANGE\n\n"""
 
-            ping = asyncio.create_task(send_ping_periodically(websocket))
-            notify = asyncio.create_task(listen_for_changes(websocket))
-            tasks = {ping, notify}
-            ping.add_done_callback(tasks.remove)
-            notify.add_done_callback(tasks.remove)
-            done, pending = await asyncio.wait(
-                [ping, notify],
-                return_when=asyncio.FIRST_COMPLETED,
+                    await asyncio.sleep(check_rate)
+                    if time.perf_counter() - last_heartbeat > heartbeat_rate:
+                        yield """data: HEARTBEAT\n\n"""
+                        last_heartbeat = time.time()
+
+            return StreamingResponse(
+                reload_checker(request),
+                media_type="text/event-stream",
             )
-
-            for task in pending:
-                task.cancel()
-
-            if any(isinstance(task.exception(), Exception) for task in done):
-                await websocket.close()
 
         @app.post("/login")
         @app.post("/login/")
@@ -614,6 +602,7 @@ class App(FastAPI):
                     await blocks._queue.send_estimation(event, estimation, rank)
 
             async def sse_stream(request: fastapi.Request):
+                last_heartbeat = time.perf_counter()
                 while True:
                     if await request.is_disconnected():
                         await blocks._queue.clean_event(event)
@@ -622,7 +611,6 @@ class App(FastAPI):
 
                     heartbeat_rate = 15
                     check_rate = 0.05
-                    last_heartbeat = time.perf_counter()
                     message = None
                     try:
                         message = event.message_queue.get_nowait()
