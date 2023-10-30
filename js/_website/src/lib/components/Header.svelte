@@ -11,8 +11,8 @@
 	// $: selected_version === version && is_versioned && goto("/guides/quickstart");
 </script>
 
-<div>
 <!-- 4.0 Launch BANNER  -->
+<div class="flex-row">
 <div class="relative isolate flex items-center gap-x-6 overflow-hidden bg-gradient-to-r from-white via-yellow-200 to-white px-6 py-2 sm:px-3.5 sm:before:flex-1">
 	<div class="flex flex-wrap items-center gap-x-4 gap-y-2">
 	  <p class="text-md leading-6 text-gray-700">
@@ -23,7 +23,7 @@
 	<div class="flex flex-1 justify-end">
 	  
 	</div>
-</div>
+  </div>
 <div
 	class="container mx-auto flex flex-wrap justify-between flex-row relative items-center px-4 py-5 gap-6 text-lg z-50"
 >
