@@ -429,6 +429,10 @@
 				})
 				.on("status", ({ fn_index, ...status }) => {
 					tick().then(() => {
+						const outputs = dependencies[fn_index].outputs;
+						outputs.forEach((id) => {
+							instance_map[id].props.interactive = status.stage === "pending" ? false : true;
+						});
 						//@ts-ignore
 						loading_status.update({
 							...status,
