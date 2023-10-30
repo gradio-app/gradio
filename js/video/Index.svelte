@@ -60,7 +60,6 @@
 			_subtitle = null;
 		}
 	}
-
 	let dragging = false;
 
 	$: {
