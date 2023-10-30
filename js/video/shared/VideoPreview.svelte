@@ -47,12 +47,12 @@
 </script>
 
 <BlockLabel {show_label} Icon={Video} label={label || "Video"} />
-{#if value === null || value.url ===  undefined}
+{#if value === null}
 	<Empty unpadded_box={true} size="large"><Video /></Empty>
 {:else}
 	{#key value.path}
 		<Player
-			src={value.url}
+			src={value.path}
 			subtitle={subtitle?.path}
 			{autoplay}
 			on:play
