@@ -235,4 +235,10 @@
 			href="./{name}/">{obj.name}</a
 		>
 	{/each}
+
+	<a
+		class:current_nav_link={current_nav_link == "js-client"}
+		class="link px-4 my-2 block"
+		href="./js-client/">JavaScript Client</a
+	>
 </div>
