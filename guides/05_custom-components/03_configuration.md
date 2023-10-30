@@ -33,7 +33,7 @@ packages = ["/backend/supertextbox"]
 mv backend/gradio_mytextbox backend/supertextbox
 ```
 
-> 💡 Tip: Remember to change the import statement in `demo/app.py`!
+Tip: Remember to change the import statement in `demo/app.py`!
 
 ## Top Level Python Exports
 
@@ -56,7 +56,7 @@ You can add python dependencies by modifying the `dependencies` key in `pyprojec
 dependencies = ["gradio", "numpy", "PIL"]
 ```
 
-> 💡 Tip: Remember to run `gradio cc install` when you add dependencies!
+Tip: Remember to run `gradio cc install` when you add dependencies!
 
 ## Javascript Dependencies
 
@@ -88,7 +88,7 @@ class SuperTextbox(Component):
     FRONTEND_DIR = "../../frontend/"
 ```
 
-> 💡 Tip: The javascript and python directories must be under the same common directory!
+Tip: The javascript and python directories must be under the same common directory!
 
 ## Conclusion
 
