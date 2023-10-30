@@ -281,7 +281,7 @@
 							<Remove />
 						</div>
 					{/if}
-					<DropdownArrow />
+					<span class="icon-wrap"> <DropdownArrow /></span>
 				{/if}
 			</div>
 		</div>
@@ -298,6 +298,11 @@
 </label>
 
 <style>
+	.icon-wrap {
+		color: var(--body-text-color);
+		margin-right: var(--size-2);
+		width: var(--size-5);
+	}
 	label:not(.container),
 	label:not(.container) .wrap,
 	label:not(.container) .wrap-inner,
