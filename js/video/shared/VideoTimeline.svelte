@@ -12,7 +12,7 @@
 	let videoDuration: number;
 
 	let leftHandlePosition = 0;
-	let rightHandlePosition = 99;
+	let rightHandlePosition = 100;
 
 	let dragging: string | null = null;
 
@@ -157,7 +157,7 @@
 				on:mousedown={() => startDragging("left")}
 				on:blur={stopDragging}
 				on:keydown={(e) => {
-					if (e.key === "ArrowLeft") {
+					if (e.key === "ArrowLeft" || e.key == "ArrowRight") {
 						startDragging("left");
 					}
 				}}
@@ -177,15 +177,13 @@
 				on:mousedown={() => startDragging("right")}
 				on:blur={stopDragging}
 				on:keydown={(e) => {
-					if (e.key === "ArrowRight") {
+					if (e.key === "ArrowLeft" || e.key == "ArrowRight") {
 						startDragging("right");
 					}
 				}}
 				style="left: {rightHandlePosition}%;"
 			/>
 		</div>
-	{:else}
-		<p>Generating thumbnails...</p>
 	{/if}
 </div>
 
@@ -196,7 +194,6 @@
 		align-items: center;
 		justify-content: center;
 		margin: var(--spacing-lg) var(--spacing-lg) 0 var(--spacing-lg);
-		border: 2px solid var(--color-accent);
 	}
 
 	#timeline {
@@ -210,25 +207,25 @@
 		flex: 1 1 auto;
 		min-width: 0;
 		object-fit: cover;
-		height: var(--size-8);
+		height: var(--size-12);
 		border: 1px solid var(--block-border-color);
 		user-select: none;
 		z-index: 1;
 	}
 
 	.handle {
-		width: 5px;
+		width: 3px;
 		background-color: var(--color-accent);
 		cursor: ew-resize;
-		height: var(--size-8);
+		height: var(--size-12);
 		z-index: 3;
-
 		position: absolute;
 	}
 
 	.opaque-layer {
 		background-color: rgba(230, 103, 40, 0.25);
-		height: var(--size-8);
+		border: 1px solid var(--color-accent);
+		height: var(--size-12);
 		position: absolute;
 		z-index: 2;
 	}
