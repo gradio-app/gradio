@@ -13,9 +13,9 @@ For completeness, and in case you need to make your own component from scratch, 
 * `BlockContext`: Use this when you want to place other components "inside" your component. This enabled `with MyComponent() as component:` syntax.
 * `Component`: Use this for all other cases.
 
->💡 Tip: If your component supports streaming output, inherit from the `StreamingOutput` class.
+Tip: If your component supports streaming output, inherit from the `StreamingOutput` class.
 
->💡 Tip: If you inherit from `BlockContext`, you also need to set the metaclass to be `ComponentMeta`. See example below.
+Tip: If you inherit from `BlockContext`, you also need to set the metaclass to be `ComponentMeta`. See example below.
 
 ```python
 from gradio.blocks import BlockContext
@@ -160,9 +160,9 @@ By adding these four lines of code, your component automatically implements the 
 It also has the added benefit of self-documenting your code.
 Anyone who reads your component code will know exactly the data it expects.
 
->💡 Tip: If your component expects files to be uploaded from the front-end, your must use the `FileData` model! It will be explained in the following section. 
+Tip: If your component expects files to be uploaded from the front-end, your must use the `FileData` model! It will be explained in the following section. 
 
->💡 Tip: Read the pydantic docs [here](https://docs.pydantic.dev/latest/concepts/models/#basic-model-usage)
+Tip: Read the pydantic docs [here](https://docs.pydantic.dev/latest/concepts/models/#basic-model-usage)
 
 The difference between a `GradioModel` and a `GradioRootModel` is that the `RootModel` will not serialize the data to a dictionary.
 For example, the `Names` model will serialize the data to `{'names': ['freddy', 'pete']}` whereas the `NamesRoot` model will serialize it to `['freddy', 'pete']`.
@@ -179,7 +179,7 @@ class NamesRoot(GradioRootModel):
 
 Even if your component does not expect a "complex" JSON data structure it can be beneficial to define a `GradioRootModel` so that you don't have to worry about implementing the api and flagging methods.
 
->💡 Tip: Use classes from the python typing library to type your models. So `List` instead of `list`.
+Tip: Use classes from the python typing library to type your models. So `List` instead of `list`.
 
 ## Handling Files
 
@@ -219,7 +219,7 @@ class MyComponent(FormComponent):
     ]
 ```
 
->💡 Tip: Don't forget to also handle these events in the javascript code!
+Tip: Don't forget to also handle these events in the javascript code!
 
 ## Conclusion
 
