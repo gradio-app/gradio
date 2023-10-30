@@ -24,7 +24,6 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         "code",
         "fake_gan",
         "fake_diffusion_with_gif",
-        "gender_sentence_default_interpretation",
         "image_mod_default_image",
         "image_segmentation",
         "interface_parallel_load",
