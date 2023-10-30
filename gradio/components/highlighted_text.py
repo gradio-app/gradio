@@ -79,7 +79,6 @@ class HighlightedText(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
             interactive: If True, the component will be editable, and allow user to select spans of text and label them.
-            _selectable: Whether the highlighted text can be selected. Set automatically if the select event is used.
         """
         self._selectable = _selectable
         self.color_map = color_map

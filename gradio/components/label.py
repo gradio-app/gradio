@@ -77,7 +77,6 @@ class Label(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
             color: The background color of the label (either a valid css color name or hexadecimal string).
-            _selectable: Whether the label can be selected. Set automatically if the select event is used.
         """
         self._selectable = _selectable
         self.num_top_classes = num_top_classes
