@@ -61,13 +61,12 @@ export function blob_to_data_url(blob: Blob): Promise<string> {
 }
 
 export async function trimVideo(
+	ffmpeg: FFmpeg,
 	startTime: number,
 	endTime: number,
 	videoElement: HTMLVideoElement
 ): Promise<any> {
 	try {
-		const ffmpeg: FFmpeg = await loadFfmpeg();
-
 		const videoUrl = videoElement.src;
 		const mimeType = lookup(videoElement.src) || "video/mp4";
 		const blobUrl = await toBlobURL(videoUrl, mimeType);

@@ -2,6 +2,9 @@
 	import { Undo, Trim } from "@gradio/icons";
 	import VideoTimeline from "./VideoTimeline.svelte";
 	import { trimVideo } from "./utils";
+	import { FFmpeg } from "@ffmpeg/ffmpeg";
+	import loadFfmpeg from "./utils";
+	import { onMount } from "svelte";
 
 	export let videoElement: HTMLVideoElement;
 
@@ -11,6 +14,12 @@
 	export let handle_reset_value: () => void;
 	export let handle_trim_video: (videoBlob: Blob) => void;
 	export let processingVideo = false;
+
+	let ffmpeg: FFmpeg;
+
+	onMount(async () => {
+		ffmpeg = await loadFfmpeg();
+	});
 
 	$: if (mode === "edit" && trimmedDuration === null && videoElement)
 		trimmedDuration = videoElement.duration;
@@ -93,7 +102,7 @@
 						on:click={() => {
 							mode = "";
 							processingVideo = true;
-							trimVideo(dragStart, dragEnd, videoElement)
+							trimVideo(ffmpeg, dragStart, dragEnd, videoElement)
 								.then((videoBlob) => {
 									handle_trim_video(videoBlob);
 								})
