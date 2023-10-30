@@ -477,9 +477,9 @@ class TestDropdown:
         """
         dropdown_input = gr.Dropdown(["a", "b", ("c", "c full")], multiselect=True)
         assert dropdown_input.preprocess("a") == "a"
-        assert dropdown_input.postprocess("a") == "a"
+        assert dropdown_input.postprocess("a") == ["a"]
         assert dropdown_input.preprocess("c full") == "c full"
-        assert dropdown_input.postprocess("c full") == "c full"
+        assert dropdown_input.postprocess("c full") == ["c full"]
 
         # When a Gradio app is loaded with gr.load, the tuples are converted to lists,
         # so we need to test that case as well
@@ -555,7 +555,7 @@ class TestImage:
         type: pil, file, filepath, numpy
         """
 
-        img = dict(FileData(path="test/test_files/bus.png"))
+        img = FileData(path="test/test_files/bus.png")
         image_input = gr.Image()
 
         image_input = gr.Image(type="filepath")
@@ -601,14 +601,8 @@ class TestImage:
 
         # Output functionalities
         image_output = gr.Image(type="pil")
-        processed_image = image_output.postprocess(PIL.Image.open(img["path"]))
+        processed_image = image_output.postprocess(PIL.Image.open(img.path))
         assert processed_image is not None
-        if processed_image is not None:
-            processed = client_utils.encode_url_or_file_to_base64(
-                cast(dict, processed_image).get("path", "")
-            )
-            source = client_utils.encode_url_or_file_to_base64(img["path"])
-            assert processed == source
 
     def test_in_interface_as_output(self):
         """
@@ -843,13 +837,14 @@ class TestFile:
         """
         Preprocess, serialize, get_config, value
         """
-        x_file = deepcopy(media_data.BASE64_FILE)
+        x_file = deepcopy(media_data.TEST_FILE)
         file_input = gr.File()
-        output = file_input.preprocess({"path": x_file["path"]})
+        output = file_input.preprocess(FileData(path=x_file["path"]))
         assert isinstance(output, str)
 
-        input1 = file_input.preprocess({"path": x_file["path"]})
-        input2 = file_input.preprocess({"path": x_file["path"]})
+        input1 = file_input.preprocess(FileData(path=x_file["path"]))
+        input2 = file_input.preprocess(FileData(path=x_file["path"]))
+        assert isinstance(input1, utils.NamedString)
         assert input1 == input1.name  # Testing backwards compatibility
         assert input1 == input2
         assert Path(input1).name == "sample_file.pdf"
@@ -875,14 +870,15 @@ class TestFile:
             "type": "filepath",
         }
         assert file_input.preprocess(None) is None
-        assert file_input.preprocess(x_file) is not None
+        assert file_input.preprocess(FileData(path=x_file["path"])) is not None
 
         zero_size_file = {"path": "document.txt", "size": 0}
-        temp_file = file_input.preprocess(zero_size_file)
+        temp_file = file_input.preprocess(FileData(**zero_size_file))
+        assert isinstance(temp_file, utils.NamedString)
         assert not Path(temp_file.name).exists()
 
         file_input = gr.File(type="binary")
-        output = file_input.preprocess(x_file)
+        output = file_input.preprocess(FileData(path=x_file["path"]))
         assert type(output) == bytes
 
         output1 = file_input.postprocess("test/test_files/sample_file.pdf")
@@ -899,7 +895,7 @@ class TestFile:
         """
         Interface, process
         """
-        x_file = media_data.BASE64_FILE["path"]
+        x_file = media_data.TEST_FILE["path"]
 
         def get_size_of_file(file_obj):
             return os.path.getsize(file_obj.name)
@@ -926,13 +922,14 @@ class TestUploadButton:
         """
         preprocess
         """
-        x_file = deepcopy(media_data.BASE64_FILE)
+        x_file = deepcopy(media_data.TEST_FILE)
         upload_input = gr.UploadButton()
-        input = upload_input.preprocess({"path": x_file})
+        input = upload_input.preprocess(FileData(path=x_file["path"]))
         assert isinstance(input, str)
 
-        input1 = upload_input.preprocess({"path": x_file})
-        input2 = upload_input.preprocess({"path": x_file})
+        input1 = upload_input.preprocess(FileData(path=x_file["path"]))
+        input2 = upload_input.preprocess(FileData(path=x_file["path"]))
+        assert isinstance(input1, utils.NamedString)
         assert input1 == input1.name  # Testing backwards compatibility
         assert input1 == input2
 

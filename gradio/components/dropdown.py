@@ -177,10 +177,10 @@ class Dropdown(FormComponent):
         if value is None:
             return None
         if self.multiselect:
-            assert isinstance(value, list)
+            if not isinstance(value, list):
+                value = [value]
             [self._warn_if_invalid_choice(_y) for _y in value]
         else:
-            assert isinstance(value, (str, int, float))
             self._warn_if_invalid_choice(value)
         return value
 

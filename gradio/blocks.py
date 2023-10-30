@@ -1159,10 +1159,15 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 raise InvalidComponentError(
                     f"{block.__class__} Component with id {output_id} not a valid output component."
                 )
-
+            if isinstance(outputs[o], (GradioRootModel, GradioModel)):
+                output = outputs[o].model_dump()
+            else:
+                output = outputs[o]
+                
             deserialized = client_utils.traverse(
                 outputs[o], lambda s: s["path"], client_utils.is_file_obj
             )
+            print("deserialized", deserialized)
             predictions.append(deserialized)
 
         return predictions
