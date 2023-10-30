@@ -10,6 +10,7 @@
 	export let mode = "";
 	export let handle_reset_value: () => void;
 	export let handle_trim_video: (videoBlob: Blob) => void;
+	export let processingVideo = false;
 
 	$: if (mode === "edit" && trimmedDuration === null && videoElement)
 		trimmedDuration = videoElement.duration;
@@ -25,7 +26,7 @@
 	let dragStart = 0;
 	let dragEnd = 0;
 
-	let loading = false;
+	let loadingTimeline = false;
 
 	const toggleTrimmingMode = (): void => {
 		if (mode === "edit") {
@@ -45,13 +46,17 @@
 				bind:dragStart
 				bind:dragEnd
 				bind:trimmedDuration
+				bind:loadingTimeline
 			/>
 		</div>
 	{/if}
 
 	<div class="controls" data-testid="waveform-controls">
 		{#if mode === "edit" && trimmedDuration !== null}
-			<time>{formatTime(trimmedDuration)}</time>
+			<time
+				aria-label="duration of selected region in seconds"
+				class:hidden={loadingTimeline}>{formatTime(trimmedDuration)}</time
+			>
 		{:else}
 			<div />
 		{/if}
@@ -60,7 +65,7 @@
 			{#if showRedo && mode === ""}
 				<button
 					class="action icon"
-					disabled={loading}
+					disabled={processingVideo}
 					aria-label="Reset video to initial value"
 					on:click={() => {
 						handle_reset_value();
@@ -74,7 +79,7 @@
 			{#if interactive}
 				{#if mode === ""}
 					<button
-						disabled={loading}
+						disabled={processingVideo}
 						class="action icon"
 						aria-label="Trim video to selection"
 						on:click={toggleTrimmingMode}
@@ -83,21 +88,24 @@
 					</button>
 				{:else}
 					<button
+						class:hidden={loadingTimeline}
 						class="text-button"
 						on:click={() => {
 							mode = "";
-							loading = true;
+							processingVideo = true;
 							trimVideo(dragStart, dragEnd, videoElement)
 								.then((videoBlob) => {
 									handle_trim_video(videoBlob);
 								})
 								.then(() => {
-									loading = false;
+									processingVideo = false;
 								});
 						}}>Trim</button
 					>
-					<button class="text-button" on:click={toggleTrimmingMode}
-						>Cancel</button
+					<button
+						class="text-button"
+						class:hidden={loadingTimeline}
+						on:click={toggleTrimmingMode}>Cancel</button
 					>
 				{/if}
 			{/if}
@@ -136,6 +144,9 @@
 		font-weight: bold;
 		padding: 0 5px;
 		margin-left: 5px;
+	}
+	.hidden {
+		display: none;
 	}
 
 	.text-button:hover,

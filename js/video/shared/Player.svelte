@@ -27,6 +27,7 @@
 	let duration: number;
 	let paused = true;
 	let video: HTMLVideoElement;
+	let processingVideo = false;
 
 	function handleMove(e: TouchEvent | MouseEvent): void {
 		if (!duration) return;
@@ -112,6 +113,7 @@
 			bind:paused
 			bind:node={video}
 			data-testid={`${label}-player`}
+			{processingVideo}
 		>
 			<track kind="captions" src={subtitle} default />
 		</Video>
@@ -167,6 +169,7 @@
 		showRedo
 		{handle_trim_video}
 		{handle_reset_value}
+		bind:processingVideo
 	/>
 {/if}
 

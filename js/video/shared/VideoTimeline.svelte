@@ -5,6 +5,7 @@
 	export let trimmedDuration: number | null;
 	export let dragStart: number;
 	export let dragEnd: number;
+	export let loadingTimeline: boolean;
 
 	let thumbnails: string[] = [];
 	let numberOfThumbnails = 10;
@@ -19,6 +20,8 @@
 	const startDragging = (side: string | null): void => {
 		dragging = side;
 	};
+
+	$: loadingTimeline = thumbnails.length !== numberOfThumbnails;
 
 	const stopDragging = (): void => {
 		dragging = null;
@@ -67,7 +70,6 @@
 			const endTime = (rightHandlePosition / 100) * videoDuration;
 			trimmedDuration = endTime - startTime;
 
-			// Trigger Svelte to update the DOM by assigning the value to itself
 			leftHandlePosition = leftHandlePosition;
 			rightHandlePosition = rightHandlePosition;
 		}
@@ -87,7 +89,6 @@
 	};
 
 	const generateThumbnail = (): void => {
-		// Create canvas
 		const canvas = document.createElement("canvas");
 		const ctx = canvas.getContext("2d");
 		if (!ctx) return;
@@ -95,10 +96,8 @@
 		canvas.width = videoElement.videoWidth;
 		canvas.height = videoElement.videoHeight;
 
-		// Draw a frame on the canvas
 		ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
 
-		// Convert canvas to data URL
 		const thumbnail: string = canvas.toDataURL("image/jpeg", 0.7);
 		thumbnails = [...thumbnails, thumbnail];
 	};
@@ -150,7 +149,7 @@
 </script>
 
 <div class="container">
-	{#if thumbnails.length !== numberOfThumbnails}
+	{#if loadingTimeline}
 		<div class="load-wrap">
 			<span aria-label="loading timeline" class="loader" />
 		</div>
