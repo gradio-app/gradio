@@ -27,7 +27,8 @@ describe("Textbox", () => {
 			loading_status,
 			lines: 1,
 			value: "hello world",
-			label: "Textbox"
+			label: "Textbox",
+			interactive: false
 		});
 
 		const item: HTMLInputElement = getByDisplayValue(
@@ -43,7 +44,8 @@ describe("Textbox", () => {
 			loading_status,
 			lines: 1,
 			value: "hi ",
-			label: "Textbox"
+			label: "Textbox",
+			interactive: true
 		});
 
 		const item: HTMLInputElement = getByDisplayValue("hi") as HTMLInputElement;

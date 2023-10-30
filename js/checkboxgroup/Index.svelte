@@ -24,7 +24,7 @@
 	export let show_label: boolean;
 
 	export let loading_status: LoadingStatus;
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 
 	let old_value: (string | number)[] = value.slice();
 
@@ -49,7 +49,7 @@
 		value_is_output = false;
 	});
 
-	$: disabled = mode === "static";
+	$: disabled = !interactive;
 
 	// When old_value changes, update value and call handle_change()
 	// See the docs for an explanation: https://svelte.dev/docs/svelte-components#script-3-$-marks-a-statement-as-reactive

@@ -275,7 +275,7 @@ class TestColorPicker(unittest.TestCase):
 
 	export let loading_status: LoadingStatus;
 
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 </script>
 
 <Block
@@ -293,7 +293,7 @@ class TestColorPicker(unittest.TestCase):
 		{show_label}
 		on:change
 		on:submit
-		disabled={mode === "static"}
+		disabled={!interactive}
 	/>
 </Block>
 ```
@@ -323,7 +323,7 @@ describe("ColorPicker", () => {
 		const { getByDisplayValue } = render(ColorPicker, {
 			loading_status,
 			show_label: true,
-			mode: "dynamic",
+			interactive: true,
 			value: "#000000",
 			label: "ColorPicker"
 		});
@@ -336,7 +336,7 @@ describe("ColorPicker", () => {
 		const { component, getByDisplayValue } = render(ColorPicker, {
 			loading_status,
 			show_label: true,
-			mode: "dynamic",
+			interactive: true,
 			value: "#000000",
 			label: "ColorPicker"
 		});

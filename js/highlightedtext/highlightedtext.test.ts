@@ -25,6 +25,7 @@ describe("HighlightedText", () => {
 		const { getByText, getByTestId, getAllByText } = await render(
 			HighlightedText,
 			{
+				interactive: false,
 				loading_status,
 				value: [
 					{ token: "The", class_or_confidence: null },
@@ -48,6 +49,7 @@ describe("HighlightedText", () => {
 
 	test("renders labels with remove label buttons which trigger change", async () => {
 		const { getAllByText, listen } = await render(HighlightedText, {
+			interactive: true,
 			loading_status,
 			value: [
 				{ token: "The", class_or_confidence: null },

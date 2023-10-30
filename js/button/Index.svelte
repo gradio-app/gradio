@@ -12,7 +12,7 @@
 	export let visible = true;
 	export let value: string;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
-	export let mode: "static" | "interactive" = "interactive";
+	export let interactive: boolean;
 	export let size: "sm" | "lg" = "lg";
 	export let scale: number | null = null;
 	export let icon: string | null = null;
@@ -38,7 +38,7 @@
 	{visible}
 	{root}
 	{root_url}
-	disabled={mode === "static"}
+	disabled={!interactive}
 	on:click={() => gradio.dispatch("click")}
 >
 	{gradio.i18n(value)}

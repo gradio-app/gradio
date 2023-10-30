@@ -44,7 +44,7 @@
 		share: ShareData;
 		error: string;
 	}>;
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 	export let mirror_webcam: boolean;
 	export let include_audio: boolean;
 
@@ -82,7 +82,7 @@
 	}
 </script>
 
-{#if mode === "static"}
+{#if !interactive}
 	<Block
 		{visible}
 		variant={value === null && source === "upload" ? "dashed" : "solid"}

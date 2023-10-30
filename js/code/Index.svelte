@@ -27,7 +27,7 @@
 	export let loading_status: LoadingStatus;
 	export let scale: number | null = null;
 
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 
 	let dark_mode = target.classList.contains("dark");
 
@@ -59,19 +59,13 @@
 
 	<BlockLabel Icon={CodeIcon} {show_label} {label} float={false} />
 
-	{#if !value}
+	{#if !value && !interactive}
 		<Empty unpadded_box={true} size="large">
 			<CodeIcon />
 		</Empty>
 	{:else}
 		<Widget {language} {value} />
 
-		<Code
-			bind:value
-			{language}
-			{lines}
-			{dark_mode}
-			readonly={mode === "static"}
-		/>
+		<Code bind:value {language} {lines} {dark_mode} readonly={!interactive} />
 	{/if}
 </Block>

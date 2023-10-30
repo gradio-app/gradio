@@ -28,7 +28,7 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 
 	function handle_change(): void {
 		gradio.dispatch("change");
@@ -42,7 +42,7 @@
 	});
 	$: value, handle_change();
 
-	$: disabled = mode === "static";
+	$: disabled = !interactive;
 </script>
 
 <Block

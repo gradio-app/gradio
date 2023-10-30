@@ -32,7 +32,7 @@ describe("Radio", () => {
 			choices: choices,
 			value: "cat",
 			label: "Radio",
-			mode: "dynamic"
+			interactive: true
 		});
 
 		assert.equal(
@@ -57,7 +57,7 @@ describe("Radio", () => {
 			choices: choices,
 			value: "cat",
 			label: "Radio",
-			mode: "dynamic"
+			interactive: true
 		});
 
 		await event.click(getByDisplayValue("dog"));

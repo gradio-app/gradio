@@ -19,7 +19,7 @@
 	export let visible = true;
 	export let value: null | FileData | FileData[];
 
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 	export let root: string;
 	export let label: string;
 	export let show_label: boolean;
@@ -72,7 +72,7 @@
 			? "generating"
 			: loading_status?.status || "complete"}
 	/>
-	{#if mode === "static"}
+	{#if !interactive}
 		<File
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
 			selectable={_selectable}

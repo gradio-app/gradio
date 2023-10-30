@@ -27,7 +27,7 @@
 	export let loading_status: LoadingStatus;
 	export let value_is_output = false;
 	export let step: number | null = null;
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 
 	function handle_change(): void {
 		if (!isNaN(value) && value !== null) {
@@ -50,7 +50,7 @@
 	}
 
 	$: value, handle_change();
-	$: disabled = mode === "static";
+	$: disabled = !interactive;
 </script>
 
 <Block
