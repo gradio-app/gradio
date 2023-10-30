@@ -89,8 +89,6 @@ export async function trimVideo(
 			startTime.toString(),
 			"-to",
 			endTime.toString(),
-			"-c:v",
-			"copy",
 			"-c:a",
 			"copy",
 			outputName
