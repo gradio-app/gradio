@@ -257,8 +257,9 @@ class EventListener(str):
                     return inner
 
                 return Dependency(None, {}, None, wrapper)
-            
+
             from gradio.components.base import StreamingInput
+
             if isinstance(block, StreamingInput) and "stream" in block.events:
                 block.check_streamable()  # type: ignore
             if isinstance(show_progress, bool):

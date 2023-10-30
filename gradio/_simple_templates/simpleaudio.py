@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import Any, Callable, Literal, TypedDict
 
 import numpy as np
 import requests
@@ -11,9 +11,15 @@ from gradio_client import utils as client_utils
 
 from gradio import processing_utils, utils
 from gradio.components.base import Component, StreamingOutput
-from gradio.components.audio import WaveformOptions
 from gradio.data_classes import FileData
 from gradio.events import Events
+
+
+class WaveformOptions(TypedDict, total=False):
+    waveform_color: str
+    waveform_progress_color: str
+    show_controls: bool
+    skip_length: int
 
 
 class SimpleAudio(
@@ -142,11 +148,11 @@ class SimpleAudio(
             return x
 
         payload: FileData = FileData(**x)
-        assert payload.name
+        assert payload.path
 
         # Need a unique name for the file to avoid re-using the same audio file if
         # a user submits the same audio file twice
-        temp_file_path = Path(payload.name)
+        temp_file_path = Path(payload.path)
         output_file_name = str(
             temp_file_path.with_name(f"{temp_file_path.stem}{temp_file_path.suffix}")
         )
@@ -204,26 +210,25 @@ class SimpleAudio(
             if not isinstance(y, (str, Path)):
                 raise ValueError(f"Cannot process {y} as Audio")
             file_path = str(y)
-        return FileData(**{"name": file_path, "data": None, "is_file": True})
+        return FileData(path=file_path)
 
     def stream_output(
         self, y, output_id: str, first_chunk: bool
     ) -> tuple[bytes | None, Any]:
         output_file = {
-            "name": output_id,
+            "path": output_id,
             "is_stream": True,
-            "is_file": False,
         }
         if y is None:
             return None, output_file
         if isinstance(y, bytes):
             return y, output_file
-        if client_utils.is_http_url_like(y["name"]):
-            response = requests.get(y["name"])
+        if client_utils.is_http_url_like(y["path"]):
+            response = requests.get(y["path"])
             binary_data = response.content
         else:
             output_file["orig_name"] = y["orig_name"]
-            file_path = y["name"]
+            file_path = y["path"]
             is_wav = file_path.endswith(".wav")
             with open(file_path, "rb") as f:
                 binary_data = f.read()

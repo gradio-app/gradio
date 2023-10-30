@@ -96,9 +96,7 @@ class SimpleVideo(Component):
 
         self.height = height
         self.width = width
-        self.include_audio = (
-            include_audio if include_audio is not None else True
-        )
+        self.include_audio = include_audio if include_audio is not None else True
         self.show_share_button = (
             (utils.get_space() is not None)
             if show_share_button is None
@@ -131,8 +129,8 @@ class SimpleVideo(Component):
         if x is None:
             return None
         data: VideoData = VideoData(**x) if isinstance(x, dict) else x
-        assert data.video.name
-        file_name = Path(data.video.name)
+        assert data.video.path
+        file_name = Path(data.video.path)
         uploaded_format = file_name.suffix.replace(".", "")
         needs_formatting = self.format is not None and uploaded_format != self.format
 
@@ -140,9 +138,7 @@ class SimpleVideo(Component):
             format = f".{self.format if needs_formatting else uploaded_format}"
             output_options = []
             output_options += ["-an"] if not self.include_audio else []
-            output_file_name = str(
-                file_name.with_name(f"{file_name.stem}{format}")
-            )
+            output_file_name = str(file_name.with_name(f"{file_name.stem}{format}"))
             if Path(output_file_name).exists():
                 return output_file_name
             if wasm_utils.IS_WASM:
@@ -229,7 +225,7 @@ class SimpleVideo(Component):
 
         # For cases where the video is a URL and does not need to be converted to another format, we can just return the URL
         if is_url and not (conversion_needed):
-            return FileData(name=video, is_file=True)
+            return FileData(path=video)
 
         # For cases where the video needs to be converted to another format
         if is_url:
@@ -261,7 +257,7 @@ class SimpleVideo(Component):
             ff.run()
             video = output_file_name
 
-        return FileData(name=video, data=None, is_file=True, orig_name=Path(video).name)
+        return FileData(path=video, orig_name=Path(video).name)
 
     def _format_subtitle(self, subtitle: str | Path | None) -> FileData | None:
         """
@@ -307,8 +303,7 @@ class SimpleVideo(Component):
             srt_to_vtt(subtitle, temp_file.name)
             subtitle = temp_file.name
 
-        subtitle_data = client_utils.encode_url_or_file_to_base64(subtitle)
-        return FileData(name=None, data=subtitle_data, is_file=False)
+        return FileData(path=str(subtitle))
 
     def example_inputs(self) -> Any:
         return "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"

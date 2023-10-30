@@ -50,11 +50,8 @@
 	}
 
 	const handle_clear = (): void => {
-		if (initial_value === null || value === initial_value) {
-			return;
-		}
-
-		value = initial_value;
+		value = null;
+		gradio.dispatch("clear");
 	};
 
 	function handle_load({ detail }: CustomEvent<FileData | null>): void {
@@ -140,7 +137,6 @@
 			{show_download_button}
 			{show_share_button}
 			{value}
-			name={value?.name || "audio_file"}
 			{label}
 			{waveform_settings}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
