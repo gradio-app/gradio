@@ -5,6 +5,8 @@ from gradio_client.documentation import document_cls, generate_documentation
 import gradio
 from ..guides import guides
 
+import requests
+
 DIR = os.path.dirname(__file__)
 DEMOS_DIR = os.path.abspath(os.path.join(DIR, "../../../../../demo"))
 JS_CLIENT_README = os.path.abspath(os.path.join(DIR, "../../../../../client/js/README.md"))
@@ -309,6 +311,15 @@ def organize_docs(d):
             if os.path.exists(os.path.join(JS_DIR, js_component, "README.md")):
                 with open(os.path.join(JS_DIR, js_component, "README.md")) as f:
                     readme_content = f.read()
+
+                try: 
+                    latest_npm = requests.get(f"https://registry.npmjs.org/@gradio/{js_component}/latest").json()["version"]
+                    latest_npm = f" [v{latest_npm}](https://www.npmjs.com/package/@gradio/{js_component})"
+                    readme_content = readme_content.split("\n")
+                    readme_content = "\n".join([readme_content[0], latest_npm, *readme_content[1:]])
+                except TypeError:
+                    pass
+
                 js[js_component] = readme_content
                 js_pages.append(js_component)
 
