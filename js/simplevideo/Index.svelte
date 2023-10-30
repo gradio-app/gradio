@@ -112,7 +112,7 @@
 			<ModifyUpload i18n={gradio.i18n} on:clear={handle_clear} />
 		{/if}
 		{#if playable()}
-			{#key value?.video.data}
+			{#key value?.video.url}
 				<BaseStaticVideo
 					{autoplay}
 					value={value?.video}
@@ -129,7 +129,7 @@
 				/>
 			{/key}
 		{:else if value?.video.size}
-			<div class="file-name">{value.video.name}</div>
+			<div class="file-name">{value.video.orig_name}</div>
 			<div class="file-size">
 				{prettyBytes(value.video.size)}
 			</div>
