@@ -332,6 +332,10 @@ class BlockFunction:
         preprocess: bool,
         postprocess: bool,
         inputs_as_dict: bool,
+        batch: bool = False,
+        max_batch_size: int = 4,
+        concurrency_limit: int | None = None,
+        concurrency_id: str | None = None,
         tracks_progress: bool = False,
     ):
         self.fn = fn
@@ -340,6 +344,10 @@ class BlockFunction:
         self.preprocess = preprocess
         self.postprocess = postprocess
         self.tracks_progress = tracks_progress
+        self.concurrency_limit = concurrency_limit
+        self.concurrency_id = concurrency_id or id(fn)
+        self.batch = batch
+        self.max_batch_size = max_batch_size
         self.total_runtime = 0
         self.total_runs = 0
         self.inputs_as_dict = inputs_as_dict
@@ -773,6 +781,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
         trigger_mode: Literal["once", "multiple", "always_last"] | None = "once",
+        concurrency_limit: int | None = None,
+        concurrency_id: str | None = None,
     ) -> tuple[dict[str, Any], int]:
         """
         Adds an event to the component's dependencies.
@@ -797,6 +807,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             trigger_after: if set, this event will be triggered after 'trigger_after' function index
             trigger_only_on_success: if True, this event will only be triggered if the previous event was successful (only applies if `trigger_after` is set)
             trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` event) would allow a second submission after the pending event is complete.
+            concurrency_limit: If set, this this is the maximum number of this event that can be running simultaneously. Extra events triggered by this listener will be queued. On Spaces, this is set to 1 by default.
+            concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
         Returns: dependency information, dependency index
         """
         # Support for singular parameter
@@ -852,6 +864,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         _, progress_index, event_data_index = (
             special_args(fn) if fn else (None, None, None)
         )
+        if concurrency_limit is None and utils.get_space() is not None:
+            concurrency_limit = 1
         self.fns.append(
             BlockFunction(
                 fn,
@@ -859,8 +873,12 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 outputs,
                 preprocess,
                 postprocess,
-                inputs_as_dict,
-                progress_index is not None,
+                inputs_as_dict=inputs_as_dict,
+                concurrency_limit=concurrency_limit,
+                concurrency_id=concurrency_id,
+                batch=batch,
+                max_batch_size=max_batch_size,
+                tracks_progress=progress_index is not None,
             )
         )
         if api_name is not None and api_name is not False:
@@ -1620,7 +1638,7 @@ Received outputs:
             concurrency_count=concurrency_count,
             update_intervals=status_update_rate if status_update_rate != "auto" else 1,
             max_size=max_size,
-            blocks_dependencies=self.dependencies,
+            blocks_fns=self.fns,
         )
         self.config = self.get_config_file()
         self.app = routes.App.create_app(self)

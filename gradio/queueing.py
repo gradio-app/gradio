@@ -6,8 +6,8 @@ import json
 import time
 import traceback
 import uuid
-from collections import deque
 from queue import Queue as ThreadQueue
+from typing import TYPE_CHECKING
 
 import fastapi
 from typing_extensions import Literal
@@ -23,6 +23,9 @@ from gradio.data_classes import (
 from gradio.exceptions import Error
 from gradio.helpers import TrackedIterable
 from gradio.utils import run_coro_in_background, safe_get_lock, set_task_name
+
+if TYPE_CHECKING:
+    from gradio.blocks import BlockFunction
 
 
 class Event:
@@ -74,9 +77,9 @@ class Queue:
         concurrency_count: int,
         update_intervals: float,
         max_size: int | None,
-        blocks_dependencies: list,
+        blocks_fns: list[BlockFunction],
     ):
-        self.event_queue: deque[Event] = deque()
+        self.event_queue: list[Event] = []
         self.awaiting_data_events: dict[str, Event] = {}
         self.stopped = False
         self.max_thread_count = concurrency_count
@@ -93,7 +96,7 @@ class Queue:
         self.sleep_when_free = 0.05
         self.progress_update_sleep_when_free = 0.1
         self.max_size = max_size
-        self.blocks_dependencies = blocks_dependencies
+        self.blocks_fns = blocks_fns
         self.continuous_tasks: list[Event] = []
         self._asyncio_tasks: list[asyncio.Task] = []
 
@@ -130,22 +133,48 @@ class Queue:
         return count
 
     def get_events_in_batch(self) -> tuple[list[Event] | None, bool]:
-        if not (self.event_queue):
+        if not self.event_queue:
             return None, False
 
-        first_event = self.event_queue.popleft()
-        events = [first_event]
+        worker_count_per_concurrency_id = {}
+        for job in self.active_jobs:
+            if job is not None:
+                for event in job:
+                    concurrency_id = self.blocks_fns[event.fn_index].concurrency_id
+                    worker_count_per_concurrency_id[concurrency_id] = (
+                        worker_count_per_concurrency_id.get(concurrency_id, 0) + 1
+                    )
 
-        event_fn_index = first_event.fn_index
-        batch = self.blocks_dependencies[event_fn_index]["batch"]
+        events = []
+        batch = False
+        for index, event in enumerate(self.event_queue):
+            block_fn = self.blocks_fns[event.fn_index]
+            concurrency_id = block_fn.concurrency_id
+            existing_worker_count = worker_count_per_concurrency_id.get(
+                concurrency_id, 0
+            )
+            if (
+                block_fn.concurrency_limit is None
+                or existing_worker_count < block_fn.concurrency_limit
+            ):
+                batch = block_fn.batch
+                if batch:
+                    remaining_worker_count = (
+                        block_fn.concurrency_limit - existing_worker_count
+                    )
+                    batch_size = block_fn.max_batch_size
+                    rest_of_batch = [
+                        event
+                        for event in self.event_queue[index:]
+                        if event.fn_index == event.fn_index
+                    ][: min(batch_size - 1, remaining_worker_count)]
+                    events = [event] + rest_of_batch
+                else:
+                    events = [event]
+                break
 
-        if batch:
-            batch_size = self.blocks_dependencies[event_fn_index]["max_batch_size"]
-            rest_of_batch = [
-                event for event in self.event_queue if event.fn_index == event_fn_index
-            ][: batch_size - 1]
-            events.extend(rest_of_batch)
-            [self.event_queue.remove(event) for event in rest_of_batch]
+        for event in events:
+            self.event_queue.remove(event)
 
         return events, batch
 
@@ -158,6 +187,7 @@ class Queue:
             if None not in self.active_jobs:
                 await asyncio.sleep(self.sleep_when_free)
                 continue
+
             # Using mutex to avoid editing a list in use
             async with self.delete_lock:
                 events, batch = self.get_events_in_batch()
@@ -180,6 +210,8 @@ class Queue:
                         self.broadcast_estimations
                     )
                     self._asyncio_tasks.append(broadcast_live_estimations_task)
+            else:
+                await asyncio.sleep(self.sleep_when_free)
 
     async def start_progress_updates(self) -> None:
         """
