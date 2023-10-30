@@ -52,6 +52,7 @@
 		bind:this={node}
 		use:loaded={{ autoplay: autoplay ?? false }}
 		data-testid={$$props["data-testid"]}
+		crossorigin="anonymous"
 	>
 		<slot />
 	</video>
@@ -66,5 +67,6 @@
 		width: var(--size-full);
 		height: var(--size-full);
 		object-fit: contain;
+		border-radius: var(--radius-xl);
 	}
 </style>

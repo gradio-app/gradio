@@ -4,7 +4,7 @@
 	import type { FileData } from "@gradio/upload";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Webcam } from "@gradio/image";
-	import { Video, Upload as UploadIcon, Microphone } from "@gradio/icons";
+	import { Video, Upload as UploadIcon } from "@gradio/icons";
 
 	import { prettyBytes, playable } from "./utils";
 	import Player from "./Player.svelte";
@@ -25,6 +25,7 @@
 	export let root: string;
 	export let i18n: I18nFormatter;
 	export let active_source: "webcam" | "upload" = "webcam";
+	export let handle_reset_value: () => void = () => {};
 
 	const dispatch = createEventDispatcher<{
 		change: FileData | null;
@@ -47,9 +48,13 @@
 
 	function handle_clear(): void {
 		value = null;
-		active_source = "";
+		active_source = sources[0];
 		dispatch("change", null);
 		dispatch("clear");
+	}
+
+	function handle_change(video: FileData): void {
+		dispatch("change", video);
 	}
 
 	let dragging = false;
@@ -84,6 +89,7 @@
 	{#if playable()}
 		{#key value?.data}
 			<Player
+				interactive
 				{autoplay}
 				src={value.data}
 				subtitle={subtitle?.data}
@@ -93,6 +99,8 @@
 				on:end
 				mirror={mirror_webcam && active_source === "webcam"}
 				{label}
+				{handle_change}
+				{handle_reset_value}
 			/>
 		{/key}
 	{:else if value.size}

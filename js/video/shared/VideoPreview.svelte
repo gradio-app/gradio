@@ -52,6 +52,7 @@
 {:else}
 	{#key value.data}
 		<Player
+			interactive={false}
 			src={value.data}
 			subtitle={subtitle?.data}
 			{autoplay}

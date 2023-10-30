@@ -2,12 +2,17 @@
 	import { createEventDispatcher } from "svelte";
 	import { Play, Pause, Maximise, Undo } from "@gradio/icons";
 	import Video from "./Video.svelte";
+	import VideoControls from "./VideoControls.svelte";
+	import type { FileData } from "@gradio/upload";
 
 	export let src: string;
 	export let subtitle: string | null = null;
 	export let mirror: boolean;
 	export let autoplay: boolean;
 	export let label = "test";
+	export let interactive = false;
+	export let handle_change: (video: FileData) => void = () => {};
+	export let handle_reset_value: () => void = () => {};
 
 	const dispatch = createEventDispatcher<{
 		play: undefined;
@@ -76,6 +81,10 @@
 		dispatch("stop");
 		dispatch("end");
 	}
+
+	const handle_trim_video = (video: FileData): void => {
+		handle_change(video);
+	};
 
 	function open_full_screen(): void {
 		video.requestFullscreen();
@@ -146,6 +155,14 @@
 		</div>
 	</div>
 </div>
+{#if interactive}
+	<VideoControls
+		videoElement={video}
+		showRedo
+		{handle_trim_video}
+		{handle_reset_value}
+	/>
+{/if}
 
 <style lang="postcss">
 	span {
@@ -220,5 +237,6 @@
 		background-color: var(--background-fill-secondary);
 		height: var(--size-full);
 		width: var(--size-full);
+		border-radius: var(--radius-xl);
 	}
 </style>

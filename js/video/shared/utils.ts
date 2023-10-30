@@ -1,3 +1,7 @@
+import { toBlobURL } from "@ffmpeg/util";
+import { FFmpeg } from "@ffmpeg/ffmpeg";
+import type { FileData } from "@gradio/upload";
+
 export const prettyBytes = (bytes: number): string => {
 	let units = ["B", "KB", "MB", "GB", "PB"];
 	let i = 0;
@@ -33,4 +37,87 @@ export function loaded(
 			node.removeEventListener("loadeddata", handle_playback);
 		}
 	};
+}
+
+export default async function loadFfmpeg(): Promise<FFmpeg> {
+	const ffmpeg = new FFmpeg();
+	const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.4/dist/esm";
+
+	await ffmpeg.load({
+		coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
+		wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm")
+	});
+
+	return ffmpeg;
+}
+
+export function blob_to_data_url(blob: Blob): Promise<string> {
+	return new Promise((fulfill, reject) => {
+		let reader = new FileReader();
+		reader.onerror = reject;
+		reader.onload = () => fulfill(reader.result as string);
+		reader.readAsDataURL(blob);
+	});
+}
+
+export async function trimVideo(
+	startTime: number,
+	endTime: number,
+	videoElement: HTMLVideoElement
+): Promise<any> {
+	let downloadFileExtension = "mp4";
+
+	try {
+		const ffmpeg: FFmpeg = await loadFfmpeg();
+
+		const videoUrl = videoElement.src;
+		const mimeType = videoElement.currentSrc.split(":")[1].split(";")[0];
+		const blobUrl = await toBlobURL(videoUrl, mimeType);
+		const response = await fetch(blobUrl);
+		const vidBlob = await response.blob();
+		const type = vidBlob.type.split("/")[1];
+		const inputName = `input.${type}`;
+		const outputName = `output.${downloadFileExtension}`;
+
+		await ffmpeg.writeFile(
+			inputName,
+			new Uint8Array(await vidBlob.arrayBuffer())
+		);
+
+		let command = [
+			"-i",
+			inputName,
+			"-ss",
+			startTime.toString(),
+			"-to",
+			endTime.toString(),
+			"-c:v",
+			"copy",
+			"-c:a",
+			"copy",
+			outputName
+		];
+
+		await ffmpeg.exec(command);
+		const outputData = await ffmpeg.readFile(outputName);
+
+		const outputBlob = new Blob([outputData], {
+			type: `video/${downloadFileExtension}`
+		});
+
+		const dataUrl = await blob_to_data_url(outputBlob);
+
+		const fileData: FileData = {
+			name: `trimmed_video.${downloadFileExtension}`,
+			orig_name: `original_video.${downloadFileExtension}`,
+			size: outputBlob.size,
+			data: dataUrl,
+			is_file: true,
+			mime_type: `video/${downloadFileExtension}`
+		};
+
+		return fileData;
+	} catch (error) {
+		console.error("Error initializing FFmpeg:", error);
+	}
 }

@@ -57,6 +57,21 @@
 
 	let active_source: "webcam" | "upload";
 
+	let initial_value: { video: FileData; subtitles: FileData | null } | null =
+		value;
+
+	$: if (value && initial_value === null) {
+		initial_value = value;
+	}
+
+	const handle_reset_value = (): void => {
+		if (initial_value === null || value === initial_value) {
+			return;
+		}
+
+		value = initial_value;
+	};
+
 	$: if (sources) {
 		active_source = sources[0];
 	}
@@ -168,6 +183,7 @@
 			{include_audio}
 			{autoplay}
 			{root}
+			{handle_reset_value}
 			on:clear={() => gradio.dispatch("clear")}
 			on:play={() => gradio.dispatch("play")}
 			on:pause={() => gradio.dispatch("pause")}

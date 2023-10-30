@@ -173,7 +173,7 @@ class Video(Component):
         file_name = Path(data.video.name)
         uploaded_format = file_name.suffix.replace(".", "")
         needs_formatting = self.format is not None and uploaded_format != self.format
-        flip = self.sources == ["webcam"] and self.mirror_webcam
+        flip = "webcam" in self.sources and self.mirror_webcam
         duration = processing_utils.get_video_length(file_name)
 
         if self.min_length is not None and duration < self.min_length:
