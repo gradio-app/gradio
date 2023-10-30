@@ -36,7 +36,7 @@ Otherwise the python interpreter will raise an error when you instantiate your c
 
 ### `preprocess` and `postprocess`
 
-Explained in the [Key concepts guide](add link here). 
+Explained in the [Key concepts guide](./key-component-concepts#the-value-and-how-it-is-preprocessed-postprocessed). 
 They handle the conversion from the data sent by the frontend to the format expected by the python function.
 
 ```python
@@ -218,6 +218,7 @@ class MyComponent(FormComponent):
         Events.change
     ]
 ```
+
 
 Tip: Don't forget to also handle these events in the javascript code!
 

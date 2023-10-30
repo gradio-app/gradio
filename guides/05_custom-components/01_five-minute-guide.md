@@ -46,7 +46,7 @@ Tip: Run `gradio cc show` to get a list of available component templates.
 The `create` command will:
 
 1. Create a directory with your component's name in lowercase with the following structure:
-```
+```directory
 - backend/ <- The python code for your custom component
 - frontend/ <- The javascript code for your custom component
 - demo/ <- A sample app using your custom component. Modify this to develop your component!
@@ -75,7 +75,7 @@ Click on that link to launch the demo app in hot reload mode.
 Now, you can start making changes to the backend and frontend you'll see the results reflected live in the sample app!
 We'll go through a real example in a later guide.
 
-Tip: You don't have to run dev mode from your custom component directory. The first argument to `dev` mode is the path to the directory. By default it uses the current directoy.
+Tip: You don't have to run dev mode from your custom component directory. The first argument to `dev` mode is the path to the directory. By default it uses the current directory.
 
 ## 3. build
 
@@ -116,5 +116,5 @@ Here is an example of what publishing looks like:
 
 ## Conclusion
 
-Now that you how the high-level workflow of creating custom components, you can go in depth in the next guides!
+Now that you know the high-level workflow of creating custom components, you can go in depth in the next guides!
 

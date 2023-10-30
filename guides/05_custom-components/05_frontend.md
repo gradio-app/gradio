@@ -26,7 +26,7 @@ If you want to export any additional modules, remember to modify the `package.js
 
 Your component should expose the following props that will be passed down from the parent Gradio application.
 
-```ts
+```typescript
 import type { LoadingStatus } from "@gradio/statustracker";
 import type { Gradio } from "@gradio/utils";
 
@@ -55,7 +55,7 @@ export let mode: "static" | "interactive";
 
 A minimal `Index.svelte` file would look like:
 
-```
+```typescript
 <script lang="ts">
 	import type { LoadingStatus } from "@gradio/statustracker";
     import { Block } from "@gradio/atoms";
@@ -100,7 +100,7 @@ A minimal `Index.svelte` file would look like:
 
 The `Example.svelte` file should expose the following props:
 
-```
+```typescript
     export let value: string;
     export let type: "gallery" | "table";
     export let selected = false;
@@ -114,7 +114,7 @@ The `Example.svelte` file should expose the following props:
 
 This is the `Example.svelte` file for the code `Radio` component:
 
-```
+```typescript
 <script lang="ts">
 	export let value: string;
 	export let type: "gallery" | "table";
@@ -154,7 +154,7 @@ Tip: Be sure you call `normalise_file` whenever your files are updated!
 Here's an example of loading files from an `<input>` element when its value changes.
 
 
-```
+```typescript
 <script lang="ts">
 
     import type { FileData } from "@gradio/upload";

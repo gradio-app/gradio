@@ -4,7 +4,7 @@ In this section, we discuss a few important concepts when it comes to components
 It's important to understand these concepts when developing your own component.
 Otherwise, your component may behave very different to other Gradio components!
 
-Tip:  you can skip this section if you are familiar with the internals of the Gradio library, such as each component's preprocess and postprocess methods.
+Tip:  You can skip this section if you are familiar with the internals of the Gradio library, such as each component's preprocess and postprocess methods.
 
 ## Interactive vs Static
 
@@ -42,8 +42,7 @@ demo.launch()
 The interactive version of the component is much more complex -- you can upload and edit images, draw sketches, etc. -- while the static version does not do any of that.
 
 Not every component has an interactive version.
-For example, the gr.AnnotatedImage only appears as a static version since there's no way to interactively change the value of the annotations or the image.
-What's important to know here: . 
+For example, the `gr.AnnotatedImage` only appears as a static version since there's no way to interactively change the value of the annotations or the image.
 
 ### What you need to remember
 
@@ -95,14 +94,14 @@ Each component does two conversions:
 
 * Every component must implement `preprocess` and `postprocess` methods. In the rare event that no conversion needs to happen, simply return the value as-is. `Textbox` and `Number` are examples of this. 
 
-* As a component author, **YOU** control the format of the data displayed in the front-end as well as the format of the data someone using your component will receive. Think of an ergonomic data-structure a **python** developer will find intuitive, and control the conversion from a **Web-friend JSON** datastructure (and vice-versa) with `preprocess` and `postprocess.`
+* As a component author, **YOU** control the format of the data displayed in the front-end as well as the format of the data someone using your component will receive. Think of an ergonomic data-structure a **python** developer will find intuitive, and control the conversion from a **Web-friendly JSON** data structure (and vice-versa) with `preprocess` and `postprocess.`
 
 ## The "Example Version" of a Component
 
 Gradio apps support providing example inputs -- and these are very useful in helping users get started using your Gradio app. 
 In `gr.Interface`, you can provide examples using the `examples` keyword, and in `Blocks`, you can provide examples using the special `gr.Examples` component.
 
-At the bottom of this screenshot, we show an miniature example image of a cheetah that, when clicked, will populate the same image in the input Image component:
+At the bottom of this screenshot, we show a miniature example image of a cheetah that, when clicked, will populate the same image in the input Image component:
 
 ![img](https://user-images.githubusercontent.com/1778297/277548211-a3cb2133-2ffc-4cdf-9a83-3e8363b57ea6.png)
 
@@ -115,7 +114,7 @@ To enable the example view, you must have the following two files in the top of 
 In the backend, you typically don't need to do anything unless you would like to modify the user-provided `value` of the examples to something else before it is sent to the frontend.
 You can do this in the `as_example` method of the component. 
 
-The `Example.svelte` and `as_example` methods will be covered in greater depth in the dedicated [frontend](add link here) and [backend](add link here) guides.
+The `Example.svelte` and `as_example` methods will be covered in greater depth in the dedicated [frontend](./frontend.md) and [backend](./backend.md) guides.
 
 ### What you need to remember
 

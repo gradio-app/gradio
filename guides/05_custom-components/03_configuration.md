@@ -12,14 +12,14 @@ As an example, let's walkthrough changing the name of a component from `gradio_m
 
 1. Modify the `name` in the `pyproject.toml` file. 
 
-```
+```bash
 [project]
 name = "supertextbox"
 ```
 
 2. Change all occurrences of `gradio_<component-name>` in `pyproject.toml` to `<component-name>`
 
-```
+```bash
 [tool.hatch.build]
 artifacts = ["/backend/supertextbox/templates", "*.pyi"]
 
@@ -33,6 +33,7 @@ packages = ["/backend/supertextbox"]
 mv backend/gradio_mytextbox backend/supertextbox
 ```
 
+
 Tip: Remember to change the import statement in `demo/app.py`!
 
 ## Top Level Python Exports
@@ -41,7 +42,7 @@ By default, only the custom component python class is a top level export.
 This means that when users type `from gradio_<component-name> import ...`, the only class that will be available is the custom component class.
 To add more classes as top level exports, modify the `__all__` property in `__init__.py`
 
-```
+```python
 from .mytextbox import MyTextbox
 from .mytextbox import AdditionalClass, additional_function
 
@@ -52,7 +53,7 @@ __all__ = ['MyTextbox', 'AdditionalClass', 'additional_function']
 
 You can add python dependencies by modifying the `dependencies` key in `pyproject.toml`
 
-```
+```bash
 dependencies = ["gradio", "numpy", "PIL"]
 ```
 
@@ -62,7 +63,7 @@ Tip: Remember to run `gradio cc install` when you add dependencies!
 
 You can add javascript dependencies by modifying the `"dependencies"` key in `frontend/package.json`
 
-```
+```json
 "dependencies": {
     "@gradio/atoms": "0.2.0-beta.4",
     "@gradio/statustracker": "0.3.0-beta.6",
