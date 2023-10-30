@@ -24,11 +24,6 @@ class FileMessage(GradioModel):
     alt_text: Optional[str] = None
 
 
-# _Message = Annotated[List[Union[str, FileMessage, None]], Field(min_length=2, max_length=2)]
-
-# Message = TypeAdapter(_Message)
-
-
 class ChatbotData(GradioRootModel):
     root: List[Tuple[Union[str, FileMessage, None], Union[str, FileMessage, None]]]
 
@@ -76,6 +71,7 @@ class Chatbot(Component):
         bubble_full_width: bool = True,
         line_breaks: bool = True,
         layout: Literal["panel", "bubble"] | None = None,
+        _selectable: bool = False,
     ):
         """
         Parameters:
@@ -121,6 +117,7 @@ class Chatbot(Component):
         self.bubble_full_width = bubble_full_width
         self.line_breaks = line_breaks
         self.layout = layout
+        self._selectable = _selectable
 
         super().__init__(
             label=label,

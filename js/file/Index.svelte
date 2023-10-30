@@ -30,7 +30,7 @@
 	export let height: number | undefined = undefined;
 
 	export let root_url: null | string;
-	export let selectable = false;
+	export let _selectable = false;
 	export let loading_status: LoadingStatus;
 	export let container = true;
 	export let scale: number | null = null;
@@ -79,7 +79,7 @@
 	{#if mode === "static"}
 		<File
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
-			{selectable}
+			selectable={_selectable}
 			value={_value}
 			{label}
 			{show_label}
@@ -93,7 +93,7 @@
 			value={_value}
 			{file_count}
 			{file_types}
-			{selectable}
+			selectable={_selectable}
 			{root}
 			{height}
 			on:change={({ detail }) => {

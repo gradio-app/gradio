@@ -30,7 +30,7 @@
 	export let height: number | undefined;
 	export let width: number | undefined;
 
-	export let selectable = false;
+	export let _selectable = false;
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
@@ -97,7 +97,7 @@
 			{label}
 			{show_label}
 			{show_download_button}
-			{selectable}
+			selectable={_selectable}
 			{show_share_button}
 			i18n={gradio.i18n}
 		/>
@@ -126,7 +126,7 @@
 		<ImageUploader
 			bind:active_tool
 			bind:value
-			{selectable}
+			selectable={_selectable}
 			{root}
 			{sources}
 			on:edit={() => gradio.dispatch("edit")}

@@ -26,7 +26,7 @@
 	export let show_label = true;
 	export let root: string;
 	export let root_url: null | string;
-	export let selectable = false;
+	export let _selectable = false;
 	export let likeable = false;
 	export let show_share_button = false;
 	export let rtl = false;
@@ -116,7 +116,7 @@
 		{/if}
 		<ChatBot
 			i18n={gradio.i18n}
-			{selectable}
+			selectable={_selectable}
 			{likeable}
 			{show_share_button}
 			value={_value}
