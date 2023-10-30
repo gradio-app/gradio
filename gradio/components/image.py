@@ -113,7 +113,7 @@ class Image(StreamingInput, Component):
         self.image_mode = image_mode
         valid_sources = ["upload", "webcam", "clipboard"]
         if isinstance(sources, str):
-            sources = [sources]
+            sources = [sources]  # type: ignore
         for source in sources:
             if source not in valid_sources:
                 raise ValueError(

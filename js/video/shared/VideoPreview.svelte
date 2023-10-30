@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, afterUpdate, tick } from "svelte";
 	import { BlockLabel, Empty, IconButton, ShareButton } from "@gradio/atoms";
-	import type { FileData } from "@gradio/upload";
+	import type { FileData } from "@gradio/client";
 	import { Video, Download } from "@gradio/icons";
 	import { uploadToHuggingFace } from "@gradio/utils";
 
@@ -48,7 +48,7 @@
 </script>
 
 <BlockLabel {show_label} Icon={Video} label={label || "Video"} />
-{#if value === null}
+{#if value === null || value.url === undefined}
 	<Empty unpadded_box={true} size="large"><Video /></Empty>
 {:else}
 	{#key value.url}

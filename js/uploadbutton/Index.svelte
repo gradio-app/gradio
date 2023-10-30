@@ -4,7 +4,7 @@
 
 <script lang="ts">
 	import type { Gradio } from "@gradio/utils";
-	import type { FileData } from "@gradio/upload";
+	import type { FileData } from "@gradio/client";
 	import UploadButton from "./shared/UploadButton.svelte";
 
 	export let elem_id = "";
@@ -24,9 +24,9 @@
 		upload: never;
 		click: never;
 	}>;
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 
-	$: disabled = mode === "static";
+	$: disabled = !interactive;
 
 	async function handle_event(
 		detail: null | FileData | FileData[],

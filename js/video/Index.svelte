@@ -2,8 +2,8 @@
 
 <script lang="ts">
 	import type { Gradio, ShareData } from "@gradio/utils";
-	import type { FileData } from "@gradio/upload";
-	import { normalise_file } from "@gradio/upload";
+
+	import { normalise_file, type FileData } from "@gradio/client";
 	import { Block, UploadText } from "@gradio/atoms";
 	import StaticVideo from "./shared/VideoPreview.svelte";
 	import Video from "./shared/InteractiveVideo.svelte";
@@ -44,7 +44,7 @@
 		share: ShareData;
 		error: string;
 	}>;
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 	export let mirror_webcam: boolean;
 	export let include_audio: boolean;
 
@@ -82,7 +82,7 @@
 	}
 </script>
 
-{#if mode === "static"}
+{#if !interactive}
 	<Block
 		{visible}
 		variant={value === null && source === "upload" ? "dashed" : "solid"}

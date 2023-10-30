@@ -57,26 +57,26 @@ const components = [
 	[
 		"StaticAnnotatedImage",
 		StaticAnnotatedImage,
-		{ height: 100, width: 100, value: null, mode: "static" }
+		{ height: 100, width: 100, value: null, interactive: false }
 	],
-	["InteractiveAudio", InteractiveAudio, { mode: "interactive" }],
-	["StaticAudio", StaticAudio, { mode: "static" }],
+	["InteractiveAudio", InteractiveAudio, { interactive: true }],
+	["StaticAudio", StaticAudio, { interactive: false }],
 
-	["StaticChatbot", StaticChatbot, { mode: "static" }],
-	["InteractiveCheckbox", InteractiveCheckbox, { mode: "interactive" }],
-	["StaticCheckbox", StaticCheckbox, { mode: "static" }],
+	["StaticChatbot", StaticChatbot, { interactive: false }],
+	["InteractiveCheckbox", InteractiveCheckbox, { interactive: true }],
+	["StaticCheckbox", StaticCheckbox, { interactive: false }],
 	[
 		"InteractiveCheckboxGroup",
 		InteractiveCheckboxGroup,
-		{ choices: ["a", "b", "c"], mode: "interactive" }
+		{ choices: ["a", "b", "c"], interactive: true }
 	],
 	[
 		"StaticCheckboxGroup",
 		StaticCheckboxGroup,
-		{ choices: ["a", "b", "c"], mode: "static" }
+		{ choices: ["a", "b", "c"], interactive: false }
 	],
-	["InteractiveColorPicker", InteractiveColorPicker, { mode: "interactive" }],
-	["StaticColorPicker", StaticColorPicker, { mode: "static" }],
+	["InteractiveColorPicker", InteractiveColorPicker, { interactive: true }],
+	["StaticColorPicker", StaticColorPicker, { interactive: false }],
 	[
 		"InteractiveDataFrame",
 		InteractiveDataframe,
@@ -84,7 +84,7 @@ const components = [
 			value: [[1, 2, 3]],
 			col_count: [3, "fixed"],
 			row_count: [3, "fixed"],
-			mode: "interactive"
+			interactive: true
 		}
 	],
 	[
@@ -94,53 +94,53 @@ const components = [
 			value: [[1, 2, 3]],
 			col_count: [3, "fixed"],
 			row_count: [3, "fixed"],
-			mode: "static"
+			interactive: false
 		}
 	],
 	[
 		"InteractiveDropdown",
 		InteractiveDropdown,
-		{ choices: ["a", "b", "c"], mode: "interactive" }
+		{ choices: ["a", "b", "c"], interactive: true }
 	],
 	[
 		"StaticDropdown",
 		StaticDropdown,
-		{ choices: ["a", "b", "c"], mode: "static" }
+		{ choices: ["a", "b", "c"], interactive: false }
 	],
-	["InteractiveFile", InteractiveFile, { mode: "interactive" }],
-	["StaticFile", StaticFile, { mode: "static" }],
+	["InteractiveFile", InteractiveFile, { interactive: true }],
+	["StaticFile", StaticFile, { interactive: false }],
 
-	["StaticGallery", StaticGallery, { mode: "static" }],
+	["StaticGallery", StaticGallery, { interactive: false }],
 
-	["StaticHTML", StaticHTML, { mode: "static" }],
+	["StaticHTML", StaticHTML, { interactive: false }],
 
-	["StaticHighlightedText", StaticHighlightedText, { mode: "static" }],
+	["StaticHighlightedText", StaticHighlightedText, { interactive: false }],
 
-	["StaticJson", StaticJson, { mode: "static" }],
+	["StaticJson", StaticJson, { interactive: false }],
 
-	["StaticLabel", StaticLabel, { mode: "static" }],
+	["StaticLabel", StaticLabel, { interactive: false }],
 
-	["StaticMarkdown", StaticMarkdown, { mode: "static" }],
-	["InteractiveModel3D", InteractiveModel3D, { mode: "interactive" }],
-	["StaticModel3D", StaticModel3D, { mode: "static" }],
-	["InteractiveNumber", InteractiveNumber, { mode: "interactive" }],
-	["StaticNumber", StaticNumber, { mode: "static" }],
-	["InteractiveRadio", InteractiveRadio, { mode: "interactive" }],
-	["StaticRadio", StaticRadio, { mode: "static" }],
-	["InteractiveSlider", InteractiveSlider, { mode: "interactive" }],
-	["StaticSlider", StaticSlider, { mode: "static" }],
+	["StaticMarkdown", StaticMarkdown, { interactive: false }],
+	["InteractiveModel3D", InteractiveModel3D, { interactive: true }],
+	["StaticModel3D", StaticModel3D, { interactive: false }],
+	["InteractiveNumber", InteractiveNumber, { interactive: true }],
+	["StaticNumber", StaticNumber, { interactive: false }],
+	["InteractiveRadio", InteractiveRadio, { interactive: true }],
+	["StaticRadio", StaticRadio, { interactive: false }],
+	["InteractiveSlider", InteractiveSlider, { interactive: true }],
+	["StaticSlider", StaticSlider, { interactive: false }],
 	[
 		"InteractiveTextbox",
 		InteractiveTextbox,
-		{ container: false, mode: "interactive" }
+		{ container: false, interactive: true }
 	],
-	["StaticTextbox", StaticTextbox, { container: false, mode: "static" }],
+	["StaticTextbox", StaticTextbox, { container: false, interactive: false }],
 	// ["InteractiveTimeSeries", InteractiveTimeSeries, {}],
 	// ["StaticTimeSeries", StaticTimeSeries, {}],
-	["InteractiveUploadButton", InteractiveUploadButton, { mode: "interactive" }],
-	["StaticUploadButton", StaticUploadButton, { mode: "static" }],
-	["InteractiveVideo", InteractiveVideo, { mode: "interactive" }],
-	["StaticVideo", StaticVideo, { mode: "static" }]
+	["InteractiveUploadButton", InteractiveUploadButton, { interactive: true }],
+	["StaticUploadButton", StaticUploadButton, { interactive: false }],
+	["InteractiveVideo", InteractiveVideo, { interactive: true }],
+	["StaticVideo", StaticVideo, { interactive: false }]
 ] as const;
 
 describe("all components should apply provided class names", () => {

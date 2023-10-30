@@ -41,7 +41,7 @@
 	export let text_align: "left" | "right" | undefined = undefined;
 	export let autofocus = false;
 	export let autoscroll = true;
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 </script>
 
 <Block
@@ -83,6 +83,6 @@
 		on:blur={() => gradio.dispatch("blur")}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 		on:focus={() => gradio.dispatch("focus")}
-		disabled={mode === "static"}
+		disabled={!interactive}
 	/>
 </Block>

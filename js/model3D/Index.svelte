@@ -5,8 +5,7 @@
 </script>
 
 <script lang="ts">
-	import type { FileData } from "@gradio/upload";
-	import { normalise_file } from "@gradio/upload";
+	import { normalise_file, type FileData } from "@gradio/client";
 	import Model3D from "./shared/Model3D.svelte";
 	import Model3DUpload from "./shared/Model3DUpload.svelte";
 	import { BlockLabel, Block, Empty, UploadText } from "@gradio/atoms";
@@ -39,7 +38,7 @@
 		null,
 		null
 	];
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root, root_url);
@@ -47,7 +46,7 @@
 	let dragging = false;
 </script>
 
-{#if mode === "static"}
+{#if !interactive}
 	<Block
 		{visible}
 		variant={value === null ? "dashed" : "solid"}

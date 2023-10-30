@@ -46,7 +46,7 @@
 	export let height: number | undefined = undefined;
 
 	export let loading_status: LoadingStatus;
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 
 	function handle_change(): void {
 		gradio.dispatch("change");
@@ -103,7 +103,7 @@
 		{wrap}
 		{datatype}
 		{latex_delimiters}
-		editable={mode === "interactive"}
+		editable={interactive}
 		{height}
 		i18n={gradio.i18n}
 		{line_breaks}

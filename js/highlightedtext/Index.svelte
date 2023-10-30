@@ -33,7 +33,7 @@
 	export let min_width: number | undefined = undefined;
 	export let _selectable = false;
 	export let combine_adjacent = false;
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 
 	$: if (!color_map && Object.keys(color_map).length) {
 		color_map = color_map;
@@ -53,7 +53,7 @@
 	}
 </script>
 
-{#if mode === "static"}
+{#if !interactive}
 	<Block
 		variant={"solid"}
 		test_id="highlighted-text"
@@ -95,7 +95,7 @@
 	</Block>
 {:else}
 	<Block
-		variant={mode === "interactive" ? "dashed" : "solid"}
+		variant={interactive ? "dashed" : "solid"}
 		test_id="highlighted-text"
 		{visible}
 		{elem_id}

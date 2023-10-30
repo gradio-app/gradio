@@ -4,7 +4,7 @@
 
 	export let value = false;
 	export let label = "Checkbox";
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 
 	const dispatch = createEventDispatcher<{
 		change: boolean;
@@ -14,7 +14,7 @@
 	// When the value changes, dispatch the change event via handle_change()
 	// See the docs for an explanation: https://svelte.dev/docs/svelte-components#script-3-$-marks-a-statement-as-reactive
 	$: value, dispatch("change", value);
-	$: disabled = mode === "static";
+	$: disabled = !interactive;
 
 	async function handle_enter(
 		event: KeyboardEvent & { currentTarget: EventTarget & HTMLInputElement }
