@@ -7,12 +7,15 @@
 
 	export let choices = [version, "main"];
 	export let value: string = $page.params?.version || version;
+	export let docs_type = "python";
 
 	$: is_guide = $page.route.id?.includes("/guides");
 	$: is_docs = $page.route.id?.includes("/docs/");
 
 	$: docs_url = `${value === version ? "" : `/${value}`}/docs/${
-		$page.params?.doc ||
+		docs_type == "js" ? "js/" : ""	
+	}${
+		$page.params?.jsdoc || $page.params?.doc || 
 		(is_dynamic || path_parts.length !== 4
 			? ""
 			: path_parts[path_parts.length - 1])

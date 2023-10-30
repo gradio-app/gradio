@@ -195,7 +195,9 @@
 					readonly={!filterable}
 				/>
 				{#if !disabled}
-					<DropdownArrow />
+					<div class="icon-wrap">
+						<DropdownArrow />
+					</div>
 				{/if}
 			</div>
 		</div>
@@ -212,6 +214,11 @@
 </label>
 
 <style>
+	.icon-wrap {
+		color: var(--body-text-color);
+		margin-right: var(--size-2);
+		width: var(--size-5);
+	}
 	label:not(.container),
 	label:not(.container) .wrap,
 	label:not(.container) .wrap-inner,

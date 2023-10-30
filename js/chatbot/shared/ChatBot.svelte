@@ -6,9 +6,8 @@
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import { ShareButton } from "@gradio/atoms";
 	import type { SelectData, LikeData } from "@gradio/utils";
-	import type { FileData } from "@gradio/upload";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
-	import { get_fetchable_url_or_file } from "@gradio/upload";
+	import { get_fetchable_url_or_file, type FileData } from "@gradio/client";
 	import Copy from "./Copy.svelte";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import LikeDislike from "./LikeDislike.svelte";

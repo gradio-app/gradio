@@ -30,7 +30,7 @@
 		blur: never;
 		focus: never;
 	}>;
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 </script>
 
 <Block
@@ -66,7 +66,7 @@
 			on:select={(e) => gradio.dispatch("select", e.detail)}
 			on:blur={() => gradio.dispatch("blur")}
 			on:focus={() => gradio.dispatch("focus")}
-			disabled={mode === "static"}
+			disabled={!interactive}
 		/>
 	{:else}
 		<Dropdown
@@ -84,7 +84,7 @@
 			on:select={(e) => gradio.dispatch("select", e.detail)}
 			on:blur={() => gradio.dispatch("blur")}
 			on:focus={() => gradio.dispatch("focus")}
-			disabled={mode === "static"}
+			disabled={!interactive}
 		/>
 	{/if}
 </Block>

@@ -3,7 +3,7 @@
 <script lang="ts">
 	import type { Gradio, ShareData } from "@gradio/utils";
 
-	import type { FileData } from "@gradio/upload";
+	import type { FileData } from "@gradio/client";
 	import type { LoadingStatus } from "@gradio/statustracker";
 
 	import StaticAudio from "./static/StaticAudio.svelte";
@@ -11,12 +11,12 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import { Block, UploadText } from "@gradio/atoms";
 	import type { WaveformOptions } from "./shared/types";
-	import { normalise_file } from "@gradio/upload";
+	import { normalise_file } from "@gradio/client";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 	export let value: null | FileData = null;
 	export let sources:
 		| ["microphone"]
@@ -102,7 +102,7 @@
 	};
 </script>
 
-{#if mode === "static"}
+{#if !interactive}
 	<Block
 		variant={"solid"}
 		border_mode={dragging ? "focus" : "base"}

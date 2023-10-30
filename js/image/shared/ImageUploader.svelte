@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, tick, onMount } from "svelte";
+	import { createEventDispatcher, tick } from "svelte";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Image } from "@gradio/icons";
 	import type { SelectData, I18nFormatter } from "@gradio/utils";
@@ -12,7 +12,8 @@
 	import Webcam from "./Webcam.svelte";
 	import { Toolbar, IconButton } from "@gradio/atoms";
 
-	import { Upload, type FileData, normalise_file } from "@gradio/upload";
+	import { Upload } from "@gradio/upload";
+	import { type FileData, normalise_file } from "@gradio/client";
 	import ClearImage from "./ClearImage.svelte";
 
 	export let value: null | FileData;

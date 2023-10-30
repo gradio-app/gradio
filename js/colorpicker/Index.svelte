@@ -27,7 +27,7 @@
 		blur: never;
 		focus: never;
 	}>;
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 </script>
 
 <Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
@@ -43,7 +43,7 @@
 		{label}
 		{info}
 		{show_label}
-		disabled={mode === "static"}
+		disabled={!interactive}
 		on:change={() => gradio.dispatch("change")}
 		on:input={() => gradio.dispatch("input")}
 		on:submit={() => gradio.dispatch("submit")}
