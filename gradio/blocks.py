@@ -38,7 +38,7 @@ from gradio import (
 )
 from gradio.blocks_events import BlocksEvents, BlocksMeta
 from gradio.context import Context
-from gradio.data_classes import FileData, GradioDataModel
+from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import EventData, EventListener, EventListenerMethod
 from gradio.exceptions import (
     DuplicateBlockError,
@@ -1238,7 +1238,7 @@ Received inputs:
                     if (
                         hasattr(block, "data_model")
                         and block.data_model is not None
-                        and issubclass(block.data_model, GradioDataModel)
+                        and issubclass(block.data_model, (GradioModel, GradioRootModel))
                         and isinstance(inputs_cached, dict)
                     ):
                         input_as_data_model = block.data_model(**inputs_cached)
