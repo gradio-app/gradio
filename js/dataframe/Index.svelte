@@ -1,3 +1,8 @@
+<script context="module" lang="ts">
+	export { default as BaseDataFrame } from "./shared/Table.svelte";
+	export { default as BaseExample } from "./Example.svelte";
+</script>
+
 <script lang="ts">
 	import { afterUpdate } from "svelte";
 	import type { Gradio, SelectData } from "@gradio/utils";

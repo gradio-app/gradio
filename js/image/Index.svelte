@@ -2,6 +2,9 @@
 
 <script context="module" lang="ts">
 	export { default as Webcam } from "./shared/Webcam.svelte";
+	export { default as BaseImageUploader } from "./shared/ImageUploader.svelte";
+	export { default as BaseStaticImage } from "./shared/ImagePreview.svelte";
+	export { default as BaseExample } from "./Example.svelte";
 </script>
 
 <script lang="ts">

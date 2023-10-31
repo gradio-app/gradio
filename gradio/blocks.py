@@ -98,9 +98,9 @@ class Block:
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        root_url: str | None = None,
-        _skip_init_processing: bool = False,
         visible: bool = True,
+        proxy_url: str | None = None,
+        _skip_init_processing: bool = False,
     ):
         self._id = Context.id
         Context.id += 1
@@ -109,7 +109,7 @@ class Block:
         self.elem_classes = (
             [elem_classes] if isinstance(elem_classes, str) else elem_classes
         )
-        self.root_url = root_url
+        self.proxy_url = proxy_url
         self.share_token = secrets.token_urlsafe(32)
         self._skip_init_processing = _skip_init_processing
         self.parent: BlockContext | None = None
@@ -203,9 +203,11 @@ class Block:
             to_add = e.config_data()
             if to_add:
                 config = {**to_add, **config}
-        config.pop("_skip_init_processing", None)
         config.pop("render", None)
-        return {**config, "root_url": self.root_url, "name": self.get_block_name()}
+        config = {**config, "proxy_url": self.proxy_url, "name": self.get_block_name()}
+        if (_selectable := getattr(self, "_selectable", None)) is not None:
+            config["_selectable"] = _selectable
+        return config
 
     @classmethod
     def recover_kwargs(
@@ -230,8 +232,6 @@ class BlockContext(Block):
         elem_classes: list[str] | str | None = None,
         visible: bool = True,
         render: bool = True,
-        root_url: str | None = None,
-        _skip_init_processing: bool = False,
     ):
         """
         Parameters:
@@ -239,7 +239,6 @@ class BlockContext(Block):
             elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
             visible: If False, this will be hidden but included in the Blocks config file (its visibility can later be updated).
             render: If False, this will not be included in the Blocks config file at all.
-            root_url: The remote URL that of the Gradio app that this layout belongs to. Used in `gr.load()`. Should not be set manually.
         """
         self.children: list[Block] = []
         Block.__init__(
@@ -248,8 +247,6 @@ class BlockContext(Block):
             elem_classes=elem_classes,
             visible=visible,
             render=render,
-            root_url=root_url,
-            _skip_init_processing=_skip_init_processing,
         )
 
     TEMPLATE_DIR = "./templates/"
@@ -553,7 +550,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.allowed_paths = []
         self.blocked_paths = []
         self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
-        self.root_urls = set()
+        self.proxy_urls = set()
 
         if self.analytics_enabled:
             is_custom_theme = not any(
@@ -587,7 +584,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         cls,
         config: dict,
         fns: list[Callable],
-        root_url: str,
+        proxy_url: str,
     ) -> Blocks:
         """
         Factory method that creates a Blocks from a config and list of functions. Used
@@ -596,7 +593,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         Parameters:
         config: a dictionary containing the configuration of the Blocks.
         fns: a list of functions that are used in the Blocks. Must be in the same order as the dependencies in the config.
-        root_url: an external url to use as a root URL when serving files for components in the Blocks.
+        proxy_url: an external url to use as a root URL when serving files for components in the Blocks.
         """
         config = copy.deepcopy(config)
         components_config = config["components"]
@@ -607,7 +604,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 del component_config["props"]["style"]
         theme = config.get("theme", "default")
         original_mapping: dict[int, Block] = {}
-        root_urls = {root_url}
+        proxy_urls = {proxy_url}
 
         def get_block_instance(id: int) -> Block:
             for block_config in components_config:
@@ -617,18 +614,25 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 raise ValueError(f"Cannot find block with id {id}")
             cls = component_or_layout_class(block_config["type"])
 
-            block_config["props"] = cls.recover_kwargs(block_config["props"])
-
             # If a Gradio app B is loaded into a Gradio app A, and B itself loads a
-            # Gradio app C, then the root_urls of the components in A need to be the
+            # Gradio app C, then the proxy_urls of the components in A need to be the
             # URL of C, not B. The else clause below handles this case.
-            if block_config["props"].get("root_url") is None:
-                block_config["props"]["root_url"] = f"{root_url}/"
-            else:
-                root_urls.add(block_config["props"]["root_url"])
+            if block_config["props"].get("proxy_url") is None:
+                block_config["props"]["proxy_url"] = f"{proxy_url}/"
 
+            constructor_args = cls.recover_kwargs(block_config["props"])
+            block = cls(**constructor_args)
+
+            block_proxy_url = block_config["props"]["proxy_url"]
+            block.proxy_url = block_proxy_url
+            proxy_urls.add(block_proxy_url)
+            if (
+                _selectable := block_config["props"].pop("_selectable", None)
+            ) is not None:
+                block._selectable = _selectable  # type: ignore
             # Any component has already processed its initial value, so we skip that step here
-            block = cls(**block_config["props"], _skip_init_processing=True)
+            block._skip_init_processing = True
+
             return block
 
         def iterate_over_children(children_list):
@@ -716,7 +720,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 ]
                 blocks.__name__ = "Interface"
                 blocks.api_mode = True
-        blocks.root_urls = root_urls
+        blocks.proxy_urls = proxy_urls
         return blocks
 
     def __str__(self):
@@ -949,7 +953,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     Context.root_block.fns[dependency_offset + i] = new_fn
                 Context.root_block.dependencies.append(dependency)
             Context.root_block.temp_file_sets.extend(self.temp_file_sets)
-            Context.root_block.root_urls.update(self.root_urls)
+            Context.root_block.proxy_urls.update(self.proxy_urls)
 
         if Context.block is not None:
             Context.block.children.extend(self.children)
@@ -1354,7 +1358,6 @@ Received outputs:
                     args.pop("value", None)
                     args.pop("__type__")
                     args["render"] = False
-                    args["_skip_init_processing"] = not block_fn.postprocess
                     state[output_id] = self.blocks[output_id].__class__(**args)
 
                     prediction_value = postprocess_update_dict(
