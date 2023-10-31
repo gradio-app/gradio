@@ -8,7 +8,6 @@ from pathlib import Path
 
 from jinja2 import Template
 
-from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import EventListener
 from gradio.exceptions import ComponentDefinitionError
 from gradio.utils import no_raise_exception
@@ -54,17 +53,6 @@ INTERFACE_TEMPLATE = '''
         ...
     {% endfor %}
 '''
-
-
-def serializes(f):
-    @wraps(f)
-    def serialize(*args, **kwds):
-        output = f(*args, **kwds)
-        if isinstance(output, (GradioRootModel, GradioModel)):
-            output = output.model_dump()
-        return output
-
-    return serialize
 
 
 def create_pyi(class_code: str, events: list[EventListener | str]):
@@ -192,8 +180,6 @@ class ComponentMeta(ABCMeta):
             attrs[event] = trigger.listener
         if "EVENTS" in attrs:
             attrs["EVENTS"] = new_events
-        if "postprocess" in attrs:
-            attrs["postprocess"] = serializes(attrs["postprocess"])
         component_class = super().__new__(cls, name, bases, attrs)
         create_or_modify_pyi(component_class, name, events)
         return component_class

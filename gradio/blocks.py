@@ -38,7 +38,7 @@ from gradio import (
 )
 from gradio.blocks_events import BlocksEvents, BlocksMeta
 from gradio.context import Context
-from gradio.data_classes import FileData
+from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import (
     EventData,
     EventListener,
@@ -392,6 +392,8 @@ def postprocess_update_dict(
             )
         if postprocess:
             attr_dict["value"] = block.postprocess(update_dict["value"])
+            if isinstance(attr_dict["value"], (GradioModel, GradioRootModel)):
+                attr_dict["value"] = attr_dict["value"].model_dump()
         else:
             attr_dict["value"] = update_dict["value"]
     return attr_dict

@@ -23,6 +23,7 @@ from gradio_client import media_data
 from PIL import Image
 
 import gradio as gr
+from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import SelectData
 from gradio.exceptions import DuplicateBlockError
 from gradio.networking import Server, get_first_available_port
@@ -512,8 +513,15 @@ class TestBlocksPostprocessing:
         output = demo.postprocess_data(
             0, [gr.update(value=None) for _ in io_components], state=None
         )
+
+        def process_and_dump(component):
+            output = component.postprocess(None)
+            if isinstance(output, (GradioModel, GradioRootModel)):
+                output = output.model_dump()
+            return output
+
         assert all(
-            o["value"] == c.postprocess(None) for o, c in zip(output, io_components)
+            o["value"] == process_and_dump(c) for o, c in zip(output, io_components)
         )
 
     def test_blocks_does_not_replace_keyword_literal(self):
