@@ -990,7 +990,7 @@ class Endpoint:
 
         def get_file(d):
             if utils.is_file_obj(d):
-                file_list.append(d["name"])
+                file_list.append(d["path"])
             else:
                 file_list.append(d)
             return ReplaceMe(len(file_list) - 1)
