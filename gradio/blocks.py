@@ -128,7 +128,7 @@ class Block:
     def constructor_args(self) -> dict[str, Any]:
         """Get the arguments passed to the component's initializer.
 
-        Only set classes whose metaclass is ComponentMeta
+        Only set classes whose metaclass is ComponentMeta.
         """
         # the _constructor_args list is appended based on the mro of the class
         # so the first entry is for the bottom of the hierarchy
