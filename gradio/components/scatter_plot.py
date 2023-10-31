@@ -310,15 +310,15 @@ class ScatterPlot(Plot):
         return chart
 
     def postprocess(
-        self, y: pd.DataFrame | dict | None
+        self, value: pd.DataFrame | dict | None
     ) -> AltairPlotData | dict | None:
         # if None or update
-        if y is None or isinstance(y, dict):
-            return y
+        if value is None or isinstance(value, dict):
+            return value
         if self.x is None or self.y is None:
             raise ValueError("No value provided for required parameters `x` and `y`.")
         chart = self.create_plot(
-            value=y,
+            value=value,
             x=self.x,
             y=self.y,
             color=self.color,
@@ -343,12 +343,10 @@ class ScatterPlot(Plot):
             y_lim=self.y_lim,
         )
 
-        return AltairPlotData(
-            **{"type": "altair", "plot": chart.to_json(), "chart": "scatter"}
-        )
+        return AltairPlotData(type="altair", plot=chart.to_json(), chart="scatter")
 
     def example_inputs(self) -> Any:
         return None
 
-    def preprocess(self, x: Any) -> Any:
-        return x
+    def preprocess(self, payload: AltairPlotData | None) -> AltairPlotData | None:
+        return payload

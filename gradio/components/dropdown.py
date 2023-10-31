@@ -134,48 +134,48 @@ class Dropdown(FormComponent):
             return self.choices[0][1] if self.choices else None
 
     def preprocess(
-        self, x: str | int | float | list[str | int | float] | None
+        self, payload: str | int | float | list[str | int | float] | None
     ) -> str | int | float | list[str | int | float] | list[int | None] | None:
-        """
-        Parameters:
-            x: selected choice(s)
-        Returns:
-            selected choice(s) as string or index within choice list or list of string or indices
-        """
         if self.type == "value":
-            return x
+            return payload
         elif self.type == "index":
             choice_values = [value for _, value in self.choices]
-            if x is None:
+            if payload is None:
                 return None
             elif self.multiselect:
-                assert isinstance(x, list)
+                assert isinstance(payload, list)
                 return [
                     choice_values.index(choice) if choice in choice_values else None
-                    for choice in x
+                    for choice in payload
                 ]
             else:
-                return choice_values.index(x) if x in choice_values else None
+                return (
+                    choice_values.index(payload) if payload in choice_values else None
+                )
         else:
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
 
-    def _warn_if_invalid_choice(self, y):
-        if self.allow_custom_value or y in [value for _, value in self.choices]:
+    def _warn_if_invalid_choice(self, value):
+        if self.allow_custom_value or value in [value for _, value in self.choices]:
             return
         warnings.warn(
-            f"The value passed into gr.Dropdown() is not in the list of choices. Please update the list of choices to include: {y} or set allow_custom_value=True."
+            f"The value passed into gr.Dropdown() is not in the list of choices. Please update the list of choices to include: {value} or set allow_custom_value=True."
         )
 
-    def postprocess(self, y):
-        if y is None:
+    def postprocess(
+        self, value: str | int | float | list[str | int | float] | None
+    ) -> str | int | float | list[str | int | float] | None:
+        if value is None:
             return None
         if self.multiselect:
-            [self._warn_if_invalid_choice(_y) for _y in y]
+            if not isinstance(value, list):
+                value = [value]
+            [self._warn_if_invalid_choice(_y) for _y in value]
         else:
-            self._warn_if_invalid_choice(y)
-        return y
+            self._warn_if_invalid_choice(value)
+        return value
 
     def as_example(self, input_data):
         if self.multiselect:

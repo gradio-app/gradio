@@ -124,20 +124,20 @@ class Gallery(Component):
 
     def postprocess(
         self,
-        y: list[np.ndarray | _Image.Image | str]
+        value: list[np.ndarray | _Image.Image | str]
         | list[tuple[np.ndarray | _Image.Image | str, str]]
         | None,
     ) -> GalleryData:
         """
         Parameters:
-            y: list of images, or list of (image, caption) tuples
+            value: list of images, or list of (image, caption) tuples
         Returns:
             list of string file paths to images in temp directory
         """
-        if y is None:
+        if value is None:
             return GalleryData(root=[])
         output = []
-        for img in y:
+        for img in value:
             caption = None
             if isinstance(img, (tuple, list)):
                 img, caption = img
@@ -160,8 +160,8 @@ class Gallery(Component):
             output.append(entry)
         return GalleryData(root=output)
 
-    def preprocess(self, x: Any) -> Any:
-        return x
+    def preprocess(self, payload: GalleryData | None) -> GalleryData | None:
+        return payload
 
     def example_inputs(self) -> Any:
         return [

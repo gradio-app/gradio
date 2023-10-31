@@ -46,11 +46,11 @@ class State(Component):
             ) from err
         super().__init__(value=self.value)
 
-    def preprocess(self, x: Any) -> Any:
-        return x
+    def preprocess(self, payload: Any) -> Any:
+        return payload
 
-    def postprocess(self, y):
-        return y
+    def postprocess(self, value: Any) -> Any:
+        return value
 
     def api_info(self) -> dict[str, Any]:
         return {"type": {}, "description": "any valid json"}

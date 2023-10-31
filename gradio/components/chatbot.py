@@ -14,8 +14,6 @@ from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
 
-# from pydantic import Field, TypeAdapter
-
 set_documentation_group("component")
 
 
@@ -129,26 +127,28 @@ class Chatbot(Component):
         )
 
     def _preprocess_chat_messages(
-        self, chat_message: str | dict | None
-    ) -> str | tuple[str] | tuple[str, str] | None:
+        self, chat_message: str | FileMessage | None
+    ) -> str | tuple[str | None] | tuple[str | None, str] | None:
         if chat_message is None:
             return None
-        elif isinstance(chat_message, dict):
-            if chat_message.get("alt_text"):
-                return (chat_message["file"]["path"], chat_message["alt_text"])
+        elif isinstance(chat_message, FileMessage):
+            if chat_message.alt_text is not None:
+                return (chat_message.file.path, chat_message.alt_text)
             else:
-                return (chat_message["file"]["path"],)
-        else:  # string
+                return (chat_message.file.path,)
+        elif isinstance(chat_message, str):
             return chat_message
+        else:
+            raise ValueError(f"Invalid message for Chatbot component: {chat_message}")
 
     def preprocess(
         self,
-        y: list[list[str | dict | None] | tuple[str | dict | None, str | dict | None]],
+        payload: ChatbotData,
     ) -> list[list[str | tuple[str] | tuple[str, str] | None]]:
-        if y is None:
-            return y
+        if payload is None:
+            return payload
         processed_messages = []
-        for message_pair in y:
+        for message_pair in payload:
             if not isinstance(message_pair, (tuple, list)):
                 raise TypeError(
                     f"Expected a list of lists or list of tuples. Received: {message_pair}"
@@ -186,18 +186,12 @@ class Chatbot(Component):
 
     def postprocess(
         self,
-        y: list[list[str | tuple[str] | tuple[str, str] | None] | tuple],
+        value: list[list[str | tuple[str] | tuple[str, str] | None] | tuple],
     ) -> ChatbotData:
-        """
-        Parameters:
-            y: List of lists representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.  It can also be a tuple whose first element is a string or pathlib.Path filepath or URL to an image/video/audio, and second (optional) element is the alt text, in which case the media file is displayed. It can also be None, in which case that message is not displayed.
-        Returns:
-            List of lists representing the message and response. Each message and response will be a string of HTML, or a dictionary with media information. Or None if the message is not to be displayed.
-        """
-        if y is None:
+        if value is None:
             return ChatbotData(root=[])
         processed_messages = []
-        for message_pair in y:
+        for message_pair in value:
             if not isinstance(message_pair, (tuple, list)):
                 raise TypeError(
                     f"Expected a list of lists or list of tuples. Received: {message_pair}"
