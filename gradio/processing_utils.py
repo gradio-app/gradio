@@ -744,7 +744,7 @@ def get_video_length(video_path: str | Path):
             "-v",
             "quiet",
             "-of",
-            "csv=%s" % ("p=0"),
+            "csv={}".format("p=0"),
         ]
     )
     duration_str = duration.decode("utf-8").strip()
