@@ -2,11 +2,11 @@ from gradio.components.base import Component
 
 
 class Fallback(Component):
-    def preprocess(self, x):
-        return x
+    def preprocess(self, payload):
+        return payload
 
-    def postprocess(self, x):
-        return x
+    def postprocess(self, value):
+        return value
 
     def example_inputs(self):
         return {"foo": "bar"}

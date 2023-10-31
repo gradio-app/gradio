@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any, Callable
 
 from gradio_client.documentation import document, set_documentation_group
@@ -77,37 +76,17 @@ class ColorPicker(Component):
     def example_inputs(self) -> str:
         return "#000000"
 
-    def flag(self, x: Any, flag_dir: str | Path = "") -> str:
-        return x
-
-    def read_from_flag(self, x: Any, flag_dir: str | Path | None = None):
-        return x
-
     def api_info(self) -> dict[str, Any]:
         return {"type": "string"}
 
-    def preprocess(self, x: str | None) -> str | None:
-        """
-        Any preprocessing needed to be performed on function input.
-        Parameters:
-            x: text
-        Returns:
-            text
-        """
-        if x is None:
+    def preprocess(self, payload: str | None) -> str | None:
+        if payload is None:
             return None
         else:
-            return str(x)
+            return str(payload)
 
-    def postprocess(self, y: str | None) -> str | None:
-        """
-        Any postprocessing needed to be performed on function output.
-        Parameters:
-            y: text
-        Returns:
-            text
-        """
-        if y is None:
+    def postprocess(self, value: str | None) -> str | None:
+        if value is None:
             return None
         else:
-            return str(y)
+            return str(value)

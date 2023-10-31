@@ -101,21 +101,15 @@ class CheckboxGroup(FormComponent):
         }
 
     def preprocess(
-        self, x: list[str | int | float]
+        self, payload: list[str | int | float]
     ) -> list[str | int | float] | list[int | None]:
-        """
-        Parameters:
-            x: list of selected choices
-        Returns:
-            list of selected choice values as strings or indices within choice list
-        """
         if self.type == "value":
-            return x
+            return payload
         elif self.type == "index":
             choice_values = [value for _, value in self.choices]
             return [
                 choice_values.index(choice) if choice in choice_values else None
-                for choice in x
+                for choice in payload
             ]
         else:
             raise ValueError(
@@ -123,19 +117,13 @@ class CheckboxGroup(FormComponent):
             )
 
     def postprocess(
-        self, y: list[str | int | float] | str | int | float | None
+        self, value: list[str | int | float] | str | int | float | None
     ) -> list[str | int | float]:
-        """
-        Parameters:
-            y: List of selected choice values. If a single choice is selected, it can be passed in as a string
-        Returns:
-            List of selected choices
-        """
-        if y is None:
+        if value is None:
             return []
-        if not isinstance(y, list):
-            y = [y]
-        return y
+        if not isinstance(value, list):
+            value = [value]
+        return value
 
     def as_example(self, input_data):
         if input_data is None:

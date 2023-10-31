@@ -103,20 +103,21 @@ class AnnotatedImage(Component):
 
     def postprocess(
         self,
-        y: tuple[
+        value: tuple[
             np.ndarray | _Image.Image | str,
             list[tuple[np.ndarray | tuple[int, int, int, int], str]],
-        ],
+        ]
+        | None,
     ) -> AnnotatedImageData | None:
         """
         Parameters:
-            y: Tuple of base image and list of subsections, with each subsection a two-part tuple where the first element is a 4 element bounding box or a 0-1 confidence mask, and the second element is the label.
+            value: Tuple of base image and list of subsections, with each subsection a two-part tuple where the first element is a 4 element bounding box or a 0-1 confidence mask, and the second element is the label.
         Returns:
             Tuple of base image file and list of subsections, with each subsection a two-part tuple where the first element image path of the mask, and the second element is the label.
         """
-        if y is None:
+        if value is None:
             return None
-        base_img = y[0]
+        base_img = value[0]
         if isinstance(base_img, str):
             base_img_path = base_img
             base_img = np.array(_Image.open(base_img))
@@ -144,7 +145,7 @@ class AnnotatedImage(Component):
             lv = len(value)
             return [int(value[i : i + lv // 3], 16) for i in range(0, lv, lv // 3)]
 
-        for mask, label in y[1]:
+        for mask, label in value[1]:
             mask_array = np.zeros((base_img.shape[0], base_img.shape[1]))
             if isinstance(mask, np.ndarray):
                 mask_array = mask
@@ -188,5 +189,7 @@ class AnnotatedImage(Component):
     def example_inputs(self) -> Any:
         return {}
 
-    def preprocess(self, x: Any) -> Any:
-        return x
+    def preprocess(
+        self, payload: AnnotatedImageData | None
+    ) -> AnnotatedImageData | None:
+        return payload
