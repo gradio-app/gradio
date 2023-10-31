@@ -101,7 +101,10 @@ class Queue:
         self._asyncio_tasks: list[asyncio.Task] = []
 
         self.concurrency_limit_per_concurrency_id = {}
-        for block_fn in block_fns:
+
+    def start(self):
+        self.active_jobs = [None] * self.max_thread_count
+        for block_fn in self.block_fns:
             if block_fn.concurrency_limit is not None:
                 self.concurrency_limit_per_concurrency_id[
                     block_fn.concurrency_id
@@ -111,9 +114,8 @@ class Queue:
                     ),
                     block_fn.concurrency_limit,
                 )
+        print(">>>", self.concurrency_limit_per_concurrency_id)
 
-    def start(self):
-        self.active_jobs = [None] * self.max_thread_count
         run_coro_in_background(self.start_processing)
         run_coro_in_background(self.start_progress_updates)
         if not self.live_updates:
