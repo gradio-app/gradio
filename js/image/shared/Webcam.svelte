@@ -31,6 +31,10 @@
 	onMount(() => (canvas = document.createElement("canvas")));
 
 	async function access_webcam(device_id?: string): Promise<void> {
+		if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+			dispatch("error", i18n("image.no_webcam_support"));
+			return;
+		}
 		try {
 			stream = await navigator.mediaDevices.getUserMedia({
 				video: device_id ? { deviceId: { exact: device_id } } : true,
