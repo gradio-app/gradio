@@ -25,16 +25,16 @@ with blocks as demo:
 
     btn.click(sentence_maker, [subject, verb, object], output1)
     reverse_btn.click(
-        None, [subject, verb, object], output2, _js="(s, v, o) => o + ' ' + v + ' ' + s"
+        None, [subject, verb, object], output2, js="(s, v, o) => o + ' ' + v + ' ' + s"
     )
-    verb.change(lambda x: x, verb, output3, _js="(x) => [...x].reverse().join('')")
-    foo_bar_btn.click(None, [], subject, _js="(x) => x + ' foo'")
+    verb.change(lambda x: x, verb, output3, js="(x) => [...x].reverse().join('')")
+    foo_bar_btn.click(None, [], subject, js="(x) => x + ' foo'")
 
     reverse_then_to_the_server_btn.click(
         sentence_maker,
         [subject, verb, object],
         output4,
-        _js="(s, v, o) => [s, v, o].map(x => [...x].reverse().join(''))",
+        js="(s, v, o) => [s, v, o].map(x => [...x].reverse().join(''))",
     )
 
 if __name__ == "__main__":
