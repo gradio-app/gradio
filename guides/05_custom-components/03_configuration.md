@@ -89,9 +89,10 @@ class SuperTextbox(Component):
     FRONTEND_DIR = "../../frontend/"
 ```
 
-Tip: The JavaScript and Python directories must be under the same common directory!
+The JavaScript and Python directories must be under the same common directory!
 
 ## Conclusion
+
 
 Sticking to the defaults will make it easy for others to understand and contribute to your custom component.
 After all, the beauty of open source is that anyone can help improve your code!
