@@ -23,7 +23,7 @@ keywords = [
   "<<template>>"
 ]
 # Add dependencies here
-dependencies = ["gradio"]
+dependencies = ["gradio>=4.0,<5.0"]
 classifiers = [
   'Development Status :: 3 - Alpha',
   'License :: OSI Approved :: Apache Software License',
