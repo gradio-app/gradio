@@ -208,9 +208,7 @@ class Component(ComponentBase, Block):
             if self._skip_init_processing
             else self.postprocess(initial_value)
         )
-        print("initial_value", initial_value)
         self.value = move_files_to_cache(initial_value, self)  # type: ignore
-        print("self.value", self.value)
 
         if callable(load_fn):
             self.attach_load_event(load_fn, every)
