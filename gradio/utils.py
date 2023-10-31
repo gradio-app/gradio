@@ -96,7 +96,7 @@ class BaseReloader(ABC):
         # Copy over the blocks to get new components and events but
         # not a new queue
         if self.running_app.blocks._queue:
-            self.running_app.blocks._queue.blocks_dependencies = demo.dependencies
+            self.running_app.blocks._queue.block_fns = demo.fns
             demo._queue = self.running_app.blocks._queue
         self.running_app.blocks = demo
 
@@ -824,23 +824,6 @@ def check_function_inputs_match(fn: Callable, inputs: list, inputs_as_dict: bool
         warnings.warn(
             f"Expected maximum {max_args} arguments for function {fn}, received {arg_count}."
         )
-
-
-def concurrency_count_warning(queue: Callable[P, T]) -> Callable[P, T]:
-    @functools.wraps(queue)
-    def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-        _self, *positional = args
-        if is_zero_gpu_space() and (
-            len(positional) >= 1 or "concurrency_count" in kwargs
-        ):
-            warnings.warn(
-                "Queue concurrency_count on ZeroGPU Spaces cannot be overridden "
-                "and is always equal to Block's max_threads. "
-                "Consider setting max_threads value on the Block instead"
-            )
-        return queue(*args, **kwargs)
-
-    return wrapper
 
 
 class TupleNoPrint(tuple):

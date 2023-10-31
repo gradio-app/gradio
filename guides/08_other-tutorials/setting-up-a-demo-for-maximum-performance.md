@@ -36,15 +36,15 @@ Note: If you host your Gradio app on [Hugging Face Spaces](https://hf.space), th
 
 There are several parameters that can be used to configure the queue and help reduce latency. Let's go through them one-by-one.
 
-### The `concurrency_count` parameter
+### The `concurrency_limit` parameter
 
-The first parameter we will explore is the `concurrency_count` parameter of `queue()`. This parameter is used to set the number of worker threads in the Gradio server that will be processing your requests in parallel. By default, this parameter is set to `1` but increasing this can **linearly multiply the capacity of your server to handle requests**.
+The first parameter we will explore is the `concurrency_limit` parameter of any event listener, e.g. `btn.click(..., concurrency_limit=20)` or `gr.Interface(..., concurrency_limit=20)`. This parameter is used to set the maximum number of worker threads in the Gradio server that can be processing your requests at once. By default, this parameter is set to `1` but increasing this can **linearly multiply the capacity of your server to handle requests**.
 
-So why not set this parameter much higher? Keep in mind that since requests are processed in parallel, each request will consume memory to store the data and weights for processing. This means that you might get out-of-memory errors if you increase the `concurrency_count` too high. You may also start to get diminishing returns if the `concurrency_count` is too high because of costs of switching between different worker threads.
+So why not set this parameter much higher? Keep in mind that since requests are processed in parallel, each request will consume memory to store the data and weights for processing. This means that you might get out-of-memory errors if you increase the `concurrency_limit` too high. You may also start to get diminishing returns if the `concurrency_limit` is too high because of costs of switching between different worker threads.
 
-**Recommendation**: Increase the `concurrency_count` parameter as high as you can while you continue to see performance gains or until you hit memory limits on your machine. You can [read about Hugging Face Spaces machine specs here](https://huggingface.co/docs/hub/spaces-overview).
+**Recommendation**: Increase the `concurrency_limit` parameter as high as you can while you continue to see performance gains or until you hit memory limits on your machine. You can [read about Hugging Face Spaces machine specs here](https://huggingface.co/docs/hub/spaces-overview).
 
-_Note_: there is a second parameter which controls the _total_ number of threads that Gradio can generate, whether or not queuing is enabled. This is the `max_threads` parameter in the `launch()` method. When you increase the `concurrency_count` parameter in `queue()`, this is automatically increased as well. However, in some cases, you may want to manually increase this, e.g. if queuing is not enabled.
+_Note_: there is a second parameter which controls the _total_ number of threads that Gradio can generate, across all your events. This is the `max_threads` parameter in the `launch()` method. You may want to manually increase this.
 
 ### The `max_size` parameter
 
@@ -87,7 +87,7 @@ def trim_words(words, lengths):
 
 The second function can be used with `batch=True` and an appropriate `max_batch_size` parameter.
 
-**Recommendation**: If possible, write your function to accept batches of samples, and then set `batch` to `True` and the `max_batch_size` as high as possible based on your machine's memory limits. If you set `max_batch_size` as high as possible, you will most likely need to set `concurrency_count` back to `1` since you will no longer have the memory to have multiple workers running in parallel.
+**Recommendation**: If possible, write your function to accept batches of samples, and then set `batch` to `True` and the `max_batch_size` as high as possible based on your machine's memory limits.
 
 ### The `api_open` parameter
 
@@ -106,7 +106,7 @@ It is particularly straightforward to upgrade your Hardware on Hugging Face Spac
 While you might need to adapt portions of your machine learning inference code to run on a GPU (here's a [handy guide](https://cnvrg.io/pytorch-cuda/) if you are using PyTorch), Gradio is completely agnostic to the choice of hardware and will work completely fine if you use it with CPUs, GPUs, TPUs, or any other hardware!
 
 Note: your GPU memory is different than your CPU memory, so if you upgrade your hardware,
-you might need to adjust the value of the `concurrency_count` parameter described above.
+you might need to adjust the value of the `concurrency_limit` parameter described above.
 
 ## Conclusion
 
