@@ -1,7 +1,7 @@
 ---
-"@gradio/app": minor
-"@gradio/client": minor
-"gradio": minor
+"@gradio/app": patch
+"@gradio/client": patch
+"gradio": patch
 ---
 
 feat:JS Param
