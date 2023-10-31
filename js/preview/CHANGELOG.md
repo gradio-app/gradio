@@ -1,5 +1,11 @@
 # @gradio/preview
 
+## 0.1.0-beta.8
+
+### Features
+
+- [#6094](https://github.com/gradio-app/gradio/pull/6094) [`c476bd5a5`](https://github.com/gradio-app/gradio/commit/c476bd5a5b70836163b9c69bf4bfe068b17fbe13) - Image v4.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.1.0-beta.7
 
 ### Features
