@@ -2,7 +2,7 @@
 
 This guide will cover everything you need to know to implement your custom component's frontend.
 
-Tip: Gradio components use svelte. Writing svelte is fun! If you're not familiar, check out the interactive [guide](https://learn.svelte.dev/tutorial/welcome-to-svelte)
+Tip: Gradio components use Svelte. Writing Svelte is fun! If you're not familiar, check out their interactive [guide](https://learn.svelte.dev/tutorial/welcome-to-svelte).
 
 ## The directory structure 
 
@@ -43,7 +43,7 @@ export let loading_status: LoadingStatus | undefined = undefined;
 export let mode: "static" | "interactive";
 ```
 
-* `elem_id` and `elem_classes` allow Gradio app developers to target your component with custom css and javascript from the python `Blocks` class.
+* `elem_id` and `elem_classes` allow Gradio app developers to target your component with custom CSS and JavaScript from the Python `Blocks` class.
 
 * `scale` and `min_width` allow Gradio app developers to control how much space your component takes up in the UI.
 
@@ -51,7 +51,7 @@ export let mode: "static" | "interactive";
 
 * `mode` is how the parent Gradio app tells your component whether the `interactive` or `static` version should be displayed.
 
-* `gradio`: The gradio object is created by the parent Gradio app. It stores some application-level configuration that will be useful in your component, like internationalization. You must use it to dispach events from your component.
+* `gradio`: The `gradio` object is created by the parent Gradio app. It stores some application-level configuration that will be useful in your component, like internationalization. You must use it to dispach events from your component.
 
 A minimal `Index.svelte` file would look like:
 
@@ -110,9 +110,9 @@ The `Example.svelte` file should expose the following props:
 
 * `value`: The example value that should be displayed.
 
-* `type`: It is a variable that can be either "gallery" or "table" depending on how the examples are displayed. The "gallery" form is used when the examples correspond to a single input component, while the "table" form is used when a user has multiple input components, and the examples need to populate all of them. 
+* `type`: This is a variable that can be either "gallery" or "table" depending on how the examples are displayed. The "gallery" form is used when the examples correspond to a single input component, while the "table" form is used when a user has multiple input components, and the examples need to populate all of them. 
 
-* `selected` You can also adjust how the examples are displayed if a user "selects" a particular example by using the selected variable.
+* `selected`: You can also adjust how the examples are displayed if a user "selects" a particular example by using the selected variable.
 
 * `samples_dir`: A URL to prepend to `value` if your example is fetching a file from the server
 
@@ -166,7 +166,7 @@ Here's an example of loading files from an `<input>` element when its value chan
 ```typescript
 <script lang="ts">
 
-    import {upload, prepare_files, normalise_file, type FileData } from "@gradio/client";
+    import { upload, prepare_files, normalise_file, type FileData } from "@gradio/client";
     export let root;
     export let value;
     let uploaded_files;
@@ -224,8 +224,7 @@ For WASM support, you should get the upload function from the `Context` and pass
 
 ## Leveraging Existing Gradio Components
 
-You can save yourself some code by using Gradio's core components in your own custom component.
-It will also make it a lot easier to match Gradio's design system.
+You can save yourself some code by using Gradio's core components in your own custom component. It will also make it a lot easier to match Gradio's design system.
 
 [Svelte Component Documentation](https://gradio.app/main/docs/js)
 
@@ -233,4 +232,7 @@ It will also make it a lot easier to match Gradio's design system.
 
 ## Matching Gradio Core's Design System
 
-[Story Book Link](https://gradio.app/main/docs/js/storybook)
+You can refer to our Storybook to view our component library, and explore our CSS variables that can be used in your own components. 
+
+
+[Storybook Link](https://gradio.app/main/docs/js/storybook)
