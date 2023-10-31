@@ -581,14 +581,12 @@ class App(FastAPI):
             username: str = Depends(get_current_user),
             data: Optional[str] = None,
         ):
-            print("queue_join", fn_index, session_hash, data)
             blocks = app.get_blocks()
             if blocks._queue.server_app is None:
                 blocks._queue.set_server_app(app)
 
             event = Event(session_hash, fn_index, request, username)
             if data is not None:
-                print("data", data)
                 input_data = json.loads(data)
                 event.data = PredictBody(
                     session_hash=session_hash,
