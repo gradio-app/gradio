@@ -6,7 +6,7 @@
 	import { File } from "@gradio/icons";
 
 	import FilePreview from "./FilePreview.svelte";
-	import type { I18nFormatter } from "js/utils/src";
+	import type { I18nFormatter } from "@gradio/utils";
 
 	export let value: null | FileData | FileData[];
 
