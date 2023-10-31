@@ -81,10 +81,10 @@
 				<a
 					class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow bg-gradient-to-r {data
 						.COLOR_SETS[3][0]} {data.COLOR_SETS[3][1]}"
-					href="./guides/{guide}"
+					href="./guides/{guide.toLowerCase().replace(/ /g, "-")}"
 				>
 					<div class="flex flex-col p-4 h-min">
-						<h2 class="group-hover:underline text-lg">{guide.toLowerCase().replace(/ /g, "-")}</h2>
+						<h2 class="group-hover:underline text-lg">{guide}</h2>
 						<div class="tags-holder">
 						</div>
 					</div>
