@@ -126,7 +126,7 @@ def cancel_from_client_demo():
         btn2 = gr.Button(value="Long Process")
         btn2.click(long_process, None, num, api_name="long")
 
-    return demo.queue(concurrency_count=40)
+    return demo.queue()
 
 
 @pytest.fixture
