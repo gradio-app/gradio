@@ -242,7 +242,7 @@ async def call_process_api(
             )
         iterator = output.pop("iterator", None)
         if event_id is not None:
-            app.iterators[event_id] = iterator
+            app.iterators[event_id] = iterator  # type: ignore
         if isinstance(output, Error):
             raise output
     except BaseException:

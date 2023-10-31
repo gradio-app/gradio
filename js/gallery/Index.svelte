@@ -14,7 +14,7 @@
 	export let show_label: boolean;
 	export let label: string;
 	export let root: string;
-	export let root_url: null | string;
+	export let proxy_url: null | string;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -69,7 +69,7 @@
 		{value}
 		{show_label}
 		{root}
-		{root_url}
+		{proxy_url}
 		{columns}
 		{rows}
 		{height}
