@@ -36,11 +36,11 @@ import {
 	resolve_svelte
 } from "./build_plugins";
 
-const GRADIO_VERSION = process.env.GRADIO_VERSION || "asd_stub_asd";
+const GRADIO_VERSION = version || "asd_stub_asd";
 const TEST_CDN = !!process.env.TEST_CDN;
 const CDN = TEST_CDN
 	? "http://localhost:4321/"
-	: `https://gradio.s3-us-west-2.amazonaws.com/${GRADIO_VERSION}/`;
+	: `https://gradio.s3-us-west-2.amazonaws.com/${version_raw}/`;
 const TEST_MODE = process.env.TEST_MODE || "jsdom";
 
 //@ts-ignore
