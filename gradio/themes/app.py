@@ -21,10 +21,10 @@ with gr.Blocks(theme=gr.themes.Default()) as demo:
                 dropdown.render()
                 toggle_dark = gr.Button(value="Toggle Dark").style(full_width=True)
 
-    dropdown.change(None, dropdown, None, _js=js)
+    dropdown.change(None, dropdown, None, js=js)
     toggle_dark.click(
         None,
-        _js="""
+        js="""
         () => {
             document.body.classList.toggle('dark');
         }
