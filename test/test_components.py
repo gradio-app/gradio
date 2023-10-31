@@ -648,8 +648,8 @@ class TestPlot:
         iface = gr.Interface(plot, "slider", "plot")
         with utils.MatplotlibBackendMananger():
             output = await iface.process_api(fn_index=0, inputs=[10], state={})
-        assert output["data"][0]["type"] == "matplotlib"
-        assert output["data"][0]["plot"].startswith("data:image/png;base64")
+        assert output["data"][0].type == "matplotlib"
+        assert output["data"][0].plot.startswith("data:image/png;base64")
 
     def test_static(self):
         """
@@ -691,7 +691,7 @@ class TestAudio:
         Preprocess, postprocess serialize, get_config, deserialize
         type: filepath, numpy, file
         """
-        x_wav = deepcopy(media_data.BASE64_AUDIO)
+        x_wav = FileData(path=media_data.BASE64_AUDIO["path"])
         audio_input = gr.Audio()
         output1 = audio_input.preprocess(x_wav)
         assert output1[0] == 8000
@@ -730,12 +730,6 @@ class TestAudio:
             "_selectable": False,
         }
         assert audio_input.preprocess(None) is None
-        x_wav["is_example"] = True
-        x_wav["crop_min"], x_wav["crop_max"] = 1, 4
-        output2 = audio_input.preprocess(x_wav)
-        assert output2 is not None
-        assert output1 != output2
-
         audio_input = gr.Audio(type="filepath")
         assert isinstance(audio_input.preprocess(x_wav), str)
         with pytest.raises(ValueError):
@@ -749,7 +743,7 @@ class TestAudio:
             deepcopy(media_data.BASE64_AUDIO)["data"]
         )
         audio_output = gr.Audio(type="filepath")
-        assert filecmp.cmp(y_audio.name, audio_output.postprocess(y_audio.name)["path"])
+        assert filecmp.cmp(y_audio.name, audio_output.postprocess(y_audio.name).path)
         assert audio_output.get_config() == {
             "autoplay": False,
             "name": "audio",
@@ -784,7 +778,7 @@ class TestAudio:
     def test_default_value_postprocess(self):
         x_wav = deepcopy(media_data.BASE64_AUDIO)
         audio = gr.Audio(value=x_wav["path"])
-        assert processing_utils.is_in_or_equal(audio.value["path"], audio.GRADIO_CACHE)
+        assert processing_utils.is_in_or_equal(audio.value.path, audio.GRADIO_CACHE)
 
     def test_in_interface(self):
         def reverse_audio(audio):
@@ -814,21 +808,17 @@ class TestAudio:
         assert iface(100).endswith(".wav")
 
     def test_audio_preprocess_can_be_read_by_scipy(self, gradio_temp_dir):
-        x_wav = {
-            "path": processing_utils.save_base64_to_cache(
-                media_data.BASE64_MICROPHONE["data"], cache_dir=gradio_temp_dir
-            ),
-        }
+        x_wav = FileData(path=processing_utils.save_base64_to_cache(
+                media_data.BASE64_MICROPHONE["data"], cache_dir=gradio_temp_dir)
+        )
         audio_input = gr.Audio(type="filepath")
         output = audio_input.preprocess(x_wav)
         wavfile.read(output)
 
     def test_prepost_process_to_mp3(self, gradio_temp_dir):
-        x_wav = {
-            "path": processing_utils.save_base64_to_cache(
-                media_data.BASE64_MICROPHONE["data"], cache_dir=gradio_temp_dir
-            ),
-        }
+        x_wav = FileData(path=processing_utils.save_base64_to_cache(
+                media_data.BASE64_MICROPHONE["data"], cache_dir=gradio_temp_dir)
+        )
         audio_input = gr.Audio(type="filepath", format="mp3")
         output = audio_input.preprocess(x_wav)
         assert output.endswith("mp3")
@@ -2241,8 +2231,7 @@ class TestScatterPlot:
             x="Horsepower", y="Miles_per_Gallon", height=100, width=200
         )
         output = plot.postprocess(cars)
-        assert sorted(output.keys()) == ["chart", "plot", "type"]
-        config = json.loads(output["plot"])
+        config = json.loads(output.plot)
         assert config["height"] == 100
         assert config["width"] == 200
 
@@ -2322,7 +2311,7 @@ class TestScatterPlot:
             y="Miles_per_Gallon",
             color="Origin",
         )
-        assert isinstance(plot.value, dict)
+        assert isinstance(plot.value)
         assert isinstance(plot.value["plot"], str)
 
 
@@ -2391,8 +2380,7 @@ class TestLinePlot:
     def test_height_width(self):
         plot = gr.LinePlot(x="date", y="price", height=100, width=200)
         output = plot.postprocess(stocks)
-        assert sorted(output.keys()) == ["chart", "plot", "type"]
-        config = json.loads(output["plot"])
+        config = json.loads(output.plot)
         assert config["height"] == 100
         assert config["width"] == 200
 
@@ -2497,8 +2485,7 @@ class TestBarPlot:
     def test_height_width(self):
         plot = gr.BarPlot(x="a", y="b", height=100, width=200)
         output = plot.postprocess(simple)
-        assert sorted(output.keys()) == ["chart", "plot", "type"]
-        config = json.loads(output["plot"])
+        config = json.loads(output.plot)
         assert config["height"] == 100
         assert config["width"] == 200
 
