@@ -20,6 +20,12 @@ importers:
       '@csstools/postcss-global-data':
         specifier: ^2.0.0
         version: 2.0.0(postcss@8.4.27)
+      '@ffmpeg/ffmpeg':
+        specifier: ^0.12.7
+        version: 0.12.7
+      '@ffmpeg/util':
+        specifier: ^0.12.1
+        version: 0.12.1
       '@gradio/tootils':
         specifier: workspace:^
         version: link:js/tootils
@@ -204,6 +210,9 @@ importers:
       chromatic:
         specifier: ^7.0.0
         version: 7.0.0
+      mrmime:
+        specifier: ^1.0.1
+        version: 1.0.1
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -276,8 +285,8 @@ importers:
   js/_website:
     dependencies:
       '@gradio/code':
-        specifier: 0.2.0-beta.6
-        version: 0.2.0-beta.6(svelte@4.2.2)
+        specifier: 0.2.0-beta.8
+        version: link:../code
       '@sindresorhus/slugify':
         specifier: ^2.2.0
         version: 2.2.0
@@ -1223,13 +1232,13 @@ importers:
   js/preview/test/test/frontend:
     dependencies:
       '@gradio/atoms':
-        specifier: 0.2.0-beta.5
+        specifier: 0.2.0-beta.6
         version: link:../../../../atoms
       '@gradio/statustracker':
-        specifier: 0.3.0-beta.7
+        specifier: 0.3.0-beta.8
         version: link:../../../../statustracker
       '@gradio/utils':
-        specifier: 0.2.0-beta.5
+        specifier: 0.2.0-beta.6
         version: link:../../../../utils
       '@zerodevx/svelte-json-view':
         specifier: ^1.0.7
@@ -4265,6 +4274,23 @@ packages:
     resolution: {integrity: sha512-JUFJad5lv7jxj926GPgymrWQxxjPYuJNiNjNMzqT+HiuP6Vl3dk5xzG+8sTX96np0ZAluvaMzPsjhHZ5rNuNQQ==}
     engines: {node: '>=14'}
 
+  /@ffmpeg/ffmpeg@0.12.7:
+    resolution: {integrity: sha512-Uw9h1tNU4/Q4YRrgBKvnKiH5gpL+nl8h4HRfvSK0K93MqVOan6Qs3Lj82l9i1qj6xQLPramXw0Wl6g65W4pfnA==}
+    engines: {node: '>=18.x'}
+    dependencies:
+      '@ffmpeg/types': 0.12.2
+    dev: false
+
+  /@ffmpeg/types@0.12.2:
+    resolution: {integrity: sha512-NJtxwPoLb60/z1Klv0ueshguWQ/7mNm106qdHkB4HL49LXszjhjCCiL+ldHJGQ9ai2Igx0s4F24ghigy//ERdA==}
+    engines: {node: '>=16.x'}
+    dev: false
+
+  /@ffmpeg/util@0.12.1:
+    resolution: {integrity: sha512-10jjfAKWaDyb8+nAkijcsi9wgz/y26LOc1NKJradNMyCIl6usQcBbhkjX5qhALrSBcOy6TOeksunTYa+a03qNQ==}
+    engines: {node: '>=18.x'}
+    dev: false
+
   /@floating-ui/core@1.5.0:
     resolution: {integrity: sha512-kK1h4m36DQ0UHGj5Ah4db7R0rHemTqqO0QLvUqi1/mUUp3LuAWbWxdxSIf/XsnH9VS6rRVPLJCncjRzUvyCLXg==}
     dependencies:
@@ -4354,103 +4380,6 @@ packages:
     resolution: {integrity: sha512-BGdtJFmaNJy5An/Zan4OId/yR9Ih1OojFjcduX/xOvq798OgWSyDtd6Qd5jqJXwJs1ipe4Fxu9+cshic5Ox2tA==}
     dependencies:
       tslib: 2.6.1
-    dev: false
-
-  /@gradio/atoms@0.2.0-beta.5(svelte@4.2.2):
-    resolution: {integrity: sha512-eKIylgLVTulFFzkjmjfYoC+pF3iAnytVYaHVie+G9rkiDYRN6/+bPd4wXx72AMI3EwixT4ghW34nbvsOSwaCEw==}
-    dependencies:
-      '@gradio/icons': 0.2.0-beta.2
-      '@gradio/utils': 0.2.0-beta.5(svelte@4.2.2)
-    transitivePeerDependencies:
-      - svelte
-    dev: false
-
-  /@gradio/client@0.5.2:
-    resolution: {integrity: sha512-aQk3FEJt3R/7d7Xul0KqSUDqh0rwgQQwTXBuLS5qHuf861ym7bJcm/kDqqBgyu3/9pxAsybSdgA/G0QyZSBKgA==}
-    engines: {node: '>=18.0.0'}
-    dependencies:
-      bufferutil: 4.0.7
-      semiver: 1.1.0
-      ws: 8.13.0(bufferutil@4.0.7)
-    transitivePeerDependencies:
-      - utf-8-validate
-    dev: false
-
-  /@gradio/code@0.2.0-beta.6(svelte@4.2.2):
-    resolution: {integrity: sha512-CCR80TBgBz28oU6wfFD0zrcYrOt68kPK62044pFRU3qA8BCL0T2Jv7F6fGXaWA443KqoBvIwuLb+CclPVexzRA==}
-    dependencies:
-      '@codemirror/autocomplete': 6.3.0(@codemirror/language@6.6.0)(@codemirror/state@6.1.2)(@codemirror/view@6.4.1)(@lezer/common@1.0.2)
-      '@codemirror/commands': 6.1.2
-      '@codemirror/lang-css': 6.1.0(@codemirror/view@6.4.1)(@lezer/common@1.0.2)
-      '@codemirror/lang-html': 6.4.2
-      '@codemirror/lang-javascript': 6.1.4
-      '@codemirror/lang-json': 6.0.1
-      '@codemirror/lang-markdown': 6.1.0
-      '@codemirror/lang-python': 6.0.4
-      '@codemirror/language': 6.6.0
-      '@codemirror/legacy-modes': 6.3.1
-      '@codemirror/lint': 6.0.0
-      '@codemirror/search': 6.2.2
-      '@codemirror/state': 6.1.2
-      '@codemirror/view': 6.4.1
-      '@gradio/atoms': 0.2.0-beta.5(svelte@4.2.2)
-      '@gradio/icons': 0.2.0-beta.2
-      '@gradio/statustracker': 0.3.0-beta.7(svelte@4.2.2)
-      '@gradio/upload': 0.3.0-beta.4(svelte@4.2.2)
-      '@gradio/utils': 0.2.0-beta.5(svelte@4.2.2)
-      '@lezer/common': 1.0.2
-      '@lezer/highlight': 1.1.3
-      '@lezer/markdown': 1.0.2
-      cm6-theme-basic-dark: 0.2.0(@codemirror/language@6.6.0)(@codemirror/state@6.1.2)(@codemirror/view@6.4.1)(@lezer/highlight@1.1.3)
-      cm6-theme-basic-light: 0.2.0(@codemirror/language@6.6.0)(@codemirror/state@6.1.2)(@codemirror/view@6.4.1)(@lezer/highlight@1.1.3)
-      codemirror: 6.0.1(@lezer/common@1.0.2)
-    transitivePeerDependencies:
-      - svelte
-      - utf-8-validate
-    dev: false
-
-  /@gradio/column@0.1.0-beta.3:
-    resolution: {integrity: sha512-su1dEWTCJXoy6GHLwto0paJrGsxfa3ZLcvV+FRiGNPUE+kezw5oHfUrXSfwTgcNQEEpFqqmI9YTYfGkDmVk01g==}
-    dev: false
-
-  /@gradio/icons@0.2.0-beta.2:
-    resolution: {integrity: sha512-5BHWcbuCk546OX2PmmNryTZ7ZXGNUr2ipzHpnLCE/8e9R1SQiCZuHWQCdTJIqh5aOfPa4beu7Pu/nvcz0yuPmw==}
-    dev: false
-
-  /@gradio/statustracker@0.3.0-beta.7(svelte@4.2.2):
-    resolution: {integrity: sha512-F8vRA1qnsV53HTwmvjSNz2n13NfMxHMgW5TmAFDBfs5HdPtYKXuc0ur+PitBs/IvXHHgGeDqtQpQRS3MokvmVA==}
-    dependencies:
-      '@gradio/atoms': 0.2.0-beta.5(svelte@4.2.2)
-      '@gradio/column': 0.1.0-beta.3
-      '@gradio/icons': 0.2.0-beta.2
-      '@gradio/utils': 0.2.0-beta.5(svelte@4.2.2)
-    transitivePeerDependencies:
-      - svelte
-    dev: false
-
-  /@gradio/theme@0.2.0-beta.2:
-    resolution: {integrity: sha512-yKrA8eE02URtXUC9w98lBW8tqZk5oGumbBH7bFKOAhsrv1sbVZKir18P4a2/EL4XJ6Um36MwhPB3D5ipMniV5g==}
-    dev: false
-
-  /@gradio/upload@0.3.0-beta.4(svelte@4.2.2):
-    resolution: {integrity: sha512-JFajJHKJCAjZjtXDRZvLifGOs/b38fAuzAMshkDUQaJloRYk4KKpjnyj8d68wkQFzq3SK8ChKwfYoeMX8zp3yA==}
-    dependencies:
-      '@gradio/atoms': 0.2.0-beta.5(svelte@4.2.2)
-      '@gradio/client': 0.5.2
-      '@gradio/icons': 0.2.0-beta.2
-      '@gradio/utils': 0.2.0-beta.5(svelte@4.2.2)
-    transitivePeerDependencies:
-      - svelte
-      - utf-8-validate
-    dev: false
-
-  /@gradio/utils@0.2.0-beta.5(svelte@4.2.2):
-    resolution: {integrity: sha512-CXz9fpy08weaAnfGVh69aj1sQtPkPkeMw546F+YtZ0tnmmKbnDxWCP4NN6NA4OeiZPA+N0yl+Nqo6cX8G4UBhg==}
-    dependencies:
-      '@gradio/theme': 0.2.0-beta.2
-      svelte-i18n: 3.7.0(svelte@4.2.2)
-    transitivePeerDependencies:
-      - svelte
     dev: false
 
   /@humanwhocodes/config-array@0.11.10:
@@ -12479,10 +12408,6 @@ packages:
     resolution: {integrity: sha512-tzzskb3bG8LvYGFF/mDTpq3jpI6Q9wc3LEmBaghu+DdCssd1FakN7Bc0hVNmEyGq1bq3RgfkCb3cmQLpNPOroA==}
     engines: {node: '>=4'}
 
-  /mrmime@1.0.0:
-    resolution: {integrity: sha512-a70zx7zFfVO7XpnQ2IX1Myh9yY4UYvfld/dikWRnsXxbyvMcfz+u6UfgNAtH+k2QqtJuzVpv6eLTx1G2+WKZbQ==}
-    engines: {node: '>=10'}
-
   /mrmime@1.0.1:
     resolution: {integrity: sha512-hzzEagAgDyoU1Q6yg5uI+AorQgdvMCur3FcKf7NhMKWsaYg+RnbTyHRa/9IlLF9rf455MOCtcqqrQQ83pPP7Uw==}
     engines: {node: '>=10'}
@@ -14361,7 +14286,7 @@ packages:
     engines: {node: '>= 10'}
     dependencies:
       '@polka/url': 1.0.0-next.21
-      mrmime: 1.0.0
+      mrmime: 1.0.1
       totalist: 3.0.0
 
   /sisteransi@1.0.5:

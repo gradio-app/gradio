@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/uploadbutton",
-	"version": "0.1.0-beta.6",
+	"version": "0.1.0-beta.7",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -11,6 +11,7 @@
 		".": "./Index.svelte",
 		"./package.json": "./package.json"
 	},
+	"main": "./Index.svelte",
 	"dependencies": {
 		"@gradio/button": "workspace:^",
 		"@gradio/client": "workspace:^",
