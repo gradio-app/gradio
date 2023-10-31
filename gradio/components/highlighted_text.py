@@ -55,8 +55,6 @@ class HighlightedText(Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        root_url: str | None = None,
-        _skip_init_processing: bool = False,
         interactive: bool | None = None,
         _selectable: bool = False,
     ):
@@ -96,8 +94,6 @@ class HighlightedText(Component):
             elem_id=elem_id,
             elem_classes=elem_classes,
             render=render,
-            root_url=root_url,
-            _skip_init_processing=_skip_init_processing,
             value=value,
             interactive=interactive,
         )

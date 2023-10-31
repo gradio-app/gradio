@@ -102,7 +102,7 @@ class Block:
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        root_url: str | None = None,
+        proxy_url: str | None = None,
         _skip_init_processing: bool = False,
         visible: bool = True,
     ):
@@ -113,7 +113,7 @@ class Block:
         self.elem_classes = (
             [elem_classes] if isinstance(elem_classes, str) else elem_classes
         )
-        self.root_url = root_url
+        self.proxy_url = proxy_url
         self.share_token = secrets.token_urlsafe(32)
         self._skip_init_processing = _skip_init_processing
         self.parent: BlockContext | None = None
@@ -195,6 +195,13 @@ class Block:
 
     def get_expected_parent(self) -> type[BlockContext] | None:
         return None
+    
+    def set_extra_params(self, **kwargs):
+        """
+        Sets extra parameters for the Block that are not available when the Block is constructed.
+        """
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
     def get_config(self):
         config = {}
@@ -209,7 +216,7 @@ class Block:
                 config = {**to_add, **config}
         config.pop("_skip_init_processing", None)
         config.pop("render", None)
-        return {**config, "root_url": self.root_url, "name": self.get_block_name()}
+        return {**config, "proxy_url": self.proxy_url, "name": self.get_block_name()}
 
     @classmethod
     def recover_kwargs(

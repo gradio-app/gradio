@@ -43,9 +43,7 @@ class Radio(FormComponent):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        root_url: str | None = None,
         _selectable: bool = False,
-        _skip_init_processing: bool = False,
     ):
         """
         Parameters:
@@ -93,8 +91,6 @@ class Radio(FormComponent):
             elem_id=elem_id,
             elem_classes=elem_classes,
             render=render,
-            root_url=root_url,
-            _skip_init_processing=_skip_init_processing,
             value=value,
         )
 

@@ -23,8 +23,6 @@ class Form(BlockContext, metaclass=ComponentMeta):
         scale: int = 0,
         min_width: int = 0,
         render: bool = True,
-        root_url: str | None = None,
-        _skip_init_processing: bool = False,
     ):
         """
         Parameters:
@@ -38,8 +36,6 @@ class Form(BlockContext, metaclass=ComponentMeta):
         BlockContext.__init__(
             self,
             render=render,
-            root_url=root_url,
-            _skip_init_processing=_skip_init_processing,
         )
 
     def add_child(self, child: Block):

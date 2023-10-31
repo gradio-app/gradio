@@ -39,8 +39,6 @@ class Dataset(Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        root_url: str | None = None,
-        _skip_init_processing: bool = False,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
@@ -66,8 +64,6 @@ class Dataset(Component):
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
-            root_url=root_url,
-            _skip_init_processing=_skip_init_processing,
             render=render,
         )
         self._selectable = _selectable
