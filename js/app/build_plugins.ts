@@ -32,26 +32,22 @@ export function patch_dynamic_import({
 		name: "patch-dynamic-import",
 		enforce: "post",
 		writeBundle(config, bundle) {
-			if (mode !== "cdn") return;
-
-			const import_re = /import\(((?:'|")[\.\/a-zA-Z0-9]*(?:'|"))\)/g;
-			const import_meta = `${"import"}.${"meta"}.${"url"}`;
-
-			for (const file in bundle) {
-				const chunk = bundle[file];
-				if (chunk.type === "chunk") {
-					if (chunk.code.indexOf("import(") > -1) {
-						const fix_fn = `const VERSION_RE = new RegExp("${gradio_version}\/", "g");function import_fix(mod, base) {const url =  new URL(mod, base); return import(\`${cdn_url}\${url.pathname?.startsWith('/') ? url.pathname.substring(1).replace(VERSION_RE, "") : url.pathname.replace(VERSION_RE, "")}\`);}`;
-						chunk.code =
-							fix_fn +
-							chunk.code.replace(import_re, `import_fix($1, ${import_meta})`);
-
-						if (!config.dir) break;
-						const output_location = join(config.dir, chunk.fileName);
-						writeFileSync(output_location, chunk.code);
-					}
-				}
-			}
+			// const import_re = /import\(((?:'|")[\.\/a-zA-Z0-9]*(?:'|"))\)/g;
+			// const import_meta = `${"import"}.${"meta"}.${"url"}`;
+			// for (const file in bundle) {
+			// 	const chunk = bundle[file];
+			// 	if (chunk.type === "chunk") {
+			// 		if (chunk.code.indexOf("import(") > -1) {
+			// 			const fix_fn = `const VERSION_RE = new RegExp("${gradio_version}\/", "g");function import_fix(mod, base) {const url =  new URL(mod, base); return import(\`${cdn_url}\${url.pathname?.startsWith('/') ? url.pathname.substring(1).replace(VERSION_RE, "") : url.pathname.replace(VERSION_RE, "")}\`);}`;
+			// 			chunk.code =
+			// 				fix_fn +
+			// 				chunk.code.replace(import_re, `import_fix($1, ${import_meta})`);
+			// 			if (!config.dir) break;
+			// 			const output_location = join(config.dir, chunk.fileName);
+			// 			writeFileSync(output_location, chunk.code);
+			// 		}
+			// 	}
+			// }
 		}
 	};
 }
