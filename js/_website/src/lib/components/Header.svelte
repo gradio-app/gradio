@@ -16,9 +16,9 @@
 <div class="relative isolate flex items-center gap-x-6 overflow-hidden bg-gradient-to-r from-white via-yellow-200 to-white px-6 py-2 sm:px-3.5 sm:before:flex-1">
 	<div class="flex flex-wrap items-center gap-x-4 gap-y-2">
 	  <p class="text-md leading-6 text-gray-700">
-		<strong class="font-semibold">What's New in Gradio 4.0</strong><svg viewBox="0 0 2 2" class="mx-2 inline h-0.5 w-0.5 fill-current" aria-hidden="true"><circle cx="1" cy="1" r="1" /></svg>Join us on Tuesday, 9am PST
+		<strong class="font-semibold">What's New in Gradio 4.0</strong>
 	  </p>
-	  <a href="https://www.youtube.com/watch?v=5MgmKBCOpvU" target="_blank" class="flex-none rounded-full px-3.5 py-1 text-sm font-semibold text-white  bg-gradient-to-br from-orange-300 via-orange-500 to-orange-300 hover:drop-shadow-md">Livestream <span aria-hidden="true">&rarr;</span></a>
+	  <a href="https://www.youtube.com/watch?v=5MgmKBCOpvU" target="_blank" class="flex-none rounded-full px-3.5 py-1 text-sm font-semibold text-white  bg-gradient-to-br from-orange-300 via-orange-500 to-orange-300 hover:drop-shadow-md">Watch <span aria-hidden="true">&rarr;</span></a>
 	</div>
 	<div class="flex flex-1 justify-end">
 	  
