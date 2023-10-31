@@ -1355,7 +1355,6 @@ Received outputs:
                     args.pop("value", None)
                     args.pop("__type__")
                     args["render"] = False
-                    args["_skip_init_processing"] = not block_fn.postprocess
                     state[output_id] = self.blocks[output_id].__class__(**args)
 
                     prediction_value = postprocess_update_dict(
