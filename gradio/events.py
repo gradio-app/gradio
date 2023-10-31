@@ -206,7 +206,7 @@ class EventListener(str):
             cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
             every: float | None = None,
             trigger_mode: Literal["once", "multiple", "always_last"] | None = None,
-            concurrency_limit: int | None = None,
+            concurrency_limit: int | None = 1,
             concurrency_id: str | None = None,
             _js: str | None = None,
         ) -> Dependency:
@@ -349,7 +349,7 @@ def on(
     postprocess: bool = True,
     cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
     every: float | None = None,
-    concurrency_limit: int | None = None,
+    concurrency_limit: int | None = 1,
     concurrency_id: str | None = None,
     _js: str | None = None,
 ) -> Dependency:

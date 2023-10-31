@@ -330,7 +330,7 @@ class BlockFunction:
         inputs_as_dict: bool,
         batch: bool = False,
         max_batch_size: int = 4,
-        concurrency_limit: int | None = None,
+        concurrency_limit: int | None = 1,
         concurrency_id: str | None = None,
         tracks_progress: bool = False,
     ):
@@ -784,7 +784,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
         trigger_mode: Literal["once", "multiple", "always_last"] | None = "once",
-        concurrency_limit: int | None = None,
+        concurrency_limit: int | None = 1,
         concurrency_id: str | None = None,
     ) -> tuple[dict[str, Any], int]:
         """
@@ -867,8 +867,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         _, progress_index, event_data_index = (
             special_args(fn) if fn else (None, None, None)
         )
-        if concurrency_limit is None and utils.get_space() is not None:
-            concurrency_limit = 1
         self.fns.append(
             BlockFunction(
                 fn,
