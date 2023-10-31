@@ -330,7 +330,7 @@
 					this.readable_error[error] || "an error"
 				}.\n\nIt would be great if you could take a look at this because this space is being embedded on ${site}.\n\nThanks!`
 			);
-		}
+		},
 	};
 
 	onMount(async () => {
