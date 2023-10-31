@@ -74,13 +74,13 @@ You can add javascript dependencies by modifying the `"dependencies"` key in `fr
 
 ## Directory Structure
 
-By default, the cli will place the python code in `backend` and the javascript code in `frontend`.
+By default, the CLI will place the Python code in `backend` and the JavaScript code in `frontend`.
 It is not recommended to change this structure since it makes it easy for a potential contributor to look at your source code and know where everything is.
 However, if you did want to this is what you would have to do:
 
-1. Place the python code in the subdirectory of your choosing. Remember to modify the `[tool.hatch.build]` `[tool.hatch.build.targets.wheel]` in the `pyproject.toml` to match!
+1. Place the Python code in the subdirectory of your choosing. Remember to modify the `[tool.hatch.build]` `[tool.hatch.build.targets.wheel]` in the `pyproject.toml` to match!
 
-2. Place the javascript code in the subdirectory of your choosing.
+2. Place the JavaScript code in the subdirectory of your choosing.
 
 2. Add the `FRONTEND_DIR` property on the component python class. It must be the relative path from the file where the class is defined to the location of the javascript directory.
 
@@ -89,7 +89,7 @@ class SuperTextbox(Component):
     FRONTEND_DIR = "../../frontend/"
 ```
 
-Tip: The javascript and python directories must be under the same common directory!
+Tip: The JavaScript and Python directories must be under the same common directory!
 
 ## Conclusion
 

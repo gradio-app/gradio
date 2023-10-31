@@ -1,7 +1,7 @@
 # Frequently Asked Questions
 
 ## What do I need to install before using Custom Components?
-Before using Custom Components, make sure you have Python 3.8+, Node.js v16.14+, npm 9+, and gradio 4.0 installed.
+Before using Custom Components, make sure you have Python 3.8+, Node.js v16.14+, npm 9+, and Gradio 4.0 installed.
 
 ## What templates can I use to create my custom component?
 Run `gradio cc show` to see the list of built-in templates.
@@ -10,11 +10,11 @@ Simply `git clone` their repository and make your modifications.
 
 ## What is the development server?
 When you run `gradio cc dev`, a development server will load and run a Gradio app of your choosing.
-This is like when you run `python <app-file>.py`, except that changes 
+This is like when you run `python <app-file>.py`, however the `gradio` command will hot reload so you can instantly see your changes. 
 
 ## The development server didn't work for me 
 Make sure you have your package installed along with any dependencies you have added by running `gradio cc install`.
-Make sure there aren't any syntax or import errors in the python or javascript code.
+Make sure there aren't any syntax or import errors in the Python or JavaScript code.
 
 ## Do I need to host my custom component on HuggingFace Spaces?
 You can develop and build your custom component without hosting or connecting to HuggingFace.
@@ -22,7 +22,7 @@ If you would like to share your component with the gradio community, it is recom
 
 ## What methods are mandatory for implementing a custom component in Gradio?
 
-You must implement the `preprocess`, `postprocess`, `as_example`, `api_info`, `example_inputs`, `flag`, and `read_from_flag` methods. Read more in the backend guide.
+You must implement the `preprocess`, `postprocess`, `as_example`, `api_info`, `example_inputs`, `flag`, and `read_from_flag` methods. Read more in the [backend guide](./04_backend.md).
 
 ## What is the purpose of a `data_model` in Gradio custom components?
 
