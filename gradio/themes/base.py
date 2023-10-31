@@ -747,8 +747,8 @@ class Base(ThemeClass):
             prose_text_size: The text size used for markdown and other prose.
             prose_text_weight: The text weight used for markdown and other prose.
             prose_header_text_weight: The text weight of a header used for markdown and other prose.
-            code_background_fill: The background color of code blocks in the chatbot.
-            code_background_fill_dark: The background color of code blocks in the chatbot in dark mode.
+            code_background_fill: The background color of code blocks.
+            code_background_fill_dark: The background color of code blocks in dark mode.
             shadow_drop: Drop shadow used by other shadowed items.
             shadow_drop_lg: Larger drop shadow used by other shadowed items.
             shadow_inset: Inset shadow used by other shadowed items.
