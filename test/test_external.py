@@ -361,10 +361,10 @@ class TestLoadInterfaceWithExamples:
                 cache_examples=True,
             )
 
-    def test_root_url(self):
+    def test_proxy_url(self):
         demo = gr.load("spaces/gradio/test-loading-examplesv4-sse")
         assert all(
-            c["props"]["root_url"]
+            c["props"]["proxy_url"]
             == "https://gradio-test-loading-examplesv4-sse.hf.space/"
             for c in demo.get_config_file()["components"]
         )
