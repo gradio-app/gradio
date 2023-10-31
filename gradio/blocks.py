@@ -1245,6 +1245,8 @@ Received inputs:
                     inputs_cached = processing_utils.move_files_to_cache(
                         inputs[i], block
                     )
+                    if getattr(block, "data_model", None):
+                        inputs_cached = block.data_model(**inputs_cached)  # type: ignore
                     processed_input.append(block.preprocess(inputs_cached))
         else:
             processed_input = inputs
