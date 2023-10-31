@@ -75,10 +75,9 @@ class ClearButton(Button):
             none = component.postprocess(None)
             if isinstance(none, (GradioModel, GradioRootModel)):
                 none = none.model_dump()
-                print(none)
             none_values.append(none)
         clear_values = json.dumps(none_values)
-        self.click(None, [], components, _js=f"() => {clear_values}")
+        self.click(None, [], components, js=f"() => {clear_values}")
         return self
 
     def postprocess(self, value: str | None) -> str | None:

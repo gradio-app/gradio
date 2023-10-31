@@ -28,7 +28,7 @@ with gr.Blocks(theme=base_theme) as demo:
     toggle_dark = gr.Button("Toggle Dark", scale=0)
     toggle_dark.click(
         None,
-        _js="""
+        js="""
         () => { 
             document.body.classList.toggle('dark');
         }
@@ -43,7 +43,7 @@ with gr.Blocks(theme=base_theme) as demo:
         None,
         theme_selector,
         None,
-        _js=f"""
+        js=f"""
         (theme) => {{
             if (!document.querySelector('.theme-css')) {{
                 var theme_elem = document.createElement('style');

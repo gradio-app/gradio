@@ -476,6 +476,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         mode: str = "blocks",
         title: str = "Gradio",
         css: str | None = None,
+        js: str | None = None,
+        head: str | None = None,
         **kwargs,
     ):
         """
@@ -484,7 +486,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
             mode: a human-friendly name for the kind of Blocks or Interface being created.
             title: The tab title to display when this is opened in a browser window.
-            css: custom css or path to custom css file to apply to entire Blocks
+            css: custom css or path to custom css file to apply to entire Blocks.
+            js: custom js or path to custom js file to run when demo is first loaded.
+            head: custom html to insert into the head of the page.
         """
         self.limiter = None
         if theme is None:
@@ -510,11 +514,17 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.max_threads = 40
         self.pending_streams = defaultdict(dict)
         self.show_error = True
+        self.head = head
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
                 self.css = css_file.read()
         else:
             self.css = css
+        if js is not None and os.path.exists(js):
+            with open(js) as js_file:
+                self.js = js_file.read()
+        else:
+            self.js = js
 
         # For analytics_enabled and allow_flagging: (1) first check for
         # parameter, (2) check for env variable, (3) default to True/"manual"
@@ -801,7 +811,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             scroll_to_output: whether to scroll to output of dependency on trigger
             show_progress: whether to show progress animation while running.
             api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.
-            js: Experimental parameter (API may change): Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
+            js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for Blocks "load" event
             queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
             batch: whether this function takes in a batch of inputs
@@ -1262,11 +1272,8 @@ Received inputs:
                     )
                     if getattr(block, "data_model", None) and inputs_cached is not None:
                         if issubclass(block.data_model, GradioModel):  # type: ignore
-                            print("block.data_model", block.data_model, block)
-                            print("1inputs_cached", inputs_cached)
                             inputs_cached = block.data_model(**inputs_cached)  # type: ignore
                         elif issubclass(block.data_model, GradioRootModel):  # type: ignore
-                            print("2inputs_cached", inputs_cached)
                             inputs_cached = block.data_model(root=inputs_cached)  # type: ignore
                     processed_input.append(block.preprocess(inputs_cached))
         else:
@@ -1535,6 +1542,8 @@ Received outputs:
             "analytics_enabled": self.analytics_enabled,
             "components": [],
             "css": self.css,
+            "js": self.js,
+            "head": self.head,
             "title": self.title or "Gradio",
             "space_id": self.space_id,
             "enable_queue": True,  # launch attributes

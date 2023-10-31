@@ -65,7 +65,7 @@ class LoginButton(Button):
         # Taken from https://cmgdo.com/external-link-in-gradio-button/
         # Taking `self` as input to check if user is logged in
         # ('self' value will be either "Sign in with Hugging Face" or "Signed in as ...")
-        self.click(fn=None, inputs=[self], outputs=None, _js=_js_open_if_not_logged_in)
+        self.click(fn=None, inputs=[self], outputs=None, js=_js_open_if_not_logged_in)
 
         self.attach_load_event(self._check_login_status, None)
 

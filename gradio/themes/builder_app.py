@@ -465,7 +465,7 @@ with gr.Blocks(  # noqa: SIM117
             None,
             None,
             None,
-            _js="""() => {
+            js="""() => {
                 document.head.innerHTML += "<style id='theme_css'></style>";
                 let evt_listener = window.setTimeout(
                     () => {
@@ -841,7 +841,7 @@ with gr.Blocks(theme=theme) as demo:
                 None,
                 [secret_css, secret_font],
                 None,
-                _js="""(css, fonts) => {
+                js="""(css, fonts) => {
                     document.getElementById('theme_css').innerHTML = css;
                     let existing_font_links = document.querySelectorAll('link[rel="stylesheet"][href^="https://fonts.googleapis.com/css"]');
                     existing_font_links.forEach(link => {
@@ -923,7 +923,7 @@ with gr.Blocks(theme=theme) as demo:
             None,
             None,
             None,
-            _js="""() => {
+            js="""() => {
             if (document.querySelectorAll('.dark').length) {
                 document.querySelectorAll('.dark').forEach(el => el.classList.remove('dark'));
             } else {
