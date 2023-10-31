@@ -258,7 +258,6 @@ def stateful_chatbot():
 
         msg.submit(respond, [msg, st, chatbot], [msg, chatbot], api_name="submit")
         clear.click(lambda: None, None, chatbot, queue=False)
-        demo
     return demo
 
 
