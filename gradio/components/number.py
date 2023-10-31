@@ -108,33 +108,21 @@ class Number(FormComponent):
         else:
             return round(num, precision)
 
-    def preprocess(self, x: float | None) -> float | None:
-        """
-        Parameters:
-            x: numeric input
-        Returns:
-            number representing function input
-        """
-        if x is None:
+    def preprocess(self, payload: float | None) -> float | None:
+        if payload is None:
             return None
-        elif self.minimum is not None and x < self.minimum:
-            raise Error(f"Value {x} is less than minimum value {self.minimum}.")
-        elif self.maximum is not None and x > self.maximum:
-            raise Error(f"Value {x} is greater than maximum value {self.maximum}.")
-        return self._round_to_precision(x, self.precision)
+        elif self.minimum is not None and payload < self.minimum:
+            raise Error(f"Value {payload} is less than minimum value {self.minimum}.")
+        elif self.maximum is not None and payload > self.maximum:
+            raise Error(
+                f"Value {payload} is greater than maximum value {self.maximum}."
+            )
+        return self._round_to_precision(payload, self.precision)
 
-    def postprocess(self, y: float | None) -> float | None:
-        """
-        Any postprocessing needed to be performed on function output.
-
-        Parameters:
-            y: numeric output
-        Returns:
-            number representing function output
-        """
-        if y is None:
+    def postprocess(self, value: float | None) -> float | None:
+        if value is None:
             return None
-        return self._round_to_precision(y, self.precision)
+        return self._round_to_precision(value, self.precision)
 
     def api_info(self) -> dict[str, str]:
         return {"type": "number"}

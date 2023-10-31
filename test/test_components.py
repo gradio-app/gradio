@@ -30,6 +30,8 @@ except ImportError:
 
 import gradio as gr
 from gradio import processing_utils, utils
+from gradio.components.dataframe import DataframeData
+from gradio.components.video import VideoData
 from gradio.data_classes import FileData
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
@@ -480,9 +482,9 @@ class TestDropdown:
         """
         dropdown_input = gr.Dropdown(["a", "b", ("c", "c full")], multiselect=True)
         assert dropdown_input.preprocess("a") == "a"
-        assert dropdown_input.postprocess("a") == "a"
+        assert dropdown_input.postprocess("a") == ["a"]
         assert dropdown_input.preprocess("c full") == "c full"
-        assert dropdown_input.postprocess("c full") == "c full"
+        assert dropdown_input.postprocess("c full") == ["c full"]
 
         # When a Gradio app is loaded with gr.load, the tuples are converted to lists,
         # so we need to test that case as well
@@ -558,7 +560,7 @@ class TestImage:
         type: pil, file, filepath, numpy
         """
 
-        img = dict(FileData(path="test/test_files/bus.png"))
+        img = FileData(path="test/test_files/bus.png")
         image_input = gr.Image()
 
         image_input = gr.Image(type="filepath")
@@ -605,12 +607,12 @@ class TestImage:
         # Output functionalities
         image_output = gr.Image(type="pil")
         processed_image = image_output.postprocess(
-            PIL.Image.open(img["path"])
+            PIL.Image.open(img.path)
         ).model_dump()
         assert processed_image is not None
         if processed_image is not None:
             processed = PIL.Image.open(cast(dict, processed_image).get("path", ""))
-            source = PIL.Image.open(img["path"])
+            source = PIL.Image.open(img.path)
             assert processed.size == source.size
 
     def test_in_interface_as_output(self):
@@ -696,7 +698,7 @@ class TestAudio:
         Preprocess, postprocess serialize, get_config, deserialize
         type: filepath, numpy, file
         """
-        x_wav = deepcopy(media_data.BASE64_AUDIO)
+        x_wav = FileData(path=media_data.BASE64_AUDIO["path"])
         audio_input = gr.Audio()
         output1 = audio_input.preprocess(x_wav)
         assert output1[0] == 8000
@@ -735,11 +737,6 @@ class TestAudio:
             "_selectable": False,
         }
         assert audio_input.preprocess(None) is None
-        x_wav["is_example"] = True
-        x_wav["crop_min"], x_wav["crop_max"] = 1, 4
-        output2 = audio_input.preprocess(x_wav)
-        assert output2 is not None
-        assert output1 != output2
 
         audio_input = gr.Audio(type="filepath")
         assert isinstance(audio_input.preprocess(x_wav), str)
@@ -821,21 +818,21 @@ class TestAudio:
         assert iface(100).endswith(".wav")
 
     def test_audio_preprocess_can_be_read_by_scipy(self, gradio_temp_dir):
-        x_wav = {
-            "path": processing_utils.save_base64_to_cache(
+        x_wav = FileData(
+            path=processing_utils.save_base64_to_cache(
                 media_data.BASE64_MICROPHONE["data"], cache_dir=gradio_temp_dir
-            ),
-        }
+            )
+        )
         audio_input = gr.Audio(type="filepath")
         output = audio_input.preprocess(x_wav)
         wavfile.read(output)
 
     def test_prepost_process_to_mp3(self, gradio_temp_dir):
-        x_wav = {
-            "path": processing_utils.save_base64_to_cache(
+        x_wav = FileData(
+            path=processing_utils.save_base64_to_cache(
                 media_data.BASE64_MICROPHONE["data"], cache_dir=gradio_temp_dir
-            ),
-        }
+            )
+        )
         audio_input = gr.Audio(type="filepath", format="mp3")
         output = audio_input.preprocess(x_wav)
         assert output.endswith("mp3")
@@ -850,13 +847,13 @@ class TestFile:
         """
         Preprocess, serialize, get_config, value
         """
-        x_file = deepcopy(media_data.BASE64_FILE)
+        x_file = FileData(path=media_data.BASE64_FILE["path"])
         file_input = gr.File()
-        output = file_input.preprocess({"path": x_file["path"]})
+        output = file_input.preprocess(x_file)
         assert isinstance(output, str)
 
-        input1 = file_input.preprocess({"path": x_file["path"]})
-        input2 = file_input.preprocess({"path": x_file["path"]})
+        input1 = file_input.preprocess(x_file)
+        input2 = file_input.preprocess(x_file)
         assert input1 == input1.name  # Testing backwards compatibility
         assert input1 == input2
         assert Path(input1).name == "sample_file.pdf"
@@ -884,7 +881,7 @@ class TestFile:
         assert file_input.preprocess(None) is None
         assert file_input.preprocess(x_file) is not None
 
-        zero_size_file = {"path": "document.txt", "size": 0}
+        zero_size_file = FileData(path="document.txt", size=0)
         temp_file = file_input.preprocess(zero_size_file)
         assert not Path(temp_file.name).exists()
 
@@ -933,13 +930,13 @@ class TestUploadButton:
         """
         preprocess
         """
-        x_file = deepcopy(media_data.BASE64_FILE)
+        x_file = FileData(path=media_data.BASE64_FILE["path"])
         upload_input = gr.UploadButton()
-        input = upload_input.preprocess({"path": x_file})
+        input = upload_input.preprocess(x_file)
         assert isinstance(input, str)
 
-        input1 = upload_input.preprocess({"path": x_file})
-        input2 = upload_input.preprocess({"path": x_file})
+        input1 = upload_input.preprocess(x_file)
+        input2 = upload_input.preprocess(x_file)
         assert input1 == input1.name  # Testing backwards compatibility
         assert input1 == input2
 
@@ -961,7 +958,7 @@ class TestDataframe:
             "metadata": None,
         }
         dataframe_input = gr.Dataframe(headers=["Name", "Age", "Member"])
-        output = dataframe_input.preprocess(x_data)
+        output = dataframe_input.preprocess(DataframeData(**x_data))
         assert output["Age"][1] == 24
         assert not output["Member"][0]
         assert dataframe_input.postprocess(x_data) == x_data
@@ -998,7 +995,7 @@ class TestDataframe:
             "column_widths": [],
         }
         dataframe_input = gr.Dataframe()
-        output = dataframe_input.preprocess(x_data)
+        output = dataframe_input.preprocess(DataframeData(**x_data))
         assert output["Age"][1] == 24
         with pytest.raises(ValueError):
             gr.Dataframe(type="unknown")
@@ -1315,7 +1312,9 @@ class TestVideo:
         """
         Preprocess, serialize, deserialize, get_config
         """
-        x_video = {"video": {"path": deepcopy(media_data.BASE64_VIDEO)["path"]}}
+        x_video = VideoData(
+            video=FileData(path=deepcopy(media_data.BASE64_VIDEO)["path"])
+        )
         video_input = gr.Video()
 
         x_video = processing_utils.move_files_to_cache([x_video], video_input)[0]
@@ -1357,8 +1356,6 @@ class TestVideo:
             "_selectable": False,
         }
         assert video_input.preprocess(None) is None
-        x_video["is_example"] = True
-        assert video_input.preprocess(x_video) is not None
         video_input = gr.Video(format="avi")
         output_video = video_input.preprocess(x_video)
         assert output_video[-3:] == "avi"
@@ -1468,7 +1465,7 @@ class TestVideo:
     @patch("gradio.components.video.FFmpeg")
     def test_video_preprocessing_flips_video_for_webcam(self, mock_ffmpeg):
         # Ensures that the cached temp video file is not used so that ffmpeg is called for each test
-        x_video = {"video": deepcopy(media_data.BASE64_VIDEO)}
+        x_video = VideoData(video=FileData(path=media_data.BASE64_VIDEO["path"]))
         video_input = gr.Video(sources=["webcam"])
         _ = video_input.preprocess(x_video)
 

@@ -341,7 +341,7 @@ class BlockFunction:
         self.postprocess = postprocess
         self.tracks_progress = tracks_progress
         self.concurrency_limit = concurrency_limit
-        self.concurrency_id = concurrency_id or id(fn)
+        self.concurrency_id = concurrency_id or str(id(fn))
         self.batch = batch
         self.max_batch_size = max_batch_size
         self.total_runtime = 0
@@ -1270,6 +1270,14 @@ Received inputs:
                     inputs_cached = processing_utils.move_files_to_cache(
                         inputs[i], block
                     )
+                    if getattr(block, "data_model", None) and inputs_cached is not None:
+                        if issubclass(block.data_model, GradioModel):  # type: ignore
+                            print("block.data_model", block.data_model, block)
+                            print("1inputs_cached", inputs_cached)
+                            inputs_cached = block.data_model(**inputs_cached)  # type: ignore
+                        elif issubclass(block.data_model, GradioRootModel):  # type: ignore
+                            print("2inputs_cached", inputs_cached)
+                            inputs_cached = block.data_model(root=inputs_cached)  # type: ignore
                     processed_input.append(block.preprocess(inputs_cached))
         else:
             processed_input = inputs

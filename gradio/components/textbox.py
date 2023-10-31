@@ -117,25 +117,11 @@ class Textbox(FormComponent):
         self.rtl = rtl
         self.text_align = text_align
 
-    def preprocess(self, x: str | None) -> str | None:
-        """
-        Preprocesses input (converts it to a string) before passing it to the function.
-        Parameters:
-            x: text
-        Returns:
-            text
-        """
-        return None if x is None else str(x)
+    def preprocess(self, payload: str | None) -> str | None:
+        return None if payload is None else str(payload)
 
-    def postprocess(self, y: str | None) -> str | None:
-        """
-        Postproccess the function output y by converting it to a str before passing it to the frontend.
-        Parameters:
-            y: function output to postprocess.
-        Returns:
-            text
-        """
-        return None if y is None else str(y)
+    def postprocess(self, value: str | None) -> str | None:
+        return None if value is None else str(value)
 
     def api_info(self) -> dict[str, Any]:
         return {"type": "string"}
