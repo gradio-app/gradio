@@ -5,7 +5,7 @@
 	import type { LoadingStatus } from "@gradio/statustracker";
 
 	import Column from "@gradio/column";
-	import type { Gradio } from "js/utils/src";
+	import type { Gradio } from "@gradio/utils";
 
 	export let label: string;
 	export let elem_id: string;

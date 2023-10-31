@@ -354,6 +354,9 @@ importers:
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:0.2.0-beta.6
+        version: link:../utils
 
   js/annotatedimage:
     dependencies:
