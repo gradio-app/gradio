@@ -2,4 +2,4 @@
 "website": minor
 ---
 
-feat:4.0 Changelog
+feat:4.0 Website Changes
