@@ -731,3 +731,23 @@ def convert_video_to_playable_mp4(video_path: str) -> str:
         # Remove temp file
         os.remove(tmp_file.name)  # type: ignore
     return str(output_path)
+
+
+def get_video_length(video_path: str | Path):
+    duration = subprocess.check_output(
+        [
+            "ffprobe",
+            "-i",
+            str(video_path),
+            "-show_entries",
+            "format=duration",
+            "-v",
+            "quiet",
+            "-of",
+            "csv=%s" % ("p=0"),
+        ]
+    )
+    duration_str = duration.decode("utf-8").strip()
+    duration_float = float(duration_str)
+
+    return duration_float
