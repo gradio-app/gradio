@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import Literal
+from typing import Any, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
@@ -27,6 +27,7 @@ class ClearButton(Button):
         components: None | list[Component] | Component = None,
         *,
         value: str = "Clear",
+        every: float | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         size: Literal["sm", "lg"] | None = None,
         icon: str | None = None,
@@ -35,12 +36,13 @@ class ClearButton(Button):
         interactive: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        render: bool = True,
         scale: int | None = None,
         min_width: int | None = None,
-        **kwargs,
     ):
         super().__init__(
             value,
+            every=every,
             variant=variant,
             size=size,
             icon=icon,
@@ -49,9 +51,9 @@ class ClearButton(Button):
             interactive=interactive,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            render=render,
             scale=scale,
             min_width=min_width,
-            **kwargs,
         )
         self.add(components)
 
@@ -67,8 +69,19 @@ class ClearButton(Button):
 
         if isinstance(components, Component):
             components = [components]
-        clear_values = json.dumps(
-            [component.postprocess(None) for component in components]
-        )
+        none_values = []
+        for component in components:
+            none = component.postprocess(None)
+            none_values.append(none)
+        clear_values = json.dumps(none_values)
         self.click(None, [], components, _js=f"() => {clear_values}")
         return self
+
+    def postprocess(self, y):
+        return y
+
+    def preprocess(self, x: Any) -> Any:
+        return x
+
+    def example_inputs(self) -> Any:
+        return None

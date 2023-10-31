@@ -24,7 +24,6 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         "code",
         "fake_gan",
         "fake_diffusion_with_gif",
-        "gender_sentence_default_interpretation",
         "image_mod_default_image",
         "image_segmentation",
         "interface_parallel_load",
@@ -76,5 +75,7 @@ if __name__ == "__main__":
     torch==1.12.1
     altair
     vega_datasets
+    pydantic==2.1.1
+    pydantic_core==2.4.0
     """
     open(reqs_file_path, "w").write(textwrap.dedent(requirements))

@@ -2,7 +2,7 @@ import { test, describe, assert, afterEach } from "vitest";
 import { cleanup, fireEvent, render } from "@gradio/tootils";
 import { setupi18n } from "../app/src/i18n";
 
-import HighlightedText from "./interactive";
+import HighlightedText from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status: LoadingStatus = {
@@ -25,15 +25,16 @@ describe("HighlightedText", () => {
 		const { getByText, getByTestId, getAllByText } = await render(
 			HighlightedText,
 			{
+				interactive: false,
 				loading_status,
 				value: [
-					["The", null],
-					["quick", "adjective"],
-					[" sneaky", "adjective"],
-					["fox", "subject"],
-					[" jumped ", "past tense verb"],
-					["over the", null],
-					["lazy dog", "object"]
+					{ token: "The", class_or_confidence: null },
+					{ token: "quick", class_or_confidence: "adjective" },
+					{ token: " sneaky", class_or_confidence: "adjective" },
+					{ token: "fox", class_or_confidence: "subject" },
+					{ token: " jumped ", class_or_confidence: "past tense verb" },
+					{ token: "over the", class_or_confidence: null },
+					{ token: "lazy dog", class_or_confidence: "object" }
 				]
 			}
 		);
@@ -48,15 +49,16 @@ describe("HighlightedText", () => {
 
 	test("renders labels with remove label buttons which trigger change", async () => {
 		const { getAllByText, listen } = await render(HighlightedText, {
+			interactive: true,
 			loading_status,
 			value: [
-				["The", null],
-				["quick", "adjective"],
-				[" sneaky", "adjective"],
-				["fox", "subject"],
-				[" jumped ", "past tense verb"],
-				["over the", null],
-				["lazy dog", "object"]
+				{ token: "The", class_or_confidence: null },
+				{ token: "quick", class_or_confidence: "adjective" },
+				{ token: " sneaky", class_or_confidence: "adjective" },
+				{ token: "fox", class_or_confidence: "subject" },
+				{ token: " jumped ", class_or_confidence: "past tense  verb" },
+				{ token: "over the", class_or_confidence: null },
+				{ token: "lazy dog", class_or_confidence: "object" }
 			]
 		});
 

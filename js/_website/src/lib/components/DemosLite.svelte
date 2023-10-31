@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { afterNavigate } from "$app/navigation";
-	import InteractiveCode from "@gradio/code/interactive";
+	import Code from "@gradio/code";
 	import Slider from "./Slider.svelte";
 	import Fullscreen from "./icons/Fullscreen.svelte";
 	import Close from "./icons/Close.svelte";
@@ -97,14 +97,14 @@
 			{#each demos as demo, i}
 				<div
 					hidden={current_selection !== demo.name}
-					class="code-editor w-full border-r hidden sm:block"
+					class="code-editor w-full border-r"
 					style="width: {position * 100}%"
 				>
 					<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2">
 						<h3 class="pt-1">Code</h3>
 					</div>
 
-					<InteractiveCode
+					<Code
 						bind:value={demos[i].code}
 						label=""
 						language="python"

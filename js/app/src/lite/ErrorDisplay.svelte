@@ -1,32 +1,38 @@
 <script lang="ts">
 	import { StatusTracker } from "@gradio/statustracker";
 
+	import { _ } from "svelte-i18n";
+	import { setupi18n } from "../i18n";
+
+	setupi18n();
+
 	export let is_embed: boolean;
 	export let error: Error | undefined = undefined;
 </script>
 
 <StatusTracker
+	i18n={$_}
 	absolute={!is_embed}
 	status="error"
 	timer={false}
 	queue_position={null}
 	queue_size={null}
 	translucent={true}
+	autoscroll={false}
 >
 	<div class="error" slot="error">
-	{#if error}
-	{#if error.message}
-		<p class="error-name">
-			{error.message}
-		</p>
-	{/if}
-	{#if error.stack}
-		<pre class="error-stack"><code>{error.stack}</code></pre>
-	{/if}
-	{/if}
+		{#if error}
+			{#if error.message}
+				<p class="error-name">
+					{error.message}
+				</p>
+			{/if}
+			{#if error.stack}
+				<pre class="error-stack"><code>{error.stack}</code></pre>
+			{/if}
+		{/if}
 	</div>
 </StatusTracker>
-
 
 <style>
 	.error {
