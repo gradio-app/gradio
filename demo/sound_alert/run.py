@@ -14,4 +14,4 @@ with gr.Blocks() as demo:
     name.blur(task, name, greeting)
     greeting.change(None, [], [], _js=js_function)  # Note that _js is a special argument whose usage may change in the future
     
-demo.launch()
+demo.launch(allowed_paths=["beep.mp3"])
