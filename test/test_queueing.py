@@ -33,9 +33,9 @@ class TestQueueing:
                 time.sleep(2)
                 return f"Hello, {x}!"
 
-            name.submit(greet, name, output)
+            name.submit(greet, name, output, concurrency_limit=2)
 
-        app, _, _ = demo.queue(concurrency_count=2).launch(prevent_thread_lock=True)
+        app, _, _ = demo.launch(prevent_thread_lock=True)
         test_client = TestClient(app)
 
         client = grc.Client(f"http://localhost:{demo.server_port}")
@@ -70,9 +70,9 @@ class TestQueueing:
                 time.sleep(2)
                 return f"Hello, {x}!"
 
-            name.submit(greet, name, output)
+            name.submit(greet, name, output, concurrency_limit=2)
 
-        app, _, _ = demo.queue(concurrency_count=2).launch(prevent_thread_lock=True)
+        app, _, _ = demo.launch(prevent_thread_lock=True)
         test_client = TestClient(app)
 
         client = grc.Client(f"http://localhost:{demo.server_port}")

@@ -65,7 +65,6 @@ from gradio.utils import (
     TupleNoPrint,
     check_function_inputs_match,
     component_or_layout_class,
-    concurrency_count_warning,
     get_cancel_function,
     get_continuous_fn,
     get_package_version,
@@ -1602,19 +1601,17 @@ Received outputs:
         self.children = []
         return self
 
-    @concurrency_count_warning
     @document()
     def queue(
         self,
-        concurrency_count: int | None = None,
         status_update_rate: float | Literal["auto"] = "auto",
         api_open: bool | None = None,
         max_size: int | None = None,
+        **kwargs
     ):
         """
-        By enabling the queue you can control the rate of processed requests, let users know their position in the queue, and set a limit on maximum number of events allowed.
+        By enabling the queue you can control when users know their position in the queue, and set a limit on maximum number of events allowed.
         Parameters:
-            concurrency_count: Number of worker threads that will be processing requests from the queue concurrently. Default is 40 when running locally, and 1 in Spaces.
             status_update_rate: If "auto", Queue will send status estimations to all clients whenever a job is finished. Otherwise Queue will send status at regular intervals set by this parameter as the number of seconds.
             api_open: If True, the REST routes of the backend will be open, allowing requests made directly to those endpoints to skip the queue.
             max_size: The maximum number of events the queue will store at any given moment. If the queue is full, new events will not be added and a user will receive a message saying that the queue is full. If None, the queue size will be unlimited.
@@ -1629,16 +1626,17 @@ Received outputs:
             demo.queue(max_size=20)
             demo.launch()
         """
-        if concurrency_count is None:
-            concurrency_count = 1 if utils.get_space() else 40
+        if "concurrency_count" in kwargs:
+            raise DeprecationWarning("concurrency_count has been deprecated. Set the concurrency_limit directly on event listeners e.g. btn.click(fn, ..., concurrency_limit=10) or gr.Interface(concurrency_limit=10). If necessary, the total number of workers can be configured via `max_threads` in launch().")
+        if len(kwargs):
+            raise ValueError(f"Invalid arguments: {kwargs}")
         if api_open is not None:
             self.api_open = api_open
         if utils.is_zero_gpu_space():
-            concurrency_count = self.max_threads
             max_size = 1 if max_size is None else max_size
         self._queue = queueing.Queue(
             live_updates=status_update_rate == "auto",
-            concurrency_count=concurrency_count,
+            concurrency_count=self.max_threads,
             update_intervals=status_update_rate if status_update_rate != "auto" else 1,
             max_size=max_size,
             block_fns=self.fns,
@@ -1708,7 +1706,7 @@ Received outputs:
             show_error: If True, any errors in the interface will be displayed in an alert modal and printed in the browser console log
             server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT. If None, will search for an available port starting at 7860.
             server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME. If None, will use "127.0.0.1".
-            max_threads: the maximum number of total threads that the Gradio app can generate in parallel. The default is inherited from the starlette library (currently 40). Applies whether the queue is enabled or not. But if queuing is enabled, this parameter is increaseed to be at least the concurrency_count of the queue.
+            max_threads: the maximum number of total threads that the Gradio app can generate in parallel. The default is inherited from the starlette library (currently 40).
             width: The width in pixels of the iframe element containing the interface (used if inline=True)
             height: The height in pixels of the iframe element containing the interface (used if inline=True)
             favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for the web page.
@@ -1785,7 +1783,8 @@ Received outputs:
         self.validate_queue_settings()
 
         self.config = self.get_config_file()
-        self.max_threads = max(self._queue.max_thread_count, max_threads)
+        self.max_threads = max_threads
+        self._queue.max_thread_count = max_threads
 
         if self.is_running:
             if not isinstance(self.local_url, str):

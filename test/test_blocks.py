@@ -216,14 +216,13 @@ class TestBlocksMethods:
                     num1 = gr.Number(value=4, precision=0)
                     o1 = gr.Number()
                     async_iterate = gr.Button(value="Async Iteration")
-                    async_iterate.click(async_iteration, num1, o1)
+                    async_iterate.click(async_iteration, num1, o1, concurrency_limit=2, concurrency_id="main")
                 with gr.Column():
                     num2 = gr.Number(value=4, precision=0)
                     o2 = gr.Number()
                     iterate = gr.Button(value="Iterate")
-                    iterate.click(iteration, num2, o2)
+                    iterate.click(iteration, num2, o2, concurrency_id="main")
 
-        demo.queue(concurrency_count=2)
 
         with connect(demo) as client:
             job_1 = client.submit(3, fn_index=0)
@@ -337,16 +336,6 @@ class TestBlocksMethods:
             gr.Textbox(uuid.uuid4)
         demo.launch(prevent_thread_lock=True)
         assert len(demo.get_config_file()["dependencies"]) == 1
-
-    def test_concurrency_count_zero_gpu(self, monkeypatch):
-        monkeypatch.setenv("SPACES_ZERO_GPU", "true")
-        demo = gr.Blocks()
-        with pytest.warns():
-            demo.queue(concurrency_count=42)
-        with pytest.warns():
-            demo.queue(42)
-        assert demo._queue.max_thread_count == demo.max_threads
-
 
 class TestTempFile:
     def test_pil_images_hashed(self, connect, gradio_temp_dir):

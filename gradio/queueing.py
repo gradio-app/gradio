@@ -84,7 +84,7 @@ class Queue:
         self.stopped = False
         self.max_thread_count = concurrency_count
         self.update_intervals = update_intervals
-        self.active_jobs: list[None | list[Event]] = [None] * concurrency_count
+        self.active_jobs: list[None | list[Event]] = []
         self.delete_lock = safe_get_lock()
         self.server_app = None
         self.duration_history_total = 0
@@ -101,6 +101,7 @@ class Queue:
         self._asyncio_tasks: list[asyncio.Task] = []
 
     def start(self):
+        self.active_jobs = [None] * self.max_thread_count
         run_coro_in_background(self.start_processing)
         run_coro_in_background(self.start_progress_updates)
         if not self.live_updates:
