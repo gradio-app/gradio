@@ -341,7 +341,7 @@ class BlockFunction:
         self.postprocess = postprocess
         self.tracks_progress = tracks_progress
         self.concurrency_limit = concurrency_limit
-        self.concurrency_id = concurrency_id or id(fn)
+        self.concurrency_id = concurrency_id or str(id(fn))
         self.batch = batch
         self.max_batch_size = max_batch_size
         self.total_runtime = 0
