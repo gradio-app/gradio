@@ -579,12 +579,21 @@ class App(FastAPI):
             session_hash: str,
             request: fastapi.Request,
             username: str = Depends(get_current_user),
+            data: Optional[str] = None,
         ):
             blocks = app.get_blocks()
             if blocks._queue.server_app is None:
                 blocks._queue.set_server_app(app)
 
             event = Event(session_hash, fn_index, request, username)
+            if data is not None:
+                input_data = json.loads(data)
+                event.data = PredictBody(
+                    session_hash=session_hash,
+                    fn_index=fn_index,
+                    data=input_data,
+                    request=request,
+                )
 
             # Continuous events are not put in the queue so that they do not
             # occupy the queue's resource as they are expected to run forever

@@ -114,7 +114,6 @@ class Queue:
                     ),
                     block_fn.concurrency_limit,
                 )
-        print(">>>", self.concurrency_limit_per_concurrency_id)
 
         run_coro_in_background(self.start_processing)
         run_coro_in_background(self.start_progress_updates)
@@ -452,14 +451,15 @@ class Queue:
         awake_events: list[Event] = []
         try:
             for event in events:
-                self.awaiting_data_events[event._id] = event
-                client_awake = await event.get_data()
-                del self.awaiting_data_events[event._id]
-                if client_awake:
-                    event.send_message("process_starts")
-                    awake_events.append(event)
-                else:
-                    await self.clean_event(event)
+                if not event.data:
+                    self.awaiting_data_events[event._id] = event
+                    client_awake = await event.get_data()
+                    del self.awaiting_data_events[event._id]
+                    if not client_awake:
+                        await self.clean_event(event)
+                        continue
+                event.send_message("process_starts")
+                awake_events.append(event)
             if not awake_events:
                 return
             begin_time = time.time()
