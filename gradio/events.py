@@ -209,6 +209,8 @@ class EventListener(str):
             js: str | None = None,
             concurrency_limit: int | None = 1,
             concurrency_id: str | None = None,
+            concurrency_limit: int | None = 1,
+            concurrency_id: str | None = None,
         ) -> Dependency:
             """
             Parameters:
