@@ -48,7 +48,7 @@ For example, the `gr.AnnotatedImage` only appears as a static version since ther
 
 * Gradio will use the interactive version (if available) of a component if that component is used as the **input** to any event; otherwise, the static version will be used.
 
-* When you design custom components, you **must** accept the boolean interactive keyword in the constructor of your Python class. In the frontend, accept the `mode` property. You can create different versions of your component depending on whether this parameter is `"interactive"` or `"static"`.
+* When you design custom components, you **must** accept the boolean interactive keyword in the constructor of your Python class. In the frontend, accept the `interactive` property, a `bool` which represents whether the component is `static` or `interactive`.
 
 ## The value and how it is preprocessed/postprocessed
 
