@@ -114,6 +114,7 @@ class Interface(Blocks):
         api_name: str | Literal[False] | None = "predict",
         _api_mode: bool = False,
         allow_duplication: bool = False,
+        concurrency_limit: int | None = 1,
         **kwargs,
     ):
         """
@@ -140,6 +141,7 @@ class Interface(Blocks):
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
             api_name: Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False or None, the endpoint will not be exposed in the api docs. If set to a string, the endpoint will be exposed in the api docs with the given name. Default value is "predict".
             allow_duplication: If True, then will show a 'Duplicate Spaces' button on Hugging Face Spaces.
+            concurrency_limit: If set, this this is the maximum number of events that can be running simultaneously. Extra requests will be queued.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -310,6 +312,7 @@ class Interface(Blocks):
         self.batch = batch
         self.max_batch_size = max_batch_size
         self.allow_duplication = allow_duplication
+        self.concurrency_limit = concurrency_limit
 
         self.share = None
         self.share_url = None
@@ -599,6 +602,7 @@ class Interface(Blocks):
                     postprocess=not (self.api_mode),
                     batch=self.batch,
                     max_batch_size=self.max_batch_size,
+                    concurrency_limit=self.concurrency_limit,
                 )
 
                 predict_event.then(
@@ -628,6 +632,7 @@ class Interface(Blocks):
                     postprocess=not (self.api_mode),
                     batch=self.batch,
                     max_batch_size=self.max_batch_size,
+                    concurrency_limit=self.concurrency_limit,
                 )
 
     def attach_clear_events(

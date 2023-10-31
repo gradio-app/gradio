@@ -38,7 +38,7 @@ def calculator_demo():
             [0, "subtract", 1.2],
         ],
     )
-    return demo.queue()
+    return demo
 
 
 @pytest.fixture
@@ -48,7 +48,7 @@ def state_demo():
         ["textbox", "state"],
         ["textbox", "state"],
     )
-    return demo.queue()
+    return demo
 
 
 @pytest.fixture
@@ -81,7 +81,7 @@ def increment_demo():
             api_name=False,
         )
 
-    return demo.queue()
+    return demo
 
 
 @pytest.fixture
@@ -92,7 +92,7 @@ def progress_demo():
             time.sleep(0.1)
         return x
 
-    return gr.Interface(my_function, gr.Textbox(), gr.Textbox()).queue()
+    return gr.Interface(my_function, gr.Textbox(), gr.Textbox())
 
 
 @pytest.fixture
@@ -126,7 +126,7 @@ def cancel_from_client_demo():
         btn2 = gr.Button(value="Long Process")
         btn2.click(long_process, None, num, api_name="long")
 
-    return demo.queue(concurrency_count=40)
+    return demo
 
 
 @pytest.fixture
@@ -177,7 +177,7 @@ def count_generator_demo():
         count_btn.click(count, num, out)
         list_btn.click(show, num, out)
 
-    return demo.queue()
+    return demo
 
 
 @pytest.fixture
@@ -202,7 +202,7 @@ def count_generator_no_api():
         count_btn.click(count, num, out, api_name=False)
         list_btn.click(show, num, out, api_name=False)
 
-    return demo.queue()
+    return demo
 
 
 @pytest.fixture
@@ -228,7 +228,7 @@ def count_generator_demo_exception():
 
         count_btn.click(count, num, out, api_name="count")
         count_forever.click(show, num, out, api_name="count_forever", every=3)
-    return demo.queue()
+    return demo
 
 
 @pytest.fixture
@@ -258,7 +258,6 @@ def stateful_chatbot():
 
         msg.submit(respond, [msg, st, chatbot], [msg, chatbot], api_name="submit")
         clear.click(lambda: None, None, chatbot, queue=False)
-        demo.queue()
     return demo
 
 
@@ -346,7 +345,7 @@ def stream_audio():
         fn=_stream_audio,
         inputs=gr.Audio(type="filepath", label="Audio file to stream"),
         outputs=gr.Audio(autoplay=True, streaming=True),
-    ).queue()
+    )
 
 
 @pytest.fixture
