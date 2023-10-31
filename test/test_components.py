@@ -179,6 +179,7 @@ class TestNumber:
             "proxy_url": None,
             "info": None,
             "precision": None,
+            "_selectable": False,
         }
 
     def test_component_functions_integer(self):
@@ -211,6 +212,7 @@ class TestNumber:
             "proxy_url": None,
             "info": None,
             "precision": 0,
+            "_selectable": False,
         }
 
     def test_component_functions_precision(self):
@@ -286,6 +288,7 @@ class TestSlider:
             "interactive": None,
             "proxy_url": None,
             "info": None,
+            "_selectable": False,
         }
 
     def test_in_interface(self):
@@ -729,6 +732,7 @@ class TestAudio:
             "max_length": None,
             "min_length": None,
             "waveform_options": None,
+            "_selectable": False,
         }
         assert audio_input.preprocess(None) is None
         x_wav["is_example"] = True
@@ -775,6 +779,7 @@ class TestAudio:
             "streamable": False,
             "sources": ["microphone", "upload"],
             "waveform_options": None,
+            "_selectable": False,
         }
 
         output1 = audio_output.postprocess(y_audio.name)
@@ -1345,6 +1350,7 @@ class TestVideo:
             "format": None,
             "min_length": None,
             "max_length": None,
+            "_selectable": False,
         }
         assert video_input.preprocess(None) is None
         x_video["is_example"] = True
@@ -1882,6 +1888,7 @@ class TestJSON:
             "label": None,
             "name": "json",
             "proxy_url": None,
+            "_selectable": False,
         }
 
     @pytest.mark.asyncio
@@ -1935,6 +1942,7 @@ class TestHTML:
             "elem_classes": [],
             "proxy_url": None,
             "name": "html",
+            "_selectable": False,
         }
 
     def test_in_interface(self):
@@ -1987,6 +1995,7 @@ class TestModel3D:
             "camera_position": (None, None, None),
             "height": None,
             "zoom_speed": 1,
+            "_selectable": False,
         }
 
         file = "test/test_files/Box.gltf"
@@ -2029,6 +2038,7 @@ class TestColorPicker:
             "proxy_url": None,
             "name": "colorpicker",
             "info": None,
+            "_selectable": False,
         }
 
     def test_in_interface_as_input(self):
@@ -2211,6 +2221,7 @@ class TestScatterPlot:
             "y_lim": None,
             "x_label_angle": None,
             "y_label_angle": None,
+            "_selectable": False,
         }
 
     def test_no_color(self):
@@ -2368,6 +2379,7 @@ class TestLinePlot:
             "y_lim": None,
             "x_label_angle": None,
             "y_label_angle": None,
+            "_selectable": False,
         }
 
     def test_no_color(self):
@@ -2471,6 +2483,7 @@ class TestBarPlot:
             "x_label_angle": None,
             "y_label_angle": None,
             "sort": None,
+            "_selectable": False,
         }
 
     def test_no_color(self):
@@ -2583,6 +2596,7 @@ class TestCode:
             "visible": True,
             "interactive": None,
             "proxy_url": None,
+            "_selectable": False,
         }
 
 
