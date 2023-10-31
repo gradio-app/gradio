@@ -1607,7 +1607,7 @@ Received outputs:
         status_update_rate: float | Literal["auto"] = "auto",
         api_open: bool | None = None,
         max_size: int | None = None,
-        **kwargs
+        **kwargs,
     ):
         """
         By enabling the queue you can control when users know their position in the queue, and set a limit on maximum number of events allowed.
@@ -1627,7 +1627,9 @@ Received outputs:
             demo.launch()
         """
         if "concurrency_count" in kwargs:
-            raise DeprecationWarning("concurrency_count has been deprecated. Set the concurrency_limit directly on event listeners e.g. btn.click(fn, ..., concurrency_limit=10) or gr.Interface(concurrency_limit=10). If necessary, the total number of workers can be configured via `max_threads` in launch().")
+            raise DeprecationWarning(
+                "concurrency_count has been deprecated. Set the concurrency_limit directly on event listeners e.g. btn.click(fn, ..., concurrency_limit=10) or gr.Interface(concurrency_limit=10). If necessary, the total number of workers can be configured via `max_threads` in launch()."
+            )
         if len(kwargs):
             raise ValueError(f"Invalid arguments: {kwargs}")
         if api_open is not None:
