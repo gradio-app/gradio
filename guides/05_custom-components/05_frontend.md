@@ -2,11 +2,11 @@
 
 This guide will cover everything you need to know to implement your custom component's frontend.
 
-Tip: Gradio components use Svelte. Writing Svelte is fun! If you're not familiar, check out their interactive [guide](https://learn.svelte.dev/tutorial/welcome-to-svelte).
+Tip: Gradio components use Svelte. Writing Svelte is fun! If you're not familiar with it, we recommend checking out their interactive [guide](https://learn.svelte.dev/tutorial/welcome-to-svelte).
 
 ## The directory structure 
 
-The frontend code should have at the minimum three files:
+The frontend code should have, at minimum, three files:
 
 * `Index.svelte`: This is the main export and where your component's layout and logic should live.
 * `Example.svelte`: This is where the example view of the component is defined.
@@ -51,7 +51,7 @@ export let mode: "static" | "interactive";
 
 * `mode` is how the parent Gradio app tells your component whether the `interactive` or `static` version should be displayed.
 
-* `gradio`: The `gradio` object is created by the parent Gradio app. It stores some application-level configuration that will be useful in your component, like internationalization. You must use it to dispach events from your component.
+* `gradio`: The `gradio` object is created by the parent Gradio app. It stores some application-level configuration that will be useful in your component, like internationalization. You must use it to dispatch events from your component.
 
 A minimal `Index.svelte` file would look like:
 
@@ -110,7 +110,7 @@ The `Example.svelte` file should expose the following props:
 
 * `value`: The example value that should be displayed.
 
-* `type`: This is a variable that can be either "gallery" or "table" depending on how the examples are displayed. The "gallery" form is used when the examples correspond to a single input component, while the "table" form is used when a user has multiple input components, and the examples need to populate all of them. 
+* `type`: This is a variable that can be either `"gallery"` or `"table"` depending on how the examples are displayed. The `"gallery"` form is used when the examples correspond to a single input component, while the `"table"` form is used when a user has multiple input components, and the examples need to populate all of them. 
 
 * `selected`: You can also adjust how the examples are displayed if a user "selects" a particular example by using the selected variable.
 
@@ -206,7 +206,7 @@ Here's an example of loading files from an `<input>` element when its value chan
 ```
 
 The component exposes a prop named `root`. 
-This is passed down by the parent gradio app and it's the base url that the files will be uploaded to and fetched from.
+This is passed down by the parent gradio app and it represents the base url that the files will be uploaded to and fetched from.
 
 For WASM support, you should get the upload function from the `Context` and pass that as the third parameter of the `upload` function.
 
@@ -232,7 +232,8 @@ You can save yourself some code by using Gradio's core components in your own cu
 
 ## Matching Gradio Core's Design System
 
-You can refer to our Storybook to view our component library, and explore our CSS variables that can be used in your own components. 
+You can explore our component library via Storybook. You'll be able to interact with our components and see them in their various states.
 
+For those interested in design customization, we provide the CSS variables and the icons we use so you can easily match up your custom component with the style of our core components. This Storybook will be regularly updated with any new additions or changes.
 
 [Storybook Link](https://gradio.app/main/docs/js/storybook)
