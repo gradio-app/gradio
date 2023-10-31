@@ -172,7 +172,7 @@ class App(FastAPI):
         # Don't proxy a URL unless it's a URL specifically loaded by the user using
         # gr.load() to prevent SSRF or harvesting of HF tokens by malicious Spaces.
         is_safe_url = any(
-            url.host == httpx.URL(root).host for root in self.blocks.root_urls
+            url.host == httpx.URL(root).host for root in self.blocks.proxy_urls
         )
         if not is_safe_url:
             raise PermissionError("This URL cannot be proxied.")

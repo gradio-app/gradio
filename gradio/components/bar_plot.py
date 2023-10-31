@@ -102,7 +102,6 @@ class BarPlot(Plot):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
-            root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
             sort: Specifies the sorting axis as either "x", "y", "-x" or "-y". If None, no sorting is applied.
             show_actions_button: Whether to show the actions button on the top right corner of the plot.
         """
