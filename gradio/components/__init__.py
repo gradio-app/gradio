@@ -28,7 +28,10 @@ from gradio.components.gallery import Gallery
 from gradio.components.highlighted_text import HighlightedText
 from gradio.components.html import HTML
 from gradio.components.image import Image
+<<<<<<< HEAD
 from gradio.components.image_editor import ImageEditor
+=======
+>>>>>>> 287fe6782 (Version 4 development branch (#5498))
 from gradio.components.json_component import JSON
 from gradio.components.label import Label
 from gradio.components.line_plot import LinePlot

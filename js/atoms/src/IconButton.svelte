@@ -1,5 +1,4 @@
 <script lang="ts">
-	import exp from "constants";
 	import { type ComponentType } from "svelte";
 	export let Icon: ComponentType;
 	export let label = "";
@@ -7,17 +6,9 @@
 	export let pending = false;
 	export let size: "small" | "large" = "small";
 	export let padded = true;
-	export let highlight = false;
 </script>
 
-<button
-	on:click
-	aria-label={label}
-	title={label}
-	class:pending
-	class:padded
-	class:highlight
->
+<button on:click aria-label={label} title={label} class:pending class:padded>
 	{#if show_label}<span>{label}</span>{/if}
 	<div class:small={size === "small"} class:large={size === "large"}>
 		<Icon />
@@ -35,6 +26,14 @@
 		border-radius: var(--radius-sm);
 		color: var(--block-label-text-color);
 		border: 1px solid transparent;
+	}
+
+	.padded {
+		padding: 2px;
+		background: var(--background-fill-primary);
+
+		box-shadow: var(--shadow-drop);
+		border: 1px solid var(--button-secondary-border-color);
 	}
 
 	.padded {
