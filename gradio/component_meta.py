@@ -8,7 +8,6 @@ from pathlib import Path
 
 from jinja2 import Template
 
-from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import EventListener
 from gradio.exceptions import ComponentDefinitionError
 from gradio.utils import no_raise_exception
