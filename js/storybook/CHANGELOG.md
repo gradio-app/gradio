@@ -1,5 +1,11 @@
 # @gradio/storybook
 
+## 0.1.0
+
+### Features
+
+- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`287fe6782`](https://github.com/gradio-app/gradio/commit/287fe6782825479513e79a5cf0ba0fbfe51443d7) - Improve Audio Component.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.1.0-beta.0
 
 ### Features
