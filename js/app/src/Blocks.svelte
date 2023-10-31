@@ -565,10 +565,9 @@
 	);
 	async function handle_mount(): Promise<void> {
 		let blocks_frontend_fn = new AsyncFunction(
-			`let result = await (${js});
+			`let result = await (${js})();
 					return (!Array.isArray(result)) ? [result] : result;`
 		);
-		console.log(blocks_frontend_fn());
 		blocks_frontend_fn();
 		await tick();
 
