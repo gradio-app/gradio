@@ -195,7 +195,7 @@ class Block:
 
     def get_expected_parent(self) -> type[BlockContext] | None:
         return None
-    
+
     def set_extra_params(self, **kwargs):
         """
         Sets extra parameters for the Block that are not available when the Block is constructed.
@@ -630,7 +630,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             if block_config["props"].get("proxy_url") is None:
                 block_proxy_url = f"{proxy_url}/"
             else:
-                block_proxy_url = block_config["props"]["proxy_url"] 
+                block_proxy_url = block_config["props"]["proxy_url"]
                 proxy_urls.add(block_proxy_url)
 
             # Any component has already processed its initial value, so we skip that step here

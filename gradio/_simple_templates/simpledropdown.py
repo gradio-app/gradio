@@ -50,7 +50,7 @@ class SimpleDropdown(FormComponent):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
                     render: bool = True,
-                """
+        """
         self.choices = (
             # Although we expect choices to be a list of lists, it can be a list of tuples if the Gradio app
             # is loaded with gr.load() since Python tuples are converted to lists in JSON.
