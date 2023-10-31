@@ -6,8 +6,8 @@ This guide will cover everything you need to know to implement your custom compo
 
 All components inherit from one of three classes `Component`, `FormComponent`, or `BlockContext`.
 You need to inherit from one so that your component behaves like all other gradio components.
-When you start from a template with `gradio cc create --template`, you don't need to worry which one to choose since the template uses the correct one. 
-For completeness, and in case you need to make your own component from scratch, we explain what each class is for.
+When you start from a template with `gradio cc create --template`, you don't need to worry about which one to choose since the template uses the correct one. 
+For completeness, and in the event that you need to make your own component from scratch, we explain what each class is for.
 
 * `FormComponent`: Use this when you want your component to be grouped together in the same `Form` layout with other `FormComponents`. The `Slider`, `Textbox`, and `Number` components are all `FormComponents`.
 * `BlockContext`: Use this when you want to place other components "inside" your component. This enabled `with MyComponent() as component:` syntax.
@@ -32,11 +32,11 @@ class Row(BlockContext, metaclass=ComponentMeta):
 ## The methods you need to implement
 
 When you inherit from any of these classes, the following methods must be implemented.
-Otherwise the python interpreter will raise an error when you instantiate your component!
+Otherwise the Python interpreter will raise an error when you instantiate your component!
 
 ### `preprocess` and `postprocess`
 
-Explained in the [Key concepts guide](./key-component-concepts#the-value-and-how-it-is-preprocessed-postprocessed). 
+Explained in the [Key Concepts](./key-component-concepts#the-value-and-how-it-is-preprocessed-postprocessed) guide. 
 They handle the conversion from the data sent by the frontend to the format expected by the python function.
 
 ```python
@@ -57,7 +57,7 @@ They handle the conversion from the data sent by the frontend to the format expe
 
 ### `as_example`
 
-Takes in the original python value and returns the modified value that should be displayed in the examples preview in the app. 
+Takes in the original Python value and returns the modified value that should be displayed in the examples preview in the app. 
 Let's look at the following example from the `Radio` component.
 
 ```python
@@ -65,7 +65,7 @@ def as_example(self, input_data):
     return next((c[0] for c in self.choices if c[1] == input_data), None)
 ```
 
-Since `self.choices` is a list of tuples corresponding to (display_name, value), this converts the value that a user provides to the display value (or if the value is not present in `self.choices`, it is converted to `None`).
+Since `self.choices` is a list of tuples corresponding to (`display_name`, `value`), this converts the value that a user provides to the display value (or if the value is not present in `self.choices`, it is converted to `None`).
 
 ```python
 @abstractmethod
@@ -162,7 +162,7 @@ Anyone who reads your component code will know exactly the data it expects.
 
 Tip: If your component expects files to be uploaded from the frontend, your must use the `FileData` model! It will be explained in the following section. 
 
-Tip: Read the pydantic docs [here](https://docs.pydantic.dev/latest/concepts/models/#basic-model-usage)
+Tip: Read the pydantic docs [here](https://docs.pydantic.dev/latest/concepts/models/#basic-model-usage).
 
 The difference between a `GradioModel` and a `GradioRootModel` is that the `RootModel` will not serialize the data to a dictionary.
 For example, the `Names` model will serialize the data to `{'names': ['freddy', 'pete']}` whereas the `NamesRoot` model will serialize it to `['freddy', 'pete']`.
@@ -177,9 +177,9 @@ class NamesRoot(GradioRootModel):
     root: List[str]
 ```
 
-Even if your component does not expect a "complex" JSON data structure it can be beneficial to define a `GradioRootModel` so that you don't have to worry about implementing the api and flagging methods.
+Even if your component does not expect a "complex" JSON data structure it can be beneficial to define a `GradioRootModel` so that you don't have to worry about implementing the API and flagging methods.
 
-Tip: Use classes from the python typing library to type your models. So `List` instead of `list`.
+Tip: Use classes from the Python typing library to type your models. e.g. `List` instead of `list`.
 
 ## Handling Files
 
@@ -187,7 +187,7 @@ If your component expects uploaded files as input, or returns saved files to the
 
 When you use the `FileData`:
 
-* Gradio knows to that it should allow serving this file to the frontend. Gradio automatically blocks requests to serve arbitrary files in the computer running the server.
+* Gradio knows that it should allow serving this file to the frontend. Gradio automatically blocks requests to serve arbitrary files in the computer running the server.
 
 * Gradio will automatically place the file in a cache so that duplicate copies of the file don't get saved.
 
@@ -220,7 +220,7 @@ class MyComponent(FormComponent):
 ```
 
 
-Tip: Don't forget to also handle these events in the javascript code!
+Tip: Don't forget to also handle these events in the JavaScript code!
 
 ## Conclusion
 
