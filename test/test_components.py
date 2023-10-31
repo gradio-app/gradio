@@ -22,7 +22,6 @@ import vega_datasets
 from gradio_client import media_data
 from gradio_client import utils as client_utils
 from scipy.io import wavfile
-from typing_extensions import cast
 
 try:
     from typing_extensions import cast
