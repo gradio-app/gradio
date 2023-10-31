@@ -1,51 +1,51 @@
 <script lang="ts">
-	import { createEventDispatcher, afterUpdate } from "svelte";
 	import type { SelectData } from "@gradio/utils";
+	import { createEventDispatcher } from "svelte";
 
-	export let value: boolean;
-	export let value_is_output = false;
-	export let disabled = false;
-	export let label: string;
+	export let value = false;
+	export let label = "Checkbox";
+	export let interactive: boolean;
 
 	const dispatch = createEventDispatcher<{
 		change: boolean;
 		select: SelectData;
-		input: undefined;
 	}>();
 
-	function handle_change(): void {
-		dispatch("change", value);
-		if (!value_is_output) {
-			dispatch("input");
+	// When the value changes, dispatch the change event via handle_change()
+	// See the docs for an explanation: https://svelte.dev/docs/svelte-components#script-3-$-marks-a-statement-as-reactive
+	$: value, dispatch("change", value);
+	$: disabled = !interactive;
+
+	async function handle_enter(
+		event: KeyboardEvent & { currentTarget: EventTarget & HTMLInputElement }
+	): Promise<void> {
+		if (event.key === "Enter") {
+			value = !value;
+			dispatch("select", {
+				index: 0,
+				value: event.currentTarget.checked,
+				selected: event.currentTarget.checked
+			});
 		}
 	}
-	afterUpdate(() => {
-		value_is_output = false;
-	});
-	$: value, handle_change();
+
+	async function handle_input(
+		event: Event & { currentTarget: EventTarget & HTMLInputElement }
+	): Promise<void> {
+		value = event.currentTarget.checked;
+		dispatch("select", {
+			index: 0,
+			value: event.currentTarget.checked,
+			selected: event.currentTarget.checked
+		});
+	}
 </script>
 
 <label class:disabled>
 	<input
 		bind:checked={value}
-		on:keydown={(event) => {
-			if (event.key === "Enter") {
-				value = !value;
-				dispatch("select", {
-					index: 0,
-					value: label,
-					selected: value,
-				});
-			}
-		}}
-		on:input={(evt) => {
-			value = evt.currentTarget.checked;
-			dispatch("select", {
-				index: 0,
-				value: label,
-				selected: evt.currentTarget.checked,
-			});
-		}}
+		on:keydown={handle_enter}
+		on:input={handle_input}
 		{disabled}
 		type="checkbox"
 		name="test"

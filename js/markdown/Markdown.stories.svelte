@@ -1,6 +1,6 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import Markdown from "./static";
+	import Markdown from "./Index.svelte";
 </script>
 
 <Meta

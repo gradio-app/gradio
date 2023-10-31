@@ -3,7 +3,7 @@
 	import { _, number } from "svelte-i18n";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Remove, DropdownArrow } from "@gradio/icons";
-	import type { SelectData } from "@gradio/utils";
+	import type { SelectData, I18nFormatter } from "@gradio/utils";
 	import DropdownOptions from "./DropdownOptions.svelte";
 	import { handle_filter, handle_change, handle_shared_keys } from "./utils";
 
@@ -20,6 +20,7 @@
 	export let container = true;
 	export let allow_custom_value = false;
 	export let filterable = true;
+	export let i18n: I18nFormatter;
 
 	let filter_input: HTMLElement;
 	let input_text = "";
@@ -112,7 +113,7 @@
 				typeof option_index === "number"
 					? choices_values[option_index]
 					: option_index,
-			selected: false,
+			selected: false
 		});
 	}
 
@@ -125,7 +126,7 @@
 					typeof option_index === "number"
 						? choices_values[option_index]
 						: option_index,
-				selected: true,
+				selected: true
 			});
 		}
 		if (selected_indices.length === max_choices) {
@@ -240,7 +241,7 @@
 							}}
 							role="button"
 							tabindex="0"
-							title={$_("common.remove") + " " + s}
+							title={i18n("common.remove") + " " + s}
 						>
 							<Remove />
 						</div>
@@ -269,7 +270,7 @@
 							role="button"
 							tabindex="0"
 							class="token-remove remove-all"
-							title={$_("common.clear")}
+							title={i18n("common.clear")}
 							on:click={remove_all}
 							on:keydown={(event) => {
 								if (event.key === "Enter") {
@@ -280,7 +281,7 @@
 							<Remove />
 						</div>
 					{/if}
-					<DropdownArrow />
+					<span class="icon-wrap"> <DropdownArrow /></span>
 				{/if}
 			</div>
 		</div>
@@ -297,6 +298,11 @@
 </label>
 
 <style>
+	.icon-wrap {
+		color: var(--body-text-color);
+		margin-right: var(--size-2);
+		width: var(--size-5);
+	}
 	label:not(.container),
 	label:not(.container) .wrap,
 	label:not(.container) .wrap-inner,

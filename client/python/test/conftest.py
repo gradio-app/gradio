@@ -102,7 +102,7 @@ def yield_demo():
             time.sleep(0.5)
             yield x[:i]
 
-    return gr.Interface(spell, "textbox", "textbox").queue()
+    return gr.Interface(spell, "textbox", "textbox")
 
 
 @pytest.fixture
@@ -132,6 +132,7 @@ def cancel_from_client_demo():
 @pytest.fixture
 def sentiment_classification_demo():
     def classifier(text):
+        time.sleep(1)
         return {label: random.random() for label in ["POSITIVE", "NEGATIVE", "NEUTRAL"]}
 
     def sleep_for_test():
@@ -175,6 +176,31 @@ def count_generator_demo():
 
         count_btn.click(count, num, out)
         list_btn.click(show, num, out)
+
+    return demo.queue()
+
+
+@pytest.fixture
+def count_generator_no_api():
+    def count(n):
+        for i in range(int(n)):
+            time.sleep(0.5)
+            yield i
+
+    def show(n):
+        return str(list(range(int(n))))
+
+    with gr.Blocks() as demo:
+        with gr.Column():
+            num = gr.Number(value=10)
+            with gr.Row():
+                count_btn = gr.Button("Count")
+                list_btn = gr.Button("List")
+        with gr.Column():
+            out = gr.Textbox()
+
+        count_btn.click(count, num, out, api_name=False)
+        list_btn.click(show, num, out, api_name=False)
 
     return demo.queue()
 
@@ -247,13 +273,13 @@ def hello_world_with_group():
             gr.Textbox("Hello!")
 
         def greeting(name):
-            return f"Hello {name}", gr.Group.update(visible=True)
+            return f"Hello {name}", gr.Group(visible=True)
 
         greet.click(
             greeting, inputs=[name], outputs=[output, group], api_name="greeting"
         )
         show_group.click(
-            lambda: gr.Group.update(visible=False), None, group, api_name="show_group"
+            lambda: gr.Group(visible=False), None, group, api_name="show_group"
         )
     return demo
 
@@ -275,7 +301,7 @@ def hello_world_with_state_and_accordion():
 
         def greeting(name, state):
             state += 1
-            return state, f"Hello {name}", state, gr.Accordion.update(open=False)
+            return state, f"Hello {name}", state, gr.Accordion(open=False)
 
         greet.click(
             greeting,
@@ -284,13 +310,13 @@ def hello_world_with_state_and_accordion():
             api_name="greeting",
         )
         open_acc.click(
-            lambda state: (state + 1, state + 1, gr.Accordion.update(open=True)),
+            lambda state: (state + 1, state + 1, gr.Accordion(open=True)),
             [n_counts],
             [n_counts, num, accordion],
             api_name="open",
         )
         close_acc.click(
-            lambda state: (state + 1, state + 1, gr.Accordion.update(open=False)),
+            lambda state: (state + 1, state + 1, gr.Accordion(open=False)),
             [n_counts],
             [n_counts, num, accordion],
             api_name="close",
@@ -324,6 +350,11 @@ def stream_audio():
 
 
 @pytest.fixture
+def video_component():
+    return gr.Interface(fn=lambda x: x, inputs=gr.Video(), outputs=gr.Video())
+
+
+@pytest.fixture
 def all_components():
     classes_to_check = gr.components.Component.__subclasses__()
     subclasses = []
@@ -336,9 +367,18 @@ def all_components():
             classes_to_check.extend(children)
         if (
             "value" in inspect.signature(subclass).parameters
-            and subclass != gr.components.IOComponent
+            and subclass != gr.components.Component
             and not getattr(subclass, "is_template", False)
         ):
             subclasses.append(subclass)
 
     return subclasses
+
+
+@pytest.fixture(autouse=True)
+def gradio_temp_dir(monkeypatch, tmp_path):
+    """tmp_path is unique to each test function.
+    It will be cleared automatically according to pytest docs: https://docs.pytest.org/en/6.2.x/reference.html#tmp-path
+    """
+    monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
+    return tmp_path

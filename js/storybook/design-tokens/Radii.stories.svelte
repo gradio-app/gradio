@@ -10,7 +10,7 @@
 		{ tokenName: "--radius-md", value: "6px" },
 		{ tokenName: "--radius-lg", value: "8px" },
 		{ tokenName: "--radius-xl", value: "12px" },
-		{ tokenName: "--radius-xxl", value: "22px" },
+		{ tokenName: "--radius-xxl", value: "22px" }
 	];
 </script>
 

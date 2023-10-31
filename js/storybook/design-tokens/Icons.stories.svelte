@@ -40,7 +40,7 @@
 		Tree,
 		Undo,
 		Video,
-		Warning,
+		Warning
 	} from "../../icons/src";
 
 	const icons = [
@@ -81,7 +81,7 @@
 		{ name: "Tree", value: Tree },
 		{ name: "Undo", value: Undo },
 		{ name: "Video", value: Video },
-		{ name: "Warning", value: Warning },
+		{ name: "Warning", value: Warning }
 	];
 </script>
 

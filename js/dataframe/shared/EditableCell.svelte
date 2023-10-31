@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import type { ActionReturn } from "svelte/action";
 	import { MarkdownCode } from "@gradio/markdown";
 
 	export let edit: boolean;
@@ -30,7 +29,7 @@
 	export let el: HTMLInputElement | null;
 	$: _value = value;
 
-	function use_focus(node: HTMLInputElement): ActionReturn {
+	function use_focus(node: HTMLInputElement): any {
 		if (clear_on_focus) {
 			_value = "";
 		}
@@ -42,6 +41,15 @@
 
 		return {};
 	}
+
+	function handle_blur({
+		currentTarget
+	}: {
+		currentTarget: HTMLInputElement;
+	}): void {
+		value = currentTarget.value;
+		dispatch("blur");
+	}
 </script>
 
 {#if edit}
@@ -50,10 +58,7 @@
 		bind:value={_value}
 		class:header
 		tabindex="-1"
-		on:blur={({ currentTarget }) => {
-			value = currentTarget.value;
-			dispatch("blur");
-		}}
+		on:blur={handle_blur}
 		use:use_focus
 		on:keydown
 	/>

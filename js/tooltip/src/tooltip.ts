@@ -1,4 +1,4 @@
-import type { ActionReturn } from "svelte/action";
+// import type { ActionReturn } from "@gradio/tootils";
 import Tooltip from "./Tooltip.svelte";
 
 interface ActionArgs {
@@ -9,7 +9,7 @@ interface ActionArgs {
 export function tooltip(
 	element: HTMLElement | SVGElement,
 	{ color, text }: ActionArgs
-): ActionReturn {
+): any {
 	let tooltipComponent: Tooltip;
 	function mouse_over(event: MouseEvent): MouseEvent {
 		tooltipComponent = new Tooltip({

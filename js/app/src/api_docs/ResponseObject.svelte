@@ -24,12 +24,8 @@
 						><!--
 					--> # {#if current_language === "python"}{python_type.type}{#if python_type?.description}&nbsp;({python_type.description}){/if}{:else}{js_returns[
 								i
-							].type}{#if js_returns[
-								i
-							].description}&nbsp;({js_returns[
-								i
-							]
-											.description}){/if}{/if}
+							].type}{#if js_returns[i].description}&nbsp;({js_returns[i]
+									.description}){/if}{/if}
 						<!--
 					-->representing output in '{label}' <!--
 					-->{component}

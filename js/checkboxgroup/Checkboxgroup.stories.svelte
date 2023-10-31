@@ -1,6 +1,6 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import Checkboxgroup from "./shared/Checkboxgroup.svelte";
+	import Checkboxgroup from "./Index.svelte";
 </script>
 
 <Meta

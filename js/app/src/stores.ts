@@ -163,4 +163,3 @@ export function create_loading_status_store(): LoadingStatusStore {
 }
 
 export type LoadingStatusType = ReturnType<typeof create_loading_status_store>;
-export const app_state = writable({ autoscroll: false });

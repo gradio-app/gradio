@@ -1,5 +1,29 @@
 # website
 
+## 0.11.0-beta.1
+
+### Features
+
+- [#6136](https://github.com/gradio-app/gradio/pull/6136) [`667802a6c`](https://github.com/gradio-app/gradio/commit/667802a6cdbfb2ce454a3be5a78e0990b194548a) - JS Component Documentation.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6142](https://github.com/gradio-app/gradio/pull/6142) [`103416d17`](https://github.com/gradio-app/gradio/commit/103416d17f021c82f5ff0583dcc2d80906ad279e) - JS READMEs and Storybook on Docs.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#6121](https://github.com/gradio-app/gradio/pull/6121) [`93d28bc08`](https://github.com/gradio-app/gradio/commit/93d28bc088f7154ecc00f79eb98119f6d4858fe3) - Small fix to website header.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#6151](https://github.com/gradio-app/gradio/pull/6151) [`e67e3f813`](https://github.com/gradio-app/gradio/commit/e67e3f813ea461d3245b4b575f3b2c44fca6a39c) - Fix issues with website deploy.  Thanks [@aliabd](https://github.com/aliabd)!
+
+## 0.11.0-beta.0
+
+### Features
+
+- [#6082](https://github.com/gradio-app/gradio/pull/6082) [`037e5af33`](https://github.com/gradio-app/gradio/commit/037e5af3363c5b321b95efc955ee8d6ec0f4504e) - WIP: Fix docs.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6016](https://github.com/gradio-app/gradio/pull/6016) [`83e947676`](https://github.com/gradio-app/gradio/commit/83e947676d327ca2ab6ae2a2d710c78961c771a0) - Format js in v4 branch.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6089](https://github.com/gradio-app/gradio/pull/6089) [`cd8146ba0`](https://github.com/gradio-app/gradio/commit/cd8146ba053fbcb56cf5052e658e4570d457fb8a) - Update logos for v4.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6097](https://github.com/gradio-app/gradio/pull/6097) [`439efa39d`](https://github.com/gradio-app/gradio/commit/439efa39dd47bd0c5235f74244aae539d0629492) - Add banner for 4.0 livestream to website.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#6040](https://github.com/gradio-app/gradio/pull/6040) [`5524e5905`](https://github.com/gradio-app/gradio/commit/5524e590577769b0444a5332b8d444aafb0c5c12) - playground proposal.  Thanks [@pngwn](https://github.com/pngwn)!
+
+### Fixes
+
+- [#6046](https://github.com/gradio-app/gradio/pull/6046) [`dbb7de5e0`](https://github.com/gradio-app/gradio/commit/dbb7de5e02c53fee05889d696d764d212cb96c74) - fix tests.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#6052](https://github.com/gradio-app/gradio/pull/6052) [`8241f9a7b`](https://github.com/gradio-app/gradio/commit/8241f9a7bd034256aabb9efa9acb9e36216557ac) - Updated the twitter logo to its latest logo (X).  Thanks [@niranjan-kurhade](https://github.com/niranjan-kurhade)!
+
 ## 0.10.0
 
 ### Features

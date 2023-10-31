@@ -86,12 +86,12 @@ def _add_oauth_routes(app: fastapi.FastAPI) -> None:
         if ".hf.space" in redirect_uri:
             # In Space, FastAPI redirect as http but we want https
             redirect_uri = redirect_uri.replace("http://", "https://")
-        return await oauth.huggingface.authorize_redirect(request, redirect_uri)
+        return await oauth.huggingface.authorize_redirect(request, redirect_uri)  # type: ignore
 
     @app.get("/login/callback")
     async def oauth_redirect_callback(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that handles the OAuth callback."""
-        token = await oauth.huggingface.authorize_access_token(request)
+        token = await oauth.huggingface.authorize_access_token(request)  # type: ignore
         request.session["oauth_profile"] = token["userinfo"]
         request.session["oauth_token"] = token
         return RedirectResponse("/")

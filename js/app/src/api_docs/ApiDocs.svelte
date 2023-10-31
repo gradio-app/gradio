@@ -1,7 +1,7 @@
 <script lang="ts">
 	/* eslint-disable */
 	import { onMount, createEventDispatcher } from "svelte";
-	import type { ComponentMeta, Dependency } from "../components/types";
+	import type { ComponentMeta, Dependency } from "../types";
 	import { post_data } from "@gradio/client";
 	import NoApi from "./NoApi.svelte";
 	import type { client } from "@gradio/client";
@@ -13,7 +13,6 @@
 	import InstallSnippet from "./InstallSnippet.svelte";
 	import CodeSnippets from "./CodeSnippets.svelte";
 
-	import TryButton from "./TryButton.svelte";
 	import python from "./img/python.svg";
 	import javascript from "./img/javascript.svg";
 

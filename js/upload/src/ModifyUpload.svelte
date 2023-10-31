@@ -1,18 +1,19 @@
 <script lang="ts">
 	import { IconButton } from "@gradio/atoms";
+	import type { I18nFormatter } from "@gradio/utils";
 	import { Edit, Clear, Undo } from "@gradio/icons";
 
 	import { createEventDispatcher } from "svelte";
-	import { _ } from "svelte-i18n";
 
 	export let editable = false;
 	export let undoable = false;
 	export let absolute = true;
+	export let i18n: I18nFormatter;
 
 	const dispatch = createEventDispatcher<{
-		edit: never;
-		clear: never;
-		undo: never;
+		edit?: never;
+		clear?: never;
+		undo?: never;
 	}>();
 </script>
 
@@ -23,7 +24,7 @@
 	{#if editable}
 		<IconButton
 			Icon={Edit}
-			label={$_("common.edit")}
+			label={i18n("common.edit")}
 			on:click={() => dispatch("edit")}
 		/>
 	{/if}
@@ -31,14 +32,14 @@
 	{#if undoable}
 		<IconButton
 			Icon={Undo}
-			label={$_("common.undo")}
+			label={i18n("common.undo")}
 			on:click={() => dispatch("undo")}
 		/>
 	{/if}
 
 	<IconButton
 		Icon={Clear}
-		label={$_("common.clear")}
+		label={i18n("common.clear")}
 		on:click={(event) => {
 			dispatch("clear");
 			event.stopPropagation();

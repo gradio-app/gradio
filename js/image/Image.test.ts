@@ -11,7 +11,7 @@ import { spy } from "tinyspy";
 import { cleanup, render } from "@gradio/tootils";
 import { setupi18n } from "../app/src/i18n";
 
-import Image from "./interactive";
+import Image from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status = {
@@ -37,25 +37,30 @@ describe("Image", () => {
 		const { component, listen } = await render(Image, {
 			show_label: true,
 			loading_status,
-			value:
-				"https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+			value: {
+				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+				orig_name: "bus.png",
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+			},
 			streaming: false,
 			pending: false,
-			source: "upload",
 			label: "Test Label",
 			width: 224,
 			height: 224,
 			mirror_webcam: false,
-			shape: [224, 224],
-			brush_color: "#000000",
-			brush_radius: 5,
-			mask_opacity: 0.5
+			// brush_color: "#000000",
+			// brush_radius: 5,
+			// mask_opacity: 0.5,
+			interactive: true
 		});
 
 		const mock = listen("change");
 
-		component.value =
-			"https://github.com/gradio-app/gradio/blob/main/test/test_files/cheetah1.jpg";
+		component.value = {
+			url: "https://github.com/gradio-app/gradio/blob/main/test/test_files/cheetah1.jpg",
+			orig_name: "bus.png",
+			path: "https://github.com/gradio-app/gradio/blob/main/test/test_files/cheetah1.jpg"
+		};
 		assert.equal(mock.callCount, 1);
 	});
 });

@@ -14,7 +14,7 @@ def add_to_stream(audio, instream):
 
 
 with gr.Blocks() as demo:
-    inp = gr.Audio(source="microphone")
+    inp = gr.Audio(sources=["microphone"])
     out = gr.Audio()
     stream = gr.State()
     clear = gr.Button("Clear")

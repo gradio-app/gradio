@@ -1,54 +1,45 @@
-import {
-	afterAll,
-	afterEach,
-	beforeAll,
-	beforeEach,
-	describe,
-	expect,
-	test
-} from "vitest";
+import { afterEach, beforeAll, describe, expect, test } from "vitest";
 import { render, cleanup } from "@gradio/tootils";
 import { setupi18n } from "../src/i18n";
+import { Gradio } from "../src/gradio_helper";
 
-import StaticAnnotatedImage from "@gradio/annotatedimage/static";
-import StaticAudio from "@gradio/audio/static";
-import StaticChatbot from "@gradio/chatbot/static";
-import StaticCheckbox from "@gradio/checkbox/static";
-import StaticCheckboxGroup from "@gradio/checkboxgroup/static";
-import StaticColorPicker from "@gradio/colorpicker/static";
-import StaticDataframe from "@gradio/dataframe/static";
-import StaticDropdown from "@gradio/dropdown/static";
-import StaticFile from "@gradio/file/static";
-import StaticGallery from "@gradio/gallery/static";
-import StaticHTML from "@gradio/html/static";
-import StaticHighlightedText from "@gradio/highlightedtext/static";
-import StaticJson from "@gradio/json/static";
-import StaticLabel from "@gradio/label/static";
-import StaticMarkdown from "@gradio/markdown/static";
-import StaticModel3D from "@gradio/model3d/static";
-import StaticNumber from "@gradio/number/static";
-import StaticRadio from "@gradio/radio/static";
-import StaticSlider from "@gradio/slider/static";
-import StaticTextbox from "@gradio/textbox/static";
-import StaticTimeSeries from "@gradio/timeseries/static";
-import StaticUploadButton from "@gradio/uploadbutton/static";
-import StaticVideo from "@gradio/video/static";
+import StaticAnnotatedImage from "@gradio/annotatedimage";
+import StaticAudio from "@gradio/audio";
+import StaticChatbot from "@gradio/chatbot";
+import StaticCheckbox from "@gradio/checkbox";
+import StaticCheckboxGroup from "@gradio/checkboxgroup";
+import StaticColorPicker from "@gradio/colorpicker";
+import StaticDataframe from "@gradio/dataframe";
+import StaticDropdown from "@gradio/dropdown";
+import StaticFile from "@gradio/file";
+import StaticGallery from "@gradio/gallery";
+import StaticHTML from "@gradio/html";
+import StaticHighlightedText from "@gradio/highlightedtext";
+import StaticJson from "@gradio/json";
+import StaticLabel from "@gradio/label";
+import StaticMarkdown from "@gradio/markdown";
+import StaticModel3D from "@gradio/model3d";
+import StaticNumber from "@gradio/number";
+import StaticRadio from "@gradio/radio";
+import StaticSlider from "@gradio/slider";
+import StaticTextbox from "@gradio/textbox";
+import StaticUploadButton from "@gradio/uploadbutton";
+import StaticVideo from "@gradio/video";
 
-import InteractiveAudio from "@gradio/audio/interactive";
-import InteractiveCheckbox from "@gradio/checkbox/interactive";
-import InteractiveCheckboxGroup from "@gradio/checkboxgroup/interactive";
-import InteractiveColorPicker from "@gradio/colorpicker/interactive";
-import InteractiveDataframe from "@gradio/dataframe/interactive";
-import InteractiveDropdown from "@gradio/dropdown/interactive";
-import InteractiveFile from "@gradio/file/interactive";
-import InteractiveModel3D from "@gradio/model3d/interactive";
-import InteractiveNumber from "@gradio/number/interactive";
-import InteractiveRadio from "@gradio/radio/interactive";
-import InteractiveSlider from "@gradio/slider/interactive";
-import InteractiveTextbox from "@gradio/textbox/interactive";
-import InteractiveTimeSeries from "@gradio/timeseries/interactive";
-import InteractiveUploadButton from "@gradio/uploadbutton/interactive";
-import InteractiveVideo from "@gradio/video/interactive";
+import InteractiveAudio from "@gradio/audio";
+import InteractiveCheckbox from "@gradio/checkbox";
+import InteractiveCheckboxGroup from "@gradio/checkboxgroup";
+import InteractiveColorPicker from "@gradio/colorpicker";
+import InteractiveDataframe from "@gradio/dataframe";
+import InteractiveDropdown from "@gradio/dropdown";
+import InteractiveFile from "@gradio/file";
+import InteractiveModel3D from "@gradio/model3d";
+import InteractiveNumber from "@gradio/number";
+import InteractiveRadio from "@gradio/radio";
+import InteractiveSlider from "@gradio/slider";
+import InteractiveTextbox from "@gradio/textbox";
+import InteractiveUploadButton from "@gradio/uploadbutton";
+import InteractiveVideo from "@gradio/video";
 import { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status: LoadingStatus = {
@@ -66,69 +57,95 @@ const components = [
 	[
 		"StaticAnnotatedImage",
 		StaticAnnotatedImage,
-		{ height: 100, width: 100, value: null }
+		{ height: 100, width: 100, value: null, interactive: false }
 	],
-	["InteractiveAudio", InteractiveAudio, {}],
-	["StaticAudio", StaticAudio, {}],
+	["InteractiveAudio", InteractiveAudio, { interactive: true }],
+	["StaticAudio", StaticAudio, { interactive: false }],
 
-	["StaticChatbot", StaticChatbot, {}],
-	["InteractiveCheckbox", InteractiveCheckbox, {}],
-	["StaticCheckbox", StaticCheckbox, {}],
+	["StaticChatbot", StaticChatbot, { interactive: false }],
+	["InteractiveCheckbox", InteractiveCheckbox, { interactive: true }],
+	["StaticCheckbox", StaticCheckbox, { interactive: false }],
 	[
 		"InteractiveCheckboxGroup",
 		InteractiveCheckboxGroup,
-		{ choices: ["a", "b", "c"] }
+		{ choices: ["a", "b", "c"], interactive: true }
 	],
-	["StaticCheckboxGroup", StaticCheckboxGroup, { choices: ["a", "b", "c"] }],
-	["InteractiveColorPicker", InteractiveColorPicker, {}],
-	["StaticColorPicker", StaticColorPicker, {}],
+	[
+		"StaticCheckboxGroup",
+		StaticCheckboxGroup,
+		{ choices: ["a", "b", "c"], interactive: false }
+	],
+	["InteractiveColorPicker", InteractiveColorPicker, { interactive: true }],
+	["StaticColorPicker", StaticColorPicker, { interactive: false }],
 	[
 		"InteractiveDataFrame",
 		InteractiveDataframe,
-		{ value: [[1, 2, 3]], col_count: [3, "fixed"], row_count: [3, "fixed"] }
+		{
+			value: [[1, 2, 3]],
+			col_count: [3, "fixed"],
+			row_count: [3, "fixed"],
+			interactive: true
+		}
 	],
 	[
 		"StaticDataFrame",
 		StaticDataframe,
-		{ value: [[1, 2, 3]], col_count: [3, "fixed"], row_count: [3, "fixed"] }
+		{
+			value: [[1, 2, 3]],
+			col_count: [3, "fixed"],
+			row_count: [3, "fixed"],
+			interactive: false
+		}
 	],
-	["InteractiveDropdown", InteractiveDropdown, { choices: ["a", "b", "c"] }],
-	["StaticDropdown", StaticDropdown, { choices: ["a", "b", "c"] }],
-	["InteractiveFile", InteractiveFile, {}],
-	["StaticFile", StaticFile, {}],
+	[
+		"InteractiveDropdown",
+		InteractiveDropdown,
+		{ choices: ["a", "b", "c"], interactive: true }
+	],
+	[
+		"StaticDropdown",
+		StaticDropdown,
+		{ choices: ["a", "b", "c"], interactive: false }
+	],
+	["InteractiveFile", InteractiveFile, { interactive: true }],
+	["StaticFile", StaticFile, { interactive: false }],
 
-	["StaticGallery", StaticGallery, {}],
+	["StaticGallery", StaticGallery, { interactive: false }],
 
-	["StaticHTML", StaticHTML, {}],
+	["StaticHTML", StaticHTML, { interactive: false }],
 
-	["StaticHighlightedText", StaticHighlightedText, {}],
+	["StaticHighlightedText", StaticHighlightedText, { interactive: false }],
 
-	["StaticJson", StaticJson, {}],
+	["StaticJson", StaticJson, { interactive: false }],
 
-	["StaticLabel", StaticLabel, {}],
+	["StaticLabel", StaticLabel, { interactive: false }],
 
-	["StaticMarkdown", StaticMarkdown, {}],
-	["InteractiveModel3D", InteractiveModel3D, {}],
-	["StaticModel3D", StaticModel3D, {}],
-	["InteractiveNumber", InteractiveNumber, {}],
-	["StaticNumber", StaticNumber, {}],
-	["InteractiveRadio", InteractiveRadio, {}],
-	["StaticRadio", StaticRadio, {}],
-	["InteractiveSlider", InteractiveSlider, {}],
-	["StaticSlider", StaticSlider, {}],
-	["InteractiveTextbox", InteractiveTextbox, { container: false }],
-	["StaticTextbox", StaticTextbox, { container: false }],
-	["InteractiveTimeSeries", InteractiveTimeSeries, {}],
-	["StaticTimeSeries", StaticTimeSeries, {}],
-	["InteractiveUploadButton", InteractiveUploadButton, {}],
-	["StaticUploadButton", StaticUploadButton, {}],
-	["InteractiveVideo", InteractiveVideo, {}],
-	["StaticVideo", StaticVideo, {}]
+	["StaticMarkdown", StaticMarkdown, { interactive: false }],
+	["InteractiveModel3D", InteractiveModel3D, { interactive: true }],
+	["StaticModel3D", StaticModel3D, { interactive: false }],
+	["InteractiveNumber", InteractiveNumber, { interactive: true }],
+	["StaticNumber", StaticNumber, { interactive: false }],
+	["InteractiveRadio", InteractiveRadio, { interactive: true }],
+	["StaticRadio", StaticRadio, { interactive: false }],
+	["InteractiveSlider", InteractiveSlider, { interactive: true }],
+	["StaticSlider", StaticSlider, { interactive: false }],
+	[
+		"InteractiveTextbox",
+		InteractiveTextbox,
+		{ container: false, interactive: true }
+	],
+	["StaticTextbox", StaticTextbox, { container: false, interactive: false }],
+	// ["InteractiveTimeSeries", InteractiveTimeSeries, {}],
+	// ["StaticTimeSeries", StaticTimeSeries, {}],
+	["InteractiveUploadButton", InteractiveUploadButton, { interactive: true }],
+	["StaticUploadButton", StaticUploadButton, { interactive: false }],
+	["InteractiveVideo", InteractiveVideo, { interactive: true }],
+	["StaticVideo", StaticVideo, { interactive: false }]
 ] as const;
 
 describe("all components should apply provided class names", () => {
-	beforeAll(() => {
-		setupi18n();
+	beforeAll(async () => {
+		await setupi18n();
 	});
 
 	afterEach(() => {
@@ -140,7 +157,15 @@ describe("all components should apply provided class names", () => {
 			const { container } = await render(component, {
 				...props,
 				loading_status,
-				elem_classes: ["test-class"]
+				elem_classes: ["test-class"],
+				gradio: new Gradio(
+					0,
+					document.createElement("div"),
+					"light",
+					"3.1.1",
+					"",
+					false
+				)
 			});
 
 			const elem = container.querySelector(`.test-class`);
@@ -154,8 +179,8 @@ describe("all components should apply provided class names", () => {
 });
 
 describe("all components should apply provided id", () => {
-	beforeAll(() => {
-		setupi18n();
+	beforeAll(async () => {
+		await setupi18n();
 	});
 
 	afterEach(() => {
@@ -181,8 +206,8 @@ describe("all components should apply provided id", () => {
 });
 
 describe("all components should be invisible when visible=false", () => {
-	beforeAll(() => {
-		setupi18n();
+	beforeAll(async () => {
+		await setupi18n();
 	});
 
 	afterEach(() => {
@@ -210,8 +235,8 @@ describe("all components should be invisible when visible=false", () => {
 });
 
 describe("all components should have the appropriate label when set via the `label` prop", () => {
-	beforeAll(() => {
-		setupi18n();
+	beforeAll(async () => {
+		await setupi18n();
 	});
 
 	afterEach(() => {

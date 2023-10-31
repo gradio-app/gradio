@@ -10,7 +10,7 @@
 		{ tokenName: "--spacing-md", value: "6px" },
 		{ tokenName: "--spacing-lg", value: "8px" },
 		{ tokenName: "--spacing-xl", value: "10px" },
-		{ tokenName: "--spacing-xxl", value: "16px" },
+		{ tokenName: "--spacing-xxl", value: "16px" }
 	];
 </script>
 

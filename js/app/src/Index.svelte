@@ -2,11 +2,7 @@
 	import { writable } from "svelte/store";
 	import { mount_css as default_mount_css } from "./css";
 
-	import type {
-		ComponentMeta,
-		Dependency,
-		LayoutNode
-	} from "./components/types";
+	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 
 	declare let BUILD_MODE: string;
 	interface Config {
@@ -66,7 +62,7 @@
 	import { onMount, setContext } from "svelte";
 	import type { api_factory, SpaceStatus } from "@gradio/client";
 	import Embed from "./Embed.svelte";
-	import type { ThemeMode } from "./components/types";
+	import type { ThemeMode } from "./types";
 	import { StatusTracker } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
 	import { setupi18n } from "./i18n";
@@ -85,7 +81,7 @@
 	export let container: boolean;
 	export let info: boolean;
 	export let eager: boolean;
-	let websocket: WebSocket;
+	let eventSource: EventSource;
 
 	// These utilities are exported to be injectable for the Wasm version.
 	export let mount_css: typeof default_mount_css = default_mount_css;
@@ -115,6 +111,7 @@
 	let config: Config;
 	let loading_text = $_("common.loading") + "...";
 	let active_theme_mode: ThemeMode;
+	let api_url: string;
 
 	$: if (config?.app_id) {
 		app_id = config.app_id;
@@ -193,7 +190,7 @@
 		message: "",
 		load_status: "pending",
 		status: "sleeping",
-		detail: "SLEEPING"
+		detail: "SLEEPING",
 	};
 
 	let app: Awaited<ReturnType<typeof client>>;
@@ -206,14 +203,21 @@
 			active_theme_mode = handle_darkmode(wrapper);
 		}
 
-		const api_url =
-			BUILD_MODE === "dev"
-				? "http://localhost:7860"
+		//@ts-ignore
+		const gradio_dev_mode = window.__GRADIO_DEV__;
+		//@ts-ignore
+		const server_port = window.__GRADIO__SERVER_PORT__;
+
+		api_url =
+			BUILD_MODE === "dev" || gradio_dev_mode === "dev"
+				? `http://localhost:${
+						typeof server_port === "number" ? server_port : 7860
+				  }`
 				: host || space || src || location.origin;
 
 		app = await client(api_url, {
 			status_callback: handle_status,
-			normalise_files: false
+			normalise_files: false,
 		});
 		config = app.config;
 		window.__gradio_space__ = config.space_id;
@@ -222,7 +226,7 @@
 			message: "",
 			load_status: "complete",
 			status: "running",
-			detail: "RUNNING"
+			detail: "RUNNING",
 		};
 
 		await mount_custom_css(wrapper, config.css);
@@ -232,19 +236,30 @@
 		if (config.dev_mode) {
 			setTimeout(() => {
 				const { host } = new URL(api_url);
-				let url = new URL(`ws://${host}/dev/reload`);
-				websocket = new WebSocket(url);
-				websocket.onmessage = async function (event) {
+				let url = new URL(`http://${host}/dev/reload`);
+				eventSource = new EventSource(url);
+				eventSource.onmessage = async function (event) {
 					if (event.data === "CHANGE") {
 						app = await client(api_url, {
 							status_callback: handle_status,
-							normalise_files: false
+							normalise_files: false,
 						});
-						app.config.root = app.config.path;
 						config = app.config;
 						window.__gradio_space__ = config.space_id;
 					}
 				};
+
+				// websocket = new WebSocket(url);
+				// websocket.onmessage = async function (event) {
+				// 	if (event.data === "CHANGE") {
+				// 		app = await client(api_url, {
+				// 			status_callback: handle_status,
+				// 			normalise_files: false
+				// 		});
+				// 		config = app.config;
+				// 		window.__gradio_space__ = config.space_id;
+				// 	}
+				// };
 			}, 200);
 		}
 	});
@@ -289,7 +304,7 @@
 			CONFIG_ERROR: $_("errors.config_error"),
 			BUILD_ERROR: $_("errors.build_error"),
 			RUNTIME_ERROR: $_("errors.runtime_error"),
-			PAUSED: $_("errors.space_paused")
+			PAUSED: $_("errors.space_paused"),
 		} as const,
 		title(error: error_types): string {
 			return encodeURIComponent($_("errors.space_not_working"));
@@ -300,7 +315,7 @@
 					this.readable_error[error] || "an error"
 				}.\n\nIt would be great if you could take a look at this because this space is being embedded on ${site}.\n\nThanks!`
 			);
-		}
+		},
 	};
 
 	onMount(async () => {
@@ -312,7 +327,7 @@
 			new CustomEvent("render", {
 				bubbles: true,
 				cancelable: false,
-				composed: true
+				composed: true,
 			})
 		);
 	}
@@ -337,6 +352,8 @@
 			queue_size={null}
 			translucent={true}
 			{loading_text}
+			i18n={$_}
+			{autoscroll}
 		>
 			<!-- todo: translate message text -->
 			<div class="error" slot="error">
@@ -380,6 +397,7 @@
 			show_footer={!is_embed}
 			{app_mode}
 			{version}
+			{api_url}
 		/>
 	{/if}
 </Embed>

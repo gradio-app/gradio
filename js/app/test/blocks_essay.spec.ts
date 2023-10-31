@@ -14,6 +14,7 @@ test("updates frontend correctly", async ({ page }) => {
 	textbox.fill("hello world");
 	await short_btn.check();
 	await expect(textbox).toHaveValue("hello world");
+	await expect(textbox).toHaveAttribute("rows", "2");
 
 	await hidden_btn.check();
 	await expect(textbox).toBeHidden();

@@ -10,7 +10,7 @@ def longest_word(text):
 ex = "The quick brown fox jumped over the lazy dog."
 
 demo = gr.Interface(
-    longest_word, "textbox", "label", interpretation="default", examples=[[ex]]
+    longest_word, "textbox", "label", examples=[[ex]]
 )
 
 

@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[<img src="../gradio.svg" alt="gradio" width=300>](https://gradio.app)<br>
+[<img src="../gradio.svg" alt="gradio" width=400>](https://gradio.app)<br>
 <em>轻松构建 & 分享 令人愉快的机器学习程序</em>
 
 [![gradio-backend](https://github.com/gradio-app/gradio/actions/workflows/backend.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/backend.yml)

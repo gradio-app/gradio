@@ -47,8 +47,6 @@
 			hf_token: hf_token
 		});
 
-		console.log(app.config);
-
 		const { named_endpoints, unnamed_endpoints } = await app.view_api();
 
 		named = Object.keys(named_endpoints);
@@ -65,8 +63,6 @@
 			type === "unnamed" ? parseInt(_endpoint) : _endpoint
 		];
 		if (!_endpoint_info) return;
-
-		console.log(_endpoint_info);
 
 		app_info = _endpoint_info;
 		active_endpoint = type === "unnamed" ? parseInt(_endpoint) : _endpoint;
@@ -93,8 +89,6 @@
 			.on("status", (_status) => {
 				status = _status.stage;
 			});
-		// console.log(res);
-		// response_data = res;
 	}
 
 	function cancel() {

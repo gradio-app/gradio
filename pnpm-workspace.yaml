@@ -3,3 +3,4 @@ packages:
   - "gradio"
   - "client/*"
   - "client/*/*"
+  - "js/preview/test/**/*"

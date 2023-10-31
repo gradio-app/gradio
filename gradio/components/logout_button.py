@@ -20,8 +20,9 @@ class LogoutButton(Button):
 
     def __init__(
         self,
-        *,
         value: str = "Logout",
+        *,
+        every: float | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         size: Literal["sm", "lg"] | None = None,
         icon: str
@@ -32,12 +33,13 @@ class LogoutButton(Button):
         interactive: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        render: bool = True,
         scale: int | None = 0,
         min_width: int | None = None,
-        **kwargs,
     ):
         super().__init__(
             value,
+            every=every,
             variant=variant,
             size=size,
             icon=icon,
@@ -46,7 +48,7 @@ class LogoutButton(Button):
             interactive=interactive,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            render=render,
             scale=scale,
             min_width=min_width,
-            **kwargs,
         )

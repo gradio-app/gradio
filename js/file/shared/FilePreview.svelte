@@ -1,9 +1,8 @@
 <script lang="ts">
-	import type { FileData } from "@gradio/upload";
+	import type { FileData } from "@gradio/client";
 	import { display_file_name, display_file_size } from "./utils";
 	import { createEventDispatcher } from "svelte";
-	import type { SelectData } from "@gradio/utils";
-	import { _ } from "svelte-i18n";
+	import type { I18nFormatter, SelectData } from "@gradio/utils";
 
 	const dispatch = createEventDispatcher<{
 		select: SelectData;
@@ -11,6 +10,7 @@
 	export let value: FileData | FileData[];
 	export let selectable = false;
 	export let height: number | undefined = undefined;
+	export let i18n: I18nFormatter;
 </script>
 
 <div
@@ -25,7 +25,7 @@
 					class:selectable
 					on:click={() =>
 						dispatch("select", {
-							value: file.orig_name || file.name,
+							value: file.orig_name,
 							index: i
 						})}
 				>
@@ -34,18 +34,16 @@
 					</td>
 
 					<td class="download">
-						{#if file.data}
+						{#if file.url}
 							<a
-								href={file.data}
+								href={file.url}
 								target="_blank"
-								download={window.__is_colab__
-									? null
-									: file.orig_name || file.name}
+								download={window.__is_colab__ ? null : file.orig_name}
 							>
 								{@html display_file_size(file)}&nbsp;&#8675;
 							</a>
 						{:else}
-							{$_("file.uploading")}
+							{i18n("file.uploading")}
 						{/if}
 					</td>
 				</tr>

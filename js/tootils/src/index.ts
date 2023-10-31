@@ -41,5 +41,19 @@ export async function wait_for_event(
 	});
 }
 
+export interface ActionReturn<
+	Parameter = never,
+	Attributes extends Record<string, any> = Record<never, any>
+> {
+	update?: [Parameter] extends [never] ? never : (parameter: Parameter) => void;
+	destroy?: () => void;
+	/**
+	 * ### DO NOT USE THIS
+	 * This exists solely for type-checking and has no effect at runtime.
+	 * Set this through the `Attributes` generic instead.
+	 */
+	$$_attributes?: Attributes;
+}
+
 export { expect } from "@playwright/test";
 export * from "./render";

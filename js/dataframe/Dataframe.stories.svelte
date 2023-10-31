@@ -1,5 +1,6 @@
-<script>
+<script lang="ts">
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
+	import { Gradio } from "../app/src/gradio_helper";
 	import Table from "./shared/Table.svelte";
 </script>
 
@@ -17,7 +18,7 @@
 />
 
 <Template let:args>
-	<Table {...args} />
+	<Table {...args} i18n={(s) => s} />
 </Template>
 
 <Story
