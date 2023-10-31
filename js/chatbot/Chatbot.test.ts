@@ -24,7 +24,7 @@ describe("Chatbot", () => {
 			label: "chatbot",
 			value: [["user message one", "bot message one"]],
 			root: "",
-			root_url: "",
+			proxy_url: "",
 			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
 		});
 
@@ -41,7 +41,7 @@ describe("Chatbot", () => {
 			label: "chatbot",
 			value: [[null, null]],
 			root: "",
-			root_url: "",
+			proxy_url: "",
 			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
 		});
 
@@ -62,7 +62,7 @@ describe("Chatbot", () => {
 			label: "chatbot",
 			value: [["", ""]],
 			root: "",
-			root_url: "",
+			proxy_url: "",
 			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
 		});
 
@@ -79,7 +79,7 @@ describe("Chatbot", () => {
 			label: "chatbot",
 			value: [["user message one", "bot message one"]],
 			root: "",
-			root_url: "",
+			proxy_url: "",
 			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
 		});
 
@@ -106,7 +106,7 @@ describe("Chatbot", () => {
 			label: "chatbot",
 			value: undefined,
 			root: "",
-			root_url: "",
+			proxy_url: "",
 			latex_delimiters: []
 		});
 
@@ -137,7 +137,7 @@ describe("Chatbot", () => {
 			loading_status,
 			label: "chatbot",
 			root: "",
-			root_url: "",
+			proxy_url: "",
 			latex_delimiters: [],
 			theme_mode: "dark"
 		});
@@ -165,7 +165,7 @@ describe("Chatbot", () => {
 			loading_status,
 			label: "chatbot",
 			root: "",
-			root_url: "",
+			proxy_url: "",
 			latex_delimiters: [],
 			theme_mode: "dark"
 		});
@@ -194,7 +194,7 @@ describe("Chatbot", () => {
 			loading_status,
 			label: "chatbot",
 			root: "",
-			root_url: "",
+			proxy_url: "",
 			latex_delimiters: []
 		});
 

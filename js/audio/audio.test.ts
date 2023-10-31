@@ -33,7 +33,7 @@ describe("Audio", () => {
 				orig_name: "SoundHelix-Song-1.mp3"
 			},
 			root: "",
-			root_url: "",
+			proxy_url: "",
 			theme_mode: "dark"
 		});
 

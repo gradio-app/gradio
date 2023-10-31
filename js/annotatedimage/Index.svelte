@@ -36,7 +36,7 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let root: string;
-	export let root_url: string;
+	export let proxy_url: string;
 	let active: string | null = null;
 	export let loading_status: LoadingStatus;
 
@@ -47,9 +47,9 @@
 		}
 		if (value) {
 			_value = {
-				image: normalise_file(value.image, root, root_url) as FileData,
+				image: normalise_file(value.image, root, proxy_url) as FileData,
 				annotations: value.annotations.map((ann) => ({
-					image: normalise_file(ann.image, root, root_url) as FileData,
+					image: normalise_file(ann.image, root, proxy_url) as FileData,
 					label: ann.label
 				}))
 			};

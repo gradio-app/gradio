@@ -34,8 +34,6 @@ class SimpleDropdown(FormComponent):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        root_url: str | None = None,
-        _skip_init_processing: bool = False,
     ):
         """
         Parameters:
@@ -52,8 +50,6 @@ class SimpleDropdown(FormComponent):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
                     render: bool = True,
-            root_url: str | None = None,
-            _skip_init_processing: bool = False,
         """
         self.choices = (
             # Although we expect choices to be a list of lists, it can be a list of tuples if the Gradio app
@@ -75,8 +71,6 @@ class SimpleDropdown(FormComponent):
             elem_classes=elem_classes,
             value=value,
             render=render,
-            root_url=root_url,
-            _skip_init_processing=_skip_init_processing,
         )
 
     def api_info(self) -> dict[str, Any]:
