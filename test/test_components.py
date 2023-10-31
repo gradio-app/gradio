@@ -30,9 +30,8 @@ except ImportError:
 
 import gradio as gr
 from gradio import processing_utils, utils
-from gradio.components.plot import PlotData, AltairPlotData
+from gradio.components.plot import PlotData
 from gradio.data_classes import FileData
-
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
