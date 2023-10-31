@@ -170,6 +170,9 @@ export default defineConfig(({ mode }) => {
 			handle_ce_css(),
 			inject_component_loader()
 		],
+		optimizeDeps: {
+			exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util"]
+		},
 		test: {
 			setupFiles: [resolve(__dirname, "../../.config/setup_vite_tests.ts")],
 			environment: TEST_MODE,

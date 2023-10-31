@@ -299,7 +299,7 @@ class PlayableVideo(components.Video):
         value: str | Callable | None = None,
         *,
         format: Literal["mp4"] | None = "mp4",
-        source: Literal["upload", "webcam"] = "upload",
+        sources: list[Literal["upload", "webcam"]] = ["upload"],  # noqa: B006
         label: str | None = None,
         show_label: bool = True,
         interactive: bool | None = None,
@@ -312,7 +312,7 @@ class PlayableVideo(components.Video):
         super().__init__(
             value=value,
             format=format,
-            source=source,
+            sources=sources,
             label=label,
             show_label=show_label,
             interactive=interactive,

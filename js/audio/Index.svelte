@@ -26,7 +26,7 @@
 	export let label: string;
 	export let root: string;
 	export let show_label: boolean;
-	export let root_url: null | string;
+	export let proxy_url: null | string;
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
@@ -56,7 +56,7 @@
 
 	let old_value: null | FileData | string = null;
 	let _value: null | FileData;
-	$: _value = normalise_file(value, root, root_url);
+	$: _value = normalise_file(value, root, proxy_url);
 
 	let active_source: "microphone" | "upload";
 

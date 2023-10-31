@@ -2,6 +2,9 @@
 
 <script context="module" lang="ts">
 	export { default as FilePreview } from "./shared/FilePreview.svelte";
+	export { default as BaseFileUpload } from "./shared/FileUpload.svelte";
+	export { default as BaseFile } from "./shared/File.svelte";
+	export { default as BaseExample } from "./Example.svelte";
 </script>
 
 <script lang="ts">
@@ -25,7 +28,7 @@
 	export let show_label: boolean;
 	export let height: number | undefined = undefined;
 
-	export let root_url: null | string;
+	export let proxy_url: null | string;
 	export let _selectable = false;
 	export let loading_status: LoadingStatus;
 	export let container = true;
@@ -40,7 +43,7 @@
 	}>;
 	export let file_count: string;
 	export let file_types: string[] = ["file"];
-	$: _value = normalise_file(value, root, root_url);
+	$: _value = normalise_file(value, root, proxy_url);
 
 	let old_value = _value;
 	$: if (JSON.stringify(old_value) !== JSON.stringify(_value)) {

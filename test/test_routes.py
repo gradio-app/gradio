@@ -370,7 +370,7 @@ class TestRoutes:
             )
         with pytest.raises(PermissionError):
             app.build_proxy_request("https://google.com")
-        interface.root_urls = {
+        interface.proxy_urls = {
             "https://gradio-tests-test-loading-examples-private.hf.space"
         }
         app.build_proxy_request(
@@ -381,7 +381,7 @@ class TestRoutes:
         gr.context.Context.hf_token = "abcdef"
         app = routes.App()
         interface = gr.Interface(lambda x: x, "text", "text")
-        interface.root_urls = {
+        interface.proxy_urls = {
             "https://gradio-tests-test-loading-examples-private.hf.space",
             "https://google.com",
         }

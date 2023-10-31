@@ -40,6 +40,8 @@
 		"@changesets/cli": "^2.26.1",
 		"@changesets/get-github-info": "^0.5.2",
 		"@csstools/postcss-global-data": "^2.0.0",
+		"@ffmpeg/ffmpeg": "^0.12.7",
+		"@ffmpeg/util": "^0.12.1",
 		"@gradio/tootils": "workspace:^",
 		"@manypkg/get-packages": "^2.2.0",
 		"@playwright/experimental-ct-svelte": "^1.39.0",
@@ -106,6 +108,7 @@
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"storybook": "^7.5.1",
+		"mrmime": "^1.0.1",
 		"wikidata-lang": "^4.1.2"
 	}
 }

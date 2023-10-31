@@ -18,7 +18,7 @@
 </script>
 
 <MetaTags
-	title={"Gradio" + name + "JS Docs"}
+	title={"Gradio " + name + " JS Docs"}
 	url={$page.url.pathname}
 	canonical={$page.url.pathname}
 	description={"How to use " + name + " in JS"}

@@ -1,11 +1,12 @@
-# `@gradio/button`
+# `@gradio/tooltip`
 
-```html
-<script>
-	import { Button } from "@gradio/button";
-</script>
+```javascript
+import { Tooltip } from "@gradio/tooltip";
+```
 
-<button type="primary|secondary" href="string" on:click="{e.detail === href}">
-	content
-</button>
+```javascript
+	export let text: string;
+	export let x: number;
+	export let y: number;
+	export let color: string;
 ```

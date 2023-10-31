@@ -90,7 +90,7 @@ class TestTextbox:
             "elem_classes": [],
             "visible": True,
             "interactive": None,
-            "root_url": None,
+            "proxy_url": None,
             "rtl": False,
             "text_align": None,
             "autofocus": False,
@@ -176,9 +176,10 @@ class TestNumber:
             "elem_classes": ["first"],
             "visible": True,
             "interactive": None,
-            "root_url": None,
+            "proxy_url": None,
             "info": None,
             "precision": None,
+            "_selectable": False,
         }
 
     def test_component_functions_integer(self):
@@ -208,9 +209,10 @@ class TestNumber:
             "elem_classes": [],
             "visible": True,
             "interactive": None,
-            "root_url": None,
+            "proxy_url": None,
             "info": None,
             "precision": 0,
+            "_selectable": False,
         }
 
     def test_component_functions_precision(self):
@@ -284,8 +286,9 @@ class TestSlider:
             "elem_classes": [],
             "visible": True,
             "interactive": None,
-            "root_url": None,
+            "proxy_url": None,
             "info": None,
+            "_selectable": False,
         }
 
     def test_in_interface(self):
@@ -342,7 +345,7 @@ class TestCheckbox:
             "elem_classes": [],
             "visible": True,
             "interactive": None,
-            "root_url": None,
+            "proxy_url": None,
             "_selectable": False,
             "info": None,
         }
@@ -392,7 +395,7 @@ class TestCheckboxGroup:
             "elem_classes": [],
             "visible": True,
             "interactive": None,
-            "root_url": None,
+            "proxy_url": None,
             "_selectable": False,
             "type": "value",
             "info": None,
@@ -442,7 +445,7 @@ class TestRadio:
             "elem_classes": [],
             "visible": True,
             "interactive": None,
-            "root_url": None,
+            "proxy_url": None,
             "_selectable": False,
             "type": "value",
             "info": None,
@@ -523,7 +526,7 @@ class TestDropdown:
             "elem_classes": [],
             "visible": True,
             "interactive": None,
-            "root_url": None,
+            "proxy_url": None,
             "multiselect": True,
             "filterable": True,
             "max_choices": 2,
@@ -584,7 +587,7 @@ class TestImage:
             "visible": True,
             "value": None,
             "interactive": None,
-            "root_url": None,
+            "proxy_url": None,
             "mirror_webcam": True,
             "_selectable": False,
             "streamable": False,
@@ -716,13 +719,14 @@ class TestAudio:
             "visible": True,
             "value": None,
             "interactive": None,
-            "root_url": None,
+            "proxy_url": None,
             "type": "numpy",
             "format": "wav",
             "streamable": False,
             "max_length": None,
             "min_length": None,
             "waveform_options": None,
+            "_selectable": False,
         }
         assert audio_input.preprocess(None) is None
         x_wav["is_example"] = True
@@ -763,12 +767,13 @@ class TestAudio:
             "visible": True,
             "value": None,
             "interactive": None,
-            "root_url": None,
+            "proxy_url": None,
             "type": "filepath",
             "format": "wav",
             "streamable": False,
             "sources": ["microphone", "upload"],
             "waveform_options": None,
+            "_selectable": False,
         }
 
         output1 = audio_output.postprocess(y_audio.name)
@@ -864,7 +869,7 @@ class TestFile:
             "visible": True,
             "value": None,
             "interactive": None,
-            "root_url": None,
+            "proxy_url": None,
             "_selectable": False,
             "height": None,
             "type": "filepath",
@@ -980,7 +985,7 @@ class TestDataframe:
             "elem_id": None,
             "elem_classes": [],
             "wrap": False,
-            "root_url": None,
+            "proxy_url": None,
             "name": "dataframe",
             "height": 500,
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
@@ -1015,7 +1020,7 @@ class TestDataframe:
             "elem_id": None,
             "elem_classes": [],
             "wrap": False,
-            "root_url": None,
+            "proxy_url": None,
             "name": "dataframe",
             "height": 500,
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
@@ -1321,7 +1326,7 @@ class TestVideo:
         video_input = gr.Video(label="Upload Your Video")
         assert video_input.get_config() == {
             "autoplay": False,
-            "source": "upload",
+            "sources": ["webcam", "upload"],
             "name": "video",
             "show_share_button": False,
             "show_label": True,
@@ -1336,10 +1341,13 @@ class TestVideo:
             "visible": True,
             "value": None,
             "interactive": None,
-            "root_url": None,
+            "proxy_url": None,
             "mirror_webcam": True,
             "include_audio": True,
             "format": None,
+            "min_length": None,
+            "max_length": None,
+            "_selectable": False,
         }
         assert video_input.preprocess(None) is None
         x_video["is_example"] = True
@@ -1452,7 +1460,7 @@ class TestVideo:
     def test_video_preprocessing_flips_video_for_webcam(self, mock_ffmpeg):
         # Ensures that the cached temp video file is not used so that ffmpeg is called for each test
         x_video = {"video": deepcopy(media_data.BASE64_VIDEO)}
-        video_input = gr.Video(source="webcam")
+        video_input = gr.Video(sources=["webcam"])
         _ = video_input.preprocess(x_video)
 
         # Dict mapping filename to FFmpeg options
@@ -1462,19 +1470,19 @@ class TestVideo:
 
         mock_ffmpeg.reset_mock()
         _ = gr.Video(
-            source="webcam", mirror_webcam=False, include_audio=True
+            sources=["webcam"], mirror_webcam=False, include_audio=True
         ).preprocess(x_video)
         mock_ffmpeg.assert_not_called()
 
         mock_ffmpeg.reset_mock()
-        _ = gr.Video(source="upload", format="mp4", include_audio=True).preprocess(
+        _ = gr.Video(sources=["upload"], format="mp4", include_audio=True).preprocess(
             x_video
         )
         mock_ffmpeg.assert_not_called()
 
         mock_ffmpeg.reset_mock()
         output_file = gr.Video(
-            source="webcam", mirror_webcam=True, format="avi"
+            sources=["webcam"], mirror_webcam=True, format="avi"
         ).preprocess(x_video)
         output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
         assert "hflip" in list(output_params.values())[0]
@@ -1484,26 +1492,13 @@ class TestVideo:
 
         mock_ffmpeg.reset_mock()
         output_file = gr.Video(
-            source="webcam", mirror_webcam=False, format="avi", include_audio=False
+            sources=["webcam"], mirror_webcam=False, format="avi", include_audio=False
         ).preprocess(x_video)
         output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
         assert list(output_params.values())[0] == ["-an"]
         assert "flip" not in Path(list(output_params.keys())[0]).name
         assert ".avi" in list(output_params.keys())[0]
         assert ".avi" in output_file
-
-    @pytest.mark.flaky
-    def test_preprocess_url(self):
-        output = gr.Video().preprocess(
-            {
-                "video": {
-                    "path": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
-                    "size": None,
-                    "orig_name": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
-                }
-            }
-        )
-        assert Path(output).name == "a.mp4" and not client_utils.probe_url(output)
 
 
 class TestNames:
@@ -1563,7 +1558,7 @@ class TestLabel:
             "elem_id": None,
             "elem_classes": [],
             "visible": True,
-            "root_url": None,
+            "proxy_url": None,
             "color": None,
             "_selectable": False,
         }
@@ -1705,7 +1700,7 @@ class TestHighlightedText:
             "elem_classes": [],
             "visible": True,
             "value": None,
-            "root_url": None,
+            "proxy_url": None,
             "_selectable": False,
             "combine_adjacent": False,
             "adjacent_separator": "",
@@ -1783,7 +1778,7 @@ class TestAnnotatedImage:
             "elem_classes": [],
             "visible": True,
             "value": None,
-            "root_url": None,
+            "proxy_url": None,
             "_selectable": False,
         }
 
@@ -1843,7 +1838,7 @@ class TestChatbot:
             "min_width": 160,
             "scale": None,
             "height": None,
-            "root_url": None,
+            "proxy_url": None,
             "_selectable": False,
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
             "likeable": False,
@@ -1876,7 +1871,8 @@ class TestJSON:
             "show_label": True,
             "label": None,
             "name": "json",
-            "root_url": None,
+            "proxy_url": None,
+            "_selectable": False,
         }
 
     @pytest.mark.asyncio
@@ -1928,8 +1924,9 @@ class TestHTML:
             "visible": True,
             "elem_id": None,
             "elem_classes": [],
-            "root_url": None,
+            "proxy_url": None,
             "name": "html",
+            "_selectable": False,
         }
 
     def test_in_interface(self):
@@ -1976,12 +1973,13 @@ class TestModel3D:
             "visible": True,
             "elem_id": None,
             "elem_classes": [],
-            "root_url": None,
+            "proxy_url": None,
             "interactive": None,
             "name": "model3d",
             "camera_position": (None, None, None),
             "height": None,
             "zoom_speed": 1,
+            "_selectable": False,
         }
 
         file = "test/test_files/Box.gltf"
@@ -2021,9 +2019,10 @@ class TestColorPicker:
             "elem_classes": [],
             "visible": True,
             "interactive": None,
-            "root_url": None,
+            "proxy_url": None,
             "name": "colorpicker",
             "info": None,
+            "_selectable": False,
         }
 
     def test_in_interface_as_input(self):
@@ -2178,7 +2177,7 @@ class TestScatterPlot:
             "name": "plot",
             "bokeh_version": "3.0.3",
             "show_actions_button": False,
-            "root_url": None,
+            "proxy_url": None,
             "show_label": True,
             "container": True,
             "min_width": 160,
@@ -2206,6 +2205,7 @@ class TestScatterPlot:
             "y_lim": None,
             "x_label_angle": None,
             "y_label_angle": None,
+            "_selectable": False,
         }
 
     def test_no_color(self):
@@ -2337,7 +2337,7 @@ class TestLinePlot:
             "name": "plot",
             "bokeh_version": "3.0.3",
             "show_actions_button": False,
-            "root_url": None,
+            "proxy_url": None,
             "show_label": True,
             "container": True,
             "min_width": 160,
@@ -2363,6 +2363,7 @@ class TestLinePlot:
             "y_lim": None,
             "x_label_angle": None,
             "y_label_angle": None,
+            "_selectable": False,
         }
 
     def test_no_color(self):
@@ -2441,7 +2442,7 @@ class TestBarPlot:
             "name": "plot",
             "bokeh_version": "3.0.3",
             "show_actions_button": False,
-            "root_url": None,
+            "proxy_url": None,
             "show_label": True,
             "container": True,
             "min_width": 160,
@@ -2466,6 +2467,7 @@ class TestBarPlot:
             "x_label_angle": None,
             "y_label_angle": None,
             "sort": None,
+            "_selectable": False,
         }
 
     def test_no_color(self):
@@ -2577,7 +2579,8 @@ class TestCode:
             "elem_classes": [],
             "visible": True,
             "interactive": None,
-            "root_url": None,
+            "proxy_url": None,
+            "_selectable": False,
         }
 
 

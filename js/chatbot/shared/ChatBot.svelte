@@ -42,7 +42,7 @@
 	export let render_markdown = true;
 	export let line_breaks = true;
 	export let root: string;
-	export let root_url: null | string;
+	export let proxy_url: null | string;
 	export let i18n: I18nFormatter;
 	export let layout: "bubble" | "panel" = "bubble";
 
@@ -140,7 +140,7 @@
 										src={get_fetchable_url_or_file(
 											avatar_images[j],
 											root,
-											root_url
+											proxy_url
 										)}
 										alt="{j == 0 ? 'user' : 'bot'} avatar"
 									/>
