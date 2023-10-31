@@ -636,10 +636,14 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 block_proxy_url = block_config["props"]["proxy_url"]
                 proxy_urls.add(block_proxy_url)
 
-            # Any component has already processed its initial value, so we skip that step here
+            _selectable = block_config["props"].pop("_selectable", None)
             block = cls(**block_config["props"])
+            # Any component has already processed its initial value, so we skip that step here
             block._skip_init_processing = True
             block.proxy_url = block_proxy_url
+            if _selectable is not None:
+                block._selectable = _selectable  # type: ignore
+
             return block
 
         def iterate_over_children(children_list):
