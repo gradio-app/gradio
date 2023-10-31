@@ -8,6 +8,7 @@ from typing import Any, Literal
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components import Button, Component
+from gradio.data_classes import GradioModel, GradioRootModel
 
 set_documentation_group("component")
 
@@ -72,16 +73,19 @@ class ClearButton(Button):
         none_values = []
         for component in components:
             none = component.postprocess(None)
+            if isinstance(none, (GradioModel, GradioRootModel)):
+                none = none.model_dump()
+                print(none)
             none_values.append(none)
         clear_values = json.dumps(none_values)
         self.click(None, [], components, _js=f"() => {clear_values}")
         return self
 
-    def postprocess(self, y):
-        return y
+    def postprocess(self, value: str | None) -> str | None:
+        return value
 
-    def preprocess(self, x: Any) -> Any:
-        return x
+    def preprocess(self, payload: str | None) -> str | None:
+        return payload
 
     def example_inputs(self) -> Any:
         return None

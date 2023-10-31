@@ -155,18 +155,11 @@ class Video(Component):
             value=value,
         )
 
-    def preprocess(self, x: dict | VideoData) -> str | None:
-        """
-        Parameters:
-            x: A tuple of (video file data, subtitle file data) or just video file data.
-        Returns:
-            A string file path or URL to the preprocessed video. Subtitle file data is ignored.
-        """
-        if x is None:
+    def preprocess(self, payload: VideoData | None) -> str | None:
+        if payload is None:
             return None
-        data: VideoData = VideoData(**x) if isinstance(x, dict) else x
-        assert data.video.path
-        file_name = Path(data.video.path)
+        assert payload.video.path
+        file_name = Path(payload.video.path)
         uploaded_format = file_name.suffix.replace(".", "")
         needs_formatting = self.format is not None and uploaded_format != self.format
         flip = self.sources == ["webcam"] and self.mirror_webcam
@@ -221,24 +214,6 @@ class Video(Component):
     def postprocess(
         self, y: str | Path | tuple[str | Path, str | Path | None] | None
     ) -> VideoData | None:
-        """
-        Processes a video to ensure that it is in the correct format before returning it to the front end.
-        Parameters:
-            y: video data in either of the following formats: a tuple of (video filepath, optional subtitle filepath), or just a filepath or URL to an video file, or None.
-        Returns:
-            a tuple with the two dictionary, reresent to video and (optional) subtitle, which following formats:
-            - The first dictionary represents the video file and contains the following keys:
-                - 'name': a file path to a temporary copy of the processed video.
-                - 'data': None
-                - 'is_file': True
-            - The second dictionary represents the subtitle file and contains the following keys:
-                - 'name': None
-                - 'data': Base64 encode the processed subtitle data.
-                - 'is_file': False
-            - If subtitle is None, returns (video, None).
-            - If both video and subtitle are None, returns None.
-        """
-
         if y is None or y == [None, None] or y == (None, None):
             return None
         if isinstance(y, (str, Path)):
@@ -269,14 +244,6 @@ class Video(Component):
     def _format_video(self, video: str | Path | None) -> FileData | None:
         """
         Processes a video to ensure that it is in the correct format.
-        Parameters:
-            video: video data in either of the following formats: a string filepath or URL to an video file, or None.
-        Returns:
-            a dictionary with the following keys:
-
-            - 'name': a file path to a temporary copy of the processed video.
-            - 'data': None
-            - 'is_file': True
         """
         if video is None:
             return None
@@ -328,13 +295,6 @@ class Video(Component):
     def _format_subtitle(self, subtitle: str | Path | None) -> FileData | None:
         """
         Convert subtitle format to VTT and process the video to ensure it meets the HTML5 requirements.
-        Parameters:
-            subtitle: subtitle path in either of the VTT and SRT format.
-        Returns:
-            a dictionary with the following keys:
-            - 'name': None
-            - 'data': base64-encoded subtitle data.
-            - 'is_file': False
         """
 
         def srt_to_vtt(srt_file_path, vtt_file_path):
