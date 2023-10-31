@@ -161,6 +161,8 @@ class Gallery(Component):
         return GalleryData(root=output)
 
     def preprocess(self, payload: GalleryData | None) -> GalleryData | None:
+        if payload is None or not payload.root:
+            return None
         return payload
 
     def example_inputs(self) -> Any:

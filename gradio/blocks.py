@@ -1260,7 +1260,7 @@ Received inputs:
                     inputs_cached = processing_utils.move_files_to_cache(
                         inputs[i], block
                     )
-                    if getattr(block, "data_model", None):
+                    if getattr(block, "data_model", None) and inputs_cached is not None:
                         if issubclass(block.data_model, GradioModel):  # type: ignore
                             print("block.data_model", block.data_model, block)
                             print("1inputs_cached", inputs_cached)

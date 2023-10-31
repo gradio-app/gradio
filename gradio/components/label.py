@@ -22,7 +22,7 @@ class LabelConfidence(GradioModel):
 
 
 class LabelData(GradioModel):
-    label: Union[str, int, float]
+    label: Optional[Union[str, int, float]] = None
     confidences: Optional[List[LabelConfidence]] = None
 
 
@@ -121,8 +121,16 @@ class Label(Component):
             f"Instead, got a {type(value)}"
         )
 
-    def preprocess(self, payload: LabelConfidence | None) -> LabelConfidence | None:
-        return payload
+    def preprocess(
+        self, payload: LabelData | None
+    ) -> dict[str, float] | str | float | None:
+        if payload is None:
+            return None
+        if payload.confidences is None:
+            return payload.label
+        return {
+            d["label"]: d["confidence"] for d in payload.model_dump()["confidences"]
+        }
 
     def example_inputs(self) -> Any:
         return {
