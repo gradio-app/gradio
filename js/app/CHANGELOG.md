@@ -1,5 +1,11 @@
 # @gradio/app
 
+## 1.9.1
+
+### Features
+
+- [#6137](https://github.com/gradio-app/gradio/pull/6137) [`2ba14b284`](https://github.com/gradio-app/gradio/commit/2ba14b284f908aa13859f4337167a157075a68eb) - JS Param.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 1.9.0
 
 ### Features

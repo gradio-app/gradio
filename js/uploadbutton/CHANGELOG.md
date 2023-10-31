@@ -1,5 +1,11 @@
 # @gradio/uploadbutton
 
+## 0.1.1
+
+### Features
+
+- [#6181](https://github.com/gradio-app/gradio/pull/6181) [`62ec2075c`](https://github.com/gradio-app/gradio/commit/62ec2075ccad8025a7721a08d0f29eb5a4f87fad) - modify preprocess to use pydantic models.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.1.0
 
 ### Features
