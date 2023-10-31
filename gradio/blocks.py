@@ -196,13 +196,6 @@ class Block:
     def get_expected_parent(self) -> type[BlockContext] | None:
         return None
 
-    def set_extra_params(self, **kwargs):
-        """
-        Sets extra parameters for the Block that are not available when the Block is constructed.
-        """
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
     def get_config(self):
         config = {}
         signature = inspect.signature(self.__class__.__init__)
