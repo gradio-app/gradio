@@ -145,7 +145,11 @@
 	async function add_custom_html_head(
 		head_string: string | null
 	): Promise<void> {
-		if (head_string) { document.head.append(head_string) };
+		const parser = new DOMParser();
+		if (head_string) { 
+			const head_html = parser.parseFromString(head_string, 'text/html').head.firstChild;
+			if (head_html) { document.head.append(head_html); }
+		}
 	}
 
 	function handle_darkmode(target: HTMLDivElement): "light" | "dark" {
