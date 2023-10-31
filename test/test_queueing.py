@@ -107,6 +107,91 @@ class TestQueueing:
         assert job2.result() == "Hello, b!"
         assert job4.result() == "Hello, d!"
 
+    def test_concurrency_limits(self):
+        with gr.Blocks() as demo:
+            a = gr.Number()
+            b = gr.Number()
+            output = gr.Number()
+
+            add_btn = gr.Button("Add")
+
+            @add_btn.click(inputs=[a, b], outputs=output, concurrency_limit=2)
+            def add(x, y):
+                time.sleep(4)
+                return x + y
+
+            sub_btn = gr.Button("Subtract")
+
+            @sub_btn.click(inputs=[a, b], outputs=output)
+            def sub(x, y):
+                time.sleep(4)
+                return x - y
+
+            mul_btn = gr.Button("Multiply")
+
+            @mul_btn.click(
+                inputs=[a, b],
+                outputs=output,
+                concurrency_limit=2,
+                concurrency_id="muldiv",
+            )
+            def mul(x, y):
+                time.sleep(4)
+                return x * y
+
+            div_btn = gr.Button("Divide")
+
+            @div_btn.click(
+                inputs=[a, b],
+                outputs=output,
+                concurrency_limit=2,
+                concurrency_id="muldiv",
+            )
+            def div(x, y):
+                time.sleep(4)
+                return x / y
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+
+        client = grc.Client(f"http://localhost:{demo.server_port}")
+        add_job_1 = client.submit(1, 1, fn_index=0)
+        add_job_2 = client.submit(1, 1, fn_index=0)
+        add_job_3 = client.submit(1, 1, fn_index=0)
+        sub_job_1 = client.submit(1, 1, fn_index=1)
+        sub_job_2 = client.submit(1, 1, fn_index=1)
+        sub_job_3 = client.submit(1, 1, fn_index=1)
+        sub_job_3 = client.submit(1, 1, fn_index=1)
+        mul_job_1 = client.submit(1, 1, fn_index=2)
+        div_job_1 = client.submit(1, 1, fn_index=3)
+        mul_job_2 = client.submit(1, 1, fn_index=2)
+
+        time.sleep(2)
+
+        add_job_statuses = [add_job_1.status(), add_job_2.status(), add_job_3.status()]
+        assert sorted([s.code.value for s in add_job_statuses]) == [
+            "IN_QUEUE",
+            "PROCESSING",
+            "PROCESSING",
+        ]
+
+        sub_job_statuses = [sub_job_1.status(), sub_job_2.status(), sub_job_3.status()]
+        assert [s.code.value for s in sub_job_statuses] == [
+            "PROCESSING",
+            "PROCESSING",
+            "PROCESSING",
+        ]
+
+        muldiv_job_statuses = [
+            mul_job_1.status(),
+            div_job_1.status(),
+            mul_job_2.status(),
+        ]
+        assert sorted([s.code.value for s in muldiv_job_statuses]) == [
+            "IN_QUEUE",
+            "PROCESSING",
+            "PROCESSING",
+        ]
+
     def test_every_does_not_block_queue(self):
         with gr.Blocks() as demo:
             num = gr.Number(value=0)
