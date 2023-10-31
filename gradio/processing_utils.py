@@ -20,7 +20,7 @@ from gradio_client import utils as client_utils
 from PIL import Image, ImageOps, PngImagePlugin
 
 from gradio import wasm_utils
-from gradio.data_classes import FileData
+from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.utils import abspath, is_in_or_equal
 
 with warnings.catch_warnings():
@@ -278,7 +278,7 @@ def move_files_to_cache(data: Any, block: Component):
     Runs after postprocess and before preprocess.
 
     Args:
-        data: The input or output data for a component.
+        data: The input or output data for a component. Can be a dictionary or a dataclass
         block: The component
     """
 
@@ -287,6 +287,9 @@ def move_files_to_cache(data: Any, block: Component):
         temp_file_path = move_resource_to_block_cache(payload.path, block)
         payload.path = temp_file_path
         return payload.model_dump()
+
+    if isinstance(data, (GradioRootModel, GradioModel)):
+        data = data.model_dump()
 
     return client_utils.traverse(data, _move_to_cache, client_utils.is_file_obj)
 
