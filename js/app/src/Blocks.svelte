@@ -62,7 +62,7 @@
 			try {
 				d.frontend_fn = new AsyncFunction(
 					"__fn_args",
-					`console.log("$$$$$$$123: ", ...__fn_args);
+					`let result = await (${d.js})(...__fn_args);
 					return (${wrap} && !Array.isArray(result)) ? [result] : result;`
 				);
 			} catch (e) {
@@ -568,6 +568,7 @@
 			`let result = await (${js});
 					return (!Array.isArray(result)) ? [result] : result;`
 		);
+		console.log(blocks_frontend_fn());
 		blocks_frontend_fn();
 		await tick();
 
