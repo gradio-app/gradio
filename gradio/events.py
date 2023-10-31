@@ -206,6 +206,8 @@ class EventListener(str):
             cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
             every: float | None = None,
             trigger_mode: Literal["once", "multiple", "always_last"] | None = None,
+            concurrency_limit: int | None = 1,
+            concurrency_id: str | None = None,
             _js: str | None = None,
         ) -> Dependency:
             """
@@ -224,6 +226,8 @@ class EventListener(str):
                 cancels: A list of other events to cancel when this listener is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method. Functions that have not yet run (or generators that are iterating) will be cancelled, but functions that are currently running will be allowed to finish.
                 every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
                 trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` event) would allow a second submission after the pending event is complete.
+                concurrency_limit: If set, this this is the maximum number of events that can be running simultaneously. Extra requests will be queued.
+                concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
             """
 
             if fn == "decorator":
@@ -245,6 +249,8 @@ class EventListener(str):
                         cancels,
                         every,
                         trigger_mode,
+                        concurrency_limit,
+                        concurrency_id,
                         _js,
                     )
 
@@ -302,6 +308,8 @@ class EventListener(str):
                 if show_progress is not None
                 else _show_progress,
                 api_name=api_name,
+                concurrency_limit=concurrency_limit,
+                concurrency_id=concurrency_id,
                 js=_js,
                 queue=queue,
                 batch=batch,
@@ -341,6 +349,8 @@ def on(
     postprocess: bool = True,
     cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
     every: float | None = None,
+    concurrency_limit: int | None = 1,
+    concurrency_id: str | None = None,
     _js: str | None = None,
 ) -> Dependency:
     """
@@ -359,6 +369,8 @@ def on(
         postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         cancels: A list of other events to cancel when this listener is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method. Functions that have not yet run (or generators that are iterating) will be cancelled, but functions that are currently running will be allowed to finish.
         every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
+        concurrency_limit: If set, this this is the maximum number of events that can be running simultaneously. Extra requests will be queued.
+        concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
     """
     from gradio.components.base import Component
 
@@ -385,6 +397,8 @@ def on(
                 postprocess=postprocess,
                 cancels=cancels,
                 every=every,
+                concurrency_limit=concurrency_limit,
+                concurrency_id=concurrency_id,
                 _js=_js,
             )
 
@@ -412,6 +426,8 @@ def on(
         scroll_to_output=scroll_to_output,
         show_progress=show_progress,
         api_name=api_name,
+        concurrency_limit=concurrency_limit,
+        concurrency_id=concurrency_id,
         js=_js,
         queue=queue,
         batch=batch,
