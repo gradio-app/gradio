@@ -1,5 +1,11 @@
 # website
 
+## 0.11.1
+
+### Features
+
+- [#6189](https://github.com/gradio-app/gradio/pull/6189) [`345ddd888`](https://github.com/gradio-app/gradio/commit/345ddd888e9f55cb04e5c6601d95d2a25e4ef39f) - Custom Component Guides.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 0.11.0
 
 ### Patch Changes
