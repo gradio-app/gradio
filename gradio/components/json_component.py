@@ -69,31 +69,25 @@ class JSON(Component):
             value=value,
         )
 
-    def postprocess(self, y: dict | list | str | None) -> dict | list | None:
-        """
-        Parameters:
-            y: either a string filepath to a JSON file, or a Python list or dict that can be converted to JSON
-        Returns:
-            JSON output in Python list or dict format
-        """
-        if y is None:
+    def postprocess(self, value: dict | list | str | None) -> dict | list | None:
+        if value is None:
             return None
-        if isinstance(y, str):
-            return json.loads(y)
+        if isinstance(value, str):
+            return json.loads(value)
         else:
-            return y
+            return value
 
-    def preprocess(self, x: Any) -> Any:
-        return x
+    def preprocess(self, payload: dict | list | str | None) -> dict | list | str | None:
+        return payload
 
     def example_inputs(self) -> Any:
         return {"foo": "bar"}
 
-    def flag(self, x: Any, flag_dir: str | Path = "") -> str:
-        return json.dumps(x)
+    def flag(self, payload: Any, flag_dir: str | Path = "") -> str:
+        return json.dumps(payload)
 
-    def read_from_flag(self, x: Any, flag_dir: str | Path | None = None):
-        return json.loads(x)
+    def read_from_flag(self, payload: Any, flag_dir: str | Path | None = None):
+        return json.loads(payload)
 
     def api_info(self) -> dict[str, Any]:
         return {"type": {}, "description": "any valid json"}

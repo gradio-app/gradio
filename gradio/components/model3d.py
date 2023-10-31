@@ -93,27 +93,15 @@ class Model3D(Component):
             value=value,
         )
 
-    def preprocess(self, x: dict[str, str] | None) -> str | None:
-        """
-        Parameters:
-            x: JSON object with filename as 'name' property and base64 data as 'data' property
-        Returns:
-            string file path to temporary file with the 3D image model
-        """
-        if x is None:
-            return x
-        return x["path"]
+    def preprocess(self, payload: FileData | None) -> str | None:
+        if payload is None:
+            return payload
+        return payload.path
 
-    def postprocess(self, y: str | Path | None) -> FileData | None:
-        """
-        Parameters:
-            y: path to the model
-        Returns:
-            file name mapped to base64 url data
-        """
-        if y is None:
-            return y
-        return FileData(path=str(y))
+    def postprocess(self, value: str | Path | None) -> FileData | None:
+        if value is None:
+            return value
+        return FileData(path=str(value))
 
     def as_example(self, input_data: str | None) -> str:
         return Path(input_data).name if input_data else ""

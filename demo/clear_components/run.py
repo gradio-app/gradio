@@ -153,6 +153,7 @@ def evaluate_values(*args):
             are_false.append(a == "#000000")
         else:
             are_false.append(not a)
+    print(args)
     return all(are_false)
 
 
