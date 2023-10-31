@@ -2,15 +2,18 @@ import gradio as gr
 
 
 def image(im):
-    print(im)
-    return im
+    return [im["background"], im["layers"][0], im["layers"][1], im["composite"]]
 
 
 with gr.Blocks() as demo:
-    im = gr.ImageEditor()
-    im2 = gr.ImageEditor()
+    im = gr.ImageEditor(type="pil")
+    with gr.Row():
+        im2 = gr.Image()
+        im3 = gr.Image()
+        im4 = gr.Image()
+        im5 = gr.Image()
     btn = gr.Button()
-    btn.click(lambda x: x, outputs=im2, inputs=im)
+    btn.click(image, outputs=[im2, im3, im4, im5], inputs=im)
 
 
 if __name__ == "__main__":

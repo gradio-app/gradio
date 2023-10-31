@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import warnings
 from pathlib import Path
-from typing import Any, Iterable, Literal, TypedDict, cast
+from typing import Any, Iterable, Literal, Optional, TypedDict, Union, cast
 
 import numpy as np
 from gradio_client import utils as client_utils
@@ -21,28 +21,16 @@ set_documentation_group("component")
 _Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
 
-class PathDict(TypedDict):
-    points: list[tuple[int | float, int | float]]
-    radius: int | float
-    color: tuple[int, int, int, int] | str
-
-
 class PreprocessData(TypedDict):
-    background: np.ndarray | _Image.Image | str | None
-    layers: list[np.ndarray | _Image.Image | str] | list[PathDict] | None
-    composite: np.ndarray | _Image.Image | str | None
-
-
-class PathLineData(GradioModel):
-    points: list[tuple[int | float, int | float]]
-    radius: int | float
-    color: tuple[int, int, int, int] | str
+    background: Optional[Union[np.ndarray, _Image.Image, str]]
+    layers: list[Union[np.ndarray, _Image.Image, str]]
+    composite: Optional[Union[np.ndarray, _Image.Image, str]]
 
 
 class EditorData(GradioModel):
-    background: FileData | str | tuple[int, int, int, int] | None
-    layers: list[FileData] | list[PathLineData] | None
-    composite: FileData | None
+    background: Optional[Union[FileData, str]] = None
+    layers: list[FileData] = []
+    composite: Optional[FileData] = None
 
 
 class Eraser:
@@ -249,10 +237,9 @@ class ImageEditor(Component):
             else None
         )
         composite = self.convert_and_format_image(x["composite"])
-
         return {
             "background": bg,
-            "layers": list(filter(None, layers)) if layers else None,
+            "layers": [x for x in layers if x is not None] if layers else [],
             "composite": composite,
         }
 
@@ -267,25 +254,23 @@ class ImageEditor(Component):
             return None
 
         layers = (
-            (
-                [
-                    FileData(
-                        path=image_utils.save_image(
-                            cast(np.ndarray | _Image.Image | str, layer),
-                            self.GRADIO_CACHE,
-                        )
+            [
+                FileData(
+                    path=image_utils.save_image(
+                        cast(np.ndarray | _Image.Image | str, layer),
+                        self.GRADIO_CACHE,
                     )
-                    for layer in y["layers"]
-                ]
-                if self.data_model == EditorData
-                else [PathLineData(**cast(PathDict, layer)) for layer in y["layers"]]
-            )
+                )
+                for layer in y["layers"]
+            ]
             if y["layers"]
-            else None
+            else []
         )
 
         return EditorData(
-            background=image_utils.save_image(y["background"], self.GRADIO_CACHE)
+            background=FileData(
+                path=image_utils.save_image(y["background"], self.GRADIO_CACHE)
+            )
             if y["background"] is not None
             else None,
             layers=layers,

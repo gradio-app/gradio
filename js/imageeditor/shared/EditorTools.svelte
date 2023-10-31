@@ -1,8 +1,11 @@
 <script lang="ts">
 	import type { I18nFormatter } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
-	import type { Brush } from "./types";
+	import type { Brush, PathData } from "./types";
+	import { click_outside } from "./utils";
+
 	import { Toolbar, IconButton } from "@gradio/atoms";
+	import ColorSwatch from "./ColorSwatch.svelte";
 	import {
 		Image,
 		Brush as BrushIcon,
@@ -24,11 +27,17 @@
 		"clipboard",
 		"webcam"
 	];
-	export let layers: [][] = [];
+	export let layers: PathData[][] = [];
+	export let current_layer = 0;
+	export let colors: (string | [number, number, number, number])[];
+	export let selected_color: number;
+	export let sizes: number[];
+	export let selected_size: number;
 
 	const dispatch = createEventDispatcher<{
 		set_source: "upload" | "webcam" | "clipboard";
 		select_transform: "crop" | "rotate";
+		new_layer?: never;
 	}>();
 
 	const sources_meta = {
@@ -141,9 +150,9 @@
 	}
 
 	let show_layers = false;
-	let current_layer = 0;
 
 	const brush_options = ["color", "size"] as const;
+	let brush_option: "color" | "size" | null = null;
 </script>
 
 <Toolbar show_border={false}>
@@ -166,9 +175,23 @@
 			/>
 		{/each}
 	{:else if category === "brush"}
+		{#if brush_option === "color"}
+			<ColorSwatch
+				bind:selected_color
+				{colors}
+				on:click_outside={() => (brush_option = null)}
+			/>
+		{:else if brush_option === "size"}
+			<!-- <IconButton
+        on:click={() => {}}
+        Icon={paint_meta[p].icon}
+        size="large"
+        padded={false}
+      /> -->
+		{/if}
 		{#each brush_options as p}
 			<IconButton
-				on:click={() => {}}
+				on:click={() => (brush_option = p)}
 				Icon={paint_meta[p].icon}
 				size="large"
 				padded={false}
@@ -177,7 +200,11 @@
 	{/if}
 </Toolbar>
 <div class="toolbar-wrap">
-	<div class="layer-wrap" class:closed={!show_layers}>
+	<div
+		class="layer-wrap"
+		class:closed={!show_layers}
+		use:click_outside={() => (show_layers = false)}
+	>
 		<button on:click={() => (show_layers = !show_layers)}
 			>Layers <span class="layer-toggle"><DropdownArrow /></span></button
 		>
@@ -185,11 +212,14 @@
 			<ul>
 				{#each layers as layer, i (i)}
 					<li>
-						<button on:click={() => (current_layer = i)}>Layer {i + 1}</button>
+						<button
+							class:selected_layer={current_layer === i}
+							on:click={() => (current_layer = i)}>Layer {i + 1}</button
+						>
 					</li>
 				{/each}
 				<li>
-					<button on:click={() => (layers = [...layers, []])}> +</button>
+					<button on:click={() => dispatch("new_layer")}> +</button>
 				</li>
 			</ul>
 		{/if}
@@ -265,5 +295,11 @@
 
 	.layer-wrap button:hover {
 		background-color: var(--background-fill-secondary);
+	}
+
+	.selected_layer {
+		background-color: var(--color-accent) !important;
+		color: white;
+		font-weight: bold;
 	}
 </style>

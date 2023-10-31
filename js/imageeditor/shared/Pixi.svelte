@@ -1,23 +1,39 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount, createEventDispatcher } from "svelte";
 	import * as PIXI from "pixi.js";
+	import { prepare_files, upload } from "@gradio/client";
 
-	import type { EditorData, Brush } from "./types";
+	import type { EditorData, Brush, PathData } from "./types";
 
 	let stage: HTMLDivElement;
 
 	let app: PIXI.Application;
-	let graphics: PIXI.Graphics;
-	let container: PIXI.Container;
 
+	let container: PIXI.Container;
+	let bg_sprite: PIXI.Sprite;
 	export let bg: string | undefined;
-	export let layers: EditorData["layers"] | undefined;
-	export let composite: EditorData["composite"] | undefined;
+	export let layers: PathData[][];
 	export let brush_size: number;
 	export let brush_color: string | [number, number, number, number];
-	export let antialias: boolean = true;
+	export let antialias = true;
+	export let current_layer: number;
+	export let root: string;
 
-	$: console.log(encodeURI(bg), layers, composite);
+	export function clear(): void {
+		layers = [];
+		current_layer = 0;
+		bg_sprite.destroy();
+		graphics.forEach((g) => g.destroy());
+		graphics = [];
+	}
+
+	PIXI.Rectangle;
+
+	const dispatch = createEventDispatcher<{
+		change: EditorData;
+	}>();
+
+	let graphics: PIXI.Graphics[] = [];
 
 	const ratio = window.devicePixelRatio || 1;
 
@@ -25,79 +41,72 @@
 		make_pixi();
 	});
 
-	function make_pixi() {
+	function make_graphics(i: number): PIXI.Graphics {
+		const graphics = new PIXI.Graphics();
+		graphics.zIndex = i + 1;
+		container.addChild(graphics);
+		return graphics;
+	}
+
+	function make_pixi(): void {
 		app = new PIXI.Application({
 			width: 800,
 			height: 600,
 			backgroundColor: 0xffffff,
 			resolution: ratio,
-			antialias: true,
+			antialias: antialias,
 			eventMode: "static"
 		});
+		//@ts-ignore
 		app.view.style!.maxWidth = "800px";
+		//@ts-ignore
 		app.view.style!.maxHeight = "600px";
 		app.view.style!.width = "100%";
 		app.view.style!.height = "100%";
-		console.log(app.view);
+		//@ts-ignore
 		stage.appendChild(app.view);
 		container = new PIXI.Container();
 		container.sortableChildren = true;
 		app.stage.addChild(container);
 
-		// container.scale.set(0.5, 0.5);
-		graphics = new PIXI.Graphics();
-
-		graphics.drawRect(0, 0, window.innerWidth, window.innerHeight);
-
-		graphics.endFill();
-		graphics.cursor = "pointer";
-		graphics.zIndex = 2;
-
-		container.addChild(graphics);
-		// graphics.cursor = "crosshair";
-
-		// BUG
-		// Interactions added to the child
-		graphics.eventMode = "static";
-		// graphic
-		// 	// .on("pointertap", (e) => console.log("pointertap"))
-		// 	.on("pointerdown", (e) => console.log("pointerdown"))
-		// 	.on("pointermove", (e) => console.log("move asdasd"))
-		// 	.on("pointerup", (e) => console.log("pointerup"))
-		// 	.on("pointerout", (e) => console.log("pointerout"))
-		// 	.on("pointerupoutside", (e) => console.log("pointerupoutside"));
 		container.on("pointerdown", function (event) {
-			console.log(event.global.x, event.global.y);
+			if (!graphics[current_layer]) {
+				graphics[current_layer] = make_graphics(current_layer);
+			}
+
+			layers[current_layer].push({
+				path: [],
+				color: brush_color,
+				size: brush_size
+			});
 
 			drawing = true;
 			last_point = { x: event.global.x, y: event.global.y };
-			// graphics.moveTo(last_point.x, last_point.y);
+
 			drawCircle(event.global.x, event.global.y);
 		});
 
-		// Mouse up event
 		container.on("pointerup", function (event) {
 			drawing = false;
 			last_point = null;
+			make_file(graphics[current_layer], "layers", current_layer);
+			make_file(container, "composite");
 		});
 
-		// Mouse move event
 		container.on("pointermove", function (event) {
 			if (drawing && last_point) {
 				let newPoint = { x: event.global.x, y: event.global.y };
-				// 	graphics.lineStyle(20, 0x000000, 1, 0.5, false);
-				// 	graphics.moveTo(last_point.x, last_point.y);
-				// 	graphics.lineTo(newPoint.x, newPoint.y);
+
 				interpolate(last_point, newPoint);
 				last_point = newPoint;
 			}
 		});
 	}
 
-	function drawCircle(x, y): void {
-		graphics.beginFill(brush_color);
-		graphics.drawCircle(x, y, brush_size);
-		graphics.endFill();
+	function drawCircle(x: number, y: number): void {
+		graphics[current_layer].beginFill(brush_color);
+		graphics[current_layer].drawCircle(x, y, brush_size);
+		graphics[current_layer].endFill();
 	}
 
 	function interpolate(
@@ -115,63 +124,65 @@
 			const x = point1.x + j * stepX;
 			const y = point1.y + j * stepY;
 			drawCircle(x, y);
+			layers[current_layer][layers[current_layer].length - 1].path.push({
+				x,
+				y
+			});
 		}
 	}
 
-	async function add_bg() {
+	let value: EditorData = {
+		background: null,
+		layers: [],
+		composite: null
+	};
+
+	async function add_bg(): Promise<void> {
 		const a = await PIXI.Assets.load(encodeURI(bg!));
-		console.log(a);
 
-		// if (resources["imageKey"].error) {
-		// 	console.error(
-		// 		"An error occurred while loading the image:",
-		// 		resources["imageKey"].error
-		// 	);
-		// 	return;
-		// }
+		bg_sprite = new PIXI.Sprite(a);
 
-		const sprite = new PIXI.Sprite(a);
+		app.renderer.resize(bg_sprite.width, bg_sprite.height);
+		//@ts-ignore
+		app.view.style!.maxWidth = `${bg_sprite.width}px`;
+		//@ts-ignore
+		app.view.style!.maxHeight = `${bg_sprite.height}px`;
+		bg_sprite.zIndex = 1;
+		container.addChild(bg_sprite);
 
-		console.log("Sprite dimensions:", sprite.width, sprite.height);
+		make_file(bg_sprite, "background");
+		make_file(container, "composite");
 
-		// if (sprite.width === 1 || sprite.height === 1) {
-		// 	console.error(
-		// 		"The sprite dimensions are not as expected. This might indicate the image did not load correctly."
-		// 	);
-		// 	return;
-		// }
+		// @ts-ignore
+	}
 
-		const newWidth = sprite.width * ratio;
-		const newHeight = sprite.height * ratio;
-		console.log({ newWidth, newHeight });
-		app.renderer.resize(sprite.width, sprite.height);
-		app.view.style!.maxWidth = `${sprite.width}px`;
-		app.view.style!.maxHeight = `${sprite.height}px`;
-		sprite.zIndex = 1;
-		container.addChild(sprite);
+	async function make_file(
+		obj: PIXI.DisplayObject | PIXI.RenderTexture,
+		type: "background" | "layers" | "composite",
+		index?: number
+	): Promise<void> {
+		//@ts-ignore
+		app.renderer.extract
+			.canvas(obj, new PIXI.Rectangle(0, 0, container.width, container.height))
+			.toBlob(async (blob) => {
+				if (!blob) return;
+				const data = await upload(
+					await prepare_files([new File([blob], "background.png")]),
+					root
+				);
 
-		// const sprite = PIXI.Sprite.from(encodeURI(bg!));
-		// sprite.on("added", (e) => {
-		// 	console.log("loaded");
-		// 	sprite.anchor.set(0.5);
-		// 	sprite.x = app.screen.width / 2;
-		// 	sprite.y = app.screen.height / 2;
-		// 	// Create a sprite from the loaded texture
-		// 	const newWidth = sprite.width * ratio;
-		// 	const newHeight = sprite.height * ratio;
+				if (!data || !data[0]) return;
 
-		// 	app.renderer.resize(newWidth, sprite.height);
+				if (type === "background") {
+					value.background = data[0];
+				} else if (type === "composite") {
+					value.composite = data[0];
+				} else {
+					value.layers[index!] = data[0];
+				}
 
-		// 	console.log(ratio, sprite.width, newHeight);
-		// 	console.log({ newWidth, newHeight, sprite });
-
-		// 	// Resize the canvas HTML element
-		// 	app.view.style.width = `${sprite.width}px`;
-		// 	app.view.style.height = `${sprite.height}px`;
-		// });
-		// container.addChild(sprite);
-
-		// Add the sprite to the stage
+				dispatch("change", value);
+			});
 	}
 
 	let drawing = false;

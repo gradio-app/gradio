@@ -1,18 +1,19 @@
 <script lang="ts">
-	import type { Brush, EditorData } from "./types";
+	import type { Brush, EditorData, PathData } from "./types";
 	import { createEventDispatcher, tick } from "svelte";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Image, Brush as Paint, Chat as Crop } from "@gradio/icons";
 	import type { SelectData, I18nFormatter } from "@gradio/utils";
 	import { get_coordinates_of_clicked_image } from "./utils";
 
-	import Webcam from "./Webcam.svelte";
+	import { Webcam } from "@gradio/image";
 
 	import { Upload } from "@gradio/upload";
 	import { type FileData, normalise_file } from "@gradio/client";
 	import ClearImage from "./ClearImage.svelte";
 	import Pixi from "./Pixi.svelte";
 	import EditorTools from "./EditorTools.svelte";
+	import { _ } from "svelte-i18n";
 
 	export let value: EditorData = {
 		background: null,
@@ -30,12 +31,10 @@
 	export let streaming = false;
 	export let pending = false;
 	export let mirror_webcam: boolean;
-	export let selectable = false;
 	export let root: string;
 	export let i18n: I18nFormatter;
 	export let transforms: ("crop" | "rotate")[];
 	export let brush: Brush;
-
 	let upload: Upload;
 	export let active_tool: "webcam" | null = null;
 
@@ -59,7 +58,7 @@
 	// $: value && !value.url && (value = normalise_file(value, root, null));
 
 	const dispatch = createEventDispatcher<{
-		change?: never;
+		change?: EditorData;
 		stream?: never;
 		clear?: never;
 		drag: boolean;
@@ -78,16 +77,12 @@
 		}
 	}
 
-	interface PathData {
-		path: { x: number; y: number }[];
-		color: string;
-		size: number;
-	}
-
-	const layers: PathData[][] = [];
+	let _layers: PathData[][] = [[]];
 	let current_layer = 0;
 	function add_layer(): void {
-		layers.push([]);
+		_layers = [..._layers, []];
+		current_layer = _layers.length - 1;
+		selected_color = Math.floor(Math.random() * brush.colors.length);
 	}
 
 	async function handle_source(
@@ -122,25 +117,37 @@
 		}
 	}
 
-	let brush_size = brush.default_size;
-	let brush_color = brush.default_color;
+	let selected_size = brush.sizes.findIndex(
+		(v) => JSON.stringify(v) == JSON.stringify(brush.default_size)
+	);
+	let selected_color = brush.colors.findIndex(
+		(v) => JSON.stringify(v) == JSON.stringify(brush.default_color)
+	);
+
+	let pixi: Pixi;
+
+	function handle_remove(): void {
+		value = { background: null, layers: [], composite: null };
+		_layers = [[]];
+		pixi.clear();
+	}
 </script>
 
 <BlockLabel {show_label} Icon={Image} label={label || "Image"} />
 
 <div data-testid="image" class="image-container">
-	<ClearImage
-		on:remove_image={() =>
-			(value = { background: null, layers: [], composite: null })}
-	/>
+	<ClearImage on:remove_image={handle_remove} />
 
 	<Pixi
+		bind:this={pixi}
 		bg={value?.background?.url}
-		layers={value?.layers}
-		composite={value?.composite}
-		{brush_size}
-		{brush_color}
+		layers={_layers}
+		brush_size={brush.sizes[selected_size]}
+		brush_color={brush.colors[selected_color]}
 		antialias={brush?.antialias}
+		{current_layer}
+		{root}
+		on:change={(e) => dispatch("change", e.detail)}
 	/>
 	<div class="upload-container">
 		<Upload
@@ -166,15 +173,6 @@
 				include_audio={false}
 				{i18n}
 			/>
-		{:else if value !== null && !streaming}
-			<!-- svelte-ignore a11y-click-events-have-key-events-->
-			<!-- svelte-ignore a11y-no-noninteractive-element-interactions-->
-			<!-- <img
-				src={value.url}
-				alt={value.alt_text}
-				on:click={handle_click}
-				class:selectable
-			/> -->
 		{/if}
 	</div>
 	<EditorTools
@@ -182,17 +180,18 @@
 		{brush}
 		{transforms}
 		{i18n}
-		{layers}
 		on:set_source={(e) => handle_source(e.detail)}
+		on:new_layer={add_layer}
+		bind:current_layer
+		layers={_layers}
+		bind:selected_color
+		colors={brush.colors}
+		bind:selected_size
+		sizes={brush.sizes}
 	/>
 </div>
 
 <style>
-	img {
-		width: var(--size-full);
-		height: var(--size-full);
-	}
-
 	.upload-container {
 		height: 100%;
 		flex-shrink: 1;
@@ -206,9 +205,5 @@
 		justify-content: center;
 		align-items: center;
 		max-height: 100%;
-	}
-
-	.selectable {
-		cursor: crosshair;
 	}
 </style>

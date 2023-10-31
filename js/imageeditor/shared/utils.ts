@@ -22,3 +22,23 @@ export const get_coordinates_of_clicked_image = (
 	}
 	return [x, y];
 };
+
+export function click_outside(node: Node, cb: any): any {
+	const handle_click = (event: MouseEvent): void => {
+		if (
+			node &&
+			!node.contains(event.target as Node) &&
+			!event.defaultPrevented
+		) {
+			cb(event);
+		}
+	};
+
+	document.addEventListener("click", handle_click, true);
+
+	return {
+		destroy() {
+			document.removeEventListener("click", handle_click, true);
+		}
+	};
+}

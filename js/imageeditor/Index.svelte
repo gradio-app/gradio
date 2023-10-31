@@ -69,7 +69,10 @@
 
 	let active_tool: null | "webcam" = null;
 
-	$: console.log({ $$props });
+	function handle_change(detail: EditorData): void {
+		value = detail;
+		gradio.dispatch("change");
+	}
 </script>
 
 {#if !interactive}
@@ -131,10 +134,9 @@
 
 		<ImageEditor
 			bind:active_tool
-			bind:value
-			selectable={_selectable}
 			{root}
 			{sources}
+			on:change={(e) => handle_change(e.detail)}
 			on:edit={() => gradio.dispatch("edit")}
 			on:clear={() => gradio.dispatch("clear")}
 			on:stream={() => gradio.dispatch("stream")}
