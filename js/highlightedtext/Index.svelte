@@ -1,3 +1,8 @@
+<script context="module" lang="ts">
+	export { default as BaseStaticHighlightedText } from "./shared/StaticHighlightedtext.svelte";
+	export { default as BaseInteractiveHighlightedText } from "./shared/InteractiveHighlightedtext.svelte";
+</script>
+
 <script lang="ts">
 	import type { Gradio, SelectData, I18nFormatter } from "@gradio/utils";
 	import StaticHighlightedText from "./shared/StaticHighlightedtext.svelte";

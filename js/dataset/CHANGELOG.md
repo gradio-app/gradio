@@ -1,5 +1,11 @@
 # @gradio/dataset
 
+## 0.1.0-beta.2
+
+### Features
+
+- [#6143](https://github.com/gradio-app/gradio/pull/6143) [`e4f7b4b40`](https://github.com/gradio-app/gradio/commit/e4f7b4b409323b01aa01b39e15ce6139e29aa073) - fix circular dependency with client + upload.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.1.0-beta.1
 
 ### Features

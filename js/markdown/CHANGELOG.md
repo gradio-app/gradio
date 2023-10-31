@@ -1,5 +1,12 @@
 # @gradio/markdown
 
+## 0.3.0-beta.8
+
+### Features
+
+- [#6136](https://github.com/gradio-app/gradio/pull/6136) [`667802a6c`](https://github.com/gradio-app/gradio/commit/667802a6cdbfb2ce454a3be5a78e0990b194548a) - JS Component Documentation.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6152](https://github.com/gradio-app/gradio/pull/6152) [`982bff2fd`](https://github.com/gradio-app/gradio/commit/982bff2fdd938b798c400fb90d1cf0caf7278894) - Remove duplicate `elem_ids` from components.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.3.0-beta.7
 
 ### Features

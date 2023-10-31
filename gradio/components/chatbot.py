@@ -56,8 +56,6 @@ class Chatbot(Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        root_url: str | None = None,
-        _skip_init_processing: bool = False,
         height: int | None = None,
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         rtl: bool = False,
@@ -69,7 +67,6 @@ class Chatbot(Component):
         bubble_full_width: bool = True,
         line_breaks: bool = True,
         layout: Literal["panel", "bubble"] | None = None,
-        _selectable: bool = False,
     ):
         """
         Parameters:
@@ -84,7 +81,6 @@ class Chatbot(Component):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
-            root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
             height: height of the component in pixels.
             latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html).
             rtl: If True, sets the direction of the rendered text to right-to-left. Default is False, which renders text left-to-right.
@@ -115,7 +111,6 @@ class Chatbot(Component):
         self.bubble_full_width = bubble_full_width
         self.line_breaks = line_breaks
         self.layout = layout
-        self._selectable = _selectable
 
         super().__init__(
             label=label,
@@ -128,8 +123,6 @@ class Chatbot(Component):
             elem_id=elem_id,
             elem_classes=elem_classes,
             render=render,
-            root_url=root_url,
-            _skip_init_processing=_skip_init_processing,
             value=value,
         )
 
