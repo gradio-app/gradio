@@ -24,43 +24,6 @@ class TestQueueing:
 
         assert job.result() == "Hello, x!"
 
-    def test_multiple_requests(self):
-        with gr.Blocks() as demo:
-            name = gr.Textbox()
-            output = gr.Textbox()
-
-            def greet(x):
-                time.sleep(2)
-                return f"Hello, {x}!"
-
-            name.submit(greet, name, output, concurrency_limit=2)
-
-        app, _, _ = demo.launch(prevent_thread_lock=True)
-        test_client = TestClient(app)
-
-        client = grc.Client(f"http://localhost:{demo.server_port}")
-        client.submit("a", fn_index=0)
-        job2 = client.submit("b", fn_index=0)
-        client.submit("c", fn_index=0)
-        job4 = client.submit("d", fn_index=0)
-
-        sizes = []
-        while job4.status().code.value != "FINISHED":
-            queue_status = test_client.get("/queue/status").json()
-            sizes.append(queue_status["queue_size"])
-            time.sleep(0.05)
-
-        assert max(sizes) in [
-            2,
-            3,
-            4,
-        ]  # Can be 2 - 4, depending on if the workers have picked up jobs before the queue status is checked
-        assert min(sizes) == 0
-        assert sizes[-1] == 0
-
-        assert job2.result() == "Hello, b!"
-        assert job4.result() == "Hello, d!"
-
     def test_all_status_messages(self):
         with gr.Blocks() as demo:
             name = gr.Textbox()
@@ -100,7 +63,7 @@ class TestQueueing:
             3,
             4,
         ]  # Can be 2 - 4, depending on if the workers have picked up jobs before the queue status is checked
-        print(sizes)
+
         assert min(sizes) == 0
         assert sizes[-1] == 0
 
@@ -122,7 +85,7 @@ class TestQueueing:
 
             sub_btn = gr.Button("Subtract")
 
-            @sub_btn.click(inputs=[a, b], outputs=output)
+            @sub_btn.click(inputs=[a, b], outputs=output, concurrency_limit=None)
             def sub(x, y):
                 time.sleep(4)
                 return x - y
