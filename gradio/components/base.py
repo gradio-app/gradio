@@ -48,21 +48,21 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
     EVENTS: list[EventListener | str] = []
 
     @abstractmethod
-    def preprocess(self, payload: Any) -> Any:
+    def preprocess(self, x: Any) -> Any:
         """
-        Any preprocessing needed to be performed on function input.
+        Convert from the web-friendly (typically JSON) value in the front-end to the format expected by the python function.
         """
-        return payload
+        return x
 
     @abstractmethod
-    def postprocess(self, value):
+    def postprocess(self, y):
         """
-        Any postprocessing needed to be performed on function output.
+        Convert from the data returned by the python function to the web-friendly (typically JSON) value expected by the front-end.
         """
-        return value
+        return y
 
     @abstractmethod
-    def as_example(self, value):
+    def as_example(self, y):
         """
         Return the input data in a way that can be displayed by the examples dataset component in the front-end.
 
@@ -74,21 +74,19 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
     @abstractmethod
     def api_info(self) -> dict[str, list[str]]:
         """
-        The typing information for this component as a dictionary whose values are a list of 2 strings: [Python type, language-agnostic description].
-        Keys of the dictionary are: raw_input, raw_output, serialized_input, serialized_output
+        A JSON-schema representation of the value that the `preprocess` expects and the `postprocess` returns.
         """
         pass
 
     @abstractmethod
     def example_inputs(self) -> Any:
         """
-        The example inputs for this component as a dictionary whose values are example inputs compatible with this component.
-        Keys of the dictionary are: raw, serialized
+        The example inputs for this component for API usage. Must be JSON-serializable.
         """
         pass
 
     @abstractmethod
-    def flag(self, payload: Any | GradioDataModel, flag_dir: str | Path = "") -> str:
+    def flag(self, x: Any | GradioDataModel, flag_dir: str | Path = "") -> str:
         """
         Write the component's value to a format that can be stored in a csv or jsonl format for flagging.
         """
@@ -97,13 +95,13 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
     @abstractmethod
     def read_from_flag(
         self,
-        payload: Any,
+        x: Any,
         flag_dir: str | Path | None = None,
     ) -> GradioDataModel | Any:
         """
         Convert the data from the csv or jsonl file into the component state.
         """
-        return payload
+        return x
 
     @property
     @abstractmethod
@@ -147,6 +145,8 @@ class Component(ComponentBase, Block):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
+        root_url: str | None = None,
+        _skip_init_processing: bool = False,
         load_fn: Callable | None = None,
         every: float | None = None,
     ):
@@ -177,6 +177,8 @@ class Component(ComponentBase, Block):
             elem_classes=elem_classes,
             visible=visible,
             render=render,
+            root_url=root_url,
+            _skip_init_processing=_skip_init_processing,
         )
         if isinstance(self, StreamingInput):
             self.check_streamable()
@@ -267,26 +269,26 @@ class Component(ComponentBase, Block):
             f"The api_info method has not been implemented for {self.get_block_name()}"
         )
 
-    def flag(self, payload: Any, flag_dir: str | Path = "") -> str:
+    def flag(self, x: Any, flag_dir: str | Path = "") -> str:
         """
         Write the component's value to a format that can be stored in a csv or jsonl format for flagging.
         """
         if self.data_model:
-            payload = self.data_model.from_json(payload)
-            return payload.copy_to_dir(flag_dir).model_dump_json()
-        return payload
+            x = self.data_model.from_json(x)
+            return x.copy_to_dir(flag_dir).model_dump_json()
+        return x
 
     def read_from_flag(
         self,
-        payload: Any,
+        x: Any,
         flag_dir: str | Path | None = None,
     ):
         """
         Convert the data from the csv or jsonl file into the component state.
         """
         if self.data_model:
-            return self.data_model.from_json(json.loads(payload))
-        return payload
+            return self.data_model.from_json(json.loads(x))
+        return x
 
 
 class FormComponent(Component):
@@ -295,11 +297,11 @@ class FormComponent(Component):
             return None
         return Form
 
-    def preprocess(self, payload: Any) -> Any:
-        return payload
+    def preprocess(self, x: Any) -> Any:
+        return x
 
-    def postprocess(self, value):
-        return value
+    def postprocess(self, y):
+        return y
 
 
 class StreamingOutput(metaclass=abc.ABCMeta):
@@ -308,9 +310,7 @@ class StreamingOutput(metaclass=abc.ABCMeta):
         self.streaming: bool
 
     @abc.abstractmethod
-    def stream_output(
-        self, value, output_id: str, first_chunk: bool
-    ) -> tuple[bytes, Any]:
+    def stream_output(self, y, output_id: str, first_chunk: bool) -> tuple[bytes, Any]:
         pass
 
 

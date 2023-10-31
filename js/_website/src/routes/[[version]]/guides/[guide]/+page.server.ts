@@ -12,6 +12,8 @@ import "prismjs/components/prism-json";
 import "prismjs/components/prism-typescript";
 import "prismjs/components/prism-csv";
 import "prismjs/components/prism-markup";
+import "prismjs/components/prism-javascript";
+
 
 const langs = {
 	python: "python",
@@ -21,7 +23,10 @@ const langs = {
 	html: "html",
 	shell: "bash",
 	json: "json",
+	javascript: "javascript",
+	js: "javascript",
 	typescript: "typescript",
+	ts: "typescript",
 	directory: "json"
 };
 
