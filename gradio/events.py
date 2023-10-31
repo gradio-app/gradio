@@ -491,7 +491,7 @@ class Events:
     )
     select = EventListener(
         "select",
-        callback=lambda block: setattr(block, "selectable", True),
+        callback=lambda block: setattr(block, "_selectable", True),
         doc="Event listener for when the user selects or deselects the {{ component }}. Uses event data gradio.SelectData to carry `value` referring to the label of the {{ component }}, and `selected` to refer to state of the {{ component }}. See EventData documentation on how to use this event data",
     )
     stream = EventListener(

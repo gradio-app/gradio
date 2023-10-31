@@ -22,7 +22,7 @@
 		click: never;
 	}>;
 	export let root = "";
-	export let root_url: null | string = null;
+	export let proxy_url: null | string = null;
 </script>
 
 <Button
@@ -37,7 +37,7 @@
 	{min_width}
 	{visible}
 	{root}
-	{root_url}
+	{proxy_url}
 	disabled={!interactive}
 	on:click={() => gradio.dispatch("click")}
 >
