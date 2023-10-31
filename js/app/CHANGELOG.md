@@ -1,5 +1,11 @@
 # @gradio/app
 
+## 1.9.2
+
+### Fixes
+
+- [#6191](https://github.com/gradio-app/gradio/pull/6191) [`b555bc09f`](https://github.com/gradio-app/gradio/commit/b555bc09ffe8e58b10da6227e2f11a0c084aa71d) - fix cdn build.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 1.9.1
 
 ### Features
