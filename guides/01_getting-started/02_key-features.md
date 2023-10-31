@@ -174,8 +174,12 @@ demo.launch()
 You can control the number of requests processed at a single time as such:
 
 ```python
-demo.queue(concurrency_count=3)
+with gr.Blocks() as demo:
+    btn = gr.Button("Run")
+    btn.click(..., concurrency_limit=2)
 ```
+
+This limits the number of requests processed for this event listener at a single time to 2.
 
 See the [Docs on queueing](/docs/#queue) on configuring other queuing parameters.
 
