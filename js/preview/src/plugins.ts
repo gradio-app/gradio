@@ -12,7 +12,7 @@ const svelte_codes_to_ignore: Record<string, string> = {
 
 const RE_SVELTE_IMPORT =
 	/import\s+([\w*{},\s]+)\s+from\s+['"](svelte|svelte\/internal)['"]/g;
-
+const RE_BARE_SVELTE_IMPORT = /import ("|')svelte(\/\w+)*("|')(;)*/g;
 export const plugins: PluginOption[] = [
 	viteCommonjs() as Plugin,
 	svelte({
@@ -71,15 +71,17 @@ export function make_gradio_plugin({
 		name: "gradio",
 		enforce: "pre",
 		transform(code) {
-			const new_code = code.replace(RE_SVELTE_IMPORT, (str, $1, $2) => {
-				const identifier = $1.trim().startsWith("* as")
-					? $1.replace("* as", "").trim()
-					: $1.trim();
-				return `const ${identifier.replace(
-					" as ",
-					": "
-				)} = window.__gradio__svelte__internal;`;
-			});
+			const new_code = code
+				.replace(RE_SVELTE_IMPORT, (str, $1, $2) => {
+					const identifier = $1.trim().startsWith("* as")
+						? $1.replace("* as", "").trim()
+						: $1.trim();
+					return `const ${identifier.replace(
+						" as ",
+						": "
+					)} = window.__gradio__svelte__internal;`;
+				})
+				.replace(RE_BARE_SVELTE_IMPORT, "");
 			return {
 				code: new_code,
 				map: null

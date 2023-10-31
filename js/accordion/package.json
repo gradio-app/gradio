@@ -10,7 +10,8 @@
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
 		"@gradio/column": "workspace:^",
-		"@gradio/statustracker": "workspace:^"
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/utils": "workspace:0.2.0-beta.6"
 	},
 	"exports": {
 		".": "./Index.svelte",

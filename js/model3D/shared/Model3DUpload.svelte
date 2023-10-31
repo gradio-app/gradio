@@ -84,7 +84,7 @@
 
 	import * as BABYLON from "babylonjs";
 	import * as BABYLON_LOADERS from "babylonjs-loaders";
-	import type { I18nFormatter } from "js/utils/src";
+	import type { I18nFormatter } from "@gradio/utils";
 
 	$: {
 		if (
