@@ -38,7 +38,7 @@ def calculator_demo():
             [0, "subtract", 1.2],
         ],
     )
-    return demo.queue()
+    return demo
 
 
 @pytest.fixture
@@ -48,7 +48,7 @@ def state_demo():
         ["textbox", "state"],
         ["textbox", "state"],
     )
-    return demo.queue()
+    return demo
 
 
 @pytest.fixture
@@ -81,7 +81,7 @@ def increment_demo():
             api_name=False,
         )
 
-    return demo.queue()
+    return demo
 
 
 @pytest.fixture
@@ -177,7 +177,7 @@ def count_generator_demo():
         count_btn.click(count, num, out)
         list_btn.click(show, num, out)
 
-    return demo.queue()
+    return demo
 
 
 @pytest.fixture
@@ -202,7 +202,7 @@ def count_generator_no_api():
         count_btn.click(count, num, out, api_name=False)
         list_btn.click(show, num, out, api_name=False)
 
-    return demo.queue()
+    return demo
 
 
 @pytest.fixture
@@ -228,7 +228,7 @@ def count_generator_demo_exception():
 
         count_btn.click(count, num, out, api_name="count")
         count_forever.click(show, num, out, api_name="count_forever", every=3)
-    return demo.queue()
+    return demo
 
 
 @pytest.fixture
@@ -258,7 +258,7 @@ def stateful_chatbot():
 
         msg.submit(respond, [msg, st, chatbot], [msg, chatbot], api_name="submit")
         clear.click(lambda: None, None, chatbot, queue=False)
-        demo.queue()
+        demo
     return demo
 
 
