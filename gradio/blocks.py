@@ -215,7 +215,10 @@ class Block:
             if to_add:
                 config = {**to_add, **config}
         config.pop("render", None)
-        return {**config, "proxy_url": self.proxy_url, "name": self.get_block_name()}
+        config = {**config, "proxy_url": self.proxy_url, "name": self.get_block_name()}
+        if (_selectable := getattr(self, "_selectable", None)) is not None:
+            config["_selectable"] = _selectable
+        return config
 
     @classmethod
     def recover_kwargs(

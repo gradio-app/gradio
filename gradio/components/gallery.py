@@ -66,7 +66,6 @@ class Gallery(Component):
         | None = None,
         show_share_button: bool | None = None,
         show_download_button: bool | None = True,
-        _selectable: bool = False,
     ):
         """
         Parameters:
@@ -91,7 +90,6 @@ class Gallery(Component):
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             show_download_button: If True, will show a download button in the corner of the selected image. If False, the icon does not appear. Default is True.
         """
-        self._selectable = _selectable
         self.columns = columns
         self.rows = rows
         self.height = height

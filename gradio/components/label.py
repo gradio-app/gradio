@@ -57,7 +57,6 @@ class Label(Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         color: str | None = None,
-        _selectable: bool = False,
     ):
         """
         Parameters:
@@ -75,7 +74,6 @@ class Label(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             color: The background color of the label (either a valid css color name or hexadecimal string).
         """
-        self._selectable = _selectable
         self.num_top_classes = num_top_classes
         self.color = color
         super().__init__(

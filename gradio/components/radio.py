@@ -43,7 +43,6 @@ class Radio(FormComponent):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        _selectable: bool = False,
     ):
         """
         Parameters:
@@ -76,7 +75,6 @@ class Radio(FormComponent):
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
             )
         self.type = type
-        self._selectable = _selectable
         super().__init__(
             label=label,
             info=info,

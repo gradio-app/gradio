@@ -73,7 +73,6 @@ class Dataframe(Component):
         wrap: bool = False,
         line_breaks: bool = True,
         column_widths: list[str | int] | None = None,
-        _selectable: bool = False,
     ):
         """
         Parameters:
@@ -100,7 +99,6 @@ class Dataframe(Component):
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies for columns of type "markdown."
             column_widths: An optional list representing the width of each column. The elements of the list should be in the format "100px" (ints are also accepted and converted to pixel values) or "10%". If not provided, the column widths will be automatically determined based on the content of the cells. Setting this parameter will cause the browser to try to fit the table within the page width.
         """
-        self._selectable = _selectable
         self.wrap = wrap
         self.row_count = self.__process_counts(row_count)
         self.col_count = self.__process_counts(

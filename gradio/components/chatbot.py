@@ -69,7 +69,6 @@ class Chatbot(Component):
         bubble_full_width: bool = True,
         line_breaks: bool = True,
         layout: Literal["panel", "bubble"] | None = None,
-        _selectable: bool = False,
     ):
         """
         Parameters:
@@ -114,7 +113,6 @@ class Chatbot(Component):
         self.bubble_full_width = bubble_full_width
         self.line_breaks = line_breaks
         self.layout = layout
-        self._selectable = _selectable
 
         super().__init__(
             label=label,

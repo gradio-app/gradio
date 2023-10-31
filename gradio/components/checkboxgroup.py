@@ -42,7 +42,6 @@ class CheckboxGroup(FormComponent):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        _selectable: bool = False,
     ):
         """
         Parameters:
@@ -62,7 +61,6 @@ class CheckboxGroup(FormComponent):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
         """
-        self._selectable = _selectable
         self.choices = (
             # Although we expect choices to be a list of tuples, it can be a list of tuples if the Gradio app
             # is loaded with gr.load() since Python tuples are converted to lists in JSON.

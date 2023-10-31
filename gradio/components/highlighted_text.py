@@ -56,7 +56,6 @@ class HighlightedText(Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         interactive: bool | None = None,
-        _selectable: bool = False,
     ):
         """
         Parameters:
@@ -77,7 +76,6 @@ class HighlightedText(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             interactive: If True, the component will be editable, and allow user to select spans of text and label them.
         """
-        self._selectable = _selectable
         self.color_map = color_map
         self.show_legend = show_legend
         self.combine_adjacent = combine_adjacent

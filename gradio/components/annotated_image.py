@@ -64,7 +64,6 @@ class AnnotatedImage(Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        _selectable: bool = False,
     ):
         """
         Parameters:
@@ -88,7 +87,6 @@ class AnnotatedImage(Component):
         self.height = height
         self.width = width
         self.color_map = color_map
-        self._selectable = _selectable
         super().__init__(
             label=label,
             every=every,

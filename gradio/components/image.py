@@ -70,7 +70,6 @@ class Image(StreamingInput, Component):
         render: bool = True,
         mirror_webcam: bool = True,
         show_share_button: bool | None = None,
-        _selectable: bool = False,
     ):
         """
         Parameters:
@@ -96,7 +95,6 @@ class Image(StreamingInput, Component):
             mirror_webcam: If True webcam will be mirrored. Default is True.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
-        self._selectable = _selectable
         self.mirror_webcam = mirror_webcam
         valid_types = ["numpy", "pil", "filepath"]
         if type not in valid_types:
