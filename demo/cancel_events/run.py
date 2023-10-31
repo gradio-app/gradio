@@ -5,7 +5,7 @@ import gradio as gr
 def fake_diffusion(steps):
     for i in range(steps):
         print(f"Current step: {i}")
-        time.sleep(0.2)
+        time.sleep(1)
         yield str(i)
 
 
@@ -33,7 +33,7 @@ with gr.Blocks() as demo:
         with gr.Column():
             image = gr.Image(sources=["webcam"], tool="editor", label="Cancel on edit", interactive=True)
         with gr.Column():
-            video = gr.Video(source="webcam", label="Cancel on play", interactive=True)
+            video = gr.Video(sources=["webcam"], label="Cancel on play", interactive=True)
 
     click_event = run.click(fake_diffusion, n, output)
     stop.click(fn=None, inputs=None, outputs=None, cancels=[click_event])

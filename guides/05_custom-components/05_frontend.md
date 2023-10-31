@@ -224,16 +224,51 @@ For WASM support, you should get the upload function from the `Context` and pass
 
 ## Leveraging Existing Gradio Components
 
-You can save yourself some code by using Gradio's core components in your own custom component. It will also make it a lot easier to match Gradio's design system.
+Most of Gradio's frontend components are published on [npm](https://www.npmjs.com/), the javascript package repository.
+This means that you can use them to save yourself time while incorporating common patterns in your component, like uploading files.
+For example, the `@gradio/upload` package has `Upload` and `ModifyUpload` components for properly uploading files to the Gradio server. 
+Here is how you can use them to create a user interface to upload and display PDF files.
 
-[Svelte Component Documentation](https://gradio.app/main/docs/js)
+```typescript
+<script>
+	import { type FileData, normalise_file, Upload, ModifyUpload } from "@gradio/upload";
+	import { Empty, UploadText, BlockLabel } from "@gradio/atoms";
+</script>
 
+<BlockLabel Icon={File} label={label || "PDF"} />
+{#if value === null && interactive}
+    <Upload
+        filetype="application/pdf"
+        on:load={handle_load}
+        {root}
+        >
+        <UploadText type="file" i18n={gradio.i18n} />
+    </Upload>
+{:else if value !== null}
+    {#if interactive}
+        <ModifyUpload i18n={gradio.i18n} on:clear={handle_clear}/>
+    {/if}
+    <iframe title={value.orig_name || "PDF"} src={value.data} height="{height}px" width="100%"></iframe>
+{:else}
+    <Empty size="large"> <File/> </Empty>	
+{/if}
+```
 
+You can also combine existing Gradio components to create entirely unique experiences.
+Like rendering a gallery of chatbot conversations. 
+The possibilities are endless, please read the documentation on our javascript packages [here](https://gradio.app/main/docs/js).
+We'll be adding more packages and documentation over the coming weeks!
 
 ## Matching Gradio Core's Design System
 
 You can explore our component library via Storybook. You'll be able to interact with our components and see them in their various states.
 
-For those interested in design customization, we provide the CSS variables and the icons we use so you can easily match up your custom component with the style of our core components. This Storybook will be regularly updated with any new additions or changes.
+For those interested in design customization, we provide the CSS variables consisting of our color palette, radii, spacing, and the icons we use - so you can easily match up your custom component with the style of our core components. This Storybook will be regularly updated with any new additions or changes.
 
 [Storybook Link](https://gradio.app/main/docs/js/storybook)
+
+
+## Conclusion
+
+You now how to create delightful frontends for your components!
+

@@ -1,3 +1,9 @@
+<script context="module" lang="ts">
+	export { default as BaseModel3D } from "./shared/Model3D.svelte";
+	export { default as BaseModel3DUpload } from "./shared/Model3DUpload.svelte";
+	export { default as BaseExample } from "./Example.svelte";
+</script>
+
 <script lang="ts">
 	import { normalise_file, type FileData } from "@gradio/client";
 	import Model3D from "./shared/Model3D.svelte";

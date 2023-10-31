@@ -1,5 +1,7 @@
 <script context="module" lang="ts">
 	export { default as MarkdownCode } from "./shared/MarkdownCode.svelte";
+	export { default as BaseMarkdown } from "./shared/Markdown.svelte";
+	export { default as BaseExample } from "./Example.svelte";
 </script>
 
 <script lang="ts">
@@ -42,7 +44,6 @@
 		<Markdown
 			min_height={loading_status && loading_status.status !== "complete"}
 			{value}
-			{elem_id}
 			{elem_classes}
 			{visible}
 			{rtl}

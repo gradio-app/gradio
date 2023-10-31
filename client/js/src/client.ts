@@ -429,9 +429,12 @@ export function api_factory(
 				}
 
 				let websocket: WebSocket;
+				let eventSource: EventSource;
+				let protocol = config.protocol ?? "sse";
 
 				const _endpoint = typeof endpoint === "number" ? "/predict" : endpoint;
 				let payload: Payload;
+				let event_id: string | null = null;
 				let complete: false | Record<string, any> = false;
 				const listener_map: ListenerMap<EventType> = {};
 				let url_params = "";
@@ -516,7 +519,7 @@ export function api_factory(
 									time: new Date()
 								});
 							});
-					} else {
+					} else if (protocol == "ws") {
 						fire_event({
 							type: "status",
 							stage: "pending",
@@ -636,6 +639,126 @@ export function api_factory(
 								websocket.send(JSON.stringify({ hash: session_hash }))
 							);
 						}
+					} else {
+						fire_event({
+							type: "status",
+							stage: "pending",
+							queue: true,
+							endpoint: _endpoint,
+							fn_index,
+							time: new Date()
+						});
+						var params = new URLSearchParams({
+							fn_index: fn_index.toString(),
+							session_hash: session_hash
+						}).toString();
+						let url = new URL(
+							`${http_protocol}//${resolve_root(
+								host,
+								config.path,
+								true
+							)}/queue/join?${params}`
+						);
+
+						eventSource = new EventSource(url);
+
+						eventSource.onmessage = async function (event) {
+							const _data = JSON.parse(event.data);
+							const { type, status, data } = handle_message(
+								_data,
+								last_status[fn_index]
+							);
+
+							if (type === "update" && status && !complete) {
+								// call 'status' listeners
+								fire_event({
+									type: "status",
+									endpoint: _endpoint,
+									fn_index,
+									time: new Date(),
+									...status
+								});
+								if (status.stage === "error") {
+									eventSource.close();
+								}
+							} else if (type === "data") {
+								event_id = _data.event_id as string;
+								let [_, status] = await post_data(
+									`${http_protocol}//${resolve_root(
+										host,
+										config.path,
+										true
+									)}/queue/data`,
+									{
+										...payload,
+										session_hash,
+										event_id
+									},
+									hf_token
+								);
+								if (status !== 200) {
+									fire_event({
+										type: "status",
+										stage: "error",
+										message: BROKEN_CONNECTION_MSG,
+										queue: true,
+										endpoint: _endpoint,
+										fn_index,
+										time: new Date()
+									});
+									eventSource.close();
+								}
+							} else if (type === "complete") {
+								complete = status;
+							} else if (type === "log") {
+								fire_event({
+									type: "log",
+									log: data.log,
+									level: data.level,
+									endpoint: _endpoint,
+									fn_index
+								});
+							} else if (type === "generating") {
+								fire_event({
+									type: "status",
+									time: new Date(),
+									...status,
+									stage: status?.stage!,
+									queue: true,
+									endpoint: _endpoint,
+									fn_index
+								});
+							}
+							if (data) {
+								fire_event({
+									type: "data",
+									time: new Date(),
+									data: transform_files
+										? transform_output(
+												data.data,
+												api_info,
+												config.root,
+												config.root_url
+										  )
+										: data.data,
+									endpoint: _endpoint,
+									fn_index
+								});
+
+								if (complete) {
+									fire_event({
+										type: "status",
+										time: new Date(),
+										...complete,
+										stage: status?.stage!,
+										queue: true,
+										endpoint: _endpoint,
+										fn_index
+									});
+									eventSource.close();
+								}
+							}
+						};
 					}
 				});
 
@@ -683,12 +806,19 @@ export function api_factory(
 						fn_index: fn_index
 					});
 
-					if (websocket && websocket.readyState === 0) {
-						websocket.addEventListener("open", () => {
+					let cancel_request = {};
+					if (protocol === "ws") {
+						if (websocket && websocket.readyState === 0) {
+							websocket.addEventListener("open", () => {
+								websocket.close();
+							});
+						} else {
 							websocket.close();
-						});
+						}
+						cancel_request = { fn_index, session_hash };
 					} else {
-						websocket.close();
+						eventSource.close();
+						cancel_request = { event_id };
 					}
 
 					try {
@@ -701,7 +831,7 @@ export function api_factory(
 							{
 								headers: { "Content-Type": "application/json" },
 								method: "POST",
-								body: JSON.stringify({ fn_index, session_hash })
+								body: JSON.stringify(cancel_request)
 							}
 						);
 					} catch (e) {

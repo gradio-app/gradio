@@ -4,7 +4,7 @@
 	import type { I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
 	import RegionsPlugin, {
-		type Region,
+		type Region
 	} from "wavesurfer.js/dist/plugins/regions.js";
 	import type { WaveformOptions } from "./types";
 
@@ -54,7 +54,7 @@
 			end: audioDuration / 2,
 			color: "hsla(15, 85%, 40%, 0.4)",
 			drag: true,
-			resize: true,
+			resize: true
 		});
 
 		trimDuration = activeRegion.end - activeRegion.start;
@@ -138,7 +138,7 @@
 
 		activeRegion.setOptions({
 			start: newStart,
-			end: newEnd,
+			end: newEnd
 		});
 
 		trimDuration = activeRegion.end - activeRegion.start;
@@ -275,7 +275,7 @@
 		display: grid;
 		grid-template-columns: 1fr 1fr 1fr;
 		margin-top: 5px;
-		overflow: scroll;
+		overflow: hidden;
 		align-items: center;
 	}
 
