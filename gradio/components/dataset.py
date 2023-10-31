@@ -58,7 +58,7 @@ class Dataset(Component):
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
-            proxy_url: 
+            proxy_url: The URL of the external Space used to load this component. Set automatically when using `gr.load()`. This should not be set manually.
         """
         super().__init__(
             visible=visible,
@@ -90,6 +90,8 @@ class Dataset(Component):
         for example in self.samples:
             for i, (component, ex) in enumerate(zip(self._components, example)):
                 if self.proxy_url is None:
+                    # If proxy_url is set, that means it is being loaded from an external Gradio app
+                    # which means that the example has already been processed.
                     example[i] = component.as_example(ex)
         self.type = type
         self.label = label

@@ -251,7 +251,6 @@ def move_resource_to_block_cache(url_or_file_path: str | Path, block: Component)
     to to the block's temp_files, and returns the path to the file in cache. This
     ensures that the file is accessible to the Block and can be served to users.
     """
-    print("move_resource_to_block_cache", url_or_file_path)
     if isinstance(url_or_file_path, Path):
         url_or_file_path = str(url_or_file_path)
 
