@@ -56,8 +56,6 @@ class Gallery(Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        root_url: str | None = None,
-        _skip_init_processing: bool = False,
         columns: int | tuple | None = 2,
         rows: int | tuple | None = None,
         height: int | float | None = None,
@@ -68,7 +66,6 @@ class Gallery(Component):
         | None = None,
         show_share_button: bool | None = None,
         show_download_button: bool | None = True,
-        _selectable: bool = False,
     ):
         """
         Parameters:
@@ -83,7 +80,6 @@ class Gallery(Component):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
-            root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
             columns: Represents the number of images that should be shown in one row, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). If fewer than 6 are given then the last will be used for all subsequent breakpoints
             rows: Represents the number of rows in the image grid, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). If fewer than 6 are given then the last will be used for all subsequent breakpoints
             height: The height of the gallery component, in pixels. If more images are displayed than can fit in the height, a scrollbar will appear.
@@ -94,7 +90,6 @@ class Gallery(Component):
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             show_download_button: If True, will show a download button in the corner of the selected image. If False, the icon does not appear. Default is True.
         """
-        self._selectable = _selectable
         self.columns = columns
         self.rows = rows
         self.height = height
@@ -124,8 +119,6 @@ class Gallery(Component):
             elem_id=elem_id,
             elem_classes=elem_classes,
             render=render,
-            root_url=root_url,
-            _skip_init_processing=_skip_init_processing,
             value=value,
         )
 

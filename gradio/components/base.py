@@ -147,8 +147,6 @@ class Component(ComponentBase, Block):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        root_url: str | None = None,
-        _skip_init_processing: bool = False,
         load_fn: Callable | None = None,
         every: float | None = None,
     ):
@@ -179,8 +177,6 @@ class Component(ComponentBase, Block):
             elem_classes=elem_classes,
             visible=visible,
             render=render,
-            root_url=root_url,
-            _skip_init_processing=_skip_init_processing,
         )
         if isinstance(self, StreamingInput):
             self.check_streamable()
