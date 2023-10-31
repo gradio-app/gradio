@@ -13,8 +13,8 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let root = "";
-	export let root_url: string | null = null;
-	$: icon_path = get_fetchable_url_or_file(icon, root, root_url);
+	export let proxy_url: string | null = null;
+	$: icon_path = get_fetchable_url_or_file(icon, root, proxy_url);
 </script>
 
 {#if link && link.length > 0}

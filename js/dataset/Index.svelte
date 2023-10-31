@@ -20,7 +20,7 @@
 	export let visible = true;
 	export let value: number | null = null;
 	export let root: string;
-	export let root_url: null | string;
+	export let proxy_url: null | string;
 	export let samples_per_page = 10;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
@@ -29,7 +29,7 @@
 		select: SelectData;
 	}>;
 
-	let samples_dir: string = get_fetchable_url_or_file(null, root, root_url);
+	let samples_dir: string = get_fetchable_url_or_file(null, root, proxy_url);
 	let page = 0;
 	$: gallery = components.length < 2;
 	let paginate = samples.length > samples_per_page;

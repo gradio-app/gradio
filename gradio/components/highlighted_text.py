@@ -55,10 +55,7 @@ class HighlightedText(Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        root_url: str | None = None,
-        _skip_init_processing: bool = False,
         interactive: bool | None = None,
-        _selectable: bool = False,
     ):
         """
         Parameters:
@@ -77,10 +74,8 @@ class HighlightedText(Component):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
-            root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
             interactive: If True, the component will be editable, and allow user to select spans of text and label them.
         """
-        self._selectable = _selectable
         self.color_map = color_map
         self.show_legend = show_legend
         self.combine_adjacent = combine_adjacent
@@ -96,8 +91,6 @@ class HighlightedText(Component):
             elem_id=elem_id,
             elem_classes=elem_classes,
             render=render,
-            root_url=root_url,
-            _skip_init_processing=_skip_init_processing,
             value=value,
             interactive=interactive,
         )
