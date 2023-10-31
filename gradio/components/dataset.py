@@ -87,7 +87,9 @@ class Dataset(Component):
         self.samples = [[]] if samples is None else samples
         for example in self.samples:
             for i, (component, ex) in enumerate(zip(self._components, example)):
-                example[i] = component.as_example(ex)
+                print("self.proxy_url", self.proxy_url)
+                if self.proxy_url is None:
+                    example[i] = component.as_example(ex)
         self.type = type
         self.label = label
         if headers is not None:
