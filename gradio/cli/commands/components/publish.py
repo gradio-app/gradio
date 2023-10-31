@@ -172,11 +172,7 @@ def _publish(
         assert demo_dir
         if not (demo_dir / "app.py").exists():
             raise FileNotFoundError("app.py not found in demo directory.")
-        additional_reqs = [
-            "https://gradio-builds.s3.amazonaws.com/4.0/attempt-05/gradio-4.0.0-py3-none-any.whl",
-            "https://gradio-builds.s3.amazonaws.com/4.0/attempt-05/gradio_client-0.7.0b0-py3-none-any.whl",
-            wheel_file.name,
-        ]
+        additional_reqs = [wheel_file.name]
         if (demo_dir / "requirements.txt").exists():
             reqs = (demo_dir / "requirements.txt").read_text().splitlines()
             reqs += additional_reqs
