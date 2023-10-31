@@ -417,6 +417,7 @@
 		}
 
 		function make_prediction(payload: Payload): void {
+			const pending_outputs: number[] = [];
 			const submission = app
 				.submit(payload.fn_index, payload.data as unknown[], payload.event_data)
 				.on("data", ({ data, fn_index }) => {
@@ -431,7 +432,12 @@
 					tick().then(() => {
 						const outputs = dependencies[fn_index].outputs;
 						outputs.forEach((id) => {
-							instance_map[id].props.interactive = status.stage === "pending" ? false : true;
+							if (instance_map[id].props.interactive && status.stage === "pending") {
+								pending_outputs.push(id)
+								instance_map[id].props.interactive = false;
+							} else if (status.stage === "complete" && pending_outputs.includes(id)) {
+								instance_map[id].props.interactive = true;
+							}
 						});
 						//@ts-ignore
 						loading_status.update({
