@@ -6,7 +6,7 @@
 	import { onMount } from "svelte";
 	import * as BABYLON from "babylonjs";
 	import * as BABYLON_LOADERS from "babylonjs-loaders";
-	import type { I18nFormatter } from "js/utils/src";
+	import type { I18nFormatter } from "@gradio/utils";
 
 	export let value: FileData | null;
 	export let clear_color: [number, number, number, number] = [0, 0, 0, 0];
