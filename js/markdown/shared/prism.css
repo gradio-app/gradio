@@ -65,7 +65,7 @@ th {
 	box-shadow: none;
 	border: none;
 	border-radius: var(--radius-md);
-	background-color: var(--chatbot-code-background-color);
+	background: var(--code-background-fill);
 	padding: var(--spacing-lg) var(--spacing-xl);
 	font-family: var(--font-mono);
 	/* font-size: var(--text-sm) !important; */
@@ -90,7 +90,7 @@ th {
 	padding: 0.1em;
 	border-radius: var(--radius-xs);
 	white-space: normal;
-	background-color: var(--chatbot-code-background-color);
+	background: var(--code-background-fill);
 	border: 1px solid var(--panel-border-color);
 	padding: var(--spacing-xxs) var(--spacing-xs);
 }
