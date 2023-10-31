@@ -46,7 +46,7 @@ describe("Video", () => {
 			},
 			label: "Test Label",
 			root: "foo",
-			root_url: null,
+			proxy_url: null,
 			streaming: false,
 			pending: false,
 			name: "bar",
@@ -72,7 +72,7 @@ describe("Video", () => {
 			},
 			label: "Video Component",
 			root: "foo",
-			root_url: null,
+			proxy_url: null,
 			streaming: false,
 			pending: false,
 			name: "bar",
@@ -92,7 +92,7 @@ describe("Video", () => {
 				}
 			},
 			root: "foo",
-			root_url: null,
+			proxy_url: null,
 			streaming: false,
 			pending: false,
 			name: "bar",
@@ -117,7 +117,7 @@ describe("Video", () => {
 				}
 			},
 			root: "foo",
-			root_url: null,
+			proxy_url: null,
 			streaming: false,
 			pending: false,
 			source: "upload",
@@ -139,7 +139,7 @@ describe("Video", () => {
 				}
 			},
 			root: "foo",
-			root_url: null,
+			proxy_url: null,
 			streaming: false,
 			pending: false,
 			source: "upload",
@@ -162,7 +162,7 @@ describe("Video", () => {
 				}
 			},
 			root: "foo",
-			root_url: null,
+			proxy_url: null,
 			streaming: false,
 			pending: false,
 			source: "upload",
@@ -193,7 +193,7 @@ describe("Video", () => {
 				}
 			},
 			root: "foo",
-			root_url: null,
+			proxy_url: null,
 			streaming: false,
 			pending: false,
 			source: "upload",
@@ -249,7 +249,7 @@ describe("Video", () => {
 				}
 			],
 			root: "foo",
-			root_url: null,
+			proxy_url: null,
 			streaming: false,
 			pending: false,
 			source: "upload",

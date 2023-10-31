@@ -20,7 +20,7 @@
 	export let label: string;
 	export let show_label = true;
 	export let root: string;
-	export let root_url: null | string;
+	export let proxy_url: null | string;
 	export let _selectable = false;
 	export let likeable = false;
 	export let show_share_button = false;
@@ -60,7 +60,7 @@
 			return message;
 		}
 		return {
-			file: normalise_file(message?.file, root, root_url) as FileData,
+			file: normalise_file(message?.file, root, proxy_url) as FileData,
 			alt_text: message?.alt_text
 		};
 	}
@@ -130,7 +130,7 @@
 			{bubble_full_width}
 			{line_breaks}
 			{layout}
-			{root_url}
+			{proxy_url}
 			{root}
 		/>
 	</div>

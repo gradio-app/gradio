@@ -20,7 +20,7 @@
 	export let label: string;
 	export let source: "upload" | "webcam";
 	export let root: string;
-	export let root_url: null | string;
+	export let proxy_url: null | string;
 	export let show_label: boolean;
 	export let loading_status: LoadingStatus;
 	export let height: number | undefined;
@@ -53,8 +53,8 @@
 
 	$: {
 		if (value != null) {
-			_video = normalise_file(value.video, root, root_url);
-			_subtitle = normalise_file(value.subtitles, root, root_url);
+			_video = normalise_file(value.video, root, proxy_url);
+			_subtitle = normalise_file(value.subtitles, root, proxy_url);
 		} else {
 			_video = null;
 			_subtitle = null;

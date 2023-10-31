@@ -14,7 +14,7 @@
 	export let visible = true;
 	export let value: null | FileData = null;
 	export let root: string;
-	export let root_url: null | string;
+	export let proxy_url: null | string;
 	export let clear_color: [number, number, number, number];
 	export let loading_status: LoadingStatus;
 	export let label: string;
@@ -35,7 +35,7 @@
 	export let interactive: boolean;
 
 	let _value: null | FileData;
-	$: _value = normalise_file(value, root, root_url);
+	$: _value = normalise_file(value, root, proxy_url);
 
 	let dragging = false;
 </script>
