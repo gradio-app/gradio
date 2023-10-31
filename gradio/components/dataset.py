@@ -42,6 +42,7 @@ class Dataset(Component):
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
+        proxy_url: str | None = None,
     ):
         """
         Parameters:
@@ -57,6 +58,7 @@ class Dataset(Component):
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
+            proxy_url: 
         """
         super().__init__(
             visible=visible,
@@ -81,13 +83,12 @@ class Dataset(Component):
             isinstance(c, Component) for c in self._components
         ), "All components in a `Dataset` must be subclasses of `Component`"
         self._components = [c for c in self._components if isinstance(c, Component)]
+        self.proxy_url = proxy_url
         for component in self._components:
-            component.proxy_url = self.proxy_url
-
+            component.proxy_url = proxy_url
         self.samples = [[]] if samples is None else samples
         for example in self.samples:
             for i, (component, ex) in enumerate(zip(self._components, example)):
-                print("self.proxy_url", self.proxy_url)
                 if self.proxy_url is None:
                     example[i] = component.as_example(ex)
         self.type = type

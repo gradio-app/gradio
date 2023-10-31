@@ -618,24 +618,22 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 raise ValueError(f"Cannot find block with id {id}")
             cls = component_or_layout_class(block_config["type"])
 
-            block_config["props"] = cls.recover_kwargs(block_config["props"])
-
             # If a Gradio app B is loaded into a Gradio app A, and B itself loads a
             # Gradio app C, then the proxy_urls of the components in A need to be the
             # URL of C, not B. The else clause below handles this case.
             if block_config["props"].get("proxy_url") is None:
-                block_proxy_url = f"{proxy_url}/"
-            else:
-                block_proxy_url = block_config["props"]["proxy_url"]
-                proxy_urls.add(block_proxy_url)
+                block_config["props"]["proxy_url"] = f"{proxy_url}/"
+            
+            constructor_args = cls.recover_kwargs(block_config["props"])
+            block = cls(**constructor_args)
 
-            _selectable = block_config["props"].pop("_selectable", None)
-            block = cls(**block_config["props"])
+            block_proxy_url = block_config["props"]["proxy_url"]
+            block.proxy_url = block_proxy_url
+            proxy_urls.add(block_proxy_url)
+            if (_selectable := block_config["props"].pop("_selectable", None)) is not None:
+                block._selectable = _selectable  # type: ignore
             # Any component has already processed its initial value, so we skip that step here
             block._skip_init_processing = True
-            block.proxy_url = block_proxy_url
-            if _selectable is not None:
-                block._selectable = _selectable  # type: ignore
 
             return block
 
