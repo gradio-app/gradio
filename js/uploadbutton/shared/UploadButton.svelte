@@ -52,9 +52,9 @@
 		all_file_data = (await upload(all_file_data, root))?.filter(
 			(x) => x !== null
 		) as FileData[];
-		dispatch("change", all_file_data);
-		dispatch("upload", all_file_data);
-		value = all_file_data;
+		value = file_count === "single" ? all_file_data?.[0] : all_file_data
+		dispatch("change", value);
+		dispatch("upload", value);
 	}
 
 	async function loadFilesFromUpload(e: Event): Promise<void> {

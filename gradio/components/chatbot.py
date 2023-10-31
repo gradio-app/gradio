@@ -148,7 +148,7 @@ class Chatbot(Component):
         if payload is None:
             return payload
         processed_messages = []
-        for message_pair in payload:
+        for message_pair in payload.root:
             if not isinstance(message_pair, (tuple, list)):
                 raise TypeError(
                     f"Expected a list of lists or list of tuples. Received: {message_pair}"

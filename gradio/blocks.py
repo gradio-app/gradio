@@ -1262,8 +1262,11 @@ Received inputs:
                     )
                     if getattr(block, "data_model", None):
                         if issubclass(block.data_model, GradioModel):  # type: ignore
+                            print("block.data_model", block.data_model, block)
+                            print("1inputs_cached", inputs_cached)
                             inputs_cached = block.data_model(**inputs_cached)  # type: ignore
                         elif issubclass(block.data_model, GradioRootModel):  # type: ignore
+                            print("2inputs_cached", inputs_cached)
                             inputs_cached = block.data_model(root=inputs_cached)  # type: ignore
                     processed_input.append(block.preprocess(inputs_cached))
         else:
