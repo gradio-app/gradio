@@ -220,7 +220,7 @@ class MyComponent(FormComponent):
 ```
 
 
-Tip: Don't forget to also handle these events in the javascript code!
+Tip: Don't forget to also handle these events in the JavaScript code!
 
 ## Conclusion
 

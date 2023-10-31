@@ -2,7 +2,7 @@
 
 Gradio 4.0 introduces Custom Components -- the ability for developers to create their own custom components and use them in Gradio apps.
 You can publish your components as Python packages so that other users can use them as well.
-Users will be able to use all of Gradio's existing functions, such as gr.Blocks, gr.Interface, API usage, themes, etc. with Custom Components.
+Users will be able to use all of Gradio's existing functions, such as `gr.Blocks`, `gr.Interface`, API usage, themes, etc. with Custom Components.
 This guide will cover how to get started making custom components.
 
 ## Installation
@@ -20,7 +20,7 @@ The Custom Components workflow consists of 4 steps: create, dev, build, and publ
 
 1. create: creates a template for you to start developing a custom component.
 2. dev: launches a development server with a sample app & hot reloading allowing you to easily develop your custom component
-3. build: builds a python package containing to your custom component's python and javascript code -- this makes things official!
+3. build: builds a python package containing to your custom component's Python and JavaScript code -- this makes things official!
 4. publish: uploads your package to [PyPi](https://pypi.org/) and/or a sample app to [HuggingFace Spaces](https://hf.co/spaces).
 
 Each of these steps is done via the Custom Component CLI. You can invoke it with `gradio cc` or `gradio component`
@@ -37,8 +37,7 @@ gradio cc create MyComponent --template SimpleTextbox
 
 Instead of `MyComponent`, give your component any name.
 
-Instead of `SimpleTextbox`, you can use any Gradio component as a template.
-`SimpleTextbox` is actually a special component that a stripped-down version of the `Textbox` component that makes it particularly useful when creating your first custom component.
+Instead of `SimpleTextbox`, you can use any Gradio component as a template. `SimpleTextbox` is actually a special component that a stripped-down version of the `Textbox` component that makes it particularly useful when creating your first custom component.
 Some other components that are good if you are starting out: `SimpleDropdown` or `File`.
 
 Tip: Run `gradio cc show` to get a list of available component templates.
@@ -55,7 +54,7 @@ The `create` command will:
 
 2. Install the component in development mode
 
-Each of the directories will have the code you need to get stareted developing!
+Each of the directories will have the code you need to get started developing!
 
 ## 2. dev
 
@@ -66,7 +65,7 @@ gradio cc dev
 ```
 
 You'll see several lines that are printed to the console.
-The most important one is the one that says;
+The most important one is the one that says:
 
 > Frontend Server (Go here): http://localhost:7861/
 

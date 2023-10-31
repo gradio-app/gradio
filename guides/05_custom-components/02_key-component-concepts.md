@@ -48,7 +48,7 @@ For example, the `gr.AnnotatedImage` only appears as a static version since ther
 
 * Gradio will use the interactive version (if available) of a component if that component is used as the **input** to any event; otherwise, the static version will be used.
 
-* When you design custom components, you **must** accept the boolean interactive keyword in the constructor of your Python class. In the frontend accept the `mode` property. You can create different versions of your component depending on whether this parameter is `"interactive"` or `"static"`.
+* When you design custom components, you **must** accept the boolean interactive keyword in the constructor of your Python class. In the frontend, accept the `mode` property. You can create different versions of your component depending on whether this parameter is `"interactive"` or `"static"`.
 
 ## The value and how it is preprocessed/postprocessed
 
@@ -57,7 +57,7 @@ Every component has a `value`.
 The value that is typically set by the user in the frontend (if the component is interactive) or displayed to the user (if it is static). 
 It is also this value that is sent to the backend function when a user triggers an event, or returned by the user's function e.g. at the end of a prediction.
 
-So this value is passed around quite a bit - but sometimes the format of the value needs to change between the frontend and backend. 
+So this value is passed around quite a bit, but sometimes the format of the value needs to change between the frontend and backend. 
 Take a look at this example:
 
 ```python
@@ -82,7 +82,7 @@ This will create a Gradio app which has an `Image` component as the input and th
 In the frontend, the Image component will actually **upload** the file to the server and send the **filepath** but this is converted to a `numpy` array before it is sent to a user's function. 
 Conversely, when the user returns a `numpy` array from their function, the numpy array is converted to a file so that it can be sent to the frontend and displayed by the `Image` component.
 
-Tip: By default, the `Image` component sends numpy arrays to the python function because it is a common choice for machine learning engineers, though the Image component also supports other formats using the `type` parameter.  Read the docs [here](https://www.gradio.app/docs/image) to learn more.
+Tip: By default, the `Image` component sends numpy arrays to the python function because it is a common choice for machine learning engineers, though the Image component also supports other formats using the `type` parameter.  Read the `Image` docs [here](https://www.gradio.app/docs/image) to learn more.
 
 Each component does two conversions:
 
