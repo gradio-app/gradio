@@ -1,5 +1,13 @@
 # gradio
 
+## 4.0.0-beta.16
+
+### Features
+
+- [#6160](https://github.com/gradio-app/gradio/pull/6160) [`040ec317b`](https://github.com/gradio-app/gradio/commit/040ec317b51563689e8fbf4d2b370e59f461ba2a) - Pending outputs fix.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#6165](https://github.com/gradio-app/gradio/pull/6165) [`1e2d0e155`](https://github.com/gradio-app/gradio/commit/1e2d0e155a5c88173f94f7d788611978ff0befaf) - Fixes remaining backend tests.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6159](https://github.com/gradio-app/gradio/pull/6159) [`44ead3b19`](https://github.com/gradio-app/gradio/commit/44ead3b19a4c733fbc060f01a2846965abd6df42) - Clean root url.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 4.0.0-beta.15
 
 ### Features

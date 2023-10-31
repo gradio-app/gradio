@@ -1,5 +1,11 @@
 # @gradio/button
 
+## 0.2.0-beta.8
+
+### Features
+
+- [#6159](https://github.com/gradio-app/gradio/pull/6159) [`44ead3b19`](https://github.com/gradio-app/gradio/commit/44ead3b19a4c733fbc060f01a2846965abd6df42) - Clean root url.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.2.0-beta.7
 
 ### Features

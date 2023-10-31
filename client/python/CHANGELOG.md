@@ -1,5 +1,11 @@
 # gradio_client
 
+## 0.7.0-beta.3
+
+### Features
+
+- [#6165](https://github.com/gradio-app/gradio/pull/6165) [`1e2d0e155`](https://github.com/gradio-app/gradio/commit/1e2d0e155a5c88173f94f7d788611978ff0befaf) - Fixes remaining backend tests.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.7.0-beta.2
 
 ### Features

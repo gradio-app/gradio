@@ -1,5 +1,11 @@
 # @gradio/app
 
+## 1.9.0-beta.4
+
+### Features
+
+- [#6160](https://github.com/gradio-app/gradio/pull/6160) [`040ec317b`](https://github.com/gradio-app/gradio/commit/040ec317b51563689e8fbf4d2b370e59f461ba2a) - Pending outputs fix.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 1.9.0-beta.3
 
 ### Features
