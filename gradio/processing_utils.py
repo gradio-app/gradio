@@ -285,6 +285,7 @@ def move_files_to_cache(data: Any, block: Component):
     def _move_to_cache(d: dict):
         payload = FileData(**d)
         temp_file_path = move_resource_to_block_cache(payload.path, block)
+        print("temp_file_path: ", temp_file_path)
         payload.path = temp_file_path
         return payload.model_dump()
 
