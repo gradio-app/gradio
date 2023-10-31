@@ -92,7 +92,7 @@ def progress_demo():
             time.sleep(0.1)
         return x
 
-    return gr.Interface(my_function, gr.Textbox(), gr.Textbox()).queue()
+    return gr.Interface(my_function, gr.Textbox(), gr.Textbox())
 
 
 @pytest.fixture
@@ -345,7 +345,7 @@ def stream_audio():
         fn=_stream_audio,
         inputs=gr.Audio(type="filepath", label="Audio file to stream"),
         outputs=gr.Audio(autoplay=True, streaming=True),
-    ).queue()
+    )
 
 
 @pytest.fixture
