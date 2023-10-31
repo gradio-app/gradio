@@ -193,3 +193,16 @@ code.language-bash {
 .selected-demo-window {
 	@apply rounded-b-md border-2  border-gray-100 -mt-0.5;
 }
+
+
+.tip {
+	@apply bg-gradient-to-br from-orange-50 to-white border-orange-50 border-l-2 border-l-orange-300 text-orange-700 p-4 px-6;
+}
+
+.tip code {
+	@apply text-orange-700 
+}
+
+.tip a {
+	@apply text-orange-700
+}
