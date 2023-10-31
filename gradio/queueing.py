@@ -100,6 +100,18 @@ class Queue:
         self.continuous_tasks: list[Event] = []
         self._asyncio_tasks: list[asyncio.Task] = []
 
+        self.concurrency_limit_per_concurrency_id = {}
+        for block_fn in block_fns:
+            if block_fn.concurrency_limit is not None:
+                self.concurrency_limit_per_concurrency_id[
+                    block_fn.concurrency_id
+                ] = min(
+                    self.concurrency_limit_per_concurrency_id.get(
+                        block_fn.concurrency_id, block_fn.concurrency_limit
+                    ),
+                    block_fn.concurrency_limit,
+                )
+
     def start(self):
         self.active_jobs = [None] * self.max_thread_count
         run_coro_in_background(self.start_processing)
@@ -151,18 +163,16 @@ class Queue:
         for index, event in enumerate(self.event_queue):
             block_fn = self.block_fns[event.fn_index]
             concurrency_id = block_fn.concurrency_id
+            concurrency_limit = self.concurrency_limit_per_concurrency_id.get(
+                concurrency_id, None
+            )
             existing_worker_count = worker_count_per_concurrency_id.get(
                 concurrency_id, 0
             )
-            if (
-                block_fn.concurrency_limit is None
-                or existing_worker_count < block_fn.concurrency_limit
-            ):
+            if concurrency_limit is None or existing_worker_count < concurrency_limit:
                 batch = block_fn.batch
                 if batch:
-                    remaining_worker_count = (
-                        block_fn.concurrency_limit - existing_worker_count
-                    )
+                    remaining_worker_count = concurrency_limit - existing_worker_count
                     batch_size = block_fn.max_batch_size
                     rest_of_batch = [
                         event
