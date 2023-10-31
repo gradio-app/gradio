@@ -444,6 +444,8 @@ def merge_generated_values_into_output(
                 if len(components) > 1:
                     chunk = chunk[output_index]
                 processed_chunk = output_component.postprocess(chunk)
+                if isinstance(processed_chunk, (GradioModel, GradioRootModel)):
+                    processed_chunk = processed_chunk.model_dump()
                 binary_chunks.append(
                     output_component.stream_output(processed_chunk, "", i == 0)[0]
                 )
