@@ -56,7 +56,7 @@ with gr.Blocks() as demo:
             output_video = gr.Video()
             submit_video = gr.Button()
             submit_video.click(identity_with_sleep, input_video, output_video, api_name="video")
-demo.queue(max_size=50, concurrency_count=20).launch(prevent_thread_lock=True, quiet=True)
+demo.queue(max_size=50).launch(prevent_thread_lock=True, quiet=True)
 
 
 FN_INDEX_TO_DATA = {

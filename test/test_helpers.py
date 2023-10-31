@@ -934,8 +934,13 @@ async def test_info_isolation(async_handler: bool):
         gr.Info(f"Hello {name}")
         return name
 
-    demo = gr.Interface(greet_async if async_handler else greet_sync, "text", "text")
-    demo.queue(concurrency_count=2).launch(prevent_thread_lock=True)
+    demo = gr.Interface(
+        greet_async if async_handler else greet_sync,
+        "text",
+        "text",
+        concurrency_limit=2,
+    )
+    demo.launch(prevent_thread_lock=True)
 
     async def session_interaction(name, delay=0):
         await asyncio.sleep(delay)
