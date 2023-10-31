@@ -1,5 +1,4 @@
 ---
-"gradio": minor
 "website": minor
 ---
 
