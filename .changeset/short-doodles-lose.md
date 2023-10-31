@@ -1,4 +1,5 @@
 ---
+"@gradio/uploadbutton": minor
 "gradio": minor
 ---
 
