@@ -1,0 +1,30 @@
+{
+	"name": "@gradio/imageeditor",
+	"version": "0.0.1",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"author": "",
+	"license": "ISC",
+	"private": false,
+	"dependencies": {
+		"@gradio/atoms": "workspace:^",
+		"@gradio/client": "workspace:^",
+		"@gradio/icons": "workspace:^",
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/upload": "workspace:^",
+		"@gradio/utils": "workspace:^",
+		"@gradio/wasm": "workspace:^",
+		"@pixi/events": "^7.3.2",
+		"cropperjs": "^1.5.12",
+		"lazy-brush": "^1.0.1",
+		"pixi.js": "^7.3.2",
+		"resize-observer-polyfill": "^1.5.1"
+	},
+	"main_changeset": true,
+	"main": "./Index.svelte",
+	"exports": {
+		".": "./Index.svelte",
+		"./example": "./Example.svelte",
+		"./package.json": "./package.json"
+	}
+}
