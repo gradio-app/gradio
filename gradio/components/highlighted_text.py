@@ -99,27 +99,27 @@ class HighlightedText(Component):
         return {"value": [{"token": "Hello", "class_or_confidence": "1"}]}
 
     def postprocess(
-        self, y: list[tuple[str, str | float | None]] | dict | None
+        self, value: list[tuple[str, str | float | None]] | dict | None
     ) -> HighlightedTextData | None:
         """
         Parameters:
-            y: List of (word, category) tuples, or a dictionary of two keys: "text", and "entities", which itself is a list of dictionaries, each of which have the keys: "entity" (or "entity_group"), "start", and "end"
+            value: List of (word, category) tuples, or a dictionary of two keys: "text", and "entities", which itself is a list of dictionaries, each of which have the keys: "entity" (or "entity_group"), "start", and "end"
         Returns:
             List of (word, category) tuples
         """
-        if y is None:
+        if value is None:
             return None
-        if isinstance(y, dict):
+        if isinstance(value, dict):
             try:
-                text = y["text"]
-                entities = y["entities"]
+                text = value["text"]
+                entities = value["entities"]
             except KeyError as ke:
                 raise ValueError(
                     "Expected a dictionary with keys 'text' and 'entities' "
                     "for the value of the HighlightedText component."
                 ) from ke
             if len(entities) == 0:
-                y = [(text, None)]
+                value = [(text, None)]
             else:
                 list_format = []
                 index = 0
@@ -132,11 +132,11 @@ class HighlightedText(Component):
                     )
                     index = entity["end"]
                 list_format.append((text[index:], None))
-                y = list_format
+                value = list_format
         if self.combine_adjacent:
             output = []
             running_text, running_category = None, None
-            for text, category in y:
+            for text, category in value:
                 if running_text is None:
                     running_text = text
                     running_category = category
@@ -160,8 +160,13 @@ class HighlightedText(Component):
             )
         else:
             return HighlightedTextData(
-                root=[HighlightedToken(token=o[0], class_or_confidence=o[1]) for o in y]
+                root=[
+                    HighlightedToken(token=o[0], class_or_confidence=o[1])
+                    for o in value
+                ]
             )
 
-    def preprocess(self, x: Any) -> Any:
-        return super().preprocess(x)
+    def preprocess(self, payload: HighlightedTextData | None) -> dict | None:
+        if payload is None:
+            return None
+        return payload.model_dump()
