@@ -50,7 +50,7 @@ describe("Video", () => {
 			streaming: false,
 			pending: false,
 			name: "bar",
-			source: "upload",
+			sources: ["upload"],
 			interactive: true
 		});
 		let vid = getByTestId("Test Label-player") as HTMLVideoElement;
@@ -76,7 +76,7 @@ describe("Video", () => {
 			streaming: false,
 			pending: false,
 			name: "bar",
-			source: "upload",
+			sources: ["upload"],
 			interactive: true
 		});
 		assert.equal(queryAllByText("Video Component").length, 1);
@@ -96,8 +96,8 @@ describe("Video", () => {
 			streaming: false,
 			pending: false,
 			name: "bar",
-			source: "upload",
-			interactive: false
+			sources: ["upload"],
+			mode: "static"
 		});
 		let vid = getByTestId("test-player") as HTMLVideoElement;
 		assert.equal(
@@ -120,7 +120,7 @@ describe("Video", () => {
 			root_url: null,
 			streaming: false,
 			pending: false,
-			source: "upload",
+			sources: ["upload"],
 			autoplay: true
 		});
 		const startButton = getByTestId("test-player") as HTMLVideoElement;
@@ -142,7 +142,7 @@ describe("Video", () => {
 			root_url: null,
 			streaming: false,
 			pending: false,
-			source: "upload",
+			sources: ["upload"],
 			autoplay: true
 		});
 		const startButton = getByTestId("test-player") as HTMLVideoElement;
@@ -165,7 +165,7 @@ describe("Video", () => {
 			root_url: null,
 			streaming: false,
 			pending: false,
-			source: "upload",
+			sources: ["upload"],
 			autoplay: true
 		});
 		const startButton = getByTestId("test-player") as HTMLVideoElement;
@@ -196,7 +196,7 @@ describe("Video", () => {
 			root_url: null,
 			streaming: false,
 			pending: false,
-			source: "upload",
+			sources: ["upload"],
 			autoplay: true
 		});
 		const startButton = getByTestId("test-player") as HTMLVideoElement;
@@ -252,7 +252,7 @@ describe("Video", () => {
 			root_url: null,
 			streaming: false,
 			pending: false,
-			source: "upload",
+			sources: ["upload"],
 			autoplay: true
 		});
 

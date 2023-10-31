@@ -10,6 +10,7 @@ from typing import Any, Callable, Literal, Optional
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
+import gradio as gr
 from gradio import processing_utils, utils, wasm_utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel
@@ -63,7 +64,7 @@ class Video(Component):
         | None = None,
         *,
         format: str | None = None,
-        source: Literal["upload", "webcam"] = "upload",
+        sources: list[Literal["upload", "webcam"]] | None = None,
         height: int | None = None,
         width: int | None = None,
         label: str | None = None,
@@ -83,12 +84,14 @@ class Video(Component):
         include_audio: bool | None = None,
         autoplay: bool = False,
         show_share_button: bool | None = None,
+        min_length: int | None = None,
+        max_length: int | None = None,
     ):
         """
         Parameters:
             value: A path or URL for the default value that Video component is going to take. Can also be a tuple consisting of (video filepath, subtitle filepath). If a subtitle file is provided, it should be of type .srt or .vtt. Or can be callable, in which case the function will be called whenever the app loads to set the initial value of the component.
             format: Format of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
-            source: Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
+            sources: A list of sources permitted for video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam. If None, defaults to ["upload, "webcam"].
             height: Height of the displayed video in pixels.
             width: Width of the displayed video in pixels.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
@@ -107,26 +110,38 @@ class Video(Component):
             include_audio: Whether the component should record/retain the audio track for a video. By default, audio is excluded for webcam videos and included for uploaded videos.
             autoplay: Whether to automatically play the video when the component is used as an output. Note: browsers will not autoplay video files if the user has not interacted with the page yet.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
+            min_length: The minimum length of video (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
+            max_length: The maximum length of video (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
         """
         self.format = format
         self.autoplay = autoplay
-        valid_sources = ["upload", "webcam"]
-        if source not in valid_sources:
+
+        valid_sources: list[Literal["upload", "webcam"]] = ["webcam", "upload"]
+
+        if sources is None:
+            sources = valid_sources
+        elif isinstance(sources, str) and sources in valid_sources:
+            sources = [sources]
+        elif isinstance(sources, list):
+            pass
+        else:
             raise ValueError(
-                f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
+                f"`sources` must be a list consisting of elements in {valid_sources}"
             )
-        self.source = source
+        self.sources = sources
         self.height = height
         self.width = width
         self.mirror_webcam = mirror_webcam
         self.include_audio = (
-            include_audio if include_audio is not None else source == "upload"
+            include_audio if include_audio is not None else "upload" in sources
         )
         self.show_share_button = (
             (utils.get_space() is not None)
             if show_share_button is None
             else show_share_button
         )
+        self.min_length = min_length
+        self.max_length = max_length
         super().__init__(
             label=label,
             every=every,
@@ -158,8 +173,17 @@ class Video(Component):
         file_name = Path(data.video.path)
         uploaded_format = file_name.suffix.replace(".", "")
         needs_formatting = self.format is not None and uploaded_format != self.format
-        flip = self.source == "webcam" and self.mirror_webcam
+        flip = self.sources == ["webcam"] and self.mirror_webcam
+        duration = processing_utils.get_video_length(file_name)
 
+        if self.min_length is not None and duration < self.min_length:
+            raise gr.Error(
+                f"Video is too short, and must be at least {self.min_length} seconds"
+            )
+        if self.max_length is not None and duration > self.max_length:
+            raise gr.Error(
+                f"Video is too long, and must be at most {self.max_length} seconds"
+            )
         if needs_formatting or flip:
             format = f".{self.format if needs_formatting else uploaded_format}"
             output_options = ["-vf", "hflip", "-c:a", "copy"] if flip else []
@@ -168,8 +192,9 @@ class Video(Component):
             output_file_name = str(
                 file_name.with_name(f"{file_name.stem}{flip_suffix}{format}")
             )
-            if Path(output_file_name).exists():
-                return output_file_name
+            output_filepath = Path(output_file_name)
+            if output_filepath.exists():
+                return str(output_filepath.resolve())
             if wasm_utils.IS_WASM:
                 raise wasm_utils.WasmUnsupportedError(
                     "Video formatting is not supported in the Wasm mode."
@@ -179,7 +204,7 @@ class Video(Component):
                 outputs={output_file_name: output_options},
             )
             ff.run()
-            return output_file_name
+            return str(output_filepath.resolve())
         elif not self.include_audio:
             output_file_name = str(file_name.with_name(f"muted_{file_name.name}"))
             if Path(output_file_name).exists():
@@ -222,6 +247,7 @@ class Video(Component):
             return None
         if isinstance(y, (str, Path)):
             processed_files = (self._format_video(y), None)
+
         elif isinstance(y, (tuple, list)):
             if len(y) != 2:
                 raise ValueError(
@@ -238,6 +264,7 @@ class Video(Component):
                 self._format_video(video),
                 self._format_subtitle(subtitle),
             )
+
         else:
             raise Exception(f"Cannot process type as video: {type(y)}")
         assert processed_files[0]

@@ -102,7 +102,7 @@ class TestTextbox:
     @pytest.mark.asyncio
     async def test_in_interface_as_input(self):
         """
-        Interface, process, interpret,
+        Interface, process
         """
         iface = gr.Interface(lambda x: x[::-1], "textbox", "textbox")
         assert iface("Hello") == "olleH"
@@ -151,7 +151,7 @@ class TestTextbox:
 class TestNumber:
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, set_interpret_parameters, get_interpretation_neighbors, get_config
+        Preprocess, postprocess, serialize, get_config
 
         """
         numeric_input = gr.Number(elem_id="num", elem_classes="first")
@@ -183,7 +183,7 @@ class TestNumber:
 
     def test_component_functions_integer(self):
         """
-        Preprocess, postprocess, serialize, set_interpret_parameters, get_interpretation_neighbors, get_template_context
+        Preprocess, postprocess, serialize, get_template_context
 
         """
         numeric_input = gr.Number(precision=0, value=42)
@@ -215,7 +215,7 @@ class TestNumber:
 
     def test_component_functions_precision(self):
         """
-        Preprocess, postprocess, serialize, set_interpret_parameters, get_interpretation_neighbors, get_template_context
+        Preprocess, postprocess, serialize, get_template_context
 
         """
         numeric_input = gr.Number(precision=2, value=42.3428)
@@ -228,21 +228,21 @@ class TestNumber:
 
     def test_in_interface_as_input(self):
         """
-        Interface, process, interpret
+        Interface, process
         """
         iface = gr.Interface(lambda x: x**2, "number", "textbox")
         assert iface(2) == "4.0"
 
     def test_precision_0_in_interface(self):
         """
-        Interface, process, interpret
+        Interface, process
         """
         iface = gr.Interface(lambda x: x**2, gr.Number(precision=0), "textbox")
         assert iface(2) == "4"
 
     def test_in_interface_as_output(self):
         """
-        Interface, process, interpret
+        Interface, process
         """
         iface = gr.Interface(lambda x: int(x) ** 2, "textbox", "number")
         assert iface(2) == 4.0
@@ -290,7 +290,7 @@ class TestSlider:
 
     def test_in_interface(self):
         """ "
-        Interface, process, interpret
+        Interface, process
         """
         iface = gr.Interface(lambda x: x**2, "slider", "textbox")
         assert iface(2) == "4"
@@ -349,7 +349,7 @@ class TestCheckbox:
 
     def test_in_interface(self):
         """
-        Interface, process, interpret
+        Interface, process
         """
         iface = gr.Interface(lambda x: 1 if x else 0, "checkbox", "number")
         assert iface(True) == 1
@@ -463,7 +463,7 @@ class TestRadio:
 
     def test_in_interface(self):
         """
-        Interface, process, interpret
+        Interface, process
         """
         radio_input = gr.Radio(["a", "b", "c"])
         iface = gr.Interface(lambda x: 2 * x, radio_input, "textbox")
@@ -604,11 +604,9 @@ class TestImage:
         processed_image = image_output.postprocess(PIL.Image.open(img["path"]))
         assert processed_image is not None
         if processed_image is not None:
-            processed = client_utils.encode_url_or_file_to_base64(
-                cast(dict, processed_image).get("path", "")
-            )
-            source = client_utils.encode_url_or_file_to_base64(img["path"])
-            assert processed == source
+            processed = PIL.Image.open(cast(dict, processed_image).get("path", ""))
+            source = PIL.Image.open(img["path"])
+            assert processed.size == source.size
 
     def test_in_interface_as_output(self):
         """
@@ -711,7 +709,6 @@ class TestAudio:
             "name": "audio",
             "show_download_button": True,
             "show_share_button": False,
-            "show_edit_button": True,
             "streaming": False,
             "show_label": True,
             "label": "Upload Your Audio",
@@ -757,7 +754,6 @@ class TestAudio:
             "name": "audio",
             "show_download_button": True,
             "show_share_button": False,
-            "show_edit_button": True,
             "streaming": False,
             "show_label": True,
             "label": None,
@@ -1326,7 +1322,7 @@ class TestVideo:
         video_input = gr.Video(label="Upload Your Video")
         assert video_input.get_config() == {
             "autoplay": False,
-            "source": "upload",
+            "sources": ["webcam", "upload"],
             "name": "video",
             "show_share_button": False,
             "show_label": True,
@@ -1345,6 +1341,8 @@ class TestVideo:
             "mirror_webcam": True,
             "include_audio": True,
             "format": None,
+            "min_length": None,
+            "max_length": None,
         }
         assert video_input.preprocess(None) is None
         x_video["is_example"] = True
@@ -1457,7 +1455,7 @@ class TestVideo:
     def test_video_preprocessing_flips_video_for_webcam(self, mock_ffmpeg):
         # Ensures that the cached temp video file is not used so that ffmpeg is called for each test
         x_video = {"video": deepcopy(media_data.BASE64_VIDEO)}
-        video_input = gr.Video(source="webcam")
+        video_input = gr.Video(sources=["webcam"])
         _ = video_input.preprocess(x_video)
 
         # Dict mapping filename to FFmpeg options
@@ -1467,19 +1465,19 @@ class TestVideo:
 
         mock_ffmpeg.reset_mock()
         _ = gr.Video(
-            source="webcam", mirror_webcam=False, include_audio=True
+            sources=["webcam"], mirror_webcam=False, include_audio=True
         ).preprocess(x_video)
         mock_ffmpeg.assert_not_called()
 
         mock_ffmpeg.reset_mock()
-        _ = gr.Video(source="upload", format="mp4", include_audio=True).preprocess(
+        _ = gr.Video(sources=["upload"], format="mp4", include_audio=True).preprocess(
             x_video
         )
         mock_ffmpeg.assert_not_called()
 
         mock_ffmpeg.reset_mock()
         output_file = gr.Video(
-            source="webcam", mirror_webcam=True, format="avi"
+            sources=["webcam"], mirror_webcam=True, format="avi"
         ).preprocess(x_video)
         output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
         assert "hflip" in list(output_params.values())[0]
@@ -1489,7 +1487,7 @@ class TestVideo:
 
         mock_ffmpeg.reset_mock()
         output_file = gr.Video(
-            source="webcam", mirror_webcam=False, format="avi", include_audio=False
+            sources=["webcam"], mirror_webcam=False, format="avi", include_audio=False
         ).preprocess(x_video)
         output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
         assert list(output_params.values())[0] == ["-an"]
@@ -2033,7 +2031,7 @@ class TestColorPicker:
 
     def test_in_interface_as_input(self):
         """
-        Interface, process, interpret,
+        Interface, process
         """
         iface = gr.Interface(lambda x: x, "colorpicker", "colorpicker")
         assert iface("#000000") == "#000000"

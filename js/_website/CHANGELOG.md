@@ -1,5 +1,14 @@
 # website
 
+## 0.11.0-beta.1
+
+### Features
+
+- [#6136](https://github.com/gradio-app/gradio/pull/6136) [`667802a6c`](https://github.com/gradio-app/gradio/commit/667802a6cdbfb2ce454a3be5a78e0990b194548a) - JS Component Documentation.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6142](https://github.com/gradio-app/gradio/pull/6142) [`103416d17`](https://github.com/gradio-app/gradio/commit/103416d17f021c82f5ff0583dcc2d80906ad279e) - JS READMEs and Storybook on Docs.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#6121](https://github.com/gradio-app/gradio/pull/6121) [`93d28bc08`](https://github.com/gradio-app/gradio/commit/93d28bc088f7154ecc00f79eb98119f6d4858fe3) - Small fix to website header.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#6151](https://github.com/gradio-app/gradio/pull/6151) [`e67e3f813`](https://github.com/gradio-app/gradio/commit/e67e3f813ea461d3245b4b575f3b2c44fca6a39c) - Fix issues with website deploy.  Thanks [@aliabd](https://github.com/aliabd)!
+
 ## 0.11.0-beta.0
 
 ### Features

@@ -1,5 +1,11 @@
 # @gradio/lite
 
+## 0.4.4-beta.0
+
+### Features
+
+- [#6147](https://github.com/gradio-app/gradio/pull/6147) [`089161554`](https://github.com/gradio-app/gradio/commit/089161554ff216d01a447014b057368a1cc1bc35) - make lite private.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.4.3
 
 ### Fixes

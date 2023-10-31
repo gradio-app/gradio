@@ -1,5 +1,6 @@
 <script context="module" lang="ts">
 	export { default as BaseRadio } from "./shared/Radio.svelte";
+	export { default as BaseExample } from "./Example.svelte";
 </script>
 
 <script lang="ts">
@@ -68,7 +69,6 @@
 				display_value={choice[0]}
 				internal_value={choice[1]}
 				bind:selected={value}
-				{elem_id}
 				{disabled}
 				on:input={() =>
 					gradio.dispatch("select", { value: choice[1], index: i })}

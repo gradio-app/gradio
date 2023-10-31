@@ -18,7 +18,11 @@
 	let old_value: { video: FileData; subtitles: FileData | null } | null = null;
 
 	export let label: string;
-	export let source: "upload" | "webcam";
+	export let sources:
+		| ["webcam"]
+		| ["upload"]
+		| ["webcam", "upload"]
+		| ["upload", "webcam"];
 	export let root: string;
 	export let root_url: null | string;
 	export let show_label: boolean;
@@ -50,6 +54,31 @@
 
 	let _video: FileData | null = null;
 	let _subtitle: FileData | null = null;
+
+	let active_source: "webcam" | "upload";
+
+	let initial_value: { video: FileData; subtitles: FileData | null } | null =
+		value;
+
+	$: if (value && initial_value === null) {
+		initial_value = value;
+	}
+
+	const handle_reset_value = (): void => {
+		if (initial_value === null || value === initial_value) {
+			return;
+		}
+
+		value = initial_value;
+	};
+
+	$: if (sources) {
+		if (sources.length > 1) {
+			active_source = "upload";
+		} else {
+			active_source = sources[0];
+		}
+	}
 
 	$: {
 		if (value != null) {
@@ -85,7 +114,7 @@
 {#if !interactive}
 	<Block
 		{visible}
-		variant={value === null && source === "upload" ? "dashed" : "solid"}
+		variant={value === null && active_source === "upload" ? "dashed" : "solid"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
 		{elem_id}
@@ -110,6 +139,7 @@
 			{show_label}
 			{autoplay}
 			{show_share_button}
+			show_download_button={true}
 			on:play={() => gradio.dispatch("play")}
 			on:pause={() => gradio.dispatch("pause")}
 			on:stop={() => gradio.dispatch("stop")}
@@ -122,7 +152,7 @@
 {:else}
 	<Block
 		{visible}
-		variant={value === null && source === "upload" ? "dashed" : "solid"}
+		variant={value === null && active_source === "upload" ? "dashed" : "solid"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
 		{elem_id}
@@ -152,11 +182,13 @@
 			}}
 			{label}
 			{show_label}
-			{source}
+			{sources}
+			{active_source}
 			{mirror_webcam}
 			{include_audio}
 			{autoplay}
 			{root}
+			{handle_reset_value}
 			on:clear={() => gradio.dispatch("clear")}
 			on:play={() => gradio.dispatch("play")}
 			on:pause={() => gradio.dispatch("pause")}
