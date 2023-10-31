@@ -274,6 +274,7 @@ class Component(ComponentBase, Block):
         Write the component's value to a format that can be stored in a csv or jsonl format for flagging.
         """
         if self.data_model:
+            payload = self.data_model.from_json(payload)
             return payload.copy_to_dir(flag_dir).model_dump_json()
         return payload
 
