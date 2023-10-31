@@ -623,14 +623,16 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             # URL of C, not B. The else clause below handles this case.
             if block_config["props"].get("proxy_url") is None:
                 block_config["props"]["proxy_url"] = f"{proxy_url}/"
-            
+
             constructor_args = cls.recover_kwargs(block_config["props"])
             block = cls(**constructor_args)
 
             block_proxy_url = block_config["props"]["proxy_url"]
             block.proxy_url = block_proxy_url
             proxy_urls.add(block_proxy_url)
-            if (_selectable := block_config["props"].pop("_selectable", None)) is not None:
+            if (
+                _selectable := block_config["props"].pop("_selectable", None)
+            ) is not None:
                 block._selectable = _selectable  # type: ignore
             # Any component has already processed its initial value, so we skip that step here
             block._skip_init_processing = True
