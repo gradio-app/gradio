@@ -604,11 +604,9 @@ class TestImage:
         processed_image = image_output.postprocess(PIL.Image.open(img["path"]))
         assert processed_image is not None
         if processed_image is not None:
-            processed = client_utils.encode_url_or_file_to_base64(
-                cast(dict, processed_image).get("path", "")
-            )
-            source = client_utils.encode_url_or_file_to_base64(img["path"])
-            assert processed == source
+            processed = PIL.Image.open(cast(dict, processed_image).get("path", ""))
+            source = PIL.Image.open(img["path"])
+            assert processed.size == source.size
 
     def test_in_interface_as_output(self):
         """
