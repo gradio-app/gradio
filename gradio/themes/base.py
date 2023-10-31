@@ -1217,9 +1217,8 @@ class Base(ThemeClass):
         self.code_background_fill = code_background_fill or getattr(
             self, "code_background_fill", "*neutral_100"
         )
-        self.code_background_fill_dark = (
-            code_background_fill_dark
-            or getattr(self, "code_background_fill_dark", "*neutral_800")
+        self.code_background_fill_dark = code_background_fill_dark or getattr(
+            self, "code_background_fill_dark", "*neutral_800"
         )
         self.checkbox_background_color = checkbox_background_color or getattr(
             self, "checkbox_background_color", "*background_fill_primary"
