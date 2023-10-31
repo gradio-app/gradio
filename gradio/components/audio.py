@@ -162,20 +162,12 @@ class Audio(
         return "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
 
     def preprocess(
-        self, x: dict[str, Any] | None
+        self, payload: FileData | None
     ) -> tuple[int, np.ndarray] | str | None:
-        """
-        Parameters:
-            x: dictionary with keys "path", "crop_min", "crop_max".
-        Returns:
-            audio in requested format
-        """
-        if x is None:
-            return x
+        if payload is None:
+            return payload
 
-        payload: FileData = FileData(**x)
         assert payload.path
-
         # Need a unique name for the file to avoid re-using the same audio file if
         # a user submits the same audio file twice
         temp_file_path = Path(payload.path)
@@ -211,50 +203,50 @@ class Audio(
             )
 
     def postprocess(
-        self, y: tuple[int, np.ndarray] | str | Path | bytes | None
-    ) -> FileData | None | bytes:
+        self, value: tuple[int, np.ndarray] | str | Path | bytes | None
+    ) -> FileData | bytes | None:
         """
         Parameters:
-            y: audio data in either of the following formats: a tuple of (sample_rate, data), or a string filepath or URL to an audio file, or None.
+            value: audio data in either of the following formats: a tuple of (sample_rate, data), or a string filepath or URL to an audio file, or None.
         Returns:
             base64 url data
         """
-        if y is None:
+        if value is None:
             return None
-        if isinstance(y, bytes):
+        if isinstance(value, bytes):
             if self.streaming:
-                return y
+                return value
             file_path = processing_utils.save_bytes_to_cache(
-                y, "audio", cache_dir=self.GRADIO_CACHE
+                value, "audio", cache_dir=self.GRADIO_CACHE
             )
-        elif isinstance(y, tuple):
-            sample_rate, data = y
+        elif isinstance(value, tuple):
+            sample_rate, data = value
             file_path = processing_utils.save_audio_to_cache(
                 data, sample_rate, format=self.format, cache_dir=self.GRADIO_CACHE
             )
         else:
-            if not isinstance(y, (str, Path)):
-                raise ValueError(f"Cannot process {y} as Audio")
-            file_path = str(y)
+            if not isinstance(value, (str, Path)):
+                raise ValueError(f"Cannot process {value} as Audio")
+            file_path = str(value)
         return FileData(path=file_path)
 
     def stream_output(
-        self, y, output_id: str, first_chunk: bool
+        self, value, output_id: str, first_chunk: bool
     ) -> tuple[bytes | None, Any]:
         output_file = {
             "path": output_id,
             "is_stream": True,
         }
-        if y is None:
+        if value is None:
             return None, output_file
-        if isinstance(y, bytes):
-            return y, output_file
-        if client_utils.is_http_url_like(y["path"]):
-            response = requests.get(y["path"])
+        if isinstance(value, bytes):
+            return value, output_file
+        if client_utils.is_http_url_like(value["path"]):
+            response = requests.get(value["path"])
             binary_data = response.content
         else:
-            output_file["orig_name"] = y["orig_name"]
-            file_path = y["path"]
+            output_file["orig_name"] = value["orig_name"]
+            file_path = value["path"]
             is_wav = file_path.endswith(".wav")
             with open(file_path, "rb") as f:
                 binary_data = f.read()

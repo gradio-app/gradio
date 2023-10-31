@@ -38,6 +38,7 @@ class Image(StreamingInput, Component):
         Events.select,
         Events.upload,
     ]
+
     data_model = FileData
 
     def __init__(
@@ -141,38 +142,25 @@ class Image(StreamingInput, Component):
             value=value,
         )
 
-    def preprocess(self, x: dict | None) -> np.ndarray | _Image.Image | str | None:
-        """
-        Parameters:
-            x: FileData containing an image path pointing to the user's image
-        Returns:
-            image in requested format, or (if tool == "sketch") a dict of image and mask in requested format
-        """
-        if x is None:
-            return x
-
-        im = _Image.open(x["path"])
+    def preprocess(
+        self, payload: FileData | None
+    ) -> np.ndarray | _Image.Image | str | None:
+        if payload is None:
+            return payload
+        im = _Image.open(payload.path)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
-
         return image_utils.format_image(
             im, cast(Literal["numpy", "pil", "filepath"], self.type), self.GRADIO_CACHE
         )
 
     def postprocess(
-        self, y: np.ndarray | _Image.Image | str | Path | None
+        self, value: np.ndarray | _Image.Image | str | Path | None
     ) -> FileData | None:
-        """
-        Parameters:
-            y: image as a numpy array, PIL Image, string/Path filepath, or string URL
-        Returns:
-            base64 url data
-        """
-        if y is None:
+        if value is None:
             return None
-
-        return FileData(path=image_utils.save_image(y, self.GRADIO_CACHE))
+        return FileData(path=image_utils.save_image(value, self.GRADIO_CACHE))
 
     def check_streamable(self):
         if self.streaming and self.sources != ("webcam"):

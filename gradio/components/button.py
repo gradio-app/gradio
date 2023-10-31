@@ -77,11 +77,11 @@ class Button(Component):
     def skip_api(self):
         return True
 
-    def preprocess(self, x: Any) -> Any:
-        return x
+    def preprocess(self, payload: str) -> str:
+        return payload
 
-    def postprocess(self, y):
-        return y
+    def postprocess(self, value: str) -> str:
+        return value
 
     def example_inputs(self) -> Any:
         return None

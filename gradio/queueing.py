@@ -173,8 +173,13 @@ class Queue:
             if concurrency_limit is None or existing_worker_count < concurrency_limit:
                 batch = block_fn.batch
                 if batch:
-                    remaining_worker_count = concurrency_limit - existing_worker_count
                     batch_size = block_fn.max_batch_size
+                    if concurrency_limit is None:
+                        remaining_worker_count = batch_size - 1
+                    else:
+                        remaining_worker_count = (
+                            concurrency_limit - existing_worker_count
+                        )
                     rest_of_batch = [
                         event
                         for event in self.event_queue[index:]
