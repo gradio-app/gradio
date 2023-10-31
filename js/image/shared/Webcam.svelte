@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount, tick } from "svelte";
 	import { Camera, Circle, Square, DropdownArrow } from "@gradio/icons";
-	import type { I18nFormatter } from "js/utils/src";
+	import type { I18nFormatter } from "@gradio/utils";
 
 	let video_source: HTMLVideoElement;
 	let canvas: HTMLCanvasElement;
