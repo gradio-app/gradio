@@ -82,11 +82,9 @@
 		{min_width}
 	>
 		<StatusTracker
-			translucent={true}
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
-			show_progress="hidden"
 		/>
 		<StaticImage
 			on:select={({ detail }) => gradio.dispatch("select", detail)}

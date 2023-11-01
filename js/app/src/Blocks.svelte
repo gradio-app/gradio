@@ -433,10 +433,16 @@
 					tick().then(() => {
 						const outputs = dependencies[fn_index].outputs;
 						outputs.forEach((id) => {
-							if (instance_map[id].props.interactive && status.stage === "pending") {
-								pending_outputs.push(id)
+							if (
+								instance_map[id].props.interactive &&
+								status.stage === "pending"
+							) {
+								pending_outputs.push(id);
 								instance_map[id].props.interactive = false;
-							} else if (status.stage === "complete" && pending_outputs.includes(id)) {
+							} else if (
+								status.stage === "complete" &&
+								pending_outputs.includes(id)
+							) {
 								instance_map[id].props.interactive = true;
 							}
 						});
@@ -564,11 +570,14 @@
 		{} as Record<number, Record<string, number[]>>
 	);
 	async function handle_mount(): Promise<void> {
-		let blocks_frontend_fn = new AsyncFunction(
-			`let result = await (${js})();
+		if (js) {
+			let blocks_frontend_fn = new AsyncFunction(
+				`let result = await (${js})();
 					return (!Array.isArray(result)) ? [result] : result;`
-		);
-		blocks_frontend_fn();
+			);
+			blocks_frontend_fn();
+		}
+
 		await tick();
 
 		var a = target.getElementsByTagName("a");
