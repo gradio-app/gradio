@@ -5,7 +5,7 @@
 	export let js_components: any;
 
 	export let current_nav_link = "";
-    export let version_dropdown = true;
+    export let version_dropdown = false;
 	let docs_type = "js";
 
 	let show_nav = false;

@@ -109,7 +109,7 @@
 		<select
 		bind:value={docs_type} on:change={() => {
 			if (docs_type == "js") {
-				window.location.href = "../docs/js/";
+				window.location.href = "/main/docs/js/";
 			}
 		}}
 		class="rounded-md border-gray-200 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0 text-xs mt-2 py-1 pl-2 pr-7 font-mono"

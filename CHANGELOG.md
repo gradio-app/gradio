@@ -15,6 +15,52 @@
 
 ## 4.0.0
 
+**v4.0 is a big release, so here are the main highlights:** (full list of changes below)
+
+**Custom Components**: 
+We've introduced the ability to create and publish you own custom gradio components. 
+<img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMm9pbzhvaTd1MTFlM3FrMmRweTh1ZWZiMmpvemhpNnVvaXVoeDZ2byZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/V3N5jnv0D1eKbPYins/giphy.gif">
+
+**Redesigned Media Components and Accessaibility**:
+We redesigned our media components from scratch and improved accessibilty across the board.
+<img src="https://media0.giphy.com/media/Kv1bAN7MX3ya5krkEU/giphy.gif">
+
+**Server Side Events**: 
+We now use Server Side Events instead of Websockets. SSE means everything is served over HTTP: better device support and better scaling.
+<img style="width:50%" src="https://i.imgur.com/ewUIuUc.png">
+
+**Custom Share Servers**: 
+We now support using any custom share server for your gradio share links.
+<img style="width:50%" src="https://i.imgur.com/VFWVsqn.png">
+
+**Here's a list of all the breaking changes:**
+
+**Components**: 
+
+* Removes `**kwarg` from every component, meaning that components cannot accept arbitrary (unused) parameters. Previously, warnings would be thrown.
+* Removes deprecated parameters. For example, `plain` is no longer an alias for `secondary` for the `variant` argument in the `gr.Button` class
+* Removes the deprecated `Carousel` class and `StatusTracker` class and `Box` layout class
+* Removes the deprecated `Variable` alias for `State`
+* Removes the deprecated `.style()` methods from component classes
+* Removes the deprecated `.update()` method from component classes
+* Removes `get_interpretation_neighbors()` and `get_interpretation_scores()` from component classes
+* Removes `deprecation.py` -- this was designed for internal usage so unlikely to break gradio apps
+* Moves save to cache methods from component methods to standalone functions in processing_utils
+* Renames source param in gr.Audio and gr.Video to sources
+* Removes show_edit_button param from gr.Audio
+
+
+**Other Parts of Gradio**:
+
+* Removes the deprecated `status_tracker` parameter from events
+* Removes the deprecated `HuggingFaceDatasetJSONSaver` class
+* Now `Blocks.load()` can only be use an is instance method to attach an event that runs when the page loads. To use the class method, use `gr.load()` instead
+* Similarly, `Interface.load()` has been removed
+* Removes deprecated parameters, such as `enable_queue` from `launch()`
+* Many of the positional arguments in launch() are now keyword only, and show_tips has been removed
+* Changes the format of flagged data to json instead of filepath for media
+* Removes gr.Series and gr.Parallel
+
 ### Features
 
 - [#6184](https://github.com/gradio-app/gradio/pull/6184) [`86edc0199`](https://github.com/gradio-app/gradio/commit/86edc01995d9f888bac093c44c3d4535fe6483b3) - Remove gr.mix.  Thanks [@abidlabs](https://github.com/abidlabs)!
@@ -50,17 +96,6 @@
 - [#5498](https://github.com/gradio-app/gradio/pull/5498) [`287fe6782`](https://github.com/gradio-app/gradio/commit/287fe6782825479513e79a5cf0ba0fbfe51443d7) - --overwrite deletes previous content.  Thanks [@pngwn](https://github.com/pngwn)!
 - [#6171](https://github.com/gradio-app/gradio/pull/6171) [`28322422c`](https://github.com/gradio-app/gradio/commit/28322422cb9d8d3e471e439ad602959662e79312) - strip dangling svelte imports.  Thanks [@pngwn](https://github.com/pngwn)!
 - [#5498](https://github.com/gradio-app/gradio/pull/5498) [`287fe6782`](https://github.com/gradio-app/gradio/commit/287fe6782825479513e79a5cf0ba0fbfe51443d7) - Swap websockets for SSE.  Thanks [@pngwn](https://github.com/pngwn)!
-
-### Fixes
-
-- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`287fe6782`](https://github.com/gradio-app/gradio/commit/287fe6782825479513e79a5cf0ba0fbfe51443d7) - Pending events behavior.  Thanks [@pngwn](https://github.com/pngwn)!
-- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`287fe6782`](https://github.com/gradio-app/gradio/commit/287fe6782825479513e79a5cf0ba0fbfe51443d7) - Reinstate types that were removed in error in #5832.  Thanks [@pngwn](https://github.com/pngwn)!
-- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`287fe6782`](https://github.com/gradio-app/gradio/commit/287fe6782825479513e79a5cf0ba0fbfe51443d7) - Fixes: slider bar are too thin on FireFox.  Thanks [@pngwn](https://github.com/pngwn)!
-
-## 4.0.0-beta.15
-
-### Features
-
 - [#6153](https://github.com/gradio-app/gradio/pull/6153) [`1162ed621`](https://github.com/gradio-app/gradio/commit/1162ed6217fe58d66a1923834c390150599ad81f) - Remove `show_edit_button` param in Audio.  Thanks [@hannahblair](https://github.com/hannahblair)!
 - [#6124](https://github.com/gradio-app/gradio/pull/6124) [`a7435ba9e`](https://github.com/gradio-app/gradio/commit/a7435ba9e6f8b88a838e80893eb8fedf60ccda67) - Fix static issues with Lite on v4.  Thanks [@aliabd](https://github.com/aliabd)!
 - [#6143](https://github.com/gradio-app/gradio/pull/6143) [`e4f7b4b40`](https://github.com/gradio-app/gradio/commit/e4f7b4b409323b01aa01b39e15ce6139e29aa073) - fix circular dependency with client + upload.  Thanks [@pngwn](https://github.com/pngwn)!
@@ -82,16 +117,6 @@
 - [#6129](https://github.com/gradio-app/gradio/pull/6129) [`0d261c6ec`](https://github.com/gradio-app/gradio/commit/0d261c6ec1e783e284336023885f67b2ce04084c) - Fix fallback demo app template code.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
 - [#6140](https://github.com/gradio-app/gradio/pull/6140) [`71bf2702c`](https://github.com/gradio-app/gradio/commit/71bf2702cd5b810c89e2e53452532650acdcfb87) - Fix video.  Thanks [@abidlabs](https://github.com/abidlabs)!
 - [#6069](https://github.com/gradio-app/gradio/pull/6069) [`bf127e124`](https://github.com/gradio-app/gradio/commit/bf127e1241a41401e144874ea468dff8474eb505) - Swap websockets for SSE.  Thanks [@aliabid94](https://github.com/aliabid94)!
-
-### Fixes
-
-- [#6146](https://github.com/gradio-app/gradio/pull/6146) [`40a171ea6`](https://github.com/gradio-app/gradio/commit/40a171ea60c74afa9519d6cb159def16ce68e1ca) - Fix image double change bug.  Thanks [@pngwn](https://github.com/pngwn)!
-- [#6148](https://github.com/gradio-app/gradio/pull/6148) [`0000a1916`](https://github.com/gradio-app/gradio/commit/0000a191688c5480c977c80acdd0c9023865d57e) - fix dropdown arrow size.  Thanks [@pngwn](https://github.com/pngwn)!
-
-## 4.0.0-beta.14
-
-### Features
-
 - [#6082](https://github.com/gradio-app/gradio/pull/6082) [`037e5af33`](https://github.com/gradio-app/gradio/commit/037e5af3363c5b321b95efc955ee8d6ec0f4504e) - WIP: Fix docs.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
 - [#6071](https://github.com/gradio-app/gradio/pull/6071) [`f08da1a6f`](https://github.com/gradio-app/gradio/commit/f08da1a6f288f6ab8ec40534d5a9e2c64bed4b3b) - Fixes markdown rendering in examples.  Thanks [@abidlabs](https://github.com/abidlabs)!
 - [#5970](https://github.com/gradio-app/gradio/pull/5970) [`0c571c044`](https://github.com/gradio-app/gradio/commit/0c571c044035989d6fe33fc01fee63d1780635cb) - Add json schema unit tests.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
@@ -117,8 +142,14 @@
 - [#6077](https://github.com/gradio-app/gradio/pull/6077) [`35a227fbf`](https://github.com/gradio-app/gradio/commit/35a227fbfb0b0eb11806c0382c5f6910dc9777cf) - Proposal: sample demo for custom components should be a `gr.Interface`.  Thanks [@abidlabs](https://github.com/abidlabs)!
 - [#6079](https://github.com/gradio-app/gradio/pull/6079) [`3b2d9eaa3`](https://github.com/gradio-app/gradio/commit/3b2d9eaa3e84de3e4a0799e4585a94510d665f26) - fix cc build.  Thanks [@pngwn](https://github.com/pngwn)!
 
+
 ### Fixes
 
+- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`287fe6782`](https://github.com/gradio-app/gradio/commit/287fe6782825479513e79a5cf0ba0fbfe51443d7) - Pending events behavior.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`287fe6782`](https://github.com/gradio-app/gradio/commit/287fe6782825479513e79a5cf0ba0fbfe51443d7) - Reinstate types that were removed in error in #5832.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`287fe6782`](https://github.com/gradio-app/gradio/commit/287fe6782825479513e79a5cf0ba0fbfe51443d7) - Fixes: slider bar are too thin on FireFox.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#6146](https://github.com/gradio-app/gradio/pull/6146) [`40a171ea6`](https://github.com/gradio-app/gradio/commit/40a171ea60c74afa9519d6cb159def16ce68e1ca) - Fix image double change bug.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#6148](https://github.com/gradio-app/gradio/pull/6148) [`0000a1916`](https://github.com/gradio-app/gradio/commit/0000a191688c5480c977c80acdd0c9023865d57e) - fix dropdown arrow size.  Thanks [@pngwn](https://github.com/pngwn)!
 - [#6067](https://github.com/gradio-app/gradio/pull/6067) [`bf38e5f06`](https://github.com/gradio-app/gradio/commit/bf38e5f06a7039be913614901c308794fea83ae0) - remove dupe component.  Thanks [@pngwn](https://github.com/pngwn)!
 - [#6065](https://github.com/gradio-app/gradio/pull/6065) [`7d07001e8`](https://github.com/gradio-app/gradio/commit/7d07001e8e7ca9cbd2251632667b3a043de49f49) - fix storybook.  Thanks [@pngwn](https://github.com/pngwn)!
 - [#5826](https://github.com/gradio-app/gradio/pull/5826) [`ce036c5d4`](https://github.com/gradio-app/gradio/commit/ce036c5d47e741e29812654bcc641ea6be876504) - Pending events behavior.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
@@ -126,6 +157,7 @@
 - [#6042](https://github.com/gradio-app/gradio/pull/6042) [`e27997fe6`](https://github.com/gradio-app/gradio/commit/e27997fe6c2bcfebc7015fc26100cee9625eb13a) - Fix `root` when user is unauthenticated so that login page appears correctly.  Thanks [@abidlabs](https://github.com/abidlabs)!
 - [#6076](https://github.com/gradio-app/gradio/pull/6076) [`f3f98f923`](https://github.com/gradio-app/gradio/commit/f3f98f923c9db506284b8440e18a3ac7ddd8398b) - Lite error handler.  Thanks [@whitphx](https://github.com/whitphx)!
 - [#5984](https://github.com/gradio-app/gradio/pull/5984) [`66549d8d2`](https://github.com/gradio-app/gradio/commit/66549d8d256b1845c8c5efa0384695b36cb46eab) - Fixes: slider bar are too thin on FireFox.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 
 ## 3.45.0-beta.13
 
