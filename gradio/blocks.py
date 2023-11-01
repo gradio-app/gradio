@@ -1645,10 +1645,8 @@ Received outputs:
             demo.launch()
         """
         if concurrency_count:
-            warnings.warn(
-                "concurrency_count has been deprecated. Set the concurrency_limit directly on event listeners e.g. btn.click(fn, ..., concurrency_limit=10) or gr.Interface(concurrency_limit=10). If necessary, the total number of workers can be configured via `max_threads` in launch().",
-                # Deprecation warnings filtered out by default
-                UserWarning,
+            raise DeprecationWarning(
+                "concurrency_count has been deprecated. Set the concurrency_limit directly on event listeners e.g. btn.click(fn, ..., concurrency_limit=10) or gr.Interface(concurrency_limit=10). If necessary, the total number of workers can be configured via `max_threads` in launch()."
             )
         if api_open is not None:
             self.api_open = api_open

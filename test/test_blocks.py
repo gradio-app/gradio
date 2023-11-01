@@ -1539,7 +1539,7 @@ def test_recover_kwargs():
 
 
 def test_deprecation_warning_emitted_when_concurrency_count_set():
-    with pytest.warns(UserWarning):
+    with pytest.raises(DeprecationWarning):
         gr.Interface(lambda x: x, gr.Textbox(), gr.Textbox()).queue(
             concurrency_count=12
         )
