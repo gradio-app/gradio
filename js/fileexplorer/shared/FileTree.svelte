@@ -139,14 +139,13 @@
 		margin: 8px 0;
 		font-family: var(--font-mono);
 		font-size: var(--scale-00);
+		overflow-wrap: anywhere;
+		word-break: break-word;
 	}
 
 	.wrap {
 		display: flex;
 		gap: 8px;
 		align-items: center;
-		overflow-wrap: anywhere;
-		word-break: break-word;
-		overflow-y: scroll;
 	}
 </style>
