@@ -58,7 +58,7 @@
 		/>
 	</div>
 {:else}
-	<Empty unpadded_box={true} size="large"><File /></Empty>
+	<Empty size="large"><File /></Empty>
 {/if}
 
 <style>
