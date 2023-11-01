@@ -3,7 +3,7 @@
 	import { Block, BlockTitle } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { afterUpdate } from "svelte";
+	import { afterUpdate, tick } from "svelte";
 
 	export let gradio: Gradio<{
 		change: never;
@@ -30,16 +30,23 @@
 
 	function toggleChoice(choice: string | number): void {
 		// update the old
+		console.log("toggle_change");
 		if (old_value.includes(choice)) {
-			old_value.splice(old_value.indexOf(choice), 1);
+			old_value = old_value.filter((v) => v !== choice);
 		} else {
-			old_value.push(choice);
+			old_value = [...old_value, choice];
 		}
-		old_value = [...old_value];
+
+		value = [...old_value];
 	}
 
-	function handle_change(): void {
+	$: console.log({ value });
+
+	async function handle_change(): void {
+		await tick();
+		console.log("change");
 		gradio.dispatch("change");
+
 		if (!value_is_output) {
 			gradio.dispatch("input");
 		}
@@ -53,7 +60,7 @@
 
 	// When old_value changes, update value and call handle_change()
 	// See the docs for an explanation: https://svelte.dev/docs/svelte-components#script-3-$-marks-a-statement-as-reactive
-	$: (value = [...old_value]), handle_change();
+	$: value && handle_change();
 </script>
 
 <Block

@@ -22,13 +22,16 @@ CHOICES = ["(NONE)", "a", "b", "c"]
 def fn(choices):
     print(choices)
     if "(NONE)" in choices:
+        print("NONE")
         return []
     else:
         return choices
 
 
 with gr.Blocks() as demo:
-    checkbox = gr.CheckboxGroup(choices=CHOICES, value=["a", "b", "c"])
+    checkbox = gr.CheckboxGroup(
+        choices=CHOICES, value=["a", "b", "c"], interactive=True
+    )
     checkbox.change(fn=fn, inputs=checkbox, outputs=checkbox)
 
 if __name__ == "__main__":
