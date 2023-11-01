@@ -1899,11 +1899,18 @@ class TestJSON:
         with gr.Blocks() as demo:
             cb = gr.Chatbot(label="Chatbot")
             cb.like(lambda: print("foo"))
+            gr.Chatbot(label="Chatbot2")
+
+        assertion_count = 0
         for component in demo.config["components"]:
             if component["props"]["label"] == "Chatbot":
+                assertion_count += 1
                 assert component["props"]["likeable"]
-                return
-        raise AssertionError()
+            elif component["props"]["label"] == "Chatbot2":
+                assertion_count += 1
+                assert not component["props"]["likeable"]
+
+        assert assertion_count == 2
 
     @pytest.mark.asyncio
     async def test_in_interface(self):
