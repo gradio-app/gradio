@@ -67,7 +67,6 @@
 	$: modals = data.modals;
 	$: routes = data.routes;
 	$: py_client = data.py_client;
-
 </script>
 
 <MetaTags
