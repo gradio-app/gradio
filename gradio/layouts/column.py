@@ -28,7 +28,7 @@ class Column(BlockContext, metaclass=ComponentMeta):
     Guides: controlling-layout
     """
 
-    EVENTS = ["baz"]
+    EVENTS = []
 
     def __init__(
         self,
