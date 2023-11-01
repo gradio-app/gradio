@@ -2016,6 +2016,7 @@ class TestModel3D:
             "camera_position": (None, None, None),
             "height": None,
             "zoom_speed": 1,
+            "pan_speed": 1,
             "_selectable": False,
         }
 
