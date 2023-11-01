@@ -66,6 +66,7 @@ class Chatbot(Component):
         render_markdown: bool = True,
         bubble_full_width: bool = True,
         line_breaks: bool = True,
+        likeable: bool = False,
         layout: Literal["panel", "bubble"] | None = None,
     ):
         """
@@ -91,9 +92,10 @@ class Chatbot(Component):
             render_markdown: If False, will disable Markdown rendering for chatbot messages.
             bubble_full_width: If False, the chat bubble will fit to the content of the message. If True (default), the chat bubble will be the full width of the component.
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies if `render_markdown` is True.
+            likeable: Whether the chat messages display a like or dislike button. Set automatically by the .like method but has to be present in the signature for it to show up in the config.
             layout: If "panel", will display the chatbot in a llm style layout. If "bubble", will display the chatbot with message bubbles, with the user and bot messages on alterating sides. Will default to "bubble".
         """
-        self.likeable = False
+        self.likeable = likeable
         self.height = height
         self.rtl = rtl
         if latex_delimiters is None:
