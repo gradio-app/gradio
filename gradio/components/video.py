@@ -289,7 +289,7 @@ class Video(Component):
             )
             ff.run()
             video = output_file_name
-        video = str(Path(video).resolve())
+
         return FileData(path=video, orig_name=Path(video).name)
 
     def _format_subtitle(self, subtitle: str | Path | None) -> FileData | None:
