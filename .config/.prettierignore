@@ -27,3 +27,4 @@ sweep.yaml
 **/*.md
 **/src/lib/json/**/*
 **/playwright/.cache/**/*
+**/theme/src/pollen.css
