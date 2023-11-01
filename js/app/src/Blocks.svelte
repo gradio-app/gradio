@@ -349,8 +349,16 @@
 	const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
 	const DUPLICATE_MESSAGE = $_("blocks.long_requests_queue");
+	const MOBILE_QUEUE_WARNING = $_("blocks.connection_can_break");
+	const MOBILE_RECONNECT_MESSAGE = $_("blocks.lost_connection");
 	const SHOW_DUPLICATE_MESSAGE_ON_ETA = 15;
+	const SHOW_MOBILE_QUEUE_WARNING_ON_ETA = 10;
+	const is_mobile_device =
+		/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+			navigator.userAgent
+		);
 	let showed_duplicate_message = false;
+	let showed_mobile_warning = false;
 
 	async function trigger_api_call(
 		dep_index: number,
@@ -459,6 +467,18 @@
 								...messages
 							];
 						}
+						if (
+							!showed_mobile_warning &&
+							is_mobile_device &&
+							status.eta !== undefined &&
+							status.eta > SHOW_MOBILE_QUEUE_WARNING_ON_ETA
+						) {
+							showed_mobile_warning = true;
+							messages = [
+								new_message(MOBILE_QUEUE_WARNING, fn_index, "warning"),
+								...messages
+							];
+						}
 
 						if (status.stage === "complete") {
 							dependencies.map(async (dep, i) => {
@@ -469,7 +489,16 @@
 
 							submission.destroy();
 						}
-						if (status.stage === "error") {
+						if (status.broken && is_mobile_device && user_left_page) {
+							window.setTimeout(() => {
+								messages = [
+									new_message(MOBILE_RECONNECT_MESSAGE, fn_index, "error"),
+									...messages
+								];
+							}, 0);
+							trigger_api_call(dep_index, event_data);
+							user_left_page = false;
+						} else if (status.stage === "error") {
 							if (status.message) {
 								const _message = status.message.replace(
 									MESSAGE_QUOTE_RE,
