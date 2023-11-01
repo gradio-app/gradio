@@ -9,9 +9,7 @@
 	let readme_html = data.readme_html;
 	let js_pages = data.js_pages;
 
-	let js_components = js_pages.filter(c => c !== "js-client");
-
-	
+	let js_components = js_pages.filter((c) => c !== "js-client");
 
 	$: name = data.name;
 	$: readme_html = data.readme_html;
@@ -26,10 +24,7 @@
 
 <main class="container mx-auto px-4 flex flex-col gap-4">
 	<div class="flex w-full">
-		<JSDocsNav
-			current_nav_link={name}
-			{js_components}
-		/>
+		<JSDocsNav current_nav_link={name} {js_components} />
 
 		<div class="flex flex-col w-full min-w-full lg:w-10/12 lg:min-w-0">
 			<div>
@@ -48,7 +43,7 @@
 			</div>
 
 			<div class="js_readme">
-				<div class="lg:ml-10  mt-5">
+				<div class="lg:ml-10 mt-5">
 					<div class="prose text-lg max-w-full">
 						{@html readme_html}
 					</div>

@@ -42,7 +42,6 @@
 	}
 
 	import DropDown from "$lib/components/VersionDropdown.svelte";
-	
 </script>
 
 <svelte:window on:keydown={onKeyDown} />
@@ -107,17 +106,17 @@
 		/>
 		<DropDown></DropDown>
 		<select
-		bind:value={docs_type} on:change={() => {
-			if (docs_type == "js") {
-				window.location.href = "/main/docs/js/";
-			}
-		}}
-		class="rounded-md border-gray-200 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0 text-xs mt-2 py-1 pl-2 pr-7 font-mono"
+			bind:value={docs_type}
+			on:change={() => {
+				if (docs_type == "js") {
+					window.location.href = "/main/docs/js/";
+				}
+			}}
+			class="rounded-md border-gray-200 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0 text-xs mt-2 py-1 pl-2 pr-7 font-mono"
 		>
 			<option value="js">js</option>
 			<option value="python">python</option>
 		</select>
-
 	</div>
 
 	<p class="font-semibold px-4 my-2 block">Building Demos</p>

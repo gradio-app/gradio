@@ -74,8 +74,7 @@
 		role="none"
 		style="transform: translateX({px}px)"
 	>
-		<div hidden={hidden} 
-		class="inner">
+		<div {hidden} class="inner">
 			<div class="notches text-gray-400 select-none">&#124;&#124;</div>
 		</div>
 	</div>
@@ -121,7 +120,7 @@
 		margin: 0;
 		position: absolute;
 		top: 50%;
-  		left: 50%;		
+		left: 50%;
 		transform: translate(-50%, -50%) scale(1, 2.5);
 		font-weight: bold;
 	}

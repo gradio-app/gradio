@@ -91,7 +91,8 @@
 		position: relative;
 		background-color: var(--border-color-accent-subdued);
 		animation: shadowPulse 2s linear infinite;
-		box-shadow: -24px 0 var(--border-color-accent-subdued),
+		box-shadow:
+			-24px 0 var(--border-color-accent-subdued),
 			24px 0 var(--border-color-accent-subdued);
 		margin: var(--spacing-md);
 		border-radius: 50%;
@@ -102,15 +103,21 @@
 
 	@keyframes shadowPulse {
 		33% {
-			box-shadow: -24px 0 var(--border-color-accent-subdued), 24px 0 #fff;
+			box-shadow:
+				-24px 0 var(--border-color-accent-subdued),
+				24px 0 #fff;
 			background: #fff;
 		}
 		66% {
-			box-shadow: -24px 0 #fff, 24px 0 #fff;
+			box-shadow:
+				-24px 0 #fff,
+				24px 0 #fff;
 			background: var(--border-color-accent-subdued);
 		}
 		100% {
-			box-shadow: -24px 0 #fff, 24px 0 var(--border-color-accent-subdued);
+			box-shadow:
+				-24px 0 #fff,
+				24px 0 var(--border-color-accent-subdued);
 			background: #fff;
 		}
 	}

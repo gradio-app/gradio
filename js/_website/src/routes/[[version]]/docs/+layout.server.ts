@@ -47,7 +47,7 @@ export async function load({ params, url }) {
 		modals,
 		routes,
 		py_client,
-		js, 
+		js,
 		js_pages,
 		on_main,
 		wheel,

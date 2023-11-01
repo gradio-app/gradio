@@ -13,9 +13,10 @@
 	$: is_docs = $page.route.id?.includes("/docs/");
 
 	$: docs_url = `${value === version ? "" : `/${value}`}/docs/${
-		docs_type == "js" ? "js/" : ""	
+		docs_type == "js" ? "js/" : ""
 	}${
-		$page.params?.jsdoc || $page.params?.doc || 
+		$page.params?.jsdoc ||
+		$page.params?.doc ||
 		(is_dynamic || path_parts.length !== 4
 			? ""
 			: path_parts[path_parts.length - 1])

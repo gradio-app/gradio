@@ -43,28 +43,24 @@
 		>
 			Version History
 		</div>
-		<div
-			class="navigation max-w-full p-2 mx-2 mb-2"
-		>
+		<div class="navigation max-w-full p-2 mx-2 mb-2">
 			{#each slugs as heading}
-			{#if heading.text == "4.0.0"}
-			<div class="flex">
-					<a	
-					class="subheading block thin-link mr-1 px-2 rounded-lg w-min border border-orange-500"
-					href={heading.href}
-					on:click={handleAnchorClick}>{heading.text}</a
-				>
-				<p class="inline">🔥</p>
-			</div>
-			{:else}
-
-				<a	
-					class="subheading block thin-link mr-2 px-2 rounded-lg"
-					href={heading.href}
-					on:click={handleAnchorClick}>{heading.text}</a
-				>
-
-			{/if}
+				{#if heading.text == "4.0.0"}
+					<div class="flex">
+						<a
+							class="subheading block thin-link mr-1 px-2 rounded-lg w-min border border-orange-500"
+							href={heading.href}
+							on:click={handleAnchorClick}>{heading.text}</a
+						>
+						<p class="inline">🔥</p>
+					</div>
+				{:else}
+					<a
+						class="subheading block thin-link mr-2 px-2 rounded-lg"
+						href={heading.href}
+						on:click={handleAnchorClick}>{heading.text}</a
+					>
+				{/if}
 			{/each}
 		</div>
 	</div>
