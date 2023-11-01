@@ -1,31 +1,36 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import logging
 import os
 import shutil
 import subprocess
 import tempfile
+import urllib.request
 import warnings
 from io import BytesIO
 from pathlib import Path
+from typing import TYPE_CHECKING, Any, Literal
 
 import numpy as np
+import requests
 from gradio_client import utils as client_utils
 from PIL import Image, ImageOps, PngImagePlugin
 
 from gradio import wasm_utils
-
-if not wasm_utils.IS_WASM:
-    # TODO: Support ffmpeg on Wasm
-    from ffmpy import FFmpeg, FFprobe, FFRuntimeError
+from gradio.data_classes import FileData, GradioModel, GradioRootModel
+from gradio.utils import abspath, is_in_or_equal
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # Ignore pydub warning if ffmpeg is not installed
     from pydub import AudioSegment
 
 log = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from gradio.components.base import Component
 
 #########################
 # GENERAL
@@ -38,7 +43,7 @@ def to_binary(x: str | dict) -> bytes:
         if x.get("data"):
             base64str = x["data"]
         else:
-            base64str = client_utils.encode_url_or_file_to_base64(x["name"])
+            base64str = client_utils.encode_url_or_file_to_base64(x["path"])
     else:
         base64str = x
     return base64.b64decode(extract_base64_data(base64str))
@@ -106,6 +111,187 @@ def encode_array_to_base64(image_array):
         bytes_data = output_bytes.getvalue()
     base64_str = str(base64.b64encode(bytes_data), "utf-8")
     return "data:image/png;base64," + base64_str
+
+
+def hash_file(file_path: str | Path, chunk_num_blocks: int = 128) -> str:
+    sha1 = hashlib.sha1()
+    with open(file_path, "rb") as f:
+        for chunk in iter(lambda: f.read(chunk_num_blocks * sha1.block_size), b""):
+            sha1.update(chunk)
+    return sha1.hexdigest()
+
+
+def hash_url(url: str, chunk_num_blocks: int = 128) -> str:
+    sha1 = hashlib.sha1()
+    remote = urllib.request.urlopen(url)
+    max_file_size = 100 * 1024 * 1024  # 100MB
+    total_read = 0
+    while True:
+        data = remote.read(chunk_num_blocks * sha1.block_size)
+        total_read += chunk_num_blocks * sha1.block_size
+        if not data or total_read > max_file_size:
+            break
+        sha1.update(data)
+    return sha1.hexdigest()
+
+
+def hash_bytes(bytes: bytes):
+    sha1 = hashlib.sha1()
+    sha1.update(bytes)
+    return sha1.hexdigest()
+
+
+def hash_base64(base64_encoding: str, chunk_num_blocks: int = 128) -> str:
+    sha1 = hashlib.sha1()
+    for i in range(0, len(base64_encoding), chunk_num_blocks * sha1.block_size):
+        data = base64_encoding[i : i + chunk_num_blocks * sha1.block_size]
+        sha1.update(data.encode("utf-8"))
+    return sha1.hexdigest()
+
+
+def save_pil_to_cache(
+    img: Image.Image, cache_dir: str, format: Literal["png", "jpg"] = "png"
+) -> str:
+    bytes_data = encode_pil_to_bytes(img, format)
+    temp_dir = Path(cache_dir) / hash_bytes(bytes_data)
+    temp_dir.mkdir(exist_ok=True, parents=True)
+    filename = str((temp_dir / f"image.{format}").resolve())
+    img.save(filename, pnginfo=get_pil_metadata(img))
+    return filename
+
+
+def save_img_array_to_cache(
+    arr: np.ndarray, cache_dir: str, format: Literal["png", "jpg"] = "png"
+) -> str:
+    pil_image = Image.fromarray(_convert(arr, np.uint8, force_copy=False))
+    return save_pil_to_cache(pil_image, cache_dir, format=format)
+
+
+def save_audio_to_cache(
+    data: np.ndarray, sample_rate: int, format: str, cache_dir: str
+) -> str:
+    temp_dir = Path(cache_dir) / hash_bytes(data.tobytes())
+    temp_dir.mkdir(exist_ok=True, parents=True)
+    filename = str((temp_dir / f"audio.{format}").resolve())
+    audio_to_file(sample_rate, data, filename, format=format)
+    return filename
+
+
+def save_bytes_to_cache(data: bytes, file_name: str, cache_dir: str) -> str:
+    path = Path(cache_dir) / hash_bytes(data)
+    path.mkdir(exist_ok=True, parents=True)
+    path = path / Path(file_name).name
+    path.write_bytes(data)
+    return str(path.resolve())
+
+
+def save_file_to_cache(file_path: str | Path, cache_dir: str) -> str:
+    """Returns a temporary file path for a copy of the given file path if it does
+    not already exist. Otherwise returns the path to the existing temp file."""
+    temp_dir = hash_file(file_path)
+    temp_dir = Path(cache_dir) / temp_dir
+    temp_dir.mkdir(exist_ok=True, parents=True)
+
+    name = client_utils.strip_invalid_filename_characters(Path(file_path).name)
+    full_temp_file_path = str(abspath(temp_dir / name))
+
+    if not Path(full_temp_file_path).exists():
+        shutil.copy2(file_path, full_temp_file_path)
+
+    return full_temp_file_path
+
+
+def save_url_to_cache(url: str, cache_dir: str) -> str:
+    """Downloads a file and makes a temporary file path for a copy if does not already
+    exist. Otherwise returns the path to the existing temp file."""
+    temp_dir = hash_url(url)
+    temp_dir = Path(cache_dir) / temp_dir
+    temp_dir.mkdir(exist_ok=True, parents=True)
+
+    name = client_utils.strip_invalid_filename_characters(Path(url).name)
+    full_temp_file_path = str(abspath(temp_dir / name))
+
+    if not Path(full_temp_file_path).exists():
+        with requests.get(url, stream=True) as r, open(full_temp_file_path, "wb") as f:
+            shutil.copyfileobj(r.raw, f)
+
+    return full_temp_file_path
+
+
+def save_base64_to_cache(
+    base64_encoding: str, cache_dir: str, file_name: str | None = None
+) -> str:
+    """Converts a base64 encoding to a file and returns the path to the file if
+    the file doesn't already exist. Otherwise returns the path to the existing file.
+    """
+    temp_dir = hash_base64(base64_encoding)
+    temp_dir = Path(cache_dir) / temp_dir
+    temp_dir.mkdir(exist_ok=True, parents=True)
+
+    guess_extension = client_utils.get_extension(base64_encoding)
+    if file_name:
+        file_name = client_utils.strip_invalid_filename_characters(file_name)
+    elif guess_extension:
+        file_name = f"file.{guess_extension}"
+    else:
+        file_name = "file"
+
+    full_temp_file_path = str(abspath(temp_dir / file_name))  # type: ignore
+
+    if not Path(full_temp_file_path).exists():
+        data, _ = client_utils.decode_base64_to_binary(base64_encoding)
+        with open(full_temp_file_path, "wb") as fb:
+            fb.write(data)
+
+    return full_temp_file_path
+
+
+def move_resource_to_block_cache(url_or_file_path: str | Path, block: Component) -> str:
+    """Moves a file or downloads a file from a url to a block's cache directory, adds
+    to to the block's temp_files, and returns the path to the file in cache. This
+    ensures that the file is accessible to the Block and can be served to users.
+    """
+    if isinstance(url_or_file_path, Path):
+        url_or_file_path = str(url_or_file_path)
+
+    if client_utils.is_http_url_like(url_or_file_path):
+        temp_file_path = save_url_to_cache(
+            url_or_file_path, cache_dir=block.GRADIO_CACHE
+        )
+        block.temp_files.add(temp_file_path)
+    else:
+        url_or_file_path = str(abspath(url_or_file_path))
+        if not is_in_or_equal(url_or_file_path, block.GRADIO_CACHE):
+            temp_file_path = save_file_to_cache(
+                url_or_file_path, cache_dir=block.GRADIO_CACHE
+            )
+            block.temp_files.add(temp_file_path)
+        else:
+            temp_file_path = url_or_file_path
+
+    return temp_file_path
+
+
+def move_files_to_cache(data: Any, block: Component):
+    """Move files to cache and replace the file path with the cache path.
+
+    Runs after postprocess and before preprocess.
+
+    Args:
+        data: The input or output data for a component. Can be a dictionary or a dataclass
+        block: The component
+    """
+
+    def _move_to_cache(d: dict):
+        payload = FileData(**d)
+        temp_file_path = move_resource_to_block_cache(payload.path, block)
+        payload.path = temp_file_path
+        return payload.model_dump()
+
+    if isinstance(data, (GradioRootModel, GradioModel)):
+        data = data.model_dump()
+
+    return client_utils.traverse(data, _move_to_cache, client_utils.is_file_obj)
 
 
 def resize_and_crop(img, size, crop_type="center"):
@@ -505,6 +691,8 @@ def video_is_playable(video_filepath: str) -> bool:
         .webm -> vp9
         .ogg -> theora
     """
+    from ffmpy import FFprobe, FFRuntimeError
+
     try:
         container = Path(video_filepath).suffix.lower()
         probe = FFprobe(
@@ -526,6 +714,8 @@ def video_is_playable(video_filepath: str) -> bool:
 
 def convert_video_to_playable_mp4(video_path: str) -> str:
     """Convert the video to mp4. If something goes wrong return the original video."""
+    from ffmpy import FFmpeg, FFRuntimeError
+
     try:
         with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
             output_path = Path(video_path).with_suffix(".mp4")
@@ -544,3 +734,23 @@ def convert_video_to_playable_mp4(video_path: str) -> str:
         # Remove temp file
         os.remove(tmp_file.name)  # type: ignore
     return str(output_path)
+
+
+def get_video_length(video_path: str | Path):
+    duration = subprocess.check_output(
+        [
+            "ffprobe",
+            "-i",
+            str(video_path),
+            "-show_entries",
+            "format=duration",
+            "-v",
+            "quiet",
+            "-of",
+            "csv={}".format("p=0"),
+        ]
+    )
+    duration_str = duration.decode("utf-8").strip()
+    duration_float = float(duration_str)
+
+    return duration_float

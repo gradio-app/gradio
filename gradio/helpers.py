@@ -25,12 +25,13 @@ from matplotlib import animation
 
 from gradio import components, oauth, processing_utils, routes, utils, wasm_utils
 from gradio.context import Context, LocalContext
+from gradio.data_classes import GradioModel, GradioRootModel
+from gradio.events import EventData
 from gradio.exceptions import Error
 from gradio.flagging import CSVLogger
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
-    from gradio.blocks import Block
-    from gradio.components import IOComponent
+    from gradio.components import Component
 
 CACHED_FOLDER = "gradio_cached_examples"
 LOG_FILE = "log.csv"
@@ -40,8 +41,8 @@ set_documentation_group("helpers")
 
 def create_examples(
     examples: list[Any] | list[list[Any]] | str,
-    inputs: IOComponent | list[IOComponent],
-    outputs: IOComponent | list[IOComponent] | None = None,
+    inputs: Component | list[Component],
+    outputs: Component | list[Component] | None = None,
     fn: Callable | None = None,
     cache_examples: bool = False,
     examples_per_page: int = 10,
@@ -91,8 +92,8 @@ class Examples:
     def __init__(
         self,
         examples: list[Any] | list[list[Any]] | str,
-        inputs: IOComponent | list[IOComponent],
-        outputs: IOComponent | list[IOComponent] | None = None,
+        inputs: Component | list[Component],
+        outputs: Component | list[Component] | None = None,
         fn: Callable | None = None,
         cache_examples: bool = False,
         examples_per_page: int = 10,
@@ -206,13 +207,19 @@ class Examples:
         self.batch = batch
 
         with utils.set_directory(working_directory):
-            self.processed_examples = [
-                [
-                    component.postprocess(sample)
-                    for component, sample in zip(inputs, example)
-                ]
-                for example in examples
-            ]
+            self.processed_examples = []
+            for example in examples:
+                sub = []
+                for component, sample in zip(inputs, example):
+                    prediction_value = component.postprocess(sample)
+                    if isinstance(prediction_value, (GradioRootModel, GradioModel)):
+                        prediction_value = prediction_value.model_dump()
+                    prediction_value = processing_utils.move_files_to_cache(
+                        prediction_value, component
+                    )
+                    sub.append(prediction_value)
+                self.processed_examples.append(sub)
+
         self.non_none_processed_examples = [
             [ex for (ex, keep) in zip(example, input_has_examples) if keep]
             for example in self.processed_examples
@@ -252,7 +259,14 @@ class Examples:
 
         async def load_example(example_id):
             processed_example = self.non_none_processed_examples[example_id]
-            return utils.resolve_singleton(processed_example)
+            if len(self.inputs_with_examples) == 1:
+                return update(
+                    value=processed_example[0], **self.dataset.component_props[0]
+                )
+            return [
+                update(value=processed_example[i], **self.dataset.component_props[i])
+                for i in range(len(self.inputs_with_examples))
+            ]
 
         if Context.root_block:
             self.load_input_event = self.dataset.click(
@@ -410,28 +424,28 @@ class Examples:
                 output.append(value_as_dict)
             except (ValueError, TypeError, SyntaxError, AssertionError):
                 output.append(
-                    component.serialize(
-                        value_to_use, self.cached_folder, allow_links=True
+                    component.read_from_flag(
+                        value_to_use,
+                        self.cached_folder,
                     )
                 )
         return output
 
 
 def merge_generated_values_into_output(
-    components: list[IOComponent], generated_values: list, output: list
+    components: list[Component], generated_values: list, output: list
 ):
-    from gradio.events import StreamableOutput
+    from gradio.components.base import StreamingOutput
 
     for output_index, output_component in enumerate(components):
-        if (
-            isinstance(output_component, StreamableOutput)
-            and output_component.streaming
-        ):
+        if isinstance(output_component, StreamingOutput) and output_component.streaming:
             binary_chunks = []
             for i, chunk in enumerate(generated_values):
                 if len(components) > 1:
                     chunk = chunk[output_index]
                 processed_chunk = output_component.postprocess(chunk)
+                if isinstance(processed_chunk, (GradioModel, GradioRootModel)):
+                    processed_chunk = processed_chunk.model_dump()
                 binary_chunks.append(
                     output_component.stream_output(processed_chunk, "", i == 0)[0]
                 )
@@ -445,9 +459,7 @@ def merge_generated_values_into_output(
                 f.write(binary_data)
 
             output[output_index] = {
-                "name": temp_file.name,
-                "is_file": True,
-                "data": None,
+                "path": temp_file.name,
             }
 
     return output
@@ -788,53 +800,40 @@ def special_args(
     return inputs or [], progress_index, event_data_index
 
 
-def update(**kwargs) -> dict:
+def update(
+    elem_id: str | None = None,
+    elem_classes: list[str] | str | None = None,
+    visible: bool | None = None,
+    **kwargs,
+) -> dict:
     """
-    DEPRECATED. Updates component properties. When a function passed into a Gradio Interface or a Blocks events returns a typical value, it updates the value of the output component. But it is also possible to update the properties of an output component (such as the number of lines of a `Textbox` or the visibility of an `Image`) by returning the component's `update()` function, which takes as parameters any of the constructor parameters for that component.
-    This is a shorthand for using the update method on a component.
-    For example, rather than using gr.Number.update(...) you can just use gr.update(...).
-    Note that your editor's autocompletion will suggest proper parameters
-    if you use the update method on the component.
-    Demos: blocks_essay, blocks_update, blocks_essay_update
+    Updates a component's properties. When a function passed into a Gradio Interface or a Blocks events returns a value, it typically updates the value of the output component. But it is also possible to update the *properties* of an output component (such as the number of lines of a `Textbox` or the visibility of an `Row`) by returning a component and passing in the parameters to update in the constructor of the component. Alternatively, you can return `gr.update(...)` with any arbitrary parameters to update. (This is useful as a shorthand or if the same function can be called with different components to update.)
 
     Parameters:
-        kwargs: Key-word arguments used to update the component's properties.
+        elem_id: Use this to update the id of the component in the HTML DOM
+        elem_classes: Use this to update the classes of the component in the HTML DOM
+        visible: Use this to update the visibility of the component
+        kwargs: Any other keyword arguments to update the component's properties.
     Example:
-        # Blocks Example
         import gradio as gr
         with gr.Blocks() as demo:
             radio = gr.Radio([1, 2, 4], label="Set the value of the number")
             number = gr.Number(value=2, interactive=True)
             radio.change(fn=lambda value: gr.update(value=value), inputs=radio, outputs=number)
         demo.launch()
-
-        # Interface example
-        import gradio as gr
-        def change_textbox(choice):
-          if choice == "short":
-              return gr.Textbox.update(lines=2, visible=True)
-          elif choice == "long":
-              return gr.Textbox.update(lines=8, visible=True)
-          else:
-              return gr.Textbox.update(visible=False)
-        gr.Interface(
-          change_textbox,
-          gr.Radio(
-              ["short", "long", "none"], label="What kind of essay would you like to write?"
-          ),
-          gr.Textbox(lines=2),
-          live=True,
-        ).launch()
     """
-    warnings.warn(
-        "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Textbox(...)` instead of `return gr.update(...)"
-    )
-    kwargs["__type__"] = "generic_update"
+    kwargs["__type__"] = "update"
+    if elem_id is not None:
+        kwargs["elem_id"] = elem_id
+    if elem_classes is not None:
+        kwargs["elem_classes"] = elem_classes
+    if visible is not None:
+        kwargs["visible"] = visible
     return kwargs
 
 
 def skip() -> dict:
-    return {"__type__": "generic_update"}
+    return {"__type__": "update"}
 
 
 @document()
@@ -1072,37 +1071,6 @@ def make_waveform(
     return output_mp4.name
 
 
-@document()
-class EventData:
-    """
-    When a subclass of EventData is added as a type hint to an argument of an event listener method, this object will be passed as that argument.
-    It contains information about the event that triggered the listener, such the target object, and other data related to the specific event that are attributes of the subclass.
-
-    Example:
-        table = gr.Dataframe([[1, 2, 3], [4, 5, 6]])
-        gallery = gr.Gallery([("cat.jpg", "Cat"), ("dog.jpg", "Dog")])
-        textbox = gr.Textbox("Hello World!")
-
-        statement = gr.Textbox()
-
-        def on_select(evt: gr.SelectData):  # SelectData is a subclass of EventData
-            return f"You selected {evt.value} at {evt.index} from {evt.target}"
-
-        table.select(on_select, None, statement)
-        gallery.select(on_select, None, statement)
-        textbox.select(on_select, None, statement)
-    Demos: gallery_selections, tictactoe
-    """
-
-    def __init__(self, target: Block | None, _data: Any):
-        """
-        Parameters:
-            target: The target object that triggered the event. Can be used to distinguish if multiple components are bound to the same listener.
-        """
-        self.target = target
-        self._data = _data
-
-
 def log_message(message: str, level: Literal["info", "warning"] = "info"):
     from gradio.context import LocalContext
 
@@ -1115,11 +1083,6 @@ def log_message(message: str, level: Literal["info", "warning"] = "info"):
             print(message)
         elif level == "warning":
             warnings.warn(message)
-        return
-    if not blocks.enable_queue:
-        warnings.warn(
-            f"Queueing must be enabled to issue {level.capitalize()}: '{message}'."
-        )
         return
     blocks._queue.log_message(event_id=event_id, log=message, level=level)
 

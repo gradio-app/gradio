@@ -4,10 +4,10 @@
 	import { dequal } from "dequal/lite";
 	import { copy } from "@gradio/utils";
 	import { Upload } from "@gradio/upload";
-	import { BaseButton } from "@gradio/button/static";
+	import { BaseButton } from "@gradio/button";
 	import EditableCell from "./EditableCell.svelte";
 	import type { SelectData } from "@gradio/utils";
-	import { _ } from "svelte-i18n";
+	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import VirtualTable from "./VirtualTable.svelte";
 	import type {
 		Headers,
@@ -15,7 +15,7 @@
 		Data,
 		Metadata,
 		Datatype
-	} from "../shared/utils";
+	} from "./utils";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -32,16 +32,23 @@
 
 	export let editable = true;
 	export let wrap = false;
+	export let root: string;
+	export let i18n: I18nFormatter;
+
 	export let height = 500;
 	export let line_breaks = true;
+	export let column_widths: string[] = [];
+
 	let selected: false | [number, number] = false;
 	let display_value: string[][] | null = value?.metadata?.display_value ?? null;
+	let styling: string[][] | null = value?.metadata?.styling ?? null;
 
 	$: {
 		if (value) {
 			headers = value.headers;
 			values = value.data;
 			display_value = value?.metadata?.display_value ?? null;
+			styling = value?.metadata?.styling ?? null;
 		} else if (values === null) {
 			values = [];
 		}
@@ -162,7 +169,9 @@
 		dispatch("change", {
 			data: data.map((r) => r.map(({ value }) => value)),
 			headers: _headers.map((h) => h.value),
-			metadata: editable ? null : { display_value: display_value }
+			metadata: editable
+				? null
+				: { display_value: display_value, styling: styling }
 		});
 
 	function get_sort_status(
@@ -556,13 +565,14 @@
 	function sort_data(
 		_data: typeof data,
 		_display_value: string[][] | null,
+		_styling: string[][] | null,
 		col?: number,
 		dir?: SortDirection
 	): void {
-		let id = null
+		let id = null;
 		//Checks if the selected cell is still in the data
 		if (selected && selected[0] in data && selected[1] in data[selected[0]]) {
-			id = data[selected[0]][selected[1]].id
+			id = data[selected[0]][selected[1]].id;
 		}
 		if (typeof col !== "number" || !dir) {
 			return;
@@ -581,13 +591,16 @@
 			return;
 		}
 
-		// sort both data and display_value in place based on the values in data
-		const tempData = [..._data];
-		const tempData2 = _display_value ? [..._display_value] : null;
+		// sort all the data and metadata based on the values in the data
+		const temp_data = [..._data];
+		const temp_display_value = _display_value ? [..._display_value] : null;
+		const temp_styling = _styling ? [..._styling] : null;
 		indices.forEach((originalIndex, sortedIndex) => {
-			_data[sortedIndex] = tempData[originalIndex];
-			if (_display_value && tempData2)
-				_display_value[sortedIndex] = tempData2[originalIndex];
+			_data[sortedIndex] = temp_data[originalIndex];
+			if (_display_value && temp_display_value)
+				_display_value[sortedIndex] = temp_display_value[originalIndex];
+			if (_styling && temp_styling)
+				_styling[sortedIndex] = temp_styling[originalIndex];
 		});
 
 		data = data;
@@ -598,7 +611,7 @@
 		}
 	}
 
-	$: sort_data(data, display_value, sort_by, sort_direction);
+	$: sort_data(data, display_value, styling, sort_by, sort_direction);
 
 	$: selected_index = !!selected && selected[0];
 
@@ -645,7 +658,11 @@
 		role="grid"
 		tabindex="0"
 	>
-		<table bind:clientWidth={t_width} bind:this={table}>
+		<table
+			bind:clientWidth={t_width}
+			bind:this={table}
+			class:fixed-layout={column_widths.length != 0}
+		>
 			{#if label && label.length !== 0}
 				<caption class="sr-only">{label}</caption>
 			{/if}
@@ -655,6 +672,7 @@
 						<th
 							class:editing={header_edit === i}
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
+							style:width={column_widths.length ? column_widths[i] : undefined}
 						>
 							<div class="cell-wrap">
 								<EditableCell
@@ -694,6 +712,7 @@
 								<EditableCell
 									{value}
 									{latex_delimiters}
+									{line_breaks}
 									datatype={Array.isArray(datatype) ? datatype[j] : datatype}
 									edit={false}
 									el={null}
@@ -709,6 +728,7 @@
 			center={false}
 			boundedheight={false}
 			disable_click={true}
+			{root}
 			on:load={(e) => blob_to_string(data_uri_to_blob(e.detail.data))}
 			bind:dragging
 		>
@@ -735,6 +755,7 @@
 									bind:value={_headers[i].value}
 									bind:el={els[id].input}
 									{latex_delimiters}
+									{line_breaks}
 									edit={header_edit === i}
 									on:keydown={end_header_edit}
 									on:dblclick={() => edit_header(i)}
@@ -773,7 +794,8 @@
 							on:touchstart={() => start_edit(index, j)}
 							on:click={() => handle_cell_click(index, j)}
 							on:dblclick={() => start_edit(index, j)}
-							style="width: var(--cell-width-{j});"
+							style:width="var(--cell-width-{j})"
+							style={styling?.[index]?.[j] || ""}
 							class:focus={dequal(selected, [index, j])}
 						>
 							<div class="cell-wrap">
@@ -782,6 +804,7 @@
 									bind:el={els[id].input}
 									display_value={display_value?.[index]?.[j]}
 									{latex_delimiters}
+									{line_breaks}
 									{editable}
 									edit={dequal(editing, [index, j])}
 									datatype={Array.isArray(datatype) ? datatype[j] : datatype}
@@ -819,7 +842,7 @@
 								d="M24.59 16.59L17 24.17V4h-2v20.17l-7.59-7.58L6 18l10 10l10-10l-1.41-1.41z"
 							/>
 						</svg>
-						{$_("dataframe.new_row")}
+						{i18n("dataframe.new_row")}
 					</BaseButton>
 				</span>
 			{/if}
@@ -845,7 +868,7 @@
 								d="m18 6l-1.43 1.393L24.15 15H4v2h20.15l-7.58 7.573L18 26l10-10L18 6z"
 							/>
 						</svg>
-						{$_("dataframe.new_column")}
+						{i18n("dataframe.new_column")}
 					</BaseButton>
 				</span>
 			{/if}
@@ -903,6 +926,18 @@
 		line-height: var(--line-md);
 		font-family: var(--font-mono);
 		border-spacing: 0;
+	}
+
+	div:not(.no-wrap) td {
+		overflow-wrap: anywhere;
+	}
+
+	div.no-wrap td {
+		overflow-x: hidden;
+	}
+
+	table.fixed-layout {
+		table-layout: fixed;
 	}
 
 	thead {

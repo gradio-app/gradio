@@ -1,0 +1,39 @@
+{
+	"name": "@gradio/preview",
+	"version": "0.1.1",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"main": "src/index.ts",
+	"author": "",
+	"license": "ISC",
+	"private": false,
+	"scripts": {
+		"build": "rollup -c"
+	},
+	"devDependencies": {
+		"@rollup/plugin-commonjs": "^25.0.4",
+		"@rollup/plugin-json": "^6.0.0",
+		"@rollup/plugin-node-resolve": "^15.1.0",
+		"@rollup/plugin-typescript": "^11.1.2",
+		"rollup": "^3.28.0",
+		"svelte-hmr": "^0.15.3"
+	},
+	"dependencies": {
+		"@originjs/vite-plugin-commonjs": "^1.0.3",
+		"@rollup/plugin-sucrase": "^5.0.1",
+		"@sveltejs/vite-plugin-svelte": "^2.4.2",
+		"@types/which": "^3.0.0",
+		"coffeescript": "^2.7.0",
+		"css-tree": "2.3.1",
+		"esbuild-wasm": "^0.19.0",
+		"lightningcss": "^1.21.7",
+		"pug": "^3.0.2",
+		"rollup-plugin-ignore": "^1.0.10",
+		"sass": "^1.66.1",
+		"stylus": "^0.60.0",
+		"sucrase": "^3.34.0",
+		"sugarss": "^4.0.1",
+		"which": "4.0.0",
+		"yootils": "^0.3.1"
+	}
+}

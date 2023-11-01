@@ -1,0 +1,28 @@
+<script>
+	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
+	import Audio from "./Index.svelte";
+</script>
+
+<Meta title="Components/Audio" component={Audio} />
+
+<Template let:args>
+	<Audio value="Audio" {...args} />
+</Template>
+
+<Story
+	name="Audio Player"
+	args={{
+		value:
+			"https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
+		label: "Audio Player"
+	}}
+/>
+
+<Story
+	name="Audio Recorder"
+	args={{
+		value: null,
+		sources: ["microphone"],
+		label: "Audio Recorder"
+	}}
+/>

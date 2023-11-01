@@ -5,7 +5,7 @@ asyncio
 black
 boto3
 coverage
-fastapi>=0.87.0
+fastapi>=0.101.0
 httpx
 huggingface_hub
 pydantic

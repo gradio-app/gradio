@@ -8,7 +8,7 @@ import gradio as gr
 class TestClearButton:
     def test_clear_event_setup_correctly(self):
         with gr.Blocks() as demo:
-            chatbot = gr.Chatbot([("Hello", "How are you?")])
+            chatbot = gr.Chatbot([["Hello", "How are you?"]])
             with gr.Row():
                 textbox = gr.Textbox(scale=3, interactive=True)
                 gr.ClearButton([textbox, chatbot], scale=1)

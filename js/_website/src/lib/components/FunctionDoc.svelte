@@ -2,7 +2,6 @@
 	export let fn: any;
 	import anchor from "../assets/img/anchor.svg";
 
-
 	function handleAnchorClick(event: MouseEvent) {
 		event.preventDefault();
 		const link = event.currentTarget as HTMLAnchorElement;

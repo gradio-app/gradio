@@ -9,8 +9,9 @@
 	export let target: any;
 	export let theme_mode: any;
 	export let version: any;
+	export let autoscroll: boolean;
 
-	const dispatch = createEventDispatcher<{ mount: never }>();
+	const dispatch = createEventDispatcher<{ mount?: never }>();
 	onMount(() => {
 		dispatch("mount");
 	});
@@ -27,4 +28,5 @@
 	{target}
 	{theme_mode}
 	{version}
+	{autoscroll}
 />

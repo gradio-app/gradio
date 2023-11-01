@@ -6,15 +6,15 @@ from copy import deepcopy
 from typing import Any
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import SimpleSerializable
 
-from gradio.components.base import IOComponent
+from gradio.components.base import Component
 
 set_documentation_group("component")
 
 
 @document()
-class State(IOComponent, SimpleSerializable):
+class State(Component):
+    EVENTS = []
     """
     Special hidden component that stores session state across runs of the demo by the
     same user. The value of the State variable is cleared when the user refreshes the page.
@@ -30,11 +30,12 @@ class State(IOComponent, SimpleSerializable):
     def __init__(
         self,
         value: Any = None,
-        **kwargs,
+        render: bool = True,
     ):
         """
         Parameters:
             value: the initial value (of arbitrary type) of the state. The provided argument is deepcopied. If a callable is provided, the function will be called whenever the app loads to set the initial value of the state.
+            render: has no effect, but is included for consistency with other components.
         """
         self.stateful = True
         try:
@@ -43,14 +44,20 @@ class State(IOComponent, SimpleSerializable):
             raise TypeError(
                 f"The initial value of `gr.State` must be able to be deepcopied. The initial value of type {type(value)} cannot be deepcopied."
             ) from err
-        IOComponent.__init__(self, value=self.value, **kwargs)
+        super().__init__(value=self.value)
 
+    def preprocess(self, payload: Any) -> Any:
+        return payload
 
-class Variable(State):
-    """Variable was renamed to State. This class is kept for backwards compatibility."""
+    def postprocess(self, value: Any) -> Any:
+        return value
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def api_info(self) -> dict[str, Any]:
+        return {"type": {}, "description": "any valid json"}
 
-    def get_block_name(self):
-        return "state"
+    def example_inputs(self) -> Any:
+        return None
+
+    @property
+    def skip_api(self):
+        return True

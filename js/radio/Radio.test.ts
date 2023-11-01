@@ -3,7 +3,7 @@ import { test, describe, assert, afterEach } from "vitest";
 import { cleanup, render } from "@gradio/tootils";
 import event from "@testing-library/user-event";
 
-import Radio from "./interactive";
+import Radio from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status = {
@@ -32,7 +32,7 @@ describe("Radio", () => {
 			choices: choices,
 			value: "cat",
 			label: "Radio",
-			mode: "dynamic"
+			interactive: true
 		});
 
 		assert.equal(
@@ -57,7 +57,7 @@ describe("Radio", () => {
 			choices: choices,
 			value: "cat",
 			label: "Radio",
-			mode: "dynamic"
+			interactive: true
 		});
 
 		await event.click(getByDisplayValue("dog"));
