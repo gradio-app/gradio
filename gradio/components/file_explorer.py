@@ -104,18 +104,18 @@ class FileExplorer(Component):
     def example_inputs(self) -> Any:
         return ["Users", "gradio", "app.py"]
 
-    def preprocess(self, payload: list[list[str]] | None) -> list[str] | str | None:
+    def preprocess(self, payload: FileExplorerData | None) -> list[str] | str | None:
         if payload is None:
             return None
 
         if self.file_count == "single":
-            if len(payload) > 1:
+            if len(payload.root) > 1:
                 raise ValueError(
-                    f"Expected only one file, but {len(payload)} were selected."
+                    f"Expected only one file, but {len(payload.root)} were selected."
                 )
-            return self._safe_join(payload[0])
+            return self._safe_join(payload.root[0])
 
-        return [self._safe_join(file) for file in (payload)]
+        return [self._safe_join(file) for file in (payload.root)]
 
     def _strip_root(self, path):
         if path.startswith(self.root):
