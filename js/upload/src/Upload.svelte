@@ -43,13 +43,16 @@
 	export async function load_files(
 		files: File[] | Blob[]
 	): Promise<(FileData | null)[] | void> {
+		console.log(files);
 		if (!files.length) {
+			console.log("NO length");
 			return;
 		}
-
+		console.log("HERE");
 		let _files: File[] = files.map((f) => new File([f], f.name));
-
+		console.log("HERE 2");
 		let file_data = await prepare_files(_files);
+		console.log("HERE 3");
 		return await handle_upload(file_data);
 	}
 
@@ -80,7 +83,7 @@
 		if (!e.dataTransfer?.files) return;
 
 		const files_to_load = Array.from(e.dataTransfer.files).filter((f) => {
-			if (is_valid_mimetype(filetype, f.type)) {
+			if (filetype?.split(",").some((m) => is_valid_mimetype(m, f.type))) {
 				return true;
 			}
 			dispatch("error", `Invalid file type only ${filetype} allowed.`);

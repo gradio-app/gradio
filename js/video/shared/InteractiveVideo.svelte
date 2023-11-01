@@ -68,6 +68,7 @@
 			bind:dragging
 			filetype="video/x-m4v,video/*"
 			on:load={handle_load}
+			on:error={({ detail }) => dispatch("error", detail)}
 			{root}
 		>
 			<slot />

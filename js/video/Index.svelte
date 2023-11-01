@@ -197,6 +197,7 @@
 			on:end={() => gradio.dispatch("end")}
 			on:start_recording={() => gradio.dispatch("start_recording")}
 			on:stop_recording={() => gradio.dispatch("stop_recording")}
+			on:error={({ detail }) => gradio.dispatch("error", detail)}
 			i18n={gradio.i18n}
 		>
 			<UploadText i18n={gradio.i18n} type="video" />
