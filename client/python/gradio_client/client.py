@@ -19,6 +19,7 @@ from pathlib import Path
 from threading import Lock
 from typing import Any, Callable, Literal
 
+import httpx
 import huggingface_hub
 import requests
 import websockets
@@ -74,6 +75,7 @@ class Client:
         serialize: bool = True,
         output_dir: str | Path = DEFAULT_TEMP_DIR,
         verbose: bool = True,
+        auth: tuple[str, str] | None = None,
     ):
         """
         Parameters:
@@ -93,6 +95,7 @@ class Client:
             library_version=utils.__version__,
         )
         self.space_id = None
+        self.cookies: dict[str, str] = {}
         self.output_dir = (
             str(output_dir) if isinstance(output_dir, Path) else output_dir
         )
@@ -123,21 +126,22 @@ class Client:
             print(f"Loaded as API: {self.src} ✔")
 
         self.api_url = urllib.parse.urljoin(self.src, utils.API_URL)
+        self.sse_url = urllib.parse.urljoin(self.src, utils.SSE_URL)
+        self.sse_data_url = urllib.parse.urljoin(self.src, utils.SSE_DATA_URL)
         self.ws_url = urllib.parse.urljoin(
             self.src.replace("http", "ws", 1), utils.WS_URL
         )
         self.upload_url = urllib.parse.urljoin(self.src, utils.UPLOAD_URL)
         self.reset_url = urllib.parse.urljoin(self.src, utils.RESET_URL)
+        if auth is not None:
+            self._login(auth)
         self.config = self._get_config()
         self.app_version = version.parse(self.config.get("version", "2.0"))
         self._info = self._get_api_info()
         self.session_hash = str(uuid.uuid4())
 
-        endpoint_class = Endpoint
-        if self.app_version < version.Version("4.0.0") and not str(
-            self.app_version
-        ).startswith("4.0.0"):
-            endpoint_class = EndpointV3Compatibility
+        protocol = self.config.get("protocol")
+        endpoint_class = Endpoint if protocol == "sse" else EndpointV3Compatibility
         self.endpoints = [
             endpoint_class(self, fn_index, dependency)
             for fn_index, dependency in enumerate(self.config["dependencies"])
@@ -300,6 +304,14 @@ class Client:
             )
         return self.submit(*args, api_name=api_name, fn_index=fn_index).result()
 
+    def new_helper(self, fn_index: int) -> Communicator:
+        return Communicator(
+            Lock(),
+            JobStatus(),
+            self.endpoints[fn_index].process_predictions,
+            self.reset_url,
+        )
+
     def submit(
         self,
         *args,
@@ -329,13 +341,8 @@ class Client:
         inferred_fn_index = self._infer_fn_index(api_name, fn_index)
 
         helper = None
-        if self.endpoints[inferred_fn_index].use_ws:
-            helper = Communicator(
-                Lock(),
-                JobStatus(),
-                self.endpoints[inferred_fn_index].process_predictions,
-                self.reset_url,
-            )
+        if self.endpoints[inferred_fn_index].protocol in ("ws", "sse"):
+            helper = self.new_helper(inferred_fn_index)
         end_to_end_fn = self.endpoints[inferred_fn_index].make_end_to_end_fn(helper)
         future = self.executor.submit(end_to_end_fn, *args)
 
@@ -368,11 +375,11 @@ class Client:
             api_info_url = urllib.parse.urljoin(self.src, utils.RAW_API_INFO_URL)
 
         if self.app_version > version.Version("3.36.1"):
-            r = requests.get(api_info_url, headers=self.headers)
+            r = requests.get(api_info_url, headers=self.headers, cookies=self.cookies)
             if r.ok:
                 info = r.json()
             else:
-                raise ValueError(f"Could not fetch api info for {self.src}")
+                raise ValueError(f"Could not fetch api info for {self.src}: {r.text}")
         else:
             fetch = requests.post(
                 utils.SPACE_FETCHER_URL,
@@ -381,7 +388,9 @@ class Client:
             if fetch.ok:
                 info = fetch.json()["api"]
             else:
-                raise ValueError(f"Could not fetch api info for {self.src}")
+                raise ValueError(
+                    f"Could not fetch api info for {self.src}: {fetch.text}"
+                )
 
         return info
 
@@ -604,14 +613,33 @@ class Client:
     def _space_name_to_src(self, space) -> str | None:
         return huggingface_hub.space_info(space, token=self.hf_token).host  # type: ignore
 
+    def _login(self, auth: tuple[str, str]):
+        resp = requests.post(
+            urllib.parse.urljoin(self.src, utils.LOGIN_URL),
+            data={"username": auth[0], "password": auth[1]},
+        )
+        if not resp.ok:
+            raise ValueError(f"Could not login to {self.src}")
+        self.cookies = {
+            cookie.name: cookie.value
+            for cookie in resp.cookies
+            if cookie.value is not None
+        }
+
     def _get_config(self) -> dict:
         r = requests.get(
-            urllib.parse.urljoin(self.src, utils.CONFIG_URL), headers=self.headers
+            urllib.parse.urljoin(self.src, utils.CONFIG_URL),
+            headers=self.headers,
+            cookies=self.cookies,
         )
         if r.ok:
             return r.json()
+        elif r.status_code == 401:
+            raise ValueError(f"Could not load {self.src}. Please login.")
         else:  # to support older versions of Gradio
-            r = requests.get(self.src, headers=self.headers)
+            r = requests.get(self.src, headers=self.headers, cookies=self.cookies)
+            if not r.ok:
+                raise ValueError(f"Could not fetch config for {self.src}")
             # some basic regex to extract the config
             result = re.search(r"window.gradio_config = (.*?);[\s]*</script>", r.text)
             try:
@@ -786,7 +814,7 @@ class Endpoint:
         self.api_name: str | Literal[False] | None = (
             "/" + api_name if isinstance(api_name, str) else api_name
         )
-        self.use_ws = self._use_websocket(self.dependency)
+        self.protocol = "sse"
         self.input_component_types = [
             self._get_component_type(id_) for id_ in dependency["inputs"]
         ]
@@ -852,29 +880,21 @@ class Endpoint:
 
     def make_predict(self, helper: Communicator | None = None):
         def _predict(*data) -> tuple:
-            data = json.dumps(
-                {
-                    "data": data,
-                    "fn_index": self.fn_index,
-                    "session_hash": self.client.session_hash,
-                }
-            )
-            hash_data = json.dumps(
-                {
-                    "fn_index": self.fn_index,
-                    "session_hash": self.client.session_hash,
-                }
-            )
+            data = {
+                "data": data,
+                "fn_index": self.fn_index,
+                "session_hash": self.client.session_hash,
+            }
 
-            if self.use_ws:
-                result = utils.synchronize_async(self._ws_fn, data, hash_data, helper)
-                if "error" in result:
-                    raise ValueError(result["error"])
-            else:
-                response = requests.post(
-                    self.client.api_url, headers=self.client.headers, data=data
-                )
-                result = json.loads(response.content.decode("utf-8"))
+            hash_data = {
+                "fn_index": self.fn_index,
+                "session_hash": self.client.session_hash,
+            }
+
+            result = utils.synchronize_async(self._sse_fn, data, hash_data, helper)
+            if "error" in result:
+                raise ValueError(result["error"])
+
             try:
                 output = result["data"]
             except KeyError as ke:
@@ -970,7 +990,7 @@ class Endpoint:
 
         def get_file(d):
             if utils.is_file_obj(d):
-                file_list.append(d["name"])
+                file_list.append(d["path"])
             else:
                 file_list.append(d)
             return ReplaceMe(len(file_list) - 1)
@@ -1050,22 +1070,17 @@ class Endpoint:
         predictions = self.reduce_singleton_output(*predictions)
         return predictions
 
-    def _use_websocket(self, dependency: dict) -> bool:
-        queue_enabled = self.client.config.get("enable_queue", False)
-        queue_uses_websocket = version.parse(
-            self.client.config.get("version", "2.0")
-        ) >= version.Version("3.2")
-        dependency_uses_queue = dependency.get("queue", False) is not False
-        return queue_enabled and queue_uses_websocket and dependency_uses_queue
-
-    async def _ws_fn(self, data, hash_data, helper: Communicator):
-        async with websockets.connect(  # type: ignore
-            self.client.ws_url,
-            open_timeout=10,
-            extra_headers=self.client.headers,
-            max_size=1024 * 1024 * 1024,
-        ) as websocket:
-            return await utils.get_pred_from_ws(websocket, data, hash_data, helper)
+    async def _sse_fn(self, data: dict, hash_data: dict, helper: Communicator):
+        async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=None)) as client:
+            return await utils.get_pred_from_sse(
+                client,
+                data,
+                hash_data,
+                helper,
+                self.client.sse_url,
+                self.client.sse_data_url,
+                self.client.cookies,
+            )
 
 
 class EndpointV3Compatibility:
@@ -1080,6 +1095,7 @@ class EndpointV3Compatibility:
             "/" + api_name if isinstance(api_name, str) else api_name
         )
         self.use_ws = self._use_websocket(self.dependency)
+        self.protocol = "ws" if self.use_ws else "http"
         self.input_component_types = []
         self.output_component_types = []
         self.root_url = client.src + "/" if not client.src.endswith("/") else client.src
@@ -1413,13 +1429,9 @@ class Job(Future):
         if not self.communicator:
             raise StopIteration()
 
-        with self.communicator.lock:
-            if self.communicator.job.latest_status.code == Status.FINISHED:
-                raise StopIteration()
-
         while True:
             with self.communicator.lock:
-                if len(self.communicator.job.outputs) == self._counter + 1:
+                if len(self.communicator.job.outputs) >= self._counter + 1:
                     o = self.communicator.job.outputs[self._counter]
                     self._counter += 1
                     return o

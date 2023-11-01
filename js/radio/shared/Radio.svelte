@@ -3,7 +3,6 @@
 	export let display_value: string;
 	export let internal_value: string | number;
 	export let disabled = false;
-	export let elem_id = "";
 	export let selected: string | number | null = null;
 
 	const dispatch = createEventDispatcher<{ input: string | number }>();
@@ -19,7 +18,7 @@
 	<input
 		{disabled}
 		type="radio"
-		name={`radio-${elem_id}`}
+		name={`radio-${internal_value}`}
 		value={internal_value}
 		on:input={() => dispatch("input", internal_value)}
 		bind:group={selected}

@@ -256,7 +256,9 @@ class EventListener(str):
 
                 return Dependency(None, {}, None, wrapper)
 
-            if block and "stream" in block.events:
+            from gradio.components.base import StreamingInput
+
+            if isinstance(block, StreamingInput) and "stream" in block.events:
                 block.check_streamable()  # type: ignore
             if isinstance(show_progress, bool):
                 show_progress = "full" if show_progress else "hidden"
@@ -487,7 +489,7 @@ class Events:
     )
     select = EventListener(
         "select",
-        callback=lambda block: setattr(block, "selectable", True),
+        callback=lambda block: setattr(block, "_selectable", True),
         doc="Event listener for when the user selects or deselects the {{ component }}. Uses event data gradio.SelectData to carry `value` referring to the label of the {{ component }}, and `selected` to refer to state of the {{ component }}. See EventData documentation on how to use this event data",
     )
     stream = EventListener(

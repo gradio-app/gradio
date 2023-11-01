@@ -34,7 +34,7 @@ Gradio is useful for:
 
 - **Deploying** your models quickly with automatic shareable links and getting feedback on model performance.
 
-- **Debugging** your model interactively during development using built-in manipulation and interpretation tools.
+- **Debugging** your model interactively during development using built-in input manipulation tools.
 
 $getting_started
 

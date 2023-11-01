@@ -1,3 +1,9 @@
+<script context="module" lang="ts">
+	export { default as BaseModel3D } from "./shared/Model3D.svelte";
+	export { default as BaseModel3DUpload } from "./shared/Model3DUpload.svelte";
+	export { default as BaseExample } from "./Example.svelte";
+</script>
+
 <script lang="ts">
 	import { normalise_file, type FileData } from "@gradio/client";
 	import Model3D from "./shared/Model3D.svelte";
@@ -14,7 +20,7 @@
 	export let visible = true;
 	export let value: null | FileData = null;
 	export let root: string;
-	export let root_url: null | string;
+	export let proxy_url: null | string;
 	export let clear_color: [number, number, number, number];
 	export let loading_status: LoadingStatus;
 	export let label: string;
@@ -35,7 +41,7 @@
 	export let interactive: boolean;
 
 	let _value: null | FileData;
-	$: _value = normalise_file(value, root, root_url);
+	$: _value = normalise_file(value, root, proxy_url);
 
 	let dragging = false;
 </script>

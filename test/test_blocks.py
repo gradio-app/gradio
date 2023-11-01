@@ -1,7 +1,6 @@
 import asyncio
 import copy
 import io
-import json
 import os
 import pathlib
 import random
@@ -15,10 +14,10 @@ from functools import partial
 from string import capwords
 from unittest.mock import patch
 
+import gradio_client as grc
 import numpy as np
 import pytest
 import uvicorn
-import websockets
 from fastapi.testclient import TestClient
 from gradio_client import media_data
 from PIL import Image
@@ -88,7 +87,7 @@ class TestBlocksMethods:
         demo2 = gr.Blocks.from_config(config1, [update], "https://fake.hf.space")
 
         for component in config1["components"]:
-            component["props"]["root_url"] = f"{fake_url}/"
+            component["props"]["proxy_url"] = f"{fake_url}/"
         config2 = demo2.get_config_file()
 
         assert assert_configs_are_equivalent_besides_ids(config1, config2)
@@ -316,19 +315,9 @@ class TestBlocksMethods:
         server.run_in_thread()
 
         try:
-            async with websockets.connect(f"ws://localhost:{port}/queue/join") as ws:
-                completed = False
-                while not completed:
-                    msg = json.loads(await ws.recv())
-                    if msg["msg"] == "send_data":
-                        await ws.send(json.dumps({"data": ["Victor"], "fn_index": 0}))
-                    if msg["msg"] == "send_hash":
-                        await ws.send(
-                            json.dumps({"fn_index": 0, "session_hash": "shdce"})
-                        )
-                    if msg["msg"] == "process_completed":
-                        completed = True
-                assert msg["output"]["data"][0] == "Victor"
+            client = grc.Client(f"http://localhost:{port}")
+            result = client.predict("Victor", api_name="/predict")
+            assert result == "Victor"
         finally:
             server.close()
 
@@ -348,23 +337,6 @@ class TestBlocksMethods:
             gr.Textbox(uuid.uuid4)
         demo.launch(prevent_thread_lock=True)
         assert len(demo.get_config_file()["dependencies"]) == 1
-
-    def test_raise_error_if_event_queued_but_queue_not_enabled(self):
-        with gr.Blocks() as demo:
-            with gr.Row():
-                with gr.Column():
-                    input_ = gr.Textbox()
-                    btn = gr.Button("Greet")
-                with gr.Column():
-                    output = gr.Textbox()
-            btn.click(
-                lambda x: f"Hello, {x}", inputs=input_, outputs=output, queue=True
-            )
-
-        with pytest.raises(ValueError, match="The queue is enabled for event lambda"):
-            demo.launch(prevent_thread_lock=True)
-
-        demo.close()
 
     def test_concurrency_count_zero_gpu(self, monkeypatch):
         monkeypatch.setenv("SPACES_ZERO_GPU", "true")
@@ -946,24 +918,6 @@ class TestBatchProcessing:
         msg = "In order to use batching, the queue must be enabled."
 
         with pytest.raises(ValueError, match=msg):
-            demo = gr.Interface(
-                trim, ["textbox", "number"], ["textbox"], batch=True, max_batch_size=16
-            )
-            demo.launch(prevent_thread_lock=True)
-
-        with pytest.raises(ValueError, match=msg):
-            with gr.Blocks() as demo:
-                with gr.Row():
-                    word = gr.Textbox(label="word")
-                    leng = gr.Number(label="leng")
-                    output = gr.Textbox(label="Output")
-                with gr.Row():
-                    run = gr.Button()
-
-                run.click(trim, [word, leng], output, batch=True, max_batch_size=16)
-            demo.launch(prevent_thread_lock=True)
-
-        with pytest.raises(ValueError, match=msg):
             with gr.Blocks() as demo:
                 with gr.Row():
                     word = gr.Textbox(label="word")
@@ -1288,17 +1242,13 @@ class TestCancel:
             yield a
 
         msg = "Queue needs to be enabled!"
-        with pytest.raises(ValueError, match=msg):
-            gr.Interface(iteration, inputs=gr.Number(), outputs=gr.Number()).launch(
-                prevent_thread_lock=True
-            )
 
         with pytest.raises(ValueError, match=msg):
             with gr.Blocks() as demo:
                 button = gr.Button(value="Predict")
                 click = button.click(None, None, None)
                 cancel = gr.Button(value="Cancel")
-                cancel.click(None, None, None, cancels=[click])
+                cancel.click(None, None, None, cancels=[click], queue=False)
             demo.launch(prevent_thread_lock=True)
 
         with pytest.raises(ValueError, match=msg):
@@ -1327,63 +1277,6 @@ class TestEvery:
             with gr.Blocks():
                 num = gr.Number()
                 num.change(lambda s: s + 1, inputs=[num], outputs=[num], every=-0.1)
-
-    @pytest.mark.asyncio
-    async def test_every_does_not_block_queue(self):
-        with gr.Blocks() as demo:
-            num = gr.Number(value=0)
-            name = gr.Textbox()
-            greeting = gr.Textbox()
-            button = gr.Button(value="Greet")
-            name.change(lambda n: n + random.random(), num, num, every=0.5)
-            button.click(lambda s: f"Hello, {s}!", name, greeting)
-        app, _, _ = demo.queue(max_size=1).launch(prevent_thread_lock=True)
-        client = TestClient(app)
-
-        async with websockets.connect(
-            f"{demo.local_url.replace('http', 'ws')}queue/join"
-        ) as ws:
-            completed = False
-            while not completed:
-                msg = json.loads(await ws.recv())
-                if msg["msg"] == "send_data":
-                    await ws.send(json.dumps({"data": [0], "fn_index": 0}))
-                if msg["msg"] == "send_hash":
-                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
-                    status = client.get("/queue/status")
-                    # If the continuous event got pushed to the queue, the size would be nonzero
-                    # asserting false will terminate the test
-                    if status.json()["queue_size"] != 0:
-                        raise AssertionError()
-                    else:
-                        break
-
-    @pytest.mark.asyncio
-    async def test_generating_event_cancelled_if_ws_closed(self, connect, capsys):
-        def generation():
-            for i in range(10):
-                time.sleep(0.1)
-                print(f"At step {i}")
-                yield i
-            return "Hello!"
-
-        with gr.Blocks() as demo:
-            greeting = gr.Textbox()
-            button = gr.Button(value="Greet")
-            button.click(generation, None, greeting)
-
-        with connect(demo) as client:
-            job = client.submit(0, fn_index=0)
-            for i, _ in enumerate(job):
-                if i == 2:
-                    job.cancel()
-
-        await asyncio.sleep(1)
-        # If the generation function did not get cancelled
-        # it would have finished running and `At step 9` would
-        # have been printed
-        captured = capsys.readouterr()
-        assert "At step 9" not in captured.out
 
 
 class TestGetAPIInfo:
@@ -1585,22 +1478,6 @@ class TestAddRequests:
         assert new_event_data.value == "foo"
 
 
-def test_queue_enabled_for_fn():
-    with gr.Blocks() as demo:
-        input = gr.Textbox()
-        output = gr.Textbox()
-        number = gr.Number()
-        button = gr.Button()
-        button.click(lambda x: f"Hello, {x}!", input, output)
-        button.click(lambda: 42, None, number, queue=True)
-
-    assert not demo.queue_enabled_for_fn(0)
-    assert demo.queue_enabled_for_fn(1)
-    demo.queue()
-    assert demo.queue_enabled_for_fn(0)
-    assert demo.queue_enabled_for_fn(1)
-
-
 @pytest.mark.asyncio
 async def test_queue_when_using_auth():
     sleep_time = 1
@@ -1616,56 +1493,17 @@ async def test_queue_when_using_auth():
         button.click(say_hello, _input, _output)
     demo.queue()
     app, _, _ = demo.launch(auth=("abc", "123"), prevent_thread_lock=True)
-    client = TestClient(app)
 
-    resp = client.post(
-        f"{demo.local_url}login",
-        data={"username": "abc", "password": "123"},
-        follow_redirects=False,
-    )
-    assert resp.status_code == 200
-    token = resp.cookies.get(f"access-token-{demo.app.cookie_id}")
-    assert token
+    with pytest.raises(ValueError):
+        grc.Client(f"http://localhost:{demo.server_port}")
 
-    with pytest.raises(Exception) as e:
-        async with websockets.connect(
-            f"{demo.local_url.replace('http', 'ws')}queue/join",
-        ) as ws:
-            await ws.recv()
-    assert e.type == websockets.InvalidStatusCode
+    client = grc.Client(f"http://localhost:{demo.server_port}", auth=("abc", "123"))
+    jobs = []
+    for i in range(3):
+        jobs.append(client.submit(f"World {i}", fn_index=0))
 
-    async def run_ws(i):
-        async with websockets.connect(
-            f"{demo.local_url.replace('http', 'ws')}queue/join",
-            extra_headers={"Cookie": f"access-token-{demo.app.cookie_id}={token}"},
-        ) as ws:
-            while True:
-                try:
-                    msg = json.loads(await ws.recv())
-                except websockets.ConnectionClosedOK:
-                    break
-                if msg["msg"] == "send_hash":
-                    await ws.send(
-                        json.dumps({"fn_index": 0, "session_hash": "enwpitpex2q"})
-                    )
-                if msg["msg"] == "send_data":
-                    await ws.send(
-                        json.dumps(
-                            {
-                                "data": [str(i)],
-                                "fn_index": 0,
-                                "session_hash": "enwpitpex2q",
-                            }
-                        )
-                    )
-                    msg = json.loads(await ws.recv())
-                    assert msg["msg"] == "process_starts"
-                if msg["msg"] == "process_completed":
-                    assert msg["success"]
-                    assert msg["output"]["data"] == [f"Hello {i}!"]
-                    break
-
-    await asyncio.gather(*[run_ws(i) for i in range(3)])
+    for i, job in enumerate(jobs):
+        assert job.result() == f"Hello World {i}!"
 
 
 def test_temp_file_sets_get_extended():

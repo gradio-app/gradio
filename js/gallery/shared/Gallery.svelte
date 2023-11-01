@@ -15,7 +15,7 @@
 	export let show_label = true;
 	export let label: string;
 	export let root = "";
-	export let root_url: null | string = null;
+	export let proxy_url: null | string = null;
 	export let value: { image: FileData; caption: string | null }[] | null = null;
 	export let columns: number | number[] | undefined = [2];
 	export let rows: number | number[] | undefined = undefined;
@@ -44,7 +44,7 @@
 		value === null
 			? null
 			: value.map((data) => ({
-					image: normalise_file(data.image, root, root_url) as FileData,
+					image: normalise_file(data.image, root, proxy_url) as FileData,
 					caption: data.caption
 			  }));
 

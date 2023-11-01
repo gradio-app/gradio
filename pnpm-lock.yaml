@@ -20,6 +20,12 @@ importers:
       '@csstools/postcss-global-data':
         specifier: ^2.0.0
         version: 2.0.0(postcss@8.4.27)
+      '@ffmpeg/ffmpeg':
+        specifier: ^0.12.7
+        version: 0.12.7
+      '@ffmpeg/util':
+        specifier: ^0.12.1
+        version: 0.12.1
       '@gradio/tootils':
         specifier: workspace:^
         version: link:js/tootils
@@ -204,6 +210,9 @@ importers:
       chromatic:
         specifier: ^7.0.0
         version: 7.0.0
+      mrmime:
+        specifier: ^1.0.1
+        version: 1.0.1
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -276,7 +285,7 @@ importers:
   js/_website:
     dependencies:
       '@gradio/code':
-        specifier: workspace:^
+        specifier: 0.2.0-beta.8
         version: link:../code
       '@sindresorhus/slugify':
         specifier: ^2.2.0
@@ -1268,13 +1277,13 @@ importers:
   js/preview/test/test/frontend:
     dependencies:
       '@gradio/atoms':
-        specifier: 0.2.0-beta.5
+        specifier: 0.2.0-beta.6
         version: link:../../../../atoms
       '@gradio/statustracker':
-        specifier: 0.3.0-beta.7
+        specifier: 0.3.0-beta.8
         version: link:../../../../statustracker
       '@gradio/utils':
-        specifier: 0.2.0-beta.5
+        specifier: 0.2.0-beta.6
         version: link:../../../../utils
       '@zerodevx/svelte-json-view':
         specifier: ^1.0.7
@@ -4309,6 +4318,23 @@ packages:
   /@fastify/busboy@2.0.0:
     resolution: {integrity: sha512-JUFJad5lv7jxj926GPgymrWQxxjPYuJNiNjNMzqT+HiuP6Vl3dk5xzG+8sTX96np0ZAluvaMzPsjhHZ5rNuNQQ==}
     engines: {node: '>=14'}
+
+  /@ffmpeg/ffmpeg@0.12.7:
+    resolution: {integrity: sha512-Uw9h1tNU4/Q4YRrgBKvnKiH5gpL+nl8h4HRfvSK0K93MqVOan6Qs3Lj82l9i1qj6xQLPramXw0Wl6g65W4pfnA==}
+    engines: {node: '>=18.x'}
+    dependencies:
+      '@ffmpeg/types': 0.12.2
+    dev: false
+
+  /@ffmpeg/types@0.12.2:
+    resolution: {integrity: sha512-NJtxwPoLb60/z1Klv0ueshguWQ/7mNm106qdHkB4HL49LXszjhjCCiL+ldHJGQ9ai2Igx0s4F24ghigy//ERdA==}
+    engines: {node: '>=16.x'}
+    dev: false
+
+  /@ffmpeg/util@0.12.1:
+    resolution: {integrity: sha512-10jjfAKWaDyb8+nAkijcsi9wgz/y26LOc1NKJradNMyCIl6usQcBbhkjX5qhALrSBcOy6TOeksunTYa+a03qNQ==}
+    engines: {node: '>=18.x'}
+    dev: false
 
   /@floating-ui/core@1.5.0:
     resolution: {integrity: sha512-kK1h4m36DQ0UHGj5Ah4db7R0rHemTqqO0QLvUqi1/mUUp3LuAWbWxdxSIf/XsnH9VS6rRVPLJCncjRzUvyCLXg==}
@@ -12806,10 +12832,6 @@ packages:
     resolution: {integrity: sha512-tzzskb3bG8LvYGFF/mDTpq3jpI6Q9wc3LEmBaghu+DdCssd1FakN7Bc0hVNmEyGq1bq3RgfkCb3cmQLpNPOroA==}
     engines: {node: '>=4'}
 
-  /mrmime@1.0.0:
-    resolution: {integrity: sha512-a70zx7zFfVO7XpnQ2IX1Myh9yY4UYvfld/dikWRnsXxbyvMcfz+u6UfgNAtH+k2QqtJuzVpv6eLTx1G2+WKZbQ==}
-    engines: {node: '>=10'}
-
   /mrmime@1.0.1:
     resolution: {integrity: sha512-hzzEagAgDyoU1Q6yg5uI+AorQgdvMCur3FcKf7NhMKWsaYg+RnbTyHRa/9IlLF9rf455MOCtcqqrQQ83pPP7Uw==}
     engines: {node: '>=10'}
@@ -14728,7 +14750,7 @@ packages:
     engines: {node: '>= 10'}
     dependencies:
       '@polka/url': 1.0.0-next.21
-      mrmime: 1.0.0
+      mrmime: 1.0.1
       totalist: 3.0.0
 
   /sisteransi@1.0.5:
