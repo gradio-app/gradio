@@ -86,6 +86,7 @@
 		border-radius: 2px;
 		cursor: pointer;
 		transition: 0.1s;
+		flex-shrink: 0;
 	}
 
 	.file-icon {
