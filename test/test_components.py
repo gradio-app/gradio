@@ -1895,6 +1895,16 @@ class TestJSON:
             "_selectable": False,
         }
 
+    def test_chatbot_selectable_in_config(self):
+        with gr.Blocks() as demo:
+            cb = gr.Chatbot(label="Chatbot")
+            cb.like(lambda: print("foo"))
+        for component in demo.config["components"]:
+            if component["props"]["label"] == "Chatbot":
+                assert component["props"]["likeable"]
+                return
+        raise AssertionError()
+
     @pytest.mark.asyncio
     async def test_in_interface(self):
         """
