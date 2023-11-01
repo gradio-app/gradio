@@ -14,7 +14,6 @@ import "prismjs/components/prism-csv";
 import "prismjs/components/prism-markup";
 import "prismjs/components/prism-javascript";
 
-
 const langs = {
 	python: "python",
 	py: "python",
