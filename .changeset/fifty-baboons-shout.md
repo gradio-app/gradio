@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Radio select fix v4
+fix:Fix bug where radio.select passes the previous value to the function instead of the selected value
