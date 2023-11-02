@@ -26,6 +26,12 @@ class ChatbotData(GradioRootModel):
     root: List[Tuple[Union[str, FileMessage, None], Union[str, FileMessage, None]]]
 
 
+class ChatbotDataOut(GradioRootModel):
+    root: Union[
+        List[Tuple[Union[str, FileMessage, None], Union[str, FileMessage, None]]], str
+    ]
+
+
 @document()
 class Chatbot(Component):
     """
@@ -189,9 +195,11 @@ class Chatbot(Component):
     def postprocess(
         self,
         value: list[list[str | tuple[str] | tuple[str, str] | None] | tuple],
-    ) -> ChatbotData:
+    ) -> ChatbotDataOut:
         if value is None:
-            return ChatbotData(root=[])
+            return ChatbotDataOut(root=[])
+        elif isinstance(value, str):
+            return ChatbotDataOut(root=value)
         processed_messages = []
         for message_pair in value:
             if not isinstance(message_pair, (tuple, list)):
@@ -208,7 +216,7 @@ class Chatbot(Component):
                     self._postprocess_chat_messages(message_pair[1]),
                 ]
             )
-        return ChatbotData(root=processed_messages)
+        return ChatbotDataOut(root=processed_messages)
 
     def example_inputs(self) -> Any:
         return [["Hello!", None]]

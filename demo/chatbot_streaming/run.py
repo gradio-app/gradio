@@ -12,11 +12,9 @@ with gr.Blocks() as demo:
 
     def bot(history):
         bot_message = random.choice(["How are you?", "I love you", "I'm very hungry"])
-        history[-1][1] = ""
         for character in bot_message:
-            history[-1][1] += character
             time.sleep(0.05)
-            yield history
+            yield character
 
     msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
         bot, chatbot, chatbot
