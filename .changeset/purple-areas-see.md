@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:fix embed
+feat:Improve Embed and CDN handling and fix a couple of related bugs 
