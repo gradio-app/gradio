@@ -17,54 +17,17 @@ export function inject_ejs(): Plugin {
 	};
 }
 
-interface PatchDynamicImportOptionms {
-	mode: "cdn" | "local";
-	gradio_version: string;
-	cdn_url: string;
-}
-
-export function patch_dynamic_import({
-	mode,
-	gradio_version,
-	cdn_url
-}: PatchDynamicImportOptionms): Plugin {
-	return {
-		name: "patch-dynamic-import",
-		enforce: "post",
-		writeBundle(config, bundle) {
-			// const import_re = /import\(((?:'|")[\.\/a-zA-Z0-9]*(?:'|"))\)/g;
-			// const import_meta = `${"import"}.${"meta"}.${"url"}`;
-			// for (const file in bundle) {
-			// 	const chunk = bundle[file];
-			// 	if (chunk.type === "chunk") {
-			// 		if (chunk.code.indexOf("import(") > -1) {
-			// 			const fix_fn = `const VERSION_RE = new RegExp("${gradio_version}\/", "g");function import_fix(mod, base) {const url =  new URL(mod, base); return import(\`${cdn_url}\${url.pathname?.startsWith('/') ? url.pathname.substring(1).replace(VERSION_RE, "") : url.pathname.replace(VERSION_RE, "")}\`);}`;
-			// 			chunk.code =
-			// 				fix_fn +
-			// 				chunk.code.replace(import_re, `import_fix($1, ${import_meta})`);
-			// 			if (!config.dir) break;
-			// 			const output_location = join(config.dir, chunk.fileName);
-			// 			writeFileSync(output_location, chunk.code);
-			// 		}
-			// 	}
-			// }
-		}
-	};
-}
-
 export function generate_cdn_entry({
-	enable,
-	cdn_url
+	version,
+	cdn_base
 }: {
-	enable: boolean;
-	cdn_url: string;
+	version: string;
+	cdn_base: string;
 }): Plugin {
 	return {
 		name: "generate-cdn-entry",
 		enforce: "post",
 		writeBundle(config, bundle) {
-			if (!enable) return;
-
 			if (
 				!config.dir ||
 				!bundle["index.html"] ||
@@ -72,15 +35,29 @@ export function generate_cdn_entry({
 			)
 				return;
 
-			const tree = parse(bundle["index.html"].source as string);
-			const script =
-				Array.from(tree.querySelectorAll("script[type=module]")).find(
-					(node) => node.attributes.src?.startsWith(cdn_url)
-				)?.attributes.src || "";
+			const source = bundle["index.html"].source as string;
+			const tree = parse(source);
+
+			const script = Array.from(
+				tree.querySelectorAll("script[type=module]")
+			).find((node) => node.attributes.src?.includes("assets"));
 
 			const output_location = join(config.dir, "gradio.js");
 
-			writeFileSync(output_location, make_entry(script));
+			writeFileSync(output_location, make_entry(script?.attributes.src || ""));
+
+			if (!script) return;
+
+			const transformed_html =
+				(bundle["index.html"].source as string).substring(0, script?.range[0]) +
+				`<script type="module" crossorigin src="${cdn_base}/${version}/gradio.js"></script>` +
+				(bundle["index.html"].source as string).substring(
+					script?.range[1],
+					source.length
+				);
+
+			const share_html_location = join(config.dir, "share.html");
+			writeFileSync(share_html_location, transformed_html);
 		}
 	};
 }
@@ -93,6 +70,7 @@ export function generate_dev_entry({ enable }: { enable: boolean }): Plugin {
 		name: "generate-dev-entry",
 		transform(code, id) {
 			if (!enable) return;
+
 			const new_code = code.replace(RE_SVELTE_IMPORT, (str, $1, $2) => {
 				return `const ${$1.replace(
 					" as ",
@@ -109,18 +87,7 @@ export function generate_dev_entry({ enable }: { enable: boolean }): Plugin {
 }
 
 function make_entry(script: string): string {
-	const make_script = `
-function make_script(src) {
-    const script = document.createElement('script');
-    script.type = 'module';
-    script.setAttribute("crossorigin", "");
-    script.src = src;
-    document.head.appendChild(script);
-}`;
-
-	return `
-${make_script}
-make_script("${script}");
+	return `import("${script}");
 `;
 }
 
@@ -174,14 +141,6 @@ export function handle_ce_css(): Plugin {
 				}
 			);
 
-			const transformed_html =
-				(bundle["index.html"].source as string).substring(0, style!.range[0]) +
-				(bundle["index.html"].source as string).substring(
-					style!.range[1],
-					bundle["index.html"].source.length
-				);
-			const html_location = join(config.dir, "index.html");
-
 			writeFileSync(
 				file_to_insert.filename,
 				file_to_insert.source
@@ -192,7 +151,19 @@ export function handle_ce_css(): Plugin {
 					)
 			);
 
-			writeFileSync(html_location, transformed_html);
+			const share_html_location = join(config.dir, "share.html");
+			const share_html = readFileSync(share_html_location, "utf8");
+			const share_tree = parse(share_html);
+			const node = Array.from(
+				share_tree.querySelectorAll("link[rel=stylesheet]")
+			).find((node) => /.*\/index(.*?)\.css/.test(node.attributes.href));
+
+			if (!node) return;
+			const transformed_html =
+				share_html.substring(0, node.range[0]) +
+				share_html.substring(node.range[1], share_html.length);
+
+			writeFileSync(share_html_location, transformed_html);
 		}
 	};
 }
