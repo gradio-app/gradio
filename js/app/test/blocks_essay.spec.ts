@@ -20,6 +20,19 @@ test("updates frontend correctly", async ({ page }) => {
 	await expect(textbox).toBeHidden();
 });
 
+
+test("updates interactivity correctly", async ({ page }) => {
+	const short_btn = await page.getByLabel("short");
+	const hidden_btn = await page.getByLabel("none");
+	const submit_tn = await page.locator("button.primary").first();
+
+	await hidden_btn.check();
+	await expect(submit_tn).toHaveAttribute("disabled");
+
+	await short_btn.check();
+	await expect(submit_tn).not.toHaveAttribute("disabled");
+});
+
 test("updates backend correctly", async ({ page }) => {
 	const min_slider = await page.getByLabel("number input for min");
 	const num = await page.getByLabel("input").first();
