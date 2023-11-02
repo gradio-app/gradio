@@ -1,5 +1,7 @@
 ---
+"@gradio/app": patch
 "@gradio/checkboxgroup": patch
+"@gradio/tootils": patch
 "gradio": patch
 ---
 
