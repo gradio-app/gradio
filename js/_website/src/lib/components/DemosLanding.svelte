@@ -3,11 +3,6 @@
 
 	let tabs = [
 		{
-			title: "Sketch Recognition",
-			code: sketch,
-			demo: "gradio/pictionary"
-		},
-		{
 			title: "Time Series Forecasting",
 			code: false,
 			demo: "gradio/timeseries-forecasting-with-prophet"
