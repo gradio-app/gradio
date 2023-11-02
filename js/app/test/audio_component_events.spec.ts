@@ -31,14 +31,16 @@ test("Audio click-to-upload uploads audio successfuly.", async ({ page }) => {
 test("Audio drag-and-drop uploads a file to the server correctly.", async ({
 	page
 }) => {
-	await drag_and_drop_file(
-		page,
-		"input[type=file]",
-		"../../test/test_files/audio_sample.wav",
-		"audio_sample.wav",
-		"audio/wav"
-	);
-	await page.waitForResponse("**/upload");
+	await Promise.all([
+		drag_and_drop_file(
+			page,
+			"input[type=file]",
+			"../../test/test_files/audio_sample.wav",
+			"audio_sample.wav",
+			"audio/wav"
+		),
+		page.waitForResponse("**/upload")
+	]);
 	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
 });
