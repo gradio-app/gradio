@@ -385,15 +385,10 @@ def postprocess_update_dict(
     update_dict = {k: update_dict[k] for k in update_dict if hasattr(block, k)}
     if update_dict.get("value") is components._Keywords.NO_VALUE:
         update_dict.pop("value")
-    elif "value" in update_dict:
-        if not isinstance(block, components.Component):
-            raise InvalidComponentError(
-                f"Component {block.__class__} does not support value"
-            )
-        if postprocess:
-            update_dict["value"] = block.postprocess(update_dict["value"])
-            if isinstance(update_dict["value"], (GradioModel, GradioRootModel)):
-                update_dict["value"] = update_dict["value"].model_dump()
+    elif "value" in update_dict and postprocess:
+        update_dict["value"] = block.postprocess(update_dict["value"])
+        if isinstance(update_dict["value"], (GradioModel, GradioRootModel)):
+            update_dict["value"] = update_dict["value"].model_dump()
     update_dict["__type__"] = "update"
     return update_dict
 
