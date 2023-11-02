@@ -137,7 +137,8 @@ export default defineConfig(({ mode }) => {
 				inspector: true,
 				compilerOptions: {
 					dev: true,
-					discloseVersion: false
+					discloseVersion: false,
+					accessors: mode === "test"
 				},
 				hot: !process.env.VITEST && !production,
 				preprocess: sveltePreprocess({
@@ -166,7 +167,10 @@ export default defineConfig(({ mode }) => {
 					? ["**/*.node-test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"]
 					: ["**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
 			exclude: ["**/node_modules/**", "**/gradio/gradio/**"],
-			globals: true
+			globals: true,
+			onConsoleLog(log, type) {
+				if (log.includes("was created with unknown prop")) return false;
+			}
 		},
 		resolve: {
 			alias: {

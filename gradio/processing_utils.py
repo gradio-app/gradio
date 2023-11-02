@@ -258,6 +258,7 @@ def move_resource_to_block_cache(url_or_file_path: str | Path, block: Component)
         temp_file_path = save_url_to_cache(
             url_or_file_path, cache_dir=block.GRADIO_CACHE
         )
+
         block.temp_files.add(temp_file_path)
     else:
         url_or_file_path = str(abspath(url_or_file_path))
@@ -265,9 +266,9 @@ def move_resource_to_block_cache(url_or_file_path: str | Path, block: Component)
             temp_file_path = save_file_to_cache(
                 url_or_file_path, cache_dir=block.GRADIO_CACHE
             )
-            block.temp_files.add(temp_file_path)
         else:
             temp_file_path = url_or_file_path
+        block.temp_files.add(temp_file_path)
 
     return temp_file_path
 
