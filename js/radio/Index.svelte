@@ -16,20 +16,21 @@
 		select: SelectData;
 		input: never;
 	}>;
+
 	export let label = gradio.i18n("radio.radio");
 	export let info: string | undefined = undefined;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: string | number | null = null;
+	export let value: string | null = null;
 	export let value_is_output = false;
-	export let choices: [string, number][] = [];
-	export let show_label: boolean;
+	export let choices: [string, string | number][] = [];
+	export let show_label = true;
 	export let container = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
-	export let interactive: boolean;
+	export let interactive = true;
 
 	function handle_change(): void {
 		gradio.dispatch("change");
@@ -64,14 +65,14 @@
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 	<div class="wrap">
-		{#each choices as choice, i (i)}
+		{#each choices as [display_value, internal_value], i (i)}
 			<BaseRadio
-				display_value={choice[0]}
-				internal_value={choice[1]}
+				{display_value}
+				{internal_value}
 				bind:selected={value}
 				{disabled}
 				on:input={() =>
-					gradio.dispatch("select", { value: choice[1], index: i })}
+					gradio.dispatch("select", { value: internal_value, index: i })}
 			/>
 		{/each}
 	</div>
