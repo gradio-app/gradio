@@ -284,11 +284,9 @@
 	}
 
 	async function handle_update(data: any, fn_index: number): Promise<void> {
-		console.log("UPDATE");
 		const outputs = dependencies[fn_index].outputs;
 
 		data.forEach((value: any, i: number) => {
-			console.log("boo");
 			const output = instance_map[outputs[i]];
 			output.props.value_is_output = true;
 		});

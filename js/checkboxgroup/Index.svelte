@@ -21,10 +21,10 @@
 	export let min_width: number | undefined = undefined;
 	export let label = gradio.i18n("checkbox.checkbox_group");
 	export let info: string | undefined = undefined;
-	export let show_label: boolean;
+	export let show_label = true;
 
 	export let loading_status: LoadingStatus;
-	export let interactive: boolean;
+	export let interactive = true;
 
 	function toggle_choice(choice: string | number): void {
 		if (value.includes(choice)) {

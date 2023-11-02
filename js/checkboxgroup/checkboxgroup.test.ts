@@ -5,8 +5,6 @@ import { setupi18n } from "../app/src/i18n";
 
 import CheckboxGroup from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";
-import exp from "constants";
-import { list } from "postcss";
 
 const loading_status: LoadingStatus = {
 	eta: 0,
@@ -27,16 +25,13 @@ afterEach(cleanup);
 
 describe("Values", () => {
 	test("renders correct value when passed as string: single value", async () => {
-		const { getByLabelText, debug } = await render(CheckboxGroup, {
-			show_label: true,
-			loading_status,
+		const { getByLabelText } = await render(CheckboxGroup, {
 			value: ["choice_one"],
 			label: "Dropdown",
 			choices: [
 				["Choice One", "choice_one"],
 				["Choice Two", "choice_two"]
-			],
-			interactive: true
+			]
 		});
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;
@@ -47,17 +42,14 @@ describe("Values", () => {
 	});
 
 	test("renders correct value when passed as string: multiple values", async () => {
-		const { getByLabelText, debug } = await render(CheckboxGroup, {
-			show_label: true,
-			loading_status,
+		const { getByLabelText } = await render(CheckboxGroup, {
 			value: ["choice_one", "choice_three"],
 			label: "Dropdown",
 			choices: [
 				["Choice One", "choice_one"],
 				["Choice Two", "choice_two"],
 				["Choice Three", "choice_three"]
-			],
-			interactive: true
+			]
 		});
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;
@@ -73,16 +65,13 @@ describe("Values", () => {
 	});
 
 	test("renders correct value when passed as number: single value", async () => {
-		const { getByLabelText, debug } = await render(CheckboxGroup, {
-			show_label: true,
-			loading_status,
+		const { getByLabelText } = await render(CheckboxGroup, {
 			value: [1],
 			label: "Dropdown",
 			choices: [
 				["Choice One", 1],
 				["Choice Two", 2]
-			],
-			interactive: true
+			]
 		});
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;
@@ -93,17 +82,14 @@ describe("Values", () => {
 	});
 
 	test("renders correct value when passed as number: multiple values", async () => {
-		const { getByLabelText, debug } = await render(CheckboxGroup, {
-			show_label: true,
-			loading_status,
+		const { getByLabelText } = await render(CheckboxGroup, {
 			value: [1, 3],
 			label: "Dropdown",
 			choices: [
 				["Choice One", 1],
 				["Choice Two", 2],
 				["Choice Three", 3]
-			],
-			interactive: true
+			]
 		});
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;
@@ -115,18 +101,15 @@ describe("Values", () => {
 		expect(item_three).toBeChecked();
 	});
 
-	test("component value and rendered value should be in sync", async () => {
+	test("component value and rendered value are in sync", async () => {
 		const { getByLabelText, debug, component } = await render(CheckboxGroup, {
-			show_label: true,
-			loading_status,
 			value: [1, 3],
 			label: "Dropdown",
 			choices: [
 				["Choice One", 1],
 				["Choice Two", 2],
 				["Choice Three", 3]
-			],
-			interactive: true
+			]
 		});
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;
@@ -140,18 +123,15 @@ describe("Values", () => {
 		expect(component.value).toEqual([1, 3]);
 	});
 
-	test("changing the component value should update the checkboxes", async () => {
+	test("changing the component value updates the checkboxes", async () => {
 		const { getByLabelText, debug, component } = await render(CheckboxGroup, {
-			show_label: true,
-			loading_status,
 			value: [],
 			label: "Dropdown",
 			choices: [
 				["Choice One", 1],
 				["Choice Two", 2],
 				["Choice Three", 3]
-			],
-			interactive: true
+			]
 		});
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;
@@ -169,18 +149,15 @@ describe("Values", () => {
 		expect(item_three).toBeChecked();
 	});
 
-	test("setting a value that does not exist should do nothing", async () => {
-		const { getByLabelText, debug, component } = await render(CheckboxGroup, {
-			show_label: true,
-			loading_status,
+	test("setting a value that does not exist does nothing", async () => {
+		const { getByLabelText, component } = await render(CheckboxGroup, {
 			value: [],
 			label: "Dropdown",
 			choices: [
 				["Choice One", 1],
 				["Choice Two", 2],
 				["Choice Three", 3]
-			],
-			interactive: true
+			]
 		});
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;
@@ -200,22 +177,17 @@ describe("Values", () => {
 });
 
 describe("Events", () => {
-	test("changing the value via the UI should emit an event", async () => {
-		const { getByLabelText, debug, component, listen } = await render(
-			CheckboxGroup,
-			{
-				show_label: true,
-				loading_status,
-				value: [],
-				label: "Dropdown",
-				choices: [
-					["Choice One", 1],
-					["Choice Two", 2],
-					["Choice Three", 3]
-				],
-				interactive: true
-			}
-		);
+	test("changing the value via the UI emits a change event", async () => {
+		const { getByLabelText, listen } = await render(CheckboxGroup, {
+			loading_status,
+			value: [],
+			label: "Dropdown",
+			choices: [
+				["Choice One", 1],
+				["Choice Two", 2],
+				["Choice Three", 3]
+			]
+		});
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;
 		const item_two = getByLabelText("Choice Two") as HTMLInputElement;
@@ -234,22 +206,16 @@ describe("Events", () => {
 		expect(mock.callCount).toBe(2);
 	});
 
-	test("changing the value from outside should emit a change event", async () => {
-		const { getByLabelText, debug, component, listen } = await render(
-			CheckboxGroup,
-			{
-				show_label: true,
-				loading_status,
-				value: [],
-				label: "Dropdown",
-				choices: [
-					["Choice One", 1],
-					["Choice Two", 2],
-					["Choice Three", 3]
-				],
-				interactive: true
-			}
-		);
+	test("changing the value from outside emits a change event", async () => {
+		const { getByLabelText, component, listen } = await render(CheckboxGroup, {
+			value: [],
+			label: "Dropdown",
+			choices: [
+				["Choice One", 1],
+				["Choice Two", 2],
+				["Choice Three", 3]
+			]
+		});
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;
 		const item_two = getByLabelText("Choice Two") as HTMLInputElement;
@@ -263,8 +229,117 @@ describe("Events", () => {
 
 		await (component.value = [1]);
 		expect(mock.callCount).toBe(1);
+	});
 
-		// await event.click(item_three);
-		// expect(mock.callCount).toBe(2);
+	test("changing the value from the UI emits an input event", async () => {
+		const { getByLabelText, listen } = await render(CheckboxGroup, {
+			value: [],
+			label: "Dropdown",
+			choices: [
+				["Choice One", 1],
+				["Choice Two", 2],
+				["Choice Three", 3]
+			]
+		});
+
+		const item_one = getByLabelText("Choice One") as HTMLInputElement;
+
+		const mock = listen("input");
+		await event.click(item_one);
+
+		expect(mock.callCount).toBe(1);
+	});
+
+	test("changing the value from outside DOES NOT emit an input event", async () => {
+		const { getByLabelText, component, listen } = await render(CheckboxGroup, {
+			value: [],
+			label: "Dropdown",
+			choices: [
+				["Choice One", 1],
+				["Choice Two", 2],
+				["Choice Three", 3]
+			]
+		});
+
+		const item_one = getByLabelText("Choice One") as HTMLInputElement;
+
+		const mock = listen("input");
+		await (component.value = [1]);
+
+		expect(mock.callCount).toBe(0);
+	});
+});
+
+describe("interactive vs static", () => {
+	test("interactive component can be checked", async () => {
+		const { getByLabelText } = await render(CheckboxGroup, {
+			value: [],
+			label: "Dropdown",
+			interactive: true,
+			choices: [
+				["Choice One", 1],
+				["Choice Two", 2]
+			]
+		});
+
+		const item_one = getByLabelText("Choice One") as HTMLInputElement;
+
+		await event.click(item_one);
+
+		expect(item_one).toBeChecked();
+	});
+
+	test("static component cannot be checked", async () => {
+		const { getByLabelText } = await render(CheckboxGroup, {
+			value: [],
+			label: "Dropdown",
+			interactive: false,
+			choices: [
+				["Choice One", 1],
+				["Choice Two", 2]
+			]
+		});
+
+		const item_one = getByLabelText("Choice One") as HTMLInputElement;
+
+		await event.click(item_one);
+
+		expect(item_one).not.toBeChecked();
+	});
+
+	test("interactive component updates the value", async () => {
+		const { getByLabelText, component } = await render(CheckboxGroup, {
+			value: [],
+			label: "Dropdown",
+			interactive: true,
+			choices: [
+				["Choice One", 1],
+				["Choice Two", 2]
+			]
+		});
+
+		const item_one = getByLabelText("Choice One") as HTMLInputElement;
+
+		await event.click(item_one);
+
+		expect(component.value).toEqual([1]);
+	});
+
+	test("static component doe not update the value", async () => {
+		const { getByLabelText, component } = await render(CheckboxGroup, {
+			value: [],
+			label: "Dropdown",
+			interactive: false,
+			choices: [
+				["Choice One", 1],
+				["Choice Two", 2]
+			]
+		});
+
+		const item_one = getByLabelText("Choice One") as HTMLInputElement;
+
+		await event.click(item_one);
+
+		expect(component.value).toEqual([]);
 	});
 });
