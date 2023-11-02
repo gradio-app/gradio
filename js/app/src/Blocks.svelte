@@ -410,7 +410,6 @@
 				});
 		} else {
 			if (dep.backend_fn) {
-				console.log(dep.trigger_mode, dep.final_event);
 				if (dep.trigger_mode === "once") {
 					if (!dep.pending_request) make_prediction(payload);
 				} else if (dep.trigger_mode === "multiple") {

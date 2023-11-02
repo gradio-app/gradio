@@ -1,4 +1,4 @@
-import { defineConfig, createLogger } from "vite";
+import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import sveltePreprocess from "svelte-preprocess";
 // @ts-ignore
@@ -43,14 +43,6 @@ const CDN = TEST_CDN
 	: `https://gradio.s3-us-west-2.amazonaws.com/${version_raw}/`;
 const TEST_MODE = process.env.TEST_MODE || "jsdom";
 
-const logger = createLogger();
-const originalWarning = logger.warn;
-logger.warn = (msg, options) => {
-	console.log("WARNINGS", msg);
-
-	originalWarning(msg);
-};
-
 //@ts-ignore
 export default defineConfig(({ mode }) => {
 	console.log(mode);
@@ -70,7 +62,6 @@ export default defineConfig(({ mode }) => {
 
 	return {
 		base: is_cdn ? CDN_URL : "./",
-		customLogger: logger,
 		server: {
 			port: 9876,
 			open: is_lite ? "/lite.html" : "/"
@@ -157,10 +148,6 @@ export default defineConfig(({ mode }) => {
 					dev: true,
 					discloseVersion: false,
 					accessors: mode === "test"
-				},
-				onwarn: (warning, handler) => {
-					console.log("MESSAGE", warning.message);
-					if (handler) handler(warning);
 				},
 				hot: !process.env.VITEST && !production,
 				preprocess: sveltePreprocess({
