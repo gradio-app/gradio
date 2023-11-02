@@ -9,10 +9,10 @@ This guide will cover how to get started making custom components.
 
 You will need to have:
 
-* [Python 3.8+](https://www.python.org/downloads/)
-* [Node.js v16.14+](https://nodejs.dev/en/download/package-manager/)
-* [npm 9+](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
-* [gradio 4.0](https://pypi.org/project/gradio/)
+* Python 3.8+ (<a href="https://www.python.org/downloads/" target="_blank">install here</a>)
+* Node.js v16.14+ (<a href="https://nodejs.dev/en/download/package-manager/" target="_blank">install here</a>)
+* npm 9+ (<a href="https://docs.npmjs.com/downloading-and-installing-node-js-and-npm/" target="_blank">install here</a>)
+* Gradio 4.0+ (`pip install --upgrade gradio`)
 
 ## The Workflow
 

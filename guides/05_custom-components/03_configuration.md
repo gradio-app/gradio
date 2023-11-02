@@ -57,6 +57,7 @@ You can add python dependencies by modifying the `dependencies` key in `pyprojec
 dependencies = ["gradio", "numpy", "PIL"]
 ```
 
+
 Tip: Remember to run `gradio cc install` when you add dependencies!
 
 ## Javascript Dependencies
