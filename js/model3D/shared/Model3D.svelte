@@ -20,7 +20,7 @@
 	export let camera_position: [number | null, number | null, number | null] = [
 		null,
 		null,
-		null,
+		null
 	];
 
 	$: {
@@ -46,7 +46,7 @@
 	});
 
 	$: ({ path } = value || {
-		path: undefined,
+		path: undefined
 	});
 
 	$: canvas && mounted && path && dispose();
