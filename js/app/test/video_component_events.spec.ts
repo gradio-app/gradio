@@ -1,36 +1,8 @@
-import { test, expect } from "@gradio/tootils";
-import { readFileSync } from "fs";
+import { test, expect, drag_and_drop_file } from "@gradio/tootils";
 
-const dragAndDropFile = async (
-	page: Page,
-	selector: string,
-	filePath: string,
-	fileName: string,
-	fileType = ""
-) => {
-	const buffer = readFileSync(filePath).toString("base64");
-
-	const dataTransfer = await page.evaluateHandle(
-		async ({ bufferData, localFileName, localFileType }) => {
-			const dt = new DataTransfer();
-
-			const blobData = await fetch(bufferData).then((res) => res.blob());
-
-			const file = new File([blobData], localFileName, { type: localFileType });
-			dt.items.add(file);
-			return dt;
-		},
-		{
-			bufferData: `data:application/octet-stream;base64,${buffer}`,
-			localFileName: fileName,
-			localFileType: fileType
-		}
-	);
-
-	await page.dispatchEvent(selector, "drop", { dataTransfer });
-};
-
-test("test video click-to-upload and play-pause trigger", async ({ page }) => {
+test("Video click-to-upload uploads video successfuly. Clear, play, and pause buttons dispatch events correctly.", async ({
+	page
+}) => {
 	await page
 		.getByRole("button", { name: "Drop Video Here - or - Click to Upload" })
 		.click();
@@ -68,10 +40,12 @@ test("test video click-to-upload and play-pause trigger", async ({ page }) => {
 	await expect(page.getByLabel("# Pause Events")).toHaveValue("2");
 });
 
-test("test video drag-and-drop", async ({ page }) => {
-	await dragAndDropFile(
+test("Video drag-and-drop uploads a file to the server correctly.", async ({
+	page
+}) => {
+	await drag_and_drop_file(
 		page,
-		"button",
+		"input[type=file]",
 		"./test/files/file_test.ogg",
 		"file_test.ogg",
 		"video/*"
@@ -81,12 +55,12 @@ test("test video drag-and-drop", async ({ page }) => {
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
 });
 
-test("test video drag-and-drop invalid mime type raises warning toast", async ({
+test("Video drag-and-drop displays a warning when the file is of the wrong mime type.", async ({
 	page
 }) => {
-	await dragAndDropFile(
+	await drag_and_drop_file(
 		page,
-		"button",
+		"input[type=file]",
 		"./test/files/file_test.ogg",
 		"file_test.ogg"
 	);
