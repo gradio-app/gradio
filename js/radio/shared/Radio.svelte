@@ -10,8 +10,19 @@
 	export let selected: string | null = null;
 
 	const dispatch = createEventDispatcher<{ input: string | number }>();
+	let is_selected = false;
 
-	$: is_selected = selected === internal_value;
+	async function handle_input(
+		selected: string | null,
+		internal_value: string | number
+	): Promise<void> {
+		is_selected = selected === internal_value;
+		if (is_selected) {
+			dispatch("input", internal_value);
+		}
+	}
+
+	$: handle_input(selected, internal_value);
 </script>
 
 <label
@@ -24,7 +35,6 @@
 		type="radio"
 		name="radio-{++id}"
 		value={internal_value}
-		on:input={() => dispatch("input", internal_value)}
 		bind:group={selected}
 	/>
 	<span class="ml-2">{display_value}</span>

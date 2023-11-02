@@ -74,6 +74,18 @@ describe("Radio", () => {
 		);
 	});
 
+	test("should dispatch the select event when clicks", async () => {
+		const { listen, getByTestId } = await render(Radio, {
+			choices: choices,
+			value: "cat",
+			label: "Radio"
+		});
+
+		const mock = listen("select");
+		await event.click(getByTestId("dog-radio-label"));
+		expect(mock.callCount).toBe(1);
+	});
+
 	test("when multiple radios are on the screen, they should not conflict", async () => {
 		const { container } = await render(Radio, {
 			choices: choices,
