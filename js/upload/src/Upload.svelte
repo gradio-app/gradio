@@ -46,9 +46,7 @@
 		if (!files.length) {
 			return;
 		}
-
 		let _files: File[] = files.map((f) => new File([f], f.name));
-
 		let file_data = await prepare_files(_files);
 		return await handle_upload(file_data);
 	}
@@ -80,7 +78,7 @@
 		if (!e.dataTransfer?.files) return;
 
 		const files_to_load = Array.from(e.dataTransfer.files).filter((f) => {
-			if (is_valid_mimetype(filetype, f.type)) {
+			if (filetype?.split(",").some((m) => is_valid_mimetype(m, f.type))) {
 				return true;
 			}
 			dispatch("error", `Invalid file type only ${filetype} allowed.`);

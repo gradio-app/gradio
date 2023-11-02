@@ -47,6 +47,7 @@
 		stop_recording: never;
 		share: ShareData;
 		error: string;
+		warning: string;
 	}>;
 	export let interactive: boolean;
 	export let mirror_webcam: boolean;
@@ -108,6 +109,16 @@
 		} else {
 			value = null;
 		}
+	}
+
+	function handle_error({ detail }: CustomEvent<string>): void {
+		const [level, status] = detail.includes("Invalid file type")
+			? ["warning", "complete"]
+			: ["error", "error"];
+		loading_status = loading_status || {};
+		loading_status.status = status as LoadingStatus["status"];
+		loading_status.message = detail;
+		gradio.dispatch(level as "error" | "warning", detail);
 	}
 </script>
 
@@ -175,11 +186,7 @@
 			subtitle={_subtitle}
 			on:change={handle_change}
 			on:drag={({ detail }) => (dragging = detail)}
-			on:error={({ detail }) => {
-				loading_status = loading_status || {};
-				loading_status.status = "error";
-				loading_status.message = detail;
-			}}
+			on:error={handle_error}
 			{label}
 			{show_label}
 			{sources}

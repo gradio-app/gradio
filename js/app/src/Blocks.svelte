@@ -613,8 +613,8 @@
 			if (event === "share") {
 				const { title, description } = data as ShareData;
 				trigger_share(title, description);
-			} else if (event === "error") {
-				messages = [new_message(data, -1, "error"), ...messages];
+			} else if (event === "error" || event === "warning") {
+				messages = [new_message(data, -1, event), ...messages];
 			} else {
 				const deps = target_map[id]?.[event];
 				deps?.forEach((dep_id) => {
