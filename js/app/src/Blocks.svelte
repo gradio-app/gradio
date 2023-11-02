@@ -283,11 +283,18 @@
 		});
 	}
 
-	function handle_update(data: any, fn_index: number): void {
+	async function handle_update(data: any, fn_index: number): Promise<void> {
 		const outputs = dependencies[fn_index].outputs;
-		data?.forEach((value: any, i: number) => {
+
+		data.forEach((value: any, i: number) => {
 			const output = instance_map[outputs[i]];
 			output.props.value_is_output = true;
+		});
+
+		rootNode = rootNode;
+		await tick();
+		data?.forEach((value: any, i: number) => {
+			const output = instance_map[outputs[i]];
 			if (
 				typeof value === "object" &&
 				value !== null &&

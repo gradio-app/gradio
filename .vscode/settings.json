@@ -18,5 +18,6 @@
 	"eslint.experimental.useFlatConfig": true,
 	"eslint.options": {
 		"overrideConfigFile": "./.config/eslint.config.js"
-	}
+	},
+	"typescript.tsdk": "node_modules/typescript/lib"
 }
