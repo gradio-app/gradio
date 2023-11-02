@@ -1,6 +1,6 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import Radio from "./Index.svelte";
+	import Radio from "./shared/Radio.svelte";
 </script>
 
 <Meta
