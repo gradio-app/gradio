@@ -375,7 +375,7 @@ def postprocess_update_dict(
 ):
     """
     Converts a dictionary of updates into a format that can be sent to the frontend.
-    E.g. {"__type__": "update", "value": "2", "interactive": False}
+    E.g. {"__type__": "update", "value": "2"}
     Into -> {"__type__": "update", "value": 2.0, "mode": "static"}
     Parameters:
         block: The Block that is being updated with this update dictionary.
@@ -384,9 +384,6 @@ def postprocess_update_dict(
     """
     if update_dict.get("value") is components._Keywords.NO_VALUE:
         update_dict.pop("value")
-    interactive = update_dict.pop("interactive", None)
-    if interactive is not None:
-        update_dict["mode"] = "dynamic" if interactive else "static"
     attr_dict = {
         k: getattr(block, k) if hasattr(block, k) else v for k, v in update_dict.items()
     }

@@ -283,8 +283,9 @@
 		});
 	}
 
-	function handle_update(data: any, fn_index: number): void {
+	function handle_update(data: any, fn_index: number): number[] {
 		const outputs = dependencies[fn_index].outputs;
+		const outputs_set_non_interactive: number[] = [];
 		data?.forEach((value: any, i: number) => {
 			const output = instance_map[outputs[i]];
 			output.props.value_is_output = true;
@@ -298,6 +299,9 @@
 						continue;
 					} else {
 						output.props[update_key] = update_value;
+						if (update_key == "interactive" && !update_value) {
+							outputs_set_non_interactive.push(outputs[i]);
+						}
 					}
 				}
 			} else {
@@ -305,6 +309,7 @@
 			}
 		});
 		rootNode = rootNode;
+		return outputs_set_non_interactive;
 	}
 
 	let submit_map: Map<number, ReturnType<typeof app.submit>> = new Map();
@@ -419,6 +424,7 @@
 
 		function make_prediction(payload: Payload): void {
 			const pending_outputs: number[] = [];
+			let outputs_set_non_interactive: number[] = [];
 			const submission = app
 				.submit(payload.fn_index, payload.data as unknown[], payload.event_data)
 				.on("data", ({ data, fn_index }) => {
@@ -427,7 +433,7 @@
 						make_prediction(dep.final_event);
 					}
 					dep.pending_request = false;
-					handle_update(data, fn_index);
+					outputs_set_non_interactive = handle_update(data, fn_index);
 				})
 				.on("status", ({ fn_index, ...status }) => {
 					tick().then(() => {
@@ -441,7 +447,8 @@
 								instance_map[id].props.interactive = false;
 							} else if (
 								status.stage === "complete" &&
-								pending_outputs.includes(id)
+								pending_outputs.includes(id) &&
+								!outputs_set_non_interactive.includes(id)
 							) {
 								instance_map[id].props.interactive = true;
 							}

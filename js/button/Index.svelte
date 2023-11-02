@@ -12,7 +12,7 @@
 	export let visible = true;
 	export let value: string;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
-	export let interactive: boolean;
+	export let interactive;
 	export let size: "sm" | "lg" = "lg";
 	export let scale: number | null = null;
 	export let icon: string | null = null;
