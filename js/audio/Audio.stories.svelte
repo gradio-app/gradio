@@ -13,7 +13,11 @@
 	name="Audio Player"
 	args={{
 		value:
-			"https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
+		{
+			path: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
+			url: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
+			orig_name: "sample-0.mp3"
+		},
 		label: "Audio Player"
 	}}
 />
@@ -22,6 +26,7 @@
 	name="Audio Recorder"
 	args={{
 		value: null,
+		interactive: true,
 		sources: ["microphone"],
 		label: "Audio Recorder"
 	}}
