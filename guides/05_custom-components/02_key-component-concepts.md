@@ -39,16 +39,15 @@ with gr.Blocks() as demo:
 demo.launch()
 ```
 
-The interactive version of the component is much more complex -- you can upload and edit images, draw sketches, etc. -- while the static version does not do any of that.
+The interactive version of the component is much more complex -- you can upload images or snap a picture from your webcam -- while the static version can only be used to display images.
 
-Not every component has an interactive version.
-For example, the `gr.AnnotatedImage` only appears as a static version since there's no way to interactively change the value of the annotations or the image.
+Not every component has a distinct interactive version. For example, the `gr.AnnotatedImage` only appears as a static version since there's no way to interactively change the value of the annotations or the image.
 
 ### What you need to remember
 
 * Gradio will use the interactive version (if available) of a component if that component is used as the **input** to any event; otherwise, the static version will be used.
 
-* When you design custom components, you **must** accept the boolean interactive keyword in the constructor of your Python class. In the frontend, accept the `interactive` property, a `bool` which represents whether the component is `static` or `interactive`.
+* When you design custom components, you **must** accept the boolean interactive keyword in the constructor of your Python class. In the frontend, you **may** accept the `interactive` property, a `bool` which represents whether the component should be static or interactive. If you do not use this property in the frontend, the component will appear the same in interactive or static mode.
 
 ## The value and how it is preprocessed/postprocessed
 
