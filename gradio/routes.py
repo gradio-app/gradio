@@ -615,28 +615,32 @@ class App(FastAPI):
                     await blocks._queue.send_estimation(event, estimation, rank)
 
             async def sse_stream(request: fastapi.Request):
-                last_heartbeat = time.perf_counter()
-                while True:
-                    if await request.is_disconnected():
-                        await blocks._queue.clean_event(event)
-                    if not event.alive:
-                        return
-
-                    heartbeat_rate = 15
-                    check_rate = 0.05
-                    message = None
-                    try:
-                        message = event.message_queue.get_nowait()
-                        if message is None:  # end of stream marker
+                try:
+                    last_heartbeat = time.perf_counter()
+                    while True:
+                        if await request.is_disconnected():
+                            await blocks._queue.clean_event(event)
+                        if not event.alive:
                             return
-                    except EmptyQueue:
-                        await asyncio.sleep(check_rate)
-                        if time.perf_counter() - last_heartbeat > heartbeat_rate:
-                            message = {"msg": "heartbeat"}
-                            last_heartbeat = time.time()
 
-                    if message:
-                        yield f"data: {json.dumps(message)}\n\n"
+                        heartbeat_rate = 15
+                        check_rate = 0.05
+                        message = None
+                        try:
+                            message = event.message_queue.get_nowait()
+                            if message is None:  # end of stream marker
+                                return
+                        except EmptyQueue:
+                            await asyncio.sleep(check_rate)
+                            if time.perf_counter() - last_heartbeat > heartbeat_rate:
+                                message = {"msg": "heartbeat"}
+                                last_heartbeat = time.time()
+
+                        if message:
+                            yield f"data: {json.dumps(message)}\n\n"
+                except asyncio.CancelledError as e:
+                    await blocks._queue.clean_event(event)
+                    raise e
 
             return StreamingResponse(
                 sse_stream(request),
