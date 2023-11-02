@@ -12,8 +12,7 @@
 <Story
 	name="Audio Player"
 	args={{
-		value:
-		{
+		value: {
 			path: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
 			url: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
 			orig_name: "sample-0.mp3"
