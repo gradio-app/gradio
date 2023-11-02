@@ -60,6 +60,8 @@ We now support using any custom share server for your gradio share links.
 * Many of the positional arguments in launch() are now keyword only, and show_tips has been removed
 * Changes the format of flagged data to json instead of filepath for media
 * Removes gr.Series and gr.Parallel
+* All API endpoints are named by deafult. If `api_name=None`, the api name is the name of the python function.
+
 
 ### Features
 

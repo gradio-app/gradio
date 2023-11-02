@@ -52,7 +52,7 @@
 		all_file_data = (await upload(all_file_data, root))?.filter(
 			(x) => x !== null
 		) as FileData[];
-		value = file_count === "single" ? all_file_data?.[0] : all_file_data
+		value = file_count === "single" ? all_file_data?.[0] : all_file_data;
 		dispatch("change", value);
 		dispatch("upload", value);
 	}
