@@ -5,7 +5,6 @@
 	import { Block, BlockTitle } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { afterUpdate, tick } from "svelte";
 
 	export let gradio: Gradio<{
 		change: never;
@@ -16,8 +15,7 @@
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value: (string | number)[] = [];
-	export let value_is_output = false;
-	export let choices: [string, number][];
+	export let choices: [string, string | number][];
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
@@ -35,23 +33,12 @@
 			value = [...value, choice];
 		}
 
-		handle_change();
+		gradio.dispatch("input");
 	}
-
-	async function handle_change(): Promise<void> {
-		await tick();
-		gradio.dispatch("change");
-
-		if (!value_is_output) {
-			gradio.dispatch("input");
-		}
-	}
-
-	afterUpdate(() => {
-		value_is_output = false;
-	});
 
 	$: disabled = !interactive;
+
+	$: value && gradio.dispatch("change");
 </script>
 
 <Block

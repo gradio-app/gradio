@@ -147,7 +147,8 @@ export default defineConfig(({ mode }) => {
 				inspector: true,
 				compilerOptions: {
 					dev: true,
-					discloseVersion: false
+					discloseVersion: false,
+					accessors: mode === "test"
 				},
 				hot: !process.env.VITEST && !production,
 				preprocess: sveltePreprocess({

@@ -283,11 +283,20 @@
 		});
 	}
 
-	function handle_update(data: any, fn_index: number): void {
+	async function handle_update(data: any, fn_index: number): Promise<void> {
+		console.log("UPDATE");
 		const outputs = dependencies[fn_index].outputs;
-		data?.forEach((value: any, i: number) => {
+
+		data.forEach((value: any, i: number) => {
+			console.log("boo");
 			const output = instance_map[outputs[i]];
 			output.props.value_is_output = true;
+		});
+
+		rootNode = rootNode;
+		await tick();
+		data?.forEach((value: any, i: number) => {
+			const output = instance_map[outputs[i]];
 			if (
 				typeof value === "object" &&
 				value !== null &&
@@ -403,6 +412,7 @@
 				});
 		} else {
 			if (dep.backend_fn) {
+				console.log(dep.trigger_mode, dep.final_event);
 				if (dep.trigger_mode === "once") {
 					if (!dep.pending_request) make_prediction(payload);
 				} else if (dep.trigger_mode === "multiple") {
