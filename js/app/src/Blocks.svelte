@@ -287,7 +287,7 @@
 		data: any,
 		fn_index: number,
 		outputs_set_to_non_interactive: number[]
-	): Promise<> {
+	): Promise<void> {
 		const outputs = dependencies[fn_index].outputs;
 
 		data.forEach((value: any, i: number) => {
