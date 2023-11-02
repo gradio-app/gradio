@@ -20,7 +20,6 @@ test("updates frontend correctly", async ({ page }) => {
 	await expect(textbox).toBeHidden();
 });
 
-
 test("updates interactivity correctly", async ({ page }) => {
 	const short_btn = await page.getByLabel("short");
 	const hidden_btn = await page.getByLabel("none");
