@@ -20,7 +20,7 @@
 	export let camera_position: [number | null, number | null, number | null] = [
 		null,
 		null,
-		null
+		null,
 	];
 
 	$: {
@@ -46,7 +46,7 @@
 	});
 
 	$: ({ path } = value || {
-		path: undefined
+		path: undefined,
 	});
 
 	$: canvas && mounted && path && dispose();
@@ -79,6 +79,9 @@
 	function handle_undo(): void {
 		reset_camera_position(scene, camera_position, zoom_speed, pan_speed);
 	}
+
+	$: if (scene)
+		reset_camera_position(scene, camera_position, zoom_speed, pan_speed);
 </script>
 
 <BlockLabel
