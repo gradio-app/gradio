@@ -24,7 +24,7 @@
 	export let visible = true;
 	export let value: string | null = null;
 	export let value_is_output = false;
-	export let choices: [string, string | number][] = [];
+	export let choices: [string, number | number][] = [];
 	export let show_label = true;
 	export let container = false;
 	export let scale: number | null = null;

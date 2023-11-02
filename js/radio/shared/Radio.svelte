@@ -26,6 +26,7 @@
 		value={internal_value}
 		on:input={() => dispatch("input", internal_value)}
 		bind:group={selected}
+		class={++id}
 	/>
 	<span class="ml-2">{display_value}</span>
 </label>
