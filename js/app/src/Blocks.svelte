@@ -283,12 +283,19 @@
 		});
 	}
 
-	function handle_update(data: any, fn_index: number): number[] {
+	async function handle_update(data: any, fn_index: number): Promise<number[]> {
 		const outputs = dependencies[fn_index].outputs;
 		const outputs_set_non_interactive: number[] = [];
-		data?.forEach((value: any, i: number) => {
+
+		data.forEach((value: any, i: number) => {
 			const output = instance_map[outputs[i]];
 			output.props.value_is_output = true;
+		});
+
+		rootNode = rootNode;
+		await tick();
+		data?.forEach((value: any, i: number) => {
+			const output = instance_map[outputs[i]];
 			if (
 				typeof value === "object" &&
 				value !== null &&
@@ -613,8 +620,8 @@
 			if (event === "share") {
 				const { title, description } = data as ShareData;
 				trigger_share(title, description);
-			} else if (event === "error") {
-				messages = [new_message(data, -1, "error"), ...messages];
+			} else if (event === "error" || event === "warning") {
+				messages = [new_message(data, -1, event), ...messages];
 			} else {
 				const deps = target_map[id]?.[event];
 				deps?.forEach((dep_id) => {
