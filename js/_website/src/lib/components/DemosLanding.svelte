@@ -1,21 +1,25 @@
 <script lang="ts">
-	import { sketch, chat } from "../assets/demo_code";
+	import { hello } from "../assets/demo_code";
 
 	let tabs = [
+		{
+			title: "Hello World",
+			code: hello,
+			demo: "gradio/hello_world"
+		},
+		{
+			title: "Tax Calculator",
+			demo: "gradio/tax_calculator"
+		},
 		{
 			title: "Time Series Forecasting",
 			code: false,
 			demo: "gradio/timeseries-forecasting-with-prophet"
 		},
 		{
-			title: "XGBoost with Explainability",
+			title: "Image Classification",
 			code: false,
-			demo: "gradio/xgboost-income-prediction-with-explainability"
-		},
-		{
-			title: "Chat with Llama 2",
-			code: chat,
-			demo: "ysharma/Explore_llamav2_with_TGI"
+			demo: "gradio/image_classification"
 		}
 	];
 
