@@ -15,6 +15,7 @@ import type {
 } from "@testing-library/dom";
 import { spy, type Spy } from "tinyspy";
 import { Gradio } from "@gradio/utils";
+import type { LoadingStatus } from "@gradio/statustracker";
 
 const containerCache = new Map();
 const componentCache = new Set();
@@ -34,6 +35,17 @@ export type RenderResult<
 	unmount: () => void;
 } & { [P in keyof Q]: BoundFunction<Q[P]> };
 
+const loading_status: LoadingStatus = {
+	eta: 0,
+	queue_position: 1,
+	queue_size: 1,
+	status: "complete" as LoadingStatus["status"],
+	scroll_to_output: false,
+	visible: true,
+	fn_index: 0,
+	show_progress: "full"
+};
+
 export interface RenderOptions<Q extends Queries = typeof queries> {
 	container?: HTMLElement;
 	queries?: Q;
@@ -46,7 +58,9 @@ export async function render<
 	X extends Record<string, any>
 >(
 	Component: ComponentType<T, Props> | { default: ComponentType<T, Props> },
-	props?: Omit<Props, "gradio">,
+	props?: Omit<Props, "gradio" | "loading_status"> & {
+		loading_status?: LoadingStatus;
+	},
 	_container?: HTMLElement
 ): Promise<
 	RenderResult<T> & {
@@ -76,6 +90,7 @@ export async function render<
 		target,
 		//@ts-ignore
 		props: {
+			loading_status,
 			...(props || {}),
 			gradio: new Gradio(
 				id,
