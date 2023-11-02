@@ -13,6 +13,7 @@
 	export let root: string;
 	export let i18n: I18nFormatter;
 	export let zoom_speed = 1;
+	export let pan_speed = 1;
 
 	// alpha, beta, radius
 	export let camera_position: [number | null, number | null, number | null] = [
@@ -34,7 +35,8 @@
 			value,
 			clear_color,
 			camera_position,
-			zoom_speed
+			zoom_speed,
+			pan_speed
 		);
 	}
 
@@ -71,7 +73,7 @@
 	}
 
 	async function handle_undo(): Promise<void> {
-		reset_camera_position(scene, camera_position, zoom_speed);
+		reset_camera_position(scene, camera_position, zoom_speed, pan_speed);
 	}
 
 	const dispatch = createEventDispatcher<{

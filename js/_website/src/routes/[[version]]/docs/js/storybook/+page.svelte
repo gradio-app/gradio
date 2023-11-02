@@ -9,9 +9,7 @@
 	let readme_html = data.readme_html;
 	let js_pages = data.js_pages;
 
-	let js_components = js_pages.filter(c => c !== "js-client");
-
-	
+	let js_components = js_pages.filter((c) => c !== "js-client");
 
 	$: name = data.name;
 	$: readme_html = data.readme_html;
@@ -26,11 +24,7 @@
 
 <main class="container mx-auto px-4 flex flex-col gap-4">
 	<div class="flex w-full">
-		<JSDocsNav
-			current_nav_link={""}
-			{js_components}
-			version_dropdown={false}
-		/>
+		<JSDocsNav current_nav_link={""} {js_components} version_dropdown={false} />
 
 		<div class="flex flex-col w-full min-w-full lg:w-10/12 lg:min-w-0">
 			<div>
@@ -49,7 +43,11 @@
 			</div>
 
 			<div class="flex flex-row ml-10 mt-5">
-					<iframe id="storybook" src="https://main--649585a46a67480e3074dc75.chromatic.com/" class="grow m-0 p-0 h-[70vh] border border-gray-200 shadow-xl rounded-xl"></iframe>
+				<iframe
+					id="storybook"
+					src="https://main--649585a46a67480e3074dc75.chromatic.com/"
+					class="grow m-0 p-0 h-[70vh] border border-gray-200 shadow-xl rounded-xl"
+				></iframe>
 			</div>
 		</div>
 	</div>

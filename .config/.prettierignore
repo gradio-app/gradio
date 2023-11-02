@@ -25,3 +25,6 @@ sweep.yaml
 **/.vercel/**
 **/build/**
 **/*.md
+**/src/lib/json/**/*
+**/playwright/.cache/**/*
+**/theme/src/pollen.css
