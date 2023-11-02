@@ -17,7 +17,13 @@ export function inject_ejs(): Plugin {
 	};
 }
 
-export function generate_cdn_entry(): Plugin {
+export function generate_cdn_entry({
+	version,
+	cdn_base
+}: {
+	version: string;
+	cdn_base: string;
+}): Plugin {
 	return {
 		name: "generate-cdn-entry",
 		enforce: "post",
@@ -29,16 +35,29 @@ export function generate_cdn_entry(): Plugin {
 			)
 				return;
 
-			const tree = parse(bundle["index.html"].source as string);
+			const source = bundle["index.html"].source as string;
+			const tree = parse(source);
 
-			const script =
-				Array.from(tree.querySelectorAll("script[type=module]")).find(
-					(node) => node.attributes.src?.includes("assets")
-				)?.attributes.src || "";
+			const script = Array.from(
+				tree.querySelectorAll("script[type=module]")
+			).find((node) => node.attributes.src?.includes("assets"));
 
 			const output_location = join(config.dir, "gradio.js");
 
-			writeFileSync(output_location, make_entry(script));
+			writeFileSync(output_location, make_entry(script?.attributes.src || ""));
+
+			if (!script) return;
+
+			const transformed_html =
+				(bundle["index.html"].source as string).substring(0, script?.range[0]) +
+				`<script type="module" crossorigin src="${cdn_base}/${version}/gradio.js"></script>` +
+				(bundle["index.html"].source as string).substring(
+					script?.range[1],
+					source.length
+				);
+
+			const share_html_location = join(config.dir, "share.html");
+			writeFileSync(share_html_location, transformed_html);
 		}
 	};
 }
@@ -68,20 +87,7 @@ export function generate_dev_entry({ enable }: { enable: boolean }): Plugin {
 }
 
 function make_entry(script: string): string {
-	const make_script = `
-function make_script(src) {
-		const base = new URL(import.meta.url).origin;
-		const url = new URL(src, base).href;
-    const script = document.createElement('script');
-    script.type = 'module';
-    script.setAttribute("crossorigin", "");
-    script.src = url;
-    document.head.appendChild(script);
-}`;
-
-	return `
-${make_script}
-make_script("${script}");
+	return `import("${script}");
 `;
 }
 
@@ -135,14 +141,6 @@ export function handle_ce_css(): Plugin {
 				}
 			);
 
-			const transformed_html =
-				(bundle["index.html"].source as string).substring(0, style!.range[0]) +
-				(bundle["index.html"].source as string).substring(
-					style!.range[1],
-					bundle["index.html"].source.length
-				);
-			const html_location = join(config.dir, "index.html");
-
 			writeFileSync(
 				file_to_insert.filename,
 				file_to_insert.source
@@ -153,7 +151,19 @@ export function handle_ce_css(): Plugin {
 					)
 			);
 
-			writeFileSync(html_location, transformed_html);
+			const share_html_location = join(config.dir, "share.html");
+			const share_html = readFileSync(share_html_location, "utf8");
+			const share_tree = parse(share_html);
+			const node = Array.from(
+				share_tree.querySelectorAll("link[rel=stylesheet]")
+			).find((node) => /.*\/index(.*?)\.css/.test(node.attributes.href));
+
+			if (!node) return;
+			const transformed_html =
+				share_html.substring(0, node.range[0]) +
+				share_html.substring(node.range[1], share_html.length);
+
+			writeFileSync(share_html_location, transformed_html);
 		}
 	};
 }
