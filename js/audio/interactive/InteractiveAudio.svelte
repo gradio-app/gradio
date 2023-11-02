@@ -26,6 +26,7 @@
 	export let autoplay = false;
 	export let i18n: I18nFormatter;
 	export let waveform_settings = {};
+	export let trim_region_settings = {};
 	export let dragging: boolean;
 	export let active_source: "microphone" | "upload";
 	export let handle_reset_value: () => void = () => {};
@@ -53,7 +54,7 @@
 	function get_modules(): void {
 		module_promises = [
 			import("extendable-media-recorder"),
-			import("extendable-media-recorder-wav-encoder")
+			import("extendable-media-recorder-wav-encoder"),
 		];
 	}
 
@@ -248,6 +249,7 @@
 		{dispatch}
 		{dispatch_blob}
 		{waveform_settings}
+		{trim_region_settings}
 		{handle_reset_value}
 		interactive
 	/>

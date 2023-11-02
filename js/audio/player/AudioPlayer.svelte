@@ -20,6 +20,7 @@
 	) => Promise<void> = () => Promise.resolve();
 	export let interactive = false;
 	export let waveform_settings = {};
+	export let trim_region_settings = {};
 	export let mode = "";
 	export let handle_reset_value: () => void = () => {};
 
@@ -44,7 +45,7 @@
 		waveform = WaveSurfer.create({
 			container: container,
 			url: value?.url,
-			...waveform_settings
+			...waveform_settings,
 		});
 	};
 
@@ -159,6 +160,7 @@
 				showRedo={interactive}
 				{handle_reset_value}
 				{waveform_settings}
+				{trim_region_settings}
 			/>
 		{/if}
 	</div>

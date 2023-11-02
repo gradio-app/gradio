@@ -4,7 +4,7 @@
 	import type { I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
 	import RegionsPlugin, {
-		type Region
+		type Region,
 	} from "wavesurfer.js/dist/plugins/regions.js";
 	import type { WaveformOptions } from "./types";
 
@@ -18,7 +18,8 @@
 	export let mode = "";
 	export let container: HTMLDivElement;
 	export let handle_reset_value: () => void;
-	export let waveform_settings: WaveformOptions = {};
+	export let waveform_settings = {};
+	export let trim_region_settings: WaveformOptions = {};
 
 	export let trimDuration = 0;
 
@@ -52,9 +53,7 @@
 		activeRegion = trimRegion.addRegion({
 			start: audioDuration / 4,
 			end: audioDuration / 2,
-			color: "hsla(15, 85%, 40%, 0.4)",
-			drag: true,
-			resize: true
+			...trim_region_settings,
 		});
 
 		trimDuration = activeRegion.end - activeRegion.start;
@@ -138,7 +137,7 @@
 
 		activeRegion.setOptions({
 			start: newStart,
-			end: newEnd
+			end: newEnd,
 		});
 
 		trimDuration = activeRegion.end - activeRegion.start;

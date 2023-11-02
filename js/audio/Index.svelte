@@ -98,7 +98,17 @@
 		cursorColor: "#ddd5e9",
 		barRadius: 10,
 		dragToSeek: true,
-		mediaControls: waveform_options.show_controls
+		normalise: true,
+		minPxPerSec: 20,
+		autoplay: autoplay,
+		normalise: false,
+		mediaControls: waveform_options.show_controls,
+	};
+
+	const trim_region_settings = {
+		color: waveform_options.trim_region_color || "hsla(15, 85%, 40%, 0.4)",
+		drag: true,
+		resize: true,
 	};
 </script>
 
@@ -185,6 +195,7 @@
 			}}
 			i18n={gradio.i18n}
 			{waveform_settings}
+			{trim_region_settings}
 		>
 			<UploadText i18n={gradio.i18n} type="audio" />
 		</InteractiveAudio>
