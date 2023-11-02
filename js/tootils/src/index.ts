@@ -65,7 +65,7 @@ export const drag_and_drop_file = async (
 	filePath: string,
 	fileName: string,
 	fileType = ""
-) => {
+): Promise<void> => {
 	const buffer = readFileSync(filePath).toString("base64");
 
 	const dataTransfer = await page.evaluateHandle(
