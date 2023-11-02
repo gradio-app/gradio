@@ -261,12 +261,71 @@ describe("Events", () => {
 			]
 		});
 
-		const item_one = getByLabelText("Choice One") as HTMLInputElement;
-
 		const mock = listen("input");
 		await (component.value = [1]);
 
 		expect(mock.callCount).toBe(0);
+	});
+
+	test("changing the value via the UI emits a select event", async () => {
+		const { getByLabelText, listen } = await render(CheckboxGroup, {
+			value: [],
+			label: "Dropdown",
+			choices: [
+				["Choice One", 1],
+				["Choice Two", 2],
+				["Choice Three", 3]
+			]
+		});
+
+		const item_one = getByLabelText("Choice One") as HTMLInputElement;
+
+		const mock = listen("select");
+		await event.click(item_one);
+
+		expect(mock.callCount).toBe(1);
+	});
+
+	test("select event payload contains the selected value and index", async () => {
+		const { getByLabelText, listen } = await render(CheckboxGroup, {
+			value: [],
+			label: "Dropdown",
+			choices: [
+				["Choice One", "val"],
+				["Choice Two", "val_two"],
+				["Choice Three", 3]
+			]
+		});
+
+		const item = getByLabelText("Choice Two") as HTMLInputElement;
+
+		const mock = listen("select");
+		await event.click(item);
+
+		expect(mock.calls[0][0].detail.data.value).toBe("val_two");
+		expect(mock.calls[0][0].detail.data.index).toBe(1);
+	});
+
+	test("select event payload contains the correct selected state", async () => {
+		const { getByLabelText, listen } = await render(CheckboxGroup, {
+			value: [],
+			label: "Dropdown",
+			choices: [
+				["Choice One", "val"],
+				["Choice Two", "val_two"],
+				["Choice Three", 3]
+			]
+		});
+
+		const item = getByLabelText("Choice Two") as HTMLInputElement;
+
+		const mock = listen("select");
+
+		await event.click(item);
+		expect(mock.calls[0][0].detail.data.selected).toBe(true);
+
+		await event.click(item);
+		expect(mock.calls[1][0].detail.data.selected).toBe(false);
 	});
 });
 
