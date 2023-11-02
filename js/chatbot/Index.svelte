@@ -15,10 +15,12 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: [
-		string | { file: FileData; alt_text: string | null } | null,
-		string | { file: FileData; alt_text: string | null } | null
-	][] = [];
+	export let value:
+		| [
+				string | { file: FileData; alt_text: string | null } | null,
+				string | { file: FileData; alt_text: string | null } | null
+		  ][]
+		| string = [];
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let label: string;
@@ -41,7 +43,7 @@
 		display: boolean;
 	}[];
 	export let gradio: Gradio<{
-		change: typeof value;
+		change: typeof _value;
 		select: SelectData;
 		share: ShareData;
 		error: string;
@@ -65,20 +67,34 @@
 		}
 		return {
 			file: normalise_file(message?.file, root, proxy_url) as FileData,
-			alt_text: message?.alt_text
+			alt_text: message?.alt_text,
 		};
 	}
 
-	$: _value = value
-		? value.map(([user_msg, bot_msg]) => [
+	$: {
+		if (value === null) {
+			_value = [];
+		} else if (typeof value === "string") {
+			if (_value.length === 0) {
+				_value = [null, null];
+			}
+			if (_value[_value.length - 1][1] === null) {
+				_value[_value.length - 1][1] = value;
+			} else {
+				_value[_value.length - 1][1] += value;
+			}
+			value = _value;
+		} else {
+			_value = value.map(([user_msg, bot_msg]) => [
 				typeof user_msg === "string"
 					? redirect_src_url(user_msg)
 					: normalize_messages(user_msg),
 				typeof bot_msg === "string"
 					? redirect_src_url(bot_msg)
-					: normalize_messages(bot_msg)
-		  ])
-		: [];
+					: normalize_messages(bot_msg),
+			]);
+		}
+	}
 
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height = 400;
@@ -124,7 +140,7 @@
 			pending_message={loading_status?.status === "pending"}
 			{rtl}
 			{show_copy_button}
-			on:change={() => gradio.dispatch("change", value)}
+			on:change={() => gradio.dispatch("change", _value)}
 			on:select={(e) => gradio.dispatch("select", e.detail)}
 			on:like={(e) => gradio.dispatch("like", e.detail)}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
