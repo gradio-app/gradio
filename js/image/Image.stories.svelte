@@ -10,12 +10,7 @@
 		value: {
 			control: "object",
 			description: "The image URL or file to display",
-			name: "value",
-			value: {
-				name: "https://i.ibb.co/6BgKdSj/groot.jpg",
-				is_file: true,
-				data: null
-			}
+			name: "value"
 		},
 		show_download_button: {
 			options: [true, false],
@@ -39,9 +34,9 @@
 	name="Static Image with label and download button"
 	args={{
 		value: {
-			name: "https://i.ibb.co/6BgKdSj/groot.jpg",
-			is_file: true,
-			data: null
+			path: "https://i.ibb.co/6BgKdSj/groot.jpg",
+			url: "https://i.ibb.co/6BgKdSj/groot.jpg",
+			orig_name: "groot.jpg"
 		},
 		show_label: true,
 		show_download_button: true
@@ -52,9 +47,9 @@
 	name="Static Image with no label or download button"
 	args={{
 		value: {
-			name: "https://i.ibb.co/6BgKdSj/groot.jpg",
-			is_file: true,
-			data: null
+			path: "https://i.ibb.co/6BgKdSj/groot.jpg",
+			url: "https://i.ibb.co/6BgKdSj/groot.jpg",
+			orig_name: "groot.jpg"
 		},
 		show_label: false,
 		show_download_button: false
