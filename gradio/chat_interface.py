@@ -242,8 +242,9 @@ class ChatInterface(Blocks):
                 client_utils.synchronize_async(self.examples_handler.cache)
 
             self.saved_input = State()
-            self.chatbot_state = State(self.chatbot.value) if self.chatbot.value else State([])
-            
+            self.chatbot_state = (
+                State(self.chatbot.value) if self.chatbot.value else State([])
+            )
 
             self._setup_events()
             self._setup_api()
