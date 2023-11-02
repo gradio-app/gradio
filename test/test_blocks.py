@@ -624,9 +624,9 @@ class TestBlocksPostprocessing:
             output = await demo.process_api(fn_index, [], state=None)
             assert output["data"][0] == {
                 "__type__": "update",
-                "mode": "dynamic",
+                "interactive": True,
             }
-            assert output["data"][1] == {"__type__": "update", "mode": "dynamic"}
+            assert output["data"][1] == {"__type__": "update", "interactive": True}
 
     def test_error_raised_if_num_outputs_mismatch(self):
         with gr.Blocks() as demo:

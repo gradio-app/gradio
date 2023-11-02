@@ -294,7 +294,7 @@ class TestProcessExamples:
         )
         prediction = io.examples_handler.load_from_cache(0)
         assert prediction == [
-            {"lines": 4, "__type__": "update", "mode": "static"},
+            {"lines": 4, "__type__": "update", "interactive": False},
             gr.Label.data_model(**{"label": "lion", "confidences": None}),
         ]
 

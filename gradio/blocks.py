@@ -374,36 +374,23 @@ def postprocess_update_dict(
     block: Component | BlockContext, update_dict: dict, postprocess: bool = True
 ):
     """
-    Converts a dictionary of updates into a format that can be sent to the frontend.
-    E.g. {"__type__": "update", "value": "2", "interactive": False}
-    Into -> {"__type__": "update", "value": 2.0, "mode": "static"}
+    Converts a dictionary of updates into a format that can be sent to the frontend to update the component.
+    E.g. {"value": "2", "visible": True, "invalid_arg": "hello"}
+    Into -> {"__type__": "update", "value": 2.0, "visible": True}
     Parameters:
         block: The Block that is being updated with this update dictionary.
         update_dict: The original update dictionary
         postprocess: Whether to postprocess the "value" key of the update dictionary.
     """
+    update_dict = {k: update_dict[k] for k in update_dict if hasattr(block, k)}
     if update_dict.get("value") is components._Keywords.NO_VALUE:
         update_dict.pop("value")
-    interactive = update_dict.pop("interactive", None)
-    if interactive is not None:
-        update_dict["mode"] = "dynamic" if interactive else "static"
-    attr_dict = {
-        k: getattr(block, k) if hasattr(block, k) else v for k, v in update_dict.items()
-    }
-    attr_dict["__type__"] = "update"
-    attr_dict.pop("value", None)
-    if "value" in update_dict:
-        if not isinstance(block, components.Component):
-            raise InvalidComponentError(
-                f"Component {block.__class__} does not support value"
-            )
-        if postprocess:
-            attr_dict["value"] = block.postprocess(update_dict["value"])
-            if isinstance(attr_dict["value"], (GradioModel, GradioRootModel)):
-                attr_dict["value"] = attr_dict["value"].model_dump()
-        else:
-            attr_dict["value"] = update_dict["value"]
-    return attr_dict
+    elif "value" in update_dict and postprocess:
+        update_dict["value"] = block.postprocess(update_dict["value"])
+        if isinstance(update_dict["value"], (GradioModel, GradioRootModel)):
+            update_dict["value"] = update_dict["value"].model_dump()
+    update_dict["__type__"] = "update"
+    return update_dict
 
 
 def convert_component_dict_to_list(
