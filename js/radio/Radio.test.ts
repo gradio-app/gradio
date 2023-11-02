@@ -23,16 +23,13 @@ describe("Radio", () => {
 		["dog", "dog"],
 		["cat", "cat"],
 		["turtle", "turtle"]
-	];
+	] as [string, string][];
 
 	test("renders provided value", async () => {
 		const { getAllByRole, getByTestId } = await render(Radio, {
-			show_label: true,
-			loading_status,
 			choices: choices,
 			value: "cat",
-			label: "Radio",
-			interactive: true
+			label: "Radio"
 		});
 
 		assert.equal(
@@ -52,12 +49,9 @@ describe("Radio", () => {
 
 	test("should update the value when a radio is clicked", async () => {
 		const { getByDisplayValue, getByTestId } = await render(Radio, {
-			show_label: true,
-			loading_status,
 			choices: choices,
 			value: "cat",
-			label: "Radio",
-			interactive: true
+			label: "Radio"
 		});
 
 		await event.click(getByDisplayValue("dog"));
@@ -78,5 +72,30 @@ describe("Radio", () => {
 			getByTestId("turtle-radio-label").classList.contains("selected"),
 			true
 		);
+	});
+
+	test("when multiple radios are on the screen, they should not conflict", async () => {
+		const { container } = await render(Radio, {
+			choices: choices,
+			value: "cat",
+			label: "Radio"
+		});
+
+		const { getAllByLabelText } = await render(
+			Radio,
+			{
+				choices: choices,
+				value: "dog",
+				label: "Radio"
+			},
+			container
+		);
+
+		const items = getAllByLabelText("dog") as HTMLInputElement[];
+		expect([items[0].checked, items[1].checked]).toEqual([false, true]);
+
+		await event.click(items[0]);
+
+		expect([items[0].checked, items[1].checked]).toEqual([true, true]);
 	});
 });
