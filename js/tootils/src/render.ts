@@ -46,14 +46,21 @@ export async function render<
 	X extends Record<string, any>
 >(
 	Component: ComponentType<T, Props> | { default: ComponentType<T, Props> },
-	props?: Omit<Props, "gradio">
+	props?: Omit<Props, "gradio">,
+	_container?: HTMLElement
 ): Promise<
 	RenderResult<T> & {
 		listen: typeof listen;
 		wait_for_event: typeof wait_for_event;
 	}
 > {
-	const container = document.body;
+	let container: HTMLElement;
+	if (!_container) {
+		container = document.body;
+	} else {
+		container = _container;
+	}
+
 	const target = container.appendChild(document.createElement("div"));
 
 	const ComponentConstructor: ComponentType<
