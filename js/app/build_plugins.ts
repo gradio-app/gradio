@@ -17,54 +17,11 @@ export function inject_ejs(): Plugin {
 	};
 }
 
-interface PatchDynamicImportOptionms {
-	mode: "cdn" | "local";
-	gradio_version: string;
-	cdn_url: string;
-}
-
-export function patch_dynamic_import({
-	mode,
-	gradio_version,
-	cdn_url
-}: PatchDynamicImportOptionms): Plugin {
-	return {
-		name: "patch-dynamic-import",
-		enforce: "post",
-		writeBundle(config, bundle) {
-			// const import_re = /import\(((?:'|")[\.\/a-zA-Z0-9]*(?:'|"))\)/g;
-			// const import_meta = `${"import"}.${"meta"}.${"url"}`;
-			// for (const file in bundle) {
-			// 	const chunk = bundle[file];
-			// 	if (chunk.type === "chunk") {
-			// 		if (chunk.code.indexOf("import(") > -1) {
-			// 			const fix_fn = `const VERSION_RE = new RegExp("${gradio_version}\/", "g");function import_fix(mod, base) {const url =  new URL(mod, base); return import(\`${cdn_url}\${url.pathname?.startsWith('/') ? url.pathname.substring(1).replace(VERSION_RE, "") : url.pathname.replace(VERSION_RE, "")}\`);}`;
-			// 			chunk.code =
-			// 				fix_fn +
-			// 				chunk.code.replace(import_re, `import_fix($1, ${import_meta})`);
-			// 			if (!config.dir) break;
-			// 			const output_location = join(config.dir, chunk.fileName);
-			// 			writeFileSync(output_location, chunk.code);
-			// 		}
-			// 	}
-			// }
-		}
-	};
-}
-
-export function generate_cdn_entry({
-	enable,
-	cdn_url
-}: {
-	enable: boolean;
-	cdn_url: string;
-}): Plugin {
+export function generate_cdn_entry(): Plugin {
 	return {
 		name: "generate-cdn-entry",
 		enforce: "post",
 		writeBundle(config, bundle) {
-			if (!enable) return;
-
 			if (
 				!config.dir ||
 				!bundle["index.html"] ||
@@ -73,9 +30,10 @@ export function generate_cdn_entry({
 				return;
 
 			const tree = parse(bundle["index.html"].source as string);
+
 			const script =
 				Array.from(tree.querySelectorAll("script[type=module]")).find(
-					(node) => node.attributes.src?.startsWith(cdn_url)
+					(node) => node.attributes.src?.includes("assets")
 				)?.attributes.src || "";
 
 			const output_location = join(config.dir, "gradio.js");
@@ -93,6 +51,7 @@ export function generate_dev_entry({ enable }: { enable: boolean }): Plugin {
 		name: "generate-dev-entry",
 		transform(code, id) {
 			if (!enable) return;
+
 			const new_code = code.replace(RE_SVELTE_IMPORT, (str, $1, $2) => {
 				return `const ${$1.replace(
 					" as ",
@@ -111,10 +70,12 @@ export function generate_dev_entry({ enable }: { enable: boolean }): Plugin {
 function make_entry(script: string): string {
 	const make_script = `
 function make_script(src) {
+		const base = new URL(import.meta.url).origin;
+		const url = new URL(src, base).href;
     const script = document.createElement('script');
     script.type = 'module';
     script.setAttribute("crossorigin", "");
-    script.src = src;
+    script.src = url;
     document.head.appendChild(script);
 }`;
 

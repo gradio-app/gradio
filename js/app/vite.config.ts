@@ -28,7 +28,6 @@ const client_version_raw = JSON.parse(
 
 import {
 	inject_ejs,
-	patch_dynamic_import,
 	generate_cdn_entry,
 	generate_dev_entry,
 	handle_ce_css,
@@ -61,7 +60,7 @@ export default defineConfig(({ mode }) => {
 	const is_lite = mode.endsWith(":lite");
 
 	return {
-		base: is_cdn ? CDN_URL : "./",
+		base: "./",
 
 		server: {
 			port: 9876,
@@ -71,7 +70,8 @@ export default defineConfig(({ mode }) => {
 		build: {
 			sourcemap: true,
 			target: "esnext",
-			minify: production,
+			// minify: production,
+			minify: false,
 			outDir: is_lite ? resolve(__dirname, "../lite/dist") : targets[mode],
 			// To build Gradio-lite as a library, we can't use the library mode
 			// like `lib: is_lite && {}`
@@ -161,12 +161,7 @@ export default defineConfig(({ mode }) => {
 			}),
 			generate_dev_entry({ enable: mode !== "development" && mode !== "test" }),
 			inject_ejs(),
-			patch_dynamic_import({
-				mode: is_cdn ? "cdn" : "local",
-				gradio_version: GRADIO_VERSION,
-				cdn_url: CDN_URL
-			}),
-			generate_cdn_entry({ enable: is_cdn, cdn_url: CDN_URL }),
+			generate_cdn_entry(),
 			handle_ce_css(),
 			inject_component_loader()
 		],
