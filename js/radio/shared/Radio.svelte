@@ -1,9 +1,13 @@
+<script context="module">
+	let id = 0;
+</script>
+
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	export let display_value: string;
 	export let internal_value: string | number;
 	export let disabled = false;
-	export let selected: string | number | null = null;
+	export let selected: string | null = null;
 
 	const dispatch = createEventDispatcher<{ input: string | number }>();
 
@@ -13,12 +17,12 @@
 <label
 	class:disabled
 	class:selected={is_selected}
-	data-testid={`${internal_value}-radio-label`}
+	data-testid="{display_value}-radio-label"
 >
 	<input
 		{disabled}
 		type="radio"
-		name={`radio-${internal_value}`}
+		name="radio-{++id}"
 		value={internal_value}
 		on:input={() => dispatch("input", internal_value)}
 		bind:group={selected}
