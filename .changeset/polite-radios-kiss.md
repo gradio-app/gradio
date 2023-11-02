@@ -1,10 +1,10 @@
 ---
-"@gradio/app": minor
-"@gradio/audio": minor
-"@gradio/tootils": minor
-"@gradio/upload": minor
-"@gradio/video": minor
-"gradio": minor
+"@gradio/app": patch
+"@gradio/audio": patch
+"@gradio/tootils": patch
+"@gradio/upload": patch
+"@gradio/video": patch
+"gradio": patch
 ---
 
-feat:Video/Audio fixes
+fix:Video/Audio fixes
