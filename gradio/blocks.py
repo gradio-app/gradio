@@ -382,7 +382,6 @@ def postprocess_update_dict(
         update_dict: The original update dictionary
         postprocess: Whether to postprocess the "value" key of the update dictionary.
     """
-    # Filter out invalid arguments
     update_dict = {k: update_dict[k] for k in update_dict if hasattr(block, k)}
     if update_dict.get("value") is components._Keywords.NO_VALUE:
         update_dict.pop("value")
