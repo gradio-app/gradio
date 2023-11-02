@@ -43,16 +43,11 @@
 	export async function load_files(
 		files: File[] | Blob[]
 	): Promise<(FileData | null)[] | void> {
-		console.log(files);
 		if (!files.length) {
-			console.log("NO length");
 			return;
 		}
-		console.log("HERE");
 		let _files: File[] = files.map((f) => new File([f], f.name));
-		console.log("HERE 2");
 		let file_data = await prepare_files(_files);
-		console.log("HERE 3");
 		return await handle_upload(file_data);
 	}
 
