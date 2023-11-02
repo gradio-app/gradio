@@ -1,6 +1,6 @@
 ---
-"@gradio/audio": minor
-"gradio": minor
+"@gradio/audio": patch
+"gradio": patch
 ---
 
-feat:audio improvements
+fix:audio improvements
