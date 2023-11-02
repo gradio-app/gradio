@@ -35,7 +35,7 @@
 	let old_value: typeof value = [];
 	function handle_select({
 		node_indices,
-		checked,
+		checked
 	}: {
 		node_indices: number[];
 		checked: boolean;

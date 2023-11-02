@@ -21,7 +21,7 @@
 
 		dispatch("check", {
 			node_indices: [...node_indices, i],
-			checked: !tree[i].checked,
+			checked: !tree[i].checked
 		});
 	}
 </script>
