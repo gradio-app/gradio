@@ -7,7 +7,7 @@
 	export let display_value: string;
 	export let internal_value: string | number;
 	export let disabled = false;
-	export let selected: string | number | null = null;
+	export let selected: string | null = null;
 
 	const dispatch = createEventDispatcher<{ input: string | number }>();
 
@@ -26,7 +26,6 @@
 		value={internal_value}
 		on:input={() => dispatch("input", internal_value)}
 		bind:group={selected}
-		class={++id}
 	/>
 	<span class="ml-2">{display_value}</span>
 </label>
