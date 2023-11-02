@@ -273,7 +273,7 @@ class Component(ComponentBase, Block):
         """
         if self.data_model:
             payload = self.data_model.from_json(payload)
-            flag_dir.mkdir(exist_ok=True)
+            Path(flag_dir).mkdir(exist_ok=True)
             return payload.copy_to_dir(flag_dir).model_dump_json()
         return payload
 
