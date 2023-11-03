@@ -109,6 +109,8 @@ class Image(StreamingInput, Component):
             )
         elif isinstance(sources, str):
             self.sources = [sources]  # type: ignore
+        else:
+            self.sources = sources
         for source in self.sources:  # type: ignore
             if source not in valid_sources:
                 raise ValueError(
