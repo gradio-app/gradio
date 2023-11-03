@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import warnings
 from pathlib import Path
-from typing import Any, Iterable, Literal, cast
+from typing import Any, Literal, cast
 
 import numpy as np
 from gradio_client.documentation import document, set_documentation_group
@@ -50,11 +50,7 @@ class Image(StreamingInput, Component):
         image_mode: Literal[
             "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
         ] = "RGB",
-        sources: Iterable[Literal["upload", "webcam", "clipboard"]] = (
-            "upload",
-            "webcam",
-            "clipboard",
-        ),
+        sources: list[Literal["upload", "webcam", "clipboard"]] | None = None,
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
         every: float | None = None,
@@ -107,9 +103,13 @@ class Image(StreamingInput, Component):
         self.width = width
         self.image_mode = image_mode
         valid_sources = ["upload", "webcam", "clipboard"]
-        if isinstance(sources, str):
-            sources = [sources]  # type: ignore
-        for source in sources:
+        if sources is None:
+            self.sources = (
+                ["webcam"] if streaming else ["upload", "webcam", "clipboard"]
+            )
+        elif isinstance(sources, str):
+            self.sources = [sources]  # type: ignore
+        for source in self.sources:  # type: ignore
             if source not in valid_sources:
                 raise ValueError(
                     f"`sources` must a list consisting of elements in {valid_sources}"
@@ -118,7 +118,7 @@ class Image(StreamingInput, Component):
 
         self.streaming = streaming
         self.show_download_button = show_download_button
-        if streaming and list(self.sources) != ["webcam"]:
+        if streaming and self.sources != ["webcam"]:
             raise ValueError(
                 "Image streaming only available if sources is ['webcam']. Streaming not supported with multiple sources."
             )
@@ -163,7 +163,7 @@ class Image(StreamingInput, Component):
         return FileData(path=image_utils.save_image(value, self.GRADIO_CACHE))
 
     def check_streamable(self):
-        if self.streaming and list(self.sources) != ["webcam"]:
+        if self.streaming and self.sources != ["webcam"]:
             raise ValueError(
                 "Image streaming only available if sources is ['webcam']. Streaming not supported with multiple sources."
             )
