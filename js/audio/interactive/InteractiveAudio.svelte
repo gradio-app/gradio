@@ -53,7 +53,7 @@
 	function get_modules(): void {
 		module_promises = [
 			import("extendable-media-recorder"),
-			import("extendable-media-recorder-wav-encoder"),
+			import("extendable-media-recorder-wav-encoder")
 		];
 	}
 
