@@ -1,14 +1,14 @@
 {
 	"name": "@gradio/video",
-	"version": "0.1.4",
+	"version": "0.1.2",
 	"description": "Gradio UI packages",
 	"type": "module",
-	"main": "index.svelte",
 	"author": "",
 	"license": "ISC",
-	"private": true,
+	"private": false,
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
+		"@gradio/client": "workspace:^",
 		"@gradio/icons": "workspace:^",
 		"@gradio/image": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
@@ -16,11 +16,11 @@
 		"@gradio/utils": "workspace:^",
 		"@gradio/wasm": "workspace:^"
 	},
-	"main_changeset": true,
 	"exports": {
-		"./package.json": "./package.json",
-		"./interactive": "./interactive/index.ts",
-		"./static": "./static/index.ts",
-		"./example": "./example/index.ts"
-	}
+		".": "./index.ts",
+		"./example": "./Example.svelte",
+		"./package.json": "./package.json"
+	},
+	"main": "index.ts",
+	"main_changeset": true
 }

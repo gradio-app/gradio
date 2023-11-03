@@ -9,12 +9,9 @@ new_version=$(python -c "import json; f = open('$FILE', 'r'); data = json.load(f
 GRADIO_VERSION=$new_version
 
 rm -rf gradio/templates/frontend
-rm -rf gradio/templates/cdn
 pnpm i --frozen-lockfile --ignore-scripts
 GRADIO_VERSION=$new_version pnpm build
-GRADIO_VERSION=$new_version pnpm build:cdn
-aws s3 cp gradio/templates/cdn "s3://gradio/${new_version}/" --recursive --region us-west-2
-cp gradio/templates/cdn/index.html gradio/templates/frontend/share.html
+aws s3 cp gradio/templates/frontend "s3://gradio/${new_version}/" --recursive --region us-west-2
 
 rm -rf dist/*
 rm -rf build/*

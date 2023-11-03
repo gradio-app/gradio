@@ -20,8 +20,17 @@
 		"outDir": "dist",
 		"baseUrl": ".",
 		"paths": {
-			"./pure": ["./pure.js"]
-		}
+			"./pure": ["./pure.js"],
+			"@gradio/client": ["./client/js/src/index.ts"]
+		},
+		"plugins": [
+			{
+				"name": "typescript-svelte-plugin",
+				// the following options can be set additionally; they are optional; their default values are listed here
+				"enabled": true, // enables this plugin
+				"assumeIsSvelteProject": false // if true, skip detection and always assume it's a Svelte project
+			}
+		]
 	},
 	"exclude": [
 		"**/_website/**/*",
@@ -41,14 +50,15 @@
 		"**/node_modules/**/*",
 		"**/venv/**/*",
 		"client/js/**",
-		"**/vite.config*"
+		"**/vite.config*",
+		".changeset/*.cjs",
+		"**/storybook-static/**/*"
 	],
 	"include": [
 		"**/*.d.ts",
 		"**/*.js",
 		"**/*.ts",
 		"**/*.svelte",
-		"client/js/**/*",
-		".changeset/*.cjs"
+		"client/js/**/*"
 	]
 }

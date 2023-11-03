@@ -8,8 +8,9 @@ import time
 from pathlib import Path
 from unittest.mock import patch
 
+import httpx
 import pytest
-import websockets
+import requests
 from gradio_client import media_data, utils
 from pydub import AudioSegment
 from starlette.testclient import TestClient
@@ -28,26 +29,41 @@ class TestExamples:
         assert examples.processed_examples == [["hello"]]
 
         examples = gr.Examples(["test/test_files/bus.png"], gr.Image())
-        assert examples.processed_examples == [[media_data.BASE64_IMAGE]]
+        assert (
+            utils.encode_file_to_base64(examples.processed_examples[0][0]["path"])
+            == media_data.BASE64_IMAGE
+        )
 
     def test_handle_multiple_inputs(self):
         examples = gr.Examples(
             [["hello", "test/test_files/bus.png"]], [gr.Textbox(), gr.Image()]
         )
-        assert examples.processed_examples == [["hello", media_data.BASE64_IMAGE]]
+        assert examples.processed_examples[0][0] == "hello"
+        assert (
+            utils.encode_file_to_base64(examples.processed_examples[0][1]["path"])
+            == media_data.BASE64_IMAGE
+        )
 
     def test_handle_directory(self):
         examples = gr.Examples("test/test_files/images", gr.Image())
-        assert examples.processed_examples == [
-            [media_data.BASE64_IMAGE],
-            [media_data.BASE64_IMAGE],
-        ]
+        assert len(examples.processed_examples) == 2
+        for row in examples.processed_examples:
+            for output in row:
+                assert (
+                    utils.encode_file_to_base64(output["path"])
+                    == media_data.BASE64_IMAGE
+                )
 
     def test_handle_directory_with_log_file(self):
         examples = gr.Examples(
             "test/test_files/images_log", [gr.Image(label="im"), gr.Text()]
         )
-        assert examples.processed_examples == [
+        ex = utils.traverse(
+            examples.processed_examples,
+            lambda s: utils.encode_file_to_base64(s["path"]),
+            lambda x: isinstance(x, dict) and Path(x["path"]).exists(),
+        )
+        assert ex == [
             [media_data.BASE64_IMAGE, "hello"],
             [media_data.BASE64_IMAGE, "hi"],
         ]
@@ -67,17 +83,24 @@ class TestExamples:
                 examples=["test/test_files/bus.png"],
                 inputs=image,
                 outputs=textbox,
-                fn=lambda x: x,
+                fn=lambda x: x["path"],
                 cache_examples=True,
                 preprocess=False,
             )
 
         prediction = examples.load_from_cache(0)
-        assert prediction == [media_data.BASE64_IMAGE]
+        assert utils.encode_file_to_base64(prediction[0]) == media_data.BASE64_IMAGE
 
     def test_no_postprocessing(self):
         def im(x):
-            return [media_data.BASE64_IMAGE]
+            return [
+                {
+                    "image": {
+                        "path": "test/test_files/bus.png",
+                    },
+                    "caption": "hi",
+                }
+            ]
 
         with gr.Blocks():
             text = gr.Textbox()
@@ -93,8 +116,10 @@ class TestExamples:
             )
 
         prediction = examples.load_from_cache(0)
-        file = prediction[0][0][0]["name"]
-        assert utils.encode_url_or_file_to_base64(file) == media_data.BASE64_IMAGE
+        file = prediction[0].root[0].image.path
+        assert utils.encode_url_or_file_to_base64(
+            file
+        ) == utils.encode_url_or_file_to_base64("test/test_files/bus.png")
 
 
 @patch("gradio.helpers.CACHED_FOLDER", tempfile.mkdtemp())
@@ -209,7 +234,9 @@ class TestProcessExamples:
             cache_examples=True,
         )
         prediction = io.examples_handler.load_from_cache(0)
-        assert prediction[0].startswith("data:image/png;base64,iVBORw0KGgoAAA")
+        assert utils.encode_url_or_file_to_base64(prediction[0].path).startswith(
+            "data:image/png;base64,iVBORw0KGgoAAA"
+        )
 
     def test_caching_audio(self):
         io = gr.Interface(
@@ -220,7 +247,7 @@ class TestProcessExamples:
             cache_examples=True,
         )
         prediction = io.examples_handler.load_from_cache(0)
-        file = prediction[0]["name"]
+        file = prediction[0].path
         assert utils.encode_url_or_file_to_base64(file).startswith(
             "data:audio/wav;base64,UklGRgA/"
         )
@@ -267,8 +294,8 @@ class TestProcessExamples:
         )
         prediction = io.examples_handler.load_from_cache(0)
         assert prediction == [
-            {"lines": 4, "__type__": "update", "mode": "static"},
-            {"label": "lion"},
+            {"lines": 4, "__type__": "update", "interactive": False},
+            gr.Label.data_model(**{"label": "lion", "confidences": None}),
         ]
 
     def test_caching_with_generators(self):
@@ -303,7 +330,7 @@ class TestProcessExamples:
         )
         prediction = io.examples_handler.load_from_cache(0)
         len_input_audio = len(AudioSegment.from_wav(audio))
-        len_output_audio = len(AudioSegment.from_wav(prediction[0]["name"]))
+        len_output_audio = len(AudioSegment.from_wav(prediction[0].path))
         length_ratio = len_output_audio / len_input_audio
         assert round(length_ratio, 1) == 3.0  # might not be exactly 3x
         assert float(prediction[1]) == 10.0
@@ -453,10 +480,44 @@ class TestProcessExamples:
         client = TestClient(app)
 
         response = client.post("/api/load_example/", json={"data": [0]})
-        assert response.json()["data"] == ["Hello,"]
+        assert response.json()["data"] == [
+            {
+                "lines": 1,
+                "max_lines": 20,
+                "show_label": True,
+                "container": True,
+                "min_width": 160,
+                "autofocus": False,
+                "autoscroll": True,
+                "elem_classes": [],
+                "rtl": False,
+                "show_copy_button": False,
+                "__type__": "update",
+                "visible": True,
+                "value": "Hello,",
+                "type": "text",
+            }
+        ]
 
         response = client.post("/api/load_example/", json={"data": [1]})
-        assert response.json()["data"] == ["Michael"]
+        assert response.json()["data"] == [
+            {
+                "lines": 1,
+                "max_lines": 20,
+                "show_label": True,
+                "container": True,
+                "min_width": 160,
+                "autofocus": False,
+                "autoscroll": True,
+                "elem_classes": [],
+                "rtl": False,
+                "show_copy_button": False,
+                "__type__": "update",
+                "visible": True,
+                "value": "Michael",
+                "type": "text",
+            }
+        ]
 
     def test_end_to_end_cache_examples(self):
         def concatenate(str1, str2):
@@ -491,8 +552,8 @@ def test_multiple_file_flagging(tmp_path):
         io = gr.Interface(
             fn=lambda *x: list(x),
             inputs=[
-                gr.Image(source="upload", type="filepath", label="frame 1"),
-                gr.Image(source="upload", type="filepath", label="frame 2"),
+                gr.Image(type="filepath", label="frame 1"),
+                gr.Image(type="filepath", label="frame 2"),
             ],
             outputs=[gr.Files()],
             examples=[["test/test_files/cheetah1.jpg", "test/test_files/bus.png"]],
@@ -500,8 +561,8 @@ def test_multiple_file_flagging(tmp_path):
         )
         prediction = io.examples_handler.load_from_cache(0)
 
-        assert len(prediction[0]) == 2
-        assert all(isinstance(d, dict) for d in prediction[0])
+        assert len(prediction[0].root) == 2
+        assert all(isinstance(d, gr.FileData) for d in prediction[0].root)
 
 
 def test_examples_keep_all_suffixes(tmp_path):
@@ -520,11 +581,13 @@ def test_examples_keep_all_suffixes(tmp_path):
             cache_examples=True,
         )
         prediction = io.examples_handler.load_from_cache(0)
-        assert Path(prediction[0]["name"]).read_text() == "file 1"
-        assert prediction[0]["orig_name"] == "foo.bar.txt"
+        assert Path(prediction[0].path).read_text() == "file 1"
+        assert prediction[0].orig_name == "foo.bar.txt"
+        assert prediction[0].path.endswith("foo.bar.txt")
         prediction = io.examples_handler.load_from_cache(1)
-        assert Path(prediction[0]["name"]).read_text() == "file 2"
-        assert prediction[0]["orig_name"] == "foo.bar.txt"
+        assert Path(prediction[0].path).read_text() == "file 2"
+        assert prediction[0].orig_name == "foo.bar.txt"
+        assert prediction[0].path.endswith("foo.bar.txt")
 
 
 def test_make_waveform_with_spaces_in_filename():
@@ -598,22 +661,35 @@ class TestProgressBar:
             button.click(greet, name, greeting)
         demo.queue(max_size=1).launch(prevent_thread_lock=True)
 
-        async with websockets.connect(
-            f"{demo.local_url.replace('http', 'ws')}queue/join"
-        ) as ws:
-            completed = False
-            progress_updates = []
-            while not completed:
-                msg = json.loads(await ws.recv())
-                if msg["msg"] == "send_data":
-                    await ws.send(json.dumps({"data": [0], "fn_index": 0}))
-                if msg["msg"] == "send_hash":
-                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
-                if msg["msg"] == "progress":
-                    progress_updates.append(msg["progress_data"])
-                if msg["msg"] == "process_completed":
-                    completed = True
-                    break
+        progress_updates = []
+        async with httpx.AsyncClient() as client:
+            async with client.stream(
+                "GET",
+                f"http://localhost:{demo.server_port}/queue/join",
+                params={"fn_index": 0, "session_hash": "shdce"},
+            ) as response:
+                async for line in response.aiter_text():
+                    if line.startswith("data:"):
+                        msg = json.loads(line[5:])
+                    if msg["msg"] == "send_data":
+                        event_id = msg["event_id"]
+                        req = requests.post(
+                            f"http://localhost:{demo.server_port}/queue/data",
+                            json={
+                                "event_id": event_id,
+                                "data": [0],
+                                "fn_index": 0,
+                            },
+                        )
+                        if not req.ok:
+                            raise ValueError(
+                                f"Could not send payload to endpoint: {req.text}"
+                            )
+                    if msg["msg"] == "progress":
+                        progress_updates.append(msg["progress_data"])
+                    if msg["msg"] == "process_completed":
+                        break
+
         assert progress_updates == [
             [
                 {
@@ -651,24 +727,35 @@ class TestProgressBar:
             button.click(greet, name, greeting)
         demo.queue(max_size=1).launch(prevent_thread_lock=True)
 
-        async with websockets.connect(
-            f"{demo.local_url.replace('http', 'ws')}queue/join"
-        ) as ws:
-            completed = False
-            progress_updates = []
-            while not completed:
-                msg = json.loads(await ws.recv())
-                if msg["msg"] == "send_data":
-                    await ws.send(json.dumps({"data": [0], "fn_index": 0}))
-                if msg["msg"] == "send_hash":
-                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
-                if (
-                    msg["msg"] == "progress" and msg["progress_data"]
-                ):  # Ignore empty lists which sometimes appear on Windows
-                    progress_updates.append(msg["progress_data"])
-                if msg["msg"] == "process_completed":
-                    completed = True
-                    break
+        progress_updates = []
+        async with httpx.AsyncClient() as client:
+            async with client.stream(
+                "GET",
+                f"http://localhost:{demo.server_port}/queue/join",
+                params={"fn_index": 0, "session_hash": "shdce"},
+            ) as response:
+                async for line in response.aiter_text():
+                    if line.startswith("data:"):
+                        msg = json.loads(line[5:])
+                    if msg["msg"] == "send_data":
+                        event_id = msg["event_id"]
+                        req = requests.post(
+                            f"http://localhost:{demo.server_port}/queue/data",
+                            json={
+                                "event_id": event_id,
+                                "data": [0],
+                                "fn_index": 0,
+                            },
+                        )
+                        if not req.ok:
+                            raise ValueError(
+                                f"Could not send payload to endpoint: {req.text}"
+                            )
+                    if msg["msg"] == "progress":
+                        progress_updates.append(msg["progress_data"])
+                    if msg["msg"] == "process_completed":
+                        break
+
         assert progress_updates == [
             [
                 {
@@ -725,24 +812,35 @@ class TestProgressBar:
         demo = gr.Interface(greet, "text", "text")
         demo.queue().launch(prevent_thread_lock=True)
 
-        async with websockets.connect(
-            f"{demo.local_url.replace('http', 'ws')}queue/join"
-        ) as ws:
-            completed = False
-            progress_updates = []
-            while not completed:
-                msg = json.loads(await ws.recv())
-                if msg["msg"] == "send_data":
-                    await ws.send(json.dumps({"data": ["abc"], "fn_index": 0}))
-                if msg["msg"] == "send_hash":
-                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
-                if (
-                    msg["msg"] == "progress" and msg["progress_data"]
-                ):  # Ignore empty lists which sometimes appear on Windows
-                    progress_updates.append(msg["progress_data"])
-                if msg["msg"] == "process_completed":
-                    completed = True
-                    break
+        progress_updates = []
+        async with httpx.AsyncClient() as client:
+            async with client.stream(
+                "GET",
+                f"http://localhost:{demo.server_port}/queue/join",
+                params={"fn_index": 0, "session_hash": "shdce"},
+            ) as response:
+                async for line in response.aiter_text():
+                    if line.startswith("data:"):
+                        msg = json.loads(line[5:])
+                    if msg["msg"] == "send_data":
+                        event_id = msg["event_id"]
+                        req = requests.post(
+                            f"http://localhost:{demo.server_port}/queue/data",
+                            json={
+                                "event_id": event_id,
+                                "data": ["abc"],
+                                "fn_index": 0,
+                            },
+                        )
+                        if not req.ok:
+                            raise ValueError(
+                                f"Could not send payload to endpoint: {req.text}"
+                            )
+                    if msg["msg"] == "progress":
+                        progress_updates.append(msg["progress_data"])
+                    if msg["msg"] == "process_completed":
+                        break
+
         assert progress_updates == [
             [
                 {
@@ -786,24 +884,35 @@ class TestProgressBar:
         demo = gr.Interface(greet, "text", "text")
         demo.queue().launch(prevent_thread_lock=True)
 
-        async with websockets.connect(
-            f"{demo.local_url.replace('http', 'ws')}queue/join"
-        ) as ws:
-            completed = False
-            log_messages = []
-            while not completed:
-                msg = json.loads(await ws.recv())
-                if msg["msg"] == "send_data":
-                    await ws.send(json.dumps({"data": ["abc"], "fn_index": 0}))
-                if msg["msg"] == "send_hash":
-                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
-                if (
-                    msg["msg"] == "log"
-                ):  # Ignore empty lists which sometimes appear on Windows
-                    log_messages.append([msg["log"], msg["level"]])
-                if msg["msg"] == "process_completed":
-                    completed = True
-                    break
+        log_messages = []
+        async with httpx.AsyncClient() as client:
+            async with client.stream(
+                "GET",
+                f"http://localhost:{demo.server_port}/queue/join",
+                params={"fn_index": 0, "session_hash": "shdce"},
+            ) as response:
+                async for line in response.aiter_text():
+                    if line.startswith("data:"):
+                        msg = json.loads(line[5:])
+                    if msg["msg"] == "send_data":
+                        event_id = msg["event_id"]
+                        req = requests.post(
+                            f"http://localhost:{demo.server_port}/queue/data",
+                            json={
+                                "event_id": event_id,
+                                "data": ["abc"],
+                                "fn_index": 0,
+                            },
+                        )
+                        if not req.ok:
+                            raise ValueError(
+                                f"Could not send payload to endpoint: {req.text}"
+                            )
+                    if msg["msg"] == "log":
+                        log_messages.append([msg["log"], msg["level"]])
+                    if msg["msg"] == "process_completed":
+                        break
+
         assert log_messages == [
             ["Letter a", "info"],
             ["Letter b", "info"],
@@ -825,26 +934,46 @@ async def test_info_isolation(async_handler: bool):
         gr.Info(f"Hello {name}")
         return name
 
-    demo = gr.Interface(greet_async if async_handler else greet_sync, "text", "text")
-    demo.queue(concurrency_count=2).launch(prevent_thread_lock=True)
+    demo = gr.Interface(
+        greet_async if async_handler else greet_sync,
+        "text",
+        "text",
+        concurrency_limit=2,
+    )
+    demo.launch(prevent_thread_lock=True)
 
     async def session_interaction(name, delay=0):
         await asyncio.sleep(delay)
-        async with websockets.connect(
-            f"{demo.local_url.replace('http', 'ws')}queue/join"
-        ) as ws:
-            log_messages = []
-            while True:
-                msg = json.loads(await ws.recv())
-                if msg["msg"] == "send_data":
-                    await ws.send(json.dumps({"data": [name], "fn_index": 0}))
-                if msg["msg"] == "send_hash":
-                    await ws.send(json.dumps({"fn_index": 0, "session_hash": name}))
-                if msg["msg"] == "log":
-                    log_messages.append(msg["log"])
-                if msg["msg"] == "process_completed":
-                    break
-            return log_messages
+
+        log_messages = []
+        async with httpx.AsyncClient() as client:
+            async with client.stream(
+                "GET",
+                f"http://localhost:{demo.server_port}/queue/join",
+                params={"fn_index": 0, "session_hash": name},
+            ) as response:
+                async for line in response.aiter_text():
+                    if line.startswith("data:"):
+                        msg = json.loads(line[5:])
+                    if msg["msg"] == "send_data":
+                        event_id = msg["event_id"]
+                        req = requests.post(
+                            f"http://localhost:{demo.server_port}/queue/data",
+                            json={
+                                "event_id": event_id,
+                                "data": [name],
+                                "fn_index": 0,
+                            },
+                        )
+                        if not req.ok:
+                            raise ValueError(
+                                f"Could not send payload to endpoint: {req.text}"
+                            )
+                    if msg["msg"] == "log":
+                        log_messages.append(msg["log"])
+                    if msg["msg"] == "process_completed":
+                        break
+        return log_messages
 
     alice_logs, bob_logs = await asyncio.gather(
         session_interaction("Alice"),

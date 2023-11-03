@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { afterNavigate } from "$app/navigation";
-	import InteractiveCode from "@gradio/code/interactive";
+	import Code from "@gradio/code";
 	import Slider from "./Slider.svelte";
 	import Fullscreen from "./icons/Fullscreen.svelte";
 	import Close from "./icons/Close.svelte";
@@ -57,11 +57,11 @@
 	$: code = demos.find((demo) => demo.name === current_selection)?.code || "";
 	$: requirements =
 		demos.find((demo) => demo.name === current_selection)?.requirements || [];
-	
+
 	$: if (mounted) {
 		if (timeout) {
-            clearTimeout(timeout);
-        }
+			clearTimeout(timeout);
+		}
 		timeout = setTimeout(() => {
 			update(code, requirements);
 		}, 1000);
@@ -75,7 +75,6 @@
 	}
 	let preview_width = 100;
 	let lg_breakpoint = false;
-	
 
 	$: lg_breakpoint = preview_width - 13 >= 688;
 </script>
@@ -97,20 +96,21 @@
 			{#each demos as demo, i}
 				<div
 					hidden={current_selection !== demo.name}
-					class="code-editor w-full border-r hidden sm:block"
+					class="code-editor w-full border-r"
 					style="width: {position * 100}%"
 				>
 					<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2">
 						<h3 class="pt-1">Code</h3>
 					</div>
 
-					<InteractiveCode
+					<Code
 						bind:value={demos[i].code}
 						label=""
 						language="python"
 						target={dummy_elem}
 						gradio={dummy_gradio}
 						lines={10}
+						interactive="true"
 					/>
 				</div>
 			{/each}
@@ -121,26 +121,44 @@
 				class:fullscreen
 				bind:clientWidth={preview_width}
 			>
-				<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2 ml-0 sm:ml-2">
+				<div
+					class="flex justify-between align-middle h-8 border-b pl-4 pr-2 ml-0 sm:ml-2"
+				>
 					<div class="flex align-middle">
 						<h3 class="pr-2 pt-1">Preview</h3>
-						<p class="pt-1.5 text-sm text-gray-600 hidden sm:block">{preview_width - 13}px</p>
-						<p 
-						class:text-orange-300={lg_breakpoint}
-						class:text-gray-300={!lg_breakpoint}
-						class="pt-2 text-sm pl-2 w-6  hidden sm:block">
+						<p class="pt-1.5 text-sm text-gray-600 hidden sm:block">
+							{preview_width - 13}px
+						</p>
+						<p
+							class:text-orange-300={lg_breakpoint}
+							class:text-gray-300={!lg_breakpoint}
+							class="pt-2 text-sm pl-2 w-6 hidden sm:block"
+						>
 							<svg viewBox="0 0 110 100" xmlns="http://www.w3.org/2000/svg">
-								<rect width="50" height="100"  rx="15" fill="currentColor"/>
-								<rect x="60" width="50" height="100" rx="15" fill="currentColor" />
+								<rect width="50" height="100" rx="15" fill="currentColor" />
+								<rect
+									x="60"
+									width="50"
+									height="100"
+									rx="15"
+									fill="currentColor"
+								/>
 							</svg>
 						</p>
-						<p 
-						class:text-orange-300={!lg_breakpoint}
-						class:text-gray-300={lg_breakpoint}
-						class="pt-2 text-sm pl-2 w-6  hidden sm:block">
+						<p
+							class:text-orange-300={!lg_breakpoint}
+							class:text-gray-300={lg_breakpoint}
+							class="pt-2 text-sm pl-2 w-6 hidden sm:block"
+						>
 							<svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
-								<rect width="110" height="45"  rx="15" fill="currentColor"/>
-								<rect y="50" width="110" height="45" rx="15" fill="currentColor" />
+								<rect width="110" height="45" rx="15" fill="currentColor" />
+								<rect
+									y="50"
+									width="110"
+									height="45"
+									rx="15"
+									fill="currentColor"
+								/>
 							</svg>
 						</p>
 					</div>
@@ -205,7 +223,7 @@
 	}
 
 	.fullscreen {
-		position: fixed !important; 
+		position: fixed !important;
 		top: 0;
 		left: 0;
 		width: 100%;
@@ -221,5 +239,4 @@
 			width: 100% !important;
 		}
 	}
-
 </style>

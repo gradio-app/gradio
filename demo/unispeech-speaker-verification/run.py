@@ -76,8 +76,8 @@ def similarity_fn(path1, path2):
 
 
 inputs = [
-    gr.Audio(source="microphone", type="filepath", optional=True, label="Speaker #1"),
-    gr.Audio(source="microphone", type="filepath", optional=True, label="Speaker #2"),
+    gr.Audio(sources=["microphone"], type="filepath", label="Speaker #1"),
+    gr.Audio(sources=["microphone"], type="filepath", label="Speaker #2"),
 ]
 output = gr.HTML(label="")
 
@@ -108,7 +108,6 @@ demo = gr.Interface(
     title="Voice Authentication with UniSpeech-SAT + X-Vectors",
     description=description,
     article=article,
-    layout="horizontal",
     allow_flagging="never",
     live=False,
     examples=examples,

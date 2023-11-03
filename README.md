@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[<img src="readme_files/gradio.svg" alt="gradio" width=300>](https://gradio.app)<br>
+[<img src="readme_files/gradio.svg" alt="gradio" width=400>](https://gradio.app)<br>
 <em>Build & share delightful machine learning apps easily</em>
 
 [![gradio-backend](https://github.com/gradio-app/gradio/actions/workflows/backend.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/backend.yml)
@@ -36,7 +36,7 @@ Gradio is useful for:
 
 - **Deploying** your models quickly with automatic shareable links and getting feedback on model performance.
 
-- **Debugging** your model interactively during development using built-in manipulation and interpretation tools.
+- **Debugging** your model interactively during development using built-in input manipulation tools tools.
 
 ## Quickstart
 
@@ -163,7 +163,7 @@ def sepia(input_img):
     sepia_img /= sepia_img.max()
     return sepia_img
 
-demo = gr.Interface(sepia, gr.Image(shape=(200, 200)), "image")
+demo = gr.Interface(sepia, gr.Image(width=200, height=200), "image")
 demo.launch()
 ```
 

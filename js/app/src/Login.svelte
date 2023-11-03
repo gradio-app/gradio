@@ -1,8 +1,9 @@
 <script lang="ts">
 	import Form from "@gradio/form";
-	import Textbox from "@gradio/textbox/interactive";
-	import { BaseButton } from "@gradio/button/static";
+	import { BaseTextbox as Textbox } from "@gradio/textbox";
+	import { BaseButton } from "@gradio/button";
 	import Column from "@gradio/column";
+	import { Block } from "@gradio/atoms";
 	import { _ } from "svelte-i18n";
 	export let root: string;
 	export let auth_message: string | null;
@@ -47,23 +48,28 @@
 			<p class="creds">{$_("login.incorrect_credentials")}</p>
 		{/if}
 		<Form>
-			<Textbox
-				label="username"
-				lines={1}
-				show_label={true}
-				max_lines={1}
-				on:submit={submit}
-				bind:value={username}
-			/>
-			<Textbox
-				label="password"
-				lines={1}
-				show_label={true}
-				max_lines={1}
-				type="password"
-				on:submit={submit}
-				bind:value={password}
-			/>
+			<Block>
+				<Textbox
+					label="username"
+					lines={1}
+					show_label={true}
+					max_lines={1}
+					on:submit={submit}
+					bind:value={username}
+				/>
+			</Block>
+
+			<Block>
+				<Textbox
+					label="password"
+					lines={1}
+					show_label={true}
+					max_lines={1}
+					type="password"
+					on:submit={submit}
+					bind:value={password}
+				/>
+			</Block>
 		</Form>
 
 		<BaseButton size="lg" variant="primary" on:click={submit}

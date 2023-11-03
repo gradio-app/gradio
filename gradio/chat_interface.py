@@ -16,13 +16,13 @@ from gradio.blocks import Blocks
 from gradio.components import (
     Button,
     Chatbot,
-    IOComponent,
+    Component,
     Markdown,
     State,
     Textbox,
     get_component_instance,
 )
-from gradio.events import Dependency, EventListenerMethod, on
+from gradio.events import Dependency, on
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args
 from gradio.layouts import Accordion, Column, Group, Row
@@ -59,7 +59,7 @@ class ChatInterface(Blocks):
         *,
         chatbot: Chatbot | None = None,
         textbox: Textbox | None = None,
-        additional_inputs: str | IOComponent | list[str | IOComponent] | None = None,
+        additional_inputs: str | Component | list[str | Component] | None = None,
         additional_inputs_accordion_name: str = "Additional Inputs",
         examples: list[str] | None = None,
         cache_examples: bool | None = None,
@@ -115,7 +115,7 @@ class ChatInterface(Blocks):
             self.cache_examples = True
         else:
             self.cache_examples = cache_examples or False
-        self.buttons: list[Button] = []
+        self.buttons: list[Button | None] = []
 
         if additional_inputs:
             if not isinstance(additional_inputs, list):
@@ -146,7 +146,9 @@ class ChatInterface(Blocks):
                         if textbox:
                             textbox.container = False
                             textbox.show_label = False
-                            self.textbox = textbox.render()
+                            textbox_ = textbox.render()
+                            assert isinstance(textbox_, Textbox)
+                            self.textbox = textbox_
                         else:
                             self.textbox = Textbox(
                                 container=False,
@@ -186,7 +188,7 @@ class ChatInterface(Blocks):
                                 raise ValueError(
                                     f"The stop_btn parameter must be a gr.Button, string, or None, not {type(stop_btn)}"
                                 )
-                        self.buttons.extend([submit_btn, stop_btn])
+                        self.buttons.extend([submit_btn, stop_btn])  # type: ignore
 
                 with Row():
                     for btn in [retry_btn, undo_btn, clear_btn]:
@@ -199,7 +201,7 @@ class ChatInterface(Blocks):
                                 raise ValueError(
                                     f"All the _btn parameters must be a gr.Button, string, or None, not {type(btn)}"
                                 )
-                        self.buttons.append(btn)
+                        self.buttons.append(btn)  # type: ignore
 
                     self.fake_api_btn = Button("Fake API", visible=False)
                     self.fake_response_textbox = Textbox(
@@ -240,7 +242,9 @@ class ChatInterface(Blocks):
                 client_utils.synchronize_async(self.examples_handler.cache)
 
             self.saved_input = State()
-            self.chatbot_state = State([])
+            self.chatbot_state = (
+                State(self.chatbot.value) if self.chatbot.value else State([])
+            )
 
             self._setup_events()
             self._setup_api()
@@ -327,7 +331,7 @@ class ChatInterface(Blocks):
             )
 
     def _setup_stop_events(
-        self, event_triggers: list[EventListenerMethod], event_to_cancel: Dependency
+        self, event_triggers: list[Callable], event_to_cancel: Dependency
     ) -> None:
         if self.stop_btn and self.is_generator:
             if self.submit_btn:

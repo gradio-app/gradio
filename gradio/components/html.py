@@ -2,20 +2,18 @@
 
 from __future__ import annotations
 
-import warnings
-from typing import Any, Callable, Literal
+from typing import Any, Callable
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import StringSerializable
 
-from gradio.components.base import IOComponent, _Keywords
-from gradio.events import Changeable
+from gradio.components.base import Component
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class HTML(Changeable, IOComponent, StringSerializable):
+class HTML(Component):
     """
     Used to display arbitrary HTML output.
     Preprocessing: this component does *not* accept input.
@@ -24,6 +22,8 @@ class HTML(Changeable, IOComponent, StringSerializable):
     Demos: text_analysis
     Guides: key-features
     """
+
+    EVENTS = [Events.change]
 
     def __init__(
         self,
@@ -35,45 +35,38 @@ class HTML(Changeable, IOComponent, StringSerializable):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        **kwargs,
+        render: bool = True,
     ):
         """
         Parameters:
             value: Default value. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            label: component name in interface.
+            label: The label for this component. Is used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
-            show_label: if True, will display label.
+            show_label: This parameter has no effect.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
         """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            render=render,
             value=value,
-            **kwargs,
         )
 
-    @staticmethod
-    def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        label: str | None = None,
-        show_label: bool | None = None,
-        visible: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.HTML(...)` instead of `return gr.HTML.update(...)`."
-        )
-        updated_config = {
-            "label": label,
-            "show_label": show_label,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
-        return updated_config
+    def example_inputs(self) -> Any:
+        return "<p>Hello</p>"
+
+    def preprocess(self, payload: str | None) -> str | None:
+        return payload
+
+    def postprocess(self, value: str | None) -> str | None:
+        return value
+
+    def api_info(self) -> dict[str, Any]:
+        return {"type": "string"}

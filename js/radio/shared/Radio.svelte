@@ -1,63 +1,46 @@
-<script lang="ts">
-	import { createEventDispatcher, afterUpdate } from "svelte";
-	import { BlockTitle } from "@gradio/atoms";
-	import type { SelectData } from "@gradio/utils";
-
-	export let value: string | number | null;
-	export let value_is_output = false;
-	export let choices: [string, string | number][];
-	export let disabled = false;
-	export let label: string;
-	export let info: string | undefined = undefined;
-	export let show_label = true;
-	export let elem_id: string;
-
-	const dispatch = createEventDispatcher<{
-		change: string | number | null;
-		input: undefined;
-		select: SelectData;
-	}>();
-
-	function handle_change(): void {
-		dispatch("change", value);
-		if (!value_is_output) {
-			dispatch("input");
-		}
-	}
-	afterUpdate(() => {
-		value_is_output = false;
-	});
-	$: value, handle_change();
+<script context="module">
+	let id = 0;
 </script>
 
-<BlockTitle {show_label} {info}>{label}</BlockTitle>
+<script lang="ts">
+	import { createEventDispatcher } from "svelte";
+	export let display_value: string;
+	export let internal_value: string | number;
+	export let disabled = false;
+	export let selected: string | null = null;
 
-<div class="wrap">
-	{#each choices as choice, i (i)}
-		<label
-			class:disabled
-			class:selected={value === choice[1]}
-			data-testid={`${choice[1]}-radio-label`}
-		>
-			<input
-				{disabled}
-				bind:group={value}
-				on:input={() => dispatch("select", { value: choice[1], index: i })}
-				type="radio"
-				name="radio-{elem_id}"
-				value={choice[1]}
-			/>
-			<span class="ml-2">{choice[0]}</span>
-		</label>
-	{/each}
-</div>
+	const dispatch = createEventDispatcher<{ input: string | number }>();
+	let is_selected = false;
+
+	async function handle_input(
+		selected: string | null,
+		internal_value: string | number
+	): Promise<void> {
+		is_selected = selected === internal_value;
+		if (is_selected) {
+			dispatch("input", internal_value);
+		}
+	}
+
+	$: handle_input(selected, internal_value);
+</script>
+
+<label
+	class:disabled
+	class:selected={is_selected}
+	data-testid="{display_value}-radio-label"
+>
+	<input
+		{disabled}
+		type="radio"
+		name="radio-{++id}"
+		value={internal_value}
+		bind:group={selected}
+	/>
+	<span class="ml-2">{display_value}</span>
+</label>
 
 <style>
-	.wrap {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--checkbox-label-gap);
-	}
 	label {
 		display: flex;
 		align-items: center;

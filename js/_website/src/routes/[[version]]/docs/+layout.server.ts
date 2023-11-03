@@ -33,6 +33,8 @@ export async function load({ params, url }) {
 	let modals = docs_json.docs.modals || [];
 	let routes = docs_json.docs.routes;
 	let py_client = docs_json.docs["py-client"];
+	let js = docs_json.js || {};
+	let js_pages = docs_json.js_pages || [];
 	let js_client = docs_json.js_client;
 	let on_main = params.version === "main";
 	let wheel: string = WHEEL;
@@ -45,9 +47,11 @@ export async function load({ params, url }) {
 		modals,
 		routes,
 		py_client,
-		js_client,
+		js,
+		js_pages,
 		on_main,
 		wheel,
-		pages
+		pages,
+		js_client
 	};
 }

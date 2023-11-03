@@ -6,31 +6,15 @@ import warnings
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import SimpleSerializable
 
-from gradio.components.base import FormComponent, IOComponent, _Keywords
-from gradio.deprecation import warn_style_method_deprecation
-from gradio.events import (
-    Changeable,
-    EventListenerMethod,
-    Focusable,
-    Inputable,
-    Selectable,
-)
+from gradio.components.base import FormComponent
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class Dropdown(
-    FormComponent,
-    Changeable,
-    Inputable,
-    Selectable,
-    Focusable,
-    IOComponent,
-    SimpleSerializable,
-):
+class Dropdown(FormComponent):
     """
     Creates a dropdown of choices from which entries can be selected.
     Preprocessing: passes the value of the selected dropdown entry as a {str} or its index as an {int} into the function, depending on `type`.
@@ -38,6 +22,8 @@ class Dropdown(
     Examples-format: a {str} representing the drop down value to select.
     Demos: sentence_builder, titanic_survival
     """
+
+    EVENTS = [Events.change, Events.input, Events.select, Events.focus, Events.blur]
 
     def __init__(
         self,
@@ -60,7 +46,7 @@ class Dropdown(
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        **kwargs,
+        render: bool = True,
     ):
         """
         Parameters:
@@ -71,7 +57,7 @@ class Dropdown(
             allow_custom_value: If True, allows user to enter a custom value that is not in the list of choices.
             max_choices: maximum number of choices that can be selected. If None, no limit is enforced.
             filterable: If True, user will be able to type into the dropdown and filter the choices by typing. Can only be set to False if `allow_custom_value` is False.
-            label: component name in interface.
+            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             info: additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
@@ -82,6 +68,7 @@ class Dropdown(
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
         """
         self.choices = (
             # Although we expect choices to be a list of tuples, it can be a list of tuples if the Gradio app
@@ -110,16 +97,8 @@ class Dropdown(
             )
         self.max_choices = max_choices
         self.allow_custom_value = allow_custom_value
-        self.interpret_by_tokens = False
         self.filterable = filterable
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user selects Dropdown option.
-        Uses event data gradio.SelectData to carry `value` referring to label of selected option, and `index` to refer to index.
-        See EventData documentation on how to use this event data.
-        """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             info=info,
             every=every,
@@ -131,145 +110,77 @@ class Dropdown(
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            render=render,
             value=value,
-            **kwargs,
         )
 
-    def api_info(self) -> dict[str, dict | bool]:
+    def api_info(self) -> dict[str, Any]:
         if self.multiselect:
-            type = {
+            json_type = {
                 "type": "array",
-                "items": {"type": "string"},
-                "description": f"List of options from: {self.choices}",
+                "items": {"type": "string", "enum": [c[1] for c in self.choices]},
             }
         else:
-            type = {"type": "string", "description": f"Option from: {self.choices}"}
-        return {"info": type, "serialized_info": False}
+            json_type = {
+                "type": "string",
+                "enum": [c[1] for c in self.choices],
+            }
+        return json_type
 
-    def example_inputs(self) -> dict[str, Any]:
+    def example_inputs(self) -> Any:
         if self.multiselect:
-            return {
-                "raw": [self.choices[0]] if self.choices else [],
-                "serialized": [self.choices[0]] if self.choices else [],
-            }
+            return [self.choices[0][1]] if self.choices else []
         else:
-            return {
-                "raw": self.choices[0] if self.choices else None,
-                "serialized": self.choices[0] if self.choices else None,
-            }
-
-    @staticmethod
-    def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        choices: str | list[str | tuple[str, str]] | None = None,
-        label: str | None = None,
-        info: str | None = None,
-        show_label: bool | None = None,
-        filterable: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        placeholder: str | None = None,
-        visible: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Dropdown(...)` instead of `return gr.Dropdown.update(...)`."
-        )
-        choices = (
-            None
-            if choices is None
-            else [c if isinstance(c, tuple) else (str(c), c) for c in choices]
-        )
-        return {
-            "choices": choices,
-            "label": label,
-            "info": info,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "interactive": interactive,
-            "placeholder": placeholder,
-            "filterable": filterable,
-            "__type__": "update",
-        }
+            return self.choices[0][1] if self.choices else None
 
     def preprocess(
-        self, x: str | int | float | list[str | int | float] | None
+        self, payload: str | int | float | list[str | int | float] | None
     ) -> str | int | float | list[str | int | float] | list[int | None] | None:
-        """
-        Parameters:
-            x: selected choice(s)
-        Returns:
-            selected choice(s) as string or index within choice list or list of string or indices
-        """
         if self.type == "value":
-            return x
+            return payload
         elif self.type == "index":
             choice_values = [value for _, value in self.choices]
-            if x is None:
+            if payload is None:
                 return None
             elif self.multiselect:
-                assert isinstance(x, list)
+                assert isinstance(payload, list)
                 return [
                     choice_values.index(choice) if choice in choice_values else None
-                    for choice in x
+                    for choice in payload
                 ]
             else:
-                return choice_values.index(x) if x in choice_values else None
+                return (
+                    choice_values.index(payload) if payload in choice_values else None
+                )
         else:
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
 
-    def _warn_if_invalid_choice(self, y):
-        if self.allow_custom_value or y in [value for _, value in self.choices]:
+    def _warn_if_invalid_choice(self, value):
+        if self.allow_custom_value or value in [value for _, value in self.choices]:
             return
         warnings.warn(
-            f"The value passed into gr.Dropdown() is not in the list of choices. Please update the list of choices to include: {y} or set allow_custom_value=True."
+            f"The value passed into gr.Dropdown() is not in the list of choices. Please update the list of choices to include: {value} or set allow_custom_value=True."
         )
 
-    def postprocess(self, y):
-        if y is None:
+    def postprocess(
+        self, value: str | int | float | list[str | int | float] | None
+    ) -> str | int | float | list[str | int | float] | None:
+        if value is None:
             return None
         if self.multiselect:
-            [self._warn_if_invalid_choice(_y) for _y in y]
+            if not isinstance(value, list):
+                value = [value]
+            [self._warn_if_invalid_choice(_y) for _y in value]
         else:
-            self._warn_if_invalid_choice(y)
-        return y
-
-    def set_interpret_parameters(self):
-        """
-        Calculates interpretation score of each choice by comparing the output against each of the outputs when alternative choices are selected.
-        """
-        return self
-
-    def get_interpretation_neighbors(self, x):
-        choices = list(self.choices)
-        choices.remove(x)
-        return choices, {}
-
-    def get_interpretation_scores(
-        self, x, neighbors, scores: list[float | None], **kwargs
-    ) -> list:
-        """
-        Returns:
-            Each value represents the interpretation score corresponding to each choice.
-        """
-        scores.insert(self.choices.index(x), None)
-        return scores
-
-    def style(self, *, container: bool | None = None, **kwargs):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if container is not None:
-            self.container = container
-        return self
+            self._warn_if_invalid_choice(value)
+        return value
 
     def as_example(self, input_data):
+        if self.multiselect:
+            return [
+                next((c[0] for c in self.choices if c[1] == data), None)
+                for data in input_data
+            ]
         return next((c[0] for c in self.choices if c[1] == input_data), None)

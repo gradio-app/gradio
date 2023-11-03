@@ -11,7 +11,6 @@ import json
 import json.decoder
 import os
 import pkgutil
-import random
 import re
 import threading
 import traceback
@@ -36,7 +35,6 @@ from typing import (
 import anyio
 import matplotlib
 import requests
-from gradio_client.serializing import Serializable
 from typing_extensions import ParamSpec
 
 import gradio
@@ -44,7 +42,7 @@ from gradio.context import Context
 from gradio.strings import en
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio.blocks import Block, BlockContext, Blocks
+    from gradio.blocks import BlockContext, Blocks
     from gradio.components import Component
     from gradio.routes import App, Request
 
@@ -96,8 +94,8 @@ class BaseReloader(ABC):
         assert self.running_app.blocks
         # Copy over the blocks to get new components and events but
         # not a new queue
-        if hasattr(self.running_app.blocks, "_queue"):
-            self.running_app.blocks._queue.blocks_dependencies = demo.dependencies
+        if self.running_app.blocks._queue:
+            self.running_app.blocks._queue.block_fns = demo.fns
             demo._queue = self.running_app.blocks._queue
         self.running_app.blocks = demo
 
@@ -147,7 +145,7 @@ def watchfn(reloader: SourceFileReloader):
     # The thread running watchfn will be the thread reloading
     # the app. So we need to modify this thread_data attr here
     # so that subsequent calls to reload don't launch the app
-    from gradio.reload import reload_thread
+    from gradio.cli.commands.reload import reload_thread
 
     reload_thread.running_reload = True
 
@@ -173,10 +171,13 @@ def watchfn(reloader: SourceFileReloader):
 
     module = None
     reload_dirs = [Path(dir_) for dir_ in reloader.watch_dirs]
+    import sys
+
+    for dir_ in reload_dirs:
+        sys.path.insert(0, str(dir_))
+
     mtimes = {}
     while reloader.should_watch():
-        import sys
-
         changed = get_changes()
         if changed:
             print(f"Changes detected in: {changed}")
@@ -286,12 +287,6 @@ def readme_to_html(article: str) -> str:
     except requests.exceptions.RequestException:
         pass
     return article
-
-
-def show_tip(interface: gradio.Blocks) -> None:
-    if interface.show_tips and random.random() < 1.5:
-        tip: str = random.choice(en["TIPS"])
-        print(f"Tip: {tip}")
 
 
 def launch_counter() -> None:
@@ -527,6 +522,15 @@ def set_directory(path: Path | str):
         yield
     finally:
         os.chdir(origin)
+
+
+@contextmanager
+def no_raise_exception():
+    """Context manager that suppresses exceptions."""
+    try:
+        yield
+    except Exception:
+        pass
 
 
 def sanitize_value_for_csv(value: str | Number) -> str | Number:
@@ -824,23 +828,6 @@ def check_function_inputs_match(fn: Callable, inputs: list, inputs_as_dict: bool
         )
 
 
-def concurrency_count_warning(queue: Callable[P, T]) -> Callable[P, T]:
-    @functools.wraps(queue)
-    def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-        _self, *positional = args
-        if is_zero_gpu_space() and (
-            len(positional) >= 1 or "concurrency_count" in kwargs
-        ):
-            warnings.warn(
-                "Queue concurrency_count on ZeroGPU Spaces cannot be overridden "
-                "and is always equal to Block's max_threads. "
-                "Consider setting max_threads value on the Block instead"
-            )
-        return queue(*args, **kwargs)
-
-    return wrapper
-
-
 class TupleNoPrint(tuple):
     # To remove printing function return in notebook
     def __repr__(self):
@@ -869,7 +856,7 @@ def tex2svg(formula, *args):
         fig = plt.figure(figsize=(0.01, 0.01))
         fig.text(0, 0, rf"${formula}$", fontsize=fontsize)
         output = BytesIO()
-        fig.savefig(
+        fig.savefig(  # type: ignore
             output,
             dpi=dpi,
             transparent=True,
@@ -930,41 +917,6 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path):
     return True
 
 
-def get_serializer_name(block: Block) -> str | None:
-    if not hasattr(block, "serialize"):
-        return None
-
-    def get_class_that_defined_method(meth: Callable):
-        # Adapted from: https://stackoverflow.com/a/25959545/5209347
-        if isinstance(meth, functools.partial):
-            return get_class_that_defined_method(meth.func)
-        if inspect.ismethod(meth) or (
-            inspect.isbuiltin(meth)
-            and getattr(meth, "__self__", None) is not None
-            and getattr(meth.__self__, "__class__", None)
-        ):
-            for cls in inspect.getmro(meth.__self__.__class__):
-                # Find the first serializer defined in gradio_client that
-                if issubclass(cls, Serializable) and "gradio_client" in cls.__module__:
-                    return cls
-                if meth.__name__ in cls.__dict__:
-                    return cls
-            meth = getattr(meth, "__func__", meth)  # fallback to __qualname__ parsing
-        if inspect.isfunction(meth):
-            cls = getattr(
-                inspect.getmodule(meth),
-                meth.__qualname__.split(".<locals>", 1)[0].rsplit(".", 1)[0],
-                None,
-            )
-            if isinstance(cls, type):
-                return cls
-        return getattr(meth, "__objclass__", None)
-
-    cls = get_class_that_defined_method(block.serialize)  # type: ignore
-    if cls:
-        return cls.__name__
-
-
 HTML_TAG_RE = re.compile("<.*?>")
 
 
@@ -985,3 +937,16 @@ def find_user_stack_level() -> int:
         frame = frame.f_back
         n += 1
     return n
+
+
+class NamedString(str):
+    """
+    Subclass of str that includes a .name attribute equal to the value of the string itself. This class is used when returning
+    a value from the `.preprocess()` methods of the File and UploadButton components. Before Gradio 4.0, these methods returned a file
+    object which was then converted to a string filepath using the `.name` attribute. In Gradio 4.0, these methods now return a str
+    filepath directly, but to maintain backwards compatibility, we use this class instead of a regular str.
+    """
+
+    def __init__(self, *args):
+        super().__init__()
+        self.name = str(self) if args else ""
