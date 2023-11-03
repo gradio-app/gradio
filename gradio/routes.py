@@ -25,12 +25,11 @@ from pathlib import Path
 from queue import Empty as EmptyQueue
 from typing import TYPE_CHECKING, Any, AsyncIterator, Dict, List, Optional, Type
 
-import anyio
 import fastapi
 import httpx
 import markupsafe
 import orjson
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
     FileResponse,
@@ -115,6 +114,11 @@ templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 templates.env.filters["toorjson"] = toorjson
 
 client = httpx.AsyncClient()
+
+
+def copy_uploaded_files_to_cache(files: list[str], destinations: list[str]) -> None:
+    for file, dest in zip(files, destinations):
+        shutil.copy(file, dest)
 
 
 class App(FastAPI):
@@ -678,7 +682,7 @@ class App(FastAPI):
             return app.get_blocks()._queue.get_estimation()
 
         @app.post("/upload", dependencies=[Depends(login_check)])
-        async def upload_file(request: fastapi.Request):
+        async def upload_file(request: fastapi.Request, bg_tasks: BackgroundTasks):
             content_type_header = request.headers.get("Content-Type")
             content_type: bytes
             content_type, _ = parse_options_header(content_type_header)
@@ -697,6 +701,7 @@ class App(FastAPI):
                 raise HTTPException(status_code=400, detail=exc.message) from exc
 
             output_files = []
+            locations: list[str] = []
             for temp_file in form.getlist("files"):
                 assert isinstance(temp_file, GradioUploadFile)
                 if temp_file.filename:
@@ -707,13 +712,9 @@ class App(FastAPI):
                 directory = Path(app.uploaded_file_dir) / temp_file.sha.hexdigest()
                 directory.mkdir(exist_ok=True, parents=True)
                 dest = (directory / name).resolve()
-                await anyio.to_thread.run_sync(
-                    shutil.move,
-                    temp_file.file.name,
-                    dest,
-                    limiter=app.get_blocks().limiter,
-                )
+                locations.append(temp_file.file.name)
                 output_files.append(dest)
+            bg_tasks.add_task(copy_uploaded_files_to_cache, locations, output_files)
             return output_files
 
         @app.on_event("startup")
