@@ -116,9 +116,9 @@ templates.env.filters["toorjson"] = toorjson
 client = httpx.AsyncClient()
 
 
-def copy_uploaded_files_to_cache(files: list[str], destinations: list[str]) -> None:
+def move_uploaded_files_to_cache(files: list[str], destinations: list[str]) -> None:
     for file, dest in zip(files, destinations):
-        shutil.copy(file, dest)
+        shutil.move(file, dest)
 
 
 class App(FastAPI):
@@ -701,6 +701,7 @@ class App(FastAPI):
                 raise HTTPException(status_code=400, detail=exc.message) from exc
 
             output_files = []
+            files_to_copy = []
             locations: list[str] = []
             for temp_file in form.getlist("files"):
                 assert isinstance(temp_file, GradioUploadFile)
@@ -712,9 +713,17 @@ class App(FastAPI):
                 directory = Path(app.uploaded_file_dir) / temp_file.sha.hexdigest()
                 directory.mkdir(exist_ok=True, parents=True)
                 dest = (directory / name).resolve()
-                locations.append(temp_file.file.name)
+                temp_file.file.close()
+                # we need to move the temp file to the cache directory
+                # but we
+                try:
+                    os.rename(temp_file.file.name, dest)
+                except OSError:
+                    files_to_copy.append(temp_file.file.name)
+                    locations.append(temp_file.file.name)
                 output_files.append(dest)
-            bg_tasks.add_task(copy_uploaded_files_to_cache, locations, output_files)
+            if files_to_copy:
+                bg_tasks.add_task(move_uploaded_files_to_cache, files_to_copy, locations)
             return output_files
 
         @app.on_event("startup")
