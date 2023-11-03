@@ -44,6 +44,14 @@
 		border: 1px solid var(--button-secondary-border-color);
 	}
 
+	.padded {
+		padding: 2px;
+		background: var(--background-fill-primary);
+
+		box-shadow: var(--shadow-drop);
+		border: 1px solid var(--button-secondary-border-color);
+	}
+
 	button:hover,
 	button.highlight {
 		cursor: pointer;
