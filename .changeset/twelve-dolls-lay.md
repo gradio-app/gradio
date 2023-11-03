@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:ensure Dataframe updates as expected
+fix:ensure `gr.Dataframe` updates as expected
