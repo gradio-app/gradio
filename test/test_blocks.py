@@ -1536,3 +1536,10 @@ def test_recover_kwargs():
         ["value"],
     )
     assert props == {"format": "wav", "autoplay": False}
+
+
+def test_deprecation_warning_emitted_when_concurrency_count_set():
+    with pytest.raises(DeprecationWarning):
+        gr.Interface(lambda x: x, gr.Textbox(), gr.Textbox()).queue(
+            concurrency_count=12
+        )
