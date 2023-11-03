@@ -2087,6 +2087,11 @@ class TestColorPicker:
 
 
 class TestGallery:
+    def test_postprocess(self):
+        url = "https://huggingface.co/Norod78/SDXL-VintageMagStyle-Lora/resolve/main/Examples/00015-20230906102032-7778-Wonderwoman VintageMagStyle   _lora_SDXL-VintageMagStyle-Lora_1_, Very detailed, clean, high quality, sharp image.jpg"
+        gallery = gr.Gallery([url])
+        assert gallery.get_config()["value"][0]["image"]["path"] == url
+
     @patch("uuid.uuid4", return_value="my-uuid")
     def test_gallery(self, mock_uuid):
         gallery = gr.Gallery()
