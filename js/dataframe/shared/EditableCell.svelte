@@ -43,12 +43,10 @@
 	}
 
 	function handle_blur({
-		currentTarget,
-		preventDefault
+		currentTarget
 	}: Event & {
 		currentTarget: HTMLInputElement;
 	}): void {
-		preventDefault();
 		value = currentTarget.value;
 		dispatch("blur");
 	}
