@@ -85,6 +85,7 @@ Gradio 4.0 is a new major version, and includes breaking changes from 3.x. Here'
 * Changes the format of flagged data to json instead of filepath for media and chatbot
 * Removes `gr.Series` and `gr.Parallel`
 * All API endpoints are named by deafult. If `api_name=None`, the api name is the name of the python function.
+* When using the gradio Client libraries in 3.x with any component that returned JSON data (including `gr.Chatbot`, `gr.Label`, and `gr.JSON`), the data would get saved to a file and the filepath would be returned. Similarly, you would have to pass input JSON as a filepath. Now, the JSON data is passed and returned directly, making it easier to work with these components using the clients. 
 
 **Migrating to Gradio 4.0**
 
