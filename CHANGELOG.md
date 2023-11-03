@@ -74,17 +74,22 @@ Gradio 4.0 is a new major version, and includes breaking changes from 3.x. Here'
 * Removes `show_edit_button` param from `gr.Audio``
 
 
-**Other Parts of Gradio**:
+**Other changes related to the `gradio` library**:
 
 * Removes the deprecated `status_tracker` parameter from events
 * Removes the deprecated `HuggingFaceDatasetJSONSaver` class
 * Now `Blocks.load()` can only be use an is instance method to attach an event that runs when the page loads. To use the class method, use `gr.load()` instead
 * Similarly, `Interface.load()` has been removed
+* If you are runnin Gradio 4.x, you can not `gr.load` a Space that is running Gradio 3.x. However, you can still use the client libraries (see changes to the client libraries below).
 * Removes deprecated parameters, such as `enable_queue` from `launch()`
 * Many of the positional arguments in launch() are now keyword only, and show_tips has been removed
 * Changes the format of flagged data to json instead of filepath for media and chatbot
 * Removes `gr.Series` and `gr.Parallel`
 * All API endpoints are named by deafult. If `api_name=None`, the api name is the name of the python function.
+
+
+**Changes related to the Client libraries**:
+
 * When using the gradio Client libraries in 3.x with any component that returned JSON data (including `gr.Chatbot`, `gr.Label`, and `gr.JSON`), the data would get saved to a file and the filepath would be returned. Similarly, you would have to pass input JSON as a filepath. Now, the JSON data is passed and returned directly, making it easier to work with these components using the clients. 
 
 **Migrating to Gradio 4.0**
