@@ -99,6 +99,11 @@ class TestTempFileManagement:
         f = processing_utils.save_url_to_cache(url2, cache_dir=gradio_temp_dir)
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
 
+    def test_save_url_to_cache_with_spaces(self, gradio_temp_dir):
+        url = "https://huggingface.co/datasets/freddyaboulton/gradio-reviews/resolve/main00015-20230906102032-7778-Wonderwoman VintageMagStyle   _lora_SDXL-VintageMagStyle-Lora_1_, Very detailed, clean, high quality, sharp image.jpg"
+        processing_utils.save_url_to_cache(url, cache_dir=gradio_temp_dir)
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
+
 
 class TestImagePreprocessing:
     def test_decode_base64_to_image(self):

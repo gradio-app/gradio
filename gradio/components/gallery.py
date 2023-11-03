@@ -7,6 +7,7 @@ from typing import Any, Callable, List, Literal, Optional
 
 import numpy as np
 from gradio_client.documentation import document, set_documentation_group
+from gradio_client.utils import is_http_url_like
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
@@ -138,6 +139,7 @@ class Gallery(Component):
             return GalleryData(root=[])
         output = []
         for img in value:
+            url = None
             caption = None
             if isinstance(img, (tuple, list)):
                 img, caption = img
@@ -151,12 +153,16 @@ class Gallery(Component):
                     img, cache_dir=self.GRADIO_CACHE
                 )
                 file_path = str(utils.abspath(file))
-            elif isinstance(img, (str, Path)):
+            elif isinstance(img, str):
+                file_path = img
+                url = img if is_http_url_like(img) else None
+            elif isinstance(img, Path):
                 file_path = str(img)
             else:
                 raise ValueError(f"Cannot process type as image: {type(img)}")
-
-            entry = GalleryImage(image=FileData(path=file_path), caption=caption)
+            entry = GalleryImage(
+                image=FileData(path=file_path, url=url), caption=caption
+            )
             output.append(entry)
         return GalleryData(root=output)
 
