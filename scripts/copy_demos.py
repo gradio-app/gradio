@@ -13,7 +13,6 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         "blocks_group",
         "blocks_js_methods",
         "blocks_layout",
-        "blocks_mask",
         "blocks_multiple_event_triggers",
         "blocks_update",
         "calculator",

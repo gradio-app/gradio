@@ -14,8 +14,8 @@ examples = [
 
 demo = gr.Interface(
     fn=generate,
-    inputs=gr.inputs.Textbox(lines=5, label="Input Text"),
-    outputs=gr.outputs.Textbox(label="Generated Text"),
+    inputs=gr.Textbox(lines=5, label="Input Text"),
+    outputs=gr.Textbox(label="Generated Text"),
     examples=examples
 )
 

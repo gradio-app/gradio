@@ -77,7 +77,7 @@ def segment(input):
 
 import gradio as gr
 
-i = gr.Image(shape=(112, 112), label="Echocardiogram")
+i = gr.Image(label="Echocardiogram")
 o = gr.Image(label="Segmentation Mask")
 
 examples = [["img1.jpg"], ["img2.jpg"]]
@@ -85,4 +85,4 @@ title = None #"Left Ventricle Segmentation"
 description = "This semantic segmentation model identifies the left ventricle in echocardiogram images."
 # videos. Accurate evaluation of the motion and size of the left ventricle is crucial for the assessment of cardiac function and ejection fraction. In this interface, the user inputs apical-4-chamber images from echocardiography videos and the model will output a prediction of the localization of the left ventricle in blue. This model was trained on the publicly released EchoNet-Dynamic dataset of 10k echocardiogram videos with 20k expert annotations of the left ventricle and published as part of ‘Video-based AI for beat-to-beat assessment of cardiac function’ by Ouyang et al. in Nature, 2020."
 thumbnail = "https://raw.githubusercontent.com/gradio-app/hub-echonet/master/thumbnail.png"
-gr.Interface(segment, i, o, examples=examples, allow_flagging=False, analytics_enabled=False, thumbnail=thumbnail, cache_examples=False).launch()
+gr.Interface(segment, i, o, examples=examples, analytics_enabled=False, thumbnail=thumbnail, cache_examples=False).launch()

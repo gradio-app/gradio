@@ -15,8 +15,8 @@ def predict(inp):
   return confidences
 
 demo = gr.Interface(fn=predict, 
-             inputs=gr.inputs.Image(type="pil"),
-             outputs=gr.outputs.Label(num_top_classes=3),
+             inputs=gr.Image(type="pil"),
+             outputs=gr.Label(num_top_classes=3),
              examples=[["cheetah.jpg"]],
              )
              

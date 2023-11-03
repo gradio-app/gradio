@@ -25,7 +25,7 @@ with block:
     with gr.Tabs():
         with gr.TabItem("Blocks Party Leaderboard"):
             with gr.Row():
-                data = gr.outputs.Dataframe(type="pandas")
+                data = gr.Dataframe(type="pandas")
             with gr.Row():
                 data_run = gr.Button("Refresh")
                 data_run.click(get_blocks_party_spaces, inputs=None, outputs=data)

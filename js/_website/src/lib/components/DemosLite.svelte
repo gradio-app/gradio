@@ -110,6 +110,7 @@
 						target={dummy_elem}
 						gradio={dummy_gradio}
 						lines={10}
+						interactive="true"
 					/>
 				</div>
 			{/each}

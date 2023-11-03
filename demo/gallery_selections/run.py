@@ -17,7 +17,7 @@ with gr.Blocks() as demo:
     demo.load(generate_images, None, [gallery, imgs])
 
     with gr.Row():
-        selected = gr.Number(show_label=False, placeholder="Selected")
+        selected = gr.Number(show_label=False)
         darken_btn = gr.Button("Darken selected")
 
     def get_select_index(evt: gr.SelectData):

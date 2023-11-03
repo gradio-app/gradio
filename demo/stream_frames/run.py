@@ -6,7 +6,7 @@ def flip(im):
 
 demo = gr.Interface(
     flip, 
-    gr.Image(source="webcam", streaming=True), 
+    gr.Image(sources=["webcam"], streaming=True), 
     "image",
     live=True
 )

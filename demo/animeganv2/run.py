@@ -27,8 +27,8 @@ examples=[['groot.jpeg','version 2 (🔺 robustness,🔻 stylization)'],['gongyo
 
 demo = gr.Interface(
     fn=inference, 
-    inputs=[gr.inputs.Image(type="pil"),gr.inputs.Radio(['version 1 (🔺 stylization, 🔻 robustness)','version 2 (🔺 robustness,🔻 stylization)'], type="value", default='version 2 (🔺 robustness,🔻 stylization)', label='version')], 
-    outputs=gr.outputs.Image(type="pil"),
+    inputs=[gr.Image(type="pil"),gr.Radio(['version 1 (🔺 stylization, 🔻 robustness)','version 2 (🔺 robustness,🔻 stylization)'], type="value", value='version 2 (🔺 robustness,🔻 stylization)', label='version')], 
+    outputs=gr.Image(type="pil"),
     title=title,
     description=description,
     article=article,
