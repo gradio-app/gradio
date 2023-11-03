@@ -88,9 +88,42 @@ Gradio 4.0 is a new major version, and includes breaking changes from 3.x. Here'
 
 **Tips about Migrating to Gradio 4.0**
 
-* Since the working directory is now not served by default, if you reference local files within your CSS or in a `gr.HTML` component, you will need to explicitly allow access to those files using the `allowed_paths` parameter in `launch()`
+* Since the working directory is now not served by default, if you reference local files within your CSS or in a `gr.HTML` component using the `/file=` route, you will need to explicitly allow access to those files (or their parent directories) using the `allowed_paths` parameter in `launch()`
 
-For example, 
+For example, if your code looks like this:
+
+```py
+import gradio as gr
+
+with gr.Blocks() as demo:
+    gr.HTML("<img src='/file=image.png' alt='image One'>")
+    
+demo.launch()
+```
+
+In order for the HTML component to be able to serve `image.png`, you will need to add `image.png` in `allowed_paths` like this:
+
+```py
+import gradio as gr
+
+with gr.Blocks() as demo:
+    gr.HTML("<img src='/file=image.png' alt='image One'>")
+    
+demo.launch(allowed_paths=["image.png"])
+```
+
+or if you want to expose all files in your working directory as was the case in Gradio 3.x (not recommended if you plan to share your app with others), you could do:
+
+```py
+import gradio as gr
+
+with gr.Blocks() as demo:
+    gr.HTML("<img src='/file=image.png' alt='image One'>")
+    
+demo.launch(allowed_paths=["."])
+```
+
+
 
 
 ### Features
