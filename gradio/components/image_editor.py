@@ -117,8 +117,6 @@ class ImageEditor(Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        root_url: str | None = None,
-        _skip_init_processing: bool = False,
         mirror_webcam: bool = True,
         show_share_button: bool | None = None,
         _selectable: bool = False,
@@ -148,7 +146,6 @@ class ImageEditor(Component):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
-            root_url: The remote URL that of the Gradio app that this component belongs to. Used in `gr.load()`. Should not be set manually.
             mirror_webcam: If True webcam will be mirrored. Default is True.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             data_mode: The format to receive data from the component. "image" returns an image, "pathline" returns a list of points and a radius.
@@ -202,8 +199,6 @@ class ImageEditor(Component):
             elem_id=elem_id,
             elem_classes=elem_classes,
             render=render,
-            root_url=root_url,
-            _skip_init_processing=_skip_init_processing,
             value=value,
         )
 
@@ -289,7 +284,7 @@ class ImageEditor(Component):
             return ""
         input_data = str(input_data)
         # If an externally hosted image or a URL, don't convert to absolute path
-        if self.root_url or client_utils.is_http_url_like(input_data):
+        if self.proxy_url or client_utils.is_http_url_like(input_data):
             return input_data
         return str(utils.abspath(input_data))
 
