@@ -1,5 +1,11 @@
 # @gradio/gallery
 
+## 0.4.2
+
+### Fixes
+
+- [#6277](https://github.com/gradio-app/gradio/pull/6277) [`5fe091367`](https://github.com/gradio-app/gradio/commit/5fe091367fbe0eecdd504aa734ca1c70b0621f52) - handle selected_index prop change for gallery.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.4.1
 
 ### Patch Changes
