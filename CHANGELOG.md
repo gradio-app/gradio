@@ -42,25 +42,49 @@
 
 ## 4.0.0
 
-**v4.0 is a big release, so here are the main highlights:** (full list of changes below)
+### Highlights
 
-**Custom Components**: 
-We've introduced the ability to create and publish you own custom gradio components. 
+4.0 is a big release, so here are the main highlights:
+
+**1. Custom Components**: 
+We've introduced the ability to create and publish you own custom `gradio` components. A custom Gradio component is a combination of Python and JavaScript (specifically, Svelte) that you can write to fully customize a Gradio component. A custom component can be used just like a regular Gradio component (with `gr.Interface`, `gr.Blocks`, etc.) and can be published so that other users can use it within their apps. To get started with Custom Components, [read our quickstart guide here](https://www.gradio.app/guides/five-minute-guide).
+
 <img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMm9pbzhvaTd1MTFlM3FrMmRweTh1ZWZiMmpvemhpNnVvaXVoeDZ2byZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/V3N5jnv0D1eKbPYins/giphy.gif">
 
-**Redesigned Media Components and Accessaibility**:
-We redesigned our media components from scratch and improved accessibilty across the board.
+**2. Redesigned Media Components and Accessibility**:
+
+We redesigned our media components (`gr.Audio`, `gr.Image`, and `gr.Video`) from scratch and improved accessibilty across the board. All components are now keyboard navigable and include better colors to be usable by a wider audience.
+
 <img src="https://media0.giphy.com/media/Kv1bAN7MX3ya5krkEU/giphy.gif">
 
-**Server Side Events**: 
-We now use Server Side Events instead of Websockets. SSE means everything is served over HTTP: better device support and better scaling.
+**3. Server Side Events**: 
+
+Gradio's built-in queuing system is now the default for every Gradio app. We now use Server Side Events instead of Websockets for the queue. SSE means everything is served over HTTP and has better device support and better scaling than websockets.
+
 <img style="width:50%" src="https://i.imgur.com/ewUIuUc.png">
 
-**Custom Share Servers**: 
-We now support using any custom share server for your gradio share links.
+**4. Custom Share Servers**: 
+
+Gradio share links can now run on custom domains. You can now set up your own server to serve Gradio share links. To get started, [read our guide here](https://github.com/huggingface/frp/).
+
 <img style="width:50%" src="https://i.imgur.com/VFWVsqn.png">
 
-**Here's a list of all the breaking changes:**
+5. We now support adding arbitrary JS to your apps using the `js` parameter in Blocks, and arbitrary modifications to the <head> of your app using the `head` parameter in Blocks
+
+6. We no longer expose a user's working directory by default when you release a Gradio app. There are some other improvements around security as well.
+
+7. Previously, a Gradio app's API endpoints were exposed, allowing you to bypass the queue. As a Gradio developer, you needed to set `api_open=False` to prevent this misuse. We've now made this the default.
+
+8. You can now control whether a user should be able to trigger the same event multiple times (by using the `trigger_mode` parameter of each event)
+
+9. You now have fine-grained control over how many times each event can be running concurrently in the backend (using the `concurrency_limit` parameter of each event)
+
+10. We no longer serialize images into base64 before sending them to the server or on the way back. This should make any Gradio app that includes `gr.Image` components much faster.
+
+
+### Breaking Changes
+
+Gradio 4.0 is a new major version, and includes breaking changes from 3.x. Here's a list of all the breaking changes, along with migration steps where appropriate.
 
 **Components**: 
 
@@ -73,21 +97,81 @@ We now support using any custom share server for your gradio share links.
 * Removes `get_interpretation_neighbors()` and `get_interpretation_scores()` from component classes
 * Removes `deprecation.py` -- this was designed for internal usage so unlikely to break gradio apps
 * Moves save to cache methods from component methods to standalone functions in processing_utils
-* Renames source param in gr.Audio and gr.Video to sources
-* Removes show_edit_button param from gr.Audio
+* Renames `source` param in `gr.Audio` and `gr.Video` to `sources`
+* Removes `show_edit_button` param from `gr.Audio``
 
 
-**Other Parts of Gradio**:
+**Other changes related to the `gradio` library**:
 
 * Removes the deprecated `status_tracker` parameter from events
 * Removes the deprecated `HuggingFaceDatasetJSONSaver` class
 * Now `Blocks.load()` can only be use an is instance method to attach an event that runs when the page loads. To use the class method, use `gr.load()` instead
 * Similarly, `Interface.load()` has been removed
+* If you are runnin Gradio 4.x, you can not `gr.load` a Space that is running Gradio 3.x. However, you can still use the client libraries (see changes to the client libraries below).
 * Removes deprecated parameters, such as `enable_queue` from `launch()`
 * Many of the positional arguments in launch() are now keyword only, and show_tips has been removed
-* Changes the format of flagged data to json instead of filepath for media
-* Removes gr.Series and gr.Parallel
+* Changes the format of flagged data to json instead of filepath for media and chatbot
+* Removes `gr.Series` and `gr.Parallel`
 * All API endpoints are named by deafult. If `api_name=None`, the api name is the name of the python function.
+
+
+**Changes related to the Client libraries**:
+
+* When using the gradio Client libraries in 3.x with any component that returned JSON data (including `gr.Chatbot`, `gr.Label`, and `gr.JSON`), the data would get saved to a file and the filepath would be returned. Similarly, you would have to pass input JSON as a filepath. Now, the JSON data is passed and returned directly, making it easier to work with these components using the clients. 
+
+**Migrating to Gradio 4.0**
+
+Here are some concrete tips to help migrate to Gradio 4.0:
+
+* **Using `allowed_paths`**
+
+Since the working directory is now not served by default, if you reference local files within your CSS or in a `gr.HTML` component using the `/file=` route, you will need to explicitly allow access to those files (or their parent directories) using the `allowed_paths` parameter in `launch()`
+
+For example, if your code looks like this:
+
+```py
+import gradio as gr
+
+with gr.Blocks() as demo:
+    gr.HTML("<img src='/file=image.png' alt='image One'>")
+    
+demo.launch()
+```
+
+In order for the HTML component to be able to serve `image.png`, you will need to add `image.png` in `allowed_paths` like this:
+
+```py
+import gradio as gr
+
+with gr.Blocks() as demo:
+    gr.HTML("<img src='/file=image.png' alt='image One'>")
+    
+demo.launch(allowed_paths=["image.png"])
+```
+
+or if you want to expose all files in your working directory as was the case in Gradio 3.x (not recommended if you plan to share your app with others), you could do:
+
+```py
+import gradio as gr
+
+with gr.Blocks() as demo:
+    gr.HTML("<img src='/file=image.png' alt='image One'>")
+    
+demo.launch(allowed_paths=["."])
+```
+
+
+* **Using `concurrency_limit` instead of `concurrency_count`**
+
+Previously, in Gradio 3.x, there was a single global `concurrency_count` parameter that controlled how many threads could execute tasks from the queue simultaneously. By default `concurrency_count` was 1, which meant that only a single event could be executed at a time (to avoid OOM errors when working with prediction functions that utilized a large amount of memory or GPU usage). You could bypass the queue by setting `queue=False`. 
+
+In Gradio 4.0, the `concurrency_count` parameter has been removed. You can still control the number of total threads by using the `max_threads` parameter. The default value of this parameter is `40`, but you don't have worry (as much) about OOM errors, because even though there are 40 threads, we use a single-worker-single-event model, which means each worker thread only executes a specific function. So effectively, each function has its own "concurrency count" of 1. If you'd like to change this behavior, you can do so by setting a parameter `concurrency_limit`, which is now a parameter of *each event*, not a global parameter. By default this is `1` for each event, but you can set it to a higher value, or to `None` if you'd like to allow an arbitrary number of executions of this event simultaneously. Events can also be grouped together using the `concurrency_id` parameter so that they share the same limit, and by default, events that call the same function share the same `concurrency_id`.
+
+To summarize migration:
+
+* For events that execute quickly or don't use much CPU or GPU resources, you should set `concurrency_limit=None` in Gradio 4.0. (Previously you would set `queue=False`.)
+* For events that take significant resources (like the prediction function of your machine learning model), and you only want 1 execution of this function at a time, you don't have to set any parameters.
+* For events that take significant resources (like the prediction function of your machine learning model), and you only want `X` executions of this function at a time, you should set `concurrency_limit=X` parameter in the event trigger.(Previously you would set a global `concurrency_count=X`.)
 
 
 ### Features
