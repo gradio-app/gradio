@@ -1,5 +1,11 @@
 # @gradio/gallery
 
+## 0.4.3
+
+### Fixes
+
+- [#6288](https://github.com/gradio-app/gradio/pull/6288) [`92278729e`](https://github.com/gradio-app/gradio/commit/92278729ee008126af15ffe6be399236211b2f34) - Gallery preview fix and optionally skip download of urls in postprcess.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 0.4.2
 
 ### Fixes
