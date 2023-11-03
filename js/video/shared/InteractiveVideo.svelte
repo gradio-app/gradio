@@ -62,76 +62,78 @@
 </script>
 
 <BlockLabel {show_label} Icon={Video} label={label || "Video"} />
-{#if value === null || value.url === undefined}
-	{#if active_source === "upload"}
-		<Upload
-			bind:dragging
-			filetype="video/x-m4v,video/*"
-			on:load={handle_load}
-			{root}
-		>
-			<slot />
-		</Upload>
-	{:else if active_source === "webcam"}
-		<Webcam
-			{mirror_webcam}
-			{include_audio}
-			mode="video"
-			on:error
-			on:capture={() => dispatch("change")}
-			on:start_recording
-			on:stop_recording
-			{i18n}
-		/>
-	{/if}
-{:else}
-	<ModifyUpload {i18n} on:clear={handle_clear} />
-	{#if playable()}
-		{#key value?.url}
-			<Player
+<div>
+	{#if value === null || value.url === undefined}
+		{#if active_source === "upload"}
+			<Upload
+				bind:dragging
+				filetype="video/x-m4v,video/*"
+				on:load={handle_load}
 				{root}
-				interactive
-				{autoplay}
-				src={value.url}
-				subtitle={subtitle?.url}
-				on:play
-				on:pause
-				on:stop
-				on:end
-				mirror={mirror_webcam && active_source === "webcam"}
-				{label}
-				{handle_change}
-				{handle_reset_value}
+			>
+				<slot />
+			</Upload>
+		{:else if active_source === "webcam"}
+			<Webcam
+				{mirror_webcam}
+				{include_audio}
+				mode="video"
+				on:error
+				on:capture={() => dispatch("change")}
+				on:start_recording
+				on:stop_recording
+				{i18n}
 			/>
-		{/key}
-	{:else if value.size}
-		<div class="file-name">{value.orig_name || value.url}</div>
-		<div class="file-size">
-			{prettyBytes(value.size)}
-		</div>
+		{/if}
+	{:else}
+		<ModifyUpload {i18n} on:clear={handle_clear} />
+		{#if playable()}
+			{#key value?.url}
+				<Player
+					{root}
+					interactive
+					{autoplay}
+					src={value.url}
+					subtitle={subtitle?.url}
+					on:play
+					on:pause
+					on:stop
+					on:end
+					mirror={mirror_webcam && active_source === "webcam"}
+					{label}
+					{handle_change}
+					{handle_reset_value}
+				/>
+			{/key}
+		{:else if value.size}
+			<div class="file-name">{value.orig_name || value.url}</div>
+			<div class="file-size">
+				{prettyBytes(value.size)}
+			</div>
+		{/if}
 	{/if}
-{/if}
 
-{#if sources.length > 1}
-	<span class="source-selection">
-		<button
-			class="icon"
-			aria-label="Upload video"
-			on:click={() => {
-				handle_clear();
-				active_source = "upload";
-			}}><UploadIcon /></button
-		>
-		<button
-			class="icon"
-			aria-label="Record audio"
-			on:click={() => {
-				handle_clear();
-				active_source = "webcam";
-			}}><Video /></button
-		>
-	</span>
-{/if}
+	{#if sources.length > 1}
+		<span class="source-selection">
+			<button
+				class="icon"
+				aria-label="Upload video"
+				on:click={() => {
+					handle_clear();
+					active_source = "upload";
+				}}><UploadIcon /></button
+			>
+			<button
+				class="icon"
+				aria-label="Record audio"
+				on:click={() => {
+					handle_clear();
+					active_source = "webcam";
+				}}><Video /></button
+			>
+		</span>
+	{/if}
+</div>
 
 <style>
 	.file-name {
