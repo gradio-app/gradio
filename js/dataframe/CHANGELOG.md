@@ -1,5 +1,11 @@
 # @gradio/dataframe
 
+## 0.3.3
+
+### Fixes
+
+- [#6290](https://github.com/gradio-app/gradio/pull/6290) [`e8216be94`](https://github.com/gradio-app/gradio/commit/e8216be948f76ce064595183d11e9148badf9421) - ensure `gr.Dataframe` updates as expected.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.3.2
 
 ### Patch Changes
