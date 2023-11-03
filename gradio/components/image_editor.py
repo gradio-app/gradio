@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import warnings
 from pathlib import Path
-from typing import Any, Iterable, Literal, Optional, TypedDict, Union, cast
+from typing import Any, Iterable, List, Literal, Optional, TypedDict, Union, cast
 
 import numpy as np
 from gradio_client import utils as client_utils
@@ -29,7 +29,7 @@ class PreprocessData(TypedDict):
 
 class EditorData(GradioModel):
     background: Optional[Union[FileData, str]] = None
-    layers: list[FileData] = []
+    layers: List[FileData] = []
     composite: Optional[FileData] = None
 
 
