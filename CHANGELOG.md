@@ -17,7 +17,7 @@
 
 ### Highlights
 
-**v4.0 is a big release, so here are the main highlights:** (full list of changes below)
+4.0 is a big release, so here are the main highlights:
 
 **1. Custom Components**: 
 We've introduced the ability to create and publish you own custom `gradio` components. A custom Gradio component is a combination of Python and JavaScript (specifically, Svelte) that you can write to fully customize a Gradio component. A custom component can be used just like a regular Gradio component (with `gr.Interface`, `gr.Blocks`, etc.) and can be published so that other users can use it within their apps. To get started with Custom Components, [read our quickstart guide here](https://www.gradio.app/guides/five-minute-guide).
