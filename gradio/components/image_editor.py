@@ -1,4 +1,4 @@
-"""gr.Image() component."""
+"""gr.ImageEditor() component."""
 
 from __future__ import annotations
 
@@ -252,7 +252,7 @@ class ImageEditor(Component):
             [
                 FileData(
                     path=image_utils.save_image(
-                        cast(np.ndarray | _Image.Image | str, layer),
+                        cast(Union[np.ndarray, _Image.Image, str], layer),
                         self.GRADIO_CACHE,
                     )
                 )
@@ -271,7 +271,7 @@ class ImageEditor(Component):
             layers=layers,
             composite=FileData(
                 path=image_utils.save_image(
-                    cast(np.ndarray | _Image.Image | str, y["composite"]),
+                    cast(Union[np.ndarray, _Image.Image, str], y["composite"]),
                     self.GRADIO_CACHE,
                 )
             )
