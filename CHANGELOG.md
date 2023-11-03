@@ -42,17 +42,17 @@ Gradio share links can now run on custom domains. You can now set up your own se
 
 <img style="width:50%" src="https://i.imgur.com/VFWVsqn.png">
 
-5. We now support adding arbitrary JS to your apps using the js parameter in Blocks, and arbitrary modifications to the <head> of your app using the head parameter in Blocks
+5. We now support adding arbitrary JS to your apps using the `js` parameter in Blocks, and arbitrary modifications to the <head> of your app using the `head` parameter in Blocks
 
 6. We no longer expose a user's working directory by default when you release a Gradio app. There are some other improvements around security as well.
 
-7. Previously, a Gradio app's API endpoints were exposed, allowing you to bypass the queue. As a Gradio developer, you needed to set api_open=False to prevent this misuse. We've now made this the default.
+7. Previously, a Gradio app's API endpoints were exposed, allowing you to bypass the queue. As a Gradio developer, you needed to set `api_open=False` to prevent this misuse. We've now made this the default.
 
-8. You can now control whether a user should be able to trigger the same event multiple times (by using the `trigger_mode`` parameter of each event)
+8. You can now control whether a user should be able to trigger the same event multiple times (by using the `trigger_mode` parameter of each event)
 
-9. You now have fine-grained control over how many times each event can be running concurrently in the backend (using the `concurrency_limit`` parameter of each event)
+9. You now have fine-grained control over how many times each event can be running concurrently in the backend (using the `concurrency_limit` parameter of each event)
 
-10. We no longer serialize images into base64 before sending them to the server or on the way back. This should make any Gradio app that includes `gr.Image`` components much faster.
+10. We no longer serialize images into base64 before sending them to the server or on the way back. This should make any Gradio app that includes `gr.Image` components much faster.
 
 
 ### Breaking Changes
