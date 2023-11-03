@@ -25,12 +25,11 @@ from pathlib import Path
 from queue import Empty as EmptyQueue
 from typing import TYPE_CHECKING, Any, AsyncIterator, Dict, List, Optional, Type
 
-import anyio
 import fastapi
 import httpx
 import markupsafe
 import orjson
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
     FileResponse,
@@ -115,6 +114,11 @@ templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 templates.env.filters["toorjson"] = toorjson
 
 client = httpx.AsyncClient()
+
+
+def move_uploaded_files_to_cache(files: list[str], destinations: list[str]) -> None:
+    for file, dest in zip(files, destinations):
+        shutil.move(file, dest)
 
 
 class App(FastAPI):
@@ -678,7 +682,7 @@ class App(FastAPI):
             return app.get_blocks()._queue.get_estimation()
 
         @app.post("/upload", dependencies=[Depends(login_check)])
-        async def upload_file(request: fastapi.Request):
+        async def upload_file(request: fastapi.Request, bg_tasks: BackgroundTasks):
             content_type_header = request.headers.get("Content-Type")
             content_type: bytes
             content_type, _ = parse_options_header(content_type_header)
@@ -697,6 +701,8 @@ class App(FastAPI):
                 raise HTTPException(status_code=400, detail=exc.message) from exc
 
             output_files = []
+            files_to_copy = []
+            locations: list[str] = []
             for temp_file in form.getlist("files"):
                 assert isinstance(temp_file, GradioUploadFile)
                 if temp_file.filename:
@@ -707,13 +713,22 @@ class App(FastAPI):
                 directory = Path(app.uploaded_file_dir) / temp_file.sha.hexdigest()
                 directory.mkdir(exist_ok=True, parents=True)
                 dest = (directory / name).resolve()
-                await anyio.to_thread.run_sync(
-                    shutil.move,
-                    temp_file.file.name,
-                    dest,
-                    limiter=app.get_blocks().limiter,
-                )
+                temp_file.file.close()
+                # we need to move the temp file to the cache directory
+                # but that's possibly blocking and we're in an async function
+                # so we try to rename (this is what shutil.move tries first)
+                # which should be super fast.
+                # if that fails, we move in the background.
+                try:
+                    os.rename(temp_file.file.name, dest)
+                except OSError:
+                    files_to_copy.append(temp_file.file.name)
+                    locations.append(temp_file.file.name)
                 output_files.append(dest)
+            if files_to_copy:
+                bg_tasks.add_task(
+                    move_uploaded_files_to_cache, files_to_copy, locations
+                )
             return output_files
 
         @app.on_event("startup")
