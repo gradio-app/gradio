@@ -41,6 +41,7 @@
 		change: typeof value;
 		stream: typeof value;
 		error: string;
+		warning: string;
 		edit: never;
 		play: never;
 		pause: never;
@@ -100,6 +101,16 @@
 		dragToSeek: true,
 		mediaControls: waveform_options.show_controls
 	};
+
+	function handle_error({ detail }: CustomEvent<string>): void {
+		const [level, status] = detail.includes("Invalid file type")
+			? ["warning", "complete"]
+			: ["error", "error"];
+		loading_status = loading_status || {};
+		loading_status.status = status as LoadingStatus["status"];
+		loading_status.message = detail;
+		gradio.dispatch(level as "error" | "warning", detail);
+	}
 </script>
 
 {#if !interactive}
@@ -178,11 +189,7 @@
 			on:stop_recording={() => gradio.dispatch("stop_recording")}
 			on:upload={() => gradio.dispatch("upload")}
 			on:clear={() => gradio.dispatch("clear")}
-			on:error={({ detail }) => {
-				loading_status = loading_status || {};
-				loading_status.status = "error";
-				gradio.dispatch("error", detail);
-			}}
+			on:error={handle_error}
 			i18n={gradio.i18n}
 			{waveform_settings}
 		>

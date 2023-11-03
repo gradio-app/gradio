@@ -572,7 +572,7 @@ class TestImage:
         image_input = gr.Image(type="pil", label="Upload Your Image")
         assert image_input.get_config() == {
             "image_mode": "RGB",
-            "sources": ("upload", "webcam", "clipboard"),
+            "sources": None,
             "name": "image",
             "show_share_button": False,
             "show_download_button": True,
@@ -1895,6 +1895,23 @@ class TestJSON:
             "_selectable": False,
         }
 
+    def test_chatbot_selectable_in_config(self):
+        with gr.Blocks() as demo:
+            cb = gr.Chatbot(label="Chatbot")
+            cb.like(lambda: print("foo"))
+            gr.Chatbot(label="Chatbot2")
+
+        assertion_count = 0
+        for component in demo.config["components"]:
+            if component["props"]["label"] == "Chatbot":
+                assertion_count += 1
+                assert component["props"]["likeable"]
+            elif component["props"]["label"] == "Chatbot2":
+                assertion_count += 1
+                assert not component["props"]["likeable"]
+
+        assert assertion_count == 2
+
     @pytest.mark.asyncio
     async def test_in_interface(self):
         """
@@ -1999,6 +2016,7 @@ class TestModel3D:
             "camera_position": (None, None, None),
             "height": None,
             "zoom_speed": 1,
+            "pan_speed": 1,
             "_selectable": False,
         }
 

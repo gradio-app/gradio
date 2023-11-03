@@ -27,10 +27,7 @@ const version = JSON.parse(readFileSync(version_path, { encoding: "utf-8" }))
 
 //@ts-ignore
 export default defineConfig(({ mode }) => {
-	const production =
-		mode === "production:cdn" ||
-		mode === "production:local" ||
-		mode === "production:website";
+	const production = mode === "production";
 
 	return {
 		server: {

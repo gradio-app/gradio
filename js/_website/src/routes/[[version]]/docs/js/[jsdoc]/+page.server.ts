@@ -51,10 +51,7 @@ function highlight(code: string, lang: string | undefined) {
 }
 
 export async function load({ params, parent }) {
-	const {
-		js,
-		js_pages,
-	} = await parent();
+	const { js, js_pages } = await parent();
 
 	let name = params.jsdoc;
 	const guide_slug = [];
@@ -117,7 +114,7 @@ export async function load({ params, parent }) {
 					highlighter: highlight
 				}
 			});
-			
+
 			readme_html = await compiled?.code;
 		}
 	}
@@ -125,6 +122,6 @@ export async function load({ params, parent }) {
 	return {
 		name,
 		readme_html,
-		js_pages,
+		js_pages
 	};
 }

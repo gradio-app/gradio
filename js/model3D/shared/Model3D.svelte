@@ -14,6 +14,7 @@
 	export let show_label: boolean;
 	export let i18n: I18nFormatter;
 	export let zoom_speed = 1;
+	export let pan_speed = 1;
 
 	// alpha, beta, radius
 	export let camera_position: [number | null, number | null, number | null] = [
@@ -69,14 +70,18 @@
 				value,
 				clear_color,
 				camera_position,
-				zoom_speed
+				zoom_speed,
+				pan_speed
 			);
 		}
 	}
 
 	function handle_undo(): void {
-		reset_camera_position(scene, camera_position, zoom_speed);
+		reset_camera_position(scene, camera_position, zoom_speed, pan_speed);
 	}
+
+	$: if (scene)
+		reset_camera_position(scene, camera_position, zoom_speed, pan_speed);
 </script>
 
 <BlockLabel
