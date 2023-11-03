@@ -715,7 +715,10 @@ class App(FastAPI):
                 dest = (directory / name).resolve()
                 temp_file.file.close()
                 # we need to move the temp file to the cache directory
-                # but we
+                # but that's possibly blocking and we're in an async function
+                # so we try to rename (this is what shutil.move tries first)
+                # which should be super fast.
+                # if that fails, we move in the background.
                 try:
                     os.rename(temp_file.file.name, dest)
                 except OSError:
