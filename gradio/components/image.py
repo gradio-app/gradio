@@ -118,7 +118,7 @@ class Image(StreamingInput, Component):
 
         self.streaming = streaming
         self.show_download_button = show_download_button
-        if streaming and sources != ("webcam"):
+        if streaming and list(self.sources) != ["webcam"]:
             raise ValueError(
                 "Image streaming only available if sources is ['webcam']. Streaming not supported with multiple sources."
             )
@@ -163,7 +163,7 @@ class Image(StreamingInput, Component):
         return FileData(path=image_utils.save_image(value, self.GRADIO_CACHE))
 
     def check_streamable(self):
-        if self.streaming and self.sources != ("webcam"):
+        if self.streaming and list(self.sources) != ["webcam"]:
             raise ValueError(
                 "Image streaming only available if sources is ['webcam']. Streaming not supported with multiple sources."
             )
