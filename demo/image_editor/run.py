@@ -2,6 +2,7 @@ import gradio as gr
 
 
 def image(im):
+    print(im)
     return [im["background"], im["layers"][0], im["layers"][1], im["composite"]]
 
 

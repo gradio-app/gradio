@@ -28,7 +28,7 @@ class PreprocessData(TypedDict):
 
 
 class EditorData(GradioModel):
-    background: Optional[Union[FileData, str]] = None
+    background: Optional[FileData] = None
     layers: List[FileData] = []
     composite: Optional[FileData] = None
 
@@ -203,11 +203,11 @@ class ImageEditor(Component):
         )
 
     def convert_and_format_image(
-        self, file: dict | None
+        self, file: FileData | None
     ) -> np.ndarray | _Image.Image | str | None:
         if file is None:
             return None
-        im = _Image.open(file["path"])
+        im = _Image.open(file.path)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
@@ -215,7 +215,7 @@ class ImageEditor(Component):
             im, cast(Literal["numpy", "pil", "filepath"], self.type), self.GRADIO_CACHE
         )
 
-    def preprocess(self, x: dict | None) -> PreprocessData | None:
+    def preprocess(self, x: EditorData | None) -> PreprocessData | None:
         """
         Parameters:
             x: FileData containing an image path pointing to the user's image
@@ -225,13 +225,13 @@ class ImageEditor(Component):
         if x is None:
             return x
 
-        bg = self.convert_and_format_image(x["background"])
+        bg = self.convert_and_format_image(x.background)
         layers = (
-            [self.convert_and_format_image(layer) for layer in x["layers"]]
-            if x["layers"]
+            [self.convert_and_format_image(layer) for layer in x.layers]
+            if x.layers
             else None
         )
-        composite = self.convert_and_format_image(x["composite"])
+        composite = self.convert_and_format_image(x.composite)
         return {
             "background": bg,
             "layers": [x for x in layers if x is not None] if layers else [],
