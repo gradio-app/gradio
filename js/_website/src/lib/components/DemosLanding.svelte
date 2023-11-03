@@ -8,18 +8,19 @@
 			demo: "gradio/hello_world"
 		},
 		{
-			title: "Tax Calculator",
-			demo: "gradio/tax_calculator"
+			title: "Airbnb Map",
+			code: false,
+			demo: "gradio/map_airbnb"
 		},
 		{
-			title: "Time Series Forecasting",
+			title: "Chatbot Streaming",
 			code: false,
-			demo: "gradio/timeseries-forecasting-with-prophet"
+			demo: "gradio/chatinterface_streaming_echo"
 		},
 		{
-			title: "Image Classification",
+			title: "Diffusion Faces",
 			code: false,
-			demo: "gradio/image_classification"
+			demo: "gradio/fake_gan"
 		}
 	];
 
