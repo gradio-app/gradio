@@ -15,25 +15,49 @@
 
 ## 4.0.0
 
+### Highlights
+
 **v4.0 is a big release, so here are the main highlights:** (full list of changes below)
 
-**Custom Components**: 
-We've introduced the ability to create and publish you own custom gradio components. 
+**1. Custom Components**: 
+We've introduced the ability to create and publish you own custom `gradio` components. A custom Gradio component is a combination of Python and JavaScript (specifically, Svelte) that you can write to fully customize a Gradio component. A custom component can be used just like a regular Gradio component (with `gr.Interface`, `gr.Blocks`, etc.) and can be published so that other users can use it within their apps. To get started with Custom Components, [read our quickstart guide here](https://www.gradio.app/guides/five-minute-guide).
+
 <img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMm9pbzhvaTd1MTFlM3FrMmRweTh1ZWZiMmpvemhpNnVvaXVoeDZ2byZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/V3N5jnv0D1eKbPYins/giphy.gif">
 
-**Redesigned Media Components and Accessaibility**:
-We redesigned our media components from scratch and improved accessibilty across the board.
+**2. Redesigned Media Components and Accessibility**:
+
+We redesigned our media components (`gr.Audio`, `gr.Image`, and `gr.Video`) from scratch and improved accessibilty across the board. All components are now keyboard navigable and include better colors to be usable by a wider audience.
+
 <img src="https://media0.giphy.com/media/Kv1bAN7MX3ya5krkEU/giphy.gif">
 
-**Server Side Events**: 
-We now use Server Side Events instead of Websockets. SSE means everything is served over HTTP: better device support and better scaling.
+**3. Server Side Events**: 
+
+Gradio's built-in queuing system is now the default for every Gradio app. We now use Server Side Events instead of Websockets for the queue. SSE means everything is served over HTTP and has better device support and better scaling than websockets.
+
 <img style="width:50%" src="https://i.imgur.com/ewUIuUc.png">
 
-**Custom Share Servers**: 
-We now support using any custom share server for your gradio share links.
+**4. Custom Share Servers**: 
+
+Gradio share links can now run on custom domains. You can now set up your own server to serve Gradio share links. To get started, [read our guide here](https://github.com/huggingface/frp/).
+
 <img style="width:50%" src="https://i.imgur.com/VFWVsqn.png">
 
-**Here's a list of all the breaking changes:**
+5. We now support adding arbitrary JS to your apps using the js parameter in Blocks, and arbitrary modifications to the <head> of your app using the head parameter in Blocks
+
+6. We no longer expose a user's working directory by default when you release a Gradio app. There are some other improvements around security as well.
+
+7. Previously, a Gradio app's API endpoints were exposed, allowing you to bypass the queue. As a Gradio developer, you needed to set api_open=False to prevent this misuse. We've now made this the default.
+
+8. You can now control whether a user should be able to trigger the same event multiple times (by using the `trigger_mode`` parameter of each event)
+
+9. You now have fine-grained control over how many times each event can be running concurrently in the backend (using the `concurrency_limit`` parameter of each event)
+
+10. We no longer serialize images into base64 before sending them to the server or on the way back. This should make any Gradio app that includes `gr.Image`` components much faster.
+
+
+### Breaking Changes
+
+Gradio 4.0 is a new major version, and includes breaking changes from 3.x. Here's a list of all the breaking changes, along with migration steps where appropriate.
 
 **Components**: 
 
@@ -46,8 +70,8 @@ We now support using any custom share server for your gradio share links.
 * Removes `get_interpretation_neighbors()` and `get_interpretation_scores()` from component classes
 * Removes `deprecation.py` -- this was designed for internal usage so unlikely to break gradio apps
 * Moves save to cache methods from component methods to standalone functions in processing_utils
-* Renames source param in gr.Audio and gr.Video to sources
-* Removes show_edit_button param from gr.Audio
+* Renames `source` param in `gr.Audio` and `gr.Video` to `sources`
+* Removes `show_edit_button` param from `gr.Audio``
 
 
 **Other Parts of Gradio**:
@@ -58,9 +82,15 @@ We now support using any custom share server for your gradio share links.
 * Similarly, `Interface.load()` has been removed
 * Removes deprecated parameters, such as `enable_queue` from `launch()`
 * Many of the positional arguments in launch() are now keyword only, and show_tips has been removed
-* Changes the format of flagged data to json instead of filepath for media
-* Removes gr.Series and gr.Parallel
+* Changes the format of flagged data to json instead of filepath for media and chatbot
+* Removes `gr.Series` and `gr.Parallel`
 * All API endpoints are named by deafult. If `api_name=None`, the api name is the name of the python function.
+
+**Tips about Migrating to Gradio 4.0**
+
+* Since the working directory is now not served by default, if you reference local files within your CSS or in a `gr.HTML` component, you will need to explicitly allow access to those files using the `allowed_paths` parameter in `launch()`
+
+For example, 
 
 
 ### Features
