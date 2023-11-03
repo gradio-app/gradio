@@ -48,7 +48,6 @@
 
 	function handle_clear(): void {
 		value = null;
-		active_source = sources[0];
 		dispatch("change", null);
 		dispatch("clear");
 	}
@@ -68,6 +67,7 @@
 			bind:dragging
 			filetype="video/x-m4v,video/*"
 			on:load={handle_load}
+			on:error={({ detail }) => dispatch("error", detail)}
 			{root}
 		>
 			<slot />
@@ -124,7 +124,7 @@
 		>
 		<button
 			class="icon"
-			aria-label="Record audio"
+			aria-label="Record video"
 			on:click={() => {
 				handle_clear();
 				active_source = "webcam";

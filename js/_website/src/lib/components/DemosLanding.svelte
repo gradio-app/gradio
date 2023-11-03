@@ -1,26 +1,26 @@
 <script lang="ts">
-	import { sketch, chat } from "../assets/demo_code";
+	import { hello } from "../assets/demo_code";
 
 	let tabs = [
 		{
-			title: "Sketch Recognition",
-			code: sketch,
-			demo: "gradio/pictionary"
+			title: "Hello World",
+			code: hello,
+			demo: "gradio/hello_world"
 		},
 		{
-			title: "Time Series Forecasting",
+			title: "Airbnb Map",
 			code: false,
-			demo: "gradio/timeseries-forecasting-with-prophet"
+			demo: "gradio/map_airbnb"
 		},
 		{
-			title: "XGBoost with Explainability",
+			title: "Chatbot Streaming",
 			code: false,
-			demo: "gradio/xgboost-income-prediction-with-explainability"
+			demo: "gradio/chatinterface_streaming_echo"
 		},
 		{
-			title: "Chat with Llama 2",
-			code: chat,
-			demo: "ysharma/Explore_llamav2_with_TGI"
+			title: "Diffusion Faces",
+			code: false,
+			demo: "gradio/fake_gan"
 		}
 	];
 

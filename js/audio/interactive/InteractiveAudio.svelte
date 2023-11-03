@@ -221,12 +221,12 @@
 			/>
 		{/if}
 	{:else if active_source === "upload"}
-		<ModifyUpload {i18n} on:clear={clear} absolute={true} />
 		<!-- explicitly listed out audio mimetypes due to iOS bug not recognizing audio/* -->
 		<Upload
 			filetype="audio/aac,audio/midi,audio/mpeg,audio/ogg,audio/wav,audio/x-wav,audio/opus,audio/webm,audio/flac,audio/vnd.rn-realaudio,audio/x-ms-wma,audio/x-aiff,audio/amr,audio/*"
 			on:load={handle_load}
 			bind:dragging
+			on:error={({ detail }) => dispatch("error", detail)}
 			{root}
 		>
 			<slot />
