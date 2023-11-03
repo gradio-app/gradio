@@ -8,7 +8,6 @@ import os
 import shutil
 import subprocess
 import tempfile
-import urllib.request
 import warnings
 from io import BytesIO
 from pathlib import Path
@@ -121,17 +120,9 @@ def hash_file(file_path: str | Path, chunk_num_blocks: int = 128) -> str:
     return sha1.hexdigest()
 
 
-def hash_url(url: str, chunk_num_blocks: int = 128) -> str:
+def hash_url(url: str) -> str:
     sha1 = hashlib.sha1()
-    remote = urllib.request.urlopen(url)
-    max_file_size = 100 * 1024 * 1024  # 100MB
-    total_read = 0
-    while True:
-        data = remote.read(chunk_num_blocks * sha1.block_size)
-        total_read += chunk_num_blocks * sha1.block_size
-        if not data or total_read > max_file_size:
-            break
-        sha1.update(data)
+    sha1.update(url.encode("utf-8"))
     return sha1.hexdigest()
 
 
@@ -207,7 +198,6 @@ def save_url_to_cache(url: str, cache_dir: str) -> str:
     temp_dir = hash_url(url)
     temp_dir = Path(cache_dir) / temp_dir
     temp_dir.mkdir(exist_ok=True, parents=True)
-
     name = client_utils.strip_invalid_filename_characters(Path(url).name)
     full_temp_file_path = str(abspath(temp_dir / name))
 
@@ -273,7 +263,7 @@ def move_resource_to_block_cache(url_or_file_path: str | Path, block: Component)
     return temp_file_path
 
 
-def move_files_to_cache(data: Any, block: Component):
+def move_files_to_cache(data: Any, block: Component, postprocess: bool = False):
     """Move files to cache and replace the file path with the cache path.
 
     Runs after postprocess and before preprocess.
@@ -281,11 +271,19 @@ def move_files_to_cache(data: Any, block: Component):
     Args:
         data: The input or output data for a component. Can be a dictionary or a dataclass
         block: The component
+        postprocess: Whether its running from postprocessing
     """
 
     def _move_to_cache(d: dict):
         payload = FileData(**d)
-        temp_file_path = move_resource_to_block_cache(payload.path, block)
+        # If the gradio app developer is returning a URL from
+        # postprocess, it means the component can display a URL
+        # without it being served from the gradio server
+        # This makes it so that the URL is not downloaded and speeds up event processing
+        if payload.url and postprocess:
+            temp_file_path = payload.url
+        else:
+            temp_file_path = move_resource_to_block_cache(payload.path, block)
         payload.path = temp_file_path
         return payload.model_dump()
 

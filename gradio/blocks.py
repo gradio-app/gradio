@@ -1380,7 +1380,7 @@ Received outputs:
                             f"{block.__class__} Component with id {output_id} not a valid output component."
                         )
                     prediction_value = block.postprocess(prediction_value)
-                outputs_cached = processing_utils.move_files_to_cache(prediction_value, block)  # type: ignore
+                outputs_cached = processing_utils.move_files_to_cache(prediction_value, block, postprocess=True)  # type: ignore
                 output.append(outputs_cached)
 
         return output
