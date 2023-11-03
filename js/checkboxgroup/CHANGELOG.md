@@ -1,5 +1,11 @@
 # @gradio/checkboxgroup
 
+## 0.3.1
+
+### Fixes
+
+- [#6236](https://github.com/gradio-app/gradio/pull/6236) [`6bce259c5`](https://github.com/gradio-app/gradio/commit/6bce259c5db7b21b327c2067e74ea20417bc89ec) - Ensure `gr.CheckboxGroup` updates as expected.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.3.0
 
 ### Features
