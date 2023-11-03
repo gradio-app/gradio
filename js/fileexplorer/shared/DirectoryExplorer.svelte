@@ -58,12 +58,12 @@
 		/>
 	</div>
 {:else}
-	<Empty unpadded_box={true} size="large"><File /></Empty>
+	<Empty size="large"><File /></Empty>
 {/if}
 
 <style>
 	.file-wrap {
-		height: 100%;
-		overflow: auto;
+		height: calc(100% - 25px);
+		overflow-y: scroll;
 	}
 </style>

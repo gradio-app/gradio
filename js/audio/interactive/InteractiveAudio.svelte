@@ -204,77 +204,75 @@
 	float={active_source === "upload" && value === null}
 	label={label || i18n("audio.audio")}
 />
-<div>
-	{#if value === null || streaming}
-		{#if active_source === "microphone"}
-			<ModifyUpload {i18n} on:clear={clear} absolute={true} />
-			{#if streaming}
-				<StreamAudio {record} {recording} {stop} {i18n} {waveform_settings} />
-			{:else}
-				<AudioRecorder
-					bind:mode
-					{i18n}
-					{dispatch}
-					{dispatch_blob}
-					{waveform_settings}
-					{handle_reset_value}
-				/>
-			{/if}
-		{:else if active_source === "upload"}
-			<ModifyUpload {i18n} on:clear={clear} absolute={true} />
-			<!-- explicitly listed out audio mimetypes due to iOS bug not recognizing audio/* -->
-			<Upload
-				filetype="audio/aac,audio/midi,audio/mpeg,audio/ogg,audio/wav,audio/x-wav,audio/opus,audio/webm,audio/flac,audio/vnd.rn-realaudio,audio/x-ms-wma,audio/x-aiff,audio/amr,audio/*"
-				on:load={handle_load}
-				bind:dragging
-				{root}
-			>
-				<slot />
-			</Upload>
+{#if value === null || streaming}
+	{#if active_source === "microphone"}
+		<ModifyUpload {i18n} on:clear={clear} absolute={true} />
+		{#if streaming}
+			<StreamAudio {record} {recording} {stop} {i18n} {waveform_settings} />
+		{:else}
+			<AudioRecorder
+				bind:mode
+				{i18n}
+				{dispatch}
+				{dispatch_blob}
+				{waveform_settings}
+				{handle_reset_value}
+			/>
 		{/if}
-	{:else}
-		<ModifyUpload
-			{i18n}
-			on:clear={clear}
-			on:edit={() => (mode = "edit")}
-			absolute={true}
-		/>
-
-		<AudioPlayer
-			bind:mode
-			{value}
-			{label}
-			{autoplay}
-			{i18n}
-			{dispatch}
-			{dispatch_blob}
-			{waveform_settings}
-			{handle_reset_value}
-			interactive
-		/>
+	{:else if active_source === "upload"}
+		<!-- explicitly listed out audio mimetypes due to iOS bug not recognizing audio/* -->
+		<Upload
+			filetype="audio/aac,audio/midi,audio/mpeg,audio/ogg,audio/wav,audio/x-wav,audio/opus,audio/webm,audio/flac,audio/vnd.rn-realaudio,audio/x-ms-wma,audio/x-aiff,audio/amr,audio/*"
+			on:load={handle_load}
+			bind:dragging
+			on:error={({ detail }) => dispatch("error", detail)}
+			{root}
+		>
+			<slot />
+		</Upload>
 	{/if}
+{:else}
+	<ModifyUpload
+		{i18n}
+		on:clear={clear}
+		on:edit={() => (mode = "edit")}
+		absolute={true}
+	/>
 
-	{#if sources.length > 1}
-		<span class="source-selection">
-			<button
-				class="icon"
-				aria-label="Upload audio"
-				on:click={() => {
-					clear();
-					active_source = "upload";
-				}}><UploadIcon /></button
-			>
-			<button
-				class="icon"
-				aria-label="Record audio"
-				on:click={() => {
-					clear();
-					active_source = "microphone";
-				}}><Microphone /></button
-			>
-		</span>
-	{/if}
-</div>
+	<AudioPlayer
+		bind:mode
+		{value}
+		{label}
+		{autoplay}
+		{i18n}
+		{dispatch}
+		{dispatch_blob}
+		{waveform_settings}
+		{handle_reset_value}
+		interactive
+	/>
+{/if}
+
+{#if sources.length > 1}
+	<span class="source-selection">
+		<button
+			class="icon"
+			aria-label="Upload audio"
+			on:click={() => {
+				clear();
+				active_source = "upload";
+			}}><UploadIcon /></button
+		>
+		<button
+			class="icon"
+			aria-label="Record audio"
+			on:click={() => {
+				clear();
+				active_source = "microphone";
+			}}><Microphone /></button
+		>
+	</span>
+{/if}
 
 <style>
 	.source-selection {

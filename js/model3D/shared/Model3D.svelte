@@ -79,6 +79,9 @@
 	function handle_undo(): void {
 		reset_camera_position(scene, camera_position, zoom_speed, pan_speed);
 	}
+
+	$: if (scene)
+		reset_camera_position(scene, camera_position, zoom_speed, pan_speed);
 </script>
 
 <BlockLabel
