@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import warnings
 from pathlib import Path
-from typing import Any, Iterable, Literal, cast
+from typing import Any, Literal, cast
 
 import numpy as np
 from gradio_client.documentation import document, set_documentation_group
@@ -50,11 +50,7 @@ class Image(StreamingInput, Component):
         image_mode: Literal[
             "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
         ] = "RGB",
-        sources: Iterable[Literal["upload", "webcam", "clipboard"]] = (
-            "upload",
-            "webcam",
-            "clipboard",
-        ),
+        sources: list[Literal["upload", "webcam", "clipboard"]] | None = None,
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
         every: float | None = None,
@@ -78,7 +74,7 @@ class Image(StreamingInput, Component):
             height: Height of the displayed image in pixels.
             width: Width of the displayed image in pixels.
             image_mode: "RGB" if color, or "L" if black and white. See https://pillow.readthedocs.io/en/stable/handbook/concepts.html for other supported image modes and their meaning.
-            sources: List of sources for the image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "clipboard" allows users to paste an image from the clipboard.
+            sources: List of sources for the image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "clipboard" allows users to paste an image from the clipboard. If None, defaults to ["upload", "webcam", "clipboard"] if streaming is False, otherwise defaults to ["webcam"].
             type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
@@ -107,9 +103,15 @@ class Image(StreamingInput, Component):
         self.width = width
         self.image_mode = image_mode
         valid_sources = ["upload", "webcam", "clipboard"]
-        if isinstance(sources, str):
-            sources = [sources]  # type: ignore
-        for source in sources:
+        if sources is None:
+            self.sources = (
+                ["webcam"] if streaming else ["upload", "webcam", "clipboard"]
+            )
+        elif isinstance(sources, str):
+            self.sources = [sources]  # type: ignore
+        else:
+            self.sources = sources
+        for source in self.sources:  # type: ignore
             if source not in valid_sources:
                 raise ValueError(
                     f"`sources` must a list consisting of elements in {valid_sources}"
@@ -118,7 +120,7 @@ class Image(StreamingInput, Component):
 
         self.streaming = streaming
         self.show_download_button = show_download_button
-        if streaming and sources != ("webcam"):
+        if streaming and self.sources != ["webcam"]:
             raise ValueError(
                 "Image streaming only available if sources is ['webcam']. Streaming not supported with multiple sources."
             )
@@ -163,7 +165,7 @@ class Image(StreamingInput, Component):
         return FileData(path=image_utils.save_image(value, self.GRADIO_CACHE))
 
     def check_streamable(self):
-        if self.streaming and self.sources != ("webcam"):
+        if self.streaming and self.sources != ["webcam"]:
             raise ValueError(
                 "Image streaming only available if sources is ['webcam']. Streaming not supported with multiple sources."
             )
