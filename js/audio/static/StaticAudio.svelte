@@ -68,8 +68,6 @@
 		{i18n}
 		{dispatch}
 		{waveform_settings}
-		on:play={() => console.log('Play event received')} 
-		on:pause={() => console.log('Pause event received')}
 	/>
 {:else}
 	<Empty size="small">
