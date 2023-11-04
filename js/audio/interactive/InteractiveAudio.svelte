@@ -245,11 +245,12 @@
 		{label}
 		{autoplay}
 		{i18n}
-		{dispatch}
 		{dispatch_blob}
 		{waveform_settings}
 		{handle_reset_value}
 		interactive
+		on:play={() => dispatch("play")} 
+		on:pause={() => dispatch("pause")}
 	/>
 {/if}
 

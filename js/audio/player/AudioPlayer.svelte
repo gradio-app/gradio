@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount, createEventDispatcher } from "svelte";
 	import { Music } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
@@ -13,7 +13,6 @@
 	export let label: string;
 	export let autoplay: boolean;
 	export let i18n: I18nFormatter;
-	export let dispatch: (event: any, detail?: any) => void;
 	export let dispatch_blob: (
 		blobs: Uint8Array[] | Blob[],
 		event: "stream" | "change" | "stop_recording"
@@ -22,6 +21,11 @@
 	export let waveform_settings = {};
 	export let mode = "";
 	export let handle_reset_value: () => void = () => {};
+
+	const dispatch = createEventDispatcher<{
+		play: never;
+		pause: never;
+	}>();
 
 	let container: HTMLDivElement;
 	let waveform: WaveSurfer;
