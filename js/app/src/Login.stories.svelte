@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import Login from "./Login.svelte";
 </script>
@@ -11,8 +11,8 @@
 			control: "text",
 			description: "The optional auth message to display",
 			name: "label",
-			value: "Gradio Button",
-		},
+			value: "Gradio Button"
+		}
 	}}
 />
 

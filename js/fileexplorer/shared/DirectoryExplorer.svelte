@@ -6,7 +6,7 @@
 	import { File } from "@gradio/icons";
 	import { Empty } from "@gradio/atoms";
 
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 	export let server: any;
 	export let file_count: "single" | "multiple" = "multiple";
 
@@ -52,18 +52,18 @@
 	<div class="file-wrap">
 		<FileTree
 			tree={$tree}
-			{mode}
+			{interactive}
 			on:check={({ detail }) => handle_select(detail)}
 			{file_count}
 		/>
 	</div>
 {:else}
-	<Empty unpadded_box={true} size="large"><File /></Empty>
+	<Empty size="large"><File /></Empty>
 {/if}
 
 <style>
 	.file-wrap {
-		height: 100%;
-		overflow: auto;
+		height: calc(100% - 25px);
+		overflow-y: scroll;
 	}
 </style>

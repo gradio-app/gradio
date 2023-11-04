@@ -119,7 +119,6 @@
 
 .current-playground-demo {
 	@apply text-orange-500 pl-4;
-
 }
 
 /* docs */
@@ -165,7 +164,7 @@ code.language-bash {
 
 /* interactive banner */
 .interactive-banner {
-	@apply absolute right-0 px-1.5 pt-0.5 pb-1 m-4 -mt-1 text-sm z-[100] bg-orange-500 rounded-lg ;
+	@apply absolute right-0 px-1.5 pt-0.5 pb-1 m-4 -mt-1 text-sm z-[100] bg-orange-500 rounded-lg;
 }
 
 .codeblock {
@@ -193,4 +192,16 @@ code.language-bash {
 }
 .selected-demo-window {
 	@apply rounded-b-md border-2  border-gray-100 -mt-0.5;
+}
+
+.tip {
+	@apply bg-gradient-to-br from-orange-50 to-white border-orange-50 border-l-2 border-l-orange-300 text-orange-700 p-4 px-6;
+}
+
+.tip code {
+	@apply text-orange-700;
+}
+
+.tip a {
+	@apply text-orange-700;
 }

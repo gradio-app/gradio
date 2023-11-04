@@ -1,7 +1,7 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import HighlightedText from "./interactive/InteractiveHighlightedText.svelte";
-	import { Gradio } from "../app/src/gradio_helper";
+	import HighlightedText from "./Index.svelte";
+	import { Gradio } from "@gradio/utils";
 </script>
 
 <Meta title="Components/HighlightedText" component={HighlightedText} />
@@ -9,16 +9,17 @@
 <Template let:args>
 	<HighlightedText
 		value={[
-			["zebras", "+"],
-			["dogs", "-"],
-			["elephants", "+"],
+			{ token: "zebras", class_or_confidence: "+" },
+			{ token: "dogs", class_or_confidence: "-" },
+			{ token: "elephants", class_or_confidence: "+" }
 		]}
 		gradio={new Gradio(
 			0,
 			document.body,
 			"light",
 			"1.1.1",
-			"http://localhost:7860"
+			"http://localhost:7860",
+			false
 		)}
 		{...args}
 	/>
@@ -30,7 +31,13 @@
 <Story
 	name="Highlighted Text with new lines"
 	args={{
-		value: [["zebras", "+"], ["\n"], ["dogs", "-"], ["\n"], ["elephants", "+"]],
+		value: [
+			{ token: "zebras", class_or_confidence: "+" },
+			{ token: "\n" },
+			{ token: "dogs", class_or_confidence: "-" },
+			{ token: "\n" },
+			{ token: "elephants", class_or_confidence: "+" }
+		]
 	}}
 />
 <Story
@@ -42,15 +49,15 @@
 	name="Highlighted Text with combine adjacent"
 	args={{
 		value: [
-			["The", null],
-			["quick", "adjective"],
-			[" sneaky", "adjective"],
-			["fox", "subject"],
-			[" jumped ", "past tense verb"],
-			["over the", null],
-			["lazy dog", "object"],
+			{ token: "The", class_or_confidence: null },
+			{ token: "quick", class_or_confidence: "adjective" },
+			{ token: " sneaky", class_or_confidence: "adjective" },
+			{ token: "fox", class_or_confidence: "subject" },
+			{ token: " jumped ", class_or_confidence: "past tense verb" },
+			{ token: "over the", class_or_confidence: null },
+			{ token: "lazy dog", class_or_confidence: "object" }
 		],
-		combine_adjacent: true,
+		combine_adjacent: true
 	}}
 />
 
@@ -58,14 +65,14 @@
 	name="Highlighted Text without combine adjacent"
 	args={{
 		value: [
-			["The", null],
-			["quick", "adjective"],
-			[" sneaky", "adjective"],
-			["fox", "subject"],
-			[" jumped ", "past tense verb"],
-			["over the", null],
-			["lazy dog", "object"],
-		],
+			{ token: "The", class_or_confidence: null },
+			{ token: "quick", class_or_confidence: "adjective" },
+			{ token: " sneaky", class_or_confidence: "adjective" },
+			{ token: "fox", class_or_confidence: "subject" },
+			{ token: " jumped ", class_or_confidence: "past tense verb" },
+			{ token: "over the", class_or_confidence: null },
+			{ token: "lazy dog", class_or_confidence: "object" }
+		]
 	}}
 />
 
@@ -73,17 +80,18 @@
 	name="Highlighted Text with combine adjacent and new lines"
 	args={{
 		value: [
-			["The", null],
-			["quick", "adjective"],
-			[" sneaky", "adjective"],
-			["fox", "subject"],
-			["\n"],
-			["jumped", "past tense verb"],
-			["\n"],
-			["over the", null],
-			["lazy dog", "object"],
+			{ token: "The", class_or_confidence: null },
+			{ token: "quick", class_or_confidence: "adjective" },
+			{ token: " sneaky", class_or_confidence: "adjective" },
+			{ token: "fox", class_or_confidence: "subject" },
+			{ token: "\n", class_or_confidence: null },
+			{ token: " jumped ", class_or_confidence: "past tense verb" },
+			{ token: "\n", class_or_confidence: null },
+			{ token: "over the", class_or_confidence: null },
+			{ token: "lazy dog", class_or_confidence: "object" }
 		],
-		combine_adjacent: true,
+
+		combine_adjacent: true
 	}}
 />
 
@@ -91,11 +99,10 @@
 	name="Highlighted Text in scores mode"
 	args={{
 		value: [
-			["the", -1],
-			["quick", 1],
-			["fox", 0.3],
+			{ token: "the", class_or_confidence: -1 },
+			{ token: "quick", class_or_confidence: 1 },
+			{ token: "fox", class_or_confidence: 0.3 }
 		],
-
-		show_legend: true,
+		show_legend: true
 	}}
 />

@@ -1,6 +1,6 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import Video from "./interactive";
+	import Video from "./Index.svelte";
 </script>
 
 <Meta
@@ -27,15 +27,31 @@
 </Template>
 
 <Story
-	name="Primary"
+	name="Record from webcam"
 	args={{
-		value: ["https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4"],
 		format: "mp4",
 		label: "world video",
 		show_label: true,
 		interactive: true,
-		autoplay: true,
 		height: 400,
+		width: 400
+	}}
+/>
+
+<Story
+	name="Static video"
+	args={{
+		value: {
+			video: {
+				path: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
+				url: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
+				orig_name: "world.mp4"
+			}
+		},
+		label: "world video",
+		show_label: true,
+		interactive: false,
+		height: 200,
 		width: 400
 	}}
 />

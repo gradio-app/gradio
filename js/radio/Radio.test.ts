@@ -3,7 +3,7 @@ import { test, describe, assert, afterEach } from "vitest";
 import { cleanup, render } from "@gradio/tootils";
 import event from "@testing-library/user-event";
 
-import Radio from "./interactive";
+import Radio from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status = {
@@ -23,16 +23,13 @@ describe("Radio", () => {
 		["dog", "dog"],
 		["cat", "cat"],
 		["turtle", "turtle"]
-	];
+	] as [string, string][];
 
 	test("renders provided value", async () => {
 		const { getAllByRole, getByTestId } = await render(Radio, {
-			show_label: true,
-			loading_status,
 			choices: choices,
 			value: "cat",
-			label: "Radio",
-			mode: "dynamic"
+			label: "Radio"
 		});
 
 		assert.equal(
@@ -52,12 +49,9 @@ describe("Radio", () => {
 
 	test("should update the value when a radio is clicked", async () => {
 		const { getByDisplayValue, getByTestId } = await render(Radio, {
-			show_label: true,
-			loading_status,
 			choices: choices,
 			value: "cat",
-			label: "Radio",
-			mode: "dynamic"
+			label: "Radio"
 		});
 
 		await event.click(getByDisplayValue("dog"));
@@ -78,5 +72,44 @@ describe("Radio", () => {
 			getByTestId("turtle-radio-label").classList.contains("selected"),
 			true
 		);
+	});
+
+	test("should dispatch the select event when clicks", async () => {
+		const { listen, getAllByTestId } = await render(Radio, {
+			choices: choices,
+			value: "cat",
+			label: "Radio"
+		});
+
+		const mock = listen("select");
+		await event.click(getAllByTestId("dog-radio-label")[0]);
+		expect(mock.callCount).toBe(1);
+		expect(mock.calls[0][0].detail.data.value).toEqual("dog");
+	});
+
+	test("when multiple radios are on the screen, they should not conflict", async () => {
+		const { container } = await render(Radio, {
+			choices: choices,
+			value: "cat",
+			label: "Radio"
+		});
+
+		const { getAllByLabelText } = await render(
+			Radio,
+			{
+				choices: choices,
+				value: "dog",
+				label: "Radio"
+			},
+			container
+		);
+
+		const items = getAllByLabelText("dog") as HTMLInputElement[];
+		expect([items[0].checked, items[1].checked]).toEqual([false, true]);
+
+		await event.click(items[0]);
+
+		expect([items[0].checked, items[1].checked]).toEqual([true, true]);
+		cleanup();
 	});
 });

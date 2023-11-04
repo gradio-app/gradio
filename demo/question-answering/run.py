@@ -18,8 +18,8 @@ def predict(context, question):
 gr.Interface(
     predict,
     inputs=[
-        gr.inputs.Textbox(lines=7, default=context, label="Context Paragraph"),
-        gr.inputs.Textbox(lines=2, default=question, label="Question"),
+        gr.Textbox(lines=7, value=context, label="Context Paragraph"),
+        gr.Textbox(lines=2, value=question, label="Question"),
     ],
-    outputs=[gr.outputs.Textbox(label="Answer"), gr.outputs.Textbox(label="Score")],
+    outputs=[gr.Textbox(label="Answer"), gr.Textbox(label="Score")],
 ).launch()
