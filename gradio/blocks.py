@@ -1380,7 +1380,7 @@ Received outputs:
                             f"{block.__class__} Component with id {output_id} not a valid output component."
                         )
                     prediction_value = block.postprocess(prediction_value)
-                outputs_cached = processing_utils.move_files_to_cache(prediction_value, block)  # type: ignore
+                outputs_cached = processing_utils.move_files_to_cache(prediction_value, block, postprocess=True)  # type: ignore
                 output.append(outputs_cached)
 
         return output
@@ -1611,7 +1611,7 @@ Received outputs:
         status_update_rate: float | Literal["auto"] = "auto",
         api_open: bool | None = None,
         max_size: int | None = None,
-        **kwargs,
+        concurrency_count: int | None = None,
     ):
         """
         By enabling the queue you can control when users know their position in the queue, and set a limit on maximum number of events allowed.
@@ -1619,6 +1619,7 @@ Received outputs:
             status_update_rate: If "auto", Queue will send status estimations to all clients whenever a job is finished. Otherwise Queue will send status at regular intervals set by this parameter as the number of seconds.
             api_open: If True, the REST routes of the backend will be open, allowing requests made directly to those endpoints to skip the queue.
             max_size: The maximum number of events the queue will store at any given moment. If the queue is full, new events will not be added and a user will receive a message saying that the queue is full. If None, the queue size will be unlimited.
+            concurrency_count: Deprecated and has no effect. Set the concurrency_limit directly on event listeners e.g. btn.click(fn, ..., concurrency_limit=10) or gr.Interface(concurrency_limit=10). If necessary, the total number of workers can be configured via `max_threads` in launch().
         Example: (Blocks)
             with gr.Blocks() as demo:
                 button = gr.Button(label="Generate Image")
@@ -1630,12 +1631,10 @@ Received outputs:
             demo.queue(max_size=20)
             demo.launch()
         """
-        if "concurrency_count" in kwargs:
+        if concurrency_count:
             raise DeprecationWarning(
                 "concurrency_count has been deprecated. Set the concurrency_limit directly on event listeners e.g. btn.click(fn, ..., concurrency_limit=10) or gr.Interface(concurrency_limit=10). If necessary, the total number of workers can be configured via `max_threads` in launch()."
             )
-        if len(kwargs):
-            raise ValueError(f"Invalid arguments: {kwargs}")
         if api_open is not None:
             self.api_open = api_open
         if utils.is_zero_gpu_space():
