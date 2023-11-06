@@ -13,7 +13,7 @@
 	export let disable_click = false;
 	export let root: string;
 	export let hidden = false;
-	export let full_height = true;
+	export let include_sources = false;
 
 	// Needed for wasm support
 	const upload_fn = getContext<typeof upload_files>("upload_files");
@@ -95,7 +95,7 @@
 	class:center
 	class:boundedheight
 	class:flex
-	style:height={full_height ? "100%" : undefined}
+	style:height={include_sources ? "calc(100% - 40px" : "100%"}
 	on:drag|preventDefault|stopPropagation
 	on:dragstart|preventDefault|stopPropagation
 	on:dragend|preventDefault|stopPropagation

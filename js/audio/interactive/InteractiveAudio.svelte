@@ -228,7 +228,7 @@
 			bind:dragging
 			on:error={({ detail }) => dispatch("error", detail)}
 			{root}
-			full_height={sources.length === 1}
+			include_sources={sources.length > 1}
 		>
 			<slot />
 		</Upload>
