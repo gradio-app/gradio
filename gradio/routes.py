@@ -689,34 +689,40 @@ class App(FastAPI):
         def get_upload_progress(upload_id: str, request: fastapi.Request):
             async def sse_stream(request: fastapi.Request):
                 last_heartbeat = time.perf_counter()
-                # if not file_upload_statuses.is_tracked(upload_id):
-                #     raise HTTPException(status_code=404, detail="Upload not found.")
+                is_done = False
                 while True:
                     if await request.is_disconnected():
+                        file_upload_statuses.stop_tracking(upload_id)
+                        return
+                    if is_done:
+                        file_upload_statuses.stop_tracking(upload_id)
                         return
 
                     heartbeat_rate = 15
                     check_rate = 0.05
                     message = None
-
                     try:
                         if update := file_upload_statuses.status(upload_id).popleft():
-                            if update.is_done:  # end of stream marker
+                            if update.is_done:
                                 message = {"msg": "done"}
+                                is_done = True
                             else:
                                 message = {
                                     "msg": "update",
-                                    "file": update.filename,
+                                    "orig_name": update.filename,
                                     "chunk_size": update.chunk_size,
                                 }
                         else:
                             await asyncio.sleep(check_rate)
                             if time.perf_counter() - last_heartbeat > heartbeat_rate:
                                 message = {"msg": "heartbeat"}
-                                last_heartbeat = time.time()
+                                last_heartbeat = time.perf_counter()
                         if message:
                             yield f"data: {json.dumps(message)}\n\n"
-                    except:
+                    except IndexError:
+                        if not file_upload_statuses.is_tracked(upload_id):
+                            return
+                        # pop from empty queue
                         continue
 
             return StreamingResponse(

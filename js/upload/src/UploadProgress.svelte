@@ -8,8 +8,6 @@
 	export let root: string;
 	export let files: FileData[];
 
-	let done_count = 0;
-
 	let event_source: EventSource;
 
 	let files_with_progress: FileDataWithProgress[] = files.map((file) => {
@@ -43,12 +41,10 @@
 		event_source.onmessage = async function (event) {
 			const _data = JSON.parse(event.data);
 			if (_data.msg === "done") {
-				done_count += 1;
-				if (done_count === files.length) {
-					dispatch("done");
-				}
+				event_source.close();
+				dispatch("done");
 			} else {
-				handleProgress(_data.file, _data.chunk_size);
+				handleProgress(_data.orig_name, _data.chunk_size);
 			}
 		};
 	});

@@ -318,10 +318,12 @@ class FileUploadProgress:
             FileUploadProgressUnit(filename, len(message_bytes), is_done=False)
         )
 
-    def set_done(self, upload_id: str, filename: str):
-        self._statuses[upload_id].append(
-            FileUploadProgressUnit(filename, 0, is_done=True)
-        )
+    def set_done(self, upload_id: str):
+        self._statuses[upload_id].append(FileUploadProgressUnit("", 0, is_done=True))
+
+    def stop_tracking(self, upload_id: str):
+        if upload_id in self._statuses:
+            del self._statuses[upload_id]
 
     def status(self, upload_id: str) -> deque[FileUploadProgressUnit]:
         if upload_id not in self._statuses:
@@ -383,7 +385,7 @@ class GradioMultiPartParser:
         message_bytes = data[start:end]
         if self.upload_progress is not None:
             self.upload_progress.update(
-                self.upload_id, self._current_part.file.filename, message_bytes
+                self.upload_id, self._current_part.file.filename, message_bytes  # type: ignore
             )
         if self._current_part.file is None:
             self._current_part.data += message_bytes
@@ -391,10 +393,6 @@ class GradioMultiPartParser:
             self._file_parts_to_write.append((self._current_part, message_bytes))
 
     def on_part_end(self) -> None:
-        if self.upload_progress is not None:
-            self.upload_progress.set_done(
-                self.upload_id, self._current_part.file.filename
-            )
         if self._current_part.file is None:
             self.items.append(
                 (
@@ -514,4 +512,6 @@ class GradioMultiPartParser:
             raise exc
 
         parser.finalize()
+        if self.upload_progress is not None:
+            self.upload_progress.set_done(self.upload_id)  # type: ignore
         return FormData(self.items)
