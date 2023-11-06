@@ -1,6 +1,8 @@
 ---
 "@gradio/atoms": patch
-"@gradio/upload": patch
+"@gradio/audio": patch
+"@gradio/image": patch
+"@gradio/video": patch
 "gradio": patch
 ---
 
