@@ -17,7 +17,7 @@ from gradio.events import Events
 
 
 class DataframeData(GradioModel):
-    headers: Optional[List[str]] = None
+    headers: List[str]
     data: List[List[Any]]
     metadata: Optional[Dict[str, List[Any] | None]] = None
 
