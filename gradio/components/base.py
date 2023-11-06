@@ -167,8 +167,11 @@ class Component(ComponentBase, Block):
         if not hasattr(self, "data_model"):
             self.data_model: type[GradioDataModel] | None = None
         self.temp_files: set[str] = set()
-        self.GRADIO_CACHE = os.environ.get("GRADIO_TEMP_DIR") or str(
-            Path(tempfile.gettempdir()) / "gradio"
+        self.GRADIO_CACHE = str(
+            Path(
+                os.environ.get("GRADIO_TEMP_DIR")
+                or str(Path(tempfile.gettempdir()) / "gradio")
+            ).resolve()
         )
 
         Block.__init__(
@@ -208,7 +211,7 @@ class Component(ComponentBase, Block):
             if self._skip_init_processing
             else self.postprocess(initial_value)
         )
-        self.value = move_files_to_cache(initial_value, self)  # type: ignore
+        self.value = move_files_to_cache(initial_value, self, postprocess=True)  # type: ignore
 
         if callable(load_fn):
             self.attach_load_event(load_fn, every)

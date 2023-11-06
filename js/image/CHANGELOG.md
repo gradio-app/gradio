@@ -1,5 +1,11 @@
 # @gradio/image
 
+## 0.3.2
+
+### Fixes
+
+- [#6213](https://github.com/gradio-app/gradio/pull/6213) [`27194a987`](https://github.com/gradio-app/gradio/commit/27194a987fa7ba1234b5fc0ce8bf7fabef7033a9) - Ensure the statustracker for `gr.Image` displays in static mode.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.3.1
 
 ### Patch Changes
