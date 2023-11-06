@@ -5,4 +5,4 @@
 "gradio": patch
 ---
 
-fix:Add div wrapper around content and source selection
+fix:Ensure source selection does not get hidden in overflow
