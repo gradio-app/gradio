@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Fix postprocess update dict
+fix:Fix postprocess update dict
