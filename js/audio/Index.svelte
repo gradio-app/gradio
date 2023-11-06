@@ -99,7 +99,7 @@
 		cursorColor: "#ddd5e9",
 		barRadius: 10,
 		dragToSeek: true,
-		mediaControls: waveform_options.show_controls,
+		mediaControls: waveform_options.show_controls
 	};
 
 	function handle_error({ detail }: CustomEvent<string>): void {
