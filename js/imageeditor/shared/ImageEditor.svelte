@@ -1,10 +1,9 @@
 <script lang="ts">
 	import type { Brush, EditorData, PathData } from "./types";
-	import { createEventDispatcher, tick } from "svelte";
+	import { createEventDispatcher, onMount, tick } from "svelte";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Image, Brush as Paint, Chat as Crop } from "@gradio/icons";
 	import type { SelectData, I18nFormatter } from "@gradio/utils";
-	import { get_coordinates_of_clicked_image } from "./utils";
 
 	import { Webcam } from "@gradio/image";
 
@@ -14,6 +13,7 @@
 	import Pixi from "./Pixi.svelte";
 	import EditorTools from "./EditorTools.svelte";
 	import { _ } from "svelte-i18n";
+	import { command_manager, layer_manager } from "./scene_manager";
 
 	export let value: EditorData = {
 		background: null,
@@ -28,6 +28,7 @@
 		"clipboard",
 		"webcam"
 	];
+
 	export let streaming = false;
 	export let pending = false;
 	export let mirror_webcam: boolean;
@@ -42,7 +43,7 @@
 		value.background = normalise_file(detail, root, null);
 	}
 
-	async function handle_save(img_blob: Blob | any): Promise<void> {
+	async function handle_capture(img_blob: Blob | any): Promise<void> {
 		pending = true;
 		const f = await upload.load_files([new File([img_blob], `webcam.png`)]);
 
@@ -51,7 +52,7 @@
 
 		await tick();
 
-		dispatch(streaming ? "stream" : "change");
+		dispatch("change");
 		pending = false;
 	}
 
@@ -59,7 +60,6 @@
 
 	const dispatch = createEventDispatcher<{
 		change?: EditorData;
-		stream?: never;
 		clear?: never;
 		drag: boolean;
 		upload?: never;
@@ -69,13 +69,6 @@
 	let dragging = false;
 
 	$: dispatch("drag", dragging);
-
-	function handle_click(evt: MouseEvent): void {
-		let coordinates = get_coordinates_of_clicked_image(evt);
-		if (coordinates) {
-			dispatch("select", { index: coordinates, value: null });
-		}
-	}
 
 	let _layers: PathData[][] = [[]];
 	let current_layer = 0;
@@ -131,6 +124,14 @@
 		_layers = [[]];
 		pixi.clear();
 	}
+
+	let CommandManager: ReturnType<typeof command_manager>;
+	let LayerManager: ReturnType<typeof layer_manager>;
+
+	onMount(() => {
+		CommandManager = command_manager();
+		LayerManager = layer_manager();
+	});
 </script>
 
 <BlockLabel {show_label} Icon={Image} label={label || "Image"} />
@@ -162,11 +163,9 @@
 		></Upload>
 		{#if active_tool === "webcam"}
 			<Webcam
-				on:capture={(e) => handle_save(e.detail)}
-				on:stream={(e) => handle_save(e.detail)}
+				on:capture={(e) => handle_capture(e.detail)}
 				on:error
 				on:drag
-				on:upload={(e) => handle_save(e.detail)}
 				{mirror_webcam}
 				{streaming}
 				mode="image"
