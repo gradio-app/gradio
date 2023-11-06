@@ -174,7 +174,6 @@
 		{scale}
 		{min_width}
 		allow_overflow={false}
-		grid={sources.length > 1}
 	>
 		<StatusTracker
 			autoscroll={gradio.autoscroll}

@@ -99,7 +99,7 @@
 		cursorColor: "#ddd5e9",
 		barRadius: 10,
 		dragToSeek: true,
-		mediaControls: waveform_options.show_controls
+		mediaControls: waveform_options.show_controls,
 	};
 
 	function handle_error({ detail }: CustomEvent<string>): void {
@@ -149,13 +149,13 @@
 		variant={value === null && active_source === "upload" ? "dashed" : "solid"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
-		grid={sources.length > 1}
 		{elem_id}
 		{elem_classes}
 		{visible}
 		{container}
 		{scale}
 		{min_width}
+		allow_overflow={false}
 	>
 		<StatusTracker
 			autoscroll={gradio.autoscroll}

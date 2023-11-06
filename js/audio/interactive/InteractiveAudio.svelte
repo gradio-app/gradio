@@ -54,7 +54,7 @@
 	function get_modules(): void {
 		module_promises = [
 			import("extendable-media-recorder"),
-			import("extendable-media-recorder-wav-encoder")
+			import("extendable-media-recorder-wav-encoder"),
 		];
 	}
 
@@ -228,6 +228,7 @@
 			bind:dragging
 			on:error={({ detail }) => dispatch("error", detail)}
 			{root}
+			full_height={sources.length === 1}
 		>
 			<slot />
 		</Upload>

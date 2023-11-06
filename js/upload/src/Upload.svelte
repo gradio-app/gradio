@@ -13,6 +13,7 @@
 	export let disable_click = false;
 	export let root: string;
 	export let hidden = false;
+	export let full_height = true;
 
 	// Needed for wasm support
 	const upload_fn = getContext<typeof upload_files>("upload_files");
@@ -94,6 +95,7 @@
 	class:center
 	class:boundedheight
 	class:flex
+	style:height={full_height ? "100%" : undefined}
 	on:drag|preventDefault|stopPropagation
 	on:dragstart|preventDefault|stopPropagation
 	on:dragend|preventDefault|stopPropagation
@@ -122,7 +124,6 @@
 	button {
 		cursor: pointer;
 		width: var(--size-full);
-		height: var(--size-full);
 	}
 
 	.hidden {

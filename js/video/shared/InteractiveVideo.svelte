@@ -70,6 +70,7 @@
 			on:load={handle_load}
 			on:error={({ detail }) => dispatch("error", detail)}
 			{root}
+			full_height={sources.length === 1}
 		>
 			<slot />
 		</Upload>
