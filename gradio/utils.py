@@ -792,10 +792,13 @@ def is_special_typed_parameter(name, parameter_types):
 def check_function_inputs_match(fn: Callable, inputs: list, inputs_as_dict: bool):
     """
     Checks if the input component set matches the function
-    Returns: None if valid, a string error message if mismatch
+    Returns: None if valid or if the function does not have a signature (e.g. is a built in),
+    or a string error message if mismatch
     """
-
-    signature = inspect.signature(fn)
+    try:
+        signature = inspect.signature(fn)
+    except ValueError:
+        return None
     parameter_types = get_type_hints(fn)
     min_args = 0
     max_args = 0
@@ -948,3 +951,14 @@ class NamedString(str):
     def __init__(self, *args):
         super().__init__()
         self.name = str(self) if args else ""
+
+
+def default_input_labels():
+    """
+    A generator that provides default input labels for components when the user's function
+    does not have named parameters. The labels are of the form "input 0", "input 1", etc.
+    """
+    n = 0
+    while True:
+        yield f"input {n}"
+        n += 1
