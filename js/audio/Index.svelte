@@ -149,6 +149,7 @@
 		variant={value === null && active_source === "upload" ? "dashed" : "solid"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
+		grid={sources.length > 1}
 		{elem_id}
 		{elem_classes}
 		{visible}

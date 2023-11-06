@@ -14,6 +14,7 @@
 	export let allow_overflow = true;
 	export let scale: number | null = null;
 	export let min_width = 0;
+	export let grid = false;
 
 	let tag = type === "fieldset" ? "fieldset" : "div";
 </script>
@@ -36,15 +37,13 @@
 	style:flex-grow={scale}
 	style:min-width={`calc(min(${min_width}px, 100%))`}
 	style:border-width="var(--block-border-width)"
+	class:grid
 >
 	<slot />
 </svelte:element>
 
 <style>
 	.block {
-		display: flex;
-		align-items: end;
-		justify-content: center;
 		position: relative;
 		margin: 0;
 		box-shadow: var(--block-shadow);
@@ -53,6 +52,7 @@
 		border-radius: var(--block-radius);
 		background: var(--block-background-fill);
 		width: 100%;
+		height: 100%;
 		line-height: var(--line-sm);
 	}
 
@@ -74,5 +74,9 @@
 		background: transparent;
 		padding: 0;
 		overflow: visible;
+	}
+
+	.grid {
+		display: grid;
 	}
 </style>

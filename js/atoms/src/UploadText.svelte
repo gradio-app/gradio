@@ -33,6 +33,7 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
+		min-height: var(--size-60);
 		color: var(--block-label-text-color);
 		line-height: var(--line-md);
 		height: 100%;
