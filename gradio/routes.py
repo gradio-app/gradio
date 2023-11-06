@@ -685,13 +685,12 @@ class App(FastAPI):
         async def get_queue_status():
             return app.get_blocks()._queue.get_estimation()
 
-        @app.get("/upload_progress/{upload_id}")
+        @app.get("/upload_progress")
         def get_upload_progress(upload_id: str, request: fastapi.Request):
             async def sse_stream(request: fastapi.Request):
                 last_heartbeat = time.perf_counter()
                 # if not file_upload_statuses.is_tracked(upload_id):
                 #     raise HTTPException(status_code=404, detail="Upload not found.")
-                print("upload_id", upload_id)
                 while True:
                     if await request.is_disconnected():
                         return
