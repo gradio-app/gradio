@@ -50,7 +50,6 @@
 		border-radius: var(--block-radius);
 		background: var(--block-background-fill);
 		width: 100%;
-		height: 100%;
 		line-height: var(--line-sm);
 	}
 
