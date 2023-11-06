@@ -734,7 +734,10 @@ def special_args(
     Returns:
         updated inputs, progress index, event data index.
     """
-    signature = inspect.signature(fn)
+    try:
+        signature = inspect.signature(fn)
+    except ValueError:
+        return inputs or [], None, None
     type_hints = utils.get_type_hints(fn)
     positional_args = []
     for param in signature.parameters.values():
