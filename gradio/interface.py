@@ -322,22 +322,17 @@ class Interface(Blocks):
         Interface.instances.add(self)
 
         param_types = utils.get_type_hints(self.fn)
-        #param_names = inspect.getfullargspec(self.fn)[0]
-        param_names =[]
+        # param_names = inspect.getfullargspec(self.fn)[0]
+        param_names = []
         try:
             param_names = inspect.getfullargspec(self.fn)[0]
+            if len(param_names) > 0 and inspect.ismethod(self.fn):
+                param_names = param_names[1:]
+            for param_name in param_names.copy():
+                if utils.is_special_typed_parameter(param_name, param_types):
+                    param_names.remove(param_name)
         except (TypeError, ValueError):
-            # Use generic parameter names if inspect.getfullargspec fails
-            try:
-                num_params = self.fn.__code__.co_argcount
-                param_names = [f"param_{i+1}" for i in range(num_params)]
-            except AttributeError as e:
-                raise AttributeError(f'Unable to get parameter names for function {self.fn.__name__}: {e}')
-        if len(param_names) > 0 and inspect.ismethod(self.fn):
-            param_names = param_names[1:]
-        for param_name in param_names.copy():
-            if utils.is_special_typed_parameter(param_name, param_types):
-                param_names.remove(param_name)
+            param_names = utils.default_input_labels()
         for component, param_name in zip(self.input_components, param_names):
             assert isinstance(component, Component)
             if component.label is None:
