@@ -38,7 +38,7 @@
 		try {
 			stream = await navigator.mediaDevices.getUserMedia({
 				video: device_id ? { deviceId: { exact: device_id } } : true,
-				audio: include_audio,
+				audio: include_audio
 			});
 			video_source.srcObject = stream;
 			video_source.muted = true;
@@ -98,7 +98,7 @@
 						data: e.target.result,
 						name: "sample." + mimeType.substring(6),
 						is_example: false,
-						is_file: false,
+						is_file: false
 					});
 					dispatch("stop_recording");
 				}
@@ -119,7 +119,7 @@
 				return;
 			}
 			media_recorder = new MediaRecorder(stream, {
-				mimeType: mimeType,
+				mimeType: mimeType
 			});
 			media_recorder.addEventListener("dataavailable", function (e) {
 				recorded_blobs.push(e.data);
@@ -169,7 +169,7 @@
 		return {
 			destroy() {
 				document.removeEventListener("click", handle_click, true);
-			},
+			}
 		};
 	}
 

@@ -12,7 +12,7 @@
 		video: "upload_text.drop_video",
 		audio: "upload_text.drop_audio",
 		file: "upload_text.drop_file",
-		csv: "upload_text.drop_csv",
+		csv: "upload_text.drop_csv"
 	};
 </script>
 
