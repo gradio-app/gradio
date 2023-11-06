@@ -61,37 +61,6 @@
 	{/each}
 </div>
 
-<!-- <div class="progress-level">
-    <div class="progress-level-inner">
-        {#if progress != null}
-            {#each progress as p, i}
-                {#if p.desc != null || (progress_level && progress_level[i] != null)}
-                    {#if i !== 0}
-                        &nbsp;/
-                    {/if}
-                    {#if p.desc != null}
-                        {p.desc}
-                    {/if}
-                    {#if p.desc != null && progress_level && progress_level[i] != null}
-                        -
-                    {/if}
-                    {#if progress_level != null}
-                        {(100 * (progress_level[i] || 0)).toFixed(1)}%
-                    {/if}
-                {/if}
-            {/each}
-        {/if}
-    </div>
-
-    <div class="progress-bar-wrap">
-        <div
-            bind:this={progress_bar}
-            class="progress-bar"
-            style:width="{last_progress_level * 100}%"
-        />
-    </div>
-</div> -->
-
 <style>
 	.wrap {
 		margin-top: var(--size-7);
@@ -114,18 +83,6 @@
 		justify-content: center;
 		text-align: center;
 		width: 100%;
-		/* position: absolute;
-        top: 0;
-        left: 0; */
-		/* justify-content: center; */
-		/* width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap; */
 	}
 
 	.file-info span {

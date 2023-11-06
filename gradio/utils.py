@@ -78,10 +78,6 @@ def safe_get_lock() -> asyncio.Lock:
         return None  # type: ignore
 
 
-def get_safe_thread_lock() -> threading.Lock:
-    return threading.Lock()
-
-
 class BaseReloader(ABC):
     @property
     @abstractmethod
