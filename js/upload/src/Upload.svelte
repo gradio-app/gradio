@@ -122,7 +122,6 @@
 	button {
 		cursor: pointer;
 		width: var(--size-full);
-		height: var(--size-full);
 	}
 
 	.hidden {

@@ -42,6 +42,9 @@
 
 <style>
 	.block {
+		display: flex;
+		align-items: end;
+		justify-content: center;
 		position: relative;
 		margin: 0;
 		box-shadow: var(--block-shadow);
