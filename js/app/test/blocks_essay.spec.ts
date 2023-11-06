@@ -63,4 +63,3 @@ test("updates dropdown choices correctly", async ({ page }) => {
 	await country.press("Enter");
 	await expect(city).toHaveValue("Karachi");
 });
-
