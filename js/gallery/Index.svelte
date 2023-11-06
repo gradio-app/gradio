@@ -9,6 +9,7 @@
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { FileData } from "@gradio/client";
+	import { createEventDispatcher } from "svelte";
 
 	export let loading_status: LoadingStatus;
 	export let show_label: boolean;
@@ -40,7 +41,12 @@
 		select: SelectData;
 		share: ShareData;
 		error: string;
+		prop_change: Record<string, any>;
 	}>;
+
+	const dispatch = createEventDispatcher();
+
+	$: selected_index, dispatch("prop_change", { selected_index });
 </script>
 
 <Block

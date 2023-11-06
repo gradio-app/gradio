@@ -22,8 +22,6 @@ jobs:
       source_repo: ${{ steps.pr_details.outputs.source_repo }}
       source_branch: ${{ steps.pr_details.outputs.source_branch }}
     steps:
-    - name: echo concurrency group
-      run: echo ${{ github.event.workflow_run.head_repository.full_name }}::${{ github.event.workflow_run.head_branch }}
     - name: get pr details
       id: pr_details
       uses: gradio-app/github/actions/find-pr@main
