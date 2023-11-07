@@ -24,7 +24,6 @@
 		| ["upload", "microphone"] = ["microphone", "upload"];
 	export let pending = false;
 	export let streaming = false;
-	export let autoplay = false;
 	export let i18n: I18nFormatter;
 	export let waveform_settings = {};
 	export let dragging: boolean;
@@ -245,7 +244,6 @@
 		bind:mode
 		{value}
 		{label}
-		{autoplay}
 		{i18n}
 		{dispatch}
 		{dispatch_blob}
