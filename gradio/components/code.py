@@ -36,7 +36,8 @@ class Code(Component):
         None,
     ]
 
-    EVENTS = [Events.change, Events.input]
+    EVENTS = [Events.change, Events.input, Events.focus,
+        Events.blur,]
 
     def __init__(
         self,

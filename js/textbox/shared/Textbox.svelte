@@ -68,6 +68,7 @@
 			scroll();
 		}
 		value_is_output = false;
+		el.focus();
 	});
 	$: value, handle_change();
 
