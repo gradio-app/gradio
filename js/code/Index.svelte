@@ -76,8 +76,14 @@
 	{:else}
 		<Widget {language} {value} />
 
-		<Code bind:value {language} {lines} {dark_mode} readonly={!interactive} 
+		<Code
+			bind:value
+			{language}
+			{lines}
+			{dark_mode}
+			readonly={!interactive}
 			on:blur={() => gradio.dispatch("blur")}
-			on:focus={() => gradio.dispatch("focus")} />
+			on:focus={() => gradio.dispatch("focus")}
+		/>
 	{/if}
 </Block>

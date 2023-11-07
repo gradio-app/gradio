@@ -28,10 +28,11 @@
 	export let readonly = false;
 	export let placeholder: string | HTMLElement | null | undefined = undefined;
 
-	const dispatch = createEventDispatcher<{ change: string 
+	const dispatch = createEventDispatcher<{
+		change: string;
 		blur: undefined;
 		focus: undefined;
- }>();
+	}>();
 	let lang_extension: Extension | undefined;
 	let element: HTMLDivElement;
 	let view: EditorView;
@@ -217,7 +218,13 @@
 </script>
 
 <div class="wrap">
-	<div class="codemirror-wrapper {classNames}" tabindex="-1" on:blur on:focus bind:this={element} />
+	<div
+		class="codemirror-wrapper {classNames}"
+		tabindex="-1"
+		on:blur
+		on:focus
+		bind:this={element}
+	/>
 </div>
 
 <style>
