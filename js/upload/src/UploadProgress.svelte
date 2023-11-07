@@ -9,6 +9,7 @@
 	export let files: FileData[];
 
 	let event_source: EventSource;
+	let progress = false;
 
 	let files_with_progress: FileDataWithProgress[] = files.map((file) => {
 		return {
@@ -40,6 +41,7 @@
 		// Event listener for progress updates
 		event_source.onmessage = async function (event) {
 			const _data = JSON.parse(event.data);
+			if (!progress) progress = true;
 			if (_data.msg === "done") {
 				event_source.close();
 				dispatch("done");
@@ -50,7 +52,7 @@
 	});
 </script>
 
-<div class="wrap">
+<div class="wrap" class:progress>
 	{#each files_with_progress as file, index}
 		<div class="file-info">
 			<span>Uploading {file.orig_name}...</span>
@@ -65,6 +67,13 @@
 	.wrap {
 		margin-top: var(--size-7);
 		overflow-y: auto;
+		opacity: 0;
+		transition: opacity 0.5s ease-in-out;
+		background: var(--block-background-fill);
+	}
+
+	.wrap.progress {
+		opacity: 1;
 	}
 
 	.progress-bar-wrap {
