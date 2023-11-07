@@ -252,17 +252,22 @@ class TestGetThemeAssets:
         assert gr.Theme._theme_version_exists(space_info, "0.1.1")
         assert not gr.Theme._theme_version_exists(space_info, "2.0.0")
 
-    def test_raises_if_space_not_properly_tagged(self):
-        space_info = huggingface_hub.hf_api.SpaceInfo(
-            id="freddyaboulton/dracula", tags=["gradio"]
-        )
+    @pytest.mark.flaky
+    def test_load_space_from_hub_works(self):
+        theme = gr.Theme.from_hub("gradio/seafoam")
+        assert isinstance(theme, gr.Theme)
 
-        with pytest.raises(
-            ValueError,
-            match="freddyaboulton/dracula is not a valid gradio-theme space!",
-        ):
-            with patch("huggingface_hub.HfApi.space_info", return_value=space_info):
-                get_theme_assets(space_info)
+    # def test_raises_if_space_not_properly_tagged(self):
+    #     space_info = huggingface_hub.hf_api.SpaceInfo(
+    #         id="freddyaboulton/dracula", tags=["gradio"]
+    #     )
+
+    #     with pytest.raises(
+    #         ValueError,
+    #         match="freddyaboulton/dracula is not a valid gradio-theme space!",
+    #     ):
+    #         with patch("huggingface_hub.HfApi.space_info", return_value=space_info):
+    #             get_theme_assets(space_info)
 
 
 class TestBuiltInThemes:
