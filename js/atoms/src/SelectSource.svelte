@@ -11,6 +11,7 @@
 		{#if sources.includes("upload")}
 			<button
 				class="icon"
+				class:selected={active_source === "upload"}
 				aria-label="Upload file"
 				on:click={() => {
 					handle_clear();
@@ -22,6 +23,7 @@
 		{#if sources.includes("microphone")}
 			<button
 				class="icon"
+				class:selected={active_source === "microphone"}
 				aria-label="Record audio"
 				on:click={() => {
 					handle_clear();
@@ -33,6 +35,7 @@
 		{#if sources.includes("webcam")}
 			<button
 				class="icon"
+				class:selected={active_source === "webcam"}
 				aria-label="Record video"
 				on:click={() => {
 					handle_clear();
@@ -65,6 +68,10 @@
 		padding: var(--spacing-xs);
 		color: var(--neutral-400);
 		border-radius: var(--radius-md);
+	}
+
+	.selected {
+		color: var(--color-accent);
 	}
 
 	.icon:hover,
