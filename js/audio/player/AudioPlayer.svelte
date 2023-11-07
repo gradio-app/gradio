@@ -11,7 +11,6 @@
 
 	export let value: null | FileData = null;
 	export let label: string;
-	export let autoplay: boolean;
 	export let i18n: I18nFormatter;
 	export let dispatch: (event: any, detail?: any) => void;
 	export let dispatch_blob: (

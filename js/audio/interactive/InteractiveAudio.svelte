@@ -245,7 +245,6 @@
 		bind:mode
 		{value}
 		{label}
-		{autoplay}
 		{i18n}
 		{dispatch}
 		{dispatch_blob}
