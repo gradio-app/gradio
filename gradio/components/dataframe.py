@@ -19,9 +19,7 @@ from gradio.events import Events
 class DataframeData(GradioModel):
     headers: List[str]
     data: List[List[Any]]
-    metadata: Optional[
-        Dict[str, List[Any]]
-    ] = None  # Optional[Dict[str, List[Any]]] = None
+    metadata: Optional[Dict[str, Optional[List[Any]]]] = None
 
 
 set_documentation_group("component")
@@ -216,7 +214,7 @@ class Dataframe(Component):
             return DataframeData(
                 headers=list(df.columns),
                 data=df.to_dict(orient="split")["data"],  # type: ignore
-                metadata=self.__extract_metadata(value),
+                metadata=self.__extract_metadata(value),  # type: ignore
             )
         elif isinstance(value, (str, pd.DataFrame)):
             df = pd.read_csv(value) if isinstance(value, str) else value  # type: ignore
