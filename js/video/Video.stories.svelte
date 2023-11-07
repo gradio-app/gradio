@@ -1,6 +1,8 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import Video from "./Index.svelte";
+	import { format } from "svelte-i18n";
+	import { get } from "svelte/store";
 </script>
 
 <Meta
@@ -22,9 +24,11 @@
 	}}
 />
 
-<Template let:args>
-	<Video {...args} />
-</Template>
+<div>
+	<Template let:args>
+		<Video {...args} i18n={get(format)} />
+	</Template>
+</div>
 
 <Story
 	name="Record from webcam"
@@ -53,5 +57,18 @@
 		interactive: false,
 		height: 200,
 		width: 400
+	}}
+/>
+
+<Story
+	name="Upload video"
+	args={{
+		label: "world video",
+		show_label: true,
+		interactive: true,
+		sources: ["upload", "webcam"],
+		width: 400,
+		height: 400,
+		value: null
 	}}
 />
