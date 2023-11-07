@@ -103,7 +103,6 @@ class Block:
         render: bool = True,
         visible: bool = True,
         proxy_url: str | None = None,
-        _skip_init_processing: bool = False,
     ):
         self._id = Context.id
         Context.id += 1
@@ -114,7 +113,6 @@ class Block:
         )
         self.proxy_url = proxy_url
         self.share_token = secrets.token_urlsafe(32)
-        self._skip_init_processing = _skip_init_processing
         self.parent: BlockContext | None = None
         self.is_rendered: bool = False
         self._constructor_args: dict
@@ -633,7 +631,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 block_config["props"]["proxy_url"] = f"{proxy_url}/"
 
             constructor_args = cls.recover_kwargs(block_config["props"])
-            block = cls(**constructor_args)
+            block = cls()
+            for k, v in constructor_args.items():
+                setattr(block, k, v)
 
             block_proxy_url = block_config["props"]["proxy_url"]
             block.proxy_url = block_proxy_url
@@ -642,8 +642,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 _selectable := block_config["props"].pop("_selectable", None)
             ) is not None:
                 block._selectable = _selectable  # type: ignore
-            # Any component has already processed its initial value, so we skip that step here
-            block._skip_init_processing = True
 
             return block
 
