@@ -546,7 +546,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.app_id = random.getrandbits(64)
         self.temp_file_sets = []
         self.title = title
-        self.show_api = True
+        self.show_api = not wasm_utils.IS_WASM
 
         # Only used when an Interface is loaded from a config
         self.predict = None

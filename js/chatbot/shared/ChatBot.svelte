@@ -158,6 +158,7 @@
 									data-testid={j == 0 ? "user" : "bot"}
 									class:latest={i === value.length - 1}
 									class:message-markdown-disabled={!render_markdown}
+									style:user-select="text"
 									class:selectable
 									style:text-align="left"
 									on:click={() => handle_select(i, j, message)}
