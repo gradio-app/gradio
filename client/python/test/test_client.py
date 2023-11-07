@@ -820,10 +820,7 @@ class TestAPIInfo:
                             {
                                 "label": "num1",
                                 "type": {"type": "number"},
-                                "python_type": {
-                                    "type": "float",
-                                    "description": "",
-                                },
+                                "python_type": {"type": "float", "description": ""},
                                 "component": "Number",
                                 "example_input": 3,
                             },
@@ -844,10 +841,7 @@ class TestAPIInfo:
                             {
                                 "label": "num2",
                                 "type": {"type": "number"},
-                                "python_type": {
-                                    "type": "float",
-                                    "description": "",
-                                },
+                                "python_type": {"type": "float", "description": ""},
                                 "component": "Number",
                                 "example_input": 3,
                             },
@@ -856,14 +850,55 @@ class TestAPIInfo:
                             {
                                 "label": "output",
                                 "type": {"type": "number"},
-                                "python_type": {
-                                    "type": "float",
-                                    "description": "",
-                                },
+                                "python_type": {"type": "float", "description": ""},
                                 "component": "Number",
                             }
                         ],
-                    }
+                    },
+                    "/load_example": {
+                        "parameters": [
+                            {
+                                "label": "parameter_16",
+                                "type": {
+                                    "type": "integer",
+                                    "description": "index of selected example",
+                                },
+                                "python_type": {
+                                    "type": "int",
+                                    "description": "index of selected example",
+                                },
+                                "component": "Dataset",
+                                "example_input": 0,
+                            }
+                        ],
+                        "returns": [
+                            {
+                                "label": "num1",
+                                "type": {"type": "number"},
+                                "python_type": {"type": "float", "description": ""},
+                                "component": "Number",
+                            },
+                            {
+                                "label": "operation",
+                                "type": {
+                                    "enum": ["add", "subtract", "multiply", "divide"],
+                                    "title": "Radio",
+                                    "type": "string",
+                                },
+                                "python_type": {
+                                    "type": "Literal[add, subtract, multiply, divide]",
+                                    "description": "",
+                                },
+                                "component": "Radio",
+                            },
+                            {
+                                "label": "num2",
+                                "type": {"type": "number"},
+                                "python_type": {"type": "float", "description": ""},
+                                "component": "Number",
+                            },
+                        ],
+                    },
                 },
                 "unnamed_endpoints": {},
             }
