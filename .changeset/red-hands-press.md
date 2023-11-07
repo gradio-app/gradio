@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:Hide show API link when in gradio-lite apps
+fix:Hide show API link when in gradio lite
