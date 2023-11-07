@@ -629,14 +629,12 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             # URL of C, not B. The else clause below handles this case.
             if block_config["props"].get("proxy_url") is None:
                 block_config["props"]["proxy_url"] = f"{proxy_url}/"
+            postprocessed_value = block_config["props"].pop("value", None)
 
             constructor_args = cls.recover_kwargs(block_config["props"])
-            modified_args = {
-                k: (None if k == "value" else v) for k, v in constructor_args.items()
-            }
-            block = cls(**modified_args)  # type: ignore
-            for k, v in constructor_args.items():
-                setattr(block, k, v)
+            block = cls(**constructor_args)
+            if postprocessed_value is not None:
+                block.value = postprocessed_value  # type: ignore
 
             block_proxy_url = block_config["props"]["proxy_url"]
             block.proxy_url = block_proxy_url
