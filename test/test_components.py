@@ -24,7 +24,7 @@ from gradio_client import utils as client_utils
 from scipy.io import wavfile
 
 try:
-    from typing_extensions import cast
+    from typing import cast
 except ImportError:
     from typing import cast
 
