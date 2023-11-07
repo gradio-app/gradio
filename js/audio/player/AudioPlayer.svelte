@@ -44,7 +44,7 @@
 		waveform = WaveSurfer.create({
 			container: container,
 			url: value?.url,
-			...waveform_settings
+			...waveform_settings,
 		});
 	};
 
@@ -53,11 +53,6 @@
 		container.innerHTML = "";
 		create_waveform();
 		playing = false;
-	}
-
-	$: if (autoplay) {
-		waveform?.play();
-		playing = true;
 	}
 
 	$: waveform?.on("decode", (duration: any) => {

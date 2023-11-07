@@ -97,6 +97,7 @@
 		barHeight: 4,
 		cursorWidth: 2,
 		cursorColor: "#ddd5e9",
+		autoplay: autoplay,
 		barRadius: 10,
 		dragToSeek: true,
 		mediaControls: waveform_options.show_controls
