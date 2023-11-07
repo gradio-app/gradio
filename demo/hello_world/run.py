@@ -1,9 +1,23 @@
 import gradio as gr
 
-def greet(name):
-    return "Hello " + name + "!"
+def echo(params):
+    print(params)
+    return params
 
-demo = gr.Interface(fn=greet, inputs="text", outputs="text")
-    
-if __name__ == "__main__":
-    demo.launch(show_api=False)   
+def get_params(request: gr.Request):
+  params = request.query_params
+  ip = request.client.host
+  return {"params": params, 
+          "ip": ip}
+
+  
+with gr.Blocks() as demo:
+  url_params = gr.State()
+  text_in = gr.Textbox()
+  text_out = gr.JSON()
+  btn = gr.Button()
+  btn.click(echo, inputs=[url_params], outputs=[text_out])
+  demo.load(get_params, None, url_params, queue=True)
+  #demo.load(get_params, None, url_params, queue=False)
+
+demo.queue().launch()

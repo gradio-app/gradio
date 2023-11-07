@@ -657,8 +657,9 @@ export function api_factory(
 								host,
 								config.path,
 								true
-							)}/queue/join?${params}`
+							)}/queue/join?${params}${url_params ? "&" + url_params : ""}`
 						);
+						console.log(url);
 
 						eventSource = new EventSource(url);
 
