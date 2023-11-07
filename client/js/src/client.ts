@@ -460,8 +460,7 @@ export function api_factory(
 						});
 
 						post_data(
-							`${http_protocol}//${resolve_root(host, config.path, true)}/run${
-								_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
+							`${http_protocol}//${resolve_root(host, config.path, true)}/run${_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
 							}${url_params ? "?" + url_params : ""}`,
 							{
 								...payload,
@@ -472,11 +471,11 @@ export function api_factory(
 							.then(([output, status_code]) => {
 								const data = transform_files
 									? transform_output(
-											output.data,
-											api_info,
-											config.root,
-											config.root_url
-									  )
+										output.data,
+										api_info,
+										config.root,
+										config.root_url
+									)
 									: output.data;
 								if (status_code == 200) {
 									fire_event({
@@ -607,11 +606,11 @@ export function api_factory(
 									time: new Date(),
 									data: transform_files
 										? transform_output(
-												data.data,
-												api_info,
-												config.root,
-												config.root_url
-										  )
+											data.data,
+											api_info,
+											config.root,
+											config.root_url
+										)
 										: data.data,
 									endpoint: _endpoint,
 									fn_index
@@ -657,7 +656,7 @@ export function api_factory(
 								host,
 								config.path,
 								true
-							)}/queue/join?${params}${url_params ? "&" + url_params : ""}`
+							)}/queue/join?${url_params ? url_params + "&" : ""}${params}`
 						);
 
 						eventSource = new EventSource(url);
@@ -735,11 +734,11 @@ export function api_factory(
 									time: new Date(),
 									data: transform_files
 										? transform_output(
-												data.data,
-												api_info,
-												config.root,
-												config.root_url
-										  )
+											data.data,
+											api_info,
+											config.root,
+											config.root_url
+										)
 										: data.data,
 									endpoint: _endpoint,
 									fn_index
