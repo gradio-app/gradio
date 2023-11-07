@@ -1,6 +1,6 @@
 ---
-"@gradio/dataframe": minor
-"gradio": minor
+"@gradio/dataframe": patch
+"gradio": patch
 ---
 
 feat:Fix for stylized DataFrame
