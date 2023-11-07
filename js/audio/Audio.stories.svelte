@@ -30,3 +30,13 @@
 		label: "Audio Recorder"
 	}}
 />
+
+<Story
+	name="Upload Audio"
+	args={{
+		value: null,
+		interactive: true,
+		sources: ["microphone", "upload"],
+		label: "Audio Upload"
+	}}
+/>
