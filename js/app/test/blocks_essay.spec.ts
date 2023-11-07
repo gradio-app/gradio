@@ -50,3 +50,16 @@ test("updates backend correctly", async ({ page }) => {
 	await num.press("Enter");
 	await expect(output).toHaveValue("25");
 });
+
+test("updates dropdown choices correctly", async ({ page }) => {
+	const country = await page.getByLabel("Country").first();
+	const city = await page.getByLabel("Cities").first();
+
+	await country.fill("Canada");
+	await country.press("Enter");
+	await expect(city).toHaveValue("Toronto");
+
+	await country.fill("Pakistan");
+	await country.press("Enter");
+	await expect(city).toHaveValue("Karachi");
+});

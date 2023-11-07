@@ -1,5 +1,11 @@
 import gradio as gr
 
+countries_cities_dict = {
+    "USA": ["New York", "Los Angeles", "Chicago"],
+    "Canada": ["Toronto", "Montreal", "Vancouver"],
+    "Pakistan": ["Karachi", "Lahore", "Islamabad"],
+}
+
 
 def change_textbox(choice):
     if choice == "short":
@@ -22,6 +28,15 @@ with gr.Blocks() as demo:
     minimum_slider = gr.Slider(0, 100, 0, label="min")
     maximum_slider = gr.Slider(0, 100, 100, label="max")
     submit_btn = gr.Button("Submit", variant="primary")
+
+    with gr.Row():
+        country = gr.Dropdown(list(countries_cities_dict.keys()), label="Country")
+        cities = gr.Dropdown([], label="Cities")
+        
+    @country.change(inputs=country, outputs=cities)
+    def update_cities(country):
+        cities = list(countries_cities_dict[country])
+        return gr.Dropdown(choices=cities, value=cities[0], interactive=True)
 
     def reset_bounds(minimum, maximum):
         return gr.Number(minimum=minimum, maximum=maximum)
