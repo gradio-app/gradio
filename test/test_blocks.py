@@ -1543,3 +1543,35 @@ def test_deprecation_warning_emitted_when_concurrency_count_set():
         gr.Interface(lambda x: x, gr.Textbox(), gr.Textbox()).queue(
             concurrency_count=12
         )
+
+
+def test_postprocess_update_dict():
+    block = gr.Textbox()
+    update_dict = {"value": 2.0, "visible": True, "invalid_arg": "hello"}
+    assert gr.blocks.postprocess_update_dict(block, update_dict, True) == {
+        "__type__": "update",
+        "value": "2.0",
+        "visible": True,
+    }
+
+    block = gr.Textbox(lines=10)
+    update_dict = {"value": 2.0, "lines": 10}
+    assert gr.blocks.postprocess_update_dict(block, update_dict, False) == {
+        "__type__": "update",
+        "value": 2.0,
+        "lines": 10,
+    }
+
+    block = gr.Dropdown(choices=["New Country A", "New Country B"])
+    update_dict = {
+        "value": "New Country A",
+        "choices": ["New Country A", "New Country B"],
+    }
+    assert gr.blocks.postprocess_update_dict(block, update_dict, False) == {
+        "__type__": "update",
+        "value": "New Country A",
+        "choices": [
+            ("New Country A", "New Country A"),
+            ("New Country B", "New Country B"),
+        ],
+    }
