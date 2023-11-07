@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Improve default audio behaviour
+fix:Improve default source behaviour in Audio
