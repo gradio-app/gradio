@@ -134,7 +134,6 @@
 
 		<StaticAudio
 			i18n={gradio.i18n}
-			{autoplay}
 			{show_label}
 			{show_download_button}
 			{show_share_button}
@@ -177,7 +176,6 @@
 			{active_source}
 			{pending}
 			{streaming}
-			{autoplay}
 			{handle_reset_value}
 			bind:dragging
 			on:edit={() => gradio.dispatch("edit")}
