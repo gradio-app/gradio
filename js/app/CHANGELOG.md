@@ -1,5 +1,50 @@
 # @gradio/app
 
+## 1.10.2
+
+### Patch Changes
+
+- Updated dependencies [[`4b1011bab`](https://github.com/gradio-app/gradio/commit/4b1011bab03c0b6a09329e0beb9c1b17b2189878), [`bca6c2c80`](https://github.com/gradio-app/gradio/commit/bca6c2c80f7e5062427019de45c282238388af95), [`19af2806a`](https://github.com/gradio-app/gradio/commit/19af2806a58419cc551d2d1d6d8987df0db91ccb), [`d3b53a457`](https://github.com/gradio-app/gradio/commit/d3b53a4577ea05cd27e37ce7fec952028c18ed45), [`3cdeabc68`](https://github.com/gradio-app/gradio/commit/3cdeabc6843000310e1a9e1d17190ecbf3bbc780), [`fad92c29d`](https://github.com/gradio-app/gradio/commit/fad92c29dc1f5cd84341aae417c495b33e01245f)]:
+  - @gradio/chatbot@0.4.3
+  - @gradio/client@0.7.2
+  - @gradio/audio@0.4.3
+  - @gradio/dataframe@0.3.4
+  - @gradio/atoms@0.2.1
+  - @gradio/upload@0.3.3
+  - @gradio/video@0.1.3
+  - @gradio/annotatedimage@0.3.3
+  - @gradio/button@0.2.3
+  - @gradio/dataset@0.1.3
+  - @gradio/file@0.2.3
+  - @gradio/fileexplorer@0.3.3
+  - @gradio/gallery@0.4.4
+  - @gradio/image@0.3.3
+  - @gradio/model3d@0.4.1
+  - @gradio/uploadbutton@0.1.3
+  - @gradio/accordion@0.2.1
+  - @gradio/box@0.1.1
+  - @gradio/checkbox@0.2.1
+  - @gradio/checkboxgroup@0.3.2
+  - @gradio/code@0.2.3
+  - @gradio/colorpicker@0.2.1
+  - @gradio/dropdown@0.3.1
+  - @gradio/fallback@0.2.1
+  - @gradio/form@0.1.1
+  - @gradio/highlightedtext@0.4.1
+  - @gradio/html@0.1.1
+  - @gradio/json@0.1.1
+  - @gradio/label@0.2.1
+  - @gradio/markdown@0.3.1
+  - @gradio/number@0.3.1
+  - @gradio/plot@0.2.1
+  - @gradio/radio@0.3.2
+  - @gradio/simpledropdown@0.1.1
+  - @gradio/simpletextbox@0.1.1
+  - @gradio/slider@0.2.1
+  - @gradio/statustracker@0.3.1
+  - @gradio/textbox@0.4.1
+  - @gradio/row@0.1.0
+
 ## 1.10.1
 
 ### Patch Changes

@@ -1,18 +1,25 @@
 # website
 
+## 0.12.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/code@0.2.3
+
 ## 0.12.0
 
 ### Features
 
-- [#6268](https://github.com/gradio-app/gradio/pull/6268) [`de36820ef`](https://github.com/gradio-app/gradio/commit/de36820ef51097b47937b41fb76e4038aaa369cb) - Fix various issues with demos on website.  Thanks [@aliabd](https://github.com/aliabd)!
-- [#6193](https://github.com/gradio-app/gradio/pull/6193) [`fdedc5949`](https://github.com/gradio-app/gradio/commit/fdedc59491bf55e3a24936e97da48bf0144de816) - 4.0 Website Changes.  Thanks [@aliabd](https://github.com/aliabd)!
-- [#6243](https://github.com/gradio-app/gradio/pull/6243) [`2c9fd437f`](https://github.com/gradio-app/gradio/commit/2c9fd437f8249b238f2b1904fb5acfe3413ff950) - Some tweaks to the Custom Components Guide.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6268](https://github.com/gradio-app/gradio/pull/6268) [`de36820ef`](https://github.com/gradio-app/gradio/commit/de36820ef51097b47937b41fb76e4038aaa369cb) - Fix various issues with demos on website. Thanks [@aliabd](https://github.com/aliabd)!
+- [#6193](https://github.com/gradio-app/gradio/pull/6193) [`fdedc5949`](https://github.com/gradio-app/gradio/commit/fdedc59491bf55e3a24936e97da48bf0144de816) - 4.0 Website Changes. Thanks [@aliabd](https://github.com/aliabd)!
+- [#6243](https://github.com/gradio-app/gradio/pull/6243) [`2c9fd437f`](https://github.com/gradio-app/gradio/commit/2c9fd437f8249b238f2b1904fb5acfe3413ff950) - Some tweaks to the Custom Components Guide. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 0.11.1
 
 ### Features
 
-- [#6189](https://github.com/gradio-app/gradio/pull/6189) [`345ddd888`](https://github.com/gradio-app/gradio/commit/345ddd888e9f55cb04e5c6601d95d2a25e4ef39f) - Custom Component Guides.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6189](https://github.com/gradio-app/gradio/pull/6189) [`345ddd888`](https://github.com/gradio-app/gradio/commit/345ddd888e9f55cb04e5c6601d95d2a25e4ef39f) - Custom Component Guides. Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
 
 ## 0.11.0
 

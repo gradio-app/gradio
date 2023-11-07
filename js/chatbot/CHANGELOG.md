@@ -1,5 +1,11 @@
 # @gradio/chatbot
 
+## 0.4.3
+
+### Fixes
+
+- [#6316](https://github.com/gradio-app/gradio/pull/6316) [`4b1011bab`](https://github.com/gradio-app/gradio/commit/4b1011bab03c0b6a09329e0beb9c1b17b2189878) - Maintain text selection in `Chatbot` button elements.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.4.2
 
 ### Patch Changes

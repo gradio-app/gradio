@@ -1,5 +1,11 @@
 # @gradio/dataframe
 
+## 0.3.4
+
+### Features
+
+- [#6318](https://github.com/gradio-app/gradio/pull/6318) [`d3b53a457`](https://github.com/gradio-app/gradio/commit/d3b53a4577ea05cd27e37ce7fec952028c18ed45) - Fix for stylized DataFrame.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.3.3
 
 ### Fixes
