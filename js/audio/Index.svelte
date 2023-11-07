@@ -31,7 +31,7 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
-	export let autoplay = false;
+
 	export let show_download_button = true;
 	export let show_share_button = false;
 	export let waveform_options: WaveformOptions = {};
@@ -101,8 +101,6 @@
 		dragToSeek: true,
 		normalise: true,
 		minPxPerSec: 20,
-		autoplay: autoplay,
-		normalise: false,
 		mediaControls: waveform_options.show_controls,
 	};
 
@@ -143,7 +141,6 @@
 
 		<StaticAudio
 			i18n={gradio.i18n}
-			{autoplay}
 			{show_label}
 			{show_download_button}
 			{show_share_button}
@@ -186,7 +183,6 @@
 			{active_source}
 			{pending}
 			{streaming}
-			{autoplay}
 			{handle_reset_value}
 			bind:dragging
 			on:edit={() => gradio.dispatch("edit")}
