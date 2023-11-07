@@ -631,7 +631,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 block_config["props"]["proxy_url"] = f"{proxy_url}/"
 
             constructor_args = cls.recover_kwargs(block_config["props"])
-            block = cls()
+            block = cls(**{k: v for k, v in constructor_args.items() if k != "value"})
             for k, v in constructor_args.items():
                 setattr(block, k, v)
 
@@ -657,7 +657,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     if not isinstance(block, BlockContext):
                         raise ValueError(
                             f"Invalid config, Block with id {id} has children but is not a BlockContext."
-                        )
+                        )                          
                     with block:
                         iterate_over_children(children)
 
