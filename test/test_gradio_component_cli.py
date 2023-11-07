@@ -31,6 +31,7 @@ from gradio.cli.commands.components.show import _show
         "UploadButton",
         "JSON",
         "FileExplorer",
+        "Model3D",
     ],
 )
 def test_template_override_component(template, tmp_path):
