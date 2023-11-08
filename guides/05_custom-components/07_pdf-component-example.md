@@ -640,7 +640,7 @@ See our demo in action below!
   <source src="https://gradio-builds.s3.amazonaws.com/assets/pdf-guide/PDFDemo.mov" type="video/mp4" />
 </video>
 
-Finally lets publish our component with the `gradio cc publish` command!
+Finally lets build our component with `gradio cc build` and publish it with `gradio cc publish` command!
 This will guide you through the process of uploading your component to [PyPi](https://pypi.org/) and [HuggingFace Spaces](https://huggingface.co/spaces).
 
 Tip: You may need to add the following lines to the `Dockerfile` of your HuggingFace Space.
@@ -656,4 +656,5 @@ ENV TRANSFORMERS_CACHE=/tmp/cache/
 ## Conclusion
 
 I hope you enjoyed this tutorial!
+The complete source code for our component is [here](https://huggingface.co/spaces/freddyaboulton/gradio_pdf/tree/main/src).
 Please don't hesitate to reach out to the gradio community on the [HuggingFace Discord](https://discord.gg/hugging-face-879548962464493619) if you get stuck.
