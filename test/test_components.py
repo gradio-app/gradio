@@ -712,7 +712,7 @@ class TestAudio:
         audio_input = gr.Audio(label="Upload Your Audio")
         assert audio_input.get_config() == {
             "autoplay": False,
-            "sources": ["microphone", "upload"],
+            "sources": ["upload", "microphone"],
             "name": "audio",
             "show_download_button": True,
             "show_share_button": False,
@@ -776,7 +776,7 @@ class TestAudio:
             "type": "filepath",
             "format": "wav",
             "streamable": False,
-            "sources": ["microphone", "upload"],
+            "sources": ["upload", "microphone"],
             "waveform_options": None,
             "_selectable": False,
         }
@@ -997,6 +997,14 @@ class TestDataframe:
         dataframe_input = gr.Dataframe()
         output = dataframe_input.preprocess(DataframeData(**x_data))
         assert output["Age"][1] == 24
+
+        x_data = {
+            "data": [["Tim", 12, False], ["Jan", 24, True]],
+            "headers": ["Name", "Age", "Member"],
+            "metadata": {"display_value": None, "styling": None},
+        }
+        dataframe_input.preprocess(DataframeData(**x_data))
+
         with pytest.raises(ValueError):
             gr.Dataframe(type="unknown")
 

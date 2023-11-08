@@ -3,7 +3,7 @@
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import { upload, prepare_files, type FileData } from "@gradio/client";
 	import { BlockLabel } from "@gradio/atoms";
-	import { Music, Microphone, Upload as UploadIcon } from "@gradio/icons";
+	import { Music } from "@gradio/icons";
 	import AudioPlayer from "../player/AudioPlayer.svelte";
 	import { _ } from "svelte-i18n";
 
@@ -11,6 +11,7 @@
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import AudioRecorder from "../recorder/AudioRecorder.svelte";
 	import StreamAudio from "../streaming/StreamAudio.svelte";
+	import { SelectSource } from "@gradio/atoms";
 
 	export let value: null | FileData = null;
 	export let label: string;
@@ -23,7 +24,6 @@
 		| ["upload", "microphone"] = ["microphone", "upload"];
 	export let pending = false;
 	export let streaming = false;
-	export let autoplay = false;
 	export let i18n: I18nFormatter;
 	export let waveform_settings = {};
 	export let dragging: boolean;
@@ -227,6 +227,7 @@
 			bind:dragging
 			on:error={({ detail }) => dispatch("error", detail)}
 			{root}
+			include_sources={sources.length > 1}
 		>
 			<slot />
 		</Upload>
@@ -243,7 +244,6 @@
 		bind:mode
 		{value}
 		{label}
-		{autoplay}
 		{i18n}
 		{dispatch}
 		{dispatch_blob}
@@ -253,48 +253,4 @@
 	/>
 {/if}
 
-{#if sources.length > 1}
-	<span class="source-selection">
-		<button
-			class="icon"
-			aria-label="Upload audio"
-			on:click={() => {
-				clear();
-				active_source = "upload";
-			}}><UploadIcon /></button
-		>
-		<button
-			class="icon"
-			aria-label="Record audio"
-			on:click={() => {
-				clear();
-				active_source = "microphone";
-			}}><Microphone /></button
-		>
-	</span>
-{/if}
-
-<style>
-	.source-selection {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		border-top: 1px solid var(--border-color-primary);
-		width: 95%;
-		margin: 0 auto;
-	}
-
-	.icon {
-		width: 22px;
-		height: 22px;
-		margin: var(--spacing-lg) var(--spacing-xs);
-		padding: var(--spacing-xs);
-		color: var(--neutral-400);
-		border-radius: var(--radius-md);
-	}
-
-	.icon:hover,
-	.icon:focus {
-		color: var(--color-accent);
-	}
-</style>
+<SelectSource {sources} bind:active_source handle_clear={clear} />

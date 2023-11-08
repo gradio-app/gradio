@@ -382,13 +382,15 @@ def postprocess_update_dict(
         update_dict: The original update dictionary
         postprocess: Whether to postprocess the "value" key of the update dictionary.
     """
-    update_dict = {k: update_dict[k] for k in update_dict if hasattr(block, k)}
-    if update_dict.get("value") is components._Keywords.NO_VALUE:
-        update_dict.pop("value")
-    elif "value" in update_dict and postprocess:
-        update_dict["value"] = block.postprocess(update_dict["value"])
-        if isinstance(update_dict["value"], (GradioModel, GradioRootModel)):
-            update_dict["value"] = update_dict["value"].model_dump()
+    value = update_dict.pop("value", components._Keywords.NO_VALUE)
+    update_dict = {k: getattr(block, k) for k in update_dict if hasattr(block, k)}
+    if value is not components._Keywords.NO_VALUE:
+        if postprocess:
+            update_dict["value"] = block.postprocess(value)
+            if isinstance(update_dict["value"], (GradioModel, GradioRootModel)):
+                update_dict["value"] = update_dict["value"].model_dump()
+        else:
+            update_dict["value"] = value
     update_dict["__type__"] = "update"
     return update_dict
 
@@ -546,7 +548,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.app_id = random.getrandbits(64)
         self.temp_file_sets = []
         self.title = title
-        self.show_api = True
+        self.show_api = not wasm_utils.IS_WASM
 
         # Only used when an Interface is loaded from a config
         self.predict = None
@@ -1360,14 +1362,14 @@ Received outputs:
                     prediction_value["__type__"] = "update"
                 if utils.is_update(prediction_value):
                     if output_id in state:
-                        args = state[output_id].constructor_args.copy()
+                        kwargs = state[output_id].constructor_args.copy()
                     else:
-                        args = self.blocks[output_id].constructor_args.copy()
-                    args.update(prediction_value)
-                    args.pop("value", None)
-                    args.pop("__type__")
-                    args["render"] = False
-                    state[output_id] = self.blocks[output_id].__class__(**args)
+                        kwargs = self.blocks[output_id].constructor_args.copy()
+                    kwargs.update(prediction_value)
+                    kwargs.pop("value", None)
+                    kwargs.pop("__type__")
+                    kwargs["render"] = False
+                    state[output_id] = self.blocks[output_id].__class__(**kwargs)
 
                     prediction_value = postprocess_update_dict(
                         block=state[output_id],

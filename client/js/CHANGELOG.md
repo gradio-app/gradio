@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 0.7.2
+
+### Fixes
+
+- [#6327](https://github.com/gradio-app/gradio/pull/6327) [`bca6c2c80`](https://github.com/gradio-app/gradio/commit/bca6c2c80f7e5062427019de45c282238388af95) - Restore query parameters in request.  Thanks [@aliabid94](https://github.com/aliabid94)!
+
 ## 0.7.1
 
 ### Features
