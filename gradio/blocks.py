@@ -910,7 +910,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             "cancels": cancels or [],
             "types": {
                 "continuous": bool(every),
-                "generator": inspect.isgeneratorfunction(fn) or bool(every),
+                "generator": inspect.isgeneratorfunction(fn)
+                or inspect.isasyncgenfunction(fn)
+                or bool(every),
             },
             "collects_event_data": collects_event_data,
             "trigger_after": trigger_after,
