@@ -230,3 +230,4 @@ jobs:
       run: |
         venv\Scripts\activate
         python -m pytest -m "${{ matrix.test-type }}" --ignore=client
+        echo "The exit code for pytest was $LASTEXITCODE"
