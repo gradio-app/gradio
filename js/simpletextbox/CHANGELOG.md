@@ -1,5 +1,13 @@
 # @gradio/simpletextbox
 
+## 0.1.1
+
+### Patch Changes
+
+- Updated dependencies [[`3cdeabc68`](https://github.com/gradio-app/gradio/commit/3cdeabc6843000310e1a9e1d17190ecbf3bbc780), [`fad92c29d`](https://github.com/gradio-app/gradio/commit/fad92c29dc1f5cd84341aae417c495b33e01245f)]:
+  - @gradio/atoms@0.2.1
+  - @gradio/statustracker@0.3.1
+
 ## 0.1.0
 
 ### Patch Changes
