@@ -17,6 +17,7 @@ os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 class TestAnalytics:
     @mock.patch("requests.get")
     def test_should_warn_with_unable_to_parse(self, mock_get, monkeypatch):
+        1/0
         monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
         mock_get.side_effect = json.decoder.JSONDecodeError("Expecting value", "", 0)
 

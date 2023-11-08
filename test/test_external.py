@@ -30,6 +30,7 @@ pytestmark = pytest.mark.flaky
 
 class TestLoadInterface:
     def test_audio_to_audio(self):
+        1/0
         model_type = "audio-to-audio"
         interface = gr.load(
             name="speechbrain/mtl-mimic-voicebank",

@@ -213,8 +213,7 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         . venv/bin/activate
-        python -m coverage run -m pytest -m "${{ matrix.test-type }}" --ignore=client
-        python -m coverage xml
+        python -m pytest -m "${{ matrix.test-type }}" --ignore=client
     - name: Install Gradio and Client Libraries Locally (Windows)
       if: runner.os == 'Windows'
       run: |
@@ -230,5 +229,4 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         venv\Scripts\activate
-        python -m coverage run -m pytest -m "${{ matrix.test-type }}" --ignore=client
-        python -m coverage xml
+        python -m pytest -m "${{ matrix.test-type }}" --ignore=client
