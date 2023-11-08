@@ -56,6 +56,7 @@ from gradio.helpers import CACHED_FOLDER
 from gradio.oauth import attach_oauth
 from gradio.queueing import Estimation, Event
 from gradio.route_utils import (  # noqa: F401
+    FileUploadProgress,
     GradioMultiPartParser,
     GradioUploadFile,
     MultiPartException,
@@ -119,6 +120,9 @@ client = httpx.AsyncClient()
 def move_uploaded_files_to_cache(files: list[str], destinations: list[str]) -> None:
     for file, dest in zip(files, destinations):
         shutil.move(file, dest)
+
+
+file_upload_statuses = FileUploadProgress()
 
 
 class App(FastAPI):
@@ -681,8 +685,57 @@ class App(FastAPI):
         async def get_queue_status():
             return app.get_blocks()._queue.get_estimation()
 
+        @app.get("/upload_progress")
+        def get_upload_progress(upload_id: str, request: fastapi.Request):
+            async def sse_stream(request: fastapi.Request):
+                last_heartbeat = time.perf_counter()
+                is_done = False
+                while True:
+                    if await request.is_disconnected():
+                        file_upload_statuses.stop_tracking(upload_id)
+                        return
+                    if is_done:
+                        file_upload_statuses.stop_tracking(upload_id)
+                        return
+
+                    heartbeat_rate = 15
+                    check_rate = 0.05
+                    message = None
+                    try:
+                        if update := file_upload_statuses.status(upload_id).popleft():
+                            if update.is_done:
+                                message = {"msg": "done"}
+                                is_done = True
+                            else:
+                                message = {
+                                    "msg": "update",
+                                    "orig_name": update.filename,
+                                    "chunk_size": update.chunk_size,
+                                }
+                        else:
+                            await asyncio.sleep(check_rate)
+                            if time.perf_counter() - last_heartbeat > heartbeat_rate:
+                                message = {"msg": "heartbeat"}
+                                last_heartbeat = time.perf_counter()
+                        if message:
+                            yield f"data: {json.dumps(message)}\n\n"
+                    except IndexError:
+                        if not file_upload_statuses.is_tracked(upload_id):
+                            return
+                        # pop from empty queue
+                        continue
+
+            return StreamingResponse(
+                sse_stream(request),
+                media_type="text/event-stream",
+            )
+
         @app.post("/upload", dependencies=[Depends(login_check)])
-        async def upload_file(request: fastapi.Request, bg_tasks: BackgroundTasks):
+        async def upload_file(
+            request: fastapi.Request,
+            bg_tasks: BackgroundTasks,
+            upload_id: Optional[str] = None,
+        ):
             content_type_header = request.headers.get("Content-Type")
             content_type: bytes
             content_type, _ = parse_options_header(content_type_header)
@@ -690,11 +743,15 @@ class App(FastAPI):
                 raise HTTPException(status_code=400, detail="Invalid content type.")
 
             try:
+                if upload_id:
+                    file_upload_statuses.track(upload_id)
                 multipart_parser = GradioMultiPartParser(
                     request.headers,
                     request.stream(),
                     max_files=1000,
                     max_fields=1000,
+                    upload_id=upload_id if upload_id else None,
+                    upload_progress=file_upload_statuses if upload_id else None,
                 )
                 form = await multipart_parser.parse()
             except MultiPartException as exc:

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections import deque
+from dataclasses import dataclass as python_dataclass
 from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
 from typing import TYPE_CHECKING, AsyncGenerator, BinaryIO, List, Optional, Tuple, Union
 
@@ -294,6 +296,44 @@ class GradioUploadFile(UploadFile):
         self.sha = hashlib.sha1()
 
 
+@python_dataclass(frozen=True)
+class FileUploadProgressUnit:
+    filename: str
+    chunk_size: int
+    is_done: bool
+
+
+class FileUploadProgress:
+    def __init__(self) -> None:
+        self._statuses: dict[str, deque[FileUploadProgressUnit]] = {}
+
+    def track(self, upload_id: str):
+        if upload_id not in self._statuses:
+            self._statuses[upload_id] = deque()
+
+    def update(self, upload_id: str, filename: str, message_bytes: bytes):
+        if upload_id not in self._statuses:
+            self._statuses[upload_id] = deque()
+        self._statuses[upload_id].append(
+            FileUploadProgressUnit(filename, len(message_bytes), is_done=False)
+        )
+
+    def set_done(self, upload_id: str):
+        self._statuses[upload_id].append(FileUploadProgressUnit("", 0, is_done=True))
+
+    def stop_tracking(self, upload_id: str):
+        if upload_id in self._statuses:
+            del self._statuses[upload_id]
+
+    def status(self, upload_id: str) -> deque[FileUploadProgressUnit]:
+        if upload_id not in self._statuses:
+            return deque()
+        return self._statuses[upload_id]
+
+    def is_tracked(self, upload_id: str):
+        return upload_id in self._statuses
+
+
 class GradioMultiPartParser:
     """Vendored from starlette.MultipartParser.
 
@@ -315,6 +355,8 @@ class GradioMultiPartParser:
         *,
         max_files: Union[int, float] = 1000,
         max_fields: Union[int, float] = 1000,
+        upload_id: str | None = None,
+        upload_progress: FileUploadProgress | None = None,
     ) -> None:
         assert (
             multipart is not None
@@ -324,6 +366,8 @@ class GradioMultiPartParser:
         self.max_files = max_files
         self.max_fields = max_fields
         self.items: List[Tuple[str, Union[str, UploadFile]]] = []
+        self.upload_id = upload_id
+        self.upload_progress = upload_progress
         self._current_files = 0
         self._current_fields = 0
         self._current_partial_header_name: bytes = b""
@@ -339,6 +383,10 @@ class GradioMultiPartParser:
 
     def on_part_data(self, data: bytes, start: int, end: int) -> None:
         message_bytes = data[start:end]
+        if self.upload_progress is not None:
+            self.upload_progress.update(
+                self.upload_id, self._current_part.file.filename, message_bytes  # type: ignore
+            )
         if self._current_part.file is None:
             self._current_part.data += message_bytes
         else:
@@ -464,4 +512,6 @@ class GradioMultiPartParser:
             raise exc
 
         parser.finalize()
+        if self.upload_progress is not None:
+            self.upload_progress.set_done(self.upload_id)  # type: ignore
         return FormData(self.items)
