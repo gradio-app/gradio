@@ -326,3 +326,334 @@ Tip: The `$:` syntax in svelte is how you declare statements to be reactive. Whe
     }
 ```
 
+Now place the `canvas` underneath the `ModifyUpload` component
+
+```ts
+<div class="pdf-canvas" style="height: {height}px">
+    <canvas bind:this={canvasRef}></canvas>
+</div>
+```
+
+And add the following styles to the `<style>` tag
+
+```ts
+<style>
+    .pdf-canvas {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+</style>
+```
+
+## Step 7: Handling The File Upload And Clear
+
+Now for the fun part - actually rendering the PDF when the file is uploaded!
+Add the following functions to the `<script>` tag:
+
+```ts
+    async function handle_clear() {
+        _value = null;
+        await tick();
+        gradio.dispatch("change");
+    }
+
+    async function handle_upload({detail}: CustomEvent<FileData>): Promise<void> {
+        value = detail;
+        await tick();
+        gradio.dispatch("change");
+        gradio.dispatch("upload");
+    }
+```
+
+Now we will run them whenever the `Upload` component uploads a file and whenever the `ModifyUpload` component clears the current file.
+
+```ts
+    <ModifyUpload i18n={gradio.i18n} on:clear={handle_clear} absolute />
+    
+    ...
+    
+    <Upload
+        on:load={handle_upload}
+        filetype={"application/pdf"}
+        file_count="single"
+        {root}
+    >
+        <PdfUploadText/>
+    </Upload>
+```
+
+Congratulations! You have a working pdf uploader!
+
+![upload-gif](https://gradio-builds.s3.amazonaws.com/assets/pdf-guide/pdf_component_gif_docs.giff)
+
+## Step 8: Adding buttons to navigate pages
+
+If a user uploads a PDF document with multiple pages, they will only be able to see the first one.
+Let's add some buttons to help them navigate the page.
+We will use the `BaseButton` from `@gradio/button` so that they look like regular Gradio buttons.
+
+Import the `BaseButton` and add the following functions that will render the next and previous page of the PDF.
+
+```ts
+    import { BaseButton } from "@gradio/button";
+
+    ...
+
+    function next_page() {
+        if (currentPage >= numPages) {
+            return;
+        }
+        currentPage++;
+        render_page();
+    }
+
+    function prev_page() {
+        if (currentPage == 1) {
+            return;
+        }
+        currentPage--;
+        render_page();
+    }
+```
+
+Now we will add them underneath the canvas in a separate `<div>`
+
+```ts
+    ...
+
+    <ModifyUpload i18n={gradio.i18n} on:clear={handle_clear} absolute />
+    <div class="pdf-canvas" style="height: {height}px">
+        <canvas bind:this={canvasRef}></canvas>
+    </div>
+    <div class="button-row">
+        <BaseButton on:click={prev_page}>
+            ⬅️
+        </BaseButton>
+        <span class="page-count"> {currentPage} / {numPages} </span>
+        <BaseButton on:click={next_page}>
+            ➡️
+        </BaseButton>
+    </div>
+    
+    ...
+
+<style>
+    .button-row {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .page-count {
+        margin: 0 10px;
+        font-family: var(--font-mono);
+    }
+```
+
+Congratulations! The frontend is complete 🎉
+
+![multipage-pdf-gif](https://gradio-builds.s3.amazonaws.com/assets/pdf-guide/pdf_multipage.gif)
+
+## Step 8.5: The Example view
+
+We're going to want users of our component to get a preview of the PDF if its used as an `example` in a `gr.Interface` or `gr.Examples`.
+
+To do so, we're going to add some of the pdf rendering logic in `Index.svelte` to `Example.svelte`
+
+This is the entire file.
+
+Tip: Exercise for the reader - reduce the code duplication between `Index.svelte` and `Example.svelte` 😊
+
+```ts
+<script lang="ts">
+	export let value: string;
+	export let samples_dir: string;
+	export let type: "gallery" | "table";
+	export let selected = false;
+	import pdfjsLib from "pdfjs-dist";
+	pdfjsLib.GlobalWorkerOptions.workerSrc =  "https://cdn.bootcss.com/pdf.js/3.11.174/pdf.worker.js";
+	
+	let pdfDoc;
+	let canvasRef;
+
+	async function get_doc(url: string) {
+		const loadingTask = pdfjsLib.getDocument(url);
+		pdfDoc = await loadingTask.promise;
+		renderPage();
+		}
+
+	function renderPage() {
+		// Render a specific page of the PDF onto the canvas
+			pdfDoc.getPage(1).then(page => {
+				const ctx  = canvasRef.getContext('2d')
+				ctx.clearRect(0, 0, canvasRef.width, canvasRef.height);
+				
+				const viewport = page.getViewport({ scale: 0.2 });
+				
+				const renderContext = {
+					canvasContext: ctx,
+					viewport
+				};
+				canvasRef.width = viewport.width;
+				canvasRef.height = viewport.height;
+				page.render(renderContext);
+			});
+		}
+	
+	$: get_doc(samples_dir + value);
+</script>
+
+<div
+	class:table={type === "table"}
+	class:gallery={type === "gallery"}
+	class:selected
+	style="justify-content: center; align-items: center; display: flex; flex-direction: column;"
+>
+	<canvas bind:this={canvasRef}></canvas>
+</div>
+
+<style>
+	.gallery {
+		padding: var(--size-1) var(--size-2);
+	}
+</style>
+```
+
+
+## Step 9: The backend
+
+The backend changes needed are smaller.
+We're almost done!
+
+What we're going to do is:
+* Add `change` and `upload` events to our component
+* Add a `height` property to let users control the height of the PDF.
+* Set the `data_model` of our component to be `FileData`. This is so that Gradio can automatically cache and safely serve any files that are processed by our component.
+* Modify the `preprocess` method to return a string corresponding to the path of our uploaded PDF.
+* Modify the `postprocess` to turn a path to a PDF created in an event handler to a `FileData`.
+
+When all is said an done, your component's backend code should look like this:
+
+```python
+from __future__ import annotations
+from typing import Any, Callable
+
+from gradio.components.base import Component
+from gradio.data_classes import FileData
+from gradio import processing_utils
+
+class PDF(Component):
+
+    EVENTS = ["change", "upload"]
+
+    data_model = FileData
+
+    def __init__(self, value: Any = None, *,
+                 height: int | None = None,
+                 label: str | None = None, info: str | None = None,
+                 show_label: bool | None = None,
+                 container: bool = True,
+                 scale: int | None = None,
+                 min_width: int | None = None,
+                 interactive: bool | None = None,
+                 visible: bool = True,
+                 elem_id: str | None = None,
+                 elem_classes: list[str] | str | None = None,
+                 render: bool = True,
+                 load_fn: Callable[..., Any] | None = None,
+                 every: float | None = None):
+        super().__init__(value, label=label, info=info,
+                         show_label=show_label, container=container,
+                         scale=scale, min_width=min_width,
+                         interactive=interactive, visible=visible,
+                         elem_id=elem_id, elem_classes=elem_classes,
+                         render=render, load_fn=load_fn, every=every)
+        self.height = height
+
+    def preprocess(self, payload: FileData) -> str:
+        return payload.path
+
+    def postprocess(self, value: str | None) -> FileData:
+        if not value:
+            return None
+        return FileData(path=value)
+
+    def example_inputs(self):
+        return "https://gradio-builds.s3.amazonaws.com/assets/pdf-guide/fw9.pdf"
+
+    def as_example(self, input_data: str | None) -> str | None:
+        if input_data is None:
+            return None
+        return processing_utils.move_resource_to_block_cache(input_data, self)
+```
+
+## Step 10: Add a demo and publish!
+
+To test our backend code, let's add a more complex demo that performs Document Question and Answering with huggingface transformers.
+
+In our `demo` directory, create a `requirements.txt` file with the following packages
+
+```
+torch
+transformers
+pdf2image
+pytesseract
+```
+
+Tip: Remember to install these yourself and restart the dev server! You may need to install extra non-python dependencies for `pdf2image`. See (here)[https://pypi.org/project/pdf2image/] feel free to write your own demo if you have trouble.
+
+```python
+import gradio as gr
+from gradio_pdf import PDF
+from pdf2image import convert_from_path
+from transformers import pipeline
+from pathlib import Path
+
+dir_ = Path(__file__).parent
+
+p = pipeline(
+    "document-question-answering",
+    model="impira/layoutlm-document-qa",
+)
+
+def qa(question: str, doc: str) -> str:
+    img = convert_from_path(doc)[0]
+    output = p(img, question)
+    return sorted(output, key=lambda x: x["score"], reverse=True)[0]['answer']
+
+
+demo = gr.Interface(
+    qa,
+    [gr.Textbox(label="Question"), PDF(label="Document")],
+    gr.Textbox(),
+)
+
+demo.launch()
+```
+
+See our demo in action below!
+
+<video autoplay muted loop>
+  <source src="https://gradio-builds.s3.amazonaws.com/assets/pdf-guide/PDFDemo.mov" type="video/mp4" />
+</video>
+
+Finally lets publish our component with the `gradio cc publish` command!
+This will guide you through the process of uploading your component to [PyPi](https://pypi.org/) and [HuggingFace Spaces](https://huggingface.co/spaces).
+
+Tip: You may need to add the following lines to the `Dockerfile` of your HuggingFace Space.
+
+```Dockerfile
+RUN mkdir -p /tmp/cache/
+RUN chmod a+rwx -R /tmp/cache/
+RUN apt-get update && apt-get install -y poppler-utils tesseract-ocr
+
+ENV TRANSFORMERS_CACHE=/tmp/cache/
+```
+
+## Conclusion
+
+I hope you enjoyed this tutorial!
+Please don't hesitate to reach out to the gradio community on the [HuggingFace Discord](https://discord.gg/hugging-face-879548962464493619) if you get stuck.
