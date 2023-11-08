@@ -103,6 +103,7 @@
 	}
 
 	function handleChange(vu: ViewUpdate): void {
+		view.hasFocus ? dispatch("focus") : dispatch("blur");
 		if (vu.docChanged) {
 			const doc = vu.state.doc;
 			const text = doc.toString();
