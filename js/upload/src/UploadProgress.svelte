@@ -14,9 +14,11 @@
 	let files_with_progress: FileDataWithProgress[] = files.map((file) => {
 		return {
 			...file,
-			progress: 0
+			progress: 0,
 		};
 	});
+
+	let lowestProgressFile: FileData | null = "";
 
 	const dispatch = createEventDispatcher();
 
@@ -50,41 +52,76 @@
 			}
 		};
 	});
+
+	function calculateTotalProgress(files: FileData[]): string {
+		let totalProgress = 0;
+		files.forEach((file) => {
+			totalProgress += getProgress(file as FileDataWithProgress);
+		});
+
+		document.documentElement.style.setProperty(
+			"--upload-progress-width",
+			(totalProgress / files.length).toFixed(2) + "%"
+		);
+
+		document.documentElement.style.setProperty(
+			"--upload-progress",
+			(totalProgress / files.length).toFixed(2)
+		);
+
+		files.forEach((file) => {
+			if (
+				getProgress(file as FileDataWithProgress) <
+				getProgress(lowestProgressFile as FileDataWithProgress)
+			) {
+				lowestProgressFile = file;
+			}
+		});
+
+		return (totalProgress / files.length).toFixed(2);
+	}
+
+	$: calculateTotalProgress(files_with_progress);
 </script>
 
 <div class="wrap" class:progress>
-	{#each files_with_progress as file, index}
+	<span class="file-wrap">
 		<div class="file-info">
-			<span>Uploading {file.orig_name}...</span>
+			<span>Uploading {files_with_progress.length} files...</span>
 		</div>
-		<div class="progress-bar-wrap">
-			<div class="progress-bar" style="width: {getProgress(file)}%;"></div>
-		</div>
-	{/each}
+		{#if lowestProgressFile}
+			<div class="file-name">
+				{lowestProgressFile.orig_name}
+			</div>
+		{/if}
+	</span>
 </div>
 
 <style>
 	.wrap {
-		margin-top: var(--size-7);
 		overflow-y: auto;
-		opacity: 0;
 		transition: opacity 0.5s ease-in-out;
 		background: var(--block-background-fill);
+		min-height: var(--size-40);
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.wrap::after {
+		content: "";
+		top: 0;
+		left: 0;
+		position: absolute;
+		background: var(--background-fill-primary);
+		width: var(--upload-progress-width, 0%);
+		height: 100%;
+		z-index: 1;
 	}
 
 	.wrap.progress {
 		opacity: 1;
-	}
-
-	.progress-bar-wrap {
-		border: 1px solid var(--border-color-primary);
-		background: var(--background-fill-primary);
-		height: var(--size-4);
-	}
-	.progress-bar {
-		transform-origin: left;
-		background-color: var(--loader-color);
-		height: var(--size-full);
 	}
 
 	.file-info {
@@ -92,11 +129,26 @@
 		justify-content: center;
 		text-align: center;
 		width: 100%;
+		z-index: 2;
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
 	}
 
-	.file-info span {
+	.file-info > span {
 		color: var(--body-text-color);
-		font-size: var(--text-med);
-		font-family: var(--font-mono);
+		font-size: var(--text-lg);
+		font-family: var(--font);
+		margin: var(--spacing-lg);
+	}
+
+	.file-name {
+		color: var(--body-text-color-subdued);
+		font-size: var(--text-lg);
+		font-family: var(--font);
+		margin: var(--spacing-lg);
+		z-index: 2;
+		position: relative;
 	}
 </style>
