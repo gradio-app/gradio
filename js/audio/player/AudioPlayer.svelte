@@ -19,7 +19,7 @@
 		event: "stream" | "change" | "stop_recording"
 	) => Promise<void> = () => Promise.resolve();
 	export let interactive = false;
-	export let waveform_settings = {};
+	export let waveform_settings: Record<string, any> = {};
 	export let mode = "";
 	export let handle_reset_value: () => void = () => {};
 
@@ -44,7 +44,7 @@
 		waveform = WaveSurfer.create({
 			container: container,
 			url: value?.url,
-			...waveform_settings
+			...waveform_settings,
 		});
 	};
 
@@ -123,7 +123,12 @@
 		<Music />
 	</Empty>
 {:else if value.is_stream}
-	<audio class="standard-player" src={value.url} controls />
+	<audio
+		class="standard-player"
+		src={value.url}
+		controls
+		autoplay={waveform_settings.autoplay}
+	/>
 {:else}
 	<div
 		class="component-wrapper"
