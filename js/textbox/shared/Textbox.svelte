@@ -64,6 +64,7 @@
 		}
 	}
 	afterUpdate(() => {
+		if (autofocus) { el.focus();}
 		if (can_scroll && autoscroll) {
 			scroll();
 		}
@@ -111,7 +112,6 @@
 		) {
 			e.preventDefault();
 			dispatch("submit");
-			el.focus();
 		}
 	}
 

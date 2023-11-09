@@ -67,10 +67,21 @@
 	}
 
 	function createEditorView(): EditorView {
-		return new EditorView({
+		const editorView = new EditorView({
 			parent: element,
 			state: createEditorState(value)
 		});
+		editorView.dom.addEventListener('focus', handleFocus, true);
+		editorView.dom.addEventListener('blur', handleBlur, true);
+		return editorView;
+	}
+
+	function handleFocus(): void {
+		dispatch('focus');
+	}
+
+	function handleBlur(): void {
+		dispatch('blur');
 	}
 
 	function getGutterLineHeight(_view: EditorView): string | null {
@@ -103,7 +114,6 @@
 	}
 
 	function handleChange(vu: ViewUpdate): void {
-		view.hasFocus ? dispatch("focus") : dispatch("blur");
 		if (vu.docChanged) {
 			const doc = vu.state.doc;
 			const text = doc.toString();
@@ -221,9 +231,6 @@
 <div class="wrap">
 	<div
 		class="codemirror-wrapper {classNames}"
-		tabindex="-1"
-		on:blur
-		on:focus
 		bind:this={element}
 	/>
 </div>
