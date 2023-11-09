@@ -64,7 +64,9 @@
 		}
 	}
 	afterUpdate(() => {
-		if (autofocus) { el.focus();}
+		if (autofocus) {
+			el.focus();
+		}
 		if (can_scroll && autoscroll) {
 			scroll();
 		}

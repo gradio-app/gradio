@@ -71,17 +71,17 @@
 			parent: element,
 			state: createEditorState(value)
 		});
-		editorView.dom.addEventListener('focus', handleFocus, true);
-		editorView.dom.addEventListener('blur', handleBlur, true);
+		editorView.dom.addEventListener("focus", handleFocus, true);
+		editorView.dom.addEventListener("blur", handleBlur, true);
 		return editorView;
 	}
 
 	function handleFocus(): void {
-		dispatch('focus');
+		dispatch("focus");
 	}
 
 	function handleBlur(): void {
-		dispatch('blur');
+		dispatch("blur");
 	}
 
 	function getGutterLineHeight(_view: EditorView): string | null {
@@ -229,10 +229,7 @@
 </script>
 
 <div class="wrap">
-	<div
-		class="codemirror-wrapper {classNames}"
-		bind:this={element}
-	/>
+	<div class="codemirror-wrapper {classNames}" bind:this={element} />
 </div>
 
 <style>
