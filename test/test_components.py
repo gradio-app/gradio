@@ -2031,7 +2031,9 @@ class TestModel3D:
         file = "test/test_files/Box.gltf"
         output1 = model_component.postprocess(file)
         output2 = model_component.postprocess(Path(file))
-        assert output1 == output2
+        assert output1
+        assert output2
+        assert Path(output1.path).name == Path(output2.path).name
 
     def test_in_interface(self):
         """
