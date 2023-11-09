@@ -63,41 +63,41 @@
 	</div>
 
 	{#each data.guides_by_category as { category, guides }, i (category)}
-			<div class="category mb-8 p-4">
-				<h2
-					class:hidden={guides.filter(isNotHidden).length === 0}
-					class="mb-4 text-2xl font-thin block"
-				>
-					{category}
-				</h2>
-				<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-					{#each guides as guide (guide.name)}
-						<a
-							class:hidden={guide.hidden}
-							class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow bg-gradient-to-r {data
-								.COLOR_SETS[i][0]} {data.COLOR_SETS[i][1]}"
-							href=".{guide.url}"
-						>
-							<div class="flex flex-col p-4 h-min">
-								<h2 class="group-hover:underline text-lg">
-									{guide.pretty_name}
-								</h2>
-								<div class="tags-holder">
-									{#if guide.tags}
-										<p class="text-gray-600">
-											<!--
+		<div class="category mb-8 p-4">
+			<h2
+				class:hidden={guides.filter(isNotHidden).length === 0}
+				class="mb-4 text-2xl font-thin block"
+			>
+				{category}
+			</h2>
+			<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+				{#each guides as guide (guide.name)}
+					<a
+						class:hidden={guide.hidden}
+						class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow bg-gradient-to-r {data
+							.COLOR_SETS[i][0]} {data.COLOR_SETS[i][1]}"
+						href=".{guide.url}"
+					>
+						<div class="flex flex-col p-4 h-min">
+							<h2 class="group-hover:underline text-lg">
+								{guide.pretty_name}
+							</h2>
+							<div class="tags-holder">
+								{#if guide.tags}
+									<p class="text-gray-600">
+										<!--
                     -->{#each guide.tags as tag, j (tag)}<!--
                     -->{tag}{#if j !== guide.tags.length - 1},&nbsp;{/if}<!--
                     -->{/each}<!--
                 -->
-										</p>
-									{/if}
-								</div>
+									</p>
+								{/if}
 							</div>
-						</a>
-					{/each}
-				</div>
+						</div>
+					</a>
+				{/each}
 			</div>
+		</div>
 	{/each}
 
 	<div
