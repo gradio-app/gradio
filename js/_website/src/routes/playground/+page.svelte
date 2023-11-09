@@ -76,6 +76,11 @@
 				>
 			</div>
 			{#if show_nav}
+				<button
+				on:click={() => (current_selection = "New")}
+				class:current-playground-demo={current_selection == "New"}
+				class="thin-link font-light px-4 mt-2 block">New</button
+			>
 				{#each data.demos_by_category as { category, demos } (category)}
 					<p class="px-4 my-2">{category}</p>
 					{#each demos as demo, i}

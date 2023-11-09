@@ -13,6 +13,16 @@
 	}[];
 	export let current_selection: string;
 	export let show_nav = true;
+
+	let new_demo = {
+		"name": "New",
+		"dir": "New",
+		"code": "# Write your own Gradio code here and see what it looks like!\n",
+		"requirements": [],
+	}
+
+	demos.push(new_demo);
+
 	let mounted = false;
 	let controller: any;
 
