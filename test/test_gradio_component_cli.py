@@ -76,7 +76,9 @@ def test_do_not_replace_class_name_in_import_statement(tmp_path):
 
 
 def test_raises_if_directory_exists(tmp_path):
-    with pytest.raises(Exception):  # Keeping it a general exception since the specific exception seems to differ between operating systems
+    with pytest.raises(
+        Exception
+    ):  # Keeping it a general exception since the specific exception seems to differ between operating systems
         _create("MyComponent", tmp_path)
 
 
