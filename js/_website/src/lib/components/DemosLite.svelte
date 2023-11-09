@@ -5,7 +5,7 @@
 	import Fullscreen from "./icons/Fullscreen.svelte";
 	import Close from "./icons/Close.svelte";
 	import { page } from "$app/stores";
-	import anchor from "$lib/assets/img/anchor_gray.svg";
+	import share from "$lib/assets/img/share_gray.svg";
 	import { svgCheck } from "$lib/assets/copy.js";
 	import { browser } from "$app/environment";
 
@@ -140,11 +140,17 @@
 					<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2">
 						<h3 class="pt-1">Code</h3>
 						<div class="flex float-right">
-							<button on:click={() => copy_link(demo.name)}>
+							<button 
+							class="border border-gray-300 rounded-md px-2 py-.5 my-[3px] text-sm text-gray-400 hover:bg-gray-50 w-28"
+							on:click={() => copy_link(demo.name)}>
 								{#if !copied_link}
-									<img class="anchor-img !w-5" src={anchor} />
+									<img class="!w-4 align-text-top inline-block" src={share} />
+									<p class="inline-block">Share Edits</p>
 								{:else}
-									{@html svgCheck}
+									<div class="inline-block align-text-top !w-4">
+										{@html svgCheck}
+									</div>
+									<p class="inline-block">Copied Link!</p>
 								{/if}
 							</button>
 						</div>
