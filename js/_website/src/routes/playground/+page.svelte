@@ -88,10 +88,10 @@
 			</div>
 			{#if show_nav}
 				<button
-					on:click={() => (current_selection = "New")}
-					class:current-playground-demo={current_selection == "New"}
-					class:shared-link={shared == "New"}
-					class="thin-link font-light px-4 mt-2 block">New</button
+					on:click={() => (current_selection = "Blank")}
+					class:current-playground-demo={current_selection == "Blank"}
+					class:shared-link={shared == "Blank"}
+					class="thin-link font-light px-4 mt-2 block">Blank</button
 				>
 				{#each data.demos_by_category as { category, demos } (category)}
 					<p class="px-4 my-2">{category}</p>

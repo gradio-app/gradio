@@ -19,8 +19,8 @@
 	export let show_nav = true;
 
 	let new_demo = {
-		name: "New",
-		dir: "New",
+		name: "Blank",
+		dir: "Blank",
 		code: "# Write your own Gradio code here and see what it looks like!\nimport gradio as gr\n\n",
 		requirements: []
 	};
