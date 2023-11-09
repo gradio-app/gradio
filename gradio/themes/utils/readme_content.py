@@ -2,7 +2,7 @@ README_CONTENT = """
 ---
 tags: [gradio-theme]
 title: {theme_name}
-colorFrom: orange
+colorFrom: red
 colorTo: purple
 sdk: gradio
 sdk_version: {gradio_version}

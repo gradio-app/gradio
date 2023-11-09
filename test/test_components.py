@@ -712,7 +712,7 @@ class TestAudio:
         audio_input = gr.Audio(label="Upload Your Audio")
         assert audio_input.get_config() == {
             "autoplay": False,
-            "sources": ["microphone", "upload"],
+            "sources": ["upload", "microphone"],
             "name": "audio",
             "show_download_button": True,
             "show_share_button": False,
@@ -776,7 +776,7 @@ class TestAudio:
             "type": "filepath",
             "format": "wav",
             "streamable": False,
-            "sources": ["microphone", "upload"],
+            "sources": ["upload", "microphone"],
             "waveform_options": None,
             "_selectable": False,
         }
@@ -2031,7 +2031,9 @@ class TestModel3D:
         file = "test/test_files/Box.gltf"
         output1 = model_component.postprocess(file)
         output2 = model_component.postprocess(Path(file))
-        assert output1 == output2
+        assert output1
+        assert output2
+        assert Path(output1.path).name == Path(output2.path).name
 
     def test_in_interface(self):
         """

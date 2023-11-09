@@ -10,8 +10,8 @@
 	import type { FileData } from "@gradio/client";
 
 	export let value: null | FileData = null;
+	$: url = value?.url;
 	export let label: string;
-	export let autoplay: boolean;
 	export let i18n: I18nFormatter;
 	export let dispatch: (event: any, detail?: any) => void;
 	export let dispatch_blob: (
@@ -19,12 +19,12 @@
 		event: "stream" | "change" | "stop_recording"
 	) => Promise<void> = () => Promise.resolve();
 	export let interactive = false;
-	export let waveform_settings = {};
+	export let waveform_settings: Record<string, any> = {};
 	export let mode = "";
 	export let handle_reset_value: () => void = () => {};
 
 	let container: HTMLDivElement;
-	let waveform: WaveSurfer;
+	let waveform: WaveSurfer | undefined;
 	let playing = false;
 
 	let timeRef: HTMLTimeElement;
@@ -53,11 +53,6 @@
 		container.innerHTML = "";
 		create_waveform();
 		playing = false;
-	}
-
-	$: if (autoplay) {
-		waveform?.play();
-		playing = true;
 	}
 
 	$: waveform?.on("decode", (duration: any) => {
@@ -90,12 +85,12 @@
 		end: number
 	): Promise<void> => {
 		mode = "";
-		const decodedData = waveform.getDecodedData();
+		const decodedData = waveform?.getDecodedData();
 		if (decodedData)
 			await process_audio(decodedData, start, end).then(
 				async (trimmedBlob: Uint8Array) => {
 					await dispatch_blob([trimmedBlob], "change");
-					waveform.destroy();
+					waveform?.destroy();
 					create_waveform();
 				}
 			);
@@ -104,15 +99,16 @@
 
 	async function load_audio(data: string): Promise<void> {
 		await resolve_wasm_src(data).then((resolved_src) => {
-			if (!resolved_src) return;
+			if (!resolved_src || value?.is_stream) return;
 			return waveform?.load(resolved_src);
 		});
 	}
 
-	$: value?.url && load_audio(value.url);
+	$: url && load_audio(url);
 
 	onMount(() => {
 		window.addEventListener("keydown", (e) => {
+			if (!waveform) return;
 			if (e.key === "ArrowRight" && mode !== "edit") {
 				skipAudio(waveform, 0.1);
 			} else if (e.key === "ArrowLeft" && mode !== "edit") {
@@ -126,6 +122,13 @@
 	<Empty size="small">
 		<Music />
 	</Empty>
+{:else if value.is_stream}
+	<audio
+		class="standard-player"
+		src={value.url}
+		controls
+		autoplay={waveform_settings.autoplay}
+	/>
 {:else}
 	<div
 		class="component-wrapper"
@@ -200,5 +203,10 @@
 		width: 100%;
 		height: 100%;
 		position: relative;
+	}
+
+	.standard-player {
+		width: 100%;
+		padding: var(--size-2);
 	}
 </style>

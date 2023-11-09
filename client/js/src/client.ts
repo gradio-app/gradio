@@ -156,7 +156,8 @@ interface Client {
 	upload_files: (
 		root: string,
 		files: File[],
-		token?: `hf_${string}`
+		token?: `hf_${string}`,
+		upload_id?: string
 	) => Promise<UploadResponse>;
 	client: (
 		app_reference: string,
@@ -208,7 +209,8 @@ export function api_factory(
 	async function upload_files(
 		root: string,
 		files: (Blob | File)[],
-		token?: `hf_${string}`
+		token?: `hf_${string}`,
+		upload_id?: string
 	): Promise<UploadResponse> {
 		const headers: {
 			Authorization?: string;
@@ -225,7 +227,10 @@ export function api_factory(
 				formData.append("files", file);
 			});
 			try {
-				var response = await fetch_implementation(`${root}/upload`, {
+				const upload_url = upload_id
+					? `${root}/upload?upload_id=${upload_id}`
+					: `${root}/upload`;
+				var response = await fetch_implementation(upload_url, {
 					method: "POST",
 					body: formData,
 					headers
@@ -657,7 +662,7 @@ export function api_factory(
 								host,
 								config.path,
 								true
-							)}/queue/join?${params}`
+							)}/queue/join?${url_params ? url_params + "&" : ""}${params}`
 						);
 
 						eventSource = new EventSource(url);

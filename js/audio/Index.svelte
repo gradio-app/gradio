@@ -97,6 +97,7 @@
 		barHeight: 4,
 		cursorWidth: 2,
 		cursorColor: "#ddd5e9",
+		autoplay: autoplay,
 		barRadius: 10,
 		dragToSeek: true,
 		mediaControls: waveform_options.show_controls
@@ -133,7 +134,6 @@
 
 		<StaticAudio
 			i18n={gradio.i18n}
-			{autoplay}
 			{show_label}
 			{show_download_button}
 			{show_share_button}
@@ -176,7 +176,6 @@
 			{active_source}
 			{pending}
 			{streaming}
-			{autoplay}
 			{handle_reset_value}
 			bind:dragging
 			on:edit={() => gradio.dispatch("edit")}

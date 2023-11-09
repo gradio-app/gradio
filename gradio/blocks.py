@@ -103,7 +103,6 @@ class Block:
         render: bool = True,
         visible: bool = True,
         proxy_url: str | None = None,
-        _skip_init_processing: bool = False,
     ):
         self._id = Context.id
         Context.id += 1
@@ -114,7 +113,6 @@ class Block:
         )
         self.proxy_url = proxy_url
         self.share_token = secrets.token_urlsafe(32)
-        self._skip_init_processing = _skip_init_processing
         self.parent: BlockContext | None = None
         self.is_rendered: bool = False
         self._constructor_args: dict
@@ -548,7 +546,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.app_id = random.getrandbits(64)
         self.temp_file_sets = []
         self.title = title
-        self.show_api = True
+        self.show_api = not wasm_utils.IS_WASM
 
         # Only used when an Interface is loaded from a config
         self.predict = None
@@ -631,9 +629,12 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             # URL of C, not B. The else clause below handles this case.
             if block_config["props"].get("proxy_url") is None:
                 block_config["props"]["proxy_url"] = f"{proxy_url}/"
+            postprocessed_value = block_config["props"].pop("value", None)
 
             constructor_args = cls.recover_kwargs(block_config["props"])
             block = cls(**constructor_args)
+            if postprocessed_value is not None:
+                block.value = postprocessed_value  # type: ignore
 
             block_proxy_url = block_config["props"]["proxy_url"]
             block.proxy_url = block_proxy_url
@@ -642,8 +643,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 _selectable := block_config["props"].pop("_selectable", None)
             ) is not None:
                 block._selectable = _selectable  # type: ignore
-            # Any component has already processed its initial value, so we skip that step here
-            block._skip_init_processing = True
 
             return block
 
@@ -910,7 +909,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             "cancels": cancels or [],
             "types": {
                 "continuous": bool(every),
-                "generator": inspect.isgeneratorfunction(fn) or bool(every),
+                "generator": inspect.isgeneratorfunction(fn)
+                or inspect.isasyncgenfunction(fn)
+                or bool(every),
             },
             "collects_event_data": collects_event_data,
             "trigger_after": trigger_after,
