@@ -31,7 +31,10 @@ jobs:
         filters: |
           python-client:
             - 'client/python/**'
+            - 'gradio/**'
+            - 'requirements.txt'
           gradio:
+            - 'client/python/**'
             - 'gradio/**'
             - 'requirements.txt'
           test:
@@ -191,7 +194,7 @@ jobs:
       run: |
         . venv/bin/activate
         python -m pip install -e client/python
-        python -m pip install .
+        python -m pip install ".[oauth]"
     - name: Install Test Dependencies (Linux)
       if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Linux'
       run: |
@@ -219,7 +222,7 @@ jobs:
       run: |
         venv\Scripts\activate
         python -m pip install -e client/python  
-        python -m pip install .
+        python -m pip install ".[oauth]"
     - name: Install Test Dependencies (Windows)
       if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Windows'
       run: |
