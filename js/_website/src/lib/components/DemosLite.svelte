@@ -4,7 +4,11 @@
 	import Slider from "./Slider.svelte";
 	import Fullscreen from "./icons/Fullscreen.svelte";
 	import Close from "./icons/Close.svelte";
-
+	import { page } from "$app/stores";
+	import anchor from "$lib/assets/img/anchor.svg";
+	import { svgCheck } from "$lib/assets/copy.js";
+	import { browser } from "$app/environment";
+	
 	export let demos: {
 		name: string;
 		dir: string;
@@ -15,10 +19,10 @@
 	export let show_nav = true;
 
 	let new_demo = {
-		"name": "New",
-		"dir": "New",
-		"code": "# Write your own Gradio code here and see what it looks like!\n",
-		"requirements": [],
+		name: "New",
+		dir: "New",
+		code: "# Write your own Gradio code here and see what it looks like!\n",
+		requirements: [],
 	}
 
 	demos.push(new_demo);
@@ -64,6 +68,17 @@
 
 	let timeout: any;
 
+	let copied_link = false;
+	async function copy_link(name: string) {
+		let code_b64 = btoa(code);
+		name = name.replaceAll(" ", "_");
+		await navigator.clipboard.writeText(
+			`${$page.url.href.split('?')[0]}?demo=${name}&code=${code_b64}`);
+		copied_link = true;
+		setTimeout(() => (copied_link = false), 2000);
+	}
+
+
 	$: code = demos.find((demo) => demo.name === current_selection)?.code || "";
 	$: requirements =
 		demos.find((demo) => demo.name === current_selection)?.requirements || [];
@@ -87,6 +102,21 @@
 	let lg_breakpoint = false;
 
 	$: lg_breakpoint = preview_width - 13 >= 688;
+
+	if (browser) {
+
+		let linked_demo = $page.url.searchParams.get('demo');
+		let b64_code = $page.url.searchParams.get('code');
+
+		if (linked_demo && b64_code) {
+			current_selection = linked_demo.replaceAll("_", " ");
+			let demo = demos.find((demo) => demo.name === current_selection);
+			if (demo) {
+				demo.code = atob(b64_code);
+			}
+		}
+	}
+
 </script>
 
 <svelte:head>
@@ -111,6 +141,15 @@
 				>
 					<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2">
 						<h3 class="pt-1">Code</h3>
+						<div class="flex float-right">
+							<button on:click={() => (copy_link(demo.name))}>
+								{#if !copied_link}
+									<img class="anchor-img !w-5" src={anchor} />
+								{:else}
+									{@html svgCheck}
+								{/if}
+							</button>
+						</div>
 					</div>
 
 					<Code
