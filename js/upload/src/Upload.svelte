@@ -45,6 +45,7 @@
 		uploading = true;
 		const _file_data = await upload(file_data, root, upload_id, upload_fn);
 		dispatch("load", file_count === "single" ? _file_data?.[0] : _file_data);
+		uploading = false;
 		return _file_data || [];
 	}
 
@@ -98,14 +99,7 @@
 </script>
 
 {#if uploading}
-	<UploadProgress
-		{root}
-		{upload_id}
-		files={file_data}
-		on:done={() => {
-			uploading = false;
-		}}
-	/>
+	<UploadProgress {root} {upload_id} files={file_data} />
 {:else}
 	<button
 		class:hidden
