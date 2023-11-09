@@ -1,6 +1,6 @@
 ---
-"@gradio/image": minor
-"gradio": minor
+"@gradio/image": patch
+"gradio": patch
 ---
 
 feat:Fix image upload
