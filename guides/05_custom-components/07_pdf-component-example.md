@@ -6,6 +6,8 @@ This component will come in handy for showcasing [document question answering](h
 ## Step 0: Prerequisites
 Make sure you have gradio 4.0 installed.
 As of the time of publication, the latest release is 4.1.1.
+Also, please read the [Five Minute Tour](./five-minute-guide) of custom components and the [Key Concepts](./key-component-concepts) guide before starting.
+
 
 ## Step 1: Creating the custom component
 
@@ -16,7 +18,8 @@ gradio cc create MyPDF
 ```
 
 This will create a subdirectory called `mypdf` in your current working directory.
-If you open it in your code editor, it will look like this:
+There are three main subdirectories in `mypdf`: `frontend`, `backend`, and `demo`.
+If you open `mypdf` in your code editor, it will look like this:
 
 ![directory structure](https://gradio-builds.s3.amazonaws.com/assets/pdf-guide/CodeStructure.png)
 
@@ -63,7 +66,8 @@ The complete `package.json` should look like this:
 }
 ```
 
-Tip: I'm using the latest version of the `@gradio/` packages as of the time of writing. You can find the latest version by going to the gradio javascript package documentation [here](https://www.gradio.app/main/docs/js/atoms). Its recommended you use the same versions as me as the API can change.
+
+Tip: I'm using the latest version of the `@gradio/` packages as of the time of writing. You can find the latest version by going to the gradio javascript package documentation [here](https://www.gradio.app/main/docs/js). Its recommended you use the same versions as me as the API can change.
 
 Whenever you modify the dependencies for either your frontend or backend projects, run the install command:
 
@@ -101,11 +105,9 @@ Its not impressive yet but we're ready to start coding!
 ## Step 4: Frontend - The basic skeleton
 
 We're going to start off by first writing the skeleton of our frontend and then adding the pdf rendering logic.
-Add the imports and expose the following properties.
-
-You may get some warnings from your code editor that some props are not used. That's ok.
-
-Tip: We want our frontend to dispatch `change` and `upload` events when the underlying PDF changes or is updated. That's what this line means: `Gradio<{change: never; upload: never;}>;`
+Add the following imports and expose the following properties to the top of your file in the `<script>` tag.
+You may get some warnings from your code editor that some props are not used.
+That's ok.
 
 ```ts
     import { tick } from "svelte";
@@ -139,8 +141,12 @@ Tip: We want our frontend to dispatch `change` and `upload` events when the unde
     let old_value = _value;
 ```
 
-We want our frontend component to let users upload a PDF document if there isn't one already loaded. If it is loaded, we want to display it underneath a "clear" button that lets our users upload a new document. 
-We're going to use the `Upload` and `ModifyUpload` components that come with the `@gradio/upload` package.
+
+Tip: We want our frontend to dispatch `change` and `upload` events when the underlying PDF changes or is updated. That's what this line means: `Gradio<{change: never; upload: never;}>;`
+
+We want our frontend component to let users upload a PDF document if there isn't one already loaded.
+If it is loaded, we want to display it underneath a "clear" button that lets our users upload a new document. 
+We're going to use the `Upload` and `ModifyUpload` components that come with the `@gradio/upload` package to do this.
 Underneath the `</script>` tag, delete all the current code and add the following:
 
 ```ts
@@ -261,7 +267,7 @@ After saving your code, the frontend should now look like this:
 This is the most advanced javascript part.
 It took me a while to figure it out!
 Do not worry if you have trouble, the important thing is to not be discouraged 💪
-Ask for help in the gradio discord if you need and ask for help.
+Ask for help in the gradio [discord](https://discord.gg/hugging-face-879548962464493619) if you need and ask for help.
 
 With that out of the way, let's start off by importing `pdfjs` and loading the code of the pdf worker from the mozilla cdn.
 
@@ -281,9 +287,7 @@ Also create the following variables:
 ```
 
 Now, we will use `pdfjs` to render a given page of the PDF onto an `html` document.
-Add the following code to `Index.svelte`
-
-Tip: The `$:` syntax in svelte is how you declare statements to be reactive. Whenever any of the inputs of the statement change, svelte will automatically re-run that statement.
+Add the following code to `Index.svelte`:
 
 ```ts
     async function get_doc(value: FileData) {
@@ -312,7 +316,7 @@ Tip: The `$:` syntax in svelte is how you declare statements to be reactive. Whe
         });
     }
 
-    // Compute the url to fetch the file from the backend\
+    // Compute the url to fetch the file from the backend
     // whenever a new value is passed in.
     $: _value = normalise_file(value, root, proxy_url);
 
@@ -326,7 +330,10 @@ Tip: The `$:` syntax in svelte is how you declare statements to be reactive. Whe
     }
 ```
 
-Now place the `canvas` underneath the `ModifyUpload` component
+
+Tip: The `$:` syntax in svelte is how you declare statements to be reactive. Whenever any of the inputs of the statement change, svelte will automatically re-run that statement.
+
+Now place the `canvas` underneath the `ModifyUpload` component:
 
 ```ts
 <div class="pdf-canvas" style="height: {height}px">
@@ -334,7 +341,7 @@ Now place the `canvas` underneath the `ModifyUpload` component
 </div>
 ```
 
-And add the following styles to the `<style>` tag
+And add the following styles to the `<style>` tag:
 
 ```ts
 <style>
@@ -385,7 +392,7 @@ Now we will run them whenever the `Upload` component uploads a file and whenever
 
 Congratulations! You have a working pdf uploader!
 
-![upload-gif](https://gradio-builds.s3.amazonaws.com/assets/pdf-guide/pdf_component_gif_docs.giff)
+![upload-gif](https://gradio-builds.s3.amazonaws.com/assets/pdf-guide/pdf_component_gif_docs.gif)
 
 ## Step 8: Adding buttons to navigate pages
 
@@ -453,7 +460,7 @@ Now we will add them underneath the canvas in a separate `<div>`
     }
 ```
 
-Congratulations! The frontend is complete 🎉
+Congratulations! The frontend is almost complete 🎉
 
 ![multipage-pdf-gif](https://gradio-builds.s3.amazonaws.com/assets/pdf-guide/pdf_multipage.gif)
 
@@ -461,11 +468,8 @@ Congratulations! The frontend is complete 🎉
 
 We're going to want users of our component to get a preview of the PDF if its used as an `example` in a `gr.Interface` or `gr.Examples`.
 
-To do so, we're going to add some of the pdf rendering logic in `Index.svelte` to `Example.svelte`
+To do so, we're going to add some of the pdf rendering logic in `Index.svelte` to `Example.svelte`.
 
-This is the entire file.
-
-Tip: Exercise for the reader - reduce the code duplication between `Index.svelte` and `Example.svelte` 😊
 
 ```ts
 <script lang="ts">
@@ -523,13 +527,18 @@ Tip: Exercise for the reader - reduce the code duplication between `Index.svelte
 ```
 
 
+Tip: Exercise for the reader - reduce the code duplication between `Index.svelte` and `Example.svelte` 😊
+
+
+You will not be able to render examples until we make some changes to the backend code in the next step!
+
 ## Step 9: The backend
 
 The backend changes needed are smaller.
 We're almost done!
 
 What we're going to do is:
-* Add `change` and `upload` events to our component
+* Add `change` and `upload` events to our component.
 * Add a `height` property to let users control the height of the PDF.
 * Set the `data_model` of our component to be `FileData`. This is so that Gradio can automatically cache and safely serve any files that are processed by our component.
 * Modify the `preprocess` method to return a string corresponding to the path of our uploaded PDF.
@@ -603,7 +612,9 @@ pdf2image
 pytesseract
 ```
 
-Tip: Remember to install these yourself and restart the dev server! You may need to install extra non-python dependencies for `pdf2image`. See (here)[https://pypi.org/project/pdf2image/] feel free to write your own demo if you have trouble.
+
+Tip: Remember to install these yourself and restart the dev server! You may need to install extra non-python dependencies for `pdf2image`. See [here](https://pypi.org/project/pdf2image/). Feel free to write your own demo if you have trouble.
+
 
 ```python
 import gradio as gr
@@ -640,8 +651,9 @@ See our demo in action below!
   <source src="https://gradio-builds.s3.amazonaws.com/assets/pdf-guide/PDFDemo.mov" type="video/mp4" />
 </video>
 
-Finally lets build our component with `gradio cc build` and publish it with `gradio cc publish` command!
+Finally lets build our component with `gradio cc build` and publish it with the `gradio cc publish` command!
 This will guide you through the process of uploading your component to [PyPi](https://pypi.org/) and [HuggingFace Spaces](https://huggingface.co/spaces).
+
 
 Tip: You may need to add the following lines to the `Dockerfile` of your HuggingFace Space.
 
