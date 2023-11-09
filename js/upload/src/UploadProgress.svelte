@@ -15,7 +15,7 @@
 	let files_with_progress: FileDataWithProgress[] = files.map((file) => {
 		return {
 			...file,
-			progress: 0,
+			progress: 0
 		};
 	});
 
