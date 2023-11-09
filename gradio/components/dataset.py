@@ -103,9 +103,8 @@ class Dataset(Component):
             self.headers = [c.label or "" for c in self._components]
         self.samples_per_page = samples_per_page
 
-    @property
-    def skip_api(self):
-        return True
+    def api_info(self) -> dict[str, str]:
+        return {"type": "integer", "description": "index of selected example"}
 
     def get_config(self):
         config = super().get_config()
@@ -134,4 +133,4 @@ class Dataset(Component):
         }
 
     def example_inputs(self) -> Any:
-        return None
+        return 0

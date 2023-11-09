@@ -810,63 +810,54 @@ class TestAPIInfo:
             "unnamed_endpoints": {},
         }
 
-    @pytest.mark.flaky
     def test_fetch_fixed_version_space(self, calculator_demo):
         with connect(calculator_demo) as client:
-            assert client.view_api(return_format="dict") == {
-                "named_endpoints": {
-                    "/predict": {
-                        "parameters": [
-                            {
-                                "label": "num1",
-                                "type": {"type": "number"},
-                                "python_type": {
-                                    "type": "float",
-                                    "description": "",
-                                },
-                                "component": "Number",
-                                "example_input": 3,
-                            },
-                            {
-                                "label": "operation",
-                                "type": {
-                                    "enum": ["add", "subtract", "multiply", "divide"],
-                                    "title": "Radio",
-                                    "type": "string",
-                                },
-                                "python_type": {
-                                    "type": "Literal[add, subtract, multiply, divide]",
-                                    "description": "",
-                                },
-                                "component": "Radio",
-                                "example_input": "add",
-                            },
-                            {
-                                "label": "num2",
-                                "type": {"type": "number"},
-                                "python_type": {
-                                    "type": "float",
-                                    "description": "",
-                                },
-                                "component": "Number",
-                                "example_input": 3,
-                            },
-                        ],
-                        "returns": [
-                            {
-                                "label": "output",
-                                "type": {"type": "number"},
-                                "python_type": {
-                                    "type": "float",
-                                    "description": "",
-                                },
-                                "component": "Number",
-                            }
-                        ],
+            api_info = client.view_api(return_format="dict")
+            assert isinstance(api_info, dict)
+            assert api_info["named_endpoints"]["/predict"] == {
+                "parameters": [
+                    {
+                        "label": "num1",
+                        "type": {"type": "number"},
+                        "python_type": {"type": "float", "description": ""},
+                        "component": "Number",
+                        "example_input": 3,
+                    },
+                    {
+                        "label": "operation",
+                        "type": {
+                            "enum": ["add", "subtract", "multiply", "divide"],
+                            "title": "Radio",
+                            "type": "string",
+                        },
+                        "python_type": {
+                            "type": "Literal[add, subtract, multiply, divide]",
+                            "description": "",
+                        },
+                        "component": "Radio",
+                        "example_input": "add",
+                    },
+                    {
+                        "label": "num2",
+                        "type": {"type": "number"},
+                        "python_type": {"type": "float", "description": ""},
+                        "component": "Number",
+                        "example_input": 3,
+                    },
+                ],
+                "returns": [
+                    {
+                        "label": "output",
+                        "type": {"type": "number"},
+                        "python_type": {"type": "float", "description": ""},
+                        "component": "Number",
                     }
-                },
-                "unnamed_endpoints": {},
+                ],
             }
+            assert (
+                "/load_example" in api_info["named_endpoints"]
+            )  # The exact api configuration includes Block IDs and thus is not deterministic
+            assert api_info["unnamed_endpoints"] == {}
 
     def test_unnamed_endpoints_use_fn_index(self, count_generator_demo):
         with connect(count_generator_demo) as client:
