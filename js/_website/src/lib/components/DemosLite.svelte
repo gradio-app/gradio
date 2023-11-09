@@ -4,6 +4,10 @@
 	import Slider from "./Slider.svelte";
 	import Fullscreen from "./icons/Fullscreen.svelte";
 	import Close from "./icons/Close.svelte";
+	import { page } from "$app/stores";
+	import share from "$lib/assets/img/share_gray.svg";
+	import { svgCheck } from "$lib/assets/copy.js";
+	import { browser } from "$app/environment";
 
 	export let demos: {
 		name: string;
@@ -13,6 +17,16 @@
 	}[];
 	export let current_selection: string;
 	export let show_nav = true;
+
+	let new_demo = {
+		name: "Blank",
+		dir: "Blank",
+		code: "# Write your own Gradio code here and see what it looks like!\nimport gradio as gr\n\n",
+		requirements: []
+	};
+
+	demos.push(new_demo);
+
 	let mounted = false;
 	let controller: any;
 
@@ -54,6 +68,17 @@
 
 	let timeout: any;
 
+	let copied_link = false;
+	async function copy_link(name: string) {
+		let code_b64 = btoa(code);
+		name = name.replaceAll(" ", "_");
+		await navigator.clipboard.writeText(
+			`${$page.url.href.split("?")[0]}?demo=${name}&code=${code_b64}`
+		);
+		copied_link = true;
+		setTimeout(() => (copied_link = false), 2000);
+	}
+
 	$: code = demos.find((demo) => demo.name === current_selection)?.code || "";
 	$: requirements =
 		demos.find((demo) => demo.name === current_selection)?.requirements || [];
@@ -77,6 +102,19 @@
 	let lg_breakpoint = false;
 
 	$: lg_breakpoint = preview_width - 13 >= 688;
+
+	if (browser) {
+		let linked_demo = $page.url.searchParams.get("demo");
+		let b64_code = $page.url.searchParams.get("code");
+
+		if (linked_demo && b64_code) {
+			current_selection = linked_demo.replaceAll("_", " ");
+			let demo = demos.find((demo) => demo.name === current_selection);
+			if (demo) {
+				demo.code = atob(b64_code);
+			}
+		}
+	}
 </script>
 
 <svelte:head>
@@ -101,6 +139,22 @@
 				>
 					<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2">
 						<h3 class="pt-1">Code</h3>
+						<div class="flex float-right">
+							<button
+								class="border border-gray-300 rounded-md px-2 py-.5 my-[3px] text-sm text-gray-400 hover:bg-gray-50 w-36"
+								on:click={() => copy_link(demo.name)}
+							>
+								{#if !copied_link}
+									<img class="!w-4 align-text-top inline-block" src={share} />
+									<p class="inline-block">Share With Edits</p>
+								{:else}
+									<div class="inline-block align-text-top !w-4">
+										{@html svgCheck}
+									</div>
+									<p class="inline-block">Copied Link!</p>
+								{/if}
+							</button>
+						</div>
 					</div>
 
 					<Code
