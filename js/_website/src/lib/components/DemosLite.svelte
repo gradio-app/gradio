@@ -140,9 +140,10 @@
 					<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2">
 						<h3 class="pt-1">Code</h3>
 						<div class="flex float-right">
-							<button 
-							class="border border-gray-300 rounded-md px-2 py-.5 my-[3px] text-sm text-gray-400 hover:bg-gray-50 w-28"
-							on:click={() => copy_link(demo.name)}>
+							<button
+								class="border border-gray-300 rounded-md px-2 py-.5 my-[3px] text-sm text-gray-400 hover:bg-gray-50 w-28"
+								on:click={() => copy_link(demo.name)}
+							>
 								{#if !copied_link}
 									<img class="!w-4 align-text-top inline-block" src={share} />
 									<p class="inline-block">Share Edits</p>
