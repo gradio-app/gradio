@@ -2,4 +2,4 @@
 "website": minor
 ---
 
-feat:WIP: PDF component custom component guide
+feat:PDF component custom component guide
