@@ -13,7 +13,6 @@ def test_text_to_text_model_from_pipeline():
 
 @pytest.mark.flaky
 def test_interface_in_blocks():
-    1/0
     pipe1 = transformers.pipeline(model="sshleifer/bart-tiny-random")
     pipe2 = transformers.pipeline(model="sshleifer/bart-tiny-random")
     with gr.Blocks() as demo:
