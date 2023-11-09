@@ -27,7 +27,6 @@
 			if (file.orig_name === filename) {
 				file.progress += chunk_size;
 			}
-			current_file_upload = file;
 			return file;
 		});
 	}
@@ -48,6 +47,7 @@
 				event_source.close();
 				dispatch("done");
 			} else {
+				current_file_upload = _data;
 				handleProgress(_data.orig_name, _data.chunk_size);
 			}
 		};
@@ -114,7 +114,6 @@
 		left: 0;
 		width: var(--upload-progress-width);
 		height: 100%;
-		background: var(--background-fill-secondary);
 		transition: all 0.5s ease-in-out;
 		z-index: 1;
 	}
