@@ -190,7 +190,7 @@ Lets customize it!
 Create a new file called `PdfUploadText.svelte` and copy the following code.
 Its creating a new div to display our "upload text" with some custom styling.
 
-Tip: Notice that we're leveraging Gradio core's existing css variables here: `var(--size-60)` and `var(--body-text-color-subdued)`
+Tip: Notice that we're leveraging Gradio core's existing css variables here: `var(--size-60)` and `var(--body-text-color-subdued)`. This allows our component to work nicely in light mode and dark mode, as well as with Gradio's built-in themes.
 
 
 ```ts
