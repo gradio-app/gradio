@@ -122,7 +122,7 @@
 
 		<ImageUploader
 			bind:active_tool
-			bind:value={_value}
+			bind:value
 			selectable={_selectable}
 			{root}
 			{sources}
