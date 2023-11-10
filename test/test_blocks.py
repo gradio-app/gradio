@@ -1575,3 +1575,19 @@ def test_postprocess_update_dict():
             ("New Country B", "New Country B"),
         ],
     }
+
+
+def test_async_iterator_update_with_new_component(connect):
+    async def get_number_stream():
+        for i in range(10):
+            yield gr.Number(value=i, label="Number (updates every second)")
+
+            await asyncio.sleep(0.1)
+
+    demo = gr.Interface(fn=get_number_stream, inputs=None, outputs=["number"])
+    demo.queue()
+
+    with connect(demo) as client:
+        job = client.submit(api_name="/predict")
+        job.result()
+        assert [r["value"] for r in job.outputs()] == list(range(10))
