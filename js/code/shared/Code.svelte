@@ -28,7 +28,11 @@
 	export let readonly = false;
 	export let placeholder: string | HTMLElement | null | undefined = undefined;
 
-	const dispatch = createEventDispatcher<{ change: string }>();
+	const dispatch = createEventDispatcher<{
+		change: string;
+		blur: undefined;
+		focus: undefined;
+	}>();
 	let lang_extension: Extension | undefined;
 	let element: HTMLDivElement;
 	let view: EditorView;
@@ -63,10 +67,21 @@
 	}
 
 	function createEditorView(): EditorView {
-		return new EditorView({
+		const editorView = new EditorView({
 			parent: element,
 			state: createEditorState(value)
 		});
+		editorView.dom.addEventListener("focus", handleFocus, true);
+		editorView.dom.addEventListener("blur", handleBlur, true);
+		return editorView;
+	}
+
+	function handleFocus(): void {
+		dispatch("focus");
+	}
+
+	function handleBlur(): void {
+		dispatch("blur");
 	}
 
 	function getGutterLineHeight(_view: EditorView): string | null {
