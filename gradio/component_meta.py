@@ -132,7 +132,8 @@ def updateable(fn):
     def wrapper(*args, **kwargs):
         fn_args = inspect.getfullargspec(fn).args
         self = args[0]
-        if not hasattr(self, "_constructor_args"):
+        initialized_before = hasattr(self, "_constructor_args")
+        if not initialized_before:
             self._constructor_args = []
         for i, arg in enumerate(args):
             if i == 0 or i >= len(fn_args):  #  skip self, *args
@@ -140,7 +141,7 @@ def updateable(fn):
             arg_name = fn_args[i]
             kwargs[arg_name] = arg
         self._constructor_args.append(kwargs)
-        if in_event_listener():
+        if in_event_listener() and initialized_before:
             return None
         else:
             return fn(self, **kwargs)
