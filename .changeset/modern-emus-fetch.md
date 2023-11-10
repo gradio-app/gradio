@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:audio improvements
+feat:Add volume control to Audio
