@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-feat:Fix component update bug
+fix:Fix component update bug
