@@ -3,9 +3,8 @@
 Let's work through an example of building a custom gradio component for displaying PDF files.
 This component will come in handy for showcasing [document question answering](https://huggingface.co/models?pipeline_tag=document-question-answering&sort=trending) models, which typically work on PDF input.
 This is a sneak preview of what our finished component will look like:
-![](https://pypi-camo.global.ssl.fastly.net/12652ed6eb03a9c66b94946ddcff6ec4611c098d/68747470733a2f2f67726164696f2d6275696c64732e73332e616d617a6f6e6177732e636f6d2f6173736574732f504446446973706c61792e706e67)
 
-
+![demo](https://gradio-builds.s3.amazonaws.com/assets/PDFDisplay.png)
 
 ## Step 0: Prerequisites
 Make sure you have gradio 4.0 installed.
@@ -18,12 +17,16 @@ Also, please read the [Five Minute Tour](./five-minute-guide) of custom componen
 Navigate to a directory of your choosing and run the following command:
 
 ```bash
-gradio cc create MyPDF
+gradio cc create PDF
 ```
 
-This will create a subdirectory called `mypdf` in your current working directory.
-There are three main subdirectories in `mypdf`: `frontend`, `backend`, and `demo`.
-If you open `mypdf` in your code editor, it will look like this:
+
+Tip: You should change the name of the component.
+Some of the screenshots assume the component is callled `PDF` but the concepts are the same!
+
+This will create a subdirectory called `pdf` in your current working directory.
+There are three main subdirectories in `pdf`: `frontend`, `backend`, and `demo`.
+If you open `pdf` in your code editor, it will look like this:
 
 ![directory structure](https://gradio-builds.s3.amazonaws.com/assets/pdf-guide/CodeStructure.png)
 
@@ -41,7 +44,7 @@ The complete `package.json` should look like this:
 
 ```json
 {
-  "name": "gradio_mypdf",
+  "name": "gradio_pdf",
   "version": "0.2.0",
   "description": "Gradio component for displaying PDFs",
   "type": "module",
@@ -670,6 +673,23 @@ ENV TRANSFORMERS_CACHE=/tmp/cache/
 ```
 
 ## Conclusion
+
+In order to use our new component in **any** gradio 4.0 app, simply install it with pip, e.g. `pip install gradio-pdf`. Then you can use it like the built-in `gr.File()` component (except that it will only accept and display PDF files).
+
+Here is a simple demo with the Blocks api:
+
+```python
+import gradio as gr
+from gradio_pdf import PDF
+
+with gr.Blocks() as demo:
+    pdf = PDF(label="Upload a PDF", interactive=True)
+    name = gr.Textbox()
+    pdf.upload(lambda f: f, pdf, name)
+
+demo.launch()
+```
+
 
 I hope you enjoyed this tutorial!
 The complete source code for our component is [here](https://huggingface.co/spaces/freddyaboulton/gradio_pdf/tree/main/src).
