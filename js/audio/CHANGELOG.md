@@ -1,5 +1,18 @@
 # @gradio/audio
 
+## 0.4.3
+
+### Fixes
+
+- [#6317](https://github.com/gradio-app/gradio/pull/6317) [`19af2806a`](https://github.com/gradio-app/gradio/commit/19af2806a58419cc551d2d1d6d8987df0db91ccb) - Add autoplay to `waveform_settings`.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6279](https://github.com/gradio-app/gradio/pull/6279) [`3cdeabc68`](https://github.com/gradio-app/gradio/commit/3cdeabc6843000310e1a9e1d17190ecbf3bbc780) - Ensure source selection does not get hidden in overflow.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
+## 0.4.2
+
+### Fixes
+
+- [#6234](https://github.com/gradio-app/gradio/pull/6234) [`aaa55ce85`](https://github.com/gradio-app/gradio/commit/aaa55ce85e12f95aba9299445e9c5e59824da18e) - Video/Audio fixes.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 0.4.1
 
 ### Patch Changes

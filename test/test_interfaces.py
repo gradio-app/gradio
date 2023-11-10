@@ -172,6 +172,11 @@ class TestInterface:
         with Blocks():
             Interface(fn=lambda x: x, inputs=Textbox(), outputs=Image())
 
+    def test_interface_with_built_ins(self):
+        t = Textbox()
+        Interface(fn=str, inputs=t, outputs=Textbox())
+        assert t.label == "input 0"
+
 
 class TestTabbedInterface:
     def test_tabbed_interface_config_matches_manual_tab(self):

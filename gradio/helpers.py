@@ -52,7 +52,7 @@ def create_examples(
     run_on_click: bool = False,
     preprocess: bool = True,
     postprocess: bool = True,
-    api_name: str | None | Literal[False] = False,
+    api_name: str | None | Literal[False] = None,
     batch: bool = False,
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
@@ -215,7 +215,7 @@ class Examples:
                     if isinstance(prediction_value, (GradioRootModel, GradioModel)):
                         prediction_value = prediction_value.model_dump()
                     prediction_value = processing_utils.move_files_to_cache(
-                        prediction_value, component
+                        prediction_value, component, postprocess=True
                     )
                     sub.append(prediction_value)
                 self.processed_examples.append(sub)
@@ -734,7 +734,10 @@ def special_args(
     Returns:
         updated inputs, progress index, event data index.
     """
-    signature = inspect.signature(fn)
+    try:
+        signature = inspect.signature(fn)
+    except ValueError:
+        return inputs or [], None, None
     type_hints = utils.get_type_hints(fn)
     positional_args = []
     for param in signature.parameters.values():

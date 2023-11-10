@@ -99,6 +99,7 @@
 		{col_count}
 		{value}
 		{headers}
+		on:change={interactive ? (e) => (value = e.detail) : () => {}}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 		{wrap}
 		{datatype}

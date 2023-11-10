@@ -1,5 +1,60 @@
 # gradio
 
+## 4.1.2
+
+### Features
+
+- [#6318](https://github.com/gradio-app/gradio/pull/6318) [`d3b53a457`](https://github.com/gradio-app/gradio/commit/d3b53a4577ea05cd27e37ce7fec952028c18ed45) - Fix for stylized DataFrame.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6326](https://github.com/gradio-app/gradio/pull/6326) [`ed546f2e1`](https://github.com/gradio-app/gradio/commit/ed546f2e13915849b0306d017c40933b856bb792) - Fix Model3D template.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
+### Fixes
+
+- [#6310](https://github.com/gradio-app/gradio/pull/6310) [`dfdaf1092`](https://github.com/gradio-app/gradio/commit/dfdaf109263b7b88c125558028ee9609f817fd10) - Fix data model for `gr.DataFrame`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6316](https://github.com/gradio-app/gradio/pull/6316) [`4b1011bab`](https://github.com/gradio-app/gradio/commit/4b1011bab03c0b6a09329e0beb9c1b17b2189878) - Maintain text selection in `Chatbot` button elements.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6327](https://github.com/gradio-app/gradio/pull/6327) [`bca6c2c80`](https://github.com/gradio-app/gradio/commit/bca6c2c80f7e5062427019de45c282238388af95) - Restore query parameters in request.  Thanks [@aliabid94](https://github.com/aliabid94)!
+- [#6317](https://github.com/gradio-app/gradio/pull/6317) [`19af2806a`](https://github.com/gradio-app/gradio/commit/19af2806a58419cc551d2d1d6d8987df0db91ccb) - Add autoplay to `waveform_settings`.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6294](https://github.com/gradio-app/gradio/pull/6294) [`7ab73df48`](https://github.com/gradio-app/gradio/commit/7ab73df48ea9dc876c1eaedfb424fcead6326dc9) - fix regarding callable function error.  Thanks [@SrijanSahaySrivastava](https://github.com/SrijanSahaySrivastava)!
+- [#6279](https://github.com/gradio-app/gradio/pull/6279) [`3cdeabc68`](https://github.com/gradio-app/gradio/commit/3cdeabc6843000310e1a9e1d17190ecbf3bbc780) - Ensure source selection does not get hidden in overflow.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6311](https://github.com/gradio-app/gradio/pull/6311) [`176c4d140`](https://github.com/gradio-app/gradio/commit/176c4d140000b1be698b6caf0d0efd26a5c7897d) - Temporary fix to be able to load themes from Hub.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6314](https://github.com/gradio-app/gradio/pull/6314) [`fad92c29d`](https://github.com/gradio-app/gradio/commit/fad92c29dc1f5cd84341aae417c495b33e01245f) - Improve default source behaviour in Audio.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6320](https://github.com/gradio-app/gradio/pull/6320) [`570866a3b`](https://github.com/gradio-app/gradio/commit/570866a3bd95a45a197afec38b982bbc6c7cd0a0) - Hide show API link when in gradio lite.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6309](https://github.com/gradio-app/gradio/pull/6309) [`c56128781`](https://github.com/gradio-app/gradio/commit/c561287812797aa1b6b464b0e76419350570ba83) - Fix updating choices in `gr.Dropdown` and updates related to other components.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
+## 4.1.1
+
+### Fixes
+
+- [#6288](https://github.com/gradio-app/gradio/pull/6288) [`92278729e`](https://github.com/gradio-app/gradio/commit/92278729ee008126af15ffe6be399236211b2f34) - Gallery preview fix and optionally skip download of urls in postprcess.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6289](https://github.com/gradio-app/gradio/pull/6289) [`5668036ee`](https://github.com/gradio-app/gradio/commit/5668036eef89051c1dbc5a74dc20988a3012ccbd) - Fix file upload on windows.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6290](https://github.com/gradio-app/gradio/pull/6290) [`e8216be94`](https://github.com/gradio-app/gradio/commit/e8216be948f76ce064595183d11e9148badf9421) - ensure `gr.Dataframe` updates as expected.  Thanks [@pngwn](https://github.com/pngwn)!
+
+## 4.1.0
+
+### Features
+
+- [#6261](https://github.com/gradio-app/gradio/pull/6261) [`8bbeca0e7`](https://github.com/gradio-app/gradio/commit/8bbeca0e772a5a2853d02a058b35abb2c15ffaf1) - Improve Embed and CDN handling and fix a couple of related bugs.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#6241](https://github.com/gradio-app/gradio/pull/6241) [`61c155e9b`](https://github.com/gradio-app/gradio/commit/61c155e9ba0f8f7ebd5a2a71687597dafb842219) - Remove session if browser closed on mobile.  Thanks [@aliabid94](https://github.com/aliabid94)!
+- [#6227](https://github.com/gradio-app/gradio/pull/6227) [`4840b4bc2`](https://github.com/gradio-app/gradio/commit/4840b4bc297703d317cad9c0f566e857a20b9375) - Add that api routes are automatically named to CHANGELOG.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6240](https://github.com/gradio-app/gradio/pull/6240) [`dd901c1b0`](https://github.com/gradio-app/gradio/commit/dd901c1b0af73a78fca8b6875b2bb00f84071ac8) - Model3D panning, improved UX.  Thanks [@dylanebert](https://github.com/dylanebert)!
+- [#6272](https://github.com/gradio-app/gradio/pull/6272) [`12d8e90a1`](https://github.com/gradio-app/gradio/commit/12d8e90a1646374b46eb8258be7356c868d1cca3) - Fixes input `Image` component with `streaming=True`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6268](https://github.com/gradio-app/gradio/pull/6268) [`de36820ef`](https://github.com/gradio-app/gradio/commit/de36820ef51097b47937b41fb76e4038aaa369cb) - Fix various issues with demos on website.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#6232](https://github.com/gradio-app/gradio/pull/6232) [`ac4f2bcde`](https://github.com/gradio-app/gradio/commit/ac4f2bcded61672bfe1d54c279d527de2eabdb7a) - Remove **kwargs from queue.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6255](https://github.com/gradio-app/gradio/pull/6255) [`e3ede2ff7`](https://github.com/gradio-app/gradio/commit/e3ede2ff7d4a36fb21bb0b146b8d5ad239c0e086) - Ensure Model 3D updates when attributes change.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
+### Fixes
+
+- [#6266](https://github.com/gradio-app/gradio/pull/6266) [`e32bac894`](https://github.com/gradio-app/gradio/commit/e32bac8944c85e0ec4831963299889d6bbfa0351) - Fix updating interactive prop.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6213](https://github.com/gradio-app/gradio/pull/6213) [`27194a987`](https://github.com/gradio-app/gradio/commit/27194a987fa7ba1234b5fc0ce8bf7fabef7033a9) - Ensure the statustracker for `gr.Image` displays in static mode.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#6234](https://github.com/gradio-app/gradio/pull/6234) [`aaa55ce85`](https://github.com/gradio-app/gradio/commit/aaa55ce85e12f95aba9299445e9c5e59824da18e) - Video/Audio fixes.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6236](https://github.com/gradio-app/gradio/pull/6236) [`6bce259c5`](https://github.com/gradio-app/gradio/commit/6bce259c5db7b21b327c2067e74ea20417bc89ec) - Ensure `gr.CheckboxGroup` updates as expected.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#6262](https://github.com/gradio-app/gradio/pull/6262) [`afb72bd19`](https://github.com/gradio-app/gradio/commit/afb72bd1970e6c43ddba0638fe9861330bdabb64) - Fix bug where radio.select passes the previous value to the function instead of the selected value.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6231](https://github.com/gradio-app/gradio/pull/6231) [`3e31c1752`](https://github.com/gradio-app/gradio/commit/3e31c1752e0e5bf90339b816f9895529d9368bbd) - Add likeable to config for Chatbot.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6249](https://github.com/gradio-app/gradio/pull/6249) [`2cffcf3c3`](https://github.com/gradio-app/gradio/commit/2cffcf3c39acd782f314f8a406100ae22e0809b7) - ensure radios have different names.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#6229](https://github.com/gradio-app/gradio/pull/6229) [`5cddd6588`](https://github.com/gradio-app/gradio/commit/5cddd658809d147fafef5e9502ccfab5bd105aa6) - Fixes: Initial message is overwrtitten in chat interface.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#6277](https://github.com/gradio-app/gradio/pull/6277) [`5fe091367`](https://github.com/gradio-app/gradio/commit/5fe091367fbe0eecdd504aa734ca1c70b0621f52) - handle selected_index prop change for gallery.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#6211](https://github.com/gradio-app/gradio/pull/6211) [`a4a931dd3`](https://github.com/gradio-app/gradio/commit/a4a931dd39a48bceac50486558b049ca7b874195) - fix`FileExplorer` preprocess.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5876](https://github.com/gradio-app/gradio/pull/5876) [`d7a1a6559`](https://github.com/gradio-app/gradio/commit/d7a1a6559005e6a1e0be03a3bd5212d1bc60d1ee) - Fix file overflow and add keyboard navigation to `FileExplorer`.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 4.0.2
 
 ### Fixes
@@ -15,25 +70,49 @@
 
 ## 4.0.0
 
-**v4.0 is a big release, so here are the main highlights:** (full list of changes below)
+### Highlights
 
-**Custom Components**: 
-We've introduced the ability to create and publish you own custom gradio components. 
+4.0 is a big release, so here are the main highlights:
+
+**1. Custom Components**: 
+We've introduced the ability to create and publish you own custom `gradio` components. A custom Gradio component is a combination of Python and JavaScript (specifically, Svelte) that you can write to fully customize a Gradio component. A custom component can be used just like a regular Gradio component (with `gr.Interface`, `gr.Blocks`, etc.) and can be published so that other users can use it within their apps. To get started with Custom Components, [read our quickstart guide here](https://www.gradio.app/guides/five-minute-guide).
+
 <img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMm9pbzhvaTd1MTFlM3FrMmRweTh1ZWZiMmpvemhpNnVvaXVoeDZ2byZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/V3N5jnv0D1eKbPYins/giphy.gif">
 
-**Redesigned Media Components and Accessaibility**:
-We redesigned our media components from scratch and improved accessibilty across the board.
+**2. Redesigned Media Components and Accessibility**:
+
+We redesigned our media components (`gr.Audio`, `gr.Image`, and `gr.Video`) from scratch and improved accessibilty across the board. All components are now keyboard navigable and include better colors to be usable by a wider audience.
+
 <img src="https://media0.giphy.com/media/Kv1bAN7MX3ya5krkEU/giphy.gif">
 
-**Server Side Events**: 
-We now use Server Side Events instead of Websockets. SSE means everything is served over HTTP: better device support and better scaling.
+**3. Server Side Events**: 
+
+Gradio's built-in queuing system is now the default for every Gradio app. We now use Server Side Events instead of Websockets for the queue. SSE means everything is served over HTTP and has better device support and better scaling than websockets.
+
 <img style="width:50%" src="https://i.imgur.com/ewUIuUc.png">
 
-**Custom Share Servers**: 
-We now support using any custom share server for your gradio share links.
+**4. Custom Share Servers**: 
+
+Gradio share links can now run on custom domains. You can now set up your own server to serve Gradio share links. To get started, [read our guide here](https://github.com/huggingface/frp/).
+
 <img style="width:50%" src="https://i.imgur.com/VFWVsqn.png">
 
-**Here's a list of all the breaking changes:**
+5. We now support adding arbitrary JS to your apps using the `js` parameter in Blocks, and arbitrary modifications to the <head> of your app using the `head` parameter in Blocks
+
+6. We no longer expose a user's working directory by default when you release a Gradio app. There are some other improvements around security as well.
+
+7. Previously, a Gradio app's API endpoints were exposed, allowing you to bypass the queue. As a Gradio developer, you needed to set `api_open=False` to prevent this misuse. We've now made this the default.
+
+8. You can now control whether a user should be able to trigger the same event multiple times (by using the `trigger_mode` parameter of each event)
+
+9. You now have fine-grained control over how many times each event can be running concurrently in the backend (using the `concurrency_limit` parameter of each event)
+
+10. We no longer serialize images into base64 before sending them to the server or on the way back. This should make any Gradio app that includes `gr.Image` components much faster.
+
+
+### Breaking Changes
+
+Gradio 4.0 is a new major version, and includes breaking changes from 3.x. Here's a list of all the breaking changes, along with migration steps where appropriate.
 
 **Components**: 
 
@@ -46,21 +125,81 @@ We now support using any custom share server for your gradio share links.
 * Removes `get_interpretation_neighbors()` and `get_interpretation_scores()` from component classes
 * Removes `deprecation.py` -- this was designed for internal usage so unlikely to break gradio apps
 * Moves save to cache methods from component methods to standalone functions in processing_utils
-* Renames source param in gr.Audio and gr.Video to sources
-* Removes show_edit_button param from gr.Audio
+* Renames `source` param in `gr.Audio` and `gr.Video` to `sources`
+* Removes `show_edit_button` param from `gr.Audio``
 
 
-**Other Parts of Gradio**:
+**Other changes related to the `gradio` library**:
 
 * Removes the deprecated `status_tracker` parameter from events
 * Removes the deprecated `HuggingFaceDatasetJSONSaver` class
 * Now `Blocks.load()` can only be use an is instance method to attach an event that runs when the page loads. To use the class method, use `gr.load()` instead
 * Similarly, `Interface.load()` has been removed
+* If you are runnin Gradio 4.x, you can not `gr.load` a Space that is running Gradio 3.x. However, you can still use the client libraries (see changes to the client libraries below).
 * Removes deprecated parameters, such as `enable_queue` from `launch()`
 * Many of the positional arguments in launch() are now keyword only, and show_tips has been removed
-* Changes the format of flagged data to json instead of filepath for media
-* Removes gr.Series and gr.Parallel
+* Changes the format of flagged data to json instead of filepath for media and chatbot
+* Removes `gr.Series` and `gr.Parallel`
 * All API endpoints are named by deafult. If `api_name=None`, the api name is the name of the python function.
+
+
+**Changes related to the Client libraries**:
+
+* When using the gradio Client libraries in 3.x with any component that returned JSON data (including `gr.Chatbot`, `gr.Label`, and `gr.JSON`), the data would get saved to a file and the filepath would be returned. Similarly, you would have to pass input JSON as a filepath. Now, the JSON data is passed and returned directly, making it easier to work with these components using the clients. 
+
+**Migrating to Gradio 4.0**
+
+Here are some concrete tips to help migrate to Gradio 4.0:
+
+* **Using `allowed_paths`**
+
+Since the working directory is now not served by default, if you reference local files within your CSS or in a `gr.HTML` component using the `/file=` route, you will need to explicitly allow access to those files (or their parent directories) using the `allowed_paths` parameter in `launch()`
+
+For example, if your code looks like this:
+
+```py
+import gradio as gr
+
+with gr.Blocks() as demo:
+    gr.HTML("<img src='/file=image.png' alt='image One'>")
+    
+demo.launch()
+```
+
+In order for the HTML component to be able to serve `image.png`, you will need to add `image.png` in `allowed_paths` like this:
+
+```py
+import gradio as gr
+
+with gr.Blocks() as demo:
+    gr.HTML("<img src='/file=image.png' alt='image One'>")
+    
+demo.launch(allowed_paths=["image.png"])
+```
+
+or if you want to expose all files in your working directory as was the case in Gradio 3.x (not recommended if you plan to share your app with others), you could do:
+
+```py
+import gradio as gr
+
+with gr.Blocks() as demo:
+    gr.HTML("<img src='/file=image.png' alt='image One'>")
+    
+demo.launch(allowed_paths=["."])
+```
+
+
+* **Using `concurrency_limit` instead of `concurrency_count`**
+
+Previously, in Gradio 3.x, there was a single global `concurrency_count` parameter that controlled how many threads could execute tasks from the queue simultaneously. By default `concurrency_count` was 1, which meant that only a single event could be executed at a time (to avoid OOM errors when working with prediction functions that utilized a large amount of memory or GPU usage). You could bypass the queue by setting `queue=False`. 
+
+In Gradio 4.0, the `concurrency_count` parameter has been removed. You can still control the number of total threads by using the `max_threads` parameter. The default value of this parameter is `40`, but you don't have worry (as much) about OOM errors, because even though there are 40 threads, we use a single-worker-single-event model, which means each worker thread only executes a specific function. So effectively, each function has its own "concurrency count" of 1. If you'd like to change this behavior, you can do so by setting a parameter `concurrency_limit`, which is now a parameter of *each event*, not a global parameter. By default this is `1` for each event, but you can set it to a higher value, or to `None` if you'd like to allow an arbitrary number of executions of this event simultaneously. Events can also be grouped together using the `concurrency_id` parameter so that they share the same limit, and by default, events that call the same function share the same `concurrency_id`.
+
+To summarize migration:
+
+* For events that execute quickly or don't use much CPU or GPU resources, you should set `concurrency_limit=None` in Gradio 4.0. (Previously you would set `queue=False`.)
+* For events that take significant resources (like the prediction function of your machine learning model), and you only want 1 execution of this function at a time, you don't have to set any parameters.
+* For events that take significant resources (like the prediction function of your machine learning model), and you only want `X` executions of this function at a time, you should set `concurrency_limit=X` parameter in the event trigger.(Previously you would set a global `concurrency_count=X`.)
 
 
 ### Features

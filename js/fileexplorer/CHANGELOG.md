@@ -1,5 +1,23 @@
 # @gradio/fileexplorer
 
+## 0.3.3
+
+### Patch Changes
+
+- Updated dependencies [[`bca6c2c80`](https://github.com/gradio-app/gradio/commit/bca6c2c80f7e5062427019de45c282238388af95), [`3cdeabc68`](https://github.com/gradio-app/gradio/commit/3cdeabc6843000310e1a9e1d17190ecbf3bbc780), [`fad92c29d`](https://github.com/gradio-app/gradio/commit/fad92c29dc1f5cd84341aae417c495b33e01245f)]:
+  - @gradio/client@0.7.2
+  - @gradio/atoms@0.2.1
+  - @gradio/upload@0.3.3
+  - @gradio/file@0.2.3
+  - @gradio/checkbox@0.2.1
+  - @gradio/statustracker@0.3.1
+
+## 0.3.2
+
+### Fixes
+
+- [#5876](https://github.com/gradio-app/gradio/pull/5876) [`d7a1a6559`](https://github.com/gradio-app/gradio/commit/d7a1a6559005e6a1e0be03a3bd5212d1bc60d1ee) - Fix file overflow and add keyboard navigation to `FileExplorer`. Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.3.1
 
 ### Patch Changes
