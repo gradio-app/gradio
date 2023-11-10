@@ -1,5 +1,29 @@
 # @gradio/app
 
+## 1.10.3
+
+### Patch Changes
+
+- Updated dependencies [[`6204ccac5`](https://github.com/gradio-app/gradio/commit/6204ccac5967763e0ebde550d04d12584243a120), [`4d3aad33a`](https://github.com/gradio-app/gradio/commit/4d3aad33a0b66639dbbb2928f305a79fb7789b2d), [`854b482f5`](https://github.com/gradio-app/gradio/commit/854b482f598e0dc47673846631643c079576da9c), [`55fda81fa`](https://github.com/gradio-app/gradio/commit/55fda81fa5918b48952729232d6e2fc55af9351d), [`37dd335e5`](https://github.com/gradio-app/gradio/commit/37dd335e5f04a8e689dd7f23ae24ad1934ea08d8), [`f1409f95e`](https://github.com/gradio-app/gradio/commit/f1409f95ed39c5565bed6a601e41f94e30196a57)]:
+  - @gradio/image@0.3.4
+  - @gradio/upload@0.4.0
+  - @gradio/code@0.2.4
+  - @gradio/textbox@0.4.2
+  - @gradio/audio@0.5.0
+  - @gradio/client@0.8.0
+  - @gradio/gallery@0.4.5
+  - @gradio/row@0.1.0
+  - @gradio/video@0.1.4
+  - @gradio/annotatedimage@0.3.4
+  - @gradio/button@0.2.4
+  - @gradio/chatbot@0.4.4
+  - @gradio/dataframe@0.3.5
+  - @gradio/dataset@0.1.4
+  - @gradio/file@0.2.4
+  - @gradio/fileexplorer@0.3.4
+  - @gradio/model3d@0.4.2
+  - @gradio/uploadbutton@0.1.4
+
 ## 1.10.2
 
 ### Patch Changes

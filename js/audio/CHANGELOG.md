@@ -1,5 +1,11 @@
 # @gradio/audio
 
+## 0.5.0
+
+### Features
+
+- [#6343](https://github.com/gradio-app/gradio/pull/6343) [`37dd335e5`](https://github.com/gradio-app/gradio/commit/37dd335e5f04a8e689dd7f23ae24ad1934ea08d8) - Fix audio streaming output issues in 4.0.  Thanks [@aliabid94](https://github.com/aliabid94)!
+
 ## 0.4.3
 
 ### Fixes
