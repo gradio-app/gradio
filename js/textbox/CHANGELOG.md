@@ -1,5 +1,11 @@
 # @gradio/textbox
 
+## 0.4.2
+
+### Fixes
+
+- [#6323](https://github.com/gradio-app/gradio/pull/6323) [`55fda81fa`](https://github.com/gradio-app/gradio/commit/55fda81fa5918b48952729232d6e2fc55af9351d) - Textbox and Code Component Blur/Focus Fixes.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.4.1
 
 ### Patch Changes

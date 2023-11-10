@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/uploadbutton",
-	"version": "0.1.3",
+	"version": "0.1.4",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",

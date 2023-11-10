@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 0.8.0
+
+### Features
+
+- [#6307](https://github.com/gradio-app/gradio/pull/6307) [`f1409f95e`](https://github.com/gradio-app/gradio/commit/f1409f95ed39c5565bed6a601e41f94e30196a57) - Provide status updates on file uploads.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 0.7.2
 
 ### Fixes

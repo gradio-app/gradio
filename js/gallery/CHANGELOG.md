@@ -1,5 +1,14 @@
 # @gradio/gallery
 
+## 0.4.5
+
+### Patch Changes
+
+- Updated dependencies [[`6204ccac5`](https://github.com/gradio-app/gradio/commit/6204ccac5967763e0ebde550d04d12584243a120), [`4d3aad33a`](https://github.com/gradio-app/gradio/commit/4d3aad33a0b66639dbbb2928f305a79fb7789b2d), [`854b482f5`](https://github.com/gradio-app/gradio/commit/854b482f598e0dc47673846631643c079576da9c), [`f1409f95e`](https://github.com/gradio-app/gradio/commit/f1409f95ed39c5565bed6a601e41f94e30196a57)]:
+  - @gradio/image@0.3.4
+  - @gradio/upload@0.4.0
+  - @gradio/client@0.8.0
+
 ## 0.4.4
 
 ### Patch Changes

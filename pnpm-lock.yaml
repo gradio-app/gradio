@@ -288,7 +288,7 @@ importers:
   js/_website:
     dependencies:
       '@gradio/code':
-        specifier: 0.2.3
+        specifier: 0.2.4
         version: link:../code
       '@sindresorhus/slugify':
         specifier: ^2.2.0
