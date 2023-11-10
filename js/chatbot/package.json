@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/chatbot",
-	"version": "0.4.3",
+	"version": "0.4.4",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
