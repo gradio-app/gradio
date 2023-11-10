@@ -2,6 +2,10 @@
 
 Let's work through an example of building a custom gradio component for displaying PDF files.
 This component will come in handy for showcasing [document question answering](https://huggingface.co/models?pipeline_tag=document-question-answering&sort=trending) models, which typically work on PDF input.
+This is a sneak preview of what our finished component will look like:
+![](https://pypi-camo.global.ssl.fastly.net/12652ed6eb03a9c66b94946ddcff6ec4611c098d/68747470733a2f2f67726164696f2d6275696c64732e73332e616d617a6f6e6177732e636f6d2f6173736574732f504446446973706c61792e706e67)
+
+
 
 ## Step 0: Prerequisites
 Make sure you have gradio 4.0 installed.
