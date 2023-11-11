@@ -572,7 +572,7 @@ class TestImage:
         image_input = gr.Image(type="pil", label="Upload Your Image")
         assert image_input.get_config() == {
             "image_mode": "RGB",
-            "sources": None,
+            "sources": ["upload", "webcam", "clipboard"],
             "name": "image",
             "show_share_button": False,
             "show_download_button": True,
@@ -604,6 +604,8 @@ class TestImage:
         with pytest.raises(ValueError):
             gr.Image(type="unknown")
 
+        string_source = gr.Image(sources="upload")
+        assert string_source.sources == ["upload"]
         # Output functionalities
         image_output = gr.Image(type="pil")
         processed_image = image_output.postprocess(

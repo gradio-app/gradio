@@ -116,8 +116,6 @@ class Image(StreamingInput, Component):
                 raise ValueError(
                     f"`sources` must a list consisting of elements in {valid_sources}"
                 )
-        self.sources = sources
-
         self.streaming = streaming
         self.show_download_button = show_download_button
         if streaming and self.sources != ["webcam"]:
