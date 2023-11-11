@@ -2667,7 +2667,7 @@ def test_component_class_ids():
 
 def test_constructor_args():
     assert gr.Textbox(max_lines=314).constructor_args == {"max_lines": 314}
-    assert gr.LoginButton(icon="F00.svg", value="Log in please").constructor_args == {
-        "icon": "F00.svg",
+    assert gr.LoginButton(visible=False, value="Log in please").constructor_args == {
+        "visible": False,
         "value": "Log in please",
     }
