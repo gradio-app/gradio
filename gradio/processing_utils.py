@@ -239,9 +239,8 @@ def save_base64_to_cache(
 def move_resource_to_block_cache(
     url_or_file_path: str | Path | None, block: Component
 ) -> str | None:
-    """Moves a file or downloads a file from a url to a block's cache directory, adds
-    to to the block's temp_files, and returns the path to the file in cache. This
-    ensures that the file is accessible to the Block and can be served to users.
+    """This method has been replaced by Block.move_resource_to_block_cache(), but is
+    left here for backwards compatibility for any custom components created in Gradio 4.2.0 or earlier.
     """
     if url_or_file_path is None:
         return None

@@ -166,13 +166,6 @@ class Component(ComponentBase, Block):
         self._selectable = False
         if not hasattr(self, "data_model"):
             self.data_model: type[GradioDataModel] | None = None
-        self.temp_files: set[str] = set()
-        self.GRADIO_CACHE = str(
-            Path(
-                os.environ.get("GRADIO_TEMP_DIR")
-                or str(Path(tempfile.gettempdir()) / "gradio")
-            ).resolve()
-        )
 
         Block.__init__(
             self,
