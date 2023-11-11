@@ -51,6 +51,8 @@ jobs:
         os: ["ubuntu-latest", "windows-latest"]
         test-type: ["not flaky", "flaky"]
         python-version: ["3.8"]
+        exclude:
+          - os: ${{ github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'windows-tests') && 'dummy' || 'windows-latest' }}
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     steps:
