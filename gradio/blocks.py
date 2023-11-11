@@ -263,6 +263,7 @@ class Block:
 
         return temp_file_path
 
+
 class BlockContext(Block):
     def __init__(
         self,

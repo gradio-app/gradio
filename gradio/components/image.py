@@ -11,7 +11,7 @@ from gradio_client.documentation import document, set_documentation_group
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 import gradio.image_utils as image_utils
-from gradio import processing_utils, utils
+from gradio import utils
 from gradio.components.base import Component, StreamingInput
 from gradio.data_classes import FileData
 from gradio.events import Events
