@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - main
-      - v4
 
 env:
   CI: true
@@ -42,6 +41,12 @@ jobs:
       - name: add label to skip chromatic build
         if: ${{ steps.changesets.outputs.pullRequestNumber != '' && steps.changesets.outputs.pullRequestNumber != 'undefined' }}
         run: gh pr edit "$PR_NUMBER" --add-label "no-visual-update" 
+        env:
+          PR_NUMBER: ${{ steps.changesets.outputs.pullRequestNumber }}
+          GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }} 
+      - name: add label to run backend tests on Windows
+        if: ${{ steps.changesets.outputs.pullRequestNumber != '' && steps.changesets.outputs.pullRequestNumber != 'undefined' }}
+        run: gh pr edit "$PR_NUMBER" --add-label "windows-tests" 
         env:
           PR_NUMBER: ${{ steps.changesets.outputs.pullRequestNumber }}
           GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }} 
