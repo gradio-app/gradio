@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Allows `sources` to be a string for `gr.Image`
+fix:Allows `sources` to be a string for `gr.Image`
