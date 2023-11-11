@@ -236,15 +236,11 @@ def save_base64_to_cache(
     return full_temp_file_path
 
 
-def move_resource_to_block_cache(
-    url_or_file_path: str | Path | None, block: Component
-) -> str | None:
+def move_resource_to_block_cache(url_or_file_path: str | Path, block: Component) -> str:
     """Moves a file or downloads a file from a url to a block's cache directory, adds
     to to the block's temp_files, and returns the path to the file in cache. This
     ensures that the file is accessible to the Block and can be served to users.
     """
-    if url_or_file_path is None:
-        return None
     if isinstance(url_or_file_path, Path):
         url_or_file_path = str(url_or_file_path)
 
@@ -288,7 +284,6 @@ def move_files_to_cache(data: Any, block: Component, postprocess: bool = False):
             temp_file_path = payload.url
         else:
             temp_file_path = move_resource_to_block_cache(payload.path, block)
-        assert temp_file_path is not None
         payload.path = temp_file_path
         return payload.model_dump()
 

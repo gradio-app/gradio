@@ -6,7 +6,6 @@ from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio import processing_utils
 from gradio.components.base import Component
 from gradio.events import Events
 
@@ -72,7 +71,7 @@ class Button(Component):
         self.variant = variant
         self.size = size
         self.icon = icon
-        self.link = processing_utils.move_resource_to_block_cache(link, self)
+        self.link = link
 
     @property
     def skip_api(self):
