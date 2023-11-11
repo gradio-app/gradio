@@ -572,7 +572,7 @@ class TestImage:
         image_input = gr.Image(type="pil", label="Upload Your Image")
         assert image_input.get_config() == {
             "image_mode": "RGB",
-            "sources": ['upload', 'webcam', 'clipboard'],
+            "sources": ["upload", "webcam", "clipboard"],
             "name": "image",
             "show_share_button": False,
             "show_download_button": True,
