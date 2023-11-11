@@ -109,16 +109,20 @@ class Audio(
         """
         valid_sources: list[Literal["upload", "microphone"]] = ["upload", "microphone"]
         if sources is None:
-            sources = ["microphone"] if streaming else valid_sources
+            self.sources = ["microphone"] if streaming else valid_sources
         elif isinstance(sources, str) and sources in valid_sources:
-            sources = [sources]
+            self.sources = [sources]
         elif isinstance(sources, list):
-            pass
+            self.sources = sources
         else:
             raise ValueError(
                 f"`sources` must be a list consisting of elements in {valid_sources}"
             )
-        self.sources = sources
+        for source in self.sources:
+            if source not in valid_sources:
+                raise ValueError(
+                    f"`sources` must a list consisting of elements in {valid_sources}"
+                )
         valid_types = ["numpy", "filepath"]
         if type not in valid_types:
             raise ValueError(
