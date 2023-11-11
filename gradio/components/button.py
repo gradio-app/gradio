@@ -69,10 +69,10 @@ class Button(Component):
             scale=scale,
             min_width=min_width,
         )
+        self.icon = processing_utils.move_resource_to_block_cache(icon, self)
         self.variant = variant
         self.size = size
-        self.icon = icon
-        self.link = processing_utils.move_resource_to_block_cache(link, self)
+        self.link = link
 
     @property
     def skip_api(self):
