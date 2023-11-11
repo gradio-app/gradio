@@ -126,6 +126,12 @@ class Video(Component):
             raise ValueError(
                 f"`sources` must be a list consisting of elements in {valid_sources}"
             )
+        for source in self.sources:
+            if source not in valid_sources:
+                raise ValueError(
+                    f"`sources` must a list consisting of elements in {valid_sources}"
+                )
+        
         self.sources = sources
         self.height = height
         self.width = width
