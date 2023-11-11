@@ -111,27 +111,29 @@ class Video(Component):
             min_length: The minimum length of video (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
             max_length: The maximum length of video (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
         """
-        self.format = format
-        self.autoplay = autoplay
-
         valid_sources: list[Literal["upload", "webcam"]] = ["webcam", "upload"]
-
         if sources is None:
-            sources = valid_sources
+            self.sources = valid_sources
         elif isinstance(sources, str) and sources in valid_sources:
-            sources = [sources]
+            self.sources = [sources]
         elif isinstance(sources, list):
-            pass
+            self.sources = sources
         else:
             raise ValueError(
                 f"`sources` must be a list consisting of elements in {valid_sources}"
             )
-        self.sources = sources
+        for source in self.sources:
+            if source not in valid_sources:
+                raise ValueError(
+                    f"`sources` must a list consisting of elements in {valid_sources}"
+                )
+        self.format = format
+        self.autoplay = autoplay
         self.height = height
         self.width = width
         self.mirror_webcam = mirror_webcam
         self.include_audio = (
-            include_audio if include_audio is not None else "upload" in sources
+            include_audio if include_audio is not None else "upload" in self.sources
         )
         self.show_share_button = (
             (utils.get_space() is not None)
