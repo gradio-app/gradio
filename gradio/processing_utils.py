@@ -20,7 +20,7 @@ from PIL import Image, ImageOps, PngImagePlugin
 
 from gradio import wasm_utils
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
-from gradio.utils import abspath, is_in_or_equal
+from gradio.utils import abspath
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # Ignore pydub warning if ffmpeg is not installed
@@ -242,28 +242,7 @@ def move_resource_to_block_cache(
     """This method has been replaced by Block.move_resource_to_block_cache(), but is
     left here for backwards compatibility for any custom components created in Gradio 4.2.0 or earlier.
     """
-    if url_or_file_path is None:
-        return None
-    if isinstance(url_or_file_path, Path):
-        url_or_file_path = str(url_or_file_path)
-
-    if client_utils.is_http_url_like(url_or_file_path):
-        temp_file_path = save_url_to_cache(
-            url_or_file_path, cache_dir=block.GRADIO_CACHE
-        )
-
-        block.temp_files.add(temp_file_path)
-    else:
-        url_or_file_path = str(abspath(url_or_file_path))
-        if not is_in_or_equal(url_or_file_path, block.GRADIO_CACHE):
-            temp_file_path = save_file_to_cache(
-                url_or_file_path, cache_dir=block.GRADIO_CACHE
-            )
-        else:
-            temp_file_path = url_or_file_path
-        block.temp_files.add(temp_file_path)
-
-    return temp_file_path
+    return block.move_resource_to_block_cache(url_or_file_path)
 
 
 def move_files_to_cache(data: Any, block: Component, postprocess: bool = False):
