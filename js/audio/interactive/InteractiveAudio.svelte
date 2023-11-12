@@ -12,6 +12,7 @@
 	import AudioRecorder from "../recorder/AudioRecorder.svelte";
 	import StreamAudio from "../streaming/StreamAudio.svelte";
 	import { SelectSource } from "@gradio/atoms";
+	import type { WaveformOptions } from "../shared/types";
 
 	export let value: null | FileData = null;
 	export let label: string;
@@ -25,8 +26,9 @@
 	export let pending = false;
 	export let streaming = false;
 	export let i18n: I18nFormatter;
-	export let waveform_settings = {};
+	export let waveform_settings: Record<string, any> = {};
 	export let trim_region_settings = {};
+	export let waveform_options: WaveformOptions = {};
 	export let dragging: boolean;
 	export let active_source: "microphone" | "upload";
 	export let handle_reset_value: () => void = () => {};
@@ -249,6 +251,7 @@
 		{dispatch}
 		{dispatch_blob}
 		{waveform_settings}
+		{waveform_options}
 		{trim_region_settings}
 		{handle_reset_value}
 		interactive

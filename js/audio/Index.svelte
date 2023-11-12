@@ -31,7 +31,7 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
-
+	export let autoplay = false;
 	export let show_download_button = true;
 	export let show_share_button = false;
 	export let waveform_options: WaveformOptions = {};
@@ -199,6 +199,7 @@
 			on:error={handle_error}
 			i18n={gradio.i18n}
 			{waveform_settings}
+			{waveform_options}
 			{trim_region_settings}
 		>
 			<UploadText i18n={gradio.i18n} type="audio" />

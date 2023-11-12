@@ -7,6 +7,7 @@
 		type Region,
 	} from "wavesurfer.js/dist/plugins/regions.js";
 	import type { WaveformOptions } from "./types";
+	import VolumeLevels from "./VolumeLevels.svelte";
 
 	export let waveform: WaveSurfer;
 	export let audioDuration: number;
@@ -18,8 +19,9 @@
 	export let mode = "";
 	export let container: HTMLDivElement;
 	export let handle_reset_value: () => void;
-	export let waveform_settings = {};
+	export let waveform_options: WaveformOptions = {};
 	export let trim_region_settings: WaveformOptions = {};
+	export let show_volume_slider = false;
 
 	export let trimDuration = 0;
 
@@ -32,6 +34,8 @@
 	let leftRegionHandle: HTMLDivElement | null;
 	let rightRegionHandle: HTMLDivElement | null;
 	let activeHandle = "";
+
+	let currentVolume = 1;
 
 	$: trimRegion = waveform.registerPlugin(RegionsPlugin.create());
 
@@ -154,35 +158,65 @@
 </script>
 
 <div class="controls" data-testid="waveform-controls">
-	<button
-		class="playback icon"
-		aria-label={`Adjust playback speed to ${
-			playbackSpeeds[
-				(playbackSpeeds.indexOf(playbackSpeed) + 1) % playbackSpeeds.length
-			]
-		}x`}
-		on:click={() => {
-			playbackSpeed =
+	<div class="control-wrapper">
+		<button
+			class="action icon volume"
+			aria-label="Adjust volume"
+			on:click={() => (show_volume_slider = !show_volume_slider)}
+		>
+			<VolumeLevels {currentVolume} />
+		</button>
+
+		{#if show_volume_slider}
+			<input
+				class="volume-slider"
+				type="range"
+				min="0"
+				max="1"
+				step="0.01"
+				value={currentVolume}
+				on:focusout={() => (show_volume_slider = false)}
+				on:blur={() => (show_volume_slider = false)}
+				on:input={(e) => {
+					if (e.target instanceof HTMLInputElement) {
+						currentVolume = parseFloat(e.target.value);
+						waveform.setVolume(currentVolume);
+					}
+				}}
+			/>
+		{/if}
+
+		<button
+			class:hidden={show_volume_slider}
+			class="playback icon"
+			aria-label={`Adjust playback speed to ${
 				playbackSpeeds[
 					(playbackSpeeds.indexOf(playbackSpeed) + 1) % playbackSpeeds.length
-				];
+				]
+			}x`}
+			on:click={() => {
+				playbackSpeed =
+					playbackSpeeds[
+						(playbackSpeeds.indexOf(playbackSpeed) + 1) % playbackSpeeds.length
+					];
 
-			waveform.setPlaybackRate(playbackSpeed);
-		}}
-	>
-		<span>{playbackSpeed}x</span>
-	</button>
+				waveform.setPlaybackRate(playbackSpeed);
+			}}
+		>
+			<span>{playbackSpeed}x</span>
+		</button>
+	</div>
 
 	<div class="play-pause-wrapper">
 		<button
 			class="rewind icon"
 			aria-label={`Skip backwards by ${getSkipRewindAmount(
 				audioDuration,
-				waveform_settings.skip_length
+				waveform_options.skip_length
 			)} seconds`}
 			on:click={() =>
 				waveform.skip(
-					getSkipRewindAmount(audioDuration, waveform_settings.skip_length) * -1
+					getSkipRewindAmount(audioDuration, waveform_options.skip_length) * -1
 				)}
 		>
 			<Backward />
@@ -202,11 +236,11 @@
 			class="skip icon"
 			aria-label="Skip forward by {getSkipRewindAmount(
 				audioDuration,
-				waveform_settings.skip_length
+				waveform_options.skip_length
 			)} seconds"
 			on:click={() =>
 				waveform.skip(
-					getSkipRewindAmount(audioDuration, waveform_settings.skip_length)
+					getSkipRewindAmount(audioDuration, waveform_options.skip_length)
 				)}
 		>
 			<Forward />
@@ -250,6 +284,7 @@
 	.settings-wrapper {
 		display: flex;
 		justify-self: self-end;
+		align-items: center;
 	}
 	.text-button {
 		border: 1px solid var(--neutral-400);
@@ -274,7 +309,17 @@
 		display: grid;
 		grid-template-columns: 1fr 1fr 1fr;
 		margin-top: 5px;
-		overflow: hidden;
+		align-items: center;
+		position: relative;
+	}
+
+	.hidden {
+		display: none;
+	}
+
+	.control-wrapper {
+		display: flex;
+		justify-self: self-start;
 		align-items: center;
 	}
 
@@ -337,5 +382,46 @@
 		justify-content: center;
 		color: var(--neutral-400);
 		fill: var(--neutral-400);
+	}
+
+	.volume {
+		position: relative;
+		display: flex;
+		justify-content: center;
+		margin-right: var(--spacing-xl);
+	}
+
+	.volume-slider {
+		width: var(--size-20);
+		accent-color: var(--color-accent);
+		height: 4px;
+		background: var(--neutral-200);
+		border-radius: 5px;
+		background-image: linear-gradient(var(--color-accent), var(--color-accent));
+		background-size: 0% 100%;
+		background-repeat: no-repeat;
+	}
+
+	input[type="range"]::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		box-shadow: var(--input-shadow);
+		border: solid 0.5px #ddd;
+		border-radius: var(--radius-lg);
+		cursor: pointer;
+	}
+
+	input[type="range"]::-webkit-slider-thumb:hover {
+		background: var(--neutral-50);
+	}
+
+	input[type="range"]::-webkit-slider-runnable-track {
+		-webkit-appearance: none;
+		box-shadow: none;
+		border: none;
+		background: transparent;
+	}
+
+	input[type="range"]::-moz-range-track {
+		height: 12px;
 	}
 </style>

@@ -21,6 +21,7 @@
 	export let interactive = false;
 	export let trim_region_settings = {};
 	export let waveform_settings: Record<string, any> = {};
+	export let waveform_options: Record<string, any> = {};
 	export let mode = "";
 	export let handle_reset_value: () => void = () => {};
 
@@ -33,6 +34,8 @@
 	let audioDuration: number;
 
 	let trimDuration = 0;
+
+	let show_volume_slider = false;
 
 	const formatTime = (seconds: number): string => {
 		const minutes = Math.floor(seconds / 60);
@@ -109,7 +112,7 @@
 
 	onMount(() => {
 		window.addEventListener("keydown", (e) => {
-			if (!waveform) return;
+			if (!waveform || show_volume_slider) return;
 			if (e.key === "ArrowRight" && mode !== "edit") {
 				skipAudio(waveform, 0.1);
 			} else if (e.key === "ArrowLeft" && mode !== "edit") {
@@ -160,9 +163,10 @@
 				{handle_trim_audio}
 				bind:mode
 				bind:trimDuration
+				bind:show_volume_slider
 				showRedo={interactive}
 				{handle_reset_value}
-				{waveform_settings}
+				{waveform_options}
 				{trim_region_settings}
 			/>
 		{/if}
