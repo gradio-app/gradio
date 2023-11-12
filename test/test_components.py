@@ -790,7 +790,7 @@ class TestAudio:
     def test_default_value_postprocess(self):
         x_wav = deepcopy(media_data.BASE64_AUDIO)
         audio = gr.Audio(value=x_wav["path"])
-        assert processing_utils.is_in_or_equal(audio.value["path"], audio.GRADIO_CACHE)
+        assert utils.is_in_or_equal(audio.value["path"], audio.GRADIO_CACHE)
 
     def test_in_interface(self):
         def reverse_audio(audio):
@@ -1874,13 +1874,19 @@ class TestChatbot:
             "likeable": False,
             "rtl": False,
             "show_copy_button": False,
-            "avatar_images": (None, None),
+            "avatar_images": [None, None],
             "sanitize_html": True,
             "render_markdown": True,
             "bubble_full_width": True,
             "line_breaks": True,
             "layout": None,
         }
+
+    def test_avatar_images_are_moved_to_cache(self):
+        chatbot = gr.Chatbot(avatar_images=("test/test_files/bus.png", None))
+        assert chatbot.avatar_images[0]
+        assert utils.is_in_or_equal(chatbot.avatar_images[0], chatbot.GRADIO_CACHE)
+        assert chatbot.avatar_images[1] is None
 
 
 class TestJSON:
@@ -2663,7 +2669,7 @@ def test_component_class_ids():
 
 def test_constructor_args():
     assert gr.Textbox(max_lines=314).constructor_args == {"max_lines": 314}
-    assert gr.LoginButton(icon="F00.svg", value="Log in please").constructor_args == {
-        "icon": "F00.svg",
+    assert gr.LoginButton(visible=False, value="Log in please").constructor_args == {
+        "visible": False,
         "value": "Log in please",
     }

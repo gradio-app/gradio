@@ -339,4 +339,4 @@ class Video(Component):
     def as_example(self, input_data: str | Path | None) -> str | None:
         if input_data is None:
             return None
-        return processing_utils.move_resource_to_block_cache(input_data, self)
+        return self.move_resource_to_block_cache(input_data)
