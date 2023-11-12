@@ -790,7 +790,7 @@ class TestAudio:
     def test_default_value_postprocess(self):
         x_wav = deepcopy(media_data.BASE64_AUDIO)
         audio = gr.Audio(value=x_wav["path"])
-        assert processing_utils.is_in_or_equal(audio.value["path"], audio.GRADIO_CACHE)
+        assert utils.is_in_or_equal(audio.value["path"], audio.GRADIO_CACHE)
 
     def test_in_interface(self):
         def reverse_audio(audio):
