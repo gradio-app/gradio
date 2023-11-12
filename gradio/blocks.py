@@ -8,6 +8,7 @@ import os
 import random
 import secrets
 import sys
+import tempfile
 import threading
 import time
 import warnings
@@ -117,6 +118,13 @@ class Block:
         self.is_rendered: bool = False
         self._constructor_args: dict
         self.state_session_capacity = 10000
+        self.temp_files: set[str] = set()
+        self.GRADIO_CACHE = str(
+            Path(
+                os.environ.get("GRADIO_TEMP_DIR")
+                or str(Path(tempfile.gettempdir()) / "gradio")
+            ).resolve()
+        )
 
         if render:
             self.render()
@@ -224,6 +232,36 @@ class Block:
             if parameter.name in props and parameter.name not in additional_keys:
                 kwargs[parameter.name] = props[parameter.name]
         return kwargs
+
+    def move_resource_to_block_cache(
+        self, url_or_file_path: str | Path | None
+    ) -> str | None:
+        """Moves a file or downloads a file from a url to a block's cache directory, adds
+        to to the block's temp_files, and returns the path to the file in cache. This
+        ensures that the file is accessible to the Block and can be served to users.
+        """
+        if url_or_file_path is None:
+            return None
+        if isinstance(url_or_file_path, Path):
+            url_or_file_path = str(url_or_file_path)
+
+        if client_utils.is_http_url_like(url_or_file_path):
+            temp_file_path = processing_utils.save_url_to_cache(
+                url_or_file_path, cache_dir=self.GRADIO_CACHE
+            )
+
+            self.temp_files.add(temp_file_path)
+        else:
+            url_or_file_path = str(utils.abspath(url_or_file_path))
+            if not utils.is_in_or_equal(url_or_file_path, self.GRADIO_CACHE):
+                temp_file_path = processing_utils.save_file_to_cache(
+                    url_or_file_path, cache_dir=self.GRADIO_CACHE
+                )
+            else:
+                temp_file_path = url_or_file_path
+            self.temp_files.add(temp_file_path)
+
+        return temp_file_path
 
 
 class BlockContext(Block):
