@@ -313,6 +313,12 @@
 		position: relative;
 	}
 
+	@media (max-width: 380px) {
+		.controls {
+			grid-template-columns: 1fr 1fr;
+		}
+	}
+
 	.hidden {
 		display: none;
 	}
