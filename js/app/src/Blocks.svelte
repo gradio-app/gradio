@@ -399,7 +399,7 @@
 			fn_index: dep_index,
 			data: dep.inputs.map((id) => instance_map[id].props.value),
 			event_data: dep.collects_event_data ? event_data : null,
-			trigger_id: trigger_id,
+			trigger_id: trigger_id
 		};
 
 		if (dep.frontend_fn) {
@@ -437,7 +437,12 @@
 			const pending_outputs: number[] = [];
 			let outputs_set_to_non_interactive: number[] = [];
 			const submission = app
-				.submit(payload.fn_index, payload.data as unknown[], payload.event_data, payload.trigger_id)
+				.submit(
+					payload.fn_index,
+					payload.data as unknown[],
+					payload.event_data,
+					payload.trigger_id
+				)
 				.on("data", ({ data, fn_index }) => {
 					if (dep.pending_request && dep.final_event) {
 						dep.pending_request = false;
@@ -514,7 +519,7 @@
 									...messages
 								];
 							}, 0);
-							trigger_api_call(dep_index, event_data);
+							trigger_api_call(dep_index, payload.trigger_id, event_data);
 							user_left_page = false;
 						} else if (status.stage === "error") {
 							if (status.message) {
