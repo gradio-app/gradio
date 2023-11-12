@@ -13,7 +13,9 @@ def test_prepare_event_data():
         statement = gr.Textbox()
         textbox.select(on_select, None, statement)
 
-    body = PredictBody(data=[], event_data={"value": "World", "index": [6, 11]})
-    event_data = prepare_event_data(demo, body, 0)
+    body = PredictBody(
+        data=[], event_data={"value": "World", "index": [6, 11]}, trigger_id=1
+    )
+    event_data = prepare_event_data(demo, body)
     correct_event_data = EventData(textbox, {"value": "World", "index": [6, 11]})
     assert vars(event_data) == vars(correct_event_data)
