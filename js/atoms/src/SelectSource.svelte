@@ -7,7 +7,7 @@
 </script>
 
 {#if sources.length > 1}
-	<span class="source-selection">
+	<span class="source-selection" data-testid="source-select">
 		{#if sources.includes("upload")}
 			<button
 				class="icon"

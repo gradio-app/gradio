@@ -14,7 +14,9 @@
 		"stop": "Stop",
 		"resume": "Resume",
 		"record": "Record",
-		"no_microphone": "No microphone found"
+		"no_microphone": "No microphone found",
+		"pause": "Pause",
+		"play": "Play"
 	},
 	"blocks": {
 		"connection_can_break": "On mobile, the connection can break if this tab is unfocused or the device sleeps, losing your position in queue.",
