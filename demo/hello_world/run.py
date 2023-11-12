@@ -1,9 +1,20 @@
 import gradio as gr
 
-def greet(name):
-    return "Hello " + name + "!"
+with gr.Blocks() as demo:
+    text1 = gr.Textbox(label="Textbox 1")
+    text2 = gr.Textbox(label="Textbox 2")
+    text = gr.Textbox(label="Output")
 
-demo = gr.Interface(fn=greet, inputs="text", outputs="text")
+    def test(evt: gr.SelectData):
+        return 'You selected '+ evt.value + '  in ' + evt.target.label
+ 
+        # Output textbox displays 'You selected some text in Textbox 1' 
+        # regardless of which textbox the selection is actually occuring in.
+
+    gr.on(
+        triggers=[text1.select, text2.select],
+        fn=test,
+        outputs=text
+    )
     
-if __name__ == "__main__":
-    demo.launch(show_api=False)   
+demo.launch()

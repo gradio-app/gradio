@@ -199,12 +199,10 @@ def restore_session_state(app: App, body: PredictBody):
 def prepare_event_data(
     blocks: Blocks,
     body: PredictBody,
-    fn_index_inferred: int,
 ) -> EventData:
-    dependency = blocks.dependencies[fn_index_inferred]
-    target = dependency["targets"][0] if len(dependency["targets"]) else None
+    target = body.trigger_id
     event_data = EventData(
-        blocks.blocks.get(target[0]) if target else None,
+        blocks.blocks.get(target) if target else None,
         body.event_data,
     )
     return event_data
@@ -219,7 +217,7 @@ async def call_process_api(
     session_state, iterator = restore_session_state(app=app, body=body)
 
     dependency = app.get_blocks().dependencies[fn_index_inferred]
-    event_data = prepare_event_data(app.get_blocks(), body, fn_index_inferred)
+    event_data = prepare_event_data(app.get_blocks(), body)
     event_id = body.event_id
 
     session_hash = getattr(body, "session_hash", None)

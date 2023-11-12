@@ -29,6 +29,7 @@ export interface Payload {
 	fn_index: number;
 	data: unknown[];
 	event_data: unknown | null;
+	trigger_id: number | null;
 }
 
 export interface Dependency {
