@@ -70,7 +70,7 @@
 		if (audio_buffer)
 			await process_audio(audio_buffer).then(
 				async (trimmedBlob: Uint8Array) => {
-					await dispatch_blob([trimmedBlob], "change");
+					await dispatch_blob([trimmedBlob], "stop_recording");
 				}
 			);
 	});
