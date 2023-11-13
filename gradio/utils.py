@@ -21,7 +21,7 @@ from contextlib import contextmanager
 from io import BytesIO
 from numbers import Number
 from pathlib import Path
-from types import GeneratorType
+from types import AsyncGeneratorType, GeneratorType
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -604,6 +604,11 @@ def get_continuous_fn(fn: Callable, every: float) -> Callable:
             if isinstance(output, GeneratorType):
                 for item in output:
                     yield item
+            elif isinstance(output, AsyncGeneratorType):
+                async for item in output:
+                    yield item
+            elif inspect.isawaitable(output):
+                yield await output
             else:
                 yield output
             await asyncio.sleep(every)
