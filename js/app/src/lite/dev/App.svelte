@@ -68,6 +68,7 @@ def hi(name):
 			files,
 			entrypoint,
 			requirements,
+			sharedWorkerMode: true,
 			info: true,
 			container: true,
 			isEmbed: false,

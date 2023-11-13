@@ -24,11 +24,16 @@ export interface InMessageBase {
 	data: unknown;
 }
 
-export interface InMessageInit extends InMessageBase {
-	type: "init";
+export interface InMessageInitEnv extends InMessageBase {
+	type: "init-env";
 	data: {
 		gradioWheelUrl: string;
 		gradioClientWheelUrl: string;
+	};
+}
+export interface InMessageInitApp extends InMessageBase {
+	type: "init-app";
+	data: {
 		files: Record<string, EmscriptenFile | EmscriptenFileUrl>;
 		requirements: string[];
 	};
@@ -92,7 +97,8 @@ export interface InMessageEcho extends InMessageBase {
 }
 
 export type InMessage =
-	| InMessageInit
+	| InMessageInitEnv
+	| InMessageInitApp
 	| InMessageRunPythonCode
 	| InMessageRunPythonFile
 	| InMessageWebSocket

@@ -1,6 +1,14 @@
 import path from "path-browserify";
 import type { PyodideInterface } from "pyodide";
 
+export function addAppIdIfRelative(appId: string, filePath: string): string {
+	if (path.isAbsolute(filePath)) {
+		return filePath;
+	}
+
+	return path.join(appId, filePath);
+}
+
 function ensureParent(pyodide: PyodideInterface, filePath: string): void {
 	const normalized = path.normalize(filePath);
 

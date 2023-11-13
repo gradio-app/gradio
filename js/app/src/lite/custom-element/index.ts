@@ -10,6 +10,7 @@ interface GradioComponentOptions {
 	autoScroll: Options["autoScroll"];
 	controlPageTitle: Options["controlPageTitle"];
 	appMode: Options["appMode"];
+	sharedWorkerMode?: Options["sharedWorkerMode"];
 }
 
 interface GradioLiteAppOptions {
@@ -75,6 +76,7 @@ export function bootstrap_custom_element(): void {
 			const autoScroll = this.hasAttribute("auto-scroll");
 			const controlPageTitle = this.hasAttribute("control-page-title");
 			const appMode = this.hasAttribute("app-mode");
+			const sharedWorkerMode = this.hasAttribute("shared-worker");
 
 			return {
 				info,
@@ -88,7 +90,8 @@ export function bootstrap_custom_element(): void {
 						: null,
 				autoScroll,
 				controlPageTitle,
-				appMode
+				appMode,
+				sharedWorkerMode
 			};
 		}
 

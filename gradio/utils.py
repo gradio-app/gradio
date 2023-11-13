@@ -13,7 +13,6 @@ import os
 import pkgutil
 import re
 import threading
-import time
 import traceback
 import typing
 import warnings
@@ -597,16 +596,19 @@ def is_update(val):
 
 
 def get_continuous_fn(fn: Callable, every: float) -> Callable:
-    def continuous_fn(*args):
+    # For Wasm-compatibility, we need to use asyncio.sleep() instead of time.sleep(),
+    # so we need to make the function async.
+    async def continuous_coro(*args):
         while True:
             output = fn(*args)
             if isinstance(output, GeneratorType):
-                yield from output
+                for item in output:
+                    yield item
             else:
                 yield output
-            time.sleep(every)
+            await asyncio.sleep(every)
 
-    return continuous_fn
+    return continuous_coro
 
 
 def function_wrapper(
