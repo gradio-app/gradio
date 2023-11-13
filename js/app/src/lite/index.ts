@@ -77,7 +77,7 @@ export function create(options: Options): GradioAppController {
 		gradioClientWheelUrl: new URL(gradioClientWheel, import.meta.url).href,
 		files: options.files ?? {},
 		requirements: options.requirements ?? [],
-		sharedWorkerMode: options.sharedWorkerMode ?? false,
+		sharedWorkerMode: options.sharedWorkerMode ?? false
 	});
 
 	worker_proxy.addEventListener("initialization-error", (event) => {
