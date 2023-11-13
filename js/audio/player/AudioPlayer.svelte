@@ -8,6 +8,7 @@
 	import { Empty } from "@gradio/atoms";
 	import { resolve_wasm_src } from "@gradio/wasm/svelte";
 	import type { FileData } from "@gradio/client";
+	import type { WaveformOptions } from "../shared/types";
 
 	export let value: null | FileData = null;
 	$: url = value?.url;
@@ -20,8 +21,8 @@
 	) => Promise<void> = () => Promise.resolve();
 	export let interactive = false;
 	export let trim_region_settings = {};
-	export let waveform_settings: Record<string, any> = {};
-	export let waveform_options: Record<string, any> = {};
+	export let waveform_settings: Record<string, any>;
+	export let waveform_options: WaveformOptions;
 	export let mode = "";
 	export let handle_reset_value: () => void = () => {};
 
@@ -69,6 +70,10 @@
 		(currentTime: any) =>
 			timeRef && (timeRef.textContent = formatTime(currentTime))
 	);
+
+	$: waveform?.on("ready", () => {
+		if (waveform_settings.autoplay) waveform?.play();
+	});
 
 	$: waveform?.on("finish", () => {
 		playing = false;

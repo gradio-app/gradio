@@ -3,10 +3,11 @@
 	import type { I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
 	import { skipAudio, process_audio } from "../shared/utils";
-	import Record from "wavesurfer.js/dist/plugins/record.js";
+	import WSRecord from "wavesurfer.js/dist/plugins/record.js";
 	import WaveformControls from "../shared/WaveformControls.svelte";
 	import WaveformRecordControls from "../shared/WaveformRecordControls.svelte";
 	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
+	import type { WaveformOptions } from "../shared/types";
 
 	export let mode: string;
 	export let i18n: I18nFormatter;
@@ -15,7 +16,8 @@
 		blobs: Uint8Array[] | Blob[],
 		event: "stream" | "change" | "stop_recording"
 	) => Promise<void> | undefined;
-	export let waveform_settings = {};
+	export let waveform_settings: Record<string, any>;
+	export let waveform_options: WaveformOptions;
 	export let handle_reset_value: () => void;
 
 	let micWaveform: WaveSurfer;
@@ -23,7 +25,7 @@
 	let playing = false;
 	let container: HTMLDivElement;
 
-	let record: Record;
+	let record: WSRecord;
 	let recordedAudio: string | null = null;
 
 	// timestamps
@@ -215,7 +217,7 @@
 			bind:mode
 			showRedo
 			{handle_reset_value}
-			{waveform_settings}
+			{waveform_options}
 		/>
 	{/if}
 </div>

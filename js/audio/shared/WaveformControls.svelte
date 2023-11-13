@@ -213,7 +213,7 @@
 		<button
 			class="play-pause-button icon"
 			on:click={() => waveform.playPause()}
-			aria-label={playing ? i18n("common.play") : i18n("common.pause")}
+			aria-label={playing ? i18n("audio.pause") : i18n("audio.play")}
 		>
 			{#if playing}
 				<Pause />

@@ -70,5 +70,8 @@ export const getSkipRewindAmount = (
 	audioDuration: number,
 	skip_length?: number | null
 ): number => {
-	return (audioDuration / 100) * (skip_length || 5);
+	if (!skip_length) {
+		skip_length = 5;
+	}
+	return (audioDuration / 100) * skip_length || 5;
 };

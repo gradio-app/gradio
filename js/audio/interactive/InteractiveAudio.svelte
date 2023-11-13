@@ -5,7 +5,6 @@
 	import { BlockLabel } from "@gradio/atoms";
 	import { Music } from "@gradio/icons";
 	import AudioPlayer from "../player/AudioPlayer.svelte";
-	import { _ } from "svelte-i18n";
 
 	import type { IBlobEvent, IMediaRecorder } from "extendable-media-recorder";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
@@ -26,7 +25,7 @@
 	export let pending = false;
 	export let streaming = false;
 	export let i18n: I18nFormatter;
-	export let waveform_settings: Record<string, any> = {};
+	export let waveform_settings: Record<string, any>;
 	export let trim_region_settings = {};
 	export let waveform_options: WaveformOptions = {};
 	export let dragging: boolean;
@@ -219,6 +218,7 @@
 				{dispatch}
 				{dispatch_blob}
 				{waveform_settings}
+				{waveform_options}
 				{handle_reset_value}
 			/>
 		{/if}

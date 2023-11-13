@@ -9,7 +9,7 @@
 	export let stop: () => void;
 	export let record: () => void;
 	export let i18n: I18nFormatter;
-	export let waveform_settings = {};
+	export let waveform_settings: Record<string, any>;
 
 	let micWaveform: WaveSurfer;
 	let waveformRecord: RecordPlugin;

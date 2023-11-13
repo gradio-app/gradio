@@ -147,6 +147,7 @@
 			value={_value}
 			{label}
 			{waveform_settings}
+			{waveform_options}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
 		/>
