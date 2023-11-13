@@ -71,7 +71,7 @@
 		value = null;
 		await tick();
 		dispatch("clear");
-		dispatch("change", null);
+		dispatch("change");
 	}
 
 	async function handle_undo(): Promise<void> {
