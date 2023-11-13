@@ -161,6 +161,9 @@
 	<div class="control-wrapper">
 		<button
 			class="action icon volume"
+			style:color={show_volume_slider
+				? "var(--color-accent)"
+				: "var(--neutral-400)"}
 			aria-label="Adjust volume"
 			on:click={() => (show_volume_slider = !show_volume_slider)}
 		>
@@ -176,7 +179,6 @@
 				step="0.01"
 				value={currentVolume}
 				on:focusout={() => (show_volume_slider = false)}
-				on:blur={() => (show_volume_slider = false)}
 				on:input={(e) => {
 					if (e.target instanceof HTMLInputElement) {
 						currentVolume = parseFloat(e.target.value);
@@ -369,7 +371,8 @@
 		font-weight: bold;
 	}
 
-	.playback:hover {
+	.playback:hover,
+	.playback:focus {
 		color: var(--color-accent);
 		border-color: var(--color-accent);
 	}
