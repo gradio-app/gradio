@@ -27,16 +27,30 @@
 		align-self: center;
 		gap: 2px;
 		width: 100%;
-		height: 100%;
+		height: var(--size-16);
 	}
 	.dot-flashing {
-		animation: dot-flashing 1s infinite linear alternate;
+		animation: flash 1s infinite ease-in-out;
 		border-radius: 5px;
 		background-color: var(--body-text-color);
-		width: 5px;
-		height: 5px;
+		width: 7px;
+		height: 7px;
 		color: var(--body-text-color);
 	}
+	@keyframes flash {
+		0%,
+		100% {
+			opacity: 0;
+		}
+		50% {
+			opacity: 1;
+		}
+	}
+
+	.dot-flashing:nth-child(1) {
+		animation-delay: 0s;
+	}
+
 	.dot-flashing:nth-child(2) {
 		animation-delay: 0.33s;
 	}
