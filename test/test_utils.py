@@ -348,6 +348,39 @@ class TestGetContinuousFn:
         assert [1, 1] == await agener_list.__anext__()
         assert [1, 1, 1] == await agener_list.__anext__()
 
+    @pytest.mark.asyncio
+    async def test_get_continuous_fn_with_async_function(self):
+        async def async_int_return(x):  # for origin condition
+            return x + 1
+
+        agen_int_return = get_continuous_fn(fn=async_int_return, every=0.01)
+        agener_int_return = agen_int_return(1)
+        assert await agener_int_return.__anext__() == 2
+        assert await agener_int_return.__anext__() == 2
+
+    @pytest.mark.asyncio
+    async def test_get_continuous_fn_with_async_generator(self):
+        async def async_int_yield(x):  # new condition
+            for _i in range(2):
+                yield x
+                x += 1
+
+        async def async_list_yield(x):  # new condition
+            for _i in range(2):
+                yield x
+                x += [1]
+
+        agen_int_yield = get_continuous_fn(fn=async_int_yield, every=0.01)
+        agen_list_yield = get_continuous_fn(fn=async_list_yield, every=0.01)
+        agener_int = agen_int_yield(1)  # Primitive
+        agener_list = agen_list_yield([1])  # Reference
+        assert await agener_int.__anext__() == 1
+        assert await agener_int.__anext__() == 2
+        assert await agener_int.__anext__() == 1
+        assert [1] == await agener_list.__anext__()
+        assert [1, 1] == await agener_list.__anext__()
+        assert [1, 1, 1] == await agener_list.__anext__()
+
 
 def test_tex2svg_preserves_matplotlib_backend():
     import matplotlib
