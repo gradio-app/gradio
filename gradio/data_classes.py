@@ -11,8 +11,19 @@ from typing import Any, List, Optional, Union
 
 from fastapi import Request
 from gradio_client.utils import traverse
-from pydantic import BaseModel, RootModel, ValidationError
 from typing_extensions import Literal
+
+from . import wasm_utils
+
+if not wasm_utils.IS_WASM:
+    from pydantic import BaseModel, RootModel, ValidationError
+else:
+    # XXX: Currently Pyodide V2 is not available on Pyodide,
+    # so we install V1 for the Wasm version.
+    # RootModel is not available in V1, so we create a dummy class.
+    from pydantic import BaseModel, ValidationError
+
+    RootModel = type("RootModel", (object,), {})
 
 
 class PredictBody(BaseModel):
