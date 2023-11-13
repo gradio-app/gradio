@@ -93,10 +93,11 @@ def test_show(capsys):
 
 
 @pytest.mark.xfail
-def test_build(tmp_path):
+@pytest.mark.parametrize("template", ["Audio", "Video", "Image", "Textbox"])
+def test_build(template, tmp_path):
     _create(
         "TestTextbox",
-        template="Textbox",
+        template=template,
         directory=tmp_path,
         overwrite=True,
         install=True,

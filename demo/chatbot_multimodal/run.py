@@ -51,4 +51,4 @@ with gr.Blocks() as demo:
 
 demo.queue()
 if __name__ == "__main__":
-    demo.launch(allowed_paths=["avatar.png"])
+    demo.launch()

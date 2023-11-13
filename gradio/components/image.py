@@ -11,7 +11,7 @@ from gradio_client.documentation import document, set_documentation_group
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 import gradio.image_utils as image_utils
-from gradio import processing_utils, utils
+from gradio import utils
 from gradio.components.base import Component, StreamingInput
 from gradio.data_classes import FileData
 from gradio.events import Events
@@ -116,8 +116,6 @@ class Image(StreamingInput, Component):
                 raise ValueError(
                     f"`sources` must a list consisting of elements in {valid_sources}"
                 )
-        self.sources = sources
-
         self.streaming = streaming
         self.show_download_button = show_download_button
         if streaming and self.sources != ["webcam"]:
@@ -173,7 +171,7 @@ class Image(StreamingInput, Component):
     def as_example(self, input_data: str | Path | None) -> str | None:
         if input_data is None:
             return None
-        return processing_utils.move_resource_to_block_cache(input_data, self)
+        return self.move_resource_to_block_cache(input_data)
 
     def example_inputs(self) -> Any:
         return "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"

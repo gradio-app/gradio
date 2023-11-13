@@ -52,6 +52,7 @@ export interface Options {
 	requirements?: WorkerProxyOptions["requirements"];
 	code?: string;
 	entrypoint?: string;
+	sharedWorkerMode?: boolean;
 	info: boolean;
 	container: boolean;
 	isEmbed: boolean;
@@ -75,7 +76,8 @@ export function create(options: Options): GradioAppController {
 		gradioWheelUrl: new URL(gradioWheel, import.meta.url).href,
 		gradioClientWheelUrl: new URL(gradioClientWheel, import.meta.url).href,
 		files: options.files ?? {},
-		requirements: options.requirements ?? []
+		requirements: options.requirements ?? [],
+		sharedWorkerMode: options.sharedWorkerMode ?? false
 	});
 
 	worker_proxy.addEventListener("initialization-error", (event) => {
