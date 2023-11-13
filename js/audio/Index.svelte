@@ -94,7 +94,6 @@
 		progressColor: waveform_options.waveform_progress_color || "#f97316",
 		barWidth: 2,
 		barGap: 3,
-		barHeight: 4,
 		cursorWidth: 2,
 		cursorColor: "#ddd5e9",
 		autoplay: autoplay,
@@ -193,7 +192,7 @@
 			on:end={() => gradio.dispatch("end")}
 			on:start_recording={() => gradio.dispatch("start_recording")}
 			on:pause_recording={() => gradio.dispatch("pause_recording")}
-			on:stop_recording={() => gradio.dispatch("stop_recording")}
+			on:stop_recording={(e) => gradio.dispatch("stop_recording", e.detail)}
 			on:upload={() => gradio.dispatch("upload")}
 			on:clear={() => gradio.dispatch("clear")}
 			on:error={handle_error}
