@@ -2,10 +2,10 @@ import gradio as gr
 
 with gr.Blocks() as demo:
     name = gr.Textbox(label="Name")
-    output = gr.Textbox(label="Output Box")
+    output = gr.Textbox(label="Output")
     greet_btn = gr.Button("Greet")
-    trigger = gr.Textbox(label="Trigger Box")
-    trigger2 = gr.Textbox(label="Trigger Box")
+    trigger = gr.Textbox(label="Trigger 1")
+    trigger2 = gr.Textbox(label="Trigger 2")
 
     def greet(name, evt_data: gr.EventData):
         return "Hello " + name + "!", evt_data.target.__class__.__name__

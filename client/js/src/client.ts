@@ -47,7 +47,8 @@ type client_return = {
 	submit: (
 		endpoint: string | number,
 		data?: unknown[],
-		event_data?: unknown
+		event_data?: unknown,
+		trigger_id?: number | null
 	) => SubmitReturn;
 	component_server: (
 		component_id: number,
@@ -412,7 +413,8 @@ export function api_factory(
 			function submit(
 				endpoint: string | number,
 				data: unknown[],
-				event_data?: unknown
+				event_data?: unknown,
+				trigger_id: number | null = null
 			): SubmitReturn {
 				let fn_index: number;
 				let api_info;
@@ -453,7 +455,7 @@ export function api_factory(
 					api_info,
 					hf_token
 				).then((_payload) => {
-					payload = { data: _payload || [], event_data, fn_index };
+					payload = { data: _payload || [], event_data, fn_index, trigger_id };
 					if (skip_queue(fn_index, config)) {
 						fire_event({
 							type: "status",
