@@ -32,7 +32,7 @@ Open up the `multimodalchatbot.py` file in your favorite code editor and let's g
 
 The first thing we will do is create the `data_model` of our component.
 The `data_model` is the data format that your python component will receive and send to the javascript client running the UI.
-You can read more about the `data_model` in the (backend guide)[./backend],
+You can read more about the `data_model` in the [backend guide](./backend).
 
 For our component, each chatbot message will consist of two keys: a `text` key that displays the text message and an optional list of media files that can be displayed next underneath the text.
 
@@ -61,7 +61,7 @@ class MultimodalChatbot(Component):
 
 Tip: The `data_model`s are implemented using `Pydantic V2`. Read the documentation [here](https://docs.pydantic.dev/latest/).
 
-Most of the hard work has been done!
+We've done the hardest part already!
 
 ## Part 2b - The pre and postprocess methods
 
