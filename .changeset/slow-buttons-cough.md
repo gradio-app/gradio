@@ -6,4 +6,4 @@
 "gradio": minor
 ---
 
-feat:Improve CSS var documentation in Storybook
+feat:Improve CSS token documentation in Storybook
