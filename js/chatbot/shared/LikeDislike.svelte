@@ -26,6 +26,7 @@
 	}}
 	title={action + " message"}
 	aria-label={actioned ? `clicked ${action}` : action}
+	class="action"
 >
 	<Icon {actioned} />
 </button>
@@ -45,5 +46,10 @@
 	button:hover,
 	button:focus {
 		color: var(--body-text-color);
+	}
+
+	.action {
+		width: 15px;
+		height: 15px;
 	}
 </style>

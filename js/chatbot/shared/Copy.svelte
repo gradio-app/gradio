@@ -46,6 +46,7 @@
 
 <button
 	on:click={handle_copy}
+	class="action"
 	title="copy"
 	aria-label={copied ? "Copied message" : "Copy message"}
 >
@@ -69,5 +70,10 @@
 
 	button:hover {
 		color: var(--body-text-color);
+	}
+
+	.action {
+		width: 15px;
+		height: 14px;
 	}
 </style>
