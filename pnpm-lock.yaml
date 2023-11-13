@@ -204,9 +204,6 @@ importers:
       chromatic:
         specifier: ^7.0.0
         version: 7.0.0
-      mrmime:
-        specifier: ^1.0.1
-        version: 1.0.1
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -1446,6 +1443,10 @@ importers:
       '@gradio/wasm':
         specifier: workspace:^
         version: link:../wasm
+    devDependencies:
+      mrmime:
+        specifier: ^1.0.1
+        version: 1.0.1
 
   js/wasm:
     dependencies:

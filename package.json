@@ -100,7 +100,6 @@
 		"@storybook/testing-library": "^0.2.2",
 		"@storybook/theming": "^7.5.1",
 		"chromatic": "^7.0.0",
-		"mrmime": "^1.0.1",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"storybook": "^7.5.1",
