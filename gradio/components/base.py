@@ -7,9 +7,7 @@ from __future__ import annotations
 import abc
 import hashlib
 import json
-import os
 import sys
-import tempfile
 import warnings
 from abc import ABC, abstractmethod
 from enum import Enum
@@ -166,13 +164,6 @@ class Component(ComponentBase, Block):
         self._selectable = False
         if not hasattr(self, "data_model"):
             self.data_model: type[GradioDataModel] | None = None
-        self.temp_files: set[str] = set()
-        self.GRADIO_CACHE = str(
-            Path(
-                os.environ.get("GRADIO_TEMP_DIR")
-                or str(Path(tempfile.gettempdir()) / "gradio")
-            ).resolve()
-        )
 
         Block.__init__(
             self,

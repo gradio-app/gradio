@@ -20,12 +20,6 @@ importers:
       '@csstools/postcss-global-data':
         specifier: ^2.0.0
         version: 2.0.0(postcss@8.4.27)
-      '@ffmpeg/ffmpeg':
-        specifier: ^0.12.7
-        version: 0.12.7
-      '@ffmpeg/util':
-        specifier: ^0.12.1
-        version: 0.12.1
       '@gradio/tootils':
         specifier: workspace:^
         version: link:js/tootils
@@ -170,9 +164,6 @@ importers:
       vitest:
         specifier: ^0.34.0
         version: 0.34.6(jsdom@22.1.0)(less@4.1.3)(playwright@1.39.0)
-      wavesurfer.js:
-        specifier: ^7.4.2
-        version: 7.4.2
     devDependencies:
       '@storybook/addon-a11y':
         specifier: ^7.5.1
@@ -213,9 +204,6 @@ importers:
       chromatic:
         specifier: ^7.0.0
         version: 7.0.0
-      mrmime:
-        specifier: ^1.0.1
-        version: 1.0.1
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -579,6 +567,9 @@ importers:
       '@gradio/wasm':
         specifier: workspace:^
         version: link:../wasm
+      '@types/wavesurfer.js':
+        specifier: ^6.0.10
+        version: 6.0.10
       extendable-media-recorder:
         specifier: ^9.0.0
         version: 9.0.0
@@ -591,6 +582,9 @@ importers:
       svelte-range-slider-pips:
         specifier: ^2.0.1
         version: 2.0.2
+      wavesurfer.js:
+        specifier: ^7.4.2
+        version: 7.4.2
 
   js/box:
     dependencies:
@@ -1419,6 +1413,12 @@ importers:
 
   js/video:
     dependencies:
+      '@ffmpeg/ffmpeg':
+        specifier: ^0.12.7
+        version: 0.12.7
+      '@ffmpeg/util':
+        specifier: ^0.12.1
+        version: 0.12.1
       '@gradio/atoms':
         specifier: workspace:^
         version: link:../atoms
@@ -1443,6 +1443,10 @@ importers:
       '@gradio/wasm':
         specifier: workspace:^
         version: link:../wasm
+    devDependencies:
+      mrmime:
+        specifier: ^1.0.1
+        version: 1.0.1
 
   js/wasm:
     dependencies:

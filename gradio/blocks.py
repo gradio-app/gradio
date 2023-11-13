@@ -8,6 +8,7 @@ import os
 import random
 import secrets
 import sys
+import tempfile
 import threading
 import time
 import warnings
@@ -117,6 +118,13 @@ class Block:
         self.is_rendered: bool = False
         self._constructor_args: dict
         self.state_session_capacity = 10000
+        self.temp_files: set[str] = set()
+        self.GRADIO_CACHE = str(
+            Path(
+                os.environ.get("GRADIO_TEMP_DIR")
+                or str(Path(tempfile.gettempdir()) / "gradio")
+            ).resolve()
+        )
 
         if render:
             self.render()
@@ -224,6 +232,36 @@ class Block:
             if parameter.name in props and parameter.name not in additional_keys:
                 kwargs[parameter.name] = props[parameter.name]
         return kwargs
+
+    def move_resource_to_block_cache(
+        self, url_or_file_path: str | Path | None
+    ) -> str | None:
+        """Moves a file or downloads a file from a url to a block's cache directory, adds
+        to to the block's temp_files, and returns the path to the file in cache. This
+        ensures that the file is accessible to the Block and can be served to users.
+        """
+        if url_or_file_path is None:
+            return None
+        if isinstance(url_or_file_path, Path):
+            url_or_file_path = str(url_or_file_path)
+
+        if client_utils.is_http_url_like(url_or_file_path):
+            temp_file_path = processing_utils.save_url_to_cache(
+                url_or_file_path, cache_dir=self.GRADIO_CACHE
+            )
+
+            self.temp_files.add(temp_file_path)
+        else:
+            url_or_file_path = str(utils.abspath(url_or_file_path))
+            if not utils.is_in_or_equal(url_or_file_path, self.GRADIO_CACHE):
+                temp_file_path = processing_utils.save_file_to_cache(
+                    url_or_file_path, cache_dir=self.GRADIO_CACHE
+                )
+            else:
+                temp_file_path = url_or_file_path
+            self.temp_files.add(temp_file_path)
+
+        return temp_file_path
 
 
 class BlockContext(Block):
@@ -798,7 +836,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             postprocess: whether to run the postprocess methods of components
             scroll_to_output: whether to scroll to output of dependency on trigger
             show_progress: whether to show progress animation while running.
-            api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.
+            api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for Blocks "load" event
             queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
