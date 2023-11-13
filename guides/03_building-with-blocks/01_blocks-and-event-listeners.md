@@ -129,6 +129,26 @@ $demo_blocks_essay_simple
 
 See how we can configure the Textbox itself through a new `gr.Textbox()` method. The `value=` argument can still be used to update the value along with Component configuration. Any arguments we do not set will use their previous values.
 
+## Examples
+
+Just like with `gr.Interface`, you can also add examples for your functions when you are working with `gr.Blocks`. In this case, instantiate a `gr.Examples` similar to how would instantiate a component. The constructor of `gr.Examples` takes two required arguments:
+
+* `examples`: a nested list of examples, in which the outer list consists of examples and each inner list consists of an input corresponding to each input component
+* `inputs`: the component or list of components that should be populated when the examples are clicked
+
+You can also set `cache_examples=True` similar to `gr.Interface`, in which case two additional arguments must be provided:
+
+* `outputs`: the component or list of components corresponding to the output of the examples
+* `fn`: the function to run to generate the outputs corresponding to the examples
+
+Here's an example showing how to use `gr.Examples` in a `gr.Blocks` app:
+
+$code_calculator_blocks
+
+**Note**: In Gradio 4.0 or later, when you click on examples, not only does the value of the input component update to the example value, but the component's configuration also reverts to the properties with which you constructed the component. This ensures that the examples are compatible with the component even if its configuration hhas been changed. 
+
+
+
 ## Running Events Consecutively
 
 You can also run events consecutively by using the `then` method of an event listener. This will run an event after the previous event has finished running. This is useful for running events that update components in multiple steps.
