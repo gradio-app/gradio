@@ -145,7 +145,7 @@ Here's an example showing how to use `gr.Examples` in a `gr.Blocks` app:
 
 $code_calculator_blocks
 
-**Note**: In Gradio 4.0 or later, when you click on examples, not only does the value of the input component update to the example value, but the component's configuration also reverts to the properties with which you constructed the component. This ensures that the examples are compatible with the component even if its configuration hhas been changed. 
+**Note**: In Gradio 4.0 or later, when you click on examples, not only does the value of the input component update to the example value, but the component's configuration also reverts to the properties with which you constructed the component. This ensures that the examples are compatible with the component even if its configuration has been changed. 
 
 
 
