@@ -80,6 +80,7 @@ def preprocess(
     return payload.root
 ```
 
+
 Tip: Learn about the reasoning behind the `preprocess` and `postprocess` methods in the [key concepts guide](./key-component-concepts)
 
 In the `postprocess` method we will coerce each message returned by the python function to be a `MultimodalMessage` class. 
@@ -112,9 +113,9 @@ Congrats - the backend is complete!
 
 ## Part 3a - The Index.svelte file
 
-The frontend for the `Chatbot` component is divided into two parts the `Index.svelte` file and the `shared/Chatbot.svelte` file.
-The `Index.svelte` file applies some processing the the data received from the server and then delegates the rendering of the conversation to the `shared/Chatbot.svelte` file.
-First we will modify the `Index.svelte` file to properly apply processing to the new data type the backend will return.
+The frontend for the `Chatbot` component is divided into two parts - the `Index.svelte` file and the `shared/Chatbot.svelte` file.
+The `Index.svelte` file applies some processing to the data received from the server and then delegates the rendering of the conversation to the `shared/Chatbot.svelte` file.
+First we will modify the `Index.svelte` file to apply processing to the new data type the backend will return.
 
 Let's begin by porting our custom types  from our python `data_model` to typescript.
 Open `frontend/shared/utils.ts` and add the following type definitions at the top of the file:
@@ -132,7 +133,7 @@ export type MultimodalMessage = {
 }
 ```
 
-Now let's import it in `Index.svelte` and modify the type annotations for `value` and `_value`.
+Now let's import them in `Index.svelte` and modify the type annotations for `value` and `_value`.
 
 ```ts
 import type { FileMessage, MultimodalMessage } from "./shared/utils";
@@ -149,7 +150,7 @@ let _value: [
 ```
 
 We need to normalize each message to make sure each file has a proper URL to fetch its contents from.
-We also need to properly format any embedded file links in the `text` key.
+We also need to format any embedded file links in the `text` key.
 Let's add a `process_message` utility function and apply it whenever the `value` changes.
 
 ```ts
@@ -220,9 +221,9 @@ function handle_like(
 }
 ```
 
-Now for the fun part, acutally rendering the text and files in the same message!
+Now for the fun part, actually rendering the text and files in the same message!
 
-You should see some code like the following that determines whether a file or a markdown message should be displayed depending on the type of the message
+You should see some code like the following that determines whether a file or a markdown message should be displayed depending on the type of the message:
 
 ```ts
 {#if typeof message === "string"}
