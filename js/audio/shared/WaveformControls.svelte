@@ -315,12 +315,6 @@
 		position: relative;
 	}
 
-	@media (max-width: 380px) {
-		.controls {
-			grid-template-columns: 1fr 1fr;
-		}
-	}
-
 	.hidden {
 		display: none;
 	}
@@ -329,9 +323,10 @@
 		display: flex;
 		justify-self: self-start;
 		align-items: center;
+		justify-content: space-between;
 	}
 
-	@media (max-width: 320px) {
+	@media (max-width: 375px) {
 		.controls {
 			display: flex;
 			flex-wrap: wrap;
@@ -345,6 +340,7 @@
 			margin-left: 0;
 		}
 	}
+
 	.action {
 		width: var(--size-5);
 		width: var(--size-5);
