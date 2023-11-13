@@ -34,7 +34,7 @@ The first thing we will do is create the `data_model` of our component.
 The `data_model` is the data format that your python component will receive and send to the javascript client running the UI.
 You can read more about the `data_model` in the [backend guide](./backend).
 
-For our component, each chatbot message will consist of two keys: a `text` key that displays the text message and an optional list of media files that can be displayed next underneath the text.
+For our component, each chatbot message will consist of two keys: a `text` key that displays the text message and an optional list of media files that can be displayed underneath the text.
 
 Import the `FileData` and `GradioModel` classes from `gradio.data_classes` and modify the existing `ChatbotData` class to look like the following:
 
@@ -80,10 +80,10 @@ def preprocess(
     return payload.root
 ```
 
-Tip: Learn about the reasoning behind the `preprocess` and `postprocess` in the [key concepts guide](./key-component-concepts)
+Tip: Learn about the reasoning behind the `preprocess` and `postprocess` methods in the [key concepts guide](./key-component-concepts)
 
-In the `postprocess` method we will coerce the each message returned by the python function to a `MultimodalMessage` class. 
-We will also clean up any indentation in the `text` field to be properly displayed as markdown in the frontend.
+In the `postprocess` method we will coerce each message returned by the python function to be a `MultimodalMessage` class. 
+We will also clean up any indentation in the `text` field so that it can be properly displayed as markdown in the frontend.
 
 We can leave the `postprocess` method as is and modify the `_postprocess_chat_messages`
 
@@ -148,7 +148,7 @@ let _value: [
 ][];
 ```
 
-We need to normalize each message to make sure each file has a proper URL to fetch the files from.
+We need to normalize each message to make sure each file has a proper URL to fetch its contents from.
 We also need to properly format any embedded file links in the `text` key.
 Let's add a `process_message` utility function and apply it whenever the `value` changes.
 
@@ -351,4 +351,4 @@ Let's build and deploy our demo with `gradio cc build` and `gradio cc deploy`!
 
 You can check out our component deployed to [HuggingFace Spaces](freddyaboulton/gradio_multimodalchatbot) and all of the source code is available [here](https://huggingface.co/spaces/freddyaboulton/gradio_multimodalchatbot/tree/main/src).
 
-See you in the next installment!
+See you in the next installment of this series!
