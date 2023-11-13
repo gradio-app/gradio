@@ -8,6 +8,7 @@
 	} from "wavesurfer.js/dist/plugins/regions.js";
 	import type { WaveformOptions } from "./types";
 	import VolumeLevels from "./VolumeLevels.svelte";
+	import VolumeControl from "./VolumeControl.svelte";
 
 	export let waveform: WaveSurfer;
 	export let audioDuration: number;
@@ -171,21 +172,7 @@
 		</button>
 
 		{#if show_volume_slider}
-			<input
-				class="volume-slider"
-				type="range"
-				min="0"
-				max="1"
-				step="0.01"
-				value={currentVolume}
-				on:focusout={() => (show_volume_slider = false)}
-				on:input={(e) => {
-					if (e.target instanceof HTMLInputElement) {
-						currentVolume = parseFloat(e.target.value);
-						waveform.setVolume(currentVolume);
-					}
-				}}
-			/>
+			<VolumeControl bind:currentVolume bind:show_volume_slider {waveform} />
 		{/if}
 
 		<button
@@ -394,39 +381,5 @@
 		display: flex;
 		justify-content: center;
 		margin-right: var(--spacing-xl);
-	}
-
-	.volume-slider {
-		width: var(--size-20);
-		accent-color: var(--color-accent);
-		height: 4px;
-		background: var(--neutral-200);
-		border-radius: 5px;
-		background-image: linear-gradient(var(--color-accent), var(--color-accent));
-		background-size: 0% 100%;
-		background-repeat: no-repeat;
-	}
-
-	input[type="range"]::-webkit-slider-thumb {
-		-webkit-appearance: none;
-		box-shadow: var(--input-shadow);
-		border: solid 0.5px #ddd;
-		border-radius: var(--radius-lg);
-		cursor: pointer;
-	}
-
-	input[type="range"]::-webkit-slider-thumb:hover {
-		background: var(--neutral-50);
-	}
-
-	input[type="range"]::-webkit-slider-runnable-track {
-		-webkit-appearance: none;
-		box-shadow: none;
-		border: none;
-		background: transparent;
-	}
-
-	input[type="range"]::-moz-range-track {
-		height: 12px;
 	}
 </style>
