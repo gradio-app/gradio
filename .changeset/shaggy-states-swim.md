@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Fix Model3D download button and other issuei
+fix:Fix Model3D download button and other issues
