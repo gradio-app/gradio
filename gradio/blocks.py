@@ -8,6 +8,7 @@ import os
 import random
 import secrets
 import sys
+import tempfile
 import threading
 import time
 import warnings
@@ -103,7 +104,6 @@ class Block:
         render: bool = True,
         visible: bool = True,
         proxy_url: str | None = None,
-        _skip_init_processing: bool = False,
     ):
         self._id = Context.id
         Context.id += 1
@@ -114,11 +114,17 @@ class Block:
         )
         self.proxy_url = proxy_url
         self.share_token = secrets.token_urlsafe(32)
-        self._skip_init_processing = _skip_init_processing
         self.parent: BlockContext | None = None
         self.is_rendered: bool = False
         self._constructor_args: dict
         self.state_session_capacity = 10000
+        self.temp_files: set[str] = set()
+        self.GRADIO_CACHE = str(
+            Path(
+                os.environ.get("GRADIO_TEMP_DIR")
+                or str(Path(tempfile.gettempdir()) / "gradio")
+            ).resolve()
+        )
 
         if render:
             self.render()
@@ -226,6 +232,36 @@ class Block:
             if parameter.name in props and parameter.name not in additional_keys:
                 kwargs[parameter.name] = props[parameter.name]
         return kwargs
+
+    def move_resource_to_block_cache(
+        self, url_or_file_path: str | Path | None
+    ) -> str | None:
+        """Moves a file or downloads a file from a url to a block's cache directory, adds
+        to to the block's temp_files, and returns the path to the file in cache. This
+        ensures that the file is accessible to the Block and can be served to users.
+        """
+        if url_or_file_path is None:
+            return None
+        if isinstance(url_or_file_path, Path):
+            url_or_file_path = str(url_or_file_path)
+
+        if client_utils.is_http_url_like(url_or_file_path):
+            temp_file_path = processing_utils.save_url_to_cache(
+                url_or_file_path, cache_dir=self.GRADIO_CACHE
+            )
+
+            self.temp_files.add(temp_file_path)
+        else:
+            url_or_file_path = str(utils.abspath(url_or_file_path))
+            if not utils.is_in_or_equal(url_or_file_path, self.GRADIO_CACHE):
+                temp_file_path = processing_utils.save_file_to_cache(
+                    url_or_file_path, cache_dir=self.GRADIO_CACHE
+                )
+            else:
+                temp_file_path = url_or_file_path
+            self.temp_files.add(temp_file_path)
+
+        return temp_file_path
 
 
 class BlockContext(Block):
@@ -631,9 +667,12 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             # URL of C, not B. The else clause below handles this case.
             if block_config["props"].get("proxy_url") is None:
                 block_config["props"]["proxy_url"] = f"{proxy_url}/"
+            postprocessed_value = block_config["props"].pop("value", None)
 
             constructor_args = cls.recover_kwargs(block_config["props"])
             block = cls(**constructor_args)
+            if postprocessed_value is not None:
+                block.value = postprocessed_value  # type: ignore
 
             block_proxy_url = block_config["props"]["proxy_url"]
             block.proxy_url = block_proxy_url
@@ -642,8 +681,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 _selectable := block_config["props"].pop("_selectable", None)
             ) is not None:
                 block._selectable = _selectable  # type: ignore
-            # Any component has already processed its initial value, so we skip that step here
-            block._skip_init_processing = True
 
             return block
 
@@ -910,7 +947,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             "cancels": cancels or [],
             "types": {
                 "continuous": bool(every),
-                "generator": inspect.isgeneratorfunction(fn) or bool(every),
+                "generator": inspect.isgeneratorfunction(fn)
+                or inspect.isasyncgenfunction(fn)
+                or bool(every),
             },
             "collects_event_data": collects_event_data,
             "trigger_after": trigger_after,

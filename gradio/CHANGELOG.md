@@ -1,5 +1,22 @@
 # gradio
 
+## 4.2.0
+
+### Features
+
+- [#6333](https://github.com/gradio-app/gradio/pull/6333) [`42f76aeeb`](https://github.com/gradio-app/gradio/commit/42f76aeeb7b7263abccc038b699fb7fae7fe2313) - Add AsyncGenerator to the check-list of `dependencies.types.generator`.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#6347](https://github.com/gradio-app/gradio/pull/6347) [`d64787b88`](https://github.com/gradio-app/gradio/commit/d64787b885a26ecb6771bfdd20aac33c8a90afe6) - Fix `colorFrom` in theme space readmes.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6363](https://github.com/gradio-app/gradio/pull/6363) [`4d3aad33a`](https://github.com/gradio-app/gradio/commit/4d3aad33a0b66639dbbb2928f305a79fb7789b2d) - Fix image upload.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6356](https://github.com/gradio-app/gradio/pull/6356) [`854b482f5`](https://github.com/gradio-app/gradio/commit/854b482f598e0dc47673846631643c079576da9c) - Redesign file upload.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6343](https://github.com/gradio-app/gradio/pull/6343) [`37dd335e5`](https://github.com/gradio-app/gradio/commit/37dd335e5f04a8e689dd7f23ae24ad1934ea08d8) - Fix audio streaming output issues in 4.0.  Thanks [@aliabid94](https://github.com/aliabid94)!
+- [#6307](https://github.com/gradio-app/gradio/pull/6307) [`f1409f95e`](https://github.com/gradio-app/gradio/commit/f1409f95ed39c5565bed6a601e41f94e30196a57) - Provide status updates on file uploads.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
+### Fixes
+
+- [#6368](https://github.com/gradio-app/gradio/pull/6368) [`8a3f45c26`](https://github.com/gradio-app/gradio/commit/8a3f45c2612a36112d797465e14cd6f1801ccbd9) - Fix component update bug.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6322](https://github.com/gradio-app/gradio/pull/6322) [`6204ccac5`](https://github.com/gradio-app/gradio/commit/6204ccac5967763e0ebde550d04d12584243a120) - Fixes `gr.load()` so it works properly with Images and Examples.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6323](https://github.com/gradio-app/gradio/pull/6323) [`55fda81fa`](https://github.com/gradio-app/gradio/commit/55fda81fa5918b48952729232d6e2fc55af9351d) - Textbox and Code Component Blur/Focus Fixes.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 4.1.2
 
 ### Features
