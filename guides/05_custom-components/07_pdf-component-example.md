@@ -7,7 +7,7 @@ This is a sneak preview of what our finished component will look like:
 ![demo](https://gradio-builds.s3.amazonaws.com/assets/PDFDisplay.png)
 
 ## Step 0: Prerequisites
-Make sure you have gradio 4.0 installed.
+Make sure you have gradio 4.0 installed as well as node 18+.
 As of the time of publication, the latest release is 4.1.1.
 Also, please read the [Five Minute Tour](./five-minute-guide) of custom components and the [Key Concepts](./key-component-concepts) guide before starting.
 
@@ -32,13 +32,13 @@ If you open `pdf` in your code editor, it will look like this:
 
 Tip: For this demo we are not templating off a current gradio component. But you can see the list of available templates with `gradio cc show` and then pass the template name to the `--template` option, e.g. `gradio cc create <Name> --template <foo>`
 
-## Step 2: Frontend - modify package.json
+## Step 2: Frontend - modify javascript dependencies
 
 We're going to use the [pdfjs](https://mozilla.github.io/pdf.js/) javascript library to display the pdfs in the frontend. 
 Let's start off by adding it to our frontend project's dependencies, as well as adding a couple of other projects we'll need.
 
-In the `dependencies` key, remove `svelte-json-view` and add the following dependencies: `@gradio/client`, `@gradio/upload`, `@gradio/icons`, `@gradio/button`, and `pdfjs-dist`.
-Also make sure you add `pdfjs-dist` in `devDependencies`.
+From within the `frontend` directory, run `npm install @gradio/client @gradio/upload @gradio/icons @gradio/button` and `npm install --save-dev pdfjs-dist@3.11.174`.
+Also, let's uninstall the `@zerodevx/svelte-json-view` dependency by running `npm uninstall @zerodevx/svelte-json-view`.
 
 The complete `package.json` should look like this:
 
@@ -74,13 +74,7 @@ The complete `package.json` should look like this:
 ```
 
 
-Tip: I'm using the latest version of the `@gradio/` packages as of the time of writing. You can find the latest version by going to the gradio javascript package documentation [here](https://www.gradio.app/main/docs/js). Its recommended you use the same versions as me as the API can change.
-
-Whenever you modify the dependencies for either your frontend or backend projects, run the install command:
-
-```bash
-gradio cc install
-```
+Tip: Running `npm install` will install the latest version of the package available. You can install a specific version with `npm install package@<version>`.  You can find all of the gradio javascript package documentation [here](https://www.gradio.app/main/docs/js). It is recommended you use the same versions as me as the API can change.
 
 Navigate to `Index.svelte` and delete mentions of `JSONView`
 
@@ -104,7 +98,6 @@ After launching the dev server, you should see a link printed to your console th
 You should see the following:
 
 ![](https://gradio-builds.s3.amazonaws.com/assets/pdf-guide/frontend_start.png)
-
 
 
 Its not impressive yet but we're ready to start coding!
@@ -149,7 +142,7 @@ That's ok.
 ```
 
 
-Tip: We want our frontend to dispatch `change` and `upload` events when the underlying PDF changes or is updated. That's what this line means: `Gradio<{change: never; upload: never;}>;`
+Tip: The `gradio`` object passed in here contains some metadata about the application as well as some utility methods. One of these utilities is a dispatch method. We want to dispatch change and upload events whenever our PDF is changed or updated. This line provides type hints that these are the only events we will be dispatching.
 
 We want our frontend component to let users upload a PDF document if there isn't one already loaded.
 If it is loaded, we want to display it underneath a "clear" button that lets our users upload a new document. 
@@ -380,7 +373,10 @@ Add the following functions to the `<script>` tag:
     }
 ```
 
-Now we will run them whenever the `Upload` component uploads a file and whenever the `ModifyUpload` component clears the current file.
+
+Tip: The `gradio.dispatch` method is actually what is triggering the `change` or `upload` events in the backend. For every event defined in the component's backend, we will explain how to do this in Step 9, there must be at least one `gradio.dispatch("<event-name>")` call. These are called `gradio` events and they can be listended from the entire Gradio application. You can dispatch a built-in `svelte` event with the `dispatch` function. These events can only be listened to from the component's direct parent. Learn about svelte events from the [official documentation](https://learn.svelte.dev/tutorial/component-events).
+
+Now we will run these functions whenever the `Upload` component uploads a file and whenever the `ModifyUpload` component clears the current file. The `<Upload>` component dispatches a `load` event with a payload of type `FileData` corresponding to the uploaded file. The `on:load` syntax tells `Svelte` to automatically run this function in response to the event.
 
 ```ts
     <ModifyUpload i18n={gradio.i18n} on:clear={handle_clear} absolute />
