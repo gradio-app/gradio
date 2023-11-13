@@ -1,5 +1,11 @@
 # website
 
+## 0.13.0
+
+### Features
+
+- [#6351](https://github.com/gradio-app/gradio/pull/6351) [`294414d9f`](https://github.com/gradio-app/gradio/commit/294414d9f7b53da1a870d2d96e62a75242b40849) - Add sharing to playground.  Thanks [@aliabd](https://github.com/aliabd)!
+
 ## 0.12.1
 
 ### Patch Changes
