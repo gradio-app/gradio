@@ -99,7 +99,7 @@
 		autoplay: autoplay,
 		barRadius: 10,
 		dragToSeek: true,
-		normalise: true,
+		normalize: true,
 		minPxPerSec: 20,
 		mediaControls: waveform_options.show_controls,
 	};
