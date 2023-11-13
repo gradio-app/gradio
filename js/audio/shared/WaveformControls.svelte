@@ -4,7 +4,7 @@
 	import type { I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
 	import RegionsPlugin, {
-		type Region,
+		type Region
 	} from "wavesurfer.js/dist/plugins/regions.js";
 	import type { WaveformOptions } from "./types";
 	import VolumeLevels from "./VolumeLevels.svelte";
@@ -58,7 +58,7 @@
 		activeRegion = trimRegion.addRegion({
 			start: audioDuration / 4,
 			end: audioDuration / 2,
-			...trim_region_settings,
+			...trim_region_settings
 		});
 
 		trimDuration = activeRegion.end - activeRegion.start;
@@ -142,7 +142,7 @@
 
 		activeRegion.setOptions({
 			start: newStart,
-			end: newEnd,
+			end: newEnd
 		});
 
 		trimDuration = activeRegion.end - activeRegion.start;

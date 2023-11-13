@@ -101,13 +101,13 @@
 		dragToSeek: true,
 		normalize: true,
 		minPxPerSec: 20,
-		mediaControls: waveform_options.show_controls,
+		mediaControls: waveform_options.show_controls
 	};
 
 	const trim_region_settings = {
 		color: waveform_options.trim_region_color || "hsla(15, 85%, 40%, 0.4)",
 		drag: true,
-		resize: true,
+		resize: true
 	};
 
 	function handle_error({ detail }: CustomEvent<string>): void {

@@ -49,7 +49,7 @@
 		waveform = WaveSurfer.create({
 			container: container,
 			url: value?.url,
-			...waveform_settings,
+			...waveform_settings
 		});
 	};
 

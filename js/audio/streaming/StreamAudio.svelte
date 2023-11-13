@@ -24,7 +24,7 @@
 		micWaveform = WaveSurfer.create({
 			...waveform_settings,
 			height: 100,
-			container: "#microphone",
+			container: "#microphone"
 		});
 
 		waveformRecord = micWaveform.registerPlugin(RecordPlugin.create());

@@ -120,7 +120,7 @@
 		if (!recorder) return;
 		micWaveform = WaveSurfer.create({
 			...waveform_settings,
-			container: recorder,
+			container: recorder
 		});
 
 		record = micWaveform.registerPlugin(RecordPlugin.create());
@@ -133,7 +133,7 @@
 		recordingWaveform = WaveSurfer.create({
 			container: recording,
 			url: recordedAudio,
-			...waveform_settings,
+			...waveform_settings
 		});
 	};
 
