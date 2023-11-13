@@ -349,6 +349,6 @@ Tip: Change the filepaths so that they correspond to files on your machine. Also
 
 Let's build and deploy our demo with `gradio cc build` and `gradio cc deploy`!
 
-You can check out our component deployed to [HuggingFace Spaces](freddyaboulton/gradio_multimodalchatbot) and all of the source code is available [here](https://huggingface.co/spaces/freddyaboulton/gradio_multimodalchatbot/tree/main/src).
+You can check out our component deployed to [HuggingFace Spaces](https://huggingface.co/spaces/freddyaboulton/gradio_multimodalchatbot) and all of the source code is available [here](https://huggingface.co/spaces/freddyaboulton/gradio_multimodalchatbot/tree/main/src).
 
 See you in the next installment of this series!
