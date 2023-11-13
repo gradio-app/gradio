@@ -339,14 +339,14 @@ class TestGetContinuousFn:
         agener_int_return = agen_int_return(1)
         agener_int = agen_int_yield(1)  # Primitive
         agener_list = agen_list_yield([1])  # Reference
-        assert await anext(agener_int_return) == 2
-        assert await anext(agener_int_return) == 2
-        assert await anext(agener_int) == 1
-        assert await anext(agener_int) == 2
-        assert await anext(agener_int) == 1
-        assert [1] == await anext(agener_list)
-        assert [1, 1] == await anext(agener_list)
-        assert [1, 1, 1] == await anext(agener_list)
+        assert await agener_int_return.__anext__() == 2
+        assert await agener_int_return.__anext__() == 2
+        assert await agener_int.__anext__() == 1
+        assert await agener_int.__anext__() == 2
+        assert await agener_int.__anext__() == 1
+        assert [1] == await agener_list.__anext__()
+        assert [1, 1] == await agener_list.__anext__()
+        assert [1, 1, 1] == await agener_list.__anext__()
 
 
 def test_tex2svg_preserves_matplotlib_backend():
