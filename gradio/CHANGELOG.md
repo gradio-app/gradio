@@ -143,7 +143,8 @@ Gradio 4.0 is a new major version, and includes breaking changes from 3.x. Here'
 * Removes `deprecation.py` -- this was designed for internal usage so unlikely to break gradio apps
 * Moves save to cache methods from component methods to standalone functions in processing_utils
 * Renames `source` param in `gr.Audio` and `gr.Video` to `sources`
-* Removes `show_edit_button` param from `gr.Audio``
+* Removes `show_edit_button` param from `gr.Audio`
+* The `Image` component with any tool (`gr.Image(tool=...)`) has temporarily been removed from 4.0. It will be replaced with a separate `ImageEditor` component soon.
 
 
 **Other changes related to the `gradio` library**:
@@ -158,7 +159,7 @@ Gradio 4.0 is a new major version, and includes breaking changes from 3.x. Here'
 * Changes the format of flagged data to json instead of filepath for media and chatbot
 * Removes `gr.Series` and `gr.Parallel`
 * All API endpoints are named by deafult. If `api_name=None`, the api name is the name of the python function.
-
+* If you click on examples in a `gr.Examples`, the component will not only update its value, but it will revert its properties to the ones it was constructed with. 
 
 **Changes related to the Client libraries**:
 
