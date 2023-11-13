@@ -14,7 +14,12 @@
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"@gradio/wasm": "workspace:^"
+		"@gradio/wasm": "workspace:^",
+		"@ffmpeg/ffmpeg": "^0.12.7",
+		"@ffmpeg/util": "^0.12.1"
+	},
+	"devDependencies": {
+		"mrmime": "^1.0.1"
 	},
 	"exports": {
 		".": "./index.ts",
