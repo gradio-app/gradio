@@ -7,7 +7,9 @@
 	xmlns="http://www.w3.org/2000/svg"
 	stroke="currentColor"
 	color="currentColor"
-	><path
+>
+	<title>Low volume</title>
+	<path
 		d="M19.5 7.5C19.5 7.5 21 9 21 11.5C21 14 19.5 15.5 19.5 15.5"
 		stroke-width="1.5"
 		stroke-linecap="round"

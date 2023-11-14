@@ -64,17 +64,15 @@
 		seconds = 0;
 		timing = false;
 		clearInterval(interval);
-		dispatch("stop_recording");
 		const array_buffer = await blob.arrayBuffer();
 		const context = new AudioContext();
 		const audio_buffer = await context.decodeAudioData(array_buffer);
 
 		if (audio_buffer)
-			await process_audio(audio_buffer).then(
-				async (trimmedBlob: Uint8Array) => {
-					await dispatch_blob([trimmedBlob], "stop_recording");
-				}
-			);
+			await process_audio(audio_buffer).then(async (audio: Uint8Array) => {
+				await dispatch_blob([audio], "change");
+				await dispatch_blob([audio], "stop_recording");
+			});
 	});
 
 	$: record?.on("record-pause", () => {
@@ -120,6 +118,7 @@
 		if (!recorder) return;
 		micWaveform = WaveSurfer.create({
 			...waveform_settings,
+			normalize: false,
 			container: recorder
 		});
 
@@ -160,6 +159,7 @@
 			await process_audio(decodedData, start, end).then(
 				async (trimmedAudio: Uint8Array) => {
 					await dispatch_blob([trimmedAudio], "change");
+					await dispatch_blob([trimmedAudio], "stop_recording");
 					recordingWaveform.destroy();
 					create_recording_waveform();
 				}

@@ -7,7 +7,9 @@
 	xmlns="http://www.w3.org/2000/svg"
 	stroke="currentColor"
 	color="currentColor"
-	><g clip-path="url(#clip0_3173_16686)"
+>
+	<title>Muted volume</title>
+	<g clip-path="url(#clip0_3173_16686)"
 		><path
 			d="M18 14L20.0005 12M22 10L20.0005 12M20.0005 12L18 10M20.0005 12L22 14"
 			stroke-width="1.5"
