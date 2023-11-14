@@ -1,6 +1,8 @@
 import { test, expect, drag_and_drop_file } from "@gradio/tootils";
 
-test("Audio click-to-upload uploads audio successfuly.", async ({ page }) => {
+test("Audio click-to-upload uploads audio successfuly. File downloading works and file has correct name.", async ({
+	page
+}) => {
 	await page
 		.getByRole("button", { name: "Drop Audio Here - or - Click to Upload" })
 		.click();
@@ -26,6 +28,11 @@ test("Audio click-to-upload uploads audio successfuly.", async ({ page }) => {
 
 	await expect(page.getByLabel("# Change Events")).toHaveValue("3");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("2");
+
+	const downloadPromise = page.waitForEvent("download");
+	await page.getByLabel("Download").click();
+	const download = await downloadPromise;
+	await expect(download.suggestedFilename()).toBe("audio_sample.wav");
 });
 
 test("Audio drag-and-drop uploads a file to the server correctly.", async ({

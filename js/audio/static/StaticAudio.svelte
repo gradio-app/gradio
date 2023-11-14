@@ -40,7 +40,7 @@
 			<a
 				href={value.url}
 				target={window.__is_colab__ ? "_blank" : null}
-				download={value.url}
+				download={value.orig_name || value.path}
 			>
 				<IconButton Icon={Download} label={i18n("common.download")} />
 			</a>

@@ -3,7 +3,7 @@ import gradio as gr
 with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column():
-            input_video = gr.Audio(label="Input Audio", sources=["upload", "microphone"])
+            input_video = gr.Audio(type="filepath", label="Input Audio", sources=["upload", "microphone"])
         with gr.Column():
             output_video = gr.Audio(label="Output Audio", sources=["upload", "microphone"])
         with gr.Column():
