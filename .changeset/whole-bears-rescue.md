@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Send more than one heartbeat message
+fix:Send more than one heartbeat message
