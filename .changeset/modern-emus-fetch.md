@@ -1,9 +1,9 @@
 ---
-"@gradio/app": minor
-"@gradio/atoms": minor
-"@gradio/audio": minor
-"@gradio/icons": minor
-"gradio": minor
+"@gradio/app": patch
+"@gradio/atoms": patch
+"@gradio/audio": patch
+"@gradio/icons": patch
+"gradio": patch
 ---
 
-feat:Add volume control to Audio
+fix:Add volume control to Audio
