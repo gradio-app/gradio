@@ -1,5 +1,11 @@
 # @gradio/video
 
+## 0.1.5
+
+### Features
+
+- [#6406](https://github.com/gradio-app/gradio/pull/6406) [`0401c77f3`](https://github.com/gradio-app/gradio/commit/0401c77f3d35763b79e040dbe876e69083defd36) - Move ffmpeg to `Video` deps.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.1.4
 
 ### Patch Changes
