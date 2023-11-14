@@ -14,7 +14,7 @@ export type ReceiveEvent = RequestReceiveEvent | DisconnectReceiveEvent;
 export interface RequestReceiveEvent {
 	type: "http.request";
 	body?: Uint8Array; // `bytes` in Python
-	more_body: boolean;
+	more_body?: boolean;
 }
 // https://asgi.readthedocs.io/en/latest/specs/www.html#disconnect-receive-event
 export interface DisconnectReceiveEvent {
