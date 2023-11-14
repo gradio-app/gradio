@@ -18,7 +18,6 @@ import {
 } from "./file";
 import { verifyRequirements } from "./requirements";
 import { makeHttpRequest } from "./http";
-import { initWebSocket } from "./websocket";
 import { generateRandomString } from "./random";
 import scriptRunnerPySource from "./py/script_runner.py?raw";
 import unloadModulesPySource from "./py/unload_modules.py?raw";
@@ -346,17 +345,6 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 						}
 					};
 					messagePort.postMessage(replyMessage);
-					break;
-				}
-				case "websocket": {
-					const { path } = msg.data;
-
-					console.debug("Initialize a WebSocket connection: ", { path });
-					initWebSocket(
-						call_asgi_app_from_js.bind(null, appId),
-						path,
-						messagePort
-					); // This promise is not awaited because it won't resolves until the WebSocket connection is closed.
 					break;
 				}
 				case "file:write": {

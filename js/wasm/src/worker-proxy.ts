@@ -5,11 +5,9 @@ import type {
 	HttpRequest,
 	HttpResponse,
 	InMessage,
-	InMessageWebSocket,
 	OutMessage,
 	ReplyMessage
 } from "./message-types";
-import { MessagePortWebSocket } from "./messageportwebsocket";
 import { PromiseDelegate } from "./promise-delegate";
 
 export interface WorkerProxyOptions {
@@ -196,20 +194,6 @@ export class WorkerProxy extends EventTarget {
 		}
 
 		return response;
-	}
-
-	public openWebSocket(path: string): MessagePortWebSocket {
-		const channel = new MessageChannel();
-
-		const msg: InMessageWebSocket = {
-			type: "websocket",
-			data: {
-				path
-			}
-		};
-		this.postMessageTarget.postMessage(msg, [channel.port2]);
-
-		return new MessagePortWebSocket(channel.port1);
 	}
 
 	public writeFile(
