@@ -1,4 +1,7 @@
-import "@gradio/theme";
+import "@gradio/theme/src/reset.css";
+import "@gradio/theme/src/global.css";
+import "@gradio/theme/src/pollen.css";
+import "@gradio/theme/src/typography.css";
 import type { SvelteComponent } from "svelte";
 import { WorkerProxy, type WorkerProxyOptions } from "@gradio/wasm";
 import { api_factory } from "@gradio/client";
