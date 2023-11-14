@@ -54,7 +54,7 @@ export async function create_server({
 				host: host,
 				fs: {
 					strict: false,
-					allow: [root_dir, NODE_DIR, component_dir, join(component_dir, "example")]
+					allow: [root_dir, NODE_DIR, component_dir]
 				}
 			},
 			plugins: [
@@ -127,12 +127,10 @@ function generate_imports(component_dir: string, root: string): string {
 			example: pkg.exports["./example"]
 		};
 
-		const example_dir = to_posix(join(component.frontend_dir, 'example'))
-		console.log("example_dir", example_dir);
-		console.log("component_dir", component.frontend_dir);
-
 		const example = exports.example
-			? `example: () => import("${example_dir}"),\n`
+			? `example: () => import("${to_posix(
+					join(component.frontend_dir, exports.example)
+			  )}"),\n`
 			: "";
 		return `${acc}"${component.component_class_id}": {
 			${example}
