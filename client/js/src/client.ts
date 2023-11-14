@@ -176,7 +176,10 @@ interface Client {
 	) => Promise<unknown[]>;
 }
 
-export function api_factory(fetch_implementation: typeof fetch): Client {
+export function api_factory(
+	fetch_implementation: typeof fetch,
+	EventSource_factory: (url: URL) => EventSource
+): Client {
 	return { post_data, upload_files, client, handle_blob };
 
 	async function post_data(
@@ -664,7 +667,7 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 							)}/queue/join?${url_params ? url_params + "&" : ""}${params}`
 						);
 
-						eventSource = new EventSource(url);
+						eventSource = EventSource_factory(url);
 
 						eventSource.onmessage = async function (event) {
 							const _data = JSON.parse(event.data);
@@ -1002,8 +1005,10 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 	}
 }
 
-export const { post_data, upload_files, client, handle_blob } =
-	api_factory(fetch);
+export const { post_data, upload_files, client, handle_blob } = api_factory(
+	fetch,
+	(...args) => new EventSource(...args)
+);
 
 function transform_output(
 	data: any[],

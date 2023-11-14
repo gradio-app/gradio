@@ -7,11 +7,9 @@ import type {
 	SendEvent
 } from "../asgi-types";
 
-/**
- * Connect the `messagePort` to the `asgiApp` so that
- * the `asgiApp` can receive ASGI events (`ReceiveEvent`) from the `messagePort`
- * and send ASGI events (`SendEvent`) to the `messagePort`.
- */
+// Connect the `messagePort` to the `asgiApp` so that
+// the `asgiApp` can receive ASGI events (`ReceiveEvent`) from the `messagePort`
+// and send ASGI events (`SendEvent`) to the `messagePort`.
 export function makeAsgiRequest(
 	asgiApp: ASGIApplication,
 	scope: ASGIScope,
