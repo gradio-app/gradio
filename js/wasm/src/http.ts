@@ -37,6 +37,19 @@ export function asgiHeadersToRecord(headers: any): Record<string, string> {
 	return Object.fromEntries(headers);
 }
 
+export function getHeaderValue(
+	headers: HttpRequest["headers"],
+	key: string
+): string | undefined {
+	// The keys in `headers` are case-insensitive.
+	const unifiedKey = key.toLowerCase();
+	for (const [k, v] of Object.entries(headers)) {
+		if (k.toLowerCase() === unifiedKey) {
+			return v;
+		}
+	}
+}
+
 export function logHttpReqRes(
 	request: HttpRequest,
 	response: HttpResponse

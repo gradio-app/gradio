@@ -1,4 +1,4 @@
-import { asgiHeadersToRecord } from "./http";
+import { asgiHeadersToRecord, getHeaderValue } from "./http";
 import type { ASGIScope, ReceiveEvent, SendEvent } from "./asgi-types";
 import type { WorkerProxy } from "./worker-proxy";
 
@@ -90,9 +90,11 @@ export class WasmWorkerEventSource extends EventTarget {
 				status,
 				headers
 			});
+			const contentType = getHeaderValue(headers, "content-type");
 			if (
 				status !== 200 ||
-				headers["content-type"].split(";")[0] !== "text/event-stream"
+				contentType == null ||
+				contentType.split(";")[0] !== "text/event-stream"
 			) {
 				// Fail the connection (https://html.spec.whatwg.org/multipage/server-sent-events.html#fail-the-connection)
 				// Queue a task which, if the readyState attribute is set to a value other than CLOSED, sets the readyState attribute to CLOSED and fires an event named error at the EventSource object. Once the user agent has failed the connection, it does not attempt to reconnect.
