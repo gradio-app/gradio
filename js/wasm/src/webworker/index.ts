@@ -17,7 +17,7 @@ import {
 	addAppIdIfRelative
 } from "./file";
 import { verifyRequirements } from "./requirements";
-import { makeHttpRequest } from "./http";
+import { makeAsgiRequest } from "./asgi";
 import { generateRandomString } from "./random";
 import scriptRunnerPySource from "./py/script_runner.py?raw";
 import unloadModulesPySource from "./py/unload_modules.py?raw";
@@ -332,19 +332,13 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 					messagePort.postMessage(replyMessage);
 					break;
 				}
-				case "http-request": {
-					const request = msg.data.request;
-					const response = await makeHttpRequest(
+				case "asgi-request": {
+					console.debug("ASGI request", msg.data);
+					makeAsgiRequest(
 						call_asgi_app_from_js.bind(null, appId),
-						request
-					);
-					const replyMessage: ReplyMessageSuccess = {
-						type: "reply:success",
-						data: {
-							response
-						}
-					};
-					messagePort.postMessage(replyMessage);
+						msg.data.scope,
+						messagePort
+					); // This promise is not awaited because it won't resolves until the HTTP connection is closed.
 					break;
 				}
 				case "file:write": {

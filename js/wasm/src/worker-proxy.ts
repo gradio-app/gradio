@@ -2,13 +2,20 @@ import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";
 import type {
 	EmscriptenFile,
 	EmscriptenFileUrl,
-	HttpRequest,
-	HttpResponse,
 	InMessage,
+	InMessageAsgiRequest,
 	OutMessage,
 	ReplyMessage
 } from "./message-types";
 import { PromiseDelegate } from "./promise-delegate";
+import {
+	type HttpRequest,
+	type HttpResponse,
+	asgiHeadersToRecord,
+	headersToASGI,
+	logHttpReqRes
+} from "./http";
+import type { ASGIScope, ReceiveEvent, SendEvent } from "./asgi-types";
 
 export interface WorkerProxyOptions {
 	gradioWheelUrl: string;
@@ -156,6 +163,25 @@ export class WorkerProxy extends EventTarget {
 		}
 	}
 
+	// Initialize an ASGI protocol connection with the ASGI app.
+	// The returned `MessagePort` is used to communicate with the ASGI app
+	// via the `postMessage()` API and the `message` event.
+	// `postMessage()` sends a `ReceiveEvent` to the ASGI app (Be careful not to send a `SendEvent`. This is an event the ASGI app "receives".)
+	// The ASGI app sends a `SendEvent` to the `message` event.
+	public requestAsgi(scope: Record<string, unknown>): MessagePort {
+		const channel = new MessageChannel();
+
+		const msg: InMessageAsgiRequest = {
+			type: "asgi-request",
+			data: {
+				scope
+			}
+		};
+		this.postMessageTarget.postMessage(msg, [channel.port2]);
+
+		return channel.port1;
+	}
+
 	public async httpRequest(request: HttpRequest): Promise<HttpResponse> {
 		// Wait for the first run to be done
 		// to avoid the "Gradio app has not been launched." error
@@ -164,36 +190,67 @@ export class WorkerProxy extends EventTarget {
 		await this.firstRunPromiseDelegate.promise;
 
 		console.debug("WorkerProxy.httpRequest()", request);
-		const result = await this.postMessageAsync({
-			type: "http-request",
-			data: {
-				request
-			}
-		});
-		const response = (result as { response: HttpResponse }).response;
 
-		if (Math.floor(response.status / 100) !== 2) {
-			let bodyText: string;
-			let bodyJson: unknown;
-			try {
-				bodyText = new TextDecoder().decode(response.body);
-			} catch (e) {
-				bodyText = "(failed to decode body)";
-			}
-			try {
-				bodyJson = JSON.parse(bodyText);
-			} catch (e) {
-				bodyJson = "(failed to parse body as JSON)";
-			}
-			console.error("Wasm HTTP error", {
-				request,
-				response,
-				bodyText,
-				bodyJson
+		// Dispatch an ASGI request to the ASGI app and gather the response data.
+		return new Promise((resolve, reject) => {
+			// https://asgi.readthedocs.io/en/latest/specs/www.html#http-connection-scope
+			const asgiScope: ASGIScope = {
+				type: "http",
+				asgi: {
+					version: "3.0",
+					spec_version: "2.1"
+				},
+				http_version: "1.1",
+				scheme: "http",
+				method: request.method,
+				path: request.path,
+				query_string: request.query_string,
+				root_path: "",
+				headers: headersToASGI(request.headers)
+			};
+
+			const asgiMessagePort = this.requestAsgi(asgiScope);
+
+			let status: number;
+			let headers: { [key: string]: string };
+			let body: Uint8Array = new Uint8Array();
+			asgiMessagePort.addEventListener("message", (ev) => {
+				const asgiSendEvent: SendEvent = ev.data;
+
+				console.debug("send from ASGIapp", asgiSendEvent);
+				if (asgiSendEvent.type === "http.response.start") {
+					status = asgiSendEvent.status;
+					headers = asgiHeadersToRecord(asgiSendEvent.headers);
+				} else if (asgiSendEvent.type === "http.response.body") {
+					body = new Uint8Array([...body, ...asgiSendEvent.body]);
+					if (!asgiSendEvent.more_body) {
+						const response: HttpResponse = {
+							status,
+							headers,
+							body
+						};
+						console.debug("HTTP response", response);
+
+						asgiMessagePort.postMessage({
+							type: "http.disconnect"
+						} satisfies ReceiveEvent);
+
+						logHttpReqRes(request, response);
+						resolve(response);
+					}
+				} else {
+					reject(`Unhandled ASGI event: ${JSON.stringify(asgiSendEvent)}`);
+				}
 			});
-		}
 
-		return response;
+			asgiMessagePort.start();
+
+			asgiMessagePort.postMessage({
+				type: "http.request",
+				more_body: false,
+				body: request.body
+			} satisfies ReceiveEvent);
+		});
 	}
 
 	public writeFile(
