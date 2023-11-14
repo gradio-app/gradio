@@ -94,7 +94,7 @@
 		<div class="buttons">
 			<IconButton Icon={Undo} label="Undo" on:click={() => handle_undo()} />
 			<a
-				href={value.path}
+				href={value.url}
 				target={window.__is_colab__ ? "_blank" : null}
 				download={window.__is_colab__ ? null : value.orig_name || value.path}
 			>
