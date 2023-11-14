@@ -1,5 +1,11 @@
 # @gradio/wasm
 
+## 0.3.0
+
+### Features
+
+- [#6099](https://github.com/gradio-app/gradio/pull/6099) [`d84209703`](https://github.com/gradio-app/gradio/commit/d84209703b7a0728cdb49221e543500ddb6a8d33) - Lite: SharedWorker mode.  Thanks [@whitphx](https://github.com/whitphx)!
+
 ## 0.2.0
 
 ## 0.2.0-beta.2

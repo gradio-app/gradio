@@ -1,5 +1,12 @@
 # website
 
+## 0.14.0
+
+### Features
+
+- [#6387](https://github.com/gradio-app/gradio/pull/6387) [`9d6d72f44`](https://github.com/gradio-app/gradio/commit/9d6d72f44370c45d9e213421a5586c25c5789278) - Tiny fix to indent on landing page demo.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#6344](https://github.com/gradio-app/gradio/pull/6344) [`747197089`](https://github.com/gradio-app/gradio/commit/7471970894e999f335126766549552184231e8ea) - PDF component custom component guide.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 0.13.0
 
 ### Features

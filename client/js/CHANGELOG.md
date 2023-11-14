@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 0.8.1
+
+### Fixes
+
+- [#6383](https://github.com/gradio-app/gradio/pull/6383) [`324867f63`](https://github.com/gradio-app/gradio/commit/324867f63c920113d89a565892aa596cf8b1e486) - Fix event target.  Thanks [@aliabid94](https://github.com/aliabid94)!
+
 ## 0.8.0
 
 ### Features
