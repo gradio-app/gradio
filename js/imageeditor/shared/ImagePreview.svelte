@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { EditorData } from "./types";
+	// import type { EditorData } from "./types";
 	import { createEventDispatcher } from "svelte";
 	import type { SelectData } from "@gradio/utils";
 	import { uploadToHuggingFace } from "@gradio/utils";
 	import { BlockLabel, Empty, IconButton, ShareButton } from "@gradio/atoms";
 	import { Download } from "@gradio/icons";
-	import { get_coordinates_of_clicked_image } from "./utils";
+	// import { get_coordinates_of_clicked_image } from "./utils/events";
 
 	import { Image } from "@gradio/icons";
 	import { type FileData, normalise_file } from "@gradio/client";
@@ -32,10 +32,10 @@
 	$: value.composite = normalise_file(value.composite, root, null);
 
 	const handle_click = (evt: MouseEvent): void => {
-		let coordinates = get_coordinates_of_clicked_image(evt);
-		if (coordinates) {
-			dispatch("select", { index: coordinates, value: null });
-		}
+		// let coordinates = get_coordinates_of_clicked_image(evt);
+		// if (coordinates) {
+		// 	dispatch("select", { index: coordinates, value: null });
+		// }
 	};
 </script>
 

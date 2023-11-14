@@ -15,7 +15,6 @@
 		gap: var(--spacing-sm);
 		height: auto;
 		align-items: flex-end;
-		box-shadow: var(--shadow-drop);
 		padding: var(--spacing-xl) 0;
 		color: var(--block-label-text-color);
 		flex-shrink: 0;
@@ -25,5 +24,6 @@
 	.show_border {
 		border-top: 1px solid var(--block-border-color);
 		margin-top: var(--spacing-xxl);
+		box-shadow: var(--shadow-drop);
 	}
 </style>

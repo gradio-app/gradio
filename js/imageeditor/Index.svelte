@@ -1,15 +1,16 @@
 <svelte:options accessors={true} />
 
 <script context="module" lang="ts">
-	export { default as Webcam } from "./shared/Webcam.svelte";
+	// export { default as Webcam } from "./shared/Webcam.svelte";
 </script>
 
 <script lang="ts">
-	import type { Brush, EditorData } from "./shared/types";
+	import type { Brush, EditorData, Eraser } from "./shared/types";
 
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import StaticImage from "./shared/ImagePreview.svelte";
-	import ImageEditor from "./shared/ImageEditor.svelte";
+	import InteractiveImageEditor from "./shared/InteractiveImageEditor.svelte";
+	import Layers from "./shared/layers/Layers.svelte";
 
 	import { Block, Empty, UploadText } from "@gradio/atoms";
 	import { Image } from "@gradio/icons";
@@ -49,6 +50,7 @@
 	export let mirror_webcam: boolean;
 	export let transforms: ("crop" | "rotate")[];
 	export let brush: Brush;
+	export let eraser: Eraser;
 
 	export let gradio: Gradio<{
 		change: never;
@@ -73,6 +75,8 @@
 		value = detail;
 		gradio.dispatch("change");
 	}
+
+	$: console.log($$props);
 </script>
 
 {#if !interactive}
@@ -132,8 +136,7 @@
 			{...loading_status}
 		/>
 
-		<ImageEditor
-			bind:active_tool
+		<InteractiveImageEditor
 			{root}
 			{sources}
 			on:change={(e) => handle_change(e.detail)}
@@ -158,13 +161,14 @@
 			{mirror_webcam}
 			{transforms}
 			{brush}
+			{eraser}
 			i18n={gradio.i18n}
 		>
-			{#if sources.includes("upload")}
+			<!-- {#if sources.includes("upload")}
 				<UploadText i18n={gradio.i18n} type="image" mode="short" />
 			{:else}
 				<Empty unpadded_box={true} size="large"><Image /></Empty>
-			{/if}
-		</ImageEditor>
+			{/if} -->
+		</InteractiveImageEditor>
 	</Block>
 {/if}

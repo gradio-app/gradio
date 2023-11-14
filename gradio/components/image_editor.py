@@ -1,4 +1,4 @@
-"""gr.ImageEditor() component."""
+r"""gr.ImageEditor() component."""
 
 from __future__ import annotations
 
@@ -36,12 +36,12 @@ class EditorData(GradioModel):
 class Eraser:
     def __init__(
         self,
-        sizes: list[int] | None = None,
-        default_size: int | float | None = 20,
+        sizes: list[int] | Literal["auto"] = "auto",
+        default_size: int | Literal["auto"] = "auto",
         size_mode: Literal["fixed", "defaults"] = "defaults",
         antialias: bool = True,
     ):
-        self.sizes = [5, 10, 20, 40, 70] if sizes is None else sizes
+        self.sizes = sizes
         self.default_size = default_size
         self.size_mode = size_mode
         self.antialias = antialias
@@ -50,23 +50,29 @@ class Eraser:
 class Brush(Eraser):
     def __init__(
         self,
-        sizes: list[int] | None = None,
-        default_size: int | None = 20,
+        sizes: list[int] | Literal["auto"] = "auto",
+        default_size: int | Literal["auto"] = "auto",
         size_mode: Literal["fixed", "defaults"] = "defaults",
         colors: list[str | tuple[int, int, int, int]]
         | tuple[int, int, int, int]
         | str
         | None = None,
-        default_color: str | tuple[int, int, int, int] | None = "red",
+        default_color: str | tuple[int, int, int, int] | None = None,
         color_mode: Literal["fixed", "defaults"] = "defaults",
         antialias: bool = True,
     ):
         self.colors = (
-            ["red", "green", "blue", "yellow", "black", "white"]
+            [
+                "rgb(204, 50, 50)",
+                "rgb(173, 204, 50)",
+                "rgb(50, 204, 112)",
+                "rgb(50, 112, 204)",
+                "rgb(173, 50, 204)",
+            ]
             if colors is None
             else colors
         )
-        self.default_color = default_color
+        self.default_color = default_color if default_color else self.colors[0]
         self.color_mode = color_mode
         super().__init__(sizes, default_size, size_mode, antialias)
 

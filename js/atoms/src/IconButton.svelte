@@ -6,9 +6,17 @@
 	export let pending = false;
 	export let size: "small" | "large" = "small";
 	export let padded = true;
+	export let highlight = false;
 </script>
 
-<button on:click aria-label={label} title={label} class:pending class:padded>
+<button
+	on:click
+	aria-label={label}
+	title={label}
+	class:pending
+	class:padded
+	class:highlight
+>
 	{#if show_label}<span>{label}</span>{/if}
 	<div class:small={size === "small"} class:large={size === "large"}>
 		<Icon />

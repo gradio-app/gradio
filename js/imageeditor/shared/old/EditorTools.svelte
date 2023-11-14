@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { I18nFormatter } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
-	import type { Brush, PathData } from "./types";
+	import type { Brush, Eraser, PathData } from "./types";
 	import { click_outside } from "./utils";
 
 	import { Toolbar, IconButton } from "@gradio/atoms";
@@ -22,6 +22,7 @@
 	export let i18n: I18nFormatter;
 	export let transforms: ("crop" | "rotate")[];
 	export let brush: Brush | null;
+	export let eraser: Eraser | null;
 	export let sources: ("clipboard" | "webcam" | "upload")[] = [
 		"upload",
 		"clipboard",
@@ -85,7 +86,7 @@
 	};
 
 	const category_meta: Record<
-		"bg" | "transform" | "brush",
+		"bg" | "transform" | "brush" | "eraser",
 		{
 			order: number;
 			label: string;
@@ -106,6 +107,11 @@
 			order: 2,
 			label: i18n("Draw"),
 			icon: BrushIcon
+		},
+		eraser: {
+			order: 2,
+			label: i18n("Draw"),
+			icon: BrushIcon
 		}
 	} as const;
 
@@ -117,6 +123,8 @@
 		.filter((a) => {
 			if (a === "brush") {
 				return !!brush;
+			} else if (a === "eraser") {
+				return !!eraser;
 			} else if (a === "transform") {
 				return transforms.length > 0;
 			} else if (a === "bg") {
@@ -131,7 +139,7 @@
 		(a, b) => sources_meta[a].order - sources_meta[b].order
 	);
 
-	let category = "bg";
+	export let category: keyof typeof category_meta = "bg";
 
 	function select_category(type: keyof typeof category_meta): void {
 		switch (type) {
@@ -143,6 +151,9 @@
 				break;
 			case "brush":
 				category = "brush";
+				break;
+			case "eraser":
+				category = "eraser";
 				break;
 			default:
 				break;
@@ -197,33 +208,33 @@
 				padded={false}
 			/>
 		{/each}
+	{:else if category === "eraser"}
+		{#if brush_option === "color"}
+			<ColorSwatch
+				bind:selected_color
+				{colors}
+				on:click_outside={() => (brush_option = null)}
+			/>
+		{:else if brush_option === "size"}
+			<!-- <IconButton
+        on:click={() => {}}
+        Icon={paint_meta[p].icon}
+        size="large"
+        padded={false}
+      /> -->
+		{/if}
+		{#each brush_options as p}
+			<IconButton
+				on:click={() => (brush_option = p)}
+				Icon={paint_meta[p].icon}
+				size="large"
+				padded={false}
+			/>
+		{/each}
 	{/if}
 </Toolbar>
-<div class="toolbar-wrap">
-	<div
-		class="layer-wrap"
-		class:closed={!show_layers}
-		use:click_outside={() => (show_layers = false)}
-	>
-		<button on:click={() => (show_layers = !show_layers)}
-			>Layers <span class="layer-toggle"><DropdownArrow /></span></button
-		>
-		{#if show_layers}
-			<ul>
-				{#each layers as layer, i (i)}
-					<li>
-						<button
-							class:selected_layer={current_layer === i}
-							on:click={() => (current_layer = i)}>Layer {i + 1}</button
-						>
-					</li>
-				{/each}
-				<li>
-					<button on:click={() => dispatch("new_layer")}> +</button>
-				</li>
-			</ul>
-		{/if}
-	</div>
+
+<!-- <div class="toolbar-wrap">
 	<Toolbar show_border={false}>
 		{#each categories as cat}
 			<IconButton
@@ -235,71 +246,13 @@
 			/>
 		{/each}
 	</Toolbar>
-</div>
+</div> -->
 
 <style>
-	.layer-toggle {
-		width: 20px;
-		transform: rotate(0deg);
-
-		/* transform-origin: 50% 50%; */
-	}
-
-	.closed .layer-toggle {
-		transform: rotate(-90deg);
-	}
 	.toolbar-wrap {
 		display: flex;
 		justify-content: center;
 		align-items: center;
 		width: 100%;
-	}
-
-	.layer-wrap {
-		position: absolute;
-		bottom: 0;
-		left: 0;
-		display: inline-block;
-		border: 1px solid var(--block-border-color);
-		border-radius: var(--radius-md);
-
-		transition: var(--button-transition);
-		box-shadow: var(--button-shadow);
-
-		text-align: left;
-		border-bottom: none;
-		border-left: none;
-		border-bottom-right-radius: 0;
-		border-top-left-radius: 0;
-		background-color: var(--background-fill-primary);
-		overflow: hidden;
-	}
-
-	.layer-wrap button {
-		display: inline-flex;
-		justify-content: flex-start;
-		align-items: flex-start;
-		padding: var(--size-2) var(--size-4);
-		width: 100%;
-		border-bottom: 1px solid var(--block-border-color);
-	}
-
-	.layer-wrap li:last-child button {
-		border-bottom: none;
-		text-align: center;
-	}
-
-	.closed > button {
-		border-bottom: none;
-	}
-
-	.layer-wrap button:hover {
-		background-color: var(--background-fill-secondary);
-	}
-
-	.selected_layer {
-		background-color: var(--color-accent) !important;
-		color: white;
-		font-weight: bold;
 	}
 </style>

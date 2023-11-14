@@ -1,57 +1,121 @@
 <script lang="ts">
+	import { tick, createEventDispatcher } from "svelte";
+	// import { clamp } from "../utils/pixi";
+
 	export let type = "corner";
 	export let location: "tl" | "tr" | "bl" | "br" | "t" | "b" | "l" | "r";
-	export let parent: HTMLElement;
-	let dragging = false;
+	// export let parent: HTMLElement;
 
-	export let x = 0;
-	export let y = 0;
-	export let width;
-	export let height;
+	export let x1 = 0;
+	export let y1 = 0;
+	export let x2 = 0;
+	export let y2 = 0;
+	// export let width: number;
+	// export let height: number;
 
 	let box: DOMRect;
+	let y_offset = 0;
+	let x_offset = 0;
+	const min = 100;
 
-	function clamp(n: number, min: number, max: number): number {
-		return n < min ? min : n > max ? max : n;
-	}
+	let active = false;
+
+	const dispatch = createEventDispatcher<{
+		change: {
+			top: number | undefined;
+			bottom: number | undefined;
+			left: number | undefined;
+			right: number | undefined;
+		};
+	}>();
+	export let dragging = false;
+
+	let el: HTMLDivElement;
 
 	function handle_mousedown(e: MouseEvent): void {
-		box = parent.getBoundingClientRect();
+		box = el.getBoundingClientRect();
+		active = true;
 		dragging = true;
+
+		if (["tl", "bl", "l"].includes(location)) x_offset = e.clientX - box.right;
+		if (["tl", "tr", "t"].includes(location)) y_offset = e.clientY - box.bottom;
+		if (["tr", "r", "br"].includes(location)) x_offset = e.clientX - box.left;
+		if (["br", "b", "bl"].includes(location)) y_offset = e.clientY - box.top;
 	}
 
 	function handle_mousemove(e: MouseEvent): void {
-		if (!dragging) return;
+		if (!active) return;
+		const top_pos = e.clientY - y_offset;
+		const bottom_pos = e.clientY - y_offset;
+		const left_pos = e.clientX - x_offset;
+		const right_pos = e.clientX - x_offset;
 
 		if (["tl", "bl", "l"].includes(location)) {
-			x = clamp(e.clientX - box.x, 0, box.width);
-			width = clamp(box.width - x, 0, box.width);
+			x1 = left_pos;
 		}
 
 		if (["tl", "tr", "t"].includes(location)) {
-			y = clamp(e.clientY - box.y, 0, box.height);
-			height = clamp(box.height - y, 0, box.height);
+			y1 = top_pos;
 		}
 
 		if (["tr", "r", "br"].includes(location)) {
-			width = clamp(e.clientX - box.x - x, 0, box.width);
+			x2 = right_pos;
 		}
 
 		if (["br", "b", "bl"].includes(location)) {
-			height = clamp(e.clientY - box.y - y, 0, box.height);
+			y2 = bottom_pos;
 		}
 	}
 
-	function handle_mouseup(e: MouseEvent): void {
+	async function handle_mouseup(e: MouseEvent): Promise<void> {
+		await tick();
+		active = false;
 		dragging = false;
 	}
+
+	function make_transform(
+		_location: typeof location,
+		x1: number,
+		x2: number,
+		y1: number,
+		y2: number
+	): string {
+		let t = undefined;
+		let l = undefined;
+		let r = undefined;
+		let b = undefined;
+
+		if (box) {
+			if (["tl", "l", "bl"].includes(_location)) {
+				l = x1;
+			}
+
+			if (["tl", "t", "tr"].includes(_location)) {
+				t = y1;
+			}
+
+			if (["tr", "r", "br"].includes(_location)) {
+				r = x2;
+			}
+
+			if (["br", "b", "bl"].includes(_location)) {
+				b = y2;
+			}
+		}
+
+		dispatch("change", { top: t, bottom: b, left: l, right: r });
+		// return `translate(${x}px, ${y}px)`;""
+		return "";
+	}
+
+	$: transform = make_transform(location, x1, x2, y1, y2);
 </script>
 
 <svelte:window on:mousemove={handle_mousemove} on:mouseup={handle_mouseup} />
 
 <!--	svelte-ignore a11y-no-static-element-interactions -->
-<div class="hitbox {location}" on:mousedown={handle_mousedown}>
-	<div class="handle {type} {location}"></div>
+<div class="hitbox {location}" on:mousedown={handle_mousedown} style:transform>
+	<div class="handle {type} {location}" bind:this={el}></div>
 </div>
 
 <style>

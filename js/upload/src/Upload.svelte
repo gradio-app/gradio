@@ -13,6 +13,7 @@
 	export let disable_click = false;
 	export let root: string;
 	export let hidden = false;
+	export let format: "blob" | "file" = "file";
 
 	// Needed for wasm support
 	const upload_fn = getContext<typeof upload_files>("upload_files");
@@ -54,7 +55,15 @@
 	async function load_files_from_upload(e: Event): Promise<void> {
 		const target = e.target as HTMLInputElement;
 		if (!target.files) return;
-		await load_files(Array.from(target.files));
+		if (format != "blob") {
+			await load_files(Array.from(target.files));
+		} else {
+			if (file_count === "single") {
+				dispatch("load", target.files[0]);
+				return;
+			}
+			dispatch("load", target.files);
+		}
 	}
 
 	function is_valid_mimetype(

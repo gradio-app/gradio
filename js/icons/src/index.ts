@@ -1,6 +1,6 @@
-export { default as Error } from "./Error.svelte";
 export { default as Backward } from "./Backward.svelte";
 export { default as Brush } from "./Brush.svelte";
+export { default as BrushSize } from "./BrushSize.svelte";
 export { default as Camera } from "./Camera.svelte";
 export { default as Chart } from "./Chart.svelte";
 export { default as Chat } from "./Chat.svelte";
@@ -17,6 +17,8 @@ export { default as Download } from "./Download.svelte";
 export { default as DropdownArrow } from "./DropdownArrow.svelte";
 export { default as Edit } from "./Edit.svelte";
 export { default as Erase } from "./Erase.svelte";
+export { default as Error } from "./Error.svelte";
+export { default as Eyedropper } from "./Eyedropper.svelte";
 export { default as Forward } from "./Forward.svelte";
 export { default as File } from "./File.svelte";
 export { default as Info } from "./Info.svelte";

@@ -8,6 +8,7 @@ export async function load_component({ api_url, name, id, variant }) {
 		...component_map,
 		...(!comps ? {} : comps)
 	};
+
 	try {
 		//@ts-ignore
 		const c = await (
@@ -19,6 +20,7 @@ export async function load_component({ api_url, name, id, variant }) {
 			component: c
 		};
 	} catch (e) {
+		console.error(e);
 		try {
 			await load_css(`${api_url}/custom_component/${id}/${variant}/style.css`);
 			const c = await import(
