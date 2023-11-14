@@ -1,5 +1,11 @@
 # @gradio/audio
 
+## 0.5.1
+
+### Fixes
+
+- [#6382](https://github.com/gradio-app/gradio/pull/6382) [`2090aad73`](https://github.com/gradio-app/gradio/commit/2090aad731b186ef0a3f63ec2b4d1a6e3acb1754) - Move wavesurfer dep to js/audio.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 0.5.0
 
 ### Features
