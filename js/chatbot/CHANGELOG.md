@@ -1,5 +1,11 @@
 # @gradio/chatbot
 
+## 0.4.5
+
+### Fixes
+
+- [#6386](https://github.com/gradio-app/gradio/pull/6386) [`e76a9e8fc`](https://github.com/gradio-app/gradio/commit/e76a9e8fcbbfc393298de2aa539f2b152c0d6400) - Fix Chatbot Pending Message Issues.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.4.4
 
 ### Patch Changes

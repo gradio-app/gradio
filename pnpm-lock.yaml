@@ -20,12 +20,6 @@ importers:
       '@csstools/postcss-global-data':
         specifier: ^2.0.0
         version: 2.0.0(postcss@8.4.27)
-      '@ffmpeg/ffmpeg':
-        specifier: ^0.12.7
-        version: 0.12.7
-      '@ffmpeg/util':
-        specifier: ^0.12.1
-        version: 0.12.1
       '@gradio/tootils':
         specifier: workspace:^
         version: link:js/tootils
@@ -210,9 +204,6 @@ importers:
       chromatic:
         specifier: ^7.0.0
         version: 7.0.0
-      mrmime:
-        specifier: ^1.0.1
-        version: 1.0.1
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -285,7 +276,7 @@ importers:
   js/_website:
     dependencies:
       '@gradio/code':
-        specifier: 0.2.4
+        specifier: 0.2.5
         version: link:../code
       '@sindresorhus/slugify':
         specifier: ^2.2.0
@@ -1422,6 +1413,12 @@ importers:
 
   js/video:
     dependencies:
+      '@ffmpeg/ffmpeg':
+        specifier: ^0.12.7
+        version: 0.12.7
+      '@ffmpeg/util':
+        specifier: ^0.12.1
+        version: 0.12.1
       '@gradio/atoms':
         specifier: workspace:^
         version: link:../atoms
@@ -1446,6 +1443,10 @@ importers:
       '@gradio/wasm':
         specifier: workspace:^
         version: link:../wasm
+    devDependencies:
+      mrmime:
+        specifier: ^1.0.1
+        version: 1.0.1
 
   js/wasm:
     dependencies:

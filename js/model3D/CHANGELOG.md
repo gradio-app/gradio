@@ -1,5 +1,11 @@
 # @gradio/model3d
 
+## 0.4.3
+
+### Fixes
+
+- [#6414](https://github.com/gradio-app/gradio/pull/6414) [`da1e31832`](https://github.com/gradio-app/gradio/commit/da1e31832f85ec76540e474ae35badfde8a18b6f) - Fix Model3D download button and other issues.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 0.4.2
 
 ### Patch Changes
