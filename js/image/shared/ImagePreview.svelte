@@ -6,6 +6,7 @@
 	import { Download } from "@gradio/icons";
 	import { get_coordinates_of_clicked_image } from "./utils";
 	import Image from "./Image.svelte";
+	import DownloadLink from "./DownloadLink.svelte";
 
 	import { Image as ImageIcon } from "@gradio/icons";
 	import { type FileData, normalise_file } from "@gradio/client";
@@ -42,13 +43,9 @@
 {:else}
 	<div class="icon-buttons">
 		{#if show_download_button}
-			<a
-				href={value.url}
-				target={window.__is_colab__ ? "_blank" : null}
-				download={value.orig_name || "image"}
-			>
+			<DownloadLink href={value.url} download={value.orig_name || "image"}>
 				<IconButton Icon={Download} label={i18n("common.download")} />
-			</a>
+			</DownloadLink>
 		{/if}
 		{#if show_share_button}
 			<ShareButton

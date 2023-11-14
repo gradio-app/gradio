@@ -1,5 +1,6 @@
 import { getWorkerProxyContext } from "./context";
 import { is_self_host } from "../network/host";
+import { getHeaderValue } from "../src/http";
 
 type MediaSrc = string | undefined | null;
 
@@ -37,7 +38,7 @@ export async function resolve_wasm_src(src: MediaSrc): Promise<MediaSrc> {
 				throw new Error(`Failed to get file ${path} from the Wasm worker.`);
 			}
 			const blob = new Blob([response.body], {
-				type: response.headers["Content-Type"]
+				type: getHeaderValue(response.headers, "content-type")
 			});
 			const blobUrl = URL.createObjectURL(blob);
 			return blobUrl;
