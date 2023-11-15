@@ -30,8 +30,10 @@
 	import { onMount, setContext } from "svelte";
 	import { writable } from "svelte/store";
 	import { spring } from "svelte/motion";
+	import { Rectangle } from "pixi.js";
+
 	import { type LayerScene } from "./layers/utils";
-	import { create_pixi_app } from "./utils/pixi";
+	import { create_pixi_app, type ImageBlobs } from "./utils/pixi";
 
 	export let antialias = true;
 	export let active_tool: "bg" | null = null;
@@ -61,8 +63,9 @@
 			damping: 0.5
 		}
 	);
+	const pixi = writable<PixiApp | null>(null);
 	const editor_context: EditorContext = setContext(EDITOR_KEY, {
-		pixi: writable<PixiApp | null>(null),
+		pixi,
 		current_layer: writable(null),
 		dimensions,
 		editor_box,
@@ -81,7 +84,7 @@
 			dimensions.set([width, height]);
 		}
 
-		editor_context.pixi.set({ ...app, resize });
+		pixi.set({ ...app, resize });
 
 		return () => {
 			app.destroy();
@@ -155,6 +158,21 @@
 		const y = 0.5 * $editor_box.child_height - cy - ch / 2;
 
 		position_spring.set({ x, y });
+	}
+
+	export async function get_blobs(): Promise<ImageBlobs> {
+		if (!$pixi) return { background: null, layers: [], composite: null };
+		const [l, t, w, h] = $crop;
+		console.log($dimensions);
+		return $pixi?.get_blobs(
+			$pixi.get_layers(),
+			new Rectangle(
+				l * $dimensions[0],
+				t * $dimensions[1],
+				w * $dimensions[0],
+				h * $dimensions[1]
+			)
+		);
 	}
 
 	$: $crop && reposition_canvas();

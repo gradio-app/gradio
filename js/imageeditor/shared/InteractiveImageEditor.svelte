@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { type I18nFormatter } from "@gradio/utils";
-
+	import { prepare_files, upload, type FileData } from "@gradio/client";
 	import ImageEditor from "./ImageEditor.svelte";
 	import Layers from "./layers/Layers.svelte";
 	import { type Brush as IBrush } from "./tools/Brush.svelte";
@@ -15,9 +15,63 @@
 	export let i18n: I18nFormatter;
 	export let root: string;
 	// let active_tool: tool = "brush";
+
+	let editor: ImageEditor;
+
+	interface ImageBlobs {
+		background: FileData | null;
+		layers: FileData[];
+		composite: FileData | null;
+	}
+
+	function is_not_null(o: Blob | null): o is Blob {
+		return !!o;
+	}
+
+	function is_file_data(o: null | FileData): o is FileData {
+		return !!o;
+	}
+
+	export async function get_data(): Promise<ImageBlobs> {
+		const blobs = await editor.get_blobs();
+
+		const bg = blobs.background
+			? upload(
+					await prepare_files([new File([blobs.background], "background.png")]),
+					root
+			  )
+			: Promise.resolve(null);
+
+		const layers = blobs.layers
+			.filter(is_not_null)
+			.map(async (blob, i) =>
+				upload(await prepare_files([new File([blob], `layer_${i}.png`)]), root)
+			);
+
+		const composite = blobs.composite
+			? upload(
+					await prepare_files([new File([blobs.composite], "composite.png")]),
+					root
+			  )
+			: Promise.resolve(null);
+
+		const [background, composite_, ...layers_] = await Promise.all([
+			bg,
+			composite,
+			...layers
+		]);
+
+		return {
+			background: Array.isArray(background) ? background[0] : background,
+			layers: layers_
+				.flatMap((layer) => (Array.isArray(layer) ? layer : [layer]))
+				.filter(is_file_data),
+			composite: Array.isArray(composite_) ? composite_[0] : composite_
+		};
+	}
 </script>
 
-<ImageEditor>
+<ImageEditor bind:this={editor}>
 	<Tools {i18n}>
 		<Sources {i18n} {root}></Sources>
 		<Crop {crop_size} />

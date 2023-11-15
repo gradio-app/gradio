@@ -19,6 +19,7 @@
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
+	import type { P } from "@storybook/svelte-vite/dist/index-55234481";
 
 	setupi18n();
 
@@ -374,6 +375,13 @@
 	let showed_duplicate_message = false;
 	let showed_mobile_warning = false;
 
+	function get_data(comp: ComponentMeta): any | Promise<any> {
+		if (comp.instance.get_value) {
+			return comp.instance.get_value() as Promise<any>;
+		}
+		return comp.props.value;
+	}
+
 	async function trigger_api_call(
 		dep_index: number,
 		event_data: unknown = null
@@ -396,7 +404,9 @@
 
 		let payload: Payload = {
 			fn_index: dep_index,
-			data: dep.inputs.map((id) => instance_map[id].props.value),
+			data: await Promise.all(
+				dep.inputs.map((id) => get_data(instance_map[id]))
+			),
 			event_data: dep.collects_event_data ? event_data : null
 		};
 
@@ -404,7 +414,9 @@
 			dep
 				.frontend_fn(
 					payload.data.concat(
-						dep.outputs.map((id) => instance_map[id].props.value)
+						await Promise.all(
+							dep.inputs.map((id) => get_data(instance_map[id]))
+						)
 					)
 				)
 				.then((v: unknown[]) => {

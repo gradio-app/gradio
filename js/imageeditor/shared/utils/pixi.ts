@@ -3,11 +3,14 @@ import {
 	Container,
 	Graphics,
 	Sprite,
+	Rectangle,
 	RenderTexture,
 	type IRenderer,
 	type DisplayObject,
 	type ICanvas
 } from "pixi.js";
+
+import { type LayerScene } from "../layers/utils";
 
 /**
  * interface holding references to pixi app components
@@ -40,7 +43,21 @@ export interface PixiApp {
 	 * @param height the new height
 	 */
 	resize(width: number, height: number): void;
+	/**
+	 * Gets the blobs for the background, layers, and composite
+	 * @param bounds the bounds of the canvas
+	 * @returns a promise with the blobs
+	 */
+	get_blobs(layers: LayerScene[], bounds: Rectangle): Promise<ImageBlobs>;
+	/**
+	 * Resets the mask
+	 */
 	reset?: () => void;
+
+	/**
+	 * Gets the layers
+	 */
+	get_layers?: () => LayerScene[];
 }
 
 /**
@@ -104,6 +121,8 @@ export function create_pixi_app(
 
 	mask_container.mask = sprite;
 
+	app.render();
+
 	function reset_mask(width: number, height: number): void {
 		mask.beginFill(0xffffff, 1);
 		mask.drawRect(0, 0, width, height);
@@ -128,7 +147,27 @@ export function create_pixi_app(
 		reset_mask(width, height);
 	}
 
-	app.render();
+	async function get_blobs(
+		_layers: LayerScene[],
+		bounds: Rectangle
+	): Promise<ImageBlobs> {
+		const background = await get_canvas_blob(app, background_container, bounds);
+		console.log(_layers, background_container);
+		const layers = await Promise.all(
+			_layers.map((layer) =>
+				get_canvas_blob(app, layer.composite as DisplayObject, bounds)
+			)
+		);
+		const composite = await get_canvas_blob(app, mask_container, bounds);
+		console.log(composite, mask_container);
+
+		// const background = app.renderer.plugins.extract.pixels(background_container);
+		return {
+			background,
+			layers,
+			composite
+		};
+	}
 
 	return {
 		layer_container,
@@ -136,9 +175,9 @@ export function create_pixi_app(
 		destroy: app.destroy,
 		view: app.view as HTMLCanvasElement & ICanvas,
 		background_container,
+		mask_container,
 		resize,
-
-		mask_container
+		get_blobs
 	};
 }
 
@@ -157,4 +196,26 @@ export function make_graphics(z_index: number): Graphics {
 
 export function clamp(n: number, min: number, max: number): number {
 	return n < min ? min : n > max ? max : n;
+}
+
+function get_canvas_blob(
+	app: Application,
+	obj: DisplayObject,
+	bounds: Rectangle
+): Promise<Blob> {
+	console.log(bounds, obj);
+	return new Promise((resolve) => {
+		app.renderer.extract.canvas(obj, bounds).toBlob?.((blob) => {
+			if (!blob) {
+				throw new Error("Could not create blob");
+			}
+			resolve(blob);
+		});
+	});
+}
+
+export interface ImageBlobs {
+	background: Blob | null;
+	layers: (Blob | null)[];
+	composite: Blob | null;
 }

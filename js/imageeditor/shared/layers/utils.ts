@@ -84,6 +84,11 @@ interface LayerManager {
 	 * @param height The new height of the layers.
 	 */
 	reset(): void;
+	/**
+	 * Gets the layers.
+	 * @returns The layers.
+	 */
+	get_layers(): LayerScene[];
 }
 
 /**
@@ -116,8 +121,6 @@ export function layer_manager(): LayerManager {
 			width: number,
 			height: number
 		): [LayerScene, LayerScene[]] {
-			console.log("add layer");
-			console.log({ width, height });
 			const layer_container = new Container() as Container & DisplayObject;
 			position++;
 			layer_container.zIndex = position;
@@ -184,6 +187,9 @@ export function layer_manager(): LayerManager {
 			_layers = [];
 			current_layer = 0;
 			position = 0;
+		},
+		get_layers() {
+			return _layers;
 		}
 	};
 }

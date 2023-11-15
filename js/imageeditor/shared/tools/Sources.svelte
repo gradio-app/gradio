@@ -106,6 +106,7 @@
 	}
 
 	async function set_background(): Promise<void> {
+		console.log({ background });
 		if (!$pixi) return;
 		if (typeof background === "string") {
 			const add_color = add_bg_color(

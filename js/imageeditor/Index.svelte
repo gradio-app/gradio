@@ -10,10 +10,8 @@
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import StaticImage from "./shared/ImagePreview.svelte";
 	import InteractiveImageEditor from "./shared/InteractiveImageEditor.svelte";
-	import Layers from "./shared/layers/Layers.svelte";
-
+	import type { ImageBlobs } from "./shared/InteractiveImageEditor.svelte";
 	import { Block, Empty, UploadText } from "@gradio/atoms";
-	import { Image } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 
@@ -63,6 +61,14 @@
 		select: SelectData;
 		share: ShareData;
 	}>;
+
+	let editor_instance: InteractiveImageEditor;
+
+	export async function get_value(): Promise<ImageBlobs> {
+		const blobs = await editor_instance.get_data();
+
+		return blobs;
+	}
 
 	// $: value?.url && gradio.dispatch("change");
 	let dragging: boolean;
@@ -137,6 +143,7 @@
 		/>
 
 		<InteractiveImageEditor
+			bind:this={editor_instance}
 			{root}
 			{sources}
 			on:change={(e) => handle_change(e.detail)}

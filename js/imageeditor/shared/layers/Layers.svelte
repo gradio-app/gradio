@@ -17,11 +17,22 @@
 	const LayerManager = layer_manager();
 	let layers: LayerScene[] = [];
 
-	$: $pixi && new_layer();
+	function once(fn: () => void): () => void {
+		let called = false;
+		return () => {
+			if (called) return;
+			called = true;
+			fn();
+		};
+	}
+	const once_layer = once(new_layer);
+
+	$: $pixi && once_layer();
 
 	const ratio = window.devicePixelRatio || 1;
 
 	function new_layer(): void {
+		console.log("boooooo");
 		if (!$pixi) return;
 		const [active_layer, all_layers] = LayerManager.add_layer(
 			$pixi.layer_container,
@@ -37,13 +48,12 @@
 		await tick();
 		if (!$pixi) return;
 		function reset(): void {
-			console.log("reset");
 			LayerManager.reset();
 			$pixi?.resize(...$dimensions);
 
 			new_layer();
 		}
-		$pixi = { ...$pixi!, reset };
+		$pixi = { ...$pixi!, reset, get_layers: LayerManager.get_layers };
 	});
 </script>
 

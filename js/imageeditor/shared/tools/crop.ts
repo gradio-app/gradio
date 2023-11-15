@@ -70,41 +70,37 @@ export function crop_canvas(
 			_height: number,
 			_previous_crop: [number, number, number, number]
 		) => {
-			clean = false;
-			text = RenderTexture.create({
-				width: _width,
-				height: _height
-			});
-
-			crop_mask(_width, _height, _previous_crop, false);
-			sprite = new Sprite(text);
-
-			mask_container.mask = sprite;
-
-			width = _width;
-			height = _height;
-			previous_crop = JSON.parse(JSON.stringify(_previous_crop));
+			// clean = false;
+			// text = RenderTexture.create({
+			// 	width: _width,
+			// 	height: _height
+			// });
+			// crop_mask(_width, _height, _previous_crop, false);
+			// sprite = new Sprite(text);
+			// mask_container.mask = sprite;
+			// width = _width;
+			// height = _height;
+			// previous_crop = JSON.parse(JSON.stringify(_previous_crop));
 		},
 		continue: (crop_size: [number, number, number, number]) => {
-			final_crop = JSON.parse(JSON.stringify(crop_size));
-
-			if (spring_value === 0.2) {
-				crop_mask(width, height, final_crop, true);
-			} else {
-				alpha_spring.set(0.2);
-			}
+			// final_crop = JSON.parse(JSON.stringify(crop_size));
+			// if (spring_value === 0.2) {
+			// 	crop_mask(width, height, final_crop, true);
+			// } else {
+			// 	alpha_spring.set(0.2);
+			// }
 		},
 
 		undo: () => {
 			crop_mask(width, height, previous_crop, false);
 		},
 		execute: () => {
-			if (clean) {
-				crop_mask(width, height, final_crop, false);
-			} else {
-				alpha_spring.set(0);
-				clean = true;
-			}
+			// if (clean) {
+			// 	crop_mask(width, height, final_crop, false);
+			// } else {
+			// 	alpha_spring.set(0);
+			// 	clean = true;
+			// }
 		}
 	};
 }
