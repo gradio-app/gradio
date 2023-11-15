@@ -37,6 +37,7 @@
 
 	function handle_upload({ detail }: CustomEvent<FileData>): void {
 		value = normalise_file(detail, root, null);
+		dispatch("upload");
 	}
 
 	async function handle_save(img_blob: Blob | any): Promise<void> {
@@ -117,6 +118,7 @@
 								]);
 								f;
 								value = f?.[0] || null;
+								dispatch("upload");
 							});
 							break;
 						}
@@ -139,7 +141,12 @@
 
 <div data-testid="image" class="image-container">
 	{#if value?.url}
-		<ClearImage on:remove_image={() => (value = null)} />
+		<ClearImage
+			on:remove_image={() => {
+				value = null;
+				dispatch("clear");
+			}}
+		/>
 	{/if}
 	<div class="upload-container">
 		<Upload

@@ -147,12 +147,17 @@ class Image(StreamingInput, Component):
     ) -> np.ndarray | _Image.Image | str | None:
         if payload is None:
             return payload
+        if payload.orig_name:
+            p = Path(payload.orig_name)
+            name = p.stem
+        else:
+            name = "image"
         im = _Image.open(payload.path)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
         return image_utils.format_image(
-            im, cast(Literal["numpy", "pil", "filepath"], self.type), self.GRADIO_CACHE
+            im, cast(Literal["numpy", "pil", "filepath"], self.type), self.GRADIO_CACHE, name=name
         )
 
     def postprocess(
@@ -160,7 +165,9 @@ class Image(StreamingInput, Component):
     ) -> FileData | None:
         if value is None:
             return None
-        return FileData(path=image_utils.save_image(value, self.GRADIO_CACHE))
+        saved = image_utils.save_image(value, self.GRADIO_CACHE)
+        orig_name = Path(saved).name if Path(saved).exists() else None
+        return FileData(path=saved, orig_name=orig_name)
 
     def check_streamable(self):
         if self.streaming and self.sources != ["webcam"]:
