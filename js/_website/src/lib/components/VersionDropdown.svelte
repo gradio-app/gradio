@@ -5,7 +5,7 @@
 	import { version } from "$lib/json/version.json";
 	import path from "path";
 
-	export let choices = [version, "main"];
+	export let choices = [version, "3.50.1", "main"];
 	export let value: string = $page.params?.version || version;
 	export let docs_type = "python";
 
