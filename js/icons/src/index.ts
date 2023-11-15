@@ -42,5 +42,8 @@ export { default as Trim } from "./Trim.svelte";
 export { default as Undo } from "./Undo.svelte";
 export { default as Upload } from "./Upload.svelte";
 export { default as Video } from "./Video.svelte";
+export { default as VolumeLow } from "./VolumeLow.svelte";
+export { default as VolumeHigh } from "./VolumeHigh.svelte";
+export { default as VolumeMuted } from "./VolumeMuted.svelte";
 export { default as Warning } from "./Warning.svelte";
 export { default as Webcam } from "./Webcam.svelte";

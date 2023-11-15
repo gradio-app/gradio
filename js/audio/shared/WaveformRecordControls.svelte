@@ -34,15 +34,6 @@
 		}
 		throw err;
 	}
-	onMount(() => {
-		recordButton = document.getElementById("record") as HTMLButtonElement;
-		pauseButton = document.getElementById("pause") as HTMLButtonElement;
-		resumeButton = document.getElementById("resume") as HTMLButtonElement;
-		stopButton = document.getElementById("stop") as HTMLButtonElement;
-		stopButtonPaused = document.getElementById(
-			"stop-paused"
-		) as HTMLButtonElement;
-	});
 
 	$: record.on("record-start", () => {
 		record.startMic();
@@ -84,13 +75,13 @@
 <div class="controls">
 	<div class="wrapper">
 		<button
-			id="record"
-			class="record-button"
+			bind:this={recordButton}
+			class="record record-button"
 			on:click={() => record.startRecording()}>{i18n("audio.record")}</button
 		>
 
 		<button
-			id="stop"
+			bind:this={stopButton}
 			class="stop-button {record.isPaused() ? 'stop-button-paused' : ''}"
 			on:click={() => {
 				if (record.isPaused()) {
@@ -103,6 +94,7 @@
 		>
 
 		<button
+			bind:this={stopButtonPaused}
 			id="stop-paused"
 			class="stop-button-paused"
 			on:click={() => {
@@ -116,19 +108,19 @@
 		>
 
 		<button
-			id="pause"
+			bind:this={pauseButton}
 			class="pause-button"
 			on:click={() => record.pauseRecording()}><Pause /></button
 		>
 		<button
-			id="resume"
+			bind:this={resumeButton}
 			class="resume-button"
 			on:click={() => record.resumeRecording()}>{i18n("audio.resume")}</button
 		>
 	</div>
 
 	<select
-		id="mic-select"
+		class="mic-select"
 		aria-label="Select input device"
 		disabled={micDevices.length === 0}
 	>
@@ -143,7 +135,7 @@
 </div>
 
 <style>
-	#mic-select {
+	.mic-select {
 		height: var(--size-8);
 		background: var(--block-background-fill);
 		padding: 0px var(--spacing-xxl);
@@ -176,7 +168,7 @@
 		justify-content: center;
 	}
 
-	#record {
+	.record {
 		margin-right: var(--spacing-md);
 	}
 

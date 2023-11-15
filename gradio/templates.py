@@ -326,7 +326,7 @@ class PlayableVideo(components.Video):
 
 class Microphone(components.Audio):
     """
-    Sets: source="microphone"
+    Sets: sources=["microphone"]
     """
 
     is_template = True

@@ -3,10 +3,11 @@
 	import type { I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
 	import { skipAudio, process_audio } from "../shared/utils";
-	import Record from "wavesurfer.js/dist/plugins/record.js";
+	import WSRecord from "wavesurfer.js/dist/plugins/record.js";
 	import WaveformControls from "../shared/WaveformControls.svelte";
 	import WaveformRecordControls from "../shared/WaveformRecordControls.svelte";
 	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
+	import type { WaveformOptions } from "../shared/types";
 
 	export let mode: string;
 	export let i18n: I18nFormatter;
@@ -15,15 +16,18 @@
 		blobs: Uint8Array[] | Blob[],
 		event: "stream" | "change" | "stop_recording"
 	) => Promise<void> | undefined;
-	export let waveform_settings = {};
+	export let waveform_settings: Record<string, any>;
+	export let waveform_options: WaveformOptions;
 	export let handle_reset_value: () => void;
 
 	let micWaveform: WaveSurfer;
 	let recordingWaveform: WaveSurfer;
 	let playing = false;
-	let container: HTMLDivElement;
 
-	let record: Record;
+	let recordingContainer: HTMLDivElement;
+	let microphoneContainer: HTMLDivElement;
+
+	let record: WSRecord;
 	let recordedAudio: string | null = null;
 
 	// timestamps
@@ -54,7 +58,7 @@
 		start_interval();
 		timing = true;
 		dispatch("start_recording");
-		let waveformCanvas = document.getElementById("microphone");
+		let waveformCanvas = microphoneContainer;
 		if (waveformCanvas) waveformCanvas.style.display = "block";
 	});
 
@@ -62,17 +66,15 @@
 		seconds = 0;
 		timing = false;
 		clearInterval(interval);
-		dispatch("stop_recording");
 		const array_buffer = await blob.arrayBuffer();
 		const context = new AudioContext();
 		const audio_buffer = await context.decodeAudioData(array_buffer);
 
 		if (audio_buffer)
-			await process_audio(audio_buffer).then(
-				async (trimmedBlob: Uint8Array) => {
-					await dispatch_blob([trimmedBlob], "change");
-				}
-			);
+			await process_audio(audio_buffer).then(async (audio: Uint8Array) => {
+				await dispatch_blob([audio], "change");
+				await dispatch_blob([audio], "stop_recording");
+			});
 	});
 
 	$: record?.on("record-pause", () => {
@@ -112,12 +114,13 @@
 	});
 
 	const create_mic_waveform = (): void => {
-		const recorder = document.getElementById("microphone");
+		const recorder = microphoneContainer;
 		if (recorder) recorder.innerHTML = "";
 		if (micWaveform !== undefined) micWaveform.destroy();
 		if (!recorder) return;
 		micWaveform = WaveSurfer.create({
 			...waveform_settings,
+			normalize: false,
 			container: recorder
 		});
 
@@ -126,7 +129,7 @@
 	};
 
 	const create_recording_waveform = (): void => {
-		let recording = document.getElementById("recording");
+		let recording = recordingContainer;
 		if (!recordedAudio || !recording) return;
 		recordingWaveform = WaveSurfer.create({
 			container: recording,
@@ -138,8 +141,8 @@
 	$: record?.on("record-end", (blob) => {
 		recordedAudio = URL.createObjectURL(blob);
 
-		const microphone = document.getElementById("microphone");
-		const recording = document.getElementById("recording");
+		const microphone = microphoneContainer;
+		const recording = recordingContainer;
 
 		if (microphone) microphone.style.display = "none";
 		if (recording && recordedAudio) {
@@ -158,6 +161,7 @@
 			await process_audio(decodedData, start, end).then(
 				async (trimmedAudio: Uint8Array) => {
 					await dispatch_blob([trimmedAudio], "change");
+					await dispatch_blob([trimmedAudio], "stop_recording");
 					recordingWaveform.destroy();
 					create_recording_waveform();
 				}
@@ -179,20 +183,24 @@
 </script>
 
 <div class="component-wrapper">
-	<div id="microphone" data-testid="microphone-waveform" />
-	<div id="recording" bind:this={container} />
+	<div
+		class="microphone"
+		bind:this={microphoneContainer}
+		data-testid="microphone-waveform"
+	/>
+	<div bind:this={recordingContainer} data-testid="recording-waveform" />
 
 	{#if timing || recordedAudio}
-		<div id="timestamps">
-			<time bind:this={timeRef} id="time">0:00</time>
+		<div class="timestamps">
+			<time bind:this={timeRef} class="time">0:00</time>
 			<div>
 				{#if mode === "edit" && trimDuration > 0}
-					<time id="trim-duration">{format_time(trimDuration)}</time>
+					<time class="trim-duration">{format_time(trimDuration)}</time>
 				{/if}
 				{#if timing}
-					<time id="duration">{format_time(seconds)}</time>
+					<time class="duration">{format_time(seconds)}</time>
 				{:else}
-					<time bind:this={durationRef} id="duration">0:00</time>
+					<time bind:this={durationRef} class="duration">0:00</time>
 				{/if}
 			</div>
 		</div>
@@ -205,7 +213,7 @@
 	{#if recordingWaveform && recordedAudio}
 		<WaveformControls
 			bind:waveform={recordingWaveform}
-			{container}
+			container={recordingContainer}
 			{playing}
 			{audioDuration}
 			{i18n}
@@ -215,13 +223,13 @@
 			bind:mode
 			showRedo
 			{handle_reset_value}
-			{waveform_settings}
+			{waveform_options}
 		/>
 	{/if}
 </div>
 
 <style>
-	#microphone {
+	.microphone {
 		width: 100%;
 		display: none;
 	}
@@ -230,7 +238,7 @@
 		padding: var(--size-3);
 	}
 
-	#timestamps {
+	.timestamps {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
@@ -239,15 +247,15 @@
 		margin: var(--spacing-md) 0;
 	}
 
-	#time {
+	.time {
 		color: var(--neutral-400);
 	}
 
-	#duration {
+	.duration {
 		color: var(--neutral-400);
 	}
 
-	#trim-duration {
+	.trim-duration {
 		color: var(--color-accent);
 		margin-right: var(--spacing-sm);
 	}
