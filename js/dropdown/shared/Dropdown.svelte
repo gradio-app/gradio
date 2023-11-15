@@ -105,12 +105,16 @@
 	function set_input_text(): void {
 		if (value === undefined) {
 			input_text = "";
+			selected_index = null;
 		} else if (choices_values.includes(value as string)) {
 			input_text = choices_names[choices_values.indexOf(value as string)];
+			selected_index = choices_values.indexOf(value as string);
 		} else if (allow_custom_value) {
 			input_text = value as string;
+			selected_index = null;
 		} else {
 			input_text = "";
+			selected_index = null;
 		}
 	}
 
