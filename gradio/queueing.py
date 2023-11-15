@@ -108,12 +108,12 @@ class Queue:
     def start(self):
         self.active_jobs = [None] * self.max_thread_count
         for block_fn in self.block_fns:
-            if block_fn.concurrency_limit is not None:
-                concurrency_limit = (
-                    self.default_concurrency_limit
-                    if block_fn.concurrency_limit == "default"
-                    else block_fn.concurrency_limit
-                )
+            concurrency_limit = (
+                self.default_concurrency_limit
+                if block_fn.concurrency_limit == "default"
+                else block_fn.concurrency_limit
+            )
+            if concurrency_limit is not None:
                 self.concurrency_limit_per_concurrency_id[
                     block_fn.concurrency_id
                 ] = min(
@@ -133,7 +133,7 @@ class Queue:
 
     def set_concurrency_limit(self, default_concurrency_limit: int | None):
         """
-        Handles the logic of setting the default_concurrency_limit as this can be specified via a combination 
+        Handles the logic of setting the default_concurrency_limit as this can be specified via a combination
         of the `default_concurrency_limit` parameter of the `Blocks.launch()` or the `GRADIO_DEFAULT_CONCURRENCY_LIMIT`
         environment variable. The parameter takes precedence over the environment variable.
         Parameters:
@@ -142,7 +142,9 @@ class Queue:
         if default_concurrency_limit is not None:
             self.default_concurrency_limit = default_concurrency_limit
             return
-        if default_concurrency_limit_env := os.environ.get("GRADIO_DEFAULT_CONCURRENCY_LIMIT"):
+        if default_concurrency_limit_env := os.environ.get(
+            "GRADIO_DEFAULT_CONCURRENCY_LIMIT"
+        ):
             if default_concurrency_limit_env.lower() == "none":
                 self.default_concurrency_limit = None
             else:
