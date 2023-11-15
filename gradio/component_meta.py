@@ -132,7 +132,13 @@ def updateable(fn):
     def wrapper(*args, **kwargs):
         fn_args = inspect.getfullargspec(fn).args
         self = args[0]
-        if not hasattr(self, "_constructor_args"):
+
+        # We need to ensure __init__ is always called at least once
+        # so that the component has all the variables in self defined
+        # test_blocks.py::test_async_iterator_update_with_new_component
+        # checks this
+        initialized_before = hasattr(self, "_constructor_args")
+        if not initialized_before:
             self._constructor_args = []
         for i, arg in enumerate(args):
             if i == 0 or i >= len(fn_args):  #  skip self, *args
@@ -140,7 +146,7 @@ def updateable(fn):
             arg_name = fn_args[i]
             kwargs[arg_name] = arg
         self._constructor_args.append(kwargs)
-        if in_event_listener():
+        if in_event_listener() and initialized_before:
             return None
         else:
             return fn(self, **kwargs)

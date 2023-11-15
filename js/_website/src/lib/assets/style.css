@@ -205,3 +205,10 @@ code.language-bash {
 .tip a {
 	@apply text-orange-700;
 }
+
+.shared-link:before {
+	content: url("img/anchor_orange.svg");
+	width: 15px;
+	display: inline-block;
+	margin-right: 5px;
+}

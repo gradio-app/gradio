@@ -116,4 +116,6 @@ Here is an example of what publishing looks like:
 ## Conclusion
 
 Now that you know the high-level workflow of creating custom components, you can go in depth in the next guides!
+After reading the guides, check out this [collection](https://huggingface.co/collections/gradio/custom-components-65497a761c5192d981710b12) of custom components on the HuggingFace Hub so you can learn from other's code.
+
 

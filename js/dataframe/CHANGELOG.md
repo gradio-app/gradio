@@ -1,10 +1,32 @@
 # @gradio/dataframe
 
+## 0.3.6
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/button@0.2.5
+  - @gradio/upload@0.4.1
+
+## 0.3.5
+
+### Patch Changes
+
+- Updated dependencies [[`854b482f5`](https://github.com/gradio-app/gradio/commit/854b482f598e0dc47673846631643c079576da9c), [`f1409f95e`](https://github.com/gradio-app/gradio/commit/f1409f95ed39c5565bed6a601e41f94e30196a57)]:
+  - @gradio/upload@0.4.0
+  - @gradio/button@0.2.4
+
+## 0.3.4
+
+### Features
+
+- [#6318](https://github.com/gradio-app/gradio/pull/6318) [`d3b53a457`](https://github.com/gradio-app/gradio/commit/d3b53a4577ea05cd27e37ce7fec952028c18ed45) - Fix for stylized DataFrame. Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.3.3
 
 ### Fixes
 
-- [#6290](https://github.com/gradio-app/gradio/pull/6290) [`e8216be94`](https://github.com/gradio-app/gradio/commit/e8216be948f76ce064595183d11e9148badf9421) - ensure `gr.Dataframe` updates as expected.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#6290](https://github.com/gradio-app/gradio/pull/6290) [`e8216be94`](https://github.com/gradio-app/gradio/commit/e8216be948f76ce064595183d11e9148badf9421) - ensure `gr.Dataframe` updates as expected. Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 0.3.2
 

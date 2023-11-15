@@ -47,7 +47,8 @@ type client_return = {
 	submit: (
 		endpoint: string | number,
 		data?: unknown[],
-		event_data?: unknown
+		event_data?: unknown,
+		trigger_id?: number | null
 	) => SubmitReturn;
 	component_server: (
 		component_id: number,
@@ -156,7 +157,8 @@ interface Client {
 	upload_files: (
 		root: string,
 		files: File[],
-		token?: `hf_${string}`
+		token?: `hf_${string}`,
+		upload_id?: string
 	) => Promise<UploadResponse>;
 	client: (
 		app_reference: string,
@@ -208,7 +210,8 @@ export function api_factory(
 	async function upload_files(
 		root: string,
 		files: (Blob | File)[],
-		token?: `hf_${string}`
+		token?: `hf_${string}`,
+		upload_id?: string
 	): Promise<UploadResponse> {
 		const headers: {
 			Authorization?: string;
@@ -225,7 +228,10 @@ export function api_factory(
 				formData.append("files", file);
 			});
 			try {
-				var response = await fetch_implementation(`${root}/upload`, {
+				const upload_url = upload_id
+					? `${root}/upload?upload_id=${upload_id}`
+					: `${root}/upload`;
+				var response = await fetch_implementation(upload_url, {
 					method: "POST",
 					body: formData,
 					headers
@@ -407,7 +413,8 @@ export function api_factory(
 			function submit(
 				endpoint: string | number,
 				data: unknown[],
-				event_data?: unknown
+				event_data?: unknown,
+				trigger_id: number | null = null
 			): SubmitReturn {
 				let fn_index: number;
 				let api_info;
@@ -448,7 +455,7 @@ export function api_factory(
 					api_info,
 					hf_token
 				).then((_payload) => {
-					payload = { data: _payload || [], event_data, fn_index };
+					payload = { data: _payload || [], event_data, fn_index, trigger_id };
 					if (skip_queue(fn_index, config)) {
 						fire_event({
 							type: "status",
@@ -657,7 +664,7 @@ export function api_factory(
 								host,
 								config.path,
 								true
-							)}/queue/join?${params}`
+							)}/queue/join?${url_params ? url_params + "&" : ""}${params}`
 						);
 
 						eventSource = new EventSource(url);

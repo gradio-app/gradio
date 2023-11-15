@@ -13,7 +13,6 @@ import os
 import pkgutil
 import re
 import threading
-import time
 import traceback
 import typing
 import warnings
@@ -22,7 +21,7 @@ from contextlib import contextmanager
 from io import BytesIO
 from numbers import Number
 from pathlib import Path
-from types import GeneratorType
+from types import AsyncGeneratorType, GeneratorType
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -597,16 +596,24 @@ def is_update(val):
 
 
 def get_continuous_fn(fn: Callable, every: float) -> Callable:
-    def continuous_fn(*args):
+    # For Wasm-compatibility, we need to use asyncio.sleep() instead of time.sleep(),
+    # so we need to make the function async.
+    async def continuous_coro(*args):
         while True:
             output = fn(*args)
             if isinstance(output, GeneratorType):
-                yield from output
+                for item in output:
+                    yield item
+            elif isinstance(output, AsyncGeneratorType):
+                async for item in output:
+                    yield item
+            elif inspect.isawaitable(output):
+                yield await output
             else:
                 yield output
-            time.sleep(every)
+            await asyncio.sleep(every)
 
-    return continuous_fn
+    return continuous_coro
 
 
 def function_wrapper(
@@ -792,10 +799,13 @@ def is_special_typed_parameter(name, parameter_types):
 def check_function_inputs_match(fn: Callable, inputs: list, inputs_as_dict: bool):
     """
     Checks if the input component set matches the function
-    Returns: None if valid, a string error message if mismatch
+    Returns: None if valid or if the function does not have a signature (e.g. is a built in),
+    or a string error message if mismatch
     """
-
-    signature = inspect.signature(fn)
+    try:
+        signature = inspect.signature(fn)
+    except ValueError:
+        return None
     parameter_types = get_type_hints(fn)
     min_args = 0
     max_args = 0
@@ -948,3 +958,14 @@ class NamedString(str):
     def __init__(self, *args):
         super().__init__()
         self.name = str(self) if args else ""
+
+
+def default_input_labels():
+    """
+    A generator that provides default input labels for components when the user's function
+    does not have named parameters. The labels are of the form "input 0", "input 1", etc.
+    """
+    n = 0
+    while True:
+        yield f"input {n}"
+        n += 1

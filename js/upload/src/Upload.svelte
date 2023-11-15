@@ -3,6 +3,7 @@
 	import type { FileData } from "@gradio/client";
 	import { upload_files, upload, prepare_files } from "@gradio/client";
 	import { _ } from "svelte-i18n";
+	import UploadProgress from "./UploadProgress.svelte";
 
 	export let filetype: string | null = null;
 	export let dragging = false;
@@ -14,6 +15,11 @@
 	export let root: string;
 	export let hidden = false;
 	export let format: "blob" | "file" = "file";
+	export let include_sources = false;
+
+	let uploading = false;
+	let upload_id: string;
+	let file_data: FileData[];
 
 	// Needed for wasm support
 	const upload_fn = getContext<typeof upload_files>("upload_files");
@@ -36,8 +42,11 @@
 		file_data: FileData[]
 	): Promise<(FileData | null)[]> {
 		await tick();
-		const _file_data = await upload(file_data, root, upload_fn);
+		upload_id = Math.random().toString(36).substring(2, 15);
+		uploading = true;
+		const _file_data = await upload(file_data, root, upload_id, upload_fn);
 		dispatch("load", file_count === "single" ? _file_data?.[0] : _file_data);
+		uploading = false;
 		return _file_data || [];
 	}
 
@@ -48,7 +57,7 @@
 			return;
 		}
 		let _files: File[] = files.map((f) => new File([f], f.name));
-		let file_data = await prepare_files(_files);
+		file_data = await prepare_files(_files);
 		return await handle_upload(file_data);
 	}
 
@@ -98,40 +107,44 @@
 	}
 </script>
 
-<button
-	class:hidden
-	class:center
-	class:boundedheight
-	class:flex
-	on:drag|preventDefault|stopPropagation
-	on:dragstart|preventDefault|stopPropagation
-	on:dragend|preventDefault|stopPropagation
-	on:dragover|preventDefault|stopPropagation
-	on:dragenter|preventDefault|stopPropagation
-	on:dragleave|preventDefault|stopPropagation
-	on:drop|preventDefault|stopPropagation
-	on:click={open_file_upload}
-	on:drop={loadFilesFromDrop}
-	on:dragenter={updateDragging}
-	on:dragleave={updateDragging}
->
-	<slot />
-	<input
-		type="file"
-		bind:this={hidden_upload}
-		on:change={load_files_from_upload}
-		accept={filetype}
-		multiple={file_count === "multiple" || undefined}
-		webkitdirectory={file_count === "directory" || undefined}
-		mozdirectory={file_count === "directory" || undefined}
-	/>
-</button>
+{#if uploading}
+	<UploadProgress {root} {upload_id} files={file_data} />
+{:else}
+	<button
+		class:hidden
+		class:center
+		class:boundedheight
+		class:flex
+		style:height={include_sources ? "calc(100% - 40px" : "100%"}
+		on:drag|preventDefault|stopPropagation
+		on:dragstart|preventDefault|stopPropagation
+		on:dragend|preventDefault|stopPropagation
+		on:dragover|preventDefault|stopPropagation
+		on:dragenter|preventDefault|stopPropagation
+		on:dragleave|preventDefault|stopPropagation
+		on:drop|preventDefault|stopPropagation
+		on:click={open_file_upload}
+		on:drop={loadFilesFromDrop}
+		on:dragenter={updateDragging}
+		on:dragleave={updateDragging}
+	>
+		<slot />
+		<input
+			type="file"
+			bind:this={hidden_upload}
+			on:change={load_files_from_upload}
+			accept={filetype}
+			multiple={file_count === "multiple" || undefined}
+			webkitdirectory={file_count === "directory" || undefined}
+			mozdirectory={file_count === "directory" || undefined}
+		/>
+	</button>
+{/if}
 
 <style>
 	button {
 		cursor: pointer;
 		width: var(--size-full);
-		height: var(--size-full);
 	}
 
 	.hidden {

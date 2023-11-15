@@ -85,7 +85,7 @@ class Audio(
         """
         Parameters:
             value: A path, URL, or [sample_rate, numpy array] tuple (sample rate in Hz, audio data as a float or int numpy array) for the default value that Audio component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            sources: A list of sources permitted for audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input. If None, defaults to ["upload", "microphone"], or ["microphone"] if `streaming` is True.
+            sources: A list of sources permitted for audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input. The first element in the list will be used as the default source. If None, defaults to ["upload", "microphone"], or ["microphone"] if `streaming` is True.
             type: The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
@@ -107,20 +107,22 @@ class Audio(
             max_length: The maximum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
             waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), show_controls (bool), skip_length (int). Default is None, which uses the default values for these options.
         """
-        valid_sources: list[Literal["upload", "microphone"]] = ["microphone", "upload"]
-
+        valid_sources: list[Literal["upload", "microphone"]] = ["upload", "microphone"]
         if sources is None:
-            sources = ["microphone"] if streaming else valid_sources
+            self.sources = ["microphone"] if streaming else valid_sources
         elif isinstance(sources, str) and sources in valid_sources:
-            sources = [sources]
+            self.sources = [sources]
         elif isinstance(sources, list):
-            pass
+            self.sources = sources
         else:
             raise ValueError(
                 f"`sources` must be a list consisting of elements in {valid_sources}"
             )
-
-        self.sources = sources
+        for source in self.sources:
+            if source not in valid_sources:
+                raise ValueError(
+                    f"`sources` must a list consisting of elements in {valid_sources}"
+                )
         valid_types = ["numpy", "filepath"]
         if type not in valid_types:
             raise ValueError(
@@ -211,6 +213,7 @@ class Audio(
         Returns:
             base64 url data
         """
+        orig_name = None
         if value is None:
             return None
         if isinstance(value, bytes):
@@ -219,16 +222,19 @@ class Audio(
             file_path = processing_utils.save_bytes_to_cache(
                 value, "audio", cache_dir=self.GRADIO_CACHE
             )
+            orig_name = Path(file_path).name
         elif isinstance(value, tuple):
             sample_rate, data = value
             file_path = processing_utils.save_audio_to_cache(
                 data, sample_rate, format=self.format, cache_dir=self.GRADIO_CACHE
             )
+            orig_name = Path(file_path).name
         else:
             if not isinstance(value, (str, Path)):
                 raise ValueError(f"Cannot process {value} as Audio")
             file_path = str(value)
-        return FileData(path=file_path)
+            orig_name = Path(file_path).name if Path(file_path).exists() else None
+        return FileData(path=file_path, orig_name=orig_name)
 
     def stream_output(
         self, value, output_id: str, first_chunk: bool
