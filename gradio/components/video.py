@@ -277,7 +277,7 @@ class Video(Component):
             video = processing_utils.convert_video_to_playable_mp4(video)
         # Recalculate the format in case convert_video_to_playable_mp4 already made it the
         # selected format
-        returned_format = video.split(".")[-1].lower()
+        returned_format = video.split(".")[-1].split("?")[0].lower()
         if self.format is not None and returned_format != self.format:
             if wasm_utils.IS_WASM:
                 raise wasm_utils.WasmUnsupportedError(
