@@ -36,6 +36,13 @@
 	$: browser && is_guide && goto(guide_url);
 </script>
 
+<svelte:head>
+	<script
+		type="module"
+		src="https://gradio.s3-us-west-2.amazonaws.com/{value === "main" ? version : value}/gradio.js"
+	></script>
+</svelte:head>
+
 <select
 	bind:value
 	class="rounded-md border-gray-200 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0 text-xs mt-2 py-1 pl-2 pr-7 font-mono"

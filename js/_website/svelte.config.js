@@ -22,7 +22,9 @@ const config = {
 				`/${version}/docs/js/`,
 				`/main/docs`,
 				`/main/guides`,
-				`/main/docs/js`
+				`/main/docs/js`,
+				`/3.50.1/docs`,
+				`/3.50.1/guides`,
 			]
 		},
 		files: {
