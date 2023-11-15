@@ -9,7 +9,7 @@ from typing import Any, Callable, List, Literal, Optional, Tuple, Union
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio import utils
+from gradio import processing_utils, utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
@@ -101,7 +101,6 @@ class Chatbot(Component):
         if latex_delimiters is None:
             latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
         self.latex_delimiters = latex_delimiters
-        self.avatar_images = avatar_images or (None, None)
         self.show_share_button = (
             (utils.get_space() is not None)
             if show_share_button is None
@@ -113,7 +112,6 @@ class Chatbot(Component):
         self.bubble_full_width = bubble_full_width
         self.line_breaks = line_breaks
         self.layout = layout
-
         super().__init__(
             label=label,
             every=every,
@@ -127,6 +125,14 @@ class Chatbot(Component):
             render=render,
             value=value,
         )
+        self.avatar_images: list[str | None] = [None, None]
+        if avatar_images is None:
+            pass
+        else:
+            self.avatar_images = [
+                processing_utils.move_resource_to_block_cache(avatar_images[0], self),
+                processing_utils.move_resource_to_block_cache(avatar_images[1], self),
+            ]
 
     def _preprocess_chat_messages(
         self, chat_message: str | FileMessage | None

@@ -1,6 +1,8 @@
 <script lang="ts">
 	import DemosLite from "../../lib/components/DemosLite.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
+	import { page } from "$app/stores";
+	import { browser } from "$app/environment";
 
 	export let data: {
 		demos_by_category: {
@@ -16,6 +18,15 @@
 
 	let all_demos = data.demos_by_category.flatMap((category) => category.demos);
 	let current_selection = all_demos[0].name;
+
+	let shared = "";
+	if (browser) {
+		let linked_demo = $page.url.searchParams.get("demo");
+		if (linked_demo) {
+			current_selection = linked_demo.replaceAll("_", " ");
+			shared = current_selection;
+		}
+	}
 
 	let show_nav = true;
 
@@ -76,12 +87,19 @@
 				>
 			</div>
 			{#if show_nav}
+				<button
+					on:click={() => (current_selection = "Blank")}
+					class:current-playground-demo={current_selection == "Blank"}
+					class:shared-link={shared == "Blank"}
+					class="thin-link font-light px-4 mt-2 block">Blank</button
+				>
 				{#each data.demos_by_category as { category, demos } (category)}
 					<p class="px-4 my-2">{category}</p>
 					{#each demos as demo, i}
 						<button
 							on:click={() => (current_selection = demo.name)}
 							class:current-playground-demo={current_selection == demo.name}
+							class:shared-link={shared == demo.name}
 							class="thin-link font-light px-4 block">{demo.name}</button
 						>
 					{/each}

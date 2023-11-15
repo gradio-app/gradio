@@ -37,10 +37,6 @@ click==8.1.3
     # via black
 cloudpickle==2.1.0
     # via shap
-coverage[toml]==6.4.2
-    # via
-    #   -r requirements.in
-    #   pytest-cov
 decorator==5.1.1
     # via ipython
 entrypoints==0.4
@@ -49,6 +45,8 @@ filelock==3.7.1
     # via
     #   huggingface-hub
     #   transformers
+gradio_pdf==0.0.3
+    # via -r requirements.in
 h11==0.12.0
     # via httpcore
 httpcore==0.15.0
@@ -214,7 +212,6 @@ tokenizers==0.12.1
 tomli==2.0.1
     # via
     #   black
-    #   coverage
     #   pytest
 toolz==0.12.0
     # via altair

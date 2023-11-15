@@ -131,7 +131,7 @@
 		{#if value !== null}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
-					{#if message !== null || pending_message}
+					{#if message !== null}
 						<div class="message-row {layout} {j == 0 ? 'user-row' : 'bot-row'}">
 							{#if avatar_images[j] !== null}
 								<div class="avatar-container">
@@ -158,6 +158,7 @@
 									data-testid={j == 0 ? "user" : "bot"}
 									class:latest={i === value.length - 1}
 									class:message-markdown-disabled={!render_markdown}
+									style:user-select="text"
 									class:selectable
 									style:text-align="left"
 									on:click={() => handle_select(i, j, message)}
@@ -221,8 +222,6 @@
 										>
 											{message.file?.orig_name || message.file?.path}
 										</a>
-									{:else if pending_message && j === 1}
-										<Pending {layout} />
 									{/if}
 								</button>
 							</div>
@@ -255,6 +254,9 @@
 					{/if}
 				{/each}
 			{/each}
+			{#if pending_message}
+				<Pending {layout} />
+			{/if}
 		{/if}
 	</div>
 </div>

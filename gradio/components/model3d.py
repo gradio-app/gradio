@@ -104,7 +104,7 @@ class Model3D(Component):
     def postprocess(self, value: str | Path | None) -> FileData | None:
         if value is None:
             return value
-        return FileData(path=str(value))
+        return FileData(path=str(value), orig_name=Path(value).name)
 
     def as_example(self, input_data: str | None) -> str:
         return Path(input_data).name if input_data else ""

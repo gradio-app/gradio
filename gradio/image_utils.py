@@ -47,6 +47,8 @@ def save_image(y: np.ndarray | _Image.Image | str | Path, cache_dir: str):
     elif isinstance(y, str):
         path = y
     else:
-        raise ValueError("Cannot process this value as an Image")
+        raise ValueError(
+            "Cannot process this value as an Image, it is of type: " + str(type(y))
+        )
 
     return path

@@ -23,7 +23,6 @@ const config = {
 				`/main/docs`,
 				`/main/guides`,
 				`/main/docs/js`
-				// "/main/docs/interface"
 			]
 		},
 		files: {
