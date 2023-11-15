@@ -157,7 +157,10 @@ class Image(StreamingInput, Component):
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
         return image_utils.format_image(
-            im, cast(Literal["numpy", "pil", "filepath"], self.type), self.GRADIO_CACHE, name=name
+            im,
+            cast(Literal["numpy", "pil", "filepath"], self.type),
+            self.GRADIO_CACHE,
+            name=name,
         )
 
     def postprocess(
