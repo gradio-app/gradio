@@ -925,7 +925,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 api_name, [dep["api_name"] for dep in self.dependencies]
             )
             if api_name != api_name_:
-                warnings.warn(f"api_name {api_name} already exists, using {api_name_}")
                 api_name = api_name_
 
         if collects_event_data is None:
@@ -984,9 +983,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                         [dep["api_name"] for dep in Context.root_block.dependencies],
                     )
                     if api_name != api_name_:
-                        warnings.warn(
-                            f"api_name {api_name} already exists, using {api_name_}"
-                        )
                         dependency["api_name"] = api_name_
                 dependency["cancels"] = [
                     c + dependency_offset for c in dependency["cancels"]
