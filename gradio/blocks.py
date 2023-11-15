@@ -1830,12 +1830,7 @@ Received outputs:
         self.config = self.get_config_file()
         self.max_threads = max_threads
         self._queue.max_thread_count = max_threads
-        self._queue.default_concurrency_limit = int(
-            os.environ.get(
-                "GRADIO_DEFAULT_CONCURRENCY_LIMIT", default_concurrency_limit
-            )
-            or 1
-        )
+        self._queue.set_concurrency_limit(default_concurrency_limit)
 
         if self.is_running:
             if not isinstance(self.local_url, str):
