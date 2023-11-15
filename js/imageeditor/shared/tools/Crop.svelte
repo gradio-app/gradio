@@ -111,12 +111,6 @@
 			$editor_box.child_height;
 
 		measured = true;
-		// current_crop = [
-		// 	l_p * $dimensions[0],
-		// 	t_p * $dimensions[1],
-		// 	w_p * $dimensions[0],
-		// 	h_p * $dimensions[1]
-		// ];
 	}
 
 	let current_crop: [number, number, number, number];

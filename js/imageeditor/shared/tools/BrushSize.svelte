@@ -1,8 +1,4 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
-	import { click_outside } from "../utils/events";
-	import { type Brush } from "./Brush.svelte";
-
 	export let sizes: string[];
 	export let selected_size: string;
 	export let size_mode: Brush["color_mode"] | undefined = undefined;
@@ -32,9 +28,5 @@
 			0 0 5px rgba(0, 0, 0, 0.1),
 			0 5px 30px rgba(0, 0, 0, 0.2);
 		padding-bottom: var(--size-2);
-	}
-
-	.padded {
-		padding-top: var(--size-3);
 	}
 </style>

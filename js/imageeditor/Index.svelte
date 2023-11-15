@@ -161,7 +161,6 @@
 			}}
 			on:click={() => gradio.dispatch("error", "bad thing happened")}
 			on:error
-			{transforms}
 			{brush}
 			{eraser}
 			i18n={gradio.i18n}

@@ -36,8 +36,6 @@
 	}
 
 	type brush_option_type = "color" | "size";
-
-	let listeners_added = false;
 </script>
 
 <script lang="ts">

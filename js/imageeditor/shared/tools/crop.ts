@@ -13,7 +13,8 @@ export interface CropCommand extends Command {
 	start: (
 		width: number,
 		height: number,
-		previous_crop: [number, number, number, number]
+		previous_crop: [number, number, number, number],
+		set_previous?: boolean
 	) => void;
 	continue: (crop_size: [number, number, number, number]) => void;
 }
@@ -70,7 +71,7 @@ export function crop_canvas(
 			_width: number,
 			_height: number,
 			_previous_crop: [number, number, number, number],
-			set_previous: boolean = true
+			set_previous = true
 		) => {
 			clean = false;
 			text = RenderTexture.create({
@@ -95,11 +96,7 @@ export function crop_canvas(
 		},
 
 		undo() {
-			console.log("undo", { clean });
-			// final_crop = previous_crop;
 			this.start(width, height, previous_crop, false);
-			// console.log({ previous_crop });
-			// crop_mask(width, height, previous_crop, false);
 			crop.set([
 				previous_crop[0] / width,
 				previous_crop[1] / height,
@@ -109,7 +106,6 @@ export function crop_canvas(
 			clean = true;
 		},
 		execute() {
-			console.log("execute", { clean });
 			if (clean) {
 				this.start(width, height, final_crop, false);
 
