@@ -100,7 +100,9 @@ class Queue:
         self.block_fns = block_fns
         self.continuous_tasks: list[Event] = []
         self._asyncio_tasks: list[asyncio.Task] = []
-        self.default_concurrency_limit = os.environ.get("GRADIO_DEFAULT_CONCURRENCY_LIMIT", 1)
+        self.default_concurrency_limit = os.environ.get(
+            "GRADIO_DEFAULT_CONCURRENCY_LIMIT", 1
+        )
 
         self.concurrency_limit_per_concurrency_id = {}
 
@@ -108,7 +110,11 @@ class Queue:
         self.active_jobs = [None] * self.max_thread_count
         for block_fn in self.block_fns:
             if block_fn.concurrency_limit is not None:
-                concurrency_limit = self.default_concurrency_limit if block_fn.concurrency_limit == "default" else block_fn.concurrency_limit
+                concurrency_limit = (
+                    self.default_concurrency_limit
+                    if block_fn.concurrency_limit == "default"
+                    else block_fn.concurrency_limit
+                )
                 self.concurrency_limit_per_concurrency_id[
                     block_fn.concurrency_id
                 ] = min(
