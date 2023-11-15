@@ -69,9 +69,9 @@
 			dataLayer.push(arguments);
 		}
 		gtag("js", new Date());
-		gtag('config', 'UA-156449732-1', {
-        	'cookie_flags': 'samesite=none;secure'
-    	});
+		gtag("config", "UA-156449732-1", {
+			cookie_flags: "samesite=none;secure"
+		});
 	</script>
 
 	<script
