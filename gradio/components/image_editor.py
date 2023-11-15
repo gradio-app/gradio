@@ -104,7 +104,7 @@ class ImageEditor(Component):
         width: int | None = None,
         image_mode: Literal[
             "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
-        ] = "RGB",
+        ] = "RGBA",
         sources: Iterable[Literal["upload", "webcam", "clipboard"]] = (
             "upload",
             "webcam",
@@ -214,6 +214,10 @@ class ImageEditor(Component):
         if file is None:
             return None
         im = _Image.open(file.path)
+        if im.mode == "RGBA":
+            print("The image has transparency.")
+        else:
+            print("The image does not have transparency.")
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)

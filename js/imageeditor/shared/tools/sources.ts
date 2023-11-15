@@ -12,8 +12,6 @@ import {
 import { type Command } from "../utils/commands";
 import { make_graphics } from "../utils/pixi";
 
-const ratio = window.devicePixelRatio || 1;
-
 interface BgImageCommand extends Command {
 	/**
 	 * Initial setup for the bg command

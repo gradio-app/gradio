@@ -29,8 +29,6 @@
 
 	$: $pixi && once_layer();
 
-	const ratio = window.devicePixelRatio || 1;
-
 	function new_layer(): void {
 		console.log("boooooo");
 		if (!$pixi) return;

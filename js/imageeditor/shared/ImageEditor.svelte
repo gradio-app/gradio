@@ -161,9 +161,10 @@
 	}
 
 	export async function get_blobs(): Promise<ImageBlobs> {
-		if (!$pixi) return { background: null, layers: [], composite: null };
+		if (!$pixi || !$pixi.get_layers)
+			return { background: null, layers: [], composite: null };
 		const [l, t, w, h] = $crop;
-		console.log($dimensions);
+
 		return $pixi?.get_blobs(
 			$pixi.get_layers(),
 			new Rectangle(
@@ -171,7 +172,8 @@
 				t * $dimensions[1],
 				w * $dimensions[0],
 				h * $dimensions[1]
-			)
+			),
+			$dimensions
 		);
 	}
 

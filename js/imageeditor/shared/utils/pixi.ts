@@ -48,7 +48,11 @@ export interface PixiApp {
 	 * @param bounds the bounds of the canvas
 	 * @returns a promise with the blobs
 	 */
-	get_blobs(layers: LayerScene[], bounds: Rectangle): Promise<ImageBlobs>;
+	get_blobs(
+		layers: LayerScene[],
+		bounds: Rectangle,
+		dimensions: [number, number]
+	): Promise<ImageBlobs>;
 	/**
 	 * Resets the mask
 	 */
@@ -149,19 +153,37 @@ export function create_pixi_app(
 
 	async function get_blobs(
 		_layers: LayerScene[],
-		bounds: Rectangle
+		bounds: Rectangle,
+		[w, h]: [number, number]
 	): Promise<ImageBlobs> {
-		const background = await get_canvas_blob(app, background_container, bounds);
-		console.log(_layers, background_container);
+		const background = await get_canvas_blob(
+			app.renderer,
+			background_container,
+			bounds,
+			w,
+			h
+		);
+
 		const layers = await Promise.all(
 			_layers.map((layer) =>
-				get_canvas_blob(app, layer.composite as DisplayObject, bounds)
+				get_canvas_blob(
+					app.renderer,
+					layer.composite as DisplayObject,
+					bounds,
+					w,
+					h
+				)
 			)
 		);
-		const composite = await get_canvas_blob(app, mask_container, bounds);
-		console.log(composite, mask_container);
 
-		// const background = app.renderer.plugins.extract.pixels(background_container);
+		const composite = await get_canvas_blob(
+			app.renderer,
+			mask_container,
+			bounds,
+			w,
+			h
+		);
+
 		return {
 			background,
 			layers,
@@ -194,18 +216,68 @@ export function make_graphics(z_index: number): Graphics {
 	return graphics;
 }
 
+/**
+ * Clamps a number between a min and max value.
+ * @param n The number to clamp.
+ * @param min The minimum value.
+ * @param max The maximum value.
+ * @returns The clamped number.
+ */
 export function clamp(n: number, min: number, max: number): number {
 	return n < min ? min : n > max ? max : n;
 }
 
+/**
+ * Generates a blob from a pixi object.
+ * @param renderer The pixi renderer.
+ * @param obj The pixi object to generate a blob from.
+ * @param bounds The bounds of the canvas that we wish to extract
+ * @param width The full width of the canvas
+ * @param height The full height of the canvas
+ * @returns A promise with the blob.
+ */
 function get_canvas_blob(
-	app: Application,
+	renderer: IRenderer,
 	obj: DisplayObject,
-	bounds: Rectangle
+	bounds: Rectangle,
+	width: number,
+	height: number
 ): Promise<Blob> {
-	console.log(bounds, obj);
 	return new Promise((resolve) => {
-		app.renderer.extract.canvas(obj, bounds).toBlob?.((blob) => {
+		// for some reason pixi won't extract a cropped canvas without distorting it
+		// so we have to extract the whole canvas and crop it manually
+		const src_canvas = renderer.extract.canvas(
+			obj,
+			new Rectangle(0, 0, width, height)
+		);
+
+		// Create a new canvas for the cropped area with the appropriate size
+		let dest_canvas = document.createElement("canvas");
+		dest_canvas.width = bounds.width;
+		dest_canvas.height = bounds.height;
+		let dest_ctx = dest_canvas.getContext("2d");
+
+		if (!dest_ctx) {
+			throw new Error("Could not create canvas context");
+		}
+
+		// Draw the cropped area onto the destination canvas
+		dest_ctx.drawImage(
+			src_canvas as HTMLCanvasElement,
+			// this is the area of the source that we want to copy (the crop box)
+			bounds.x,
+			bounds.y,
+			bounds.width,
+			bounds.height,
+			// this is where we want to draw the crop box on the destination canvas
+			0,
+			0,
+			bounds.width,
+			bounds.height
+		);
+
+		// we grab a blob here so we can upload it
+		dest_canvas.toBlob?.((blob) => {
 			if (!blob) {
 				throw new Error("Could not create blob");
 			}

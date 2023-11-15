@@ -93,19 +93,17 @@ function drawCircle(
  * Interpolates between two points.
  * @param point1 the first point
  * @param point2 the second point
- * @param ratio the current window device pixel ratio
  * @returns an array of points between the two points
  */
 function interpolate(
 	point1: { x: number; y: number },
-	point2: { x: number; y: number },
-	ratio: number
+	point2: { x: number; y: number }
 ): Points[] {
 	let points: Points[] = [];
 	const dx = point2.x - point1.x;
 	const dy = point2.y - point1.y;
 	const distance = Math.sqrt(dx * dx + dy * dy);
-	const steps = Math.ceil(distance / (2 * ratio));
+	const steps = Math.ceil(distance / 2);
 	const stepX = dx / steps;
 	const stepY = dy / steps;
 
@@ -130,7 +128,6 @@ export function draw_path(
 
 	let has_drawn = false;
 	let id = 0;
-	const ratio = window.devicePixelRatio || 1;
 	return {
 		drawing: false,
 		start: function ({
@@ -156,7 +153,7 @@ export function draw_path(
 		},
 		continue: function ({ x, y }: Points) {
 			const last_point = paths[paths.length - 1];
-			const new_points = interpolate(last_point, { x, y }, ratio);
+			const new_points = interpolate(last_point, { x, y });
 
 			for (let i = 0; i < new_points.length; i++) {
 				const { x, y } = new_points[i];
@@ -201,7 +198,7 @@ export function draw_path(
 				this.start!(initial_path);
 				for (let i = 1; i < paths.length; i++) {
 					const { x, y } = paths[i];
-					drawCircle(graphics, x, y, initial_path.color, ratio);
+					drawCircle(graphics, x, y, initial_path.color, initial_path.size);
 				}
 
 				graphics.alpha = 0.5;

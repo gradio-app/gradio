@@ -46,9 +46,7 @@ function drawCircle(
 	brush_color: Color = new Color("black"),
 	brush_size: number
 ): void {
-	// graphics.alpha = 0.5;
-	const color = new Color([0, 0, 0, 1]);
-	console.log(graphics.alpha);
+	const color = new Color(brush_color);
 	graphics.beginFill(color);
 	graphics.drawCircle(x, y, brush_size);
 	graphics.endFill();
@@ -64,14 +62,13 @@ export function make_graphics(z_index: number): Graphics {
 
 function interpolate(
 	point1: { x: number; y: number },
-	point2: { x: number; y: number },
-	ratio: number
+	point2: { x: number; y: number }
 ): PathOptions[] {
 	let points: PathOptions[] = [];
 	const dx = point2.x - point1.x;
 	const dy = point2.y - point1.y;
 	const distance = Math.sqrt(dx * dx + dy * dy);
-	const steps = Math.ceil(distance / (2 * ratio));
+	const steps = Math.ceil(distance / 2);
 	const stepX = dx / steps;
 	const stepY = dy / steps;
 
@@ -101,7 +98,6 @@ export function draw_path(
 
 	let has_drawn = false;
 	let id = 0;
-	const ratio = window.devicePixelRatio || 1;
 	return {
 		drawing: false,
 		start: function ({
@@ -133,7 +129,7 @@ export function draw_path(
 		},
 		continue: function ({ x, y }: PathOptions) {
 			const last_point = paths[paths.length - 1];
-			const new_points = interpolate(last_point, { x, y }, ratio);
+			const new_points = interpolate(last_point, { x, y });
 
 			for (let i = 0; i < new_points.length; i++) {
 				const { x, y } = new_points[i];
@@ -151,7 +147,6 @@ export function draw_path(
 			// renderer.render(stage);
 		},
 		stop: function () {
-			console.log(layer.composite);
 			const current_sketch = RenderTexture.create({
 				width: layer.draw_texture.width,
 				height: layer.draw_texture.height
@@ -182,7 +177,7 @@ export function draw_path(
 				this.start!(initial_path);
 				for (let i = 1; i < paths.length; i++) {
 					const { x, y } = paths[i];
-					drawCircle(graphics, x, y, initial_path.color, ratio);
+					drawCircle(graphics, x, y, initial_path.color, initial_path.size);
 				}
 
 				graphics.alpha = 0.5;
@@ -196,7 +191,8 @@ export function draw_path(
 		undo: function () {
 			graphics.destroy();
 			renderer.render(graphics, {
-				renderTexture: mode === "draw" ? draw_texture : erase_texture
+				renderTexture:
+					mode === "draw" ? layer.draw_texture : layer.erase_texture
 			});
 			has_drawn = false;
 		}
