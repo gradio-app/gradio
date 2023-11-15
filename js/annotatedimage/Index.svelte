@@ -26,6 +26,7 @@
 	export let gradio: Gradio<{
 		change: undefined;
 		select: SelectData;
+		click: SelectData;
 	}>;
 	export let label = gradio.i18n("annotated_image.annotated_image");
 	export let show_label = true;
@@ -75,7 +76,7 @@
 	const handle_image_click = (evt: MouseEvent): void => {
 		let coordinates = get_coordinates_of_clicked_image(evt);
 		if (coordinates) {
-			gradio.dispatch("select", { index: coordinates, value: null });
+			gradio.dispatch("click", { index: coordinates, value: null });
 		}
 	};
 </script>
@@ -113,7 +114,6 @@
 					class:fit-height={height}
 					src={_value ? _value.image.url : null}
 					alt="the base file that is annotated"
-					on:click={handle_image_click}
 				/>
 				{#each _value ? _value?.annotations : [] as ann, i}
 					<img
@@ -122,6 +122,8 @@
 						class:active={active == ann.label}
 						class:inactive={active != ann.label && active != null}
 						src={ann.image.url}
+						role="button"
+					  on:click={handle_image_click}
 						style={color_map && ann.label in color_map
 							? null
 							: `filter: hue-rotate(${Math.round(
