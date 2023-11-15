@@ -6,12 +6,14 @@
 	export let show_volume_slider = false;
 	export let waveform: WaveSurfer;
 
+	let volumeElement: HTMLInputElement;
+
 	onMount(() => {
 		adjustSlider();
 	});
 
 	const adjustSlider = (): void => {
-		let slider = document.getElementById("volume");
+		let slider = volumeElement;
 		if (!slider) return;
 
 		slider.style.background = `linear-gradient(to right, var(--color-accent) ${
@@ -23,6 +25,7 @@
 </script>
 
 <input
+	bind:this={volumeElement}
 	id="volume"
 	class="volume-slider"
 	type="range"

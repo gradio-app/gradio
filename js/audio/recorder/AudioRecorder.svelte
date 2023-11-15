@@ -23,7 +23,9 @@
 	let micWaveform: WaveSurfer;
 	let recordingWaveform: WaveSurfer;
 	let playing = false;
-	let container: HTMLDivElement;
+
+	let recordingContainer: HTMLDivElement;
+	let microphoneContainer: HTMLDivElement;
 
 	let record: WSRecord;
 	let recordedAudio: string | null = null;
@@ -56,7 +58,7 @@
 		start_interval();
 		timing = true;
 		dispatch("start_recording");
-		let waveformCanvas = document.getElementById("microphone");
+		let waveformCanvas = microphoneContainer;
 		if (waveformCanvas) waveformCanvas.style.display = "block";
 	});
 
@@ -112,7 +114,7 @@
 	});
 
 	const create_mic_waveform = (): void => {
-		const recorder = document.getElementById("microphone");
+		const recorder = microphoneContainer;
 		if (recorder) recorder.innerHTML = "";
 		if (micWaveform !== undefined) micWaveform.destroy();
 		if (!recorder) return;
@@ -127,7 +129,7 @@
 	};
 
 	const create_recording_waveform = (): void => {
-		let recording = document.getElementById("recording");
+		let recording = recordingContainer;
 		if (!recordedAudio || !recording) return;
 		recordingWaveform = WaveSurfer.create({
 			container: recording,
@@ -139,8 +141,8 @@
 	$: record?.on("record-end", (blob) => {
 		recordedAudio = URL.createObjectURL(blob);
 
-		const microphone = document.getElementById("microphone");
-		const recording = document.getElementById("recording");
+		const microphone = microphoneContainer;
+		const recording = recordingContainer;
 
 		if (microphone) microphone.style.display = "none";
 		if (recording && recordedAudio) {
@@ -181,20 +183,24 @@
 </script>
 
 <div class="component-wrapper">
-	<div id="microphone" data-testid="microphone-waveform" />
-	<div id="recording" bind:this={container} />
+	<div bind:this={microphoneContainer} data-testid="microphone-waveform" />
+	<div
+		class="microphone"
+		bind:this={recordingContainer}
+		data-testid="recording-waveform"
+	/>
 
 	{#if timing || recordedAudio}
-		<div id="timestamps">
-			<time bind:this={timeRef} id="time">0:00</time>
+		<div class="timestamps">
+			<time bind:this={timeRef} class="time">0:00</time>
 			<div>
 				{#if mode === "edit" && trimDuration > 0}
-					<time id="trim-duration">{format_time(trimDuration)}</time>
+					<time class="trim-duration">{format_time(trimDuration)}</time>
 				{/if}
 				{#if timing}
-					<time id="duration">{format_time(seconds)}</time>
+					<time class="duration">{format_time(seconds)}</time>
 				{:else}
-					<time bind:this={durationRef} id="duration">0:00</time>
+					<time bind:this={durationRef} class="duration">0:00</time>
 				{/if}
 			</div>
 		</div>
@@ -207,7 +213,7 @@
 	{#if recordingWaveform && recordedAudio}
 		<WaveformControls
 			bind:waveform={recordingWaveform}
-			{container}
+			container={recordingContainer}
 			{playing}
 			{audioDuration}
 			{i18n}
@@ -223,7 +229,7 @@
 </div>
 
 <style>
-	#microphone {
+	.microphone {
 		width: 100%;
 		display: none;
 	}
@@ -232,7 +238,7 @@
 		padding: var(--size-3);
 	}
 
-	#timestamps {
+	.timestamps {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
@@ -241,15 +247,15 @@
 		margin: var(--spacing-md) 0;
 	}
 
-	#time {
+	.time {
 		color: var(--neutral-400);
 	}
 
-	#duration {
+	.duration {
 		color: var(--neutral-400);
 	}
 
-	#trim-duration {
+	.trim-duration {
 		color: var(--color-accent);
 		margin-right: var(--spacing-sm);
 	}
