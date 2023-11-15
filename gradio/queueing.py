@@ -100,9 +100,8 @@ class Queue:
         self.block_fns = block_fns
         self.continuous_tasks: list[Event] = []
         self._asyncio_tasks: list[asyncio.Task] = []
-        self.default_concurrency_limit = os.environ.get(
-            "GRADIO_DEFAULT_CONCURRENCY_LIMIT", 1
-        )
+        self.default_concurrency_limit: int | None = 1
+        self.set_concurrency_limit(default_concurrency_limit=None)
 
         self.concurrency_limit_per_concurrency_id = {}
 
@@ -131,6 +130,25 @@ class Queue:
 
     def close(self):
         self.stopped = True
+
+    def set_concurrency_limit(self, default_concurrency_limit: int | None):
+        """
+        Handles the logic of setting the default_concurrency_limit as this can be specified via a combination 
+        of the `default_concurrency_limit` parameter of the `Blocks.launch()` or the `GRADIO_DEFAULT_CONCURRENCY_LIMIT`
+        environment variable. The parameter takes precedence over the environment variable.
+        Parameters:
+            default_concurrency_limit: The default concurrency limit, as specified by a user in `Blocks.launch()`.
+        """
+        if default_concurrency_limit is not None:
+            self.default_concurrency_limit = default_concurrency_limit
+            return
+        if default_concurrency_limit_env := os.environ.get("GRADIO_DEFAULT_CONCURRENCY_LIMIT"):
+            if default_concurrency_limit_env.lower() == "none":
+                self.default_concurrency_limit = None
+            else:
+                self.default_concurrency_limit = int(default_concurrency_limit_env)
+        else:
+            self.default_concurrency_limit = 1
 
     def attach_data(self, body: PredictBody):
         event_id = body.event_id
