@@ -213,6 +213,7 @@ class Audio(
         Returns:
             base64 url data
         """
+        orig_name = None
         if value is None:
             return None
         if isinstance(value, bytes):
@@ -221,16 +222,19 @@ class Audio(
             file_path = processing_utils.save_bytes_to_cache(
                 value, "audio", cache_dir=self.GRADIO_CACHE
             )
+            orig_name = Path(file_path).name
         elif isinstance(value, tuple):
             sample_rate, data = value
             file_path = processing_utils.save_audio_to_cache(
                 data, sample_rate, format=self.format, cache_dir=self.GRADIO_CACHE
             )
+            orig_name = Path(file_path).name
         else:
             if not isinstance(value, (str, Path)):
                 raise ValueError(f"Cannot process {value} as Audio")
             file_path = str(value)
-        return FileData(path=file_path)
+            orig_name = Path(file_path).name if Path(file_path).exists() else None
+        return FileData(path=file_path, orig_name=orig_name)
 
     def stream_output(
         self, value, output_id: str, first_chunk: bool
