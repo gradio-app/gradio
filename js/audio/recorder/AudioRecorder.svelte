@@ -183,12 +183,12 @@
 </script>
 
 <div class="component-wrapper">
-	<div bind:this={microphoneContainer} data-testid="microphone-waveform" />
 	<div
 		class="microphone"
-		bind:this={recordingContainer}
-		data-testid="recording-waveform"
+		bind:this={microphoneContainer}
+		data-testid="microphone-waveform"
 	/>
+	<div bind:this={recordingContainer} data-testid="recording-waveform" />
 
 	{#if timing || recordedAudio}
 		<div class="timestamps">
