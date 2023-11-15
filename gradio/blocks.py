@@ -366,7 +366,7 @@ class BlockFunction:
         inputs_as_dict: bool,
         batch: bool = False,
         max_batch_size: int = 4,
-        concurrency_limit: int | None = 1,
+        concurrency_limit: int | None | Literal["default"] = "default",
         concurrency_id: str | None = None,
         tracks_progress: bool = False,
     ):
@@ -592,6 +592,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.output_components = None
         self.__name__ = None
         self.api_mode = None
+
         self.progress_tracking = None
         self.ssl_verify = True
 
@@ -822,7 +823,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
         trigger_mode: Literal["once", "multiple", "always_last"] | None = "once",
-        concurrency_limit: int | None = 1,
+        concurrency_limit: int | None | Literal["default"] = "default",
         concurrency_id: str | None = None,
     ) -> tuple[dict[str, Any], int]:
         """
@@ -848,7 +849,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             trigger_after: if set, this event will be triggered after 'trigger_after' function index
             trigger_only_on_success: if True, this event will only be triggered if the previous event was successful (only applies if `trigger_after` is set)
             trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` event) would allow a second submission after the pending event is complete.
-            concurrency_limit: If set, this this is the maximum number of this event that can be running simultaneously. Extra events triggered by this listener will be queued. On Spaces, this is set to 1 by default.
+            concurrency_limit: If set, this this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `launch()`, which itself is 1 by default).
             concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
         Returns: dependency information, dependency index
         """
@@ -1731,6 +1732,7 @@ Received outputs:
         state_session_capacity: int = 10000,
         share_server_address: str | None = None,
         share_server_protocol: Literal["http", "https"] | None = None,
+        default_concurrency_limit: int | None = None,
         _frontend: bool = True,
     ) -> tuple[FastAPI, str, str]:
         """
@@ -1765,6 +1767,7 @@ Received outputs:
             state_session_capacity: The maximum number of sessions whose information to store in memory. If the number of sessions exceeds this number, the oldest sessions will be removed. Reduce capacity to reduce memory usage when using gradio.State or returning updated components from functions. Defaults to 10000.
             share_server_address: Use this to specify a custom FRP server and port for sharing Gradio apps (only applies if share=True). If not provided, will use the default FRP server at https://gradio.live. See https://github.com/huggingface/frp for more information.
             share_server_protocol: Use this to specify the protocol to use for the share links. Defaults to "https", unless a custom share_server_address is provided, in which case it defaults to "http". If you are using a custom share_server_address and want to use https, you must set this to "https".
+            default_concurrency_limit: The default value of `concurrency_limit` to use for event listeners that don't specify a value. Can be set by environment variable GRADIO_DEFAULT_CONCURRENCY_LIMIT. Defaults to 1.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -1827,6 +1830,7 @@ Received outputs:
         self.config = self.get_config_file()
         self.max_threads = max_threads
         self._queue.max_thread_count = max_threads
+        self._queue.default_concurrency_limit = int(os.environ.get("GRADIO_DEFAULT_CONCURRENCY_LIMIT", default_concurrency_limit) or 1)
 
         if self.is_running:
             if not isinstance(self.local_url, str):
