@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Toolbar } from "@gradio/atoms";
-	import { getContext, onDestroy } from "svelte";
+	import { getContext, onDestroy, onMount } from "svelte";
 	import { Assets, Sprite, Texture } from "pixi.js";
 	import { type ToolContext, TOOL_KEY } from "./Tools.svelte";
 	import { type EditorContext, EDITOR_KEY } from "../ImageEditor.svelte";
@@ -13,26 +13,24 @@
 	} from "@gradio/icons";
 	import { Upload } from "@gradio/upload";
 	import { Webcam } from "@gradio/image";
-	import ColorSwatch from "./BrushColor.svelte";
 	import { type I18nFormatter } from "@gradio/utils";
 
-	import { add_bg_color, add_bg_image } from "./sources";
+	import { add_bg_image } from "./sources";
 
 	const { active_tool, register_tool } = getContext<ToolContext>(TOOL_KEY);
 	const { pixi, dimensions } = getContext<EditorContext>(EDITOR_KEY);
 
 	export let root: string;
-	export let sources: ("upload" | "webcam" | "clipboard" | "color")[] = [
+	export let sources: ("upload" | "webcam" | "clipboard")[] = [
 		"upload",
 		"webcam",
-		"clipboard",
-		"color"
+		"clipboard"
 	];
 	export let mirror_webcam = true;
 	export let i18n: I18nFormatter;
 
 	let active_mode: "webcam" | "color" | null = null;
-	let background: Blob | File | string | null;
+	let background: Blob | File | null;
 
 	const sources_meta = {
 		upload: {
@@ -61,28 +59,12 @@
 			cb() {
 				process_clipboard();
 			}
-		},
-		color: {
-			icon: Palette,
-			label: "Color",
-			order: 3,
-			id: "bg_color",
-			cb() {
-				active_mode = "color";
-			}
 		}
 	} as const;
 
 	$: sources_list = sources
 		.map((src) => sources_meta[src])
 		.sort((a, b) => a.order - b.order);
-
-	$: unregister = register_tool("bg", {
-		default: "bg_upload",
-		options: sources_list || []
-	});
-
-	onDestroy(unregister);
 
 	let upload: Upload;
 
@@ -106,22 +88,8 @@
 	}
 
 	async function set_background(): Promise<void> {
-		console.log({ background });
 		if (!$pixi) return;
-		if (typeof background === "string") {
-			const add_color = add_bg_color(
-				$pixi.background_container,
-				$pixi.renderer,
-				background,
-				...$dimensions,
-				$pixi.resize
-			);
-
-			add_color.start();
-			add_color.execute();
-
-			$pixi?.reset?.();
-		} else if (background) {
+		if (background) {
 			const add_image = add_bg_image(
 				$pixi.background_container,
 				$pixi.renderer,
@@ -136,8 +104,23 @@
 		}
 	}
 
+	onMount(() =>
+		register_tool("bg", {
+			default: "bg_upload",
+			options: sources_list || []
+		})
+	);
+
 	$: background && set_background();
+
+	function handle_key(e: KeyboardEvent): void {
+		if (e.key === "Escape") {
+			active_mode = null;
+		}
+	}
 </script>
+
+<svelte:window on:keydown={handle_key} />
 
 {#if $active_tool === "bg"}
 	<div class="upload-container">
@@ -152,18 +135,36 @@
 			format="blob"
 		></Upload>
 		{#if active_mode === "webcam"}
-			<Webcam
-				on:capture={handle_upload}
-				on:error
-				on:drag
-				{mirror_webcam}
-				streaming={false}
-				mode="image"
-				include_audio={false}
-				{i18n}
-			/>
-		{:else if active_mode === "color"}
-			<ColorSwatch colors={[]} selected_color={"black"} />
+			<div class="modal">
+				<div class="modal-inner">
+					<Webcam
+						on:capture={handle_upload}
+						on:error
+						on:drag
+						{mirror_webcam}
+						streaming={false}
+						mode="image"
+						include_audio={false}
+						{i18n}
+					/>
+				</div>
+			</div>
 		{/if}
 	</div>
 {/if}
+
+<style>
+	.modal {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		z-index: var(--layer-top);
+		background: rgba(0, 0, 0, 0.9);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		padding: 20px;
+	}
+</style>

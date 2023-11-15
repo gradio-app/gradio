@@ -10,6 +10,7 @@
 	export let brush: IBrush;
 	export let eraser: Eraser;
 	import { Tools, Crop, Brush, type tool, Sources } from "./tools";
+	export let sources: ("clipboard" | "webcam" | "upload")[];
 
 	export let crop_size: [number, number, number, number] | null = null;
 	export let i18n: I18nFormatter;
@@ -73,7 +74,7 @@
 
 <ImageEditor bind:this={editor}>
 	<Tools {i18n}>
-		<Sources {i18n} {root}></Sources>
+		<Sources {i18n} {root} {sources}></Sources>
 		<Crop {crop_size} />
 		<Brush
 			sizes={brush.sizes}

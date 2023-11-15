@@ -37,11 +37,6 @@
 		}))
 		.sort((a, b) => a.order - b.order);
 
-	$: unregister = register_tool("crop", {
-		default: "crop",
-		options: _transforms || []
-	});
-
 	let cropper: CropCommand;
 
 	let w_p = 1;
@@ -94,8 +89,6 @@
 		}
 	}
 
-	onDestroy(unregister);
-
 	let measured = false;
 
 	function get_measurements(): void {
@@ -135,6 +128,13 @@
 	$: crop.set([l_p, t_p, w_p, h_p]);
 
 	$: $editor_box && get_measurements();
+
+	onMount(() =>
+		register_tool("crop", {
+			default: "crop",
+			options: _transforms || []
+		})
+	);
 </script>
 
 {#if $active_tool === "crop" && measured}
