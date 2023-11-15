@@ -6,7 +6,7 @@
 	import { Download } from "@gradio/icons";
 	import { get_coordinates_of_clicked_image } from "./utils";
 	import Image from "./Image.svelte";
-	import DownloadLink from "./DownloadLink.svelte";
+	import { DownloadLink } from "@gradio/wasm/svelte";
 
 	import { Image as ImageIcon } from "@gradio/icons";
 	import { type FileData, normalise_file } from "@gradio/client";

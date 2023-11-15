@@ -8,7 +8,7 @@
 	}
 	type $$Props = DownloadLinkAttributes;
 
-	import { resolve_wasm_src } from "@gradio/wasm/svelte";
+	import { resolve_wasm_src } from ".";
 
 	export let href: DownloadLinkAttributes["href"];
 	export let download: DownloadLinkAttributes["download"];
