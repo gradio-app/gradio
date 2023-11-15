@@ -238,6 +238,13 @@ if ("postMessage" in ctx) {
 let envReadyPromise: Promise<void> | undefined = undefined;
 
 function setupMessageHandler(receiver: MessageTransceiver): void {
+	// A concept of "app" is introduced to support multiple apps in a single worker.
+	// Each app has its own home directory (`getAppHomeDir(appId)`) in a shared single Pyodide filesystem.
+	// The home directory is used as the current working directory for the app.
+	// Each frontend app has a connection to the worker which is the `receiver` object passed above
+	// and it is associated with one app.
+	// One app also has one Gradio server app which is managed by the `gradio.wasm_utils` module.`
+	// This multi-app mechanism was introduced for a SharedWorker, but the same mechanism is used for a DedicatedWorker as well.
 	const appId = generateRandomString(8);
 
 	const updateProgress = (log: string): void => {
