@@ -101,7 +101,7 @@ class Queue:
         self.continuous_tasks: list[Event] = []
         self._asyncio_tasks: list[asyncio.Task] = []
         self.default_concurrency_limit: int | None = 1
-        self.set_concurrency_limit(default_concurrency_limit=None)
+        self.set_concurrency_limit()
 
         self.concurrency_limit_per_concurrency_id = {}
 
@@ -131,7 +131,9 @@ class Queue:
     def close(self):
         self.stopped = True
 
-    def set_concurrency_limit(self, default_concurrency_limit: int | None):
+    def set_concurrency_limit(
+        self, default_concurrency_limit: int | None | Literal["not_set"] = "not_set"
+    ):
         """
         Handles the logic of setting the default_concurrency_limit as this can be specified via a combination
         of the `default_concurrency_limit` parameter of the `Blocks.launch()` or the `GRADIO_DEFAULT_CONCURRENCY_LIMIT`
@@ -139,7 +141,7 @@ class Queue:
         Parameters:
             default_concurrency_limit: The default concurrency limit, as specified by a user in `Blocks.launch()`.
         """
-        if default_concurrency_limit is not None:
+        if default_concurrency_limit != "not_set":
             self.default_concurrency_limit = default_concurrency_limit
             return
         if default_concurrency_limit_env := os.environ.get(
