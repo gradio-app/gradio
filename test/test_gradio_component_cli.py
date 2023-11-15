@@ -35,7 +35,14 @@ from gradio.cli.commands.components.show import _show
     ],
 )
 def test_template_override_component(template, tmp_path):
-    _create("MyComponent", tmp_path, template=template, overwrite=True, install=False)
+    _create(
+        "MyComponent",
+        tmp_path,
+        template=template,
+        overwrite=True,
+        install=False,
+        configure_metadata=False,
+    )
     app = (tmp_path / "demo" / "app.py").read_text()
     answer = textwrap.dedent(
         f"""
@@ -62,12 +69,18 @@ def test_raise_error_component_template_does_not_exist(tmp_path):
             template="NonExistentComponent",
             overwrite=True,
             install=False,
+            configure_metadata=False,
         )
 
 
 def test_do_not_replace_class_name_in_import_statement(tmp_path):
     _create(
-        "MyImage", template="Image", directory=tmp_path, overwrite=True, install=False
+        "MyImage",
+        template="Image",
+        directory=tmp_path,
+        overwrite=True,
+        install=False,
+        configure_metadata=False,
     )
     code = (tmp_path / "backend" / "gradio_myimage" / "myimage.py").read_text()
     assert "from PIL import Image as _Image" in code
@@ -79,7 +92,7 @@ def test_raises_if_directory_exists(tmp_path):
     with pytest.raises(
         Exception
     ):  # Keeping it a general exception since the specific exception seems to differ between operating systems
-        _create("MyComponent", tmp_path)
+        _create("MyComponent", tmp_path, configure_metadata=False)
 
 
 def test_show(capsys):
@@ -101,6 +114,7 @@ def test_build(template, tmp_path):
         directory=tmp_path,
         overwrite=True,
         install=True,
+        configure_metadata=False,
     )
     _build(tmp_path, build_frontend=True)
     template_dir: Path = (
@@ -118,6 +132,7 @@ def test_install(tmp_path):
         directory=tmp_path,
         overwrite=True,
         install=False,
+        configure_metadata=False,
     )
 
     assert not (tmp_path / "frontend" / "node_modules").exists()
@@ -131,6 +146,7 @@ def test_fallback_template_app(tmp_path):
         directory=tmp_path,
         overwrite=True,
         install=False,
+        configure_metadata=False,
     )
     app = (tmp_path / "demo" / "app.py").read_text()
     answer = textwrap.dedent(
