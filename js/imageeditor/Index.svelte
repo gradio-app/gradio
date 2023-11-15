@@ -5,12 +5,15 @@
 </script>
 
 <script lang="ts">
-	import type { Brush, EditorData, Eraser } from "./shared/types";
+	import type { Brush, Eraser } from "./shared/tools/Brush.svelte";
+	import type {
+		EditorData,
+		ImageBlobs
+	} from "./shared/InteractiveImageEditor.svelte";
 
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import StaticImage from "./shared/ImagePreview.svelte";
 	import InteractiveImageEditor from "./shared/InteractiveImageEditor.svelte";
-	import type { ImageBlobs } from "./shared/InteractiveImageEditor.svelte";
 	import { Block, Empty, UploadText } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
@@ -75,14 +78,12 @@
 
 	// $: value = !value ? null : value;
 
-	let active_tool: null | "webcam" = null;
-
 	function handle_change(detail: EditorData): void {
 		value = detail;
 		gradio.dispatch("change");
 	}
 
-	$: console.log($$props);
+	$: console.log({ value });
 </script>
 
 {#if !interactive}
@@ -143,6 +144,7 @@
 		/>
 
 		<InteractiveImageEditor
+			{value}
 			bind:this={editor_instance}
 			{root}
 			{sources}
@@ -161,11 +163,6 @@
 			}}
 			on:click={() => gradio.dispatch("error", "bad thing happened")}
 			on:error
-			{label}
-			{show_label}
-			{pending}
-			{streaming}
-			{mirror_webcam}
 			{transforms}
 			{brush}
 			{eraser}

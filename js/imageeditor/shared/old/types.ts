@@ -21,6 +21,6 @@ export interface PathData {
 
 export interface EditorData {
 	background: FileData | null;
-	layers: FileData[] | PathData[][];
+	layers: FileData[] | null;
 	composite: FileData | null;
 }

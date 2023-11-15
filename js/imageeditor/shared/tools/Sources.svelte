@@ -16,10 +16,9 @@
 	import { type I18nFormatter } from "@gradio/utils";
 
 	import { add_bg_image } from "./sources";
+	import type { FileData, normalise_file } from "@gradio/client";
 
-	const { active_tool, register_tool } = getContext<ToolContext>(TOOL_KEY);
-	const { pixi, dimensions } = getContext<EditorContext>(EDITOR_KEY);
-
+	export let background_file: FileData | null;
 	export let root: string;
 	export let sources: ("upload" | "webcam" | "clipboard")[] = [
 		"upload",
@@ -28,6 +27,9 @@
 	];
 	export let mirror_webcam = true;
 	export let i18n: I18nFormatter;
+
+	const { active_tool, register_tool } = getContext<ToolContext>(TOOL_KEY);
+	const { pixi, dimensions } = getContext<EditorContext>(EDITOR_KEY);
 
 	let active_mode: "webcam" | "color" | null = null;
 	let background: Blob | File | null;
@@ -87,6 +89,8 @@
 		active_mode = null;
 	}
 
+	let should_reset = true;
+
 	async function set_background(): Promise<void> {
 		if (!$pixi) return;
 		if (background) {
@@ -100,9 +104,33 @@
 			$dimensions = await add_image.start();
 			add_image.execute();
 
-			$pixi?.reset?.();
+			if (should_reset) {
+				$pixi?.reset?.();
+			}
+
+			should_reset = true;
 		}
 	}
+
+	async function process_bg_file(file: FileData | null): Promise<void> {
+		if (!file || !file.url) return;
+		should_reset = false;
+
+		const blob_res = await fetch(file.url);
+		const blob = await blob_res.blob();
+		background = blob;
+	}
+
+	function handle_key(e: KeyboardEvent): void {
+		if (e.key === "Escape") {
+			active_mode = null;
+		}
+	}
+
+	$: background && set_background();
+	$: process_bg_file(background_file);
+
+	$: console.log(background_file);
 
 	onMount(() =>
 		register_tool("bg", {
@@ -110,14 +138,6 @@
 			options: sources_list || []
 		})
 	);
-
-	$: background && set_background();
-
-	function handle_key(e: KeyboardEvent): void {
-		if (e.key === "Escape") {
-			active_mode = null;
-		}
-	}
 </script>
 
 <svelte:window on:keydown={handle_key} />

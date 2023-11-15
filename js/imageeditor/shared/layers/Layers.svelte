@@ -4,8 +4,11 @@
 	import { click_outside } from "../utils/events";
 	import { layer_manager, type LayerScene } from "./utils";
 	import { EDITOR_KEY, type EditorContext } from "../ImageEditor.svelte";
+	import type { FileData } from "@gradio/client";
 
 	let show_layers = false;
+
+	export let layer_files: (FileData | null)[] | null = [];
 
 	const dispatch = createEventDispatcher<{
 		new_layer: void;
@@ -30,7 +33,6 @@
 	$: $pixi && once_layer();
 
 	function new_layer(): void {
-		console.log("boooooo");
 		if (!$pixi) return;
 		const [active_layer, all_layers] = LayerManager.add_layer(
 			$pixi.layer_container,
@@ -42,10 +44,54 @@
 		layers = all_layers;
 	}
 
+	$: render_layer_files(layer_files);
+
+	function is_not_null<T>(x: T | null): x is T {
+		return x !== null;
+	}
+
+	async function render_layer_files(
+		_layer_files: typeof layer_files
+	): Promise<void> {
+		await tick();
+		if (!_layer_files || _layer_files.length == 0) return;
+		if (!$pixi) return;
+
+		const fetch_promises = await Promise.all(
+			_layer_files.map((f) => {
+				if (!f || !f.url) return null;
+
+				return fetch(f.url);
+			})
+		);
+
+		const blobs = await Promise.all(
+			fetch_promises.map((p) => {
+				if (!p) return null;
+				return p.blob();
+			})
+		);
+
+		LayerManager.reset();
+
+		let last_layer: [LayerScene, LayerScene[]];
+		for (const blob of blobs.filter(is_not_null)) {
+			last_layer = await LayerManager.add_layer_from_blob(
+				$pixi.layer_container,
+				$pixi.renderer,
+				blob
+			);
+		}
+
+		$current_layer = last_layer[0];
+		layers = last_layer[1];
+	}
+
 	onMount(async () => {
 		await tick();
 		if (!$pixi) return;
 		function reset(): void {
+			console.log("resetting");
 			LayerManager.reset();
 			$pixi?.resize(...$dimensions);
 

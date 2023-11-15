@@ -185,6 +185,7 @@ export function draw_path(
 				.beginFill(0x000000, 0) // Use a fill color with 0 alpha for transparency
 				.drawRect(0, 0, layer.erase_texture.width, layer.erase_texture.height)
 				.endFill();
+
 			renderer.render(clear_graphics, {
 				renderTexture: layer.erase_texture,
 				clear: true

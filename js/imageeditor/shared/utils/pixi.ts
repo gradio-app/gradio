@@ -194,7 +194,7 @@ export function create_pixi_app(
 	return {
 		layer_container,
 		renderer: app.renderer,
-		destroy: app.destroy,
+		destroy: () => app.destroy(true),
 		view: app.view as HTMLCanvasElement & ICanvas,
 		background_container,
 		mask_container,

@@ -87,7 +87,7 @@
 		pixi.set({ ...app, resize });
 
 		return () => {
-			app.destroy();
+			$pixi?.destroy();
 		};
 	});
 

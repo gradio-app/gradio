@@ -1,6 +1,25 @@
+<script lang="ts" context="module">
+	export interface EditorData {
+		background: FileData | null;
+		layers: FileData[] | null;
+		composite: FileData | null;
+	}
+
+	export interface ImageBlobs {
+		background: FileData | null;
+		layers: FileData[];
+		composite: FileData | null;
+	}
+</script>
+
 <script lang="ts">
 	import { type I18nFormatter } from "@gradio/utils";
-	import { prepare_files, upload, type FileData } from "@gradio/client";
+	import {
+		prepare_files,
+		upload,
+		normalise_file,
+		type FileData
+	} from "@gradio/client";
 	import ImageEditor from "./ImageEditor.svelte";
 	import Layers from "./layers/Layers.svelte";
 	import { type Brush as IBrush } from "./tools/Brush.svelte";
@@ -15,15 +34,16 @@
 	export let crop_size: [number, number, number, number] | null = null;
 	export let i18n: I18nFormatter;
 	export let root: string;
-	// let active_tool: tool = "brush";
+	export let proxy_url: string;
+	export let value: EditorData = {
+		background: null,
+		layers: [],
+		composite: null
+	};
+
+	$: console.log({ value, layers: value.layers });
 
 	let editor: ImageEditor;
-
-	interface ImageBlobs {
-		background: FileData | null;
-		layers: FileData[];
-		composite: FileData | null;
-	}
 
 	function is_not_null(o: Blob | null): o is Blob {
 		return !!o;
@@ -72,9 +92,19 @@
 	}
 </script>
 
-<ImageEditor bind:this={editor}>
+<ImageEditor
+	bind:this={editor}
+	composite={!value.background &&
+		(!value.layers || value.layers.length === 0) &&
+		value.composite}
+>
 	<Tools {i18n}>
-		<Sources {i18n} {root} {sources}></Sources>
+		<Sources
+			{i18n}
+			{root}
+			{sources}
+			background_file={normalise_file(value.background, root, proxy_url)}
+		></Sources>
 		<Crop {crop_size} />
 		<Brush
 			sizes={brush.sizes}
@@ -95,5 +125,5 @@
 		/>
 	</Tools>
 
-	<Layers />
+	<Layers layer_files={normalise_file(value.layers, root, proxy_url)} />
 </ImageEditor>

@@ -3,6 +3,7 @@ import {
 	type IRenderer,
 	type DisplayObject,
 	RenderTexture,
+	Texture,
 	Sprite,
 	Filter
 } from "pixi.js";
@@ -89,6 +90,12 @@ interface LayerManager {
 	 * @returns The layers.
 	 */
 	get_layers(): LayerScene[];
+
+	add_layer_from_blob(
+		container: Container,
+		renderer: IRenderer,
+		blob: Blob
+	): Promise<[LayerScene, LayerScene[]]>;
 }
 
 /**
@@ -188,6 +195,28 @@ export function layer_manager(): LayerManager {
 			_layers = [];
 			current_layer = 0;
 			position = 0;
+		},
+		async add_layer_from_blob(
+			container: Container,
+			renderer: IRenderer,
+			blob: Blob
+		) {
+			const img = await createImageBitmap(blob);
+			const bitmap_texture = Texture.from(img);
+			const sprite = new Sprite(bitmap_texture) as Sprite & DisplayObject;
+			sprite.zIndex = 0;
+
+			const [layer, layers] = this.add_layer(
+				container,
+				renderer,
+				sprite.width,
+				sprite.height
+			);
+			renderer.render(sprite, {
+				renderTexture: layer.draw_texture
+			});
+
+			return [layer, layers];
 		},
 		get_layers() {
 			return _layers;

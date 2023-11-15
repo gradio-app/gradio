@@ -46,10 +46,15 @@
 
 	import { getContext, onDestroy, onMount, tick } from "svelte";
 	import { type ToolContext, TOOL_KEY } from "./Tools.svelte";
-	import { Brush as BrushIcon, Palette, BrushSize } from "@gradio/icons";
+	import {
+		Brush as BrushIcon,
+		Palette,
+		BrushSize as SizeIcon
+	} from "@gradio/icons";
 	import { type EditorContext, EDITOR_KEY } from "../ImageEditor.svelte";
 	import { draw_path, type DrawCommand } from "./brush";
 	import BrushColor from "./BrushColor.svelte";
+	import BrushSize from "./BrushSize.svelte";
 
 	export let antialias: Brush["antialias"];
 	export let default_size: Brush["default_size"];
@@ -74,7 +79,7 @@
 			}
 		},
 		size: {
-			icon: BrushSize,
+			icon: SizeIcon,
 			label: "Size",
 			order: 1,
 			id: "brush_size",
@@ -112,8 +117,12 @@
 	}
 
 	$: _sizes = generate_sizes(...$dimensions);
-	$: selected_size =
-		_sizes[_sizes?.findIndex((c) => c === default_size)] || _sizes[0];
+	// $: selected_size =
+	// 	_sizes[_sizes?.findIndex((c) => c === default_size)] || _sizes[0];
+
+	let selected_size = default_size;
+
+	$: console.log({ selected_size });
 
 	async function add_listeners(): Promise<void> {
 		await tick();
@@ -201,4 +210,13 @@
 			bind:recent_colors
 		/>
 	</div>
+{:else if current_option === "size" && sizes}
+	<BrushSize
+		sizes={_sizes}
+		max={$dimensions[0] / 10}
+		min={1}
+		bind:selected_size
+		on:click_outside={() => (current_option = null)}
+		{size_mode}
+	/>
 {/if}
