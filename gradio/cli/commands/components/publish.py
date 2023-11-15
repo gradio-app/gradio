@@ -1,5 +1,4 @@
 import random
-import re
 import shutil
 import tempfile
 from pathlib import Path
@@ -10,10 +9,9 @@ from rich import print
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
+from tomlkit import parse
 from typer import Argument, Option
 from typing_extensions import Annotated
-
-from gradio.cli.commands.components._create_utils import PATTERN_RE
 
 colors = ["red", "yellow", "green", "blue", "indigo", "purple", "pink", "gray"]
 
@@ -37,6 +35,10 @@ FROM python:3.9
 WORKDIR /code
 
 COPY --link --chown=1000 . .
+
+RUN mkdir -p /tmp/cache/
+RUN chmod a+rwx -R /tmp/cache/
+ENV TRANSFORMERS_CACHE=/tmp/cache/ 
 
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -65,6 +67,9 @@ def _publish(
         Argument(help=f"Path to the wheel directory. Default is {Path('.') / 'dist'}"),
     ] = Path(".")
     / "dist",
+    bump_version: Annotated[
+        bool, Option(help="Whether to bump the version number.")
+    ] = True,
     upload_pypi: Annotated[bool, Option(help="Whether to upload to PyPI.")] = True,
     pypi_username: Annotated[str, Option(help="The username for PyPI.")] = "",
     pypi_password: Annotated[str, Option(help="The password for PyPI.")] = "",
@@ -90,6 +95,8 @@ def _publish(
     upload_source = source_dir is not None
     console = Console()
     dist_dir = dist_dir.resolve()
+    name = None
+    description = None
     if not dist_dir.exists():
         raise ValueError(
             f"{dist_dir} does not exist. Run `gradio cc build` to create a wheel and source distribution."
@@ -105,6 +112,7 @@ def _publish(
             "A wheel file was not found in the distribution directory. "
             "Run `gradio cc build` to create a wheel file."
         )
+    config_file = None
     if upload_pypi and (not pypi_username or not pypi_password):
         panel = Panel(
             "It is recommended to upload your component to pypi so that [bold][magenta]anyone[/][/] "
@@ -113,7 +121,13 @@ def _publish(
         )
         print(panel)
         upload_pypi = Confirm.ask(":snake: Upload to pypi?")
-        if upload_pypi:
+        if upload_pypi and (Path.home() / ".pypirc").exists():
+            print(":closed_lock_with_key: Found .pypirc file in home directory.")
+            config_file = str(Path.home() / ".pypirc")
+        elif upload_pypi:
+            print(
+                ":light_bulb: If you have Two Factor Authentication enabled, the username is __token__ and your password is your API key."
+            )
             pypi_username = Prompt.ask(":laptop_computer: Enter your pypi username")
             pypi_password = Prompt.ask(
                 ":closed_lock_with_key: Enter your pypi password", password=True
@@ -127,8 +141,14 @@ def _publish(
                 "The twine library must be installed to publish to pypi."
                 "Install it with pip, pip install twine."
             ) from e
-
-        twine_settings = Settings(username=pypi_username, password=pypi_password)
+        if pypi_username and pypi_password:
+            twine_settings = Settings(username=pypi_username, password=pypi_password)
+        elif config_file:
+            twine_settings = Settings(config_file=config_file)
+        else:
+            raise ValueError(
+                "No pypi username or password provided and no ~/.pypirc file found."
+            )
         try:
             twine_files = [str(p) for p in distribution_files]
             print(f"Uploading files: {','.join(twine_files)}")
@@ -199,21 +219,32 @@ def _publish(
             readme = Path(tempdir) / "README.md"
             template = ""
             if upload_source and source_dir:
-                match = re.search(
-                    PATTERN_RE, (source_dir / "pyproject.toml").read_text()
-                )
-                if match:
-                    template = f", {match.group(0)}"
+                pyproject_toml = parse((source_dir / "pyproject.toml").read_text())
+                keywords = pyproject_toml["project"].get("keywords", [])  # type: ignore
+                keywords = [
+                    k
+                    for k in keywords
+                    if k not in {"gradio-custom-component", "gradio custom component"}
+                ]
+                if keywords:
+                    template = "," + ",".join(keywords)
+                name = pyproject_toml["project"]["name"]  # type: ignore
+                description = pyproject_toml["project"]["description"]  # type: ignore
 
-            readme.write_text(
-                README_CONTENTS.format(
-                    package_name=package_name,
-                    version=version,
-                    color_from=color_from,
-                    color_to=color_to,
-                    template=template,
-                )
+            readme_text = README_CONTENTS.format(
+                package_name=package_name,
+                version=version,
+                color_from=color_from,
+                color_to=color_to,
+                template=template,
             )
+
+            if name and description:
+                readme_text += f"\n\n# Name: {name}"
+                readme_text += f"\n\nDescription: {description}"
+                readme_text += f"\n\nInstall with: pip install {package_name}"
+
+            readme.write_text(readme_text)
             dockerfile = Path(tempdir) / "Dockerfile"
             dockerfile.write_text(DOCKERFILE)
 
