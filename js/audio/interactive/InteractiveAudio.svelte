@@ -1,7 +1,12 @@
 <script lang="ts">
-	import { onDestroy, createEventDispatcher } from "svelte";
+	import { getContext, onDestroy, createEventDispatcher } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
-	import { upload, prepare_files, type FileData } from "@gradio/client";
+	import {
+		upload,
+		prepare_files,
+		type FileData,
+		type upload_files
+	} from "@gradio/client";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Music } from "@gradio/icons";
 	import AudioPlayer from "../player/AudioPlayer.svelte";
@@ -31,6 +36,9 @@
 	export let dragging: boolean;
 	export let active_source: "microphone" | "upload";
 	export let handle_reset_value: () => void = () => {};
+
+	// Needed for wasm support
+	const upload_fn = getContext<typeof upload_files>("upload_files");
 
 	$: dispatch("drag", dragging);
 
@@ -86,7 +94,11 @@
 	): Promise<void> => {
 		let _audio_blob = new File(blobs, "audio.wav");
 		const val = await prepare_files([_audio_blob], event === "stream");
-		value = ((await upload(val, root))?.filter(Boolean) as FileData[])[0];
+		value = (
+			(await upload(val, root, undefined, upload_fn))?.filter(
+				Boolean
+			) as FileData[]
+		)[0];
 
 		dispatch(event, value);
 	};
