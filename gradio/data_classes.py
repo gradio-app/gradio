@@ -20,8 +20,10 @@ if not wasm_utils.IS_WASM:
 else:
     # XXX: Currently Pyodide V2 is not available on Pyodide,
     # so we install V1 for the Wasm version.
+    from typing import Generic, TypeVar
+
     from pydantic import BaseModel as BaseModelV1
-    from pydantic import ValidationError
+    from pydantic import ValidationError, schema_of
 
     # Map V2 method calls to V1 implementations.
     # Ref: https://docs.pydantic.dev/latest/migration/#changes-to-pydanticbasemodel
@@ -32,9 +34,32 @@ else:
     BaseModel.model_json_schema = BaseModel.schema  # type: ignore
 
     # RootModel is not available in V1, so we create a dummy class.
-    class RootModel(BaseModel):
-        def __init__(self, root=None, **data) -> None:  # type: ignore
-            pass
+    PydanticUndefined = object()
+    RootModelRootType = TypeVar("RootModelRootType")
+
+    class RootModel(BaseModel, Generic[RootModelRootType]):
+        root: RootModelRootType
+
+        def __init__(self, root: RootModelRootType = PydanticUndefined, **data):
+            if data:
+                if root is not PydanticUndefined:
+                    raise ValueError(
+                        '"RootModel.__init__" accepts either a single positional argument or arbitrary keyword arguments'
+                    )
+                root = data  # type: ignore
+            # XXX: No runtime validation is executed.
+            super().__init__(root=root)  # type: ignore
+
+        def dict(self, **kwargs):
+            return super().dict(**kwargs)["root"]
+
+        @classmethod
+        def schema(cls, **kwargs):
+            # XXX: kwargs are ignored.
+            return schema_of(cls.__fields__["root"].type_)  # type: ignore
+
+    RootModel.model_dump = RootModel.dict  # type: ignore
+    RootModel.model_json_schema = RootModel.schema  # type: ignore
 
 
 class PredictBody(BaseModel):
