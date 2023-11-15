@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { HTMLAnchorAttributes } from "svelte/elements";
+	import { createEventDispatcher } from "svelte";
 
 	interface DownloadLinkAttributes
 		extends Omit<HTMLAnchorAttributes, "target"> {
@@ -11,6 +12,8 @@
 
 	export let href: DownloadLinkAttributes["href"] = undefined;
 	export let download: DownloadLinkAttributes["download"];
+
+	const dispatch = createEventDispatcher();
 </script>
 
 {#await resolve_wasm_src(href) then resolved_href}
@@ -20,6 +23,7 @@
 		rel="noopener noreferrer"
 		{download}
 		{...$$restProps}
+		on:click={dispatch.bind(null, "click")}
 	>
 		<slot />
 	</a>
