@@ -32,16 +32,21 @@
 
 	$: $pixi && once_layer();
 
-	function new_layer(): void {
+	async function new_layer(): Promise<void> {
 		if (!$pixi) return;
-		const [active_layer, all_layers] = LayerManager.add_layer(
-			$pixi.layer_container,
-			$pixi.renderer,
-			...$dimensions
-		);
 
-		$current_layer = active_layer;
-		layers = all_layers;
+		await tick();
+
+		setTimeout(() => {
+			const [active_layer, all_layers] = LayerManager.add_layer(
+				$pixi.layer_container,
+				$pixi.renderer,
+				...$dimensions
+			);
+
+			$current_layer = active_layer;
+			layers = all_layers;
+		}, 20);
 	}
 
 	$: render_layer_files(layer_files);

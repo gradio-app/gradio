@@ -1,3 +1,5 @@
+import { writable, type Writable } from "svelte/store";
+
 /**
  * Base command interface that is added to the command_managers history
  */
@@ -32,7 +34,7 @@ export interface Command {
 /**
  * Command manager interface that handles the undo/redo history
  */
-interface CommandManager {
+export interface CommandManager {
 	/**
 	 * Undo the last command
 	 */
@@ -48,12 +50,14 @@ interface CommandManager {
 	execute(command: Command): void;
 	/**
 	 * Whether or not there are commands that can be undone
+	 * Observable store that you can subscribe to for updates
 	 */
-	readonly can_undo: boolean;
+	readonly can_undo: Writable<boolean>;
 	/**
 	 * Whether or not there are commands that can be redone
+	 * Observable store that you can subscribe to for updates
 	 */
-	readonly can_redo: boolean;
+	readonly can_redo: Writable<boolean>;
 }
 
 /**
@@ -103,28 +107,35 @@ function command_node(command?: Command): CommandNode {
  */
 export function command_manager(): CommandManager {
 	let history: CommandNode = command_node();
+	const can_undo = writable(false);
+	const can_redo = writable(false);
 	return {
 		undo: function () {
 			if (history.previous) {
-				history.previous.command?.undo();
+				history.command?.undo();
 				history = history.previous;
 			}
+			can_undo.set(!!history.previous);
+			can_redo.set(!!history.next);
 		},
 		redo: function () {
 			if (history.next) {
 				history.next.command?.execute();
 				history = history.next;
 			}
+
+			can_undo.set(!!history.previous);
+			can_redo.set(!!history.next);
 		},
 		execute: function (command: Command) {
 			command.execute();
 			history.push(command);
+			history = history.next!;
+			can_undo.set(!!history.previous);
+			can_redo.set(!!history.next);
 		},
-		get can_undo() {
-			return !!history.previous;
-		},
-		get can_redo() {
-			return !!history.next;
-		}
+
+		can_undo,
+		can_redo
 	};
 }

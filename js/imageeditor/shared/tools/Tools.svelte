@@ -67,12 +67,10 @@
 	let sub_tool: upload_tool | transform_tool | brush_tool | eraser_tool | null;
 	const tool_context: ToolContext = {
 		register_tool: (type: tool, meta: ToolMeta) => {
-			console.log({ type });
 			tools = [...tools, type];
 			metas[type] = meta;
 
 			return () => {
-				console.log("filtering");
 				tools = tools.filter((tool) => tool !== type);
 			};
 		},
@@ -119,8 +117,6 @@
 			icon: Erase
 		}
 	} as const;
-
-	$: console.log({ sub_menu, tools });
 </script>
 
 <slot />

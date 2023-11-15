@@ -7,9 +7,11 @@
 	export let size: "small" | "large" = "small";
 	export let padded = true;
 	export let highlight = false;
+	export let disabled = false;
 </script>
 
 <button
+	{disabled}
 	on:click
 	aria-label={label}
 	title={label}
@@ -34,6 +36,17 @@
 		border-radius: var(--radius-sm);
 		color: var(--block-label-text-color);
 		border: 1px solid transparent;
+	}
+
+	button[disabled] {
+		opacity: 0.5;
+		box-shadow: none;
+	}
+
+	button[disabled]:hover {
+		cursor: not-allowed;
+		border: 1px solid var(--button-secondary-border-color);
+		padding: 2px;
 	}
 
 	.padded {

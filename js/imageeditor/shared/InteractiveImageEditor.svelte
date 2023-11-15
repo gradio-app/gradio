@@ -25,7 +25,6 @@
 	import { type Brush as IBrush } from "./tools/Brush.svelte";
 	import { type Eraser } from "./tools/Brush.svelte";
 
-	export let transforms: ("crop" | "rotate")[];
 	export let brush: IBrush;
 	export let eraser: Eraser;
 	import { Tools, Crop, Brush, type tool, Sources } from "./tools";
@@ -40,8 +39,6 @@
 		layers: [],
 		composite: null
 	};
-
-	$: console.log({ value, layers: value.layers });
 
 	let editor: ImageEditor;
 

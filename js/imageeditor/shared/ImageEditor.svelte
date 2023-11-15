@@ -1,6 +1,8 @@
 <script lang="ts" context="module">
 	import type { Writable, Readable } from "svelte/store";
+	import type { Spring } from "svelte/motion";
 	import { type PixiApp } from "./utils/pixi";
+	import { type CommandManager } from "./utils/commands";
 
 	export const EDITOR_KEY = Symbol("editor");
 	export interface EditorContext {
@@ -23,6 +25,11 @@
 		}>;
 		active_tool: Writable<"bg" | null>;
 		crop: Writable<[number, number, number, number]>;
+		position_spring: Spring<{
+			x: number;
+			y: number;
+		}>;
+		command_manager: CommandManager;
 	}
 </script>
 
@@ -32,8 +39,11 @@
 	import { spring } from "svelte/motion";
 	import { Rectangle } from "pixi.js";
 
+	import { command_manager } from "./utils/commands";
+
 	import { type LayerScene } from "./layers/utils";
 	import { create_pixi_app, type ImageBlobs } from "./utils/pixi";
+	import Controls from "./Controls.svelte";
 
 	export let antialias = true;
 	export let active_tool: "bg" | null = null;
@@ -64,14 +74,20 @@
 		}
 	);
 	const pixi = writable<PixiApp | null>(null);
-	const editor_context: EditorContext = setContext(EDITOR_KEY, {
+
+	const CommandManager = command_manager();
+
+	const { can_redo, can_undo } = CommandManager;
+
+	setContext<EditorContext>(EDITOR_KEY, {
 		pixi,
 		current_layer: writable(null),
 		dimensions,
 		editor_box,
 		active_tool: writable(active_tool),
 		crop,
-		position_spring
+		position_spring,
+		command_manager: CommandManager
 	});
 
 	let pixi_target: HTMLDivElement;
@@ -128,16 +144,10 @@
 		});
 	}
 
-	// $: box && get_dimensions(canvas_wrap, pixi_target);
-
 	onMount(() => {
 		const resizer = new ResizeObserver((entries) => {
 			for (const entry of entries) {
 				get_dimensions(canvas_wrap, pixi_target);
-
-				if (entry.target === canvas_wrap) {
-					// console.log("bing", entry.contentRect);
-				}
 			}
 		});
 
@@ -179,10 +189,21 @@
 
 	$: $crop && reposition_canvas();
 	$: $position_spring && get_dimensions(canvas_wrap, pixi_target);
+
+	function handle_remove(): void {
+		$dimensions = crop_size || [800, 600];
+		$pixi?.reset?.();
+	}
 </script>
 
 <div data-testid="image" class="image-container">
-	<!-- <ClearImage on:remove_image={handle_remove} /> -->
+	<Controls
+		can_undo={$can_undo}
+		can_redo={$can_redo}
+		on:undo={CommandManager.undo}
+		on:redo={CommandManager.redo}
+		on:remove_image={handle_remove}
+	/>
 	<div class="wrap" bind:this={canvas_wrap}>
 		<div
 			bind:this={pixi_target}

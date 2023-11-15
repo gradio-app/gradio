@@ -34,6 +34,7 @@ export { default as Palette } from "./Palette.svelte";
 export { default as Pause } from "./Pause.svelte";
 export { default as Play } from "./Play.svelte";
 export { default as Plot } from "./Plot.svelte";
+export { default as Redo } from "./Redo.svelte";
 export { default as Remove } from "./Remove.svelte";
 export { default as Rotate } from "./Rotate.svelte";
 export { default as Settings } from "./Settings.svelte";

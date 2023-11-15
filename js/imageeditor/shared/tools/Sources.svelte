@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Toolbar } from "@gradio/atoms";
-	import { getContext, onDestroy, onMount } from "svelte";
+	import { getContext, onDestroy, onMount, tick } from "svelte";
 	import { Assets, Sprite, Texture } from "pixi.js";
 	import { type ToolContext, TOOL_KEY } from "./Tools.svelte";
 	import { type EditorContext, EDITOR_KEY } from "../ImageEditor.svelte";
@@ -94,6 +94,10 @@
 	async function set_background(): Promise<void> {
 		if (!$pixi) return;
 		if (background) {
+			if (should_reset) {
+				$pixi?.reset?.();
+			}
+
 			const add_image = add_bg_image(
 				$pixi.background_container,
 				$pixi.renderer,
@@ -103,10 +107,6 @@
 
 			$dimensions = await add_image.start();
 			add_image.execute();
-
-			if (should_reset) {
-				$pixi?.reset?.();
-			}
 
 			should_reset = true;
 		}
@@ -130,14 +130,18 @@
 	$: background && set_background();
 	$: process_bg_file(background_file);
 
-	$: console.log(background_file);
+	onMount(() => {
+		tick().then(() => {
+			if (!$pixi) return;
+			function reset(): void {}
+			$pixi = { ...$pixi, reset };
+		});
 
-	onMount(() =>
-		register_tool("bg", {
+		return register_tool("bg", {
 			default: "bg_upload",
 			options: sources_list || []
-		})
-	);
+		});
+	});
 </script>
 
 <svelte:window on:keydown={handle_key} />

@@ -82,8 +82,6 @@
 		value = detail;
 		gradio.dispatch("change");
 	}
-
-	$: console.log({ value });
 </script>
 
 {#if !interactive}

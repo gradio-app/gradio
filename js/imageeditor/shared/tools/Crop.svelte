@@ -9,7 +9,7 @@
 	import Cropper from "./Cropper.svelte";
 
 	const { active_tool, register_tool } = getContext<ToolContext>(TOOL_KEY);
-	const { dimensions, editor_box, pixi, crop } =
+	const { dimensions, editor_box, pixi, crop, command_manager } =
 		getContext<EditorContext>(EDITOR_KEY);
 
 	export let transforms: ("crop" | "rotate")[] = ["crop", "rotate"];
@@ -37,7 +37,7 @@
 		}))
 		.sort((a, b) => a.order - b.order);
 
-	let cropper: CropCommand;
+	let cropper: CropCommand | null;
 
 	let w_p = 1;
 	let h_p = 1;
@@ -61,7 +61,7 @@
 	): void {
 		if (!$pixi) return;
 		if (!cropper) {
-			cropper = crop_canvas($pixi?.renderer, $pixi.mask_container);
+			cropper = crop_canvas($pixi?.renderer, $pixi.mask_container, crop);
 		}
 
 		if (type === "start") {
@@ -74,13 +74,15 @@
 				height * $dimensions[1]
 			]);
 		} else if (type === "stop") {
-			cropper.execute();
+			command_manager.execute(cropper);
+
 			// current_crop = [
 			// 	x * $dimensions[0],
 			// 	y * $dimensions[1],
 			// 	width * $dimensions[0],
 			// 	height * $dimensions[1]
 			// ];
+			cropper = null;
 
 			w_p = width;
 			h_p = height;
@@ -125,7 +127,14 @@
 		h_p * $dimensions[1]
 	];
 
-	$: crop.set([l_p, t_p, w_p, h_p]);
+	// $: crop.set([l_p, t_p, w_p, h_p]);
+
+	$: {
+		l_p = $crop[0];
+		t_p = $crop[1];
+		w_p = $crop[2];
+		h_p = $crop[3];
+	}
 
 	$: $editor_box && get_measurements();
 

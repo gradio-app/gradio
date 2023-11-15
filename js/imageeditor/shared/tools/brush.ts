@@ -66,6 +66,10 @@ interface DrawOptions extends Points {
 	 * The opacity of the brush.
 	 */
 	opacity: number;
+	/**
+	 * Whether or not to set the initial texture.
+	 */
+	set_initial_texture?: boolean;
 }
 
 /**
@@ -125,9 +129,11 @@ export function draw_path(
 	const paths: Points[] = [];
 	let initial_path: DrawOptions;
 	let graphics: Graphics;
+	let InitialTexture: RenderTexture;
 
 	let has_drawn = false;
 	let id = 0;
+
 	return {
 		drawing: false,
 		start: function ({
@@ -135,8 +141,18 @@ export function draw_path(
 			y,
 			size,
 			color = new Color("black"),
-			opacity
+			opacity,
+			set_initial_texture = true
 		}: DrawOptions) {
+			if (set_initial_texture) {
+				InitialTexture = RenderTexture.create({
+					width: layer.draw_texture.width,
+					height: layer.draw_texture.height
+				});
+				renderer.render(layer.composite, {
+					renderTexture: InitialTexture
+				});
+			}
 			initial_path = { x, y, size, color, opacity };
 			paths.push({ x, y });
 			graphics = make_graphics(id++);
@@ -196,26 +212,34 @@ export function draw_path(
 		},
 		execute: function () {
 			if (!has_drawn) {
-				this.start!(initial_path);
 				for (let i = 1; i < paths.length; i++) {
 					const { x, y } = paths[i];
 					drawCircle(graphics, x, y, initial_path.color, initial_path.size);
 				}
 
-				graphics.alpha = 0.5;
 				renderer.render(graphics, {
 					renderTexture:
-						mode === "draw" ? layer.draw_texture : layer.erase_texture
+						mode === "draw" ? layer.draw_texture : layer.erase_texture,
+					clear: false
 				});
-				// renderer.render(stage);
+
+				this.stop!();
 			}
 		},
 		undo: function () {
-			graphics.destroy();
-			renderer.render(graphics, {
-				renderTexture:
-					mode === "draw" ? layer.draw_texture : layer.erase_texture
+			const clear_graphics = new Graphics()
+				.beginFill(0x000000, 0) // Use a fill color with 0 alpha for transparency
+				.drawRect(0, 0, layer.erase_texture.width, layer.erase_texture.height)
+				.endFill();
+			renderer.render(new Sprite(InitialTexture), {
+				renderTexture: layer.draw_texture
 			});
+			renderer.render(clear_graphics, {
+				renderTexture: layer.erase_texture,
+				clear: true
+			});
+
+			this.stop!();
 			has_drawn = false;
 		}
 	};

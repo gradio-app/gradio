@@ -7,6 +7,7 @@ import {
 } from "pixi.js";
 import { type Command } from "../utils/commands";
 import { spring } from "svelte/motion";
+import type { Writable } from "svelte/store";
 
 export interface CropCommand extends Command {
 	start: (
@@ -19,12 +20,12 @@ export interface CropCommand extends Command {
 
 export function crop_canvas(
 	renderer: IRenderer,
-	mask_container: Container
+	mask_container: Container,
+	crop: Writable<[number, number, number, number]>
 ): CropCommand {
 	let text: RenderTexture;
 	let sprite: Sprite;
 	const mask_graphics = new Graphics();
-
 	let previous_crop: [number, number, number, number];
 	let final_crop: [number, number, number, number];
 	let width: number;
@@ -68,7 +69,8 @@ export function crop_canvas(
 		start: (
 			_width: number,
 			_height: number,
-			_previous_crop: [number, number, number, number]
+			_previous_crop: [number, number, number, number],
+			set_previous: boolean = true
 		) => {
 			clean = false;
 			text = RenderTexture.create({
@@ -80,7 +82,8 @@ export function crop_canvas(
 			mask_container.mask = sprite;
 			width = _width;
 			height = _height;
-			previous_crop = JSON.parse(JSON.stringify(_previous_crop));
+			if (set_previous)
+				previous_crop = JSON.parse(JSON.stringify(_previous_crop));
 		},
 		continue: (crop_size: [number, number, number, number]) => {
 			final_crop = JSON.parse(JSON.stringify(crop_size));
@@ -91,14 +94,40 @@ export function crop_canvas(
 			}
 		},
 
-		undo: () => {
-			crop_mask(width, height, previous_crop, false);
+		undo() {
+			console.log("undo", { clean });
+			// final_crop = previous_crop;
+			this.start(width, height, previous_crop, false);
+			// console.log({ previous_crop });
+			// crop_mask(width, height, previous_crop, false);
+			crop.set([
+				previous_crop[0] / width,
+				previous_crop[1] / height,
+				previous_crop[2] / width,
+				previous_crop[3] / height
+			]);
+			clean = true;
 		},
-		execute: () => {
+		execute() {
+			console.log("execute", { clean });
 			if (clean) {
-				crop_mask(width, height, final_crop, false);
+				this.start(width, height, final_crop, false);
+
+				crop.set([
+					final_crop[0] / width,
+					final_crop[1] / height,
+					final_crop[2] / width,
+					final_crop[3] / height
+				]);
+				clean = true;
 			} else {
 				alpha_spring.set(0);
+				crop.set([
+					final_crop[0] / width,
+					final_crop[1] / height,
+					final_crop[2] / width,
+					final_crop[3] / height
+				]);
 				clean = true;
 			}
 		}

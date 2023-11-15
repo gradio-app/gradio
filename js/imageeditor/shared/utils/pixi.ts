@@ -128,6 +128,7 @@ export function create_pixi_app(
 	app.render();
 
 	function reset_mask(width: number, height: number): void {
+		background_container.removeChildren();
 		mask.beginFill(0xffffff, 1);
 		mask.drawRect(0, 0, width, height);
 		mask.endFill();

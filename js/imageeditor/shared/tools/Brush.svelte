@@ -60,7 +60,7 @@
 	export let default_size: Brush["default_size"];
 	export let sizes: Brush["sizes"];
 	export let size_mode: Brush["size_mode"];
-	export let default_color: Brush["default_color"];
+	export let default_color: Brush["default_color"] | undefined = undefined;
 	export let colors: Brush["colors"] | undefined = undefined;
 	export let color_mode: Brush["color_mode"] | undefined = undefined;
 	export let mode: "erase" | "draw";
@@ -104,7 +104,7 @@
 
 	let current_option: brush_option_type | null = null;
 
-	const { pixi, dimensions, current_layer } =
+	const { pixi, dimensions, current_layer, command_manager } =
 		getContext<EditorContext>(EDITOR_KEY);
 	const { active_tool, register_tool } = getContext<ToolContext>(TOOL_KEY);
 	let drawing = false;
@@ -121,8 +121,6 @@
 	// 	_sizes[_sizes?.findIndex((c) => c === default_size)] || _sizes[0];
 
 	let selected_size = default_size;
-
-	$: console.log({ selected_size });
 
 	async function add_listeners(): Promise<void> {
 		await tick();
@@ -161,6 +159,7 @@
 				return;
 			}
 			draw.stop();
+			command_manager.execute(draw);
 			drawing = false;
 		});
 
