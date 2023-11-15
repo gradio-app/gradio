@@ -6,6 +6,7 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { type FileData, normalise_file } from "@gradio/client";
+	import { get_coordinates_of_clicked_image } from "./utils";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -70,6 +71,13 @@
 			index: i
 		});
 	}
+
+	const handle_image_click = (evt: MouseEvent): void => {
+		let coordinates = get_coordinates_of_clicked_image(evt);
+		if (coordinates) {
+			gradio.dispatch("select", { index: coordinates, value: null });
+		}
+	};
 </script>
 
 <Block
@@ -105,6 +113,7 @@
 					class:fit-height={height}
 					src={_value ? _value.image.url : null}
 					alt="the base file that is annotated"
+					on:click={handle_image_click}
 				/>
 				{#each _value ? _value?.annotations : [] as ann, i}
 					<img
