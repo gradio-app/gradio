@@ -3,14 +3,13 @@
 
 	interface DownloadLinkAttributes
 		extends Omit<HTMLAnchorAttributes, "target"> {
-		href: NonNullable<HTMLAnchorAttributes["href"]>;
 		download: NonNullable<HTMLAnchorAttributes["download"]>;
 	}
 	type $$Props = DownloadLinkAttributes;
 
 	import { resolve_wasm_src } from ".";
 
-	export let href: DownloadLinkAttributes["href"];
+	export let href: DownloadLinkAttributes["href"] = undefined;
 	export let download: DownloadLinkAttributes["download"];
 </script>
 
@@ -18,6 +17,7 @@
 	<a
 		href={resolved_href}
 		target={window.__is_colab__ ? "_blank" : null}
+		rel="noopener noreferrer"
 		{download}
 		{...$$restProps}
 	>
