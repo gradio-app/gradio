@@ -327,7 +327,7 @@ describe("Dropdown", () => {
 		expect(item.value).toBe("applepie");
 	});
 
-	test("setting a value should update the displayed value and selected indicies", async () => {
+	test("setting a value should update the displayed value and selected indices", async () => {
 		const { getByLabelText, getAllByTestId, component } = await render(
 			Dropdown,
 			{
