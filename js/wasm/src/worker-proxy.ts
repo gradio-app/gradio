@@ -203,8 +203,8 @@ export class WorkerProxy extends EventTarget {
 				http_version: "1.1",
 				scheme: "http",
 				method: request.method,
-				path: request.path,
-				query_string: request.query_string,
+				path: decodeURIComponent(request.path),
+				query_string: decodeURIComponent(request.query_string),
 				root_path: "",
 				headers: headersToASGI(request.headers)
 			};
