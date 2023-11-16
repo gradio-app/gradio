@@ -205,7 +205,7 @@
 </div>
 
 <style>
-	.image-frame {
+	.image-frame :global(img) {
 		width: var(--size-full);
 		height: var(--size-full);
 	}

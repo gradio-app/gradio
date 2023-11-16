@@ -69,7 +69,7 @@
 {/if}
 
 <style>
-	.image-container,
+	.image-container :global(img),
 	button {
 		width: var(--size-full);
 		height: var(--size-full);

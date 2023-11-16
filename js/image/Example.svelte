@@ -17,6 +17,12 @@
 </div>
 
 <style>
+	.container :global(img) {
+		max-width: 100%;
+		max-height: 100%;
+		border-radius: var(--radius-lg);
+	}
+
 	.container.selected {
 		border-color: var(--border-color-accent);
 	}
