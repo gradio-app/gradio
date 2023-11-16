@@ -105,7 +105,7 @@ export function add_bg_color(
 		async execute() {
 			// renderer.resize(sprite.width, sprite.height);
 			resize(sprite.width, sprite.height);
-			sprite.zIndex = 0;
+			sprite.zIndex = 1;
 			container.addChild(sprite);
 		},
 		undo() {

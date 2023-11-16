@@ -15,7 +15,7 @@
 	import { Webcam } from "@gradio/image";
 	import { type I18nFormatter } from "@gradio/utils";
 
-	import { add_bg_image } from "./sources";
+	import { add_bg_color, add_bg_image } from "./sources";
 	import type { FileData, normalise_file } from "@gradio/client";
 
 	export let background_file: FileData | null;
@@ -29,7 +29,8 @@
 	export let i18n: I18nFormatter;
 
 	const { active_tool, register_tool } = getContext<ToolContext>(TOOL_KEY);
-	const { pixi, dimensions } = getContext<EditorContext>(EDITOR_KEY);
+	const { pixi, dimensions, register_context, reset } =
+		getContext<EditorContext>(EDITOR_KEY);
 
 	let active_mode: "webcam" | "color" | null = null;
 	let background: Blob | File | null;
@@ -94,18 +95,18 @@
 	async function set_background(): Promise<void> {
 		if (!$pixi) return;
 		if (background) {
-			if (should_reset) {
-				$pixi?.reset?.();
-			}
-
 			const add_image = add_bg_image(
 				$pixi.background_container,
 				$pixi.renderer,
 				background,
 				$pixi.resize
 			);
-
 			$dimensions = await add_image.start();
+
+			if (should_reset) {
+				reset(false, $dimensions);
+			}
+
 			add_image.execute();
 
 			should_reset = true;
@@ -129,6 +130,26 @@
 
 	$: background && set_background();
 	$: process_bg_file(background_file);
+
+	register_context("bg", {
+		init_fn: () => {
+			console.log("RUNNING BG INIT");
+			if (!$pixi) return;
+			console.log("ADDING BG");
+
+			const add_image = add_bg_color(
+				$pixi.background_container,
+				$pixi.renderer,
+				"black",
+				...$dimensions,
+				$pixi.resize
+			);
+			$dimensions = add_image.start();
+			console.log("DIMENSIONS", $dimensions);
+			add_image.execute();
+		},
+		reset_fn: () => {}
+	});
 
 	onMount(() => {
 		tick().then(() => {

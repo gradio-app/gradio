@@ -89,12 +89,7 @@
 	}
 </script>
 
-<ImageEditor
-	bind:this={editor}
-	composite={!value.background &&
-		(!value.layers || value.layers.length === 0) &&
-		value.composite}
->
+<ImageEditor bind:this={editor}>
 	<Tools {i18n}>
 		<Sources
 			{i18n}

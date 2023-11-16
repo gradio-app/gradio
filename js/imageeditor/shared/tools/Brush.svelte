@@ -53,6 +53,7 @@
 	import { draw_path, type DrawCommand } from "./brush";
 	import BrushColor from "./BrushColor.svelte";
 	import BrushSize from "./BrushSize.svelte";
+	import type { FederatedPointerEvent } from "pixi.js";
 
 	export let antialias: Brush["antialias"];
 	export let default_size: Brush["default_size"];
@@ -63,8 +64,7 @@
 	export let color_mode: Brush["color_mode"] | undefined = undefined;
 	export let mode: "erase" | "draw";
 
-	let _sizes: number[];
-	let selected_color = process_color(default_color);
+	let selected_color = default_color ? process_color(default_color) : "black";
 
 	const paint_meta = {
 		color: {
@@ -102,9 +102,11 @@
 
 	let current_option: brush_option_type | null = null;
 
-	const { pixi, dimensions, current_layer, command_manager } =
+	const { pixi, dimensions, current_layer, command_manager, register_context } =
 		getContext<EditorContext>(EDITOR_KEY);
+
 	const { active_tool, register_tool } = getContext<ToolContext>(TOOL_KEY);
+
 	let drawing = false;
 	let draw: DrawCommand;
 
@@ -114,72 +116,104 @@
 		return [1, 2, 3, 4].map((i) => (min / 100) * i);
 	}
 
-	$: _sizes = generate_sizes(...$dimensions);
-	// $: selected_size =
-	// 	_sizes[_sizes?.findIndex((c) => c === default_size)] || _sizes[0];
+	let _sizes = sizes === "auto" ? generate_sizes(...$dimensions) : sizes;
+	let selected_size = default_size === "auto" ? _sizes[0] : default_size;
 
-	let selected_size = default_size;
+	// let selected_size = default_size;
 
-	async function add_listeners(): Promise<void> {
-		await tick();
+	function throttle(fn: (...args: any[]) => any, delay: number): () => void {
+		let last_call = 0;
 
-		$pixi?.layer_container.on("pointerdown", function (event) {
-			if ($active_tool !== mode) {
-				return;
-			}
-			drawing = true;
+		return (...args: any[]) => {
+			const now = Date.now();
 
-			if (!$pixi || !$current_layer) {
+			if (now - last_call < delay) {
 				return;
 			}
 
-			draw = draw_path(
-				$pixi.renderer!,
-				$pixi.layer_container,
-				$current_layer,
-				mode
-			);
+			last_call = now;
 
-			draw.start({
-				x: event.screen.x,
-				y: event.screen.y,
-				color: selected_color || undefined,
-				size: selected_size,
-				opacity: 1
-			});
-		});
+			fn(...args);
+		};
+	}
 
-		$pixi?.layer_container.on("pointerup", function (event) {
-			if (!$pixi || !$current_layer) {
-				return;
-			}
-			if ($active_tool !== mode) {
-				return;
-			}
-			draw.stop();
-			command_manager.execute(draw);
-			drawing = false;
-		});
+	function pointer_down_handler(event: FederatedPointerEvent): void {
+		if ($active_tool !== mode) {
+			return;
+		}
+		drawing = true;
 
-		$pixi?.layer_container.on("pointermove", function (event) {
-			if ($active_tool !== mode) {
-				return;
-			}
-			if (drawing) {
-				draw.continue({
-					x: event.screen.x,
-					y: event.screen.y
-				});
-			}
+		if (!$pixi || !$current_layer) {
+			return;
+		}
+
+		draw = draw_path(
+			$pixi.renderer!,
+			$pixi.layer_container,
+			$current_layer,
+			mode
+		);
+
+		draw.start({
+			x: event.screen.x,
+			y: event.screen.y,
+			color: selected_color || undefined,
+			size: selected_size,
+			opacity: 1
 		});
 	}
 
+	function pointer_up_handler(event: FederatedPointerEvent): void {
+		if (!$pixi || !$current_layer) {
+			return;
+		}
+		if ($active_tool !== mode) {
+			return;
+		}
+		draw.stop();
+		command_manager.execute(draw);
+		drawing = false;
+	}
+
+	function pointer_move_handler(event: FederatedPointerEvent): void {
+		if ($active_tool !== mode) {
+			return;
+		}
+		if (drawing) {
+			draw.continue({
+				x: event.screen.x,
+				y: event.screen.y
+			});
+		}
+	}
+
+	async function toggle_listeners(on_off: "on" | "off"): Promise<void> {
+		$pixi?.layer_container[on_off]("pointerdown", pointer_down_handler);
+
+		$pixi?.layer_container[on_off]("pointerup", pointer_up_handler);
+
+		$pixi?.layer_container[on_off]("pointermove", pointer_move_handler);
+	}
+
+	register_context(mode, {
+		init_fn: () => {
+			toggle_listeners("on");
+		},
+		reset_fn: () => {
+			toggle_listeners("off");
+		}
+	});
+
 	onMount(() => {
-		add_listeners();
-		return register_tool(mode, {
+		const unregister = register_tool(mode, {
 			default: null,
 			options: brush_options
 		});
+
+		return () => {
+			unregister();
+			toggle_listeners("off");
+		};
 	});
 
 	let recent_colors: (string | null)[] = [null, null, null];

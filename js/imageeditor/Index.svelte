@@ -1,9 +1,5 @@
 <svelte:options accessors={true} />
 
-<script context="module" lang="ts">
-	// export { default as Webcam } from "./shared/Webcam.svelte";
-</script>
-
 <script lang="ts">
 	import type { Brush, Eraser } from "./shared/tools/Brush.svelte";
 	import type {
@@ -45,6 +41,7 @@
 		"clipboard",
 		"webcam"
 	];
+	export let proxy_url: string;
 	export let interactive: boolean;
 	export let streaming: boolean;
 	export let pending: boolean;
@@ -163,6 +160,7 @@
 			on:error
 			{brush}
 			{eraser}
+			{proxy_url}
 			i18n={gradio.i18n}
 		>
 			<!-- {#if sources.includes("upload")}

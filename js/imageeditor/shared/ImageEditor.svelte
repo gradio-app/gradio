@@ -5,6 +5,9 @@
 	import { type CommandManager } from "./utils/commands";
 
 	export const EDITOR_KEY = Symbol("editor");
+	export type context_type = "bg" | "layers" | "crop" | "draw" | "erase";
+	type PartialRecord<K extends keyof any, T> = Partial<Record<K, T>>;
+
 	export interface EditorContext {
 		pixi: Writable<PixiApp | null>;
 		current_layer: Writable<LayerScene | null>;
@@ -30,7 +33,29 @@
 			y: number;
 		}>;
 		command_manager: CommandManager;
+
+		register_context: (
+			type: context_type,
+			{
+				reset_fn,
+				init_fn
+			}: {
+				reset_fn?: () => void;
+				init_fn?: (dimensions?: [number, number]) => void;
+			}
+		) => void;
+		reset: (clear_image: boolean, dimensions: [number, number]) => void;
 	}
+
+	//reset
+	// clear bg
+	// clear layers
+	// reset app
+
+	// new bg
+	// reset
+	// add bg
+	// new layer
 </script>
 
 <script lang="ts">
@@ -78,7 +103,14 @@
 	const CommandManager = command_manager();
 
 	const { can_redo, can_undo } = CommandManager;
+	const reset_context: Writable<PartialRecord<context_type, () => void>> =
+		writable({});
+	const init_context: Writable<
+		PartialRecord<context_type, (dimensions?: typeof $dimensions) => void>
+	> = writable({});
+	const contexts: Writable<context_type[]> = writable([]);
 
+	const sort_order = ["bg", "layers", "crop", "draw", "erase"] as const;
 	setContext<EditorContext>(EDITOR_KEY, {
 		pixi,
 		current_layer: writable(null),
@@ -87,25 +119,47 @@
 		active_tool: writable(active_tool),
 		crop,
 		position_spring,
-		command_manager: CommandManager
+		command_manager: CommandManager,
+
+		register_context: (
+			type: context_type,
+			{
+				reset_fn,
+				init_fn
+			}: {
+				reset_fn?: () => void;
+				init_fn?: (dimensions?: [number, number]) => void;
+			}
+		) => {
+			contexts.update((c) => [...c, type]);
+			init_context.update((c) => ({ ...c, [type]: init_fn }));
+			reset_context.update((c) => ({ ...c, [type]: reset_fn }));
+		},
+		reset: (clear_image: boolean, dimensions: [number, number]) => {
+			const _sorted_contexts = $contexts.sort((a, b) => {
+				return sort_order.indexOf(a) - sort_order.indexOf(b);
+			});
+			for (const k of _sorted_contexts) {
+				if (k in $reset_context && typeof $reset_context[k] === "function") {
+					$reset_context[k]?.();
+				}
+			}
+			$pixi?.reset?.();
+			for (const k of _sorted_contexts) {
+				if (k in $init_context && typeof $init_context[k] === "function") {
+					if (k === "bg" && !clear_image) {
+						continue;
+					} else {
+						$init_context[k]?.(dimensions);
+					}
+				}
+
+				// $pixi?.reset?.();
+			}
+		}
 	});
 
 	let pixi_target: HTMLDivElement;
-
-	onMount(() => {
-		const app = create_pixi_app(pixi_target, ...crop_size, antialias);
-
-		function resize(width: number, height: number): void {
-			app.resize(width, height);
-			dimensions.set([width, height]);
-		}
-
-		pixi.set({ ...app, resize });
-
-		return () => {
-			$pixi?.destroy();
-		};
-	});
 
 	let canvas_wrap: HTMLDivElement;
 
@@ -143,17 +197,6 @@
 			parent_bottom
 		});
 	}
-
-	onMount(() => {
-		const resizer = new ResizeObserver((entries) => {
-			for (const entry of entries) {
-				get_dimensions(canvas_wrap, pixi_target);
-			}
-		});
-
-		resizer.observe(canvas_wrap);
-		resizer.observe(pixi_target);
-	});
 
 	function reposition_canvas(): void {
 		if (!$editor_box) return;
@@ -194,6 +237,42 @@
 		$dimensions = crop_size || [800, 600];
 		$pixi?.reset?.();
 	}
+
+	onMount(() => {
+		const resizer = new ResizeObserver((entries) => {
+			for (const entry of entries) {
+				get_dimensions(canvas_wrap, pixi_target);
+			}
+		});
+
+		resizer.observe(canvas_wrap);
+		resizer.observe(pixi_target);
+
+		const app = create_pixi_app(pixi_target, ...crop_size, antialias);
+
+		for (const k of $contexts) {
+			if (k in $init_context && typeof $init_context[k] === "function") {
+				$init_context[k]?.($dimensions);
+			}
+		}
+
+		function resize(width: number, height: number): void {
+			app.resize(width, height);
+			dimensions.set([width, height]);
+		}
+
+		pixi.set({ ...app, resize });
+
+		return () => {
+			$pixi?.destroy();
+			resizer.disconnect();
+			for (const k of $contexts) {
+				if (k in $reset_context) {
+					$init_context[k]?.($dimensions);
+				}
+			}
+		};
+	});
 </script>
 
 <div data-testid="image" class="image-container">

@@ -182,6 +182,7 @@ export function draw_path(
 					mode === "draw" ? layer.draw_texture : layer.erase_texture,
 				clear: false
 			});
+			graphics.clear();
 		},
 		stop: function () {
 			const current_sketch = RenderTexture.create({

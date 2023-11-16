@@ -11,6 +11,7 @@ import {
 } from "pixi.js";
 
 import { type LayerScene } from "../layers/utils";
+import { background } from "@storybook/theming";
 
 /**
  * interface holding references to pixi app components
@@ -100,6 +101,7 @@ export function create_pixi_app(
 	// clear its content without knowing too much about its children
 	const background_container = new Container() as Container & DisplayObject;
 	background_container.zIndex = 0;
+	background_container.alpha = 0.5;
 	const layer_container = new Container() as Container & DisplayObject;
 	layer_container.zIndex = 1;
 

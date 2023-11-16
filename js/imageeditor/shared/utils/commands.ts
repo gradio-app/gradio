@@ -58,6 +58,10 @@ export interface CommandManager {
 	 * Observable store that you can subscribe to for updates
 	 */
 	readonly can_redo: Writable<boolean>;
+	/**
+	 * Resets the history
+	 */
+	reset(): void;
 }
 
 /**

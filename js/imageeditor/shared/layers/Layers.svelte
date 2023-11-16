@@ -14,7 +14,7 @@
 		new_layer: void;
 	}>();
 
-	const { pixi, current_layer, dimensions } =
+	const { pixi, current_layer, dimensions, register_context } =
 		getContext<EditorContext>(EDITOR_KEY);
 
 	const LayerManager = layer_manager();
@@ -32,21 +32,26 @@
 
 	$: $pixi && once_layer();
 
+	register_context("layers", {
+		init_fn: () => {
+			new_layer();
+		},
+		reset_fn: () => {
+			LayerManager.reset();
+		}
+	});
+
 	async function new_layer(): Promise<void> {
 		if (!$pixi) return;
 
-		await tick();
+		const [active_layer, all_layers] = LayerManager.add_layer(
+			$pixi.layer_container,
+			$pixi.renderer,
+			...$dimensions
+		);
 
-		setTimeout(() => {
-			const [active_layer, all_layers] = LayerManager.add_layer(
-				$pixi.layer_container,
-				$pixi.renderer,
-				...$dimensions
-			);
-
-			$current_layer = active_layer;
-			layers = all_layers;
-		}, 20);
+		$current_layer = active_layer;
+		layers = all_layers;
 	}
 
 	$: render_layer_files(layer_files);
@@ -95,14 +100,8 @@
 	onMount(async () => {
 		await tick();
 		if (!$pixi) return;
-		function reset(): void {
-			console.log("resetting");
-			LayerManager.reset();
-			$pixi?.resize(...$dimensions);
 
-			new_layer();
-		}
-		$pixi = { ...$pixi!, reset, get_layers: LayerManager.get_layers };
+		$pixi = { ...$pixi!, get_layers: LayerManager.get_layers };
 	});
 </script>
 
