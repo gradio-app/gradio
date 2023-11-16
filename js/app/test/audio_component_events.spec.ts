@@ -12,11 +12,11 @@ test("Audio click-to-upload uploads audio successfuly. File downloading works an
 		page.waitForResponse("**/upload?*")
 	]);
 
-	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
-	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
+	await expect(page.getByLabel("# Input Change Events")).toHaveValue("1");
+	await expect(page.getByLabel("# Input Upload Events")).toHaveValue("1");
 
 	await page.getByLabel("Clear").click();
-	await expect(page.getByLabel("# Change Events")).toHaveValue("2");
+	await expect(page.getByLabel("# Input Change Events")).toHaveValue("2");
 	await page
 		.getByRole("button", { name: "Drop Audio Here - or - Click to Upload" })
 		.click();
@@ -26,8 +26,8 @@ test("Audio click-to-upload uploads audio successfuly. File downloading works an
 		page.waitForResponse("**/upload?*")
 	]);
 
-	await expect(page.getByLabel("# Change Events")).toHaveValue("3");
-	await expect(page.getByLabel("# Upload Events")).toHaveValue("2");
+	await expect(page.getByLabel("# Input Change Events")).toHaveValue("3");
+	await expect(page.getByLabel("# Input Upload Events")).toHaveValue("2");
 
 	const downloadPromise = page.waitForEvent("download");
 	await page.getByLabel("Download").click();
@@ -48,8 +48,8 @@ test("Audio drag-and-drop uploads a file to the server correctly.", async ({
 		),
 		page.waitForResponse("**/upload?*")
 	]);
-	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
-	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
+	await expect(page.getByLabel("# Input Change Events")).toHaveValue("1");
+	await expect(page.getByLabel("# Input Upload Events")).toHaveValue("1");
 });
 
 test("Audio drag-and-drop displays a warning when the file is of the wrong mime type.", async ({
@@ -63,4 +63,34 @@ test("Audio drag-and-drop displays a warning when the file is of the wrong mime 
 	);
 	const toast = page.getByTestId("toast-body");
 	expect(toast).toContainText("warning");
+});
+
+test("Play, Pause, and end events work correctly.", async ({ page }) => {
+	const uploader = await page.locator("input[type=file]");
+	await Promise.all([
+		uploader.setInputFiles(["../../test/test_files/audio_sample.wav"]),
+		page.waitForResponse("**/upload?*")
+	]);
+
+	await page
+		.getByTestId("waveform-Output Audio")
+		.getByLabel("Play", { exact: true })
+		.click();
+	await page.getByTestId("waveform-Output Audio").getByLabel("Pause").click();
+	await page
+		.getByTestId("waveform-Output Audio")
+		.getByLabel("Adjust volume")
+		.click();
+	await page
+		.getByTestId("waveform-Output Audio")
+		.getByLabel("Adjust volume")
+		.click();
+	await page
+		.getByTestId("waveform-Output Audio")
+		.getByLabel("Play", { exact: true })
+		.click();
+
+	await expect(page.getByLabel("# Output Play Events")).toHaveValue("1");
+	await expect(page.getByLabel("# Output Pause Events")).toHaveValue("1");
+	await expect(page.getByLabel("# Output Stop Events")).toHaveValue("1");
 });
