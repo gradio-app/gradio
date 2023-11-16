@@ -92,9 +92,9 @@ class TestQueueing:
                 time.sleep(2)
                 return x + y
 
+        demo.queue(default_concurrency_limit=default_concurrency_limit)
         _, local_url, _ = demo.launch(
             prevent_thread_lock=True,
-            default_concurrency_limit=default_concurrency_limit,
         )
         client = grc.Client(local_url)
 

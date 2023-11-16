@@ -849,7 +849,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             trigger_after: if set, this event will be triggered after 'trigger_after' function index
             trigger_only_on_success: if True, this event will only be triggered if the previous event was successful (only applies if `trigger_after` is set)
             trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` event) would allow a second submission after the pending event is complete.
-            concurrency_limit: If set, this this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `launch()`, which itself is 1 by default).
+            concurrency_limit: If set, this this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `queue()`, which itself is 1 by default).
             concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
         Returns: dependency information, dependency index
         """
@@ -1650,6 +1650,8 @@ Received outputs:
         api_open: bool | None = None,
         max_size: int | None = None,
         concurrency_count: int | None = None,
+        *,
+        default_concurrency_limit: int | None | Literal["not_set"] = "not_set",
     ):
         """
         By enabling the queue you can control when users know their position in the queue, and set a limit on maximum number of events allowed.
@@ -1658,6 +1660,7 @@ Received outputs:
             api_open: If True, the REST routes of the backend will be open, allowing requests made directly to those endpoints to skip the queue.
             max_size: The maximum number of events the queue will store at any given moment. If the queue is full, new events will not be added and a user will receive a message saying that the queue is full. If None, the queue size will be unlimited.
             concurrency_count: Deprecated and has no effect. Set the concurrency_limit directly on event listeners e.g. btn.click(fn, ..., concurrency_limit=10) or gr.Interface(concurrency_limit=10). If necessary, the total number of workers can be configured via `max_threads` in launch().
+            default_concurrency_limit: The default value of `concurrency_limit` to use for event listeners that don't specify a value. Can be set by environment variable GRADIO_DEFAULT_CONCURRENCY_LIMIT. Defaults to 1 if not set otherwise.
         Example: (Blocks)
             with gr.Blocks() as demo:
                 button = gr.Button(label="Generate Image")
@@ -1683,6 +1686,7 @@ Received outputs:
             update_intervals=status_update_rate if status_update_rate != "auto" else 1,
             max_size=max_size,
             block_fns=self.fns,
+            default_concurrency_limit=default_concurrency_limit,
         )
         self.config = self.get_config_file()
         self.app = routes.App.create_app(self)
@@ -1732,7 +1736,6 @@ Received outputs:
         state_session_capacity: int = 10000,
         share_server_address: str | None = None,
         share_server_protocol: Literal["http", "https"] | None = None,
-        default_concurrency_limit: int | None | Literal["not_set"] = "not_set",
         _frontend: bool = True,
     ) -> tuple[FastAPI, str, str]:
         """
@@ -1767,7 +1770,6 @@ Received outputs:
             state_session_capacity: The maximum number of sessions whose information to store in memory. If the number of sessions exceeds this number, the oldest sessions will be removed. Reduce capacity to reduce memory usage when using gradio.State or returning updated components from functions. Defaults to 10000.
             share_server_address: Use this to specify a custom FRP server and port for sharing Gradio apps (only applies if share=True). If not provided, will use the default FRP server at https://gradio.live. See https://github.com/huggingface/frp for more information.
             share_server_protocol: Use this to specify the protocol to use for the share links. Defaults to "https", unless a custom share_server_address is provided, in which case it defaults to "http". If you are using a custom share_server_address and want to use https, you must set this to "https".
-            default_concurrency_limit: The default value of `concurrency_limit` to use for event listeners that don't specify a value. Can be set by environment variable GRADIO_DEFAULT_CONCURRENCY_LIMIT. Defaults to 1 if not set otherwise.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -1830,7 +1832,6 @@ Received outputs:
         self.config = self.get_config_file()
         self.max_threads = max_threads
         self._queue.max_thread_count = max_threads
-        self._queue.set_concurrency_limit(default_concurrency_limit)
 
         if self.is_running:
             if not isinstance(self.local_url, str):
