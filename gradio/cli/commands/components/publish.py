@@ -75,8 +75,13 @@ def _get_max_version(distribution_files: list[Path]) -> str | None:
     versions = []
     for p in distribution_files:
         version = _get_version_from_file(p)
+        # If anything goes wrong, just return None so we upload all files
+        # better safe than sorry
         if version:
-            versions.append(semantic_version.Version(version))
+            try:
+                versions.append(semantic_version.Version(version))
+            except ValueError:
+                return None
     return str(max(versions)) if versions else None
 
 
@@ -172,15 +177,20 @@ def _publish(
             # do our best to only upload the latest versions
             max_version = _get_max_version(distribution_files)
 
-            def predicate(p):
-                return max_version in p.name
-
             if not max_version:
-
-                def predicate(p):
+                # Have to write it in this awkward way cause ruff doesn't like lambdas
+                # and black doesn't like two functions with the same name
+                def predicate_(p):
                     return True
 
-            twine_files = [str(p) for p in distribution_files if predicate(p)]
+                twine_files = [str(p) for p in distribution_files if predicate_(p)]
+            else:
+
+                def predicate(p):
+                    return max_version in p.name
+
+                twine_files = [str(p) for p in distribution_files if predicate(p)]
+
             print(f"Uploading files: {','.join(twine_files)}")
             twine_upload(twine_settings, twine_files)
         except Exception:
