@@ -54,7 +54,7 @@
 		pending = false;
 	}
 
-	$: if(uploading) value = null;
+	$: if (uploading) value = null;
 
 	$: value && !value.url && (value = normalise_file(value, root, null));
 
@@ -198,7 +198,7 @@
 					on:click={() => handle_toolbar(source)}
 					Icon={sources_meta[source].icon}
 					size="large"
-					label='{source}-image-toolbar-btn'
+					label="{source}-image-toolbar-btn"
 					padded={false}
 				/>
 			{/each}

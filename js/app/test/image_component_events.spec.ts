@@ -53,9 +53,8 @@ test("Image copy from clipboard dispatches upload event.", async ({ page }) => {
 		navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
 	});
 
-	// Not sure if there's a better way to click the clipboard button
 	await page.pause();
-	await page.getByRole("button").nth(2).click();
+	await page.getByLabel("clipboard-image-toolbar-btn").click();
 	await page.pause();
 	await expect(page.getByLabel("# Change Events").first()).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
