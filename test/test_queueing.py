@@ -73,6 +73,7 @@ class TestQueueing:
     @pytest.mark.parametrize(
         "default_concurrency_limit, statuses",
         [
+            ("not_set", ["IN_QUEUE", "IN_QUEUE", "PROCESSING"]),
             (None, ["PROCESSING", "PROCESSING", "PROCESSING"]),
             (1, ["IN_QUEUE", "IN_QUEUE", "PROCESSING"]),
             (2, ["IN_QUEUE", "PROCESSING", "PROCESSING"]),
