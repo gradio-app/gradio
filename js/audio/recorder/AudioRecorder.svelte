@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import type { I18nFormatter } from "@gradio/utils";
+	import { createEventDispatcher } from "svelte";
 	import WaveSurfer from "wavesurfer.js";
 	import { skipAudio, process_audio } from "../shared/utils";
 	import WSRecord from "wavesurfer.js/dist/plugins/record.js";
@@ -11,7 +12,6 @@
 
 	export let mode: string;
 	export let i18n: I18nFormatter;
-	export let dispatch: (event: any, detail?: any) => void;
 	export let dispatch_blob: (
 		blobs: Uint8Array[] | Blob[],
 		event: "stream" | "change" | "stop_recording"
@@ -46,6 +46,17 @@
 			seconds++;
 		}, 1000);
 	};
+
+	const dispatch = createEventDispatcher<{
+		start_recording: undefined;
+		pause_recording: undefined;
+		stop_recording: undefined;
+		stop: undefined;
+		play: undefined;
+		pause: undefined;
+		end: undefined;
+		edit: undefined;
+	}>();
 
 	const format_time = (seconds: number): string => {
 		const minutes = Math.floor(seconds / 60);
@@ -109,7 +120,6 @@
 
 	$: recordingWaveform?.on("finish", () => {
 		dispatch("stop");
-		dispatch("end");
 		playing = false;
 	});
 
@@ -207,7 +217,7 @@
 	{/if}
 
 	{#if micWaveform && !recordedAudio}
-		<WaveformRecordControls bind:record {i18n} {dispatch} />
+		<WaveformRecordControls bind:record {i18n} />
 	{/if}
 
 	{#if recordingWaveform && recordedAudio}
