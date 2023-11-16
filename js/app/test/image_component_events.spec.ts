@@ -21,7 +21,7 @@ test("Image click-to-upload uploads image successfuly. Clear button dispatches e
 	await page.getByLabel("Download").click();
 	const download = await downloadPromise;
 	// Automatically convert to png in the backend since PIL is very picky
-	await expect(download.suggestedFilename()).toBe("cheetah1.png");
+	await expect(download.suggestedFilename()).toBe("cheetah1.jpeg");
 
 	await page.getByLabel("Remove Image").click();
 	await expect(page.getByLabel("# Clear Events")).toHaveValue("1");

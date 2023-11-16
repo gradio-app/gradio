@@ -144,7 +144,7 @@ def save_pil_to_cache(
     img: Image.Image,
     cache_dir: str,
     name: str = "image",
-    format: Literal["png", "jpg"] = "png",
+    format: Literal["png", "jpeg"] = "png",
 ) -> str:
     bytes_data = encode_pil_to_bytes(img, format)
     temp_dir = Path(cache_dir) / hash_bytes(bytes_data)
@@ -155,7 +155,7 @@ def save_pil_to_cache(
 
 
 def save_img_array_to_cache(
-    arr: np.ndarray, cache_dir: str, format: Literal["png", "jpg"] = "png"
+    arr: np.ndarray, cache_dir: str, format: Literal["png", "jpeg"] = "png"
 ) -> str:
     pil_image = Image.fromarray(_convert(arr, np.uint8, force_copy=False))
     return save_pil_to_cache(pil_image, cache_dir, format=format)
