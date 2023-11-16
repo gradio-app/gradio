@@ -135,7 +135,7 @@
 	onMount(() =>
 		register_tool("crop", {
 			default: "crop",
-			options: _transforms || []
+			options: []
 		})
 	);
 </script>
