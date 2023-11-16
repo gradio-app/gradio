@@ -2,8 +2,8 @@
 	export let name: string;
 	export let code: string;
 	export let highlighted_code: string;
-	export let on_main: boolean = false;
-	$: on_main;
+	export let url_version: string;
+	$: url_version;
 </script>
 
 <div class="codeblock" id="{name}_code">
@@ -22,8 +22,10 @@
 </div>
 
 {#key name}
-	{#if on_main}
+	{#if url_version === "main"}
 		<gradio-app space={"gradio/" + name + "_main"} />
+	{:else if url_version === "3.50.1"}
+		<gradio-app space={"gradio/" + name + "_3-x"} />
 	{:else}
 		<gradio-app space={"gradio/" + name} />
 	{/if}

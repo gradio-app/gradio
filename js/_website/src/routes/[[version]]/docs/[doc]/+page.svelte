@@ -20,6 +20,7 @@
 	let py_client = data.py_client;
 	let on_main: boolean;
 	let wheel: string = data.wheel;
+	let url_version: string = data.url_version;
 
 	let headers: [string, string][];
 	let method_headers: [string, string][];
@@ -67,6 +68,7 @@
 	$: modals = data.modals;
 	$: routes = data.routes;
 	$: py_client = data.py_client;
+	$: url_version = data.url_version;
 </script>
 
 <MetaTags
@@ -193,16 +195,21 @@
 							<div class="embedded-component">
 								{#key obj.name}
 									{#if obj.name !== "State"}
-										{#if on_main}
+										{#if url_version === "main"}
 											<gradio-app
 												space={"gradio/" +
 													obj.name.toLowerCase() +
 													"_component_main"}
 											/>
-										{:else}
+										{:else if url_version === "3.50.1"}
 											<gradio-app
 												space={"gradio/" +
 													obj.name.toLowerCase() +
+													"_component_3-x"}
+											/>
+										{:else }
+											<gradio-app
+												space={"gradio/" + obj.name.toLowerCase() + 
 													"_component"}
 											/>
 										{/if}

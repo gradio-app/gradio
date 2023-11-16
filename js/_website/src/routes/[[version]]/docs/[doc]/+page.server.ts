@@ -24,7 +24,8 @@ export async function load({ params, parent }) {
 		routes,
 		on_main,
 		wheel,
-		pages
+		pages,
+		url_version
 	} = await parent();
 
 	let name = params.doc;
@@ -137,6 +138,7 @@ export async function load({ params, parent }) {
 		headers,
 		method_headers,
 		on_main,
-		wheel
+		wheel,
+		url_version
 	};
 }
