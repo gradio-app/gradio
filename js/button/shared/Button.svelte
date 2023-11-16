@@ -33,6 +33,7 @@
 			: null}
 		id={elem_id}
 	>
+		~ THIS SHOULD BE FLAGGED IN CHROMATIC ~
 		{#if icon}
 			<img class="button-icon" src={icon_path} alt={`${value} icon`} />
 		{/if}
