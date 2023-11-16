@@ -1,7 +1,4 @@
 export const redirects = {
-	"/guides/creating-a-new-component":
-		"/guides/custom-components-in-five-minutes",
-	"/guides/five-minute-guide": "/guides/custom-components-in-five-minutes",
 	"/controlling-layout": "/guides/controlling-layout",
 	"/state-in-blocks": "/guides/state-in-blocks",
 	"/custom-CSS-and-JS": "/guides/custom-CSS-and-JS",

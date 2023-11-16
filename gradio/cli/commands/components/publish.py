@@ -1,9 +1,13 @@
+from __future__ import annotations
+
 import random
+import re
 import shutil
 import tempfile
 from pathlib import Path
 from typing import Optional
 
+import semantic_version
 from huggingface_hub import HfApi
 from rich import print
 from rich.console import Console
@@ -59,6 +63,21 @@ def _ignore(s, names):
         if "__pycache__" in n or n.startswith("dist") or n.startswith("node_modules"):
             ignored.append(n)
     return ignored
+
+
+def _get_version_from_file(dist_file: Path) -> str | None:
+    match = re.search(r"-(\d+\.\d+\.\d+[a-zA-Z]*\d*)-", dist_file.name)
+    if match:
+        return match.group(1)
+
+
+def _get_max_version(distribution_files: list[Path]) -> str | None:
+    versions = []
+    for p in distribution_files:
+        version = _get_version_from_file(p)
+        if version:
+            versions.append(semantic_version.Version(version))
+    return str(max(versions)) if versions else None
 
 
 def _publish(
@@ -150,7 +169,18 @@ def _publish(
                 "No pypi username or password provided and no ~/.pypirc file found."
             )
         try:
-            twine_files = [str(p) for p in distribution_files]
+            # do our best to only upload the latest versions
+            max_version = _get_max_version(distribution_files)
+
+            def predicate(p):
+                return max_version in p.name
+
+            if not max_version:
+
+                def predicate(p):
+                    return True
+
+            twine_files = [str(p) for p in distribution_files if predicate(p)]
             print(f"Uploading files: {','.join(twine_files)}")
             twine_upload(twine_settings, twine_files)
         except Exception:

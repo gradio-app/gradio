@@ -7,6 +7,7 @@ from gradio.cli.commands.components._create_utils import OVERRIDES
 from gradio.cli.commands.components.build import _build
 from gradio.cli.commands.components.create import _create
 from gradio.cli.commands.components.install_component import _install
+from gradio.cli.commands.components.publish import _get_version_from_file
 from gradio.cli.commands.components.show import _show
 
 
@@ -166,3 +167,14 @@ demo.launch()
 """
     )
     assert app.strip() == answer.strip()
+
+
+def test_get_version_from_wheel():
+    assert (
+        _get_version_from_file(Path("gradio_textwithattachments-0.0.3-py3-none.whl"))
+        == "0.0.3"
+    )
+    assert (
+        _get_version_from_file(Path("gradio_textwithattachments-1.0.3b12-py3-none.whl"))
+        == "1.0.3b12"
+    )
