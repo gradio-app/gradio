@@ -3,7 +3,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+import semantic_version
 import typer
+from tomlkit import dump, parse
 from typing_extensions import Annotated
 
 import gradio
@@ -20,6 +22,9 @@ def _build(
     build_frontend: Annotated[
         bool, typer.Option(help="Whether to build the frontend as well.")
     ] = True,
+    bump_version: Annotated[
+        bool, typer.Option(help="Whether to bump the version number automatically.")
+    ] = False,
 ):
     name = Path(path).resolve()
     if not (name / "pyproject.toml").exists():
@@ -29,6 +34,24 @@ def _build(
         live.update(
             f":package: Building package in [orange3]{str(name.name)}[/]", add_sleep=0.2
         )
+        pyproject_toml = parse((path / "pyproject.toml").read_text())
+        if bump_version:
+            pyproject_toml = parse((path / "pyproject.toml").read_text())
+            version = semantic_version.Version(pyproject_toml["project"]["version"]).next_patch()  # type: ignore
+            live.update(
+                f":1234: Using version [bold][magenta]{version}[/][/]. "
+                "Set [bold][magenta]--no-bump-version[/][/] to use the version in pyproject.toml file."
+            )
+            pyproject_toml["project"]["version"] = str(version)  # type: ignore
+            with open(path / "pyproject.toml", "w") as f:
+                dump(pyproject_toml, f)
+        else:
+            version = pyproject_toml["project"]["version"]  # type: ignore
+            live.update(
+                f":1234: Package will use version [bold][magenta]{version}[/][/] defined in pyproject.toml file. "
+                "Set [bold][magenta]--bump-version[/][/] to automatically bump the version number."
+            )
+
         if build_frontend:
             live.update(":art: Building frontend")
             component_directory = path.resolve()
