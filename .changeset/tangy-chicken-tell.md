@@ -4,4 +4,4 @@
 "gradio": patch
 ---
 
-fix:6348 fix dev mode examples
+fix:Gradio custom component dev mode now detects changes to Example.svelte file
