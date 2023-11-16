@@ -27,9 +27,15 @@ def format_image(
     elif type == "numpy":
         return np.array(im)
     elif type == "filepath":
-        path = processing_utils.save_pil_to_cache(
-            im, cache_dir=cache_dir, name=name, format=fmt or format  # type: ignore
-        )
+        try:
+            path = processing_utils.save_pil_to_cache(
+                im, cache_dir=cache_dir, name=name, format=fmt or format  # type: ignore
+            )
+        # Catch error if format is not supported by PIL
+        except Exception:
+            path = processing_utils.save_pil_to_cache(
+                im, cache_dir=cache_dir, name=name, format="png"  # type: ignore
+            )
         return path
     else:
         raise ValueError(
@@ -40,12 +46,21 @@ def format_image(
 
 
 def save_image(y: np.ndarray | _Image.Image | str | Path, cache_dir: str):
-    # numpy and PIL get saved to png as default format
+    # numpy gets saved to png as default format
+    # PIL gets saved to its original format if possible
     if isinstance(y, np.ndarray):
         path = processing_utils.save_img_array_to_cache(y, cache_dir=cache_dir)
     elif isinstance(y, _Image.Image):
-        path = processing_utils.save_pil_to_cache(y, cache_dir=cache_dir)
-    # We preserve the format if the developer passes a filepath
+        fmt = y.format
+        try:
+            path = processing_utils.save_pil_to_cache(
+                y, cache_dir=cache_dir, format=fmt  # type: ignore
+            )
+        # Catch error if format is not supported by PIL
+        except Exception:
+            path = processing_utils.save_pil_to_cache(
+                y, cache_dir=cache_dir, format="png"
+            )
     elif isinstance(y, Path):
         path = str(y)
     elif isinstance(y, str):
