@@ -86,7 +86,6 @@
 	$: waveform?.on("finish", () => {
 		playing = false;
 		dispatch("stop");
-		dispatch("end");
 	});
 	$: waveform?.on("pause", () => {
 		playing = false;

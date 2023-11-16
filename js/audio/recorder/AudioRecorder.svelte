@@ -120,7 +120,6 @@
 
 	$: recordingWaveform?.on("finish", () => {
 		dispatch("stop");
-		dispatch("end");
 		playing = false;
 	});
 

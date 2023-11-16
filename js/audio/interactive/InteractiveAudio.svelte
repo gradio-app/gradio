@@ -256,7 +256,6 @@
 		on:stop
 		on:play
 		on:pause
-		on:end
 		on:edit
 	/>
 {/if}

@@ -68,7 +68,6 @@
 		{i18n}
 		{waveform_settings}
 		{waveform_options}
-		on:end
 		on:pause
 		on:play
 		on:stop
