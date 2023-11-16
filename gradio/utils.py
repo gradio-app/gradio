@@ -15,6 +15,7 @@ import re
 import threading
 import traceback
 import typing
+import urllib.parse
 import warnings
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
@@ -969,3 +970,13 @@ def default_input_labels():
     while True:
         yield f"input {n}"
         n += 1
+
+
+def get_extension_from_file_path_or_url(file_path_or_url: str) -> str:
+    """
+    Returns the file extension (without the dot) from a file path or URL. If the file path or URL does not have a file extension, returns an empty string.
+    For example, "https://example.com/avatar/xxxx.mp4?se=2023-11-16T06:51:23Z&sp=r" would return "mp4".
+    """
+    parsed_url = urllib.parse.urlparse(file_path_or_url)
+    file_extension = os.path.splitext(os.path.basename(parsed_url.path))[1]
+    return file_extension[1:] if file_extension else ""

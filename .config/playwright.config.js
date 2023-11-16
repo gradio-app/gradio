@@ -1,7 +1,12 @@
 export default {
 	use: {
 		screenshot: "only-on-failure",
-		trace: "retain-on-failure"
+		trace: "retain-on-failure",
+		permissions: ["clipboard-read", "clipboard-write"],
+		bypassCSP: true,
+		launchOptions: {
+			args: ["--disable-web-security"]
+		}
 	},
 	testMatch: /.*.spec.ts/,
 	testDir: "..",

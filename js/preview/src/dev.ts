@@ -122,13 +122,13 @@ function generate_imports(component_dir: string, root: string): string {
 		);
 
 		const exports: Record<string, string | undefined> = {
-			component: pkg.exports["."] as string,
-			exmaple: pkg.exports["./example"] as string
+			component: pkg.exports["."],
+			example: pkg.exports["./example"]
 		};
 
 		const example = exports.example
 			? `example: () => import("${to_posix(
-					join(component.frontend_dir, "example")
+					join(component.frontend_dir, exports.example)
 			  )}"),\n`
 			: "";
 		return `${acc}"${component.component_class_id}": {
