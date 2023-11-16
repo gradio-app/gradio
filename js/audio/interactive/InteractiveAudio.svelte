@@ -215,7 +215,6 @@
 			<AudioRecorder
 				bind:mode
 				{i18n}
-				{dispatch}
 				{dispatch_blob}
 				{waveform_settings}
 				{waveform_options}
@@ -248,13 +247,17 @@
 		{value}
 		{label}
 		{i18n}
-		{dispatch}
 		{dispatch_blob}
 		{waveform_settings}
 		{waveform_options}
 		{trim_region_settings}
 		{handle_reset_value}
 		interactive
+		on:stop
+		on:play
+		on:pause
+		on:end
+		on:edit
 	/>
 {/if}
 

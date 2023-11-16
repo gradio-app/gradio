@@ -9,12 +9,12 @@
 	import { resolve_wasm_src } from "@gradio/wasm/svelte";
 	import type { FileData } from "@gradio/client";
 	import type { WaveformOptions } from "../shared/types";
+	import { createEventDispatcher } from "svelte";
 
 	export let value: null | FileData = null;
 	$: url = value?.url;
 	export let label: string;
 	export let i18n: I18nFormatter;
-	export let dispatch: (event: any, detail?: any) => void;
 	export let dispatch_blob: (
 		blobs: Uint8Array[] | Blob[],
 		event: "stream" | "change" | "stop_recording"
@@ -37,6 +37,14 @@
 	let trimDuration = 0;
 
 	let show_volume_slider = false;
+
+	const dispatch = createEventDispatcher<{
+		stop: undefined;
+		play: undefined;
+		pause: undefined;
+		edit: undefined;
+		end: undefined;
+	}>();
 
 	const formatTime = (seconds: number): string => {
 		const minutes = Math.floor(seconds / 60);

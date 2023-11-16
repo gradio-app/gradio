@@ -66,9 +66,12 @@
 		{value}
 		{label}
 		{i18n}
-		{dispatch}
 		{waveform_settings}
 		{waveform_options}
+		on:end
+		on:pause
+		on:play
+		on:stop
 	/>
 {:else}
 	<Empty size="small">
