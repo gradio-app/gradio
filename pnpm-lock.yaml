@@ -1,4 +1,4 @@
-lockfileVersion: '6.0'
+lockfileVersion: '6.1'
 
 settings:
   autoInstallPeers: true
@@ -202,8 +202,8 @@ importers:
         specifier: ^7.5.1
         version: 7.5.1(react-dom@18.2.0)(react@18.2.0)
       chromatic:
-        specifier: ^7.0.0
-        version: 7.0.0
+        specifier: ^9.0.0
+        version: 9.0.0
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -8416,8 +8416,8 @@ packages:
     resolution: {integrity: sha512-bIomtDF5KGpdogkLd9VspvFzk9KfpyyGlS8YFVZl7TGPBHL5snIOnxeshwVgPteQ9b4Eydl+pVbIyE1DcvCWgQ==}
     engines: {node: '>=10'}
 
-  /chromatic@7.0.0:
-    resolution: {integrity: sha512-ZPHRO/6v0jAKk0G1oW+HAngQmbq+opAVkgjy3Yx5Cvxvpfv+Y7zyfBuQ8KHewoNuIqLTfvRTbKzekqbGYT+7UQ==}
+  /chromatic@9.0.0:
+    resolution: {integrity: sha512-PczbWYOfqsf/SM0yIzI3ZOpFznEyf9Fc96EkxoYkhztFaA9CEOcpA9nk8zpmNgPUQWmIWNyG7z4xEK40sApFzw==}
     hasBin: true
     dev: true
 
