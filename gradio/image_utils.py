@@ -15,6 +15,7 @@ def format_image(
     im: _Image.Image | None,
     type: Literal["numpy", "pil", "filepath"],
     cache_dir: str,
+    name: str = "image",
 ) -> np.ndarray | _Image.Image | str | None:
     """Helper method to format an image based on self.type"""
     if im is None:
@@ -26,7 +27,7 @@ def format_image(
         return np.array(im)
     elif type == "filepath":
         path = processing_utils.save_pil_to_cache(
-            im, cache_dir=cache_dir, format=fmt or "png"  # type: ignore
+            im, cache_dir=cache_dir, name=name, format=fmt or "png"  # type: ignore
         )
         return path
     else:

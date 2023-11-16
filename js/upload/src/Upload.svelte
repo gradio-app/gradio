@@ -15,8 +15,8 @@
 	export let root: string;
 	export let hidden = false;
 	export let include_sources = false;
+	export let uploading = false;
 
-	let uploading = false;
 	let upload_id: string;
 	let file_data: FileData[];
 
