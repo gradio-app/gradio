@@ -140,6 +140,11 @@ export function command_manager(): CommandManager {
 		},
 
 		can_undo,
-		can_redo
+		can_redo,
+		reset: function () {
+			history = command_node();
+			can_undo.set(false);
+			can_redo.set(false);
+		}
 	};
 }

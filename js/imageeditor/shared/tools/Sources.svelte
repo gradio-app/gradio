@@ -1,15 +1,11 @@
 <script lang="ts">
-	import { Toolbar } from "@gradio/atoms";
-	import { getContext, onDestroy, onMount, tick } from "svelte";
-	import { Assets, Sprite, Texture } from "pixi.js";
+	import { getContext, onMount, tick } from "svelte";
 	import { type ToolContext, TOOL_KEY } from "./Tools.svelte";
 	import { type EditorContext, EDITOR_KEY } from "../ImageEditor.svelte";
 	import {
 		Upload as UploadIcon,
 		Webcam as WebcamIcon,
-		ImagePaste,
-		Palette,
-		Image as ImageIcon
+		ImagePaste
 	} from "@gradio/icons";
 	import { Upload } from "@gradio/upload";
 	import { Webcam } from "@gradio/image";
@@ -133,9 +129,8 @@
 
 	register_context("bg", {
 		init_fn: () => {
-			console.log("RUNNING BG INIT");
 			if (!$pixi) return;
-			console.log("ADDING BG");
+			console.log($pixi);
 
 			const add_image = add_bg_color(
 				$pixi.background_container,
@@ -145,7 +140,6 @@
 				$pixi.resize
 			);
 			$dimensions = add_image.start();
-			console.log("DIMENSIONS", $dimensions);
 			add_image.execute();
 		},
 		reset_fn: () => {}

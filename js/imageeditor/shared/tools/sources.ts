@@ -89,16 +89,17 @@ export function add_bg_color(
 	let sprite: Sprite & DisplayObject;
 	return {
 		start() {
+			console.log({ width, height, color, container, renderer });
 			container.removeChildren();
-			const gfx = make_graphics(0);
+			const graphics = make_graphics(1);
 			const texture = RenderTexture.create({
 				width,
 				height
 			});
-			gfx.beginFill(new Color(color));
-			gfx.drawRect(0, 0, width, height);
-			gfx.endFill();
-			renderer.render(gfx, { renderTexture: texture });
+			graphics.beginFill(new Color(color));
+			graphics.drawRect(0, 0, width, height);
+			graphics.endFill();
+			renderer.render(graphics, { renderTexture: texture });
 			sprite = new Sprite(texture) as Sprite & DisplayObject;
 			return [sprite.width, sprite.height];
 		},
@@ -109,7 +110,7 @@ export function add_bg_color(
 			container.addChild(sprite);
 		},
 		undo() {
-			container.removeChildren();
+			// container.removeChildren();
 		}
 	};
 }

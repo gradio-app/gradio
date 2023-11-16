@@ -54,10 +54,10 @@ export interface PixiApp {
 		bounds: Rectangle,
 		dimensions: [number, number]
 	): Promise<ImageBlobs>;
-	/**
-	 * Resets the mask
-	 */
-	reset?: () => void;
+	// /**
+	//  * Resets the mask
+	//  */
+	// reset?: () => void;
 
 	/**
 	 * Gets the layers
@@ -245,7 +245,7 @@ function get_canvas_blob(
 	bounds: Rectangle,
 	width: number,
 	height: number
-): Promise<Blob> {
+): Promise<Blob | null> {
 	return new Promise((resolve) => {
 		// for some reason pixi won't extract a cropped canvas without distorting it
 		// so we have to extract the whole canvas and crop it manually
@@ -261,6 +261,7 @@ function get_canvas_blob(
 		let dest_ctx = dest_canvas.getContext("2d");
 
 		if (!dest_ctx) {
+			resolve(null);
 			throw new Error("Could not create canvas context");
 		}
 
@@ -282,7 +283,7 @@ function get_canvas_blob(
 		// we grab a blob here so we can upload it
 		dest_canvas.toBlob?.((blob) => {
 			if (!blob) {
-				throw new Error("Could not create blob");
+				resolve(null);
 			}
 			resolve(blob);
 		});

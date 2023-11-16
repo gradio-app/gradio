@@ -111,7 +111,7 @@
 	const contexts: Writable<context_type[]> = writable([]);
 
 	const sort_order = ["bg", "layers", "crop", "draw", "erase"] as const;
-	setContext<EditorContext>(EDITOR_KEY, {
+	const editor_context = setContext<EditorContext>(EDITOR_KEY, {
 		pixi,
 		current_layer: writable(null),
 		dimensions,
@@ -136,6 +136,7 @@
 			reset_context.update((c) => ({ ...c, [type]: reset_fn }));
 		},
 		reset: (clear_image: boolean, dimensions: [number, number]) => {
+			console.log("reset");
 			const _sorted_contexts = $contexts.sort((a, b) => {
 				return sort_order.indexOf(a) - sort_order.indexOf(b);
 			});
@@ -144,7 +145,8 @@
 					$reset_context[k]?.();
 				}
 			}
-			$pixi?.reset?.();
+
+			// $pixi?.reset?.();
 			for (const k of _sorted_contexts) {
 				if (k in $init_context && typeof $init_context[k] === "function") {
 					if (k === "bg" && !clear_image) {
@@ -235,10 +237,19 @@
 
 	function handle_remove(): void {
 		$dimensions = crop_size || [800, 600];
-		$pixi?.reset?.();
+		// $reset?.();
 	}
 
 	onMount(() => {
+		const app = create_pixi_app(pixi_target, ...crop_size, antialias);
+
+		function resize(width: number, height: number): void {
+			app.resize(width, height);
+			dimensions.set([width, height]);
+		}
+
+		pixi.set({ ...app, resize });
+
 		const resizer = new ResizeObserver((entries) => {
 			for (const entry of entries) {
 				get_dimensions(canvas_wrap, pixi_target);
@@ -248,27 +259,20 @@
 		resizer.observe(canvas_wrap);
 		resizer.observe(pixi_target);
 
-		const app = create_pixi_app(pixi_target, ...crop_size, antialias);
-
 		for (const k of $contexts) {
 			if (k in $init_context && typeof $init_context[k] === "function") {
 				$init_context[k]?.($dimensions);
 			}
 		}
 
-		function resize(width: number, height: number): void {
-			app.resize(width, height);
-			dimensions.set([width, height]);
-		}
-
-		pixi.set({ ...app, resize });
+		resize(...$dimensions);
 
 		return () => {
 			$pixi?.destroy();
 			resizer.disconnect();
 			for (const k of $contexts) {
 				if (k in $reset_context) {
-					$init_context[k]?.($dimensions);
+					$reset_context[k]?.();
 				}
 			}
 		};
