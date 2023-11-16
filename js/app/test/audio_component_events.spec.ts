@@ -79,14 +79,6 @@ test("Play, Pause, and end events work correctly.", async ({ page }) => {
 	await page.getByTestId("waveform-Output Audio").getByLabel("Pause").click();
 	await page
 		.getByTestId("waveform-Output Audio")
-		.getByLabel("Adjust volume")
-		.click();
-	await page
-		.getByTestId("waveform-Output Audio")
-		.getByLabel("Adjust volume")
-		.click();
-	await page
-		.getByTestId("waveform-Output Audio")
 		.getByLabel("Play", { exact: true })
 		.click();
 
