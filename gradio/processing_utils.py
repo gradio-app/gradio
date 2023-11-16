@@ -141,12 +141,15 @@ def hash_base64(base64_encoding: str, chunk_num_blocks: int = 128) -> str:
 
 
 def save_pil_to_cache(
-    img: Image.Image, cache_dir: str, format: Literal["png", "jpg"] = "png"
+    img: Image.Image,
+    cache_dir: str,
+    name: str = "image",
+    format: Literal["png", "jpg"] = "png",
 ) -> str:
     bytes_data = encode_pil_to_bytes(img, format)
     temp_dir = Path(cache_dir) / hash_bytes(bytes_data)
     temp_dir.mkdir(exist_ok=True, parents=True)
-    filename = str((temp_dir / f"image.{format}").resolve())
+    filename = str((temp_dir / f"{name}.{format}").resolve())
     img.save(filename, pnginfo=get_pil_metadata(img))
     return filename
 
