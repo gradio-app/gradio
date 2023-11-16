@@ -1,6 +1,6 @@
 import { test, expect } from "@gradio/tootils";
 
-test("UploadButton properly dispatches load event  and click event for the single file case.", async ({
+test("UploadButton properly dispatches load event and click event for the single file case.", async ({
 	page
 }) => {
 	await page.getByRole("button", { name: "Upload Single File" }).click();
@@ -15,13 +15,13 @@ test("UploadButton properly dispatches load event  and click event for the singl
 		page.getByLabel("# Click Upload Single File Output")
 	).toHaveValue("1");
 
-	await page.getByRole("link").nth(0).click();
 	const downloadPromise = page.waitForEvent("download");
+	await page.getByRole("link").nth(0).click();
 	const download = await downloadPromise;
 	await expect(download.suggestedFilename()).toBe("face.obj");
 });
 
-test("UploadButton properly dispatches load event  and click event for the multiple file case.", async ({
+test("UploadButton properly dispatches load event and click event for the multiple file case.", async ({
 	page
 }) => {
 	await page.getByRole("button", { name: "Upload Multiple Files" }).click();
@@ -43,8 +43,8 @@ test("UploadButton properly dispatches load event  and click event for the multi
 		page.getByLabel("# Click Upload Multiple Files Output")
 	).toHaveValue("1");
 
-	await page.getByRole("link").nth(1).click();
 	const downloadPromise = page.waitForEvent("download");
+	await page.getByRole("link").nth(1).click();
 	const download = await downloadPromise;
 	await expect(download.suggestedFilename()).toBe("cheetah1.jpg");
 });
