@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:fix(component.video): set video type correctly
+feat:Extract video filenames correctly from URLs
