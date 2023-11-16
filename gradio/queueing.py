@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import copy
 import json
+import os
 import time
 import traceback
 import uuid
@@ -78,6 +79,7 @@ class Queue:
         update_intervals: float,
         max_size: int | None,
         block_fns: list[BlockFunction],
+        default_concurrency_limit: int | None | Literal["not_set"] = "not_set",
     ):
         self.event_queue: list[Event] = []
         self.awaiting_data_events: dict[str, Event] = {}
@@ -99,20 +101,27 @@ class Queue:
         self.block_fns = block_fns
         self.continuous_tasks: list[Event] = []
         self._asyncio_tasks: list[asyncio.Task] = []
-
+        self.default_concurrency_limit = self._resolve_concurrency_limit(
+            default_concurrency_limit
+        )
         self.concurrency_limit_per_concurrency_id = {}
 
     def start(self):
         self.active_jobs = [None] * self.max_thread_count
         for block_fn in self.block_fns:
-            if block_fn.concurrency_limit is not None:
+            concurrency_limit = (
+                self.default_concurrency_limit
+                if block_fn.concurrency_limit == "default"
+                else block_fn.concurrency_limit
+            )
+            if concurrency_limit is not None:
                 self.concurrency_limit_per_concurrency_id[
                     block_fn.concurrency_id
                 ] = min(
                     self.concurrency_limit_per_concurrency_id.get(
-                        block_fn.concurrency_id, block_fn.concurrency_limit
+                        block_fn.concurrency_id, concurrency_limit
                     ),
-                    block_fn.concurrency_limit,
+                    concurrency_limit,
                 )
 
         run_coro_in_background(self.start_processing)
@@ -122,6 +131,26 @@ class Queue:
 
     def close(self):
         self.stopped = True
+
+    def _resolve_concurrency_limit(self, default_concurrency_limit):
+        """
+        Handles the logic of resolving the default_concurrency_limit as this can be specified via a combination
+        of the `default_concurrency_limit` parameter of the `Blocks.queue()` or the `GRADIO_DEFAULT_CONCURRENCY_LIMIT`
+        environment variable. The parameter in `Blocks.queue()` takes precedence over the environment variable.
+        Parameters:
+            default_concurrency_limit: The default concurrency limit, as specified by a user in `Blocks.queu()`.
+        """
+        if default_concurrency_limit != "not_set":
+            return default_concurrency_limit
+        if default_concurrency_limit_env := os.environ.get(
+            "GRADIO_DEFAULT_CONCURRENCY_LIMIT"
+        ):
+            if default_concurrency_limit_env.lower() == "none":
+                return None
+            else:
+                return int(default_concurrency_limit_env)
+        else:
+            return 1
 
     def attach_data(self, body: PredictBody):
         event_id = body.event_id
