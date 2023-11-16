@@ -1,6 +1,6 @@
 ---
-"@gradio/audio": minor
-"gradio": minor
+"@gradio/audio": patch
+"gradio": patch
 ---
 
-feat:Ensure Audio ouput events are dispatched
+fix:Ensure Audio ouput events are dispatched
