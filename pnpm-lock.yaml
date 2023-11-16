@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -161,6 +161,9 @@ importers:
       vite:
         specifier: ^4.3.9
         version: 4.3.9(@types/node@20.3.2)(less@4.2.0)
+      vite-plugin-turbosnap:
+        specifier: 1.0.3
+        version: 1.0.3
       vitest:
         specifier: ^0.34.0
         version: 0.34.0(jsdom@22.1.0)(less@4.2.0)(playwright@1.39.0)
@@ -6739,7 +6742,7 @@ packages:
     peerDependencies:
       '@sveltejs/kit': ^1.0.0
     dependencies:
-      '@sveltejs/kit': 1.26.0(svelte@4.2.3)(vite@4.5.0)
+      '@sveltejs/kit': 1.26.0(svelte@3.59.2)(vite@4.5.0)
       import-meta-resolve: 2.2.2
     dev: true
 
@@ -16213,6 +16216,10 @@ packages:
       - sugarss
       - supports-color
       - terser
+    dev: false
+
+  /vite-plugin-turbosnap@1.0.3:
+    resolution: {integrity: sha512-p4D8CFVhZS412SyQX125qxyzOgIFouwOcvjZWk6bQbNPR1wtaEzFT6jZxAjf1dejlGqa6fqHcuCvQea6EWUkUA==}
     dev: false
 
   /vite@4.3.9(@types/node@20.3.2)(less@4.2.0):
