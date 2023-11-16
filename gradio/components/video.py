@@ -275,9 +275,8 @@ class Video(Component):
                 "Video does not have browser-compatible container or codec. Converting to mp4"
             )
             video = processing_utils.convert_video_to_playable_mp4(video)
-        # Recalculate the format in case convert_video_to_playable_mp4 already made it the
-        # selected format
-        returned_format = video.split(".")[-1].lower()
+        # Recalculate the format in case convert_video_to_playable_mp4 already made it the selected format
+        returned_format = utils.get_extension_from_file_path_or_url(video).lower()
         if self.format is not None and returned_format != self.format:
             if wasm_utils.IS_WASM:
                 raise wasm_utils.WasmUnsupportedError(
