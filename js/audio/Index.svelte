@@ -150,6 +150,9 @@
 			{waveform_options}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
+			on:play={() => gradio.dispatch("play")}
+			on:pause={() => gradio.dispatch("pause")}
+			on:stop={() => gradio.dispatch("stop")}
 		/>
 	</Block>
 {:else}
@@ -190,7 +193,6 @@
 			on:play={() => gradio.dispatch("play")}
 			on:pause={() => gradio.dispatch("pause")}
 			on:stop={() => gradio.dispatch("stop")}
-			on:end={() => gradio.dispatch("end")}
 			on:start_recording={() => gradio.dispatch("start_recording")}
 			on:pause_recording={() => gradio.dispatch("pause_recording")}
 			on:stop_recording={(e) => gradio.dispatch("stop_recording", e.detail)}
