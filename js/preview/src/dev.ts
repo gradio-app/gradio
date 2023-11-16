@@ -53,7 +53,6 @@ export async function create_server({
 				port: frontend_port,
 				host: host,
 				fs: {
-					strict: false,
 					allow: [root_dir, NODE_DIR, component_dir]
 				}
 			},
