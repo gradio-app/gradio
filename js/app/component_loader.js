@@ -9,13 +9,10 @@ export async function load_component({ api_url, name, id, variant }) {
 		...(!comps ? {} : comps)
 	};
 	try {
-		//@ts-ignore
-		console.log("id variant", _component_map?.[id]?.[variant]);
 		const c = await (
 			_component_map?.[id]?.[variant] || // for dev mode custom components
 			_component_map?.[name]?.[variant]
 		)();
-		console.log("worked", c)
 		return {
 			name,
 			component: c
