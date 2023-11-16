@@ -15,6 +15,7 @@ import re
 import threading
 import traceback
 import typing
+import urllib.parse
 import warnings
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
@@ -969,3 +970,12 @@ def default_input_labels():
     while True:
         yield f"input {n}"
         n += 1
+
+
+def get_extension_from_file_path_or_url(file_path_or_url: str) -> str:
+    """
+    Returns the file extension from a file path or URL. If the file path or URL does not have a file extension, returns an empty string.
+    """
+    parsed_url = urllib.parse.urlparse(file_path_or_url)
+    file_extension = os.path.splitext(os.path.basename(parsed_url.path))[1]
+    return file_extension
