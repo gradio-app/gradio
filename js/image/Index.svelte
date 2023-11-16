@@ -61,7 +61,9 @@
 		share: ShareData;
 	}>;
 
-	$: value?.url && gradio.dispatch("change");
+	$: url = _value?.url;
+	$: url && gradio.dispatch("change");
+
 	let dragging: boolean;
 	let active_tool: null | "webcam" = null;
 </script>
@@ -127,7 +129,10 @@
 			{root}
 			{sources}
 			on:edit={() => gradio.dispatch("edit")}
-			on:clear={() => gradio.dispatch("clear")}
+			on:clear={() => {
+				gradio.dispatch("clear");
+				gradio.dispatch("change");
+			}}
 			on:stream={() => gradio.dispatch("stream")}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:upload={() => gradio.dispatch("upload")}
