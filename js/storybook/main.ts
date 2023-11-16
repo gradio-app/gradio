@@ -26,7 +26,7 @@ const config: StorybookConfig = {
 	async viteFinal(config, { configType }) {
 		return mergeConfig(config, {
 			plugins:
-				configType === "DEVELOPMENT"
+				configType === "PRODUCTION"
 					? [
 							turbosnap({
 								rootDir: `${process.cwd()}/js/storybook`
@@ -37,5 +37,3 @@ const config: StorybookConfig = {
 	}
 };
 export default config;
-
-console.log(`${process.cwd()}/js/storybook`);
