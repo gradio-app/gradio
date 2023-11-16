@@ -25,7 +25,7 @@
 	export let i18n: I18nFormatter;
 
 	const { active_tool, register_tool } = getContext<ToolContext>(TOOL_KEY);
-	const { pixi, dimensions, register_context, reset } =
+	const { pixi, dimensions, register_context, reset, editor_box } =
 		getContext<EditorContext>(EDITOR_KEY);
 
 	let active_mode: "webcam" | "color" | null = null;
@@ -130,7 +130,6 @@
 	register_context("bg", {
 		init_fn: () => {
 			if (!$pixi) return;
-			console.log($pixi);
 
 			const add_image = add_bg_color(
 				$pixi.background_container,
@@ -146,12 +145,6 @@
 	});
 
 	onMount(() => {
-		tick().then(() => {
-			if (!$pixi) return;
-			function reset(): void {}
-			$pixi = { ...$pixi, reset };
-		});
-
 		return register_tool("bg", {
 			default: "bg_upload",
 			options: sources_list || []
@@ -174,7 +167,12 @@
 			format="blob"
 		></Upload>
 		{#if active_mode === "webcam"}
-			<div class="modal">
+			<div
+				class="modal"
+				style:max-width="{$editor_box.child_width}px"
+				style:max-height="{$editor_box.child_height}px"
+				style:top="{$editor_box.child_top - $editor_box.parent_top}px"
+			>
 				<div class="modal-inner">
 					<Webcam
 						on:capture={handle_upload}
@@ -194,16 +192,12 @@
 
 <style>
 	.modal {
-		position: fixed;
-		top: 0;
+		position: absolute;
+
 		left: 0;
-		width: 100%;
-		height: 100%;
+		right: 0;
+
+		margin: auto;
 		z-index: var(--layer-top);
-		background: rgba(0, 0, 0, 0.9);
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		padding: 20px;
 	}
 </style>
