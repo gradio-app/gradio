@@ -89,7 +89,6 @@ export function add_bg_color(
 	let sprite: Sprite & DisplayObject;
 	return {
 		start() {
-			console.log({ width, height, color, container, renderer });
 			container.removeChildren();
 			const graphics = make_graphics(1);
 			const texture = RenderTexture.create({

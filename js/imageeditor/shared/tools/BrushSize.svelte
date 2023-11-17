@@ -1,6 +1,6 @@
 <script lang="ts">
-	export let sizes: string[];
-	export let selected_size: string;
+	export let sizes: number[];
+	export let selected_size: number;
 	export let size_mode: Brush["color_mode"] | undefined = undefined;
 	export let min: number;
 	export let max: number;

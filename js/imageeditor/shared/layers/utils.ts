@@ -128,7 +128,6 @@ export function layer_manager(): LayerManager {
 			width: number,
 			height: number
 		): [LayerScene, LayerScene[]] {
-			console.log({ width, height });
 			const layer_container = new Container() as Container & DisplayObject;
 			position++;
 			layer_container.zIndex = position;

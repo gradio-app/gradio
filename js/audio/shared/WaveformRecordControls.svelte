@@ -1,12 +1,11 @@
 <script lang="ts">
-	import { onMount } from "svelte";
 	import { Pause } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
+	import { createEventDispatcher } from "svelte";
 
 	export let record: RecordPlugin;
 	export let i18n: I18nFormatter;
-	export let dispatch: (event: string, detail?: any) => void;
 
 	let micDevices: MediaDeviceInfo[] = [];
 	let recordButton: HTMLButtonElement;
@@ -14,6 +13,10 @@
 	let resumeButton: HTMLButtonElement;
 	let stopButton: HTMLButtonElement;
 	let stopButtonPaused: HTMLButtonElement;
+
+	const dispatch = createEventDispatcher<{
+		error: string;
+	}>();
 
 	$: try {
 		let tempDevices: MediaDeviceInfo[] = [];

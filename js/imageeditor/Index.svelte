@@ -43,10 +43,7 @@
 	];
 	export let proxy_url: string;
 	export let interactive: boolean;
-	export let streaming: boolean;
-	export let pending: boolean;
-	export let mirror_webcam: boolean;
-	export let transforms: ("crop" | "rotate")[];
+
 	export let brush: Brush;
 	export let eraser: Eraser;
 
