@@ -18,7 +18,10 @@ if __name__ == "__main__":
         pyproject_source = f.read()
 
     pyproject_toml = parse(pyproject_source)
-    if "gradio custom component" not in pyproject_toml["project"]["keywords"]:
+    keywords = pyproject_toml["project"]["keywords"]
+    custom_component = ("gradio-custom-component" in  keywords or
+                           "gradio custom component" in keywords)
+    if not custom_component:
         exit(0)
 
     module_name = pyproject_toml["project"]["name"]
