@@ -52,6 +52,7 @@
 	export let gradio: Gradio<{
 		change: never;
 		error: string;
+		input: never;
 		edit: never;
 		stream: never;
 		drag: never;
@@ -71,8 +72,20 @@
 
 	let dragging: boolean;
 
-	function handle_change(detail: EditorData): void {
+	$: value && handle_change();
+
+	function handle_change(): void {
+		if (
+			value &&
+			(value.background || value.layers?.length || value.composite)
+		) {
+			gradio.dispatch("change");
+		}
+	}
+
+	function handle_save(): void {
 		gradio.dispatch("change");
+		gradio.dispatch("input");
 	}
 </script>
 
@@ -138,7 +151,7 @@
 			bind:this={editor_instance}
 			{root}
 			{sources}
-			on:save={(e) => handle_change(e.detail)}
+			on:save={(e) => handle_save()}
 			on:edit={() => gradio.dispatch("edit")}
 			on:clear={() => gradio.dispatch("clear")}
 			on:stream={() => gradio.dispatch("stream")}
