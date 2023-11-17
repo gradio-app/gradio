@@ -32,7 +32,8 @@
 			): Unsubscriber;
 		};
 		activate_subtool: (
-			sub_tool: upload_tool | transform_tool | brush_tool | eraser_tool | null
+			sub_tool: upload_tool | transform_tool | brush_tool | eraser_tool | null,
+			cb?: (...args: any[]) => void
 		) => void;
 	}
 </script>
@@ -45,7 +46,7 @@
 	import { Image, Crop, Brush, Erase } from "@gradio/icons";
 	import { type I18nFormatter } from "@gradio/utils";
 
-	const { pixi, current_layer, dimensions } =
+	const { pixi, current_layer, dimensions, current_history } =
 		getContext<EditorContext>(EDITOR_KEY);
 
 	export let i18n: I18nFormatter;
@@ -80,9 +81,11 @@
 		},
 
 		activate_subtool: (
-			_sub_tool: upload_tool | transform_tool | brush_tool | eraser_tool | null
+			_sub_tool: upload_tool | transform_tool | brush_tool | eraser_tool | null,
+			cb?: (...args: any[]) => void
 		) => {
 			sub_tool = _sub_tool;
+			if (cb) cb();
 		}
 	};
 
@@ -127,7 +130,7 @@
 			{#each sub_menu.options as meta (meta.id)}
 				<IconButton
 					highlight={sub_tool === meta.id}
-					on:click={meta.cb}
+					on:click={() => tool_context.activate_subtool(meta.id, meta.cb)}
 					Icon={meta.icon}
 					size="large"
 					padded={false}
@@ -141,6 +144,7 @@
 	<Toolbar show_border={false}>
 		{#each tools as tool (tool)}
 			<IconButton
+				disabled={tool === "bg" && !!$current_history.previous}
 				highlight={$active_tool === tool}
 				on:click={() => ($active_tool = tool)}
 				Icon={tools_meta[tool].icon}

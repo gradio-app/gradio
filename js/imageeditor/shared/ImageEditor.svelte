@@ -33,7 +33,7 @@
 			y: number;
 		}>;
 		command_manager: CommandManager;
-
+		current_history: CommandManager["current_history"];
 		register_context: (
 			type: context_type,
 			{
@@ -116,7 +116,7 @@
 		crop,
 		position_spring,
 		command_manager: CommandManager,
-
+		current_history,
 		register_context: (
 			type: context_type,
 			{
@@ -150,7 +150,7 @@
 						$init_context[k]?.(dimensions);
 					}
 				}
-
+				CommandManager.reset();
 				$pixi?.resize?.(...dimensions);
 			}
 		}

@@ -11,6 +11,8 @@
 	export let hasPopup = false;
 	export let background = "transparent";
 	export let color = "var(--block-label-text-color)";
+
+	$: _color = highlight ? "var(--color-accent)" : color;
 </script>
 
 <button
@@ -23,7 +25,7 @@
 	class:padded
 	class:highlight
 	style:background={!disabled && background ? background : "transparent"}
-	style:color={!disabled && color ? color : "var(--block-label-text-color)"}
+	style:color={!disabled && _color ? _color : "var(--block-label-text-color)"}
 >
 	{#if show_label}<span>{label}</span>{/if}
 	<div class:small={size === "small"} class:large={size === "large"}>
@@ -51,8 +53,8 @@
 
 	button[disabled]:hover {
 		cursor: not-allowed;
-		border: 1px solid var(--button-secondary-border-color);
-		padding: 2px;
+		/* border: 1px solid var(--button-secondary-border-color); */
+		/* padding: 2px; */
 	}
 
 	.padded {

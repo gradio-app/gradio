@@ -22,7 +22,7 @@ set_documentation_group("component")
 _Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
 
-class PreprocessData(TypedDict):
+class EditorValue(TypedDict):
     background: Optional[Union[np.ndarray, _Image.Image, str]]
     layers: list[Union[np.ndarray, _Image.Image, str]]
     composite: Optional[Union[np.ndarray, _Image.Image, str]]
@@ -36,21 +36,17 @@ class EditorData(GradioModel):
 
 @dataclasses.dataclass
 class Eraser:
-    sizes: list[int] | Literal["auto"] = "auto"
-    default_size: int | Literal["auto"] = "auto"
-    size_mode: Literal["fixed", "defaults"] = "defaults"
-    antialias: bool = True
+    default_size: Union[int, Literal["auto"]] = "auto"
 
 
 @dataclasses.dataclass
 class Brush(Eraser):
     colors: Union[
-        list[Union[str, tuple[int, int, int, int]]],
-        tuple[int, int, int, int],
+        list[str],
         str,
         None,
     ] = None
-    default_color: Union[str, tuple[int, int, int, int], None] = None
+    default_color: Union[str, Literal["auto"]] = "auto"
     color_mode: Literal["fixed", "defaults"] = "defaults"
 
     def __post_init__(self):
@@ -95,7 +91,7 @@ class ImageEditor(Component):
         width: int | None = None,
         image_mode: Literal[
             "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
-        ] = "RGBA",
+        ] = "RGB",
         sources: Iterable[Literal["upload", "webcam", "clipboard"]] = (
             "upload",
             "webcam",
@@ -205,10 +201,7 @@ class ImageEditor(Component):
         if file is None:
             return None
         im = _Image.open(file.path)
-        if im.mode == "RGBA":
-            print("The image has transparency.")
-        else:
-            print("The image does not have transparency.")
+
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
@@ -216,7 +209,7 @@ class ImageEditor(Component):
             im, cast(Literal["numpy", "pil", "filepath"], self.type), self.GRADIO_CACHE
         )
 
-    def preprocess(self, x: EditorData | None) -> PreprocessData | None:
+    def preprocess(self, x: EditorData | None) -> EditorValue | None:
         """
         Parameters:
             x: FileData containing an image path pointing to the user's image
@@ -239,7 +232,7 @@ class ImageEditor(Component):
             "composite": composite,
         }
 
-    def postprocess(self, y: PreprocessData | None) -> EditorData | None:
+    def postprocess(self, y: EditorValue | None) -> EditorData | None:
         """
         Parameters:
             y: image as a numpy array, PIL Image, string/Path filepath, or string URL

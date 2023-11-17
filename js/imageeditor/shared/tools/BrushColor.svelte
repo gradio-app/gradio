@@ -1,8 +1,12 @@
 <script lang="ts">
+	import { createEventDispatcher } from "svelte";
+	import { click_outside } from "../utils/events";
+
 	import { type Brush } from "./Brush.svelte";
 	import ColorPicker from "./ColorPicker.svelte";
 	import ColorSwatch from "./ColorSwatch.svelte";
 	import ColorField from "./ColorField.svelte";
+
 	export let colors: string[];
 	export let selected_color: string;
 	export let color_mode: Brush["color_mode"] | undefined = undefined;
@@ -11,6 +15,10 @@
 	let color_picker = false;
 	let current_mode: "hex" | "rgb" | "hsl" = "hex";
 	let editing_index: number | null = null;
+
+	const dispatch = createEventDispatcher<{
+		click_outside: void;
+	}>();
 
 	function handle_color_selection(
 		{
@@ -43,7 +51,11 @@
 	$: handle_color_change(selected_color);
 </script>
 
-<div class="wrap" class:padded={!color_picker}>
+<div
+	class="wrap"
+	class:padded={!color_picker}
+	use:click_outside={() => dispatch("click_outside")}
+>
 	{#if color_mode === "defaults"}
 		{#if color_picker}
 			<ColorPicker bind:color={selected_color} />

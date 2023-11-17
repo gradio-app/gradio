@@ -42,13 +42,9 @@
 	import tinycolor from "tinycolor2";
 	import { clamp } from "../utils/pixi";
 
-	import { getContext, onDestroy, onMount, tick } from "svelte";
+	import { getContext, onMount } from "svelte";
 	import { type ToolContext, TOOL_KEY } from "./Tools.svelte";
-	import {
-		Brush as BrushIcon,
-		Palette,
-		BrushSize as SizeIcon
-	} from "@gradio/icons";
+	import { Palette, BrushSize as SizeIcon } from "@gradio/icons";
 	import { type EditorContext, EDITOR_KEY } from "../ImageEditor.svelte";
 	import { draw_path, type DrawCommand } from "./brush";
 	import BrushColor from "./BrushColor.svelte";
@@ -56,14 +52,21 @@
 	import type { FederatedPointerEvent } from "pixi.js";
 
 	export let default_size: Brush["default_size"];
-	export let sizes: Brush["sizes"];
-	export let size_mode: Brush["size_mode"];
 	export let default_color: Brush["default_color"] | undefined = undefined;
 	export let colors: Brush["colors"] | undefined = undefined;
 	export let color_mode: Brush["color_mode"] | undefined = undefined;
 	export let mode: "erase" | "draw";
 
-	let selected_color = default_color ? process_color(default_color) : "black";
+	const processed_colors = colors
+		? colors.map(process_color).filter((_, i) => i < 5)
+		: [];
+
+	let selected_color =
+		default_color === "auto"
+			? processed_colors[0]
+			: !default_color
+			? "black"
+			: process_color(default_color);
 
 	const paint_meta = {
 		color: {
@@ -72,7 +75,7 @@
 			order: 0,
 			id: "brush_color",
 			cb() {
-				current_option = current_option === "color" ? null : "color";
+				current_option = "color";
 			}
 		},
 		size: {
@@ -81,23 +84,13 @@
 			order: 1,
 			id: "brush_size",
 			cb() {
-				current_option = current_option === "size" ? null : "size";
+				current_option = "size";
 			}
 		}
 	} as const;
 
 	let brush_options: (typeof paint_meta)[brush_option_type][];
-	$: brush_options = Object.entries(paint_meta)
-		.filter(([k]) => {
-			if (k === "color") {
-				return (mode !== "erase" && color_mode !== "fixed") || !!colors;
-			} else if (k === "size") {
-				return size_mode !== "fixed" || !!sizes;
-			}
-
-			return false;
-		})
-		.map(([, v]) => v);
+	$: brush_options = Object.values(paint_meta);
 
 	let current_option: brush_option_type | null = null;
 
@@ -109,15 +102,14 @@
 	let drawing = false;
 	let draw: DrawCommand;
 
-	function generate_sizes(x: number, y: number): number[] {
+	function generate_sizes(x: number, y: number): number {
 		const min = clamp(Math.min(x, y), 500, 1000);
 
-		return [1, 2, 3, 4].map((i) => (min / 100) * i);
+		return Math.round((min * 2) / 100);
 	}
 
-	$: _sizes = sizes === "auto" ? generate_sizes(...$dimensions) : sizes;
 	let selected_size =
-		default_size === "auto" ? _sizes?.[0] || 20 : default_size;
+		default_size === "auto" ? generate_sizes(...$dimensions) : default_size;
 
 	function pointer_down_handler(event: FederatedPointerEvent): void {
 		if ($active_tool !== mode) {
@@ -201,12 +193,9 @@
 	let recent_colors: (string | null)[] = [null, null, null];
 
 	function process_color(color: ColorInput): string {
+		console.log(color);
 		return tinycolor(color).toRgbString();
 	}
-
-	const processed_colors = colors
-		? colors.map(process_color).filter((_, i) => i < 5)
-		: [];
 
 	$: {
 		if ($active_tool !== mode) {
@@ -222,18 +211,18 @@
 {#if current_option === "color" && colors}
 	<div>
 		<BrushColor
+			on:click_outside={() => (current_option = null)}
 			colors={processed_colors}
 			bind:selected_color
 			{color_mode}
 			bind:recent_colors
 		/>
 	</div>
-{:else if current_option === "size" && sizes}
+{:else if current_option === "size"}
 	<BrushSize
-		sizes={_sizes}
+		on:click_outside={() => (current_option = null)}
 		max={$dimensions[0] / 10}
 		min={1}
 		bind:selected_size
-		{size_mode}
 	/>
 {/if}

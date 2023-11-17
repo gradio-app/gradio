@@ -18,11 +18,11 @@ export function click_outside(
 		}
 	};
 
-	document.addEventListener("click", handle_click, true);
+	document.addEventListener("mousedown", handle_click, true);
 
 	return {
 		destroy() {
-			document.removeEventListener("click", handle_click, true);
+			document.removeEventListener("mousedown", handle_click, true);
 		}
 	};
 }
