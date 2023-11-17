@@ -72,7 +72,7 @@
 			order: 0,
 			id: "brush_color",
 			cb() {
-				current_option = "color";
+				current_option = current_option === "color" ? null : "color";
 			}
 		},
 		size: {
@@ -81,7 +81,7 @@
 			order: 1,
 			id: "brush_size",
 			cb() {
-				current_option = "size";
+				current_option = current_option === "size" ? null : "size";
 			}
 		}
 	} as const;
@@ -115,8 +115,9 @@
 		return [1, 2, 3, 4].map((i) => (min / 100) * i);
 	}
 
-	let _sizes = sizes === "auto" ? generate_sizes(...$dimensions) : sizes;
-	let selected_size = default_size === "auto" ? _sizes[0] : default_size;
+	$: _sizes = sizes === "auto" ? generate_sizes(...$dimensions) : sizes;
+	let selected_size =
+		default_size === "auto" ? _sizes?.[0] || 20 : default_size;
 
 	function pointer_down_handler(event: FederatedPointerEvent): void {
 		if ($active_tool !== mode) {
@@ -206,6 +207,12 @@
 	const processed_colors = colors
 		? colors.map(process_color).filter((_, i) => i < 5)
 		: [];
+
+	$: {
+		if ($active_tool !== mode) {
+			current_option = null;
+		}
+	}
 </script>
 
 <svelte:window
@@ -217,7 +224,6 @@
 		<BrushColor
 			colors={processed_colors}
 			bind:selected_color
-			on:click_outside={() => (current_option = null)}
 			{color_mode}
 			bind:recent_colors
 		/>
@@ -228,7 +234,6 @@
 		max={$dimensions[0] / 10}
 		min={1}
 		bind:selected_size
-		on:click_outside={() => (current_option = null)}
 		{size_mode}
 	/>
 {/if}
