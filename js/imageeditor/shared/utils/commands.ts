@@ -62,6 +62,11 @@ export interface CommandManager {
 	 * Resets the history
 	 */
 	reset(): void;
+	/**
+	 * The current history node
+	 * Observable store that you can subscribe to for updates
+	 */
+	readonly current_history: Writable<CommandNode>;
 }
 
 /**
@@ -113,6 +118,7 @@ export function command_manager(): CommandManager {
 	let history: CommandNode = command_node();
 	const can_undo = writable(false);
 	const can_redo = writable(false);
+	const current_history = writable(history);
 	return {
 		undo: function () {
 			if (history.previous) {
@@ -121,6 +127,7 @@ export function command_manager(): CommandManager {
 			}
 			can_undo.set(!!history.previous);
 			can_redo.set(!!history.next);
+			current_history.set(history);
 		},
 		redo: function () {
 			if (history.next) {
@@ -130,6 +137,7 @@ export function command_manager(): CommandManager {
 
 			can_undo.set(!!history.previous);
 			can_redo.set(!!history.next);
+			current_history.set(history);
 		},
 		execute: function (command: Command) {
 			command.execute();
@@ -137,14 +145,18 @@ export function command_manager(): CommandManager {
 			history = history.next!;
 			can_undo.set(!!history.previous);
 			can_redo.set(!!history.next);
+			current_history.set(history);
 		},
 
 		can_undo,
 		can_redo,
+		current_history,
+
 		reset: function () {
 			history = command_node();
 			can_undo.set(false);
 			can_redo.set(false);
+			current_history.set(history);
 		}
 	};
 }

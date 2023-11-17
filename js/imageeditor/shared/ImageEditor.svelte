@@ -49,7 +49,7 @@
 </script>
 
 <script lang="ts">
-	import { onMount, setContext } from "svelte";
+	import { onMount, setContext, createEventDispatcher } from "svelte";
 	import { writable } from "svelte/store";
 	import { spring } from "svelte/motion";
 	import { Rectangle } from "pixi.js";
@@ -63,8 +63,14 @@
 	export let antialias = true;
 	export let active_tool: "bg" | null = null;
 	export let crop_size: [number, number] = [800, 600];
+	export let changeable = false;
+
+	const dispatch = createEventDispatcher<{
+		save: void;
+	}>();
 
 	let dimensions = writable(crop_size);
+
 	let editor_box: EditorContext["editor_box"] = writable({
 		parent_width: 0,
 		parent_height: 0,
@@ -92,9 +98,7 @@
 
 	const CommandManager = command_manager();
 
-	$dimensions;
-
-	const { can_redo, can_undo } = CommandManager;
+	const { can_redo, can_undo, current_history } = CommandManager;
 	const reset_context: Writable<PartialRecord<context_type, () => void>> =
 		writable({});
 	const init_context: Writable<
@@ -269,15 +273,25 @@
 			}
 		};
 	});
+
+	let saved_history: null | typeof $current_history = $current_history;
+
+	function handle_save(): void {
+		saved_history = $current_history;
+		dispatch("save");
+	}
 </script>
 
 <div data-testid="image" class="image-container">
 	<Controls
 		can_undo={$can_undo}
 		can_redo={$can_redo}
+		can_save={saved_history !== $current_history}
+		{changeable}
 		on:undo={CommandManager.undo}
 		on:redo={CommandManager.redo}
 		on:remove_image={handle_remove}
+		on:save={handle_save}
 	/>
 	<div class="wrap" bind:this={canvas_wrap}>
 		<div

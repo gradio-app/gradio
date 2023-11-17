@@ -9,6 +9,8 @@
 	export let highlight = false;
 	export let disabled = false;
 	export let hasPopup = false;
+	export let background = "transparent";
+	export let color = "var(--block-label-text-color)";
 </script>
 
 <button
@@ -20,6 +22,8 @@
 	class:pending
 	class:padded
 	class:highlight
+	style:background={!disabled && background ? background : "transparent"}
+	style:color={!disabled && color ? color : "var(--block-label-text-color)"}
 >
 	{#if show_label}<span>{label}</span>{/if}
 	<div class:small={size === "small"} class:large={size === "large"}>

@@ -19,7 +19,6 @@
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
-	import type { P } from "@storybook/svelte-vite/dist/index-55234481";
 
 	setupi18n();
 
@@ -157,7 +156,27 @@
 
 	$: components, layout, prepare_components();
 
+	let target_map: Record<number, Record<string, number[]>> = {};
+
 	function prepare_components(): void {
+		target_map = dependencies.reduce(
+			(acc, dep, i) => {
+				dep.targets.forEach(([id, trigger]) => {
+					if (!acc[id]) {
+						acc[id] = {};
+					}
+					if (acc[id]?.[trigger]) {
+						acc[id][trigger].push(i);
+					} else {
+						acc[id][trigger] = [i];
+					}
+				});
+
+				return acc;
+			},
+			{} as Record<number, Record<string, number[]>>
+		);
+		console.log(target_map);
 		loading_status = create_loading_status_store();
 
 		dependencies.forEach((v, i) => {
@@ -230,6 +249,12 @@
 					};
 				});
 				(c.props as any).server = server;
+			}
+
+			if (target_map[c.id]) {
+				console.log(c);
+
+				c.props.attached_events = Object.keys(target_map[c.id]);
 			}
 			__type_for_id.set(c.id, c.props.interactive);
 
@@ -587,23 +612,6 @@
 	const is_external_url = (link: string | null): boolean =>
 		!!(link && new URL(link, location.href).origin !== location.origin);
 
-	$: target_map = dependencies.reduce(
-		(acc, dep, i) => {
-			dep.targets.forEach(([id, trigger]) => {
-				if (!acc[id]) {
-					acc[id] = {};
-				}
-				if (acc[id]?.[trigger]) {
-					acc[id][trigger].push(i);
-				} else {
-					acc[id][trigger] = [i];
-				}
-			});
-
-			return acc;
-		},
-		{} as Record<number, Record<string, number[]>>
-	);
 	async function handle_mount(): Promise<void> {
 		if (js) {
 			let blocks_frontend_fn = new AsyncFunction(

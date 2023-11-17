@@ -47,6 +47,8 @@
 	export let brush: Brush;
 	export let eraser: Eraser;
 
+	export let attached_events: string[] = [];
+
 	export let gradio: Gradio<{
 		change: never;
 		error: string;
@@ -67,13 +69,9 @@
 		return blobs;
 	}
 
-	// $: value?.url && gradio.dispatch("change");
 	let dragging: boolean;
 
-	// $: value = !value ? null : value;
-
 	function handle_change(detail: EditorData): void {
-		value = detail;
 		gradio.dispatch("change");
 	}
 </script>
@@ -140,7 +138,7 @@
 			bind:this={editor_instance}
 			{root}
 			{sources}
-			on:change={(e) => handle_change(e.detail)}
+			on:save={(e) => handle_change(e.detail)}
 			on:edit={() => gradio.dispatch("edit")}
 			on:clear={() => gradio.dispatch("clear")}
 			on:stream={() => gradio.dispatch("stream")}
@@ -158,6 +156,7 @@
 			{brush}
 			{eraser}
 			{proxy_url}
+			changeable={attached_events.includes("change")}
 			i18n={gradio.i18n}
 		>
 			<!-- {#if sources.includes("upload")}

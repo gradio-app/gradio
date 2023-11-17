@@ -10,10 +10,6 @@
 
 	export let layer_files: (FileData | null)[] | null = [];
 
-	const dispatch = createEventDispatcher<{
-		new_layer: void;
-	}>();
-
 	const { pixi, current_layer, dimensions, register_context } =
 		getContext<EditorContext>(EDITOR_KEY);
 

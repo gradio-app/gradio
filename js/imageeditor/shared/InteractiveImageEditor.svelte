@@ -34,6 +34,7 @@
 	export let i18n: I18nFormatter;
 	export let root: string;
 	export let proxy_url: string;
+	export let changeable = false;
 	export let value: EditorData = {
 		background: null,
 		layers: [],
@@ -89,7 +90,7 @@
 	}
 </script>
 
-<ImageEditor bind:this={editor}>
+<ImageEditor bind:this={editor} {changeable} on:save>
 	<Tools {i18n}>
 		<Sources
 			{i18n}
@@ -104,7 +105,6 @@
 			color_mode={brush.color_mode}
 			default_color={brush.default_color}
 			default_size={brush.default_size}
-			antialias={brush.antialias}
 			colors={brush.colors}
 			mode="draw"
 		/>
@@ -112,7 +112,6 @@
 			sizes={eraser.sizes}
 			size_mode={eraser.size_mode}
 			default_size={eraser.default_size}
-			antialias={eraser.antialias}
 			mode="erase"
 		/>
 	</Tools>

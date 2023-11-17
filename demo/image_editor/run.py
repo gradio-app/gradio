@@ -17,7 +17,7 @@ with gr.Blocks() as demo:
 
     btn = gr.Button()
     # btn.click(image, outputs=[im2, im3, im4, im5], inputs=im)
-    btn.click(lambda x: x, outputs=im_out, inputs=im)
+    im.change(lambda x: x, outputs=im_out, inputs=im)
 
 
 if __name__ == "__main__":
