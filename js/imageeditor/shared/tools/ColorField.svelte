@@ -9,6 +9,7 @@
 
 	const dispatch = createEventDispatcher<{
 		selected: string;
+		close: void;
 	}>();
 	const modes = [
 		["Hex", "hex"],
@@ -40,10 +41,16 @@
 
 	//@ts-ignore
 	const eyedropper_supported = !!window.EyeDropper;
+
+	function handle_click(): void {
+		dispatch("selected", color_string);
+		dispatch("close");
+	}
 </script>
 
 <div class="input">
-	<div class="swatch" style:background={color}></div>
+	<button class="swatch" style:background={color} on:click={handle_click}
+	></button>
 	<div>
 		<div class="input-wrap">
 			<input
@@ -75,7 +82,6 @@
 	.input {
 		display: flex;
 		align-items: center;
-		/* gap: 10px; */
 		padding: 0 10px 15px;
 	}
 

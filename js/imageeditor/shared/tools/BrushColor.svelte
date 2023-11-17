@@ -10,13 +10,10 @@
 	export let color_mode: Brush["color_mode"] | undefined = undefined;
 	export let recent_colors: (string | null)[] = [];
 
-	const dispatch = createEventDispatcher<{
-		click_outside?: never;
-	}>();
-
 	let color_picker = false;
 	let current_mode: "hex" | "rgb" | "hsl" = "hex";
 	let editing_index: number | null = null;
+
 	function handle_color_selection(
 		{
 			index,
@@ -34,6 +31,10 @@
 
 		if (!color) return;
 		selected_color = color;
+
+		if (type === "core") {
+			color_picker = false;
+		}
 	}
 
 	function handle_color_change(color: string): void {
@@ -51,6 +52,7 @@
 			<ColorField
 				bind:current_mode
 				color={selected_color}
+				on:close={() => (color_picker = false)}
 				on:selected={({ detail }) => (selected_color = detail)}
 			/>
 		{/if}
