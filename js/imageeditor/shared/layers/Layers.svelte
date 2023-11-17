@@ -110,8 +110,8 @@
 	class:closed={!show_layers}
 	use:click_outside={() => (show_layers = false)}
 >
-	<button on:click={() => (show_layers = !show_layers)}
-		>Layers <span class="layer-toggle"><DropdownArrow /></span></button
+	<button aria-label="Show Layers" on:click={() => (show_layers = !show_layers)}
+		>Layers<span class="layer-toggle"><DropdownArrow /></span></button
 	>
 	{#if show_layers}
 		<ul>
@@ -126,7 +126,7 @@
 				</li>
 			{/each}
 			<li>
-				<button on:click={new_layer}> +</button>
+				<button aria-label="Add Layer" on:click={new_layer}> +</button>
 			</li>
 		</ul>
 	{/if}

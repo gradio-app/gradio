@@ -32,7 +32,7 @@
 	<IconButton
 		disabled={!can_undo}
 		Icon={Undo}
-		label="Remove Image"
+		label="Undo"
 		on:click={(event) => {
 			dispatch("undo");
 			event.stopPropagation();
@@ -41,7 +41,7 @@
 	<IconButton
 		disabled={!can_redo}
 		Icon={Redo}
-		label="Remove Image"
+		label="Redo"
 		on:click={(event) => {
 			dispatch("redo");
 			event.stopPropagation();
@@ -49,7 +49,7 @@
 	/>
 	<IconButton
 		Icon={Clear}
-		label="Remove Image"
+		label="Clear canvas"
 		on:click={(event) => {
 			dispatch("remove_image");
 			event.stopPropagation();

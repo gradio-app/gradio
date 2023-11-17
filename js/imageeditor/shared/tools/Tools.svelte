@@ -113,7 +113,7 @@
 		},
 		erase: {
 			order: 2,
-			label: i18n("Draw"),
+			label: i18n("Erase"),
 			icon: Erase
 		}
 	} as const;
@@ -131,6 +131,8 @@
 					Icon={meta.icon}
 					size="large"
 					padded={false}
+					label={meta.label + " button"}
+					hasPopup={true}
 				/>
 			{/each}
 		{/if}
@@ -144,6 +146,7 @@
 				Icon={tools_meta[tool].icon}
 				size="large"
 				padded={false}
+				label={tools_meta[tool].label + " button"}
 			/>
 		{/each}
 	</Toolbar>

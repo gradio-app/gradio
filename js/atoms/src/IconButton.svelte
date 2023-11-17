@@ -8,12 +8,14 @@
 	export let padded = true;
 	export let highlight = false;
 	export let disabled = false;
+	export let hasPopup = false;
 </script>
 
 <button
 	{disabled}
 	on:click
 	aria-label={label}
+	aria-haspopup={hasPopup}
 	title={label}
 	class:pending
 	class:padded

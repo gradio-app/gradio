@@ -116,6 +116,7 @@
 		class:boundedheight
 		class:flex
 		style:height={include_sources ? "calc(100% - 40px" : "100%"}
+		tabindex={hidden ? -1 : 0}
 		on:drag|preventDefault|stopPropagation
 		on:dragstart|preventDefault|stopPropagation
 		on:dragend|preventDefault|stopPropagation
@@ -130,6 +131,7 @@
 	>
 		<slot />
 		<input
+			aria-label="file upload"
 			type="file"
 			bind:this={hidden_upload}
 			on:change={load_files_from_upload}
