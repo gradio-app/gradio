@@ -150,8 +150,12 @@ class Image(StreamingInput, Component):
         if payload.orig_name:
             p = Path(payload.orig_name)
             name = p.stem
+            suffix = p.suffix.replace(".", "")
+            if suffix in ["jpg", "jpeg"]:
+                suffix = "jpeg"
         else:
             name = "image"
+            suffix = "png"
         im = _Image.open(payload.path)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -161,6 +165,7 @@ class Image(StreamingInput, Component):
             cast(Literal["numpy", "pil", "filepath"], self.type),
             self.GRADIO_CACHE,
             name=name,
+            format=suffix,
         )
 
     def postprocess(

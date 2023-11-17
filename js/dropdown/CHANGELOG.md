@@ -1,5 +1,11 @@
 # @gradio/dropdown
 
+## 0.3.2
+
+### Fixes
+
+- [#6425](https://github.com/gradio-app/gradio/pull/6425) [`b3ba17dd1`](https://github.com/gradio-app/gradio/commit/b3ba17dd1167d254756d93f1fb01e8be071819b6) - Update the selected indices in `Dropdown` when value changes programmatically.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.3.1
 
 ### Patch Changes

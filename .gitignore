@@ -9,7 +9,7 @@ __pycache__/
 build/
 __tmp/*
 *.pyi
-
+py.typed
 
 # JS build
 gradio/templates/*

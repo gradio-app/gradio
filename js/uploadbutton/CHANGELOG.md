@@ -1,5 +1,11 @@
 # @gradio/uploadbutton
 
+## 0.2.0
+
+### Features
+
+- [#6461](https://github.com/gradio-app/gradio/pull/6461) [`6b53330a5`](https://github.com/gradio-app/gradio/commit/6b53330a5be53579d9128aea4858713082ce302d) - UploadButton tests.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 0.1.5
 
 ### Patch Changes
