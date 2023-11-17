@@ -1,5 +1,11 @@
 # website
 
+## 0.16.0
+
+### Features
+
+- [#6460](https://github.com/gradio-app/gradio/pull/6460) [`e01b67f96`](https://github.com/gradio-app/gradio/commit/e01b67f96f054b4d96cd72ce9b713bab9992c6cc) - Custom Component Guide Redirects.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 0.15.0
 
 ### Features
