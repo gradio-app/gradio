@@ -1,5 +1,11 @@
 # gradio
 
+## 4.4.1
+
+### Features
+
+- [#6467](https://github.com/gradio-app/gradio/pull/6467) [`739e3a5a0`](https://github.com/gradio-app/gradio/commit/739e3a5a09771a4a386cab0c6605156cf9fda7f6) - Fix dev mode.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 4.4.0
 
 ### Features
