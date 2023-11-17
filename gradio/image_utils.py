@@ -32,7 +32,7 @@ def format_image(
                 im, cache_dir=cache_dir, name=name, format=fmt or format  # type: ignore
             )
         # Catch error if format is not supported by PIL
-        except KeyError:
+        except (KeyError, ValueError):
             path = processing_utils.save_pil_to_cache(
                 im, cache_dir=cache_dir, name=name, format="png"  # type: ignore
             )
@@ -57,7 +57,7 @@ def save_image(y: np.ndarray | _Image.Image | str | Path, cache_dir: str):
                 y, cache_dir=cache_dir, format=fmt  # type: ignore
             )
         # Catch error if format is not supported by PIL
-        except KeyError:
+        except (KeyError, ValueError):
             path = processing_utils.save_pil_to_cache(
                 y, cache_dir=cache_dir, format="png"
             )
