@@ -1,5 +1,16 @@
 # @gradio/audio
 
+## 0.5.2
+
+### Features
+
+- [#6419](https://github.com/gradio-app/gradio/pull/6419) [`1959471a8`](https://github.com/gradio-app/gradio/commit/1959471a8d939275c7b9184913a5a6f92e567604) - Add download tests for audio/video.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
+### Fixes
+
+- [#6454](https://github.com/gradio-app/gradio/pull/6454) [`2777f326e`](https://github.com/gradio-app/gradio/commit/2777f326e595541fbec8ce14f56340b9e740f1da) - Ensure Audio ouput events are dispatched.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6254](https://github.com/gradio-app/gradio/pull/6254) [`f816136a0`](https://github.com/gradio-app/gradio/commit/f816136a039fa6011be9c4fb14f573e4050a681a) - Add volume control to Audio.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.5.1
 
 ### Fixes

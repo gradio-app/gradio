@@ -1,5 +1,12 @@
 # website
 
+## 0.15.0
+
+### Features
+
+- [#6436](https://github.com/gradio-app/gradio/pull/6436) [`58e3ca826`](https://github.com/gradio-app/gradio/commit/58e3ca8260a6635e10e7a7f141221c4f746e9386) - Custom Component CLI Improvements.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6427](https://github.com/gradio-app/gradio/pull/6427) [`e0fc14659`](https://github.com/gradio-app/gradio/commit/e0fc146598ba9b081bc5fa9616d0a41c2aba2427) - Allow google analytics to work on Spaces (and other iframe situations).  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.14.0
 
 ### Features

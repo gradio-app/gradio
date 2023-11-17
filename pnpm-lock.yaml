@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -279,7 +279,7 @@ importers:
   js/_website:
     dependencies:
       '@gradio/code':
-        specifier: 0.2.5
+        specifier: 0.2.6
         version: link:../code
       '@sindresorhus/slugify':
         specifier: ^2.2.0
@@ -1235,10 +1235,10 @@ importers:
   js/preview/test/test/frontend:
     dependencies:
       '@gradio/atoms':
-        specifier: 0.2.1
+        specifier: 0.2.2
         version: link:../../../../atoms
       '@gradio/statustracker':
-        specifier: 0.3.1
+        specifier: 0.3.2
         version: link:../../../../statustracker
       '@gradio/utils':
         specifier: 0.2.0

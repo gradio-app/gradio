@@ -1,5 +1,11 @@
 # @gradio/storybook
 
+## 0.2.0
+
+### Features
+
+- [#6451](https://github.com/gradio-app/gradio/pull/6451) [`d92de491b`](https://github.com/gradio-app/gradio/commit/d92de491bf2fbdbbb57fe5bc23165c4933afe182) - Optimise Chromatic workflow.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.1.0
 
 ### Features

@@ -1,5 +1,31 @@
 # gradio
 
+## 4.4.0
+
+### Features
+
+- [#6428](https://github.com/gradio-app/gradio/pull/6428) [`ac4ca59c9`](https://github.com/gradio-app/gradio/commit/ac4ca59c929bbe0bdf92155766883797d4e01ea0) - Extract video filenames correctly from URLs.  Thanks [@112292454](https://github.com/112292454)!
+- [#6461](https://github.com/gradio-app/gradio/pull/6461) [`6b53330a5`](https://github.com/gradio-app/gradio/commit/6b53330a5be53579d9128aea4858713082ce302d) - UploadButton tests.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6439](https://github.com/gradio-app/gradio/pull/6439) [`a1e3c61f4`](https://github.com/gradio-app/gradio/commit/a1e3c61f41b16166656b46254a201b37abcf20a8) - Allow setting a `default_concurrency_limit` other than 1.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6455](https://github.com/gradio-app/gradio/pull/6455) [`179f5bcde`](https://github.com/gradio-app/gradio/commit/179f5bcde16539bb9e828685d95dcd2167d3a215) - Add py.typed to gradio backend.  Thanks [@aleneum](https://github.com/aleneum)!
+- [#6436](https://github.com/gradio-app/gradio/pull/6436) [`58e3ca826`](https://github.com/gradio-app/gradio/commit/58e3ca8260a6635e10e7a7f141221c4f746e9386) - Custom Component CLI Improvements.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6462](https://github.com/gradio-app/gradio/pull/6462) [`2761b6d19`](https://github.com/gradio-app/gradio/commit/2761b6d197acc1c6a2fd9534e7633b463bd3f1e0) - Catch ValueError, KeyError when saving PIL Image.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6423](https://github.com/gradio-app/gradio/pull/6423) [`62d35c3d1`](https://github.com/gradio-app/gradio/commit/62d35c3d1b3e9d6e39bddbb32ff6b6cf9f1f7f72) - Issue 2085: Transformers object detection pipeline added.  Thanks [@cswamy](https://github.com/cswamy)!
+- [#6456](https://github.com/gradio-app/gradio/pull/6456) [`3953a1467`](https://github.com/gradio-app/gradio/commit/3953a146750b09161b50d972590cae8bf980990c) - Preserve original image extension in backend processing.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6427](https://github.com/gradio-app/gradio/pull/6427) [`e0fc14659`](https://github.com/gradio-app/gradio/commit/e0fc146598ba9b081bc5fa9616d0a41c2aba2427) - Allow google analytics to work on Spaces (and other iframe situations).  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6419](https://github.com/gradio-app/gradio/pull/6419) [`1959471a8`](https://github.com/gradio-app/gradio/commit/1959471a8d939275c7b9184913a5a6f92e567604) - Add download tests for audio/video.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6424](https://github.com/gradio-app/gradio/pull/6424) [`2727f45fb`](https://github.com/gradio-app/gradio/commit/2727f45fb0c9c3116a7e1a3f88cb3a401c4c7e93) - Do not show warnings when renaming api_names.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6437](https://github.com/gradio-app/gradio/pull/6437) [`727ae2597`](https://github.com/gradio-app/gradio/commit/727ae2597603f026d74d5acafac8709326300836) - chore: rename api_key to hf_token.  Thanks [@NickCrews](https://github.com/NickCrews)!
+
+### Fixes
+
+- [#6441](https://github.com/gradio-app/gradio/pull/6441) [`2f805a7dd`](https://github.com/gradio-app/gradio/commit/2f805a7dd3d2b64b098f659dadd5d01258290521) - Small but important bugfixes for gr.Image: The upload event was not triggering at all. The paste-from-clipboard was not triggering an upload event. The clear button was not triggering a change event. The change event was triggering infinitely. Uploaded images were not preserving their original names. Uploading a new image should clear out the previous image.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6454](https://github.com/gradio-app/gradio/pull/6454) [`2777f326e`](https://github.com/gradio-app/gradio/commit/2777f326e595541fbec8ce14f56340b9e740f1da) - Ensure Audio ouput events are dispatched.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6254](https://github.com/gradio-app/gradio/pull/6254) [`f816136a0`](https://github.com/gradio-app/gradio/commit/f816136a039fa6011be9c4fb14f573e4050a681a) - Add volume control to Audio.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6457](https://github.com/gradio-app/gradio/pull/6457) [`d00fcf89d`](https://github.com/gradio-app/gradio/commit/d00fcf89d1c3ecbc910e81bb1311479ec2b73e4e) - Gradio custom component dev mode now detects changes to Example.svelte file.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6418](https://github.com/gradio-app/gradio/pull/6418) [`bce6ca109`](https://github.com/gradio-app/gradio/commit/bce6ca109feadd6ba94a69843689cefc381dd054) - Send more than one heartbeat message.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6425](https://github.com/gradio-app/gradio/pull/6425) [`b3ba17dd1`](https://github.com/gradio-app/gradio/commit/b3ba17dd1167d254756d93f1fb01e8be071819b6) - Update the selected indices in `Dropdown` when value changes programmatically.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 4.3.0
 
 ### Features
