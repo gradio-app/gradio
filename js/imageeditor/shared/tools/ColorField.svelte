@@ -51,7 +51,8 @@
 				value={color_string}
 				on:change={(e) => (color = e.currentTarget.value)}
 			/>
-
+			<!-- svelte-ignore a11y-click-events-have-key-events -->
+			<!-- svelte-ignore a11y-no-static-element-interactions -->
 			<div class="eyedropper" on:click={request_eyedropper}>
 				{#if eyedropper_supported}
 					<Eyedropper />

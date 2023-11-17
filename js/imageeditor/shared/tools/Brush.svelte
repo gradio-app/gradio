@@ -55,7 +55,6 @@
 	import BrushSize from "./BrushSize.svelte";
 	import type { FederatedPointerEvent } from "pixi.js";
 
-	export let antialias: Brush["antialias"];
 	export let default_size: Brush["default_size"];
 	export let sizes: Brush["sizes"];
 	export let size_mode: Brush["size_mode"];
@@ -118,24 +117,6 @@
 
 	let _sizes = sizes === "auto" ? generate_sizes(...$dimensions) : sizes;
 	let selected_size = default_size === "auto" ? _sizes[0] : default_size;
-
-	// let selected_size = default_size;
-
-	function throttle(fn: (...args: any[]) => any, delay: number): () => void {
-		let last_call = 0;
-
-		return (...args: any[]) => {
-			const now = Date.now();
-
-			if (now - last_call < delay) {
-				return;
-			}
-
-			last_call = now;
-
-			fn(...args);
-		};
-	}
 
 	function pointer_down_handler(event: FederatedPointerEvent): void {
 		if ($active_tool !== mode) {

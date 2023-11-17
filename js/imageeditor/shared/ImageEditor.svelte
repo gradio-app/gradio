@@ -46,16 +46,6 @@
 		) => void;
 		reset: (clear_image: boolean, dimensions: [number, number]) => void;
 	}
-
-	//reset
-	// clear bg
-	// clear layers
-	// reset app
-
-	// new bg
-	// reset
-	// add bg
-	// new layer
 </script>
 
 <script lang="ts">
@@ -136,7 +126,6 @@
 			reset_context.update((c) => ({ ...c, [type]: reset_fn }));
 		},
 		reset: (clear_image: boolean, dimensions: [number, number]) => {
-			console.log("reset");
 			const _sorted_contexts = $contexts.sort((a, b) => {
 				return sort_order.indexOf(a) - sort_order.indexOf(b);
 			});

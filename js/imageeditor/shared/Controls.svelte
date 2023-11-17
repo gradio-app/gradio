@@ -3,12 +3,27 @@
 	import { IconButton } from "@gradio/atoms";
 	import { Clear, Undo, Redo } from "@gradio/icons";
 
+	/**
+	 * Can the current image be undone?
+	 */
 	export let can_undo = false;
+	/**
+	 * Can the current image be redone?
+	 */
 	export let can_redo = false;
 
 	const dispatch = createEventDispatcher<{
+		/**
+		 * Remove the current image.
+		 */
 		remove_image: void;
+		/**
+		 * Undo the last action.
+		 */
 		undo: void;
+		/**
+		 * Redo the last action.
+		 */
 		redo: void;
 	}>();
 </script>

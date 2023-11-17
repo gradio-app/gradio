@@ -63,7 +63,8 @@
 				class:selected={`edit-${i}` === current_index}
 			></div>
 		{/each}
-
+		<!-- svelte-ignore a11y-no-static-element-interactions -->
+		<!-- svelte-ignore a11y-click-events-have-key-events -->
 		<div
 			on:click={handle_picker_click}
 			class="color colorpicker"

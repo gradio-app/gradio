@@ -126,6 +126,7 @@
 
 <svelte:window on:mousemove={handle_move} on:mouseup={handle_end} />
 
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
 	class="color-gradient"
 	on:mousedown={handle_sl_down}
@@ -138,6 +139,7 @@
 		style:background={color}
 	/>
 </div>
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div class="hue-slider" on:mousedown={handle_hue_down} bind:this={hue_wrap}>
 	<div
 		class="marker"
