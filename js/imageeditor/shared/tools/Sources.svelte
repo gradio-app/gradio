@@ -106,6 +106,7 @@
 			add_image.execute();
 
 			should_reset = true;
+			bg = true;
 		}
 	}
 
@@ -126,6 +127,8 @@
 
 	$: background && set_background();
 	$: process_bg_file(background_file);
+
+	export let bg = false;
 
 	register_context("bg", {
 		init_fn: () => {

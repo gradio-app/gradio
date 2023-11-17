@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { getContext, onDestroy, onMount, tick } from "svelte";
-	import { Rotate, Crop } from "@gradio/icons";
 
 	import { type ToolContext, TOOL_KEY } from "./Tools.svelte";
 	import { type EditorContext, EDITOR_KEY } from "../ImageEditor.svelte";
@@ -13,6 +12,15 @@
 		getContext<EditorContext>(EDITOR_KEY);
 
 	let cropper: CropCommand | null;
+
+	export let crop_constraint: [number, number] | `${string}:${string}` | null;
+
+	$: {
+		if (typeof crop_constraint === "string") {
+			const [w, h] = crop_constraint.split(":");
+			crop_constraint = [parseInt(w), parseInt(h)];
+		}
+	}
 
 	let w_p = 1;
 	let h_p = 1;

@@ -46,7 +46,7 @@
 	import { Image, Crop, Brush, Erase } from "@gradio/icons";
 	import { type I18nFormatter } from "@gradio/utils";
 
-	const { pixi, current_layer, dimensions, current_history } =
+	const { pixi, current_layer, dimensions, current_history, active_tool } =
 		getContext<EditorContext>(EDITOR_KEY);
 
 	export let i18n: I18nFormatter;
@@ -56,7 +56,7 @@
 	// export let brush: Brush;
 	// export let eraser;
 
-	const active_tool = writable<tool | null>("bg");
+	// const active_tool = writable<tool | null>("bg");
 	const metas: Record<tool, ToolMeta | null> = {
 		draw: null,
 		erase: null,

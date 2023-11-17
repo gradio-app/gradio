@@ -30,7 +30,7 @@
 	import { Tools, Crop, Brush, type tool, Sources } from "./tools";
 	export let sources: ("clipboard" | "webcam" | "upload")[];
 
-	export let crop_size: [number, number, number, number] | null = null;
+	export let crop_size: [number, number] | `${string}:${string}` | null = null;
 	export let i18n: I18nFormatter;
 	export let root: string;
 	export let proxy_url: string;
@@ -88,33 +88,78 @@
 			composite: Array.isArray(composite_) ? composite_[0] : composite_
 		};
 	}
+
+	$: crop_constraint = crop_size;
+	let bg = false;
+	let history = false;
+
+	$: console.log({ history });
 </script>
 
-<ImageEditor bind:this={editor} {changeable} on:save>
+<ImageEditor bind:this={editor} {changeable} on:save bind:history {bg}>
 	<Tools {i18n}>
 		<Sources
 			{i18n}
 			{root}
 			{sources}
+			bind:bg
 			background_file={normalise_file(value.background, root, proxy_url)}
 		></Sources>
-		<Crop {crop_size} />
+		<Crop {crop_constraint} />
 		<Brush
-			sizes={brush.sizes}
-			size_mode={brush.size_mode}
 			color_mode={brush.color_mode}
 			default_color={brush.default_color}
 			default_size={brush.default_size}
 			colors={brush.colors}
 			mode="draw"
 		/>
-		<Brush
-			sizes={eraser.sizes}
-			size_mode={eraser.size_mode}
-			default_size={eraser.default_size}
-			mode="erase"
-		/>
+		<Brush default_size={eraser.default_size} mode="erase" />
 	</Tools>
 
 	<Layers layer_files={normalise_file(value.layers, root, proxy_url)} />
+
+	{#if !bg && !history}
+		<div class="empty wrap">
+			<div>Upload an image</div>
+			<div class="or">or</div>
+			<div>select the draw tool to start</div>
+		</div>
+	{/if}
 </ImageEditor>
+
+<style>
+	.empty {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+
+		position: absolute;
+		height: 100%;
+		width: 100%;
+		left: 0;
+		right: 0;
+		margin: auto;
+		z-index: var(--layer-top);
+		text-align: center;
+		color: var(--body-text-color);
+	}
+
+	.wrap {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		min-height: var(--size-60);
+		color: var(--block-label-text-color);
+		line-height: var(--line-md);
+		height: 100%;
+		padding-top: var(--size-3);
+		font-size: var(--text-lg);
+		pointer-events: none;
+	}
+
+	.or {
+		color: var(--body-text-color-subdued);
+	}
+</style>

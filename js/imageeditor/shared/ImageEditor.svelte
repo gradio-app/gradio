@@ -7,6 +7,7 @@
 	export const EDITOR_KEY = Symbol("editor");
 	export type context_type = "bg" | "layers" | "crop" | "draw" | "erase";
 	type PartialRecord<K extends keyof any, T> = Partial<Record<K, T>>;
+	import { type tool } from "./tools";
 
 	export interface EditorContext {
 		pixi: Writable<PixiApp | null>;
@@ -26,7 +27,7 @@
 			child_right: number;
 			child_bottom: number;
 		}>;
-		active_tool: Writable<"bg" | null>;
+		active_tool: Writable<tool>;
 		crop: Writable<[number, number, number, number]>;
 		position_spring: Spring<{
 			x: number;
@@ -59,12 +60,11 @@
 	import { type LayerScene } from "./layers/utils";
 	import { create_pixi_app, type ImageBlobs } from "./utils/pixi";
 	import Controls from "./Controls.svelte";
-
 	export let antialias = true;
-	export let active_tool: "bg" | null = null;
 	export let crop_size: [number, number] = [800, 600];
 	export let changeable = false;
-
+	export let history: boolean;
+	export let bg = false;
 	const dispatch = createEventDispatcher<{
 		save: void;
 	}>();
@@ -99,6 +99,11 @@
 	const CommandManager = command_manager();
 
 	const { can_redo, can_undo, current_history } = CommandManager;
+
+	$: {
+		history = $current_history.previous || $active_tool !== "bg";
+	}
+	const active_tool: Writable<tool> = writable("bg");
 	const reset_context: Writable<PartialRecord<context_type, () => void>> =
 		writable({});
 	const init_context: Writable<
@@ -112,7 +117,7 @@
 		current_layer: writable(null),
 		dimensions,
 		editor_box,
-		active_tool: writable(active_tool),
+		active_tool,
 		crop,
 		position_spring,
 		command_manager: CommandManager,
@@ -280,6 +285,8 @@
 		saved_history = $current_history;
 		dispatch("save");
 	}
+
+	$: console.log({ bg });
 </script>
 
 <div data-testid="image" class="image-container">
@@ -297,6 +304,7 @@
 		<div
 			bind:this={pixi_target}
 			class="stage-wrap"
+			class:bg={!bg}
 			style:transform="translate({$position_spring.x}px, {$position_spring.y}px)"
 		></div>
 	</div>
@@ -316,7 +324,10 @@
 	.stage-wrap {
 		margin: var(--size-8);
 		margin-bottom: var(--size-1);
-		/* border: var(--block-border-color) 1px solid; */
+	}
+
+	.bg {
+		border: var(--block-border-color) 1px solid;
 	}
 
 	.image-container {
