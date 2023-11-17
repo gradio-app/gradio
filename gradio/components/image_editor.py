@@ -10,6 +10,7 @@ import numpy as np
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 from PIL import Image as _Image  # using _ to minimize namespace pollution
+from pydantic.dataclasses import dataclass
 
 import gradio.image_utils as image_utils
 from gradio import utils
@@ -33,48 +34,38 @@ class EditorData(GradioModel):
     composite: Optional[FileData] = None
 
 
+@dataclass
 class Eraser:
-    def __init__(
-        self,
-        sizes: list[int] | Literal["auto"] = "auto",
-        default_size: int | Literal["auto"] = "auto",
-        size_mode: Literal["fixed", "defaults"] = "defaults",
-        antialias: bool = True,
-    ):
-        self.sizes = sizes
-        self.default_size = default_size
-        self.size_mode = size_mode
-        self.antialias = antialias
+    sizes: Union[list[int], Literal["auto"]] = "auto"
+    default_size: Union[int, Literal["auto"]] = "auto"
+    size_mode: Literal["fixed", "defaults"] = "defaults"
+    antialias: bool = True
 
 
+@dataclass
 class Brush(Eraser):
-    def __init__(
-        self,
-        sizes: list[int] | Literal["auto"] = "auto",
-        default_size: int | Literal["auto"] = "auto",
-        size_mode: Literal["fixed", "defaults"] = "defaults",
-        colors: list[str | tuple[int, int, int, int]]
-        | tuple[int, int, int, int]
-        | str
-        | None = None,
-        default_color: str | tuple[int, int, int, int] | None = None,
-        color_mode: Literal["fixed", "defaults"] = "defaults",
-        antialias: bool = True,
-    ):
-        self.colors = (
-            [
+    colors: Union[
+        list[Union[str, tuple[int, int, int, int]]],
+        tuple[int, int, int, int],
+        str,
+        None,
+    ] = None
+    default_color: Union[str, tuple[int, int, int, int], None] = None
+    color_mode: Literal["fixed", "defaults"] = "defaults"
+
+    def __post_init__(self):
+        if self.colors is None:
+            self.colors = [
                 "rgb(204, 50, 50)",
                 "rgb(173, 204, 50)",
                 "rgb(50, 204, 112)",
                 "rgb(50, 112, 204)",
                 "rgb(173, 50, 204)",
             ]
-            if colors is None
-            else colors
-        )
-        self.default_color = default_color if default_color else self.colors[0]
-        self.color_mode = color_mode
-        super().__init__(sizes, default_size, size_mode, antialias)
+        if self.default_color is None:
+            self.default_color = (
+                self.colors[0] if isinstance(self.colors, list) else self.colors
+            )
 
 
 @document()
