@@ -53,37 +53,33 @@
 {#if user_colors}
 	<div class="swatch">
 		{#each user_colors as color, i}
-			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<!-- svelte-ignore a11y-no-static-element-interactions -->
-			<div
+			<button
 				on:click={() => handle_select("edit", { index: i, color })}
 				class="color"
 				class:empty={color === null}
 				style="background-color: {color}"
 				class:selected={`edit-${i}` === current_index}
-			></div>
+			></button>
 		{/each}
 
-		<div
+		<button
 			on:click={handle_picker_click}
 			class="color colorpicker"
 			class:hidden={!color_picker}
-		></div>
+		></button>
 	</div>
 {/if}
-<div class="swatch">
+<menu class="swatch">
 	{#each _colors as color, i}
-		<!-- svelte-ignore a11y-click-events-have-key-events -->
-		<!-- svelte-ignore a11y-no-static-element-interactions -->
-		<div
+		<button
 			on:click={() => handle_select("select", { index: i, color })}
 			class="color"
 			class:empty={color === null}
 			style="background-color: {color}"
 			class:selected={`select-${i}` === current_index}
-		></div>
+		></button>
 	{/each}
-</div>
+</menu>
 
 <style>
 	.swatch {
@@ -147,6 +143,8 @@
 		background: rgba(0, 0, 0, 0.6);
 		opacity: 1;
 		transition: 0.1s;
+		top: 0;
+		left: 0;
 	}
 
 	.colorpicker::after {
@@ -162,6 +160,7 @@
 		transform: translateY(-17px);
 		opacity: 1;
 		transition: 0.1s;
+		top: 0;
 	}
 
 	.colorpicker.hidden::after,

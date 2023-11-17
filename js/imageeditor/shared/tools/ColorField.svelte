@@ -48,15 +48,16 @@
 		<div class="input-wrap">
 			<input
 				type="text"
+				style:color="var(--neutral-700)"
 				value={color_string}
 				on:change={(e) => (color = e.currentTarget.value)}
 			/>
 
-			<div class="eyedropper" on:click={request_eyedropper}>
+			<button class="eyedropper" on:click={request_eyedropper}>
 				{#if eyedropper_supported}
 					<Eyedropper />
 				{/if}
-			</div>
+			</button>
 		</div>
 		<div class="buttons">
 			{#each modes as [label, value]}

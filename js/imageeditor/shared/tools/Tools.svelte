@@ -113,7 +113,7 @@
 		},
 		erase: {
 			order: 2,
-			label: i18n("Draw"),
+			label: i18n("Erase"),
 			icon: Erase
 		}
 	} as const;
@@ -132,6 +132,7 @@
 					size="large"
 					padded={false}
 					label={meta.label + " button"}
+					hasPopup={true}
 				/>
 			{/each}
 		{/if}
