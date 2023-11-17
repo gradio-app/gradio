@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
-	import { click_outside } from "../utils/events";
 	import { type Brush } from "./Brush.svelte";
 	import ColorPicker from "./ColorPicker.svelte";
 	import ColorSwatch from "./ColorSwatch.svelte";

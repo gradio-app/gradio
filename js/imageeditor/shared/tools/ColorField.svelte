@@ -29,7 +29,6 @@
 	$: color_string = format_color(color, current_mode);
 	$: color_string && dispatch("selected", color_string);
 
-	// function to request eyedropper
 	function request_eyedropper(): void {
 		// @ts-ignore
 		const eyeDropper = new EyeDropper();

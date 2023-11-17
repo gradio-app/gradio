@@ -20,18 +20,6 @@
 	const LayerManager = layer_manager();
 	let layers: LayerScene[] = [];
 
-	function once(fn: () => void): () => void {
-		let called = false;
-		return () => {
-			if (called) return;
-			called = true;
-			fn();
-		};
-	}
-	const once_layer = once(new_layer);
-
-	$: $pixi && once_layer();
-
 	register_context("layers", {
 		init_fn: () => {
 			new_layer();
@@ -84,7 +72,7 @@
 
 		LayerManager.reset();
 
-		let last_layer: [LayerScene, LayerScene[]];
+		let last_layer: [LayerScene, LayerScene[]] | null = null;
 		for (const blob of blobs.filter(is_not_null)) {
 			last_layer = await LayerManager.add_layer_from_blob(
 				$pixi.layer_container,
@@ -92,6 +80,8 @@
 				blob
 			);
 		}
+
+		if (!last_layer) return;
 
 		$current_layer = last_layer[0];
 		layers = last_layer[1];

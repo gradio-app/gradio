@@ -92,6 +92,8 @@
 
 	const CommandManager = command_manager();
 
+	$dimensions;
+
 	const { can_redo, can_undo } = CommandManager;
 	const reset_context: Writable<PartialRecord<context_type, () => void>> =
 		writable({});
@@ -145,7 +147,7 @@
 					}
 				}
 
-				// $pixi?.reset?.();
+				$pixi?.resize?.(...dimensions);
 			}
 		}
 	});
@@ -225,8 +227,7 @@
 	$: $position_spring && get_dimensions(canvas_wrap, pixi_target);
 
 	function handle_remove(): void {
-		$dimensions = crop_size || [800, 600];
-		// $reset?.();
+		editor_context.reset(true, $dimensions);
 	}
 
 	onMount(() => {
@@ -249,6 +250,8 @@
 		resizer.observe(pixi_target);
 
 		for (const k of $contexts) {
+			// console.log(k);
+
 			if (k in $init_context && typeof $init_context[k] === "function") {
 				$init_context[k]?.($dimensions);
 			}
