@@ -189,5 +189,9 @@
 		userEvent.click(canvas.getByLabelText("Add Layer"));
 
 		await userEvent.click(canvas.getByLabelText("Image button"));
+
+		await userEvent.click(canvas.getByLabelText("Undo"));
+
+		await userEvent.click(canvas.getByLabelText("Redo"));
 	}}
 />
