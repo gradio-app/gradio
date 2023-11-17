@@ -8,11 +8,17 @@
 	} from "./shared/InteractiveImageEditor.svelte";
 
 	import type { Gradio, SelectData } from "@gradio/utils";
-	import StaticImage from "./shared/ImagePreview.svelte";
+	import { BaseStaticImage as StaticImage } from "@gradio/image";
 	import InteractiveImageEditor from "./shared/InteractiveImageEditor.svelte";
-	import { Block, Empty, UploadText } from "@gradio/atoms";
+	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
+	import {
+		prepare_files,
+		upload,
+		normalise_file,
+		type FileData
+	} from "@gradio/client";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -115,8 +121,7 @@
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
 			on:share={({ detail }) => gradio.dispatch("share", detail)}
 			on:error={({ detail }) => gradio.dispatch("error", detail)}
-			{root}
-			{value}
+			value={normalise_file(value.composite, root, proxy_url)}
 			{label}
 			{show_label}
 			{show_download_button}
