@@ -80,7 +80,7 @@
 		child_bottom: 0
 	});
 
-	const crop = writable<[number, number, number, number]>([0, 0, ...crop_size]);
+	const crop = writable<[number, number, number, number]>([0, 0, 1, 1]);
 	const position_spring = spring(
 		{ x: 0, y: 0 },
 		{

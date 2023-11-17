@@ -3,6 +3,7 @@
 	import Handle from "./Handle.svelte";
 	import { type EditorContext } from "../ImageEditor.svelte";
 	import { clamp } from "../utils/pixi";
+	import { _ } from "svelte-i18n";
 
 	export let editor_box: EditorContext["editor_box"];
 
@@ -49,7 +50,7 @@
 	let triggered = false;
 
 	$: {
-		if (dragging) {
+		if (dragging || position_drag) {
 			clearTimeout(timer);
 
 			finished = false;
@@ -74,7 +75,8 @@
 			}
 
 			finished = true;
-		}, 500);
+			position_drag = false;
+		}, 1000);
 	}
 
 	function handle_change({
@@ -138,6 +140,7 @@
 		t_p =
 			(_top - $editor_box.child_top + $editor_box.parent_top) /
 			$editor_box.child_height;
+
 		dispatch(triggered ? "crop_continue" : "crop_start", {
 			x: l_p,
 			y: t_p,
@@ -162,7 +165,74 @@
 	}
 
 	$: $editor_box && resize();
+
+	let start_x = 0;
+	let start_y = 0;
+	let position_drag = false;
+	function handle_drag_start(e: MouseEvent): void {
+		position_drag = true;
+
+		start_x = e.clientX;
+		start_y = e.clientY;
+
+		if (!finished) return;
+		finished = false;
+		dispatch("crop_start", {
+			x: l_p,
+			y: t_p,
+			width: w_p,
+			height: h_p
+		});
+	}
+
+	function handle_drag_end(e: MouseEvent): void {
+		if (!position_drag) return;
+
+		position_drag = false;
+	}
+
+	function handle_dragging(e: MouseEvent): void {
+		if (!position_drag) return;
+
+		const x_delta = e.clientX - start_x;
+		const y_delta = e.clientY - start_y;
+
+		_left = clamp(
+			_left + x_delta,
+			$editor_box.child_left - $editor_box.parent_left,
+			$editor_box.child_right - $editor_box.parent_left - _width
+		);
+
+		_top = clamp(
+			_top + y_delta,
+			$editor_box.child_top - $editor_box.parent_top,
+			$editor_box.child_bottom - $editor_box.parent_top - _height
+		);
+
+		_right = _left + _width;
+		_bottom = _top + _height;
+
+		l_p =
+			(_left - $editor_box.child_left + $editor_box.parent_left) /
+			$editor_box.child_width;
+		t_p =
+			(_top - $editor_box.child_top + $editor_box.parent_top) /
+			$editor_box.child_height;
+
+		start_x = e.clientX;
+		start_y = e.clientY;
+		dispatch("crop_continue", {
+			x: l_p,
+			y: t_p,
+			width: w_p,
+			height: h_p
+		});
+
+		triggered = true;
+	}
 </script>
+
+<svelte:window on:mousemove={handle_dragging} on:mouseup={handle_drag_end} />
 
 <div class="wrap">
 	<div
@@ -180,7 +250,8 @@
 			/>
 		{/each}
 
-		<div class="grid" class:finished>
+		<!-- svelte-ignore a11y-no-static-element-interactions -->
+		<div class="grid" class:finished on:mousedown={handle_drag_start}>
 			{#each { length: 25 } as _}
 				<div></div>
 			{/each}
@@ -198,7 +269,7 @@
 		overflow: hidden;
 		transition: 0.2s;
 		opacity: 1;
-		pointer-events: none;
+		/* pointer-events: none; */
 	}
 
 	.grid.finished {

@@ -12,37 +12,14 @@
 	const { dimensions, editor_box, pixi, crop, command_manager } =
 		getContext<EditorContext>(EDITOR_KEY);
 
-	export let transforms: ("crop" | "rotate")[] = ["crop", "rotate"];
-
-	const transform_meta = {
-		rotate: {
-			icon: Rotate,
-			label: "Rotate",
-			order: 0,
-			id: "rotate",
-			cb: () => {}
-		},
-		crop: {
-			icon: Crop,
-			label: "Crop",
-			order: 1,
-			id: "crop",
-			cb: () => {}
-		}
-	} as const;
-
-	$: _transforms = transforms
-		.map((transform) => ({
-			...transform_meta[transform]
-		}))
-		.sort((a, b) => a.order - b.order);
-
 	let cropper: CropCommand | null;
 
 	let w_p = 1;
 	let h_p = 1;
 	let l_p = 0;
 	let t_p = 0;
+
+	let current_opacity = 0;
 
 	function handle_crop(
 		type: "start" | "stop" | "continue",
@@ -60,13 +37,22 @@
 		}
 	): void {
 		if (!$pixi) return;
-		if (!cropper) {
-			cropper = crop_canvas($pixi?.renderer, $pixi.mask_container, crop);
-		}
 
 		if (type === "start") {
+			if (cropper) {
+				current_opacity = cropper.stop();
+				cropper = null;
+			}
+
+			cropper = crop_canvas(
+				$pixi?.renderer,
+				$pixi.mask_container,
+				crop,
+				current_opacity
+			);
 			cropper.start(...$dimensions, current_crop);
 		} else if (type === "continue") {
+			if (!cropper) return;
 			cropper.continue([
 				x * $dimensions[0],
 				y * $dimensions[1],
@@ -74,20 +60,8 @@
 				height * $dimensions[1]
 			]);
 		} else if (type === "stop") {
+			if (!cropper) return;
 			command_manager.execute(cropper);
-
-			// current_crop = [
-			// 	x * $dimensions[0],
-			// 	y * $dimensions[1],
-			// 	width * $dimensions[0],
-			// 	height * $dimensions[1]
-			// ];
-			cropper = null;
-
-			w_p = width;
-			h_p = height;
-			l_p = x;
-			t_p = y;
 		}
 	}
 
@@ -120,8 +94,6 @@
 		w_p * $dimensions[0],
 		h_p * $dimensions[1]
 	];
-
-	// $: crop.set([l_p, t_p, w_p, h_p]);
 
 	$: {
 		l_p = $crop[0];

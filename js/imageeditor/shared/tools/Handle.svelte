@@ -127,6 +127,7 @@
 		--hitbox-corner-offset: -25px;
 		--handle-corner-offset: calc(50% - 5px);
 		--handle-mid-offset: calc(50% - 2px);
+		z-index: 1;
 	}
 
 	/* hitbox positions  */

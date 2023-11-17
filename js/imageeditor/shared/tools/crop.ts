@@ -16,13 +16,15 @@ export interface CropCommand extends Command {
 		previous_crop: [number, number, number, number],
 		set_previous?: boolean
 	) => void;
+	stop: () => number;
 	continue: (crop_size: [number, number, number, number]) => void;
 }
 
 export function crop_canvas(
 	renderer: IRenderer,
 	mask_container: Container,
-	crop: Writable<[number, number, number, number]>
+	crop: Writable<[number, number, number, number]>,
+	current_opacity = 0
 ): CropCommand {
 	let text: RenderTexture;
 	let sprite: Sprite;
@@ -31,12 +33,12 @@ export function crop_canvas(
 	let final_crop: [number, number, number, number];
 	let width: number;
 	let height: number;
-	let alpha_spring = spring(0, {
+	let alpha_spring = spring(current_opacity, {
 		stiffness: 0.1,
 		damping: 0.5
 	});
 
-	let spring_value = 0;
+	let spring_value = current_opacity;
 	alpha_spring.subscribe((value) => {
 		if (!final_crop) return;
 		spring_value = value;
@@ -65,6 +67,7 @@ export function crop_canvas(
 	}
 
 	let clean = true;
+	let stopped = false;
 
 	return {
 		start: (
@@ -78,7 +81,8 @@ export function crop_canvas(
 				width: _width,
 				height: _height
 			});
-			crop_mask(_width, _height, _previous_crop, false);
+
+			crop_mask(_width, _height, _previous_crop, true);
 			sprite = new Sprite(text);
 			mask_container.mask = sprite;
 			width = _width;
@@ -105,6 +109,10 @@ export function crop_canvas(
 			]);
 			clean = true;
 		},
+		stop() {
+			stopped = true;
+			return spring_value;
+		},
 		execute() {
 			if (clean) {
 				this.start(width, height, final_crop, false);
@@ -117,13 +125,17 @@ export function crop_canvas(
 				]);
 				clean = true;
 			} else {
-				alpha_spring.set(0);
+				if (!stopped) {
+					alpha_spring.set(0);
+				}
+
 				crop.set([
 					final_crop[0] / width,
 					final_crop[1] / height,
 					final_crop[2] / width,
 					final_crop[3] / height
 				]);
+
 				clean = true;
 			}
 		}
