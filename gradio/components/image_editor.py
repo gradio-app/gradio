@@ -2,6 +2,7 @@ r"""gr.ImageEditor() component."""
 
 from __future__ import annotations
 
+import dataclasses
 import warnings
 from pathlib import Path
 from typing import Any, Iterable, List, Literal, Optional, TypedDict, Union, cast
@@ -10,7 +11,6 @@ import numpy as np
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 from PIL import Image as _Image  # using _ to minimize namespace pollution
-from pydantic.dataclasses import dataclass
 
 import gradio.image_utils as image_utils
 from gradio import utils
@@ -34,15 +34,15 @@ class EditorData(GradioModel):
     composite: Optional[FileData] = None
 
 
-@dataclass
+@dataclasses.dataclass
 class Eraser:
-    sizes: Union[list[int], Literal["auto"]] = "auto"
-    default_size: Union[int, Literal["auto"]] = "auto"
+    sizes: list[int] | Literal["auto"] = "auto"
+    default_size: int | Literal["auto"] = "auto"
     size_mode: Literal["fixed", "defaults"] = "defaults"
     antialias: bool = True
 
 
-@dataclass
+@dataclasses.dataclass
 class Brush(Eraser):
     colors: Union[
         list[Union[str, tuple[int, int, int, int]]],
