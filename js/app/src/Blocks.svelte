@@ -176,7 +176,6 @@
 			},
 			{} as Record<number, Record<string, number[]>>
 		);
-		console.log(target_map);
 		loading_status = create_loading_status_store();
 
 		dependencies.forEach((v, i) => {
@@ -252,8 +251,6 @@
 			}
 
 			if (target_map[c.id]) {
-				console.log(c);
-
 				c.props.attached_events = Object.keys(target_map[c.id]);
 			}
 			__type_for_id.set(c.id, c.props.interactive);

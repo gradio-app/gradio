@@ -7,8 +7,6 @@
 	export let min: number;
 	export let max: number;
 
-	$: console.log(sizes, selected_size, size_mode);
-
 	const dispatch = createEventDispatcher<{
 		select: { index: number; size: number };
 	}>();
