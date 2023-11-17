@@ -130,6 +130,7 @@
 	>
 		<slot />
 		<input
+			aria-label="file upload"
 			type="file"
 			bind:this={hidden_upload}
 			on:change={load_files_from_upload}
