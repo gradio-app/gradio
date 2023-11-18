@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Image from "./shared/Image.svelte";
+	import { BaseImage as Image } from "@gradio/image";
 
 	export let value: string;
 	export let samples_dir: string;

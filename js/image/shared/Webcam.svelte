@@ -91,6 +91,7 @@
 			ReaderObj.onload = function (e): void {
 				if (e.target) {
 					dispatch("capture", {
+						//@ts-ignore
 						data: e.target.result,
 						name: "sample." + mimeType.substring(6),
 						is_example: false,

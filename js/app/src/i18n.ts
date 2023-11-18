@@ -1,5 +1,3 @@
-/// <reference types="vite/client" />
-
 import { addMessages, init, getLocaleFromNavigator } from "svelte-i18n";
 
 const langs = import.meta.globEager("./lang/*.json");

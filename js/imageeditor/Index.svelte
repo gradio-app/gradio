@@ -89,8 +89,6 @@
 		gradio.dispatch("change");
 		gradio.dispatch("input");
 	}
-
-	$: console.log(loading_status);
 </script>
 
 {#if !interactive}

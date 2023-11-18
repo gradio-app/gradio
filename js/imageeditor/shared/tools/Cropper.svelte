@@ -4,8 +4,9 @@
 	import { type EditorContext } from "../ImageEditor.svelte";
 	import { clamp } from "../utils/pixi";
 	import { resize_and_reposition } from "./crop";
+
 	export let editor_box: EditorContext["editor_box"];
-	export let crop_constraint: [number, number] | null;
+	export let crop_constraint: number | null;
 
 	const dispatch = createEventDispatcher<{
 		crop_start: {
@@ -145,7 +146,7 @@
 			l: "r",
 			r: "l",
 			c: "c"
-		};
+		} as const;
 
 		if (crop_constraint) {
 			const max_w = ["t", "b"].includes(position)
