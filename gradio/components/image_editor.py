@@ -116,8 +116,8 @@ class ImageEditor(Component):
         data_mode: Literal["image", "pathline"] = "image",
         crop_size: tuple[int | float, int | float] | str | None = None,
         transforms: Iterable[Literal["crop", "rotate"]] = ("crop", "rotate"),
-        eraser: Eraser | None = Eraser(),
-        brush: Brush | None = Brush(),
+        eraser: Eraser | None = None,
+        brush: Brush | None = None,
     ):
         """
         Parameters:
@@ -177,8 +177,8 @@ class ImageEditor(Component):
         self.data_mode = data_mode
         self.crop_size = crop_size
         self.transforms = transforms
-        self.eraser = eraser
-        self.brush = brush
+        self.eraser = eraser or Eraser()
+        self.brush = brush or Brush()
 
         super().__init__(
             label=label,
