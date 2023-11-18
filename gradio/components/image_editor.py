@@ -199,17 +199,29 @@ class ImageEditor(Component):
     ) -> np.ndarray | _Image.Image | str | None:
         if file is None:
             return None
+
         im = _Image.open(file.path)
 
+        if file.orig_name:
+            p = Path(file.orig_name)
+            name = p.stem
+            suffix = p.suffix.replace(".", "")
+            if suffix in ["jpg", "jpeg"]:
+                suffix = "jpeg"
+        else:
+            name = "image"
+            suffix = "png"
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
-            if self.crop_size and not isinstance(self.crop_size, str):
-                im = image_utils.crop_scale(
-                    im, int(self.crop_size[0]), int(self.crop_size[1])
-                )
+        if crop_size and not isinstance(crop_size, str):
+            im = image_utils.crop_scale(im, int(crop_size[0]), int(crop_size[1]))
         return image_utils.format_image(
-            im, cast(Literal["numpy", "pil", "filepath"], self.type), self.GRADIO_CACHE
+            im,
+            cast(Literal["numpy", "pil", "filepath"], self.type),
+            self.GRADIO_CACHE,
+            format=suffix,
+            name=name,
         )
 
     def preprocess(self, x: EditorData | None) -> EditorValue | None:
