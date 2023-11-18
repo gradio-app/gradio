@@ -141,3 +141,70 @@ export function crop_canvas(
 		}
 	};
 }
+
+export function resize_and_reposition(
+	original_width: number,
+	original_height: number,
+	anchor: "t" | "r" | "l" | "b" | "tl" | "tr" | "bl" | "br" | "c",
+	aspect_ratio: number,
+	max_width: number,
+	max_height: number
+): {
+	new_width: number;
+	new_height: number;
+	x_offset: number;
+	y_offset: number;
+} {
+	let new_width = original_width;
+	let new_height = original_height;
+
+	// Calculate new dimensions based on aspect ratio
+	if (anchor.includes("t") || anchor.includes("b") || anchor == "c") {
+		new_width = original_height * aspect_ratio;
+	}
+	if (anchor.includes("l") || anchor.includes("r") || anchor == "c") {
+		new_height = original_width / aspect_ratio;
+	}
+
+	// Ensure aspect ratio is maintained
+	new_height = new_height || new_width / aspect_ratio;
+	new_width = new_width || new_height * aspect_ratio;
+
+	// Apply max width/height constraints and adjust dimensions
+	if (new_width > max_width) {
+		new_width = max_width;
+		new_height = new_width / aspect_ratio;
+	}
+	if (new_height > max_height) {
+		new_height = max_height;
+		new_width = new_height * aspect_ratio;
+	}
+
+	// Calculate offsets to ensure anchor position is maintained
+	let x_offset = 0;
+	let y_offset = 0;
+	if (anchor.includes("r")) {
+		x_offset = original_width - new_width;
+	} else if (anchor.includes("l")) {
+		x_offset = 0;
+	} else {
+		// Center or top/bottom center
+		x_offset = (original_width - new_width) / 2;
+	}
+
+	if (anchor.includes("b")) {
+		y_offset = original_height - new_height;
+	} else if (anchor.includes("t")) {
+		y_offset = 0;
+	} else {
+		// Center or left/right center
+		y_offset = (original_height - new_height) / 2;
+	}
+
+	return {
+		new_width: new_width,
+		new_height: new_height,
+		x_offset: x_offset,
+		y_offset: y_offset
+	};
+}

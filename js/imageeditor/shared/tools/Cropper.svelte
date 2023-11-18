@@ -3,9 +3,9 @@
 	import Handle from "./Handle.svelte";
 	import { type EditorContext } from "../ImageEditor.svelte";
 	import { clamp } from "../utils/pixi";
-	import { _ } from "svelte-i18n";
-
+	import { resize_and_reposition } from "./crop";
 	export let editor_box: EditorContext["editor_box"];
+	export let crop_constraint: [number, number] | null;
 
 	const dispatch = createEventDispatcher<{
 		crop_start: {
@@ -79,17 +79,20 @@
 		}, 1000);
 	}
 
-	function handle_change({
-		top,
-		bottom,
-		left,
-		right
-	}: {
-		top: number | undefined;
-		bottom: number | undefined;
-		left: number | undefined;
-		right: number | undefined;
-	}): void {
+	function handle_change(
+		{
+			top,
+			bottom,
+			left,
+			right
+		}: {
+			top: number | undefined;
+			bottom: number | undefined;
+			left: number | undefined;
+			right: number | undefined;
+		},
+		position: (typeof positions)[number]
+	): void {
 		_top = clamp(
 			top ? top - $editor_box.parent_top : _top,
 			$editor_box.child_top - $editor_box.parent_top,
@@ -131,6 +134,41 @@
 			0,
 			_bottom - _top
 		);
+
+		const anchors_for_position = {
+			tl: "br",
+			tr: "bl",
+			bl: "tr",
+			br: "tl",
+			t: "b",
+			b: "t",
+			l: "r",
+			r: "l"
+		};
+
+		if (crop_constraint) {
+			const max_w = ["t", "b"].includes(position)
+				? $editor_box.child_width
+				: _right - _left;
+			const max_h = ["l", "r"].includes(position)
+				? $editor_box.child_height
+				: _bottom - _top;
+			let result = resize_and_reposition(
+				_width,
+				_height,
+				anchors_for_position[position],
+				crop_constraint,
+				max_w,
+				max_h
+			);
+
+			_width = result.new_width;
+			_height = result.new_height;
+			_left = _left + result.x_offset;
+			_top = _top + result.y_offset;
+			_right = _left + _width;
+			_bottom = _top + _height;
+		}
 
 		w_p = _width / $editor_box.child_width;
 		h_p = _height / $editor_box.child_height;
@@ -244,7 +282,7 @@
 	>
 		{#each positions as position}
 			<Handle
-				on:change={({ detail }) => handle_change(detail)}
+				on:change={({ detail }) => handle_change(detail, position)}
 				bind:dragging
 				location={position}
 			/>

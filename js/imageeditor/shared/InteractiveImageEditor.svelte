@@ -94,7 +94,14 @@
 	let history = false;
 </script>
 
-<ImageEditor bind:this={editor} {changeable} on:save bind:history {bg}>
+<ImageEditor
+	bind:this={editor}
+	{changeable}
+	on:save
+	bind:history
+	{bg}
+	crop_constraint={!!crop_constraint}
+>
 	<Tools {i18n}>
 		<Sources
 			{i18n}

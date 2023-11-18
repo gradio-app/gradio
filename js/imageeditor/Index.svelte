@@ -13,12 +13,7 @@
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import {
-		prepare_files,
-		upload,
-		normalise_file,
-		type FileData
-	} from "@gradio/client";
+	import { normalise_file } from "@gradio/client";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -52,6 +47,7 @@
 
 	export let brush: Brush;
 	export let eraser: Eraser;
+	export let crop_size: [number, number] | `${string}:${string}` | null = null;
 
 	export let attached_events: string[] = [];
 
@@ -152,6 +148,7 @@
 		/>
 
 		<InteractiveImageEditor
+			{crop_size}
 			{value}
 			bind:this={editor_instance}
 			{root}

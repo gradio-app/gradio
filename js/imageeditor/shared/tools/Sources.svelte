@@ -106,6 +106,8 @@
 			add_image.execute();
 
 			should_reset = true;
+
+			await tick();
 			bg = true;
 		}
 	}

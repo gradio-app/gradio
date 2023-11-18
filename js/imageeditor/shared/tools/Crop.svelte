@@ -3,7 +3,7 @@
 
 	import { type ToolContext, TOOL_KEY } from "./Tools.svelte";
 	import { type EditorContext, EDITOR_KEY } from "../ImageEditor.svelte";
-	import { crop_canvas, type CropCommand } from "./crop";
+	import { crop_canvas, resize_and_reposition, type CropCommand } from "./crop";
 
 	import Cropper from "./Cropper.svelte";
 
@@ -15,10 +15,13 @@
 
 	export let crop_constraint: [number, number] | `${string}:${string}` | null;
 
+	let _crop_constraint: number | null = null;
 	$: {
 		if (typeof crop_constraint === "string") {
 			const [w, h] = crop_constraint.split(":");
-			crop_constraint = [parseInt(w), parseInt(h)];
+			_crop_constraint = parseInt(w) / parseInt(h);
+		} else if (Array.isArray(crop_constraint)) {
+			_crop_constraint = crop_constraint[0] / crop_constraint[1];
 		}
 	}
 
@@ -27,7 +30,51 @@
 	let l_p = 0;
 	let t_p = 0;
 
-	let current_opacity = 0;
+	let current_opacity = 0.2;
+
+	let manually_cropped = false;
+
+	$: {
+		if (!manually_cropped && _crop_constraint && $pixi && $active_tool) {
+			requestAnimationFrame(() => {
+				initial_crop();
+			});
+		}
+	}
+
+	let c: CropCommand | null = null;
+
+	async function initial_crop(): Promise<void> {
+		if (c) return;
+		const { new_height, new_width, x_offset, y_offset } = resize_and_reposition(
+			$editor_box.child_width,
+			$editor_box.child_height,
+			"c",
+			_crop_constraint!,
+
+			$editor_box.child_width,
+			$editor_box.child_height
+		);
+
+		w_p = new_width / $editor_box.child_width;
+		h_p = new_height / $editor_box.child_height;
+		l_p = x_offset / $editor_box.child_width;
+		t_p = y_offset / $editor_box.child_height;
+
+		c = crop_canvas($pixi!.renderer, $pixi!.mask_container, crop, 0.2);
+		c.start(...$dimensions, current_crop);
+
+		c.continue([
+			l_p * $dimensions[0],
+			t_p * $dimensions[1],
+			w_p * $dimensions[0],
+			h_p * $dimensions[1]
+		]);
+		c.stop();
+
+		c.execute();
+		c = null;
+	}
 
 	function handle_crop(
 		type: "start" | "stop" | "continue",
@@ -122,6 +169,7 @@
 
 {#if $active_tool === "crop" && measured}
 	<Cropper
+		crop_constraint={_crop_constraint}
 		{w_p}
 		{h_p}
 		{l_p}

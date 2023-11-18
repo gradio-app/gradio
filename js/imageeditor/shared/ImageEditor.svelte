@@ -50,7 +50,7 @@
 </script>
 
 <script lang="ts">
-	import { onMount, setContext, createEventDispatcher } from "svelte";
+	import { onMount, setContext, createEventDispatcher, tick } from "svelte";
 	import { writable } from "svelte/store";
 	import { spring } from "svelte/motion";
 	import { Rectangle } from "pixi.js";
@@ -68,6 +68,7 @@
 	const dispatch = createEventDispatcher<{
 		save: void;
 	}>();
+	export let crop_constraint = false;
 
 	let dimensions = writable(crop_size);
 
@@ -101,8 +102,9 @@
 	const { can_redo, can_undo, current_history } = CommandManager;
 
 	$: {
-		history = $current_history.previous || $active_tool !== "bg";
+		history = !!$current_history.previous || $active_tool !== "bg";
 	}
+
 	const active_tool: Writable<tool> = writable("bg");
 	const reset_context: Writable<PartialRecord<context_type, () => void>> =
 		writable({});
@@ -197,6 +199,12 @@
 			parent_top,
 			parent_bottom
 		});
+
+		if (crop_constraint && bg && !history) {
+			requestAnimationFrame(() => {
+				tick().then((v) => ($active_tool = "crop"));
+			});
+		}
 	}
 
 	function reposition_canvas(): void {

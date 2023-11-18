@@ -117,7 +117,6 @@
 	}
 
 	$: mode === "draw" && current_color.set(selected_color);
-	$: console.log({ selected_color });
 
 	let selected_size =
 		default_size === "auto" ? generate_sizes(...$dimensions) : default_size;
