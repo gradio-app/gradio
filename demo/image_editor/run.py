@@ -10,7 +10,7 @@ def sleep(im):
 with gr.Blocks() as demo:
     im = gr.ImageEditor(
         type="pil",
-        crop_size="1:1",
+        crop_size=(256, 256),
         interactive=True,
         brush=None,
         eraser=None,
