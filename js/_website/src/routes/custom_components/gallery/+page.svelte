@@ -2,6 +2,9 @@
 	import { onMount } from "svelte";
 	import type { ComponentData } from "./utils";
 	import { getRandomIntInclusive, classToEmojiMapping } from "./utils";
+	import Card from "./Card.svelte";
+	import Close from "./Close.svelte";
+
 	const API = "https://gradio-custom-component-gallery-backend.hf.space/";
 	const OFFSET = 0;
 	const LIMIT = 20;
@@ -67,30 +70,20 @@
 
 {#if selectedComponent}
 	<div class="details-panel open">
-		<div>
-			<button
-				on:click={() => (selectedComponent = null)}
-				class="absolute top-0 right-5 p-4 text-xl">X</button
-			>
-		</div>
+		<button
+			class="absolute right-3 top-3 w-4"
+			on:click={() => (selectedComponent = null)}
+		>
+			<Close />
+		</button>
 		<div>
 			<p class="text-4xl text-black text-center font-bold">
 				{selectedComponent.name}
 			</p>
 		</div>
-
-		<div>
-			<p>Author: {selectedComponent.author}</p>
-			<p>{selectedComponent.description}</p>
-			<p>Install with `pip install {selectedComponent.name}`</p>
-			<p>
-				See code <a
-					class="link"
-					href={`https://huggingface.co/spaces/${selectedComponent.id}`}
-					target="_blank">here</a
-				>
-			</p>
-		</div>
+		<Card data={selectedComponent} color={randomColor()}></Card>
+		<br />
+		<p class="text-2xl text-black text-left ml-4">Demo</p>
 		<iframe
 			src={`https://${selectedComponent.subdomain}.hf.space?__theme=light`}
 			height="100%"
@@ -107,6 +100,31 @@
 		margin: 16px;
 	}
 
+	.close-button {
+		position: absolute;
+		top: 0;
+		right: 5;
+		width: var(--size-1);
+		color: var(--body-text-color);
+	}
+
+	ul {
+		list-style: none;
+	}
+
+	li::before {
+		content: "•";
+		color: orange;
+		display: inline-block;
+		width: 1em;
+		margin-left: 2em;
+	}
+
+	/* li {
+    margin-left: 2em;
+    list-style-type: circle;
+  } */
+
 	.box {
 		border: 1px solid #ddd;
 		padding: 16px;
@@ -120,6 +138,7 @@
 	}
 
 	.details-panel {
+		overflow-y: scroll;
 		position: fixed;
 		top: 0;
 		right: 0;
