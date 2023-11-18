@@ -10,7 +10,7 @@
 	export let disabled = false;
 	export let hasPopup = false;
 	export let color = "var(--block-label-text-color)";
-
+	export let transparent = false;
 	$: _color = highlight ? "var(--color-accent)" : color;
 </script>
 
@@ -23,6 +23,7 @@
 	class:pending
 	class:padded
 	class:highlight
+	class:transparent
 	style:color={!disabled && _color ? _color : "var(--block-label-text-color)"}
 >
 	{#if show_label}<span>{label}</span>{/if}
@@ -126,5 +127,11 @@
 		100% {
 			opacity: 0.5;
 		}
+	}
+
+	.transparent {
+		background: transparent;
+		border: none;
+		box-shadow: none;
 	}
 </style>

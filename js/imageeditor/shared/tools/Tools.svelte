@@ -143,6 +143,7 @@
 					padded={false}
 					label={meta.label + " button"}
 					hasPopup={true}
+					transparent={true}
 				/>
 			{/each}
 		{/if}
@@ -158,6 +159,7 @@
 				size="large"
 				padded={false}
 				label={tools_meta[tool].label + " button"}
+				transparent={true}
 			/>
 		{/each}
 	</Toolbar>

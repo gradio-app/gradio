@@ -54,7 +54,6 @@
 		<div class="input-wrap">
 			<input
 				type="text"
-				style:color="var(--neutral-700)"
 				value={color_string}
 				on:change={(e) => (color = e.currentTarget.value)}
 			/>
@@ -97,6 +96,8 @@
 		font-size: var(--scale-000);
 		padding-left: 15px;
 		padding-right: 0;
+		background-color: var(--background-fill-secondary);
+		color: var(--block-label-text-color);
 	}
 
 	.swatch {
@@ -163,7 +164,7 @@
 		border-top-right-radius: 15px;
 		border: 1px solid var(--block-border-color);
 		border-left: none;
-		background: var(--background-fill-primary);
+		background: var(--background-fill-secondary);
 		height: 30px;
 		padding: 7px 7px 5px 0px;
 		cursor: pointer;
