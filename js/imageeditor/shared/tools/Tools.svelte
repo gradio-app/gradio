@@ -1,5 +1,10 @@
 <script lang="ts" context="module">
-	import type { Subscriber, Invalidator, Unsubscriber } from "svelte/store";
+	import type {
+		Subscriber,
+		Invalidator,
+		Unsubscriber,
+		Writable
+	} from "svelte/store";
 	import type { tool } from "../tools/";
 
 	export const TOOL_KEY = Symbol("tool");
@@ -35,6 +40,7 @@
 			sub_tool: upload_tool | transform_tool | brush_tool | eraser_tool | null,
 			cb?: (...args: any[]) => void
 		) => void;
+		current_color: Writable<string>;
 	}
 </script>
 
@@ -46,17 +52,13 @@
 	import { Image, Crop, Brush, Erase } from "@gradio/icons";
 	import { type I18nFormatter } from "@gradio/utils";
 
-	const { pixi, current_layer, dimensions, current_history, active_tool } =
+	const { current_history, active_tool } =
 		getContext<EditorContext>(EDITOR_KEY);
 
 	export let i18n: I18nFormatter;
 
 	let tools: tool[] = [];
-	// export let transforms: ("crop" | "rotate")[];
-	// export let brush: Brush;
-	// export let eraser;
 
-	// const active_tool = writable<tool | null>("bg");
 	const metas: Record<tool, ToolMeta | null> = {
 		draw: null,
 		erase: null,
@@ -65,8 +67,10 @@
 	};
 
 	$: sub_menu = $active_tool && metas[$active_tool];
+	let current_color = writable("#000000");
 	let sub_tool: upload_tool | transform_tool | brush_tool | eraser_tool | null;
 	const tool_context: ToolContext = {
+		current_color,
 		register_tool: (type: tool, meta: ToolMeta) => {
 			tools = [...tools, type];
 			metas[type] = meta;
@@ -129,7 +133,10 @@
 		{#if sub_menu}
 			{#each sub_menu.options as meta (meta.id)}
 				<IconButton
-					highlight={sub_tool === meta.id}
+					highlight={sub_tool === meta.id && meta.id !== "brush_size"}
+					color={$active_tool === "draw" && meta.id === "brush_size"
+						? $current_color
+						: undefined}
 					on:click={() => tool_context.activate_subtool(meta.id, meta.cb)}
 					Icon={meta.icon}
 					size="large"

@@ -103,13 +103,12 @@ export function add_bg_color(
 			return [sprite.width, sprite.height];
 		},
 		async execute() {
-			// renderer.resize(sprite.width, sprite.height);
 			resize(sprite.width, sprite.height);
 			sprite.zIndex = 1;
 			container.addChild(sprite);
 		},
 		undo() {
-			// container.removeChildren();
+			container.removeChildren();
 		}
 	};
 }

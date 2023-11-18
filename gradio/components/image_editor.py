@@ -36,7 +36,7 @@ class EditorData(GradioModel):
 
 @dataclasses.dataclass
 class Eraser:
-    default_size: Union[int, Literal["auto"]] = "auto"
+    default_size: int | Literal["auto"] = "auto"
 
 
 @dataclasses.dataclass

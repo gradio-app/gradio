@@ -49,12 +49,36 @@
 	}
 
 	$: handle_color_change(selected_color);
+	let width = 0;
+	let height = 0;
+	let c_width = 0;
+	let c_height = 0;
+	let wrap_el: HTMLDivElement;
+	let anchor_right = false;
+	let anchor_top = false;
+
+	$: {
+		if (wrap_el && (width || height || c_height || c_width)) {
+			const box = wrap_el.getBoundingClientRect();
+
+			anchor_right = box.width + 30 > width / 2;
+			anchor_top = box.y < 80;
+		}
+	}
 </script>
+
+<svelte:window bind:innerHeight={height} bind:innerWidth={width} />
 
 <div
 	class="wrap"
 	class:padded={!color_picker}
 	use:click_outside={() => dispatch("click_outside")}
+	class:right={anchor_right}
+	class:top={anchor_top}
+	class:bottom={!anchor_top}
+	bind:this={wrap_el}
+	bind:clientWidth={c_width}
+	bind:clientHeight={c_height}
 >
 	{#if color_mode === "defaults"}
 		{#if color_picker}
@@ -82,7 +106,6 @@
 	.wrap {
 		width: 230px;
 		position: absolute;
-		bottom: 85px;
 		display: flex;
 		flex-direction: column;
 		gap: 5px;
@@ -94,6 +117,21 @@
 			0 0 5px rgba(0, 0, 0, 0.1),
 			0 5px 30px rgba(0, 0, 0, 0.2);
 		padding-bottom: var(--size-2);
+		pointer-events: all;
+		cursor: default;
+		z-index: var(--layer-top);
+	}
+
+	.bottom {
+		bottom: 85px;
+	}
+
+	.top {
+		top: 30px;
+	}
+
+	.right {
+		right: 10px;
 	}
 	.padded {
 		padding-top: var(--size-3);

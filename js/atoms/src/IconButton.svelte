@@ -9,7 +9,6 @@
 	export let highlight = false;
 	export let disabled = false;
 	export let hasPopup = false;
-	export let background = "transparent";
 	export let color = "var(--block-label-text-color)";
 
 	$: _color = highlight ? "var(--color-accent)" : color;
@@ -24,7 +23,6 @@
 	class:pending
 	class:padded
 	class:highlight
-	style:background={!disabled && background ? background : "transparent"}
 	style:color={!disabled && _color ? _color : "var(--block-label-text-color)"}
 >
 	{#if show_label}<span>{label}</span>{/if}
@@ -40,7 +38,7 @@
 		align-items: center;
 		gap: 1px;
 		z-index: var(--layer-2);
-
+		background: var(--background-fill-primary);
 		border-radius: var(--radius-sm);
 		color: var(--block-label-text-color);
 		border: 1px solid transparent;

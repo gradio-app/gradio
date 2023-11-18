@@ -1,11 +1,9 @@
 <script lang="ts">
-	// import type { EditorData } from "./types";
 	import { createEventDispatcher } from "svelte";
 	import type { SelectData } from "@gradio/utils";
 	import { uploadToHuggingFace } from "@gradio/utils";
 	import { BlockLabel, Empty, IconButton, ShareButton } from "@gradio/atoms";
 	import { Download } from "@gradio/icons";
-	// import { get_coordinates_of_clicked_image } from "./utils/events";
 
 	import { Image } from "@gradio/icons";
 	import { type FileData, normalise_file } from "@gradio/client";

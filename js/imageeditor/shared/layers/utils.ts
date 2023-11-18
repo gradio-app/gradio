@@ -67,7 +67,6 @@ interface LayerManager {
 		width: number,
 		height: number
 	): [LayerScene, LayerScene[]];
-	// remove_layer(layer: Container): void;
 	/**
 	 * Swaps the layer with the layer above or below it.
 	 * @param layer The index layer to swap.

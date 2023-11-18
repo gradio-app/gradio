@@ -1,17 +1,13 @@
 <script lang="ts">
 	import { tick, createEventDispatcher } from "svelte";
-	// import { clamp } from "../utils/pixi";
 
 	export let type = "corner";
 	export let location: "tl" | "tr" | "bl" | "br" | "t" | "b" | "l" | "r";
-	// export let parent: HTMLElement;
 
 	export let x1 = 0;
 	export let y1 = 0;
 	export let x2 = 0;
 	export let y2 = 0;
-	// export let width: number;
-	// export let height: number;
 
 	let box: DOMRect;
 	let y_offset = 0;
@@ -104,7 +100,6 @@
 		}
 
 		dispatch("change", { top: t, bottom: b, left: l, right: r });
-		// return `translate(${x}px, ${y}px)`;""
 		return "";
 	}
 

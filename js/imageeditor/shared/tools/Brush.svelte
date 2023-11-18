@@ -42,7 +42,7 @@
 	import tinycolor from "tinycolor2";
 	import { clamp } from "../utils/pixi";
 
-	import { getContext, onMount } from "svelte";
+	import { getContext, onMount, tick } from "svelte";
 	import { type ToolContext, TOOL_KEY } from "./Tools.svelte";
 	import { Palette, BrushSize as SizeIcon } from "@gradio/icons";
 	import { type EditorContext, EDITOR_KEY } from "../ImageEditor.svelte";
@@ -90,14 +90,22 @@
 	} as const;
 
 	let brush_options: (typeof paint_meta)[brush_option_type][];
-	$: brush_options = Object.values(paint_meta);
+	$: brush_options =
+		mode === "draw" ? Object.values(paint_meta) : [paint_meta.size];
 
 	let current_option: brush_option_type | null = null;
 
-	const { pixi, dimensions, current_layer, command_manager, register_context } =
-		getContext<EditorContext>(EDITOR_KEY);
+	const {
+		pixi,
+		dimensions,
+		current_layer,
+		command_manager,
+		register_context,
+		editor_box
+	} = getContext<EditorContext>(EDITOR_KEY);
 
-	const { active_tool, register_tool } = getContext<ToolContext>(TOOL_KEY);
+	const { active_tool, register_tool, current_color } =
+		getContext<ToolContext>(TOOL_KEY);
 
 	let drawing = false;
 	let draw: DrawCommand;
@@ -107,6 +115,9 @@
 
 		return Math.round((min * 2) / 100);
 	}
+
+	$: mode === "draw" && current_color.set(selected_color);
+	$: console.log({ selected_color });
 
 	let selected_size =
 		default_size === "auto" ? generate_sizes(...$dimensions) : default_size;
@@ -159,7 +170,16 @@
 				y: event.screen.y
 			});
 		}
+
+		if (brush_cursor) {
+			pos = {
+				x: event.clientX - $editor_box.child_left,
+				y: event.clientY - $editor_box.child_top
+			};
+		}
 	}
+
+	let brush_cursor = false;
 
 	async function toggle_listeners(on_off: "on" | "off"): Promise<void> {
 		$pixi?.layer_container[on_off]("pointerdown", pointer_down_handler);
@@ -167,6 +187,16 @@
 		$pixi?.layer_container[on_off]("pointerup", pointer_up_handler);
 
 		$pixi?.layer_container[on_off]("pointermove", pointer_move_handler);
+		$pixi?.layer_container[on_off]("pointerenter", () => {
+			if ($active_tool === mode) {
+				brush_cursor = true;
+				document.body.style.cursor = "none";
+			}
+		});
+		$pixi?.layer_container[on_off](
+			"pointerleave",
+			() => ((brush_cursor = false), (document.body.style.cursor = "auto"))
+		);
 	}
 
 	register_context(mode, {
@@ -193,7 +223,6 @@
 	let recent_colors: (string | null)[] = [null, null, null];
 
 	function process_color(color: ColorInput): string {
-		console.log(color);
 		return tinycolor(color).toRgbString();
 	}
 
@@ -202,10 +231,27 @@
 			current_option = null;
 		}
 	}
+
+	let pos = { x: 0, y: 0 };
+	$: brush_size =
+		(selected_size / $dimensions[0]) * $editor_box.child_width * 2;
 </script>
 
 <svelte:window
 	on:keydown={({ key }) => key === "Escape" && (current_option = null)}
+/>
+
+<span
+	style:transform="translate({pos.x}px, {pos.y}px)"
+	style:top="{$editor_box.child_top -
+		$editor_box.parent_top -
+		brush_size / 2}px"
+	style:left="{$editor_box.child_left -
+		$editor_box.parent_left -
+		brush_size / 2}px"
+	style:width="{brush_size}px"
+	style:height="{brush_size}px"
+	style:opacity={brush_cursor ? 1 : 0}
 />
 
 {#if current_option === "color" && colors}
@@ -226,3 +272,12 @@
 		bind:selected_size
 	/>
 {/if}
+
+<style>
+	span {
+		position: absolute;
+		background: rgba(0, 0, 0, 0.5);
+		pointer-events: none;
+		border-radius: 50%;
+	}
+</style>

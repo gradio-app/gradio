@@ -62,8 +62,8 @@
 
 	function update_color_from_mouse(x: number, y: number): void {
 		if (!sl_rect) return;
-		const _x = clamp(x - sl_rect.left, 0, sl_rect.width); // Get the x-coordinate relative to the box
-		const _y = clamp(y - sl_rect.top, 0, sl_rect.height); // Get the y-coordinate relative to the box
+		const _x = clamp(x - sl_rect.left, 0, sl_rect.width);
+		const _y = clamp(y - sl_rect.top, 0, sl_rect.height);
 		sl_marker_pos = [_x, _y];
 		const _hsva = {
 			h: hue * 1,

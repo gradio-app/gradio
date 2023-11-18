@@ -92,8 +92,6 @@
 	$: crop_constraint = crop_size;
 	let bg = false;
 	let history = false;
-
-	$: console.log({ history });
 </script>
 
 <ImageEditor bind:this={editor} {changeable} on:save bind:history {bg}>
@@ -157,6 +155,7 @@
 		padding-top: var(--size-3);
 		font-size: var(--text-lg);
 		pointer-events: none;
+		transform: translateY(-30px);
 	}
 
 	.or {

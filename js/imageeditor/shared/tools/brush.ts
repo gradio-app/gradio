@@ -229,7 +229,7 @@ export function draw_path(
 		},
 		undo: function () {
 			const clear_graphics = new Graphics()
-				.beginFill(0x000000, 0) // Use a fill color with 0 alpha for transparency
+				.beginFill(0x000000, 0)
 				.drawRect(0, 0, layer.erase_texture.width, layer.erase_texture.height)
 				.endFill();
 			renderer.render(new Sprite(InitialTexture), {

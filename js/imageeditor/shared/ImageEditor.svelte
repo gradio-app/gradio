@@ -146,7 +146,6 @@
 				}
 			}
 
-			// $pixi?.reset?.();
 			for (const k of _sorted_contexts) {
 				if (k in $init_context && typeof $init_context[k] === "function") {
 					if (k === "bg" && !clear_image) {
@@ -259,8 +258,6 @@
 		resizer.observe(pixi_target);
 
 		for (const k of $contexts) {
-			// console.log(k);
-
 			if (k in $init_context && typeof $init_context[k] === "function") {
 				$init_context[k]?.($dimensions);
 			}
@@ -285,8 +282,6 @@
 		saved_history = $current_history;
 		dispatch("save");
 	}
-
-	$: console.log({ bg });
 </script>
 
 <div data-testid="image" class="image-container">
