@@ -71,6 +71,7 @@
 		height: var(--size-full);
 		object-fit: contain;
 		display: block;
+		border-radius: var(--radius-lg);
 	}
 
 	.selectable {
