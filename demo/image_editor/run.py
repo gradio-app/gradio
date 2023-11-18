@@ -10,10 +10,6 @@ def sleep(im):
 with gr.Blocks() as demo:
     im = gr.ImageEditor(
         type="pil",
-        crop_size=(256, 256),
-        interactive=True,
-        brush=None,
-        eraser=None,
     )
 
     im_out = gr.ImageEditor(
@@ -27,3 +23,8 @@ with gr.Blocks() as demo:
 
 if __name__ == "__main__":
     demo.launch()
+
+
+# import gradio as gr
+
+# gr.Interface(lambda x: x, "imageeditor", "imageeditor").launch()

@@ -65,6 +65,7 @@
 	export let changeable = false;
 	export let history: boolean;
 	export let bg = false;
+	export let sources: ("clipboard" | "webcam" | "upload")[];
 	const dispatch = createEventDispatcher<{
 		save: void;
 	}>();
@@ -139,6 +140,8 @@
 			reset_context.update((c) => ({ ...c, [type]: reset_fn }));
 		},
 		reset: (clear_image: boolean, dimensions: [number, number]) => {
+			bg = false;
+
 			const _sorted_contexts = $contexts.sort((a, b) => {
 				return sort_order.indexOf(a) - sort_order.indexOf(b);
 			});
@@ -199,12 +202,16 @@
 			parent_top,
 			parent_bottom
 		});
+	}
 
-		if (crop_constraint && bg && !history) {
-			requestAnimationFrame(() => {
-				tick().then((v) => ($active_tool = "crop"));
-			});
-		}
+	$: if (crop_constraint && bg && !history) {
+		set_crop();
+	}
+
+	function set_crop(): void {
+		requestAnimationFrame(() => {
+			tick().then((v) => ($active_tool = "crop"));
+		});
 	}
 
 	function reposition_canvas(): void {
@@ -242,8 +249,13 @@
 	$: $crop && reposition_canvas();
 	$: $position_spring && get_dimensions(canvas_wrap, pixi_target);
 
-	function handle_remove(): void {
+	export function handle_remove(): void {
 		editor_context.reset(true, $dimensions);
+		if (!sources.length) {
+			set_tool("draw");
+		} else {
+			set_tool("bg");
+		}
 	}
 
 	onMount(() => {
@@ -289,6 +301,10 @@
 	function handle_save(): void {
 		saved_history = $current_history;
 		dispatch("save");
+	}
+
+	export function set_tool(tool: tool): void {
+		$active_tool = tool;
 	}
 </script>
 

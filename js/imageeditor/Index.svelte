@@ -18,7 +18,7 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: EditorData = {
+	export let value: EditorData | null = {
 		background: null,
 		layers: [],
 		composite: null
@@ -48,6 +48,7 @@
 	export let brush: Brush;
 	export let eraser: Eraser;
 	export let crop_size: [number, number] | `${string}:${string}` | null = null;
+	export let transforms: "crop"[] = ["crop"];
 
 	export let attached_events: string[] = [];
 
@@ -67,7 +68,10 @@
 	let editor_instance: InteractiveImageEditor;
 
 	export async function get_value(): Promise<ImageBlobs> {
+		// @ts-ignore
+		loading_status = { status: "pending" };
 		const blobs = await editor_instance.get_data();
+		loading_status = { status: "complete" };
 
 		return blobs;
 	}
@@ -115,7 +119,7 @@
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
 			on:share={({ detail }) => gradio.dispatch("share", detail)}
 			on:error={({ detail }) => gradio.dispatch("error", detail)}
-			value={normalise_file(value.composite, root, proxy_url)}
+			value={normalise_file(value?.composite || null, root, proxy_url)}
 			{label}
 			{show_label}
 			{show_download_button}
@@ -170,6 +174,7 @@
 			{proxy_url}
 			changeable={attached_events.includes("change")}
 			i18n={gradio.i18n}
+			{transforms}
 		></InteractiveImageEditor>
 	</Block>
 {/if}

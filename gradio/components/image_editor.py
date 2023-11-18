@@ -67,9 +67,9 @@ class Brush(Eraser):
 @document()
 class ImageEditor(Component):
     """
-    Creates an image component that can be used to upload images (as an input) or display images (as an output).
-    Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type`.
-    Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} or {pathlib.Path} filepath to an image and displays the image.
+    Creates an image component that can be used to upload and edit images (as an input) or display images (as an output).
+    Preprocessing: passes the uploaded image as a ductionary of {numpy.array}, {PIL.Image} or {str} filepath depending on `type`.
+    Postprocessing: expects a ductinoary of {numpy.array}, {PIL.Image} or {str} or {pathlib.Path} filepath to an image and displays the image.
     Examples-format: a {str} local filepath or URL to an image.
     Demos: image_mod, image_mod_default_image
     Guides: image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, building-a-pictionary_app, create-your-own-friends-with-a-gan
@@ -140,9 +140,8 @@ class ImageEditor(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             mirror_webcam: If True webcam will be mirrored. Default is True.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
-            data_mode: The format to receive data from the component. "image" returns an image, "pathline" returns a list of points and a radius.
             crop_size: The size of the crop box in pixels. If a tuple, the first value is the width and the second value is the height. If a string, the value must be a ratio in the form `width:height` (e.g. "16:9").
-            transforms: The transforms tools to make available to users. "crop" allows the user to crop the image, "rotate" allows the user to rotate the image.
+            transforms: The transforms tools to make available to users. "crop" allows the user to crop the image.
         """
         self._selectable = _selectable
         self.mirror_webcam = mirror_webcam
@@ -161,7 +160,7 @@ class ImageEditor(Component):
         for source in sources:
             if source not in valid_sources:
                 raise ValueError(
-                    f"`sources` must a list consisting of elements in {valid_sources}"
+                    f"`sources` must be a list consisting of elements in {valid_sources}"
                 )
         self.sources = sources
 
