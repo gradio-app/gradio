@@ -25,8 +25,8 @@
 	import { type Brush as IBrush } from "./tools/Brush.svelte";
 	import { type Eraser } from "./tools/Brush.svelte";
 
-	export let brush: IBrush;
-	export let eraser: Eraser;
+	export let brush: IBrush | null;
+	export let eraser: Eraser | null;
 	import { Tools, Crop, Brush, type tool, Sources } from "./tools";
 	export let sources: ("clipboard" | "webcam" | "upload")[];
 
@@ -113,14 +113,19 @@
 			></Sources>
 		{/if}
 		<Crop {crop_constraint} />
-		<Brush
-			color_mode={brush.color_mode}
-			default_color={brush.default_color}
-			default_size={brush.default_size}
-			colors={brush.colors}
-			mode="draw"
-		/>
-		<Brush default_size={eraser.default_size} mode="erase" />
+		{#if brush}
+			<Brush
+				color_mode={brush.color_mode}
+				default_color={brush.default_color}
+				default_size={brush.default_size}
+				colors={brush.colors}
+				mode="draw"
+			/>
+		{/if}
+
+		{#if eraser}
+			<Brush default_size={eraser.default_size} mode="erase" />
+		{/if}
 	</Tools>
 
 	<Layers layer_files={normalise_file(value.layers, root, proxy_url)} />

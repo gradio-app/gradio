@@ -89,6 +89,8 @@
 		gradio.dispatch("change");
 		gradio.dispatch("input");
 	}
+
+	$: console.log(loading_status);
 </script>
 
 {#if !interactive}
@@ -107,11 +109,9 @@
 		{min_width}
 	>
 		<StatusTracker
-			translucent={true}
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
-			show_progress="hidden"
 		/>
 		<StaticImage
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
@@ -166,19 +166,12 @@
 				loading_status.status = "error";
 				gradio.dispatch("error", detail);
 			}}
-			on:click={() => gradio.dispatch("error", "bad thing happened")}
 			on:error
 			{brush}
 			{eraser}
 			{proxy_url}
 			changeable={attached_events.includes("change")}
 			i18n={gradio.i18n}
-		>
-			<!-- {#if sources.includes("upload")}
-				<UploadText i18n={gradio.i18n} type="image" mode="short" />
-			{:else}
-				<Empty unpadded_box={true} size="large"><Image /></Empty>
-			{/if} -->
-		</InteractiveImageEditor>
+		></InteractiveImageEditor>
 	</Block>
 {/if}

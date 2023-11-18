@@ -1,18 +1,21 @@
 import gradio as gr
+import time
 
 
-def image(im):
-    print(im)
-    return [im["background"], im["layers"][0], im["layers"][1], im["composite"]]
+def sleep(im):
+    time.sleep(5)
+    return im
 
 
 with gr.Blocks() as demo:
-    im = gr.ImageEditor(type="pil", crop_size="1:1", interactive=True, sources=[])
-    # with gr.Row():
-    #     im2 = gr.Image()
-    #     im3 = gr.Image()
-    #     im4 = gr.Image()
-    #     im5 = gr.Image()
+    im = gr.ImageEditor(
+        type="pil",
+        crop_size="1:1",
+        interactive=True,
+        brush=None,
+        eraser=None,
+    )
+
     im_out = gr.ImageEditor(
         type="pil",
         interactive=True,
@@ -20,15 +23,7 @@ with gr.Blocks() as demo:
     )
 
     btn = gr.Button()
-    # btn.click(image, outputs=[im2, im3, im4, im5], inputs=im)
-    im.change(lambda x: x, outputs=im_out, inputs=im)
-
-# import gradio as gr
-
-# demo = gr.Interface(lambda x: x, gr.ImageEditor(), gr.ImageEditor())
-
-# if __name__ == "__main__":
-#     demo.launch()
+    im.change(sleep, outputs=im_out, inputs=im)
 
 if __name__ == "__main__":
     demo.launch()

@@ -69,6 +69,8 @@
 	export let border = false;
 	export let autoscroll: boolean;
 
+	$: console.log(show_progress);
+
 	let el: HTMLDivElement;
 
 	let _timer = false;
@@ -281,7 +283,7 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		z-index: var(--layer-5);
+		z-index: var(--layer-top);
 		transition: opacity 0.1s ease-in-out;
 		border-radius: var(--block-radius);
 		background: var(--block-background-fill);

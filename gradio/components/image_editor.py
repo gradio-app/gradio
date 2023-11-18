@@ -91,7 +91,7 @@ class ImageEditor(Component):
         width: int | None = None,
         image_mode: Literal[
             "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
-        ] = "RGB",
+        ] = "RGBA",
         sources: Iterable[Literal["upload", "webcam", "clipboard"]] = (
             "upload",
             "webcam",
@@ -116,8 +116,8 @@ class ImageEditor(Component):
         data_mode: Literal["image", "pathline"] = "image",
         crop_size: tuple[int | float, int | float] | str | None = None,
         transforms: Iterable[Literal["crop", "rotate"]] = ("crop", "rotate"),
-        eraser: Eraser | None = None,
-        brush: Brush | None = None,
+        eraser: Eraser | None = Eraser(),
+        brush: Brush | None = Brush(),
     ):
         """
         Parameters:
@@ -177,8 +177,8 @@ class ImageEditor(Component):
         self.data_mode = data_mode
         self.crop_size = crop_size
         self.transforms = transforms
-        self.eraser = Eraser() if eraser is None else eraser
-        self.brush = Brush() if brush is None else brush
+        self.eraser = eraser
+        self.brush = brush
 
         super().__init__(
             label=label,
