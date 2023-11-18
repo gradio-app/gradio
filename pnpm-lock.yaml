@@ -1044,9 +1044,6 @@ importers:
       pixi.js:
         specifier: ^7.3.2
         version: 7.3.2(@pixi/utils@7.3.2)
-      resize-observer-polyfill:
-        specifier: ^1.5.1
-        version: 1.5.1
       tinycolor2:
         specifier: ^1.6.0
         version: 1.6.0
@@ -6742,7 +6739,7 @@ packages:
     peerDependencies:
       '@sveltejs/kit': ^1.0.0
     dependencies:
-      '@sveltejs/kit': 1.26.0(svelte@4.2.3)(vite@4.5.0)
+      '@sveltejs/kit': 1.26.0(svelte@3.59.2)(vite@4.5.0)
       import-meta-resolve: 2.2.2
     dev: true
 
