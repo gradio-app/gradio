@@ -11,6 +11,7 @@
 	export let hasPopup = false;
 	export let color = "var(--block-label-text-color)";
 	export let transparent = false;
+	export let background = "var(--background-fill-primary)";
 	$: _color = highlight ? "var(--color-accent)" : color;
 </script>
 
@@ -25,6 +26,7 @@
 	class:highlight
 	class:transparent
 	style:color={!disabled && _color ? _color : "var(--block-label-text-color)"}
+	style:--bg-color={!disabled ? background : "auto"}
 >
 	{#if show_label}<span>{label}</span>{/if}
 	<div class:small={size === "small"} class:large={size === "large"}>
@@ -39,7 +41,7 @@
 		align-items: center;
 		gap: 1px;
 		z-index: var(--layer-2);
-		background: var(--background-fill-primary);
+		/* background: var(--background-fill-primary); */
 		border-radius: var(--radius-sm);
 		color: var(--block-label-text-color);
 		border: 1px solid transparent;
@@ -58,27 +60,26 @@
 
 	.padded {
 		padding: 2px;
-		background: var(--background-fill-primary);
-
+		background: var(--bg-color);
 		box-shadow: var(--shadow-drop);
 		border: 1px solid var(--button-secondary-border-color);
 	}
 
-	.padded {
+	/* .padded {
 		padding: 2px;
 		background: var(--background-fill-primary);
 
 		box-shadow: var(--shadow-drop);
 		border: 1px solid var(--button-secondary-border-color);
-	}
+	} */
 
-	.padded {
+	/* .padded {
 		padding: 2px;
 		background: var(--background-fill-primary);
 
 		box-shadow: var(--shadow-drop);
 		border: 1px solid var(--button-secondary-border-color);
-	}
+	} */
 
 	button:hover,
 	button.highlight {

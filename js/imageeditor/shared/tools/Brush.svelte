@@ -101,7 +101,8 @@
 		current_layer,
 		command_manager,
 		register_context,
-		editor_box
+		editor_box,
+		crop
 	} = getContext<EditorContext>(EDITOR_KEY);
 
 	const { active_tool, register_tool, current_color } =
@@ -170,6 +171,21 @@
 			});
 		}
 
+		const x_bound = $crop[0] * $dimensions[0];
+		const y_bound = $crop[1] * $dimensions[1];
+
+		if (
+			x_bound > event.screen.x ||
+			y_bound > event.screen.y ||
+			event.screen.x > x_bound + $crop[2] * $dimensions[0] ||
+			event.screen.y > y_bound + $crop[3] * $dimensions[1]
+		) {
+			brush_cursor = false;
+			document.body.style.cursor = "auto";
+		} else {
+			brush_cursor = true;
+			document.body.style.cursor = "none";
+		}
 		if (brush_cursor) {
 			pos = {
 				x: event.clientX - $editor_box.child_left,
@@ -186,12 +202,15 @@
 		$pixi?.layer_container[on_off]("pointerup", pointer_up_handler);
 
 		$pixi?.layer_container[on_off]("pointermove", pointer_move_handler);
-		$pixi?.layer_container[on_off]("pointerenter", () => {
-			if ($active_tool === mode) {
-				brush_cursor = true;
-				document.body.style.cursor = "none";
+		$pixi?.layer_container[on_off](
+			"pointerenter",
+			(event: FederatedPointerEvent) => {
+				if ($active_tool === mode) {
+					brush_cursor = true;
+					document.body.style.cursor = "none";
+				}
 			}
-		});
+		);
 		$pixi?.layer_container[on_off](
 			"pointerleave",
 			() => ((brush_cursor = false), (document.body.style.cursor = "auto"))

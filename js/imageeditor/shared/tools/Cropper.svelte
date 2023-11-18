@@ -143,7 +143,8 @@
 			t: "b",
 			b: "t",
 			l: "r",
-			r: "l"
+			r: "l",
+			c: "c"
 		};
 
 		if (crop_constraint) {

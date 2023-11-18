@@ -101,7 +101,7 @@
 		{elem_classes}
 		height={height || undefined}
 		{width}
-		allow_overflow={true}
+		allow_overflow={false}
 		{container}
 		{scale}
 		{min_width}
@@ -136,7 +136,7 @@
 		{elem_classes}
 		height={height || undefined}
 		{width}
-		allow_overflow={true}
+		allow_overflow={false}
 		{container}
 		{scale}
 		{min_width}

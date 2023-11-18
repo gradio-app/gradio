@@ -312,16 +312,30 @@
 		></div>
 	</div>
 	<slot />
+	<div
+		class="border"
+		style:width="{$crop[2] * $editor_box.child_width}px"
+		style:height="{$crop[3] * $editor_box.child_height}px"
+		style:top="{$crop[1] * $editor_box.child_height +
+			($editor_box.child_top - $editor_box.parent_top)}px"
+		style:left="{$crop[0] * $editor_box.child_width +
+			($editor_box.child_left - $editor_box.parent_left)}px"
+	></div>
 </div>
 
 <style>
 	.wrap {
 		width: 100%;
 		height: 100%;
-
+		position: relative;
 		display: flex;
 		justify-content: center;
 		align-items: center;
+	}
+	.border {
+		position: absolute;
+		border: var(--block-border-color) 1px solid;
+		pointer-events: none;
 	}
 
 	.stage-wrap {
@@ -330,7 +344,6 @@
 	}
 
 	.bg {
-		border: var(--block-border-color) 1px solid;
 	}
 
 	.image-container {

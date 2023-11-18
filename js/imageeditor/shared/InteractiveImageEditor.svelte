@@ -103,13 +103,15 @@
 	crop_constraint={!!crop_constraint}
 >
 	<Tools {i18n}>
-		<Sources
-			{i18n}
-			{root}
-			{sources}
-			bind:bg
-			background_file={normalise_file(value.background, root, proxy_url)}
-		></Sources>
+		{#if sources && sources.length}
+			<Sources
+				{i18n}
+				{root}
+				{sources}
+				bind:bg
+				background_file={normalise_file(value.background, root, proxy_url)}
+			></Sources>
+		{/if}
 		<Crop {crop_constraint} />
 		<Brush
 			color_mode={brush.color_mode}

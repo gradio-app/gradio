@@ -8,8 +8,14 @@
 	import Cropper from "./Cropper.svelte";
 
 	const { active_tool, register_tool } = getContext<ToolContext>(TOOL_KEY);
-	const { dimensions, editor_box, pixi, crop, command_manager } =
-		getContext<EditorContext>(EDITOR_KEY);
+	const {
+		dimensions,
+		editor_box,
+		pixi,
+		crop,
+		command_manager,
+		current_history
+	} = getContext<EditorContext>(EDITOR_KEY);
 
 	let cropper: CropCommand | null;
 
@@ -30,7 +36,7 @@
 	let l_p = 0;
 	let t_p = 0;
 
-	let current_opacity = 0.2;
+	let current_opacity = 0;
 
 	let manually_cropped = false;
 
@@ -45,7 +51,7 @@
 	let c: CropCommand | null = null;
 
 	async function initial_crop(): Promise<void> {
-		if (c) return;
+		if (c || $current_history.previous) return;
 		const { new_height, new_width, x_offset, y_offset } = resize_and_reposition(
 			$editor_box.child_width,
 			$editor_box.child_height,
@@ -74,6 +80,7 @@
 
 		c.execute();
 		c = null;
+		current_opacity = 0;
 	}
 
 	function handle_crop(
@@ -118,6 +125,7 @@
 			if (!cropper) return;
 			command_manager.execute(cropper);
 		}
+		manually_cropped = true;
 	}
 
 	let measured = false;
