@@ -51,7 +51,7 @@ export const plugins: PluginOption[] = [
 	sucrase({
 		transforms: ["typescript"],
 		include: ["**/*.ts", "**/*.tsx"]
-	})
+	}) as unknown as Plugin
 ];
 
 interface GradioPluginOptions {

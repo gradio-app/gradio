@@ -37,6 +37,7 @@ from gradio.components import (
     HighlightedText,
     Highlightedtext,
     Image,
+    ImageEditor,
     Json,
     Label,
     LinePlot,
@@ -82,17 +83,15 @@ from gradio.oauth import OAuthProfile
 from gradio.routes import Request, mount_gradio_app
 from gradio.templates import (
     Files,
-    # ImageMask,
-    # ImagePaint,
+    ImageMask,
     List,
     Matrix,
     Mic,
     Microphone,
     Numpy,
-    # Paint,
-    # Pil,
+    Paint,
     PlayableVideo,
-    # Sketchpad,
+    Sketchpad,
     TextArea,
 )
 from gradio.themes import Base as Theme

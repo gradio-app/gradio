@@ -5,6 +5,7 @@
 	export { default as BaseImageUploader } from "./shared/ImageUploader.svelte";
 	export { default as BaseStaticImage } from "./shared/ImagePreview.svelte";
 	export { default as BaseExample } from "./Example.svelte";
+	export { default as BaseImage } from "./shared/Image.svelte";
 </script>
 
 <script lang="ts">

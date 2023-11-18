@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import dataclasses
 import functools
 import importlib
 import inspect
@@ -980,3 +981,9 @@ def get_extension_from_file_path_or_url(file_path_or_url: str) -> str:
     parsed_url = urllib.parse.urlparse(file_path_or_url)
     file_extension = os.path.splitext(os.path.basename(parsed_url.path))[1]
     return file_extension[1:] if file_extension else ""
+
+
+def convert_to_dict_if_dataclass(value):
+    if dataclasses.is_dataclass(value):
+        return dataclasses.asdict(value)
+    return value

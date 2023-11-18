@@ -29,7 +29,17 @@ const js_rules = {
 	complexity: "error",
 	"no-else-return": "error",
 	"no-useless-return": "error",
-	"no-undef": "error"
+	"no-undef": "error",
+	"valid-jsdoc": [
+		"error",
+		{
+			requireReturn: false,
+			requireParamDescription: true,
+			requireReturnDescription: true,
+			requireReturnType: false,
+			requireParamType: false
+		}
+	]
 };
 
 const ts_rules = {
