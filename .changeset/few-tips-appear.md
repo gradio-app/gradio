@@ -4,6 +4,8 @@
 "@gradio/icons": minor
 "@gradio/image": minor
 "@gradio/imageeditor": minor
+"@gradio/preview": minor
+"@gradio/statustracker": minor
 "@gradio/upload": minor
 "gradio": minor
 ---
