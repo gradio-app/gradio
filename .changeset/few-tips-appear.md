@@ -14,7 +14,7 @@ feat:
 
 #### New `ImageEditor` component
 
-<video src="https://user-images.githubusercontent.com/12937446/284027169-31188926-fd16-4a1c-8718-998e7aae4695.mp4" autoplay muted/>
+<video src="https://user-images.githubusercontent.com/12937446/284027169-31188926-fd16-4a1c-8718-998e7aae4695.mp4" autoplay muted />
 
 A brand new component, completely separate from `Image` that provides simple editing capabilities.
 
