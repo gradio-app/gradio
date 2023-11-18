@@ -113,11 +113,10 @@ class ImageEditor(Component):
         mirror_webcam: bool = True,
         show_share_button: bool | None = None,
         _selectable: bool = False,
-        data_mode: Literal["image", "pathline"] = "image",
         crop_size: tuple[int | float, int | float] | str | None = None,
-        transforms: Iterable[Literal["crop", "rotate"]] = ("crop", "rotate"),
-        eraser: Eraser | None = None,
-        brush: Brush | None = None,
+        transforms: Iterable[Literal["crop"]] = ("crop",),
+        eraser: Eraser | None | bool = None,
+        brush: Brush | None | bool = None,
     ):
         """
         Parameters:
@@ -174,11 +173,10 @@ class ImageEditor(Component):
             else show_share_button
         )
 
-        self.data_mode = data_mode
         self.crop_size = crop_size
         self.transforms = transforms
-        self.eraser = eraser or Eraser()
-        self.brush = brush or Brush()
+        self.eraser = eraser if eraser is not None and eraser is not True else Eraser()
+        self.brush = brush if brush is not None and brush is not True else Brush()
 
         super().__init__(
             label=label,
