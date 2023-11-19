@@ -10,7 +10,7 @@
 "gradio": minor
 ---
 
-feat:
+highlight:
 
 #### New `ImageEditor` component
 
