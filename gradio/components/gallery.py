@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any, Callable, List, Literal, Optional
+from urllib.parse import urlparse
 
 import numpy as np
 from gradio_client.documentation import document, set_documentation_group
@@ -141,6 +142,7 @@ class Gallery(Component):
         for img in value:
             url = None
             caption = None
+            orig_name = None
             if isinstance(img, (tuple, list)):
                 img, caption = img
             if isinstance(img, np.ndarray):
@@ -155,13 +157,20 @@ class Gallery(Component):
                 file_path = str(utils.abspath(file))
             elif isinstance(img, str):
                 file_path = img
-                url = img if is_http_url_like(img) else None
+                if is_http_url_like(img):
+                    url = img
+                    orig_name = Path(img).name
+                else:
+                    url = None
+                    orig_name = Path(urlparse(img).path).name
             elif isinstance(img, Path):
                 file_path = str(img)
+                orig_name = img.name
             else:
                 raise ValueError(f"Cannot process type as image: {type(img)}")
             entry = GalleryImage(
-                image=FileData(path=file_path, url=url), caption=caption
+                image=FileData(path=file_path, url=url, orig_name=orig_name),
+                caption=caption,
             )
             output.append(entry)
         return GalleryData(root=output)
