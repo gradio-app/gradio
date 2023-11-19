@@ -12,11 +12,14 @@
 	import { IconButton } from "@gradio/atoms";
 	import type { I18nFormatter } from "@gradio/utils";
 
+	type GalleryImage = { image: FileData; caption: string | null };
+	type GalleryData = GalleryImage[];
+
 	export let show_label = true;
 	export let label: string;
 	export let root = "";
 	export let proxy_url: null | string = null;
-	export let value: { image: FileData; caption: string | null }[] | null = null;
+	export let value: GalleryData | null = null;
 	export let columns: number | number[] | undefined = [2];
 	export let rows: number | number[] | undefined = undefined;
 	export let height: number | "auto" = "auto";
@@ -37,25 +40,24 @@
 	// tracks whether the value of the gallery was reset
 	let was_reset = true;
 
-	$: was_reset = value == null || value.length == 0 ? true : was_reset;
+	$: was_reset = value == null || value.length === 0 ? true : was_reset;
 
-	let _value: { image: FileData; caption: string | null }[] | null = null;
-	$: _value =
-		value === null
+	let resolved_value: GalleryData | null = null;
+	$: resolved_value =
+		value == null
 			? null
 			: value.map((data) => ({
 					image: normalise_file(data.image, root, proxy_url) as FileData,
 					caption: data.caption
 			  }));
 
-	let prevValue: { image: FileData; caption: string | null }[] | null | null =
-		value;
-	if (selected_index === null && preview && value?.length) {
+	let prev_value: GalleryData | null = value;
+	if (selected_index == null && preview && value?.length) {
 		selected_index = 0;
 	}
 	let old_selected_index: number | null = selected_index;
 
-	$: if (!dequal(prevValue, value)) {
+	$: if (!dequal(prev_value, value)) {
 		// When value is falsy (clear button or first load),
 		// preview determines the selected image
 		if (was_reset) {
@@ -65,19 +67,18 @@
 			// gallery has at least as many elements as it did before
 		} else {
 			selected_index =
-				selected_index !== null &&
-				value !== null &&
-				selected_index < value.length
+				selected_index != null && value != null && selected_index < value.length
 					? selected_index
 					: null;
 		}
 		dispatch("change");
-		prevValue = value;
+		prev_value = value;
 	}
 
 	$: previous =
-		((selected_index ?? 0) + (_value?.length ?? 0) - 1) % (_value?.length ?? 0);
-	$: next = ((selected_index ?? 0) + 1) % (_value?.length ?? 0);
+		((selected_index ?? 0) + (resolved_value?.length ?? 0) - 1) %
+		(resolved_value?.length ?? 0);
+	$: next = ((selected_index ?? 0) + 1) % (resolved_value?.length ?? 0);
 
 	function handle_preview_click(event: MouseEvent): void {
 		const element = event.target as HTMLElement;
@@ -117,7 +118,7 @@
 			if (selected_index !== null) {
 				dispatch("select", {
 					index: selected_index,
-					value: _value?.[selected_index]
+					value: resolved_value?.[selected_index]
 				});
 			}
 		}
@@ -175,6 +176,11 @@
 		link.click();
 		URL.revokeObjectURL(url);
 	}
+
+	$: selected_data =
+		selected_index != null && resolved_value != null
+			? resolved_value[selected_index]
+			: null;
 </script>
 
 <svelte:window bind:innerHeight={window_height} />
@@ -182,10 +188,10 @@
 {#if show_label}
 	<BlockLabel {show_label} Icon={Image} label={label || "Gallery"} />
 {/if}
-{#if value === null || _value === null || _value.length === 0}
+{#if value == null || resolved_value == null || resolved_value.length === 0}
 	<Empty unpadded_box={true} size="large"><Image /></Empty>
 {:else}
-	{#if selected_index !== null && allow_preview}
+	{#if selected_data && allow_preview}
 		<button on:keydown={on_keydown} class="preview">
 			<div class="icon-buttons">
 				{#if show_download_button}
@@ -194,10 +200,7 @@
 							Icon={Download}
 							label={i18n("common.download")}
 							on:click={() => {
-								const selected_image =
-									_value != null && selected_index != null
-										? _value[selected_index].image
-										: undefined;
+								const selected_image = selected_data?.image;
 								if (selected_image == null) {
 									return;
 								}
@@ -219,23 +222,21 @@
 			<button
 				class="image-button"
 				on:click={(event) => handle_preview_click(event)}
-				style="height: calc(100% - {_value[selected_index].caption
-					? '80px'
-					: '60px'})"
+				style="height: calc(100% - {selected_data.caption ? '80px' : '60px'})"
 				aria-label="detailed view of selected image"
 			>
 				<img
 					data-testid="detailed-image"
-					src={_value[selected_index].image.url}
-					alt={_value[selected_index].caption || ""}
-					title={_value[selected_index].caption || null}
-					class:with-caption={!!_value[selected_index].caption}
+					src={selected_data.image.url}
+					alt={selected_data.caption || ""}
+					title={selected_data.caption || null}
+					class:with-caption={!!selected_data.caption}
 					loading="lazy"
 				/>
 			</button>
-			{#if _value[selected_index]?.caption}
+			{#if selected_data?.caption}
 				<caption class="caption">
-					{_value[selected_index].caption}
+					{selected_data.caption}
 				</caption>
 			{/if}
 			<div
@@ -243,13 +244,13 @@
 				class="thumbnails scroll-hide"
 				data-testid="container_el"
 			>
-				{#each _value as image, i}
+				{#each resolved_value as image, i}
 					<button
 						bind:this={el[i]}
 						on:click={() => (selected_index = i)}
 						class="thumbnail-item thumbnail-small"
 						class:selected={selected_index === i}
-						aria-label={"Thumbnail " + (i + 1) + " of " + _value.length}
+						aria-label={"Thumbnail " + (i + 1) + " of " + resolved_value.length}
 					>
 						<img
 							src={image.image.url}
@@ -280,17 +281,17 @@
 						{i18n}
 						on:share
 						on:error
-						value={_value}
+						value={resolved_value}
 						formatter={format_gallery_for_sharing}
 					/>
 				</div>
 			{/if}
-			{#each _value as entry, i}
+			{#each resolved_value as entry, i}
 				<button
 					class="thumbnail-item thumbnail-lg"
 					class:selected={selected_index === i}
 					on:click={() => (selected_index = i)}
-					aria-label={"Thumbnail " + (i + 1) + " of " + _value.length}
+					aria-label={"Thumbnail " + (i + 1) + " of " + resolved_value.length}
 				>
 					<img
 						alt={entry.caption || ""}
