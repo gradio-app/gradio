@@ -111,21 +111,6 @@
 		}
 	}
 
-	function isFileData(obj: any): obj is FileData {
-		return typeof obj === "object" && obj !== null && "data" in obj;
-	}
-
-	function getHrefValue(selected: any): string {
-		if (isFileData(selected)) {
-			return selected.path;
-		} else if (typeof selected === "string") {
-			return selected;
-		} else if (Array.isArray(selected)) {
-			return getHrefValue(selected[0]);
-		}
-		return "";
-	}
-
 	$: {
 		if (selected_index !== old_selected_index) {
 			old_selected_index = selected_index;
@@ -175,6 +160,21 @@
 
 	let client_height = 0;
 	let window_height = 0;
+
+	// Unlike `gr.Image()`, images specified via remote URLs are not cached in the server
+	// and their remote URLs are directly passed to the client as `value[].image.url`.
+	// The `download` attribute of the <a> tag doesn't work with remote URLs on at least Chrome (https://stackoverflow.com/q/49474775/13103190),
+	// so we need to download the image via JS as below.
+	async function download(file_url: string, name: string): Promise<void> {
+		const response = await fetch(file_url);
+		const blob = await response.blob();
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement("a");
+		link.href = url;
+		link.download = name;
+		link.click();
+		URL.revokeObjectURL(url);
+	}
 </script>
 
 <svelte:window bind:innerHeight={window_height} />
@@ -189,13 +189,25 @@
 		<button on:keydown={on_keydown} class="preview">
 			<div class="icon-buttons">
 				{#if show_download_button}
-					<a
-						href={getHrefValue(value[selected_index])}
-						target={window.__is_colab__ ? "_blank" : null}
-						download="image"
-					>
-						<IconButton Icon={Download} label={i18n("common.download")} />
-					</a>
+					<div class="download-button-container">
+						<IconButton
+							Icon={Download}
+							label={i18n("common.download")}
+							on:click={() => {
+								const selected_image =
+									_value != null && selected_index != null
+										? _value[selected_index].image
+										: undefined;
+								if (selected_image == null) {
+									return;
+								}
+								const { url, orig_name } = selected_image;
+								if (url) {
+									download(url, orig_name ?? "image");
+								}
+							}}
+						/>
+					</div>
 				{/if}
 
 				<ModifyUpload
@@ -465,7 +477,7 @@
 		right: 0;
 	}
 
-	.icon-buttons a {
+	.icon-buttons .download-button-container {
 		margin: var(--size-1) 0;
 	}
 </style>
