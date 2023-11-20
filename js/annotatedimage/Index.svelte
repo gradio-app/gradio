@@ -123,7 +123,7 @@
 						class:inactive={active != ann.label && active != null}
 						src={ann.image.url}
 						role="button"
-					  on:click={handle_image_click}
+						on:click={handle_image_click}
 						style={color_map && ann.label in color_map
 							? null
 							: `filter: hue-rotate(${Math.round(

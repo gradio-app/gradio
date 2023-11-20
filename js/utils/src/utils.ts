@@ -217,4 +217,3 @@ export const get_coordinates_of_clicked_image = (
 	}
 	return [x, y];
 };
-
