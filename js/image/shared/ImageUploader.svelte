@@ -3,7 +3,7 @@
 	import { BlockLabel } from "@gradio/atoms";
 	import { Image } from "@gradio/icons";
 	import type { SelectData, I18nFormatter } from "@gradio/utils";
-	import { get_coordinates_of_clicked_image } from "./utils";
+	import { get_coordinates_of_clicked_image } from "@gradio/utils";
 	import {
 		Webcam as WebcamIcon,
 		ImagePaste,

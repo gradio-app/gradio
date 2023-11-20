@@ -4,7 +4,7 @@
 	import { uploadToHuggingFace } from "@gradio/utils";
 	import { BlockLabel, Empty, IconButton, ShareButton } from "@gradio/atoms";
 	import { Download } from "@gradio/icons";
-	import { get_coordinates_of_clicked_image } from "./utils";
+	import { get_coordinates_of_clicked_image } from "@gradio/utils";
 
 	import { Image } from "@gradio/icons";
 	import { type FileData, normalise_file } from "@gradio/client";

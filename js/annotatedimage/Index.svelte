@@ -6,7 +6,7 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { type FileData, normalise_file } from "@gradio/client";
-	import { get_coordinates_of_clicked_image } from "./utils";
+	import { get_coordinates_of_clicked_image } from "@gradio/utils";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
