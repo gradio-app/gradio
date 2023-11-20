@@ -41,6 +41,7 @@
 		components = await fetch(`${API}components?offset=${OFFSET}&limit=${LIMIT}`)
 			.then((response) => response.json())
 			.catch((error) => `Error: ${error}`);
+		components.map((x) => (x.background_color = randomColor()));
 	});
 </script>
 
@@ -48,7 +49,7 @@
 	{#each components as component (component.id)}
 		<div
 			on:click={() => handleBoxClick(component)}
-			class="box group font:thin relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow bg-gradient-to-r {randomColor()}"
+			class="box group font:thin relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow bg-gradient-to-r {component.background_color}"
 		>
 			<div class="absolute opacity-30 text-6xl mb-1">
 				{classToEmojiMapping[component.template] || "❓"}
@@ -81,14 +82,7 @@
 				{selectedComponent.name}
 			</p>
 		</div>
-		<Card data={selectedComponent} color={randomColor()}></Card>
-		<br />
-		<p class="text-2xl text-black text-left ml-4">Demo</p>
-		<iframe
-			src={`https://${selectedComponent.subdomain}.hf.space?__theme=light`}
-			height="100%"
-			width="100%"
-		></iframe>
+		<Card data={selectedComponent}></Card>
 	</div>
 {/if}
 
@@ -107,23 +101,6 @@
 		width: var(--size-1);
 		color: var(--body-text-color);
 	}
-
-	ul {
-		list-style: none;
-	}
-
-	li::before {
-		content: "•";
-		color: orange;
-		display: inline-block;
-		width: 1em;
-		margin-left: 2em;
-	}
-
-	/* li {
-    margin-left: 2em;
-    list-style-type: circle;
-  } */
 
 	.box {
 		border: 1px solid #ddd;

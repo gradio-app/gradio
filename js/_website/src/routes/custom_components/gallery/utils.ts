@@ -7,6 +7,7 @@ export type ComponentData = {
 	tags: string;
 	version: string;
 	subdomain: string;
+	background_color: string;
 };
 
 export function getRandomIntInclusive(min: number, max: number): number {
