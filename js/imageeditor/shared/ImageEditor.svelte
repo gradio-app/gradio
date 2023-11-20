@@ -308,6 +308,8 @@
 	}
 </script>
 
+<svelte:window on:scroll={() => get_dimensions(canvas_wrap, pixi_target)} />
+
 <div data-testid="image" class="image-container">
 	<Controls
 		can_undo={$can_undo}

@@ -68,8 +68,8 @@ class Brush(Eraser):
 class ImageEditor(Component):
     """
     Creates an image component that can be used to upload and edit images (as an input) or display images (as an output).
-    Preprocessing: passes the uploaded image as a ductionary of {numpy.array}, {PIL.Image} or {str} filepath depending on `type`.
-    Postprocessing: expects a ductinoary of {numpy.array}, {PIL.Image} or {str} or {pathlib.Path} filepath to an image and displays the image.
+    Preprocessing: passes the uploaded image as a dictionary of {numpy.array}, {PIL.Image} or {str} filepath depending on `type`.
+    Postprocessing: expects a dictionary of {numpy.array}, {PIL.Image} or {str} or {pathlib.Path} filepath to an image and displays the image.
     Examples-format: a {str} local filepath or URL to an image.
     Demos: image_mod, image_mod_default_image
     Guides: image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, building-a-pictionary_app, create-your-own-friends-with-a-gan
