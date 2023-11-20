@@ -19,7 +19,7 @@ def build_demo():
 
 @dataclasses.dataclass
 class Config:
-    filename: str
+    module_name: str
     path: Path
     watch_dirs: List[str]
     demo_name: str
@@ -44,11 +44,11 @@ class TestReload:
         reloader.close()
 
     def test_config_default_app(self, config):
-        assert config.filename == "run"
+        assert config.module_name == "demo.calculator.run"
 
     @pytest.mark.parametrize("argv", [["demo/calculator/run.py", "--demo-name test"]])
     def test_config_custom_app(self, config):
-        assert config.filename == "run"
+        assert config.module_name == "demo.calculator.run"
         assert config.demo_name == "test"
 
     def test_config_watch_gradio(self, config):

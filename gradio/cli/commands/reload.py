@@ -30,8 +30,8 @@ def _setup_config(
     demo_name: str = "demo",
     additional_watch_dirs: list[str] | None = None,
 ):
-    original_path = demo_path
-    app_text = Path(original_path).read_text()
+    original_path = Path(demo_path)
+    app_text = original_path.read_text()
 
     patterns = [
         f"with gr\\.Blocks\\(\\) as {demo_name}",
@@ -48,7 +48,12 @@ def _setup_config(
         )
 
     abs_original_path = utils.abspath(original_path)
-    filename = Path(original_path).stem
+
+    if original_path.is_absolute():
+        relpath = original_path.relative_to(Path.cwd())
+    else:
+        relpath = original_path
+    module_name = str(relpath.parent / relpath.stem).replace(os.path.sep, ".")
 
     gradio_folder = Path(inspect.getfile(gradio)).parent
 
@@ -68,12 +73,12 @@ def _setup_config(
             message += ","
         message += f" '{abs_parent}'"
 
-    abs_parent = Path(".").resolve()
-    if str(abs_parent).strip():
-        watching_dirs.append(abs_parent)
+    abs_current = Path.cwd().absolute()
+    if str(abs_current).strip():
+        watching_dirs.append(abs_current)
         if message_change_count == 1:
             message += ","
-        message += f" '{abs_parent}'"
+        message += f" '{abs_current}'"
 
     for wd in additional_watch_dirs or []:
         if Path(wd) not in watching_dirs:
@@ -87,14 +92,14 @@ def _setup_config(
 
     # guaranty access to the module of an app
     sys.path.insert(0, os.getcwd())
-    return filename, abs_original_path, [str(s) for s in watching_dirs], demo_name
+    return module_name, abs_original_path, [str(s) for s in watching_dirs], demo_name
 
 
 def main(
     demo_path: Path, demo_name: str = "demo", watch_dirs: Optional[List[str]] = None
 ):
     # default execution pattern to start the server and watch changes
-    filename, path, watch_dirs, demo_name = _setup_config(
+    module_name, path, watch_dirs, demo_name = _setup_config(
         demo_path, demo_name, watch_dirs
     )
     # extra_args = args[1:] if len(args) == 1 or args[1].startswith("--") else args[2:]
@@ -103,7 +108,7 @@ def main(
         env=dict(
             os.environ,
             GRADIO_WATCH_DIRS=",".join(watch_dirs),
-            GRADIO_WATCH_FILE=filename,
+            GRADIO_WATCH_MODULE_NAME=module_name,
             GRADIO_WATCH_DEMO_NAME=demo_name,
         ),
     )
