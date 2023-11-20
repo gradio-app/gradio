@@ -5,6 +5,7 @@
 	export { default as BaseImageUploader } from "./shared/ImageUploader.svelte";
 	export { default as BaseStaticImage } from "./shared/ImagePreview.svelte";
 	export { default as BaseExample } from "./Example.svelte";
+	export { default as BaseImage } from "./shared/Image.svelte";
 </script>
 
 <script lang="ts">
@@ -17,15 +18,18 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { FileData } from "@gradio/client";
 	import type { LoadingStatus } from "@gradio/statustracker";
+	import { normalise_file } from "@gradio/client";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value: null | FileData = null;
+	$: _value = normalise_file(value, root, proxy_url);
 	export let label: string;
 	export let show_label: boolean;
 	export let show_download_button: boolean;
 	export let root: string;
+	export let proxy_url: null | string;
 
 	export let height: number | undefined;
 	export let width: number | undefined;
@@ -58,11 +62,10 @@
 		share: ShareData;
 	}>;
 
-	$: value?.url && gradio.dispatch("change");
+	$: url = _value?.url;
+	$: url && gradio.dispatch("change");
+
 	let dragging: boolean;
-
-	$: value = !value ? null : value;
-
 	let active_tool: null | "webcam" = null;
 </script>
 
@@ -90,8 +93,7 @@
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
 			on:share={({ detail }) => gradio.dispatch("share", detail)}
 			on:error={({ detail }) => gradio.dispatch("error", detail)}
-			{root}
-			{value}
+			value={_value}
 			{label}
 			{show_label}
 			{show_download_button}
@@ -103,7 +105,7 @@
 {:else}
 	<Block
 		{visible}
-		variant={value === null ? "dashed" : "solid"}
+		variant={_value === null ? "dashed" : "solid"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
 		{elem_id}
@@ -128,7 +130,10 @@
 			{root}
 			{sources}
 			on:edit={() => gradio.dispatch("edit")}
-			on:clear={() => gradio.dispatch("clear")}
+			on:clear={() => {
+				gradio.dispatch("clear");
+				gradio.dispatch("change");
+			}}
 			on:stream={() => gradio.dispatch("stream")}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:upload={() => gradio.dispatch("upload")}

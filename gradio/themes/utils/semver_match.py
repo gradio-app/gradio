@@ -17,8 +17,9 @@ class ThemeAsset:
 
 
 def get_theme_assets(space_info: huggingface_hub.hf_api.SpaceInfo) -> list[ThemeAsset]:
-    if "gradio-theme" not in getattr(space_info, "tags", []):
-        raise ValueError(f"{space_info.id} is not a valid gradio-theme space!")
+    # Commenting out as it seems that the `huggingface_hub` library is not parsing tags
+    # if "gradio-theme" not in getattr(space_info, "tags", []):
+    # raise ValueError(f"{space_info.id} is not a valid gradio-theme space!")
 
     return [
         ThemeAsset(filename.rfilename)

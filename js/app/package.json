@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/app",
-	"version": "1.10.1",
+	"version": "1.12.0",
 	"private": true,
 	"type": "module",
 	"scripts": {
@@ -47,6 +47,7 @@
 		"@gradio/html": "workspace:^",
 		"@gradio/icons": "workspace:^",
 		"@gradio/image": "workspace:^",
+		"@gradio/imageeditor": "workspace:^",
 		"@gradio/json": "workspace:^",
 		"@gradio/label": "workspace:^",
 		"@gradio/markdown": "workspace:^",
@@ -55,6 +56,8 @@
 		"@gradio/plot": "workspace:^",
 		"@gradio/radio": "workspace:^",
 		"@gradio/row": "workspace:^",
+		"@gradio/simpledropdown": "workspace:^",
+		"@gradio/simpletextbox": "workspace:^",
 		"@gradio/slider": "workspace:^",
 		"@gradio/state": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
@@ -67,8 +70,6 @@
 		"@gradio/utils": "workspace:^",
 		"@gradio/video": "workspace:^",
 		"@gradio/wasm": "workspace:^",
-		"@gradio/simpletextbox": "workspace:^",
-		"@gradio/simpledropdown": "workspace:^",
 		"cross-env": "^7.0.3",
 		"d3-dsv": "^3.0.1",
 		"mime-types": "^2.1.34",

@@ -20,7 +20,7 @@ from PIL import Image, ImageOps, PngImagePlugin
 
 from gradio import wasm_utils
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
-from gradio.utils import abspath, is_in_or_equal
+from gradio.utils import abspath
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # Ignore pydub warning if ffmpeg is not installed
@@ -141,18 +141,21 @@ def hash_base64(base64_encoding: str, chunk_num_blocks: int = 128) -> str:
 
 
 def save_pil_to_cache(
-    img: Image.Image, cache_dir: str, format: Literal["png", "jpg"] = "png"
+    img: Image.Image,
+    cache_dir: str,
+    name: str = "image",
+    format: Literal["png", "jpeg"] = "png",
 ) -> str:
     bytes_data = encode_pil_to_bytes(img, format)
     temp_dir = Path(cache_dir) / hash_bytes(bytes_data)
     temp_dir.mkdir(exist_ok=True, parents=True)
-    filename = str((temp_dir / f"image.{format}").resolve())
+    filename = str((temp_dir / f"{name}.{format}").resolve())
     img.save(filename, pnginfo=get_pil_metadata(img))
     return filename
 
 
 def save_img_array_to_cache(
-    arr: np.ndarray, cache_dir: str, format: Literal["png", "jpg"] = "png"
+    arr: np.ndarray, cache_dir: str, format: Literal["png", "jpeg"] = "png"
 ) -> str:
     pil_image = Image.fromarray(_convert(arr, np.uint8, force_copy=False))
     return save_pil_to_cache(pil_image, cache_dir, format=format)
@@ -236,31 +239,13 @@ def save_base64_to_cache(
     return full_temp_file_path
 
 
-def move_resource_to_block_cache(url_or_file_path: str | Path, block: Component) -> str:
-    """Moves a file or downloads a file from a url to a block's cache directory, adds
-    to to the block's temp_files, and returns the path to the file in cache. This
-    ensures that the file is accessible to the Block and can be served to users.
+def move_resource_to_block_cache(
+    url_or_file_path: str | Path | None, block: Component
+) -> str | None:
+    """This method has been replaced by Block.move_resource_to_block_cache(), but is
+    left here for backwards compatibility for any custom components created in Gradio 4.2.0 or earlier.
     """
-    if isinstance(url_or_file_path, Path):
-        url_or_file_path = str(url_or_file_path)
-
-    if client_utils.is_http_url_like(url_or_file_path):
-        temp_file_path = save_url_to_cache(
-            url_or_file_path, cache_dir=block.GRADIO_CACHE
-        )
-
-        block.temp_files.add(temp_file_path)
-    else:
-        url_or_file_path = str(abspath(url_or_file_path))
-        if not is_in_or_equal(url_or_file_path, block.GRADIO_CACHE):
-            temp_file_path = save_file_to_cache(
-                url_or_file_path, cache_dir=block.GRADIO_CACHE
-            )
-        else:
-            temp_file_path = url_or_file_path
-        block.temp_files.add(temp_file_path)
-
-    return temp_file_path
+    return block.move_resource_to_block_cache(url_or_file_path)
 
 
 def move_files_to_cache(data: Any, block: Component, postprocess: bool = False):
@@ -284,6 +269,7 @@ def move_files_to_cache(data: Any, block: Component, postprocess: bool = False):
             temp_file_path = payload.url
         else:
             temp_file_path = move_resource_to_block_cache(payload.path, block)
+        assert temp_file_path is not None
         payload.path = temp_file_path
         return payload.model_dump()
 

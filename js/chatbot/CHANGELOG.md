@@ -1,5 +1,36 @@
 # @gradio/chatbot
 
+## 0.4.6
+
+### Patch Changes
+
+- Updated dependencies [[`2f805a7dd`](https://github.com/gradio-app/gradio/commit/2f805a7dd3d2b64b098f659dadd5d01258290521), [`f816136a0`](https://github.com/gradio-app/gradio/commit/f816136a039fa6011be9c4fb14f573e4050a681a)]:
+  - @gradio/upload@0.4.2
+  - @gradio/atoms@0.2.2
+  - @gradio/icons@0.2.1
+  - @gradio/markdown@0.3.2
+  - @gradio/statustracker@0.3.2
+
+## 0.4.5
+
+### Fixes
+
+- [#6386](https://github.com/gradio-app/gradio/pull/6386) [`e76a9e8fc`](https://github.com/gradio-app/gradio/commit/e76a9e8fcbbfc393298de2aa539f2b152c0d6400) - Fix Chatbot Pending Message Issues. Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
+## 0.4.4
+
+### Patch Changes
+
+- Updated dependencies [[`854b482f5`](https://github.com/gradio-app/gradio/commit/854b482f598e0dc47673846631643c079576da9c), [`f1409f95e`](https://github.com/gradio-app/gradio/commit/f1409f95ed39c5565bed6a601e41f94e30196a57)]:
+  - @gradio/upload@0.4.0
+  - @gradio/client@0.8.0
+
+## 0.4.3
+
+### Fixes
+
+- [#6316](https://github.com/gradio-app/gradio/pull/6316) [`4b1011bab`](https://github.com/gradio-app/gradio/commit/4b1011bab03c0b6a09329e0beb9c1b17b2189878) - Maintain text selection in `Chatbot` button elements. Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.4.2
 
 ### Patch Changes

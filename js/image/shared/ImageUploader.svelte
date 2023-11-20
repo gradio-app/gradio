@@ -33,10 +33,12 @@
 	export let i18n: I18nFormatter;
 
 	let upload: Upload;
+	let uploading = false;
 	export let active_tool: "webcam" | null = null;
 
 	function handle_upload({ detail }: CustomEvent<FileData>): void {
 		value = normalise_file(detail, root, null);
+		dispatch("upload");
 	}
 
 	async function handle_save(img_blob: Blob | any): Promise<void> {
@@ -51,6 +53,8 @@
 		dispatch(streaming ? "stream" : "change");
 		pending = false;
 	}
+
+	$: if (uploading) value = null;
 
 	$: value && !value.url && (value = normalise_file(value, root, null));
 
@@ -111,6 +115,7 @@
 					for (let i = 0; i < items.length; i++) {
 						const type = items[i].types.find((t) => t.startsWith("image/"));
 						if (type) {
+							value = null;
 							items[i].getType(type).then(async (blob) => {
 								const f = await upload.load_files([
 									new File([blob], `clipboard.${type.replace("image/", "")}`)
@@ -139,12 +144,18 @@
 
 <div data-testid="image" class="image-container">
 	{#if value?.url}
-		<ClearImage on:remove_image={() => (value = null)} />
+		<ClearImage
+			on:remove_image={() => {
+				value = null;
+				dispatch("clear");
+			}}
+		/>
 	{/if}
 	<div class="upload-container">
 		<Upload
 			hidden={value !== null || active_tool === "webcam"}
 			bind:this={upload}
+			bind:uploading
 			bind:dragging
 			filetype="image/*"
 			on:load={handle_upload}
@@ -187,6 +198,7 @@
 					on:click={() => handle_toolbar(source)}
 					Icon={sources_meta[source].icon}
 					size="large"
+					label="{source}-image-toolbar-btn"
 					padded={false}
 				/>
 			{/each}

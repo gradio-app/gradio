@@ -11,7 +11,7 @@ from gradio_client.documentation import document, set_documentation_group
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 import gradio.image_utils as image_utils
-from gradio import processing_utils, utils
+from gradio import utils
 from gradio.components.base import Component, StreamingInput
 from gradio.data_classes import FileData
 from gradio.events import Events
@@ -116,8 +116,6 @@ class Image(StreamingInput, Component):
                 raise ValueError(
                     f"`sources` must a list consisting of elements in {valid_sources}"
                 )
-        self.sources = sources
-
         self.streaming = streaming
         self.show_download_button = show_download_button
         if streaming and self.sources != ["webcam"]:
@@ -149,12 +147,25 @@ class Image(StreamingInput, Component):
     ) -> np.ndarray | _Image.Image | str | None:
         if payload is None:
             return payload
+        if payload.orig_name:
+            p = Path(payload.orig_name)
+            name = p.stem
+            suffix = p.suffix.replace(".", "")
+            if suffix in ["jpg", "jpeg"]:
+                suffix = "jpeg"
+        else:
+            name = "image"
+            suffix = "png"
         im = _Image.open(payload.path)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
         return image_utils.format_image(
-            im, cast(Literal["numpy", "pil", "filepath"], self.type), self.GRADIO_CACHE
+            im,
+            cast(Literal["numpy", "pil", "filepath"], self.type),
+            self.GRADIO_CACHE,
+            name=name,
+            format=suffix,
         )
 
     def postprocess(
@@ -162,7 +173,9 @@ class Image(StreamingInput, Component):
     ) -> FileData | None:
         if value is None:
             return None
-        return FileData(path=image_utils.save_image(value, self.GRADIO_CACHE))
+        saved = image_utils.save_image(value, self.GRADIO_CACHE)
+        orig_name = Path(saved).name if Path(saved).exists() else None
+        return FileData(path=saved, orig_name=orig_name)
 
     def check_streamable(self):
         if self.streaming and self.sources != ["webcam"]:
@@ -173,7 +186,7 @@ class Image(StreamingInput, Component):
     def as_example(self, input_data: str | Path | None) -> str | None:
         if input_data is None:
             return None
-        return processing_utils.move_resource_to_block_cache(input_data, self)
+        return self.move_resource_to_block_cache(input_data)
 
     def example_inputs(self) -> Any:
         return "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"

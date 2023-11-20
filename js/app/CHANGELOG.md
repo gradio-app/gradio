@@ -1,5 +1,95 @@
 # @gradio/app
 
+## 1.12.0
+
+### Features
+
+- [#6427](https://github.com/gradio-app/gradio/pull/6427) [`e0fc14659`](https://github.com/gradio-app/gradio/commit/e0fc146598ba9b081bc5fa9616d0a41c2aba2427) - Allow google analytics to work on Spaces (and other iframe situations).  Thanks [@abidlabs](https://github.com/abidlabs)!
+
+### Fixes
+
+- [#6254](https://github.com/gradio-app/gradio/pull/6254) [`f816136a0`](https://github.com/gradio-app/gradio/commit/f816136a039fa6011be9c4fb14f573e4050a681a) - Add volume control to Audio.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6457](https://github.com/gradio-app/gradio/pull/6457) [`d00fcf89d`](https://github.com/gradio-app/gradio/commit/d00fcf89d1c3ecbc910e81bb1311479ec2b73e4e) - Gradio custom component dev mode now detects changes to Example.svelte file.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
+## 1.11.0
+
+### Features
+
+- [#6099](https://github.com/gradio-app/gradio/pull/6099) [`d84209703`](https://github.com/gradio-app/gradio/commit/d84209703b7a0728cdb49221e543500ddb6a8d33) - Lite: SharedWorker mode.  Thanks [@whitphx](https://github.com/whitphx)!
+
+### Fixes
+
+- [#6383](https://github.com/gradio-app/gradio/pull/6383) [`324867f63`](https://github.com/gradio-app/gradio/commit/324867f63c920113d89a565892aa596cf8b1e486) - Fix event target.  Thanks [@aliabid94](https://github.com/aliabid94)!
+
+## 1.10.3
+
+### Patch Changes
+
+- Updated dependencies [[`6204ccac5`](https://github.com/gradio-app/gradio/commit/6204ccac5967763e0ebde550d04d12584243a120), [`4d3aad33a`](https://github.com/gradio-app/gradio/commit/4d3aad33a0b66639dbbb2928f305a79fb7789b2d), [`854b482f5`](https://github.com/gradio-app/gradio/commit/854b482f598e0dc47673846631643c079576da9c), [`55fda81fa`](https://github.com/gradio-app/gradio/commit/55fda81fa5918b48952729232d6e2fc55af9351d), [`37dd335e5`](https://github.com/gradio-app/gradio/commit/37dd335e5f04a8e689dd7f23ae24ad1934ea08d8), [`f1409f95e`](https://github.com/gradio-app/gradio/commit/f1409f95ed39c5565bed6a601e41f94e30196a57)]:
+  - @gradio/image@0.3.4
+  - @gradio/upload@0.4.0
+  - @gradio/code@0.2.4
+  - @gradio/textbox@0.4.2
+  - @gradio/audio@0.5.0
+  - @gradio/client@0.8.0
+  - @gradio/gallery@0.4.5
+  - @gradio/row@0.1.0
+  - @gradio/video@0.1.4
+  - @gradio/annotatedimage@0.3.4
+  - @gradio/button@0.2.4
+  - @gradio/chatbot@0.4.4
+  - @gradio/dataframe@0.3.5
+  - @gradio/dataset@0.1.4
+  - @gradio/file@0.2.4
+  - @gradio/fileexplorer@0.3.4
+  - @gradio/model3d@0.4.2
+  - @gradio/uploadbutton@0.1.4
+
+## 1.10.2
+
+### Patch Changes
+
+- Updated dependencies [[`4b1011bab`](https://github.com/gradio-app/gradio/commit/4b1011bab03c0b6a09329e0beb9c1b17b2189878), [`bca6c2c80`](https://github.com/gradio-app/gradio/commit/bca6c2c80f7e5062427019de45c282238388af95), [`19af2806a`](https://github.com/gradio-app/gradio/commit/19af2806a58419cc551d2d1d6d8987df0db91ccb), [`d3b53a457`](https://github.com/gradio-app/gradio/commit/d3b53a4577ea05cd27e37ce7fec952028c18ed45), [`3cdeabc68`](https://github.com/gradio-app/gradio/commit/3cdeabc6843000310e1a9e1d17190ecbf3bbc780), [`fad92c29d`](https://github.com/gradio-app/gradio/commit/fad92c29dc1f5cd84341aae417c495b33e01245f)]:
+  - @gradio/chatbot@0.4.3
+  - @gradio/client@0.7.2
+  - @gradio/audio@0.4.3
+  - @gradio/dataframe@0.3.4
+  - @gradio/atoms@0.2.1
+  - @gradio/upload@0.3.3
+  - @gradio/video@0.1.3
+  - @gradio/annotatedimage@0.3.3
+  - @gradio/button@0.2.3
+  - @gradio/dataset@0.1.3
+  - @gradio/file@0.2.3
+  - @gradio/fileexplorer@0.3.3
+  - @gradio/gallery@0.4.4
+  - @gradio/image@0.3.3
+  - @gradio/model3d@0.4.1
+  - @gradio/uploadbutton@0.1.3
+  - @gradio/accordion@0.2.1
+  - @gradio/box@0.1.1
+  - @gradio/checkbox@0.2.1
+  - @gradio/checkboxgroup@0.3.2
+  - @gradio/code@0.2.3
+  - @gradio/colorpicker@0.2.1
+  - @gradio/dropdown@0.3.1
+  - @gradio/fallback@0.2.1
+  - @gradio/form@0.1.1
+  - @gradio/highlightedtext@0.4.1
+  - @gradio/html@0.1.1
+  - @gradio/json@0.1.1
+  - @gradio/label@0.2.1
+  - @gradio/markdown@0.3.1
+  - @gradio/number@0.3.1
+  - @gradio/plot@0.2.1
+  - @gradio/radio@0.3.2
+  - @gradio/simpledropdown@0.1.1
+  - @gradio/simpletextbox@0.1.1
+  - @gradio/slider@0.2.1
+  - @gradio/statustracker@0.3.1
+  - @gradio/textbox@0.4.1
+  - @gradio/row@0.1.0
+
 ## 1.10.1
 
 ### Patch Changes

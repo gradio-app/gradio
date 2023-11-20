@@ -114,7 +114,7 @@ class Interface(Blocks):
         api_name: str | Literal[False] | None = "predict",
         _api_mode: bool = False,
         allow_duplication: bool = False,
-        concurrency_limit: int | None = 1,
+        concurrency_limit: int | None | Literal["default"] = "default",
         **kwargs,
     ):
         """
@@ -139,9 +139,9 @@ class Interface(Blocks):
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
             batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
-            api_name: Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False or None, the endpoint will not be exposed in the api docs. If set to a string, the endpoint will be exposed in the api docs with the given name. Default value is "predict".
+            api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None, the name of the prediction function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
             allow_duplication: If True, then will show a 'Duplicate Spaces' button on Hugging Face Spaces.
-            concurrency_limit: If set, this this is the maximum number of events that can be running simultaneously. Extra requests will be queued.
+            concurrency_limit: If set, this this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which itself is 1 by default).
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -312,7 +312,7 @@ class Interface(Blocks):
         self.batch = batch
         self.max_batch_size = max_batch_size
         self.allow_duplication = allow_duplication
-        self.concurrency_limit = concurrency_limit
+        self.concurrency_limit: int | None | Literal["default"] = concurrency_limit
 
         self.share = None
         self.share_url = None
@@ -322,12 +322,17 @@ class Interface(Blocks):
         Interface.instances.add(self)
 
         param_types = utils.get_type_hints(self.fn)
-        param_names = inspect.getfullargspec(self.fn)[0]
-        if len(param_names) > 0 and inspect.ismethod(self.fn):
-            param_names = param_names[1:]
-        for param_name in param_names.copy():
-            if utils.is_special_typed_parameter(param_name, param_types):
-                param_names.remove(param_name)
+        # param_names = inspect.getfullargspec(self.fn)[0]
+        param_names = []
+        try:
+            param_names = inspect.getfullargspec(self.fn)[0]
+            if len(param_names) > 0 and inspect.ismethod(self.fn):
+                param_names = param_names[1:]
+            for param_name in param_names.copy():
+                if utils.is_special_typed_parameter(param_name, param_types):
+                    param_names.remove(param_name)
+        except (TypeError, ValueError):
+            param_names = utils.default_input_labels()
         for component, param_name in zip(self.input_components, param_names):
             assert isinstance(component, Component)
             if component.label is None:

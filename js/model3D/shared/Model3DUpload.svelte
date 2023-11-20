@@ -60,6 +60,7 @@
 		await tick();
 		reset_scene();
 		dispatch("change", value);
+		dispatch("load", value);
 	}
 
 	async function handle_clear(): Promise<void> {
@@ -70,6 +71,7 @@
 		value = null;
 		await tick();
 		dispatch("clear");
+		dispatch("change");
 	}
 
 	async function handle_undo(): Promise<void> {
@@ -80,6 +82,7 @@
 		change: FileData | null;
 		clear: undefined;
 		drag: boolean;
+		load: FileData;
 	}>();
 
 	let dragging = false;

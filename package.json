@@ -37,8 +37,6 @@
 		"@changesets/cli": "^2.26.1",
 		"@changesets/get-github-info": "^0.5.2",
 		"@csstools/postcss-global-data": "^2.0.0",
-		"@ffmpeg/ffmpeg": "^0.12.7",
-		"@ffmpeg/util": "^0.12.1",
 		"@gradio/tootils": "workspace:^",
 		"@manypkg/get-packages": "^2.2.0",
 		"@playwright/experimental-ct-svelte": "^1.39.0",
@@ -86,8 +84,8 @@
 		"typescript": "^5.0.0",
 		"typescript-svelte-plugin": "^0.3.34",
 		"vite": "^4.3.9",
-		"vitest": "^0.34.0",
-		"wavesurfer.js": "^7.4.2"
+		"vite-plugin-turbosnap": "1.0.3",
+		"vitest": "^0.34.6"
 	},
 	"devDependencies": {
 		"@storybook/addon-a11y": "^7.5.1",
@@ -102,8 +100,7 @@
 		"@storybook/svelte-vite": "^7.5.1",
 		"@storybook/testing-library": "^0.2.2",
 		"@storybook/theming": "^7.5.1",
-		"chromatic": "^7.0.0",
-		"mrmime": "^1.0.1",
+		"chromatic": "^9.0.0",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"storybook": "^7.5.1",
