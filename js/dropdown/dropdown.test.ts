@@ -364,5 +364,10 @@ describe("Dropdown", () => {
 		expect(item.value).toBe("");
 		options = getAllByTestId("dropdown-option");
 		expect(options[0]).not.toHaveClass("selected");
+
+		await component.$set({ value: "zebra" });
+		expect(item.value).toBe("zebra");
+		options = getAllByTestId("dropdown-option");
+		expect(options[0]).toHaveClass("selected");
 	});
 });
