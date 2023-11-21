@@ -259,7 +259,7 @@ class ChatInterface(Blocks):
                 not inp.is_rendered for inp in self.additional_inputs
             )
             if self.additional_inputs and any_unrendered_inputs:
-                with Accordion(**self.additional_inputs_accordion_params):
+                with Accordion(**self.additional_inputs_accordion_params):  # type: ignore
                     for input_component in self.additional_inputs:
                         if not input_component.is_rendered:
                             input_component.render()
