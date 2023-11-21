@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Any, Literal, cast
 
 import numpy as np
-from cairosvg import svg2png
 from gradio_client.documentation import document, set_documentation_group
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
@@ -149,12 +148,6 @@ class Image(StreamingInput, Component):
         if payload is None:
             return payload
         file_path = Path(payload.path)
-
-        if file_path.suffix.lower() == '.svg':
-            png_path = file_path.with_suffix('.png')
-            svg2png(url=str(file_path), write_to=str(png_path))
-            file_path = png_path
-        
         if payload.orig_name:
             p = Path(payload.orig_name)
             name = p.stem
@@ -164,6 +157,10 @@ class Image(StreamingInput, Component):
         else:
             name = "image"
             suffix = "png"
+
+        if suffix.lower() == "svg":
+            return str(file_path)
+        
         im = _Image.open(file_path)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -181,6 +178,9 @@ class Image(StreamingInput, Component):
     ) -> FileData | None:
         if value is None:
             return None
+
+        if isinstance(value, str) and value.lower().endswith('.svg'):
+            return FileData(path=value, orig_name=Path(value).name)
         saved = image_utils.save_image(value, self.GRADIO_CACHE)
         orig_name = Path(saved).name if Path(saved).exists() else None
         return FileData(path=saved, orig_name=orig_name)
