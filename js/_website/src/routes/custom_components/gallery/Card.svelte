@@ -1,12 +1,22 @@
 <script lang="ts">
 	import type { ComponentData } from "./utils";
 	import CopyButton from "./CopyButton.svelte";
+	import { BaseCode } from "@gradio/code";
+	import { onMount } from "svelte";
 
 	export let data: ComponentData;
 
 	let sourceCodeLink = `https://huggingface.co/spaces/${data.id}`;
 	let authorLink = `https://huggingface.co/${data.author}`;
 	let discussionLink = `https://huggingface.co/spaces/${data.id}/discussions/new`;
+	let codeUrl = `https://huggingface.co/spaces/${data.id}/raw/main/app.py`;
+	const tabs = ["Demo", "Code"];
+	let activeTab = 0;
+	let code: string;
+
+	onMount(async () => {
+		code = await fetch(codeUrl).then((res) => res.text());
+	});
 </script>
 
 <div class="card space-y-2 bg-gradient-to-r {data.background_color}">
@@ -61,11 +71,35 @@
 			>
 		</div>
 	</div>
-	<iframe
-		src={`https://${data.subdomain}.hf.space?__theme=light`}
-		height="100%"
-		width="100%"
-	></iframe>
+	<div class="flex flex-col relative h-full">
+		<div class="tabs flex flex-row relative">
+			{#each tabs as tab, index}
+				<div
+					class="tab bg-white {activeTab === index
+						? 'active'
+						: ''} {activeTab === index
+						? ''
+						: 'border-b-2'} px-8 py-1 rounded-t-md border-x-2 border-t-2 border-orange-300 content-center"
+					on:click={() => {
+						activeTab = index;
+					}}
+				>
+					{tab}
+				</div>
+			{/each}
+		</div>
+		{#if activeTab === 0}
+			<iframe
+				src={`https://${data.subdomain}.hf.space?__theme=light`}
+				height="100%"
+				width="100%"
+			></iframe>
+		{:else}
+			<div class="bg-white">
+				<BaseCode value={code} language="python" />
+			</div>
+		{/if}
+	</div>
 </div>
 
 <style>
@@ -94,5 +128,18 @@
 		background-color: #f8f9fa;
 		padding: 0.2em 0.4em;
 		border-radius: 4px;
+	}
+
+	.tabs {
+		display: flex;
+		margin-bottom: -1px;
+	}
+
+	.tab {
+		cursor: pointer;
+	}
+
+	.active {
+		font-weight: bold;
 	}
 </style>
