@@ -160,7 +160,7 @@ class Image(StreamingInput, Component):
 
         if suffix.lower() == "svg":
             return str(file_path)
-        
+
         im = _Image.open(file_path)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -179,7 +179,7 @@ class Image(StreamingInput, Component):
         if value is None:
             return None
 
-        if isinstance(value, str) and value.lower().endswith('.svg'):
+        if isinstance(value, str) and value.lower().endswith(".svg"):
             return FileData(path=value, orig_name=Path(value).name)
         saved = image_utils.save_image(value, self.GRADIO_CACHE)
         orig_name = Path(saved).name if Path(saved).exists() else None
