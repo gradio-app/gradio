@@ -5,7 +5,7 @@
 	import { _ } from "svelte-i18n";
 	import UploadProgress from "./UploadProgress.svelte";
 
-	export let filetype: string | null = null;
+	export let filetype: string | string[] | null = null;
 	export let dragging = false;
 	export let boundedheight = true;
 	export let center = true;
@@ -76,17 +76,20 @@
 	}
 
 	function is_valid_mimetype(
-		file_accept: string | null,
+		file_accept: string | string[] | null,
 		mime_type: string
 	): boolean {
 		if (!file_accept) {
 			return true;
 		}
-		if (file_accept === "*") {
+		if (file_accept === "*" || file_accept === "file/*") {
 			return true;
 		}
-		if (file_accept.endsWith("/*")) {
+		if (typeof file_accept === "string" && file_accept.endsWith("/*")) {
 			return mime_type.startsWith(file_accept.slice(0, -1));
+		}
+		if (Array.isArray(file_accept)) {
+			return file_accept.includes(mime_type);
 		}
 		return file_accept === mime_type;
 	}
@@ -96,13 +99,14 @@
 		if (!e.dataTransfer?.files) return;
 
 		const files_to_load = Array.from(e.dataTransfer.files).filter((f) => {
-			if (filetype?.split(",").some((m) => is_valid_mimetype(m, f.type))) {
+			const file_extension =
+				f.type !== "" ? f.type : "." + f.name.split(".").pop();
+			if (file_extension && is_valid_mimetype(filetype, file_extension)) {
 				return true;
 			}
 			dispatch("error", `Invalid file type only ${filetype} allowed.`);
 			return false;
 		});
-
 		await load_files(files_to_load);
 	}
 </script>
