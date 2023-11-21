@@ -1,3 +1,4 @@
+anyio
 aiofiles>=22.0,<24.0
 altair>=4.2.0,<6.0
 fastapi
