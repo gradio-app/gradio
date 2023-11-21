@@ -92,7 +92,6 @@
 	}
 
 	.filename {
-		width: auto;
 		flex-grow: 1;
 		display: flex;
 		overflow: hidden;
