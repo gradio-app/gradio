@@ -140,7 +140,6 @@ class Gallery(Component):
             return GalleryData(root=[])
         output = []
         for img in value:
-            url = None
             caption = None
             orig_name = None
             if isinstance(img, (tuple, list)):
@@ -158,10 +157,8 @@ class Gallery(Component):
             elif isinstance(img, str):
                 file_path = img
                 if is_http_url_like(img):
-                    url = img
                     orig_name = Path(urlparse(img).path).name
                 else:
-                    url = None
                     orig_name = Path(img).name
             elif isinstance(img, Path):
                 file_path = str(img)
@@ -169,7 +166,10 @@ class Gallery(Component):
             else:
                 raise ValueError(f"Cannot process type as image: {type(img)}")
             entry = GalleryImage(
-                image=FileData(path=file_path, url=url, orig_name=orig_name),
+                # Leave `url` as None so it will be replaced with a local cache path during postprocessing (https://github.com/gradio-app/gradio/blob/c5ea13bdf7363224863760e53fbcdbed81754628/gradio/blocks.py#L1421)
+                # This is the same way as `gr.Image` and is necessary for the download feature on the frontend to work
+                # because the `download` attribute of the <a> tag requires a same-origin URL (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#download).
+                image=FileData(path=file_path, orig_name=orig_name),
                 caption=caption,
             )
             output.append(entry)
