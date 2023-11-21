@@ -16,9 +16,8 @@
 		const last_dot = filename.lastIndexOf(".");
 		if (last_dot === -1) {
 			return [filename, ""];
-		} else {
-			return [filename.slice(0, last_dot), filename.slice(last_dot)];
 		}
+		return [filename.slice(0, last_dot), filename.slice(last_dot)];
 	}
 
 	$: normalized_files = (Array.isArray(value) ? value : [value]).map((file) => {
