@@ -24,7 +24,7 @@ _Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 class Image(StreamingInput, Component):
     """
     Creates an image component that can be used to upload images (as an input) or display images (as an output).
-    Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type`.
+    Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type`. For SVGs, the `type` parameter is ignored and the filepath of the SVG is returned.
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} or {pathlib.Path} filepath to an image and displays the image.
     Examples-format: a {str} local filepath or URL to an image.
     Demos: image_mod, image_mod_default_image
@@ -75,7 +75,7 @@ class Image(StreamingInput, Component):
             width: Width of the displayed image in pixels.
             image_mode: "RGB" if color, or "L" if black and white. See https://pillow.readthedocs.io/en/stable/handbook/concepts.html for other supported image modes and their meaning.
             sources: List of sources for the image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "clipboard" allows users to paste an image from the clipboard. If None, defaults to ["upload", "webcam", "clipboard"] if streaming is False, otherwise defaults to ["webcam"].
-            type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image.
+            type: The format the image is converted before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image. If the image is SVG, the `type` is ignored and the filepath of the SVG is returned.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
@@ -147,6 +147,7 @@ class Image(StreamingInput, Component):
     ) -> np.ndarray | _Image.Image | str | None:
         if payload is None:
             return payload
+        file_path = Path(payload.path)
         if payload.orig_name:
             p = Path(payload.orig_name)
             name = p.stem
@@ -156,7 +157,11 @@ class Image(StreamingInput, Component):
         else:
             name = "image"
             suffix = "png"
-        im = _Image.open(payload.path)
+
+        if suffix.lower() == "svg":
+            return str(file_path)
+
+        im = _Image.open(file_path)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
@@ -173,6 +178,9 @@ class Image(StreamingInput, Component):
     ) -> FileData | None:
         if value is None:
             return None
+
+        if isinstance(value, str) and value.lower().endswith(".svg"):
+            return FileData(path=value, orig_name=Path(value).name)
         saved = image_utils.save_image(value, self.GRADIO_CACHE)
         orig_name = Path(saved).name if Path(saved).exists() else None
         return FileData(path=saved, orig_name=orig_name)

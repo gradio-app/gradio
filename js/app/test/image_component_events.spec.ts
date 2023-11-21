@@ -26,6 +26,22 @@ test("Image click-to-upload uploads image successfuly. Clear button dispatches e
 	await page.getByLabel("Remove Image").click();
 	await expect(page.getByLabel("# Clear Events")).toHaveValue("1");
 	await expect(page.getByLabel("# Change Events").first()).toHaveValue("2");
+
+	await Promise.all([
+		uploader.setInputFiles(["./test/files/gradio-logo.svg"]),
+		page.waitForResponse("**/upload?*?*")
+	]);
+
+	await expect(page.getByLabel("# Change Events").first()).toHaveValue("3");
+	await expect(await page.getByLabel("# Upload Events")).toHaveValue("2");
+	await expect(await page.getByLabel("# Change Events Output")).toHaveValue(
+		"2"
+	);
+
+	const SVGdownloadPromise = page.waitForEvent("download");
+	await page.getByLabel("Download").click();
+	const SVGdownload = await SVGdownloadPromise;
+	expect(SVGdownload.suggestedFilename()).toBe("gradio-logo.svg");
 });
 
 test("Image drag-to-upload uploads image successfuly.", async ({ page }) => {
