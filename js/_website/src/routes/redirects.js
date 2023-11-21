@@ -59,7 +59,8 @@ export const redirects = {
 	"/tabular_data_science_and_plots": "/guides/connecting-to-a-database",
 	"/guides/tabular-data-science-and-plots": "/guides/connecting-to-a-database",
 	"/integrating_other_frameworks": "/guides/using-hugging-face-integrations",
-	"/guides/integrating-other-frameworks": "/guides/using-hugging-face-integrations",
+	"/guides/integrating-other-frameworks":
+		"/guides/using-hugging-face-integrations",
 	"/controlling_layout": "/guides/controlling-layout",
 	"/state_in_blocks": "/guides/state-in-blocks",
 	"/custom_CSS_and_JS": "/guides/custom-CSS-and-JS",
@@ -103,9 +104,11 @@ export const redirects = {
 	"/image_classification_in_tensorflow":
 		"/guides/image-classification-in-tensorflow",
 	"/demos": "/playground",
-	"/getting-started-with-the-python-client": "/guides/getting-started-with-the-python-client",
-	"/getting-started-with-the-js-client": "/guides/getting-started-with-the-js-client",
+	"/getting-started-with-the-python-client":
+		"/guides/getting-started-with-the-python-client",
+	"/getting-started-with-the-js-client":
+		"/guides/getting-started-with-the-js-client",
 	"/gradio-and-llm-agents": "/guides/gradio-and-llm-agents",
-	"/fastapi-app-with-the-gradio-client": "/guides/fastapi-app-with-the-gradio-client"
-
+	"/fastapi-app-with-the-gradio-client":
+		"/guides/fastapi-app-with-the-gradio-client"
 };
