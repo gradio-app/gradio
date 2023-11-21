@@ -140,4 +140,4 @@ client.predict("https://audio-samples.github.io/samples/mp3/blizzard_uncondition
 
 ## Advanced Usage
 
-For more ways to use the Gradio Python Client, check out our dedicated Guide on the Python client, available here: https://www.gradio.app/getting-started-with-the-python-client/
+For more ways to use the Gradio Python Client, check out our dedicated Guide on the Python client, available here: https://www.gradio.app/guides/getting-started-with-the-python-client
