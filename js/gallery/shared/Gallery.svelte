@@ -162,7 +162,7 @@
 	let client_height = 0;
 	let window_height = 0;
 
-	$: selected_data =
+	$: selected_image =
 		selected_index != null && resolved_value != null
 			? resolved_value[selected_index]
 			: null;
@@ -176,14 +176,14 @@
 {#if value == null || resolved_value == null || resolved_value.length === 0}
 	<Empty unpadded_box={true} size="large"><Image /></Empty>
 {:else}
-	{#if selected_data && allow_preview}
+	{#if selected_image && allow_preview}
 		<button on:keydown={on_keydown} class="preview">
 			<div class="icon-buttons">
 				{#if show_download_button}
 					<a
-						href={selected_data.image.url}
+						href={selected_image.image.url}
 						target={window.__is_colab__ ? "_blank" : null}
-						download={selected_data.image.orig_name || "image"}
+						download={selected_image.image.orig_name || "image"}
 					>
 						<IconButton Icon={Download} label={i18n("common.download")} />
 					</a>
@@ -198,21 +198,21 @@
 			<button
 				class="image-button"
 				on:click={(event) => handle_preview_click(event)}
-				style="height: calc(100% - {selected_data.caption ? '80px' : '60px'})"
+				style="height: calc(100% - {selected_image.caption ? '80px' : '60px'})"
 				aria-label="detailed view of selected image"
 			>
 				<img
 					data-testid="detailed-image"
-					src={selected_data.image.url}
-					alt={selected_data.caption || ""}
-					title={selected_data.caption || null}
-					class:with-caption={!!selected_data.caption}
+					src={selected_image.image.url}
+					alt={selected_image.caption || ""}
+					title={selected_image.caption || null}
+					class:with-caption={!!selected_image.caption}
 					loading="lazy"
 				/>
 			</button>
-			{#if selected_data?.caption}
+			{#if selected_image?.caption}
 				<caption class="caption">
-					{selected_data.caption}
+					{selected_image.caption}
 				</caption>
 			{/if}
 			<div
