@@ -136,7 +136,7 @@ export async function prepare_files(
 export class FileData {
 	path: string;
 	url?: string;
-	orig_name: string;
+	orig_name?: string;
 	size?: number;
 	blob?: File;
 	is_stream?: boolean;
@@ -155,7 +155,7 @@ export class FileData {
 	}: {
 		path: string;
 		url?: string;
-		orig_name: string;
+		orig_name?: string;
 		size?: number;
 		blob?: File;
 		is_stream?: boolean;

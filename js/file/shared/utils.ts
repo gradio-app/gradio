@@ -12,20 +12,19 @@ export const prettyBytes = (bytes: number): string => {
 };
 
 export const display_file_name = (value: FileData): string => {
-	var str: string;
-	str = value.orig_name;
+	const orig_name: string = value.orig_name ?? "";
 	const max_length = 30;
 
-	if (str.length > max_length) {
-		const truncated_name = str.substring(0, max_length);
-		const file_extension_index = str.lastIndexOf(".");
+	if (orig_name.length > max_length) {
+		const truncated_name = orig_name.substring(0, max_length);
+		const file_extension_index = orig_name.lastIndexOf(".");
 		if (file_extension_index !== -1) {
-			const file_extension = str.slice(file_extension_index);
+			const file_extension = orig_name.slice(file_extension_index);
 			return `${truncated_name}..${file_extension}`;
 		}
 		return truncated_name;
 	}
-	return str;
+	return orig_name;
 };
 
 export const display_file_size = (value: FileData | FileData[]): string => {
