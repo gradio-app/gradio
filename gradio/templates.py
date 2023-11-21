@@ -59,7 +59,7 @@ class Sketchpad(components.ImageEditor):
         width: int | None = None,
         image_mode: Literal[
             "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
-        ] = "L",
+        ] = "RGBA",
         sources: Iterable[Literal["upload", "webcam", "clipboard"]] = (),
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
@@ -83,7 +83,7 @@ class Sketchpad(components.ImageEditor):
         brush: Brush | None = None,
     ):
         if not brush:
-            brush = Brush(colors=["#000000"])
+            brush = Brush(colors=["#000000"], color_mode="fixed")
         super().__init__(
             value=value,
             height=height,

@@ -195,7 +195,6 @@ class ImageEditor(Component):
     def convert_and_format_image(
         self,
         file: FileData | None,
-        crop_size: tuple[int | float, int | float] | str | None = None,
     ) -> np.ndarray | _Image.Image | str | None:
         if file is None:
             return None
@@ -214,8 +213,8 @@ class ImageEditor(Component):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
-        if crop_size and not isinstance(crop_size, str):
-            im = image_utils.crop_scale(im, int(crop_size[0]), int(crop_size[1]))
+        if self.crop_size and not isinstance(self.crop_size, str):
+            im = image_utils.crop_scale(im, int(self.crop_size[0]), int(self.crop_size[1]))
         return image_utils.format_image(
             im,
             cast(Literal["numpy", "pil", "filepath"], self.type),
@@ -234,7 +233,7 @@ class ImageEditor(Component):
         if x is None:
             return x
 
-        bg = self.convert_and_format_image(x.background, crop_size=self.crop_size)
+        bg = self.convert_and_format_image(x.background)
         layers = (
             [self.convert_and_format_image(layer) for layer in x.layers]
             if x.layers
