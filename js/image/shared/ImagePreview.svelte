@@ -40,7 +40,7 @@
 			<a
 				href={value.url}
 				target={window.__is_colab__ ? "_blank" : null}
-				download={"image"}
+				download={value.orig_name || "image"}
 			>
 				<IconButton Icon={Download} label={i18n("common.download")} />
 			</a>
@@ -71,6 +71,7 @@
 		height: var(--size-full);
 		object-fit: contain;
 		display: block;
+		border-radius: var(--radius-lg);
 	}
 
 	.selectable {

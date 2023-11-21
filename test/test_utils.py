@@ -22,6 +22,7 @@ from gradio.utils import (
     delete_none,
     format_ner_list,
     get_continuous_fn,
+    get_extension_from_file_path_or_url,
     get_type_hints,
     ipython_check,
     is_in_or_equal,
@@ -402,3 +403,16 @@ def test_is_in_or_equal():
     assert is_in_or_equal("/home/usr/notes.txt", "/home/usr/")
     assert not is_in_or_equal("/home/usr/subdirectory", "/home/usr/notes.txt")
     assert not is_in_or_equal("/home/usr/../../etc/notes.txt", "/home/usr/")
+
+
+@pytest.mark.parametrize(
+    "path_or_url, extension",
+    [
+        ("https://example.com/avatar/xxxx.mp4?se=2023-11-16T06:51:23Z&sp=r", "mp4"),
+        ("/home/user/documents/example.pdf", "pdf"),
+        ("C:\\Users\\user\\documents\\example.png", "png"),
+        ("C:/Users/user/documents/example", ""),
+    ],
+)
+def test_get_extension_from_file_path_or_url(path_or_url, extension):
+    assert get_extension_from_file_path_or_url(path_or_url) == extension
