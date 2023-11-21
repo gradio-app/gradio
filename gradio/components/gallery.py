@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable, List, Literal, Optional
+from typing import Any, Callable, List, Literal, Optional, Tuple, Union
 from urllib.parse import urlparse
 
 import numpy as np
@@ -26,6 +26,10 @@ class GalleryImage(GradioModel):
 
 class GalleryData(GradioRootModel):
     root: List[GalleryImage]
+
+
+GalleryImageType = Union[np.ndarray, _Image.Image, Path, str]
+CaptionedGalleryImageType = Tuple[GalleryImageType, str]
 
 
 @document()
@@ -126,9 +130,7 @@ class Gallery(Component):
 
     def postprocess(
         self,
-        value: list[np.ndarray | _Image.Image | str]
-        | list[tuple[np.ndarray | _Image.Image | str, str]]
-        | None,
+        value: list[GalleryImageType | CaptionedGalleryImageType] | None,
     ) -> GalleryData:
         """
         Parameters:
