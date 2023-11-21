@@ -159,10 +159,10 @@ class Gallery(Component):
                 file_path = img
                 if is_http_url_like(img):
                     url = img
-                    orig_name = Path(img).name
+                    orig_name = Path(urlparse(img).path).name
                 else:
                     url = None
-                    orig_name = Path(urlparse(img).path).name
+                    orig_name = Path(img).name
             elif isinstance(img, Path):
                 file_path = str(img)
                 orig_name = img.name
