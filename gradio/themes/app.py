@@ -69,9 +69,7 @@ with gr.Blocks(theme=gr.themes.Default()) as demo:
             )
             with gr.Row():
                 go_btn = gr.Button("Go", variant="primary")
-                clear_btn = gr.Button(
-                    "Clear", variant="secondary"
-                )
+                clear_btn = gr.Button("Clear", variant="secondary")
 
                 def go(*args):
                     time.sleep(3)
@@ -115,7 +113,8 @@ with gr.Blocks(theme=gr.themes.Default()) as demo:
                     "tower",
                 ),
             ],
-        height=200)
+            height=200,
+        )
 
     with gr.Row():
         with gr.Column(scale=2):
