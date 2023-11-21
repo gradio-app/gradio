@@ -10,15 +10,15 @@ export const redirects = {
 	"/using-flagging": "/guides/using-flagging",
 	"/named-entity-recognition": "/guides/named-entity-recognition",
 	"/real-time-speech-recognition": "/guides/real-time-speech-recognition",
-	"/eveloping-faster-with-reload-mode":
-		"/guides/eveloping-faster-with-reload-mode",
+	"/developing-faster-with-reload-mode":
+		"/guides/developing-faster-with-reload-mode",
 	"/create-your-own-friends-with-a-gan":
 		"/guides/create-your-own-friends-with-a-gan",
 	"/setting-up-a-demo-for-maximum-performance":
 		"/guides/setting-up-a-demo-for-maximum-performance",
-	"/building-a-pictionary-app": "/guides/building-a-pictionary-app",
-	"/creating-a-chatbot": "/guides/creating-a-chatbot",
-	"/how-to-use-D-model-component": "/guides/how-to-use-D-model-component",
+	"/creating-a-chatbot": "/guides/creating-a-chatbot-fast",
+	"/guides/creating-a-chatbot": "/guides/creating-a-chatbot-fast",
+	"/how-to-use-3D-model-component": "/guides/how-to-use-3D-model-component",
 	"/creating-a-new-component": "/guides/creating-a-new-component",
 	"/running-background-tasks": "/guides/running-background-tasks",
 	"/custom-interpretations-with-blocks":
@@ -26,7 +26,7 @@ export const redirects = {
 	"/reactive-interfaces": "/guides/reactive-interfaces",
 	"/four-kinds-of-interfaces": "/guides/four-kinds-of-interfaces",
 	"/interface-state": "/guides/interface-state",
-	"/ore-on-examples": "/guides/ore-on-examples",
+	"/more-on-examples": "/guides/more-on-examples",
 	"/advanced-interface-features": "/guides/advanced-interface-features",
 	"/key-features": "/guides/key-features",
 	"/quickstart": "/guides/quickstart",
@@ -48,15 +48,19 @@ export const redirects = {
 	"/image-classification-in-tensorflow":
 		"/guides/image-classification-in-tensorflow",
 	"/Gradio-and-Comet": "/guides/Gradio-and-Comet",
-	"/introduction_to_blocks": "/guides/quickstart#more-complexity",
-	"/adding_examples_to_your_app": "/guides/key-features#example-inputs",
-	"/embedding_gradio_demos": "/guides/sharing-your-app#embedding-hosted-spaces",
+	"/introduction_to_blocks": "/guides/blocks-and-event-listeners",
+	"/adding_examples_to_your_app": "/guides/key-features",
+	"/embedding_gradio_demos": "/guides/sharing-your-app",
 	"/getting_started": "/guides/quickstart",
-	"/building_with_blocks": "/guides/building-with-blocks",
-	"/other_tutorials": "/guides/other-tutorials",
-	"/building_interfaces": "/guides/building-interfaces",
-	"/tabular_data_science_and_plots": "/guides/tabular-data-science-and-plots",
-	"/integrating_other_frameworks": "/guides/integrating-other-frameworks",
+	"/building_with_blocks": "/guides/blocks-and-event-listeners",
+	"/guides/building-with-blocks": "/guides/blocks-and-event-listeners",
+	"/building_interfaces": "/guides/interface-state",
+	"/guides/building-interfaces": "/guides/interface-state",
+	"/tabular_data_science_and_plots": "/guides/connecting-to-a-database",
+	"/guides/tabular-data-science-and-plots": "/guides/connecting-to-a-database",
+	"/integrating_other_frameworks": "/guides/using-hugging-face-integrations",
+	"/guides/integrating-other-frameworks":
+		"/guides/using-hugging-face-integrations",
 	"/controlling_layout": "/guides/controlling-layout",
 	"/state_in_blocks": "/guides/state-in-blocks",
 	"/custom_CSS_and_JS": "/guides/custom-CSS-and-JS",
@@ -71,7 +75,6 @@ export const redirects = {
 		"/guides/create-your-own-friends-with-a-gan",
 	"/setting_up_a_demo_for_maximum_performance":
 		"/guides/setting-up-a-demo-for-maximum-performance",
-	"/building_a_pictionary_app": "/guides/building-a-pictionary-app",
 	"/creating_a_chatbot": "/guides/creating-a-chatbot",
 	"/how_to_use_3D_model_component": "/guides/how-to-use-3D-model-component",
 	"/creating_a_new_component": "/guides/creating-a-new-component",
@@ -100,5 +103,12 @@ export const redirects = {
 	"/Gradio_and_Wandb_Integration": "/guides/Gradio-and-Wandb-Integration",
 	"/image_classification_in_tensorflow":
 		"/guides/image-classification-in-tensorflow",
-	"/demos": "/playground"
+	"/demos": "/playground",
+	"/getting-started-with-the-python-client":
+		"/guides/getting-started-with-the-python-client",
+	"/getting-started-with-the-js-client":
+		"/guides/getting-started-with-the-js-client",
+	"/gradio-and-llm-agents": "/guides/gradio-and-llm-agents",
+	"/fastapi-app-with-the-gradio-client":
+		"/guides/fastapi-app-with-the-gradio-client"
 };
