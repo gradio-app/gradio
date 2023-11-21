@@ -37,7 +37,7 @@ def create_theme_dropdown():
         value=latest_to_oldest[0],
         render=False,
         label="Select Version",
-        container=False
+        container=False,
     )
 
     return (
