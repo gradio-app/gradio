@@ -6,7 +6,7 @@ from gradio.themes.utils.theme_dropdown import create_theme_dropdown
 dropdown, js = create_theme_dropdown()
 
 with gr.Blocks(theme=gr.themes.Default()) as demo:
-    with gr.Row().style(equal_height=True):
+    with gr.Row(equal_height=True):
         with gr.Column(scale=10):
             gr.Markdown(
                 """
@@ -17,9 +17,9 @@ with gr.Blocks(theme=gr.themes.Default()) as demo:
                 """
             )
         with gr.Column(scale=3):
-            with gr.Box():
+            with gr.Group():
                 dropdown.render()
-                toggle_dark = gr.Button(value="Toggle Dark").style(full_width=True)
+                toggle_dark = gr.Button(value="Toggle Dark")
 
     dropdown.change(None, dropdown, None, js=js)
     toggle_dark.click(
@@ -65,11 +65,12 @@ with gr.Blocks(theme=gr.themes.Default()) as demo:
             img = gr.Image(
                 "https://gradio-static-files.s3.us-west-2.amazonaws.com/header-image.jpg",
                 label="Image",
-            ).style(height=320)
+                height=320,
+            )
             with gr.Row():
-                go_btn = gr.Button("Go", label="Primary Button", variant="primary")
+                go_btn = gr.Button("Go", variant="primary")
                 clear_btn = gr.Button(
-                    "Clear", label="Secondary Button", variant="secondary"
+                    "Clear", variant="secondary"
                 )
 
                 def go(*args):
@@ -85,11 +86,9 @@ with gr.Blocks(theme=gr.themes.Default()) as demo:
                 clear_btn.click(clear, None, img)
 
             with gr.Row():
-                btn1 = gr.Button("Button 1").style(size="sm")
-                btn2 = gr.UploadButton().style(size="sm")
-                stop_btn = gr.Button("Stop", label="Stop Button", variant="stop").style(
-                    size="sm"
-                )
+                btn1 = gr.Button("Button 1", size="sm")
+                btn2 = gr.UploadButton(size="sm")
+                stop_btn = gr.Button("Stop", size="sm", variant="stop")
 
     with gr.Row():
         gr.Dataframe(value=[[1, 2, 3], [4, 5, 6], [7, 8, 9]], label="Dataframe")
@@ -115,8 +114,8 @@ with gr.Blocks(theme=gr.themes.Default()) as demo:
                     "https://gradio-static-files.s3.us-west-2.amazonaws.com/tower.jpg",
                     "tower",
                 ),
-            ]
-        ).style(height="200px", grid=2)
+            ],
+        height=200)
 
     with gr.Row():
         with gr.Column(scale=2):
