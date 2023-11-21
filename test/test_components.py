@@ -12,7 +12,7 @@ import tempfile
 from copy import deepcopy
 from difflib import SequenceMatcher
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 import numpy as np
 import pandas as pd
@@ -2108,25 +2108,11 @@ class TestGallery:
     def test_postprocess(self):
         url = "https://huggingface.co/Norod78/SDXL-VintageMagStyle-Lora/resolve/main/Examples/00015-20230906102032-7778-Wonderwoman VintageMagStyle   _lora_SDXL-VintageMagStyle-Lora_1_, Very detailed, clean, high quality, sharp image.jpg"
         gallery = gr.Gallery([url])
-        assert gallery.get_config()["value"][0]["image"]["path"] == url
-
-    @patch("uuid.uuid4", return_value="my-uuid")
-    def test_gallery(self, mock_uuid):
-        gallery = gr.Gallery()
-        test_file_dir = Path(Path(__file__).parent, "test_files")
-        [
-            client_utils.encode_file_to_base64(Path(test_file_dir, "bus.png")),
-            client_utils.encode_file_to_base64(Path(test_file_dir, "cheetah1.jpg")),
-        ]
-
-        postprocessed_gallery = gallery.postprocess(
-            [Path("test/test_files/bus.png")]
-        ).model_dump()
-        processed_gallery = [
+        assert gallery.get_config()["value"] == [
             {
                 "image": {
-                    "path": "bus.png",
-                    "orig_name": None,
+                    "path": ANY,  # Asserted below
+                    "orig_name": "00015-20230906102032-7778-Wonderwoman VintageMagStyle   _lora_SDXL-VintageMagStyle-Lora_1_, Very detailed, clean, high quality, sharp image.jpg",
                     "mime_type": None,
                     "size": None,
                     "url": None,
@@ -2134,10 +2120,61 @@ class TestGallery:
                 "caption": None,
             }
         ]
-        postprocessed_gallery[0]["image"]["path"] = os.path.basename(
-            postprocessed_gallery[0]["image"]["path"]
-        )
-        assert processed_gallery == postprocessed_gallery
+        assert Path(gallery.get_config()["value"][0]["image"]["path"]).exists()
+
+    def test_gallery(self):
+        gallery = gr.Gallery()
+
+        postprocessed_gallery = gallery.postprocess(
+            [
+                ("test/test_files/foo.png", "foo_caption"),
+                (Path("test/test_files/bar.png"), "bar_caption"),
+                "test/test_files/baz.png",
+                Path("test/test_files/qux.png"),
+            ]
+        ).model_dump()
+        assert postprocessed_gallery == [
+            {
+                "image": {
+                    "path": "test/test_files/foo.png",
+                    "orig_name": "foo.png",
+                    "mime_type": None,
+                    "size": None,
+                    "url": None,
+                },
+                "caption": "foo_caption",
+            },
+            {
+                "image": {
+                    "path": "test/test_files/bar.png",
+                    "orig_name": "bar.png",
+                    "mime_type": None,
+                    "size": None,
+                    "url": None,
+                },
+                "caption": "bar_caption",
+            },
+            {
+                "image": {
+                    "path": "test/test_files/baz.png",
+                    "orig_name": "baz.png",
+                    "mime_type": None,
+                    "size": None,
+                    "url": None,
+                },
+                "caption": None,
+            },
+            {
+                "image": {
+                    "path": "test/test_files/qux.png",
+                    "orig_name": "qux.png",
+                    "mime_type": None,
+                    "size": None,
+                    "url": None,
+                },
+                "caption": None,
+            },
+        ]
 
 
 class TestState:
