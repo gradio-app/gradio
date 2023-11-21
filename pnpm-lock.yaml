@@ -279,7 +279,7 @@ importers:
   js/_website:
     dependencies:
       '@gradio/code':
-        specifier: 0.2.6
+        specifier: 0.2.7
         version: link:../code
       '@sindresorhus/slugify':
         specifier: ^2.2.0
@@ -1274,10 +1274,10 @@ importers:
   js/preview/test/test/frontend:
     dependencies:
       '@gradio/atoms':
-        specifier: 0.2.2
+        specifier: 0.3.0
         version: link:../../../../atoms
       '@gradio/statustracker':
-        specifier: 0.3.2
+        specifier: 0.4.0
         version: link:../../../../statustracker
       '@gradio/utils':
         specifier: 0.2.0
@@ -6735,7 +6735,7 @@ packages:
     peerDependencies:
       '@sveltejs/kit': ^1.0.0
     dependencies:
-      '@sveltejs/kit': 1.26.0(svelte@4.2.2)(vite@4.5.0)
+      '@sveltejs/kit': 1.26.0(svelte@3.59.2)(vite@4.5.0)
       import-meta-resolve: 2.2.2
     dev: true
 
