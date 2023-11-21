@@ -162,12 +162,6 @@ with gr.Blocks() as demo:
             ["Some value"],
         ],
     )
-    t_2 = gr.TimeSeries(visible=False)
-    gr.Dataset(
-        components=[t_2],
-        label="TimeSeries",
-        samples=[[csv], [csv], [csv], [csv], [csv], [csv]],
-    )
     v = gr.Video(visible=False)
     gr.Dataset(
         components=[v],
