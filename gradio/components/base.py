@@ -160,7 +160,7 @@ class Component(ComponentBase, Block):
         if not elem_classes:
             elem_classes = []
 
-        # This gets overriden when `select` is called
+        # This gets overridden when `select` is called
         self._selectable = False
         if not hasattr(self, "data_model"):
             self.data_model: type[GradioDataModel] | None = None
