@@ -8,6 +8,7 @@ import os
 import random
 import secrets
 import sys
+import tempfile
 import threading
 import time
 import warnings
@@ -103,7 +104,6 @@ class Block:
         render: bool = True,
         visible: bool = True,
         proxy_url: str | None = None,
-        _skip_init_processing: bool = False,
     ):
         self._id = Context.id
         Context.id += 1
@@ -114,11 +114,17 @@ class Block:
         )
         self.proxy_url = proxy_url
         self.share_token = secrets.token_urlsafe(32)
-        self._skip_init_processing = _skip_init_processing
         self.parent: BlockContext | None = None
         self.is_rendered: bool = False
         self._constructor_args: dict
         self.state_session_capacity = 10000
+        self.temp_files: set[str] = set()
+        self.GRADIO_CACHE = str(
+            Path(
+                os.environ.get("GRADIO_TEMP_DIR")
+                or str(Path(tempfile.gettempdir()) / "gradio")
+            ).resolve()
+        )
 
         if render:
             self.render()
@@ -201,7 +207,7 @@ class Block:
         for parameter in signature.parameters.values():
             if hasattr(self, parameter.name):
                 value = getattr(self, parameter.name)
-                config[parameter.name] = value
+                config[parameter.name] = utils.convert_to_dict_if_dataclass(value)
         for e in self.events:
             to_add = e.config_data()
             if to_add:
@@ -226,6 +232,36 @@ class Block:
             if parameter.name in props and parameter.name not in additional_keys:
                 kwargs[parameter.name] = props[parameter.name]
         return kwargs
+
+    def move_resource_to_block_cache(
+        self, url_or_file_path: str | Path | None
+    ) -> str | None:
+        """Moves a file or downloads a file from a url to a block's cache directory, adds
+        to to the block's temp_files, and returns the path to the file in cache. This
+        ensures that the file is accessible to the Block and can be served to users.
+        """
+        if url_or_file_path is None:
+            return None
+        if isinstance(url_or_file_path, Path):
+            url_or_file_path = str(url_or_file_path)
+
+        if client_utils.is_http_url_like(url_or_file_path):
+            temp_file_path = processing_utils.save_url_to_cache(
+                url_or_file_path, cache_dir=self.GRADIO_CACHE
+            )
+
+            self.temp_files.add(temp_file_path)
+        else:
+            url_or_file_path = str(utils.abspath(url_or_file_path))
+            if not utils.is_in_or_equal(url_or_file_path, self.GRADIO_CACHE):
+                temp_file_path = processing_utils.save_file_to_cache(
+                    url_or_file_path, cache_dir=self.GRADIO_CACHE
+                )
+            else:
+                temp_file_path = url_or_file_path
+            self.temp_files.add(temp_file_path)
+
+        return temp_file_path
 
 
 class BlockContext(Block):
@@ -330,7 +366,7 @@ class BlockFunction:
         inputs_as_dict: bool,
         batch: bool = False,
         max_batch_size: int = 4,
-        concurrency_limit: int | None = 1,
+        concurrency_limit: int | None | Literal["default"] = "default",
         concurrency_id: str | None = None,
         tracks_progress: bool = False,
     ):
@@ -382,13 +418,15 @@ def postprocess_update_dict(
         update_dict: The original update dictionary
         postprocess: Whether to postprocess the "value" key of the update dictionary.
     """
-    update_dict = {k: update_dict[k] for k in update_dict if hasattr(block, k)}
-    if update_dict.get("value") is components._Keywords.NO_VALUE:
-        update_dict.pop("value")
-    elif "value" in update_dict and postprocess:
-        update_dict["value"] = block.postprocess(update_dict["value"])
-        if isinstance(update_dict["value"], (GradioModel, GradioRootModel)):
-            update_dict["value"] = update_dict["value"].model_dump()
+    value = update_dict.pop("value", components._Keywords.NO_VALUE)
+    update_dict = {k: getattr(block, k) for k in update_dict if hasattr(block, k)}
+    if value is not components._Keywords.NO_VALUE:
+        if postprocess:
+            update_dict["value"] = block.postprocess(value)
+            if isinstance(update_dict["value"], (GradioModel, GradioRootModel)):
+                update_dict["value"] = update_dict["value"].model_dump()
+        else:
+            update_dict["value"] = value
     update_dict["__type__"] = "update"
     return update_dict
 
@@ -546,7 +584,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.app_id = random.getrandbits(64)
         self.temp_file_sets = []
         self.title = title
-        self.show_api = True
+        self.show_api = not wasm_utils.IS_WASM
 
         # Only used when an Interface is loaded from a config
         self.predict = None
@@ -554,6 +592,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.output_components = None
         self.__name__ = None
         self.api_mode = None
+
         self.progress_tracking = None
         self.ssl_verify = True
 
@@ -629,9 +668,12 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             # URL of C, not B. The else clause below handles this case.
             if block_config["props"].get("proxy_url") is None:
                 block_config["props"]["proxy_url"] = f"{proxy_url}/"
+            postprocessed_value = block_config["props"].pop("value", None)
 
             constructor_args = cls.recover_kwargs(block_config["props"])
             block = cls(**constructor_args)
+            if postprocessed_value is not None:
+                block.value = postprocessed_value  # type: ignore
 
             block_proxy_url = block_config["props"]["proxy_url"]
             block.proxy_url = block_proxy_url
@@ -640,8 +682,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 _selectable := block_config["props"].pop("_selectable", None)
             ) is not None:
                 block._selectable = _selectable  # type: ignore
-            # Any component has already processed its initial value, so we skip that step here
-            block._skip_init_processing = True
 
             return block
 
@@ -783,7 +823,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
         trigger_mode: Literal["once", "multiple", "always_last"] | None = "once",
-        concurrency_limit: int | None = 1,
+        concurrency_limit: int | None | Literal["default"] = "default",
         concurrency_id: str | None = None,
     ) -> tuple[dict[str, Any], int]:
         """
@@ -797,7 +837,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             postprocess: whether to run the postprocess methods of components
             scroll_to_output: whether to scroll to output of dependency on trigger
             show_progress: whether to show progress animation while running.
-            api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.
+            api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for Blocks "load" event
             queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
@@ -809,7 +849,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             trigger_after: if set, this event will be triggered after 'trigger_after' function index
             trigger_only_on_success: if True, this event will only be triggered if the previous event was successful (only applies if `trigger_after` is set)
             trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` event) would allow a second submission after the pending event is complete.
-            concurrency_limit: If set, this this is the maximum number of this event that can be running simultaneously. Extra events triggered by this listener will be queued. On Spaces, this is set to 1 by default.
+            concurrency_limit: If set, this this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `queue()`, which itself is 1 by default).
             concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
         Returns: dependency information, dependency index
         """
@@ -886,7 +926,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 api_name, [dep["api_name"] for dep in self.dependencies]
             )
             if api_name != api_name_:
-                warnings.warn(f"api_name {api_name} already exists, using {api_name_}")
                 api_name = api_name_
 
         if collects_event_data is None:
@@ -908,7 +947,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             "cancels": cancels or [],
             "types": {
                 "continuous": bool(every),
-                "generator": inspect.isgeneratorfunction(fn) or bool(every),
+                "generator": inspect.isgeneratorfunction(fn)
+                or inspect.isasyncgenfunction(fn)
+                or bool(every),
             },
             "collects_event_data": collects_event_data,
             "trigger_after": trigger_after,
@@ -943,9 +984,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                         [dep["api_name"] for dep in Context.root_block.dependencies],
                     )
                     if api_name != api_name_:
-                        warnings.warn(
-                            f"api_name {api_name} already exists, using {api_name_}"
-                        )
                         dependency["api_name"] = api_name_
                 dependency["cancels"] = [
                     c + dependency_offset for c in dependency["cancels"]
@@ -1360,14 +1398,14 @@ Received outputs:
                     prediction_value["__type__"] = "update"
                 if utils.is_update(prediction_value):
                     if output_id in state:
-                        args = state[output_id].constructor_args.copy()
+                        kwargs = state[output_id].constructor_args.copy()
                     else:
-                        args = self.blocks[output_id].constructor_args.copy()
-                    args.update(prediction_value)
-                    args.pop("value", None)
-                    args.pop("__type__")
-                    args["render"] = False
-                    state[output_id] = self.blocks[output_id].__class__(**args)
+                        kwargs = self.blocks[output_id].constructor_args.copy()
+                    kwargs.update(prediction_value)
+                    kwargs.pop("value", None)
+                    kwargs.pop("__type__")
+                    kwargs["render"] = False
+                    state[output_id] = self.blocks[output_id].__class__(**kwargs)
 
                     prediction_value = postprocess_update_dict(
                         block=state[output_id],
@@ -1380,7 +1418,7 @@ Received outputs:
                             f"{block.__class__} Component with id {output_id} not a valid output component."
                         )
                     prediction_value = block.postprocess(prediction_value)
-                outputs_cached = processing_utils.move_files_to_cache(prediction_value, block)  # type: ignore
+                outputs_cached = processing_utils.move_files_to_cache(prediction_value, block, postprocess=True)  # type: ignore
                 output.append(outputs_cached)
 
         return output
@@ -1611,7 +1649,9 @@ Received outputs:
         status_update_rate: float | Literal["auto"] = "auto",
         api_open: bool | None = None,
         max_size: int | None = None,
-        **kwargs,
+        concurrency_count: int | None = None,
+        *,
+        default_concurrency_limit: int | None | Literal["not_set"] = "not_set",
     ):
         """
         By enabling the queue you can control when users know their position in the queue, and set a limit on maximum number of events allowed.
@@ -1619,6 +1659,8 @@ Received outputs:
             status_update_rate: If "auto", Queue will send status estimations to all clients whenever a job is finished. Otherwise Queue will send status at regular intervals set by this parameter as the number of seconds.
             api_open: If True, the REST routes of the backend will be open, allowing requests made directly to those endpoints to skip the queue.
             max_size: The maximum number of events the queue will store at any given moment. If the queue is full, new events will not be added and a user will receive a message saying that the queue is full. If None, the queue size will be unlimited.
+            concurrency_count: Deprecated and has no effect. Set the concurrency_limit directly on event listeners e.g. btn.click(fn, ..., concurrency_limit=10) or gr.Interface(concurrency_limit=10). If necessary, the total number of workers can be configured via `max_threads` in launch().
+            default_concurrency_limit: The default value of `concurrency_limit` to use for event listeners that don't specify a value. Can be set by environment variable GRADIO_DEFAULT_CONCURRENCY_LIMIT. Defaults to 1 if not set otherwise.
         Example: (Blocks)
             with gr.Blocks() as demo:
                 button = gr.Button(label="Generate Image")
@@ -1630,12 +1672,10 @@ Received outputs:
             demo.queue(max_size=20)
             demo.launch()
         """
-        if "concurrency_count" in kwargs:
+        if concurrency_count:
             raise DeprecationWarning(
                 "concurrency_count has been deprecated. Set the concurrency_limit directly on event listeners e.g. btn.click(fn, ..., concurrency_limit=10) or gr.Interface(concurrency_limit=10). If necessary, the total number of workers can be configured via `max_threads` in launch()."
             )
-        if len(kwargs):
-            raise ValueError(f"Invalid arguments: {kwargs}")
         if api_open is not None:
             self.api_open = api_open
         if utils.is_zero_gpu_space():
@@ -1646,6 +1686,7 @@ Received outputs:
             update_intervals=status_update_rate if status_update_rate != "auto" else 1,
             max_size=max_size,
             block_fns=self.fns,
+            default_concurrency_limit=default_concurrency_limit,
         )
         self.config = self.get_config_file()
         self.app = routes.App.create_app(self)

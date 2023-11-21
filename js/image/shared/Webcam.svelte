@@ -15,21 +15,17 @@
 
 	const dispatch = createEventDispatcher<{
 		stream: undefined;
-		capture:
-			| {
-					data: FileReader["result"];
-					name: string;
-					is_example?: boolean;
-					is_file: boolean;
-			  }
-			| Blob;
+		capture: Blob;
 		error: string;
 		start_recording: undefined;
 		stop_recording: undefined;
 	}>();
 
 	onMount(() => (canvas = document.createElement("canvas")));
-
+	const size = {
+		width: { ideal: 1920 },
+		height: { ideal: 1440 }
+	};
 	async function access_webcam(device_id?: string): Promise<void> {
 		if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
 			dispatch("error", i18n("image.no_webcam_support"));
@@ -37,7 +33,7 @@
 		}
 		try {
 			stream = await navigator.mediaDevices.getUserMedia({
-				video: device_id ? { deviceId: { exact: device_id } } : true,
+				video: device_id ? { deviceId: { exact: device_id }, ...size } : size,
 				audio: include_audio
 			});
 			video_source.srcObject = stream;
@@ -95,6 +91,7 @@
 			ReaderObj.onload = function (e): void {
 				if (e.target) {
 					dispatch("capture", {
+						//@ts-ignore
 						data: e.target.result,
 						name: "sample." + mimeType.substring(6),
 						is_example: false,

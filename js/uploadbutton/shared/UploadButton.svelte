@@ -35,6 +35,7 @@
 	}
 
 	function openFileUpload(): void {
+		dispatch("click");
 		hidden_upload.click();
 	}
 

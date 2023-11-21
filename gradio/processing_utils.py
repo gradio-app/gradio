@@ -8,7 +8,6 @@ import os
 import shutil
 import subprocess
 import tempfile
-import urllib.request
 import warnings
 from io import BytesIO
 from pathlib import Path
@@ -21,7 +20,7 @@ from PIL import Image, ImageOps, PngImagePlugin
 
 from gradio import wasm_utils
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
-from gradio.utils import abspath, is_in_or_equal
+from gradio.utils import abspath
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # Ignore pydub warning if ffmpeg is not installed
@@ -121,17 +120,9 @@ def hash_file(file_path: str | Path, chunk_num_blocks: int = 128) -> str:
     return sha1.hexdigest()
 
 
-def hash_url(url: str, chunk_num_blocks: int = 128) -> str:
+def hash_url(url: str) -> str:
     sha1 = hashlib.sha1()
-    remote = urllib.request.urlopen(url)
-    max_file_size = 100 * 1024 * 1024  # 100MB
-    total_read = 0
-    while True:
-        data = remote.read(chunk_num_blocks * sha1.block_size)
-        total_read += chunk_num_blocks * sha1.block_size
-        if not data or total_read > max_file_size:
-            break
-        sha1.update(data)
+    sha1.update(url.encode("utf-8"))
     return sha1.hexdigest()
 
 
@@ -150,18 +141,21 @@ def hash_base64(base64_encoding: str, chunk_num_blocks: int = 128) -> str:
 
 
 def save_pil_to_cache(
-    img: Image.Image, cache_dir: str, format: Literal["png", "jpg"] = "png"
+    img: Image.Image,
+    cache_dir: str,
+    name: str = "image",
+    format: Literal["png", "jpeg"] = "png",
 ) -> str:
     bytes_data = encode_pil_to_bytes(img, format)
     temp_dir = Path(cache_dir) / hash_bytes(bytes_data)
     temp_dir.mkdir(exist_ok=True, parents=True)
-    filename = str((temp_dir / f"image.{format}").resolve())
+    filename = str((temp_dir / f"{name}.{format}").resolve())
     img.save(filename, pnginfo=get_pil_metadata(img))
     return filename
 
 
 def save_img_array_to_cache(
-    arr: np.ndarray, cache_dir: str, format: Literal["png", "jpg"] = "png"
+    arr: np.ndarray, cache_dir: str, format: Literal["png", "jpeg"] = "png"
 ) -> str:
     pil_image = Image.fromarray(_convert(arr, np.uint8, force_copy=False))
     return save_pil_to_cache(pil_image, cache_dir, format=format)
@@ -207,7 +201,6 @@ def save_url_to_cache(url: str, cache_dir: str) -> str:
     temp_dir = hash_url(url)
     temp_dir = Path(cache_dir) / temp_dir
     temp_dir.mkdir(exist_ok=True, parents=True)
-
     name = client_utils.strip_invalid_filename_characters(Path(url).name)
     full_temp_file_path = str(abspath(temp_dir / name))
 
@@ -246,34 +239,16 @@ def save_base64_to_cache(
     return full_temp_file_path
 
 
-def move_resource_to_block_cache(url_or_file_path: str | Path, block: Component) -> str:
-    """Moves a file or downloads a file from a url to a block's cache directory, adds
-    to to the block's temp_files, and returns the path to the file in cache. This
-    ensures that the file is accessible to the Block and can be served to users.
+def move_resource_to_block_cache(
+    url_or_file_path: str | Path | None, block: Component
+) -> str | None:
+    """This method has been replaced by Block.move_resource_to_block_cache(), but is
+    left here for backwards compatibility for any custom components created in Gradio 4.2.0 or earlier.
     """
-    if isinstance(url_or_file_path, Path):
-        url_or_file_path = str(url_or_file_path)
-
-    if client_utils.is_http_url_like(url_or_file_path):
-        temp_file_path = save_url_to_cache(
-            url_or_file_path, cache_dir=block.GRADIO_CACHE
-        )
-
-        block.temp_files.add(temp_file_path)
-    else:
-        url_or_file_path = str(abspath(url_or_file_path))
-        if not is_in_or_equal(url_or_file_path, block.GRADIO_CACHE):
-            temp_file_path = save_file_to_cache(
-                url_or_file_path, cache_dir=block.GRADIO_CACHE
-            )
-        else:
-            temp_file_path = url_or_file_path
-        block.temp_files.add(temp_file_path)
-
-    return temp_file_path
+    return block.move_resource_to_block_cache(url_or_file_path)
 
 
-def move_files_to_cache(data: Any, block: Component):
+def move_files_to_cache(data: Any, block: Component, postprocess: bool = False):
     """Move files to cache and replace the file path with the cache path.
 
     Runs after postprocess and before preprocess.
@@ -281,11 +256,20 @@ def move_files_to_cache(data: Any, block: Component):
     Args:
         data: The input or output data for a component. Can be a dictionary or a dataclass
         block: The component
+        postprocess: Whether its running from postprocessing
     """
 
     def _move_to_cache(d: dict):
         payload = FileData(**d)
-        temp_file_path = move_resource_to_block_cache(payload.path, block)
+        # If the gradio app developer is returning a URL from
+        # postprocess, it means the component can display a URL
+        # without it being served from the gradio server
+        # This makes it so that the URL is not downloaded and speeds up event processing
+        if payload.url and postprocess:
+            temp_file_path = payload.url
+        else:
+            temp_file_path = move_resource_to_block_cache(payload.path, block)
+        assert temp_file_path is not None
         payload.path = temp_file_path
         return payload.model_dump()
 

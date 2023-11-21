@@ -7,6 +7,7 @@ from gradio.cli.commands.components._create_utils import OVERRIDES
 from gradio.cli.commands.components.build import _build
 from gradio.cli.commands.components.create import _create
 from gradio.cli.commands.components.install_component import _install
+from gradio.cli.commands.components.publish import _get_version_from_file
 from gradio.cli.commands.components.show import _show
 
 
@@ -31,10 +32,18 @@ from gradio.cli.commands.components.show import _show
         "UploadButton",
         "JSON",
         "FileExplorer",
+        "Model3D",
     ],
 )
 def test_template_override_component(template, tmp_path):
-    _create("MyComponent", tmp_path, template=template, overwrite=True, install=False)
+    _create(
+        "MyComponent",
+        tmp_path,
+        template=template,
+        overwrite=True,
+        install=False,
+        configure_metadata=False,
+    )
     app = (tmp_path / "demo" / "app.py").read_text()
     answer = textwrap.dedent(
         f"""
@@ -61,12 +70,18 @@ def test_raise_error_component_template_does_not_exist(tmp_path):
             template="NonExistentComponent",
             overwrite=True,
             install=False,
+            configure_metadata=False,
         )
 
 
 def test_do_not_replace_class_name_in_import_statement(tmp_path):
     _create(
-        "MyImage", template="Image", directory=tmp_path, overwrite=True, install=False
+        "MyImage",
+        template="Image",
+        directory=tmp_path,
+        overwrite=True,
+        install=False,
+        configure_metadata=False,
     )
     code = (tmp_path / "backend" / "gradio_myimage" / "myimage.py").read_text()
     assert "from PIL import Image as _Image" in code
@@ -76,9 +91,9 @@ def test_do_not_replace_class_name_in_import_statement(tmp_path):
 
 def test_raises_if_directory_exists(tmp_path):
     with pytest.raises(
-        ValueError, match=f"The directory {tmp_path.resolve()} already exists."
-    ):
-        _create("MyComponent", tmp_path)
+        Exception
+    ):  # Keeping it a general exception since the specific exception seems to differ between operating systems
+        _create("MyComponent", tmp_path, configure_metadata=False)
 
 
 def test_show(capsys):
@@ -92,13 +107,15 @@ def test_show(capsys):
 
 
 @pytest.mark.xfail
-def test_build(tmp_path):
+@pytest.mark.parametrize("template", ["Audio", "Video", "Image", "Textbox"])
+def test_build(template, tmp_path):
     _create(
         "TestTextbox",
-        template="Textbox",
+        template=template,
         directory=tmp_path,
         overwrite=True,
         install=True,
+        configure_metadata=False,
     )
     _build(tmp_path, build_frontend=True)
     template_dir: Path = (
@@ -116,6 +133,7 @@ def test_install(tmp_path):
         directory=tmp_path,
         overwrite=True,
         install=False,
+        configure_metadata=False,
     )
 
     assert not (tmp_path / "frontend" / "node_modules").exists()
@@ -129,6 +147,7 @@ def test_fallback_template_app(tmp_path):
         directory=tmp_path,
         overwrite=True,
         install=False,
+        configure_metadata=False,
     )
     app = (tmp_path / "demo" / "app.py").read_text()
     answer = textwrap.dedent(
@@ -148,3 +167,14 @@ demo.launch()
 """
     )
     assert app.strip() == answer.strip()
+
+
+def test_get_version_from_wheel():
+    assert (
+        _get_version_from_file(Path("gradio_textwithattachments-0.0.3-py3-none.whl"))
+        == "0.0.3"
+    )
+    assert (
+        _get_version_from_file(Path("gradio_textwithattachments-1.0.3b12-py3-none.whl"))
+        == "1.0.3b12"
+    )

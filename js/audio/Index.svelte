@@ -94,12 +94,20 @@
 		progressColor: waveform_options.waveform_progress_color || "#f97316",
 		barWidth: 2,
 		barGap: 3,
-		barHeight: 4,
 		cursorWidth: 2,
 		cursorColor: "#ddd5e9",
+		autoplay: autoplay,
 		barRadius: 10,
 		dragToSeek: true,
+		normalize: true,
+		minPxPerSec: 20,
 		mediaControls: waveform_options.show_controls
+	};
+
+	const trim_region_settings = {
+		color: waveform_options.trim_region_color || "hsla(15, 85%, 40%, 0.4)",
+		drag: true,
+		resize: true
 	};
 
 	function handle_error({ detail }: CustomEvent<string>): void {
@@ -133,15 +141,18 @@
 
 		<StaticAudio
 			i18n={gradio.i18n}
-			{autoplay}
 			{show_label}
 			{show_download_button}
 			{show_share_button}
 			value={_value}
 			{label}
 			{waveform_settings}
+			{waveform_options}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
+			on:play={() => gradio.dispatch("play")}
+			on:pause={() => gradio.dispatch("pause")}
+			on:stop={() => gradio.dispatch("stop")}
 		/>
 	</Block>
 {:else}
@@ -176,22 +187,22 @@
 			{active_source}
 			{pending}
 			{streaming}
-			{autoplay}
 			{handle_reset_value}
 			bind:dragging
 			on:edit={() => gradio.dispatch("edit")}
 			on:play={() => gradio.dispatch("play")}
 			on:pause={() => gradio.dispatch("pause")}
 			on:stop={() => gradio.dispatch("stop")}
-			on:end={() => gradio.dispatch("end")}
 			on:start_recording={() => gradio.dispatch("start_recording")}
 			on:pause_recording={() => gradio.dispatch("pause_recording")}
-			on:stop_recording={() => gradio.dispatch("stop_recording")}
+			on:stop_recording={(e) => gradio.dispatch("stop_recording", e.detail)}
 			on:upload={() => gradio.dispatch("upload")}
 			on:clear={() => gradio.dispatch("clear")}
 			on:error={handle_error}
 			i18n={gradio.i18n}
 			{waveform_settings}
+			{waveform_options}
+			{trim_region_settings}
 		>
 			<UploadText i18n={gradio.i18n} type="audio" />
 		</InteractiveAudio>

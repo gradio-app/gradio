@@ -114,7 +114,14 @@
 			on:change={({ detail }) => (value = detail)}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:change={({ detail }) => gradio.dispatch("change", detail)}
-			on:clear={() => gradio.dispatch("clear")}
+			on:clear={() => {
+				value = null;
+				gradio.dispatch("clear");
+			}}
+			on:load={({ detail }) => {
+				value = detail;
+				gradio.dispatch("upload");
+			}}
 			i18n={gradio.i18n}
 		>
 			<UploadText i18n={gradio.i18n} type="file" />

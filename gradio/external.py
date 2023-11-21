@@ -93,7 +93,7 @@ def load_blocks_from_repo(
         name = "/".join(tokens[1:])
 
     factory_methods: dict[str, Callable] = {
-        # for each repo type, we have a method that returns the Interface given the model name & optionally an api_key
+        # for each repo type, we have a method that returns the Interface given the model name & optionally an hf_token
         "huggingface": from_model,
         "models": from_model,
         "spaces": from_spaces,
@@ -149,7 +149,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
     response = requests.request("GET", api_url, headers=headers)
     if response.status_code != 200:
         raise ModelNotFoundError(
-            f"Could not find model: {model_name}. If it is a private or gated model, please provide your Hugging Face access token (https://huggingface.co/settings/tokens) as the argument for the `api_key` parameter."
+            f"Could not find model: {model_name}. If it is a private or gated model, please provide your Hugging Face access token (https://huggingface.co/settings/tokens) as the argument for the `hf_token` parameter."
         )
     p = response.json().get("pipeline_tag")
     GRADIO_CACHE = os.environ.get("GRADIO_TEMP_DIR") or str(  # noqa: N806
@@ -494,7 +494,7 @@ def from_spaces(
 
     if iframe_url is None:
         raise ValueError(
-            f"Could not find Space: {space_name}. If it is a private or gated Space, please provide your Hugging Face access token (https://huggingface.co/settings/tokens) as the argument for the `api_key` parameter."
+            f"Could not find Space: {space_name}. If it is a private or gated Space, please provide your Hugging Face access token (https://huggingface.co/settings/tokens) as the argument for the `hf_token` parameter."
         )
 
     r = requests.get(iframe_url, headers=headers)

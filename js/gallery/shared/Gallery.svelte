@@ -214,7 +214,7 @@
 			>
 				<img
 					data-testid="detailed-image"
-					src={_value[selected_index].image.path}
+					src={_value[selected_index].image.url}
 					alt={_value[selected_index].caption || ""}
 					title={_value[selected_index].caption || null}
 					class:with-caption={!!_value[selected_index].caption}
@@ -240,8 +240,9 @@
 						aria-label={"Thumbnail " + (i + 1) + " of " + _value.length}
 					>
 						<img
-							src={image.image.path}
+							src={image.image.url}
 							title={image.caption || null}
+							data-testid={"thumbnail " + (i + 1)}
 							alt=""
 							loading="lazy"
 						/>

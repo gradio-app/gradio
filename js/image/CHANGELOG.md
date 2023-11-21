@@ -1,5 +1,96 @@
 # @gradio/image
 
+## 0.4.0
+
+### Highlights
+
+#### New `ImageEditor` component ([#6169](https://github.com/gradio-app/gradio/pull/6169) [`9caddc17b`](https://github.com/gradio-app/gradio/commit/9caddc17b1dea8da1af8ba724c6a5eab04ce0ed8))
+
+A brand new component, completely separate from `Image` that provides simple editing capabilities.
+
+- Set background images from file uploads, webcam, or just paste!
+- Crop images with an improved cropping UI. App authors can event set specific crop size, or crop ratios (`1:1`, etc)
+- Paint on top of any image (or no image) and erase any mistakes!
+- The ImageEditor supports layers, confining draw and erase actions to that layer.
+- More flexible access to data. The image component returns a composite image representing the final state of the canvas as well as providing the background and all layers as individual images.
+- Fully customisable. All features can be enabled and disabled. Even the brush color swatches can be customised.
+
+<video src="https://user-images.githubusercontent.com/12937446/284027169-31188926-fd16-4a1c-8718-998e7aae4695.mp4" autoplay muted></video>
+
+```py
+
+def fn(im):
+    im["composite"] # the full canvas
+    im["background"] # the background image
+    im["layers"] # a list of individual layers
+
+
+im = gr.ImageEditor(
+    # decide which sources you'd like to accept
+    sources=["upload", "webcam", "clipboard"],
+    # set a cropsize constraint, can either be a ratio or a concrete [width, height]
+    crop_size="1:1",
+    # enable crop (or disable it)
+    transforms=["crop"],
+    # customise the brush
+    brush=Brush(
+      default_size="25", # or leave it as 'auto'
+      color_mode="fixed", # 'fixed' hides the user swatches and colorpicker, 'defaults' shows it
+      default_color="hotpink", # html names are supported
+      colors=[
+        "rgba(0, 150, 150, 1)", # rgb(a)
+        "#fff", # hex rgb
+        "hsl(360, 120, 120)" # in fact any valid colorstring
+      ]
+    ),
+    brush=Eraser(default_size="25")
+)
+
+```
+
+ Thanks [@pngwn](https://github.com/pngwn)!
+
+## 0.3.6
+
+### Fixes
+
+- [#6441](https://github.com/gradio-app/gradio/pull/6441) [`2f805a7dd`](https://github.com/gradio-app/gradio/commit/2f805a7dd3d2b64b098f659dadd5d01258290521) - Small but important bugfixes for gr.Image: The upload event was not triggering at all. The paste-from-clipboard was not triggering an upload event. The clear button was not triggering a change event. The change event was triggering infinitely. Uploaded images were not preserving their original names. Uploading a new image should clear out the previous image.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
+## 0.3.5
+
+### Patch Changes
+
+- Updated dependencies [[`324867f63`](https://github.com/gradio-app/gradio/commit/324867f63c920113d89a565892aa596cf8b1e486), [`d84209703`](https://github.com/gradio-app/gradio/commit/d84209703b7a0728cdb49221e543500ddb6a8d33)]:
+  - @gradio/client@0.8.1
+  - @gradio/wasm@0.3.0
+  - @gradio/upload@0.4.1
+
+## 0.3.4
+
+### Features
+
+- [#6363](https://github.com/gradio-app/gradio/pull/6363) [`4d3aad33a`](https://github.com/gradio-app/gradio/commit/4d3aad33a0b66639dbbb2928f305a79fb7789b2d) - Fix image upload. Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
+### Fixes
+
+- [#6322](https://github.com/gradio-app/gradio/pull/6322) [`6204ccac5`](https://github.com/gradio-app/gradio/commit/6204ccac5967763e0ebde550d04d12584243a120) - Fixes `gr.load()` so it works properly with Images and Examples. Thanks [@abidlabs](https://github.com/abidlabs)!
+
+## 0.3.3
+
+### Patch Changes
+
+- Updated dependencies [[`bca6c2c80`](https://github.com/gradio-app/gradio/commit/bca6c2c80f7e5062427019de45c282238388af95), [`3cdeabc68`](https://github.com/gradio-app/gradio/commit/3cdeabc6843000310e1a9e1d17190ecbf3bbc780), [`fad92c29d`](https://github.com/gradio-app/gradio/commit/fad92c29dc1f5cd84341aae417c495b33e01245f)]:
+  - @gradio/client@0.7.2
+  - @gradio/atoms@0.2.1
+  - @gradio/upload@0.3.3
+  - @gradio/statustracker@0.3.1
+
+## 0.3.2
+
+### Fixes
+
+- [#6213](https://github.com/gradio-app/gradio/pull/6213) [`27194a987`](https://github.com/gradio-app/gradio/commit/27194a987fa7ba1234b5fc0ce8bf7fabef7033a9) - Ensure the statustracker for `gr.Image` displays in static mode. Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.3.1
 
 ### Patch Changes

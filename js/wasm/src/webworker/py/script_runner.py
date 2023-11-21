@@ -1,8 +1,10 @@
 import ast
+import sys
 import tokenize
 import types
-import sys
 from inspect import CO_COROUTINE
+
+from gradio.wasm_utils import app_id_context
 
 # BSD 3-Clause License
 #
@@ -83,7 +85,7 @@ def _new_module(name: str) -> types.ModuleType:
     return types.ModuleType(name)
 
 
-async def _run_script(script_path: str) -> None:
+async def _run_script(app_id: str, script_path: str) -> None:
     # This function is based on the following code from Streamlit:
     # https://github.com/streamlit/streamlit/blob/1.24.0/lib/streamlit/runtime/scriptrunner/script_runner.py#L519-L554
     # with modifications to support top-level await.
@@ -91,6 +93,14 @@ async def _run_script(script_path: str) -> None:
     with tokenize.open(script_path) as f:
         filebody = f.read()
 
+    await _run_code(app_id, filebody, script_path)
+
+
+async def _run_code(
+        app_id: str,
+        filebody: str,
+        script_path: str = '<string>'  # This default value follows the convention. Ref: https://docs.python.org/3/library/functions.html#compile
+    ) -> None:
     # NOTE: In Streamlit, the bytecode caching mechanism has been introduced.
     # However, we skipped it here for simplicity and because Gradio doesn't need to rerun the script so frequently,
     # while we may do it in the future.
@@ -120,7 +130,7 @@ async def _run_script(script_path: str) -> None:
     # Add special variables to the module's globals dict.
     module.__dict__["__file__"] = script_path
 
-    with modified_sys_path(script_path):
+    with modified_sys_path(script_path), app_id_context(app_id):
         # Allow top-level await. Ref: https://github.com/whitphx/streamlit/commit/277dc580efb315a3e9296c9a0078c602a0904384
         if bytecode.co_flags & CO_COROUTINE:
             # The source code includes top-level awaits, so the compiled code object is a coroutine.

@@ -90,7 +90,7 @@ def transcribe(audio, state=""):
 gr.Interface(
     fn=transcribe,
     inputs=[
-        gr.Audio(source="microphone", type="filepath", streaming=True),
+        gr.Audio(sources=["microphone"], type="filepath", streaming=True),
         "state"
     ],
     outputs=[

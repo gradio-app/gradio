@@ -44,7 +44,7 @@
 
 	function handle_blur({
 		currentTarget
-	}: {
+	}: Event & {
 		currentTarget: HTMLInputElement;
 	}): void {
 		value = currentTarget.value;

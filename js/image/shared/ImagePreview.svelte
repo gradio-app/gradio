@@ -16,15 +16,12 @@
 	export let show_download_button = true;
 	export let selectable = false;
 	export let show_share_button = false;
-	export let root: string;
 	export let i18n: I18nFormatter;
 
 	const dispatch = createEventDispatcher<{
 		change: string;
 		select: SelectData;
 	}>();
-
-	$: value = normalise_file(value, root, null);
 
 	const handle_click = (evt: MouseEvent): void => {
 		let coordinates = get_coordinates_of_clicked_image(evt);
@@ -43,7 +40,7 @@
 			<a
 				href={value.url}
 				target={window.__is_colab__ ? "_blank" : null}
-				download={"image"}
+				download={value.orig_name || "image"}
 			>
 				<IconButton Icon={Download} label={i18n("common.download")} />
 			</a>
@@ -74,6 +71,7 @@
 		height: var(--size-full);
 		object-fit: contain;
 		display: block;
+		border-radius: var(--radius-lg);
 	}
 
 	.selectable {

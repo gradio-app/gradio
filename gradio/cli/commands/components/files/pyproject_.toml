@@ -15,11 +15,7 @@ license = "Apache-2.0"
 requires-python = ">=3.8"
 authors = [{ name = "YOUR NAME", email = "YOUREMAIL@domain.com" }]
 keywords = [
-  "machine learning",
-  "reproducibility",
-  "visualization",
-  "gradio",
-  "gradio custom component",
+  "gradio-custom-component",
   "<<template>>"
 ]
 # Add dependencies here
