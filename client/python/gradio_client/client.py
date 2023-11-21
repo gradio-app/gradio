@@ -253,7 +253,7 @@ class Client:
         )
         hardware = hardware or original_info.hardware
         if current_hardware != hardware:
-            huggingface_hub.request_space_hardware(space_id, hardware)  # type: ignore
+            huggingface_hub.request_space_hardware(space_id, hardware, token=hf_token)  # type: ignore
             print(
                 f"-------\nNOTE: this Space uses upgraded hardware: {hardware}... see billing info at https://huggingface.co/settings/billing\n-------"
             )
