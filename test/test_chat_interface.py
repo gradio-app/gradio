@@ -112,6 +112,33 @@ class TestInit:
         assert prediction_hello[0].root[0] == ("hello", "hello")
         assert prediction_hi[0].root[0] == ("hi", "hi")
 
+    def test_default_accordion_params(self):
+        chatbot = gr.ChatInterface(
+            echo_system_prompt_plus_message,
+            additional_inputs=["textbox", "slider"],
+        )
+        accordion = [
+            comp
+            for comp in chatbot.blocks.values()
+            if comp.get_config().get("name") == "accordion"
+        ][0]
+        assert accordion.get_config().get("open") is False
+        assert accordion.get_config().get("label") == "Additional Inputs"
+
+    def test_setting_accordion_params(self, monkeypatch):
+        chatbot = gr.ChatInterface(
+            echo_system_prompt_plus_message,
+            additional_inputs=["textbox", "slider"],
+            additional_inputs_accordion=gr.Accordion(open=True, label="MOAR"),
+        )
+        accordion = [
+            comp
+            for comp in chatbot.blocks.values()
+            if comp.get_config().get("name") == "accordion"
+        ][0]
+        assert accordion.get_config().get("open") is True
+        assert accordion.get_config().get("label") == "MOAR"
+
     def test_example_caching_with_additional_inputs(self, monkeypatch):
         monkeypatch.setattr(helpers, "CACHED_FOLDER", tempfile.mkdtemp())
         chatbot = gr.ChatInterface(
