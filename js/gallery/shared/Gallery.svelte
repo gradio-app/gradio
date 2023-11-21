@@ -164,10 +164,23 @@
 
 	// Unlike `gr.Image()`, images specified via remote URLs are not cached in the server
 	// and their remote URLs are directly passed to the client as `value[].image.url`.
-	// The `download` attribute of the <a> tag doesn't work with remote URLs on at least Chrome (https://stackoverflow.com/q/49474775/13103190),
+	// The `download` attribute of the <a> tag doesn't work for remote URLs (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#download),
 	// so we need to download the image via JS as below.
 	async function download(file_url: string, name: string): Promise<void> {
-		const response = await fetch(file_url);
+		let response;
+		try {
+			response = await fetch(file_url);
+		} catch (error) {
+			if (error instanceof TypeError) {
+				// If CORS is not allowed (https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#checking_that_the_fetch_was_successful),
+				// open the link in a new tab instead, mimicing the behavior of the `download` attribute for remote URLs,
+				// which is not ideal, but a reasonable fallback.
+				window.open(file_url, "_blank", "noreferrer");
+				return;
+			} else {
+				throw error;
+			}
+		}
 		const blob = await response.blob();
 		const url = URL.createObjectURL(blob);
 		const link = document.createElement("a");
