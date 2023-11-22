@@ -1,5 +1,25 @@
 # gradio
 
+## 4.6.0
+
+### Features
+
+- [#6532](https://github.com/gradio-app/gradio/pull/6532) [`96290d304`](https://github.com/gradio-app/gradio/commit/96290d304a61064b52c10a54b2feeb09ca007542) - tweak deps.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#6511](https://github.com/gradio-app/gradio/pull/6511) [`71f1a1f99`](https://github.com/gradio-app/gradio/commit/71f1a1f9931489d465c2c1302a5c8d768a3cd23a) - Mark `FileData.orig_name` optional on the frontend aligning the type definition on the Python side.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#6520](https://github.com/gradio-app/gradio/pull/6520) [`f94db6b73`](https://github.com/gradio-app/gradio/commit/f94db6b7319be902428887867500311a6a32a165) - File table style with accessible file name texts.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#6523](https://github.com/gradio-app/gradio/pull/6523) [`63f466882`](https://github.com/gradio-app/gradio/commit/63f466882104453b56a7f52c6bea5b5d497ec698) - Fix typo in base.py.  Thanks [@eltociear](https://github.com/eltociear)!
+- [#6296](https://github.com/gradio-app/gradio/pull/6296) [`46f13f496`](https://github.com/gradio-app/gradio/commit/46f13f4968c8177e318c9d75f2eed1ed55c2c042) - chore(deps): update all non-major dependencies.  Thanks [@renovate](https://github.com/apps/renovate)!
+- [#6517](https://github.com/gradio-app/gradio/pull/6517) [`901f3eebd`](https://github.com/gradio-app/gradio/commit/901f3eebda0a67fa8f3050d80f7f7b5800c7f566) - Allow reselecting the original option in `gr.Dropdown` after value has changed programmatically.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6538](https://github.com/gradio-app/gradio/pull/6538) [`147926196`](https://github.com/gradio-app/gradio/commit/147926196a074d3fe62e59b5a80997e133c0f707) - Some tweaks to `ImageEditor`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6518](https://github.com/gradio-app/gradio/pull/6518) [`d4e3a5189`](https://github.com/gradio-app/gradio/commit/d4e3a518905620c184a0315ff3bdfbf5e7945bd6) - Allows setting parameters of `gr.ChatInterface`'s `Accordion`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
+### Fixes
+
+- [#6528](https://github.com/gradio-app/gradio/pull/6528) [`f53b01cbf`](https://github.com/gradio-app/gradio/commit/f53b01cbfbfccec66e0cda1d428ef72f05a3dfc0) - Fix Theme Dropdown in deployed theme space.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6546](https://github.com/gradio-app/gradio/pull/6546) [`a424fdbb2`](https://github.com/gradio-app/gradio/commit/a424fdbb2389219661b9a73197f4cc095a08cfe9) - Ensure audio waveform `autoplay` updates.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6536](https://github.com/gradio-app/gradio/pull/6536) [`1bbd6cab3`](https://github.com/gradio-app/gradio/commit/1bbd6cab3f0abe183b514b82061f0937c8480966) - Fix undefined `data` TypeError in Blocks.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6500](https://github.com/gradio-app/gradio/pull/6500) [`830b6c0e6`](https://github.com/gradio-app/gradio/commit/830b6c0e6e52c4fa33fddfa4d3f6162e29801f74) - Process and convert .svg files in `Image`.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 4.5.0
 
 ### Highlights
