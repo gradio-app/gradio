@@ -88,7 +88,9 @@
 		active_source = sources[0];
 	}
 
-	const waveform_settings = {
+	let waveform_settings: Record<string, any>;
+
+	$: waveform_settings = {
 		height: 50,
 		waveColor: waveform_options.waveform_color || "#9ca3af",
 		progressColor: waveform_options.waveform_progress_color || "#f97316",
