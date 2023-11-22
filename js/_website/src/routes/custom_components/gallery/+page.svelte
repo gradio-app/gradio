@@ -2,14 +2,16 @@
 	import { onMount } from "svelte";
 	import type { ComponentData } from "./utils";
 	import { getRandomIntInclusive, classToEmojiMapping } from "./utils";
+  	import { BaseMultiselect } from "@gradio/dropdown";
 	import Card from "./Card.svelte";
 	import Close from "./Close.svelte";
 
 	const API = "https://gradio-custom-component-gallery-backend.hf.space/";
 	const OFFSET = 0;
-	const LIMIT = 20;
+	const LIMIT = 100;
 
 	let components: ComponentData[] = [];
+  	let selection: string[] = [];
 
 	let selectedComponent: ComponentData | null = null;
 
@@ -45,6 +47,7 @@
 	});
 </script>
 
+<BaseMultiselect bind:value={selection} c/>
 <div class="grid">
 	{#each components as component (component.id)}
 		<div
