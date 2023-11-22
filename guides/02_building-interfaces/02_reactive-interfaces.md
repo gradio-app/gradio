@@ -7,7 +7,7 @@ This guide covers how to get Gradio interfaces to refresh automatically or conti
 You can make interfaces automatically refresh by setting `live=True` in the interface. Now the interface will recalculate as soon as the user input changes.
 
 $code_calculator_live
-$demo_calculator_live
+$demo_calculator_live_3-x
 
 Note there is no submit button, because the interface resubmits automatically on change.
 

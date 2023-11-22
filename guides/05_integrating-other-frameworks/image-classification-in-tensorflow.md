@@ -78,7 +78,7 @@ gr.Interface(fn=classify_image,
 
 This produces the following interface, which you can try right here in your browser (try uploading your own examples!):
 
-<gradio-app space="gradio/keras-image-classifier">
+<gradio-app space="gradio/keras-image-classifier_3-x">
 
 ---
 

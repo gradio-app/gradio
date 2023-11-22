@@ -22,7 +22,7 @@ Using `gradio` (specifically the `HighlightedText` component), you can easily bu
 
 Here is an example of a demo that you'll be able to build:
 
-$demo_ner_pipeline
+$demo_ner_pipeline_3-x
 
 This tutorial will show how to take a pretrained NER model and deploy it with a Gradio interface. We will show two different ways to use the `HighlightedText` component -- depending on your NER model, either of these two ways may be easier to learn!
 
@@ -62,7 +62,7 @@ If you have such a model, it is very easy to hook it up to Gradio's `Highlighted
 Here is a complete example:
 
 $code_ner_pipeline
-$demo_ner_pipeline
+$demo_ner_pipeline_3-x
 
 ### Approach 2: List of Tuples
 
@@ -71,7 +71,7 @@ An alternative way to pass data into the `HighlightedText` component is a list o
 In some cases, this can be easier than the first approach. Here is a demo showing this approach using Spacy's parts-of-speech tagger:
 
 $code_text_analysis
-$demo_text_analysis
+$demo_text_analysis_3-x
 
 ---
 

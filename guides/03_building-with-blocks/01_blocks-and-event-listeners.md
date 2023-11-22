@@ -7,7 +7,7 @@ We took a quick look at Blocks in the [Quickstart](https://gradio.app/guides/qui
 Take a look at the demo below.
 
 $code_hello_blocks
-$demo_hello_blocks
+$demo_hello_blocks_3-x
 
 - First, note the `with gr.Blocks() as demo:` clause. The Blocks app code will be contained within this clause.
 - Next come the Components. These are the same Components used in `Interface`. However, instead of being passed to some constructor, Components are automatically added to the Blocks as they are created within the `with` clause.
@@ -32,7 +32,7 @@ _Note_: What happens if a Gradio component is neither an input nor an output? If
 Take a look at the demo below:
 
 $code_blocks_hello
-$demo_blocks_hello
+$demo_blocks_hello_3-x
 
 Instead of being triggered by a click, the `welcome` function is triggered by typing in the Textbox `inp`. This is due to the `change()` event listener. Different Components support different event listeners. For example, the `Video` Component supports a `play()` event listener, triggered when a user presses play. See the [Docs](http://gradio.app/docs#components) for the event listeners for each Component.
 
@@ -41,14 +41,14 @@ Instead of being triggered by a click, the `welcome` function is triggered by ty
 A Blocks app is not limited to a single data flow the way Interfaces are. Take a look at the demo below:
 
 $code_reversible_flow
-$demo_reversible_flow
+$demo_reversible_flow_3-x
 
 Note that `num1` can act as input to `num2`, and also vice-versa! As your apps get more complex, you will have many data flows connecting various Components.
 
 Here's an example of a "multi-step" demo, where the output of one model (a speech-to-text model) gets fed into the next model (a sentiment classifier).
 
 $code_blocks_speech_text_sentiment
-$demo_blocks_speech_text_sentiment
+$demo_blocks_speech_text_sentiment_3-x
 
 ## Function Input List vs Dict
 
@@ -67,7 +67,7 @@ Both `add()` and `sub()` take `a` and `b` as inputs. However, the syntax is diff
 
 It is a matter of preference which syntax you prefer! For functions with many input components, option 2 may be easier to manage.
 
-$demo_calculator_list_and_dict
+$demo_calculator_list_and_dict_3-x
 
 ## Function Return List vs Dict
 
@@ -125,7 +125,7 @@ Keep in mind that with dictionary returns, we still need to specify the possible
 The return value of an event listener function is usually the updated value of the corresponding output Component. Sometimes we want to update the configuration of the Component as well, such as the visibility. In this case, we return a new Component, setting the properties we want to change.
 
 $code_blocks_essay_simple
-$demo_blocks_essay_simple
+$demo_blocks_essay_simple_3-x
 
 See how we can configure the Textbox itself through a new `gr.Textbox()` method. The `value=` argument can still be used to update the value along with Component configuration. Any arguments we do not set will use their previous values.
 
@@ -136,7 +136,7 @@ You can also run events consecutively by using the `then` method of an event lis
 For example, in the chatbot example below, we first update the chatbot with the user message immediately, and then update the chatbot with the computer response after a simulated delay.
 
 $code_chatbot_consecutive
-$demo_chatbot_consecutive
+$demo_chatbot_consecutive_3-x
 
 The `.then()` method of an event listener executes the subsequent event regardless of whether the previous event raised any errors. If you'd like to only run subsequent events if the previous event executed successfully, use the `.success()` method, which takes the same arguments as `.then()`.
 
@@ -150,7 +150,7 @@ with a 1 second runtime running with `every=5`, would actually run every 6 secon
 Here is an example of a sine curve that updates every second!
 
 $code_sine_curve
-$demo_sine_curve
+$demo_sine_curve_3-x
 
 ## Gathering Event Data
 
@@ -161,14 +161,14 @@ For example, event data for `.select()` can be type hinted by a `gradio.SelectDa
 In the 2 player tic-tac-toe demo below, a user can select a cell in the `DataFrame` to make a move. The event data argument contains information about the specific cell that was selected. We can first check to see if the cell is empty, and then update the cell with the user's move.
 
 $code_tictactoe
-$demo_tictactoe
+$demo_tictactoe_3-x
 
 ## Binding Multiple Triggers to a Function
 
 Often times, you may want to bind multiple triggers to the same function. For example, you may want to allow a user to click a submit button, or press enter to submit a form. You can do this using the `gr.on` method and passing a list of triggers to the `trigger`.
 
 $code_on_listener_basic
-$demo_on_listener_basic
+$demo_on_listener_basic_3-x
 
 You can use decorator syntax as well:
 
@@ -177,6 +177,6 @@ $code_on_listener_decorator
 You can use `gr.on` to create "live" events by binding to the change event of all components. If you do not specify any triggers, the function will automatically bind to the change event of all input components. 
 
 $code_on_listener_live
-$demo_on_listener_live
+$demo_on_listener_live_3-x
 
 You can follow `gr.on` with `.then`, just like any regular event listener. This handy method should save you from having to write a lot of repetitive code!

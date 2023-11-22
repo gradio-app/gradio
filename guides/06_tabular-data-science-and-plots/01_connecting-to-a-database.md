@@ -20,7 +20,7 @@ Our goal is to create a dashboard that will enable our business stakeholders to 
 
 At the end of this guide, we will have a functioning application that looks like this:
 
-<gradio-app space="gradio/chicago-bikeshare-dashboard"> </gradio-app>
+<gradio-app space="gradio/chicago-bikeshare-dashboard_3-x"> </gradio-app>
 
 ## Step 1 - Creating your database
 

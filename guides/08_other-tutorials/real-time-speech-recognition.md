@@ -45,7 +45,7 @@ We will start by creating a _full-context_ ASR demo, in which the user speaks th
 We will use `gradio`'s built in `Audio` component, configured to take input from the user's microphone and return a filepath for the recorded audio. The output component will be a plain `Textbox`.
 
 $code_asr
-$demo_asr
+$demo_asr_3-x
 
 The `transcribe` function takes a single parameter, `audio`, which is a numpy array of the audio the user recorded. The `pipeline` object expects this in float32 format, so we convert it first to float32, and then extract the transcribed text.
 
@@ -65,6 +65,6 @@ Notice now we have a state variable now, because we need to track all the audio 
 As the interface runs, the `transcribe` function gets called, with a record of all the previously spoken audio in `stream`, as well as the new chunk of audio as `new_chunk`. We return the new full audio so that can be stored back in state, and we also return the transcription.
 Here we naively append the audio together and simply call the `transcriber` object on the entire audio. You can imagine more efficient ways of handling this, such as re-processing only the last 5 seconds of audio whenever a new chunk of audio received. 
 
-$demo_stream_asr
+$demo_stream_asr_3-x
 
 Now the ASR model will run inference as you speak! 
