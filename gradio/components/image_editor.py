@@ -214,7 +214,9 @@ class ImageEditor(Component):
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
         if self.crop_size and not isinstance(self.crop_size, str):
-            im = image_utils.crop_scale(im, int(self.crop_size[0]), int(self.crop_size[1]))
+            im = image_utils.crop_scale(
+                im, int(self.crop_size[0]), int(self.crop_size[1])
+            )
         return image_utils.format_image(
             im,
             cast(Literal["numpy", "pil", "filepath"], self.type),

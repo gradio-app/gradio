@@ -46,7 +46,7 @@ class TextArea(components.Textbox):
 
 class Sketchpad(components.ImageEditor):
     """
-    Sets: sources=(), crop_size=(28, 28), brush=Brush(colors=["#000000"], color_mode="fixed")
+    Sets: sources=(), brush=Brush(colors=["#000000"], color_mode="fixed")
     """
 
     is_template = True
@@ -77,7 +77,7 @@ class Sketchpad(components.ImageEditor):
         mirror_webcam: bool = True,
         show_share_button: bool | None = None,
         _selectable: bool = False,
-        crop_size: tuple[int | float, int | float] | str | None = (28, 28),
+        crop_size: tuple[int | float, int | float] | str | None = None,
         transforms: Iterable[Literal["crop"]] = ("crop",),
         eraser: Eraser | None = None,
         brush: Brush | None = None,
@@ -182,7 +182,7 @@ class Paint(components.ImageEditor):
 
 class ImageMask(components.ImageEditor):
     """
-    Sets:
+    Sets: brush=Brush(colors=["#000000"], color_mode="fixed")
     """
 
     is_template = True
