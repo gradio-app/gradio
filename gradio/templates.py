@@ -223,7 +223,7 @@ class ImageMask(components.ImageEditor):
         brush: Brush | None = None,
     ):
         if not brush:
-            brush = Brush(colors=["#000000"])
+            brush = Brush(colors=["#000000"], color_mode="fixed")
         super().__init__(
             value=value,
             height=height,
