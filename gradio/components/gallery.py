@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable, List, Literal, Optional
+from typing import Any, Callable, List, Literal, Optional, Tuple, Union
 from urllib.parse import urlparse
 
 import numpy as np
@@ -17,6 +17,10 @@ from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
 
 set_documentation_group("component")
+
+
+GalleryImageType = Union[np.ndarray, _Image.Image, Path, str]
+CaptionedGalleryImageType = Tuple[GalleryImageType, str]
 
 
 class GalleryImage(GradioModel):
@@ -126,9 +130,7 @@ class Gallery(Component):
 
     def postprocess(
         self,
-        value: list[np.ndarray | _Image.Image | str]
-        | list[tuple[np.ndarray | _Image.Image | str, str]]
-        | None,
+        value: list[GalleryImageType | CaptionedGalleryImageType] | None,
     ) -> GalleryData:
         """
         Parameters:
