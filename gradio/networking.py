@@ -35,7 +35,7 @@ should_watch = bool(os.getenv("GRADIO_WATCH_DIRS", False))
 GRADIO_WATCH_DIRS = (
     os.getenv("GRADIO_WATCH_DIRS", "").split(",") if should_watch else []
 )
-GRADIO_WATCH_FILE = os.getenv("GRADIO_WATCH_FILE", "app")
+GRADIO_WATCH_MODULE_NAME = os.getenv("GRADIO_WATCH_MODULE_NAME", "app")
 GRADIO_WATCH_DEMO_NAME = os.getenv("GRADIO_WATCH_DEMO_NAME", "demo")
 
 
@@ -192,7 +192,7 @@ def start_server(
                 reloader = SourceFileReloader(
                     app=app,
                     watch_dirs=GRADIO_WATCH_DIRS,
-                    watch_file=GRADIO_WATCH_FILE,
+                    watch_module_name=GRADIO_WATCH_MODULE_NAME,
                     demo_name=GRADIO_WATCH_DEMO_NAME,
                     stop_event=threading.Event(),
                     change_event=change_event,
