@@ -19,7 +19,7 @@ Let's go through some of the most popular features of Gradio! Here are Gradio's 
 You can provide example data that a user can easily load into `Interface`. This can be helpful to demonstrate the types of inputs the model expects, as well as to provide a way to explore your dataset in conjunction with your model. To load example data, you can provide a **nested list** to the `examples=` keyword argument of the Interface constructor. Each sublist within the outer list represents a data sample, and each element within the sublist represents an input for each input component. The format of example data for each component is specified in the [Docs](https://gradio.app/docs#components).
 
 $code_calculator
-$demo_calculator
+$demo_calculator_3-x
 
 You can load a large dataset into the examples to browse and interact with the dataset through Gradio. The examples will be automatically paginated (you can configure this through the `examples_per_page` argument of `Interface`).
 
@@ -208,7 +208,7 @@ def my_generator(x):
 You supply a generator into Gradio the same way as you would a regular function. For example, here's a a (fake) image generation model that generates noise for several steps before outputting an image:
 
 $code_fake_diffusion
-$demo_fake_diffusion
+$demo_fake_diffusion_3-x
 
 Note that we've added a `time.sleep(1)` in the iterator to create an artificial pause between steps so that you are able to observe the steps of the iterator (in a real image generation model, this probably wouldn't be necessary).
 
@@ -219,7 +219,7 @@ Supplying a generator into Gradio **requires** you to enable queuing in the unde
 Gradio supports the ability to create a custom Progress Bars so that you have customizability and control over the progress update that you show to the user. In order to enable this, simply add an argument to your method that has a default value of a `gr.Progress` instance. Then you can update the progress levels by calling this instance directly with a float between 0 and 1, or using the `tqdm()` method of the `Progress` instance to track progress over an iterable, as shown below. Queueing must be enabled for progress updates.
 
 $code_progress_simple
-$demo_progress_simple
+$demo_progress_simple_3-x
 
 If you use the `tqdm` library, you can even report progress updates automatically from any `tqdm.tqdm` that already exists within your function by setting the default argument as `gr.Progress(track_tqdm=True)`!
 

@@ -10,7 +10,7 @@ This guide explains how you can use Gradio to plot geographical data on a map us
 
 We will be using the New York City Airbnb dataset, which is hosted on kaggle [here](https://www.kaggle.com/datasets/dgomonov/new-york-city-airbnb-open-data). I've uploaded it to the Hugging Face Hub as a dataset [here](https://huggingface.co/datasets/gradio/NYC-Airbnb-Open-Data) for easier use and download. Using this data we will plot Airbnb locations on a map output and allow filtering based on price and location. Below is the demo that we will be building. ⚡️
 
-$demo_map_airbnb
+$demo_map_airbnb_3-x
 
 ## Step 1 - Loading CSV data 💾
 

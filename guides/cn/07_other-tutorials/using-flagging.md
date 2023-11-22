@@ -61,7 +61,7 @@ iface = gr.Interface(
 iface.launch()
 ```
 
-<gradio-app space="gradio/calculator-flag-basic/"></gradio-app>
+<gradio-app space="gradio/calculator-flag-basic_3-x"></gradio-app>
 
 当您点击上面的标记按钮时，启动界面的目录将包括一个新的标记子文件夹，其中包含一个 CSV 文件。该 CSV 文件包括所有被标记的数据。
 
@@ -115,7 +115,7 @@ iface = gr.Interface(
 iface.launch()
 ```
 
-<gradio-app space="gradio/calculator-flagging-options/"></gradio-app>
+<gradio-app space="gradio/calculator-flagging-options_3-x"></gradio-app>
 
 当用户点击标记按钮时，CSV 文件现在将包括指示所选选项的列。
 
@@ -162,7 +162,7 @@ iface.launch()
 `gradio.HuggingFaceDatasetSaver` 的实例。此外，我们还将 `allow_flagging="manual"` 设置为了
 ，因为在 Hugging Face Spaces 中，`allow_flagging` 默认设置为 `"never"`。这是我们的演示：
 
-<gradio-app space="gradio/calculator-flagging-crowdsourced/"></gradio-app>
+<gradio-app space="gradio/calculator-flagging-crowdsourced_3-x"></gradio-app>
 
 您现在可以在这个[公共的 Hugging Face 数据集](https://huggingface.co/datasets/aliabd/crowdsourced-calculator-demo)中看到上面标记的所有示例。
 

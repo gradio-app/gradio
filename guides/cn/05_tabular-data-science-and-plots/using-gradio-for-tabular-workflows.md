@@ -46,7 +46,7 @@ gr.Interface(fn = infer, inputs = inputs, outputs = outputs, examples = [[df.hea
 
 现在我们将为简化版数据可视化仪表板创建一个示例。您可以在相关空间中找到更全面的版本。
 
-<gradio-app space="gradio/tabular-playground"></gradio-app>
+<gradio-app space="gradio/tabular-playground_3-x"></gradio-app>
 
 ```python
 import gradio as gr
@@ -75,7 +75,7 @@ outputs = [gr.Gallery(label="Profiling Dashboard", columns=(1,3))]
 gr.Interface(plot, inputs=inputs, outputs=outputs, examples=[df.head(100)], title="Supersoaker Failures Analysis Dashboard").launch()
 ```
 
-<gradio-app space="gradio/gradio-analysis-dashboard-minimal"></gradio-app>
+<gradio-app space="gradio/gradio-analysis-dashboard-minimal_3-x"></gradio-app>
 
 我们将使用与训练模型相同的数据集，但这次我们将创建一个可视化仪表板以展示它。
 
@@ -98,6 +98,6 @@ description = "该模型预测Supersoaker生产线故障。在下面的数据帧
 gr.Interface.load("huggingface/scikit-learn/tabular-playground", title=title, description=description).launch()
 ```
 
-<gradio-app space="gradio/gradio-skops-integration"></gradio-app>
+<gradio-app space="gradio/gradio-skops-integration_3-x"></gradio-app>
 
 使用 `skops` 将 `sklearn` 模型推送到 Hugging Face Hub 时，会包含一个包含示例输入和列名的 `config.json` 文件，解决的任务类型是 `tabular-classification` 或 `tabular-regression`。根据任务类型，`gradio` 构建界面并使用列名和示例输入来构建它。您可以[参考 skops 在 Hub 上托管模型的文档](https://skops.readthedocs.io/en/latest/auto_examples/plot_hf_hub.html#sphx-glr-auto-examples-plot-hf-hub-py)来了解如何使用 `skops` 将模型推送到 Hub。

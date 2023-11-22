@@ -99,7 +99,7 @@ gr.Interface(fn=predict,
 
 This produces the following interface, which you can try right here in your browser (try drawing something, like a "snake" or a "laptop"):
 
-<gradio-app space="gradio/pictionary">
+<gradio-app space="gradio/pictionary_3-x">
 
 ---
 

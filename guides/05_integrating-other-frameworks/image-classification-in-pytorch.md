@@ -79,7 +79,7 @@ gr.Interface(fn=predict,
 
 This produces the following interface, which you can try right here in your browser (try uploading your own examples!):
 
-<gradio-app space="gradio/pytorch-image-classifier">
+<gradio-app space="gradio/pytorch-image-classifier_3-x">
 
 
 ---

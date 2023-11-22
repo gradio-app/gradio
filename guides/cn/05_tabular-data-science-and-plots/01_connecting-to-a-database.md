@@ -19,7 +19,7 @@
 
 在本指南结束时，我们将拥有一个如下所示的功能齐全的应用程序：
 
-<gradio-app space="gradio/chicago-bike-share-dashboard"> </gradio-app>
+<gradio-app space="gradio/chicago-bike-share-dashboard_3-x"> </gradio-app>
 
 ## 步骤 1 - 创建数据库
 

@@ -44,7 +44,7 @@ Notice that we have added one more parameter, the `examples`, which allows us to
 
 This produces the following interface, which you can try right here in your browser. When you input an image, it is automatically preprocessed and sent to the Hugging Face Hub API, where it is passed through the model and returned as a human-interpretable prediction. Try uploading your own image!
 
-<gradio-app space="gradio/vision-transformer">
+<gradio-app space="gradio/vision-transformer_3-x">
 
 ---
 

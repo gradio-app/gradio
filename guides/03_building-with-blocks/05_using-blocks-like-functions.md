@@ -26,7 +26,7 @@ I already went ahead and hosted it in Hugging Face spaces at [gradio/english_tra
 
 You can see the demo below as well:
 
-$demo_english_translator
+$demo_english_translator_3-x
 
 Now, let's say you have an app that generates english text, but you wanted to additionally generate german text.
 
@@ -49,7 +49,7 @@ Note that the variable `english_translator` is my english to german app, but its
 
 $code_generate_english_german
 
-$demo_generate_english_german
+$demo_generate_english_german_3-x
 
 ## How to control which function in the app to use
 

@@ -8,7 +8,7 @@ Chatbots are a popular application of large language models. Using `gradio`, you
 
 This tutorial uses `gr.ChatInterface()`, which is a high-level abstraction that allows you to create your chatbot UI fast, often with a single line of code. The chatbot interface that we create will look something like this:
 
-$demo_chatinterface_streaming_echo
+$demo_chatinterface_streaming_echo_3-x
 
 We'll start with a couple of simple examples, and then show how to use `gr.ChatInterface()` with real language models from several popular APIs and libraries, including `langchain`, `openai`, and Hugging Face.
 
@@ -52,7 +52,7 @@ gr.ChatInterface(random_response).launch()
 
 That's it! Here's our running demo, try it out:
 
-$demo_chatinterface_random_response
+$demo_chatinterface_random_response_3-x
 
 ## Another example using the user's input and history
 

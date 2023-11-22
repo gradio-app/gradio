@@ -43,7 +43,7 @@ Learn more about Rows in the [docs](https://gradio.app/docs/#row).
 Components within a Column will be placed vertically atop each other. Since the vertical layout is the default layout for Blocks apps anyway, to be useful, Columns are usually nested within Rows. For example:
 
 $code_rows_and_columns
-$demo_rows_and_columns
+$demo_rows_and_columns_3-x
 
 See how the first column has two Textboxes arranged vertically. The second column has an Image and Button arranged vertically. Notice how the relative widths of the two columns is set by the `scale` parameter. The column with twice the `scale` value takes up twice the width.
 
@@ -56,7 +56,7 @@ You can also create Tabs using the `with gr.Tab('tab_name'):` clause. Any compon
 For example:
 
 $code_blocks_flipper
-$demo_blocks_flipper
+$demo_blocks_flipper_3-x
 
 Also note the `gr.Accordion('label')` in this example. The Accordion is a layout that can be toggled open or closed. Like `Tabs`, it is a layout element that can selectively hide or show content. Any components that are defined inside of a `with gr.Accordion('label'):` will be hidden or shown when the accordion's toggle icon is clicked.
 
@@ -67,7 +67,7 @@ Learn more about [Tabs](https://gradio.app/docs/#tab) and [Accordions](https://g
 Both Components and Layout elements have a `visible` argument that can set initially and also updated. Setting `gr.Column(visible=...)` on a Column can be used to show or hide a set of Components.
 
 $code_blocks_form
-$demo_blocks_form
+$demo_blocks_form_3-x
 
 ## Variable Number of Outputs
 
@@ -76,7 +76,7 @@ demos with Gradio that support a _variable numbers of outputs_. Here's a very si
 where the number of output textboxes is controlled by an input slider:
 
 $code_variable_outputs
-$demo_variable_outputs
+$demo_variable_outputs_3-x
 
 ## Defining and Rendering Components Separately
 

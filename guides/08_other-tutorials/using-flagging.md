@@ -61,7 +61,7 @@ iface = gr.Interface(
 iface.launch()
 ```
 
-<gradio-app space="gradio/calculator-flag-basic/"></gradio-app>
+<gradio-app space="gradio/calculator-flag-basic_3-x"></gradio-app>
 
 When you click the flag button above, the directory where the interface was launched will include a new flagged subfolder, with a csv file inside it. This csv file includes all the data that was flagged.
 
@@ -115,7 +115,7 @@ iface = gr.Interface(
 iface.launch()
 ```
 
-<gradio-app space="gradio/calculator-flagging-options/"></gradio-app>
+<gradio-app space="gradio/calculator-flagging-options_3-x"></gradio-app>
 
 When users click the flag button, the csv file will now include a column indicating the selected option.
 
@@ -162,7 +162,7 @@ instance of `gradio.HuggingFaceDatasetSaver` using our Hugging Face token and
 the name of a dataset we'd like to save samples to. In addition, we also set `allow_flagging="manual"`
 because on Hugging Face Spaces, `allow_flagging` is set to `"never"` by default. Here's our demo:
 
-<gradio-app space="gradio/calculator-flagging-crowdsourced/"></gradio-app>
+<gradio-app space="gradio/calculator-flagging-crowdsourced_3-x"></gradio-app>
 
 You can now see all the examples flagged above in this [public Hugging Face dataset](https://huggingface.co/datasets/aliabd/crowdsourced-calculator-demo).
 
@@ -188,7 +188,7 @@ Here is an example with an image sepia filter Blocks demo that lets you flag
 data using the default `CSVLogger`:
 
 $code_blocks_flag
-$demo_blocks_flag
+$demo_blocks_flag_3-x
 
 ## Privacy
 

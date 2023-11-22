@@ -26,7 +26,7 @@ We shorten the imported name to `gr` for better readability of code using Gradio
 
 3\. The demo below will appear automatically within the Jupyter Notebook, or pop in a browser on [http://localhost:7860](http://localhost:7860) if running from a script:
 
-$demo_hello_world
+$demo_hello_world_3-x
 
 When developing locally, if you want to run the code as a Python script, you can use the Gradio CLI to launch the application **in reload mode**, which will provide seamless and fast development. Learn more about reloading in the [Auto-Reloading Guide](https://gradio.app/developing-faster-with-reload-mode/).
 
@@ -55,14 +55,14 @@ We saw some simple `Textbox` components in the previous examples, but what if yo
 Let's say you want to customize the input text field — for example, you wanted it to be larger and have a text placeholder. If we use the actual class for `Textbox` instead of using the string shortcut, you have access to much more customizability through component attributes.
 
 $code_hello_world_2
-$demo_hello_world_2
+$demo_hello_world_2_3-x
 
 ## Multiple Input and Output Components
 
 Suppose you had a more complex function, with multiple inputs and outputs. In the example below, we define a function that takes a string, boolean, and number, and returns a string and number. Take a look how you pass a list of input and output components.
 
 $code_hello_world_3
-$demo_hello_world_3
+$demo_hello_world_3_3-x
 
 You simply wrap the components in a list. Each component in the `inputs` list corresponds to one of the parameters of the function, in order. Each component in the `outputs` list corresponds to one of the values returned by the function, again in order.
 
@@ -71,7 +71,7 @@ You simply wrap the components in a list. Each component in the `inputs` list co
 Gradio supports many types of components, such as `Image`, `DataFrame`, `Video`, or `Label`. Let's try an image-to-image function to get a feel for these!
 
 $code_sepia_filter
-$demo_sepia_filter
+$demo_sepia_filter_3-x
 
 When using the `Image` component as input, your function will receive a NumPy array with the shape `(height, width, 3)`, where the last dimension represents the RGB values. We'll return an image as well in the form of a NumPy array.
 
@@ -99,7 +99,7 @@ Other than that, `gr.ChatInterface` has no required parameters (though several a
 Here's a toy example:
 
 $code_chatinterface_random_response
-$demo_chatinterface_random_response
+$demo_chatinterface_random_response_3-x
 
 You can [read more about `gr.ChatInterface` here](https://gradio.app/guides/creating-a-chatbot-fast).
 
@@ -116,7 +116,7 @@ Gradio offers two approaches to build apps:
 Let's take a look at a simple example. Note how the API here differs from `Interface`.
 
 $code_hello_blocks
-$demo_hello_blocks
+$demo_hello_blocks_3-x
 
 Things to note:
 
@@ -129,7 +129,7 @@ Things to note:
 Here's an app to give you a taste of what's possible with `Blocks`:
 
 $code_blocks_flipper
-$demo_blocks_flipper
+$demo_blocks_flipper_3-x
 
 A lot more going on here! We'll cover how to create complex `Blocks` apps like this in the [building with blocks](https://gradio.app/blocks-and-event-listeners) section for you.
 

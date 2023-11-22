@@ -9,7 +9,7 @@ Tags: VISION, IMAGE
 
 This guide will show you how to build a demo for your 3D image model in a few lines of code; like the one below. Play around with 3D object by clicking around, dragging and zooming:
 
-<gradio-app space="gradio/Model3D"> </gradio-app>
+<gradio-app space="gradio/Model3D_3-x"> </gradio-app>
 
 ### Prerequisites
 
@@ -62,7 +62,7 @@ Creating the Interface:
 ## Exploring a more complex Model3D Demo:
 
 Below is a demo that uses the DPT model to predict the depth of an image and then uses 3D Point Cloud to create a 3D object. Take a look at the [app.py](https://huggingface.co/spaces/gradio/dpt-depth-estimation-3d-obj/blob/main/app.py) file for a peek into the code and the model prediction function.
-<gradio-app space="gradio/dpt-depth-estimation-3d-obj"> </gradio-app>
+<gradio-app space="gradio/dpt-depth-estimation-3d-obj_3-x"> </gradio-app>
 
 ---
 

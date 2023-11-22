@@ -6,7 +6,7 @@ Tags: TABULAR, DASHBOARD, PLOTS
 
 Building the dashboard itself will just be 9 lines of Python code using Gradio, and our final dashboard will look like this:
 
-<gradio-app space="gradio/line-plot"></gradio-app>
+<gradio-app space="gradio/line-plot_3-x"></gradio-app>
 
 **Prerequisites**: This Guide uses [Gradio Blocks](/guides/quickstart/#blocks-more-flexibility-and-control), so make you are familiar with the Blocks class.
 

@@ -20,25 +20,25 @@ Let's see how to build each kind of demo using the `Interface` class, along with
 To create a demo that has both the input and the output components, you simply need to set the values of the `inputs` and `outputs` parameter in `Interface()`. Here's an example demo of a simple image filter:
 
 $code_sepia_filter
-$demo_sepia_filter
+$demo_sepia_filter_3-x
 
 ## Output-only demos
 
 What about demos that only contain outputs? In order to build such a demo, you simply set the value of the `inputs` parameter in `Interface()` to `None`. Here's an example demo of a mock image generation model:
 
 $code_fake_gan_no_input
-$demo_fake_gan_no_input
+$demo_fake_gan_no_input_3-x
 
 ## Input-only demos
 
 Similarly, to create a demo that only contains inputs, set the value of `outputs` parameter in `Interface()` to be `None`. Here's an example demo that saves any uploaded image to disk:
 
 $code_save_file_no_output
-$demo_save_file_no_output
+$demo_save_file_no_output_3-x
 
 ## Unified demos
 
 A demo that has a single component as both the input and the output. It can simply be created by setting the values of the `inputs` and `outputs` parameter as the same component. Here's an example demo of a text generation model:
 
 $code_unified_demo_text_generation
-$demo_unified_demo_text_generation
+$demo_unified_demo_text_generation_3-x

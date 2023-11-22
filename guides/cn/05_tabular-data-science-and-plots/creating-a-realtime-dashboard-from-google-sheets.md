@@ -3,7 +3,7 @@
 Tags: TABULAR, DASHBOARD, PLOTS
 [Google Sheets](https://www.google.com/sheets/about/) 是一种以电子表格形式存储表格数据的简便方法。借助 Gradio 和 pandas，可以轻松从公共或私有 Google Sheets 读取数据，然后显示数据或绘制数据。在本博文中，我们将构建一个小型 _real-time_ 仪表盘，该仪表盘在 Google Sheets 中的数据更新时进行更新。
 构建仪表盘本身只需要使用 Gradio 的 9 行 Python 代码，我们的最终仪表盘如下所示：
-<gradio-app space="gradio/line-plot"></gradio-app>
+<gradio-app space="gradio/line-plot_3-x"></gradio-app>
 
 **先决条件**：本指南使用[Gradio Blocks](../quickstart/#blocks-more-flexibility-and-control)，因此请确保您熟悉 Blocks 类。
 具体步骤略有不同，具体取决于您是使用公开访问还是私有 Google Sheet。我们将分别介绍这两种情况，所以让我们开始吧！

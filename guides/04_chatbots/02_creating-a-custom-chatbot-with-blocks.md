@@ -9,7 +9,7 @@ Related spaces: https://huggingface.co/spaces/gradio/chatbot_streaming, https://
 
 This tutorial will show how to make chatbot UIs from scratch with Gradio's low-level Blocks API. This will give you full control over your Chatbot UI. You'll start by first creating a a simple chatbot to display text, a second one to stream text responses, and finally a chatbot that can handle media files as well. The chatbot interface that we create will look something like this:
 
-$demo_chatbot_streaming
+$demo_chatbot_streaming_3-x
 
 **Prerequisite**: We'll be using the `gradio.Blocks` class to build our Chatbot demo.
 You can [read the Guide to Blocks first](https://gradio.app/quickstart/#blocks-more-flexibility-and-control) if you are not already familiar with it. Also please make sure you are using the **latest version** version of Gradio: `pip install --upgrade gradio`.
@@ -30,7 +30,7 @@ We have a single function, `respond()`, which takes in the entire history of the
 
 Of course, in practice, you would replace `respond()` with your own more complex function, which might call a pretrained model or an API, to generate a response.
 
-$demo_chatbot_simple
+$demo_chatbot_simple_3-x
 
 ## Add Streaming to your Chatbot
 
@@ -102,7 +102,7 @@ def add_file(history, file):
 Putting this together, we can create a _multimodal_ chatbot with a textbox for a user to submit text and an file upload button to submit images / audio / video files. The rest of the code looks pretty much the same as before:
 
 $code_chatbot_multimodal
-$demo_chatbot_multimodal
+$demo_chatbot_multimodal_3-x
 
 And you're done! That's all the code you need to build an interface for your chatbot model. Finally, we'll end our Guide with some links to Chatbots that are running on Spaces so that you can get an idea of what else is possible:
 

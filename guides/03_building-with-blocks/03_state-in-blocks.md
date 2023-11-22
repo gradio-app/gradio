@@ -17,7 +17,7 @@ Gradio supports session **state**, where data persists across multiple submits w
 Let's take a look at a game of hangman.
 
 $code_hangman
-$demo_hangman
+$demo_hangman_3-x
 
 Let's see how we do each of the 3 steps listed above in this game:
 

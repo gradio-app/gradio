@@ -38,7 +38,7 @@ import gradio as gr
 gr.themes.builder()
 ```
 
-$demo_theme_builder
+$demo_theme_builder_3-x
 
 You can use the Theme Builder running on Spaces above, though it runs much faster when you launch it locally via `gr.themes.builder()`.
 
