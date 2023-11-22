@@ -81,13 +81,9 @@
 
 	$: waveform?.on("ready", () => {
 		if (!waveform_settings.autoplay) {
-			playing = false;
 			waveform?.stop();
-			dispatch("stop");
 		} else {
-			playing = true;
 			waveform?.play();
-			dispatch("play");
 		}
 	});
 
