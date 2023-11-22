@@ -80,7 +80,11 @@
 	);
 
 	$: waveform?.on("ready", () => {
-		if (waveform_settings.autoplay) waveform?.play();
+		if (!waveform_settings.autoplay) {
+			playing = false;
+			waveform?.stop();
+			dispatch("stop");
+		}
 	});
 
 	$: waveform?.on("finish", () => {
