@@ -23,9 +23,6 @@
 	if (browser) {
 		window.__gradio_mode__ = "website";
 	}
-	import version_json from "$lib/json/version.json";
-	let version = version_json.version;
-
 
 
 	import CopyButton from "$lib/components/CopyButton.svelte";
@@ -75,12 +72,6 @@
 			cookie_flags: "samesite=none;secure"
 		});
 	</script>
-
-	<!-- <script
-	id="gradio-js-script"
-	type="module"
-	src="https://gradio.s3-us-west-2.amazonaws.com/{version}/gradio.js"
-	></script> -->
 
 </svelte:head>
 

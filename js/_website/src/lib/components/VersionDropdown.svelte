@@ -42,13 +42,6 @@
 		}
 	}
 
-	// $: on_3_50_1 = value === "3.50.1";
-
-	// $: browser && value === "3.50.1" && reload();
-
-	// $: on_3_50_1, is_docs && reload(docs_url);
-	// $: on_3_50_1, is_guide && reload(guide_url);
-
 	$: browser && is_docs && goto(docs_url);
 	$: browser && is_docs && goto(docs_url);
 </script>
