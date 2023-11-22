@@ -84,6 +84,10 @@
 			playing = false;
 			waveform?.stop();
 			dispatch("stop");
+		} else {
+			playing = true;
+			waveform?.play();
+			dispatch("play");
 		}
 	});
 
