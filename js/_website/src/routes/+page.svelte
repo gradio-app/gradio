@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { version_json } from "$lib/json/version.json";
+	import version_json from "$lib/json/version.json";
 	import DemosLanding from "$lib/components/DemosLanding.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import gradio_banner from "$lib/assets/img/header-image.jpg";
