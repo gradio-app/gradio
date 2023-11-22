@@ -140,10 +140,10 @@ class Client:
         self._info = self._get_api_info()
         self.session_hash = str(uuid.uuid4())
 
-        protocol = self.config.get("protocol")
-        endpoint_class = Endpoint if protocol == "sse" else EndpointV3Compatibility
+        protocol: str = self.config.get("protocol", "ws")
+        endpoint_class = Endpoint if protocol.startswith("sse") else EndpointV3Compatibility
         self.endpoints = [
-            endpoint_class(self, fn_index, dependency)
+            endpoint_class(self, fn_index, dependency, protocol)
             for fn_index, dependency in enumerate(self.config["dependencies"])
         ]
 
@@ -341,7 +341,7 @@ class Client:
         inferred_fn_index = self._infer_fn_index(api_name, fn_index)
 
         helper = None
-        if self.endpoints[inferred_fn_index].protocol in ("ws", "sse"):
+        if self.endpoints[inferred_fn_index].protocol in ("ws", "sse", "sse_v1"):
             helper = self.new_helper(inferred_fn_index)
         end_to_end_fn = self.endpoints[inferred_fn_index].make_end_to_end_fn(helper)
         future = self.executor.submit(end_to_end_fn, *args)
@@ -806,7 +806,7 @@ class ReplaceMe:
 class Endpoint:
     """Helper class for storing all the information about a single API endpoint."""
 
-    def __init__(self, client: Client, fn_index: int, dependency: dict):
+    def __init__(self, client: Client, fn_index: int, dependency: dict, protocol: str = "sse_v1"):
         self.client: Client = client
         self.fn_index = fn_index
         self.dependency = dependency
@@ -814,7 +814,7 @@ class Endpoint:
         self.api_name: str | Literal[False] | None = (
             "/" + api_name if isinstance(api_name, str) else api_name
         )
-        self.protocol = "sse"
+        self.protocol = protocol
         self.input_component_types = [
             self._get_component_type(id_) for id_ in dependency["inputs"]
         ]
@@ -1080,13 +1080,14 @@ class Endpoint:
                 self.client.sse_url,
                 self.client.sse_data_url,
                 self.client.cookies,
+                self.protocol
             )
 
 
 class EndpointV3Compatibility:
     """Endpoint class for connecting to v3 endpoints. Backwards compatibility."""
 
-    def __init__(self, client: Client, fn_index: int, dependency: dict):
+    def __init__(self, client: Client, fn_index: int, dependency: dict, *args):
         self.client: Client = client
         self.fn_index = fn_index
         self.dependency = dependency

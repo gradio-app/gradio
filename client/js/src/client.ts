@@ -437,7 +437,7 @@ export function api_factory(
 
 				let websocket: WebSocket;
 				let eventSource: EventSource;
-				let protocol = config.protocol ?? "sse";
+				let protocol = config.protocol ?? "ws";
 
 				const _endpoint = typeof endpoint === "number" ? "/predict" : endpoint;
 				let payload: Payload;
@@ -646,7 +646,7 @@ export function api_factory(
 								websocket.send(JSON.stringify({ hash: session_hash }))
 							);
 						}
-					} else {
+					} else if (protocol == "sse") {
 						fire_event({
 							type: "status",
 							stage: "pending",
@@ -766,6 +766,123 @@ export function api_factory(
 								}
 							}
 						};
+					} else {
+						fire_event({
+							type: "status",
+							stage: "pending",
+							queue: true,
+							endpoint: _endpoint,
+							fn_index,
+							time: new Date()
+						});
+
+
+						post_data(
+							`${http_protocol}//${resolve_root(
+								host,
+								config.path,
+								true
+							)}/queue/data?${url_params}`,
+							{
+								...payload,
+								session_hash,
+							},
+							hf_token
+						).then(([response, status]) => {
+							if (status !== 200) {
+								fire_event({
+									type: "status",
+									stage: "error",
+									message: BROKEN_CONNECTION_MSG,
+									queue: true,
+									endpoint: _endpoint,
+									fn_index,
+									time: new Date()
+								});
+							} else {
+								
+								event_id = response.event_id as string;
+								var params = new URLSearchParams({event_id}).toString();
+								let url = new URL(
+									`${http_protocol}//${resolve_root(
+										host,
+										config.path,
+										true
+									)}/queue/join?${params}`
+								);		
+								eventSource = new EventSource(url);
+								eventSource.onmessage = async function (event) {
+									const _data = JSON.parse(event.data);
+									const { type, status, data } = handle_message(
+										_data,
+										last_status[fn_index]
+									);
+		
+									if (type === "update" && status && !complete) {
+										// call 'status' listeners
+										fire_event({
+											type: "status",
+											endpoint: _endpoint,
+											fn_index,
+											time: new Date(),
+											...status
+										});
+										if (status.stage === "error") {
+											eventSource.close();
+										}
+									} else if (type === "complete") {
+										complete = status;
+									} else if (type === "log") {
+										fire_event({
+											type: "log",
+											log: data.log,
+											level: data.level,
+											endpoint: _endpoint,
+											fn_index
+										});
+									} else if (type === "generating") {
+										fire_event({
+											type: "status",
+											time: new Date(),
+											...status,
+											stage: status?.stage!,
+											queue: true,
+											endpoint: _endpoint,
+											fn_index
+										});
+									}
+									if (data) {
+										fire_event({
+											type: "data",
+											time: new Date(),
+											data: transform_files
+												? transform_output(
+														data.data,
+														api_info,
+														config.root,
+														config.root_url
+												  )
+												: data.data,
+											endpoint: _endpoint,
+											fn_index
+										});
+		
+										if (complete) {
+											fire_event({
+												type: "status",
+												time: new Date(),
+												...complete,
+												stage: status?.stage!,
+												queue: true,
+												endpoint: _endpoint,
+												fn_index
+											});
+											eventSource.close();
+										}
+									}
+								};
+							}
+						})
 					}
 				});
 

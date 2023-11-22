@@ -316,12 +316,15 @@ async def get_pred_from_sse(
     sse_url: str,
     sse_data_url: str,
     cookies: dict[str, str] | None = None,
+    protocol: str = "sse_v1",
 ) -> dict[str, Any] | None:
     done, pending = await asyncio.wait(
         [
             asyncio.create_task(check_for_cancel(helper, cookies)),
             asyncio.create_task(
-                stream_sse(
+                stream_sse_v0(
+                    client, data, hash_data, helper, sse_url, sse_data_url, cookies
+                ) if protocol == "sse" else stream_sse_v1(
                     client, data, hash_data, helper, sse_url, sse_data_url, cookies
                 )
             ),
@@ -355,7 +358,7 @@ async def check_for_cancel(helper: Communicator, cookies: dict[str, str] | None)
     raise CancelledError()
 
 
-async def stream_sse(
+async def stream_sse_v0(
     client: httpx.AsyncClient,
     data: dict,
     hash_data: dict,
@@ -412,6 +415,63 @@ async def stream_sse(
     except asyncio.CancelledError:
         raise
 
+async def stream_sse_v1(
+    client: httpx.AsyncClient,
+    data: dict,
+    hash_data: dict,
+    helper: Communicator,
+    sse_url: str,
+    sse_data_url: str,
+    cookies: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    try:
+        print(1)
+        req = await client.post(
+            sse_data_url,
+            json={**data, **hash_data},
+            cookies=cookies,
+        )
+        req.raise_for_status()
+        resp = req.json()
+        event_id = resp["event_id"]
+
+        async with client.stream(
+            "GET", sse_url, params={"event_id": event_id}, cookies=cookies
+        ) as response:
+            async for line in response.aiter_text():
+                if line.startswith("data:"):
+                    resp = json.loads(line[5:])
+                    with helper.lock:
+                        has_progress = "progress_data" in resp
+                        status_update = StatusUpdate(
+                            code=Status.msg_to_status(resp["msg"]),
+                            queue_size=resp.get("queue_size"),
+                            rank=resp.get("rank", None),
+                            success=resp.get("success"),
+                            time=datetime.now(),
+                            eta=resp.get("rank_eta"),
+                            progress_data=ProgressUnit.from_msg(resp["progress_data"])
+                            if has_progress
+                            else None,
+                        )
+                        output = resp.get("output", {}).get("data", [])
+                        if output and status_update.code != Status.FINISHED:
+                            try:
+                                result = helper.prediction_processor(*output)
+                            except Exception as e:
+                                result = [e]
+                            helper.job.outputs.append(result)
+                        helper.job.latest_status = status_update
+
+                    if resp["msg"] == "queue_full":
+                        raise QueueError("Queue is full! Please try again.")
+                    elif resp["msg"] == "process_completed":
+                        return resp["output"]
+                else:
+                    raise ValueError(f"Unexpected message: {line}")
+        raise ValueError("Did not receive process_completed message.")
+    except asyncio.CancelledError:
+        raise
 
 ########################
 # Data processing utils

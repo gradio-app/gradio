@@ -583,25 +583,36 @@ class App(FastAPI):
 
         @app.get("/queue/join", dependencies=[Depends(login_check)])
         async def queue_join(
-            fn_index: int,
-            session_hash: str,
             request: fastapi.Request,
+            fn_index: Optional[str] = None,
+            session_hash: Optional[str] = None,
             username: str = Depends(get_current_user),
             data: Optional[str] = None,
+            event_id: Optional[str] = None,
         ):
             blocks = app.get_blocks()
             if blocks._queue.server_app is None:
                 blocks._queue.set_server_app(app)
 
-            event = Event(session_hash, fn_index, request, username)
-            if data is not None:
+            if event_id is not None:
+                event = blocks._queue.events_pending_connection.pop(event_id, None)
+                if event is None:
+                    raise HTTPException(status_code=404, detail="Event not found.")
+            elif data is not None:
                 input_data = json.loads(data)
-                event.data = PredictBody(
+                body = PredictBody(
                     session_hash=session_hash,
                     fn_index=fn_index,
                     data=input_data,
                     request=request,
                 )
+                event = blocks._queue.load_event_data(body, request, username)
+            else:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Must provide either data or event_id.",
+                )
+
 
             # Continuous events are not put in the queue so that they do not
             # occupy the queue's resource as they are expected to run forever
@@ -664,8 +675,8 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            blocks = app.get_blocks()
-            blocks._queue.attach_data(body)
+            event = blocks._queue.load_event_data(body, request, username)
+            return {"event_id": event._id}
 
         @app.post("/component_server", dependencies=[Depends(login_check)])
         @app.post("/component_server/", dependencies=[Depends(login_check)])
