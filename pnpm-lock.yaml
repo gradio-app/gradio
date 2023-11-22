@@ -279,7 +279,7 @@ importers:
   js/_website:
     dependencies:
       '@gradio/code':
-        specifier: 0.2.7
+        specifier: 0.2.8
         version: link:../code
       '@sindresorhus/slugify':
         specifier: ^2.2.0
@@ -9099,6 +9099,7 @@ packages:
 
   /debug@3.2.7:
     resolution: {integrity: sha512-CFjzYYAi4ThfiQvizrFQevTTXHtnCqWfe7x1AhgEscTz6ZbLbfoLRLPugTQyBth6f8ZERVUSyWHFD/7Wu4t1XQ==}
+    requiresBuild: true
     peerDependencies:
       supports-color: '*'
     peerDependenciesMeta:
@@ -13384,6 +13385,7 @@ packages:
 
   /prr@1.0.1:
     resolution: {integrity: sha512-yPw4Sng1gWghHQWj0B3ZggWUm4qVbPwPFcRG8KyxiU7J2OHFSoEHKS+EZ3fv5l1t9CyCiop6l/ZYeWbrgoQejw==}
+    requiresBuild: true
     optional: true
 
   /pseudomap@1.0.2:

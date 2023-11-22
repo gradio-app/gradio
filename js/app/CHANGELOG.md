@@ -1,5 +1,11 @@
 # @gradio/app
 
+## 1.13.1
+
+### Fixes
+
+- [#6536](https://github.com/gradio-app/gradio/pull/6536) [`1bbd6cab3`](https://github.com/gradio-app/gradio/commit/1bbd6cab3f0abe183b514b82061f0937c8480966) - Fix undefined `data` TypeError in Blocks.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 1.13.0
 
 ### Highlights

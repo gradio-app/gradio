@@ -1,5 +1,11 @@
 # @gradio/chatbot
 
+## 0.4.8
+
+### Features
+
+- [#6296](https://github.com/gradio-app/gradio/pull/6296) [`46f13f496`](https://github.com/gradio-app/gradio/commit/46f13f4968c8177e318c9d75f2eed1ed55c2c042) - chore(deps): update all non-major dependencies.  Thanks [@renovate](https://github.com/apps/renovate)!
+
 ## 0.4.7
 
 ### Patch Changes
