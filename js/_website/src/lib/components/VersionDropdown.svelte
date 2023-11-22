@@ -4,7 +4,7 @@
 	import { goto } from "$app/navigation";
 	import { version } from "$lib/json/version.json";
 
-	export let choices = [version, "3.50.1", "main"];
+	export let choices = [version, "3.50.2", "main"];
 	export let value: string = $page.params?.version || version;
 	export let docs_type = "python";
 
@@ -12,9 +12,6 @@
 	$: is_docs = $page.route.id?.includes("/docs/");
 
 	$: docs_url = `${value === version ? "" : `/${value}`}/docs/${
-		docs_type == "js" ? "js/" : ""
-	}${
-		$page.params?.jsdoc ||
 		$page.params?.doc ||
 		(is_dynamic || path_parts.length !== 4
 			? ""

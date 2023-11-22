@@ -24,7 +24,7 @@
 {#key name}
 	{#if url_version === "main"}
 		<gradio-app space={"gradio/" + name + "_main"} />
-	{:else if url_version === "3.50.1"}
+	{:else if url_version === "3.50.2"}
 		<gradio-app space={"gradio/" + name + "_3-x"} />
 	{:else}
 		<gradio-app space={"gradio/" + name} />
