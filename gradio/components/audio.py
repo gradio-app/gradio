@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import dataclasses
 from pathlib import Path
-from typing import Any, Callable, Literal, TypedDict
+from typing import Any, Callable, Literal
 
 import numpy as np
 import requests
@@ -17,13 +18,13 @@ from gradio.events import Events
 
 set_documentation_group("component")
 
-
-class WaveformOptions(TypedDict, total=False):
-    waveform_color: str
-    waveform_progress_color: str
-    show_controls: bool
-    skip_length: int
-
+@dataclasses.dataclass
+class WaveformOptions:
+    waveform_color: str | None
+    waveform_progress_color: str | None
+    show_controls: bool | None
+    skip_length: int | None
+    show_recording_waveform: bool | None
 
 @document()
 class Audio(
