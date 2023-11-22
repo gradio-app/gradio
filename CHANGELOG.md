@@ -250,8 +250,8 @@ Gradio 4.0 is a new major version, and includes breaking changes from 3.x. Here'
 * Removes `deprecation.py` -- this was designed for internal usage so unlikely to break gradio apps
 * Moves save to cache methods from component methods to standalone functions in processing_utils
 * Renames `source` param in `gr.Audio` and `gr.Video` to `sources`
-* Removes `show_edit_button` param from `gr.Audio``
-
+* Removes `show_edit_button` param from `gr.Audio`
+* The `tool=` argument in `gr.Image()` has been removed. As of `gradio==4.5.0`, we have a new `gr.ImageEditor` component that takes its place. The `ImageEditor` component is a streamlined component that allows you to do basic manipulation of images. It supports setting a background image (which can be uploaded, pasted, or recorded through a webcam), as well the ability to "edit" the background image by using a brush to create strokes and an eraser to erase strokes in layers on top of the background image. See the **Migrating to Gradio 4.0** section below.
 
 **Other changes related to the `gradio` library**:
 
@@ -271,11 +271,11 @@ Gradio 4.0 is a new major version, and includes breaking changes from 3.x. Here'
 
 * When using the gradio Client libraries in 3.x with any component that returned JSON data (including `gr.Chatbot`, `gr.Label`, and `gr.JSON`), the data would get saved to a file and the filepath would be returned. Similarly, you would have to pass input JSON as a filepath. Now, the JSON data is passed and returned directly, making it easier to work with these components using the clients. 
 
-**Migrating to Gradio 4.0**
+### Migrating to Gradio 4.0
 
 Here are some concrete tips to help migrate to Gradio 4.0:
 
-* **Using `allowed_paths`**
+#### **Using `allowed_paths`**
 
 Since the working directory is now not served by default, if you reference local files within your CSS or in a `gr.HTML` component using the `/file=` route, you will need to explicitly allow access to those files (or their parent directories) using the `allowed_paths` parameter in `launch()`
 
@@ -313,7 +313,7 @@ demo.launch(allowed_paths=["."])
 ```
 
 
-* **Using `concurrency_limit` instead of `concurrency_count`**
+#### **Using `concurrency_limit` instead of `concurrency_count`**
 
 Previously, in Gradio 3.x, there was a single global `concurrency_count` parameter that controlled how many threads could execute tasks from the queue simultaneously. By default `concurrency_count` was 1, which meant that only a single event could be executed at a time (to avoid OOM errors when working with prediction functions that utilized a large amount of memory or GPU usage). You could bypass the queue by setting `queue=False`. 
 
@@ -327,6 +327,63 @@ To summarize migration:
 * For events that take significant resources (like the prediction function of your machine learning model), and you only want 1 execution of this function at a time, you don't have to set any parameters.
 * For events that take significant resources (like the prediction function of your machine learning model), and you only want `X` executions of this function at a time, you should set `concurrency_limit=X` parameter in the event trigger.(Previously you would set a global `concurrency_count=X`.)
 
+
+**The new `ImageEditor` component**
+
+In Gradio 4.0, the `tool=` argument in `gr.Image()` was removed. It has been replaced, as of Gradio 4.5.0, with a new `gr.ImageEditor()` component. The `ImageEditor` component is a streamlined component that allows you to do basic manipulation of images. It supports setting a background image (which can be uploaded, pasted, or recorded through a webcam), as well the ability to "edit" the background by using a brush to create strokes and an eraser to erase strokes in layers on top of the background image.
+
+The `ImageEditor` component is much more performant and also offers much more flexibility to customize the component, particularly through the new `brush` and `eraser` arguments, which take `Brush` and `Eraser` objects respectively. 
+
+Here are some examples of how you might migrate from `Image(tool=...)` to `gr.ImageEditor()`. 
+
+* To create a sketchpad input that supports writing black strokes on a white background, you might have previously written:
+
+```py
+gr.Image(source="canvas", tools="sketch")
+```
+
+Now, you should write:
+
+```py
+gr.ImageEditor(sources=(), brush=gr.Brush(colors=["#000000"]))
+```
+
+Note: you can supply a list of supported stroke colors in `gr.Brush`, as well as control whether users can choose their own colors by setting the `color_mode` parameter of `gr.Brush` to be either `"fixed"` or `"defaults"`.
+
+* If you want to create a sketchpad where users can draw in any color, simply omit the `brush` parameter. In other words, where previously, you would do:
+
+```py
+gr.Image(source="canvas", tools="color-sketch")
+```
+
+Now, you should write:
+
+```py
+gr.ImageEditor(sources=())
+```
+
+
+* If you want to allow users to choose a background image and then draw on the image, previously, you would do:
+
+```py
+gr.Image(source="upload", tools="color-sketch")
+```
+
+Now, this is the default behavior of the `ImageEditor` component, so you should just write:
+
+```py
+gr.ImageEditor()
+```
+
+Unlike the `Image` component, which passes the input image as a single value into the prediction function, the `ImageEditor` passes a dictionary consisting of three key-value pairs:
+
+* the key `"background"`, whose value is the background image
+* the key `"layers"`, which consists of a list of values, with the strokes in each layer corresponding to one list element.
+* the key `"composite"`, whose value is to the complete image consisting of background image and all of the strokes.
+
+The type of each value can be set by the `type` parameter (`"filepath"`, `"pil"`, or `"numpy"`, with the default being `"numpy"`), just like in the `Image` component.
+
+Please see the documentation of the `gr.ImageEditor` component for more details: https://www.gradio.app/docs/imageeditor
 
 ### Features
 
