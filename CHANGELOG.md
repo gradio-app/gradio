@@ -251,7 +251,7 @@ Gradio 4.0 is a new major version, and includes breaking changes from 3.x. Here'
 * Moves save to cache methods from component methods to standalone functions in processing_utils
 * Renames `source` param in `gr.Audio` and `gr.Video` to `sources`
 * Removes `show_edit_button` param from `gr.Audio`
-* The `tool=` argument in `gr.Image()` has been removed. As of `gradio==4.5.0`, we have a new `gr.ImageEditor` component that takes its place. The `ImageEditor` component is a streamlined component that allows you to do basic manipulation of images. It supports setting a background image (which can be uploaded, pasted, or recorded through a webcam), as well the ability to "edit" the background by using a brush to create strokes and an eraser to erase strokes in layers on top of the background image. It is much more performant. See the **Migrating to Gradio 4.0** section below.
+* The `tool=` argument in `gr.Image()` has been removed. As of `gradio==4.5.0`, we have a new `gr.ImageEditor` component that takes its place. The `ImageEditor` component is a streamlined component that allows you to do basic manipulation of images. It supports setting a background image (which can be uploaded, pasted, or recorded through a webcam), as well the ability to "edit" the background image by using a brush to create strokes and an eraser to erase strokes in layers on top of the background image. See the **Migrating to Gradio 4.0** section below.
 
 **Other changes related to the `gradio` library**:
 
@@ -330,9 +330,9 @@ To summarize migration:
 
 **The new `ImageEditor` component**
 
-In Gradio 4.0, the `tool=` argument in `gr.Image()` was removed. It has been replaced, as of Gradio 4.5.0, with a new `gr.ImageEditor()` component. The `ImageEditor` component is a streamlined component that allows you to do basic manipulation of images. It supports setting a background image (which can be uploaded, pasted, or recorded through a webcam), as well the ability to "edit" the background by using a brush to create strokes and an eraser to erase strokes in layers on top of the background image. It is much more performant.
+In Gradio 4.0, the `tool=` argument in `gr.Image()` was removed. It has been replaced, as of Gradio 4.5.0, with a new `gr.ImageEditor()` component. The `ImageEditor` component is a streamlined component that allows you to do basic manipulation of images. It supports setting a background image (which can be uploaded, pasted, or recorded through a webcam), as well the ability to "edit" the background by using a brush to create strokes and an eraser to erase strokes in layers on top of the background image.
 
-The `ImageEditor` component also offers much more flexibility to customize the component, particularly through the new `brush` and `eraser` arguments, which take `Brush` and `Eraser` objects. 
+The `ImageEditor` component is much more performant and also offers much more flexibility to customize the component, particularly through the new `brush` and `eraser` arguments, which take `Brush` and `Eraser` objects respectively. 
 
 Here are some examples of how you might migrate from `Image(tool=...)` to `gr.ImageEditor()`. 
 
