@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Fix undefined `data` type error in Blocks 
+fix:Fix undefined `data` TypeError in Blocks 
