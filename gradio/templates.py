@@ -46,7 +46,7 @@ class TextArea(components.Textbox):
 
 class Sketchpad(components.ImageEditor):
     """
-    Sets: image_mode="L", sources=(), crop_size=(28, 28), brush=Brush(colors=["#000000"])
+    Sets: sources=(), crop_size=(28, 28), brush=Brush(colors=["#000000"], color_mode="fixed")
     """
 
     is_template = True

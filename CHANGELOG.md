@@ -216,11 +216,11 @@ Gradio 4.0 is a new major version, and includes breaking changes from 3.x. Here'
 
 * When using the gradio Client libraries in 3.x with any component that returned JSON data (including `gr.Chatbot`, `gr.Label`, and `gr.JSON`), the data would get saved to a file and the filepath would be returned. Similarly, you would have to pass input JSON as a filepath. Now, the JSON data is passed and returned directly, making it easier to work with these components using the clients. 
 
-**Migrating to Gradio 4.0**
+### Migrating to Gradio 4.0
 
 Here are some concrete tips to help migrate to Gradio 4.0:
 
-* **Using `allowed_paths`**
+#### **Using `allowed_paths`**
 
 Since the working directory is now not served by default, if you reference local files within your CSS or in a `gr.HTML` component using the `/file=` route, you will need to explicitly allow access to those files (or their parent directories) using the `allowed_paths` parameter in `launch()`
 
@@ -258,7 +258,7 @@ demo.launch(allowed_paths=["."])
 ```
 
 
-* **Using `concurrency_limit` instead of `concurrency_count`**
+#### **Using `concurrency_limit` instead of `concurrency_count`**
 
 Previously, in Gradio 3.x, there was a single global `concurrency_count` parameter that controlled how many threads could execute tasks from the queue simultaneously. By default `concurrency_count` was 1, which meant that only a single event could be executed at a time (to avoid OOM errors when working with prediction functions that utilized a large amount of memory or GPU usage). You could bypass the queue by setting `queue=False`. 
 
@@ -273,12 +273,25 @@ To summarize migration:
 * For events that take significant resources (like the prediction function of your machine learning model), and you only want `X` executions of this function at a time, you should set `concurrency_limit=X` parameter in the event trigger.(Previously you would set a global `concurrency_count=X`.)
 
 
-* **The new `ImageEditor` component**
+**The new `ImageEditor` component**
 
-In Gradio 4.0, the `tool=` argument in `gr.Image()` has been removed and `Image` component has been simplified considerably. As of Gradio 4.5.0, we have a new `gr.ImageEditor` component that takes its place. The `ImageEditor` component is a simple + streamlined image editor that handles basic image manipulations. Here are some examples of how you might migrate from `Image(tool=...)` to `gr.ImageEditor()`:
+In Gradio 4.0, the `tool=` argument in `gr.Image()` has been removed. It has been replaced, as of Gradio 4.5.0, with a new `gr.ImageEditor` component. The `ImageEditor` component is a streamlined component that allows you to do basic manipulation of inputs. It offers much more flexibility to customize the component, particularly through the `Brush` and `Eraser` objects. 
 
-* To create a simple sketchapd component, you might have previously had 
+Here are some examples of how you might migrate from `Image(tool=...)` to `gr.ImageEditor()`. 
 
+* To create a couple of examples input that supports writing black strokes on a white background, you might have previously written:
+
+```py
+gr.Image(source="canvas", tools="sketch")
+```
+
+Now, you should write:
+
+```py
+gr.ImageEditor(sources=(), brush=gr.Brush(colors=["#000000"]))
+```
+
+Here, you can supply a list of supported stroke colors in `gr.Brush` as well as control whether users can choose their own colors by setting the `color_mode` parameter of `gr.Brush` to be either 
 
 ### Features
 
