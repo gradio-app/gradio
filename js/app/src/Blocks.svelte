@@ -491,7 +491,8 @@
 						outputs.forEach((id) => {
 							if (
 								instance_map[id].props.interactive &&
-								status.stage === "pending"
+								status.stage === "pending" &&
+								dep.targets[0][1] !== "focus"
 							) {
 								pending_outputs.push(id);
 								instance_map[id].props.interactive = false;
