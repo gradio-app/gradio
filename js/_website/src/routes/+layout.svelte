@@ -73,6 +73,10 @@
 			cookie_flags: "samesite=none;secure"
 		});
 	</script>
+	<script
+	type="module"
+	src="https://gradio.s3-us-west-2.amazonaws.com/{version}/gradio.js"
+></script>
 
 </svelte:head>
 

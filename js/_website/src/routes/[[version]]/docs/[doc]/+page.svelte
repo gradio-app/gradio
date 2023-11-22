@@ -427,7 +427,7 @@
 															name={demo[0]}
 															code={demo[1]}
 															highlighted_code={demo[2]}
-															{on_main}
+															{url_version}
 														/>
 													</div>
 												{/each}
