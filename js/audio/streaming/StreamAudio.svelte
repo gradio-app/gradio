@@ -140,4 +140,19 @@
 		align-items: center;
 		border: 1px solid var(--neutral-400);
 	}
+
+	@keyframes scaling {
+		0% {
+			background-color: var(--primary-600);
+			scale: 1;
+		}
+		50% {
+			background-color: var(--primary-600);
+			scale: 1.2;
+		}
+		100% {
+			background-color: var(--primary-600);
+			scale: 1;
+		}
+	}
 </style>
