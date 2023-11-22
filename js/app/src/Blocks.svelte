@@ -313,7 +313,7 @@
 	): Promise<void> {
 		const outputs = dependencies[fn_index].outputs;
 
-		data.forEach((value: any, i: number) => {
+		data?.forEach((value: any, i: number) => {
 			const output = instance_map[outputs[i]];
 			output.props.value_is_output = true;
 		});
