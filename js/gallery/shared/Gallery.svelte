@@ -177,9 +177,9 @@
 				// which is not ideal, but a reasonable fallback.
 				window.open(file_url, "_blank", "noreferrer");
 				return;
-			} else {
-				throw error;
 			}
+
+			throw error;
 		}
 		const blob = await response.blob();
 		const url = URL.createObjectURL(blob);
