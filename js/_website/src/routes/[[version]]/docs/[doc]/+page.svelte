@@ -207,9 +207,10 @@
 													obj.name.toLowerCase() +
 													"_component_3-x"}
 											/>
-										{:else }
+										{:else}
 											<gradio-app
-												space={"gradio/" + obj.name.toLowerCase() + 
+												space={"gradio/" +
+													obj.name.toLowerCase() +
 													"_component"}
 											/>
 										{/if}

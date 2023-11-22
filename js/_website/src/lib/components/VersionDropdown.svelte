@@ -48,8 +48,10 @@
 
 <svelte:head>
 	<script
-	type="module"
-	src="https://gradio.s3-us-west-2.amazonaws.com/{value === "main" ? version : value}/gradio.js"
+		type="module"
+		src="https://gradio.s3-us-west-2.amazonaws.com/{value === 'main'
+			? version
+			: value}/gradio.js"
 	></script>
 </svelte:head>
 

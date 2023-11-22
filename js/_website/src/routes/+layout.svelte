@@ -24,7 +24,6 @@
 		window.__gradio_mode__ = "website";
 	}
 
-
 	import CopyButton from "$lib/components/CopyButton.svelte";
 	import { afterNavigate } from "$app/navigation";
 
@@ -72,7 +71,6 @@
 			cookie_flags: "samesite=none;secure"
 		});
 	</script>
-
 </svelte:head>
 
 <Header />
