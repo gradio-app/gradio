@@ -1,6 +1,7 @@
 import adapter from "@sveltejs/adapter-static";
 import { vitePreprocess } from "@sveltejs/kit/vite";
 import _version from "./src/lib/json/version.json" assert { type: "json" };
+import { redirects } from "./src/routes/redirects.js";
 
 const version = _version.version;
 
@@ -25,6 +26,7 @@ const config = {
 				`/main/docs/js`,
 				`/3.50.1/docs`,
 				`/3.50.1/guides`,
+				...Object.keys(redirects)
 			]
 		},
 		files: {

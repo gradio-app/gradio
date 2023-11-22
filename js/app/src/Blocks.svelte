@@ -156,7 +156,26 @@
 
 	$: components, layout, prepare_components();
 
+	let target_map: Record<number, Record<string, number[]>> = {};
+
 	function prepare_components(): void {
+		target_map = dependencies.reduce(
+			(acc, dep, i) => {
+				dep.targets.forEach(([id, trigger]) => {
+					if (!acc[id]) {
+						acc[id] = {};
+					}
+					if (acc[id]?.[trigger]) {
+						acc[id][trigger].push(i);
+					} else {
+						acc[id][trigger] = [i];
+					}
+				});
+
+				return acc;
+			},
+			{} as Record<number, Record<string, number[]>>
+		);
 		loading_status = create_loading_status_store();
 
 		dependencies.forEach((v, i) => {
@@ -229,6 +248,10 @@
 					};
 				});
 				(c.props as any).server = server;
+			}
+
+			if (target_map[c.id]) {
+				c.props.attached_events = Object.keys(target_map[c.id]);
 			}
 			__type_for_id.set(c.id, c.props.interactive);
 
@@ -374,6 +397,13 @@
 	let showed_duplicate_message = false;
 	let showed_mobile_warning = false;
 
+	function get_data(comp: ComponentMeta): any | Promise<any> {
+		if (comp.instance.get_value) {
+			return comp.instance.get_value() as Promise<any>;
+		}
+		return comp.props.value;
+	}
+
 	async function trigger_api_call(
 		dep_index: number,
 		trigger_id: number | null = null,
@@ -397,7 +427,9 @@
 
 		let payload: Payload = {
 			fn_index: dep_index,
-			data: dep.inputs.map((id) => instance_map[id].props.value),
+			data: await Promise.all(
+				dep.inputs.map((id) => get_data(instance_map[id]))
+			),
 			event_data: dep.collects_event_data ? event_data : null,
 			trigger_id: trigger_id
 		};
@@ -406,7 +438,9 @@
 			dep
 				.frontend_fn(
 					payload.data.concat(
-						dep.outputs.map((id) => instance_map[id].props.value)
+						await Promise.all(
+							dep.inputs.map((id) => get_data(instance_map[id]))
+						)
 					)
 				)
 				.then((v: unknown[]) => {
@@ -575,23 +609,6 @@
 	const is_external_url = (link: string | null): boolean =>
 		!!(link && new URL(link, location.href).origin !== location.origin);
 
-	$: target_map = dependencies.reduce(
-		(acc, dep, i) => {
-			dep.targets.forEach(([id, trigger]) => {
-				if (!acc[id]) {
-					acc[id] = {};
-				}
-				if (acc[id]?.[trigger]) {
-					acc[id][trigger].push(i);
-				} else {
-					acc[id][trigger] = [i];
-				}
-			});
-
-			return acc;
-		},
-		{} as Record<number, Record<string, number[]>>
-	);
 	async function handle_mount(): Promise<void> {
 		if (js) {
 			let blocks_frontend_fn = new AsyncFunction(
@@ -686,7 +703,9 @@
 				dataLayer.push(arguments);
 			}
 			gtag("js", new Date());
-			gtag("config", "UA-156449732-1");
+			gtag("config", "UA-156449732-1", {
+				cookie_flags: "samesite=none;secure"
+			});
 		</script>
 	{/if}
 </svelte:head>

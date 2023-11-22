@@ -30,7 +30,7 @@
 
 	async function handle_event(
 		detail: null | FileData | FileData[],
-		event: "change" | "upload"
+		event: "change" | "upload" | "click"
 	): Promise<void> {
 		value = detail;
 		gradio.dispatch(event);

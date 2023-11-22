@@ -1,10 +1,32 @@
 # @gradio/video
 
+## 0.1.7
+
+### Patch Changes
+
+- Updated dependencies [[`9caddc17b`](https://github.com/gradio-app/gradio/commit/9caddc17b1dea8da1af8ba724c6a5eab04ce0ed8)]:
+  - @gradio/atoms@0.3.0
+  - @gradio/icons@0.3.0
+  - @gradio/image@0.4.0
+  - @gradio/statustracker@0.4.0
+  - @gradio/upload@0.5.0
+
+## 0.1.6
+
+### Patch Changes
+
+- Updated dependencies [[`2f805a7dd`](https://github.com/gradio-app/gradio/commit/2f805a7dd3d2b64b098f659dadd5d01258290521), [`f816136a0`](https://github.com/gradio-app/gradio/commit/f816136a039fa6011be9c4fb14f573e4050a681a)]:
+  - @gradio/image@0.3.6
+  - @gradio/upload@0.4.2
+  - @gradio/atoms@0.2.2
+  - @gradio/icons@0.2.1
+  - @gradio/statustracker@0.3.2
+
 ## 0.1.5
 
 ### Features
 
-- [#6406](https://github.com/gradio-app/gradio/pull/6406) [`0401c77f3`](https://github.com/gradio-app/gradio/commit/0401c77f3d35763b79e040dbe876e69083defd36) - Move ffmpeg to `Video` deps.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6406](https://github.com/gradio-app/gradio/pull/6406) [`0401c77f3`](https://github.com/gradio-app/gradio/commit/0401c77f3d35763b79e040dbe876e69083defd36) - Move ffmpeg to `Video` deps. Thanks [@hannahblair](https://github.com/hannahblair)!
 
 ## 0.1.4
 

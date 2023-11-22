@@ -1,17 +1,37 @@
 # website
 
+## 0.16.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/code@0.2.7
+
+## 0.16.0
+
+### Features
+
+- [#6460](https://github.com/gradio-app/gradio/pull/6460) [`e01b67f96`](https://github.com/gradio-app/gradio/commit/e01b67f96f054b4d96cd72ce9b713bab9992c6cc) - Custom Component Guide Redirects. Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
+## 0.15.0
+
+### Features
+
+- [#6436](https://github.com/gradio-app/gradio/pull/6436) [`58e3ca826`](https://github.com/gradio-app/gradio/commit/58e3ca8260a6635e10e7a7f141221c4f746e9386) - Custom Component CLI Improvements. Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6427](https://github.com/gradio-app/gradio/pull/6427) [`e0fc14659`](https://github.com/gradio-app/gradio/commit/e0fc146598ba9b081bc5fa9616d0a41c2aba2427) - Allow google analytics to work on Spaces (and other iframe situations). Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.14.0
 
 ### Features
 
-- [#6387](https://github.com/gradio-app/gradio/pull/6387) [`9d6d72f44`](https://github.com/gradio-app/gradio/commit/9d6d72f44370c45d9e213421a5586c25c5789278) - Tiny fix to indent on landing page demo.  Thanks [@aliabd](https://github.com/aliabd)!
-- [#6344](https://github.com/gradio-app/gradio/pull/6344) [`747197089`](https://github.com/gradio-app/gradio/commit/7471970894e999f335126766549552184231e8ea) - PDF component custom component guide.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6387](https://github.com/gradio-app/gradio/pull/6387) [`9d6d72f44`](https://github.com/gradio-app/gradio/commit/9d6d72f44370c45d9e213421a5586c25c5789278) - Tiny fix to indent on landing page demo. Thanks [@aliabd](https://github.com/aliabd)!
+- [#6344](https://github.com/gradio-app/gradio/pull/6344) [`747197089`](https://github.com/gradio-app/gradio/commit/7471970894e999f335126766549552184231e8ea) - PDF component custom component guide. Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
 
 ## 0.13.0
 
 ### Features
 
-- [#6351](https://github.com/gradio-app/gradio/pull/6351) [`294414d9f`](https://github.com/gradio-app/gradio/commit/294414d9f7b53da1a870d2d96e62a75242b40849) - Add sharing to playground.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#6351](https://github.com/gradio-app/gradio/pull/6351) [`294414d9f`](https://github.com/gradio-app/gradio/commit/294414d9f7b53da1a870d2d96e62a75242b40849) - Add sharing to playground. Thanks [@aliabd](https://github.com/aliabd)!
 
 ## 0.12.1
 
