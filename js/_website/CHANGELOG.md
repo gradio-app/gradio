@@ -1,5 +1,12 @@
 # website
 
+## 0.17.0
+
+### Features
+
+- [#6533](https://github.com/gradio-app/gradio/pull/6533) [`e2810fcfc`](https://github.com/gradio-app/gradio/commit/e2810fcfc84e2d66797736d8002c6a16f5b330d6) - Fix redirected paths on website.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#6532](https://github.com/gradio-app/gradio/pull/6532) [`96290d304`](https://github.com/gradio-app/gradio/commit/96290d304a61064b52c10a54b2feeb09ca007542) - tweak deps.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.16.1
 
 ### Patch Changes
